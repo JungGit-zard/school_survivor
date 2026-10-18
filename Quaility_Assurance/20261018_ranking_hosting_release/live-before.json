@@ -1,0 +1,3143 @@
+{
+  "observedAt": "2026-10-18T11:53:42.089Z",
+  "version": "sites/escape-zombie-school/versions/65d2acb686b75f1b",
+  "files": [
+    {
+      "path": "/.well-known/assetlinks.json",
+      "hash": "f92e2d22ebe369b0022523d3ea4b436a3f9994e40f6fe4edc0ccf684aa17526f",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/__/firebase/init.js",
+      "hash": "9e14bc40ece1d233aa044be156627858e79b075a956064d9003f09273300d1de",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/__/firebase/init.json",
+      "hash": "1b4e280bfe41cd56fd077635b8a5129cbe2dd5f47a32ff6bec625d8d48021a85",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/__inucon_preview.html",
+      "hash": "62af3df94f10da944d5684cac42f510d2b9248d8a31cc7479df985ffc6623a5a",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/01_wea_pencil.png-BCA6dZuN.webp",
+      "hash": "98daa20b3dcbdb2b32a4ce0c39a81829d90e514eedb75f4970de33b535e7314e",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/02_wea_30ruller.png--iKdMnKX.webp",
+      "hash": "d461d0585639388ef54d96616a833a2c696ef9d828ffc438c9eec0793053f7dc",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/03_wea_tumbler.png-Cwo9Kly_.webp",
+      "hash": "c6f34be60565c8dd0727f33019b21f26b444a6e1bd3f25565f99353017e52dff",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/04_wea_science.png-DdRXgs2B.webp",
+      "hash": "884e25c8d1bdca6dbe5cdaae04e62ab92638aefb758ddd913175b595fc42a4e3",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/05_wea_bell.png-DFrdYHTs.webp",
+      "hash": "9de50899d2f71baf8fb6bb0fcc5bcb3637bde922d4bda79e06a2b8f9f19e27ef",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/06_wea_stungun.png-CgdLBVud.webp",
+      "hash": "ff13270217a1ecc497f39226dedf310d5c5a56edbab2dedbc5deb6ceebfb1054",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/07_wea_onigiri.png-qDx74we9.webp",
+      "hash": "b940ac90f01df242ae82ed285cc42ca6f3df7c412d1bd092f940b0521931786e",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/08_wea_extrabattery.png-CqQW-6si.webp",
+      "hash": "0ae73f7e80628c62fd3fd3f0e44cf4429bd8f1f798ceba2293059da1748a5129",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/09_wea_starlink.png-DuNsCgnk.webp",
+      "hash": "4a238920df9967f2d167c79d4d7ef5110770eb9934925be5ab1513933db6f67c",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/10_wea_compass.png-CoSy5AhK.webp",
+      "hash": "dda5d6185ed7de30c5e99fb7f887d5c82daa6835aad050e292543ba1412cd4a2",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/11_wea_umb.png-DF_JzHim.webp",
+      "hash": "046966d85cdce4995c8637a27c83ecbb7d10768f4fe7f33d2bf8acc7c2a0d6ce",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/12_wea_eraser.png-BBMoYCCZ.webp",
+      "hash": "f349bddc83304cec26e7f9127d973ef0b5d218a88b0185a92677d3933bd4d102",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/13_wea_boxcutter-x4Vwu9Oh.webp",
+      "hash": "b86483d21471c07e78ec6707d8a312725e36b4e5b35b0221c3e3b60427c42795",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/14_wea_chibiko-DSqPHMtT.webp",
+      "hash": "78d34b52c99b17d620358525b6335935db5f80925bd7f5877d88c5ac89f2f788",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/14_wea_shark_missile-ByyVEqop.webp",
+      "hash": "c00a6cda72dec7e960aa54da4547cbb2cbbcc340ee0189ee4891e0a899a4b466",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/15_wea_hanako-NT6QhW55.webp",
+      "hash": "d4be8d553f6bcaf466c9cb343dcf1398b867b91cdb7e29ffeb5edb1de6a46440",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/16_wea_lantern-D7aq4NYf.webp",
+      "hash": "cdc2a5044d564e4585a880b974f573da3e527d3f68439ca1c3943ee7ef6ba1f7",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/16_wea_lantern-a3W7qkgX.js",
+      "hash": "10ea2eda46458f0d7b3b9edb68f1a895deb2362e7221fa174a5af5af43466052",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/17_wea_bikitty_cutter-C7yprUyw.webp",
+      "hash": "924438c38b7c61b8cf14da433062f05017aa41b80712d04ad76f5b289246d9db",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/18_wea_line_draw-wTqd3kEQ.webp",
+      "hash": "816b5e0b370b4ee6f4f1b030421828d601639abf3593c86d97aa4f09df058c50",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/19_wea_inucon-hmX0ZFaL.webp",
+      "hash": "80ee992110e223d37666179c1f7cecda61328afa7624d69af62d8a3089815430",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/AdminPage-BZ0N2Q6T.js",
+      "hash": "b1b0e1dd0fc445773dd02e5272b25d91ab25b84dfaded7281731f536ebc33e31",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/AdminPage-D5a7OJnw.js",
+      "hash": "27f077998a3f0e0f6323b82624508569c6eaa09e34ae7ff02b970d6ce0a9f37d",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/App-BCLtgXk7.js",
+      "hash": "76436123967c1e692b98579f6963812e002de43cafe9e60c3e9b5a867ceb7e48",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/App-Cca_UrnK.js",
+      "hash": "4cfb61567adf6b9a8d5382a8b5f46aa6649fac74efe9c7fd203f64871cd35e43",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/App-DR7kDnQC.css",
+      "hash": "9d7eaa701d73038449f5f0a16716061c5724ce9af028c2e79e96abc57477d648",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/App-DuHvwx0k.js",
+      "hash": "1df318a30647bbdea666a963d3db9596cde77a1fabceef1ce70acd987e1fa3f7",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/CoinShop-DUVLhRee.js",
+      "hash": "2425f04d96af9353fbfed0b869c3ea2b113a04ff1cf263c0913d6b8d2b806845",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/CoinShop-h7L_yUgJ.js",
+      "hash": "5de4fbf17aa8a38cba255893c5767c5be47e7726c510199dbcecb238ca007a2a",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/Enemy-BjKQfxc_.js",
+      "hash": "6d2e4e9bab50359f31368d048dfadd32a6daef2c14ff7d0406c27a00399b088a",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/Enemy-CDuEJDIx.js",
+      "hash": "10f43d4b8757ba204833eba0355abf5d18aed8865971b52f6f9f0a13d4739ec4",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/ErrorBoundary-DvS7ud3C.js",
+      "hash": "7e9770a65ef7236ecafa0a36a4f4afc6b3cf80199d74a74067b045b1f0fbd30c",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/GameCanvas-BtUMhyRD.js",
+      "hash": "6e56c5e0967b864a068f98b3ab16bcddec70e123371025732c18a3ef73585e3b",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/GameCanvas-CRnCg6Qu.js",
+      "hash": "d83018db6989347e753dd2e7a40c4b55b4c54ccc3cef0d2d32f68827086b3037",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/GameplayScreen-CERS7jW_.js",
+      "hash": "8042d1a80c1f54cf8b7e81b42defa957939c448fc7fd77554b7bba52ad8b9083",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/GameplayScreen-D0aae3Yz.js",
+      "hash": "f84c985ba77109023f4239394f05cd2ae6f8752e325c6753bbb13c0f8d5e26c0",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/GameplayScreen-sY0kwr8d.js",
+      "hash": "f840165c04d90c66394dd9b2abe5345ac8c2d43c0c154489cf9b430b5962c9f5",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/GraphicsStudio-D4uCQn1C.js",
+      "hash": "d3a214180889173be6da1deb00671e5c445f30e715e5b8a1ecaef3d6253c760b",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/GraphicsStudio-Z1LoPRE4.js",
+      "hash": "45df31c33c339969f7d6f64526ab7f14dc60c50b454fa2c6ee2a004b7c03e96e",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/HUD-B9y96Ubm.js",
+      "hash": "e0cb5125168fd36e83484710cd5cbf0ca93a5b4f07c526eaf54e839d139c1e99",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/HUD-Bl7qPJkp.js",
+      "hash": "48ed14d169dbc972f125cef4127b39a0ffb8d0bc057848c39d4f036a3d9cec88",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/HUD-LWr1CjG2.js",
+      "hash": "7d45bc19ef69b1db7f98a8e9b9b8eb6dd84fa92f868a68ecc8b71d54d2a1a55c",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/InspectionModeScreen-dQp4fnod.js",
+      "hash": "06984f93133bec309bde0dc4e864caa2a5dc35dec4d4f17b36b330f710e9d170",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/Lobby-2vOjIP2g.js",
+      "hash": "e3251fe6e6188b6086642315d3a3ffeddc7d2dccd836b1161ddf32f8151ab6d1",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/Lobby-CGMN_kkn.js",
+      "hash": "450bebbb10ea68a990ccc73bcda3d83cafe7e8105966777612694cc4baeee43d",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/MissionCenter-CCSJnK8g.js",
+      "hash": "efd89d41e2690eff0b99b930af6b6eebdf0fe96665b75d4ac124ea5ad4dd29af",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/MissionCenter-KZ8UFcpW.js",
+      "hash": "13a1659020aabeb44fbca71c03da660fcfa5b5cf7fa58cf73ff656a536667606",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/NanumMyeongjo-ExtraBold-BBW5PR_W.ttf",
+      "hash": "9e87ce53e90eaa9fb6639bec0e6ae493f41ce9b1b5fe836a7061ab83f4a06e51",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/PLAYER_v9_final-CP2GLhdE.glb",
+      "hash": "11fa43fb7d131cdbc9e37865091d950782715566571c2d403f4963c10492fd31",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/PlayerMesh-BibVbziE.js",
+      "hash": "de76ec7937f1e311210f4a993c13faa3be5748eaa5d16016b755ac89b2de9071",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/PlayerMesh-DrBP9LNa.js",
+      "hash": "b25c2364967a8cba530b78c43aaa30f872d0ef9d270a18b77fb39e8b316f653f",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/RankingWindowTabs-9nQd0bgi.js",
+      "hash": "05a8804682213ae615b8be60467487db7f969818ba5d9b1cc1f7b16e39a5bce4",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/RankingWindowTabs-DxwbTu3X.js",
+      "hash": "1b2061e1fe024b20853aed2524e1ac243e6f5c2e129d157bfdeb88a2b40574aa",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/ReadyGameApp-B-gLSYMP.js",
+      "hash": "3c0a10a078ba9964ba2d37a1af42d1b46a288be37935c45a1f2e3cc7a59e9c51",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/ReadyGameApp-BpBZcTW3.js",
+      "hash": "2e4a52d640b49ba2dbbdc8fcb4b1896de7494ca4e8b25a814392625e15c7fa20",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/ReadyGameApp-zmdYO3LU.js",
+      "hash": "bc9779c38a87ca498437447f686cb366e875ffbd53a7be445bf7ec921c6e7989",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/RosariRoom-B-Ib9pwn.js",
+      "hash": "92ee720018c972c45ad822a00c74274e3aeddba7b271b8f68333d781686667f9",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/RosariRoom-CklQphx-.js",
+      "hash": "24a819eb0b9dc9adb613cf9435d107a8b8c821b644161e3a50c5526f9a089d43",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/SfxLayer-CGjhlJ5X.js",
+      "hash": "f0a3b0108933b3fb4201dc8c8d02cd352919a48824dbc66fcef526a29c64059a",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/SfxLayer-D8dDZZjY.js",
+      "hash": "afb6d3e681e2c8d37fa3f6af9fd25a0828c5379e88c2e330304b5a1d73acc563",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/StageBossPreview-DVGAdCpn.js",
+      "hash": "f5793c4c8910c000a33979fd3b498b5dd2f1d2c05cf276d765189e061fe46e38",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/StageBossPreview-DeJ2Zp4q.js",
+      "hash": "0d78be19f9a0ef82c6a7e299681821298b3d7a3368b7b9f2305c1532dad97d4d",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/StageRanking-B2CF_k-M.js",
+      "hash": "72a6abf758e0edb8a5c6d812eb683cce8fe3447917fba5ed632bdbfcbd9fd589",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/StageRanking-BlKwmxtG.js",
+      "hash": "e241080f254e23c00cdc7c1185096f3aae86d7ab5280a9e9230466689126c30c",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/Starlink-CZW6mfdP.js",
+      "hash": "241f7aefb81f4c29a9b6d5540d9948c4e1a047d6d2caf4ac08e8bc627307719c",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/Starlink-Spg_FXWc.js",
+      "hash": "edd93ed1e9ed7841ec3a54b7fec03ed689f3596eb65156a4847f4a85a7e4586b",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/StarlinkSatellite-Dk-r56Rd.js",
+      "hash": "50a6926302c7d38e1c8dcd2bbab7c0852c7626a6e302bb0125ec0f50faa7a9e2",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/StarlinkSatellite-NWD4J0_M.js",
+      "hash": "dc20a63bf94ac15abbd1e052ee73617b69088f12226eaba406ded8ae024640f1",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/StudentLantern-BWJEPpRr.js",
+      "hash": "772f9cb081be559cc75b7baf874a4844ff955f0a8701e869f312332b50dd3d67",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/StudentLantern-DiYCCSy3.js",
+      "hash": "be93459667d916ae5490895f5e540949958936cf39bc3aca8f25c9ec0e8626b7",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/TitleScene3D-CezMTYxR.js",
+      "hash": "543888bd7e84563e02ea56b37ec1f93d214454561d5b60f995aa071748aca1f9",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/TitleScene3D-D1_6GjGu.js",
+      "hash": "aeb4f38c9e11d40214531fbc16a9931aa5b4a787120ba0c9be5f36fd0db33fa7",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/TitleSceneCanvas-BT3sudcw.js",
+      "hash": "be27eabd5048fcfcbb442f6f0476c867ecbd28ade6b14fcf520feb064a1b6963",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/TitleSceneCanvas-CHH-Wyit.js",
+      "hash": "1611b056e49e2901315d74ca565e9cc730447dcfdf3f947271e763e33678909c",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/TitleScreen-BEUUhmGu.js",
+      "hash": "0af12d1e924e296c5a0e9206f43c05559bf70df12fcec3367a20d556bc253bf3",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/TitleScreen-C2JsYCo2.js",
+      "hash": "f36af98af8267d2bb52b57392398bd5b2c7392cc9a06af4171d6fd04cce7138e",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/TitleScreen-CjNnkalO.js",
+      "hash": "56bf6ba6588e86f0dc1df748dfc4000f576fef8d4170a40893ee85466ecb75ac",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/UserRanking-CRVS8-Uh.js",
+      "hash": "2c179a289940bcdcbea851e9ba7c5907555bc8cc95a908ad2259fb48e8172280",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/UserRanking-CbrJVzV72.js",
+      "hash": "d3705995c7eddfcbe9b8e9bdb1bfb77d632689fcae38a29c28f83021033662f7",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/adminConfig-wHY8Izbx.js",
+      "hash": "bec7cc88a3c6f0b8a3cf510f2686ed9f8d0fcad8041f2def4eede418d381da3a",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/b01_math_teacher_face-AgOlmEPE.webp",
+      "hash": "c82d82483c193e5a6420e28b377513140e66baefacf9efc47241901f70f73ebb",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/b02_stage2_boss_face-CmMtA0k6.webp",
+      "hash": "b6a52c662a76f8e4cbe1643dfae7b8b7ed288bcf10e8e4f0683e8f3596fff9d5",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/b03_pe_teacher_face-w4xtQOlr.webp",
+      "hash": "c70283e3a9ca90ad190cdb1de886ace88f72bba672162fbc7848ea5e7a6486be",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/b04_chef_boss_face-ocMzdQdL.webp",
+      "hash": "619ae46f1acddb104170ee6a697d1dd26f4c8d7d4fe3c1e141838cbb56f75002",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/burstEvents-BTgG8uHd.js",
+      "hash": "87beb2e51893c84d40998de9db9897a96972fade2c5ef1c64ef9b3529b3a3896",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/criticalScreenShake-DZwTKshQ.js",
+      "hash": "2070fb48b709128a745d04ab9a552c379068c287be916006f48dc8e131754474",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/dialogueStore-CN8xdsoQ.js",
+      "hash": "11d6225cceea154ef7b15a3fe1f81cc46b1bacd608e34e57b02cd37974f91294",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/dialogueStore-D4HAsaaO.js",
+      "hash": "8863f50fada9a2e41571b194abdbd7afd272168763a9fe58ac0a26f9273c3640",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/enemyDeathSfx-CmVK2h0Q.js",
+      "hash": "c75bfb4f4ad7e47806bdae74908909ef98f482c0c22aa821fcc75aad9869931c",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/escape_success-C3sqhZlb.png",
+      "hash": "1690f1f4f10f4ad15873a7dd33065166db505b70818fec0e1a23654c3007dae2",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/firebaseAdminVisitors-DAcCTAfK.js",
+      "hash": "ccd225792ab5ee7e2d7c74fda4eee10b4ba963c02ea6513e19c5f43e91574f68",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/firebaseAuth-96kQh_JD.js",
+      "hash": "103b7996195541902d57823a1260922df9b22ea389ecf453acfabc228f3babc7",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/firebaseAuth-DOg0XVO2.js",
+      "hash": "bc6ff2a2a281b5122d194775623b7bdbc420b4a205ae3ee78a8c030141fe94db",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/firebaseBoard-BB_nSGHH.js",
+      "hash": "631e1dce154931f13acad855e170321865024512adcc27c604616fcf9147b5d2",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/firebaseBoard-CIrpKpOk.js",
+      "hash": "69c42d9f51f658cc990863f76c8d7d3998c9252a5ae1ce72f06a21e679bccc7f",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/firebaseBoard-CJ_nywUy.js",
+      "hash": "9e4ba8415580d7a71604691456e36ae429f81ebebdb2502564b1cdc4d3ff3191",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/firebaseInspectionMode-D1g0Uqlb.js",
+      "hash": "04bc050d1cc9d3628e14063bab806093b33bbb9a5ccf9045bbd9984d2270e3bf",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/firebaseInspectionMode-DG8ceFuf.js",
+      "hash": "5469ae8ee8b89bb55f078d5dfdaf53f17a37c38c1cb14a51e56424975f8ef0d8",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/firebaseProgress-6lJpFfuo.js",
+      "hash": "d120e30f7fe597b69d00f0d9fec7044001a705800dfd2682dca82c72809611cd",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/firebaseProgress-DKUaDh2t.js",
+      "hash": "3cdef05c4696d8cacd21b973921131fba744f0bcf1ec067020724e2a7bc80065",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/firebaseRanking-ByFrIcSw.js",
+      "hash": "e06b6371d5c6285055ab2e5042eec98f3577628657377489dd8973580015eebc",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/firebaseRanking-Ck-ltzwZ.js",
+      "hash": "f667f5e30981b5ed9618ff84803fdff1d8e6c6dabf32070a49f4cf38be626f07",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/gameCanvasLoader-DEO8eDS2.js",
+      "hash": "54dbd5c996809615691e525ae0b3c6db0cb0f747aa7f6858c4ecc67c94f7c4af",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/gameCanvasLoader-DNhndQ3R.js",
+      "hash": "31e77c59ddf5a5d0ff0f2eaa8bdb06e99c676f76aa9ada39790cc0ed4586b75d",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/guestRankingIdentity-Chk2khdy.js",
+      "hash": "24fd9ef4a0d32e9085ed990f1a355371e0964e341c6145ea8160fbd2c3bf78ba",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/guestRankingIdentity-y-Mv-E0T.js",
+      "hash": "2dbb105bb011aae356b1a56d53528f076fdaa640ac6d67111b08742dec42e2e7",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/index-BHczy9mu.js",
+      "hash": "074dfcd39934635e58d72a3e8ee3d24e80578df1c9271d3356977950487a07ef",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/index-BNuo4AR0.js",
+      "hash": "07aef7fe0bc63848fc32bdba742ce6d4b30e94292d062a2c393861e07a955a5e",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/index-CKp1hXu8.js",
+      "hash": "c73ea080e212f29cadb56efcc93fa8e126f3e1412ab203d89fd0009830d1b4f6",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/keyboardInput-Dx2_K2DC.js",
+      "hash": "ce507c89b09be55d5910b45bc7e87f8a56ff96ab787a8b995e3c1a7792c5da3f",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/laid_man-CjuHoG2v.webp",
+      "hash": "912bd04c2124164c08bd5901c9219d8420cccef40792333fcef4e5391647f3f0",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/legalDocuments-HKYyQGPG.js",
+      "hash": "21ee27631c4d9754b035e5387032f30ebd085d89d42d890c7796ccb5a2167b44",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/loginContinuation-kKViRFZY.js",
+      "hash": "f709a3a515caa3e4b5cd293be5db23a2e544e9373403bd73eaf9ec0688d0da4e",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/matilda_conversation-D4eb2SDN.webp",
+      "hash": "f22e62c214a04ed98b950af2234b089b37f4481a697f364d749e3846a503e54b",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/matilda_face_texture-BJSc26hx.webp",
+      "hash": "66b2274b7a2a2c28b0deee570d860609628608542489af1658268d1f26e2bfb9",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/passive_growth-Ub0DpnFj.webp",
+      "hash": "18ba0a68a9ecbb162675b14c41c98133a90e0fcf699b73327930b965480adf1a",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/passive_magnet-DX21mY-K.webp",
+      "hash": "a391d01f6199bbb99601681e0bd9fe319673c2e9bce1ff483915075c1b095177",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/passive_maxHp-f791Bl06.webp",
+      "hash": "515e3f5d6fd7ba7a845deb943b30f284fd6e318cffec2f37dfd99e8fda353459",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/passive_might-CvqaGbvo.webp",
+      "hash": "5797e688a1e4f783b0c995350885c0e083e9561e3320da0b87132b8660a94ab6",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/passive_moveSpeed-Ddt6CWOl.webp",
+      "hash": "a3e24e7564cd3219544a6dfbd7fe62d250452e20862a195250c7d2065f181758",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/rankingScorePolicy-BxBzj4oZ.js",
+      "hash": "7ce1a64502beed300144139ef087dab5387f46ac07194ece456dc436bdde6ec2",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/rankingScorePolicy-DXGgQBuP.js",
+      "hash": "5910ff046c35abab6ef37df6d9c25c40fbe3b435ff065f4f2fdae239166bf26f",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/rolldown-runtime-QTnfLwEv.js",
+      "hash": "c29d92a968891d131e540216656a16cd917e65b16a9ad408e0b463b3578acfa7",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/rootBootstrap-CHz5aGKA.js",
+      "hash": "62c9f8015a58fe860945f142d78fc0699705e5f7bbe7062321481c06b05a5bc2",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/rootBootstrap-CYZPv32K.js",
+      "hash": "701dc2a3fc523126aaf5c618a19c9bfdadde66791ab0ca38f0d09b762ef61abc",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/rootBootstrap-FbJCdMJO.js",
+      "hash": "ec1b5c8dfdcd2ac369597222b7c753eeb1e9ef2a901f0a90c2da3ed7fb69047e",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/rosari-room/PLAYER_wholebody_refined_t_efe49b7c.glb",
+      "hash": "ef5ce16912af38d926938195b2a9a2d8a91af329958c7db6ad732c223d1694cd",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/sfxEvents-BqG3xOTU.js",
+      "hash": "a45dcdda991bfb7b50b6310aa57a1eeded325c78dd2121a770c5176795a8c320",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/sfxEvents-D_6trbQR.js",
+      "hash": "0111e671f0a4ae451cefe38b8ef65a0a746a4b1b3109d6f9e5c66cece4ba0777",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/sfxRegistry-DDjltRwg.js",
+      "hash": "e090063f33fb863fea19dcc6bfbe5d9ced4092dcf0b6bf64eee2d6fc379b462f",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/sfxRegistry-Dda4KoZO.js",
+      "hash": "6e5993b0c23655738bd50da8171c7e7c83d1f3ebee18b1f8f9ab70ecbe0e0715",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/stage02_corridor_end_wall-jqTILQol.webp",
+      "hash": "79dda0b440d5cd36cefa3c37562abed744da61626c79d397215c8041c38799f3",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/stageConfig-Bm4OYe2o.js",
+      "hash": "2f0254d2d28739591a101c4163f7f8a8f6a75eadb75e94fbab566ee86fc90205",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/studioGameBridge-DjPTxqsQ.js",
+      "hash": "d6f68898e8fda4e1345d4529a2719570efebca5209933b5cf86cc066f5a3c9c2",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/studioGameBridge-ec1vyQXn.js",
+      "hash": "65bb72ea7460a8c4f6e5336229f84f066bfd221277e3f309a3291a29b0d336c2",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/studioLocalStorageGuard-B8dLn9mU.js",
+      "hash": "555b6581eda80ace1c43f35f73e231f815e39644dd6809315a5b136d6550c47b",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/tile_stage01-CL-obORt.webp",
+      "hash": "0d56352e4f7f616a449ea75a25ae2319a616dc083407cb1a522ca9fe8f86daa3",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/tile_stage02_corridor-EOlVCldQ.webp",
+      "hash": "06081dc5f1abd7fab64afa48660a93bc06b0fe4796813c704d2db6a16b504bab",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/tile_stage04_cafeteria-DgiHyMYw.webp",
+      "hash": "0c2da356c0ca31f48a11c9579bdba65c7acba1e196c0049363dc6d9196a1d8e8",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/tile_stage04_white_ceramic-BKtZIXTa.webp",
+      "hash": "a9bb4e432b3a51bf05798f8819937fbf43a30ba63b33efdacb25ec688cef5ed9",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/title_bgm-BMjuXxkY.m4a",
+      "hash": "715e8c596f6b77c4d2f4ef9c19b139a94ab314671d3279427a033d6ab8c0088b",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/uiStyle-94ius156.js",
+      "hash": "692a920174c906b4d2700f213e91b084866ee56d027ea364130a974c11ffde37",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/useGameStore-Fazgztmh.js",
+      "hash": "1a4b7327546637bee230782a642ac89db9013698e936fbbdbdd0d85ed53f2c85",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/useGameStore-GmeRHCr0.js",
+      "hash": "c4002a8a7a535c70337c1cec2e04453c610f62933a5af8411af8971afb9b30d0",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/userNickname-DiXf1rVW.js",
+      "hash": "8fbec3f11ab792232d5093f5e4f31f6f107f0e126884bc7315f0b7aa40fd0f6b",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/userNickname-s83y6oMe.js",
+      "hash": "9907934dca37aac95b6e018d6d822b2094244486136a058c4e516727dc838c9b",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/userRanking-DstFZuy8.js",
+      "hash": "5108ac340012e100d641dd8445fa8b71a197c88f63d5aebb81a9c913f05c909d",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/userRanking-JxU8UxDX.js",
+      "hash": "357ee8e7e2de8ef67af05b16030e2282f68a7d1401b73140fa917ff9b15076e7",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/vendor-DNWj4Jdp.js",
+      "hash": "4380312f65037231e1c9b9256a76eda206bb2c3042bc6dc2cc1b1ad5c3f4fefd",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/vendor-firebase-Dn9ut2EP.js",
+      "hash": "13b9e9d8cf30d9e639d1918c285c6611d8558941d394e2c2987b096039d34e3f",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/vendor-firebase-qnqWue91.js",
+      "hash": "6eede7f8cef44ad29ff5aea75beb629a94efcc18fbd39b3ad7336beec9b7ecc5",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/vendor-react-CtRwZXJb.js",
+      "hash": "681c26a6ce7353b622a40ec6ce11d270b9ae8de9f9aa7ec0103b56586d532ed2",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/vendor-three-DR0IPtWb.js",
+      "hash": "34b8a93e5627f6bac36dbe04d516e32e4f0b73c8d6d4be9974453574d69f3596",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/vendor-three-Ipto1SGk.js",
+      "hash": "1d367b4cd23b6211b1efbb0fea1c7810dc2d8c3b0911f3a61216e046670038cd",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/waveTimelines-T5OEa1x8.js",
+      "hash": "66d9ee7a30d03abe68ab386c09088ffcbf5267b40458b7d593e548d4ee2fb320",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/weaponTargeting-BliefZpC.js",
+      "hash": "c114903ea60b56ccccb12091852b0ba492054859396336d9a3000959ff886286",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/weaponTargeting-CtD1kcvF.js",
+      "hash": "4cdbf5de1962406a3a4b7dd0fc808856f4aaf8ad0a2ba97efa56d37f38c481a1",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/webBackgroundAssets-CJJbexum.js",
+      "hash": "d217d1852f7761ef02fa7547d31814d5f5c95a37caa228fbb163c2194a191513",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/assets/zombieBoardCopy-gKJiEn_-.js",
+      "hash": "968a11f4b9d6354603b3c486d50d49a4fbe2b86cbaf4b1d1576b3f966794a581",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/comics/backlog-20261015/en/01.png",
+      "hash": "20f740bbcd834db72108c61968c2043c46b1e116f5ea790d775d11d98f3d777c",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/comics/backlog-20261015/en/02.png",
+      "hash": "1d11e475ab7b5a54a202d377498f38e5ed15e873bf0dd82c5c52d7feab30eb42",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/comics/backlog-20261015/en/03.png",
+      "hash": "e6176cac54022bc29124747350f3b568cd3b86512d6a8de66b141a5085ba37cd",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/comics/backlog-20261015/en/04.png",
+      "hash": "25c952ddadaef73fc645d349f5a9f1bf99ca52e13d9c8fbdecd8eecc12d20467",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/comics/backlog-20261015/en/05.png",
+      "hash": "858d7f9f789953e914e6bf9e49a30479b7ee96d5b59510ec2b24b8b6d6e5dda6",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/comics/backlog-20261015/en/06.png",
+      "hash": "4d370f0e1804c54390d9ad3290efbaddbb2b5ba1aaaa8acfbf9bddbb79e739c5",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/comics/backlog-20261015/en/07.png",
+      "hash": "62dff4549af34f09dbf5f3dbe14a561a4e945d9c3bcf5cd57272bdb0daad4d1e",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/comics/backlog-20261015/en/08.png",
+      "hash": "225655588d0773218761d90c76aba7d21fffe88a225d81dd2d3336bd4dd120da",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/comics/backlog-20261015/en/09.png",
+      "hash": "e07be738a230fc64b08acf92350bc02e8b771e6fd48e43d34255d30c62606339",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/comics/backlog-20261015/en/10.png",
+      "hash": "d6dfb0b5efe25beb4d3935ce302a43b14d4971ba757cbbf4f336d7e2da247f49",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/comics/backlog-20261015/ja/01.png",
+      "hash": "851de3ef6e17ffc6e3f49ab75710d3128962d65d48b651b2a4c1c5ccaa28e9e4",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/comics/backlog-20261015/ja/02.png",
+      "hash": "e6373e0fff0d414c73a901af29b3a98856ee1d45649fa68af2c5ad5dda53c90e",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/comics/backlog-20261015/ja/03.png",
+      "hash": "264064b439950d7cc8bb887261d8c830a80e4b2015f7dd618ff2e6bbe51361e6",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/comics/backlog-20261015/ja/04.png",
+      "hash": "47b3f2573c5eb82cadd01f119b5310b361b5747f8018bf2dbc6cd484ec301aff",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/comics/backlog-20261015/ja/05.png",
+      "hash": "c11477e63797ba559e2db406dd9d87aba3cb5c24118d6ecec6bebf0b4f5b5575",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/comics/backlog-20261015/ja/06.png",
+      "hash": "fde6a2be150f0d227f8c8eee34bf64c050bfac8c403826e1c879d1b870d475a9",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/comics/backlog-20261015/ja/07.png",
+      "hash": "3af2613dcebd61cdfa989c2c3660aa90d89107fa217dfa71ab35f4bcf7eafaf6",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/comics/backlog-20261015/ja/08.png",
+      "hash": "d54997d54ac9e7dea6f96757b65755d377a682c784c696b740e24395222b589a",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/comics/backlog-20261015/ja/09.png",
+      "hash": "8d036b3e2b848968222758f955211e5a1c6c353fa9c8ef37518b3fd766030a2f",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/comics/backlog-20261015/ja/10.png",
+      "hash": "8beb144bedb77b2c4e1f35e483bb6e2660ef424ed6e53f9acfc2331607fadb29",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/comics/backlog-20261015/ko/01.png",
+      "hash": "fe4f59546af433f0072489877fe86dea9de14fc96c41fc8691519191f7d09753",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/comics/backlog-20261015/ko/02.png",
+      "hash": "1de9b4ea7d1496ce1e569585c89a5019fc636f38f833cfc59a26c695a6a237ac",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/comics/backlog-20261015/ko/03.png",
+      "hash": "519c7f4bc62679b79f7977d3a8b805527959519cc70f72dff343b71de0457d62",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/comics/backlog-20261015/ko/04.png",
+      "hash": "9bc877624d180c8e9ae934dcae5e39fb57a0d74e474b16e6e8ea30e7e3838a69",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/comics/backlog-20261015/ko/05.png",
+      "hash": "7ee11020846b4837d19dc7b2728f8e5f088540771c5909428a967680068ed374",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/comics/backlog-20261015/ko/06.png",
+      "hash": "9f2a4fdec85f3c3fab9160e11735097635e87876358f8d87f8352c14ce3f21a4",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/comics/backlog-20261015/ko/07.png",
+      "hash": "c160ac2ed625433c1c088136fd090a6b2005a0b3d70fa67f1b8be16ea80175fa",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/comics/backlog-20261015/ko/08.png",
+      "hash": "f04e916088735141ea20578ed27e43082e2b68bf32f674017548c274451bc610",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/comics/backlog-20261015/ko/09.png",
+      "hash": "2a6dd289a9ee012b2f6834960efe0286adac43e02e23d6d2a0f0adfdefd22cd1",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/comics/backlog-20261015/ko/10.png",
+      "hash": "5b426e9c8f1be1e19871e027b877fd44ada909ef961ae1dd11dfd5e19b7aa581",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/comics/backlog-20261015/vi/01.png",
+      "hash": "4cb4292cb262a2a919f9c1f4f37e03c3bce79b06fb0328e9428db2f101ad264a",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/comics/backlog-20261015/vi/02.png",
+      "hash": "c6abf7ca4bff8354a645747af4e1ab8aa832b700d265ac31939f06ca42b61ed5",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/comics/backlog-20261015/vi/03.png",
+      "hash": "d693e8c2ecee0bf35fc88f80284a494a16ed4cfb773ffef25f868027fcd502c8",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/comics/backlog-20261015/vi/04.png",
+      "hash": "70afc9f265ccaa60239cd985666dadc633555c831a47444f7f85aa1bc0d457bb",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/comics/backlog-20261015/vi/05.png",
+      "hash": "b5d94a8cb99e86f5eb6f2744ab5e950407d6766b9aa29e9bdf56920ca798a28b",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/comics/backlog-20261015/vi/06.png",
+      "hash": "e35a65dd12beef5be9df93875746d16e498362f15727263ac155de2f89c684ee",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/comics/backlog-20261015/vi/07.png",
+      "hash": "11f4e0158e0e9bfb4f3338a65605015a4cf11fdd1810df4bf98920b306a480fa",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/comics/backlog-20261015/vi/08.png",
+      "hash": "6ac73a4ce91404d65592d67de4a34db145af2db555a1ff80c67157f91fc0c4dc",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/comics/backlog-20261015/vi/09.png",
+      "hash": "c97b9a2a29b984cfd71c4efc09d44c112d3dfe77764994daebc0410d910242a3",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/comics/backlog-20261015/vi/10.png",
+      "hash": "ab8e23a5a345fc8c031c97efb4c710ad019c2c10285732ab0ea68aafbe0c669b",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/delete-account.html",
+      "hash": "c2b065ef00969c6441488fdb943a899b3fabeee827f83913941a7d6375f189b2",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/favicon-game.svg",
+      "hash": "a2036ee463cce85ff5ebbce51889643c622ebb2fa61d1c74c94a2f5dd1758072",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/favicon.svg",
+      "hash": "4957388cd707bc55f46ca9b6e14c38550155d95ff8eb0b0a23be91d42b04ddfa",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/index.html",
+      "hash": "2342d1a44289488ed61b97e11288b549ab5d1ead620857cc16469e58a2b224cd",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/manifest.webmanifest",
+      "hash": "9e90e2e4fc794ac5aa3fffb591b77256f6bfc14ab6086d1dae4ea69153bf638c",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/privacy.html",
+      "hash": "4e3cfae680e2ef67a915c8dc5fdb673dafefd95ee7f51345a5b40f066a56da80",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/enemies/bossDeath.mp3",
+      "hash": "53d3278fcc8723394233f0ae76be3ae2533d6b9dec1d154f0e290b9a2ae2e9be",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/enemies/bossDeath.ogg",
+      "hash": "9213e294aa4d83741ffc7df3c8a62320a082b08b6051a2e1a4153bda867ba77f",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/enemies/bossRoar.mp3",
+      "hash": "46787c50ecd958325292ca2100922195320a291701967bee2e0ac64a3014cf85",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/enemies/bossRoar.ogg",
+      "hash": "7ac6b89c8cd39aabcf9d2fc10a91106804240d232f3d780f529ba074783bff42",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/enemies/dogeDeath.mp3",
+      "hash": "c8e3d4f4d7cb6f5f01e1aa1bb728cc5a7731981571e8ad6fcad8be03ba74d900",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/enemies/dogeDeath.ogg",
+      "hash": "2975cfe588075de0fd03e37dc66a35a2c531a04424479037b67c58f280ec5b0e",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/enemies/dogeEscape.mp3",
+      "hash": "6e5ec69d8fb2ceb1feeccfbbf0cd4edefe8ac345d7831b239b4dea23daacebf5",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/enemies/dogeEscape.ogg",
+      "hash": "7523df7cc68ccbab2c6b9b2641242e9c16b000ab9cfa741e2074acc29c7425ca",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/enemies/dogeYelp.mp3",
+      "hash": "a63a4e76a787b44496959cb47d144f96dba74683ff1257667b2137d3b51fe38e",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/enemies/dogeYelp.ogg",
+      "hash": "91ada63319f179020e4d47b0e228d759c77fe06464f83fe3f9b4a0cccd5e4e70",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/enemies/dogeYelp.wav",
+      "hash": "a2901754f13fd6d87ed53bccd5ec94bfec9be83589c0423a23405f00fa63ccf1",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/enemies/inuconBite.mp3",
+      "hash": "a3b3a457b8147074d8105adb3ed3ea9c16f9098c7ec9a31b3de5a675a5586473",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/enemies/inuconBite.ogg",
+      "hash": "2095e0dbd5279039d8da2d30d5f90fc4e2c68221d5c7e06f9bf2262eaa852e10",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/enemies/inuconHeal.mp3",
+      "hash": "fe6ddd7f86d19ad59e448204a1d2b55af47be9af69a26c893394220206f3cad0",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/enemies/inuconHeal.ogg",
+      "hash": "8d14a28c5049bdcad1cbb1324f24f140e2c45d48fa9a3cd7c010e9e6ffecb7c7",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/enemies/matildaDash.mp3",
+      "hash": "0ed994cf97ffefa0b5b6784f78e04143ae4466ea3443abc3521cccc123ee387e",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/enemies/matildaDash.ogg",
+      "hash": "59c683db5eee4045168cec4b42fd133bd9439bcc0b0eb4cef032eb3c2d4043db",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/enemies/matildaDeath.mp3",
+      "hash": "581e20520e217f570b563a48b61c2a2e152673e4c2199e421e02ec20b006b0a9",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/enemies/matildaDeath.ogg",
+      "hash": "bbc403ee17077ba6ae8e4a57a3b0035d3635abd668317874b26c938d9d4c4b3b",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/enemies/matildaLaugh.mp3",
+      "hash": "16f61298f164247b4fbbce678156059ed9839c5d748f60fc480b774b228f0389",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/enemies/matildaLaugh.ogg",
+      "hash": "1ae8ba85154cb7a67ed033b8caf11c90923407a8e47799d3433eed140b0e95b7",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/enemies/matildaSpawn.mp3",
+      "hash": "f07809bee84a96ed379b099ef01555295b91291f6c9ec3473ee0f4f28a67a11b",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/enemies/matildaSpawn.ogg",
+      "hash": "4c29a3be1ea0b433c7d98f89561c90158c9e7af72f5845a34271cd313121fe5b",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/enemies/zombieChargeRoar.mp3",
+      "hash": "ecc1d71597f6d19a122cb8b4d6b46eaaa3250137e6b2089fb56d7af7d0a6ead7",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/enemies/zombieChargeRoar.ogg",
+      "hash": "02ec161aa4b9eed7d4c5299700db06a5d2fe2a3ce78b12ff5a68b997a5e9816a",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/enemies/zombieDeathBellow.mp3",
+      "hash": "7514c2d8562e6cfed30e74478f9d7fad36ec5908d14b95080aa185157fe752af",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/enemies/zombieDeathBellow.ogg",
+      "hash": "07c31a1b242d03e803cf72235e2d6c55bfa6665ee07a7566e8852503532453b4",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/enemies/zombieDeathGrunt.mp3",
+      "hash": "9617cb3a57c88ba33dd58cd384bb8838a2f71ba116d7b83216bec8f95368e6a3",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/enemies/zombieDeathGrunt.ogg",
+      "hash": "696d5ee6b8806c67c3fb13cab5c8cf3839c1b9e1db00cc0fcab85a1661fafbaf",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/enemies/zombieDeathGurgle.mp3",
+      "hash": "a515fe2ec8e2b4aae10c2896e12057c62ec31ea58e98351bdcc472602df49b48",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/enemies/zombieDeathGurgle.ogg",
+      "hash": "94bc37d036f8c6716c727c03d8312dde0ce1b5939d9fba9a3492f9a1b5f3229b",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/enemies/zombieDeathHeavy.mp3",
+      "hash": "ada86d1523f9cd4377a1fed0265778002c82e4334c0a91dd7c208297e1244313",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/enemies/zombieDeathHeavy.ogg",
+      "hash": "183b5556a1f3e18d2199cdb2836d595ba0fb5fa98ef888bf9ff6560f8cb4bda2",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/enemies/zombieDeathShriek.mp3",
+      "hash": "40c8e14649d0f4e5b834ced601fc5a1a66798807a33635448172920df08e3464",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/enemies/zombieDeathShriek.ogg",
+      "hash": "f67646b3d586ddbbb2e1c6a7d7cb39bed7ced17ea69ebb17183d9bf189d8e168",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/enemies/zombieGiantThud.mp3",
+      "hash": "1e9d799ca522687c0c72434f6efd97c19dfd78e5f2d19ef9013d86efc841eae1",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/enemies/zombieGiantThud.ogg",
+      "hash": "1e3e129b9d22e8afa706ebeb4eabe75a9d39e89b7bb67c97234c53407eb82a94",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/enemies/zombieGroan.mp3",
+      "hash": "bd343337e49101d2f58fcb25b07c19a997c356021d040c8ae7e4cec50818fc42",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/enemies/zombieGroan.ogg",
+      "hash": "1a1281818ed82e97b45f1ebef53cd996c738eafe8b03101c5b99f6bc34633223",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/enemies/zombieRangedShoot.mp3",
+      "hash": "ee44607bbb2c219d88ba4b9fe8e7f5bd3d49745d1f8f5a25e6cbb3827b46f184",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/enemies/zombieRangedShoot.ogg",
+      "hash": "2a8c808a42d939cf36d4a21b0cd275cfff30f1cb70a2112a7b1d751d14473c39",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/enemies/zombieRunnerScreech.mp3",
+      "hash": "51a7f04f59848e1d8dce8194c858ae1a650d1c9df711ab1f1db0c92ac59ffa55",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/enemies/zombieRunnerScreech.ogg",
+      "hash": "078dd5e3c38a95ea9853affc47c6be9b0164185c636d7e744bd2bb8b143b20e9",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/enemies/zombieSpawn.mp3",
+      "hash": "796e08a3a7dfb0f0145347ca866b88afa85fe49050512ebaa8ee1f63b7e54ee9",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/enemies/zombieSpawn.ogg",
+      "hash": "a08d80f9a4438ad22c09e64e327dc90052b13772b86debcd58d0f197c90ffb10",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/enemies/zombieTankGroan.mp3",
+      "hash": "21b5d50d9eff3b2d366b9a92e9d039784fc5cc854d72f01fb18d976d7f306f19",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/enemies/zombieTankGroan.ogg",
+      "hash": "6d9c2bebf8ad0db4f16a1af960123ac79847123122ae784c7a7229e3ee939f06",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/events/bossClearJingle.mp3",
+      "hash": "aae0a2651af4e8125cefab2acb54361d3c4cc98b9ba4c5295f3597aa881e42d1",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/events/bossClearJingle.ogg",
+      "hash": "27b0d6ee2e4ab9d2ae9b8360f941f87ca9473e7aacb5afa902e875df7ece482a",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/events/bossSpawn.mp3",
+      "hash": "4169bbf3927781e38c1f9f70953fb55f3693cf4829eb3992488eaf8ab03ce0fb",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/events/bossSpawn.ogg",
+      "hash": "ddfa07a90113c559bfaec154a0042bf2fd976585e6901b0633888ec3a7fe0326",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/events/bossWarning.mp3",
+      "hash": "7be0811c9126a32922bb40ac8992a926d297be97773562f6fca2ab1992200bda",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/events/bossWarning.ogg",
+      "hash": "b760a93e2fc9373eb297ad5bd02f258a3dd07bded26670bcd7f6acc42df4212b",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/events/chestDrop.mp3",
+      "hash": "fee22eda37d74bad4ae618e09af98380474da3363a6893fb8c7c5825cfb70614",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/events/chestDrop.ogg",
+      "hash": "bf0d8b453d0082b58efbbc0d56febdd83f94732b2772fcbf9510502eacfbcbba",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/events/chestOpen.mp3",
+      "hash": "d03f8a6b1f75358311b12e10c724376a4b8425c25f4639e7e06aebe1d965c15b",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/events/chestOpen.ogg",
+      "hash": "d21f13ae6fba9086bf5fd96f60ec4a0318edf3604f30eb68659eae98a2f18cad",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/events/criticalHit.mp3",
+      "hash": "079060f93b44d5db60394cb1c090989b5eb6f3a1d45ce5fec4fc7ff610edf9e9",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/events/criticalHit.ogg",
+      "hash": "1a9e1ea902ed9eadf824b967451bd1239abb4682fc35a0f4ae50ec2c4310421e",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/events/escapePortalClear.mp3",
+      "hash": "491b90e8a520f7583a8e057c72f8cbb4da29e64055f778c7395ea7a2cc4fae79",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/events/escapePortalClear.ogg",
+      "hash": "e021f9e9a6ebf4fb7db679328f7d0246e7373d2adb2d11649ea4560c86b2ec4b",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/events/matildaCountdownEnd.mp3",
+      "hash": "a80003ceb0db00530c426207794d00420bfee03d18f4cffb929a141c0a6c3daf",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/events/matildaCountdownEnd.ogg",
+      "hash": "5112af5b92d3eefd111579198a7210e99d60d61c12fcd0ad6c3506458e326240",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/events/matildaWarningTick.mp3",
+      "hash": "f5355fe3e8dd096aac5cc1d09880fbacc9639435cc2ffb88717a118fcf8b1efc",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/events/matildaWarningTick.ogg",
+      "hash": "0ffb5fe007eec7b46a5fe947ad365154233f6bdb4f8af4209a17e853178cba85",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/events/milestoneGold.mp3",
+      "hash": "71b531812fb0cbc0f8d88ebe01b587b0415ab1ab374581d0db216cb1f837e555",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/events/milestoneGold.ogg",
+      "hash": "9a45d375e21cb831141cf629825cf34e3553b12a6cc5b85d47421b6b7889b5b3",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/events/portalAppear.mp3",
+      "hash": "06c3fb5a4be129562cae0580bb8b44cb53a27800ebd19138103a339d0c696c24",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/events/portalAppear.ogg",
+      "hash": "6aff56a084a0f268833957533b6deea2c55536ecf5208243328e8f05cb0367b3",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/events/portalSuction.mp3",
+      "hash": "31dd08ab733c7a42429e06014af91e47c81cb989f2f32437db2eddadc823a22d",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/events/portalSuction.ogg",
+      "hash": "54edfe2e18109b4e8de8893f0acb6292b37966a65fa41d93654222f47c1d998f",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/events/rzlWhistle.mp3",
+      "hash": "0e1be51cb2edd344236b5771e167a1d4176a554cacbf7be3850e0d26fa04160e",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/events/rzlWhistle.ogg",
+      "hash": "4a5648ee06ccbe00422bfe43576bb1acc6caa177303cc4687f00c4c92242e42e",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/events/stage2GuardWhistle.mp3",
+      "hash": "34153983f8729c65766f560f6956ea63092dc0883be1a7dbd382c410be9b276a",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/events/stage2GuardWhistle.ogg",
+      "hash": "e4f041c0c7a29e5dcce2266e4c7803a521d3bafad61fac92e16feef7ac3db1c7",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/events/stage2GuardWhistle.wav",
+      "hash": "d6a6d282afff66c8f541bcd8f87d7f993d414fb7272ee761a5c18e0527a80f8b",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/events/textbookLand.mp3",
+      "hash": "a9280086a9c747cc0a77f876009dc7061f462844fc877e30fda5c44cf14e2407",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/events/textbookLand.ogg",
+      "hash": "dacb78d50b976fb8adf3c67de9a6219cb429198029649a75f769f2489d90673c",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/player/playerDeath.mp3",
+      "hash": "6a6179967e8d0811bbc154048fda97b8738752b1f2846cf6623069d20db8ebea",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/player/playerDeath.ogg",
+      "hash": "8dd36531b69b9afc65307c5438aed1480ad920ea6b707d51a8cd3246628f8904",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/player/playerHeal.mp3",
+      "hash": "e036395800214f4329aeb8700da59b2ee33595ea11492e08940cb69a40a25f22",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/player/playerHeal.ogg",
+      "hash": "d4084fefd390883fb17420c82f0447343d6a8331255ccf8fc34cbbcbab9a8878",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/player/playerHit.mp3",
+      "hash": "dd275b7f817c4fdd7ab8f701fa8f847b6f045423d06ea7770f00d3a425db2810",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/player/playerHit.ogg",
+      "hash": "142845fed99e8d99047affbde589e1b0a78c8ff121330a45e834b1a40aea6732",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/player/playerStep.mp3",
+      "hash": "8926d855a24e0421a4a83301936640fe6de80613d26395f4e900ad6371ee9d85",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/player/playerStep.ogg",
+      "hash": "f70bfe70037d4576562ac0cee9bd8f1e4bcad5ec2fd2f8eca3e8754261ba427a",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/ui/buttonClick.mp3",
+      "hash": "a35083ff723b633b54c445f9efce91ca4e7c97ce186fb3ff6fd62c795b662e94",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/ui/buttonClick.ogg",
+      "hash": "a627a7a978f21e604d81340a4cc8a15c1ea19c902f3b6b78346db577b65567d4",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/ui/coinCollect.mp3",
+      "hash": "ffb3499cf6bdc2a33fbda7811c7f803440f6e83eebf67d69da99b7365e633754",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/ui/coinCollect.ogg",
+      "hash": "2568c034f7edc170b471eb90fc21467d2ca16d213fbb0cf1dbb73ddd1f0fc324",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/ui/gameOver.mp3",
+      "hash": "2a58c9d40cdad37d1b7ce512edd73e425bd0b9483a8206f214623fa8aaa63b8d",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/ui/gameOver.ogg",
+      "hash": "65701caae05a3fcaced3bd281907428df9086c6ab7bc7063a9d5cec1050f8531",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/ui/levelUp.mp3",
+      "hash": "70130fe7e78aebff3422b9e9a29cb3feed83170939e60cfe17a5e9e4906e182f",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/ui/levelUp.ogg",
+      "hash": "cee27a4bba911b43a322ab68ed1660c5a442565b0d573dbe3873015f566dbf23",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/ui/stageClear.mp3",
+      "hash": "c232123c795ea67a8113ca2fa9bc7f8b0fc7895352c7e41fe233de9b68013ad8",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/ui/stageClear.ogg",
+      "hash": "1dcdbdd32521590bda6fb56c1cb39796908cd99c5291a32098051600baab99ca",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/ui/textbookCollect.mp3",
+      "hash": "6aaef8c605e24e4186478c9362a0557e0e6e40c2f1ee17cf600b756373a05eec",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/ui/textbookCollect.ogg",
+      "hash": "d829542bdaa9893df09dae51abf52282c51ca9b64490af222c7906c240b6ce3b",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/weapons/bellFire.mp3",
+      "hash": "9d595599e69b66aff97047be37cdf8f33486bcecbc9e66052527bd02d5ae6c9f",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/weapons/bellFire.ogg",
+      "hash": "2e8190a6bcb77fa7c9def585d55be03df6050e644aed0465f255ac3a4a86741c",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/weapons/bellHit.mp3",
+      "hash": "d4c38d69ebb84a7b3f4b6390ad6564aa4645c5b467f5007851fb2cd1f200354a",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/weapons/bellHit.ogg",
+      "hash": "199aa63bb4d2f52a053d20fd6ef3fe9de80c55c8237ed1d29448a9cadac8b17e",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/weapons/bikittyCutterFire.mp3",
+      "hash": "7d1c6f0d8c0d72f7b5876e202ecf9685e7446ed40111b87ed48d7a7dbeac70aa",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/weapons/bikittyCutterFire.ogg",
+      "hash": "36657a63f7e99940e51975a0d6023b926e1ae0c4bf062503454213064aebf05a",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/weapons/bikittyCutterReload.mp3",
+      "hash": "ade76b3c57fcd53fc20f728c537a6a72733fffe058d62c765997d6c2803a6638",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/weapons/bikittyCutterReload.ogg",
+      "hash": "a66754391013704c9e0902093a2a90725a97ea0cde0e7addb72d1f419647cc35",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/weapons/bikittyCutterSnap.mp3",
+      "hash": "7916c259db22e535bf762d0067047077f8089aa4bb85be440833d9b4a0a0ecd1",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/weapons/bikittyCutterSnap.ogg",
+      "hash": "81993eeec3a2b74622d05c4db9d2a2268c18d7a3d4bab2fe3200ed65b21f64cb",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/weapons/boxCutterFire.mp3",
+      "hash": "52fbbbe4d8192848a619871a90343cfc7e9643e2ed5fba2dae6283acefac0868",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/weapons/boxCutterFire.ogg",
+      "hash": "dc44d27905c0ffddd86eccd1511810d591f981795e296d28db52d310c887d9db",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/weapons/boxCutterHit.mp3",
+      "hash": "c1a5348c791a1e51656e0024bfeed84dcbef4d828bad3972af41a816fceda6df",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/weapons/boxCutterHit.ogg",
+      "hash": "811d385799a1f6062ac84cb0b0eea2ddbc964eda45640f5e49b3f9eee64f082c",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/weapons/chibikoFire.mp3",
+      "hash": "9216badb0adc22bb703ff289a9b2583b5291c958950beb5f605e6d1adfe9d958",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/weapons/chibikoFire.ogg",
+      "hash": "d9c8970243d22f1846fc124730e739a7b840f490245aff4761da4058eaa92eec",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/weapons/chibikoHit.mp3",
+      "hash": "d9b06decbcb33080ba926e547205673e2c76b7cd3eb1e884d164cd5acbcd3b64",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/weapons/chibikoHit.ogg",
+      "hash": "c44efed3de49bd770c14e8a279f95b624500023a8f70657b6546c42439ea3101",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/weapons/compassFire.mp3",
+      "hash": "327566236bfcd4a1412b8b040eb81a0266b3b4aaa811c90ef942458015638ed5",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/weapons/compassFire.ogg",
+      "hash": "14b9f65a56564b95e770e7e12d34535b3e12e335d7fa545b7ab7124b4a29525e",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/weapons/compassHit.mp3",
+      "hash": "9992b8589ab97792949504ac2a5c52169eb0eaf40ce5113bb7d3a41732dc98f3",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/weapons/compassHit.ogg",
+      "hash": "b7c20639b03570054e5ae2424ab2554735a1df347efb0084c2cabdd11f23125b",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/weapons/compassQuack.mp3",
+      "hash": "e0b1fff801ab26962f12aa82534e213987ef9d270187c611e42c96c8449ffa16",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/weapons/compassQuack.ogg",
+      "hash": "8e3df9061b98640c8e60d141b956e53a2fdbd5fdf16d27de7986b615f3a299e3",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/weapons/eraserFire.mp3",
+      "hash": "862b15d07c6ff7254ae002c9c81bf72c6c374ce7871280bf1d549636c9e29d71",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/weapons/eraserFire.ogg",
+      "hash": "b29342937b101ee796cc7f2a3a071c456d8312195ee57b67602c97fbbbfdae99",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/weapons/eraserHit.mp3",
+      "hash": "76149760e312a5d3470bafd4cf7d94cc6b268f03d13af34123dc616422e49e2c",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/weapons/eraserHit.ogg",
+      "hash": "372bf7d5120036ec7ed711e843a2cf14a5c064b43efcf95c591c54dddc6f9564",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/weapons/flaskFire.mp3",
+      "hash": "64fb79e8c9194e8405c8248ac5b1579a2a336fc918e609662d82e744594350d9",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/weapons/flaskFire.ogg",
+      "hash": "dbd65da160cc05d990bc269ac8929cc2baf6212131b11a5f67663641a363d425",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/weapons/flaskHit.mp3",
+      "hash": "a003c966856f6aaebc31f5d9b28b46a753162fa738bbd5d71a032f4263b35289",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/weapons/flaskHit.ogg",
+      "hash": "691b84407854ea2bfb6d65bd7d47a3306b1e6a8c2828d811f170733e63211098",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/weapons/flaskTick.mp3",
+      "hash": "a273a03da48a461b1d27e2c943d451db5eb11468e7bbbc0f15c73d3cf5e40a7e",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/weapons/flaskTick.ogg",
+      "hash": "736366f876c954d8426b07dd606155d2f8fc64500b38411f7cbb5cc78b70754b",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/weapons/lanternFire.mp3",
+      "hash": "6650f4912f3fe7ba958742a26984f983608c72bbc0a4703aea8f9153c75e0fec",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/weapons/lanternFire.ogg",
+      "hash": "137c1b990b0234bc9acad99fe517374341b5ce065f15113df4be2f84457c8dc2",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/weapons/lanternTick.mp3",
+      "hash": "fa56d0863c4583b78d1a1a4ca2df814dd882072c0021c048e6111e1551d55251",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/weapons/lanternTick.ogg",
+      "hash": "9ddf90162355c6338b99d0f5a5980447acbcdc8e59c2bfae8145717d618d5bf4",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/weapons/lineDrawCross.mp3",
+      "hash": "51abfcb60e8a50adf2061d3feae36bbc6a004f26443dbba10236446d0974a523",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/weapons/lineDrawCross.ogg",
+      "hash": "18a700e15ffa00f567f1e1947865cfbbdea1f5a4f5949011d3cc2fc8a70fd7a3",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/weapons/lineDrawExpire.mp3",
+      "hash": "938dbbd4563de9799f240d322550e1fde83d26d19ced89b233ed0b481e5a3043",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/weapons/lineDrawExpire.ogg",
+      "hash": "353b394d813ffaabcd0a2326d14db70f4ea95f5091f6eca18e1f280383d3f365",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/weapons/lineDrawSlash.mp3",
+      "hash": "e40b81334ee90f026671aae418f52009fbc99ec678a4faeb98d85278ddceefd9",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/weapons/lineDrawSlash.ogg",
+      "hash": "ec604623e8778418bc601eaa45b2973e36c26927836892b1ee4b3a4d0fd2d8d6",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/weapons/missileFire.mp3",
+      "hash": "63afe42ce1f3bb3e1da4910c95534eea5e5fc55cf2cb2099ae608c6b2189adc4",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/weapons/missileFire.ogg",
+      "hash": "cf3065e79644815e37284ca38460e82437e6dd64901436b97905904cb33c1822",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/weapons/missileHit.mp3",
+      "hash": "14391ce2ce6153d905bee18f11956b641020f70225e78d97f2231ff666d86985",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/weapons/missileHit.ogg",
+      "hash": "6b5b75fd845c2ac1d7f525dba0594b042d7231b7907a87da41fedcf9ffd6a260",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/weapons/onigiriFire.mp3",
+      "hash": "5a416e3d9e1a6d10f4c7e20146d06acbbe63173dfbdd633de06c8e88051654af",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/weapons/onigiriFire.ogg",
+      "hash": "42946d22cbc7b339dd2bec3dc0a4492a2a712b6b6d144b512bcdcfe0c2a9363b",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/weapons/onigiriHit.mp3",
+      "hash": "2f0d19c90d33bd8679eba98af78f7b2082b7e003b73ed412aede248c37de0787",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/weapons/onigiriHit.ogg",
+      "hash": "b226bb5a7d98d596f3cee367d6c23e1c389e5f5945b44b65a8bf4adebd273dbe",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/weapons/pencilFire.mp3",
+      "hash": "45c1d5d1df7a85be41aa3842a44340b9783b2aa83596a9df1d3a2f2b81ffc82d",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/weapons/pencilFire.ogg",
+      "hash": "da03b8512664aa6a40bc34234072e268c811360671cc165db67c3b6a4a41e519",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/weapons/pencilHit.mp3",
+      "hash": "082990bf8c37a9c22bcf9a12728ad1049b57a99307577df82cb157a47935bf98",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/weapons/pencilHit.ogg",
+      "hash": "43180681fc1ce74be39914fca34b96e7448c7cb0708f2e799057f5fbc8621e84",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/weapons/rulerFire.mp3",
+      "hash": "9fffe5ee43056a56bdced7308cb983380ea0cf29fa4d0b2fd3dd5838ad909773",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/weapons/rulerFire.ogg",
+      "hash": "2f0a8ccad3c948811a5d793fe36733f9bc87fc886cd490aab7641a245ab66df1",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/weapons/rulerHit.mp3",
+      "hash": "eeb5a9b71a20871de0db66c40da132fbd45e9519c835dbafa18fbd29341d0b62",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/weapons/rulerHit.ogg",
+      "hash": "bffd52b7392b5bf5c066cfa2f550f778326966d372988b98f63fc1bc2a6e3eb4",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/weapons/sharkFire.mp3",
+      "hash": "1295383db6e73d007ec8595ad9076bb684565fe18cbc99d0409e4ed1a22a1a0e",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/weapons/sharkFire.ogg",
+      "hash": "68518813b7109ca869982fd703152eed4b48b2d6e12aa9609a906f2aa894c839",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/weapons/sharkHit.mp3",
+      "hash": "e30d97e169f11e13657290dade4a5273e26cf54d0c281be5540e8c42fdc29f8e",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/weapons/sharkHit.ogg",
+      "hash": "1225f9e7269f0148e824cbce1e35e623e98cbd5544ff343d4e42a81959bb08a1",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/weapons/starlinkExplosion.mp3",
+      "hash": "7c54e648dcdb6dbf5c905571fd6b4377c91e904656890fc28cc1f47f44317d81",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/weapons/starlinkExplosion.ogg",
+      "hash": "3d68c3c9b0f2d184ec5635b4f789223cd898110eb363d8bcb4cbf8b4c4c58978",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/weapons/starlinkFall.mp3",
+      "hash": "aec05e9baa9a7455cebe7915bd9424ba695c17db5244eb3c48f8f199e0b89e55",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/weapons/starlinkFall.ogg",
+      "hash": "f7fb5b4cf73c0da4181028228077cb3df24bcc7071e5937267f456ba27d0c295",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/weapons/starlinkFire.mp3",
+      "hash": "e93f8eadbc9b9c48fddcff096a357ceeaf18d8d2c40aba80de97d1c4a19742b5",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/weapons/starlinkFire.ogg",
+      "hash": "c8e3ccab27da1411c1d229a78f5b0ee17c61e2d61a8a22718e406a59ebb99aae",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/weapons/starlinkHit.mp3",
+      "hash": "e4dcb12d9aee6f8db4aea07743c75a0f81a6451099c8998ee5a65731c6ae21fa",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/weapons/starlinkHit.ogg",
+      "hash": "ef547988b2943789971e56d999cd669c1e64bd77c4f8d3616f2996a65dcab2e2",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/weapons/stunGunFire.mp3",
+      "hash": "954f8b8f7887c8ee69864742ed27ac4c107a2df61273968bcfa2d6243103c0f1",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/weapons/stunGunFire.ogg",
+      "hash": "8e1297b85e32c553c167f9734f6a029c3f13ed4221bdd097332ad40f63d7be3f",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/weapons/stunGunHit.mp3",
+      "hash": "e6f6f40a47d1eb669cb08cfc5c2328088470a5ef4d24814c7519072aaad1d56f",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/weapons/stunGunHit.ogg",
+      "hash": "449449cb46a212c4941f577e61b59420d6c3e8cc7b6b8032d6c67be43fe1e97c",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/weapons/tumblerFire.mp3",
+      "hash": "e8e6ee250eaa5144917318955ffe4eea337e6d788de7259133d8425dfb5c2586",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/weapons/tumblerFire.ogg",
+      "hash": "eb2beddd757ba23c74d5b20683f3ffb288e19939d1d9122e484ce2d10f80ecc3",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/weapons/tumblerHit.mp3",
+      "hash": "2a50bb7e90ad62aa6b0e8b4306ee24a805fa9d5a1df398d45928e578334eaf9d",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/weapons/tumblerHit.ogg",
+      "hash": "6bb29bebf36d654fb8c7a4a4fe73f07519c3f4bf2da57f5112573e77665ecead",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/weapons/umbrellaFire.mp3",
+      "hash": "125cb9e2e4cfee9d56b3bc77fb96cb0402a03fabe0cf011458b97120eb813c47",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/weapons/umbrellaFire.ogg",
+      "hash": "450feaf623313a75b979d9061e49d13ec64643a495f4eb20d83aee19591739e5",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/weapons/umbrellaHit.mp3",
+      "hash": "42d7db44d25580ad5de3a85910ddffd9a4955db1519a3cff02b51d4de32b768d",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/sfx/weapons/umbrellaHit.ogg",
+      "hash": "822658a8609028c2d875ce1e4c8dbad8dafb53c4c505fcda7738dcb9582366df",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/en/044f8cc2fb89e9f3.html",
+      "hash": "f816b8c966fc8732705faaf221a232a380aa790c720d5d63e3bd1a26e853530f",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/en/044f8cc2fb89e9f3.png",
+      "hash": "694a0aa656ce3b190e4f7a5c25852ae954338c4f15c9141bf92de628107ac4fd",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/en/063da8fd33c82fd2.html",
+      "hash": "7430456d8149f0d829835e2642984951fea3a88e804a8e37a5f4dac4d3524d44",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/en/063da8fd33c82fd2.png",
+      "hash": "4fe8aa4d909d9cfda2e0e414e256a01fc42922fd8e268cd85a4dc30004fad7b8",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/en/0f20cf141b5719c1.html",
+      "hash": "87406fac9b7ebd404f8b5fc6243b2399d1f35eaf4a49932c386b05fde7ed4693",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/en/0f20cf141b5719c1.png",
+      "hash": "5bb1404fffbcf40def2b2361278e6a011f189b59ea4653e193e6b264c92e3144",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/en/134a31d3c13551ec.html",
+      "hash": "f1e5c1690a2a3ad8973449f8430cad6bdd86ae1de4bae0f00cd2836174762da1",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/en/134a31d3c13551ec.png",
+      "hash": "e912cb963060678e221ff8f7aa708cd93c406b642b890bb8387d66c1b59740f0",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/en/1a324f2892ddc702.html",
+      "hash": "504dab3ac1f3c60599854868b2f1ccccd3cbf686a65474df5a7896f66b1c4065",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/en/1a324f2892ddc702.png",
+      "hash": "2105b54cd8162c591de3e347c48caebabc6a184d0096b74a21514be9ad15cbdb",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/en/272c9e4f469632cc.html",
+      "hash": "c59c76012b07b8fc1d608eb5028f554540b88958eafc1d665d47514eef97db63",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/en/272c9e4f469632cc.png",
+      "hash": "e07be738a230fc64b08acf92350bc02e8b771e6fd48e43d34255d30c62606339",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/en/3947f513e13c604c.html",
+      "hash": "135b4bb5167077af0b09a7b1ec455c0126bdae5c203a60a44dfc8d0d94c07967",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/en/3947f513e13c604c.png",
+      "hash": "1d11e475ab7b5a54a202d377498f38e5ed15e873bf0dd82c5c52d7feab30eb42",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/en/416ca2e71169600c.html",
+      "hash": "fd73f7572f2aef77ffd14e732a2043c83e9920ef5b8d33ea092c72b7476b4a80",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/en/416ca2e71169600c.png",
+      "hash": "225655588d0773218761d90c76aba7d21fffe88a225d81dd2d3336bd4dd120da",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/en/469dfb972d2f5a83.html",
+      "hash": "86c326aa6443ebfeee7abd3ff2c24f6957b43e25a42bf3f35528425aa88b9ba7",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/en/469dfb972d2f5a83.png",
+      "hash": "62dff4549af34f09dbf5f3dbe14a561a4e945d9c3bcf5cd57272bdb0daad4d1e",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/en/4844dc74cf85b874.html",
+      "hash": "32c40d6277c73bb98e11f577c8bbae76faf793aa5d6a9e89776f45446b4cc696",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/en/4844dc74cf85b874.png",
+      "hash": "68886e52c2b5949df278139d3d670e3aa9e0b276cebfcd1d9e59f73c2c43e11e",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/en/65d0c0f35bc957aa.html",
+      "hash": "10a36305762bed39a017b6941ad66b9a8f704a145553ef9a2217f30d4087a7f1",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/en/65d0c0f35bc957aa.png",
+      "hash": "e6176cac54022bc29124747350f3b568cd3b86512d6a8de66b141a5085ba37cd",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/en/69a4bf222516247c.html",
+      "hash": "27ef639be5d152aae1123fe576800bfe64e5454895d632c66f4e61dc3b1928b4",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/en/69a4bf222516247c.png",
+      "hash": "4d370f0e1804c54390d9ad3290efbaddbb2b5ba1aaaa8acfbf9bddbb79e739c5",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/en/6daf3c705b2bca66.html",
+      "hash": "6698dcd810600d2ac4b91d294c417cc6294fb9c6daa0bda4d7894c73e9461d14",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/en/6daf3c705b2bca66.png",
+      "hash": "d6dfb0b5efe25beb4d3935ce302a43b14d4971ba757cbbf4f336d7e2da247f49",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/en/7a9f7f1e2ea8c872.html",
+      "hash": "292d13d8153cb867a0cdccab61ac696b027aacaaab84349759eef4960f489016",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/en/7a9f7f1e2ea8c872.png",
+      "hash": "ef7b66bccdc4568912f0179986b43d95c16793b0f4d223aa07c0226d39a88d61",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/en/7c4288890e1e68a8.html",
+      "hash": "472a2d63bf477592f8217e8edf5267b4b86fa56b01ed22d1053deb8541cba7ff",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/en/7c4288890e1e68a8.png",
+      "hash": "858d7f9f789953e914e6bf9e49a30479b7ee96d5b59510ec2b24b8b6d6e5dda6",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/en/7cb5be3fc12a5279.html",
+      "hash": "efb689bbe6cfa50e29663669aebaf76de925ca33cc7986bfa695e902f3eb1f9c",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/en/7cb5be3fc12a5279.png",
+      "hash": "cd10dd7a4985945cef6ac9691a8205daea9a619cc16e75958a459a1f7b4e2db0",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/en/9c8fb839c8edb2b1.html",
+      "hash": "402140f30d694bcaba0a2f31ea7470ef2bfce654435d7075da984a892e711bb6",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/en/9c8fb839c8edb2b1.png",
+      "hash": "37921e599066e1581dd3025ce3374560d328d7623ea8ad3342bcefd2a1181816",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/en/ba5eedd9009e106a.html",
+      "hash": "e6233b04a5097709c02edc4e2548f6b944fca739236eef0925314f3bfc194f03",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/en/ba5eedd9009e106a.png",
+      "hash": "8c6303bcd238fa6a6a8183378d1ab68b66f2a19fe93c8389d1457bd031215f9c",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/en/be8104a2e8fe80ab.html",
+      "hash": "e0dd807a327047ea6cb741849d60c3283d7100738e8d5339045e15f68bc846f0",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/en/be8104a2e8fe80ab.png",
+      "hash": "9bd169d843a17b345f2edeac822bd33f0d6b943a8b47b085343ee83b51c89fee",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/en/bfeae7b826de5591.html",
+      "hash": "c149a32046f6839cd1cd57a56e319cec5e8c79643fe241c694ecee42f8592609",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/en/bfeae7b826de5591.png",
+      "hash": "e1030f6b6bef4e8426d99c4a9969627d34f1846b8c439018ff037a6a09feba86",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/en/c75f787e8a02cd90.html",
+      "hash": "01c545e50dda4e239cd5aaf840c71a6fe75496b191e4eb1cb3bfcbfb539a1e3e",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/en/c75f787e8a02cd90.png",
+      "hash": "3ac435f783bf71f9934ebfa04df0af488f74df70eb6f07f337aedff3b588d9af",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/en/dedc5b2972f6b3e5.html",
+      "hash": "5f32a5903674141e289f3b483ffd63afeaf19a68c2a4ac72b74b2c1141250429",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/en/dedc5b2972f6b3e5.png",
+      "hash": "20f740bbcd834db72108c61968c2043c46b1e116f5ea790d775d11d98f3d777c",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/en/f3f856b6f873b9c4.html",
+      "hash": "3a190ba88eb1d6d3d2e758474cb26d9655f8ec22725440f19ba849ef3f8c8e74",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/en/f3f856b6f873b9c4.png",
+      "hash": "25c952ddadaef73fc645d349f5a9f1bf99ca52e13d9c8fbdecd8eecc12d20467",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/en/fb5709c3fa6677d1.html",
+      "hash": "8b5e883a992584b1b71cef1160427f316b73fcd5be1e3cb67904c727f5cd0a0a",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/en/fb5709c3fa6677d1.png",
+      "hash": "f03d5aa9a730d58912481db84ed6c6c8e4d624aa536eaecf2790d0fe27965a03",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ja/1abe97c4fead709a.html",
+      "hash": "d8b1bafc0473951ebe61ea917a268f3b979018bb4f3dfdfcb28709a782a10932",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ja/1abe97c4fead709a.png",
+      "hash": "87646768000083ae58337e3ff170d2140f71f62e87960db8b924c260ae274acc",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ja/2fee8db50f51d161.html",
+      "hash": "de7aa4d0c24d2f512e2aae4d535c19e0860ad44cb5ede7913380206a2fd8ed9d",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ja/2fee8db50f51d161.png",
+      "hash": "2d90b802a17af1e11ea12af8d9ef15343d81b4f6f2c02e7733cddb64fda0c8ba",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ja/3c6d2e315547c155.html",
+      "hash": "27fc51aadc680b9c315b6870851cea7f54d98ca3dd186cf9fec217463ac8d2bd",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ja/3c6d2e315547c155.png",
+      "hash": "29d4db6a60b1d31a98e946f83819ec14491c0eef8eec43a088845d6ab1498ee9",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ja/555f084bc70b267c.html",
+      "hash": "e76187936c2389743f958c4908ddb037a74ed2ec9aecd7c5f191fc850007be25",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ja/555f084bc70b267c.png",
+      "hash": "9b9f13eeb8bfa6fbbbbc3f90689a4dfdf0947355712f2d1a116ffa4066970e8b",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ja/558eb8588fba15ac.html",
+      "hash": "d00344016155075366f9de8b94a181c1361953104e8f6a58a4a01627a334b461",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ja/558eb8588fba15ac.png",
+      "hash": "8beb144bedb77b2c4e1f35e483bb6e2660ef424ed6e53f9acfc2331607fadb29",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ja/5a921712d74e0ca4.html",
+      "hash": "1e6df1cbfeadbc91e5a3f9d7fb84c0456b1c540d6fce8a984e55a32830cba055",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ja/5a921712d74e0ca4.png",
+      "hash": "7e24a988098f8ed7944464530911ed4ba9ee2ee4073da542cf6f5a03a4f2a37e",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ja/684cae0d2fdd3af7.html",
+      "hash": "559016fb9ba6dd0c053766e9a4d77a4f74c019248c25080eb832ed77eb9d62b1",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ja/684cae0d2fdd3af7.png",
+      "hash": "aa312ac0011b5d39a93dde98969c7e48a6b9b94b05abc970dc8650fab07e8789",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ja/708fab950e3f2e1c.html",
+      "hash": "71898fbf1e2792f3ecc8213018511b40e86ccb5feb9c9d5dde4758800eaf8942",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ja/708fab950e3f2e1c.png",
+      "hash": "851de3ef6e17ffc6e3f49ab75710d3128962d65d48b651b2a4c1c5ccaa28e9e4",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ja/7ba395e482aadfc0.html",
+      "hash": "9685192cad4fe68d27176f54ce7ee386641e85172584956115874b8d5f037394",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ja/7ba395e482aadfc0.png",
+      "hash": "264064b439950d7cc8bb887261d8c830a80e4b2015f7dd618ff2e6bbe51361e6",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ja/8b142a45efb4432f.html",
+      "hash": "bc3106538873a1405ac4af0f2aa7b75a7aa6efd8ce680894d30d48fc8ae0cd8a",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ja/8b142a45efb4432f.png",
+      "hash": "3411810ec9901faf737d7b46bc5a83587ae19c5b3f826de2bf38cd276bbc69c2",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ja/8bc3420c4d22c8d2.html",
+      "hash": "6ede8393f52344671b1191b43c2346fbebfbc760f2bc3ad2f03b0d256ecff5b5",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ja/8bc3420c4d22c8d2.png",
+      "hash": "277b6b84507da731f9daec8a78eb0c2dbcd88bc15c1d3a8ca53d802cdbc224de",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ja/95dcc37320669513.html",
+      "hash": "c7a94e347726442eb3d8d6db9b81992933d3e7c47bf41dd2a98fd083cbdef319",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ja/95dcc37320669513.png",
+      "hash": "492ab3960d73b5f97e10a8e627da8f34411f89e8166cdcdefaaa1ce9eb235047",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ja/9a8647341431b2ca.html",
+      "hash": "0fb451e68e414fdc8cd46990d76b6b5e9f1b3bde43d0758c8073076b57ba44d1",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ja/9a8647341431b2ca.png",
+      "hash": "47b3f2573c5eb82cadd01f119b5310b361b5747f8018bf2dbc6cd484ec301aff",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ja/9ecca86f15aba0c6.html",
+      "hash": "94340f97892aef0dffebfc9d192ddbfe7592ce99c9d875a8285f6af7bf0cefbe",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ja/9ecca86f15aba0c6.png",
+      "hash": "e6373e0fff0d414c73a901af29b3a98856ee1d45649fa68af2c5ad5dda53c90e",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ja/b9c2d4bb6067cc81.html",
+      "hash": "6603974b7abc44d8ba14d23dbab8d8948dc60d1e0e638a7eb68dc7244056c19e",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ja/b9c2d4bb6067cc81.png",
+      "hash": "ff6602be160966516ca11d5a5b5fc4421984a0935844064e8087a055c701ffc1",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ja/ba0e8c435edb8b03.html",
+      "hash": "af0bbdd1b145de57025c23259d2f72668605dc8000044ba05e2976b85ccf65b9",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ja/ba0e8c435edb8b03.png",
+      "hash": "03bb929fe1ee463543178f749da442adce9c77a3ffcfd0ac949186fe065ccfd2",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ja/c48c4962238c0197.html",
+      "hash": "3c0fa3bfebd2b805597cc2c493127c9f65fe0751a15db66cb900348b9e05ba29",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ja/c48c4962238c0197.png",
+      "hash": "3af2613dcebd61cdfa989c2c3660aa90d89107fa217dfa71ab35f4bcf7eafaf6",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ja/d87427742bae924f.html",
+      "hash": "5614511dd37faae1bb55050776bf497f35a95a0b216ba8af66edb7b5b4ef961d",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ja/d87427742bae924f.png",
+      "hash": "1c770e2edb72b7e2368cfcdf70106a3a7b90574293fc497e977f51d0a325a237",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ja/d8d7515b7898c2da.html",
+      "hash": "b608e46e077d71305d21dfc4eb922f411476ed6714ada7a99d0c41eff9277d8d",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ja/d8d7515b7898c2da.png",
+      "hash": "8d036b3e2b848968222758f955211e5a1c6c353fa9c8ef37518b3fd766030a2f",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ja/db3e7ebe59b1d006.html",
+      "hash": "03a08ceb861f03063c508503adfa528eeb15e15c5e9ac5a5aebc4cf89d6ac568",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ja/db3e7ebe59b1d006.png",
+      "hash": "d54997d54ac9e7dea6f96757b65755d377a682c784c696b740e24395222b589a",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ja/e55ac706760321d5.html",
+      "hash": "652503244db15a7c4bf668173d14ce166b5125a24cba1f9ba8727b2bcfcd2bfb",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ja/e55ac706760321d5.png",
+      "hash": "c11477e63797ba559e2db406dd9d87aba3cb5c24118d6ecec6bebf0b4f5b5575",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ja/e631826a95fb8fd1.html",
+      "hash": "ac25d1e8edab683eeeca49e723c1f2ecdbd6a2050fb80bab7b66c64014d4ecb2",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ja/e631826a95fb8fd1.png",
+      "hash": "fde6a2be150f0d227f8c8eee34bf64c050bfac8c403826e1c879d1b870d475a9",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ja/e9bcaf325ef2c34d.html",
+      "hash": "ca9a03261d11ad6c5f2e8c7e00afacb5c126c1ac85e2a4dd02c5e5b477c9feb0",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ja/e9bcaf325ef2c34d.png",
+      "hash": "e4ca5d807081fe7d02ca15b96451a6ff4f759184ca15fde883a479981aabba58",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ja/f5bc57419bec09d5.html",
+      "hash": "5fd3b95444f8c8d704e5f9c9ad2adc7154b340cabdd8b56f1d781a0c98335131",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ja/f5bc57419bec09d5.png",
+      "hash": "4d817d603f77880a9e855b2e931d4207371ba4c7911b5fc4c145e83b6aa8ac4a",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ko/02c9e0c4135afb12.html",
+      "hash": "d54b3208480eb021a923f9c7d3253e923a1a27971a0474daf62e5d9dcc031f0b",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ko/02c9e0c4135afb12.png",
+      "hash": "2b486db7f63f84cc5f1013ae369ea607815d4ce0c1ae0023ce7e5dcb33cf3a9b",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ko/037db562c8e76c20.html",
+      "hash": "c8d36d9e353d70984bf3c4f88d4fc7231ba112522fc152fc6b92482495c8e2e4",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ko/037db562c8e76c20.png",
+      "hash": "b0d182063b269139ca15634f469a8ca8a6f371988d9611570dc869a34c615113",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ko/0fc30756c336077e.html",
+      "hash": "9011104a5cc7826a2a49635a3c8497757da2c2d8e9251ba15112772e95af23e6",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ko/0fc30756c336077e.png",
+      "hash": "1d00125e630cf5a733a005c1e597c0060dee41d9d800fd6513f100855b8b8d11",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ko/20650156a69972cb.html",
+      "hash": "36f9fb72e4c0a5f807825d873554d27c4acb0d2950ad64b5ecb10a00d2e266b3",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ko/20650156a69972cb.png",
+      "hash": "8ba665050a821b293deceb2e92cc18a0a3a449881152c4f26a150f18ddf143d1",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ko/21048273c0b6ca89.html",
+      "hash": "a1267104f44b220e5f0f3f6ab0d2e5d1e0b97ccbe9cdd3f7247463aeae6e63c5",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ko/21048273c0b6ca89.png",
+      "hash": "1de9b4ea7d1496ce1e569585c89a5019fc636f38f833cfc59a26c695a6a237ac",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ko/24beaa2b72107965.html",
+      "hash": "3ac2024da5b3666366db287331d76d4dc342118fc6be4c79e444d7406b7768aa",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ko/24beaa2b72107965.png",
+      "hash": "41afa5e3ac3791549bacc00332ba2d30694235305e6e70e45e0e31c129f07a76",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ko/30d6412bea13002f.html",
+      "hash": "8dbabfceee6ee638eb3dc22f2318489349cf9667b15a4404501ec83e40ed38b5",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ko/30d6412bea13002f.png",
+      "hash": "fe4f59546af433f0072489877fe86dea9de14fc96c41fc8691519191f7d09753",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ko/4036258606fb33ae.html",
+      "hash": "f0d45c8f164515dcf765546a1c479e41b61c0b1c2ee8de6dac4a416bf4b04115",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ko/4036258606fb33ae.png",
+      "hash": "519c7f4bc62679b79f7977d3a8b805527959519cc70f72dff343b71de0457d62",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ko/4b1ea3cdc9c45df3.html",
+      "hash": "26673dc68c149d19c7d247bf26a82a38ca4758cde97f0ec089333d1c1d28b1a2",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ko/4b1ea3cdc9c45df3.png",
+      "hash": "19f5f8d1a9291b5a8c2f0dd7c9625807b59e08618911f852a194f09a224ac390",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ko/633217700f5dd47b.html",
+      "hash": "7e5fe5f4c9732d6e8e6d77a34b7113c33310f12e1bf22ac2855415e00fa30f5d",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ko/633217700f5dd47b.png",
+      "hash": "2a6dd289a9ee012b2f6834960efe0286adac43e02e23d6d2a0f0adfdefd22cd1",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ko/6cef69a1932bd9b8.html",
+      "hash": "cf0690832761891e01c9de09ed07b98316b7783101e9212570310159fb7d7ef6",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ko/6cef69a1932bd9b8.png",
+      "hash": "b9174343ec556c5427161ec2753d289992a6fef586b70360ea441057b9bdc32a",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ko/7125383b143e7daf.html",
+      "hash": "7c2a61088c1b098d2643b4a9e715b0a6baae504904d834bc8a6e8c1f3c5c7789",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ko/7125383b143e7daf.png",
+      "hash": "7ee11020846b4837d19dc7b2728f8e5f088540771c5909428a967680068ed374",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ko/7f57ec2cf737ee49.html",
+      "hash": "919068998ae7b39784c5e344509921d52cc04af9fc080e5d208a64b32b9d622b",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ko/7f57ec2cf737ee49.png",
+      "hash": "83f2dfe3585d59b7ce7a15032de8cf42a3da31bddd1c81fa239734705dd65f67",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ko/8a739731cb48c278.html",
+      "hash": "e4e6eb6b6cb1f544faecc8b66bdda355616dafe0760b9306da17f5d8ebbe30c1",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ko/8a739731cb48c278.png",
+      "hash": "14979e5c4809057159227a13f8cc526b1c30fb6dbc1aa264049b35380669205e",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ko/92e3b8e99fc90b9a.html",
+      "hash": "5c1e32206fc8d6c33bbf006e40aac6271e42a3f9ceb0c0b6f846fe81d0bd6a17",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ko/92e3b8e99fc90b9a.png",
+      "hash": "3dd31b82f2926c345176ad00e7139334e08b8cd1b696d78f59de64c4f2b2f46e",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ko/a8ced09a7fda4e1d.html",
+      "hash": "01b0aaf51c90128f6984789ad6ee402587686e81d622b59361c1867d66def640",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ko/a8ced09a7fda4e1d.png",
+      "hash": "9c0c6da0ede146cdfb41764f234b51eb732e087e7b129eb15f53adc5aa3e1b50",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ko/b584310ff4614a45.html",
+      "hash": "8c3e0ffddd85d6313baed2516a6ca72f1372ecb47c068a1593395ea0a8394600",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ko/b584310ff4614a45.png",
+      "hash": "5b426e9c8f1be1e19871e027b877fd44ada909ef961ae1dd11dfd5e19b7aa581",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ko/c546cfd1af35e7f2.html",
+      "hash": "f08e8cf57eaf7aeb5d2086a8d1c2c1c17e86742661dee0d3abdedb22368c22e4",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ko/c546cfd1af35e7f2.png",
+      "hash": "c160ac2ed625433c1c088136fd090a6b2005a0b3d70fa67f1b8be16ea80175fa",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ko/d150cd01de8512b4.html",
+      "hash": "dc5b26652ebe8b98f087c0d5a79a4f62272c4ac1aeb3740d4d9f8050e648396b",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ko/d150cd01de8512b4.png",
+      "hash": "f04e916088735141ea20578ed27e43082e2b68bf32f674017548c274451bc610",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ko/d1dad7f448795c2f.html",
+      "hash": "37a16f9b7d802ae9bbd8f0f0d15ba9ce51bd90d4217621887cb74d5b127812a1",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ko/d1dad7f448795c2f.png",
+      "hash": "979c12e7418767139e0c926ad2df61e911de8d6b6c4ef8890be4bcbc18049c74",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ko/e5360249d88e31da.html",
+      "hash": "37546e6d0a685fa76d8aff0b28ecb76f20d26053bdb3e47f933597ffd69951c0",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ko/e5360249d88e31da.png",
+      "hash": "9f2a4fdec85f3c3fab9160e11735097635e87876358f8d87f8352c14ce3f21a4",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ko/e5d84fd7d830e5cd.html",
+      "hash": "dbefda74d923034d4c22f334a09586144a817d9a81b7d67c8f427be6f22889f1",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ko/e5d84fd7d830e5cd.png",
+      "hash": "b28abe9b90e27f8af8ca092c2e339f2b332654ba1c7d3e00ffa84cb60d66d9ef",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ko/e9232f983e19581f.html",
+      "hash": "7c8dfe871b0ba78c2cf6adb45826b59eadca5c19231607f10b02ee698b13b114",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ko/e9232f983e19581f.png",
+      "hash": "9bc877624d180c8e9ae934dcae5e39fb57a0d74e474b16e6e8ea30e7e3838a69",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ko/eae1b3a398ad1099.html",
+      "hash": "da8aac1ea83ede218e460bb6190e469cb2a53b70fd1efc79e12ac8c7384ddb87",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ko/eae1b3a398ad1099.png",
+      "hash": "4a8e714a8da0b54c0234b2e808e0aea138c379d74b77c713d2c4ba36d18ebc6a",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ko/f67b03c0fba78316.html",
+      "hash": "968b72baf66ee87a689557a2d2db7252ad13d383d8fd2bffb66a1fa43441a950",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ko/f67b03c0fba78316.png",
+      "hash": "8a99b83345f279b759d3c9219256ecb0b9b73d611f2adab12d9d5fd5da57dbcd",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ko/ff056efa64501462.html",
+      "hash": "bb000d32051b9cc943379fff72dbfa05b78a053b2f01b747f3c1c2e9b681bbd6",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/ko/ff056efa64501462.png",
+      "hash": "f0823266fdbf78c30533d3472e4b4ffcc1e5296e045bf69ae1e3a4030309a2ef",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/vi/015ddd4a21f887af.html",
+      "hash": "588636de12cee7ea1db020eca795e541695f631117a1e777155b7b452075ab50",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/vi/015ddd4a21f887af.png",
+      "hash": "4cb4292cb262a2a919f9c1f4f37e03c3bce79b06fb0328e9428db2f101ad264a",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/vi/0d3303d5dc88ac20.html",
+      "hash": "c48666042e14cf435b54a882abf2e1ce9e5b44ab7e3aff1b0118fd6f274c776c",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/vi/0d3303d5dc88ac20.png",
+      "hash": "d4834770d299a13816546c818fae955607574ff1fb9f195747f39e86f2a20fe2",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/vi/1dbb3501995fcaa2.html",
+      "hash": "f7cc6172fbc712a92fcb1c8521ff91dcb0579a18ad9f0131ba8e644f11489bcf",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/vi/1dbb3501995fcaa2.png",
+      "hash": "9a6e274cbb2e47efb71dae04827d586dc74299c8a21d8387bcb6888fe5a2af42",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/vi/2ebae595a27287ac.html",
+      "hash": "f607da090383cdad2efe1fa6ea7a92e408647c0dc98eafde0b513e56b09bd0fb",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/vi/2ebae595a27287ac.png",
+      "hash": "6c1d2593f4d83f41d5150c945f9c5d903f43865058f10c2fb603e38b70f91724",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/vi/39a6f2b3456e71e9.html",
+      "hash": "f3a98a4580762d91c29ae40f2e488382ab08096db8d21b5ccd6633fe254e6227",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/vi/39a6f2b3456e71e9.png",
+      "hash": "d61e0174b65811d9dd5fe29cda5c19775b4894f69c057708d668c3483d345bb9",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/vi/439af835b9c71a3c.html",
+      "hash": "55aba7b5606baef7554342f98a1624d3fd0a6028819f1b7eefcba10108c96ee6",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/vi/439af835b9c71a3c.png",
+      "hash": "ab8e23a5a345fc8c031c97efb4c710ad019c2c10285732ab0ea68aafbe0c669b",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/vi/4be7964bdb756819.html",
+      "hash": "77ca11494be6938c96c42d4485538eccda13a9a994dfb2ba61d8949ac467804b",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/vi/4be7964bdb756819.png",
+      "hash": "5530b1cd3be5447b63ab9b590f2f11c3fa8eb4a669f112e93b582ffb82e7e9c3",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/vi/733b238bc570f277.html",
+      "hash": "ffa2bd3d45a9c120ee6ab8c26c0403f2c905d7abecc49754c3357fe87511bf54",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/vi/733b238bc570f277.png",
+      "hash": "6ac73a4ce91404d65592d67de4a34db145af2db555a1ff80c67157f91fc0c4dc",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/vi/7f36f0d445402838.html",
+      "hash": "dc93e7e4441430b1364734b28badc9bb6795ceaa185bbe60012bd233270510dc",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/vi/7f36f0d445402838.png",
+      "hash": "8baee1a1580f41eb8e40bc1422f24273c042e08d77ed8a650cbddffca2e8f962",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/vi/844ea96cf174c9c6.html",
+      "hash": "b48f694f5e7c913b8c15262eb6243d221849066947fadfbacf224679d1f0e113",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/vi/844ea96cf174c9c6.png",
+      "hash": "b1fb7d7dcc69a467252345889a2f1ddd7491d1379fa2868324504cc0c60f62cc",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/vi/8c49dd2b0b0fff9b.html",
+      "hash": "d38c633f7c6ebae1b6269b1684e9e3c9c33758b9aafd7734ac638cd7c49f3a65",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/vi/8c49dd2b0b0fff9b.png",
+      "hash": "c6abf7ca4bff8354a645747af4e1ab8aa832b700d265ac31939f06ca42b61ed5",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/vi/8e6f0bb1063dcb6d.html",
+      "hash": "2be5b5ddd1e64fd552ad3005cad9537cfd5722955c9c7c7e12fad7b05b11bad9",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/vi/8e6f0bb1063dcb6d.png",
+      "hash": "5870fecc58559b1a09c72888308bc2c3daa0e0997941c47892cddc7410291093",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/vi/967410e770093c73.html",
+      "hash": "512120fcc3c709f287770f322779378456771714e3aaf7c07201d29424fd545b",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/vi/967410e770093c73.png",
+      "hash": "9bf509795f1bc53ebea1296e5c9ddcfcf51dc3afd6b786e32a12e4f40789075f",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/vi/a2b096504a2e5d8c.html",
+      "hash": "4542cf10f24db745f81719b46b1c098cdc2afab41223ce786fcbf97a31fd272a",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/vi/a2b096504a2e5d8c.png",
+      "hash": "b5d94a8cb99e86f5eb6f2744ab5e950407d6766b9aa29e9bdf56920ca798a28b",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/vi/ad22a385cbcad90f.html",
+      "hash": "e2a4bc0fb340bc715fb7bad091c8fa9b9117d0e20a8b379ad1421a6ce1eca486",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/vi/ad22a385cbcad90f.png",
+      "hash": "d693e8c2ecee0bf35fc88f80284a494a16ed4cfb773ffef25f868027fcd502c8",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/vi/b0bd5f0a729a7a91.html",
+      "hash": "84e1bf96fb4c08fd04dba91e100918b45691a97f7b89fda9d7adeddf8bc280ee",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/vi/b0bd5f0a729a7a91.png",
+      "hash": "11f4e0158e0e9bfb4f3338a65605015a4cf11fdd1810df4bf98920b306a480fa",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/vi/be77f7158be73ff8.html",
+      "hash": "b248a8939465e2c1b146589fd00b598295e579c44afc35b449abc1e8f3d2dd98",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/vi/be77f7158be73ff8.png",
+      "hash": "c97b9a2a29b984cfd71c4efc09d44c112d3dfe77764994daebc0410d910242a3",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/vi/c76f3b0ec24666fd.html",
+      "hash": "886253f0330b235aa0d5e05e1e0fc654c07334fa707395fb55e212cb627602dc",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/vi/c76f3b0ec24666fd.png",
+      "hash": "e35a65dd12beef5be9df93875746d16e498362f15727263ac155de2f89c684ee",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/vi/cc5766b7f486b2c7.html",
+      "hash": "c929c2ba69000d07d448c4a7811295f390cb016b6fb658d5c07374e16ce5e08e",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/vi/cc5766b7f486b2c7.png",
+      "hash": "a1ed8546a0cab9c3686801fa973b0deb63772bb316ad7cc300b6f56d32adb932",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/vi/ce70d44966b0340f.html",
+      "hash": "35de1169c909ff8be83e26a991a33f1cbe6ad796c50231f96b5c758f16524c4a",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/vi/ce70d44966b0340f.png",
+      "hash": "e67984a75b5dcc718c0f90bf31ef80a7a456be98d2d91a9c3ca056fbb410f700",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/vi/d0fce3951e1efb65.html",
+      "hash": "64930e0ec3e7a5f4a34153b855ecbddac4eb8e9884fcb84d215a143144c8e096",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/vi/d0fce3951e1efb65.png",
+      "hash": "4143f567a9188bd11edf1753f72cdd67a2c460a9380b4d16382ec75836312076",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/vi/da2d7beed6d39046.html",
+      "hash": "7e3a1847fdfe1748d647aa8e2d7032659d18c9ff30a3f5ef7ded13def7373ab5",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/vi/da2d7beed6d39046.png",
+      "hash": "70afc9f265ccaa60239cd985666dadc633555c831a47444f7f85aa1bc0d457bb",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/vi/ef8981446708437a.html",
+      "hash": "e3ce5b6297f5355c1842f5681e41bcd6853e8d2f9ba27fd12189f765b4c55db0",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/vi/ef8981446708437a.png",
+      "hash": "7523983760f13b94a856bfd44db6225e547b01b70d6ca1ba93bd40c4fee86704",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/vi/f0123622fc73b688.html",
+      "hash": "a13582f649f7501890bf29b35db2ab1d5ce31ceefe22c1d58688fd0c60203219",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/vi/f0123622fc73b688.png",
+      "hash": "7642d075492a4001d9f5126a2d7539af006cbd9b6e9ad512b35331222dc6ce52",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/vi/f556aeea5b9be93e.html",
+      "hash": "ce73f117ac4cb094b2b082afdfc1f989a3e2c0ecf438fd928a4807562cb23fdf",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/share/x/vi/f556aeea5b9be93e.png",
+      "hash": "69b660e78ea83415e82f330780794687bb67c134f5a5f6f5f1ea7dd2c6a1b817",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/terms.html",
+      "hash": "17a5d22afa85722c8f951c8bfade9b4ce1e20179bf8daae8f797087ec65ea9d8",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/web-comics/daily/2026-10-13/en.png",
+      "hash": "dfee2099cb2e287b50ad6312074e66f06138ebefb4661841c49f5be214363b25",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/web-comics/daily/2026-10-13/id.png",
+      "hash": "4a115ce16b4b98fd0e4e1d73ebc6e383006611baac0d3cc1c332b200482226e9",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/web-comics/daily/2026-10-13/ja.png",
+      "hash": "a756afbe047bef1c07ce2cafee7aed905fafc5b0482b53c53ccbea9931291d6e",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/web-comics/daily/2026-10-13/ko.png",
+      "hash": "f4cb1edccba34038013f459dfaf3e0e55ed3433ec072da8b28c071ea059f8227",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/web-comics/daily/2026-10-13/vi.png",
+      "hash": "a57325937aac173977578f3b313e680d4be14361dfde4a60d41e815d67d401f2",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/web-comics/daily/2026-10-13/zh-CN.png",
+      "hash": "fda1ec233182c73790cf7ee44f1282b5974ab2ac5be42aefcc31fa68f614b373",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/web-comics/localized-v3/en/comic_ep01_attendance.png",
+      "hash": "5177aeb82731b523021881e2c3d1299e14ac5f7385581441c8b900651e37df37",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/web-comics/localized-v3/en/comic_ep02_lunch_line.png",
+      "hash": "41b54d5c3b9e2980b23e060e822c83343d5575a52fbc076afbd9b4b5390c4097",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/web-comics/localized-v3/en/comic_ep03_homework_wind.png",
+      "hash": "b87a9678dc8b5fab0a1fd91ed22a16c47f77cec3614c80ecba90779f1fb28484",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/web-comics/localized-v3/en/comic_ep04_gym_bounce.png",
+      "hash": "a8fe959e9e7cce522f91d4f1794c60dc1b9f1d5fdae5a42b90477aced03c586d",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/web-comics/localized-v3/en/comic_ep05_library_quiet.png",
+      "hash": "539735c72b8571d9811c6aa063020dbe6e5a104c14914b987e9c4fa81cb77af5",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/web-comics/localized-v3/id/comic_ep01_attendance.png",
+      "hash": "3ed3256f123104a631a6c8b83510db773a25fc535a4633766845e1bfd1ce2b17",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/web-comics/localized-v3/id/comic_ep02_lunch_line.png",
+      "hash": "c3f9f5fb892803cbbd42efeca1df2483f845763583c2e4d1a0866ca62058d7f9",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/web-comics/localized-v3/id/comic_ep03_homework_wind.png",
+      "hash": "5be43ed8dc0987dce949248206522e9efff010502af26fa961e61b5ff3f61519",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/web-comics/localized-v3/id/comic_ep04_gym_bounce.png",
+      "hash": "4dfa99157b97202a7bf41defdf413355816d22709fbb9ed4274e4932eb3040d8",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/web-comics/localized-v3/id/comic_ep05_library_quiet.png",
+      "hash": "75340ff6f10fd314720656017dac12fa64fe2eeab45be973b7f07ae78381184d",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/web-comics/localized-v3/ja/comic_ep01_attendance.png",
+      "hash": "64896556453205b26d1d93ad1ec94ae6c3321c453663c1db6b8751f7f6933ce0",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/web-comics/localized-v3/ja/comic_ep02_lunch_line.png",
+      "hash": "fe25edb596094f730fc6de2e5852699d3b65f32938a46383bbbc903753ba666c",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/web-comics/localized-v3/ja/comic_ep03_homework_wind.png",
+      "hash": "3579996a9df2d699eca757acca52eabe360e219105c75884be3aed0b721ef301",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/web-comics/localized-v3/ja/comic_ep04_gym_bounce.png",
+      "hash": "b5b67ac90d75538591645da0cd9cff58129c03741503bbf9e9352c284216a0fb",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/web-comics/localized-v3/ja/comic_ep05_library_quiet.png",
+      "hash": "351c17bfb2d5075f6e3dac8a664c64f343afac3b66e51b7ab4af266eb9c4a1a7",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/web-comics/localized-v3/vi/comic_ep01_attendance.png",
+      "hash": "ac52a3973902b5d6af27410c18af41b369823b48fea288f1cfad36a447ea9078",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/web-comics/localized-v3/vi/comic_ep02_lunch_line.png",
+      "hash": "21474b4f7edf27f0f25da6d583f14f7aec460e889ab446a8c2e93d1ebdd77603",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/web-comics/localized-v3/vi/comic_ep03_homework_wind.png",
+      "hash": "5024c60932330a5dc799260f3935f95624cf59cb443b169ef3e3013339195839",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/web-comics/localized-v3/vi/comic_ep04_gym_bounce.png",
+      "hash": "c50aec7bbe76385016962a8eab121630e88f0f1bcd21330d3b6be326dd80a120",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/web-comics/localized-v3/vi/comic_ep05_library_quiet.png",
+      "hash": "27ee324f6e648fbe352e8c5debdac97e2ed3f11c88d1d0f36c97c0662e1a4789",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/web-comics/localized-v3/zh-CN/comic_ep01_attendance.png",
+      "hash": "a9b9b5c663b8069b321a20e3ea7a9da804a42ebce5f3a1e07d68348b28550318",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/web-comics/localized-v3/zh-CN/comic_ep02_lunch_line.png",
+      "hash": "40afd3fce484010c76a4ab3c177428345dc0dbd94a9f560707b06389020c1d1a",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/web-comics/localized-v3/zh-CN/comic_ep03_homework_wind.png",
+      "hash": "bb8cb7e5aa55e0f1de15b1363448ddf8ddfcf8d2975f9e2d3fe043cce79e49c7",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/web-comics/localized-v3/zh-CN/comic_ep04_gym_bounce.png",
+      "hash": "7e071bd880a5d6036a884587d984d37adae619be1fce8fb6dcf43be822787907",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/web-comics/localized-v3/zh-CN/comic_ep05_library_quiet.png",
+      "hash": "0bdb73d1b30069f73d8e26d5942dcd295511a9a4eed3b2083e52682339b584b7",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/web-comics/v3/comic_ep01_attendance.png",
+      "hash": "78dfba01514c1d6654759f88bddcd4fef268775eee69d43503e8d52995643b22",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/web-comics/v3/comic_ep02_lunch_line.png",
+      "hash": "22a914fad5ef38f1189db1e8b7d92845319ca6aefe837785e088cb4aed666554",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/web-comics/v3/comic_ep03_homework_wind.png",
+      "hash": "2c2e24e90889f524d91cecab80cf18372a9396b4e89d038e957d53fc0ee3e33e",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/web-comics/v3/comic_ep04_gym_bounce.png",
+      "hash": "1f7205854bbed3ff14db2d0b8ae69558bd109f5959fcab3821322745ce9cf949",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/web-comics/v3/comic_ep05_library_quiet.png",
+      "hash": "50f573798e7fbceb8c0c6e1c37347aeaf37063ad9036b60125e076c0f2fa2968",
+      "status": "ACTIVE"
+    },
+    {
+      "path": "/x-website-cards-manifest.json",
+      "hash": "959d1024e33644f6d2130976db74754a119f69ea8b1f31262dd968327fcae2dc",
+      "status": "ACTIVE"
+    }
+  ],
+  "rulesCanonicalHash": "67c9ca226866f53ae4849733602201d96dedba66e0a9941784ac3b238684b467",
+  "rankingSubtreeMatchesSource": true
+}

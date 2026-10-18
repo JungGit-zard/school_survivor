@@ -1,0 +1,38 @@
+{
+  "observedAt": "2026-10-18T12:02:16.504Z",
+  "routes": [
+    {
+      "path": "/",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8",
+      "hash": "9cbace2a713a8aa296fc31cb7289a57548cac4a9ad3251e82967a3ac9b476655",
+      "builtIndexMatches": true
+    },
+    {
+      "path": "/game",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8",
+      "hash": "9cbace2a713a8aa296fc31cb7289a57548cac4a9ad3251e82967a3ac9b476655",
+      "builtIndexMatches": true
+    },
+    {
+      "path": "/landing",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8",
+      "hash": "9cbace2a713a8aa296fc31cb7289a57548cac4a9ad3251e82967a3ac9b476655",
+      "builtIndexMatches": true
+    },
+    {
+      "path": "/admin",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8",
+      "hash": "9cbace2a713a8aa296fc31cb7289a57548cac4a9ad3251e82967a3ac9b476655",
+      "builtIndexMatches": true
+    }
+  ],
+  "shareManifestHash": "1d94baea4414fe75f2d66b04e0ec37ec307e3a074ad60c6dfa83bb6d8ac6295d",
+  "shareManifestMatchesPreservedCurrentBaseline": true,
+  "actualRender": "NOT_VERIFIED",
+  "freshGoogleOAuth": "NOT_VERIFIED",
+  "liveUserRankingWrite": "NOT_VERIFIED"
+}

@@ -1,0 +1,20 @@
+{
+  "observedAt": "2026-10-18T12:01:28.679Z",
+  "mode": "preview",
+  "url": "https://escape-zombie-school--ranking-hardening-20261018-wk9nr4hw.web.app",
+  "version": "sites/escape-zombie-school/versions/d41e90ef5ec76803",
+  "files": 665,
+  "manifestHash": "fd41c040ffd90b6c052a9c69a15e8c4643f923d2fc053a838524b5165dd255f1",
+  "baseline": "sites/escape-zombie-school/versions/65d2acb686b75f1b",
+  "baselineNonProviderPaths": 625,
+  "missing": [],
+  "changedBaselinePaths": [
+    "/index.html"
+  ],
+  "rulesCanonicalHash": "67c9ca226866f53ae4849733602201d96dedba66e0a9941784ac3b238684b467",
+  "rulesUnchanged": true,
+  "configUnchanged": true,
+  "liveVersion": "sites/escape-zombie-school/versions/65d2acb686b75f1b",
+  "expectedLiveUnchanged": "sites/escape-zombie-school/versions/65d2acb686b75f1b",
+  "indexMatchesBuiltSource": true
+}
