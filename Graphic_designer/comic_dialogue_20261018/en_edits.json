@@ -1,0 +1,237 @@
+﻿{
+    "locale":  "en",
+    "generatedUtc":  "2026-10-18T09:39:39.7804917Z",
+    "editMethod":  "image_gen",
+    "items":  [
+                  {
+                      "sourcePaths":  [
+                                          "marketing/x_daily_zombie_school_posting/image_pool/x/en/backlog_comic_20261015/01.png",
+                                          "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/backlog_comic_20261015/01.png"
+                                      ],
+                      "sourceSha256":  "dedc5b2972f6b3e573697f335f6b2a1f6ce907da8051a0f622645aacd7d938bb",
+                      "outputPaths":  [
+                                          "marketing/x_daily_zombie_school_posting/image_pool/x/en/dialogue_filled_20261018/backlog_comic_20261015_01.png",
+                                          "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/dialogue_filled_20261018/backlog_comic_20261015_01.png"
+                                      ],
+                      "outputSha256":  "4c3f3187669ae4eeb6cb8f3aea7bc33fbb3591139f54892e2f682c89ac4da756",
+                      "insertedText":  [
+                                           "Whoa!",
+                                           "Ball storm!",
+                                           "Gotcha!"
+                                       ],
+                      "emptyBalloons":  [
+                                            "top-right",
+                                            "bottom-left",
+                                            "bottom-right"
+                                        ],
+                      "completed":  true
+                  },
+                  {
+                      "sourcePaths":  [
+                                          "marketing/x_daily_zombie_school_posting/image_pool/x/en/backlog_comic_20261015/02.png",
+                                          "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/backlog_comic_20261015/02.png"
+                                      ],
+                      "sourceSha256":  "3947f513e13c604c2aef8f16d01e454b7f0bf4f358688cf83d83050f6ba986ae",
+                      "outputPaths":  [
+                                          "marketing/x_daily_zombie_school_posting/image_pool/x/en/dialogue_filled_20261018/backlog_comic_20261015_02.png",
+                                          "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/dialogue_filled_20261018/backlog_comic_20261015_02.png"
+                                      ],
+                      "outputSha256":  "6ece693959edb94fe3e219829f58547941ba720174f30a2254e7906641dbd967",
+                      "insertedText":  [
+                                           "Magnet on!",
+                                           "Click!",
+                                           "Success!"
+                                       ],
+                      "emptyBalloons":  [
+                                            "top-right",
+                                            "bottom-left",
+                                            "bottom-right"
+                                        ],
+                      "completed":  true
+                  },
+                  {
+                      "sourcePaths":  [
+                                          "marketing/x_daily_zombie_school_posting/image_pool/x/en/backlog_comic_20261015/03.png",
+                                          "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/backlog_comic_20261015/03.png"
+                                      ],
+                      "sourceSha256":  "65d0c0f35bc957aaed39c262967e7805114f53a6ada8bf2e0d6086f0cd073218",
+                      "outputPaths":  [
+                                          "marketing/x_daily_zombie_school_posting/image_pool/x/en/dialogue_filled_20261018/backlog_comic_20261015_03.png",
+                                          "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/dialogue_filled_20261018/backlog_comic_20261015_03.png"
+                                      ],
+                      "outputSha256":  "733db7cbd04a8d1eacc8fc8c63bbe0500251ee8058264aa0883109f65c499129",
+                      "insertedText":  [
+                                           "Cart away!",
+                                           "Book avalanche!",
+                                           "Gotcha!"
+                                       ],
+                      "emptyBalloons":  [
+                                            "top-right",
+                                            "bottom-left",
+                                            "bottom-right"
+                                        ],
+                      "completed":  true
+                  },
+                  {
+                      "sourcePaths":  [
+                                          "marketing/x_daily_zombie_school_posting/image_pool/x/en/backlog_comic_20261015/04.png",
+                                          "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/backlog_comic_20261015/04.png"
+                                      ],
+                      "sourceSha256":  "f3f856b6f873b9c432ede569a8e3568372b9c336a04c346d9c2c02b45cd638a4",
+                      "outputPaths":  [
+                                          "marketing/x_daily_zombie_school_posting/image_pool/x/en/dialogue_filled_20261018/backlog_comic_20261015_04.png",
+                                          "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/dialogue_filled_20261018/backlog_comic_20261015_04.png"
+                                      ],
+                      "outputSha256":  "5647227caf8e480e9a407c72f8222315648c82ffe784fc905ab5af3c7a6a99fb",
+                      "insertedText":  [
+                                           "Drumroll!",
+                                           "Boom!",
+                                           "Encore?"
+                                       ],
+                      "emptyBalloons":  [
+                                            "top-right",
+                                            "bottom-left",
+                                            "bottom-right"
+                                        ],
+                      "completed":  true
+                  },
+                  {
+                      "sourcePaths":  [
+                                          "marketing/x_daily_zombie_school_posting/image_pool/x/en/backlog_comic_20261015/05.png",
+                                          "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/backlog_comic_20261015/05.png"
+                                      ],
+                      "sourceSha256":  "7c4288890e1e68a8aec206782ea00c0ed750725a006d03e591d7cddb8f845fe9",
+                      "outputPaths":  [
+                                          "marketing/x_daily_zombie_school_posting/image_pool/x/en/dialogue_filled_20261018/backlog_comic_20261015_05.png",
+                                          "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/dialogue_filled_20261018/backlog_comic_20261015_05.png"
+                                      ],
+                      "outputSha256":  "ced9177fb291b5eebd986be0a6d804f17cef77fc8e2592be9bcc040e86b886f4",
+                      "insertedText":  [
+                                           "Roll, roll!",
+                                           "Paper wrap!",
+                                           "Ta-da!"
+                                       ],
+                      "emptyBalloons":  [
+                                            "top-right",
+                                            "bottom-left",
+                                            "bottom-right"
+                                        ],
+                      "completed":  true
+                  },
+                  {
+                      "sourcePaths":  [
+                                          "marketing/x_daily_zombie_school_posting/image_pool/x/en/backlog_comic_20261015/06.png",
+                                          "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/backlog_comic_20261015/06.png"
+                                      ],
+                      "sourceSha256":  "69a4bf222516247c5febb7b36e04f3b04e964a994854f1aba0af04073aa6a71f",
+                      "outputPaths":  [
+                                          "marketing/x_daily_zombie_school_posting/image_pool/x/en/dialogue_filled_20261018/backlog_comic_20261015_06.png",
+                                          "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/dialogue_filled_20261018/backlog_comic_20261015_06.png"
+                                      ],
+                      "outputSha256":  "ba5eedd9009e106acc03bf9e8212b8d78d11752c569dc767408ff52415ab88e5",
+                      "insertedText":  [
+                                           "Sneak away!",
+                                           "Wobble!",
+                                           "Yum!"
+                                       ],
+                      "emptyBalloons":  [
+                                            "top-right",
+                                            "bottom-left",
+                                            "bottom-right"
+                                        ],
+                      "completed":  true
+                  },
+                  {
+                      "sourcePaths":  [
+                                          "marketing/x_daily_zombie_school_posting/image_pool/x/en/backlog_comic_20261015/07.png",
+                                          "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/backlog_comic_20261015/07.png"
+                                      ],
+                      "sourceSha256":  "469dfb972d2f5a83e14f4f521663d2da978e34fd06f0772e955b3c754622b2d6",
+                      "outputPaths":  [
+                                          "marketing/x_daily_zombie_school_posting/image_pool/x/en/dialogue_filled_20261018/backlog_comic_20261015_07.png",
+                                          "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/dialogue_filled_20261018/backlog_comic_20261015_07.png"
+                                      ],
+                      "outputSha256":  "c75f787e8a02cd90358d21279fd3c87b7e7397cd45f1f6b9b8da32c5eb345dc4",
+                      "insertedText":  [
+                                           "Encore!",
+                                           "Ta-da!",
+                                           "Thank you!"
+                                       ],
+                      "emptyBalloons":  [
+                                            "top-right",
+                                            "bottom-left",
+                                            "bottom-right"
+                                        ],
+                      "completed":  true
+                  },
+                  {
+                      "sourcePaths":  [
+                                          "marketing/x_daily_zombie_school_posting/image_pool/x/en/backlog_comic_20261015/08.png",
+                                          "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/backlog_comic_20261015/08.png"
+                                      ],
+                      "sourceSha256":  "416ca2e71169600c3775878b0f04093d7f62fe608bf7d60156874b74359480b0",
+                      "outputPaths":  [
+                                          "marketing/x_daily_zombie_school_posting/image_pool/x/en/dialogue_filled_20261018/backlog_comic_20261015_08.png",
+                                          "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/dialogue_filled_20261018/backlog_comic_20261015_08.png"
+                                      ],
+                      "outputSha256":  "0f20cf141b5719c1de41a1fb3c16357c38663bac188356712aab25e3e2eb9ad5",
+                      "insertedText":  [
+                                           "Whoa!",
+                                           "Too wet!",
+                                           "Great job!"
+                                       ],
+                      "emptyBalloons":  [
+                                            "top-right",
+                                            "bottom-left",
+                                            "bottom-right"
+                                        ],
+                      "completed":  true
+                  },
+                  {
+                      "sourcePaths":  [
+                                          "marketing/x_daily_zombie_school_posting/image_pool/x/en/backlog_comic_20261015/09.png",
+                                          "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/backlog_comic_20261015/09.png"
+                                      ],
+                      "sourceSha256":  "272c9e4f469632cc215a6807d1b06455d0790865e693df8ed0d2ff788415f062",
+                      "outputPaths":  [
+                                          "marketing/x_daily_zombie_school_posting/image_pool/x/en/dialogue_filled_20261018/backlog_comic_20261015_09.png",
+                                          "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/dialogue_filled_20261018/backlog_comic_20261015_09.png"
+                                      ],
+                      "outputSha256":  "bfeae7b826de5591e2e3e40d2c134fa146cc897fdb57bc4647fc1393aa394ad1",
+                      "insertedText":  [
+                                           "Go, go!",
+                                           "This way!",
+                                           "We did it!"
+                                       ],
+                      "emptyBalloons":  [
+                                            "top-right",
+                                            "bottom-left",
+                                            "bottom-right"
+                                        ],
+                      "completed":  true
+                  },
+                  {
+                      "sourcePaths":  [
+                                          "marketing/x_daily_zombie_school_posting/image_pool/x/en/backlog_comic_20261015/10.png",
+                                          "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/backlog_comic_20261015/10.png"
+                                      ],
+                      "sourceSha256":  "6daf3c705b2bca66d28a8ccd09af1a68dc20090b8a09819db40a648ce1c5fa46",
+                      "outputPaths":  [
+                                          "marketing/x_daily_zombie_school_posting/image_pool/x/en/dialogue_filled_20261018/backlog_comic_20261015_10.png",
+                                          "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/dialogue_filled_20261018/backlog_comic_20261015_10.png"
+                                      ],
+                      "outputSha256":  "044f8cc2fb89e9f3d629025be858daeec07ecd82eec5068ff5e1fdfb28bf82a1",
+                      "insertedText":  [
+                                           "Whoa!",
+                                           "Stars!",
+                                           "Amazing!"
+                                       ],
+                      "emptyBalloons":  [
+                                            "top-right",
+                                            "bottom-left",
+                                            "bottom-right"
+                                        ],
+                      "completed":  true
+                  }
+              ]
+}

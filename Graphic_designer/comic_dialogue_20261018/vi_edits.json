@@ -1,0 +1,218 @@
+{
+    "schema":  1,
+    "taskId":  "t_d17f4eab",
+    "locale":  "vi",
+    "tool":  "built-in image_gen",
+    "textStyle":  "existing pink lettering with dark outline",
+    "invariants":  [
+                       "preserve original art and four panels",
+                       "preserve existing top-left bubble and pink effects",
+                       "preserve exact BẮT ĐẦU CHƠI CTA and banner",
+                       "preserve original canvas dimensions",
+                       "source assets unchanged"
+                   ],
+    "sourceAssetCount":  10,
+    "outputAssetCount":  20,
+    "edits":  [
+                  {
+                      "index":  1,
+                      "source":  [
+                                     "marketing/x_daily_zombie_school_posting/image_pool/x/vi/backlog_comic_20261015/01.png",
+                                     "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/backlog_comic_20261015/01.png"
+                                 ],
+                      "sourceSha256":  "015ddd4a21f887af78ccde30c826ef90e96042fb09135ea4e01c4d187ceb2a2d",
+                      "target":  [
+                                     "marketing\\x_daily_zombie_school_posting\\image_pool\\x\\vi\\dialogue_filled_20261018\\backlog_comic_20261015_01.png",
+                                     "marketing\\x_daily_zombie_school_posting\\image_pool\\facebook\\vi\\dialogue_filled_20261018\\backlog_comic_20261015_01.png"
+                                 ],
+                      "targetSha256":  "45b4eb9591ed4e18578be3bc6a05af386f099ef2c6361b39e9ccc33b80632320",
+                      "generatedImage":  "C:\\Users\\admin\\.codex\\generated_images\\01a14dc5-d01f-7590-8bb9-40b3a5f227ff\\exec-49f58604-7e3c-4348-9527-a62a5c59d291.png",
+                      "dialogue":  {
+                                       "bottomRight":  "Chụp được rồi!",
+                                       "bottomLeft":  "Xả bóng nào!",
+                                       "topRight":  "Quả địa cầu đây rồi!"
+                                   },
+                      "visuallyChecked":  true
+                  },
+                  {
+                      "index":  2,
+                      "source":  [
+                                     "marketing/x_daily_zombie_school_posting/image_pool/x/vi/backlog_comic_20261015/02.png",
+                                     "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/backlog_comic_20261015/02.png"
+                                 ],
+                      "sourceSha256":  "8c49dd2b0b0fff9bfccc0f2ff522e0b3d75ae0267b8e415c67b1b6aec365ee39",
+                      "target":  [
+                                     "marketing\\x_daily_zombie_school_posting\\image_pool\\x\\vi\\dialogue_filled_20261018\\backlog_comic_20261015_02.png",
+                                     "marketing\\x_daily_zombie_school_posting\\image_pool\\facebook\\vi\\dialogue_filled_20261018\\backlog_comic_20261015_02.png"
+                                 ],
+                      "targetSha256":  "3ccef51e0865afae296e4733fd87570aa70c70425343b578f8fc51d515964f2f",
+                      "generatedImage":  "C:\\Users\\admin\\.codex\\generated_images\\01a14dc5-d01f-7590-8bb9-40b3a5f227ff\\exec-2d6bd584-3ab4-4c81-829d-0ed806c3c773.png",
+                      "dialogue":  {
+                                       "bottomRight":  "Thành công!",
+                                       "bottomLeft":  "Dính chặt rồi!",
+                                       "topRight":  "Hút hết nào!"
+                                   },
+                      "visuallyChecked":  true
+                  },
+                  {
+                      "index":  3,
+                      "source":  [
+                                     "marketing/x_daily_zombie_school_posting/image_pool/x/vi/backlog_comic_20261015/03.png",
+                                     "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/backlog_comic_20261015/03.png"
+                                 ],
+                      "sourceSha256":  "ad22a385cbcad90fee871a2123e8ea0ae42f554e987e94ccdc4d587ae7591459",
+                      "target":  [
+                                     "marketing\\x_daily_zombie_school_posting\\image_pool\\x\\vi\\dialogue_filled_20261018\\backlog_comic_20261015_03.png",
+                                     "marketing\\x_daily_zombie_school_posting\\image_pool\\facebook\\vi\\dialogue_filled_20261018\\backlog_comic_20261015_03.png"
+                                 ],
+                      "targetSha256":  "6f30a7a9407ca64ea3ded6cfda668900abff79fad5b1a116249a118a6660445c",
+                      "generatedImage":  "C:\\Users\\admin\\.codex\\generated_images\\01a14dc5-d01f-7590-8bb9-40b3a5f227ff\\exec-2658f7d5-a308-4e02-8c57-6a2f729690ed.png",
+                      "dialogue":  {
+                                       "bottomRight":  "Có thẻ rồi!",
+                                       "bottomLeft":  "Lấy sách nào!",
+                                       "topRight":  "Đẩy xe thôi!"
+                                   },
+                      "visuallyChecked":  true
+                  },
+                  {
+                      "index":  4,
+                      "source":  [
+                                     "marketing/x_daily_zombie_school_posting/image_pool/x/vi/backlog_comic_20261015/04.png",
+                                     "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/backlog_comic_20261015/04.png"
+                                 ],
+                      "sourceSha256":  "da2d7beed6d3904661432b362ec61c29e64608d950c83818f2264e8aa892c385",
+                      "target":  [
+                                     "marketing\\x_daily_zombie_school_posting\\image_pool\\x\\vi\\dialogue_filled_20261018\\backlog_comic_20261015_04.png",
+                                     "marketing\\x_daily_zombie_school_posting\\image_pool\\facebook\\vi\\dialogue_filled_20261018\\backlog_comic_20261015_04.png"
+                                 ],
+                      "targetSha256":  "8d7151c3385b4d2d3435ae136b762a3143196676f9a17d65eb7f90dc3b80945d",
+                      "generatedImage":  "C:\\Users\\admin\\.codex\\generated_images\\01a14dc5-d01f-7590-8bb9-40b3a5f227ff\\exec-122457a9-1638-441c-a463-2c118054a2ba.png",
+                      "dialogue":  {
+                                       "bottomRight":  "Chơi tiếp nào!",
+                                       "bottomLeft":  "Bùm!",
+                                       "topRight":  "Vào nhịp nhé!"
+                                   },
+                      "visuallyChecked":  true
+                  },
+                  {
+                      "index":  5,
+                      "source":  [
+                                     "marketing/x_daily_zombie_school_posting/image_pool/x/vi/backlog_comic_20261015/05.png",
+                                     "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/backlog_comic_20261015/05.png"
+                                 ],
+                      "sourceSha256":  "a2b096504a2e5d8c1ea59daf5597006da6fb6866b253c6bb4aa4a9048b7c8936",
+                      "target":  [
+                                     "marketing\\x_daily_zombie_school_posting\\image_pool\\x\\vi\\dialogue_filled_20261018\\backlog_comic_20261015_05.png",
+                                     "marketing\\x_daily_zombie_school_posting\\image_pool\\facebook\\vi\\dialogue_filled_20261018\\backlog_comic_20261015_05.png"
+                                 ],
+                      "targetSha256":  "cc5766b7f486b2c70697a569de596a4f4ee49b273a0dc1f842bb00036c17f04a",
+                      "generatedImage":  "C:\\Users\\admin\\.codex\\generated_images\\01a14dc5-d01f-7590-8bb9-40b3a5f227ff\\exec-0112c069-2864-41df-89f3-36ec2d72152e.png",
+                      "dialogue":  {
+                                       "bottomRight":  "Tada!",
+                                       "bottomLeft":  "Quấn chặt rồi!",
+                                       "topRight":  "Kéo giấy nào!"
+                                   },
+                      "visuallyChecked":  true
+                  },
+                  {
+                      "index":  6,
+                      "source":  [
+                                     "marketing/x_daily_zombie_school_posting/image_pool/x/vi/backlog_comic_20261015/06.png",
+                                     "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/backlog_comic_20261015/06.png"
+                                 ],
+                      "sourceSha256":  "c76f3b0ec24666fd128f9831909c9be976d51f4b374d27cba082a47c5c45e571",
+                      "target":  [
+                                     "marketing\\x_daily_zombie_school_posting\\image_pool\\x\\vi\\dialogue_filled_20261018\\backlog_comic_20261015_06.png",
+                                     "marketing\\x_daily_zombie_school_posting\\image_pool\\facebook\\vi\\dialogue_filled_20261018\\backlog_comic_20261015_06.png"
+                                 ],
+                      "targetSha256":  "4be7964bdb7568193792f0a5ccf92c8577e49de82c0234fe1cd5f3dce04c6059",
+                      "generatedImage":  "C:\\Users\\admin\\.codex\\generated_images\\01a14dc5-d01f-7590-8bb9-40b3a5f227ff\\exec-8f33bc8b-9531-44f8-b907-b8db7dc2971e.png",
+                      "dialogue":  {
+                                       "bottomRight":  "Mời ăn nhé!",
+                                       "bottomLeft":  "Úi, ngã rồi!",
+                                       "topRight":  "Đẩy xe nào!"
+                                   },
+                      "visuallyChecked":  true
+                  },
+                  {
+                      "index":  7,
+                      "source":  [
+                                     "marketing/x_daily_zombie_school_posting/image_pool/x/vi/backlog_comic_20261015/07.png",
+                                     "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/backlog_comic_20261015/07.png"
+                                 ],
+                      "sourceSha256":  "b0bd5f0a729a7a91f4f0c3b2d489e86e57ab5bdf80c5cc2b580fbbc32ddb6947",
+                      "target":  [
+                                     "marketing\\x_daily_zombie_school_posting\\image_pool\\x\\vi\\dialogue_filled_20261018\\backlog_comic_20261015_07.png",
+                                     "marketing\\x_daily_zombie_school_posting\\image_pool\\facebook\\vi\\dialogue_filled_20261018\\backlog_comic_20261015_07.png"
+                                 ],
+                      "targetSha256":  "8e6f0bb1063dcb6ddd355501f06fa52d0e0ae48ba17e550b22d7cb0dfec716ea",
+                      "generatedImage":  "C:\\Users\\admin\\.codex\\generated_images\\01a14dc5-d01f-7590-8bb9-40b3a5f227ff\\exec-d6a39ac7-8cae-4376-8deb-0773ddb70ded.png",
+                      "dialogue":  {
+                                       "bottomRight":  "Cảm ơn nhé!",
+                                       "bottomLeft":  "Màn mở rồi!",
+                                       "topRight":  "Bật đèn nào!"
+                                   },
+                      "visuallyChecked":  true
+                  },
+                  {
+                      "index":  8,
+                      "source":  [
+                                     "marketing/x_daily_zombie_school_posting/image_pool/x/vi/backlog_comic_20261015/08.png",
+                                     "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/backlog_comic_20261015/08.png"
+                                 ],
+                      "sourceSha256":  "733b238bc570f2771bb21ae12056fd6e303f5787ca78d5e956477c27a0360cc7",
+                      "target":  [
+                                     "marketing\\x_daily_zombie_school_posting\\image_pool\\x\\vi\\dialogue_filled_20261018\\backlog_comic_20261015_08.png",
+                                     "marketing\\x_daily_zombie_school_posting\\image_pool\\facebook\\vi\\dialogue_filled_20261018\\backlog_comic_20261015_08.png"
+                                 ],
+                      "targetSha256":  "844ea96cf174c9c66c1746439e49252c3e25d7361d309278700f81b9a3379c63",
+                      "generatedImage":  "C:\\Users\\admin\\.codex\\generated_images\\01a14dc5-d01f-7590-8bb9-40b3a5f227ff\\exec-a68e4321-a3b7-40a0-9233-912999a3048d.png",
+                      "dialogue":  {
+                                       "bottomRight":  "Cùng trồng nhé!",
+                                       "bottomLeft":  "Nảy mầm rồi!",
+                                       "topRight":  "Tưới thật đều!"
+                                   },
+                      "visuallyChecked":  true
+                  },
+                  {
+                      "index":  9,
+                      "source":  [
+                                     "marketing/x_daily_zombie_school_posting/image_pool/x/vi/backlog_comic_20261015/09.png",
+                                     "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/backlog_comic_20261015/09.png"
+                                 ],
+                      "sourceSha256":  "be77f7158be73ff8aefd94e66858a8459df3f2c1795428f48925728e8b030197",
+                      "target":  [
+                                     "marketing\\x_daily_zombie_school_posting\\image_pool\\x\\vi\\dialogue_filled_20261018\\backlog_comic_20261015_09.png",
+                                     "marketing\\x_daily_zombie_school_posting\\image_pool\\facebook\\vi\\dialogue_filled_20261018\\backlog_comic_20261015_09.png"
+                                 ],
+                      "targetSha256":  "967410e770093c735f1d19f891341d464a876aaca03c0724db75d71285828678",
+                      "generatedImage":  "C:\\Users\\admin\\.codex\\generated_images\\01a14dc5-d01f-7590-8bb9-40b3a5f227ff\\exec-f9412b69-9a8c-46a0-99c7-f9d0dee3591d.png",
+                      "dialogue":  {
+                                       "bottomRight":  "Về đích thôi!",
+                                       "bottomLeft":  "Bắt được rồi!",
+                                       "topRight":  "Nhảy qua nào!"
+                                   },
+                      "visuallyChecked":  true
+                  },
+                  {
+                      "index":  10,
+                      "source":  [
+                                     "marketing/x_daily_zombie_school_posting/image_pool/x/vi/backlog_comic_20261015/10.png",
+                                     "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/backlog_comic_20261015/10.png"
+                                 ],
+                      "sourceSha256":  "439af835b9c71a3cfa64d270f62490a55e385b5ac58e3b5a50c2b94f018d76c5",
+                      "target":  [
+                                     "marketing\\x_daily_zombie_school_posting\\image_pool\\x\\vi\\dialogue_filled_20261018\\backlog_comic_20261015_10.png",
+                                     "marketing\\x_daily_zombie_school_posting\\image_pool\\facebook\\vi\\dialogue_filled_20261018\\backlog_comic_20261015_10.png"
+                                 ],
+                      "targetSha256":  "39a6f2b3456e71e934520e31a9ff1b21d248d4de031689e3f897b8e3a4090124",
+                      "generatedImage":  "C:\\Users\\admin\\.codex\\generated_images\\01a14dc5-d01f-7590-8bb9-40b3a5f227ff\\exec-ade42eb2-ddf1-4014-8752-af39277c1229.png",
+                      "dialogue":  {
+                                       "bottomRight":  "Soi sao nào!",
+                                       "bottomLeft":  "Vũ trụ rộng quá!",
+                                       "topRight":  "Nhìn kìa!"
+                                   },
+                      "visuallyChecked":  true
+                  }
+              ]
+}

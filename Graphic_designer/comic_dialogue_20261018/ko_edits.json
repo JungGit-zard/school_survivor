@@ -1,0 +1,282 @@
+[
+  {
+    "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/backlog_comic_20261015/01.png",
+    "target": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/dialogue_filled_20261018/backlog_comic_20261015_01.png",
+    "sourceSha256": "30d6412bea13002f0c19441b7ee62d92c30613a6ec969273ad8f80b3f30ef763",
+    "targetSha256": "dca6c1ab3f441a57bce18b5ff1cc809ff96c4c7a0e1c7f1f15e15661694afb16",
+    "locale": "ko",
+    "platform": "x",
+    "inserted": [
+      "체육관!",
+      "와르르!",
+      "잡았다!"
+    ],
+    "visuallyChecked": true
+  },
+  {
+    "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/backlog_comic_20261015/02.png",
+    "target": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/dialogue_filled_20261018/backlog_comic_20261015_02.png",
+    "sourceSha256": "21048273c0b6ca89bb5928c9cfeb0b3737f1036bfb193977b8ec21917d9072bc",
+    "targetSha256": "bbf30f66da7a5949c8326ac20557c9ea94a0bda81d7b07d8fa4726075a6edb79",
+    "locale": "ko",
+    "platform": "x",
+    "inserted": [
+      "붙어라!",
+      "철썩!",
+      "성공!"
+    ],
+    "visuallyChecked": true
+  },
+  {
+    "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/backlog_comic_20261015/03.png",
+    "target": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/dialogue_filled_20261018/backlog_comic_20261015_03.png",
+    "sourceSha256": "4036258606fb33aea915868540eaefccac8f1f5483572a90e44f629dff4cc096",
+    "targetSha256": "d57327a4604e1b4ca41b0f175373e03597f52e90d308c4412c94dcfcfc6a7746",
+    "locale": "ko",
+    "platform": "x",
+    "inserted": [
+      "수레 출발!",
+      "책 폭포!",
+      "대출 끝!"
+    ],
+    "visuallyChecked": true
+  },
+  {
+    "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/backlog_comic_20261015/04.png",
+    "target": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/dialogue_filled_20261018/backlog_comic_20261015_04.png",
+    "sourceSha256": "e9232f983e19581fd578efbd1c2d9af5b89b930f670e88c1ad4ebead076f9e00",
+    "targetSha256": "20650156a69972cba9393acc0696ab9d4ebdbd738cd3279c9e1488318fd7b663",
+    "locale": "ko",
+    "platform": "x",
+    "inserted": [
+      "리듬 타!",
+      "쿵!",
+      "앵콜?"
+    ],
+    "visuallyChecked": true
+  },
+  {
+    "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/backlog_comic_20261015/05.png",
+    "target": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/dialogue_filled_20261018/backlog_comic_20261015_05.png",
+    "sourceSha256": "7125383b143e7dafb215e41472702cda0245976a8e74ad87dda11874f8704801",
+    "targetSha256": "ff056efa64501462e0edbaca60736edfc5e54e68d540445d6f78ec4c0bfd0e50",
+    "locale": "ko",
+    "platform": "x",
+    "inserted": [
+      "돌돌돌!",
+      "꽁꽁!",
+      "완성!"
+    ],
+    "visuallyChecked": true
+  },
+  {
+    "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/backlog_comic_20261015/06.png",
+    "target": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/dialogue_filled_20261018/backlog_comic_20261015_06.png",
+    "sourceSha256": "e5360249d88e31da384d68f4f6360cc5c5967b4fcc56972b2c947aad1584684d",
+    "targetSha256": "24beaa2b72107965c33552a9510b454aaac51e63bbb930d09c87af1649a50acf",
+    "locale": "ko",
+    "platform": "x",
+    "inserted": [
+      "출발!",
+      "와장창!",
+      "한입?"
+    ],
+    "visuallyChecked": true
+  },
+  {
+    "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/backlog_comic_20261015/07.png",
+    "target": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/dialogue_filled_20261018/backlog_comic_20261015_07.png",
+    "sourceSha256": "c546cfd1af35e7f2e78e37879acbafdc29a0f60a315d13e6ec06c65a22935e8e",
+    "targetSha256": "e5d84fd7d830e5cd99bdf0dc2dab68383605412b50a56033da4f34a8f5e0e3fe",
+    "locale": "ko",
+    "platform": "x",
+    "inserted": [
+      "주목!",
+      "커튼 콰앙!",
+      "감사합니다!"
+    ],
+    "visuallyChecked": true
+  },
+  {
+    "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/backlog_comic_20261015/08.png",
+    "target": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/dialogue_filled_20261018/backlog_comic_20261015_08.png",
+    "sourceSha256": "d150cd01de8512b44984ca74c57771f6b8fd7735e3fb4f47f1ac1be0324fa3ec",
+    "targetSha256": "02c9e0c4135afb12b8e3a72fa96c02d8d70ff59a0add0c4bef21be516721d9ba",
+    "locale": "ko",
+    "platform": "x",
+    "inserted": [
+      "물 뿌려!",
+      "으악!",
+      "새싹 성공!"
+    ],
+    "visuallyChecked": true
+  },
+  {
+    "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/backlog_comic_20261015/09.png",
+    "target": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/dialogue_filled_20261018/backlog_comic_20261015_09.png",
+    "sourceSha256": "633217700f5dd47b477afb187607176dd97fb0240c7b7c9c02fffcf8160184b8",
+    "targetSha256": "f67b03c0fba7831638ac3339f32aa580d6abebb2f50daf80ce0240978702d9ba",
+    "locale": "ko",
+    "platform": "x",
+    "inserted": [
+      "점프!",
+      "여긴 어디?",
+      "완주!"
+    ],
+    "visuallyChecked": true
+  },
+  {
+    "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/backlog_comic_20261015/10.png",
+    "target": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/dialogue_filled_20261018/backlog_comic_20261015_10.png",
+    "sourceSha256": "b584310ff4614a455ad4baf67e57f29c03940ee72c5aa5c6a3be178263157b27",
+    "targetSha256": "a8ced09a7fda4e1dca539d07a5bc54a682284d44bdd7afd657656874a077c0fa",
+    "locale": "ko",
+    "platform": "x",
+    "inserted": [
+      "달 떴다!",
+      "빙글빙글!",
+      "우주 정복!"
+    ],
+    "visuallyChecked": true
+  },
+  {
+    "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/backlog_comic_20261015/06.png",
+    "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/dialogue_filled_20261018/backlog_comic_20261015_06.png",
+    "sourceSha256": "e5360249d88e31da384d68f4f6360cc5c5967b4fcc56972b2c947aad1584684d",
+    "targetSha256": "24beaa2b72107965c33552a9510b454aaac51e63bbb930d09c87af1649a50acf",
+    "locale": "ko",
+    "platform": "facebook",
+    "inserted": [
+      "출발!",
+      "와장창!",
+      "한입?"
+    ],
+    "visuallyChecked": true
+  },
+  {
+    "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/backlog_comic_20261015/07.png",
+    "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/dialogue_filled_20261018/backlog_comic_20261015_07.png",
+    "sourceSha256": "c546cfd1af35e7f2e78e37879acbafdc29a0f60a315d13e6ec06c65a22935e8e",
+    "targetSha256": "e5d84fd7d830e5cd99bdf0dc2dab68383605412b50a56033da4f34a8f5e0e3fe",
+    "locale": "ko",
+    "platform": "facebook",
+    "inserted": [
+      "주목!",
+      "커튼 콰앙!",
+      "감사합니다!"
+    ],
+    "visuallyChecked": true
+  },
+  {
+    "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/backlog_comic_20261015/08.png",
+    "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/dialogue_filled_20261018/backlog_comic_20261015_08.png",
+    "sourceSha256": "d150cd01de8512b44984ca74c57771f6b8fd7735e3fb4f47f1ac1be0324fa3ec",
+    "targetSha256": "02c9e0c4135afb12b8e3a72fa96c02d8d70ff59a0add0c4bef21be516721d9ba",
+    "locale": "ko",
+    "platform": "facebook",
+    "inserted": [
+      "물 뿌려!",
+      "으악!",
+      "새싹 성공!"
+    ],
+    "visuallyChecked": true
+  },
+  {
+    "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/backlog_comic_20261015/09.png",
+    "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/dialogue_filled_20261018/backlog_comic_20261015_09.png",
+    "sourceSha256": "633217700f5dd47b477afb187607176dd97fb0240c7b7c9c02fffcf8160184b8",
+    "targetSha256": "f67b03c0fba7831638ac3339f32aa580d6abebb2f50daf80ce0240978702d9ba",
+    "locale": "ko",
+    "platform": "facebook",
+    "inserted": [
+      "점프!",
+      "여긴 어디?",
+      "완주!"
+    ],
+    "visuallyChecked": true
+  },
+  {
+    "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/backlog_comic_20261015/10.png",
+    "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/dialogue_filled_20261018/backlog_comic_20261015_10.png",
+    "sourceSha256": "b584310ff4614a455ad4baf67e57f29c03940ee72c5aa5c6a3be178263157b27",
+    "targetSha256": "a8ced09a7fda4e1dca539d07a5bc54a682284d44bdd7afd657656874a077c0fa",
+    "locale": "ko",
+    "platform": "facebook",
+    "inserted": [
+      "달 떴다!",
+      "빙글빙글!",
+      "우주 정복!"
+    ],
+    "visuallyChecked": true
+  },
+  {
+    "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/backlog_comic_20261015/01.png",
+    "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/dialogue_filled_20261018/backlog_comic_20261015_01.png",
+    "sourceSha256": "30d6412bea13002f0c19441b7ee62d92c30613a6ec969273ad8f80b3f30ef763",
+    "targetSha256": "dca6c1ab3f441a57bce18b5ff1cc809ff96c4c7a0e1c7f1f15e15661694afb16",
+    "locale": "ko",
+    "platform": "facebook",
+    "inserted": [
+      "체육관!",
+      "와르르!",
+      "잡았다!"
+    ],
+    "visuallyChecked": true
+  },
+  {
+    "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/backlog_comic_20261015/02.png",
+    "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/dialogue_filled_20261018/backlog_comic_20261015_02.png",
+    "sourceSha256": "21048273c0b6ca89bb5928c9cfeb0b3737f1036bfb193977b8ec21917d9072bc",
+    "targetSha256": "bbf30f66da7a5949c8326ac20557c9ea94a0bda81d7b07d8fa4726075a6edb79",
+    "locale": "ko",
+    "platform": "facebook",
+    "inserted": [
+      "붙어라!",
+      "철썩!",
+      "성공!"
+    ],
+    "visuallyChecked": true
+  },
+  {
+    "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/backlog_comic_20261015/03.png",
+    "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/dialogue_filled_20261018/backlog_comic_20261015_03.png",
+    "sourceSha256": "4036258606fb33aea915868540eaefccac8f1f5483572a90e44f629dff4cc096",
+    "targetSha256": "d57327a4604e1b4ca41b0f175373e03597f52e90d308c4412c94dcfcfc6a7746",
+    "locale": "ko",
+    "platform": "facebook",
+    "inserted": [
+      "수레 출발!",
+      "책 폭포!",
+      "대출 끝!"
+    ],
+    "visuallyChecked": true
+  },
+  {
+    "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/backlog_comic_20261015/04.png",
+    "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/dialogue_filled_20261018/backlog_comic_20261015_04.png",
+    "sourceSha256": "e9232f983e19581fd578efbd1c2d9af5b89b930f670e88c1ad4ebead076f9e00",
+    "targetSha256": "20650156a69972cba9393acc0696ab9d4ebdbd738cd3279c9e1488318fd7b663",
+    "locale": "ko",
+    "platform": "facebook",
+    "inserted": [
+      "리듬 타!",
+      "쿵!",
+      "앵콜?"
+    ],
+    "visuallyChecked": true
+  },
+  {
+    "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/backlog_comic_20261015/05.png",
+    "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/dialogue_filled_20261018/backlog_comic_20261015_05.png",
+    "sourceSha256": "7125383b143e7dafb215e41472702cda0245976a8e74ad87dda11874f8704801",
+    "targetSha256": "ff056efa64501462e0edbaca60736edfc5e54e68d540445d6f78ec4c0bfd0e50",
+    "locale": "ko",
+    "platform": "facebook",
+    "inserted": [
+      "돌돌돌!",
+      "꽁꽁!",
+      "완성!"
+    ],
+    "visuallyChecked": true
+  }
+]
