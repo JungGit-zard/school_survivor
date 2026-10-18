@@ -36,3 +36,7 @@ Facebook 로그인과 `Hyun Uk Jung` 계정은 실제 UI에서 확인했다. 원
 - 실행 증거: `Developer/agent_room/facebook_posting_receipts/runlogs/2026-10-16-1200-retry-click-evidence-20261018.json`. 메인이 두 이미지의 SHA-256, 클릭 후 작성창 닫힘 시각 순서, X/Facebook의 해당 회차 8개 영수증 상태를 대조했다.
 - 일본어·영어는 기존 `publish_intent`가 불확실해 새로 작성하거나 클릭하지 않았다. 피드·고유 게시물 주소 확인은 수행하지 않았고 어떤 영수증도 `verified`로 바꾸지 않았다.
 - 해당 회차 대기열은 상태 잠금 아래 `submitted_with_unresolved_intents`, 시도 3회로 갱신하고 실행 증거 경로를 연결했다. 이전 오류 기록은 보존했다. 이는 일본어·영어의 실제 게시 성공이나 사후 검증 완료를 뜻하지 않는다.
+
+## 오래된 초안의 이미지 순서 재검사
+
+여러 미게시 회차에 미리 고정된 초안은 선택 당시에는 미사용이었어도 나중에 다른 회차에서 사용된 이미지일 수 있다. X와 Facebook 모두 `publish_intent` 저장 직전에 고정 이미지의 SHA-256이 현재 첫 미사용 이미지와 일치하는지 다시 검사하도록 보완했다. 불일치하면 `IMAGE_SEQUENCE_CHANGED`로 게시 전에 차단한다. 격리 회귀 테스트에서 오래된 사용 이미지 거부와 다음 미사용 이미지 허용을 확인했고, 두 실행기 구문 검사 및 메인 세션의 `Test-ComicImageRotation.ps1` 재실행이 통과했다.

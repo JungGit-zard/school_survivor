@@ -60,6 +60,19 @@ try {
   if ($selected -cne $resolved[1]) { throw "Same-SHA renamed image was not excluded or candidates did not follow pool order: $selected" }
   $config.localized_social_image_pool.ja.images = @($images[0], $images[1], $images[2])
   Remove-Item -LiteralPath $aliasPath -Force
+  $guardHistory = Join-Path $tempRoot 'publish-guard-history'
+  New-Item -ItemType Directory -Path $guardHistory -Force | Out-Null
+  Write-ClickReceipt $guardHistory '2030-01-03-0000' $resolved[0] 'publish_intent' '2030-01-03T00:00:00Z'
+  $frozenFirst = [pscustomobject]@{imagePath=$resolved[0]}
+  $frozenNext = [pscustomobject]@{imagePath=$resolved[1]}
+  $changedRejected = $false
+  try { Assert-PostingIntentImageSequence $config ja '2030-01-03-0600' $tempRoot $frozenFirst X $catalog @($guardHistory) | Out-Null }
+  catch { if ($_.Exception.Message -match 'IMAGE_SEQUENCE_CHANGED') { $changedRejected = $true } else { throw } }
+  if (-not $changedRejected) { throw 'Publish guard allowed an image used by another cycle' }
+  if ((Assert-PostingIntentImageSequence $config ja '2030-01-03-0600' $tempRoot $frozenNext X $catalog @($guardHistory)) -cne $resolved[1]) { throw 'Publish guard rejected the next unused image' }
+  Write-ClickReceipt $guardHistory '2030-01-03-0600' $resolved[1] 'verified' '2030-01-03T06:00:00Z'
+  $frozenLast = [pscustomobject]@{imagePath=$resolved[2]}
+  if ((Assert-PostingIntentImageSequence $config ja '2030-01-03-1200' $tempRoot $frozenLast X $catalog @($guardHistory)) -cne $resolved[2]) { throw 'Publish guard rejected an unused frozen image' }
   Write-ClickReceipt $historyA '2030-01-01-0600' $resolved[1] 'selected' '2030-01-01T12:00:00Z'
   if ((Select-PostingLocaleImagePath $config ja '2030-01-01-1200' $tempRoot X $catalog) -cne $resolved[1]) { throw 'A selected draft incorrectly consumed its image or changed candidate order' }
   Write-ClickReceipt $historyA '2030-01-01-1200' $resolved[1] 'verified' '2030-01-01T12:00:00Z'

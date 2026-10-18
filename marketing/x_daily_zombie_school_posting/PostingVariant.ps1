@@ -189,6 +189,20 @@ function Select-PostingLocaleImagePath($Config, [string]$Language, [string]$Cycl
   }
   throw "IMAGE_POOL_EXHAUSTED: all unique SHA256 images are already used for $Platform/$Language."
 }
+function Assert-PostingIntentImageSequence($Config, [string]$Language, [string]$CycleId, [string]$ReceiptDirectory, $Intent, [ValidateSet('X','Facebook')][string]$Platform = 'X', $Catalog = $null, $ReceiptDirectoryOverrides = $null) {
+  try {
+    $nextPath = Select-PostingLocaleImagePath $Config $Language $CycleId $ReceiptDirectory $Platform $Catalog $ReceiptDirectoryOverrides
+    $frozenPath = Resolve-PostingImagePath ([string]$Intent.imagePath) -Platform $Platform
+    if (-not (Test-Path -LiteralPath $frozenPath -PathType Leaf)) { throw "Frozen image is missing: $frozenPath" }
+    $frozenHash = (Get-FileHash -LiteralPath $frozenPath -Algorithm SHA256).Hash
+    $nextHash = (Get-FileHash -LiteralPath $nextPath -Algorithm SHA256).Hash
+    if ($frozenHash -cne $nextHash) { throw 'Frozen image SHA256 is no longer the first unused image.' }
+    return [string]$nextPath
+  } catch {
+    if ($_.Exception.Message -match 'IMAGE_SEQUENCE_CHANGED') { throw }
+    throw "IMAGE_SEQUENCE_CHANGED: frozen image cannot be published under the current image sequence ($($_.Exception.Message))"
+  }
+}
 function Get-XWeightedLength([string]$Text) {
   $withoutUrls = [regex]::Replace($Text, 'https?://[^\s]+', ('x' * 23))
   $length = 0

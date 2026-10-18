@@ -24,3 +24,5 @@ The active posting pools contain fifteen localized four-panel comics per platfor
 | Facebook | 베트남어 | `facebook\\vi\\marketing_social_20261010_add10` |
 
 모든 새 게시물은 `image_catalog.json`에서 해당 플랫폼과 언어가 일치하고 이미지 안의 현지어 게임 시작 문구가 확인된 파일만 후보로 만든다. `PostingVariant.ps1`은 설정된 전체 풀의 순서대로 아직 사용하지 않은 그림을 한 장씩 선택한다. N장이면 N회 동안 각각 한 장씩 사용하며, 게시 시도 이력(`publish_intent`, `verified`)의 SHA-256과 같은 그림은 파일명이 달라도 다시 선택하지 않는다. 전체 소진 시 `IMAGE_POOL_EXHAUSTED`를 기록하고 자동으로 처음으로 돌아가지 않는다. 게시용으로 확정된 이미지 경로와 해시는 영수증에 고정하므로 같은 게시의 재시도 때 다른 이미지로 바뀌지 않는다.
+
+오래된 초안도 게시 직전에 현재 첫 미사용 이미지의 SHA-256과 다시 대조한다. 순서가 바뀌었거나 다른 회차가 먼저 사용했다면 `IMAGE_SEQUENCE_CHANGED`로 차단한다. 게시하지 않은 오래된 초안을 별도 승인된 재개 RunId로 대체할 때는 원래 영수증을 보존하고 새 미사용 이미지를 선택한다.

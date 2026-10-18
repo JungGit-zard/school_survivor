@@ -220,6 +220,7 @@ try {
         [pscustomobject]@{ status='prepared_not_published'; language=$lang; proof=$proof } | ConvertTo-Json -Depth 5
         exit 0
       }
+      Assert-PostingIntentImageSequence $config $lang $CycleId $ReceiptDirectory $intent X | Out-Null
       $entry = [pscustomobject]@{ state='publish_intent'; intent=$intent; evidence=$null }
       $receipt.entries.$lang = $entry
       Assert-XBeforePublishCutoff $StopAtKst

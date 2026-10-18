@@ -94,6 +94,8 @@ switch ($Action) {
     $entry=$receipt.entries.$Language;if($null -eq $entry -or $entry.state -ne 'prepared'){throw 'Publish requires a persisted prepared draft'}
     Assert-FacebookCanonicalIntent $config $entry.intent
     $w=Get-FacebookChromeWindow $WindowId;$fresh=Assert-FacebookComposerTree (Get-FacebookOrcaTree $w.Current.ProcessId $WindowId).tree $entry.intent.text ([IO.Path]::GetFileName($entry.intent.imagePath));Assert-FacebookDraft $entry.intent $fresh.text $fresh.attachmentCount $fresh.audience
+    . (Join-Path $PSScriptRoot '..\x_daily_zombie_school_posting\PostingVariant.ps1')
+    Assert-PostingIntentImageSequence $config $Language $RunId $ReceiptDirectory $entry.intent Facebook | Out-Null
     Add-FacebookPublishIntent $receipt $Language $entry.intent $path
     if(-not [string]::IsNullOrWhiteSpace($StopAtKst) -and [DateTimeOffset]::UtcNow.ToOffset([TimeSpan]::FromHours(9)) -ge [DateTimeOffset]::Parse($StopAtKst,[Globalization.CultureInfo]::InvariantCulture)){throw 'SCHEDULE_CUTOFF: KST cutoff reached before Facebook native Publish click.'}
     Invoke-FacebookPublishNative $WindowId
