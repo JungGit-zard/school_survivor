@@ -4499,7 +4499,9 @@
         "쿵!",
         "앵콜?"
       ],
-      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/backlog_comic_20261015/04.png"
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/backlog_comic_20261015/04.png",
+      "sha256": "20650156a69972cba9393acc0696ab9d4ebdbd738cd3279c9e1488318fd7b663",
+      "derivedFromSha256": "e9232f983e19581fd578efbd1c2d9af5b89b930f670e88c1ad4ebead076f9e00"
     },
     {
       "platform": "X",
@@ -4516,7 +4518,9 @@
         "꽁꽁!",
         "완성!"
       ],
-      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/backlog_comic_20261015/05.png"
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/backlog_comic_20261015/05.png",
+      "sha256": "ff056efa64501462e0edbaca60736edfc5e54e68d540445d6f78ec4c0bfd0e50",
+      "derivedFromSha256": "7125383b143e7dafb215e41472702cda0245976a8e74ad87dda11874f8704801"
     },
     {
       "platform": "X",
@@ -4533,7 +4537,9 @@
         "와장창!",
         "한입?"
       ],
-      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/backlog_comic_20261015/06.png"
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/backlog_comic_20261015/06.png",
+      "sha256": "24beaa2b72107965c33552a9510b454aaac51e63bbb930d09c87af1649a50acf",
+      "derivedFromSha256": "e5360249d88e31da384d68f4f6360cc5c5967b4fcc56972b2c947aad1584684d"
     },
     {
       "platform": "X",
@@ -4550,7 +4556,9 @@
         "커튼 콰앙!",
         "감사합니다!"
       ],
-      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/backlog_comic_20261015/07.png"
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/backlog_comic_20261015/07.png",
+      "sha256": "e5d84fd7d830e5cd99bdf0dc2dab68383605412b50a56033da4f34a8f5e0e3fe",
+      "derivedFromSha256": "c546cfd1af35e7f2e78e37879acbafdc29a0f60a315d13e6ec06c65a22935e8e"
     },
     {
       "platform": "X",
@@ -4567,7 +4575,9 @@
         "으악!",
         "새싹 성공!"
       ],
-      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/backlog_comic_20261015/08.png"
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/backlog_comic_20261015/08.png",
+      "sha256": "02c9e0c4135afb12b8e3a72fa96c02d8d70ff59a0add0c4bef21be516721d9ba",
+      "derivedFromSha256": "d150cd01de8512b44984ca74c57771f6b8fd7735e3fb4f47f1ac1be0324fa3ec"
     },
     {
       "platform": "X",
@@ -4584,7 +4594,9 @@
         "여긴 어디?",
         "완주!"
       ],
-      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/backlog_comic_20261015/09.png"
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/backlog_comic_20261015/09.png",
+      "sha256": "f67b03c0fba7831638ac3339f32aa580d6abebb2f50daf80ce0240978702d9ba",
+      "derivedFromSha256": "633217700f5dd47b477afb187607176dd97fb0240c7b7c9c02fffcf8160184b8"
     },
     {
       "platform": "X",
@@ -4601,7 +4613,9 @@
         "빙글빙글!",
         "우주 정복!"
       ],
-      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/backlog_comic_20261015/10.png"
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/backlog_comic_20261015/10.png",
+      "sha256": "a8ced09a7fda4e1dca539d07a5bc54a682284d44bdd7afd657656874a077c0fa",
+      "derivedFromSha256": "b584310ff4614a455ad4baf67e57f29c03940ee72c5aa5c6a3be178263157b27"
     },
     {
       "platform": "Facebook",
@@ -4618,7 +4632,9 @@
         "와장창!",
         "한입?"
       ],
-      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/backlog_comic_20261015/06.png"
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/backlog_comic_20261015/06.png",
+      "sha256": "24beaa2b72107965c33552a9510b454aaac51e63bbb930d09c87af1649a50acf",
+      "derivedFromSha256": "e5360249d88e31da384d68f4f6360cc5c5967b4fcc56972b2c947aad1584684d"
     },
     {
       "platform": "Facebook",
@@ -4635,7 +4651,9 @@
         "커튼 콰앙!",
         "감사합니다!"
       ],
-      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/backlog_comic_20261015/07.png"
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/backlog_comic_20261015/07.png",
+      "sha256": "e5d84fd7d830e5cd99bdf0dc2dab68383605412b50a56033da4f34a8f5e0e3fe",
+      "derivedFromSha256": "c546cfd1af35e7f2e78e37879acbafdc29a0f60a315d13e6ec06c65a22935e8e"
     },
     {
       "platform": "Facebook",
@@ -4652,7 +4670,9 @@
         "으악!",
         "새싹 성공!"
       ],
-      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/backlog_comic_20261015/08.png"
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/backlog_comic_20261015/08.png",
+      "sha256": "02c9e0c4135afb12b8e3a72fa96c02d8d70ff59a0add0c4bef21be516721d9ba",
+      "derivedFromSha256": "d150cd01de8512b44984ca74c57771f6b8fd7735e3fb4f47f1ac1be0324fa3ec"
     },
     {
       "platform": "Facebook",
@@ -4669,7 +4689,9 @@
         "여긴 어디?",
         "완주!"
       ],
-      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/backlog_comic_20261015/09.png"
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/backlog_comic_20261015/09.png",
+      "sha256": "f67b03c0fba7831638ac3339f32aa580d6abebb2f50daf80ce0240978702d9ba",
+      "derivedFromSha256": "633217700f5dd47b477afb187607176dd97fb0240c7b7c9c02fffcf8160184b8"
     },
     {
       "platform": "Facebook",
@@ -4686,7 +4708,9 @@
         "빙글빙글!",
         "우주 정복!"
       ],
-      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/backlog_comic_20261015/10.png"
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/backlog_comic_20261015/10.png",
+      "sha256": "a8ced09a7fda4e1dca539d07a5bc54a682284d44bdd7afd657656874a077c0fa",
+      "derivedFromSha256": "b584310ff4614a455ad4baf67e57f29c03940ee72c5aa5c6a3be178263157b27"
     },
     {
       "platform": "Facebook",
@@ -4703,7 +4727,9 @@
         "철썩!",
         "성공!"
       ],
-      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/backlog_comic_20261015/02.png"
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/backlog_comic_20261015/02.png",
+      "sha256": "bbf30f66da7a5949c8326ac20557c9ea94a0bda81d7b07d8fa4726075a6edb79",
+      "derivedFromSha256": "21048273c0b6ca89bb5928c9cfeb0b3737f1036bfb193977b8ec21917d9072bc"
     },
     {
       "platform": "Facebook",
@@ -4720,7 +4746,9 @@
         "책 폭포!",
         "대출 끝!"
       ],
-      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/backlog_comic_20261015/03.png"
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/backlog_comic_20261015/03.png",
+      "sha256": "d57327a4604e1b4ca41b0f175373e03597f52e90d308c4412c94dcfcfc6a7746",
+      "derivedFromSha256": "4036258606fb33aea915868540eaefccac8f1f5483572a90e44f629dff4cc096"
     },
     {
       "platform": "Facebook",
@@ -4737,7 +4765,9 @@
         "쿵!",
         "앵콜?"
       ],
-      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/backlog_comic_20261015/04.png"
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/backlog_comic_20261015/04.png",
+      "sha256": "20650156a69972cba9393acc0696ab9d4ebdbd738cd3279c9e1488318fd7b663",
+      "derivedFromSha256": "e9232f983e19581fd578efbd1c2d9af5b89b930f670e88c1ad4ebead076f9e00"
     },
     {
       "platform": "Facebook",
@@ -4754,7 +4784,9 @@
         "꽁꽁!",
         "완성!"
       ],
-      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/backlog_comic_20261015/05.png"
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/backlog_comic_20261015/05.png",
+      "sha256": "ff056efa64501462e0edbaca60736edfc5e54e68d540445d6f78ec4c0bfd0e50",
+      "derivedFromSha256": "7125383b143e7dafb215e41472702cda0245976a8e74ad87dda11874f8704801"
     },
     {
       "platform": "Facebook",
@@ -4771,7 +4803,9 @@
         "Click!",
         "Success!"
       ],
-      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/backlog_comic_20261015/02.png"
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/backlog_comic_20261015/02.png",
+      "sha256": "6ece693959edb94fe3e219829f58547941ba720174f30a2254e7906641dbd967",
+      "derivedFromSha256": "3947f513e13c604c2aef8f16d01e454b7f0bf4f358688cf83d83050f6ba986ae"
     },
     {
       "platform": "Facebook",
@@ -4788,7 +4822,9 @@
         "Book avalanche!",
         "Gotcha!"
       ],
-      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/backlog_comic_20261015/03.png"
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/backlog_comic_20261015/03.png",
+      "sha256": "733db7cbd04a8d1eacc8fc8c63bbe0500251ee8058264aa0883109f65c499129",
+      "derivedFromSha256": "65d0c0f35bc957aaed39c262967e7805114f53a6ada8bf2e0d6086f0cd073218"
     },
     {
       "platform": "Facebook",
@@ -4805,7 +4841,9 @@
         "Boom!",
         "Encore?"
       ],
-      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/backlog_comic_20261015/04.png"
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/backlog_comic_20261015/04.png",
+      "sha256": "5647227caf8e480e9a407c72f8222315648c82ffe784fc905ab5af3c7a6a99fb",
+      "derivedFromSha256": "f3f856b6f873b9c432ede569a8e3568372b9c336a04c346d9c2c02b45cd638a4"
     },
     {
       "platform": "Facebook",
@@ -4822,7 +4860,9 @@
         "Paper wrap!",
         "Ta-da!"
       ],
-      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/backlog_comic_20261015/05.png"
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/backlog_comic_20261015/05.png",
+      "sha256": "ced9177fb291b5eebd986be0a6d804f17cef77fc8e2592be9bcc040e86b886f4",
+      "derivedFromSha256": "7c4288890e1e68a8aec206782ea00c0ed750725a006d03e591d7cddb8f845fe9"
     },
     {
       "platform": "X",
@@ -4839,7 +4879,9 @@
         "Wobble!",
         "Yum!"
       ],
-      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/en/backlog_comic_20261015/06.png"
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/en/backlog_comic_20261015/06.png",
+      "sha256": "ba5eedd9009e106acc03bf9e8212b8d78d11752c569dc767408ff52415ab88e5",
+      "derivedFromSha256": "69a4bf222516247c5febb7b36e04f3b04e964a994854f1aba0af04073aa6a71f"
     },
     {
       "platform": "Facebook",
@@ -4856,7 +4898,9 @@
         "Wobble!",
         "Yum!"
       ],
-      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/backlog_comic_20261015/06.png"
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/backlog_comic_20261015/06.png",
+      "sha256": "ba5eedd9009e106acc03bf9e8212b8d78d11752c569dc767408ff52415ab88e5",
+      "derivedFromSha256": "69a4bf222516247c5febb7b36e04f3b04e964a994854f1aba0af04073aa6a71f"
     },
     {
       "platform": "X",
@@ -4873,7 +4917,9 @@
         "Ta-da!",
         "Thank you!"
       ],
-      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/en/backlog_comic_20261015/07.png"
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/en/backlog_comic_20261015/07.png",
+      "sha256": "c75f787e8a02cd90358d21279fd3c87b7e7397cd45f1f6b9b8da32c5eb345dc4",
+      "derivedFromSha256": "469dfb972d2f5a83e14f4f521663d2da978e34fd06f0772e955b3c754622b2d6"
     },
     {
       "platform": "Facebook",
@@ -4890,7 +4936,9 @@
         "Ta-da!",
         "Thank you!"
       ],
-      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/backlog_comic_20261015/07.png"
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/backlog_comic_20261015/07.png",
+      "sha256": "c75f787e8a02cd90358d21279fd3c87b7e7397cd45f1f6b9b8da32c5eb345dc4",
+      "derivedFromSha256": "469dfb972d2f5a83e14f4f521663d2da978e34fd06f0772e955b3c754622b2d6"
     },
     {
       "platform": "X",
@@ -4907,7 +4955,9 @@
         "Too wet!",
         "Great job!"
       ],
-      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/en/backlog_comic_20261015/08.png"
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/en/backlog_comic_20261015/08.png",
+      "sha256": "0f20cf141b5719c1de41a1fb3c16357c38663bac188356712aab25e3e2eb9ad5",
+      "derivedFromSha256": "416ca2e71169600c3775878b0f04093d7f62fe608bf7d60156874b74359480b0"
     },
     {
       "platform": "Facebook",
@@ -4924,7 +4974,9 @@
         "Too wet!",
         "Great job!"
       ],
-      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/backlog_comic_20261015/08.png"
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/backlog_comic_20261015/08.png",
+      "sha256": "0f20cf141b5719c1de41a1fb3c16357c38663bac188356712aab25e3e2eb9ad5",
+      "derivedFromSha256": "416ca2e71169600c3775878b0f04093d7f62fe608bf7d60156874b74359480b0"
     },
     {
       "platform": "X",
@@ -4941,7 +4993,9 @@
         "This way!",
         "We did it!"
       ],
-      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/en/backlog_comic_20261015/09.png"
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/en/backlog_comic_20261015/09.png",
+      "sha256": "bfeae7b826de5591e2e3e40d2c134fa146cc897fdb57bc4647fc1393aa394ad1",
+      "derivedFromSha256": "272c9e4f469632cc215a6807d1b06455d0790865e693df8ed0d2ff788415f062"
     },
     {
       "platform": "Facebook",
@@ -4958,7 +5012,9 @@
         "This way!",
         "We did it!"
       ],
-      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/backlog_comic_20261015/09.png"
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/backlog_comic_20261015/09.png",
+      "sha256": "bfeae7b826de5591e2e3e40d2c134fa146cc897fdb57bc4647fc1393aa394ad1",
+      "derivedFromSha256": "272c9e4f469632cc215a6807d1b06455d0790865e693df8ed0d2ff788415f062"
     },
     {
       "platform": "X",
@@ -4975,7 +5031,9 @@
         "Stars!",
         "Amazing!"
       ],
-      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/en/backlog_comic_20261015/10.png"
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/en/backlog_comic_20261015/10.png",
+      "sha256": "044f8cc2fb89e9f3d629025be858daeec07ecd82eec5068ff5e1fdfb28bf82a1",
+      "derivedFromSha256": "6daf3c705b2bca66d28a8ccd09af1a68dc20090b8a09819db40a648ce1c5fa46"
     },
     {
       "platform": "Facebook",
@@ -4992,7 +5050,9 @@
         "Stars!",
         "Amazing!"
       ],
-      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/backlog_comic_20261015/10.png"
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/backlog_comic_20261015/10.png",
+      "sha256": "044f8cc2fb89e9f3d629025be858daeec07ecd82eec5068ff5e1fdfb28bf82a1",
+      "derivedFromSha256": "6daf3c705b2bca66d28a8ccd09af1a68dc20090b8a09819db40a648ce1c5fa46"
     },
     {
       "platform": "Facebook",
@@ -5009,7 +5069,9 @@
         "ピタッ！",
         "大成功！"
       ],
-      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/backlog_comic_20261015/02.png"
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/backlog_comic_20261015/02.png",
+      "sha256": "2af2c70fde23a5c107375bf01e1fd8a36e4c40d6a5a509d0358746a1700e026f",
+      "derivedFromSha256": "9ecca86f15aba0c60e01df0a1b78e10609ddf4279738458376cb010e56b2603f"
     },
     {
       "platform": "Facebook",
@@ -5026,7 +5088,9 @@
         "本の雪崩！",
         "貸出完了！"
       ],
-      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/backlog_comic_20261015/03.png"
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/backlog_comic_20261015/03.png",
+      "sha256": "36bb4f13b97cb07c4df71aed3d376cee0809047fe3177245f55cae941f75706b",
+      "derivedFromSha256": "7ba395e482aadfc0ee7299d1543ea7928b54321b46847fef4e7a252efc384a6c"
     },
     {
       "platform": "Facebook",
@@ -5043,7 +5107,9 @@
         "ドーン！",
         "演奏終了！"
       ],
-      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/backlog_comic_20261015/04.png"
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/backlog_comic_20261015/04.png",
+      "sha256": "55f0b215c39d16b16491ea6d36b95ce4131524796bb29f67d1027dac10dd126d",
+      "derivedFromSha256": "9a8647341431b2caa2fea23838467e45a9dbe80e77992ac2e5eaa820e99e6c11"
     },
     {
       "platform": "Facebook",
@@ -5060,7 +5126,9 @@
         "ぐるぐる巻き！",
         "作品完成！"
       ],
-      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/backlog_comic_20261015/05.png"
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/backlog_comic_20261015/05.png",
+      "sha256": "0debadbc53bf311e46b30e8945d680fa52f1dfa7a73d646b12497db4a946ff23",
+      "derivedFromSha256": "e55ac706760321d5c46207cc2f9b3ab6ab8c6750d4438c125fc3ae8d37364274"
     },
     {
       "platform": "X",
@@ -5077,7 +5145,9 @@
         "ぷるぷる！",
         "召し上がれ！"
       ],
-      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ja/backlog_comic_20261015/06.png"
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ja/backlog_comic_20261015/06.png",
+      "sha256": "555f084bc70b267c32555cd161f3671d28d99ab6d8c31a890a0a15d53b350a55",
+      "derivedFromSha256": "e631826a95fb8fd1dee5153ba5b17bead5e00bd91f8c3bf6dabbaaa347f1d086"
     },
     {
       "platform": "Facebook",
@@ -5094,7 +5164,9 @@
         "ぷるぷる！",
         "召し上がれ！"
       ],
-      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/backlog_comic_20261015/06.png"
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/backlog_comic_20261015/06.png",
+      "sha256": "555f084bc70b267c32555cd161f3671d28d99ab6d8c31a890a0a15d53b350a55",
+      "derivedFromSha256": "e631826a95fb8fd1dee5153ba5b17bead5e00bd91f8c3bf6dabbaaa347f1d086"
     },
     {
       "platform": "X",
@@ -5111,7 +5183,9 @@
         "幕を下ろして！",
         "ご清聴ありがとう！"
       ],
-      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ja/backlog_comic_20261015/07.png"
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ja/backlog_comic_20261015/07.png",
+      "sha256": "b9c2d4bb6067cc81d5398833a7bfd65f925dcb8779006f914c4d44f204a6ac30",
+      "derivedFromSha256": "c48c4962238c019758a8c3dc40ca92ba8a9006bbd3946f11eaf1e52c02f5c5ee"
     },
     {
       "platform": "Facebook",
@@ -5128,7 +5202,9 @@
         "幕を下ろして！",
         "ご清聴ありがとう！"
       ],
-      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/backlog_comic_20261015/07.png"
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/backlog_comic_20261015/07.png",
+      "sha256": "b9c2d4bb6067cc81d5398833a7bfd65f925dcb8779006f914c4d44f204a6ac30",
+      "derivedFromSha256": "c48c4962238c019758a8c3dc40ca92ba8a9006bbd3946f11eaf1e52c02f5c5ee"
     },
     {
       "platform": "X",
@@ -5145,7 +5221,9 @@
         "すべった！",
         "よく育ってね！"
       ],
-      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ja/backlog_comic_20261015/08.png"
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ja/backlog_comic_20261015/08.png",
+      "sha256": "5a921712d74e0ca4f298871133245c4dca99493f49259fbbf2a61f5f0029833c",
+      "derivedFromSha256": "db3e7ebe59b1d0062839ef4b69cbb17ae6c7e26214061de7893834484c6e0fce"
     },
     {
       "platform": "Facebook",
@@ -5162,7 +5240,9 @@
         "すべった！",
         "よく育ってね！"
       ],
-      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/backlog_comic_20261015/08.png"
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/backlog_comic_20261015/08.png",
+      "sha256": "5a921712d74e0ca4f298871133245c4dca99493f49259fbbf2a61f5f0029833c",
+      "derivedFromSha256": "db3e7ebe59b1d0062839ef4b69cbb17ae6c7e26214061de7893834484c6e0fce"
     },
     {
       "platform": "X",
@@ -5179,7 +5259,9 @@
         "こっちだよ！",
         "ゴール！"
       ],
-      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ja/backlog_comic_20261015/09.png"
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ja/backlog_comic_20261015/09.png",
+      "sha256": "1abe97c4fead709a5b92aa5b1b07a0437f0dd990415c965e5bbeff382c3bb8f3",
+      "derivedFromSha256": "d8d7515b7898c2daddf0de2ac91c11803712e6bda6049602fbd5ead605b1c1cc"
     },
     {
       "platform": "Facebook",
@@ -5196,7 +5278,9 @@
         "こっちだよ！",
         "ゴール！"
       ],
-      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/backlog_comic_20261015/09.png"
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/backlog_comic_20261015/09.png",
+      "sha256": "1abe97c4fead709a5b92aa5b1b07a0437f0dd990415c965e5bbeff382c3bb8f3",
+      "derivedFromSha256": "d8d7515b7898c2daddf0de2ac91c11803712e6bda6049602fbd5ead605b1c1cc"
     },
     {
       "platform": "X",
@@ -5213,7 +5297,9 @@
         "ぐるぐる！",
         "宇宙制圧！"
       ],
-      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ja/backlog_comic_20261015/10.png"
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ja/backlog_comic_20261015/10.png",
+      "sha256": "95dcc37320669513025d7074b1c8dc5580893f0dbf1e40c2982fe87e186b36d9",
+      "derivedFromSha256": "558eb8588fba15ac588808bb57b5ec560b200d473833a7c7e674185214403542"
     },
     {
       "platform": "Facebook",
@@ -5230,7 +5316,9 @@
         "ぐるぐる！",
         "宇宙制圧！"
       ],
-      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/backlog_comic_20261015/10.png"
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/backlog_comic_20261015/10.png",
+      "sha256": "95dcc37320669513025d7074b1c8dc5580893f0dbf1e40c2982fe87e186b36d9",
+      "derivedFromSha256": "558eb8588fba15ac588808bb57b5ec560b200d473833a7c7e674185214403542"
     },
     {
       "platform": "Facebook",
@@ -5247,7 +5335,9 @@
         "Xả bóng nào!",
         "Chụp được rồi!"
       ],
-      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/backlog_comic_20261015/01.png"
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/backlog_comic_20261015/01.png",
+      "sha256": "45b4eb9591ed4e18578be3bc6a05af386f099ef2c6361b39e9ccc33b80632320",
+      "derivedFromSha256": "015ddd4a21f887af78ccde30c826ef90e96042fb09135ea4e01c4d187ceb2a2d"
     },
     {
       "platform": "Facebook",
@@ -5264,7 +5354,9 @@
         "Dính chặt rồi!",
         "Thành công!"
       ],
-      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/backlog_comic_20261015/02.png"
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/backlog_comic_20261015/02.png",
+      "sha256": "3ccef51e0865afae296e4733fd87570aa70c70425343b578f8fc51d515964f2f",
+      "derivedFromSha256": "8c49dd2b0b0fff9bfccc0f2ff522e0b3d75ae0267b8e415c67b1b6aec365ee39"
     },
     {
       "platform": "Facebook",
@@ -5281,7 +5373,9 @@
         "Lấy sách nào!",
         "Có thẻ rồi!"
       ],
-      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/backlog_comic_20261015/03.png"
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/backlog_comic_20261015/03.png",
+      "sha256": "6f30a7a9407ca64ea3ded6cfda668900abff79fad5b1a116249a118a6660445c",
+      "derivedFromSha256": "ad22a385cbcad90fee871a2123e8ea0ae42f554e987e94ccdc4d587ae7591459"
     },
     {
       "platform": "Facebook",
@@ -5298,7 +5392,9 @@
         "Bùm!",
         "Chơi tiếp nào!"
       ],
-      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/backlog_comic_20261015/04.png"
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/backlog_comic_20261015/04.png",
+      "sha256": "8d7151c3385b4d2d3435ae136b762a3143196676f9a17d65eb7f90dc3b80945d",
+      "derivedFromSha256": "da2d7beed6d3904661432b362ec61c29e64608d950c83818f2264e8aa892c385"
     },
     {
       "platform": "X",
@@ -5315,7 +5411,9 @@
         "Quấn chặt rồi!",
         "Tada!"
       ],
-      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/vi/backlog_comic_20261015/05.png"
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/vi/backlog_comic_20261015/05.png",
+      "sha256": "cc5766b7f486b2c70697a569de596a4f4ee49b273a0dc1f842bb00036c17f04a",
+      "derivedFromSha256": "a2b096504a2e5d8c1ea59daf5597006da6fb6866b253c6bb4aa4a9048b7c8936"
     },
     {
       "platform": "Facebook",
@@ -5332,7 +5430,9 @@
         "Quấn chặt rồi!",
         "Tada!"
       ],
-      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/backlog_comic_20261015/05.png"
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/backlog_comic_20261015/05.png",
+      "sha256": "cc5766b7f486b2c70697a569de596a4f4ee49b273a0dc1f842bb00036c17f04a",
+      "derivedFromSha256": "a2b096504a2e5d8c1ea59daf5597006da6fb6866b253c6bb4aa4a9048b7c8936"
     },
     {
       "platform": "X",
@@ -5349,7 +5449,9 @@
         "Úi, ngã rồi!",
         "Mời ăn nhé!"
       ],
-      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/vi/backlog_comic_20261015/06.png"
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/vi/backlog_comic_20261015/06.png",
+      "sha256": "4be7964bdb7568193792f0a5ccf92c8577e49de82c0234fe1cd5f3dce04c6059",
+      "derivedFromSha256": "c76f3b0ec24666fd128f9831909c9be976d51f4b374d27cba082a47c5c45e571"
     },
     {
       "platform": "Facebook",
@@ -5366,7 +5468,9 @@
         "Úi, ngã rồi!",
         "Mời ăn nhé!"
       ],
-      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/backlog_comic_20261015/06.png"
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/backlog_comic_20261015/06.png",
+      "sha256": "4be7964bdb7568193792f0a5ccf92c8577e49de82c0234fe1cd5f3dce04c6059",
+      "derivedFromSha256": "c76f3b0ec24666fd128f9831909c9be976d51f4b374d27cba082a47c5c45e571"
     },
     {
       "platform": "X",
@@ -5383,7 +5487,9 @@
         "Màn mở rồi!",
         "Cảm ơn nhé!"
       ],
-      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/vi/backlog_comic_20261015/07.png"
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/vi/backlog_comic_20261015/07.png",
+      "sha256": "8e6f0bb1063dcb6ddd355501f06fa52d0e0ae48ba17e550b22d7cb0dfec716ea",
+      "derivedFromSha256": "b0bd5f0a729a7a91f4f0c3b2d489e86e57ab5bdf80c5cc2b580fbbc32ddb6947"
     },
     {
       "platform": "Facebook",
@@ -5400,7 +5506,9 @@
         "Màn mở rồi!",
         "Cảm ơn nhé!"
       ],
-      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/backlog_comic_20261015/07.png"
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/backlog_comic_20261015/07.png",
+      "sha256": "8e6f0bb1063dcb6ddd355501f06fa52d0e0ae48ba17e550b22d7cb0dfec716ea",
+      "derivedFromSha256": "b0bd5f0a729a7a91f4f0c3b2d489e86e57ab5bdf80c5cc2b580fbbc32ddb6947"
     },
     {
       "platform": "X",
@@ -5417,7 +5525,9 @@
         "Nảy mầm rồi!",
         "Cùng trồng nhé!"
       ],
-      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/vi/backlog_comic_20261015/08.png"
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/vi/backlog_comic_20261015/08.png",
+      "sha256": "844ea96cf174c9c66c1746439e49252c3e25d7361d309278700f81b9a3379c63",
+      "derivedFromSha256": "733b238bc570f2771bb21ae12056fd6e303f5787ca78d5e956477c27a0360cc7"
     },
     {
       "platform": "Facebook",
@@ -5434,7 +5544,9 @@
         "Nảy mầm rồi!",
         "Cùng trồng nhé!"
       ],
-      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/backlog_comic_20261015/08.png"
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/backlog_comic_20261015/08.png",
+      "sha256": "844ea96cf174c9c66c1746439e49252c3e25d7361d309278700f81b9a3379c63",
+      "derivedFromSha256": "733b238bc570f2771bb21ae12056fd6e303f5787ca78d5e956477c27a0360cc7"
     },
     {
       "platform": "X",
@@ -5451,7 +5563,9 @@
         "Bắt được rồi!",
         "Về đích thôi!"
       ],
-      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/vi/backlog_comic_20261015/09.png"
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/vi/backlog_comic_20261015/09.png",
+      "sha256": "967410e770093c735f1d19f891341d464a876aaca03c0724db75d71285828678",
+      "derivedFromSha256": "be77f7158be73ff8aefd94e66858a8459df3f2c1795428f48925728e8b030197"
     },
     {
       "platform": "Facebook",
@@ -5468,7 +5582,9 @@
         "Bắt được rồi!",
         "Về đích thôi!"
       ],
-      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/backlog_comic_20261015/09.png"
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/backlog_comic_20261015/09.png",
+      "sha256": "967410e770093c735f1d19f891341d464a876aaca03c0724db75d71285828678",
+      "derivedFromSha256": "be77f7158be73ff8aefd94e66858a8459df3f2c1795428f48925728e8b030197"
     },
     {
       "platform": "X",
@@ -5485,7 +5601,9 @@
         "Vũ trụ rộng quá!",
         "Soi sao nào!"
       ],
-      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/vi/backlog_comic_20261015/10.png"
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/vi/backlog_comic_20261015/10.png",
+      "sha256": "39a6f2b3456e71e934520e31a9ff1b21d248d4de031689e3f897b8e3a4090124",
+      "derivedFromSha256": "439af835b9c71a3cfa64d270f62490a55e385b5ac58e3b5a50c2b94f018d76c5"
     },
     {
       "platform": "Facebook",
@@ -5502,7 +5620,3209 @@
         "Vũ trụ rộng quá!",
         "Soi sao nào!"
       ],
-      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/backlog_comic_20261015/10.png"
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/backlog_comic_20261015/10.png",
+      "sha256": "39a6f2b3456e71e934520e31a9ff1b21d248d4de031689e3f897b8e3a4090124",
+      "derivedFromSha256": "439af835b9c71a3cfa64d270f62490a55e385b5ac58e3b5a50c2b94f018d76c5"
+    },
+    {
+      "platform": "X",
+      "locale": "ko",
+      "collection": "vertical_comic_20261018",
+      "path": "x/ko/vertical_comic_20261018/comic_01.png",
+      "gameStartText": "게임시작",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "desk_trap",
+      "dialogueWords": [
+        "좀비다!",
+        "책상으로 막자!",
+        "와르르!",
+        "탈출 성공!"
+      ],
+      "sourceCollection": "zombie_catch_comic_words_20261014",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/zombie_catch_comic_words_20261014/01.png",
+      "sha256": "e309ced58eb4baf80cda60d31467d668ffec55f77b0553b156bdabc3298bd506",
+      "sourceSha256": "6cef69a1932bd9b81c2af4a5b30fd39e7fb2d8885f90baa00326a275312e2385",
+      "derivedFromSha256": "6cef69a1932bd9b81c2af4a5b30fd39e7fb2d8885f90baa00326a275312e2385",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 724,
+      "height": 2172,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "X",
+      "locale": "ko",
+      "collection": "vertical_comic_20261018",
+      "path": "x/ko/vertical_comic_20261018/comic_02.png",
+      "gameStartText": "게임시작",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "locker_maze",
+      "dialogueWords": [
+        "사물함!",
+        "길을 막자!",
+        "여긴 어디?",
+        "잡았다!"
+      ],
+      "sourceCollection": "zombie_catch_comic_words_20261014",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/zombie_catch_comic_words_20261014/02.png",
+      "sha256": "12c4949286c18c6f9819a9fef5983ffcf20f059a3665e07e18c58b8968a4ab55",
+      "sourceSha256": "0fc30756c336077ed9782fce73f524d3c5a8abc04486495c64730d2d3dd60a5e",
+      "derivedFromSha256": "0fc30756c336077ed9782fce73f524d3c5a8abc04486495c64730d2d3dd60a5e",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 724,
+      "height": 2171,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "X",
+      "locale": "ko",
+      "collection": "vertical_comic_20261018",
+      "path": "x/ko/vertical_comic_20261018/comic_03.png",
+      "gameStartText": "게임시작",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "cafeteria_tray",
+      "dialogueWords": [
+        "좀비다!",
+        "급식판 방패!",
+        "우왕!",
+        "급식 끝!"
+      ],
+      "sourceCollection": "zombie_catch_comic_words_20261014",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/zombie_catch_comic_words_20261014/03.png",
+      "sha256": "2c10bb397a9dcf837cce04b031af2d68eaf66c4ce27fb35b02212dd1d7bb20f3",
+      "sourceSha256": "7f57ec2cf737ee49bacd09d030d02cbbba327b40b4fc27b8b7e4cba3217fd978",
+      "derivedFromSha256": "7f57ec2cf737ee49bacd09d030d02cbbba327b40b4fc27b8b7e4cba3217fd978",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 724,
+      "height": 2172,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "X",
+      "locale": "ko",
+      "collection": "vertical_comic_20261018",
+      "path": "x/ko/vertical_comic_20261018/comic_04.png",
+      "gameStartText": "게임시작",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "gym_ball",
+      "dialogueWords": [
+        "체육관!",
+        "공 굴러간다!",
+        "데굴데굴!",
+        "골인!"
+      ],
+      "sourceCollection": "zombie_catch_comic_words_20261014",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/zombie_catch_comic_words_20261014/04.png",
+      "sha256": "d5219bef62bac05074834d3484e3bed601985f31f4c5f0b8f1f0c39a8f5e4622",
+      "sourceSha256": "4b1ea3cdc9c45df39a25d2e2d7f9cbb8913f54348e4a8bdab316345ec5eac408",
+      "derivedFromSha256": "4b1ea3cdc9c45df39a25d2e2d7f9cbb8913f54348e4a8bdab316345ec5eac408",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 736,
+      "height": 2135,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "X",
+      "locale": "ko",
+      "collection": "vertical_comic_20261018",
+      "path": "x/ko/vertical_comic_20261018/comic_05.png",
+      "gameStartText": "게임시작",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "library_cart",
+      "dialogueWords": [
+        "도서관이다!",
+        "쉿, 따라와!",
+        "책이 와르르!",
+        "대출 완료!"
+      ],
+      "sourceCollection": "zombie_catch_comic_words_20261014",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/zombie_catch_comic_words_20261014/05.png",
+      "sha256": "b899fa7d7b044a7452a3d9576e6eb142a1eb2e89f882df1c0c4f0cb41b16621d",
+      "sourceSha256": "8a739731cb48c2782841f1bf061b8584759cf958f66d7a31298d612a2ba569ab",
+      "derivedFromSha256": "8a739731cb48c2782841f1bf061b8584759cf958f66d7a31298d612a2ba569ab",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 724,
+      "height": 2172,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "X",
+      "locale": "ko",
+      "collection": "vertical_comic_20261018",
+      "path": "x/ko/vertical_comic_20261018/comic_06.png",
+      "gameStartText": "게임시작",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "globe_cart_dodgeballs",
+      "title": "지구본 카트와 피구공 함정",
+      "dialogueWords": [
+        "어라?",
+        "체육관으로!",
+        "공 폭탄!",
+        "잡았다!"
+      ],
+      "sourceCollection": "backlog_comic_20261015",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/backlog_comic_20261015/01.png",
+      "sha256": "4362f193dfb1d81158a76d7ed602bf7374b9ca9492be020cd7907b9fc50e5c04",
+      "sourceSha256": "30d6412bea13002f0c19441b7ee62d92c30613a6ec969273ad8f80b3f30ef763",
+      "derivedFromSha256": "30d6412bea13002f0c19441b7ee62d92c30613a6ec969273ad8f80b3f30ef763",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 724,
+      "height": 2172,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "Facebook",
+      "locale": "ko",
+      "collection": "vertical_comic_20261018",
+      "path": "facebook/ko/vertical_comic_20261018/comic_06.png",
+      "gameStartText": "게임시작",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "globe_cart_dodgeballs",
+      "title": "지구본 카트와 피구공 함정",
+      "dialogueWords": [
+        "어라?",
+        "체육관으로!",
+        "공 폭탄!",
+        "잡았다!"
+      ],
+      "sourceCollection": "backlog_comic_20261015",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/backlog_comic_20261015/01.png",
+      "sha256": "4362f193dfb1d81158a76d7ed602bf7374b9ca9492be020cd7907b9fc50e5c04",
+      "sourceSha256": "30d6412bea13002f0c19441b7ee62d92c30613a6ec969273ad8f80b3f30ef763",
+      "derivedFromSha256": "30d6412bea13002f0c19441b7ee62d92c30613a6ec969273ad8f80b3f30ef763",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 724,
+      "height": 2172,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "X",
+      "locale": "ko",
+      "collection": "vertical_comic_20261018",
+      "path": "x/ko/vertical_comic_20261018/comic_07.png",
+      "gameStartText": "게임시작",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "science_magnet_lockers",
+      "title": "자석 사물함 소동",
+      "dialogueWords": [
+        "좀비다!",
+        "자석 ON!",
+        "철컥!",
+        "성공!"
+      ],
+      "sourceCollection": "backlog_comic_20261015",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/backlog_comic_20261015/02.png",
+      "sha256": "3c1e763daab979163a2acb8dfb2858ab5d9f9953cd685c392e7d76da59ad6584",
+      "sourceSha256": "21048273c0b6ca89bb5928c9cfeb0b3737f1036bfb193977b8ec21917d9072bc",
+      "derivedFromSha256": "21048273c0b6ca89bb5928c9cfeb0b3737f1036bfb193977b8ec21917d9072bc",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 724,
+      "height": 2172,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "X",
+      "locale": "ko",
+      "collection": "vertical_comic_20261018",
+      "path": "x/ko/vertical_comic_20261018/comic_08.png",
+      "gameStartText": "게임시작",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "library_cart_books",
+      "title": "도서관 책수레 미끼",
+      "dialogueWords": [
+        "쉿!",
+        "수레 출발!",
+        "책 폭포!",
+        "대출 끝!"
+      ],
+      "sourceCollection": "backlog_comic_20261015",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/backlog_comic_20261015/03.png",
+      "sha256": "f63b8909e0696092a36e100763b137f4b337ba4fdaafeedd69ce47679e6f44e3",
+      "sourceSha256": "4036258606fb33aea915868540eaefccac8f1f5483572a90e44f629dff4cc096",
+      "derivedFromSha256": "4036258606fb33aea915868540eaefccac8f1f5483572a90e44f629dff4cc096",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 724,
+      "height": 2172,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "X",
+      "locale": "ko",
+      "collection": "vertical_comic_20261018",
+      "path": "x/ko/vertical_comic_20261018/comic_09.png",
+      "gameStartText": "게임시작",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "music_room_rhythm",
+      "title": "음악실 드럼 리듬",
+      "dialogueWords": [
+        "쉿!",
+        "리듬 타!",
+        "쿵!",
+        "앵콜?"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/dialogue_filled_20261018/backlog_comic_20261015_04.png",
+      "sha256": "84d1ec7096b946c38048162b614bad3e9773b12a26f615efdb74c187ca9535c3",
+      "derivedFromSha256": "e9232f983e19581fd578efbd1c2d9af5b89b930f670e88c1ad4ebead076f9e00",
+      "sourceCollection": "dialogue_filled_20261018",
+      "sourceSha256": "20650156a69972cba9393acc0696ab9d4ebdbd738cd3279c9e1488318fd7b663",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 724,
+      "height": 2172,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "Facebook",
+      "locale": "ko",
+      "collection": "vertical_comic_20261018",
+      "path": "facebook/ko/vertical_comic_20261018/comic_09.png",
+      "gameStartText": "게임시작",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "music_room_rhythm",
+      "title": "음악실 드럼 리듬",
+      "dialogueWords": [
+        "쉿!",
+        "리듬 타!",
+        "쿵!",
+        "앵콜?"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/dialogue_filled_20261018/backlog_comic_20261015_04.png",
+      "sha256": "84d1ec7096b946c38048162b614bad3e9773b12a26f615efdb74c187ca9535c3",
+      "derivedFromSha256": "e9232f983e19581fd578efbd1c2d9af5b89b930f670e88c1ad4ebead076f9e00",
+      "sourceCollection": "dialogue_filled_20261018",
+      "sourceSha256": "20650156a69972cba9393acc0696ab9d4ebdbd738cd3279c9e1488318fd7b663",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 724,
+      "height": 2172,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "X",
+      "locale": "ko",
+      "collection": "vertical_comic_20261018",
+      "path": "x/ko/vertical_comic_20261018/comic_10.png",
+      "gameStartText": "게임시작",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "art_room_paper_roll",
+      "title": "미술실 종이말이 작전",
+      "dialogueWords": [
+        "어라?",
+        "돌돌돌!",
+        "꽁꽁!",
+        "완성!"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/dialogue_filled_20261018/backlog_comic_20261015_05.png",
+      "sha256": "1464d75104b9683cb7d272a980c02ff9974b9fe516b3a54161c04b54ed0f5e98",
+      "derivedFromSha256": "7125383b143e7dafb215e41472702cda0245976a8e74ad87dda11874f8704801",
+      "sourceCollection": "dialogue_filled_20261018",
+      "sourceSha256": "ff056efa64501462e0edbaca60736edfc5e54e68d540445d6f78ec4c0bfd0e50",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 724,
+      "height": 2172,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "Facebook",
+      "locale": "ko",
+      "collection": "vertical_comic_20261018",
+      "path": "facebook/ko/vertical_comic_20261018/comic_10.png",
+      "gameStartText": "게임시작",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "art_room_paper_roll",
+      "title": "미술실 종이말이 작전",
+      "dialogueWords": [
+        "어라?",
+        "돌돌돌!",
+        "꽁꽁!",
+        "완성!"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/dialogue_filled_20261018/backlog_comic_20261015_05.png",
+      "sha256": "1464d75104b9683cb7d272a980c02ff9974b9fe516b3a54161c04b54ed0f5e98",
+      "derivedFromSha256": "7125383b143e7dafb215e41472702cda0245976a8e74ad87dda11874f8704801",
+      "sourceCollection": "dialogue_filled_20261018",
+      "sourceSha256": "ff056efa64501462e0edbaca60736edfc5e54e68d540445d6f78ec4c0bfd0e50",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 724,
+      "height": 2172,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "X",
+      "locale": "ko",
+      "collection": "vertical_comic_20261018",
+      "path": "x/ko/vertical_comic_20261018/comic_11.png",
+      "gameStartText": "게임시작",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "cafeteria_gelatin_trays",
+      "title": "급식실 푸딩 트레이 소동",
+      "dialogueWords": [
+        "푸딩이다!",
+        "출발!",
+        "와장창!",
+        "한입?"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/dialogue_filled_20261018/backlog_comic_20261015_06.png",
+      "sha256": "4c13a11674686d5c483401e2e96d468b7954eb6887a1c96311c1ec88a7d4df22",
+      "derivedFromSha256": "e5360249d88e31da384d68f4f6360cc5c5967b4fcc56972b2c947aad1584684d",
+      "sourceCollection": "dialogue_filled_20261018",
+      "sourceSha256": "24beaa2b72107965c33552a9510b454aaac51e63bbb930d09c87af1649a50acf",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 724,
+      "height": 2171,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "Facebook",
+      "locale": "ko",
+      "collection": "vertical_comic_20261018",
+      "path": "facebook/ko/vertical_comic_20261018/comic_11.png",
+      "gameStartText": "게임시작",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "cafeteria_gelatin_trays",
+      "title": "급식실 푸딩 트레이 소동",
+      "dialogueWords": [
+        "푸딩이다!",
+        "출발!",
+        "와장창!",
+        "한입?"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/dialogue_filled_20261018/backlog_comic_20261015_06.png",
+      "sha256": "4c13a11674686d5c483401e2e96d468b7954eb6887a1c96311c1ec88a7d4df22",
+      "derivedFromSha256": "e5360249d88e31da384d68f4f6360cc5c5967b4fcc56972b2c947aad1584684d",
+      "sourceCollection": "dialogue_filled_20261018",
+      "sourceSha256": "24beaa2b72107965c33552a9510b454aaac51e63bbb930d09c87af1649a50acf",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 724,
+      "height": 2171,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "X",
+      "locale": "ko",
+      "collection": "vertical_comic_20261018",
+      "path": "x/ko/vertical_comic_20261018/comic_12.png",
+      "gameStartText": "게임시작",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "auditorium_curtain_call",
+      "title": "강당 커튼콜 작전",
+      "dialogueWords": [
+        "좀비 등장!",
+        "주목!",
+        "커튼 콰앙!",
+        "감사합니다!"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/dialogue_filled_20261018/backlog_comic_20261015_07.png",
+      "sha256": "cbbe87db96b56d4ecd4fc3c56aab03e9950684d01be7b418ba41cd44eeb01561",
+      "derivedFromSha256": "c546cfd1af35e7f2e78e37879acbafdc29a0f60a315d13e6ec06c65a22935e8e",
+      "sourceCollection": "dialogue_filled_20261018",
+      "sourceSha256": "e5d84fd7d830e5cd99bdf0dc2dab68383605412b50a56033da4f34a8f5e0e3fe",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 724,
+      "height": 2172,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "Facebook",
+      "locale": "ko",
+      "collection": "vertical_comic_20261018",
+      "path": "facebook/ko/vertical_comic_20261018/comic_12.png",
+      "gameStartText": "게임시작",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "auditorium_curtain_call",
+      "title": "강당 커튼콜 작전",
+      "dialogueWords": [
+        "좀비 등장!",
+        "주목!",
+        "커튼 콰앙!",
+        "감사합니다!"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/dialogue_filled_20261018/backlog_comic_20261015_07.png",
+      "sha256": "cbbe87db96b56d4ecd4fc3c56aab03e9950684d01be7b418ba41cd44eeb01561",
+      "derivedFromSha256": "c546cfd1af35e7f2e78e37879acbafdc29a0f60a315d13e6ec06c65a22935e8e",
+      "sourceCollection": "dialogue_filled_20261018",
+      "sourceSha256": "e5d84fd7d830e5cd99bdf0dc2dab68383605412b50a56033da4f34a8f5e0e3fe",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 724,
+      "height": 2172,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "X",
+      "locale": "ko",
+      "collection": "vertical_comic_20261018",
+      "path": "x/ko/vertical_comic_20261018/comic_13.png",
+      "gameStartText": "게임시작",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "greenhouse_sprinkler",
+      "title": "온실 스프링클러 대작전",
+      "dialogueWords": [
+        "좀비다!",
+        "물 뿌려!",
+        "으악!",
+        "새싹 성공!"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/dialogue_filled_20261018/backlog_comic_20261015_08.png",
+      "sha256": "348f85e4c5ac5b9bff0279e4fbb8da899c28455613f58879336f5eb9ae749e51",
+      "derivedFromSha256": "d150cd01de8512b44984ca74c57771f6b8fd7735e3fb4f47f1ac1be0324fa3ec",
+      "sourceCollection": "dialogue_filled_20261018",
+      "sourceSha256": "02c9e0c4135afb12b8e3a72fa96c02d8d70ff59a0add0c4bef21be516721d9ba",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 724,
+      "height": 2172,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "Facebook",
+      "locale": "ko",
+      "collection": "vertical_comic_20261018",
+      "path": "facebook/ko/vertical_comic_20261018/comic_13.png",
+      "gameStartText": "게임시작",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "greenhouse_sprinkler",
+      "title": "온실 스프링클러 대작전",
+      "dialogueWords": [
+        "좀비다!",
+        "물 뿌려!",
+        "으악!",
+        "새싹 성공!"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/dialogue_filled_20261018/backlog_comic_20261015_08.png",
+      "sha256": "348f85e4c5ac5b9bff0279e4fbb8da899c28455613f58879336f5eb9ae749e51",
+      "derivedFromSha256": "d150cd01de8512b44984ca74c57771f6b8fd7735e3fb4f47f1ac1be0324fa3ec",
+      "sourceCollection": "dialogue_filled_20261018",
+      "sourceSha256": "02c9e0c4135afb12b8e3a72fa96c02d8d70ff59a0add0c4bef21be516721d9ba",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 724,
+      "height": 2172,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "X",
+      "locale": "ko",
+      "collection": "vertical_comic_20261018",
+      "path": "x/ko/vertical_comic_20261018/comic_14.png",
+      "gameStartText": "게임시작",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "gym_mat_maze",
+      "title": "체육관 매트 미로",
+      "dialogueWords": [
+        "코스 준비!",
+        "점프!",
+        "여긴 어디?",
+        "완주!"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/dialogue_filled_20261018/backlog_comic_20261015_09.png",
+      "sha256": "51c328e731e1d4d2217d14d38a86f0b9ea8a0bde81693eb9cc62c6becfb5fc06",
+      "derivedFromSha256": "633217700f5dd47b477afb187607176dd97fb0240c7b7c9c02fffcf8160184b8",
+      "sourceCollection": "dialogue_filled_20261018",
+      "sourceSha256": "f67b03c0fba7831638ac3339f32aa580d6abebb2f50daf80ce0240978702d9ba",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 724,
+      "height": 2172,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "Facebook",
+      "locale": "ko",
+      "collection": "vertical_comic_20261018",
+      "path": "facebook/ko/vertical_comic_20261018/comic_14.png",
+      "gameStartText": "게임시작",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "gym_mat_maze",
+      "title": "체육관 매트 미로",
+      "dialogueWords": [
+        "코스 준비!",
+        "점프!",
+        "여긴 어디?",
+        "완주!"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/dialogue_filled_20261018/backlog_comic_20261015_09.png",
+      "sha256": "51c328e731e1d4d2217d14d38a86f0b9ea8a0bde81693eb9cc62c6becfb5fc06",
+      "derivedFromSha256": "633217700f5dd47b477afb187607176dd97fb0240c7b7c9c02fffcf8160184b8",
+      "sourceCollection": "dialogue_filled_20261018",
+      "sourceSha256": "f67b03c0fba7831638ac3339f32aa580d6abebb2f50daf80ce0240978702d9ba",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 724,
+      "height": 2172,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "X",
+      "locale": "ko",
+      "collection": "vertical_comic_20261018",
+      "path": "x/ko/vertical_comic_20261018/comic_15.png",
+      "gameStartText": "게임시작",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "planetarium_star_projector",
+      "title": "천문관 별빛 유인 작전",
+      "dialogueWords": [
+        "별이다!",
+        "달 떴다!",
+        "빙글빙글!",
+        "우주 정복!"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/dialogue_filled_20261018/backlog_comic_20261015_10.png",
+      "sha256": "ba3b2d87f4a117a3da6cad575039923405cfaca977937e01546dcb002a0414e5",
+      "derivedFromSha256": "b584310ff4614a455ad4baf67e57f29c03940ee72c5aa5c6a3be178263157b27",
+      "sourceCollection": "dialogue_filled_20261018",
+      "sourceSha256": "a8ced09a7fda4e1dca539d07a5bc54a682284d44bdd7afd657656874a077c0fa",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 724,
+      "height": 2172,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "Facebook",
+      "locale": "ko",
+      "collection": "vertical_comic_20261018",
+      "path": "facebook/ko/vertical_comic_20261018/comic_15.png",
+      "gameStartText": "게임시작",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "planetarium_star_projector",
+      "title": "천문관 별빛 유인 작전",
+      "dialogueWords": [
+        "별이다!",
+        "달 떴다!",
+        "빙글빙글!",
+        "우주 정복!"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/dialogue_filled_20261018/backlog_comic_20261015_10.png",
+      "sha256": "ba3b2d87f4a117a3da6cad575039923405cfaca977937e01546dcb002a0414e5",
+      "derivedFromSha256": "b584310ff4614a455ad4baf67e57f29c03940ee72c5aa5c6a3be178263157b27",
+      "sourceCollection": "dialogue_filled_20261018",
+      "sourceSha256": "a8ced09a7fda4e1dca539d07a5bc54a682284d44bdd7afd657656874a077c0fa",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 724,
+      "height": 2172,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "Facebook",
+      "locale": "ko",
+      "collection": "vertical_comic_20261018",
+      "path": "facebook/ko/vertical_comic_20261018/comic_16.png",
+      "gameStartText": "게임시작",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "desk_trap",
+      "dialogueWords": [
+        "교실!",
+        "숨자!",
+        "쾅!",
+        "탈출!"
+      ],
+      "sourceCollection": "zombie_catch_comic_words_20261015",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/zombie_catch_comic_words_20261015/01.png",
+      "sha256": "8c7444955ee863b0371915327768e0c7a5bf24c708836a56a212204fb3ae6003",
+      "sourceSha256": "6d9c2f776e08f96653cfc1db4a0dc7f350b65652e03ad32c498ec2b18a6f1107",
+      "derivedFromSha256": "6d9c2f776e08f96653cfc1db4a0dc7f350b65652e03ad32c498ec2b18a6f1107",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 724,
+      "height": 2172,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "Facebook",
+      "locale": "ko",
+      "collection": "vertical_comic_20261018",
+      "path": "facebook/ko/vertical_comic_20261018/comic_17.png",
+      "gameStartText": "게임시작",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "locker_maze",
+      "dialogueWords": [
+        "사물함!",
+        "막혔어!",
+        "숨자!",
+        "찾았다!"
+      ],
+      "sourceCollection": "zombie_catch_comic_words_20261015",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/zombie_catch_comic_words_20261015/02.png",
+      "sha256": "2f5736d9f3f00fab541e9ebdd18fe5c84b1e7946d35ed218779e02fc3a78ad24",
+      "sourceSha256": "2ed2205718f0767f58830bc7897710d33c07116d4e83123186f147cae742a804",
+      "derivedFromSha256": "2ed2205718f0767f58830bc7897710d33c07116d4e83123186f147cae742a804",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 725,
+      "height": 2169,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "Facebook",
+      "locale": "ko",
+      "collection": "vertical_comic_20261018",
+      "path": "facebook/ko/vertical_comic_20261018/comic_18.png",
+      "gameStartText": "게임시작",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "cafeteria_tray",
+      "dialogueWords": [
+        "급식실!",
+        "쟁반!",
+        "으악!",
+        "엎질렀다!"
+      ],
+      "sourceCollection": "zombie_catch_comic_words_20261015",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/zombie_catch_comic_words_20261015/03.png",
+      "sha256": "b7275d7d8cb2e931d21654fc9c0ecdfc9e528004d33cfef7f54013a286b781fe",
+      "sourceSha256": "04ce70e3b9d0f40ae4e25c1018a63dddaa0e4876c54c799471eb51265fdef4cf",
+      "derivedFromSha256": "04ce70e3b9d0f40ae4e25c1018a63dddaa0e4876c54c799471eb51265fdef4cf",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 724,
+      "height": 2172,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "Facebook",
+      "locale": "ko",
+      "collection": "vertical_comic_20261018",
+      "path": "facebook/ko/vertical_comic_20261018/comic_19.png",
+      "gameStartText": "게임시작",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "gym_ball",
+      "dialogueWords": [
+        "체육관!",
+        "공이다!",
+        "데굴!",
+        "성공!"
+      ],
+      "sourceCollection": "zombie_catch_comic_words_20261015",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/zombie_catch_comic_words_20261015/04.png",
+      "sha256": "cd9e8b3e06d956d170d2e4e8e574e0e6e8b73bc21596234732215e9c0a4ab62f",
+      "sourceSha256": "30cba9f2a6f28a7089605e397f795ef5c5538a1328b8904fd31a58d050914f88",
+      "derivedFromSha256": "30cba9f2a6f28a7089605e397f795ef5c5538a1328b8904fd31a58d050914f88",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 724,
+      "height": 2172,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "Facebook",
+      "locale": "ko",
+      "collection": "vertical_comic_20261018",
+      "path": "facebook/ko/vertical_comic_20261018/comic_20.png",
+      "gameStartText": "게임시작",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "library_cart",
+      "dialogueWords": [
+        "도서관!",
+        "쉿!",
+        "카트!",
+        "우당탕!"
+      ],
+      "sourceCollection": "zombie_catch_comic_words_20261015",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/zombie_catch_comic_words_20261015/05.png",
+      "sha256": "03ce2ff6d94373ab4dc279b239d8a4fcaad7877f940a9b1563c39cee2d608a76",
+      "sourceSha256": "5403840081ca24a351afd1070a744313ee35a8dce6e5643476358803b260badb",
+      "derivedFromSha256": "5403840081ca24a351afd1070a744313ee35a8dce6e5643476358803b260badb",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 724,
+      "height": 2172,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "Facebook",
+      "locale": "ko",
+      "collection": "vertical_comic_20261018",
+      "path": "facebook/ko/vertical_comic_20261018/comic_21.png",
+      "gameStartText": "게임시작",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "science_magnet_lockers",
+      "title": "자석 사물함 소동",
+      "dialogueWords": [
+        "좀비다!",
+        "붙어라!",
+        "철썩!",
+        "성공!"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/dialogue_filled_20261018/backlog_comic_20261015_02.png",
+      "sha256": "85de4b7a710c5944b41635bd70e0acc4e632d8aebcc5305311501a7e480ceaa5",
+      "derivedFromSha256": "21048273c0b6ca89bb5928c9cfeb0b3737f1036bfb193977b8ec21917d9072bc",
+      "sourceCollection": "dialogue_filled_20261018",
+      "sourceSha256": "bbf30f66da7a5949c8326ac20557c9ea94a0bda81d7b07d8fa4726075a6edb79",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 730,
+      "height": 2155,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "Facebook",
+      "locale": "ko",
+      "collection": "vertical_comic_20261018",
+      "path": "facebook/ko/vertical_comic_20261018/comic_22.png",
+      "gameStartText": "게임시작",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "library_cart_books",
+      "title": "도서관 책수레 미끼",
+      "dialogueWords": [
+        "쉿!",
+        "수레 출발!",
+        "책 폭포!",
+        "대출 끝!"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/dialogue_filled_20261018/backlog_comic_20261015_03.png",
+      "sha256": "ce28b3ac0d6845e1e06db127ef157408c80be0e9a5a43b15cabc46e11e1548e4",
+      "derivedFromSha256": "4036258606fb33aea915868540eaefccac8f1f5483572a90e44f629dff4cc096",
+      "sourceCollection": "dialogue_filled_20261018",
+      "sourceSha256": "d57327a4604e1b4ca41b0f175373e03597f52e90d308c4412c94dcfcfc6a7746",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 724,
+      "height": 2172,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "X",
+      "locale": "en",
+      "collection": "vertical_comic_20261018",
+      "path": "x/en/vertical_comic_20261018/zombie_catch_comic_words_20261014_01_vertical.png",
+      "gameStartText": "START GAME",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "desk_trap",
+      "dialogueWords": [
+        "DESK!",
+        "ZOMBIE!",
+        "WHOOSH!",
+        "ESCAPE!"
+      ],
+      "sourceCollection": "zombie_catch_comic_words_20261014",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/en/zombie_catch_comic_words_20261014/01.png",
+      "sha256": "de335740a44e501ad6adcdd32bab95bebca2efe60a47836e30fcf8a88982686a",
+      "sourceSha256": "9c8fb839c8edb2b1c268659ff2b6fb4ef6fa196ca58b49390769fa2e711508a7",
+      "derivedFromSha256": "9c8fb839c8edb2b1c268659ff2b6fb4ef6fa196ca58b49390769fa2e711508a7",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 1024,
+      "height": 1536,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "X",
+      "locale": "en",
+      "collection": "vertical_comic_20261018",
+      "path": "x/en/vertical_comic_20261018/zombie_catch_comic_words_20261014_02_vertical.png",
+      "gameStartText": "START GAME",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "locker_maze",
+      "dialogueWords": [
+        "LOCKERS!",
+        "BLOCKED!",
+        "HIDE!",
+        "FOUND!"
+      ],
+      "sourceCollection": "zombie_catch_comic_words_20261014",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/en/zombie_catch_comic_words_20261014/02.png",
+      "sha256": "b2f184e733497ccd574f8dfdaa961f61c8a5638d598cb0a5e56151110054ec30",
+      "sourceSha256": "063da8fd33c82fd265e12cb6d5902d2027c5dc8aa5e56f06961bb1866be8ddf5",
+      "derivedFromSha256": "063da8fd33c82fd265e12cb6d5902d2027c5dc8aa5e56f06961bb1866be8ddf5",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 1024,
+      "height": 1536,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "X",
+      "locale": "en",
+      "collection": "vertical_comic_20261018",
+      "path": "x/en/vertical_comic_20261018/zombie_catch_comic_words_20261014_03_vertical.png",
+      "gameStartText": "START GAME",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "cafeteria_tray",
+      "dialogueWords": [
+        "ZOMBIE!",
+        "CAFETERIA!",
+        "WHOA!",
+        "YIKES!"
+      ],
+      "sourceCollection": "zombie_catch_comic_words_20261014",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/en/zombie_catch_comic_words_20261014/03.png",
+      "sha256": "5975796c6d43d4be890113dd6288f90071b893c7e0d9ccb3ca1283e69fbf70cd",
+      "sourceSha256": "fb5709c3fa6677d169deb2e3ae584e663d5bc7f3e6895d0655f4d5c7abe63287",
+      "derivedFromSha256": "fb5709c3fa6677d169deb2e3ae584e663d5bc7f3e6895d0655f4d5c7abe63287",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 1024,
+      "height": 1536,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "X",
+      "locale": "en",
+      "collection": "vertical_comic_20261018",
+      "path": "x/en/vertical_comic_20261018/zombie_catch_comic_words_20261014_04_vertical.png",
+      "gameStartText": "START GAME",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "gym_ball",
+      "dialogueWords": [
+        "GYM!",
+        "BALL!",
+        "ROLL!",
+        "SCORE!"
+      ],
+      "sourceCollection": "zombie_catch_comic_words_20261014",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/en/zombie_catch_comic_words_20261014/04.png",
+      "sha256": "33251bfb3893b27ea487a191c63ab9bfd37480273e789c0dcfcb049aa6ae91a3",
+      "sourceSha256": "134a31d3c13551ec3cade44d5b17b2cbd43a8d220851d140163f61d956122443",
+      "derivedFromSha256": "134a31d3c13551ec3cade44d5b17b2cbd43a8d220851d140163f61d956122443",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 1024,
+      "height": 1536,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "X",
+      "locale": "en",
+      "collection": "vertical_comic_20261018",
+      "path": "x/en/vertical_comic_20261018/zombie_catch_comic_words_20261014_05_vertical.png",
+      "gameStartText": "START GAME",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "library_cart",
+      "dialogueWords": [
+        "LIBRARY!",
+        "SHH!",
+        "CART!",
+        "CRASH!"
+      ],
+      "sourceCollection": "zombie_catch_comic_words_20261014",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/en/zombie_catch_comic_words_20261014/05.png",
+      "sha256": "90fbb4c8c787535e4f92d1846b73a1dfeb0b05d1be6eb20080a0304591febc49",
+      "sourceSha256": "1a324f2892ddc702ed3dd238e1ecae8164eaa4a7a257a741796782bff4152eaa",
+      "derivedFromSha256": "1a324f2892ddc702ed3dd238e1ecae8164eaa4a7a257a741796782bff4152eaa",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 1024,
+      "height": 1536,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "X",
+      "locale": "en",
+      "collection": "vertical_comic_20261018",
+      "path": "x/en/vertical_comic_20261018/backlog_comic_20261015_01_vertical.png",
+      "gameStartText": "START GAME",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "globe_cart_dodgeballs",
+      "title": "Globe Cart Dodgeball Trap",
+      "dialogueWords": [
+        "Huh? / Round and round! / Gotcha!",
+        "Ball storm!",
+        "Here we go!",
+        "Mission complete!"
+      ],
+      "sourceCollection": "backlog_comic_20261015",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/en/backlog_comic_20261015/01.png",
+      "sha256": "8fe81fa90a2776411a72bd0f826831e2aca5657534d7860efc0e0ce08d9824b4",
+      "sourceSha256": "dedc5b2972f6b3e573697f335f6b2a1f6ce907da8051a0f622645aacd7d938bb",
+      "derivedFromSha256": "dedc5b2972f6b3e573697f335f6b2a1f6ce907da8051a0f622645aacd7d938bb",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 1024,
+      "height": 1536,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "X",
+      "locale": "en",
+      "collection": "vertical_comic_20261018",
+      "path": "x/en/vertical_comic_20261018/backlog_comic_20261015_02_vertical.png",
+      "gameStartText": "START GAME",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "science_magnet_lockers",
+      "title": "Magnet and Locker Mix-up",
+      "dialogueWords": [
+        "Zombies! / Magnet on!",
+        "Magnet on!",
+        "Click!",
+        "Success!"
+      ],
+      "sourceCollection": "backlog_comic_20261015",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/en/backlog_comic_20261015/02.png",
+      "sha256": "bc3e32e13aa68b399a0b030e44bf8db40c8892b42e216abe10d3f12bc156de8a",
+      "sourceSha256": "3947f513e13c604c2aef8f16d01e454b7f0bf4f358688cf83d83050f6ba986ae",
+      "derivedFromSha256": "3947f513e13c604c2aef8f16d01e454b7f0bf4f358688cf83d83050f6ba986ae",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 1024,
+      "height": 1536,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "X",
+      "locale": "en",
+      "collection": "vertical_comic_20261018",
+      "path": "x/en/vertical_comic_20261018/backlog_comic_20261015_03_vertical.png",
+      "gameStartText": "START GAME",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "library_cart_books",
+      "title": "Library Cart Lure",
+      "dialogueWords": [
+        "Shh!",
+        "Cart away!",
+        "Book avalanche!",
+        "Gotcha!"
+      ],
+      "sourceCollection": "backlog_comic_20261015",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/en/backlog_comic_20261015/03.png",
+      "sha256": "de01ff6d6ca788d241241b42b5c95884e0feb6ff563ad993f855e2a0a98bf692",
+      "sourceSha256": "65d0c0f35bc957aaed39c262967e7805114f53a6ada8bf2e0d6086f0cd073218",
+      "derivedFromSha256": "65d0c0f35bc957aaed39c262967e7805114f53a6ada8bf2e0d6086f0cd073218",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 1024,
+      "height": 1536,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "X",
+      "locale": "en",
+      "collection": "vertical_comic_20261018",
+      "path": "x/en/vertical_comic_20261018/backlog_comic_20261015_04_vertical.png",
+      "gameStartText": "START GAME",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "music_room_rhythm",
+      "title": "Music Room Drumroll",
+      "dialogueWords": [
+        "Shh! / Drumroll!",
+        "Feel the beat!",
+        "Boom!",
+        "Encore?"
+      ],
+      "sourceCollection": "backlog_comic_20261015",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/en/backlog_comic_20261015/04.png",
+      "sha256": "fa69b29093a125d8996792f909f64a5a45f056c462eccdd58cd8341526de15c0",
+      "sourceSha256": "f3f856b6f873b9c432ede569a8e3568372b9c336a04c346d9c2c02b45cd638a4",
+      "derivedFromSha256": "f3f856b6f873b9c432ede569a8e3568372b9c336a04c346d9c2c02b45cd638a4",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 1024,
+      "height": 1536,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "X",
+      "locale": "en",
+      "collection": "vertical_comic_20261018",
+      "path": "x/en/vertical_comic_20261018/backlog_comic_20261015_05_vertical.png",
+      "gameStartText": "START GAME",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "art_room_paper_roll",
+      "title": "Art Room Paper Wrap",
+      "dialogueWords": [
+        "Uh-oh! / Roll, roll!",
+        "Ta-da!",
+        "Paper wrap!",
+        "Ta-da!"
+      ],
+      "sourceCollection": "backlog_comic_20261015",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/en/backlog_comic_20261015/05.png",
+      "sha256": "b0d73eebdf50be2694f2660223f42e0db118bdb4bc30712302d3d58e58d980b2",
+      "sourceSha256": "7c4288890e1e68a8aec206782ea00c0ed750725a006d03e591d7cddb8f845fe9",
+      "derivedFromSha256": "7c4288890e1e68a8aec206782ea00c0ed750725a006d03e591d7cddb8f845fe9",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 1024,
+      "height": 1536,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "X",
+      "locale": "en",
+      "collection": "vertical_comic_20261018",
+      "path": "x/en/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_06_vertical.png",
+      "gameStartText": "START GAME",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "cafeteria_gelatin_trays",
+      "title": "Cafeteria Wobble and Trays",
+      "dialogueWords": [
+        "Pudding! / Wobble! / Yum!",
+        "Sneak away!",
+        "Wobble!",
+        "Yum!"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/en/dialogue_filled_20261018/backlog_comic_20261015_06.png",
+      "sha256": "bd3744345d6b94c3a874fd324d9f2f80ce896d17aafb732f8c13818e4caa2340",
+      "derivedFromSha256": "69a4bf222516247c5febb7b36e04f3b04e964a994854f1aba0af04073aa6a71f",
+      "sourceCollection": "dialogue_filled_20261018",
+      "sourceSha256": "ba5eedd9009e106acc03bf9e8212b8d78d11752c569dc767408ff52415ab88e5",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 1024,
+      "height": 1536,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "X",
+      "locale": "en",
+      "collection": "vertical_comic_20261018",
+      "path": "x/en/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_07_vertical.png",
+      "gameStartText": "START GAME",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "auditorium_curtain_call",
+      "title": "Auditorium Curtain Call",
+      "dialogueWords": [
+        "Zombies!",
+        "Encore!",
+        "Ta-da!",
+        "Thank you!"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/en/dialogue_filled_20261018/backlog_comic_20261015_07.png",
+      "sha256": "df98169b809dd9a003066e075acfe45f42369ce345c4911dc699e4aac936f797",
+      "derivedFromSha256": "469dfb972d2f5a83e14f4f521663d2da978e34fd06f0772e955b3c754622b2d6",
+      "sourceCollection": "dialogue_filled_20261018",
+      "sourceSha256": "c75f787e8a02cd90358d21279fd3c87b7e7397cd45f1f6b9b8da32c5eb345dc4",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 1024,
+      "height": 1536,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "X",
+      "locale": "en",
+      "collection": "vertical_comic_20261018",
+      "path": "x/en/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_08_vertical.png",
+      "gameStartText": "START GAME",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "greenhouse_sprinkler",
+      "title": "Greenhouse Sprinkler Spin",
+      "dialogueWords": [
+        "Zombies! / Sprinkle!",
+        "Whoa!",
+        "Too wet!",
+        "Great job!"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/en/dialogue_filled_20261018/backlog_comic_20261015_08.png",
+      "sha256": "836ad5c2fc86194d6f08a69a9678eb1bfa2d760c4112fcf188288b4d574dc7cb",
+      "derivedFromSha256": "416ca2e71169600c3775878b0f04093d7f62fe608bf7d60156874b74359480b0",
+      "sourceCollection": "dialogue_filled_20261018",
+      "sourceSha256": "0f20cf141b5719c1de41a1fb3c16357c38663bac188356712aab25e3e2eb9ad5",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 887,
+      "height": 1774,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "X",
+      "locale": "en",
+      "collection": "vertical_comic_20261018",
+      "path": "x/en/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_09_vertical.png",
+      "gameStartText": "START GAME",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "gym_mat_maze",
+      "title": "Gym Mat Maze",
+      "dialogueWords": [
+        "Course set! / Mat maze!",
+        "Go, go!",
+        "This way!",
+        "We did it!"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/en/dialogue_filled_20261018/backlog_comic_20261015_09.png",
+      "sha256": "ae084cb2f5e338d4696ec5101a48dfa51c54fafb35b96daa90faed13f98ae86d",
+      "derivedFromSha256": "272c9e4f469632cc215a6807d1b06455d0790865e693df8ed0d2ff788415f062",
+      "sourceCollection": "dialogue_filled_20261018",
+      "sourceSha256": "bfeae7b826de5591e2e3e40d2c134fa146cc897fdb57bc4647fc1393aa394ad1",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 1024,
+      "height": 1536,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "X",
+      "locale": "en",
+      "collection": "vertical_comic_20261018",
+      "path": "x/en/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_10_vertical.png",
+      "gameStartText": "START GAME",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "planetarium_star_projector",
+      "title": "Planetarium Starry Distraction",
+      "dialogueWords": [
+        "Stars!",
+        "Whoa!",
+        "Stars!",
+        "Amazing!"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/en/dialogue_filled_20261018/backlog_comic_20261015_10.png",
+      "sha256": "bf00e4612c1979b1f3f74f23a2a8b7f2869746ae874eda7f4dfb17efeeb54759",
+      "derivedFromSha256": "6daf3c705b2bca66d28a8ccd09af1a68dc20090b8a09819db40a648ce1c5fa46",
+      "sourceCollection": "dialogue_filled_20261018",
+      "sourceSha256": "044f8cc2fb89e9f3d629025be858daeec07ecd82eec5068ff5e1fdfb28bf82a1",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 1024,
+      "height": 1536,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "Facebook",
+      "locale": "en",
+      "collection": "vertical_comic_20261018",
+      "path": "facebook/en/vertical_comic_20261018/zombie_catch_comic_words_20261015_01_vertical.png",
+      "gameStartText": "START GAME",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "desk_trap",
+      "dialogueWords": [
+        "CLASS!",
+        "HIDE!",
+        "THUMP!",
+        "ESCAPE!"
+      ],
+      "sourceCollection": "zombie_catch_comic_words_20261015",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/zombie_catch_comic_words_20261015/01.png",
+      "sha256": "8ec20b1a1d98aa84bb24439fe3f09c4e011d680461e36e2520a426bd47601043",
+      "sourceSha256": "fa883ba2b50c5b69b9151e8c61a6094723db49ad323479f0c3bb99a056fb8086",
+      "derivedFromSha256": "fa883ba2b50c5b69b9151e8c61a6094723db49ad323479f0c3bb99a056fb8086",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 1024,
+      "height": 1536,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "Facebook",
+      "locale": "en",
+      "collection": "vertical_comic_20261018",
+      "path": "facebook/en/vertical_comic_20261018/zombie_catch_comic_words_20261015_02_vertical.png",
+      "gameStartText": "START GAME",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "locker_maze",
+      "dialogueWords": [
+        "LOCKERS!",
+        "BLOCKED!",
+        "HIDE!",
+        "FOUND!"
+      ],
+      "sourceCollection": "zombie_catch_comic_words_20261015",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/zombie_catch_comic_words_20261015/02.png",
+      "sha256": "11699173fa635ae88d2b99b943c6b54357a07f809f12c7d702c8411ab5bb1f32",
+      "sourceSha256": "c3af82b77bd87b8daf54fa83c8842c41b5aee95205d36e52f77cefd3e31c2289",
+      "derivedFromSha256": "c3af82b77bd87b8daf54fa83c8842c41b5aee95205d36e52f77cefd3e31c2289",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 1024,
+      "height": 1536,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "Facebook",
+      "locale": "en",
+      "collection": "vertical_comic_20261018",
+      "path": "facebook/en/vertical_comic_20261018/zombie_catch_comic_words_20261015_03_vertical.png",
+      "gameStartText": "START GAME",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "cafeteria_tray",
+      "dialogueWords": [
+        "LUNCH!",
+        "TRAY!",
+        "WHOA!",
+        "SPLASH!"
+      ],
+      "sourceCollection": "zombie_catch_comic_words_20261015",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/zombie_catch_comic_words_20261015/03.png",
+      "sha256": "99c935abaed43fe7ac50138524ac9841bc61adf40e6533ef77e3671102b927b3",
+      "sourceSha256": "0201feaf1f4f1a7c73c990c8a2b924ee9dafdd896615a707cfc9e3fdda322937",
+      "derivedFromSha256": "0201feaf1f4f1a7c73c990c8a2b924ee9dafdd896615a707cfc9e3fdda322937",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 1024,
+      "height": 1536,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "Facebook",
+      "locale": "en",
+      "collection": "vertical_comic_20261018",
+      "path": "facebook/en/vertical_comic_20261018/zombie_catch_comic_words_20261015_04_vertical.png",
+      "gameStartText": "START GAME",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "gym_ball",
+      "dialogueWords": [
+        "GYM!",
+        "BALL!",
+        "ROLL!",
+        "SUCCESS!"
+      ],
+      "sourceCollection": "zombie_catch_comic_words_20261015",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/zombie_catch_comic_words_20261015/04.png",
+      "sha256": "49cda837fb4feca568bdb4fb3496d5e80dd9aa0ae6b0f5f05dad6de6772b6612",
+      "sourceSha256": "64d8d919a49743f7279890a1a6c80d63b03dab97f5fc8fc4d07fc5eda40980cb",
+      "derivedFromSha256": "64d8d919a49743f7279890a1a6c80d63b03dab97f5fc8fc4d07fc5eda40980cb",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 1024,
+      "height": 1536,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "Facebook",
+      "locale": "en",
+      "collection": "vertical_comic_20261018",
+      "path": "facebook/en/vertical_comic_20261018/zombie_catch_comic_words_20261015_05_vertical.png",
+      "gameStartText": "START GAME",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "library_cart",
+      "dialogueWords": [
+        "LIBRARY!",
+        "SHH!",
+        "CART!",
+        "CRASH!"
+      ],
+      "sourceCollection": "zombie_catch_comic_words_20261015",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/zombie_catch_comic_words_20261015/05.png",
+      "sha256": "f9df65b1180701d2ae29657fb0bb0789a63c5491a6d49f00d5314826b1004fbd",
+      "sourceSha256": "cf7a07075dbd536af88ea153509abb238975ab227ad7c651715bf9e8e4d2b681",
+      "derivedFromSha256": "cf7a07075dbd536af88ea153509abb238975ab227ad7c651715bf9e8e4d2b681",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 1024,
+      "height": 1536,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "Facebook",
+      "locale": "en",
+      "collection": "vertical_comic_20261018",
+      "path": "facebook/en/vertical_comic_20261018/backlog_comic_20261015_01_vertical.png",
+      "gameStartText": "START GAME",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "globe_cart_dodgeballs",
+      "title": "Globe Cart Dodgeball Trap",
+      "dialogueWords": [
+        "Huh? / Round and round! / Gotcha!",
+        "Ball storm!",
+        "Here we go!",
+        "Mission complete!"
+      ],
+      "sourceCollection": "backlog_comic_20261015",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/backlog_comic_20261015/01.png",
+      "sha256": "8fe81fa90a2776411a72bd0f826831e2aca5657534d7860efc0e0ce08d9824b4",
+      "sourceSha256": "dedc5b2972f6b3e573697f335f6b2a1f6ce907da8051a0f622645aacd7d938bb",
+      "derivedFromSha256": "dedc5b2972f6b3e573697f335f6b2a1f6ce907da8051a0f622645aacd7d938bb",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 1024,
+      "height": 1536,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "Facebook",
+      "locale": "en",
+      "collection": "vertical_comic_20261018",
+      "path": "facebook/en/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_02_vertical.png",
+      "gameStartText": "START GAME",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "science_magnet_lockers",
+      "title": "Magnet and Locker Mix-up",
+      "dialogueWords": [
+        "Zombies! / Magnet on!",
+        "Click!",
+        "Success!",
+        "Good job!"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/dialogue_filled_20261018/backlog_comic_20261015_02.png",
+      "sha256": "882806294becd0bdaacabc5fcb33b08da05be2721dc80de13537c0cf4becce8c",
+      "derivedFromSha256": "3947f513e13c604c2aef8f16d01e454b7f0bf4f358688cf83d83050f6ba986ae",
+      "sourceCollection": "dialogue_filled_20261018",
+      "sourceSha256": "6ece693959edb94fe3e219829f58547941ba720174f30a2254e7906641dbd967",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 1024,
+      "height": 1536,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "Facebook",
+      "locale": "en",
+      "collection": "vertical_comic_20261018",
+      "path": "facebook/en/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_03_vertical.png",
+      "gameStartText": "START GAME",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "library_cart_books",
+      "title": "Library Cart Lure",
+      "dialogueWords": [
+        "Shh!",
+        "Cart away!",
+        "Gotcha!",
+        "Library card!"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/dialogue_filled_20261018/backlog_comic_20261015_03.png",
+      "sha256": "544bd21c8f7175df7d041ef1e15772324f65989f767b522a2ab1738b8121b4a4",
+      "derivedFromSha256": "65d0c0f35bc957aaed39c262967e7805114f53a6ada8bf2e0d6086f0cd073218",
+      "sourceCollection": "dialogue_filled_20261018",
+      "sourceSha256": "733db7cbd04a8d1eacc8fc8c63bbe0500251ee8058264aa0883109f65c499129",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 1024,
+      "height": 1536,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "Facebook",
+      "locale": "en",
+      "collection": "vertical_comic_20261018",
+      "path": "facebook/en/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_04_vertical.png",
+      "gameStartText": "START GAME",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "music_room_rhythm",
+      "title": "Music Room Drumroll",
+      "dialogueWords": [
+        "Shh! / Drumroll! / Encore?",
+        "Drumroll!",
+        "Boom!",
+        "Encore?"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/dialogue_filled_20261018/backlog_comic_20261015_04.png",
+      "sha256": "b5203127aa4d5806df0d9416b5f5e5650d0c33f419c95541eef0d4e92e1bccb3",
+      "derivedFromSha256": "f3f856b6f873b9c432ede569a8e3568372b9c336a04c346d9c2c02b45cd638a4",
+      "sourceCollection": "dialogue_filled_20261018",
+      "sourceSha256": "5647227caf8e480e9a407c72f8222315648c82ffe784fc905ab5af3c7a6a99fb",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 1024,
+      "height": 1536,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "Facebook",
+      "locale": "en",
+      "collection": "vertical_comic_20261018",
+      "path": "facebook/en/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_05_vertical.png",
+      "gameStartText": "START GAME",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "art_room_paper_roll",
+      "title": "Art Room Paper Wrap",
+      "dialogueWords": [
+        "Uh-oh! / Roll, roll!",
+        "Ta-da!",
+        "Paper wrap!",
+        "Ta-da!"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/dialogue_filled_20261018/backlog_comic_20261015_05.png",
+      "sha256": "733bfb1c42b811b46a0c706262580dda4cced1b41ce9ce70c17386c558f79d87",
+      "derivedFromSha256": "7c4288890e1e68a8aec206782ea00c0ed750725a006d03e591d7cddb8f845fe9",
+      "sourceCollection": "dialogue_filled_20261018",
+      "sourceSha256": "ced9177fb291b5eebd986be0a6d804f17cef77fc8e2592be9bcc040e86b886f4",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 1024,
+      "height": 1536,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "Facebook",
+      "locale": "en",
+      "collection": "vertical_comic_20261018",
+      "path": "facebook/en/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_06_vertical.png",
+      "gameStartText": "START GAME",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "cafeteria_gelatin_trays",
+      "title": "Cafeteria Wobble and Trays",
+      "dialogueWords": [
+        "Pudding! / Wobble! / Yum!",
+        "Sneak away!",
+        "Wobble!",
+        "Yum!"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/dialogue_filled_20261018/backlog_comic_20261015_06.png",
+      "sha256": "bd3744345d6b94c3a874fd324d9f2f80ce896d17aafb732f8c13818e4caa2340",
+      "derivedFromSha256": "69a4bf222516247c5febb7b36e04f3b04e964a994854f1aba0af04073aa6a71f",
+      "sourceCollection": "dialogue_filled_20261018",
+      "sourceSha256": "ba5eedd9009e106acc03bf9e8212b8d78d11752c569dc767408ff52415ab88e5",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 1024,
+      "height": 1536,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "Facebook",
+      "locale": "en",
+      "collection": "vertical_comic_20261018",
+      "path": "facebook/en/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_07_vertical.png",
+      "gameStartText": "START GAME",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "auditorium_curtain_call",
+      "title": "Auditorium Curtain Call",
+      "dialogueWords": [
+        "Zombies!",
+        "Encore!",
+        "Ta-da!",
+        "Thank you!"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/dialogue_filled_20261018/backlog_comic_20261015_07.png",
+      "sha256": "df98169b809dd9a003066e075acfe45f42369ce345c4911dc699e4aac936f797",
+      "derivedFromSha256": "469dfb972d2f5a83e14f4f521663d2da978e34fd06f0772e955b3c754622b2d6",
+      "sourceCollection": "dialogue_filled_20261018",
+      "sourceSha256": "c75f787e8a02cd90358d21279fd3c87b7e7397cd45f1f6b9b8da32c5eb345dc4",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 1024,
+      "height": 1536,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "Facebook",
+      "locale": "en",
+      "collection": "vertical_comic_20261018",
+      "path": "facebook/en/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_08_vertical.png",
+      "gameStartText": "START GAME",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "greenhouse_sprinkler",
+      "title": "Greenhouse Sprinkler Spin",
+      "dialogueWords": [
+        "Zombies! / Sprinkle!",
+        "Whoa!",
+        "Too wet!",
+        "Great job!"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/dialogue_filled_20261018/backlog_comic_20261015_08.png",
+      "sha256": "836ad5c2fc86194d6f08a69a9678eb1bfa2d760c4112fcf188288b4d574dc7cb",
+      "derivedFromSha256": "416ca2e71169600c3775878b0f04093d7f62fe608bf7d60156874b74359480b0",
+      "sourceCollection": "dialogue_filled_20261018",
+      "sourceSha256": "0f20cf141b5719c1de41a1fb3c16357c38663bac188356712aab25e3e2eb9ad5",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 887,
+      "height": 1774,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "Facebook",
+      "locale": "en",
+      "collection": "vertical_comic_20261018",
+      "path": "facebook/en/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_09_vertical.png",
+      "gameStartText": "START GAME",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "gym_mat_maze",
+      "title": "Gym Mat Maze",
+      "dialogueWords": [
+        "Course set! / Mat maze!",
+        "Go, go!",
+        "This way!",
+        "We did it!"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/dialogue_filled_20261018/backlog_comic_20261015_09.png",
+      "sha256": "ae084cb2f5e338d4696ec5101a48dfa51c54fafb35b96daa90faed13f98ae86d",
+      "derivedFromSha256": "272c9e4f469632cc215a6807d1b06455d0790865e693df8ed0d2ff788415f062",
+      "sourceCollection": "dialogue_filled_20261018",
+      "sourceSha256": "bfeae7b826de5591e2e3e40d2c134fa146cc897fdb57bc4647fc1393aa394ad1",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 1024,
+      "height": 1536,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "Facebook",
+      "locale": "en",
+      "collection": "vertical_comic_20261018",
+      "path": "facebook/en/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_10_vertical.png",
+      "gameStartText": "START GAME",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "planetarium_star_projector",
+      "title": "Planetarium Starry Distraction",
+      "dialogueWords": [
+        "Stars!",
+        "Whoa!",
+        "Stars!",
+        "Amazing!"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/dialogue_filled_20261018/backlog_comic_20261015_10.png",
+      "sha256": "bf00e4612c1979b1f3f74f23a2a8b7f2869746ae874eda7f4dfb17efeeb54759",
+      "derivedFromSha256": "6daf3c705b2bca66d28a8ccd09af1a68dc20090b8a09819db40a648ce1c5fa46",
+      "sourceCollection": "dialogue_filled_20261018",
+      "sourceSha256": "044f8cc2fb89e9f3d629025be858daeec07ecd82eec5068ff5e1fdfb28bf82a1",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 1024,
+      "height": 1536,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "X",
+      "locale": "ja",
+      "collection": "vertical_comic_20261018",
+      "path": "x/ja/vertical_comic_20261018/zombie_catch_comic_words_20261014_01.png",
+      "gameStartText": "ゲームスタート",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "desk_trap",
+      "dialogueWords": [
+        "机！",
+        "ゾンビ！",
+        "ヒュッ！",
+        "脱出！"
+      ],
+      "sourceCollection": "zombie_catch_comic_words_20261014",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ja/zombie_catch_comic_words_20261014/01.png",
+      "sha256": "302e7232744415da51acad31a4674d542728b05a3aa28492b0c2153ab6f7197c",
+      "sourceSha256": "3c6d2e315547c1551b7358417d37bd3b56318561b7acb42b0408cdcce39c0428",
+      "derivedFromSha256": "3c6d2e315547c1551b7358417d37bd3b56318561b7acb42b0408cdcce39c0428",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 724,
+      "height": 2172,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "X",
+      "locale": "ja",
+      "collection": "vertical_comic_20261018",
+      "path": "x/ja/vertical_comic_20261018/zombie_catch_comic_words_20261014_02.png",
+      "gameStartText": "ゲームスタート",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "locker_maze",
+      "dialogueWords": [
+        "ロッカー！",
+        "通れない！",
+        "隠れろ！",
+        "見つかった！"
+      ],
+      "sourceCollection": "zombie_catch_comic_words_20261014",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ja/zombie_catch_comic_words_20261014/02.png",
+      "sha256": "599cc083c27ad48c5f3d16cdf81be861e18c423b727fc66e2598adfe95fa466d",
+      "sourceSha256": "8bc3420c4d22c8d2d63b72d81ce9919d3d024c9c466fdb4ed6ee78525218c34c",
+      "derivedFromSha256": "8bc3420c4d22c8d2d63b72d81ce9919d3d024c9c466fdb4ed6ee78525218c34c",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 724,
+      "height": 2172,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "X",
+      "locale": "ja",
+      "collection": "vertical_comic_20261018",
+      "path": "x/ja/vertical_comic_20261018/zombie_catch_comic_words_20261014_03.png",
+      "gameStartText": "ゲームスタート",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "cafeteria_tray",
+      "dialogueWords": [
+        "ゾンビ！",
+        "食堂！",
+        "わあ！",
+        "きゃー！"
+      ],
+      "sourceCollection": "zombie_catch_comic_words_20261014",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ja/zombie_catch_comic_words_20261014/03.png",
+      "sha256": "10090f8fe3bfb44ae4c72cc0cc6cdfe99c27eb7c54c29b905ae720a8d8df72f3",
+      "sourceSha256": "d87427742bae924f169849313fef7068aa99f90d0b4fcfc03e1d05bf373ff209",
+      "derivedFromSha256": "d87427742bae924f169849313fef7068aa99f90d0b4fcfc03e1d05bf373ff209",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 724,
+      "height": 2172,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "X",
+      "locale": "ja",
+      "collection": "vertical_comic_20261018",
+      "path": "x/ja/vertical_comic_20261018/zombie_catch_comic_words_20261014_04.png",
+      "gameStartText": "ゲームスタート",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "gym_ball",
+      "dialogueWords": [
+        "体育館！",
+        "ボール！",
+        "ゴロゴロ！",
+        "ゴール！"
+      ],
+      "sourceCollection": "zombie_catch_comic_words_20261014",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ja/zombie_catch_comic_words_20261014/04.png",
+      "sha256": "49371483f9b6b3f07efe8716281147651cd5e6d246bb441f795cffbfee3dc5b1",
+      "sourceSha256": "ba0e8c435edb8b0375d72219f489fcd26885b79b791c4f8fdb77312ce1e6c29c",
+      "derivedFromSha256": "ba0e8c435edb8b0375d72219f489fcd26885b79b791c4f8fdb77312ce1e6c29c",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 724,
+      "height": 2172,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "X",
+      "locale": "ja",
+      "collection": "vertical_comic_20261018",
+      "path": "x/ja/vertical_comic_20261018/zombie_catch_comic_words_20261014_05.png",
+      "gameStartText": "ゲームスタート",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "library_cart",
+      "dialogueWords": [
+        "図書室！",
+        "しーっ！",
+        "カート！",
+        "ガラガラ！"
+      ],
+      "sourceCollection": "zombie_catch_comic_words_20261014",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ja/zombie_catch_comic_words_20261014/05.png",
+      "sha256": "315cd9ad0f1c642055686009fbed1130786ca832e18e0d6e038f0797c5500443",
+      "sourceSha256": "e9bcaf325ef2c34dd3c91d846b768d07aa217b7fc24954a6f35478ecfd6e17fc",
+      "derivedFromSha256": "e9bcaf325ef2c34dd3c91d846b768d07aa217b7fc24954a6f35478ecfd6e17fc",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 724,
+      "height": 2172,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "X",
+      "locale": "ja",
+      "collection": "vertical_comic_20261018",
+      "path": "x/ja/vertical_comic_20261018/backlog_comic_20261015_01.png",
+      "gameStartText": "ゲームスタート",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "globe_cart_dodgeballs",
+      "title": "地球儀カートとドッジボール",
+      "dialogueWords": [
+        "あれ？",
+        "体育館へ！",
+        "いっけー！",
+        "やった！"
+      ],
+      "sourceCollection": "backlog_comic_20261015",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ja/backlog_comic_20261015/01.png",
+      "sha256": "99d26d1af0d914c0680daaaa87707db6ea99009b23eff1889ad93e0834d803c0",
+      "sourceSha256": "708fab950e3f2e1ca7b4dc7eb2f8cb350aace963eb5145f571862667abffd300",
+      "derivedFromSha256": "708fab950e3f2e1ca7b4dc7eb2f8cb350aace963eb5145f571862667abffd300",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 724,
+      "height": 2172,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "Facebook",
+      "locale": "ja",
+      "collection": "vertical_comic_20261018",
+      "path": "facebook/ja/vertical_comic_20261018/backlog_comic_20261015_01.png",
+      "gameStartText": "ゲームスタート",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "globe_cart_dodgeballs",
+      "title": "地球儀カートとドッジボール",
+      "dialogueWords": [
+        "あれ？",
+        "体育館へ！",
+        "いっけー！",
+        "やった！"
+      ],
+      "sourceCollection": "backlog_comic_20261015",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/backlog_comic_20261015/01.png",
+      "sha256": "99d26d1af0d914c0680daaaa87707db6ea99009b23eff1889ad93e0834d803c0",
+      "sourceSha256": "708fab950e3f2e1ca7b4dc7eb2f8cb350aace963eb5145f571862667abffd300",
+      "derivedFromSha256": "708fab950e3f2e1ca7b4dc7eb2f8cb350aace963eb5145f571862667abffd300",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 724,
+      "height": 2172,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "X",
+      "locale": "ja",
+      "collection": "vertical_comic_20261018",
+      "path": "x/ja/vertical_comic_20261018/backlog_comic_20261015_02.png",
+      "gameStartText": "ゲームスタート",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "science_magnet_lockers",
+      "title": "磁石とロッカーの大騒ぎ",
+      "dialogueWords": [
+        "ゾンビだ！",
+        "磁石オン！",
+        "ピタッ！",
+        "大成功！"
+      ],
+      "sourceCollection": "backlog_comic_20261015",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ja/backlog_comic_20261015/02.png",
+      "sha256": "b858ad9880b6d504b555b5a279a0b926ed632e242a2371da8f7abd5033256cb3",
+      "sourceSha256": "9ecca86f15aba0c60e01df0a1b78e10609ddf4279738458376cb010e56b2603f",
+      "derivedFromSha256": "9ecca86f15aba0c60e01df0a1b78e10609ddf4279738458376cb010e56b2603f",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 724,
+      "height": 2172,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "X",
+      "locale": "ja",
+      "collection": "vertical_comic_20261018",
+      "path": "x/ja/vertical_comic_20261018/backlog_comic_20261015_03.png",
+      "gameStartText": "ゲームスタート",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "library_cart_books",
+      "title": "図書カートの作戦",
+      "dialogueWords": [
+        "しーっ！",
+        "カート発進！",
+        "本の雪崩！",
+        "貸出完了！"
+      ],
+      "sourceCollection": "backlog_comic_20261015",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ja/backlog_comic_20261015/03.png",
+      "sha256": "05e4dcb97a502ac2aa9cb846f0c42df00881b6b91a612261ddc7580673a3226d",
+      "sourceSha256": "7ba395e482aadfc0ee7299d1543ea7928b54321b46847fef4e7a252efc384a6c",
+      "derivedFromSha256": "7ba395e482aadfc0ee7299d1543ea7928b54321b46847fef4e7a252efc384a6c",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 724,
+      "height": 2172,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "X",
+      "locale": "ja",
+      "collection": "vertical_comic_20261018",
+      "path": "x/ja/vertical_comic_20261018/backlog_comic_20261015_04.png",
+      "gameStartText": "ゲームスタート",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "music_room_rhythm",
+      "title": "音楽室のドラムロール",
+      "dialogueWords": [
+        "しーっ！",
+        "ドンドン！",
+        "ドーン！",
+        "アンコール？"
+      ],
+      "sourceCollection": "backlog_comic_20261015",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ja/backlog_comic_20261015/04.png",
+      "sha256": "c536474a0ef41758211862c38e05434c2441b6085e491c079e826def1e53bd05",
+      "sourceSha256": "9a8647341431b2caa2fea23838467e45a9dbe80e77992ac2e5eaa820e99e6c11",
+      "derivedFromSha256": "9a8647341431b2caa2fea23838467e45a9dbe80e77992ac2e5eaa820e99e6c11",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 724,
+      "height": 2172,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "X",
+      "locale": "ja",
+      "collection": "vertical_comic_20261018",
+      "path": "x/ja/vertical_comic_20261018/backlog_comic_20261015_05.png",
+      "gameStartText": "ゲームスタート",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "art_room_paper_roll",
+      "title": "美術室の紙ぐるぐる作戦",
+      "dialogueWords": [
+        "あれ？",
+        "コロコロ！",
+        "紙ぐるぐる！",
+        "完成！"
+      ],
+      "sourceCollection": "backlog_comic_20261015",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ja/backlog_comic_20261015/05.png",
+      "sha256": "78ad20618ce94be29984f4464db5da328847f1cab06dd4975db1f212d20acb4d",
+      "sourceSha256": "e55ac706760321d5c46207cc2f9b3ab6ab8c6750d4438c125fc3ae8d37364274",
+      "derivedFromSha256": "e55ac706760321d5c46207cc2f9b3ab6ab8c6750d4438c125fc3ae8d37364274",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 724,
+      "height": 2172,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "X",
+      "locale": "ja",
+      "collection": "vertical_comic_20261018",
+      "path": "x/ja/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_06.png",
+      "gameStartText": "ゲームスタート",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "cafeteria_gelatin_trays",
+      "title": "食堂プリンとトレー騒動",
+      "dialogueWords": [
+        "プリンだ！",
+        "そーっと！",
+        "ぷるぷる！",
+        "召し上がれ！"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ja/dialogue_filled_20261018/backlog_comic_20261015_06.png",
+      "sha256": "dd3c9fa15b0ba6d5416d65e9a7a1919a871937da720efd958685da8a80e3495c",
+      "derivedFromSha256": "e631826a95fb8fd1dee5153ba5b17bead5e00bd91f8c3bf6dabbaaa347f1d086",
+      "sourceCollection": "dialogue_filled_20261018",
+      "sourceSha256": "555f084bc70b267c32555cd161f3671d28d99ab6d8c31a890a0a15d53b350a55",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 724,
+      "height": 2172,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "Facebook",
+      "locale": "ja",
+      "collection": "vertical_comic_20261018",
+      "path": "facebook/ja/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_06.png",
+      "gameStartText": "ゲームスタート",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "cafeteria_gelatin_trays",
+      "title": "食堂プリンとトレー騒動",
+      "dialogueWords": [
+        "プリンだ！",
+        "そーっと！",
+        "ぷるぷる！",
+        "召し上がれ！"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/dialogue_filled_20261018/backlog_comic_20261015_06.png",
+      "sha256": "dd3c9fa15b0ba6d5416d65e9a7a1919a871937da720efd958685da8a80e3495c",
+      "derivedFromSha256": "e631826a95fb8fd1dee5153ba5b17bead5e00bd91f8c3bf6dabbaaa347f1d086",
+      "sourceCollection": "dialogue_filled_20261018",
+      "sourceSha256": "555f084bc70b267c32555cd161f3671d28d99ab6d8c31a890a0a15d53b350a55",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 724,
+      "height": 2172,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "X",
+      "locale": "ja",
+      "collection": "vertical_comic_20261018",
+      "path": "x/ja/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_07.png",
+      "gameStartText": "ゲームスタート",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "auditorium_curtain_call",
+      "title": "講堂のカーテンコール作戦",
+      "dialogueWords": [
+        "ゾンビだ！",
+        "ライトオン！",
+        "幕を下ろして！",
+        "ご清聴ありがとう！"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ja/dialogue_filled_20261018/backlog_comic_20261015_07.png",
+      "sha256": "b3643f554b881b77fb30a1f11c556604a7ae545d8a86066ae5ad14e997d3b403",
+      "derivedFromSha256": "c48c4962238c019758a8c3dc40ca92ba8a9006bbd3946f11eaf1e52c02f5c5ee",
+      "sourceCollection": "dialogue_filled_20261018",
+      "sourceSha256": "b9c2d4bb6067cc81d5398833a7bfd65f925dcb8779006f914c4d44f204a6ac30",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 724,
+      "height": 2172,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "Facebook",
+      "locale": "ja",
+      "collection": "vertical_comic_20261018",
+      "path": "facebook/ja/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_07.png",
+      "gameStartText": "ゲームスタート",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "auditorium_curtain_call",
+      "title": "講堂のカーテンコール作戦",
+      "dialogueWords": [
+        "ゾンビだ！",
+        "ライトオン！",
+        "幕を下ろして！",
+        "ご清聴ありがとう！"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/dialogue_filled_20261018/backlog_comic_20261015_07.png",
+      "sha256": "b3643f554b881b77fb30a1f11c556604a7ae545d8a86066ae5ad14e997d3b403",
+      "derivedFromSha256": "c48c4962238c019758a8c3dc40ca92ba8a9006bbd3946f11eaf1e52c02f5c5ee",
+      "sourceCollection": "dialogue_filled_20261018",
+      "sourceSha256": "b9c2d4bb6067cc81d5398833a7bfd65f925dcb8779006f914c4d44f204a6ac30",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 724,
+      "height": 2172,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "X",
+      "locale": "ja",
+      "collection": "vertical_comic_20261018",
+      "path": "x/ja/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_08.png",
+      "gameStartText": "ゲームスタート",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "greenhouse_sprinkler",
+      "title": "温室スプリンクラー作戦",
+      "dialogueWords": [
+        "ゾンビだ！",
+        "水まき開始！",
+        "すべった！",
+        "よく育ってね！"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ja/dialogue_filled_20261018/backlog_comic_20261015_08.png",
+      "sha256": "1fd8a31ace910dc74efbeb78b05e56cf84aec6d54dc2b4253c41e803ce3827ae",
+      "derivedFromSha256": "db3e7ebe59b1d0062839ef4b69cbb17ae6c7e26214061de7893834484c6e0fce",
+      "sourceCollection": "dialogue_filled_20261018",
+      "sourceSha256": "5a921712d74e0ca4f298871133245c4dca99493f49259fbbf2a61f5f0029833c",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 724,
+      "height": 2172,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "Facebook",
+      "locale": "ja",
+      "collection": "vertical_comic_20261018",
+      "path": "facebook/ja/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_08.png",
+      "gameStartText": "ゲームスタート",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "greenhouse_sprinkler",
+      "title": "温室スプリンクラー作戦",
+      "dialogueWords": [
+        "ゾンビだ！",
+        "水まき開始！",
+        "すべった！",
+        "よく育ってね！"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/dialogue_filled_20261018/backlog_comic_20261015_08.png",
+      "sha256": "1fd8a31ace910dc74efbeb78b05e56cf84aec6d54dc2b4253c41e803ce3827ae",
+      "derivedFromSha256": "db3e7ebe59b1d0062839ef4b69cbb17ae6c7e26214061de7893834484c6e0fce",
+      "sourceCollection": "dialogue_filled_20261018",
+      "sourceSha256": "5a921712d74e0ca4f298871133245c4dca99493f49259fbbf2a61f5f0029833c",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 724,
+      "height": 2172,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "X",
+      "locale": "ja",
+      "collection": "vertical_comic_20261018",
+      "path": "x/ja/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_09.png",
+      "gameStartText": "ゲームスタート",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "gym_mat_maze",
+      "title": "体育館マット迷路",
+      "dialogueWords": [
+        "コース完成！",
+        "ジャンプ！",
+        "こっちだよ！",
+        "ゴール！"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ja/dialogue_filled_20261018/backlog_comic_20261015_09.png",
+      "sha256": "50a8f7f29df4c9ae0afe2469441be879588a9342442890b6de0e41212e0bb56c",
+      "derivedFromSha256": "d8d7515b7898c2daddf0de2ac91c11803712e6bda6049602fbd5ead605b1c1cc",
+      "sourceCollection": "dialogue_filled_20261018",
+      "sourceSha256": "1abe97c4fead709a5b92aa5b1b07a0437f0dd990415c965e5bbeff382c3bb8f3",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 724,
+      "height": 2172,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "Facebook",
+      "locale": "ja",
+      "collection": "vertical_comic_20261018",
+      "path": "facebook/ja/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_09.png",
+      "gameStartText": "ゲームスタート",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "gym_mat_maze",
+      "title": "体育館マット迷路",
+      "dialogueWords": [
+        "コース完成！",
+        "ジャンプ！",
+        "こっちだよ！",
+        "ゴール！"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/dialogue_filled_20261018/backlog_comic_20261015_09.png",
+      "sha256": "50a8f7f29df4c9ae0afe2469441be879588a9342442890b6de0e41212e0bb56c",
+      "derivedFromSha256": "d8d7515b7898c2daddf0de2ac91c11803712e6bda6049602fbd5ead605b1c1cc",
+      "sourceCollection": "dialogue_filled_20261018",
+      "sourceSha256": "1abe97c4fead709a5b92aa5b1b07a0437f0dd990415c965e5bbeff382c3bb8f3",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 724,
+      "height": 2172,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "X",
+      "locale": "ja",
+      "collection": "vertical_comic_20261018",
+      "path": "x/ja/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_10.png",
+      "gameStartText": "ゲームスタート",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "planetarium_star_projector",
+      "title": "プラネタリウム星空大作戦",
+      "dialogueWords": [
+        "星だ！",
+        "大きな月！",
+        "ぐるぐる！",
+        "宇宙制圧！"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ja/dialogue_filled_20261018/backlog_comic_20261015_10.png",
+      "sha256": "80d902709afb351af478f6644e924e03c9a270bb25dc7eed08c3ae59703aa986",
+      "derivedFromSha256": "558eb8588fba15ac588808bb57b5ec560b200d473833a7c7e674185214403542",
+      "sourceCollection": "dialogue_filled_20261018",
+      "sourceSha256": "95dcc37320669513025d7074b1c8dc5580893f0dbf1e40c2982fe87e186b36d9",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 724,
+      "height": 2172,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "Facebook",
+      "locale": "ja",
+      "collection": "vertical_comic_20261018",
+      "path": "facebook/ja/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_10.png",
+      "gameStartText": "ゲームスタート",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "planetarium_star_projector",
+      "title": "プラネタリウム星空大作戦",
+      "dialogueWords": [
+        "星だ！",
+        "大きな月！",
+        "ぐるぐる！",
+        "宇宙制圧！"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/dialogue_filled_20261018/backlog_comic_20261015_10.png",
+      "sha256": "80d902709afb351af478f6644e924e03c9a270bb25dc7eed08c3ae59703aa986",
+      "derivedFromSha256": "558eb8588fba15ac588808bb57b5ec560b200d473833a7c7e674185214403542",
+      "sourceCollection": "dialogue_filled_20261018",
+      "sourceSha256": "95dcc37320669513025d7074b1c8dc5580893f0dbf1e40c2982fe87e186b36d9",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 724,
+      "height": 2172,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "Facebook",
+      "locale": "ja",
+      "collection": "vertical_comic_20261018",
+      "path": "facebook/ja/vertical_comic_20261018/zombie_catch_comic_words_20261015_01.png",
+      "gameStartText": "ゲームスタート",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "desk_trap",
+      "dialogueWords": [
+        "教室！",
+        "危ない！",
+        "ドン！",
+        "脱出！"
+      ],
+      "sourceCollection": "zombie_catch_comic_words_20261015",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/zombie_catch_comic_words_20261015/01.png",
+      "sha256": "ed2a58f5cd9a15cbbd4eef4d0f1eff05a55aeacda181d6b968f52cf144b5e942",
+      "sourceSha256": "a132c458f424a4d10f85580498b8a8d4213dbf5e761691f70a22c99802f24fdf",
+      "derivedFromSha256": "a132c458f424a4d10f85580498b8a8d4213dbf5e761691f70a22c99802f24fdf",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 724,
+      "height": 2172,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "Facebook",
+      "locale": "ja",
+      "collection": "vertical_comic_20261018",
+      "path": "facebook/ja/vertical_comic_20261018/zombie_catch_comic_words_20261015_02.png",
+      "gameStartText": "ゲームスタート",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "locker_maze",
+      "dialogueWords": [
+        "ロッカー！",
+        "ふさがれた！",
+        "隠れて！",
+        "見つけた！"
+      ],
+      "sourceCollection": "zombie_catch_comic_words_20261015",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/zombie_catch_comic_words_20261015/02.png",
+      "sha256": "7d6f6c5877b5645cf831eae7d6ce50fc9789639ee0032fae9901d177abb70273",
+      "sourceSha256": "a10404bb1b3750f27273ef60671154d91c755b0ec1e682754fa6c7d81649a3ae",
+      "derivedFromSha256": "a10404bb1b3750f27273ef60671154d91c755b0ec1e682754fa6c7d81649a3ae",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 724,
+      "height": 2172,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "Facebook",
+      "locale": "ja",
+      "collection": "vertical_comic_20261018",
+      "path": "facebook/ja/vertical_comic_20261018/zombie_catch_comic_words_20261015_03.png",
+      "gameStartText": "ゲームスタート",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "cafeteria_tray",
+      "dialogueWords": [
+        "食堂！",
+        "トレー！",
+        "うわっ！",
+        "大惨事！"
+      ],
+      "sourceCollection": "zombie_catch_comic_words_20261015",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/zombie_catch_comic_words_20261015/03.png",
+      "sha256": "3178e14cee712e97a34d7d43be64c7d6d1d844b750cdc2f84da912ab7623cf99",
+      "sourceSha256": "07b4eaeb9f65d5834edd81a90683dfbea6d87634c6adcad4a25b184fe4439aaf",
+      "derivedFromSha256": "07b4eaeb9f65d5834edd81a90683dfbea6d87634c6adcad4a25b184fe4439aaf",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 724,
+      "height": 2172,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "Facebook",
+      "locale": "ja",
+      "collection": "vertical_comic_20261018",
+      "path": "facebook/ja/vertical_comic_20261018/zombie_catch_comic_words_20261015_04.png",
+      "gameStartText": "ゲームスタート",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "gym_ball",
+      "dialogueWords": [
+        "体育館！",
+        "ボール！",
+        "ゴロゴロ！",
+        "大成功！"
+      ],
+      "sourceCollection": "zombie_catch_comic_words_20261015",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/zombie_catch_comic_words_20261015/04.png",
+      "sha256": "66cf64a8aebbf28beb7e6023b4bad41498fbbd4854d6d26756311e88818e1b5c",
+      "sourceSha256": "919f6a5db97d6b379d28df06ef96eb2a2217286c351397b15983b4b4d77c552b",
+      "derivedFromSha256": "919f6a5db97d6b379d28df06ef96eb2a2217286c351397b15983b4b4d77c552b",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 724,
+      "height": 2172,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "Facebook",
+      "locale": "ja",
+      "collection": "vertical_comic_20261018",
+      "path": "facebook/ja/vertical_comic_20261018/zombie_catch_comic_words_20261015_05.png",
+      "gameStartText": "ゲームスタート",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "library_cart",
+      "dialogueWords": [
+        "図書室！",
+        "静かに！",
+        "カート！",
+        "ガシャーン！"
+      ],
+      "sourceCollection": "zombie_catch_comic_words_20261015",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/zombie_catch_comic_words_20261015/05.png",
+      "sha256": "94714e3f4b0203cd3cfade490b2350c50245805e849eefd3009595f4c1186e70",
+      "sourceSha256": "f34b8427844d17ffbe0fc3e50702781b87cd966c6c8d8230a67c649ac9254026",
+      "derivedFromSha256": "f34b8427844d17ffbe0fc3e50702781b87cd966c6c8d8230a67c649ac9254026",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 724,
+      "height": 2172,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "Facebook",
+      "locale": "ja",
+      "collection": "vertical_comic_20261018",
+      "path": "facebook/ja/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_02.png",
+      "gameStartText": "ゲームスタート",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "science_magnet_lockers",
+      "title": "磁石とロッカーの大騒ぎ",
+      "dialogueWords": [
+        "ゾンビだ！",
+        "磁石オン！",
+        "ピタッ！",
+        "大成功！"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/dialogue_filled_20261018/backlog_comic_20261015_02.png",
+      "sha256": "9951c81ab40aadf4b81cb4d833a5ef7fba922c95fe7dae583d1d18e1f3f8ea33",
+      "derivedFromSha256": "9ecca86f15aba0c60e01df0a1b78e10609ddf4279738458376cb010e56b2603f",
+      "sourceCollection": "dialogue_filled_20261018",
+      "sourceSha256": "2af2c70fde23a5c107375bf01e1fd8a36e4c40d6a5a509d0358746a1700e026f",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 724,
+      "height": 2172,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "Facebook",
+      "locale": "ja",
+      "collection": "vertical_comic_20261018",
+      "path": "facebook/ja/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_03.png",
+      "gameStartText": "ゲームスタート",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "library_cart_books",
+      "title": "図書カートの作戦",
+      "dialogueWords": [
+        "しーっ！",
+        "カート発進！",
+        "本の雪崩！",
+        "貸出完了！"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/dialogue_filled_20261018/backlog_comic_20261015_03.png",
+      "sha256": "5dab323fcd6e6334759239903167cdfb0ab531a9d82231c3be2a155a8edbaddf",
+      "derivedFromSha256": "7ba395e482aadfc0ee7299d1543ea7928b54321b46847fef4e7a252efc384a6c",
+      "sourceCollection": "dialogue_filled_20261018",
+      "sourceSha256": "36bb4f13b97cb07c4df71aed3d376cee0809047fe3177245f55cae941f75706b",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 724,
+      "height": 2172,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "Facebook",
+      "locale": "ja",
+      "collection": "vertical_comic_20261018",
+      "path": "facebook/ja/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_04.png",
+      "gameStartText": "ゲームスタート",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "music_room_rhythm",
+      "title": "音楽室のドラムロール",
+      "dialogueWords": [
+        "しーっ！",
+        "リズムに乗って！",
+        "ドーン！",
+        "演奏終了！"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/dialogue_filled_20261018/backlog_comic_20261015_04.png",
+      "sha256": "0b0910f2a4af875747d2759bbfa5b8d3fd1957b15c97fefcf74891dc9d52b6b4",
+      "derivedFromSha256": "9a8647341431b2caa2fea23838467e45a9dbe80e77992ac2e5eaa820e99e6c11",
+      "sourceCollection": "dialogue_filled_20261018",
+      "sourceSha256": "55f0b215c39d16b16491ea6d36b95ce4131524796bb29f67d1027dac10dd126d",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 724,
+      "height": 2172,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "Facebook",
+      "locale": "ja",
+      "collection": "vertical_comic_20261018",
+      "path": "facebook/ja/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_05.png",
+      "gameStartText": "ゲームスタート",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "art_room_paper_roll",
+      "title": "美術室の紙ぐるぐる作戦",
+      "dialogueWords": [
+        "あれ？",
+        "ころころ！",
+        "ぐるぐる巻き！",
+        "作品完成！"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/dialogue_filled_20261018/backlog_comic_20261015_05.png",
+      "sha256": "056d603a70bffb549a096fc53e2c32fb9c6f32d5f6b5e9b0a7c12e0ea8e94e94",
+      "derivedFromSha256": "e55ac706760321d5c46207cc2f9b3ab6ab8c6750d4438c125fc3ae8d37364274",
+      "sourceCollection": "dialogue_filled_20261018",
+      "sourceSha256": "0debadbc53bf311e46b30e8945d680fa52f1dfa7a73d646b12497db4a946ff23",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 724,
+      "height": 2172,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "X",
+      "locale": "vi",
+      "collection": "vertical_comic_20261018",
+      "path": "x/vi/vertical_comic_20261018/x_zombiecatch_01.png",
+      "gameStartText": "BẮT ĐẦU CHƠI",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "desk_trap",
+      "dialogueWords": [
+        "Zombie kìa!",
+        "Chạy mau!",
+        "Vụt qua rồi!",
+        "Thoát được rồi!"
+      ],
+      "sourceCollection": "zombie_catch_comic_words_20261014",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/vi/zombie_catch_comic_words_20261014/01.png",
+      "sha256": "c10b85cd9f19439824fdf38a894d5ba20dcfb4aad8eb1398714614580160f6d5",
+      "sourceSha256": "ef8981446708437af9f0871d9529b5846368df201ba54bea18209923d673d2cd",
+      "derivedFromSha256": "ef8981446708437af9f0871d9529b5846368df201ba54bea18209923d673d2cd",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 1024,
+      "height": 1536,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "X",
+      "locale": "vi",
+      "collection": "vertical_comic_20261018",
+      "path": "x/vi/vertical_comic_20261018/x_zombiecatch_02.png",
+      "gameStartText": "BẮT ĐẦU CHƠI",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "locker_maze",
+      "dialogueWords": [
+        "Tủ đồ!",
+        "Chặn lối!",
+        "Núp mau!",
+        "Bị thấy rồi!"
+      ],
+      "sourceCollection": "zombie_catch_comic_words_20261014",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/vi/zombie_catch_comic_words_20261014/02.png",
+      "sha256": "fd65d210924a225cf089b778fca5162688a3d5e7d82dd806780d8c0a62151750",
+      "sourceSha256": "f0123622fc73b68838e20e9c5923ee5cd3761c33ae569b0121d4090fba388dde",
+      "derivedFromSha256": "f0123622fc73b68838e20e9c5923ee5cd3761c33ae569b0121d4090fba388dde",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 1024,
+      "height": 1536,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "X",
+      "locale": "vi",
+      "collection": "vertical_comic_20261018",
+      "path": "x/vi/vertical_comic_20261018/x_zombiecatch_03.png",
+      "gameStartText": "BẮT ĐẦU CHƠI",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "cafeteria_tray",
+      "dialogueWords": [
+        "Nhà tập!",
+        "Quả bóng!",
+        "Lăn đi!",
+        "Vào rổ rồi!"
+      ],
+      "sourceCollection": "zombie_catch_comic_words_20261014",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/vi/zombie_catch_comic_words_20261014/03.png",
+      "sha256": "26871e9af3d7f7cbdef9163a58530ffe589433239bce8e0c5fb280c498031f9d",
+      "sourceSha256": "ce70d44966b0340f1e1994a5ec8e71fdb20d9b2dbc516c1cf5de79bb03c4aa07",
+      "derivedFromSha256": "ce70d44966b0340f1e1994a5ec8e71fdb20d9b2dbc516c1cf5de79bb03c4aa07",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 887,
+      "height": 1774,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "X",
+      "locale": "vi",
+      "collection": "vertical_comic_20261018",
+      "path": "x/vi/vertical_comic_20261018/x_zombiecatch_04.png",
+      "gameStartText": "BẮT ĐẦU CHƠI",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "gym_ball",
+      "dialogueWords": [
+        "Thư viện!",
+        "Suỵt, thật khẽ!",
+        "Xe đẩy tới!",
+        "Âm thanh đánh thức chúng rồi!"
+      ],
+      "sourceCollection": "zombie_catch_comic_words_20261014",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/vi/zombie_catch_comic_words_20261014/04.png",
+      "sha256": "ce05efc28aabb82b7751eb17255d92a9d12b4bd09a5bc3483e1857a2f9b48760",
+      "sourceSha256": "1dbb3501995fcaa20a0a97b2629ea513a8bd0f78ad2278d000a876a3764a68e2",
+      "derivedFromSha256": "1dbb3501995fcaa20a0a97b2629ea513a8bd0f78ad2278d000a876a3764a68e2",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 1024,
+      "height": 1536,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "X",
+      "locale": "vi",
+      "collection": "vertical_comic_20261018",
+      "path": "x/vi/vertical_comic_20261018/x_zombiecatch_05.png",
+      "gameStartText": "BẮT ĐẦU CHƠI",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "library_cart",
+      "dialogueWords": [
+        "Thư viện!",
+        "Đẩy xe thôi!",
+        "Sách đổ rồi!",
+        "Tìm được sách rồi!"
+      ],
+      "sourceCollection": "zombie_catch_comic_words_20261014",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/vi/zombie_catch_comic_words_20261014/05.png",
+      "sha256": "0903e9115dba6b5b744e60d1cdeee168bbc5aaa5961dca0d2df814d4c0d36bf6",
+      "sourceSha256": "7f36f0d445402838f9390939300d1dc3f6de0b2f87cffd3aba18741dde36fa29",
+      "derivedFromSha256": "7f36f0d445402838f9390939300d1dc3f6de0b2f87cffd3aba18741dde36fa29",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 941,
+      "height": 1672,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "X",
+      "locale": "vi",
+      "collection": "vertical_comic_20261018",
+      "path": "x/vi/vertical_comic_20261018/x_backlog_01.png",
+      "gameStartText": "BẮT ĐẦU CHƠI",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "globe_cart_dodgeballs",
+      "title": "Xe địa cầu và bão bóng",
+      "dialogueWords": [
+        "Ở kia!",
+        "Quả địa cầu đây rồi!",
+        "Xả bóng nào!",
+        "Chụp được rồi!"
+      ],
+      "sourceCollection": "backlog_comic_20261015",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/vi/backlog_comic_20261015/01.png",
+      "sha256": "3fb0fe5faca78b2365a5c8d50df68ad0738792b8a7d5b88e4282cb7c2ae94eeb",
+      "sourceSha256": "015ddd4a21f887af78ccde30c826ef90e96042fb09135ea4e01c4d187ceb2a2d",
+      "derivedFromSha256": "015ddd4a21f887af78ccde30c826ef90e96042fb09135ea4e01c4d187ceb2a2d",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 797,
+      "height": 1973,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "X",
+      "locale": "vi",
+      "collection": "vertical_comic_20261018",
+      "path": "x/vi/vertical_comic_20261018/x_backlog_02.png",
+      "gameStartText": "BẮT ĐẦU CHƠI",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "science_magnet_lockers",
+      "title": "Nam châm và tủ đồ",
+      "dialogueWords": [
+        "Zombie kìa!",
+        "Nam châm bật rồi!",
+        "Chúng bị hút kìa!",
+        "Thành công!"
+      ],
+      "sourceCollection": "backlog_comic_20261015",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/vi/backlog_comic_20261015/02.png",
+      "sha256": "a5202f708e0303c3e7883d95671aa070ed1fb2d34beb85021b333c49c51a9b11",
+      "sourceSha256": "8c49dd2b0b0fff9bfccc0f2ff522e0b3d75ae0267b8e415c67b1b6aec365ee39",
+      "derivedFromSha256": "8c49dd2b0b0fff9bfccc0f2ff522e0b3d75ae0267b8e415c67b1b6aec365ee39",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 1024,
+      "height": 1536,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "X",
+      "locale": "vi",
+      "collection": "vertical_comic_20261018",
+      "path": "x/vi/vertical_comic_20261018/x_backlog_03.png",
+      "gameStartText": "BẮT ĐẦU CHƠI",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "library_cart_books",
+      "title": "Mồi nhử xe sách",
+      "dialogueWords": [
+        "Suỵt!",
+        "Đẩy xe thôi!",
+        "Sách rơi rồi!",
+        "Tìm được rồi!"
+      ],
+      "sourceCollection": "backlog_comic_20261015",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/vi/backlog_comic_20261015/03.png",
+      "sha256": "67a0945149250b3eac9b4fd1c019a8f97ac7ebbd243bdfed2862c65367bb7430",
+      "sourceSha256": "ad22a385cbcad90fee871a2123e8ea0ae42f554e987e94ccdc4d587ae7591459",
+      "derivedFromSha256": "ad22a385cbcad90fee871a2123e8ea0ae42f554e987e94ccdc4d587ae7591459",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 887,
+      "height": 1772,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "X",
+      "locale": "vi",
+      "collection": "vertical_comic_20261018",
+      "path": "x/vi/vertical_comic_20261018/x_backlog_04.png",
+      "gameStartText": "BẮT ĐẦU CHƠI",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "music_room_rhythm",
+      "title": "Nhịp trống phòng nhạc",
+      "dialogueWords": [
+        "Suỵt!",
+        "Vào nhịp nào!",
+        "Bùm thật to!",
+        "Chơi tiếp nhé!"
+      ],
+      "sourceCollection": "backlog_comic_20261015",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/vi/backlog_comic_20261015/04.png",
+      "sha256": "ad6511aa03e94533eb3951364a5e1295e4e403e8a0c105caa100411e114de6cd",
+      "sourceSha256": "da2d7beed6d3904661432b362ec61c29e64608d950c83818f2264e8aa892c385",
+      "derivedFromSha256": "da2d7beed6d3904661432b362ec61c29e64608d950c83818f2264e8aa892c385",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 884,
+      "height": 1780,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "X",
+      "locale": "vi",
+      "collection": "vertical_comic_20261018",
+      "path": "x/vi/vertical_comic_20261018/x_backlog_05.png",
+      "gameStartText": "BẮT ĐẦU CHƠI",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "art_room_paper_roll",
+      "title": "Cuộn giấy phòng mỹ thuật",
+      "dialogueWords": [
+        "Ở kia!",
+        "Kéo giấy nào!",
+        "Quấn chặt rồi!",
+        "Tada!"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/vi/dialogue_filled_20261018/backlog_comic_20261015_05.png",
+      "sha256": "7cfb4a170279ca9882b6b4805c77f27f3a6fd811a955187f7a1497b09bb9787e",
+      "derivedFromSha256": "a2b096504a2e5d8c1ea59daf5597006da6fb6866b253c6bb4aa4a9048b7c8936",
+      "sourceCollection": "dialogue_filled_20261018",
+      "sourceSha256": "cc5766b7f486b2c70697a569de596a4f4ee49b273a0dc1f842bb00036c17f04a",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 1024,
+      "height": 1536,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "Facebook",
+      "locale": "vi",
+      "collection": "vertical_comic_20261018",
+      "path": "facebook/vi/vertical_comic_20261018/facebook_backlog_05.png",
+      "gameStartText": "BẮT ĐẦU CHƠI",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "art_room_paper_roll",
+      "title": "Cuộn giấy phòng mỹ thuật",
+      "dialogueWords": [
+        "Ở kia!",
+        "Kéo giấy nào!",
+        "Quấn chặt rồi!",
+        "Tada!"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/dialogue_filled_20261018/backlog_comic_20261015_05.png",
+      "sha256": "7cfb4a170279ca9882b6b4805c77f27f3a6fd811a955187f7a1497b09bb9787e",
+      "derivedFromSha256": "a2b096504a2e5d8c1ea59daf5597006da6fb6866b253c6bb4aa4a9048b7c8936",
+      "sourceCollection": "dialogue_filled_20261018",
+      "sourceSha256": "cc5766b7f486b2c70697a569de596a4f4ee49b273a0dc1f842bb00036c17f04a",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 1024,
+      "height": 1536,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "X",
+      "locale": "vi",
+      "collection": "vertical_comic_20261018",
+      "path": "x/vi/vertical_comic_20261018/x_backlog_06.png",
+      "gameStartText": "BẮT ĐẦU CHƠI",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "cafeteria_gelatin_trays",
+      "title": "Bánh flan và khay ăn",
+      "dialogueWords": [
+        "Bánh flan!",
+        "Đẩy xe nào!",
+        "Úi, ngã rồi!",
+        "Mời ăn nhé!"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/vi/dialogue_filled_20261018/backlog_comic_20261015_06.png",
+      "sha256": "9a9b0a4db0185dff2b08a35aed2f3dd17cca31b8f86ffb812e3c4ba0c6041ac7",
+      "derivedFromSha256": "c76f3b0ec24666fd128f9831909c9be976d51f4b374d27cba082a47c5c45e571",
+      "sourceCollection": "dialogue_filled_20261018",
+      "sourceSha256": "4be7964bdb7568193792f0a5ccf92c8577e49de82c0234fe1cd5f3dce04c6059",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 1025,
+      "height": 1535,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "Facebook",
+      "locale": "vi",
+      "collection": "vertical_comic_20261018",
+      "path": "facebook/vi/vertical_comic_20261018/facebook_backlog_06.png",
+      "gameStartText": "BẮT ĐẦU CHƠI",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "cafeteria_gelatin_trays",
+      "title": "Bánh flan và khay ăn",
+      "dialogueWords": [
+        "Bánh flan!",
+        "Đẩy xe nào!",
+        "Úi, ngã rồi!",
+        "Mời ăn nhé!"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/dialogue_filled_20261018/backlog_comic_20261015_06.png",
+      "sha256": "9a9b0a4db0185dff2b08a35aed2f3dd17cca31b8f86ffb812e3c4ba0c6041ac7",
+      "derivedFromSha256": "c76f3b0ec24666fd128f9831909c9be976d51f4b374d27cba082a47c5c45e571",
+      "sourceCollection": "dialogue_filled_20261018",
+      "sourceSha256": "4be7964bdb7568193792f0a5ccf92c8577e49de82c0234fe1cd5f3dce04c6059",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 1025,
+      "height": 1535,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "X",
+      "locale": "vi",
+      "collection": "vertical_comic_20261018",
+      "path": "x/vi/vertical_comic_20261018/x_backlog_07.png",
+      "gameStartText": "BẮT ĐẦU CHƠI",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "auditorium_curtain_call",
+      "title": "Màn sân khấu hội trường",
+      "dialogueWords": [
+        "Zombie kia!",
+        "Bật đèn nào!",
+        "Màn mở rồi!",
+        "Cảm ơn nhé!"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/vi/dialogue_filled_20261018/backlog_comic_20261015_07.png",
+      "sha256": "f06aeee3331a828bd3c17df3f600540dcd4df442b9597cbad6f675f686ff8d38",
+      "derivedFromSha256": "b0bd5f0a729a7a91f4f0c3b2d489e86e57ab5bdf80c5cc2b580fbbc32ddb6947",
+      "sourceCollection": "dialogue_filled_20261018",
+      "sourceSha256": "8e6f0bb1063dcb6ddd355501f06fa52d0e0ae48ba17e550b22d7cb0dfec716ea",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 793,
+      "height": 1983,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "Facebook",
+      "locale": "vi",
+      "collection": "vertical_comic_20261018",
+      "path": "facebook/vi/vertical_comic_20261018/facebook_backlog_07.png",
+      "gameStartText": "BẮT ĐẦU CHƠI",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "auditorium_curtain_call",
+      "title": "Màn sân khấu hội trường",
+      "dialogueWords": [
+        "Zombie kia!",
+        "Bật đèn nào!",
+        "Màn mở rồi!",
+        "Cảm ơn nhé!"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/dialogue_filled_20261018/backlog_comic_20261015_07.png",
+      "sha256": "f06aeee3331a828bd3c17df3f600540dcd4df442b9597cbad6f675f686ff8d38",
+      "derivedFromSha256": "b0bd5f0a729a7a91f4f0c3b2d489e86e57ab5bdf80c5cc2b580fbbc32ddb6947",
+      "sourceCollection": "dialogue_filled_20261018",
+      "sourceSha256": "8e6f0bb1063dcb6ddd355501f06fa52d0e0ae48ba17e550b22d7cb0dfec716ea",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 793,
+      "height": 1983,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "X",
+      "locale": "vi",
+      "collection": "vertical_comic_20261018",
+      "path": "x/vi/vertical_comic_20261018/x_backlog_08.png",
+      "gameStartText": "BẮT ĐẦU CHƠI",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "greenhouse_sprinkler",
+      "title": "Vòi phun nhà kính",
+      "dialogueWords": [
+        "Zombie kia!",
+        "Tưới thật đều!",
+        "Nảy mầm rồi!",
+        "Cùng trồng nhé!"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/vi/dialogue_filled_20261018/backlog_comic_20261015_08.png",
+      "sha256": "71db1538d6c23d4e1111a1be98c1c0307a697cf83e1f8d62dbb5947ad50749d9",
+      "derivedFromSha256": "733b238bc570f2771bb21ae12056fd6e303f5787ca78d5e956477c27a0360cc7",
+      "sourceCollection": "dialogue_filled_20261018",
+      "sourceSha256": "844ea96cf174c9c66c1746439e49252c3e25d7361d309278700f81b9a3379c63",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 887,
+      "height": 1774,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "Facebook",
+      "locale": "vi",
+      "collection": "vertical_comic_20261018",
+      "path": "facebook/vi/vertical_comic_20261018/facebook_backlog_08.png",
+      "gameStartText": "BẮT ĐẦU CHƠI",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "greenhouse_sprinkler",
+      "title": "Vòi phun nhà kính",
+      "dialogueWords": [
+        "Zombie kia!",
+        "Tưới thật đều!",
+        "Nảy mầm rồi!",
+        "Cùng trồng nhé!"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/dialogue_filled_20261018/backlog_comic_20261015_08.png",
+      "sha256": "71db1538d6c23d4e1111a1be98c1c0307a697cf83e1f8d62dbb5947ad50749d9",
+      "derivedFromSha256": "733b238bc570f2771bb21ae12056fd6e303f5787ca78d5e956477c27a0360cc7",
+      "sourceCollection": "dialogue_filled_20261018",
+      "sourceSha256": "844ea96cf174c9c66c1746439e49252c3e25d7361d309278700f81b9a3379c63",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 887,
+      "height": 1774,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "X",
+      "locale": "vi",
+      "collection": "vertical_comic_20261018",
+      "path": "x/vi/vertical_comic_20261018/x_backlog_09.png",
+      "gameStartText": "BẮT ĐẦU CHƠI",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "gym_mat_maze",
+      "title": "Mê cung nệm phòng thể chất",
+      "dialogueWords": [
+        "Sẵn sàng!",
+        "Nhảy qua nào!",
+        "Bắt được rồi!",
+        "Về đích thôi!"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/vi/dialogue_filled_20261018/backlog_comic_20261015_09.png",
+      "sha256": "6b3ffc819caeb5fd3e498f9d9d5cbbfa503af3a2cca17aa5c4213479a24851bb",
+      "derivedFromSha256": "be77f7158be73ff8aefd94e66858a8459df3f2c1795428f48925728e8b030197",
+      "sourceCollection": "dialogue_filled_20261018",
+      "sourceSha256": "967410e770093c735f1d19f891341d464a876aaca03c0724db75d71285828678",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 800,
+      "height": 1967,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "Facebook",
+      "locale": "vi",
+      "collection": "vertical_comic_20261018",
+      "path": "facebook/vi/vertical_comic_20261018/facebook_backlog_09.png",
+      "gameStartText": "BẮT ĐẦU CHƠI",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "gym_mat_maze",
+      "title": "Mê cung nệm phòng thể chất",
+      "dialogueWords": [
+        "Sẵn sàng!",
+        "Nhảy qua nào!",
+        "Bắt được rồi!",
+        "Về đích thôi!"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/dialogue_filled_20261018/backlog_comic_20261015_09.png",
+      "sha256": "6b3ffc819caeb5fd3e498f9d9d5cbbfa503af3a2cca17aa5c4213479a24851bb",
+      "derivedFromSha256": "be77f7158be73ff8aefd94e66858a8459df3f2c1795428f48925728e8b030197",
+      "sourceCollection": "dialogue_filled_20261018",
+      "sourceSha256": "967410e770093c735f1d19f891341d464a876aaca03c0724db75d71285828678",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 800,
+      "height": 1967,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "X",
+      "locale": "vi",
+      "collection": "vertical_comic_20261018",
+      "path": "x/vi/vertical_comic_20261018/x_backlog_10.png",
+      "gameStartText": "BẮT ĐẦU CHƠI",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "planetarium_star_projector",
+      "title": "Màn sao ở cung thiên văn",
+      "dialogueWords": [
+        "Sao kia!",
+        "Nhìn kìa!",
+        "Vũ trụ rộng quá!",
+        "Soi sao nào!"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/vi/dialogue_filled_20261018/backlog_comic_20261015_10.png",
+      "sha256": "e25d4d26702f959abfdc452832924bac189c5c2a49f5931b8576fdae6fff5a5e",
+      "derivedFromSha256": "439af835b9c71a3cfa64d270f62490a55e385b5ac58e3b5a50c2b94f018d76c5",
+      "sourceCollection": "dialogue_filled_20261018",
+      "sourceSha256": "39a6f2b3456e71e934520e31a9ff1b21d248d4de031689e3f897b8e3a4090124",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 746,
+      "height": 2109,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "Facebook",
+      "locale": "vi",
+      "collection": "vertical_comic_20261018",
+      "path": "facebook/vi/vertical_comic_20261018/facebook_backlog_10.png",
+      "gameStartText": "BẮT ĐẦU CHƠI",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "planetarium_star_projector",
+      "title": "Màn sao ở cung thiên văn",
+      "dialogueWords": [
+        "Sao kia!",
+        "Nhìn kìa!",
+        "Vũ trụ rộng quá!",
+        "Soi sao nào!"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/dialogue_filled_20261018/backlog_comic_20261015_10.png",
+      "sha256": "e25d4d26702f959abfdc452832924bac189c5c2a49f5931b8576fdae6fff5a5e",
+      "derivedFromSha256": "439af835b9c71a3cfa64d270f62490a55e385b5ac58e3b5a50c2b94f018d76c5",
+      "sourceCollection": "dialogue_filled_20261018",
+      "sourceSha256": "39a6f2b3456e71e934520e31a9ff1b21d248d4de031689e3f897b8e3a4090124",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 746,
+      "height": 2109,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "Facebook",
+      "locale": "vi",
+      "collection": "vertical_comic_20261018",
+      "path": "facebook/vi/vertical_comic_20261018/facebook_zombiecatch_01.png",
+      "gameStartText": "BẮT ĐẦU CHƠI",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "desk_trap",
+      "dialogueWords": [
+        "Lớp học!",
+        "Chạy thôi!",
+        "Rầm!",
+        "Thoát rồi!"
+      ],
+      "sourceCollection": "zombie_catch_comic_words_20261015",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/zombie_catch_comic_words_20261015/01.png",
+      "sha256": "2171d540cd79c5a5ddc87444f9b1135cf748176a5a69be26e6a05378c7e83383",
+      "sourceSha256": "39f23222d96b7d1e9276310261b120119b7f427c64c3b9245a6acd262378e981",
+      "derivedFromSha256": "39f23222d96b7d1e9276310261b120119b7f427c64c3b9245a6acd262378e981",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 1024,
+      "height": 1536,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "Facebook",
+      "locale": "vi",
+      "collection": "vertical_comic_20261018",
+      "path": "facebook/vi/vertical_comic_20261018/facebook_zombiecatch_02.png",
+      "gameStartText": "BẮT ĐẦU CHƠI",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "locker_maze",
+      "dialogueWords": [
+        "Tủ đồ!",
+        "Chặn lối!",
+        "Núp mau!",
+        "Bị thấy rồi!"
+      ],
+      "sourceCollection": "zombie_catch_comic_words_20261015",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/zombie_catch_comic_words_20261015/02.png",
+      "sha256": "ccfe046f3d79f117a2a33d668cb17988b2628931adfa61e94b2b94f1c92d827a",
+      "sourceSha256": "0c9ab3d2ba001ceebc7198999f80446f54e1d182458686ea95caadeb02903a27",
+      "derivedFromSha256": "0c9ab3d2ba001ceebc7198999f80446f54e1d182458686ea95caadeb02903a27",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 793,
+      "height": 1983,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "Facebook",
+      "locale": "vi",
+      "collection": "vertical_comic_20261018",
+      "path": "facebook/vi/vertical_comic_20261018/facebook_zombiecatch_03.png",
+      "gameStartText": "BẮT ĐẦU CHƠI",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "cafeteria_tray",
+      "dialogueWords": [
+        "Nhà ăn!",
+        "Khay này!",
+        "Ôi, đổ mất!",
+        "Mời ăn nhé!"
+      ],
+      "sourceCollection": "zombie_catch_comic_words_20261015",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/zombie_catch_comic_words_20261015/03.png",
+      "sha256": "c4c678d88939d117425e4b3424329ef7c43cfabffb2c43fc661d23ac19873f8b",
+      "sourceSha256": "abd6a00608741746f327774a53d638fbb1c962a3a422669390faaf4de25cc5cc",
+      "derivedFromSha256": "abd6a00608741746f327774a53d638fbb1c962a3a422669390faaf4de25cc5cc",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 793,
+      "height": 1983,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "Facebook",
+      "locale": "vi",
+      "collection": "vertical_comic_20261018",
+      "path": "facebook/vi/vertical_comic_20261018/facebook_zombiecatch_04.png",
+      "gameStartText": "BẮT ĐẦU CHƠI",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "gym_ball",
+      "dialogueWords": [
+        "Nhà thể chất!",
+        "Bóng tới!",
+        "Lăn nào!",
+        "Thành công!"
+      ],
+      "sourceCollection": "zombie_catch_comic_words_20261015",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/zombie_catch_comic_words_20261015/04.png",
+      "sha256": "9e921ffcc5ea8b7e0709e51ae7e1a87a535c519a275fa2a61ce6a8962e706af0",
+      "sourceSha256": "8a216b2856eb30809be66f27e248975ac34708f0ffe3f826cf413572edd200ac",
+      "derivedFromSha256": "8a216b2856eb30809be66f27e248975ac34708f0ffe3f826cf413572edd200ac",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 914,
+      "height": 1721,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "Facebook",
+      "locale": "vi",
+      "collection": "vertical_comic_20261018",
+      "path": "facebook/vi/vertical_comic_20261018/facebook_zombiecatch_05.png",
+      "gameStartText": "BẮT ĐẦU CHƠI",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "library_cart",
+      "dialogueWords": [
+        "Thư viện!",
+        "Suỵt, thật khẽ!",
+        "Xe đẩy tới!",
+        "Tìm được rồi!"
+      ],
+      "sourceCollection": "zombie_catch_comic_words_20261015",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/zombie_catch_comic_words_20261015/05.png",
+      "sha256": "de6d9d861a0a9e76f9e1418f74076f2ce4f22536a0f241fb1e7fcd6b95d1538e",
+      "sourceSha256": "b6fa5795382108a6b0ff9805be76091f65c6b8dcba2fd785a3825745fe561766",
+      "derivedFromSha256": "b6fa5795382108a6b0ff9805be76091f65c6b8dcba2fd785a3825745fe561766",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 941,
+      "height": 1672,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "Facebook",
+      "locale": "vi",
+      "collection": "vertical_comic_20261018",
+      "path": "facebook/vi/vertical_comic_20261018/facebook_backlog_01.png",
+      "gameStartText": "BẮT ĐẦU CHƠI",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "globe_cart_dodgeballs",
+      "title": "Xe địa cầu và bão bóng",
+      "dialogueWords": [
+        "Ở kia!",
+        "Quả địa cầu đây rồi!",
+        "Xả bóng nào!",
+        "Chụp được rồi!"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/dialogue_filled_20261018/backlog_comic_20261015_01.png",
+      "sha256": "c602e65259bff55b7f5ae8ba54c1b68ee9fce235dd95bd501d7af6aa3f70034a",
+      "derivedFromSha256": "015ddd4a21f887af78ccde30c826ef90e96042fb09135ea4e01c4d187ceb2a2d",
+      "sourceCollection": "dialogue_filled_20261018",
+      "sourceSha256": "45b4eb9591ed4e18578be3bc6a05af386f099ef2c6361b39e9ccc33b80632320",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 793,
+      "height": 1983,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "Facebook",
+      "locale": "vi",
+      "collection": "vertical_comic_20261018",
+      "path": "facebook/vi/vertical_comic_20261018/facebook_backlog_02.png",
+      "gameStartText": "BẮT ĐẦU CHƠI",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "science_magnet_lockers",
+      "title": "Nam châm và tủ đồ",
+      "dialogueWords": [
+        "Zombie kìa!",
+        "Hút hết nào!",
+        "Dính chặt rồi!",
+        "Thành công!"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/dialogue_filled_20261018/backlog_comic_20261015_02.png",
+      "sha256": "47bc47dcce8ea62cbbd63196fba764145715771a07f0565e40f64d454cc8ce43",
+      "derivedFromSha256": "8c49dd2b0b0fff9bfccc0f2ff522e0b3d75ae0267b8e415c67b1b6aec365ee39",
+      "sourceCollection": "dialogue_filled_20261018",
+      "sourceSha256": "3ccef51e0865afae296e4733fd87570aa70c70425343b578f8fc51d515964f2f",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 1024,
+      "height": 1536,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "Facebook",
+      "locale": "vi",
+      "collection": "vertical_comic_20261018",
+      "path": "facebook/vi/vertical_comic_20261018/facebook_backlog_03.png",
+      "gameStartText": "BẮT ĐẦU CHƠI",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "library_cart_books",
+      "title": "Mồi nhử xe sách",
+      "dialogueWords": [
+        "Suỵt!",
+        "Đẩy xe thôi!",
+        "Lấy sách nào!",
+        "Có thẻ rồi!"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/dialogue_filled_20261018/backlog_comic_20261015_03.png",
+      "sha256": "25c6278c1a89e79e14cc0f6c14767023622a1bf532fbcbb86d59dda207af47aa",
+      "derivedFromSha256": "ad22a385cbcad90fee871a2123e8ea0ae42f554e987e94ccdc4d587ae7591459",
+      "sourceCollection": "dialogue_filled_20261018",
+      "sourceSha256": "6f30a7a9407ca64ea3ded6cfda668900abff79fad5b1a116249a118a6660445c",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 887,
+      "height": 1774,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
+    },
+    {
+      "platform": "Facebook",
+      "locale": "vi",
+      "collection": "vertical_comic_20261018",
+      "path": "facebook/vi/vertical_comic_20261018/facebook_backlog_04.png",
+      "gameStartText": "BẮT ĐẦU CHƠI",
+      "format": "four_panel_comic_with_localized_dialogue",
+      "story": "music_room_rhythm",
+      "title": "Nhịp trống phòng nhạc",
+      "dialogueWords": [
+        "Suỵt!",
+        "Vào nhịp nhé!",
+        "Bùm!",
+        "Chơi tiếp nào!"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/dialogue_filled_20261018/backlog_comic_20261015_04.png",
+      "sha256": "757acae7a1ad428937ea78c6b6f428a93ad1f723297bc25d554b8fe0950d2937",
+      "derivedFromSha256": "da2d7beed6d3904661432b362ec61c29e64608d950c83818f2264e8aa892c385",
+      "sourceCollection": "dialogue_filled_20261018",
+      "sourceSha256": "8d7151c3385b4d2d3435ae136b762a3143196676f9a17d65eb7f90dc3b80945d",
+      "panelLayout": "1x4",
+      "panelCount": 4,
+      "width": 887,
+      "height": 1774,
+      "visuallyChecked": true,
+      "emptyBalloons": 0
     }
   ],
   "legacyPaths": {

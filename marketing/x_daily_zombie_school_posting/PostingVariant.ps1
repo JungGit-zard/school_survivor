@@ -136,7 +136,30 @@ function Get-PostingDefaultReceiptDirectories([ValidateSet('X','Facebook')][stri
   if ($Platform -eq 'X') { return @((Join-Path $PSScriptRoot 'receipts'), (Join-Path $PSScriptRoot '..\..\Developer\agent_room\x_posting_receipts')) }
   return @()
 }
+function Resolve-PostingImageIdentityHash([string]$Hash, $ParentsByHash) {
+  # An edited artifact still consumes the same original comic. Keep receipt
+  # hashes immutable and resolve both historical and candidate hashes here.
+  $identity = $Hash.ToLowerInvariant()
+  $seen = @{}
+  while ($true) {
+    if ($seen.ContainsKey($identity)) { throw 'IMAGE_LINEAGE_INVALID: cyclic image ancestry.' }
+    $seen[$identity] = $true
+    $parents = @(if ($ParentsByHash.ContainsKey($identity)) { $ParentsByHash[$identity] | Select-Object -Unique })
+    if ($parents.Count -eq 0) { return $identity }
+    if ($parents.Count -ne 1 -or $parents[0] -notmatch '^[a-f0-9]{64}$') { throw 'IMAGE_LINEAGE_INVALID: ambiguous or invalid image ancestry.' }
+    $identity = $parents[0]
+  }
+}
 function Select-PostingLocaleImagePath($Config, [string]$Language, [string]$CycleId, [string]$ReceiptDirectory, [ValidateSet('X','Facebook')][string]$Platform = 'X', $Catalog = $null, $ReceiptDirectoryOverrides = $null) {
+  if ($null -eq $Catalog) { $Catalog = Get-PostingImageCatalog }
+  $parentsByHash = @{}
+  foreach ($row in $Catalog.images) {
+    if ($row.PSObject.Properties.Name -contains 'sha256' -and $row.PSObject.Properties.Name -contains 'derivedFromSha256') {
+      $key = ([string]$row.sha256).ToLowerInvariant()
+      if (-not $parentsByHash.ContainsKey($key)) { $parentsByHash[$key] = @() }
+      $parentsByHash[$key] = @($parentsByHash[$key]) + ([string]$row.derivedFromSha256).ToLowerInvariant()
+    }
+  }
   $gatedCandidates = @(Get-PostingLocaleImageCandidates $Config $Language -RequireGameStartText -Platform $Platform -Catalog $Catalog)
   $pool = if ($Platform -eq 'Facebook' -and $Config.PSObject.Properties.Name -contains 'facebook_rotation_image_pool' -and $Config.facebook_rotation_image_pool.PSObject.Properties.Name -contains $Language) { @($Config.facebook_rotation_image_pool.$Language.images) } elseif ($Platform -eq 'X' -and $Config.PSObject.Properties.Name -contains 'localized_social_image_pool' -and $Config.localized_social_image_pool.PSObject.Properties.Name -contains $Language) { @($Config.localized_social_image_pool.$Language.images) } else { @() }
   $poolPaths = @($pool | ForEach-Object { Resolve-PostingImagePath ([string]$_) -Platform $Platform } | Select-Object -Unique)
@@ -147,9 +170,19 @@ function Select-PostingLocaleImagePath($Config, [string]$Language, [string]$Cycl
   elseif ($Platform -eq 'X') { $receiptSearchDirectories += @(Get-PostingDefaultReceiptDirectories $Platform) }
   $usedHashes = @{}
   $candidateHashes = @{}
+  $lineageRowsByPath = @{}
+  foreach ($row in $Catalog.images) {
+    if ($row.platform -ceq $Platform -and $row.locale -ceq $Language -and $row.PSObject.Properties.Name -contains 'derivedFromSha256') { $lineageRowsByPath[[string]$row.path] = $row }
+  }
+  $imageRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot 'image_pool'))
   foreach ($candidate in $candidates) {
     $hash = (Get-FileHash -LiteralPath $candidate -Algorithm SHA256).Hash
-    $candidateHashes[$candidate] = $hash
+    $relative = $candidate.Substring($imageRoot.Length + 1).Replace([string][char]92, '/')
+    if ($lineageRowsByPath.ContainsKey($relative)) {
+      $row = $lineageRowsByPath[$relative]
+      if ($row.PSObject.Properties.Name -notcontains 'sha256' -or [string]$row.sha256 -ine $hash) { throw 'IMAGE_LINEAGE_INVALID: edited image bytes do not match catalog ancestry.' }
+    }
+    $candidateHashes[$candidate] = Resolve-PostingImageIdentityHash $hash $parentsByHash
   }
   foreach ($directory in @($receiptSearchDirectories | Select-Object -Unique)) {
     if (-not (Test-Path -LiteralPath $directory -PathType Container)) { continue }
@@ -181,7 +214,7 @@ function Select-PostingLocaleImagePath($Config, [string]$Language, [string]$Cycl
           $historyHash = (Get-FileHash -LiteralPath $image -Algorithm SHA256).Hash.ToLowerInvariant()
         }
       }
-      $usedHashes[$historyHash] = $true
+      $usedHashes[(Resolve-PostingImageIdentityHash $historyHash $parentsByHash)] = $true
     }
   }
   foreach ($candidate in $candidates) {

@@ -257,4 +257,5 @@ if (require.main === module) {
     .catch((error) => { console.error(`X website-card Hosting deploy stopped: ${error.message}`); process.exitCode = 1 })
 }
 
-module.exports = { ALLOWED_PREFIX, assertAdditiveVersion, assertCardMetadata, assertSameLiveBaseline, deployCards, parseManifest, verifyPreviewCards }
+module.exports = { ALLOWED_PREFIX, assertAdditiveVersion, assertCardMetadata, assertSameLiveBaseline, deployCards, parseManifest, verifyPreviewCards,
+  createFirebaseApi, readLiveBaseline, getVersion, listVersionFiles, populateAndUpload }

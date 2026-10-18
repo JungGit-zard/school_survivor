@@ -1,0 +1,462 @@
+﻿{
+    "entries":  [
+                    {
+                        "sourceSha256":  "ef8981446708437af9f0871d9529b5846368df201ba54bea18209923d673d2cd",
+                        "targetSha256":  "c10b85cd9f19439824fdf38a894d5ba20dcfb4aad8eb1398714614580160f6d5",
+                        "source":  "x/vi/zombie_catch_comic_words_20261014/01.png",
+                        "visuallyChecked":  true,
+                        "target":  "x/vi/vertical_comic_20261018/x_zombiecatch_01.png",
+                        "layout":  "vertical-1x4; source reading order top-left, top-right, bottom-left, bottom-right",
+                        "generatedPath":  "x/vi/vertical_comic_20261018/x_zombiecatch_01.png",
+                        "dialogue":  [
+                                         "Zombie kìa!",
+                                         "Chạy mau!",
+                                         "Vụt qua rồi!",
+                                         "Thoát được rồi!"
+                                     ]
+                    },
+                    {
+                        "sourceSha256":  "f0123622fc73b68838e20e9c5923ee5cd3761c33ae569b0121d4090fba388dde",
+                        "targetSha256":  "fd65d210924a225cf089b778fca5162688a3d5e7d82dd806780d8c0a62151750",
+                        "source":  "x/vi/zombie_catch_comic_words_20261014/02.png",
+                        "visuallyChecked":  true,
+                        "target":  "x/vi/vertical_comic_20261018/x_zombiecatch_02.png",
+                        "layout":  "vertical-1x4; source reading order top-left, top-right, bottom-left, bottom-right",
+                        "generatedPath":  "x/vi/vertical_comic_20261018/x_zombiecatch_02.png",
+                        "dialogue":  [
+                                         "Tủ đồ!",
+                                         "Chặn lối!",
+                                         "Núp mau!",
+                                         "Bị thấy rồi!"
+                                     ]
+                    },
+                    {
+                        "sourceSha256":  "ce70d44966b0340f1e1994a5ec8e71fdb20d9b2dbc516c1cf5de79bb03c4aa07",
+                        "targetSha256":  "26871e9af3d7f7cbdef9163a58530ffe589433239bce8e0c5fb280c498031f9d",
+                        "source":  "x/vi/zombie_catch_comic_words_20261014/03.png",
+                        "visuallyChecked":  true,
+                        "target":  "x/vi/vertical_comic_20261018/x_zombiecatch_03.png",
+                        "layout":  "vertical-1x4; source reading order top-left, top-right, bottom-left, bottom-right",
+                        "generatedPath":  "x/vi/vertical_comic_20261018/x_zombiecatch_03.png",
+                        "dialogue":  [
+                                         "Nhà tập!",
+                                         "Quả bóng!",
+                                         "Lăn đi!",
+                                         "Vào rổ rồi!"
+                                     ]
+                    },
+                    {
+                        "sourceSha256":  "1dbb3501995fcaa20a0a97b2629ea513a8bd0f78ad2278d000a876a3764a68e2",
+                        "targetSha256":  "ce05efc28aabb82b7751eb17255d92a9d12b4bd09a5bc3483e1857a2f9b48760",
+                        "source":  "x/vi/zombie_catch_comic_words_20261014/04.png",
+                        "visuallyChecked":  true,
+                        "target":  "x/vi/vertical_comic_20261018/x_zombiecatch_04.png",
+                        "layout":  "vertical-1x4; source reading order top-left, top-right, bottom-left, bottom-right",
+                        "generatedPath":  "x/vi/vertical_comic_20261018/x_zombiecatch_04.png",
+                        "dialogue":  [
+                                         "Thư viện!",
+                                         "Suỵt, thật khẽ!",
+                                         "Xe đẩy tới!",
+                                         "Âm thanh đánh thức chúng rồi!"
+                                     ]
+                    },
+                    {
+                        "sourceSha256":  "7f36f0d445402838f9390939300d1dc3f6de0b2f87cffd3aba18741dde36fa29",
+                        "targetSha256":  "0903e9115dba6b5b744e60d1cdeee168bbc5aaa5961dca0d2df814d4c0d36bf6",
+                        "source":  "x/vi/zombie_catch_comic_words_20261014/05.png",
+                        "visuallyChecked":  true,
+                        "target":  "x/vi/vertical_comic_20261018/x_zombiecatch_05.png",
+                        "layout":  "vertical-1x4; source reading order top-left, top-right, bottom-left, bottom-right",
+                        "generatedPath":  "x/vi/vertical_comic_20261018/x_zombiecatch_05.png",
+                        "dialogue":  [
+                                         "Thư viện!",
+                                         "Đẩy xe thôi!",
+                                         "Sách đổ rồi!",
+                                         "Tìm được sách rồi!"
+                                     ]
+                    },
+                    {
+                        "sourceSha256":  "015ddd4a21f887af78ccde30c826ef90e96042fb09135ea4e01c4d187ceb2a2d",
+                        "targetSha256":  "3fb0fe5faca78b2365a5c8d50df68ad0738792b8a7d5b88e4282cb7c2ae94eeb",
+                        "source":  "x/vi/backlog_comic_20261015/01.png",
+                        "visuallyChecked":  true,
+                        "target":  "x/vi/vertical_comic_20261018/x_backlog_01.png",
+                        "layout":  "vertical-1x4; source reading order top-left, top-right, bottom-left, bottom-right",
+                        "generatedPath":  "x/vi/vertical_comic_20261018/x_backlog_01.png",
+                        "dialogue":  [
+                                         "Ở kia!",
+                                         "Quả địa cầu đây rồi!",
+                                         "Xả bóng nào!",
+                                         "Chụp được rồi!"
+                                     ]
+                    },
+                    {
+                        "sourceSha256":  "8c49dd2b0b0fff9bfccc0f2ff522e0b3d75ae0267b8e415c67b1b6aec365ee39",
+                        "targetSha256":  "a5202f708e0303c3e7883d95671aa070ed1fb2d34beb85021b333c49c51a9b11",
+                        "source":  "x/vi/backlog_comic_20261015/02.png",
+                        "visuallyChecked":  true,
+                        "target":  "x/vi/vertical_comic_20261018/x_backlog_02.png",
+                        "layout":  "vertical-1x4; source reading order top-left, top-right, bottom-left, bottom-right",
+                        "generatedPath":  "x/vi/vertical_comic_20261018/x_backlog_02.png",
+                        "dialogue":  [
+                                         "Zombie kìa!",
+                                         "Nam châm bật rồi!",
+                                         "Chúng bị hút kìa!",
+                                         "Thành công!"
+                                     ]
+                    },
+                    {
+                        "sourceSha256":  "ad22a385cbcad90fee871a2123e8ea0ae42f554e987e94ccdc4d587ae7591459",
+                        "targetSha256":  "67a0945149250b3eac9b4fd1c019a8f97ac7ebbd243bdfed2862c65367bb7430",
+                        "source":  "x/vi/backlog_comic_20261015/03.png",
+                        "visuallyChecked":  true,
+                        "target":  "x/vi/vertical_comic_20261018/x_backlog_03.png",
+                        "layout":  "vertical-1x4; source reading order top-left, top-right, bottom-left, bottom-right",
+                        "generatedPath":  "x/vi/vertical_comic_20261018/x_backlog_03.png",
+                        "dialogue":  [
+                                         "Suỵt!",
+                                         "Đẩy xe thôi!",
+                                         "Sách rơi rồi!",
+                                         "Tìm được rồi!"
+                                     ]
+                    },
+                    {
+                        "sourceSha256":  "da2d7beed6d3904661432b362ec61c29e64608d950c83818f2264e8aa892c385",
+                        "targetSha256":  "ad6511aa03e94533eb3951364a5e1295e4e403e8a0c105caa100411e114de6cd",
+                        "source":  "x/vi/backlog_comic_20261015/04.png",
+                        "visuallyChecked":  true,
+                        "target":  "x/vi/vertical_comic_20261018/x_backlog_04.png",
+                        "layout":  "vertical-1x4; source reading order top-left, top-right, bottom-left, bottom-right",
+                        "generatedPath":  "x/vi/vertical_comic_20261018/x_backlog_04.png",
+                        "dialogue":  [
+                                         "Suỵt!",
+                                         "Vào nhịp nào!",
+                                         "Bùm thật to!",
+                                         "Chơi tiếp nhé!"
+                                     ]
+                    },
+                    {
+                        "sourceSha256":  "cc5766b7f486b2c70697a569de596a4f4ee49b273a0dc1f842bb00036c17f04a",
+                        "targetSha256":  "7cfb4a170279ca9882b6b4805c77f27f3a6fd811a955187f7a1497b09bb9787e",
+    "source":  "x/vi/dialogue_filled_20261018/backlog_comic_20261015_05.png",
+                        "visuallyChecked":  true,
+                        "target":  "x/vi/vertical_comic_20261018/x_backlog_05.png",
+                        "layout":  "vertical-1x4; source reading order top-left, top-right, bottom-left, bottom-right",
+                        "generatedPath":  "x/vi/vertical_comic_20261018/x_backlog_05.png",
+                        "dialogue":  [
+                                         "Ở kia!",
+                                         "Kéo giấy nào!",
+                                         "Quấn chặt rồi!",
+                                         "Tada!"
+                                     ]
+                    },
+                    {
+                        "sourceSha256":  "cc5766b7f486b2c70697a569de596a4f4ee49b273a0dc1f842bb00036c17f04a",
+                        "targetSha256":  "7cfb4a170279ca9882b6b4805c77f27f3a6fd811a955187f7a1497b09bb9787e",
+    "source":  "facebook/vi/dialogue_filled_20261018/backlog_comic_20261015_05.png",
+                        "visuallyChecked":  true,
+                        "target":  "facebook/vi/vertical_comic_20261018/facebook_backlog_05.png",
+                        "layout":  "vertical-1x4; source reading order top-left, top-right, bottom-left, bottom-right",
+                        "generatedPath":  "facebook/vi/vertical_comic_20261018/facebook_backlog_05.png",
+                        "dialogue":  [
+                                         "Ở kia!",
+                                         "Kéo giấy nào!",
+                                         "Quấn chặt rồi!",
+                                         "Tada!"
+                                     ]
+                    },
+                    {
+                        "sourceSha256":  "4be7964bdb7568193792f0a5ccf92c8577e49de82c0234fe1cd5f3dce04c6059",
+                        "targetSha256":  "9a9b0a4db0185dff2b08a35aed2f3dd17cca31b8f86ffb812e3c4ba0c6041ac7",
+    "source":  "x/vi/dialogue_filled_20261018/backlog_comic_20261015_06.png",
+                        "visuallyChecked":  true,
+                        "target":  "x/vi/vertical_comic_20261018/x_backlog_06.png",
+                        "layout":  "vertical-1x4; source reading order top-left, top-right, bottom-left, bottom-right",
+                        "generatedPath":  "x/vi/vertical_comic_20261018/x_backlog_06.png",
+                        "dialogue":  [
+                                         "Bánh flan!",
+                                         "Đẩy xe nào!",
+                                         "Úi, ngã rồi!",
+                                         "Mời ăn nhé!"
+                                     ]
+                    },
+                    {
+                        "sourceSha256":  "4be7964bdb7568193792f0a5ccf92c8577e49de82c0234fe1cd5f3dce04c6059",
+                        "targetSha256":  "9a9b0a4db0185dff2b08a35aed2f3dd17cca31b8f86ffb812e3c4ba0c6041ac7",
+    "source":  "facebook/vi/dialogue_filled_20261018/backlog_comic_20261015_06.png",
+                        "visuallyChecked":  true,
+                        "target":  "facebook/vi/vertical_comic_20261018/facebook_backlog_06.png",
+                        "layout":  "vertical-1x4; source reading order top-left, top-right, bottom-left, bottom-right",
+                        "generatedPath":  "facebook/vi/vertical_comic_20261018/facebook_backlog_06.png",
+                        "dialogue":  [
+                                         "Bánh flan!",
+                                         "Đẩy xe nào!",
+                                         "Úi, ngã rồi!",
+                                         "Mời ăn nhé!"
+                                     ]
+                    },
+                    {
+                        "sourceSha256":  "8e6f0bb1063dcb6ddd355501f06fa52d0e0ae48ba17e550b22d7cb0dfec716ea",
+                        "targetSha256":  "f06aeee3331a828bd3c17df3f600540dcd4df442b9597cbad6f675f686ff8d38",
+    "source":  "x/vi/dialogue_filled_20261018/backlog_comic_20261015_07.png",
+                        "visuallyChecked":  true,
+                        "target":  "x/vi/vertical_comic_20261018/x_backlog_07.png",
+                        "layout":  "vertical-1x4; source reading order top-left, top-right, bottom-left, bottom-right",
+                        "generatedPath":  "x/vi/vertical_comic_20261018/x_backlog_07.png",
+                        "dialogue":  [
+                                         "Zombie kia!",
+                                         "Bật đèn nào!",
+                                         "Màn mở rồi!",
+                                         "Cảm ơn nhé!"
+                                     ]
+                    },
+                    {
+                        "sourceSha256":  "8e6f0bb1063dcb6ddd355501f06fa52d0e0ae48ba17e550b22d7cb0dfec716ea",
+                        "targetSha256":  "f06aeee3331a828bd3c17df3f600540dcd4df442b9597cbad6f675f686ff8d38",
+    "source":  "facebook/vi/dialogue_filled_20261018/backlog_comic_20261015_07.png",
+                        "visuallyChecked":  true,
+                        "target":  "facebook/vi/vertical_comic_20261018/facebook_backlog_07.png",
+                        "layout":  "vertical-1x4; source reading order top-left, top-right, bottom-left, bottom-right",
+                        "generatedPath":  "facebook/vi/vertical_comic_20261018/facebook_backlog_07.png",
+                        "dialogue":  [
+                                         "Zombie kia!",
+                                         "Bật đèn nào!",
+                                         "Màn mở rồi!",
+                                         "Cảm ơn nhé!"
+                                     ]
+                    },
+                    {
+                        "sourceSha256":  "844ea96cf174c9c66c1746439e49252c3e25d7361d309278700f81b9a3379c63",
+                        "targetSha256":  "71db1538d6c23d4e1111a1be98c1c0307a697cf83e1f8d62dbb5947ad50749d9",
+    "source":  "x/vi/dialogue_filled_20261018/backlog_comic_20261015_08.png",
+                        "visuallyChecked":  true,
+                        "target":  "x/vi/vertical_comic_20261018/x_backlog_08.png",
+                        "layout":  "vertical-1x4; source reading order top-left, top-right, bottom-left, bottom-right",
+                        "generatedPath":  "x/vi/vertical_comic_20261018/x_backlog_08.png",
+                        "dialogue":  [
+                                         "Zombie kia!",
+                                         "Tưới thật đều!",
+                                         "Nảy mầm rồi!",
+                                         "Cùng trồng nhé!"
+                                     ]
+                    },
+                    {
+                        "sourceSha256":  "844ea96cf174c9c66c1746439e49252c3e25d7361d309278700f81b9a3379c63",
+                        "targetSha256":  "71db1538d6c23d4e1111a1be98c1c0307a697cf83e1f8d62dbb5947ad50749d9",
+    "source":  "facebook/vi/dialogue_filled_20261018/backlog_comic_20261015_08.png",
+                        "visuallyChecked":  true,
+                        "target":  "facebook/vi/vertical_comic_20261018/facebook_backlog_08.png",
+                        "layout":  "vertical-1x4; source reading order top-left, top-right, bottom-left, bottom-right",
+                        "generatedPath":  "facebook/vi/vertical_comic_20261018/facebook_backlog_08.png",
+                        "dialogue":  [
+                                         "Zombie kia!",
+                                         "Tưới thật đều!",
+                                         "Nảy mầm rồi!",
+                                         "Cùng trồng nhé!"
+                                     ]
+                    },
+                    {
+                        "sourceSha256":  "967410e770093c735f1d19f891341d464a876aaca03c0724db75d71285828678",
+                        "targetSha256":  "6b3ffc819caeb5fd3e498f9d9d5cbbfa503af3a2cca17aa5c4213479a24851bb",
+    "source":  "x/vi/dialogue_filled_20261018/backlog_comic_20261015_09.png",
+                        "visuallyChecked":  true,
+                        "target":  "x/vi/vertical_comic_20261018/x_backlog_09.png",
+                        "layout":  "vertical-1x4; source reading order top-left, top-right, bottom-left, bottom-right",
+                        "generatedPath":  "x/vi/vertical_comic_20261018/x_backlog_09.png",
+                        "dialogue":  [
+                                         "Sẵn sàng!",
+                                         "Nhảy qua nào!",
+                                         "Bắt được rồi!",
+                                         "Về đích thôi!"
+                                     ]
+                    },
+                    {
+                        "sourceSha256":  "967410e770093c735f1d19f891341d464a876aaca03c0724db75d71285828678",
+                        "targetSha256":  "6b3ffc819caeb5fd3e498f9d9d5cbbfa503af3a2cca17aa5c4213479a24851bb",
+    "source":  "facebook/vi/dialogue_filled_20261018/backlog_comic_20261015_09.png",
+                        "visuallyChecked":  true,
+                        "target":  "facebook/vi/vertical_comic_20261018/facebook_backlog_09.png",
+                        "layout":  "vertical-1x4; source reading order top-left, top-right, bottom-left, bottom-right",
+                        "generatedPath":  "facebook/vi/vertical_comic_20261018/facebook_backlog_09.png",
+                        "dialogue":  [
+                                         "Sẵn sàng!",
+                                         "Nhảy qua nào!",
+                                         "Bắt được rồi!",
+                                         "Về đích thôi!"
+                                     ]
+                    },
+                    {
+                        "sourceSha256":  "39a6f2b3456e71e934520e31a9ff1b21d248d4de031689e3f897b8e3a4090124",
+                        "targetSha256":  "e25d4d26702f959abfdc452832924bac189c5c2a49f5931b8576fdae6fff5a5e",
+    "source":  "x/vi/dialogue_filled_20261018/backlog_comic_20261015_10.png",
+                        "visuallyChecked":  true,
+                        "target":  "x/vi/vertical_comic_20261018/x_backlog_10.png",
+                        "layout":  "vertical-1x4; source reading order top-left, top-right, bottom-left, bottom-right",
+                        "generatedPath":  "x/vi/vertical_comic_20261018/x_backlog_10.png",
+                        "dialogue":  [
+                                         "Sao kia!",
+                                         "Nhìn kìa!",
+                                         "Vũ trụ rộng quá!",
+                                         "Soi sao nào!"
+                                     ]
+                    },
+                    {
+                        "sourceSha256":  "39a6f2b3456e71e934520e31a9ff1b21d248d4de031689e3f897b8e3a4090124",
+                        "targetSha256":  "e25d4d26702f959abfdc452832924bac189c5c2a49f5931b8576fdae6fff5a5e",
+    "source":  "facebook/vi/dialogue_filled_20261018/backlog_comic_20261015_10.png",
+                        "visuallyChecked":  true,
+                        "target":  "facebook/vi/vertical_comic_20261018/facebook_backlog_10.png",
+                        "layout":  "vertical-1x4; source reading order top-left, top-right, bottom-left, bottom-right",
+                        "generatedPath":  "facebook/vi/vertical_comic_20261018/facebook_backlog_10.png",
+                        "dialogue":  [
+                                         "Sao kia!",
+                                         "Nhìn kìa!",
+                                         "Vũ trụ rộng quá!",
+                                         "Soi sao nào!"
+                                     ]
+                    },
+                    {
+                        "sourceSha256":  "39f23222d96b7d1e9276310261b120119b7f427c64c3b9245a6acd262378e981",
+                        "targetSha256":  "2171d540cd79c5a5ddc87444f9b1135cf748176a5a69be26e6a05378c7e83383",
+                        "source":  "facebook/vi/zombie_catch_comic_words_20261015/01.png",
+                        "visuallyChecked":  true,
+                        "target":  "facebook/vi/vertical_comic_20261018/facebook_zombiecatch_01.png",
+                        "layout":  "vertical-1x4; source reading order top-left, top-right, bottom-left, bottom-right",
+                        "generatedPath":  "facebook/vi/vertical_comic_20261018/facebook_zombiecatch_01.png",
+                        "dialogue":  [
+                                         "Lớp học!",
+                                         "Chạy thôi!",
+                                         "Rầm!",
+                                         "Thoát rồi!"
+                                     ]
+                    },
+                    {
+                        "sourceSha256":  "0c9ab3d2ba001ceebc7198999f80446f54e1d182458686ea95caadeb02903a27",
+                        "targetSha256":  "ccfe046f3d79f117a2a33d668cb17988b2628931adfa61e94b2b94f1c92d827a",
+                        "source":  "facebook/vi/zombie_catch_comic_words_20261015/02.png",
+                        "visuallyChecked":  true,
+                        "target":  "facebook/vi/vertical_comic_20261018/facebook_zombiecatch_02.png",
+                        "layout":  "vertical-1x4; source reading order top-left, top-right, bottom-left, bottom-right",
+                        "generatedPath":  "facebook/vi/vertical_comic_20261018/facebook_zombiecatch_02.png",
+                        "dialogue":  [
+                                         "Tủ đồ!",
+                                         "Chặn lối!",
+                                         "Núp mau!",
+                                         "Bị thấy rồi!"
+                                     ]
+                    },
+                    {
+                        "sourceSha256":  "abd6a00608741746f327774a53d638fbb1c962a3a422669390faaf4de25cc5cc",
+                        "targetSha256":  "c4c678d88939d117425e4b3424329ef7c43cfabffb2c43fc661d23ac19873f8b",
+                        "source":  "facebook/vi/zombie_catch_comic_words_20261015/03.png",
+                        "visuallyChecked":  true,
+                        "target":  "facebook/vi/vertical_comic_20261018/facebook_zombiecatch_03.png",
+                        "layout":  "vertical-1x4; source reading order top-left, top-right, bottom-left, bottom-right",
+                        "generatedPath":  "facebook/vi/vertical_comic_20261018/facebook_zombiecatch_03.png",
+                        "dialogue":  [
+                                         "Nhà ăn!",
+                                         "Khay này!",
+                                         "Ôi, đổ mất!",
+                                         "Mời ăn nhé!"
+                                     ]
+                    },
+                    {
+                        "sourceSha256":  "8a216b2856eb30809be66f27e248975ac34708f0ffe3f826cf413572edd200ac",
+                        "targetSha256":  "9e921ffcc5ea8b7e0709e51ae7e1a87a535c519a275fa2a61ce6a8962e706af0",
+                        "source":  "facebook/vi/zombie_catch_comic_words_20261015/04.png",
+                        "visuallyChecked":  true,
+                        "target":  "facebook/vi/vertical_comic_20261018/facebook_zombiecatch_04.png",
+                        "layout":  "vertical-1x4; source reading order top-left, top-right, bottom-left, bottom-right",
+                        "generatedPath":  "facebook/vi/vertical_comic_20261018/facebook_zombiecatch_04.png",
+                        "dialogue":  [
+                                         "Nhà thể chất!",
+                                         "Bóng tới!",
+                                         "Lăn nào!",
+                                         "Thành công!"
+                                     ]
+                    },
+                    {
+                        "sourceSha256":  "b6fa5795382108a6b0ff9805be76091f65c6b8dcba2fd785a3825745fe561766",
+                        "targetSha256":  "de6d9d861a0a9e76f9e1418f74076f2ce4f22536a0f241fb1e7fcd6b95d1538e",
+                        "source":  "facebook/vi/zombie_catch_comic_words_20261015/05.png",
+                        "visuallyChecked":  true,
+                        "target":  "facebook/vi/vertical_comic_20261018/facebook_zombiecatch_05.png",
+                        "layout":  "vertical-1x4; source reading order top-left, top-right, bottom-left, bottom-right",
+                        "generatedPath":  "facebook/vi/vertical_comic_20261018/facebook_zombiecatch_05.png",
+                        "dialogue":  [
+                                         "Thư viện!",
+                                         "Suỵt, thật khẽ!",
+                                         "Xe đẩy tới!",
+                                         "Tìm được rồi!"
+                                     ]
+                    },
+                    {
+                        "sourceSha256":  "45b4eb9591ed4e18578be3bc6a05af386f099ef2c6361b39e9ccc33b80632320",
+                        "targetSha256":  "c602e65259bff55b7f5ae8ba54c1b68ee9fce235dd95bd501d7af6aa3f70034a",
+                        "source":  "facebook/vi/dialogue_filled_20261018/backlog_comic_20261015_01.png",
+                        "visuallyChecked":  true,
+                        "target":  "facebook/vi/vertical_comic_20261018/facebook_backlog_01.png",
+                        "layout":  "vertical-1x4; source reading order top-left, top-right, bottom-left, bottom-right",
+                        "generatedPath":  "facebook/vi/vertical_comic_20261018/facebook_backlog_01.png",
+                        "dialogue":  [
+                                         "Ở kia!",
+                                         "Quả địa cầu đây rồi!",
+                                         "Xả bóng nào!",
+                                         "Chụp được rồi!"
+                                     ]
+                    },
+                    {
+                        "sourceSha256":  "3ccef51e0865afae296e4733fd87570aa70c70425343b578f8fc51d515964f2f",
+                        "targetSha256":  "47bc47dcce8ea62cbbd63196fba764145715771a07f0565e40f64d454cc8ce43",
+                        "source":  "facebook/vi/dialogue_filled_20261018/backlog_comic_20261015_02.png",
+                        "visuallyChecked":  true,
+                        "target":  "facebook/vi/vertical_comic_20261018/facebook_backlog_02.png",
+                        "layout":  "vertical-1x4; source reading order top-left, top-right, bottom-left, bottom-right",
+                        "generatedPath":  "facebook/vi/vertical_comic_20261018/facebook_backlog_02.png",
+                        "dialogue":  [
+                                         "Zombie kìa!",
+                                         "Hút hết nào!",
+                                         "Dính chặt rồi!",
+                                         "Thành công!"
+                                     ]
+                    },
+                    {
+                        "sourceSha256":  "6f30a7a9407ca64ea3ded6cfda668900abff79fad5b1a116249a118a6660445c",
+                        "targetSha256":  "25c6278c1a89e79e14cc0f6c14767023622a1bf532fbcbb86d59dda207af47aa",
+                        "source":  "facebook/vi/dialogue_filled_20261018/backlog_comic_20261015_03.png",
+                        "visuallyChecked":  true,
+                        "target":  "facebook/vi/vertical_comic_20261018/facebook_backlog_03.png",
+                        "layout":  "vertical-1x4; source reading order top-left, top-right, bottom-left, bottom-right",
+                        "generatedPath":  "facebook/vi/vertical_comic_20261018/facebook_backlog_03.png",
+                        "dialogue":  [
+                                         "Suỵt!",
+                                         "Đẩy xe thôi!",
+                                         "Lấy sách nào!",
+                                         "Có thẻ rồi!"
+                                     ]
+                    },
+                    {
+                        "sourceSha256":  "8d7151c3385b4d2d3435ae136b762a3143196676f9a17d65eb7f90dc3b80945d",
+                        "targetSha256":  "757acae7a1ad428937ea78c6b6f428a93ad1f723297bc25d554b8fe0950d2937",
+                        "source":  "facebook/vi/dialogue_filled_20261018/backlog_comic_20261015_04.png",
+                        "visuallyChecked":  true,
+                        "target":  "facebook/vi/vertical_comic_20261018/facebook_backlog_04.png",
+                        "layout":  "vertical-1x4; source reading order top-left, top-right, bottom-left, bottom-right",
+                        "generatedPath":  "facebook/vi/vertical_comic_20261018/facebook_backlog_04.png",
+                        "dialogue":  [
+                                         "Suỵt!",
+                                         "Vào nhịp nhé!",
+                                         "Bùm!",
+                                         "Chơi tiếp nào!"
+                                     ]
+                    }
+                ],
+    "sourceUniqueCount":  24,
+    "schema":  1,
+    "locale":  "vi",
+    "editMethod":  "built-in image_gen; one generation per unique source SHA256, with byte-identical outputs copied across platform targets",
+    "date":  "2026-10-18",
+    "preservation":  "Source images, config, catalog and receipts unchanged; exact BẮT ĐẦU CHƠI CTA retained",
+    "platformTargets":  30,
+    "complete":  true
+}

@@ -1,0 +1,66 @@
+[
+    {
+        "platform":  "X",
+        "locale":  "ja",
+        "nextImage":  "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\x\\ja\\vertical_comic_20261018\\dialogue_filled_20261018_backlog_comic_20261015_07.png",
+        "sha256":  "b3643f554b881b77fb30a1f11c556604a7ae545d8a86066ae5ad14e997d3b403",
+        "originalIdentitySha256":  "c48c4962238c019758a8c3dc40ca92ba8a9006bbd3946f11eaf1e52c02f5c5ee",
+        "gameStartText":  "ゲームスタート"
+    },
+    {
+        "platform":  "X",
+        "locale":  "en",
+        "nextImage":  "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\x\\en\\vertical_comic_20261018\\dialogue_filled_20261018_backlog_comic_20261015_06_vertical.png",
+        "sha256":  "bd3744345d6b94c3a874fd324d9f2f80ce896d17aafb732f8c13818e4caa2340",
+        "originalIdentitySha256":  "69a4bf222516247c5febb7b36e04f3b04e964a994854f1aba0af04073aa6a71f",
+        "gameStartText":  "START GAME"
+    },
+    {
+        "platform":  "X",
+        "locale":  "vi",
+        "nextImage":  "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\x\\vi\\vertical_comic_20261018\\x_backlog_05.png",
+        "sha256":  "7cfb4a170279ca9882b6b4805c77f27f3a6fd811a955187f7a1497b09bb9787e",
+        "originalIdentitySha256":  "a2b096504a2e5d8c1ea59daf5597006da6fb6866b253c6bb4aa4a9048b7c8936",
+        "gameStartText":  "BẮT ĐẦU CHƠI"
+    },
+    {
+        "platform":  "X",
+        "locale":  "ko",
+        "nextImage":  "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\x\\ko\\vertical_comic_20261018\\comic_09.png",
+        "sha256":  "84d1ec7096b946c38048162b614bad3e9773b12a26f615efdb74c187ca9535c3",
+        "originalIdentitySha256":  "e9232f983e19581fd578efbd1c2d9af5b89b930f670e88c1ad4ebead076f9e00",
+        "gameStartText":  "게임시작"
+    },
+    {
+        "platform":  "Facebook",
+        "locale":  "ja",
+        "nextImage":  "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\facebook\\ja\\vertical_comic_20261018\\dialogue_filled_20261018_backlog_comic_20261015_02.png",
+        "sha256":  "9951c81ab40aadf4b81cb4d833a5ef7fba922c95fe7dae583d1d18e1f3f8ea33",
+        "originalIdentitySha256":  "9ecca86f15aba0c60e01df0a1b78e10609ddf4279738458376cb010e56b2603f",
+        "gameStartText":  "ゲームスタート"
+    },
+    {
+        "platform":  "Facebook",
+        "locale":  "en",
+        "nextImage":  "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\facebook\\en\\vertical_comic_20261018\\dialogue_filled_20261018_backlog_comic_20261015_02_vertical.png",
+        "sha256":  "882806294becd0bdaacabc5fcb33b08da05be2721dc80de13537c0cf4becce8c",
+        "originalIdentitySha256":  "3947f513e13c604c2aef8f16d01e454b7f0bf4f358688cf83d83050f6ba986ae",
+        "gameStartText":  "START GAME"
+    },
+    {
+        "platform":  "Facebook",
+        "locale":  "vi",
+        "nextImage":  "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\facebook\\vi\\vertical_comic_20261018\\facebook_backlog_01.png",
+        "sha256":  "c602e65259bff55b7f5ae8ba54c1b68ee9fce235dd95bd501d7af6aa3f70034a",
+        "originalIdentitySha256":  "015ddd4a21f887af78ccde30c826ef90e96042fb09135ea4e01c4d187ceb2a2d",
+        "gameStartText":  "BẮT ĐẦU CHƠI"
+    },
+    {
+        "platform":  "Facebook",
+        "locale":  "ko",
+        "nextImage":  "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\facebook\\ko\\vertical_comic_20261018\\comic_18.png",
+        "sha256":  "b7275d7d8cb2e931d21654fc9c0ecdfc9e528004d33cfef7f54013a286b781fe",
+        "originalIdentitySha256":  "04ce70e3b9d0f40ae4e25c1018a63dddaa0e4876c54c799471eb51265fdef4cf",
+        "gameStartText":  "게임시작"
+    }
+]

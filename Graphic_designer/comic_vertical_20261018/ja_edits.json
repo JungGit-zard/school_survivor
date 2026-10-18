@@ -1,0 +1,980 @@
+{
+    "locale":  "ja",
+    "complete":  true,
+    "uniqueSourceCount":  24,
+    "expectedMappings":  30,
+    "items":  [
+                  {
+                      "index":  0,
+                      "locale":  "ja",
+                      "platform":  "X",
+                      "source":  "marketing/x_daily_zombie_school_posting/image_pool/x/ja/zombie_catch_comic_words_20261014/01.png",
+                      "target":  "marketing/x_daily_zombie_school_posting/image_pool/x/ja/vertical_comic_20261018/zombie_catch_comic_words_20261014_01.png",
+                      "sourceSha256":  "3c6d2e315547c1551b7358417d37bd3b56318561b7acb42b0408cdcce39c0428",
+                      "imagegenPath":  "C:\\Users\\admin\\.codex\\generated_images\\01a14dde-cefd-7ed2-8d52-44670dd887fb\\exec-5076b465-b7f3-43ec-b4bb-258b295e3ab1.png",
+                      "dialogue":  [
+                                       "机！",
+                                       "ゾンビ！",
+                                       "ヒュッ！",
+                                       "脱出！"
+                                   ],
+                      "fullDialogue":  "机！ / ゾンビ！ / ヒュッ！ / 脱出！",
+                      "blankFilled":  [
+
+                                      ],
+                      "visuallyChecked":  true,
+                      "layout":  "1column_4rows",
+                      "panelOrder":  [
+                                         "topLeft",
+                                         "topRight",
+                                         "bottomLeft",
+                                         "bottomRight"
+                                     ],
+                      "cta":  "ゲームスタート",
+                      "footerUrl":  "escapezombie.com",
+                      "targetSha256":  "302e7232744415da51acad31a4674d542728b05a3aa28492b0c2153ab6f7197c",
+                      "width":  724,
+                      "height":  2172
+                  },
+                  {
+                      "index":  1,
+                      "locale":  "ja",
+                      "platform":  "X",
+                      "source":  "marketing/x_daily_zombie_school_posting/image_pool/x/ja/zombie_catch_comic_words_20261014/02.png",
+                      "target":  "marketing/x_daily_zombie_school_posting/image_pool/x/ja/vertical_comic_20261018/zombie_catch_comic_words_20261014_02.png",
+                      "sourceSha256":  "8bc3420c4d22c8d2d63b72d81ce9919d3d024c9c466fdb4ed6ee78525218c34c",
+                      "imagegenPath":  "C:\\Users\\admin\\.codex\\generated_images\\01a14dde-cefd-7ed2-8d52-44670dd887fb\\exec-a3cbd76e-2a84-4b5d-b1a9-7929edb1b144.png",
+                      "dialogue":  [
+                                       "ロッカー！",
+                                       "通れない！",
+                                       "隠れろ！",
+                                       "見つかった！"
+                                   ],
+                      "fullDialogue":  "ロッカー！ / 通れない！ / 隠れろ！ / 見つかった！",
+                      "blankFilled":  [
+
+                                      ],
+                      "visuallyChecked":  true,
+                      "layout":  "1column_4rows",
+                      "panelOrder":  [
+                                         "topLeft",
+                                         "topRight",
+                                         "bottomLeft",
+                                         "bottomRight"
+                                     ],
+                      "cta":  "ゲームスタート",
+                      "footerUrl":  "escapezombie.com",
+                      "targetSha256":  "599cc083c27ad48c5f3d16cdf81be861e18c423b727fc66e2598adfe95fa466d",
+                      "width":  724,
+                      "height":  2172
+                  },
+                  {
+                      "index":  2,
+                      "locale":  "ja",
+                      "platform":  "X",
+                      "source":  "marketing/x_daily_zombie_school_posting/image_pool/x/ja/zombie_catch_comic_words_20261014/03.png",
+                      "target":  "marketing/x_daily_zombie_school_posting/image_pool/x/ja/vertical_comic_20261018/zombie_catch_comic_words_20261014_03.png",
+                      "sourceSha256":  "d87427742bae924f169849313fef7068aa99f90d0b4fcfc03e1d05bf373ff209",
+                      "imagegenPath":  "C:\\Users\\admin\\.codex\\generated_images\\01a14dde-cefd-7ed2-8d52-44670dd887fb\\exec-54d19210-55d7-48b4-9220-54866fa1db15.png",
+                      "dialogue":  [
+                                       "ゾンビ！",
+                                       "食堂！",
+                                       "わあ！",
+                                       "きゃー！"
+                                   ],
+                      "fullDialogue":  "ゾンビ！ / 食堂！ / わあ！ / きゃー！",
+                      "blankFilled":  [
+
+                                      ],
+                      "visuallyChecked":  true,
+                      "layout":  "1column_4rows",
+                      "panelOrder":  [
+                                         "topLeft",
+                                         "topRight",
+                                         "bottomLeft",
+                                         "bottomRight"
+                                     ],
+                      "cta":  "ゲームスタート",
+                      "footerUrl":  "escapezombie.com",
+                      "targetSha256":  "10090f8fe3bfb44ae4c72cc0cc6cdfe99c27eb7c54c29b905ae720a8d8df72f3",
+                      "width":  724,
+                      "height":  2172
+                  },
+                  {
+                      "index":  3,
+                      "locale":  "ja",
+                      "platform":  "X",
+                      "source":  "marketing/x_daily_zombie_school_posting/image_pool/x/ja/zombie_catch_comic_words_20261014/04.png",
+                      "target":  "marketing/x_daily_zombie_school_posting/image_pool/x/ja/vertical_comic_20261018/zombie_catch_comic_words_20261014_04.png",
+                      "sourceSha256":  "ba0e8c435edb8b0375d72219f489fcd26885b79b791c4f8fdb77312ce1e6c29c",
+                      "imagegenPath":  "C:\\Users\\admin\\.codex\\generated_images\\01a14dde-cefd-7ed2-8d52-44670dd887fb\\exec-65fb2a50-c7a0-48bb-a3bd-2d1e1ab2988c.png",
+                      "dialogue":  [
+                                       "体育館！",
+                                       "ボール！",
+                                       "ゴロゴロ！",
+                                       "ゴール！"
+                                   ],
+                      "fullDialogue":  "体育館！ / ボール！ / ゴロゴロ！ / ゴール！",
+                      "blankFilled":  [
+
+                                      ],
+                      "visuallyChecked":  true,
+                      "layout":  "1column_4rows",
+                      "panelOrder":  [
+                                         "topLeft",
+                                         "topRight",
+                                         "bottomLeft",
+                                         "bottomRight"
+                                     ],
+                      "cta":  "ゲームスタート",
+                      "footerUrl":  "escapezombie.com",
+                      "targetSha256":  "49371483f9b6b3f07efe8716281147651cd5e6d246bb441f795cffbfee3dc5b1",
+                      "width":  724,
+                      "height":  2172
+                  },
+                  {
+                      "index":  4,
+                      "locale":  "ja",
+                      "platform":  "X",
+                      "source":  "marketing/x_daily_zombie_school_posting/image_pool/x/ja/zombie_catch_comic_words_20261014/05.png",
+                      "target":  "marketing/x_daily_zombie_school_posting/image_pool/x/ja/vertical_comic_20261018/zombie_catch_comic_words_20261014_05.png",
+                      "sourceSha256":  "e9bcaf325ef2c34dd3c91d846b768d07aa217b7fc24954a6f35478ecfd6e17fc",
+                      "imagegenPath":  "C:\\Users\\admin\\.codex\\generated_images\\01a14dde-cefd-7ed2-8d52-44670dd887fb\\exec-33d71f05-3340-4650-93a7-0e5858924712.png",
+                      "dialogue":  [
+                                       "図書室！",
+                                       "しーっ！",
+                                       "カート！",
+                                       "ガラガラ！"
+                                   ],
+                      "fullDialogue":  "図書室！ / しーっ！ / カート！ / ガラガラ！",
+                      "blankFilled":  [
+
+                                      ],
+                      "visuallyChecked":  true,
+                      "layout":  "1column_4rows",
+                      "panelOrder":  [
+                                         "topLeft",
+                                         "topRight",
+                                         "bottomLeft",
+                                         "bottomRight"
+                                     ],
+                      "cta":  "ゲームスタート",
+                      "footerUrl":  "escapezombie.com",
+                      "targetSha256":  "315cd9ad0f1c642055686009fbed1130786ca832e18e0d6e038f0797c5500443",
+                      "width":  724,
+                      "height":  2172
+                  },
+                  {
+                      "index":  5,
+                      "locale":  "ja",
+                      "platform":  "X",
+                      "source":  "marketing/x_daily_zombie_school_posting/image_pool/x/ja/backlog_comic_20261015/01.png",
+                      "target":  "marketing/x_daily_zombie_school_posting/image_pool/x/ja/vertical_comic_20261018/backlog_comic_20261015_01.png",
+                      "sourceSha256":  "708fab950e3f2e1ca7b4dc7eb2f8cb350aace963eb5145f571862667abffd300",
+                      "imagegenPath":  "C:\\Users\\admin\\.codex\\generated_images\\01a14dde-cefd-7ed2-8d52-44670dd887fb\\exec-1efeb102-2431-4dd0-9294-c5d984dbba0f.png",
+                      "dialogue":  [
+                                       "あれ？",
+                                       "体育館へ！",
+                                       "いっけー！",
+                                       "やった！"
+                                   ],
+                      "fullDialogue":  "あれ？ / 体育館へ！ / いっけー！ / やった！",
+                      "blankFilled":  [
+                                          2,
+                                          3,
+                                          4
+                                      ],
+                      "visuallyChecked":  true,
+                      "layout":  "1column_4rows",
+                      "panelOrder":  [
+                                         "topLeft",
+                                         "topRight",
+                                         "bottomLeft",
+                                         "bottomRight"
+                                     ],
+                      "cta":  "ゲームスタート",
+                      "footerUrl":  "escapezombie.com",
+                      "targetSha256":  "99d26d1af0d914c0680daaaa87707db6ea99009b23eff1889ad93e0834d803c0",
+                      "width":  724,
+                      "height":  2172
+                  },
+                  {
+                      "index":  5,
+                      "locale":  "ja",
+                      "platform":  "Facebook",
+                      "source":  "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/backlog_comic_20261015/01.png",
+                      "target":  "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/vertical_comic_20261018/backlog_comic_20261015_01.png",
+                      "sourceSha256":  "708fab950e3f2e1ca7b4dc7eb2f8cb350aace963eb5145f571862667abffd300",
+                      "imagegenPath":  "C:\\Users\\admin\\.codex\\generated_images\\01a14dde-cefd-7ed2-8d52-44670dd887fb\\exec-1efeb102-2431-4dd0-9294-c5d984dbba0f.png",
+                      "dialogue":  [
+                                       "あれ？",
+                                       "体育館へ！",
+                                       "いっけー！",
+                                       "やった！"
+                                   ],
+                      "fullDialogue":  "あれ？ / 体育館へ！ / いっけー！ / やった！",
+                      "blankFilled":  [
+                                          2,
+                                          3,
+                                          4
+                                      ],
+                      "visuallyChecked":  true,
+                      "layout":  "1column_4rows",
+                      "panelOrder":  [
+                                         "topLeft",
+                                         "topRight",
+                                         "bottomLeft",
+                                         "bottomRight"
+                                     ],
+                      "cta":  "ゲームスタート",
+                      "footerUrl":  "escapezombie.com",
+                      "targetSha256":  "99d26d1af0d914c0680daaaa87707db6ea99009b23eff1889ad93e0834d803c0",
+                      "width":  724,
+                      "height":  2172
+                  },
+                  {
+                      "index":  6,
+                      "locale":  "ja",
+                      "platform":  "X",
+                      "source":  "marketing/x_daily_zombie_school_posting/image_pool/x/ja/backlog_comic_20261015/02.png",
+                      "target":  "marketing/x_daily_zombie_school_posting/image_pool/x/ja/vertical_comic_20261018/backlog_comic_20261015_02.png",
+                      "sourceSha256":  "9ecca86f15aba0c60e01df0a1b78e10609ddf4279738458376cb010e56b2603f",
+                      "imagegenPath":  "C:\\Users\\admin\\.codex\\generated_images\\01a14dde-cefd-7ed2-8d52-44670dd887fb\\exec-f50404da-9e1c-48bc-84a8-218d466b6d21.png",
+                      "dialogue":  [
+                                       "ゾンビだ！",
+                                       "磁石オン！",
+                                       "ピタッ！",
+                                       "大成功！"
+                                   ],
+                      "fullDialogue":  "ゾンビだ！ / 磁石オン！ / ピタッ！ / 大成功！",
+                      "blankFilled":  [
+                                          2,
+                                          3,
+                                          4
+                                      ],
+                      "visuallyChecked":  true,
+                      "layout":  "1column_4rows",
+                      "panelOrder":  [
+                                         "topLeft",
+                                         "topRight",
+                                         "bottomLeft",
+                                         "bottomRight"
+                                     ],
+                      "cta":  "ゲームスタート",
+                      "footerUrl":  "escapezombie.com",
+                      "targetSha256":  "b858ad9880b6d504b555b5a279a0b926ed632e242a2371da8f7abd5033256cb3",
+                      "width":  724,
+                      "height":  2172
+                  },
+                  {
+                      "index":  7,
+                      "locale":  "ja",
+                      "platform":  "X",
+                      "source":  "marketing/x_daily_zombie_school_posting/image_pool/x/ja/backlog_comic_20261015/03.png",
+                      "target":  "marketing/x_daily_zombie_school_posting/image_pool/x/ja/vertical_comic_20261018/backlog_comic_20261015_03.png",
+                      "sourceSha256":  "7ba395e482aadfc0ee7299d1543ea7928b54321b46847fef4e7a252efc384a6c",
+                      "imagegenPath":  "C:\\Users\\admin\\.codex\\generated_images\\01a14dde-cefd-7ed2-8d52-44670dd887fb\\exec-eaaf1402-d607-41d1-a24b-0015719c9126.png",
+                      "dialogue":  [
+                                       "しーっ！",
+                                       "カート発進！",
+                                       "本の雪崩！",
+                                       "貸出完了！"
+                                   ],
+                      "fullDialogue":  "しーっ！ / カート発進！ / 本の雪崩！ / 貸出完了！",
+                      "blankFilled":  [
+                                          2,
+                                          3,
+                                          4
+                                      ],
+                      "visuallyChecked":  true,
+                      "layout":  "1column_4rows",
+                      "panelOrder":  [
+                                         "topLeft",
+                                         "topRight",
+                                         "bottomLeft",
+                                         "bottomRight"
+                                     ],
+                      "cta":  "ゲームスタート",
+                      "footerUrl":  "escapezombie.com",
+                      "targetSha256":  "05e4dcb97a502ac2aa9cb846f0c42df00881b6b91a612261ddc7580673a3226d",
+                      "width":  724,
+                      "height":  2172
+                  },
+                  {
+                      "index":  8,
+                      "locale":  "ja",
+                      "platform":  "X",
+                      "source":  "marketing/x_daily_zombie_school_posting/image_pool/x/ja/backlog_comic_20261015/04.png",
+                      "target":  "marketing/x_daily_zombie_school_posting/image_pool/x/ja/vertical_comic_20261018/backlog_comic_20261015_04.png",
+                      "sourceSha256":  "9a8647341431b2caa2fea23838467e45a9dbe80e77992ac2e5eaa820e99e6c11",
+                      "imagegenPath":  "C:\\Users\\admin\\.codex\\generated_images\\01a14dde-cefd-7ed2-8d52-44670dd887fb\\exec-6ccc1ce4-133f-4c70-9f10-5fc04cfa8a61.png",
+                      "dialogue":  [
+                                       "しーっ！",
+                                       "ドンドン！",
+                                       "ドーン！",
+                                       "アンコール？"
+                                   ],
+                      "fullDialogue":  "しーっ！ / ドンドン！ / ドーン！ / アンコール？",
+                      "blankFilled":  [
+                                          2,
+                                          3,
+                                          4
+                                      ],
+                      "visuallyChecked":  true,
+                      "layout":  "1column_4rows",
+                      "panelOrder":  [
+                                         "topLeft",
+                                         "topRight",
+                                         "bottomLeft",
+                                         "bottomRight"
+                                     ],
+                      "cta":  "ゲームスタート",
+                      "footerUrl":  "escapezombie.com",
+                      "targetSha256":  "c536474a0ef41758211862c38e05434c2441b6085e491c079e826def1e53bd05",
+                      "width":  724,
+                      "height":  2172
+                  },
+                  {
+                      "index":  9,
+                      "locale":  "ja",
+                      "platform":  "X",
+                      "source":  "marketing/x_daily_zombie_school_posting/image_pool/x/ja/backlog_comic_20261015/05.png",
+                      "target":  "marketing/x_daily_zombie_school_posting/image_pool/x/ja/vertical_comic_20261018/backlog_comic_20261015_05.png",
+                      "sourceSha256":  "e55ac706760321d5c46207cc2f9b3ab6ab8c6750d4438c125fc3ae8d37364274",
+                      "imagegenPath":  "C:\\Users\\admin\\.codex\\generated_images\\01a14dde-cefd-7ed2-8d52-44670dd887fb\\exec-31e237dd-0215-4d18-a5b3-c059954c18ad.png",
+                      "dialogue":  [
+                                       "あれ？",
+                                       "コロコロ！",
+                                       "紙ぐるぐる！",
+                                       "完成！"
+                                   ],
+                      "fullDialogue":  "あれ？ / コロコロ！ / 紙ぐるぐる！ / 完成！",
+                      "blankFilled":  [
+                                          2,
+                                          3,
+                                          4
+                                      ],
+                      "visuallyChecked":  true,
+                      "layout":  "1column_4rows",
+                      "panelOrder":  [
+                                         "topLeft",
+                                         "topRight",
+                                         "bottomLeft",
+                                         "bottomRight"
+                                     ],
+                      "cta":  "ゲームスタート",
+                      "footerUrl":  "escapezombie.com",
+                      "targetSha256":  "78ad20618ce94be29984f4464db5da328847f1cab06dd4975db1f212d20acb4d",
+                      "width":  724,
+                      "height":  2172
+                  },
+                  {
+                      "index":  10,
+                      "locale":  "ja",
+                      "platform":  "X",
+                      "source":  "marketing/x_daily_zombie_school_posting/image_pool/x/ja/dialogue_filled_20261018/backlog_comic_20261015_06.png",
+                      "target":  "marketing/x_daily_zombie_school_posting/image_pool/x/ja/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_06.png",
+                      "sourceSha256":  "555f084bc70b267c32555cd161f3671d28d99ab6d8c31a890a0a15d53b350a55",
+                      "imagegenPath":  "C:\\Users\\admin\\.codex\\generated_images\\01a14dde-cefd-7ed2-8d52-44670dd887fb\\exec-28722542-d19f-4ecf-ad51-1d58de7529bc.png",
+                      "dialogue":  [
+                                       "プリンだ！",
+                                       "そーっと！",
+                                       "ぷるぷる！",
+                                       "召し上がれ！"
+                                   ],
+                      "fullDialogue":  "プリンだ！ / そーっと！ / ぷるぷる！ / 召し上がれ！",
+                      "blankFilled":  [
+
+                                      ],
+                      "visuallyChecked":  true,
+                      "layout":  "1column_4rows",
+                      "panelOrder":  [
+                                         "topLeft",
+                                         "topRight",
+                                         "bottomLeft",
+                                         "bottomRight"
+                                     ],
+                      "cta":  "ゲームスタート",
+                      "footerUrl":  "escapezombie.com",
+                      "targetSha256":  "dd3c9fa15b0ba6d5416d65e9a7a1919a871937da720efd958685da8a80e3495c",
+                      "width":  724,
+                      "height":  2172
+                  },
+                  {
+                      "index":  10,
+                      "locale":  "ja",
+                      "platform":  "Facebook",
+                      "source":  "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/dialogue_filled_20261018/backlog_comic_20261015_06.png",
+                      "target":  "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_06.png",
+                      "sourceSha256":  "555f084bc70b267c32555cd161f3671d28d99ab6d8c31a890a0a15d53b350a55",
+                      "imagegenPath":  "C:\\Users\\admin\\.codex\\generated_images\\01a14dde-cefd-7ed2-8d52-44670dd887fb\\exec-28722542-d19f-4ecf-ad51-1d58de7529bc.png",
+                      "dialogue":  [
+                                       "プリンだ！",
+                                       "そーっと！",
+                                       "ぷるぷる！",
+                                       "召し上がれ！"
+                                   ],
+                      "fullDialogue":  "プリンだ！ / そーっと！ / ぷるぷる！ / 召し上がれ！",
+                      "blankFilled":  [
+
+                                      ],
+                      "visuallyChecked":  true,
+                      "layout":  "1column_4rows",
+                      "panelOrder":  [
+                                         "topLeft",
+                                         "topRight",
+                                         "bottomLeft",
+                                         "bottomRight"
+                                     ],
+                      "cta":  "ゲームスタート",
+                      "footerUrl":  "escapezombie.com",
+                      "targetSha256":  "dd3c9fa15b0ba6d5416d65e9a7a1919a871937da720efd958685da8a80e3495c",
+                      "width":  724,
+                      "height":  2172
+                  },
+                  {
+                      "index":  11,
+                      "locale":  "ja",
+                      "platform":  "X",
+                      "source":  "marketing/x_daily_zombie_school_posting/image_pool/x/ja/dialogue_filled_20261018/backlog_comic_20261015_07.png",
+                      "target":  "marketing/x_daily_zombie_school_posting/image_pool/x/ja/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_07.png",
+                      "sourceSha256":  "b9c2d4bb6067cc81d5398833a7bfd65f925dcb8779006f914c4d44f204a6ac30",
+                      "imagegenPath":  "C:\\Users\\admin\\.codex\\generated_images\\01a14dde-cefd-7ed2-8d52-44670dd887fb\\exec-a15a477e-d166-456c-8a13-c7c285a594db.png",
+                      "dialogue":  [
+                                       "ゾンビだ！",
+                                       "ライトオン！",
+                                       "幕を下ろして！",
+                                       "ご清聴ありがとう！"
+                                   ],
+                      "fullDialogue":  "ゾンビだ！ / ライトオン！ / 幕を下ろして！ / ご清聴ありがとう！",
+                      "blankFilled":  [
+
+                                      ],
+                      "visuallyChecked":  true,
+                      "layout":  "1column_4rows",
+                      "panelOrder":  [
+                                         "topLeft",
+                                         "topRight",
+                                         "bottomLeft",
+                                         "bottomRight"
+                                     ],
+                      "cta":  "ゲームスタート",
+                      "footerUrl":  "escapezombie.com",
+                      "targetSha256":  "b3643f554b881b77fb30a1f11c556604a7ae545d8a86066ae5ad14e997d3b403",
+                      "width":  724,
+                      "height":  2172
+                  },
+                  {
+                      "index":  11,
+                      "locale":  "ja",
+                      "platform":  "Facebook",
+                      "source":  "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/dialogue_filled_20261018/backlog_comic_20261015_07.png",
+                      "target":  "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_07.png",
+                      "sourceSha256":  "b9c2d4bb6067cc81d5398833a7bfd65f925dcb8779006f914c4d44f204a6ac30",
+                      "imagegenPath":  "C:\\Users\\admin\\.codex\\generated_images\\01a14dde-cefd-7ed2-8d52-44670dd887fb\\exec-a15a477e-d166-456c-8a13-c7c285a594db.png",
+                      "dialogue":  [
+                                       "ゾンビだ！",
+                                       "ライトオン！",
+                                       "幕を下ろして！",
+                                       "ご清聴ありがとう！"
+                                   ],
+                      "fullDialogue":  "ゾンビだ！ / ライトオン！ / 幕を下ろして！ / ご清聴ありがとう！",
+                      "blankFilled":  [
+
+                                      ],
+                      "visuallyChecked":  true,
+                      "layout":  "1column_4rows",
+                      "panelOrder":  [
+                                         "topLeft",
+                                         "topRight",
+                                         "bottomLeft",
+                                         "bottomRight"
+                                     ],
+                      "cta":  "ゲームスタート",
+                      "footerUrl":  "escapezombie.com",
+                      "targetSha256":  "b3643f554b881b77fb30a1f11c556604a7ae545d8a86066ae5ad14e997d3b403",
+                      "width":  724,
+                      "height":  2172
+                  },
+                  {
+                      "index":  12,
+                      "locale":  "ja",
+                      "platform":  "X",
+                      "source":  "marketing/x_daily_zombie_school_posting/image_pool/x/ja/dialogue_filled_20261018/backlog_comic_20261015_08.png",
+                      "target":  "marketing/x_daily_zombie_school_posting/image_pool/x/ja/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_08.png",
+                      "sourceSha256":  "5a921712d74e0ca4f298871133245c4dca99493f49259fbbf2a61f5f0029833c",
+                      "imagegenPath":  "C:\\Users\\admin\\.codex\\generated_images\\01a14dde-cefd-7ed2-8d52-44670dd887fb\\exec-2e3c9dc2-fb6d-4980-8dbe-f0bd9707a4a9.png",
+                      "dialogue":  [
+                                       "ゾンビだ！",
+                                       "水まき開始！",
+                                       "すべった！",
+                                       "よく育ってね！"
+                                   ],
+                      "fullDialogue":  "ゾンビだ！ / 水まき開始！ / すべった！ / よく育ってね！",
+                      "blankFilled":  [
+
+                                      ],
+                      "visuallyChecked":  true,
+                      "layout":  "1column_4rows",
+                      "panelOrder":  [
+                                         "topLeft",
+                                         "topRight",
+                                         "bottomLeft",
+                                         "bottomRight"
+                                     ],
+                      "cta":  "ゲームスタート",
+                      "footerUrl":  "escapezombie.com",
+                      "targetSha256":  "1fd8a31ace910dc74efbeb78b05e56cf84aec6d54dc2b4253c41e803ce3827ae",
+                      "width":  724,
+                      "height":  2172
+                  },
+                  {
+                      "index":  12,
+                      "locale":  "ja",
+                      "platform":  "Facebook",
+                      "source":  "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/dialogue_filled_20261018/backlog_comic_20261015_08.png",
+                      "target":  "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_08.png",
+                      "sourceSha256":  "5a921712d74e0ca4f298871133245c4dca99493f49259fbbf2a61f5f0029833c",
+                      "imagegenPath":  "C:\\Users\\admin\\.codex\\generated_images\\01a14dde-cefd-7ed2-8d52-44670dd887fb\\exec-2e3c9dc2-fb6d-4980-8dbe-f0bd9707a4a9.png",
+                      "dialogue":  [
+                                       "ゾンビだ！",
+                                       "水まき開始！",
+                                       "すべった！",
+                                       "よく育ってね！"
+                                   ],
+                      "fullDialogue":  "ゾンビだ！ / 水まき開始！ / すべった！ / よく育ってね！",
+                      "blankFilled":  [
+
+                                      ],
+                      "visuallyChecked":  true,
+                      "layout":  "1column_4rows",
+                      "panelOrder":  [
+                                         "topLeft",
+                                         "topRight",
+                                         "bottomLeft",
+                                         "bottomRight"
+                                     ],
+                      "cta":  "ゲームスタート",
+                      "footerUrl":  "escapezombie.com",
+                      "targetSha256":  "1fd8a31ace910dc74efbeb78b05e56cf84aec6d54dc2b4253c41e803ce3827ae",
+                      "width":  724,
+                      "height":  2172
+                  },
+                  {
+                      "index":  13,
+                      "locale":  "ja",
+                      "platform":  "X",
+                      "source":  "marketing/x_daily_zombie_school_posting/image_pool/x/ja/dialogue_filled_20261018/backlog_comic_20261015_09.png",
+                      "target":  "marketing/x_daily_zombie_school_posting/image_pool/x/ja/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_09.png",
+                      "sourceSha256":  "1abe97c4fead709a5b92aa5b1b07a0437f0dd990415c965e5bbeff382c3bb8f3",
+                      "imagegenPath":  "C:\\Users\\admin\\.codex\\generated_images\\01a14dde-cefd-7ed2-8d52-44670dd887fb\\exec-c9e16b06-3d4c-4b5a-8f82-a0518364b9c6.png",
+                      "dialogue":  [
+                                       "コース完成！",
+                                       "ジャンプ！",
+                                       "こっちだよ！",
+                                       "ゴール！"
+                                   ],
+                      "fullDialogue":  "コース完成！ / ジャンプ！ / こっちだよ！ / ゴール！",
+                      "blankFilled":  [
+
+                                      ],
+                      "visuallyChecked":  true,
+                      "layout":  "1column_4rows",
+                      "panelOrder":  [
+                                         "topLeft",
+                                         "topRight",
+                                         "bottomLeft",
+                                         "bottomRight"
+                                     ],
+                      "cta":  "ゲームスタート",
+                      "footerUrl":  "escapezombie.com",
+                      "targetSha256":  "50a8f7f29df4c9ae0afe2469441be879588a9342442890b6de0e41212e0bb56c",
+                      "width":  724,
+                      "height":  2172
+                  },
+                  {
+                      "index":  13,
+                      "locale":  "ja",
+                      "platform":  "Facebook",
+                      "source":  "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/dialogue_filled_20261018/backlog_comic_20261015_09.png",
+                      "target":  "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_09.png",
+                      "sourceSha256":  "1abe97c4fead709a5b92aa5b1b07a0437f0dd990415c965e5bbeff382c3bb8f3",
+                      "imagegenPath":  "C:\\Users\\admin\\.codex\\generated_images\\01a14dde-cefd-7ed2-8d52-44670dd887fb\\exec-c9e16b06-3d4c-4b5a-8f82-a0518364b9c6.png",
+                      "dialogue":  [
+                                       "コース完成！",
+                                       "ジャンプ！",
+                                       "こっちだよ！",
+                                       "ゴール！"
+                                   ],
+                      "fullDialogue":  "コース完成！ / ジャンプ！ / こっちだよ！ / ゴール！",
+                      "blankFilled":  [
+
+                                      ],
+                      "visuallyChecked":  true,
+                      "layout":  "1column_4rows",
+                      "panelOrder":  [
+                                         "topLeft",
+                                         "topRight",
+                                         "bottomLeft",
+                                         "bottomRight"
+                                     ],
+                      "cta":  "ゲームスタート",
+                      "footerUrl":  "escapezombie.com",
+                      "targetSha256":  "50a8f7f29df4c9ae0afe2469441be879588a9342442890b6de0e41212e0bb56c",
+                      "width":  724,
+                      "height":  2172
+                  },
+                  {
+                      "index":  14,
+                      "locale":  "ja",
+                      "platform":  "X",
+                      "source":  "marketing/x_daily_zombie_school_posting/image_pool/x/ja/dialogue_filled_20261018/backlog_comic_20261015_10.png",
+                      "target":  "marketing/x_daily_zombie_school_posting/image_pool/x/ja/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_10.png",
+                      "sourceSha256":  "95dcc37320669513025d7074b1c8dc5580893f0dbf1e40c2982fe87e186b36d9",
+                      "imagegenPath":  "C:\\Users\\admin\\.codex\\generated_images\\01a14dde-cefd-7ed2-8d52-44670dd887fb\\exec-1d081dcc-7bd4-4096-83bc-eee05658997c.png",
+                      "dialogue":  [
+                                       "星だ！",
+                                       "大きな月！",
+                                       "ぐるぐる！",
+                                       "宇宙制圧！"
+                                   ],
+                      "fullDialogue":  "星だ！ / 大きな月！ / ぐるぐる！ / 宇宙制圧！",
+                      "blankFilled":  [
+
+                                      ],
+                      "visuallyChecked":  true,
+                      "layout":  "1column_4rows",
+                      "panelOrder":  [
+                                         "topLeft",
+                                         "topRight",
+                                         "bottomLeft",
+                                         "bottomRight"
+                                     ],
+                      "cta":  "ゲームスタート",
+                      "footerUrl":  "escapezombie.com",
+                      "targetSha256":  "80d902709afb351af478f6644e924e03c9a270bb25dc7eed08c3ae59703aa986",
+                      "width":  724,
+                      "height":  2172
+                  },
+                  {
+                      "index":  14,
+                      "locale":  "ja",
+                      "platform":  "Facebook",
+                      "source":  "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/dialogue_filled_20261018/backlog_comic_20261015_10.png",
+                      "target":  "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_10.png",
+                      "sourceSha256":  "95dcc37320669513025d7074b1c8dc5580893f0dbf1e40c2982fe87e186b36d9",
+                      "imagegenPath":  "C:\\Users\\admin\\.codex\\generated_images\\01a14dde-cefd-7ed2-8d52-44670dd887fb\\exec-1d081dcc-7bd4-4096-83bc-eee05658997c.png",
+                      "dialogue":  [
+                                       "星だ！",
+                                       "大きな月！",
+                                       "ぐるぐる！",
+                                       "宇宙制圧！"
+                                   ],
+                      "fullDialogue":  "星だ！ / 大きな月！ / ぐるぐる！ / 宇宙制圧！",
+                      "blankFilled":  [
+
+                                      ],
+                      "visuallyChecked":  true,
+                      "layout":  "1column_4rows",
+                      "panelOrder":  [
+                                         "topLeft",
+                                         "topRight",
+                                         "bottomLeft",
+                                         "bottomRight"
+                                     ],
+                      "cta":  "ゲームスタート",
+                      "footerUrl":  "escapezombie.com",
+                      "targetSha256":  "80d902709afb351af478f6644e924e03c9a270bb25dc7eed08c3ae59703aa986",
+                      "width":  724,
+                      "height":  2172
+                  },
+                  {
+                      "index":  15,
+                      "locale":  "ja",
+                      "platform":  "Facebook",
+                      "source":  "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/zombie_catch_comic_words_20261015/01.png",
+                      "target":  "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/vertical_comic_20261018/zombie_catch_comic_words_20261015_01.png",
+                      "sourceSha256":  "a132c458f424a4d10f85580498b8a8d4213dbf5e761691f70a22c99802f24fdf",
+                      "imagegenPath":  "C:\\Users\\admin\\.codex\\generated_images\\01a14dde-cefd-7ed2-8d52-44670dd887fb\\exec-b55faef7-d804-43aa-abae-196e4d53d4a4.png",
+                      "dialogue":  [
+                                       "教室！",
+                                       "危ない！",
+                                       "ドン！",
+                                       "脱出！"
+                                   ],
+                      "fullDialogue":  "教室！ / 危ない！ / ドン！ / 脱出！",
+                      "blankFilled":  [
+
+                                      ],
+                      "visuallyChecked":  true,
+                      "layout":  "1column_4rows",
+                      "panelOrder":  [
+                                         "topLeft",
+                                         "topRight",
+                                         "bottomLeft",
+                                         "bottomRight"
+                                     ],
+                      "cta":  "ゲームスタート",
+                      "footerUrl":  "escapezombie.com",
+                      "targetSha256":  "ed2a58f5cd9a15cbbd4eef4d0f1eff05a55aeacda181d6b968f52cf144b5e942",
+                      "width":  724,
+                      "height":  2172
+                  },
+                  {
+                      "index":  16,
+                      "locale":  "ja",
+                      "platform":  "Facebook",
+                      "source":  "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/zombie_catch_comic_words_20261015/02.png",
+                      "target":  "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/vertical_comic_20261018/zombie_catch_comic_words_20261015_02.png",
+                      "sourceSha256":  "a10404bb1b3750f27273ef60671154d91c755b0ec1e682754fa6c7d81649a3ae",
+                      "imagegenPath":  "C:\\Users\\admin\\.codex\\generated_images\\01a14dde-cefd-7ed2-8d52-44670dd887fb\\exec-15155bdf-046e-4338-b6ee-d74d9f7f3e20.png",
+                      "dialogue":  [
+                                       "ロッカー！",
+                                       "ふさがれた！",
+                                       "隠れて！",
+                                       "見つけた！"
+                                   ],
+                      "fullDialogue":  "ロッカー！ / ふさがれた！ / 隠れて！ / 見つけた！",
+                      "blankFilled":  [
+
+                                      ],
+                      "visuallyChecked":  true,
+                      "layout":  "1column_4rows",
+                      "panelOrder":  [
+                                         "topLeft",
+                                         "topRight",
+                                         "bottomLeft",
+                                         "bottomRight"
+                                     ],
+                      "cta":  "ゲームスタート",
+                      "footerUrl":  "escapezombie.com",
+                      "targetSha256":  "7d6f6c5877b5645cf831eae7d6ce50fc9789639ee0032fae9901d177abb70273",
+                      "width":  724,
+                      "height":  2172
+                  },
+                  {
+                      "index":  17,
+                      "locale":  "ja",
+                      "platform":  "Facebook",
+                      "source":  "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/zombie_catch_comic_words_20261015/03.png",
+                      "target":  "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/vertical_comic_20261018/zombie_catch_comic_words_20261015_03.png",
+                      "sourceSha256":  "07b4eaeb9f65d5834edd81a90683dfbea6d87634c6adcad4a25b184fe4439aaf",
+                      "imagegenPath":  "C:\\Users\\admin\\.codex\\generated_images\\01a14dde-cefd-7ed2-8d52-44670dd887fb\\exec-441a7940-a069-485f-99ec-b7e2731bba5e.png",
+                      "dialogue":  [
+                                       "食堂！",
+                                       "トレー！",
+                                       "うわっ！",
+                                       "大惨事！"
+                                   ],
+                      "fullDialogue":  "食堂！ / トレー！ / うわっ！ / 大惨事！",
+                      "blankFilled":  [
+
+                                      ],
+                      "visuallyChecked":  true,
+                      "layout":  "1column_4rows",
+                      "panelOrder":  [
+                                         "topLeft",
+                                         "topRight",
+                                         "bottomLeft",
+                                         "bottomRight"
+                                     ],
+                      "cta":  "ゲームスタート",
+                      "footerUrl":  "escapezombie.com",
+                      "targetSha256":  "3178e14cee712e97a34d7d43be64c7d6d1d844b750cdc2f84da912ab7623cf99",
+                      "width":  724,
+                      "height":  2172
+                  },
+                  {
+                      "index":  18,
+                      "locale":  "ja",
+                      "platform":  "Facebook",
+                      "source":  "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/zombie_catch_comic_words_20261015/04.png",
+                      "target":  "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/vertical_comic_20261018/zombie_catch_comic_words_20261015_04.png",
+                      "sourceSha256":  "919f6a5db97d6b379d28df06ef96eb2a2217286c351397b15983b4b4d77c552b",
+                      "imagegenPath":  "C:\\Users\\admin\\.codex\\generated_images\\01a14dde-cefd-7ed2-8d52-44670dd887fb\\exec-69b1d1b5-b2b9-4afb-a554-f2af9c27397f.png",
+                      "dialogue":  [
+                                       "体育館！",
+                                       "ボール！",
+                                       "ゴロゴロ！",
+                                       "大成功！"
+                                   ],
+                      "fullDialogue":  "体育館！ / ボール！ / ゴロゴロ！ / 大成功！",
+                      "blankFilled":  [
+
+                                      ],
+                      "visuallyChecked":  true,
+                      "layout":  "1column_4rows",
+                      "panelOrder":  [
+                                         "topLeft",
+                                         "topRight",
+                                         "bottomLeft",
+                                         "bottomRight"
+                                     ],
+                      "cta":  "ゲームスタート",
+                      "footerUrl":  "escapezombie.com",
+                      "targetSha256":  "66cf64a8aebbf28beb7e6023b4bad41498fbbd4854d6d26756311e88818e1b5c",
+                      "width":  724,
+                      "height":  2172
+                  },
+                  {
+                      "index":  19,
+                      "locale":  "ja",
+                      "platform":  "Facebook",
+                      "source":  "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/zombie_catch_comic_words_20261015/05.png",
+                      "target":  "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/vertical_comic_20261018/zombie_catch_comic_words_20261015_05.png",
+                      "sourceSha256":  "f34b8427844d17ffbe0fc3e50702781b87cd966c6c8d8230a67c649ac9254026",
+                      "imagegenPath":  "C:\\Users\\admin\\.codex\\generated_images\\01a14dde-cefd-7ed2-8d52-44670dd887fb\\exec-426a0088-479f-4be7-b6d9-4392d6620cde.png",
+                      "dialogue":  [
+                                       "図書室！",
+                                       "静かに！",
+                                       "カート！",
+                                       "ガシャーン！"
+                                   ],
+                      "fullDialogue":  "図書室！ / 静かに！ / カート！ / ガシャーン！",
+                      "blankFilled":  [
+
+                                      ],
+                      "visuallyChecked":  true,
+                      "layout":  "1column_4rows",
+                      "panelOrder":  [
+                                         "topLeft",
+                                         "topRight",
+                                         "bottomLeft",
+                                         "bottomRight"
+                                     ],
+                      "cta":  "ゲームスタート",
+                      "footerUrl":  "escapezombie.com",
+                      "targetSha256":  "94714e3f4b0203cd3cfade490b2350c50245805e849eefd3009595f4c1186e70",
+                      "width":  724,
+                      "height":  2172
+                  },
+                  {
+                      "index":  20,
+                      "locale":  "ja",
+                      "platform":  "Facebook",
+                      "source":  "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/dialogue_filled_20261018/backlog_comic_20261015_02.png",
+                      "target":  "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_02.png",
+                      "sourceSha256":  "2af2c70fde23a5c107375bf01e1fd8a36e4c40d6a5a509d0358746a1700e026f",
+                      "imagegenPath":  "C:\\Users\\admin\\.codex\\generated_images\\01a14dde-cefd-7ed2-8d52-44670dd887fb\\exec-d42373a0-46d4-4364-877b-e572d2f0e233.png",
+                      "dialogue":  [
+                                       "ゾンビだ！",
+                                       "磁石オン！",
+                                       "ピタッ！",
+                                       "大成功！"
+                                   ],
+                      "fullDialogue":  "ゾンビだ！ / 磁石オン！ / ピタッ！ / 大成功！",
+                      "blankFilled":  [
+
+                                      ],
+                      "visuallyChecked":  true,
+                      "layout":  "1column_4rows",
+                      "panelOrder":  [
+                                         "topLeft",
+                                         "topRight",
+                                         "bottomLeft",
+                                         "bottomRight"
+                                     ],
+                      "cta":  "ゲームスタート",
+                      "footerUrl":  "escapezombie.com",
+                      "targetSha256":  "9951c81ab40aadf4b81cb4d833a5ef7fba922c95fe7dae583d1d18e1f3f8ea33",
+                      "width":  724,
+                      "height":  2172
+                  },
+                  {
+                      "index":  21,
+                      "locale":  "ja",
+                      "platform":  "Facebook",
+                      "source":  "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/dialogue_filled_20261018/backlog_comic_20261015_03.png",
+                      "target":  "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_03.png",
+                      "sourceSha256":  "36bb4f13b97cb07c4df71aed3d376cee0809047fe3177245f55cae941f75706b",
+                      "imagegenPath":  "C:\\Users\\admin\\.codex\\generated_images\\01a14dde-cefd-7ed2-8d52-44670dd887fb\\exec-be3e8718-f059-493c-9a8b-c5c63437df46.png",
+                      "dialogue":  [
+                                       "しーっ！",
+                                       "カート発進！",
+                                       "本の雪崩！",
+                                       "貸出完了！"
+                                   ],
+                      "fullDialogue":  "しーっ！ / カート発進！ / 本の雪崩！ / 貸出完了！",
+                      "blankFilled":  [
+
+                                      ],
+                      "visuallyChecked":  true,
+                      "layout":  "1column_4rows",
+                      "panelOrder":  [
+                                         "topLeft",
+                                         "topRight",
+                                         "bottomLeft",
+                                         "bottomRight"
+                                     ],
+                      "cta":  "ゲームスタート",
+                      "footerUrl":  "escapezombie.com",
+                      "targetSha256":  "5dab323fcd6e6334759239903167cdfb0ab531a9d82231c3be2a155a8edbaddf",
+                      "width":  724,
+                      "height":  2172
+                  },
+                  {
+                      "index":  22,
+                      "locale":  "ja",
+                      "platform":  "Facebook",
+                      "source":  "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/dialogue_filled_20261018/backlog_comic_20261015_04.png",
+                      "target":  "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_04.png",
+                      "sourceSha256":  "55f0b215c39d16b16491ea6d36b95ce4131524796bb29f67d1027dac10dd126d",
+                      "imagegenPath":  "C:\\Users\\admin\\.codex\\generated_images\\01a14dde-cefd-7ed2-8d52-44670dd887fb\\exec-00898f51-5091-4343-98a1-a8ce72d68907.png",
+                      "dialogue":  [
+                                       "しーっ！",
+                                       "リズムに乗って！",
+                                       "ドーン！",
+                                       "演奏終了！"
+                                   ],
+                      "fullDialogue":  "しーっ！ / リズムに乗って！ / ドーン！ / 演奏終了！",
+                      "blankFilled":  [
+
+                                      ],
+                      "visuallyChecked":  true,
+                      "layout":  "1column_4rows",
+                      "panelOrder":  [
+                                         "topLeft",
+                                         "topRight",
+                                         "bottomLeft",
+                                         "bottomRight"
+                                     ],
+                      "cta":  "ゲームスタート",
+                      "footerUrl":  "escapezombie.com",
+                      "targetSha256":  "0b0910f2a4af875747d2759bbfa5b8d3fd1957b15c97fefcf74891dc9d52b6b4",
+                      "width":  724,
+                      "height":  2172
+                  },
+                  {
+                      "index":  23,
+                      "locale":  "ja",
+                      "platform":  "Facebook",
+                      "source":  "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/dialogue_filled_20261018/backlog_comic_20261015_05.png",
+                      "target":  "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_05.png",
+                      "sourceSha256":  "0debadbc53bf311e46b30e8945d680fa52f1dfa7a73d646b12497db4a946ff23",
+                      "imagegenPath":  "C:\\Users\\admin\\.codex\\generated_images\\01a14dde-cefd-7ed2-8d52-44670dd887fb\\exec-9c941671-9527-4a61-93c4-44066555db3a.png",
+                      "dialogue":  [
+                                       "あれ？",
+                                       "ころころ！",
+                                       "ぐるぐる巻き！",
+                                       "作品完成！"
+                                   ],
+                      "fullDialogue":  "あれ？ / ころころ！ / ぐるぐる巻き！ / 作品完成！",
+                      "blankFilled":  [
+
+                                      ],
+                      "visuallyChecked":  true,
+                      "layout":  "1column_4rows",
+                      "panelOrder":  [
+                                         "topLeft",
+                                         "topRight",
+                                         "bottomLeft",
+                                         "bottomRight"
+                                     ],
+                      "cta":  "ゲームスタート",
+                      "footerUrl":  "escapezombie.com",
+                      "targetSha256":  "056d603a70bffb549a096fc53e2c32fb9c6f32d5f6b5e9b0a7c12e0ea8e94e94",
+                      "width":  724,
+                      "height":  2172
+                  }
+              ]
+}

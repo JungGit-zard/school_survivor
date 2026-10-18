@@ -1,0 +1,665 @@
+{
+  "locale": "ko",
+  "method": "built-in image_gen",
+  "items": [
+    {
+      "id": 1,
+      "generated": "C:\\Users\\admin\\.codex\\generated_images\\01a10c75-f853-7623-a2e8-84077673dc23\\exec-31c36e9e-9449-4b6d-b0ec-42fbde02a4c5.png",
+      "mappings": [
+        {
+          "source": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\x\\ko\\zombie_catch_comic_words_20261014\\01.png",
+          "target": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\x\\ko\\vertical_comic_20261018\\comic_01.png",
+          "platform": "x"
+        }
+      ],
+      "dialogue": [
+        "좀비다!",
+        "책상으로 막자!",
+        "와르르!",
+        "탈출 성공!"
+      ],
+      "review": "4 panels single column; no blank balloons; CTA preserved",
+      "sourceSha256": "6cef69a1932bd9b81c2af4a5b30fd39e7fb2d8885f90baa00326a275312e2385",
+      "fullDialogue": [
+        "좀비다!",
+        "책상으로 막자!",
+        "와르르!",
+        "탈출 성공!"
+      ],
+      "visuallyChecked": true,
+      "panelLayout": "1x4",
+      "emptyBalloons": 0
+    },
+    {
+      "id": 2,
+      "generated": "C:\\Users\\admin\\.codex\\generated_images\\01a10c75-f853-7623-a2e8-84077673dc23\\exec-7679d86a-e7fb-4f08-8329-3692c07ead82.png",
+      "sourceSha256": "0fc30756c336077ed9782fce73f524d3c5a8abc04486495c64730d2d3dd60a5e",
+      "mappings": [
+        {
+          "source": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\x\\ko\\zombie_catch_comic_words_20261014\\02.png",
+          "target": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\x\\ko\\vertical_comic_20261018\\comic_02.png",
+          "platform": "x"
+        }
+      ],
+      "dialogue": [
+        "사물함!",
+        "길을 막자!",
+        "여긴 어디?",
+        "잡았다!"
+      ],
+      "review": "4 panels single column; no blank balloons; CTA preserved",
+      "fullDialogue": [
+        "사물함!",
+        "길을 막자!",
+        "여긴 어디?",
+        "잡았다!"
+      ],
+      "visuallyChecked": true,
+      "panelLayout": "1x4",
+      "emptyBalloons": 0
+    },
+    {
+      "id": 3,
+      "generated": "C:\\Users\\admin\\.codex\\generated_images\\01a10c75-f853-7623-a2e8-84077673dc23\\exec-03c5f537-59a4-4fa9-8074-80647b3e0640.png",
+      "sourceSha256": "7f57ec2cf737ee49bacd09d030d02cbbba327b40b4fc27b8b7e4cba3217fd978",
+      "mappings": [
+        {
+          "source": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\x\\ko\\zombie_catch_comic_words_20261014\\03.png",
+          "target": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\x\\ko\\vertical_comic_20261018\\comic_03.png",
+          "platform": "x"
+        }
+      ],
+      "dialogue": [
+        "좀비다!",
+        "급식판 방패!",
+        "우왕!",
+        "급식 끝!"
+      ],
+      "review": "4 panels single column; no blank balloons; CTA preserved",
+      "fullDialogue": [
+        "좀비다!",
+        "급식판 방패!",
+        "우왕!",
+        "급식 끝!"
+      ],
+      "visuallyChecked": true,
+      "panelLayout": "1x4",
+      "emptyBalloons": 0
+    },
+    {
+      "id": 4,
+      "generated": "C:\\Users\\admin\\.codex\\generated_images\\01a10c75-f853-7623-a2e8-84077673dc23\\exec-f151f298-8ce8-43cb-b24a-d78ff41e46de.png",
+      "sourceSha256": "4b1ea3cdc9c45df39a25d2e2d7f9cbb8913f54348e4a8bdab316345ec5eac408",
+      "mappings": [
+        {
+          "source": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\x\\ko\\zombie_catch_comic_words_20261014\\04.png",
+          "target": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\x\\ko\\vertical_comic_20261018\\comic_04.png",
+          "platform": "x"
+        }
+      ],
+      "dialogue": [
+        "체육관!",
+        "공 굴러간다!",
+        "데굴데굴!",
+        "골인!"
+      ],
+      "review": "4 panels single column; no blank balloons; CTA preserved",
+      "fullDialogue": [
+        "체육관!",
+        "공 굴러간다!",
+        "데굴데굴!",
+        "골인!"
+      ],
+      "visuallyChecked": true,
+      "panelLayout": "1x4",
+      "emptyBalloons": 0
+    },
+    {
+      "id": 5,
+      "generated": "C:\\Users\\admin\\.codex\\generated_images\\01a10c75-f853-7623-a2e8-84077673dc23\\exec-7734494d-c9a8-49fc-8b1f-6a90bfea60b9.png",
+      "sourceSha256": "8a739731cb48c2782841f1bf061b8584759cf958f66d7a31298d612a2ba569ab",
+      "mappings": [
+        {
+          "source": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\x\\ko\\zombie_catch_comic_words_20261014\\05.png",
+          "target": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\x\\ko\\vertical_comic_20261018\\comic_05.png",
+          "platform": "x"
+        }
+      ],
+      "dialogue": [
+        "도서관이다!",
+        "쉿, 따라와!",
+        "책이 와르르!",
+        "대출 완료!"
+      ],
+      "review": "4 panels single column; no blank balloons; CTA preserved",
+      "fullDialogue": [
+        "도서관이다!",
+        "쉿, 따라와!",
+        "책이 와르르!",
+        "대출 완료!"
+      ],
+      "visuallyChecked": true,
+      "panelLayout": "1x4",
+      "emptyBalloons": 0
+    },
+    {
+      "id": 6,
+      "generated": "C:\\Users\\admin\\.codex\\generated_images\\01a10c75-f853-7623-a2e8-84077673dc23\\exec-9bdfaee1-03da-4422-b7c4-15271dcab358.png",
+      "sourceSha256": "30d6412bea13002f0c19441b7ee62d92c30613a6ec969273ad8f80b3f30ef763",
+      "mappings": [
+        {
+          "source": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\x\\ko\\backlog_comic_20261015\\01.png",
+          "target": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\x\\ko\\vertical_comic_20261018\\comic_06.png",
+          "platform": "x"
+        },
+        {
+          "source": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\facebook\\ko\\backlog_comic_20261015\\01.png",
+          "target": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\facebook\\ko\\vertical_comic_20261018\\comic_06.png",
+          "platform": "facebook"
+        }
+      ],
+      "dialogue": [
+        "어라?",
+        "체육관으로!",
+        "공 폭탄!",
+        "잡았다!"
+      ],
+      "review": "4 panels single column; no blank balloons; CTA preserved",
+      "fullDialogue": [
+        "어라?",
+        "체육관으로!",
+        "공 폭탄!",
+        "잡았다!"
+      ],
+      "visuallyChecked": true,
+      "panelLayout": "1x4",
+      "emptyBalloons": 0
+    },
+    {
+      "id": 7,
+      "generated": "C:\\Users\\admin\\.codex\\generated_images\\01a10c75-f853-7623-a2e8-84077673dc23\\exec-dbfbf93a-08ae-445f-9a66-0c204cd24e7a.png",
+      "sourceSha256": "21048273c0b6ca89bb5928c9cfeb0b3737f1036bfb193977b8ec21917d9072bc",
+      "mappings": [
+        {
+          "source": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\x\\ko\\backlog_comic_20261015\\02.png",
+          "target": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\x\\ko\\vertical_comic_20261018\\comic_07.png",
+          "platform": "x"
+        }
+      ],
+      "dialogue": [
+        "좀비다!",
+        "자석 ON!",
+        "철컥!",
+        "성공!"
+      ],
+      "review": "4 panels single column; no blank balloons; CTA preserved",
+      "fullDialogue": [
+        "좀비다!",
+        "자석 ON!",
+        "철컥!",
+        "성공!"
+      ],
+      "visuallyChecked": true,
+      "panelLayout": "1x4",
+      "emptyBalloons": 0
+    },
+    {
+      "id": 8,
+      "generated": "C:\\Users\\admin\\.codex\\generated_images\\01a10c75-f853-7623-a2e8-84077673dc23\\exec-125b4bbc-9eff-4353-a66f-3058c0bd5e93.png",
+      "sourceSha256": "4036258606fb33aea915868540eaefccac8f1f5483572a90e44f629dff4cc096",
+      "mappings": [
+        {
+          "source": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\x\\ko\\backlog_comic_20261015\\03.png",
+          "target": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\x\\ko\\vertical_comic_20261018\\comic_08.png",
+          "platform": "x"
+        }
+      ],
+      "dialogue": [
+        "쉿!",
+        "수레 출발!",
+        "책 폭포!",
+        "대출 끝!"
+      ],
+      "review": "4 panels single column; no blank balloons; CTA preserved",
+      "fullDialogue": [
+        "쉿!",
+        "수레 출발!",
+        "책 폭포!",
+        "대출 끝!"
+      ],
+      "visuallyChecked": true,
+      "panelLayout": "1x4",
+      "emptyBalloons": 0
+    },
+    {
+      "id": 9,
+      "generated": "C:\\Users\\admin\\.codex\\generated_images\\01a10c75-f853-7623-a2e8-84077673dc23\\exec-0b4227e8-e268-4ce8-ab7f-b2b67dd731ac.png",
+      "sourceSha256": "20650156a69972cba9393acc0696ab9d4ebdbd738cd3279c9e1488318fd7b663",
+      "mappings": [
+        {
+          "source": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\x\\ko\\dialogue_filled_20261018\\backlog_comic_20261015_04.png",
+          "target": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\x\\ko\\vertical_comic_20261018\\comic_09.png",
+          "platform": "x"
+        },
+        {
+          "source": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\facebook\\ko\\dialogue_filled_20261018\\backlog_comic_20261015_04.png",
+          "target": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\facebook\\ko\\vertical_comic_20261018\\comic_09.png",
+          "platform": "facebook"
+        }
+      ],
+      "dialogue": [
+        "쉿!",
+        "리듬 타!",
+        "쿵!",
+        "앵콜?"
+      ],
+      "review": "4 panels single column; no blank balloons; CTA preserved",
+      "fullDialogue": [
+        "쉿!",
+        "리듬 타!",
+        "쿵!",
+        "앵콜?"
+      ],
+      "visuallyChecked": true,
+      "panelLayout": "1x4",
+      "emptyBalloons": 0
+    },
+    {
+      "id": 10,
+      "generated": "C:\\Users\\admin\\.codex\\generated_images\\01a10c75-f853-7623-a2e8-84077673dc23\\exec-812664f4-9346-46c2-976b-b72a0479f9a5.png",
+      "sourceSha256": "ff056efa64501462e0edbaca60736edfc5e54e68d540445d6f78ec4c0bfd0e50",
+      "mappings": [
+        {
+          "source": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\x\\ko\\dialogue_filled_20261018\\backlog_comic_20261015_05.png",
+          "target": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\x\\ko\\vertical_comic_20261018\\comic_10.png",
+          "platform": "x"
+        },
+        {
+          "source": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\facebook\\ko\\dialogue_filled_20261018\\backlog_comic_20261015_05.png",
+          "target": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\facebook\\ko\\vertical_comic_20261018\\comic_10.png",
+          "platform": "facebook"
+        }
+      ],
+      "dialogue": [
+        "어라?",
+        "돌돌돌!",
+        "꽁꽁!",
+        "완성!"
+      ],
+      "review": "4 panels single column; no blank balloons; CTA preserved",
+      "fullDialogue": [
+        "어라?",
+        "돌돌돌!",
+        "꽁꽁!",
+        "완성!"
+      ],
+      "visuallyChecked": true,
+      "panelLayout": "1x4",
+      "emptyBalloons": 0
+    },
+    {
+      "id": 11,
+      "generated": "C:\\Users\\admin\\.codex\\generated_images\\01a10c75-f853-7623-a2e8-84077673dc23\\exec-9a7bee46-0725-4d28-b8d6-5f3325629cb2.png",
+      "sourceSha256": "24beaa2b72107965c33552a9510b454aaac51e63bbb930d09c87af1649a50acf",
+      "mappings": [
+        {
+          "source": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\x\\ko\\dialogue_filled_20261018\\backlog_comic_20261015_06.png",
+          "target": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\x\\ko\\vertical_comic_20261018\\comic_11.png",
+          "platform": "x"
+        },
+        {
+          "source": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\facebook\\ko\\dialogue_filled_20261018\\backlog_comic_20261015_06.png",
+          "target": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\facebook\\ko\\vertical_comic_20261018\\comic_11.png",
+          "platform": "facebook"
+        }
+      ],
+      "dialogue": [
+        "푸딩이다!",
+        "출발!",
+        "와장창!",
+        "한입?"
+      ],
+      "review": "4 panels single column; no blank balloons; CTA preserved",
+      "fullDialogue": [
+        "푸딩이다!",
+        "출발!",
+        "와장창!",
+        "한입?"
+      ],
+      "visuallyChecked": true,
+      "panelLayout": "1x4",
+      "emptyBalloons": 0
+    },
+    {
+      "id": 12,
+      "generated": "C:\\Users\\admin\\.codex\\generated_images\\01a10c75-f853-7623-a2e8-84077673dc23\\exec-972c5170-cbd3-4fb4-a131-ebe7a7811a5c.png",
+      "sourceSha256": "e5d84fd7d830e5cd99bdf0dc2dab68383605412b50a56033da4f34a8f5e0e3fe",
+      "mappings": [
+        {
+          "source": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\x\\ko\\dialogue_filled_20261018\\backlog_comic_20261015_07.png",
+          "target": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\x\\ko\\vertical_comic_20261018\\comic_12.png",
+          "platform": "x"
+        },
+        {
+          "source": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\facebook\\ko\\dialogue_filled_20261018\\backlog_comic_20261015_07.png",
+          "target": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\facebook\\ko\\vertical_comic_20261018\\comic_12.png",
+          "platform": "facebook"
+        }
+      ],
+      "dialogue": [
+        "좀비 등장!",
+        "주목!",
+        "커튼 콰앙!",
+        "감사합니다!"
+      ],
+      "review": "4 panels single column; no blank balloons; CTA preserved",
+      "fullDialogue": [
+        "좀비 등장!",
+        "주목!",
+        "커튼 콰앙!",
+        "감사합니다!"
+      ],
+      "visuallyChecked": true,
+      "panelLayout": "1x4",
+      "emptyBalloons": 0
+    },
+    {
+      "id": 13,
+      "generated": "C:\\Users\\admin\\.codex\\generated_images\\01a10c75-f853-7623-a2e8-84077673dc23\\exec-564ec0de-d01e-434a-a2d6-ddb2de9b6103.png",
+      "sourceSha256": "02c9e0c4135afb12b8e3a72fa96c02d8d70ff59a0add0c4bef21be516721d9ba",
+      "mappings": [
+        {
+          "source": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\x\\ko\\dialogue_filled_20261018\\backlog_comic_20261015_08.png",
+          "target": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\x\\ko\\vertical_comic_20261018\\comic_13.png",
+          "platform": "x"
+        },
+        {
+          "source": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\facebook\\ko\\dialogue_filled_20261018\\backlog_comic_20261015_08.png",
+          "target": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\facebook\\ko\\vertical_comic_20261018\\comic_13.png",
+          "platform": "facebook"
+        }
+      ],
+      "dialogue": [
+        "좀비다!",
+        "물 뿌려!",
+        "으악!",
+        "새싹 성공!"
+      ],
+      "review": "4 panels single column; no blank balloons; CTA preserved",
+      "fullDialogue": [
+        "좀비다!",
+        "물 뿌려!",
+        "으악!",
+        "새싹 성공!"
+      ],
+      "visuallyChecked": true,
+      "panelLayout": "1x4",
+      "emptyBalloons": 0
+    },
+    {
+      "id": 14,
+      "generated": "C:\\Users\\admin\\.codex\\generated_images\\01a10c75-f853-7623-a2e8-84077673dc23\\exec-0f350504-2bc8-4ebe-bb7e-a70a86852e1a.png",
+      "sourceSha256": "f67b03c0fba7831638ac3339f32aa580d6abebb2f50daf80ce0240978702d9ba",
+      "mappings": [
+        {
+          "source": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\x\\ko\\dialogue_filled_20261018\\backlog_comic_20261015_09.png",
+          "target": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\x\\ko\\vertical_comic_20261018\\comic_14.png",
+          "platform": "x"
+        },
+        {
+          "source": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\facebook\\ko\\dialogue_filled_20261018\\backlog_comic_20261015_09.png",
+          "target": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\facebook\\ko\\vertical_comic_20261018\\comic_14.png",
+          "platform": "facebook"
+        }
+      ],
+      "dialogue": [
+        "코스 준비!",
+        "점프!",
+        "여긴 어디?",
+        "완주!"
+      ],
+      "review": "4 panels single column; no blank balloons; CTA preserved",
+      "fullDialogue": [
+        "코스 준비!",
+        "점프!",
+        "여긴 어디?",
+        "완주!"
+      ],
+      "visuallyChecked": true,
+      "panelLayout": "1x4",
+      "emptyBalloons": 0
+    },
+    {
+      "id": 15,
+      "generated": "C:\\Users\\admin\\.codex\\generated_images\\01a10c75-f853-7623-a2e8-84077673dc23\\exec-a7f53107-2c28-42e0-9938-4ff77817fc76.png",
+      "sourceSha256": "a8ced09a7fda4e1dca539d07a5bc54a682284d44bdd7afd657656874a077c0fa",
+      "mappings": [
+        {
+          "source": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\x\\ko\\dialogue_filled_20261018\\backlog_comic_20261015_10.png",
+          "target": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\x\\ko\\vertical_comic_20261018\\comic_15.png",
+          "platform": "x"
+        },
+        {
+          "source": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\facebook\\ko\\dialogue_filled_20261018\\backlog_comic_20261015_10.png",
+          "target": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\facebook\\ko\\vertical_comic_20261018\\comic_15.png",
+          "platform": "facebook"
+        }
+      ],
+      "dialogue": [
+        "별이다!",
+        "달 떴다!",
+        "빙글빙글!",
+        "우주 정복!"
+      ],
+      "review": "4 panels single column; no blank balloons; CTA preserved",
+      "fullDialogue": [
+        "별이다!",
+        "달 떴다!",
+        "빙글빙글!",
+        "우주 정복!"
+      ],
+      "visuallyChecked": true,
+      "panelLayout": "1x4",
+      "emptyBalloons": 0
+    },
+    {
+      "id": 16,
+      "generated": "C:\\Users\\admin\\.codex\\generated_images\\01a10c75-f853-7623-a2e8-84077673dc23\\exec-a627ead8-4682-4266-8901-091e64a6d596.png",
+      "sourceSha256": "6d9c2f776e08f96653cfc1db4a0dc7f350b65652e03ad32c498ec2b18a6f1107",
+      "mappings": [
+        {
+          "source": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\facebook\\ko\\zombie_catch_comic_words_20261015\\01.png",
+          "target": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\facebook\\ko\\vertical_comic_20261018\\comic_16.png",
+          "platform": "facebook"
+        }
+      ],
+      "dialogue": [
+        "교실!",
+        "숨자!",
+        "쾅!",
+        "탈출!"
+      ],
+      "review": "4 panels single column; no blank balloons; CTA preserved",
+      "fullDialogue": [
+        "교실!",
+        "숨자!",
+        "쾅!",
+        "탈출!"
+      ],
+      "visuallyChecked": true,
+      "panelLayout": "1x4",
+      "emptyBalloons": 0
+    },
+    {
+      "id": 17,
+      "generated": "C:\\Users\\admin\\.codex\\generated_images\\01a10c75-f853-7623-a2e8-84077673dc23\\exec-04bb4555-0d10-46a7-ae3a-c15a7f44b9f1.png",
+      "sourceSha256": "2ed2205718f0767f58830bc7897710d33c07116d4e83123186f147cae742a804",
+      "mappings": [
+        {
+          "source": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\facebook\\ko\\zombie_catch_comic_words_20261015\\02.png",
+          "target": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\facebook\\ko\\vertical_comic_20261018\\comic_17.png",
+          "platform": "facebook"
+        }
+      ],
+      "dialogue": [
+        "사물함!",
+        "막혔어!",
+        "숨자!",
+        "찾았다!"
+      ],
+      "review": "4 panels single column; no blank balloons; CTA preserved",
+      "fullDialogue": [
+        "사물함!",
+        "막혔어!",
+        "숨자!",
+        "찾았다!"
+      ],
+      "visuallyChecked": true,
+      "panelLayout": "1x4",
+      "emptyBalloons": 0
+    },
+    {
+      "id": 18,
+      "generated": "C:\\Users\\admin\\.codex\\generated_images\\01a10c75-f853-7623-a2e8-84077673dc23\\exec-77336263-bf6f-4d79-b64e-d538503ca647.png",
+      "sourceSha256": "04ce70e3b9d0f40ae4e25c1018a63dddaa0e4876c54c799471eb51265fdef4cf",
+      "mappings": [
+        {
+          "source": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\facebook\\ko\\zombie_catch_comic_words_20261015\\03.png",
+          "target": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\facebook\\ko\\vertical_comic_20261018\\comic_18.png",
+          "platform": "facebook"
+        }
+      ],
+      "dialogue": [
+        "급식실!",
+        "쟁반!",
+        "으악!",
+        "엎질렀다!"
+      ],
+      "review": "4 panels single column; no blank balloons; CTA preserved",
+      "fullDialogue": [
+        "급식실!",
+        "쟁반!",
+        "으악!",
+        "엎질렀다!"
+      ],
+      "visuallyChecked": true,
+      "panelLayout": "1x4",
+      "emptyBalloons": 0
+    },
+    {
+      "id": 19,
+      "generated": "C:\\Users\\admin\\.codex\\generated_images\\01a10c75-f853-7623-a2e8-84077673dc23\\exec-3465e305-63d1-44ad-bb89-8b99b26d8d0a.png",
+      "sourceSha256": "30cba9f2a6f28a7089605e397f795ef5c5538a1328b8904fd31a58d050914f88",
+      "mappings": [
+        {
+          "source": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\facebook\\ko\\zombie_catch_comic_words_20261015\\04.png",
+          "target": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\facebook\\ko\\vertical_comic_20261018\\comic_19.png",
+          "platform": "facebook"
+        }
+      ],
+      "dialogue": [
+        "체육관!",
+        "공이다!",
+        "데굴!",
+        "성공!"
+      ],
+      "review": "4 panels single column; no blank balloons; CTA preserved",
+      "fullDialogue": [
+        "체육관!",
+        "공이다!",
+        "데굴!",
+        "성공!"
+      ],
+      "visuallyChecked": true,
+      "panelLayout": "1x4",
+      "emptyBalloons": 0
+    },
+    {
+      "id": 20,
+      "generated": "C:\\Users\\admin\\.codex\\generated_images\\01a10c75-f853-7623-a2e8-84077673dc23\\exec-c94a956b-09de-4eff-8bd7-abda097e39ed.png",
+      "sourceSha256": "5403840081ca24a351afd1070a744313ee35a8dce6e5643476358803b260badb",
+      "mappings": [
+        {
+          "source": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\facebook\\ko\\zombie_catch_comic_words_20261015\\05.png",
+          "target": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\facebook\\ko\\vertical_comic_20261018\\comic_20.png",
+          "platform": "facebook"
+        }
+      ],
+      "dialogue": [
+        "도서관!",
+        "쉿!",
+        "카트!",
+        "우당탕!"
+      ],
+      "review": "4 panels single column; no blank balloons; CTA preserved",
+      "fullDialogue": [
+        "도서관!",
+        "쉿!",
+        "카트!",
+        "우당탕!"
+      ],
+      "visuallyChecked": true,
+      "panelLayout": "1x4",
+      "emptyBalloons": 0
+    },
+    {
+      "id": 21,
+      "generated": "C:\\Users\\admin\\.codex\\generated_images\\01a10c75-f853-7623-a2e8-84077673dc23\\exec-b044c562-88ae-4959-9795-7dbc25453bc1.png",
+      "sourceSha256": "bbf30f66da7a5949c8326ac20557c9ea94a0bda81d7b07d8fa4726075a6edb79",
+      "mappings": [
+        {
+          "source": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\facebook\\ko\\dialogue_filled_20261018\\backlog_comic_20261015_02.png",
+          "target": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\facebook\\ko\\vertical_comic_20261018\\comic_21.png",
+          "platform": "facebook"
+        }
+      ],
+      "dialogue": [
+        "좀비다!",
+        "붙어라!",
+        "철썩!",
+        "성공!"
+      ],
+      "review": "4 panels single column; no blank balloons; CTA preserved",
+      "fullDialogue": [
+        "좀비다!",
+        "붙어라!",
+        "철썩!",
+        "성공!"
+      ],
+      "visuallyChecked": true,
+      "panelLayout": "1x4",
+      "emptyBalloons": 0
+    },
+    {
+      "id": 22,
+      "generated": "C:\\Users\\admin\\.codex\\generated_images\\01a10c75-f853-7623-a2e8-84077673dc23\\exec-55d128b2-aefa-45b2-9497-260d77293d5e.png",
+      "sourceSha256": "d57327a4604e1b4ca41b0f175373e03597f52e90d308c4412c94dcfcfc6a7746",
+      "mappings": [
+        {
+          "source": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\facebook\\ko\\dialogue_filled_20261018\\backlog_comic_20261015_03.png",
+          "target": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\facebook\\ko\\vertical_comic_20261018\\comic_22.png",
+          "platform": "facebook"
+        }
+      ],
+      "dialogue": [
+        "쉿!",
+        "수레 출발!",
+        "책 폭포!",
+        "대출 끝!"
+      ],
+      "review": "4 panels single column; no blank balloons; CTA preserved",
+      "fullDialogue": [
+        "쉿!",
+        "수레 출발!",
+        "책 폭포!",
+        "대출 끝!"
+      ],
+      "visuallyChecked": true,
+      "panelLayout": "1x4",
+      "emptyBalloons": 0
+    }
+  ],
+  "complete": true,
+  "uniqueCount": 22,
+  "sourceMappingCount": 30
+}

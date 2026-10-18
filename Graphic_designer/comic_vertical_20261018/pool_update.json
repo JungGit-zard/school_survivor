@@ -1,0 +1,2333 @@
+{
+  "complete": true,
+  "atUtc": "2026-10-18T13:42:02.449Z",
+  "cardMode": true,
+  "mappings": [
+    {
+      "locale": "ko",
+      "platform": "X",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/zombie_catch_comic_words_20261014/01.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/vertical_comic_20261018/comic_01.png",
+      "sourceSha256": "6cef69a1932bd9b81c2af4a5b30fd39e7fb2d8885f90baa00326a275312e2385",
+      "targetSha256": "e309ced58eb4baf80cda60d31467d668ffec55f77b0553b156bdabc3298bd506",
+      "derivedFromSha256": "6cef69a1932bd9b81c2af4a5b30fd39e7fb2d8885f90baa00326a275312e2385",
+      "dialogue": [
+        "좀비다!",
+        "책상으로 막자!",
+        "와르르!",
+        "탈출 성공!"
+      ],
+      "width": 724,
+      "height": 2172
+    },
+    {
+      "locale": "ko",
+      "platform": "X",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/zombie_catch_comic_words_20261014/02.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/vertical_comic_20261018/comic_02.png",
+      "sourceSha256": "0fc30756c336077ed9782fce73f524d3c5a8abc04486495c64730d2d3dd60a5e",
+      "targetSha256": "12c4949286c18c6f9819a9fef5983ffcf20f059a3665e07e18c58b8968a4ab55",
+      "derivedFromSha256": "0fc30756c336077ed9782fce73f524d3c5a8abc04486495c64730d2d3dd60a5e",
+      "dialogue": [
+        "사물함!",
+        "길을 막자!",
+        "여긴 어디?",
+        "잡았다!"
+      ],
+      "width": 724,
+      "height": 2171
+    },
+    {
+      "locale": "ko",
+      "platform": "X",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/zombie_catch_comic_words_20261014/03.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/vertical_comic_20261018/comic_03.png",
+      "sourceSha256": "7f57ec2cf737ee49bacd09d030d02cbbba327b40b4fc27b8b7e4cba3217fd978",
+      "targetSha256": "2c10bb397a9dcf837cce04b031af2d68eaf66c4ce27fb35b02212dd1d7bb20f3",
+      "derivedFromSha256": "7f57ec2cf737ee49bacd09d030d02cbbba327b40b4fc27b8b7e4cba3217fd978",
+      "dialogue": [
+        "좀비다!",
+        "급식판 방패!",
+        "우왕!",
+        "급식 끝!"
+      ],
+      "width": 724,
+      "height": 2172
+    },
+    {
+      "locale": "ko",
+      "platform": "X",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/zombie_catch_comic_words_20261014/04.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/vertical_comic_20261018/comic_04.png",
+      "sourceSha256": "4b1ea3cdc9c45df39a25d2e2d7f9cbb8913f54348e4a8bdab316345ec5eac408",
+      "targetSha256": "d5219bef62bac05074834d3484e3bed601985f31f4c5f0b8f1f0c39a8f5e4622",
+      "derivedFromSha256": "4b1ea3cdc9c45df39a25d2e2d7f9cbb8913f54348e4a8bdab316345ec5eac408",
+      "dialogue": [
+        "체육관!",
+        "공 굴러간다!",
+        "데굴데굴!",
+        "골인!"
+      ],
+      "width": 736,
+      "height": 2135
+    },
+    {
+      "locale": "ko",
+      "platform": "X",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/zombie_catch_comic_words_20261014/05.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/vertical_comic_20261018/comic_05.png",
+      "sourceSha256": "8a739731cb48c2782841f1bf061b8584759cf958f66d7a31298d612a2ba569ab",
+      "targetSha256": "b899fa7d7b044a7452a3d9576e6eb142a1eb2e89f882df1c0c4f0cb41b16621d",
+      "derivedFromSha256": "8a739731cb48c2782841f1bf061b8584759cf958f66d7a31298d612a2ba569ab",
+      "dialogue": [
+        "도서관이다!",
+        "쉿, 따라와!",
+        "책이 와르르!",
+        "대출 완료!"
+      ],
+      "width": 724,
+      "height": 2172
+    },
+    {
+      "locale": "ko",
+      "platform": "X",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/backlog_comic_20261015/01.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/vertical_comic_20261018/comic_06.png",
+      "sourceSha256": "30d6412bea13002f0c19441b7ee62d92c30613a6ec969273ad8f80b3f30ef763",
+      "targetSha256": "4362f193dfb1d81158a76d7ed602bf7374b9ca9492be020cd7907b9fc50e5c04",
+      "derivedFromSha256": "30d6412bea13002f0c19441b7ee62d92c30613a6ec969273ad8f80b3f30ef763",
+      "dialogue": [
+        "어라?",
+        "체육관으로!",
+        "공 폭탄!",
+        "잡았다!"
+      ],
+      "width": 724,
+      "height": 2172
+    },
+    {
+      "locale": "ko",
+      "platform": "Facebook",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/backlog_comic_20261015/01.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/vertical_comic_20261018/comic_06.png",
+      "sourceSha256": "30d6412bea13002f0c19441b7ee62d92c30613a6ec969273ad8f80b3f30ef763",
+      "targetSha256": "4362f193dfb1d81158a76d7ed602bf7374b9ca9492be020cd7907b9fc50e5c04",
+      "derivedFromSha256": "30d6412bea13002f0c19441b7ee62d92c30613a6ec969273ad8f80b3f30ef763",
+      "dialogue": [
+        "어라?",
+        "체육관으로!",
+        "공 폭탄!",
+        "잡았다!"
+      ],
+      "width": 724,
+      "height": 2172
+    },
+    {
+      "locale": "ko",
+      "platform": "X",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/backlog_comic_20261015/02.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/vertical_comic_20261018/comic_07.png",
+      "sourceSha256": "21048273c0b6ca89bb5928c9cfeb0b3737f1036bfb193977b8ec21917d9072bc",
+      "targetSha256": "3c1e763daab979163a2acb8dfb2858ab5d9f9953cd685c392e7d76da59ad6584",
+      "derivedFromSha256": "21048273c0b6ca89bb5928c9cfeb0b3737f1036bfb193977b8ec21917d9072bc",
+      "dialogue": [
+        "좀비다!",
+        "자석 ON!",
+        "철컥!",
+        "성공!"
+      ],
+      "width": 724,
+      "height": 2172
+    },
+    {
+      "locale": "ko",
+      "platform": "X",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/backlog_comic_20261015/03.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/vertical_comic_20261018/comic_08.png",
+      "sourceSha256": "4036258606fb33aea915868540eaefccac8f1f5483572a90e44f629dff4cc096",
+      "targetSha256": "f63b8909e0696092a36e100763b137f4b337ba4fdaafeedd69ce47679e6f44e3",
+      "derivedFromSha256": "4036258606fb33aea915868540eaefccac8f1f5483572a90e44f629dff4cc096",
+      "dialogue": [
+        "쉿!",
+        "수레 출발!",
+        "책 폭포!",
+        "대출 끝!"
+      ],
+      "width": 724,
+      "height": 2172
+    },
+    {
+      "locale": "ko",
+      "platform": "X",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/dialogue_filled_20261018/backlog_comic_20261015_04.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/vertical_comic_20261018/comic_09.png",
+      "sourceSha256": "20650156a69972cba9393acc0696ab9d4ebdbd738cd3279c9e1488318fd7b663",
+      "targetSha256": "84d1ec7096b946c38048162b614bad3e9773b12a26f615efdb74c187ca9535c3",
+      "derivedFromSha256": "e9232f983e19581fd578efbd1c2d9af5b89b930f670e88c1ad4ebead076f9e00",
+      "dialogue": [
+        "쉿!",
+        "리듬 타!",
+        "쿵!",
+        "앵콜?"
+      ],
+      "width": 724,
+      "height": 2172
+    },
+    {
+      "locale": "ko",
+      "platform": "Facebook",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/dialogue_filled_20261018/backlog_comic_20261015_04.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/vertical_comic_20261018/comic_09.png",
+      "sourceSha256": "20650156a69972cba9393acc0696ab9d4ebdbd738cd3279c9e1488318fd7b663",
+      "targetSha256": "84d1ec7096b946c38048162b614bad3e9773b12a26f615efdb74c187ca9535c3",
+      "derivedFromSha256": "e9232f983e19581fd578efbd1c2d9af5b89b930f670e88c1ad4ebead076f9e00",
+      "dialogue": [
+        "쉿!",
+        "리듬 타!",
+        "쿵!",
+        "앵콜?"
+      ],
+      "width": 724,
+      "height": 2172
+    },
+    {
+      "locale": "ko",
+      "platform": "X",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/dialogue_filled_20261018/backlog_comic_20261015_05.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/vertical_comic_20261018/comic_10.png",
+      "sourceSha256": "ff056efa64501462e0edbaca60736edfc5e54e68d540445d6f78ec4c0bfd0e50",
+      "targetSha256": "1464d75104b9683cb7d272a980c02ff9974b9fe516b3a54161c04b54ed0f5e98",
+      "derivedFromSha256": "7125383b143e7dafb215e41472702cda0245976a8e74ad87dda11874f8704801",
+      "dialogue": [
+        "어라?",
+        "돌돌돌!",
+        "꽁꽁!",
+        "완성!"
+      ],
+      "width": 724,
+      "height": 2172
+    },
+    {
+      "locale": "ko",
+      "platform": "Facebook",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/dialogue_filled_20261018/backlog_comic_20261015_05.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/vertical_comic_20261018/comic_10.png",
+      "sourceSha256": "ff056efa64501462e0edbaca60736edfc5e54e68d540445d6f78ec4c0bfd0e50",
+      "targetSha256": "1464d75104b9683cb7d272a980c02ff9974b9fe516b3a54161c04b54ed0f5e98",
+      "derivedFromSha256": "7125383b143e7dafb215e41472702cda0245976a8e74ad87dda11874f8704801",
+      "dialogue": [
+        "어라?",
+        "돌돌돌!",
+        "꽁꽁!",
+        "완성!"
+      ],
+      "width": 724,
+      "height": 2172
+    },
+    {
+      "locale": "ko",
+      "platform": "X",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/dialogue_filled_20261018/backlog_comic_20261015_06.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/vertical_comic_20261018/comic_11.png",
+      "sourceSha256": "24beaa2b72107965c33552a9510b454aaac51e63bbb930d09c87af1649a50acf",
+      "targetSha256": "4c13a11674686d5c483401e2e96d468b7954eb6887a1c96311c1ec88a7d4df22",
+      "derivedFromSha256": "e5360249d88e31da384d68f4f6360cc5c5967b4fcc56972b2c947aad1584684d",
+      "dialogue": [
+        "푸딩이다!",
+        "출발!",
+        "와장창!",
+        "한입?"
+      ],
+      "width": 724,
+      "height": 2171
+    },
+    {
+      "locale": "ko",
+      "platform": "Facebook",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/dialogue_filled_20261018/backlog_comic_20261015_06.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/vertical_comic_20261018/comic_11.png",
+      "sourceSha256": "24beaa2b72107965c33552a9510b454aaac51e63bbb930d09c87af1649a50acf",
+      "targetSha256": "4c13a11674686d5c483401e2e96d468b7954eb6887a1c96311c1ec88a7d4df22",
+      "derivedFromSha256": "e5360249d88e31da384d68f4f6360cc5c5967b4fcc56972b2c947aad1584684d",
+      "dialogue": [
+        "푸딩이다!",
+        "출발!",
+        "와장창!",
+        "한입?"
+      ],
+      "width": 724,
+      "height": 2171
+    },
+    {
+      "locale": "ko",
+      "platform": "X",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/dialogue_filled_20261018/backlog_comic_20261015_07.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/vertical_comic_20261018/comic_12.png",
+      "sourceSha256": "e5d84fd7d830e5cd99bdf0dc2dab68383605412b50a56033da4f34a8f5e0e3fe",
+      "targetSha256": "cbbe87db96b56d4ecd4fc3c56aab03e9950684d01be7b418ba41cd44eeb01561",
+      "derivedFromSha256": "c546cfd1af35e7f2e78e37879acbafdc29a0f60a315d13e6ec06c65a22935e8e",
+      "dialogue": [
+        "좀비 등장!",
+        "주목!",
+        "커튼 콰앙!",
+        "감사합니다!"
+      ],
+      "width": 724,
+      "height": 2172
+    },
+    {
+      "locale": "ko",
+      "platform": "Facebook",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/dialogue_filled_20261018/backlog_comic_20261015_07.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/vertical_comic_20261018/comic_12.png",
+      "sourceSha256": "e5d84fd7d830e5cd99bdf0dc2dab68383605412b50a56033da4f34a8f5e0e3fe",
+      "targetSha256": "cbbe87db96b56d4ecd4fc3c56aab03e9950684d01be7b418ba41cd44eeb01561",
+      "derivedFromSha256": "c546cfd1af35e7f2e78e37879acbafdc29a0f60a315d13e6ec06c65a22935e8e",
+      "dialogue": [
+        "좀비 등장!",
+        "주목!",
+        "커튼 콰앙!",
+        "감사합니다!"
+      ],
+      "width": 724,
+      "height": 2172
+    },
+    {
+      "locale": "ko",
+      "platform": "X",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/dialogue_filled_20261018/backlog_comic_20261015_08.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/vertical_comic_20261018/comic_13.png",
+      "sourceSha256": "02c9e0c4135afb12b8e3a72fa96c02d8d70ff59a0add0c4bef21be516721d9ba",
+      "targetSha256": "348f85e4c5ac5b9bff0279e4fbb8da899c28455613f58879336f5eb9ae749e51",
+      "derivedFromSha256": "d150cd01de8512b44984ca74c57771f6b8fd7735e3fb4f47f1ac1be0324fa3ec",
+      "dialogue": [
+        "좀비다!",
+        "물 뿌려!",
+        "으악!",
+        "새싹 성공!"
+      ],
+      "width": 724,
+      "height": 2172
+    },
+    {
+      "locale": "ko",
+      "platform": "Facebook",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/dialogue_filled_20261018/backlog_comic_20261015_08.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/vertical_comic_20261018/comic_13.png",
+      "sourceSha256": "02c9e0c4135afb12b8e3a72fa96c02d8d70ff59a0add0c4bef21be516721d9ba",
+      "targetSha256": "348f85e4c5ac5b9bff0279e4fbb8da899c28455613f58879336f5eb9ae749e51",
+      "derivedFromSha256": "d150cd01de8512b44984ca74c57771f6b8fd7735e3fb4f47f1ac1be0324fa3ec",
+      "dialogue": [
+        "좀비다!",
+        "물 뿌려!",
+        "으악!",
+        "새싹 성공!"
+      ],
+      "width": 724,
+      "height": 2172
+    },
+    {
+      "locale": "ko",
+      "platform": "X",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/dialogue_filled_20261018/backlog_comic_20261015_09.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/vertical_comic_20261018/comic_14.png",
+      "sourceSha256": "f67b03c0fba7831638ac3339f32aa580d6abebb2f50daf80ce0240978702d9ba",
+      "targetSha256": "51c328e731e1d4d2217d14d38a86f0b9ea8a0bde81693eb9cc62c6becfb5fc06",
+      "derivedFromSha256": "633217700f5dd47b477afb187607176dd97fb0240c7b7c9c02fffcf8160184b8",
+      "dialogue": [
+        "코스 준비!",
+        "점프!",
+        "여긴 어디?",
+        "완주!"
+      ],
+      "width": 724,
+      "height": 2172
+    },
+    {
+      "locale": "ko",
+      "platform": "Facebook",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/dialogue_filled_20261018/backlog_comic_20261015_09.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/vertical_comic_20261018/comic_14.png",
+      "sourceSha256": "f67b03c0fba7831638ac3339f32aa580d6abebb2f50daf80ce0240978702d9ba",
+      "targetSha256": "51c328e731e1d4d2217d14d38a86f0b9ea8a0bde81693eb9cc62c6becfb5fc06",
+      "derivedFromSha256": "633217700f5dd47b477afb187607176dd97fb0240c7b7c9c02fffcf8160184b8",
+      "dialogue": [
+        "코스 준비!",
+        "점프!",
+        "여긴 어디?",
+        "완주!"
+      ],
+      "width": 724,
+      "height": 2172
+    },
+    {
+      "locale": "ko",
+      "platform": "X",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/dialogue_filled_20261018/backlog_comic_20261015_10.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/vertical_comic_20261018/comic_15.png",
+      "sourceSha256": "a8ced09a7fda4e1dca539d07a5bc54a682284d44bdd7afd657656874a077c0fa",
+      "targetSha256": "ba3b2d87f4a117a3da6cad575039923405cfaca977937e01546dcb002a0414e5",
+      "derivedFromSha256": "b584310ff4614a455ad4baf67e57f29c03940ee72c5aa5c6a3be178263157b27",
+      "dialogue": [
+        "별이다!",
+        "달 떴다!",
+        "빙글빙글!",
+        "우주 정복!"
+      ],
+      "width": 724,
+      "height": 2172
+    },
+    {
+      "locale": "ko",
+      "platform": "Facebook",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/dialogue_filled_20261018/backlog_comic_20261015_10.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/vertical_comic_20261018/comic_15.png",
+      "sourceSha256": "a8ced09a7fda4e1dca539d07a5bc54a682284d44bdd7afd657656874a077c0fa",
+      "targetSha256": "ba3b2d87f4a117a3da6cad575039923405cfaca977937e01546dcb002a0414e5",
+      "derivedFromSha256": "b584310ff4614a455ad4baf67e57f29c03940ee72c5aa5c6a3be178263157b27",
+      "dialogue": [
+        "별이다!",
+        "달 떴다!",
+        "빙글빙글!",
+        "우주 정복!"
+      ],
+      "width": 724,
+      "height": 2172
+    },
+    {
+      "locale": "ko",
+      "platform": "Facebook",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/zombie_catch_comic_words_20261015/01.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/vertical_comic_20261018/comic_16.png",
+      "sourceSha256": "6d9c2f776e08f96653cfc1db4a0dc7f350b65652e03ad32c498ec2b18a6f1107",
+      "targetSha256": "8c7444955ee863b0371915327768e0c7a5bf24c708836a56a212204fb3ae6003",
+      "derivedFromSha256": "6d9c2f776e08f96653cfc1db4a0dc7f350b65652e03ad32c498ec2b18a6f1107",
+      "dialogue": [
+        "교실!",
+        "숨자!",
+        "쾅!",
+        "탈출!"
+      ],
+      "width": 724,
+      "height": 2172
+    },
+    {
+      "locale": "ko",
+      "platform": "Facebook",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/zombie_catch_comic_words_20261015/02.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/vertical_comic_20261018/comic_17.png",
+      "sourceSha256": "2ed2205718f0767f58830bc7897710d33c07116d4e83123186f147cae742a804",
+      "targetSha256": "2f5736d9f3f00fab541e9ebdd18fe5c84b1e7946d35ed218779e02fc3a78ad24",
+      "derivedFromSha256": "2ed2205718f0767f58830bc7897710d33c07116d4e83123186f147cae742a804",
+      "dialogue": [
+        "사물함!",
+        "막혔어!",
+        "숨자!",
+        "찾았다!"
+      ],
+      "width": 725,
+      "height": 2169
+    },
+    {
+      "locale": "ko",
+      "platform": "Facebook",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/zombie_catch_comic_words_20261015/03.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/vertical_comic_20261018/comic_18.png",
+      "sourceSha256": "04ce70e3b9d0f40ae4e25c1018a63dddaa0e4876c54c799471eb51265fdef4cf",
+      "targetSha256": "b7275d7d8cb2e931d21654fc9c0ecdfc9e528004d33cfef7f54013a286b781fe",
+      "derivedFromSha256": "04ce70e3b9d0f40ae4e25c1018a63dddaa0e4876c54c799471eb51265fdef4cf",
+      "dialogue": [
+        "급식실!",
+        "쟁반!",
+        "으악!",
+        "엎질렀다!"
+      ],
+      "width": 724,
+      "height": 2172
+    },
+    {
+      "locale": "ko",
+      "platform": "Facebook",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/zombie_catch_comic_words_20261015/04.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/vertical_comic_20261018/comic_19.png",
+      "sourceSha256": "30cba9f2a6f28a7089605e397f795ef5c5538a1328b8904fd31a58d050914f88",
+      "targetSha256": "cd9e8b3e06d956d170d2e4e8e574e0e6e8b73bc21596234732215e9c0a4ab62f",
+      "derivedFromSha256": "30cba9f2a6f28a7089605e397f795ef5c5538a1328b8904fd31a58d050914f88",
+      "dialogue": [
+        "체육관!",
+        "공이다!",
+        "데굴!",
+        "성공!"
+      ],
+      "width": 724,
+      "height": 2172
+    },
+    {
+      "locale": "ko",
+      "platform": "Facebook",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/zombie_catch_comic_words_20261015/05.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/vertical_comic_20261018/comic_20.png",
+      "sourceSha256": "5403840081ca24a351afd1070a744313ee35a8dce6e5643476358803b260badb",
+      "targetSha256": "03ce2ff6d94373ab4dc279b239d8a4fcaad7877f940a9b1563c39cee2d608a76",
+      "derivedFromSha256": "5403840081ca24a351afd1070a744313ee35a8dce6e5643476358803b260badb",
+      "dialogue": [
+        "도서관!",
+        "쉿!",
+        "카트!",
+        "우당탕!"
+      ],
+      "width": 724,
+      "height": 2172
+    },
+    {
+      "locale": "ko",
+      "platform": "Facebook",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/dialogue_filled_20261018/backlog_comic_20261015_02.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/vertical_comic_20261018/comic_21.png",
+      "sourceSha256": "bbf30f66da7a5949c8326ac20557c9ea94a0bda81d7b07d8fa4726075a6edb79",
+      "targetSha256": "85de4b7a710c5944b41635bd70e0acc4e632d8aebcc5305311501a7e480ceaa5",
+      "derivedFromSha256": "21048273c0b6ca89bb5928c9cfeb0b3737f1036bfb193977b8ec21917d9072bc",
+      "dialogue": [
+        "좀비다!",
+        "붙어라!",
+        "철썩!",
+        "성공!"
+      ],
+      "width": 730,
+      "height": 2155
+    },
+    {
+      "locale": "ko",
+      "platform": "Facebook",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/dialogue_filled_20261018/backlog_comic_20261015_03.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/vertical_comic_20261018/comic_22.png",
+      "sourceSha256": "d57327a4604e1b4ca41b0f175373e03597f52e90d308c4412c94dcfcfc6a7746",
+      "targetSha256": "ce28b3ac0d6845e1e06db127ef157408c80be0e9a5a43b15cabc46e11e1548e4",
+      "derivedFromSha256": "4036258606fb33aea915868540eaefccac8f1f5483572a90e44f629dff4cc096",
+      "dialogue": [
+        "쉿!",
+        "수레 출발!",
+        "책 폭포!",
+        "대출 끝!"
+      ],
+      "width": 724,
+      "height": 2172
+    },
+    {
+      "locale": "en",
+      "platform": "X",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/en/zombie_catch_comic_words_20261014/01.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/en/vertical_comic_20261018/zombie_catch_comic_words_20261014_01_vertical.png",
+      "sourceSha256": "9c8fb839c8edb2b1c268659ff2b6fb4ef6fa196ca58b49390769fa2e711508a7",
+      "targetSha256": "de335740a44e501ad6adcdd32bab95bebca2efe60a47836e30fcf8a88982686a",
+      "derivedFromSha256": "9c8fb839c8edb2b1c268659ff2b6fb4ef6fa196ca58b49390769fa2e711508a7",
+      "dialogue": [
+        "DESK!",
+        "ZOMBIE!",
+        "WHOOSH!",
+        "ESCAPE!"
+      ],
+      "width": 1024,
+      "height": 1536
+    },
+    {
+      "locale": "en",
+      "platform": "X",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/en/zombie_catch_comic_words_20261014/02.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/en/vertical_comic_20261018/zombie_catch_comic_words_20261014_02_vertical.png",
+      "sourceSha256": "063da8fd33c82fd265e12cb6d5902d2027c5dc8aa5e56f06961bb1866be8ddf5",
+      "targetSha256": "b2f184e733497ccd574f8dfdaa961f61c8a5638d598cb0a5e56151110054ec30",
+      "derivedFromSha256": "063da8fd33c82fd265e12cb6d5902d2027c5dc8aa5e56f06961bb1866be8ddf5",
+      "dialogue": [
+        "LOCKERS!",
+        "BLOCKED!",
+        "HIDE!",
+        "FOUND!"
+      ],
+      "width": 1024,
+      "height": 1536
+    },
+    {
+      "locale": "en",
+      "platform": "X",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/en/zombie_catch_comic_words_20261014/03.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/en/vertical_comic_20261018/zombie_catch_comic_words_20261014_03_vertical.png",
+      "sourceSha256": "fb5709c3fa6677d169deb2e3ae584e663d5bc7f3e6895d0655f4d5c7abe63287",
+      "targetSha256": "5975796c6d43d4be890113dd6288f90071b893c7e0d9ccb3ca1283e69fbf70cd",
+      "derivedFromSha256": "fb5709c3fa6677d169deb2e3ae584e663d5bc7f3e6895d0655f4d5c7abe63287",
+      "dialogue": [
+        "ZOMBIE!",
+        "CAFETERIA!",
+        "WHOA!",
+        "YIKES!"
+      ],
+      "width": 1024,
+      "height": 1536
+    },
+    {
+      "locale": "en",
+      "platform": "X",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/en/zombie_catch_comic_words_20261014/04.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/en/vertical_comic_20261018/zombie_catch_comic_words_20261014_04_vertical.png",
+      "sourceSha256": "134a31d3c13551ec3cade44d5b17b2cbd43a8d220851d140163f61d956122443",
+      "targetSha256": "33251bfb3893b27ea487a191c63ab9bfd37480273e789c0dcfcb049aa6ae91a3",
+      "derivedFromSha256": "134a31d3c13551ec3cade44d5b17b2cbd43a8d220851d140163f61d956122443",
+      "dialogue": [
+        "GYM!",
+        "BALL!",
+        "ROLL!",
+        "SCORE!"
+      ],
+      "width": 1024,
+      "height": 1536
+    },
+    {
+      "locale": "en",
+      "platform": "X",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/en/zombie_catch_comic_words_20261014/05.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/en/vertical_comic_20261018/zombie_catch_comic_words_20261014_05_vertical.png",
+      "sourceSha256": "1a324f2892ddc702ed3dd238e1ecae8164eaa4a7a257a741796782bff4152eaa",
+      "targetSha256": "90fbb4c8c787535e4f92d1846b73a1dfeb0b05d1be6eb20080a0304591febc49",
+      "derivedFromSha256": "1a324f2892ddc702ed3dd238e1ecae8164eaa4a7a257a741796782bff4152eaa",
+      "dialogue": [
+        "LIBRARY!",
+        "SHH!",
+        "CART!",
+        "CRASH!"
+      ],
+      "width": 1024,
+      "height": 1536
+    },
+    {
+      "locale": "en",
+      "platform": "X",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/en/backlog_comic_20261015/01.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/en/vertical_comic_20261018/backlog_comic_20261015_01_vertical.png",
+      "sourceSha256": "dedc5b2972f6b3e573697f335f6b2a1f6ce907da8051a0f622645aacd7d938bb",
+      "targetSha256": "8fe81fa90a2776411a72bd0f826831e2aca5657534d7860efc0e0ce08d9824b4",
+      "derivedFromSha256": "dedc5b2972f6b3e573697f335f6b2a1f6ce907da8051a0f622645aacd7d938bb",
+      "dialogue": [
+        "Huh? / Round and round! / Gotcha!",
+        "Ball storm!",
+        "Here we go!",
+        "Mission complete!"
+      ],
+      "width": 1024,
+      "height": 1536
+    },
+    {
+      "locale": "en",
+      "platform": "X",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/en/backlog_comic_20261015/02.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/en/vertical_comic_20261018/backlog_comic_20261015_02_vertical.png",
+      "sourceSha256": "3947f513e13c604c2aef8f16d01e454b7f0bf4f358688cf83d83050f6ba986ae",
+      "targetSha256": "bc3e32e13aa68b399a0b030e44bf8db40c8892b42e216abe10d3f12bc156de8a",
+      "derivedFromSha256": "3947f513e13c604c2aef8f16d01e454b7f0bf4f358688cf83d83050f6ba986ae",
+      "dialogue": [
+        "Zombies! / Magnet on!",
+        "Magnet on!",
+        "Click!",
+        "Success!"
+      ],
+      "width": 1024,
+      "height": 1536
+    },
+    {
+      "locale": "en",
+      "platform": "X",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/en/backlog_comic_20261015/03.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/en/vertical_comic_20261018/backlog_comic_20261015_03_vertical.png",
+      "sourceSha256": "65d0c0f35bc957aaed39c262967e7805114f53a6ada8bf2e0d6086f0cd073218",
+      "targetSha256": "de01ff6d6ca788d241241b42b5c95884e0feb6ff563ad993f855e2a0a98bf692",
+      "derivedFromSha256": "65d0c0f35bc957aaed39c262967e7805114f53a6ada8bf2e0d6086f0cd073218",
+      "dialogue": [
+        "Shh!",
+        "Cart away!",
+        "Book avalanche!",
+        "Gotcha!"
+      ],
+      "width": 1024,
+      "height": 1536
+    },
+    {
+      "locale": "en",
+      "platform": "X",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/en/backlog_comic_20261015/04.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/en/vertical_comic_20261018/backlog_comic_20261015_04_vertical.png",
+      "sourceSha256": "f3f856b6f873b9c432ede569a8e3568372b9c336a04c346d9c2c02b45cd638a4",
+      "targetSha256": "fa69b29093a125d8996792f909f64a5a45f056c462eccdd58cd8341526de15c0",
+      "derivedFromSha256": "f3f856b6f873b9c432ede569a8e3568372b9c336a04c346d9c2c02b45cd638a4",
+      "dialogue": [
+        "Shh! / Drumroll!",
+        "Feel the beat!",
+        "Boom!",
+        "Encore?"
+      ],
+      "width": 1024,
+      "height": 1536
+    },
+    {
+      "locale": "en",
+      "platform": "X",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/en/backlog_comic_20261015/05.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/en/vertical_comic_20261018/backlog_comic_20261015_05_vertical.png",
+      "sourceSha256": "7c4288890e1e68a8aec206782ea00c0ed750725a006d03e591d7cddb8f845fe9",
+      "targetSha256": "b0d73eebdf50be2694f2660223f42e0db118bdb4bc30712302d3d58e58d980b2",
+      "derivedFromSha256": "7c4288890e1e68a8aec206782ea00c0ed750725a006d03e591d7cddb8f845fe9",
+      "dialogue": [
+        "Uh-oh! / Roll, roll!",
+        "Ta-da!",
+        "Paper wrap!",
+        "Ta-da!"
+      ],
+      "width": 1024,
+      "height": 1536
+    },
+    {
+      "locale": "en",
+      "platform": "X",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/en/dialogue_filled_20261018/backlog_comic_20261015_06.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/en/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_06_vertical.png",
+      "sourceSha256": "ba5eedd9009e106acc03bf9e8212b8d78d11752c569dc767408ff52415ab88e5",
+      "targetSha256": "bd3744345d6b94c3a874fd324d9f2f80ce896d17aafb732f8c13818e4caa2340",
+      "derivedFromSha256": "69a4bf222516247c5febb7b36e04f3b04e964a994854f1aba0af04073aa6a71f",
+      "dialogue": [
+        "Pudding! / Wobble! / Yum!",
+        "Sneak away!",
+        "Wobble!",
+        "Yum!"
+      ],
+      "width": 1024,
+      "height": 1536
+    },
+    {
+      "locale": "en",
+      "platform": "X",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/en/dialogue_filled_20261018/backlog_comic_20261015_07.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/en/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_07_vertical.png",
+      "sourceSha256": "c75f787e8a02cd90358d21279fd3c87b7e7397cd45f1f6b9b8da32c5eb345dc4",
+      "targetSha256": "df98169b809dd9a003066e075acfe45f42369ce345c4911dc699e4aac936f797",
+      "derivedFromSha256": "469dfb972d2f5a83e14f4f521663d2da978e34fd06f0772e955b3c754622b2d6",
+      "dialogue": [
+        "Zombies!",
+        "Encore!",
+        "Ta-da!",
+        "Thank you!"
+      ],
+      "width": 1024,
+      "height": 1536
+    },
+    {
+      "locale": "en",
+      "platform": "X",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/en/dialogue_filled_20261018/backlog_comic_20261015_08.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/en/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_08_vertical.png",
+      "sourceSha256": "0f20cf141b5719c1de41a1fb3c16357c38663bac188356712aab25e3e2eb9ad5",
+      "targetSha256": "836ad5c2fc86194d6f08a69a9678eb1bfa2d760c4112fcf188288b4d574dc7cb",
+      "derivedFromSha256": "416ca2e71169600c3775878b0f04093d7f62fe608bf7d60156874b74359480b0",
+      "dialogue": [
+        "Zombies! / Sprinkle!",
+        "Whoa!",
+        "Too wet!",
+        "Great job!"
+      ],
+      "width": 887,
+      "height": 1774
+    },
+    {
+      "locale": "en",
+      "platform": "X",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/en/dialogue_filled_20261018/backlog_comic_20261015_09.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/en/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_09_vertical.png",
+      "sourceSha256": "bfeae7b826de5591e2e3e40d2c134fa146cc897fdb57bc4647fc1393aa394ad1",
+      "targetSha256": "ae084cb2f5e338d4696ec5101a48dfa51c54fafb35b96daa90faed13f98ae86d",
+      "derivedFromSha256": "272c9e4f469632cc215a6807d1b06455d0790865e693df8ed0d2ff788415f062",
+      "dialogue": [
+        "Course set! / Mat maze!",
+        "Go, go!",
+        "This way!",
+        "We did it!"
+      ],
+      "width": 1024,
+      "height": 1536
+    },
+    {
+      "locale": "en",
+      "platform": "X",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/en/dialogue_filled_20261018/backlog_comic_20261015_10.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/en/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_10_vertical.png",
+      "sourceSha256": "044f8cc2fb89e9f3d629025be858daeec07ecd82eec5068ff5e1fdfb28bf82a1",
+      "targetSha256": "bf00e4612c1979b1f3f74f23a2a8b7f2869746ae874eda7f4dfb17efeeb54759",
+      "derivedFromSha256": "6daf3c705b2bca66d28a8ccd09af1a68dc20090b8a09819db40a648ce1c5fa46",
+      "dialogue": [
+        "Stars!",
+        "Whoa!",
+        "Stars!",
+        "Amazing!"
+      ],
+      "width": 1024,
+      "height": 1536
+    },
+    {
+      "locale": "en",
+      "platform": "Facebook",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/zombie_catch_comic_words_20261015/01.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/vertical_comic_20261018/zombie_catch_comic_words_20261015_01_vertical.png",
+      "sourceSha256": "fa883ba2b50c5b69b9151e8c61a6094723db49ad323479f0c3bb99a056fb8086",
+      "targetSha256": "8ec20b1a1d98aa84bb24439fe3f09c4e011d680461e36e2520a426bd47601043",
+      "derivedFromSha256": "fa883ba2b50c5b69b9151e8c61a6094723db49ad323479f0c3bb99a056fb8086",
+      "dialogue": [
+        "CLASS!",
+        "HIDE!",
+        "THUMP!",
+        "ESCAPE!"
+      ],
+      "width": 1024,
+      "height": 1536
+    },
+    {
+      "locale": "en",
+      "platform": "Facebook",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/zombie_catch_comic_words_20261015/02.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/vertical_comic_20261018/zombie_catch_comic_words_20261015_02_vertical.png",
+      "sourceSha256": "c3af82b77bd87b8daf54fa83c8842c41b5aee95205d36e52f77cefd3e31c2289",
+      "targetSha256": "11699173fa635ae88d2b99b943c6b54357a07f809f12c7d702c8411ab5bb1f32",
+      "derivedFromSha256": "c3af82b77bd87b8daf54fa83c8842c41b5aee95205d36e52f77cefd3e31c2289",
+      "dialogue": [
+        "LOCKERS!",
+        "BLOCKED!",
+        "HIDE!",
+        "FOUND!"
+      ],
+      "width": 1024,
+      "height": 1536
+    },
+    {
+      "locale": "en",
+      "platform": "Facebook",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/zombie_catch_comic_words_20261015/03.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/vertical_comic_20261018/zombie_catch_comic_words_20261015_03_vertical.png",
+      "sourceSha256": "0201feaf1f4f1a7c73c990c8a2b924ee9dafdd896615a707cfc9e3fdda322937",
+      "targetSha256": "99c935abaed43fe7ac50138524ac9841bc61adf40e6533ef77e3671102b927b3",
+      "derivedFromSha256": "0201feaf1f4f1a7c73c990c8a2b924ee9dafdd896615a707cfc9e3fdda322937",
+      "dialogue": [
+        "LUNCH!",
+        "TRAY!",
+        "WHOA!",
+        "SPLASH!"
+      ],
+      "width": 1024,
+      "height": 1536
+    },
+    {
+      "locale": "en",
+      "platform": "Facebook",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/zombie_catch_comic_words_20261015/04.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/vertical_comic_20261018/zombie_catch_comic_words_20261015_04_vertical.png",
+      "sourceSha256": "64d8d919a49743f7279890a1a6c80d63b03dab97f5fc8fc4d07fc5eda40980cb",
+      "targetSha256": "49cda837fb4feca568bdb4fb3496d5e80dd9aa0ae6b0f5f05dad6de6772b6612",
+      "derivedFromSha256": "64d8d919a49743f7279890a1a6c80d63b03dab97f5fc8fc4d07fc5eda40980cb",
+      "dialogue": [
+        "GYM!",
+        "BALL!",
+        "ROLL!",
+        "SUCCESS!"
+      ],
+      "width": 1024,
+      "height": 1536
+    },
+    {
+      "locale": "en",
+      "platform": "Facebook",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/zombie_catch_comic_words_20261015/05.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/vertical_comic_20261018/zombie_catch_comic_words_20261015_05_vertical.png",
+      "sourceSha256": "cf7a07075dbd536af88ea153509abb238975ab227ad7c651715bf9e8e4d2b681",
+      "targetSha256": "f9df65b1180701d2ae29657fb0bb0789a63c5491a6d49f00d5314826b1004fbd",
+      "derivedFromSha256": "cf7a07075dbd536af88ea153509abb238975ab227ad7c651715bf9e8e4d2b681",
+      "dialogue": [
+        "LIBRARY!",
+        "SHH!",
+        "CART!",
+        "CRASH!"
+      ],
+      "width": 1024,
+      "height": 1536
+    },
+    {
+      "locale": "en",
+      "platform": "Facebook",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/backlog_comic_20261015/01.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/vertical_comic_20261018/backlog_comic_20261015_01_vertical.png",
+      "sourceSha256": "dedc5b2972f6b3e573697f335f6b2a1f6ce907da8051a0f622645aacd7d938bb",
+      "targetSha256": "8fe81fa90a2776411a72bd0f826831e2aca5657534d7860efc0e0ce08d9824b4",
+      "derivedFromSha256": "dedc5b2972f6b3e573697f335f6b2a1f6ce907da8051a0f622645aacd7d938bb",
+      "dialogue": [
+        "Huh? / Round and round! / Gotcha!",
+        "Ball storm!",
+        "Here we go!",
+        "Mission complete!"
+      ],
+      "width": 1024,
+      "height": 1536
+    },
+    {
+      "locale": "en",
+      "platform": "Facebook",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/dialogue_filled_20261018/backlog_comic_20261015_02.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_02_vertical.png",
+      "sourceSha256": "6ece693959edb94fe3e219829f58547941ba720174f30a2254e7906641dbd967",
+      "targetSha256": "882806294becd0bdaacabc5fcb33b08da05be2721dc80de13537c0cf4becce8c",
+      "derivedFromSha256": "3947f513e13c604c2aef8f16d01e454b7f0bf4f358688cf83d83050f6ba986ae",
+      "dialogue": [
+        "Zombies! / Magnet on!",
+        "Click!",
+        "Success!",
+        "Good job!"
+      ],
+      "width": 1024,
+      "height": 1536
+    },
+    {
+      "locale": "en",
+      "platform": "Facebook",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/dialogue_filled_20261018/backlog_comic_20261015_03.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_03_vertical.png",
+      "sourceSha256": "733db7cbd04a8d1eacc8fc8c63bbe0500251ee8058264aa0883109f65c499129",
+      "targetSha256": "544bd21c8f7175df7d041ef1e15772324f65989f767b522a2ab1738b8121b4a4",
+      "derivedFromSha256": "65d0c0f35bc957aaed39c262967e7805114f53a6ada8bf2e0d6086f0cd073218",
+      "dialogue": [
+        "Shh!",
+        "Cart away!",
+        "Gotcha!",
+        "Library card!"
+      ],
+      "width": 1024,
+      "height": 1536
+    },
+    {
+      "locale": "en",
+      "platform": "Facebook",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/dialogue_filled_20261018/backlog_comic_20261015_04.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_04_vertical.png",
+      "sourceSha256": "5647227caf8e480e9a407c72f8222315648c82ffe784fc905ab5af3c7a6a99fb",
+      "targetSha256": "b5203127aa4d5806df0d9416b5f5e5650d0c33f419c95541eef0d4e92e1bccb3",
+      "derivedFromSha256": "f3f856b6f873b9c432ede569a8e3568372b9c336a04c346d9c2c02b45cd638a4",
+      "dialogue": [
+        "Shh! / Drumroll! / Encore?",
+        "Drumroll!",
+        "Boom!",
+        "Encore?"
+      ],
+      "width": 1024,
+      "height": 1536
+    },
+    {
+      "locale": "en",
+      "platform": "Facebook",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/dialogue_filled_20261018/backlog_comic_20261015_05.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_05_vertical.png",
+      "sourceSha256": "ced9177fb291b5eebd986be0a6d804f17cef77fc8e2592be9bcc040e86b886f4",
+      "targetSha256": "733bfb1c42b811b46a0c706262580dda4cced1b41ce9ce70c17386c558f79d87",
+      "derivedFromSha256": "7c4288890e1e68a8aec206782ea00c0ed750725a006d03e591d7cddb8f845fe9",
+      "dialogue": [
+        "Uh-oh! / Roll, roll!",
+        "Ta-da!",
+        "Paper wrap!",
+        "Ta-da!"
+      ],
+      "width": 1024,
+      "height": 1536
+    },
+    {
+      "locale": "en",
+      "platform": "Facebook",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/dialogue_filled_20261018/backlog_comic_20261015_06.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_06_vertical.png",
+      "sourceSha256": "ba5eedd9009e106acc03bf9e8212b8d78d11752c569dc767408ff52415ab88e5",
+      "targetSha256": "bd3744345d6b94c3a874fd324d9f2f80ce896d17aafb732f8c13818e4caa2340",
+      "derivedFromSha256": "69a4bf222516247c5febb7b36e04f3b04e964a994854f1aba0af04073aa6a71f",
+      "dialogue": [
+        "Pudding! / Wobble! / Yum!",
+        "Sneak away!",
+        "Wobble!",
+        "Yum!"
+      ],
+      "width": 1024,
+      "height": 1536
+    },
+    {
+      "locale": "en",
+      "platform": "Facebook",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/dialogue_filled_20261018/backlog_comic_20261015_07.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_07_vertical.png",
+      "sourceSha256": "c75f787e8a02cd90358d21279fd3c87b7e7397cd45f1f6b9b8da32c5eb345dc4",
+      "targetSha256": "df98169b809dd9a003066e075acfe45f42369ce345c4911dc699e4aac936f797",
+      "derivedFromSha256": "469dfb972d2f5a83e14f4f521663d2da978e34fd06f0772e955b3c754622b2d6",
+      "dialogue": [
+        "Zombies!",
+        "Encore!",
+        "Ta-da!",
+        "Thank you!"
+      ],
+      "width": 1024,
+      "height": 1536
+    },
+    {
+      "locale": "en",
+      "platform": "Facebook",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/dialogue_filled_20261018/backlog_comic_20261015_08.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_08_vertical.png",
+      "sourceSha256": "0f20cf141b5719c1de41a1fb3c16357c38663bac188356712aab25e3e2eb9ad5",
+      "targetSha256": "836ad5c2fc86194d6f08a69a9678eb1bfa2d760c4112fcf188288b4d574dc7cb",
+      "derivedFromSha256": "416ca2e71169600c3775878b0f04093d7f62fe608bf7d60156874b74359480b0",
+      "dialogue": [
+        "Zombies! / Sprinkle!",
+        "Whoa!",
+        "Too wet!",
+        "Great job!"
+      ],
+      "width": 887,
+      "height": 1774
+    },
+    {
+      "locale": "en",
+      "platform": "Facebook",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/dialogue_filled_20261018/backlog_comic_20261015_09.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_09_vertical.png",
+      "sourceSha256": "bfeae7b826de5591e2e3e40d2c134fa146cc897fdb57bc4647fc1393aa394ad1",
+      "targetSha256": "ae084cb2f5e338d4696ec5101a48dfa51c54fafb35b96daa90faed13f98ae86d",
+      "derivedFromSha256": "272c9e4f469632cc215a6807d1b06455d0790865e693df8ed0d2ff788415f062",
+      "dialogue": [
+        "Course set! / Mat maze!",
+        "Go, go!",
+        "This way!",
+        "We did it!"
+      ],
+      "width": 1024,
+      "height": 1536
+    },
+    {
+      "locale": "en",
+      "platform": "Facebook",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/dialogue_filled_20261018/backlog_comic_20261015_10.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_10_vertical.png",
+      "sourceSha256": "044f8cc2fb89e9f3d629025be858daeec07ecd82eec5068ff5e1fdfb28bf82a1",
+      "targetSha256": "bf00e4612c1979b1f3f74f23a2a8b7f2869746ae874eda7f4dfb17efeeb54759",
+      "derivedFromSha256": "6daf3c705b2bca66d28a8ccd09af1a68dc20090b8a09819db40a648ce1c5fa46",
+      "dialogue": [
+        "Stars!",
+        "Whoa!",
+        "Stars!",
+        "Amazing!"
+      ],
+      "width": 1024,
+      "height": 1536
+    },
+    {
+      "locale": "ja",
+      "platform": "X",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ja/zombie_catch_comic_words_20261014/01.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/ja/vertical_comic_20261018/zombie_catch_comic_words_20261014_01.png",
+      "sourceSha256": "3c6d2e315547c1551b7358417d37bd3b56318561b7acb42b0408cdcce39c0428",
+      "targetSha256": "302e7232744415da51acad31a4674d542728b05a3aa28492b0c2153ab6f7197c",
+      "derivedFromSha256": "3c6d2e315547c1551b7358417d37bd3b56318561b7acb42b0408cdcce39c0428",
+      "dialogue": [
+        "机！",
+        "ゾンビ！",
+        "ヒュッ！",
+        "脱出！"
+      ],
+      "width": 724,
+      "height": 2172
+    },
+    {
+      "locale": "ja",
+      "platform": "X",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ja/zombie_catch_comic_words_20261014/02.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/ja/vertical_comic_20261018/zombie_catch_comic_words_20261014_02.png",
+      "sourceSha256": "8bc3420c4d22c8d2d63b72d81ce9919d3d024c9c466fdb4ed6ee78525218c34c",
+      "targetSha256": "599cc083c27ad48c5f3d16cdf81be861e18c423b727fc66e2598adfe95fa466d",
+      "derivedFromSha256": "8bc3420c4d22c8d2d63b72d81ce9919d3d024c9c466fdb4ed6ee78525218c34c",
+      "dialogue": [
+        "ロッカー！",
+        "通れない！",
+        "隠れろ！",
+        "見つかった！"
+      ],
+      "width": 724,
+      "height": 2172
+    },
+    {
+      "locale": "ja",
+      "platform": "X",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ja/zombie_catch_comic_words_20261014/03.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/ja/vertical_comic_20261018/zombie_catch_comic_words_20261014_03.png",
+      "sourceSha256": "d87427742bae924f169849313fef7068aa99f90d0b4fcfc03e1d05bf373ff209",
+      "targetSha256": "10090f8fe3bfb44ae4c72cc0cc6cdfe99c27eb7c54c29b905ae720a8d8df72f3",
+      "derivedFromSha256": "d87427742bae924f169849313fef7068aa99f90d0b4fcfc03e1d05bf373ff209",
+      "dialogue": [
+        "ゾンビ！",
+        "食堂！",
+        "わあ！",
+        "きゃー！"
+      ],
+      "width": 724,
+      "height": 2172
+    },
+    {
+      "locale": "ja",
+      "platform": "X",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ja/zombie_catch_comic_words_20261014/04.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/ja/vertical_comic_20261018/zombie_catch_comic_words_20261014_04.png",
+      "sourceSha256": "ba0e8c435edb8b0375d72219f489fcd26885b79b791c4f8fdb77312ce1e6c29c",
+      "targetSha256": "49371483f9b6b3f07efe8716281147651cd5e6d246bb441f795cffbfee3dc5b1",
+      "derivedFromSha256": "ba0e8c435edb8b0375d72219f489fcd26885b79b791c4f8fdb77312ce1e6c29c",
+      "dialogue": [
+        "体育館！",
+        "ボール！",
+        "ゴロゴロ！",
+        "ゴール！"
+      ],
+      "width": 724,
+      "height": 2172
+    },
+    {
+      "locale": "ja",
+      "platform": "X",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ja/zombie_catch_comic_words_20261014/05.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/ja/vertical_comic_20261018/zombie_catch_comic_words_20261014_05.png",
+      "sourceSha256": "e9bcaf325ef2c34dd3c91d846b768d07aa217b7fc24954a6f35478ecfd6e17fc",
+      "targetSha256": "315cd9ad0f1c642055686009fbed1130786ca832e18e0d6e038f0797c5500443",
+      "derivedFromSha256": "e9bcaf325ef2c34dd3c91d846b768d07aa217b7fc24954a6f35478ecfd6e17fc",
+      "dialogue": [
+        "図書室！",
+        "しーっ！",
+        "カート！",
+        "ガラガラ！"
+      ],
+      "width": 724,
+      "height": 2172
+    },
+    {
+      "locale": "ja",
+      "platform": "X",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ja/backlog_comic_20261015/01.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/ja/vertical_comic_20261018/backlog_comic_20261015_01.png",
+      "sourceSha256": "708fab950e3f2e1ca7b4dc7eb2f8cb350aace963eb5145f571862667abffd300",
+      "targetSha256": "99d26d1af0d914c0680daaaa87707db6ea99009b23eff1889ad93e0834d803c0",
+      "derivedFromSha256": "708fab950e3f2e1ca7b4dc7eb2f8cb350aace963eb5145f571862667abffd300",
+      "dialogue": [
+        "あれ？",
+        "体育館へ！",
+        "いっけー！",
+        "やった！"
+      ],
+      "width": 724,
+      "height": 2172
+    },
+    {
+      "locale": "ja",
+      "platform": "Facebook",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/backlog_comic_20261015/01.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/vertical_comic_20261018/backlog_comic_20261015_01.png",
+      "sourceSha256": "708fab950e3f2e1ca7b4dc7eb2f8cb350aace963eb5145f571862667abffd300",
+      "targetSha256": "99d26d1af0d914c0680daaaa87707db6ea99009b23eff1889ad93e0834d803c0",
+      "derivedFromSha256": "708fab950e3f2e1ca7b4dc7eb2f8cb350aace963eb5145f571862667abffd300",
+      "dialogue": [
+        "あれ？",
+        "体育館へ！",
+        "いっけー！",
+        "やった！"
+      ],
+      "width": 724,
+      "height": 2172
+    },
+    {
+      "locale": "ja",
+      "platform": "X",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ja/backlog_comic_20261015/02.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/ja/vertical_comic_20261018/backlog_comic_20261015_02.png",
+      "sourceSha256": "9ecca86f15aba0c60e01df0a1b78e10609ddf4279738458376cb010e56b2603f",
+      "targetSha256": "b858ad9880b6d504b555b5a279a0b926ed632e242a2371da8f7abd5033256cb3",
+      "derivedFromSha256": "9ecca86f15aba0c60e01df0a1b78e10609ddf4279738458376cb010e56b2603f",
+      "dialogue": [
+        "ゾンビだ！",
+        "磁石オン！",
+        "ピタッ！",
+        "大成功！"
+      ],
+      "width": 724,
+      "height": 2172
+    },
+    {
+      "locale": "ja",
+      "platform": "X",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ja/backlog_comic_20261015/03.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/ja/vertical_comic_20261018/backlog_comic_20261015_03.png",
+      "sourceSha256": "7ba395e482aadfc0ee7299d1543ea7928b54321b46847fef4e7a252efc384a6c",
+      "targetSha256": "05e4dcb97a502ac2aa9cb846f0c42df00881b6b91a612261ddc7580673a3226d",
+      "derivedFromSha256": "7ba395e482aadfc0ee7299d1543ea7928b54321b46847fef4e7a252efc384a6c",
+      "dialogue": [
+        "しーっ！",
+        "カート発進！",
+        "本の雪崩！",
+        "貸出完了！"
+      ],
+      "width": 724,
+      "height": 2172
+    },
+    {
+      "locale": "ja",
+      "platform": "X",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ja/backlog_comic_20261015/04.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/ja/vertical_comic_20261018/backlog_comic_20261015_04.png",
+      "sourceSha256": "9a8647341431b2caa2fea23838467e45a9dbe80e77992ac2e5eaa820e99e6c11",
+      "targetSha256": "c536474a0ef41758211862c38e05434c2441b6085e491c079e826def1e53bd05",
+      "derivedFromSha256": "9a8647341431b2caa2fea23838467e45a9dbe80e77992ac2e5eaa820e99e6c11",
+      "dialogue": [
+        "しーっ！",
+        "ドンドン！",
+        "ドーン！",
+        "アンコール？"
+      ],
+      "width": 724,
+      "height": 2172
+    },
+    {
+      "locale": "ja",
+      "platform": "X",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ja/backlog_comic_20261015/05.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/ja/vertical_comic_20261018/backlog_comic_20261015_05.png",
+      "sourceSha256": "e55ac706760321d5c46207cc2f9b3ab6ab8c6750d4438c125fc3ae8d37364274",
+      "targetSha256": "78ad20618ce94be29984f4464db5da328847f1cab06dd4975db1f212d20acb4d",
+      "derivedFromSha256": "e55ac706760321d5c46207cc2f9b3ab6ab8c6750d4438c125fc3ae8d37364274",
+      "dialogue": [
+        "あれ？",
+        "コロコロ！",
+        "紙ぐるぐる！",
+        "完成！"
+      ],
+      "width": 724,
+      "height": 2172
+    },
+    {
+      "locale": "ja",
+      "platform": "X",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ja/dialogue_filled_20261018/backlog_comic_20261015_06.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/ja/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_06.png",
+      "sourceSha256": "555f084bc70b267c32555cd161f3671d28d99ab6d8c31a890a0a15d53b350a55",
+      "targetSha256": "dd3c9fa15b0ba6d5416d65e9a7a1919a871937da720efd958685da8a80e3495c",
+      "derivedFromSha256": "e631826a95fb8fd1dee5153ba5b17bead5e00bd91f8c3bf6dabbaaa347f1d086",
+      "dialogue": [
+        "プリンだ！",
+        "そーっと！",
+        "ぷるぷる！",
+        "召し上がれ！"
+      ],
+      "width": 724,
+      "height": 2172
+    },
+    {
+      "locale": "ja",
+      "platform": "Facebook",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/dialogue_filled_20261018/backlog_comic_20261015_06.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_06.png",
+      "sourceSha256": "555f084bc70b267c32555cd161f3671d28d99ab6d8c31a890a0a15d53b350a55",
+      "targetSha256": "dd3c9fa15b0ba6d5416d65e9a7a1919a871937da720efd958685da8a80e3495c",
+      "derivedFromSha256": "e631826a95fb8fd1dee5153ba5b17bead5e00bd91f8c3bf6dabbaaa347f1d086",
+      "dialogue": [
+        "プリンだ！",
+        "そーっと！",
+        "ぷるぷる！",
+        "召し上がれ！"
+      ],
+      "width": 724,
+      "height": 2172
+    },
+    {
+      "locale": "ja",
+      "platform": "X",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ja/dialogue_filled_20261018/backlog_comic_20261015_07.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/ja/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_07.png",
+      "sourceSha256": "b9c2d4bb6067cc81d5398833a7bfd65f925dcb8779006f914c4d44f204a6ac30",
+      "targetSha256": "b3643f554b881b77fb30a1f11c556604a7ae545d8a86066ae5ad14e997d3b403",
+      "derivedFromSha256": "c48c4962238c019758a8c3dc40ca92ba8a9006bbd3946f11eaf1e52c02f5c5ee",
+      "dialogue": [
+        "ゾンビだ！",
+        "ライトオン！",
+        "幕を下ろして！",
+        "ご清聴ありがとう！"
+      ],
+      "width": 724,
+      "height": 2172
+    },
+    {
+      "locale": "ja",
+      "platform": "Facebook",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/dialogue_filled_20261018/backlog_comic_20261015_07.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_07.png",
+      "sourceSha256": "b9c2d4bb6067cc81d5398833a7bfd65f925dcb8779006f914c4d44f204a6ac30",
+      "targetSha256": "b3643f554b881b77fb30a1f11c556604a7ae545d8a86066ae5ad14e997d3b403",
+      "derivedFromSha256": "c48c4962238c019758a8c3dc40ca92ba8a9006bbd3946f11eaf1e52c02f5c5ee",
+      "dialogue": [
+        "ゾンビだ！",
+        "ライトオン！",
+        "幕を下ろして！",
+        "ご清聴ありがとう！"
+      ],
+      "width": 724,
+      "height": 2172
+    },
+    {
+      "locale": "ja",
+      "platform": "X",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ja/dialogue_filled_20261018/backlog_comic_20261015_08.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/ja/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_08.png",
+      "sourceSha256": "5a921712d74e0ca4f298871133245c4dca99493f49259fbbf2a61f5f0029833c",
+      "targetSha256": "1fd8a31ace910dc74efbeb78b05e56cf84aec6d54dc2b4253c41e803ce3827ae",
+      "derivedFromSha256": "db3e7ebe59b1d0062839ef4b69cbb17ae6c7e26214061de7893834484c6e0fce",
+      "dialogue": [
+        "ゾンビだ！",
+        "水まき開始！",
+        "すべった！",
+        "よく育ってね！"
+      ],
+      "width": 724,
+      "height": 2172
+    },
+    {
+      "locale": "ja",
+      "platform": "Facebook",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/dialogue_filled_20261018/backlog_comic_20261015_08.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_08.png",
+      "sourceSha256": "5a921712d74e0ca4f298871133245c4dca99493f49259fbbf2a61f5f0029833c",
+      "targetSha256": "1fd8a31ace910dc74efbeb78b05e56cf84aec6d54dc2b4253c41e803ce3827ae",
+      "derivedFromSha256": "db3e7ebe59b1d0062839ef4b69cbb17ae6c7e26214061de7893834484c6e0fce",
+      "dialogue": [
+        "ゾンビだ！",
+        "水まき開始！",
+        "すべった！",
+        "よく育ってね！"
+      ],
+      "width": 724,
+      "height": 2172
+    },
+    {
+      "locale": "ja",
+      "platform": "X",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ja/dialogue_filled_20261018/backlog_comic_20261015_09.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/ja/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_09.png",
+      "sourceSha256": "1abe97c4fead709a5b92aa5b1b07a0437f0dd990415c965e5bbeff382c3bb8f3",
+      "targetSha256": "50a8f7f29df4c9ae0afe2469441be879588a9342442890b6de0e41212e0bb56c",
+      "derivedFromSha256": "d8d7515b7898c2daddf0de2ac91c11803712e6bda6049602fbd5ead605b1c1cc",
+      "dialogue": [
+        "コース完成！",
+        "ジャンプ！",
+        "こっちだよ！",
+        "ゴール！"
+      ],
+      "width": 724,
+      "height": 2172
+    },
+    {
+      "locale": "ja",
+      "platform": "Facebook",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/dialogue_filled_20261018/backlog_comic_20261015_09.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_09.png",
+      "sourceSha256": "1abe97c4fead709a5b92aa5b1b07a0437f0dd990415c965e5bbeff382c3bb8f3",
+      "targetSha256": "50a8f7f29df4c9ae0afe2469441be879588a9342442890b6de0e41212e0bb56c",
+      "derivedFromSha256": "d8d7515b7898c2daddf0de2ac91c11803712e6bda6049602fbd5ead605b1c1cc",
+      "dialogue": [
+        "コース完成！",
+        "ジャンプ！",
+        "こっちだよ！",
+        "ゴール！"
+      ],
+      "width": 724,
+      "height": 2172
+    },
+    {
+      "locale": "ja",
+      "platform": "X",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ja/dialogue_filled_20261018/backlog_comic_20261015_10.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/ja/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_10.png",
+      "sourceSha256": "95dcc37320669513025d7074b1c8dc5580893f0dbf1e40c2982fe87e186b36d9",
+      "targetSha256": "80d902709afb351af478f6644e924e03c9a270bb25dc7eed08c3ae59703aa986",
+      "derivedFromSha256": "558eb8588fba15ac588808bb57b5ec560b200d473833a7c7e674185214403542",
+      "dialogue": [
+        "星だ！",
+        "大きな月！",
+        "ぐるぐる！",
+        "宇宙制圧！"
+      ],
+      "width": 724,
+      "height": 2172
+    },
+    {
+      "locale": "ja",
+      "platform": "Facebook",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/dialogue_filled_20261018/backlog_comic_20261015_10.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_10.png",
+      "sourceSha256": "95dcc37320669513025d7074b1c8dc5580893f0dbf1e40c2982fe87e186b36d9",
+      "targetSha256": "80d902709afb351af478f6644e924e03c9a270bb25dc7eed08c3ae59703aa986",
+      "derivedFromSha256": "558eb8588fba15ac588808bb57b5ec560b200d473833a7c7e674185214403542",
+      "dialogue": [
+        "星だ！",
+        "大きな月！",
+        "ぐるぐる！",
+        "宇宙制圧！"
+      ],
+      "width": 724,
+      "height": 2172
+    },
+    {
+      "locale": "ja",
+      "platform": "Facebook",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/zombie_catch_comic_words_20261015/01.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/vertical_comic_20261018/zombie_catch_comic_words_20261015_01.png",
+      "sourceSha256": "a132c458f424a4d10f85580498b8a8d4213dbf5e761691f70a22c99802f24fdf",
+      "targetSha256": "ed2a58f5cd9a15cbbd4eef4d0f1eff05a55aeacda181d6b968f52cf144b5e942",
+      "derivedFromSha256": "a132c458f424a4d10f85580498b8a8d4213dbf5e761691f70a22c99802f24fdf",
+      "dialogue": [
+        "教室！",
+        "危ない！",
+        "ドン！",
+        "脱出！"
+      ],
+      "width": 724,
+      "height": 2172
+    },
+    {
+      "locale": "ja",
+      "platform": "Facebook",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/zombie_catch_comic_words_20261015/02.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/vertical_comic_20261018/zombie_catch_comic_words_20261015_02.png",
+      "sourceSha256": "a10404bb1b3750f27273ef60671154d91c755b0ec1e682754fa6c7d81649a3ae",
+      "targetSha256": "7d6f6c5877b5645cf831eae7d6ce50fc9789639ee0032fae9901d177abb70273",
+      "derivedFromSha256": "a10404bb1b3750f27273ef60671154d91c755b0ec1e682754fa6c7d81649a3ae",
+      "dialogue": [
+        "ロッカー！",
+        "ふさがれた！",
+        "隠れて！",
+        "見つけた！"
+      ],
+      "width": 724,
+      "height": 2172
+    },
+    {
+      "locale": "ja",
+      "platform": "Facebook",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/zombie_catch_comic_words_20261015/03.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/vertical_comic_20261018/zombie_catch_comic_words_20261015_03.png",
+      "sourceSha256": "07b4eaeb9f65d5834edd81a90683dfbea6d87634c6adcad4a25b184fe4439aaf",
+      "targetSha256": "3178e14cee712e97a34d7d43be64c7d6d1d844b750cdc2f84da912ab7623cf99",
+      "derivedFromSha256": "07b4eaeb9f65d5834edd81a90683dfbea6d87634c6adcad4a25b184fe4439aaf",
+      "dialogue": [
+        "食堂！",
+        "トレー！",
+        "うわっ！",
+        "大惨事！"
+      ],
+      "width": 724,
+      "height": 2172
+    },
+    {
+      "locale": "ja",
+      "platform": "Facebook",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/zombie_catch_comic_words_20261015/04.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/vertical_comic_20261018/zombie_catch_comic_words_20261015_04.png",
+      "sourceSha256": "919f6a5db97d6b379d28df06ef96eb2a2217286c351397b15983b4b4d77c552b",
+      "targetSha256": "66cf64a8aebbf28beb7e6023b4bad41498fbbd4854d6d26756311e88818e1b5c",
+      "derivedFromSha256": "919f6a5db97d6b379d28df06ef96eb2a2217286c351397b15983b4b4d77c552b",
+      "dialogue": [
+        "体育館！",
+        "ボール！",
+        "ゴロゴロ！",
+        "大成功！"
+      ],
+      "width": 724,
+      "height": 2172
+    },
+    {
+      "locale": "ja",
+      "platform": "Facebook",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/zombie_catch_comic_words_20261015/05.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/vertical_comic_20261018/zombie_catch_comic_words_20261015_05.png",
+      "sourceSha256": "f34b8427844d17ffbe0fc3e50702781b87cd966c6c8d8230a67c649ac9254026",
+      "targetSha256": "94714e3f4b0203cd3cfade490b2350c50245805e849eefd3009595f4c1186e70",
+      "derivedFromSha256": "f34b8427844d17ffbe0fc3e50702781b87cd966c6c8d8230a67c649ac9254026",
+      "dialogue": [
+        "図書室！",
+        "静かに！",
+        "カート！",
+        "ガシャーン！"
+      ],
+      "width": 724,
+      "height": 2172
+    },
+    {
+      "locale": "ja",
+      "platform": "Facebook",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/dialogue_filled_20261018/backlog_comic_20261015_02.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_02.png",
+      "sourceSha256": "2af2c70fde23a5c107375bf01e1fd8a36e4c40d6a5a509d0358746a1700e026f",
+      "targetSha256": "9951c81ab40aadf4b81cb4d833a5ef7fba922c95fe7dae583d1d18e1f3f8ea33",
+      "derivedFromSha256": "9ecca86f15aba0c60e01df0a1b78e10609ddf4279738458376cb010e56b2603f",
+      "dialogue": [
+        "ゾンビだ！",
+        "磁石オン！",
+        "ピタッ！",
+        "大成功！"
+      ],
+      "width": 724,
+      "height": 2172
+    },
+    {
+      "locale": "ja",
+      "platform": "Facebook",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/dialogue_filled_20261018/backlog_comic_20261015_03.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_03.png",
+      "sourceSha256": "36bb4f13b97cb07c4df71aed3d376cee0809047fe3177245f55cae941f75706b",
+      "targetSha256": "5dab323fcd6e6334759239903167cdfb0ab531a9d82231c3be2a155a8edbaddf",
+      "derivedFromSha256": "7ba395e482aadfc0ee7299d1543ea7928b54321b46847fef4e7a252efc384a6c",
+      "dialogue": [
+        "しーっ！",
+        "カート発進！",
+        "本の雪崩！",
+        "貸出完了！"
+      ],
+      "width": 724,
+      "height": 2172
+    },
+    {
+      "locale": "ja",
+      "platform": "Facebook",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/dialogue_filled_20261018/backlog_comic_20261015_04.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_04.png",
+      "sourceSha256": "55f0b215c39d16b16491ea6d36b95ce4131524796bb29f67d1027dac10dd126d",
+      "targetSha256": "0b0910f2a4af875747d2759bbfa5b8d3fd1957b15c97fefcf74891dc9d52b6b4",
+      "derivedFromSha256": "9a8647341431b2caa2fea23838467e45a9dbe80e77992ac2e5eaa820e99e6c11",
+      "dialogue": [
+        "しーっ！",
+        "リズムに乗って！",
+        "ドーン！",
+        "演奏終了！"
+      ],
+      "width": 724,
+      "height": 2172
+    },
+    {
+      "locale": "ja",
+      "platform": "Facebook",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/dialogue_filled_20261018/backlog_comic_20261015_05.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_05.png",
+      "sourceSha256": "0debadbc53bf311e46b30e8945d680fa52f1dfa7a73d646b12497db4a946ff23",
+      "targetSha256": "056d603a70bffb549a096fc53e2c32fb9c6f32d5f6b5e9b0a7c12e0ea8e94e94",
+      "derivedFromSha256": "e55ac706760321d5c46207cc2f9b3ab6ab8c6750d4438c125fc3ae8d37364274",
+      "dialogue": [
+        "あれ？",
+        "ころころ！",
+        "ぐるぐる巻き！",
+        "作品完成！"
+      ],
+      "width": 724,
+      "height": 2172
+    },
+    {
+      "locale": "vi",
+      "platform": "X",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/vi/zombie_catch_comic_words_20261014/01.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/vi/vertical_comic_20261018/x_zombiecatch_01.png",
+      "sourceSha256": "ef8981446708437af9f0871d9529b5846368df201ba54bea18209923d673d2cd",
+      "targetSha256": "c10b85cd9f19439824fdf38a894d5ba20dcfb4aad8eb1398714614580160f6d5",
+      "derivedFromSha256": "ef8981446708437af9f0871d9529b5846368df201ba54bea18209923d673d2cd",
+      "dialogue": [
+        "Zombie kìa!",
+        "Chạy mau!",
+        "Vụt qua rồi!",
+        "Thoát được rồi!"
+      ],
+      "width": 1024,
+      "height": 1536
+    },
+    {
+      "locale": "vi",
+      "platform": "X",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/vi/zombie_catch_comic_words_20261014/02.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/vi/vertical_comic_20261018/x_zombiecatch_02.png",
+      "sourceSha256": "f0123622fc73b68838e20e9c5923ee5cd3761c33ae569b0121d4090fba388dde",
+      "targetSha256": "fd65d210924a225cf089b778fca5162688a3d5e7d82dd806780d8c0a62151750",
+      "derivedFromSha256": "f0123622fc73b68838e20e9c5923ee5cd3761c33ae569b0121d4090fba388dde",
+      "dialogue": [
+        "Tủ đồ!",
+        "Chặn lối!",
+        "Núp mau!",
+        "Bị thấy rồi!"
+      ],
+      "width": 1024,
+      "height": 1536
+    },
+    {
+      "locale": "vi",
+      "platform": "X",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/vi/zombie_catch_comic_words_20261014/03.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/vi/vertical_comic_20261018/x_zombiecatch_03.png",
+      "sourceSha256": "ce70d44966b0340f1e1994a5ec8e71fdb20d9b2dbc516c1cf5de79bb03c4aa07",
+      "targetSha256": "26871e9af3d7f7cbdef9163a58530ffe589433239bce8e0c5fb280c498031f9d",
+      "derivedFromSha256": "ce70d44966b0340f1e1994a5ec8e71fdb20d9b2dbc516c1cf5de79bb03c4aa07",
+      "dialogue": [
+        "Nhà tập!",
+        "Quả bóng!",
+        "Lăn đi!",
+        "Vào rổ rồi!"
+      ],
+      "width": 887,
+      "height": 1774
+    },
+    {
+      "locale": "vi",
+      "platform": "X",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/vi/zombie_catch_comic_words_20261014/04.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/vi/vertical_comic_20261018/x_zombiecatch_04.png",
+      "sourceSha256": "1dbb3501995fcaa20a0a97b2629ea513a8bd0f78ad2278d000a876a3764a68e2",
+      "targetSha256": "ce05efc28aabb82b7751eb17255d92a9d12b4bd09a5bc3483e1857a2f9b48760",
+      "derivedFromSha256": "1dbb3501995fcaa20a0a97b2629ea513a8bd0f78ad2278d000a876a3764a68e2",
+      "dialogue": [
+        "Thư viện!",
+        "Suỵt, thật khẽ!",
+        "Xe đẩy tới!",
+        "Âm thanh đánh thức chúng rồi!"
+      ],
+      "width": 1024,
+      "height": 1536
+    },
+    {
+      "locale": "vi",
+      "platform": "X",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/vi/zombie_catch_comic_words_20261014/05.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/vi/vertical_comic_20261018/x_zombiecatch_05.png",
+      "sourceSha256": "7f36f0d445402838f9390939300d1dc3f6de0b2f87cffd3aba18741dde36fa29",
+      "targetSha256": "0903e9115dba6b5b744e60d1cdeee168bbc5aaa5961dca0d2df814d4c0d36bf6",
+      "derivedFromSha256": "7f36f0d445402838f9390939300d1dc3f6de0b2f87cffd3aba18741dde36fa29",
+      "dialogue": [
+        "Thư viện!",
+        "Đẩy xe thôi!",
+        "Sách đổ rồi!",
+        "Tìm được sách rồi!"
+      ],
+      "width": 941,
+      "height": 1672
+    },
+    {
+      "locale": "vi",
+      "platform": "X",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/vi/backlog_comic_20261015/01.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/vi/vertical_comic_20261018/x_backlog_01.png",
+      "sourceSha256": "015ddd4a21f887af78ccde30c826ef90e96042fb09135ea4e01c4d187ceb2a2d",
+      "targetSha256": "3fb0fe5faca78b2365a5c8d50df68ad0738792b8a7d5b88e4282cb7c2ae94eeb",
+      "derivedFromSha256": "015ddd4a21f887af78ccde30c826ef90e96042fb09135ea4e01c4d187ceb2a2d",
+      "dialogue": [
+        "Ở kia!",
+        "Quả địa cầu đây rồi!",
+        "Xả bóng nào!",
+        "Chụp được rồi!"
+      ],
+      "width": 797,
+      "height": 1973
+    },
+    {
+      "locale": "vi",
+      "platform": "X",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/vi/backlog_comic_20261015/02.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/vi/vertical_comic_20261018/x_backlog_02.png",
+      "sourceSha256": "8c49dd2b0b0fff9bfccc0f2ff522e0b3d75ae0267b8e415c67b1b6aec365ee39",
+      "targetSha256": "a5202f708e0303c3e7883d95671aa070ed1fb2d34beb85021b333c49c51a9b11",
+      "derivedFromSha256": "8c49dd2b0b0fff9bfccc0f2ff522e0b3d75ae0267b8e415c67b1b6aec365ee39",
+      "dialogue": [
+        "Zombie kìa!",
+        "Nam châm bật rồi!",
+        "Chúng bị hút kìa!",
+        "Thành công!"
+      ],
+      "width": 1024,
+      "height": 1536
+    },
+    {
+      "locale": "vi",
+      "platform": "X",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/vi/backlog_comic_20261015/03.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/vi/vertical_comic_20261018/x_backlog_03.png",
+      "sourceSha256": "ad22a385cbcad90fee871a2123e8ea0ae42f554e987e94ccdc4d587ae7591459",
+      "targetSha256": "67a0945149250b3eac9b4fd1c019a8f97ac7ebbd243bdfed2862c65367bb7430",
+      "derivedFromSha256": "ad22a385cbcad90fee871a2123e8ea0ae42f554e987e94ccdc4d587ae7591459",
+      "dialogue": [
+        "Suỵt!",
+        "Đẩy xe thôi!",
+        "Sách rơi rồi!",
+        "Tìm được rồi!"
+      ],
+      "width": 887,
+      "height": 1772
+    },
+    {
+      "locale": "vi",
+      "platform": "X",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/vi/backlog_comic_20261015/04.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/vi/vertical_comic_20261018/x_backlog_04.png",
+      "sourceSha256": "da2d7beed6d3904661432b362ec61c29e64608d950c83818f2264e8aa892c385",
+      "targetSha256": "ad6511aa03e94533eb3951364a5e1295e4e403e8a0c105caa100411e114de6cd",
+      "derivedFromSha256": "da2d7beed6d3904661432b362ec61c29e64608d950c83818f2264e8aa892c385",
+      "dialogue": [
+        "Suỵt!",
+        "Vào nhịp nào!",
+        "Bùm thật to!",
+        "Chơi tiếp nhé!"
+      ],
+      "width": 884,
+      "height": 1780
+    },
+    {
+      "locale": "vi",
+      "platform": "X",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/vi/dialogue_filled_20261018/backlog_comic_20261015_05.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/vi/vertical_comic_20261018/x_backlog_05.png",
+      "sourceSha256": "cc5766b7f486b2c70697a569de596a4f4ee49b273a0dc1f842bb00036c17f04a",
+      "targetSha256": "7cfb4a170279ca9882b6b4805c77f27f3a6fd811a955187f7a1497b09bb9787e",
+      "derivedFromSha256": "a2b096504a2e5d8c1ea59daf5597006da6fb6866b253c6bb4aa4a9048b7c8936",
+      "dialogue": [
+        "Ở kia!",
+        "Kéo giấy nào!",
+        "Quấn chặt rồi!",
+        "Tada!"
+      ],
+      "width": 1024,
+      "height": 1536
+    },
+    {
+      "locale": "vi",
+      "platform": "Facebook",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/dialogue_filled_20261018/backlog_comic_20261015_05.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/vertical_comic_20261018/facebook_backlog_05.png",
+      "sourceSha256": "cc5766b7f486b2c70697a569de596a4f4ee49b273a0dc1f842bb00036c17f04a",
+      "targetSha256": "7cfb4a170279ca9882b6b4805c77f27f3a6fd811a955187f7a1497b09bb9787e",
+      "derivedFromSha256": "a2b096504a2e5d8c1ea59daf5597006da6fb6866b253c6bb4aa4a9048b7c8936",
+      "dialogue": [
+        "Ở kia!",
+        "Kéo giấy nào!",
+        "Quấn chặt rồi!",
+        "Tada!"
+      ],
+      "width": 1024,
+      "height": 1536
+    },
+    {
+      "locale": "vi",
+      "platform": "X",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/vi/dialogue_filled_20261018/backlog_comic_20261015_06.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/vi/vertical_comic_20261018/x_backlog_06.png",
+      "sourceSha256": "4be7964bdb7568193792f0a5ccf92c8577e49de82c0234fe1cd5f3dce04c6059",
+      "targetSha256": "9a9b0a4db0185dff2b08a35aed2f3dd17cca31b8f86ffb812e3c4ba0c6041ac7",
+      "derivedFromSha256": "c76f3b0ec24666fd128f9831909c9be976d51f4b374d27cba082a47c5c45e571",
+      "dialogue": [
+        "Bánh flan!",
+        "Đẩy xe nào!",
+        "Úi, ngã rồi!",
+        "Mời ăn nhé!"
+      ],
+      "width": 1025,
+      "height": 1535
+    },
+    {
+      "locale": "vi",
+      "platform": "Facebook",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/dialogue_filled_20261018/backlog_comic_20261015_06.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/vertical_comic_20261018/facebook_backlog_06.png",
+      "sourceSha256": "4be7964bdb7568193792f0a5ccf92c8577e49de82c0234fe1cd5f3dce04c6059",
+      "targetSha256": "9a9b0a4db0185dff2b08a35aed2f3dd17cca31b8f86ffb812e3c4ba0c6041ac7",
+      "derivedFromSha256": "c76f3b0ec24666fd128f9831909c9be976d51f4b374d27cba082a47c5c45e571",
+      "dialogue": [
+        "Bánh flan!",
+        "Đẩy xe nào!",
+        "Úi, ngã rồi!",
+        "Mời ăn nhé!"
+      ],
+      "width": 1025,
+      "height": 1535
+    },
+    {
+      "locale": "vi",
+      "platform": "X",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/vi/dialogue_filled_20261018/backlog_comic_20261015_07.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/vi/vertical_comic_20261018/x_backlog_07.png",
+      "sourceSha256": "8e6f0bb1063dcb6ddd355501f06fa52d0e0ae48ba17e550b22d7cb0dfec716ea",
+      "targetSha256": "f06aeee3331a828bd3c17df3f600540dcd4df442b9597cbad6f675f686ff8d38",
+      "derivedFromSha256": "b0bd5f0a729a7a91f4f0c3b2d489e86e57ab5bdf80c5cc2b580fbbc32ddb6947",
+      "dialogue": [
+        "Zombie kia!",
+        "Bật đèn nào!",
+        "Màn mở rồi!",
+        "Cảm ơn nhé!"
+      ],
+      "width": 793,
+      "height": 1983
+    },
+    {
+      "locale": "vi",
+      "platform": "Facebook",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/dialogue_filled_20261018/backlog_comic_20261015_07.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/vertical_comic_20261018/facebook_backlog_07.png",
+      "sourceSha256": "8e6f0bb1063dcb6ddd355501f06fa52d0e0ae48ba17e550b22d7cb0dfec716ea",
+      "targetSha256": "f06aeee3331a828bd3c17df3f600540dcd4df442b9597cbad6f675f686ff8d38",
+      "derivedFromSha256": "b0bd5f0a729a7a91f4f0c3b2d489e86e57ab5bdf80c5cc2b580fbbc32ddb6947",
+      "dialogue": [
+        "Zombie kia!",
+        "Bật đèn nào!",
+        "Màn mở rồi!",
+        "Cảm ơn nhé!"
+      ],
+      "width": 793,
+      "height": 1983
+    },
+    {
+      "locale": "vi",
+      "platform": "X",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/vi/dialogue_filled_20261018/backlog_comic_20261015_08.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/vi/vertical_comic_20261018/x_backlog_08.png",
+      "sourceSha256": "844ea96cf174c9c66c1746439e49252c3e25d7361d309278700f81b9a3379c63",
+      "targetSha256": "71db1538d6c23d4e1111a1be98c1c0307a697cf83e1f8d62dbb5947ad50749d9",
+      "derivedFromSha256": "733b238bc570f2771bb21ae12056fd6e303f5787ca78d5e956477c27a0360cc7",
+      "dialogue": [
+        "Zombie kia!",
+        "Tưới thật đều!",
+        "Nảy mầm rồi!",
+        "Cùng trồng nhé!"
+      ],
+      "width": 887,
+      "height": 1774
+    },
+    {
+      "locale": "vi",
+      "platform": "Facebook",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/dialogue_filled_20261018/backlog_comic_20261015_08.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/vertical_comic_20261018/facebook_backlog_08.png",
+      "sourceSha256": "844ea96cf174c9c66c1746439e49252c3e25d7361d309278700f81b9a3379c63",
+      "targetSha256": "71db1538d6c23d4e1111a1be98c1c0307a697cf83e1f8d62dbb5947ad50749d9",
+      "derivedFromSha256": "733b238bc570f2771bb21ae12056fd6e303f5787ca78d5e956477c27a0360cc7",
+      "dialogue": [
+        "Zombie kia!",
+        "Tưới thật đều!",
+        "Nảy mầm rồi!",
+        "Cùng trồng nhé!"
+      ],
+      "width": 887,
+      "height": 1774
+    },
+    {
+      "locale": "vi",
+      "platform": "X",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/vi/dialogue_filled_20261018/backlog_comic_20261015_09.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/vi/vertical_comic_20261018/x_backlog_09.png",
+      "sourceSha256": "967410e770093c735f1d19f891341d464a876aaca03c0724db75d71285828678",
+      "targetSha256": "6b3ffc819caeb5fd3e498f9d9d5cbbfa503af3a2cca17aa5c4213479a24851bb",
+      "derivedFromSha256": "be77f7158be73ff8aefd94e66858a8459df3f2c1795428f48925728e8b030197",
+      "dialogue": [
+        "Sẵn sàng!",
+        "Nhảy qua nào!",
+        "Bắt được rồi!",
+        "Về đích thôi!"
+      ],
+      "width": 800,
+      "height": 1967
+    },
+    {
+      "locale": "vi",
+      "platform": "Facebook",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/dialogue_filled_20261018/backlog_comic_20261015_09.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/vertical_comic_20261018/facebook_backlog_09.png",
+      "sourceSha256": "967410e770093c735f1d19f891341d464a876aaca03c0724db75d71285828678",
+      "targetSha256": "6b3ffc819caeb5fd3e498f9d9d5cbbfa503af3a2cca17aa5c4213479a24851bb",
+      "derivedFromSha256": "be77f7158be73ff8aefd94e66858a8459df3f2c1795428f48925728e8b030197",
+      "dialogue": [
+        "Sẵn sàng!",
+        "Nhảy qua nào!",
+        "Bắt được rồi!",
+        "Về đích thôi!"
+      ],
+      "width": 800,
+      "height": 1967
+    },
+    {
+      "locale": "vi",
+      "platform": "X",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/vi/dialogue_filled_20261018/backlog_comic_20261015_10.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/vi/vertical_comic_20261018/x_backlog_10.png",
+      "sourceSha256": "39a6f2b3456e71e934520e31a9ff1b21d248d4de031689e3f897b8e3a4090124",
+      "targetSha256": "e25d4d26702f959abfdc452832924bac189c5c2a49f5931b8576fdae6fff5a5e",
+      "derivedFromSha256": "439af835b9c71a3cfa64d270f62490a55e385b5ac58e3b5a50c2b94f018d76c5",
+      "dialogue": [
+        "Sao kia!",
+        "Nhìn kìa!",
+        "Vũ trụ rộng quá!",
+        "Soi sao nào!"
+      ],
+      "width": 746,
+      "height": 2109
+    },
+    {
+      "locale": "vi",
+      "platform": "Facebook",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/dialogue_filled_20261018/backlog_comic_20261015_10.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/vertical_comic_20261018/facebook_backlog_10.png",
+      "sourceSha256": "39a6f2b3456e71e934520e31a9ff1b21d248d4de031689e3f897b8e3a4090124",
+      "targetSha256": "e25d4d26702f959abfdc452832924bac189c5c2a49f5931b8576fdae6fff5a5e",
+      "derivedFromSha256": "439af835b9c71a3cfa64d270f62490a55e385b5ac58e3b5a50c2b94f018d76c5",
+      "dialogue": [
+        "Sao kia!",
+        "Nhìn kìa!",
+        "Vũ trụ rộng quá!",
+        "Soi sao nào!"
+      ],
+      "width": 746,
+      "height": 2109
+    },
+    {
+      "locale": "vi",
+      "platform": "Facebook",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/zombie_catch_comic_words_20261015/01.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/vertical_comic_20261018/facebook_zombiecatch_01.png",
+      "sourceSha256": "39f23222d96b7d1e9276310261b120119b7f427c64c3b9245a6acd262378e981",
+      "targetSha256": "2171d540cd79c5a5ddc87444f9b1135cf748176a5a69be26e6a05378c7e83383",
+      "derivedFromSha256": "39f23222d96b7d1e9276310261b120119b7f427c64c3b9245a6acd262378e981",
+      "dialogue": [
+        "Lớp học!",
+        "Chạy thôi!",
+        "Rầm!",
+        "Thoát rồi!"
+      ],
+      "width": 1024,
+      "height": 1536
+    },
+    {
+      "locale": "vi",
+      "platform": "Facebook",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/zombie_catch_comic_words_20261015/02.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/vertical_comic_20261018/facebook_zombiecatch_02.png",
+      "sourceSha256": "0c9ab3d2ba001ceebc7198999f80446f54e1d182458686ea95caadeb02903a27",
+      "targetSha256": "ccfe046f3d79f117a2a33d668cb17988b2628931adfa61e94b2b94f1c92d827a",
+      "derivedFromSha256": "0c9ab3d2ba001ceebc7198999f80446f54e1d182458686ea95caadeb02903a27",
+      "dialogue": [
+        "Tủ đồ!",
+        "Chặn lối!",
+        "Núp mau!",
+        "Bị thấy rồi!"
+      ],
+      "width": 793,
+      "height": 1983
+    },
+    {
+      "locale": "vi",
+      "platform": "Facebook",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/zombie_catch_comic_words_20261015/03.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/vertical_comic_20261018/facebook_zombiecatch_03.png",
+      "sourceSha256": "abd6a00608741746f327774a53d638fbb1c962a3a422669390faaf4de25cc5cc",
+      "targetSha256": "c4c678d88939d117425e4b3424329ef7c43cfabffb2c43fc661d23ac19873f8b",
+      "derivedFromSha256": "abd6a00608741746f327774a53d638fbb1c962a3a422669390faaf4de25cc5cc",
+      "dialogue": [
+        "Nhà ăn!",
+        "Khay này!",
+        "Ôi, đổ mất!",
+        "Mời ăn nhé!"
+      ],
+      "width": 793,
+      "height": 1983
+    },
+    {
+      "locale": "vi",
+      "platform": "Facebook",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/zombie_catch_comic_words_20261015/04.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/vertical_comic_20261018/facebook_zombiecatch_04.png",
+      "sourceSha256": "8a216b2856eb30809be66f27e248975ac34708f0ffe3f826cf413572edd200ac",
+      "targetSha256": "9e921ffcc5ea8b7e0709e51ae7e1a87a535c519a275fa2a61ce6a8962e706af0",
+      "derivedFromSha256": "8a216b2856eb30809be66f27e248975ac34708f0ffe3f826cf413572edd200ac",
+      "dialogue": [
+        "Nhà thể chất!",
+        "Bóng tới!",
+        "Lăn nào!",
+        "Thành công!"
+      ],
+      "width": 914,
+      "height": 1721
+    },
+    {
+      "locale": "vi",
+      "platform": "Facebook",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/zombie_catch_comic_words_20261015/05.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/vertical_comic_20261018/facebook_zombiecatch_05.png",
+      "sourceSha256": "b6fa5795382108a6b0ff9805be76091f65c6b8dcba2fd785a3825745fe561766",
+      "targetSha256": "de6d9d861a0a9e76f9e1418f74076f2ce4f22536a0f241fb1e7fcd6b95d1538e",
+      "derivedFromSha256": "b6fa5795382108a6b0ff9805be76091f65c6b8dcba2fd785a3825745fe561766",
+      "dialogue": [
+        "Thư viện!",
+        "Suỵt, thật khẽ!",
+        "Xe đẩy tới!",
+        "Tìm được rồi!"
+      ],
+      "width": 941,
+      "height": 1672
+    },
+    {
+      "locale": "vi",
+      "platform": "Facebook",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/dialogue_filled_20261018/backlog_comic_20261015_01.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/vertical_comic_20261018/facebook_backlog_01.png",
+      "sourceSha256": "45b4eb9591ed4e18578be3bc6a05af386f099ef2c6361b39e9ccc33b80632320",
+      "targetSha256": "c602e65259bff55b7f5ae8ba54c1b68ee9fce235dd95bd501d7af6aa3f70034a",
+      "derivedFromSha256": "015ddd4a21f887af78ccde30c826ef90e96042fb09135ea4e01c4d187ceb2a2d",
+      "dialogue": [
+        "Ở kia!",
+        "Quả địa cầu đây rồi!",
+        "Xả bóng nào!",
+        "Chụp được rồi!"
+      ],
+      "width": 793,
+      "height": 1983
+    },
+    {
+      "locale": "vi",
+      "platform": "Facebook",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/dialogue_filled_20261018/backlog_comic_20261015_02.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/vertical_comic_20261018/facebook_backlog_02.png",
+      "sourceSha256": "3ccef51e0865afae296e4733fd87570aa70c70425343b578f8fc51d515964f2f",
+      "targetSha256": "47bc47dcce8ea62cbbd63196fba764145715771a07f0565e40f64d454cc8ce43",
+      "derivedFromSha256": "8c49dd2b0b0fff9bfccc0f2ff522e0b3d75ae0267b8e415c67b1b6aec365ee39",
+      "dialogue": [
+        "Zombie kìa!",
+        "Hút hết nào!",
+        "Dính chặt rồi!",
+        "Thành công!"
+      ],
+      "width": 1024,
+      "height": 1536
+    },
+    {
+      "locale": "vi",
+      "platform": "Facebook",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/dialogue_filled_20261018/backlog_comic_20261015_03.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/vertical_comic_20261018/facebook_backlog_03.png",
+      "sourceSha256": "6f30a7a9407ca64ea3ded6cfda668900abff79fad5b1a116249a118a6660445c",
+      "targetSha256": "25c6278c1a89e79e14cc0f6c14767023622a1bf532fbcbb86d59dda207af47aa",
+      "derivedFromSha256": "ad22a385cbcad90fee871a2123e8ea0ae42f554e987e94ccdc4d587ae7591459",
+      "dialogue": [
+        "Suỵt!",
+        "Đẩy xe thôi!",
+        "Lấy sách nào!",
+        "Có thẻ rồi!"
+      ],
+      "width": 887,
+      "height": 1774
+    },
+    {
+      "locale": "vi",
+      "platform": "Facebook",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/dialogue_filled_20261018/backlog_comic_20261015_04.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/vertical_comic_20261018/facebook_backlog_04.png",
+      "sourceSha256": "8d7151c3385b4d2d3435ae136b762a3143196676f9a17d65eb7f90dc3b80945d",
+      "targetSha256": "757acae7a1ad428937ea78c6b6f428a93ad1f723297bc25d554b8fe0950d2937",
+      "derivedFromSha256": "da2d7beed6d3904661432b362ec61c29e64608d950c83818f2264e8aa892c385",
+      "dialogue": [
+        "Suỵt!",
+        "Vào nhịp nhé!",
+        "Bùm!",
+        "Chơi tiếp nào!"
+      ],
+      "width": 887,
+      "height": 1774
+    }
+  ],
+  "homepage": [
+    {
+      "path": "/comics/backlog-20261015/ko/01.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/vertical_comic_20261018/comic_06.png",
+      "sha256": "4362f193dfb1d81158a76d7ed602bf7374b9ca9492be020cd7907b9fc50e5c04",
+      "buildSource": "Developer/r3f_prototype/public/comics/backlog-20261015/ko/01.png",
+      "previousBuildSourceSha256": null
+    },
+    {
+      "path": "/comics/backlog-20261015/ko/02.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/vertical_comic_20261018/comic_21.png",
+      "sha256": "85de4b7a710c5944b41635bd70e0acc4e632d8aebcc5305311501a7e480ceaa5",
+      "buildSource": "Developer/r3f_prototype/public/comics/backlog-20261015/ko/02.png",
+      "previousBuildSourceSha256": null
+    },
+    {
+      "path": "/comics/backlog-20261015/ko/03.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/vertical_comic_20261018/comic_22.png",
+      "sha256": "ce28b3ac0d6845e1e06db127ef157408c80be0e9a5a43b15cabc46e11e1548e4",
+      "buildSource": "Developer/r3f_prototype/public/comics/backlog-20261015/ko/03.png",
+      "previousBuildSourceSha256": null
+    },
+    {
+      "path": "/comics/backlog-20261015/ko/04.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/vertical_comic_20261018/comic_09.png",
+      "sha256": "84d1ec7096b946c38048162b614bad3e9773b12a26f615efdb74c187ca9535c3",
+      "buildSource": "Developer/r3f_prototype/public/comics/backlog-20261015/ko/04.png",
+      "previousBuildSourceSha256": null
+    },
+    {
+      "path": "/comics/backlog-20261015/ko/05.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/vertical_comic_20261018/comic_10.png",
+      "sha256": "1464d75104b9683cb7d272a980c02ff9974b9fe516b3a54161c04b54ed0f5e98",
+      "buildSource": "Developer/r3f_prototype/public/comics/backlog-20261015/ko/05.png",
+      "previousBuildSourceSha256": null
+    },
+    {
+      "path": "/comics/backlog-20261015/ko/06.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/vertical_comic_20261018/comic_11.png",
+      "sha256": "4c13a11674686d5c483401e2e96d468b7954eb6887a1c96311c1ec88a7d4df22",
+      "buildSource": "Developer/r3f_prototype/public/comics/backlog-20261015/ko/06.png",
+      "previousBuildSourceSha256": null
+    },
+    {
+      "path": "/comics/backlog-20261015/ko/07.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/vertical_comic_20261018/comic_12.png",
+      "sha256": "cbbe87db96b56d4ecd4fc3c56aab03e9950684d01be7b418ba41cd44eeb01561",
+      "buildSource": "Developer/r3f_prototype/public/comics/backlog-20261015/ko/07.png",
+      "previousBuildSourceSha256": null
+    },
+    {
+      "path": "/comics/backlog-20261015/ko/08.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/vertical_comic_20261018/comic_13.png",
+      "sha256": "348f85e4c5ac5b9bff0279e4fbb8da899c28455613f58879336f5eb9ae749e51",
+      "buildSource": "Developer/r3f_prototype/public/comics/backlog-20261015/ko/08.png",
+      "previousBuildSourceSha256": null
+    },
+    {
+      "path": "/comics/backlog-20261015/ko/09.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/vertical_comic_20261018/comic_14.png",
+      "sha256": "51c328e731e1d4d2217d14d38a86f0b9ea8a0bde81693eb9cc62c6becfb5fc06",
+      "buildSource": "Developer/r3f_prototype/public/comics/backlog-20261015/ko/09.png",
+      "previousBuildSourceSha256": null
+    },
+    {
+      "path": "/comics/backlog-20261015/ko/10.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/vertical_comic_20261018/comic_15.png",
+      "sha256": "ba3b2d87f4a117a3da6cad575039923405cfaca977937e01546dcb002a0414e5",
+      "buildSource": "Developer/r3f_prototype/public/comics/backlog-20261015/ko/10.png",
+      "previousBuildSourceSha256": null
+    },
+    {
+      "path": "/comics/backlog-20261015/en/01.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/vertical_comic_20261018/backlog_comic_20261015_01_vertical.png",
+      "sha256": "8fe81fa90a2776411a72bd0f826831e2aca5657534d7860efc0e0ce08d9824b4",
+      "buildSource": "Developer/r3f_prototype/public/comics/backlog-20261015/en/01.png",
+      "previousBuildSourceSha256": null
+    },
+    {
+      "path": "/comics/backlog-20261015/en/02.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_02_vertical.png",
+      "sha256": "882806294becd0bdaacabc5fcb33b08da05be2721dc80de13537c0cf4becce8c",
+      "buildSource": "Developer/r3f_prototype/public/comics/backlog-20261015/en/02.png",
+      "previousBuildSourceSha256": null
+    },
+    {
+      "path": "/comics/backlog-20261015/en/03.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_03_vertical.png",
+      "sha256": "544bd21c8f7175df7d041ef1e15772324f65989f767b522a2ab1738b8121b4a4",
+      "buildSource": "Developer/r3f_prototype/public/comics/backlog-20261015/en/03.png",
+      "previousBuildSourceSha256": null
+    },
+    {
+      "path": "/comics/backlog-20261015/en/04.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_04_vertical.png",
+      "sha256": "b5203127aa4d5806df0d9416b5f5e5650d0c33f419c95541eef0d4e92e1bccb3",
+      "buildSource": "Developer/r3f_prototype/public/comics/backlog-20261015/en/04.png",
+      "previousBuildSourceSha256": null
+    },
+    {
+      "path": "/comics/backlog-20261015/en/05.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_05_vertical.png",
+      "sha256": "733bfb1c42b811b46a0c706262580dda4cced1b41ce9ce70c17386c558f79d87",
+      "buildSource": "Developer/r3f_prototype/public/comics/backlog-20261015/en/05.png",
+      "previousBuildSourceSha256": null
+    },
+    {
+      "path": "/comics/backlog-20261015/en/06.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_06_vertical.png",
+      "sha256": "bd3744345d6b94c3a874fd324d9f2f80ce896d17aafb732f8c13818e4caa2340",
+      "buildSource": "Developer/r3f_prototype/public/comics/backlog-20261015/en/06.png",
+      "previousBuildSourceSha256": null
+    },
+    {
+      "path": "/comics/backlog-20261015/en/07.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_07_vertical.png",
+      "sha256": "df98169b809dd9a003066e075acfe45f42369ce345c4911dc699e4aac936f797",
+      "buildSource": "Developer/r3f_prototype/public/comics/backlog-20261015/en/07.png",
+      "previousBuildSourceSha256": null
+    },
+    {
+      "path": "/comics/backlog-20261015/en/08.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_08_vertical.png",
+      "sha256": "836ad5c2fc86194d6f08a69a9678eb1bfa2d760c4112fcf188288b4d574dc7cb",
+      "buildSource": "Developer/r3f_prototype/public/comics/backlog-20261015/en/08.png",
+      "previousBuildSourceSha256": null
+    },
+    {
+      "path": "/comics/backlog-20261015/en/09.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_09_vertical.png",
+      "sha256": "ae084cb2f5e338d4696ec5101a48dfa51c54fafb35b96daa90faed13f98ae86d",
+      "buildSource": "Developer/r3f_prototype/public/comics/backlog-20261015/en/09.png",
+      "previousBuildSourceSha256": null
+    },
+    {
+      "path": "/comics/backlog-20261015/en/10.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_10_vertical.png",
+      "sha256": "bf00e4612c1979b1f3f74f23a2a8b7f2869746ae874eda7f4dfb17efeeb54759",
+      "buildSource": "Developer/r3f_prototype/public/comics/backlog-20261015/en/10.png",
+      "previousBuildSourceSha256": null
+    },
+    {
+      "path": "/comics/backlog-20261015/ja/01.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/vertical_comic_20261018/backlog_comic_20261015_01.png",
+      "sha256": "99d26d1af0d914c0680daaaa87707db6ea99009b23eff1889ad93e0834d803c0",
+      "buildSource": "Developer/r3f_prototype/public/comics/backlog-20261015/ja/01.png",
+      "previousBuildSourceSha256": null
+    },
+    {
+      "path": "/comics/backlog-20261015/ja/02.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_02.png",
+      "sha256": "9951c81ab40aadf4b81cb4d833a5ef7fba922c95fe7dae583d1d18e1f3f8ea33",
+      "buildSource": "Developer/r3f_prototype/public/comics/backlog-20261015/ja/02.png",
+      "previousBuildSourceSha256": null
+    },
+    {
+      "path": "/comics/backlog-20261015/ja/03.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_03.png",
+      "sha256": "5dab323fcd6e6334759239903167cdfb0ab531a9d82231c3be2a155a8edbaddf",
+      "buildSource": "Developer/r3f_prototype/public/comics/backlog-20261015/ja/03.png",
+      "previousBuildSourceSha256": null
+    },
+    {
+      "path": "/comics/backlog-20261015/ja/04.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_04.png",
+      "sha256": "0b0910f2a4af875747d2759bbfa5b8d3fd1957b15c97fefcf74891dc9d52b6b4",
+      "buildSource": "Developer/r3f_prototype/public/comics/backlog-20261015/ja/04.png",
+      "previousBuildSourceSha256": null
+    },
+    {
+      "path": "/comics/backlog-20261015/ja/05.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_05.png",
+      "sha256": "056d603a70bffb549a096fc53e2c32fb9c6f32d5f6b5e9b0a7c12e0ea8e94e94",
+      "buildSource": "Developer/r3f_prototype/public/comics/backlog-20261015/ja/05.png",
+      "previousBuildSourceSha256": null
+    },
+    {
+      "path": "/comics/backlog-20261015/ja/06.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_06.png",
+      "sha256": "dd3c9fa15b0ba6d5416d65e9a7a1919a871937da720efd958685da8a80e3495c",
+      "buildSource": "Developer/r3f_prototype/public/comics/backlog-20261015/ja/06.png",
+      "previousBuildSourceSha256": null
+    },
+    {
+      "path": "/comics/backlog-20261015/ja/07.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_07.png",
+      "sha256": "b3643f554b881b77fb30a1f11c556604a7ae545d8a86066ae5ad14e997d3b403",
+      "buildSource": "Developer/r3f_prototype/public/comics/backlog-20261015/ja/07.png",
+      "previousBuildSourceSha256": null
+    },
+    {
+      "path": "/comics/backlog-20261015/ja/08.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_08.png",
+      "sha256": "1fd8a31ace910dc74efbeb78b05e56cf84aec6d54dc2b4253c41e803ce3827ae",
+      "buildSource": "Developer/r3f_prototype/public/comics/backlog-20261015/ja/08.png",
+      "previousBuildSourceSha256": null
+    },
+    {
+      "path": "/comics/backlog-20261015/ja/09.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_09.png",
+      "sha256": "50a8f7f29df4c9ae0afe2469441be879588a9342442890b6de0e41212e0bb56c",
+      "buildSource": "Developer/r3f_prototype/public/comics/backlog-20261015/ja/09.png",
+      "previousBuildSourceSha256": null
+    },
+    {
+      "path": "/comics/backlog-20261015/ja/10.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_10.png",
+      "sha256": "80d902709afb351af478f6644e924e03c9a270bb25dc7eed08c3ae59703aa986",
+      "buildSource": "Developer/r3f_prototype/public/comics/backlog-20261015/ja/10.png",
+      "previousBuildSourceSha256": null
+    },
+    {
+      "path": "/comics/backlog-20261015/vi/01.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/vertical_comic_20261018/facebook_backlog_01.png",
+      "sha256": "c602e65259bff55b7f5ae8ba54c1b68ee9fce235dd95bd501d7af6aa3f70034a",
+      "buildSource": "Developer/r3f_prototype/public/comics/backlog-20261015/vi/01.png",
+      "previousBuildSourceSha256": null
+    },
+    {
+      "path": "/comics/backlog-20261015/vi/02.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/vertical_comic_20261018/facebook_backlog_02.png",
+      "sha256": "47bc47dcce8ea62cbbd63196fba764145715771a07f0565e40f64d454cc8ce43",
+      "buildSource": "Developer/r3f_prototype/public/comics/backlog-20261015/vi/02.png",
+      "previousBuildSourceSha256": null
+    },
+    {
+      "path": "/comics/backlog-20261015/vi/03.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/vertical_comic_20261018/facebook_backlog_03.png",
+      "sha256": "25c6278c1a89e79e14cc0f6c14767023622a1bf532fbcbb86d59dda207af47aa",
+      "buildSource": "Developer/r3f_prototype/public/comics/backlog-20261015/vi/03.png",
+      "previousBuildSourceSha256": null
+    },
+    {
+      "path": "/comics/backlog-20261015/vi/04.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/vertical_comic_20261018/facebook_backlog_04.png",
+      "sha256": "757acae7a1ad428937ea78c6b6f428a93ad1f723297bc25d554b8fe0950d2937",
+      "buildSource": "Developer/r3f_prototype/public/comics/backlog-20261015/vi/04.png",
+      "previousBuildSourceSha256": null
+    },
+    {
+      "path": "/comics/backlog-20261015/vi/05.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/vertical_comic_20261018/facebook_backlog_05.png",
+      "sha256": "7cfb4a170279ca9882b6b4805c77f27f3a6fd811a955187f7a1497b09bb9787e",
+      "buildSource": "Developer/r3f_prototype/public/comics/backlog-20261015/vi/05.png",
+      "previousBuildSourceSha256": null
+    },
+    {
+      "path": "/comics/backlog-20261015/vi/06.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/vertical_comic_20261018/facebook_backlog_06.png",
+      "sha256": "9a9b0a4db0185dff2b08a35aed2f3dd17cca31b8f86ffb812e3c4ba0c6041ac7",
+      "buildSource": "Developer/r3f_prototype/public/comics/backlog-20261015/vi/06.png",
+      "previousBuildSourceSha256": null
+    },
+    {
+      "path": "/comics/backlog-20261015/vi/07.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/vertical_comic_20261018/facebook_backlog_07.png",
+      "sha256": "f06aeee3331a828bd3c17df3f600540dcd4df442b9597cbad6f675f686ff8d38",
+      "buildSource": "Developer/r3f_prototype/public/comics/backlog-20261015/vi/07.png",
+      "previousBuildSourceSha256": null
+    },
+    {
+      "path": "/comics/backlog-20261015/vi/08.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/vertical_comic_20261018/facebook_backlog_08.png",
+      "sha256": "71db1538d6c23d4e1111a1be98c1c0307a697cf83e1f8d62dbb5947ad50749d9",
+      "buildSource": "Developer/r3f_prototype/public/comics/backlog-20261015/vi/08.png",
+      "previousBuildSourceSha256": null
+    },
+    {
+      "path": "/comics/backlog-20261015/vi/09.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/vertical_comic_20261018/facebook_backlog_09.png",
+      "sha256": "6b3ffc819caeb5fd3e498f9d9d5cbbfa503af3a2cca17aa5c4213479a24851bb",
+      "buildSource": "Developer/r3f_prototype/public/comics/backlog-20261015/vi/09.png",
+      "previousBuildSourceSha256": null
+    },
+    {
+      "path": "/comics/backlog-20261015/vi/10.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/vertical_comic_20261018/facebook_backlog_10.png",
+      "sha256": "e25d4d26702f959abfdc452832924bac189c5c2a49f5931b8576fdae6fff5a5e",
+      "buildSource": "Developer/r3f_prototype/public/comics/backlog-20261015/vi/10.png",
+      "previousBuildSourceSha256": null
+    }
+  ],
+  "scheduleUnchanged": true,
+  "cardManifest": "Graphic_designer/comic_vertical_20261018/generated_cards/vertical-website-cards-manifest.json",
+  "receiptCount": 115,
+  "receiptsSha256Before": "4fddebdea55ec87bf6b470cd764fe680f7d7d1fc9bbf8065d1343272a5bc39b3"
+}
