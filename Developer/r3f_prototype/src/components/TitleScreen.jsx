@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import ConsentGate from './ConsentGate.jsx'
 import GoogleAccountPanel from './GoogleAccountPanel.jsx'
+import { ZOMBIE_BOARD_COPY } from './zombieBoardCopy.js'
 import TitleSceneCanvas from './TitleSceneCanvas.jsx'
 import { isFirebaseProgressHydrated, requestCloudProgressSave } from '../lib/firebaseProgress.js'
 import { getSavedNickname, saveNicknameForUser, validateNickname } from '../lib/userNickname.js'
@@ -440,6 +441,10 @@ export default function TitleScreen({
       <div style={styles.tint} />
       <div style={styles.vignette} />
       <GoogleAccountPanel />
+      <a href="/landing#zombie-board-preview" className="title-main-action" style={{
+        ...styles.contactLink,
+        ...(cheatMenuButtonVisible ? { top: 'max(66px, calc(env(safe-area-inset-top, 0px) + 60px))' } : {}),
+      }}>{(ZOMBIE_BOARD_COPY[locale] || ZOMBIE_BOARD_COPY.ko).contact}</a>
       {cheatRevealMessage && (
         <div style={styles.cheatRevealToast}>{t('title.cheatToast')}</div>
       )}
@@ -638,6 +643,26 @@ function normalizeRevealCheatKey(key) {
 }
 
 const styles = {
+  contactLink: {
+    ...schoolButton('paper'),
+    position: 'absolute',
+    top: 'max(14px, calc(env(safe-area-inset-top, 0px) + 8px))',
+    right: 'max(12px, calc(env(safe-area-inset-right, 0px) + 8px))',
+    width: 72,
+    minWidth: 44,
+    minHeight: 44,
+    padding: '6px 4px',
+    boxSizing: 'border-box',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: 12,
+    lineHeight: 1.2,
+    overflowWrap: 'anywhere',
+    textAlign: 'center',
+    textDecoration: 'none',
+    zIndex: 3,
+  },
   root: {
     position: 'relative',
     width: '100%',

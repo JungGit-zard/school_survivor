@@ -6,6 +6,7 @@ import { WEB_BACKGROUND_URLS, WEB_LANDING_ART_URLS, WEB_LANDING_COMIC_URLS, getS
 import { BACKLOG_COMIC_COPY, LANDING_COPY, LANDING_LANGUAGES } from './webLandingCopy.js'
 import { dailyWebComics } from './dailyWebComics.js'
 import ZombieBoard from './ZombieBoard.jsx'
+import ZombieBoardPreview from './ZombieBoardPreview.jsx'
 import { ZOMBIE_BOARD_COPY } from './zombieBoardCopy.js'
 
 export const LANDING_HERO_VIDEO_URL = ''
@@ -70,6 +71,7 @@ export default function WebLandingPage() {
   const [musicStatus, setMusicStatus] = useState('musicIdle')
   const [selectedComicIndex, setSelectedComicIndex] = useState(null)
   const [isBoardOpen, setIsBoardOpen] = useState(false)
+  const [boardInitialPostId, setBoardInitialPostId] = useState('')
   const audioRef = useRef(null)
   const heroActionsRef = useRef(null)
   const [heroActionsPassed, setHeroActionsPassed] = useState(false)
@@ -119,6 +121,7 @@ export default function WebLandingPage() {
 
   const openBoard = (event) => {
     event.preventDefault()
+    setBoardInitialPostId('')
     setIsBoardOpen(true)
   }
 
@@ -217,6 +220,7 @@ export default function WebLandingPage() {
                   <a href="#videos" className="web-landing__cta web-landing__link" onClick={openMediaLink('videos')}>{copy.videoNav}</a>
                   <a href="#zombie-board" className="web-landing__cta web-landing__link" onClick={openBoard}>{ZOMBIE_BOARD_COPY[language]?.action || ZOMBIE_BOARD_COPY.ko.action}</a>
                 </div>
+                <ZombieBoardPreview language={language} onOpenPost={(postId) => { setBoardInitialPostId(postId); setIsBoardOpen(true) }} />
               </div>
 
               <aside className="web-landing__notice" aria-label={copy.officialNotice}>
@@ -435,6 +439,7 @@ export default function WebLandingPage() {
       {heroActionsPassed && !selectedComic && !isBoardOpen ? <a href="/game" className="web-landing__mobile-sticky-cta web-landing__link">{copy.startGame}</a> : null}
       {isBoardOpen ? <ZombieBoard
         open={isBoardOpen}
+        initialPostId={boardInitialPostId}
         onClose={() => setIsBoardOpen(false)}
         language={language}
         copy={ZOMBIE_BOARD_COPY[language] || ZOMBIE_BOARD_COPY.ko}
@@ -530,6 +535,7 @@ const landingCss = `
 .web-landing__hero-shell {
   position: relative;
   isolation: isolate;
+  height: max-content;
   min-height: clamp(350px, 58vh, 500px);
   overflow: hidden;
   border: 1px solid rgba(37, 99, 235, 0.2);
@@ -676,6 +682,7 @@ const landingCss = `
 }
 
 .web-landing__hero-copy {
+  min-width: 0;
   display: grid;
   justify-items: start;
   gap: clamp(10px, 1.25vw, 22px);
@@ -1580,6 +1587,34 @@ const landingCss = `
 
   .web-landing__comic-viewer-controls button {
     padding: 8px 10px;
+  }
+}
+
+@media (max-width: 360px) {
+  .web-landing__hero {
+    padding: 12px;
+  }
+
+  .web-landing__hero-copy {
+    gap: 6px;
+  }
+
+  .web-landing__title {
+    font-size: 32px;
+  }
+
+  .web-landing__headline {
+    font-size: 20px;
+  }
+
+  .web-landing__hero-actions {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .web-landing__hero-actions .web-landing__cta {
+    min-height: 44px;
+    padding: 6px 4px;
   }
 }
 

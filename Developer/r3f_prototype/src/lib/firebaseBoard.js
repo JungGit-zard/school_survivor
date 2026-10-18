@@ -68,8 +68,8 @@ function validateKey(id, fieldName) {
   return id
 }
 
-function postRef(mod, db) {
-  return mod.ref(db, `${BOARD_ROOT}/posts`)
+function postRef(mod, db, isPrivate) {
+  return mod.ref(db, `${BOARD_ROOT}/${isPrivate === true ? 'privatePosts' : 'posts'}`)
 }
 
 function mapPost(id, value) {
@@ -138,12 +138,18 @@ export function subscribeBoardPosts(onData, onError, options) {
   return subscribeSnapshot(`${BOARD_ROOT}/posts`, POST_LIMIT, mapPost, onData, onError, options)
 }
 
-export function subscribeBoardComments(postId, onData, onError, options) {
-  const safePostId = validateKey(postId, 'postId')
-  return subscribeSnapshot(`${BOARD_ROOT}/comments/${safePostId}`, COMMENT_LIMIT, mapComment, onData, onError, options)
+export function subscribePrivateBoardPosts(onData, onError, options) {
+  return subscribeSnapshot(`${BOARD_ROOT}/privatePosts`, POST_LIMIT,
+    (id, value) => ({ ...mapPost(id, value), isPrivate: true }), onData, onError, options)
 }
 
-export async function createBoardPost({ title, body, nickname } = {}) {
+export function subscribeBoardComments(postId, onData, onError, options) {
+  const safePostId = validateKey(postId, 'postId')
+  const collection = options?.isPrivate === true ? 'privateComments' : 'comments'
+  return subscribeSnapshot(`${BOARD_ROOT}/${collection}/${safePostId}`, COMMENT_LIMIT, mapComment, onData, onError, options)
+}
+
+export async function createBoardPost({ title, body, nickname, isPrivate = false } = {}) {
   if (!isFirebaseBoardConfigured()) throw new Error('Firebase board is not configured')
   const entry = {
     title: sanitizeBoardText(title, { fieldName: 'title', maxLength: BOARD_LIMITS.title }),
@@ -151,13 +157,13 @@ export async function createBoardPost({ title, body, nickname } = {}) {
     nickname: readNickname(nickname),
   }
   const { db, mod } = await getClient()
-  const ref = mod.push(postRef(mod, db))
+  const ref = mod.push(postRef(mod, db, isPrivate))
   if (!ref?.key) throw new Error('Failed to allocate post id')
   await mod.set(ref, { ...entry, createdAt: mod.serverTimestamp() })
   return ref.key
 }
 
-export async function createBoardComment(postId, { body, nickname } = {}) {
+export async function createBoardComment(postId, { body, nickname, isPrivate = false } = {}) {
   if (!isFirebaseBoardConfigured()) throw new Error('Firebase board is not configured')
   const safePostId = validateKey(postId, 'postId')
   const entry = {
@@ -165,24 +171,28 @@ export async function createBoardComment(postId, { body, nickname } = {}) {
     nickname: readNickname(nickname),
   }
   const { db, mod } = await getClient()
-  const ref = mod.push(mod.ref(db, `${BOARD_ROOT}/comments/${safePostId}`))
+  const collection = isPrivate === true ? 'privateComments' : 'comments'
+  const ref = mod.push(mod.ref(db, `${BOARD_ROOT}/${collection}/${safePostId}`))
   if (!ref?.key) throw new Error('Failed to allocate comment id')
   await mod.set(ref, { ...entry, createdAt: mod.serverTimestamp() })
   return ref.key
 }
 
-export async function deleteBoardPost(postId) {
+export async function deleteBoardPost(postId, options) {
   const safePostId = validateKey(postId, 'postId')
   const { db, mod } = await getClient()
+  const posts = options?.isPrivate === true ? 'privatePosts' : 'posts'
+  const comments = options?.isPrivate === true ? 'privateComments' : 'comments'
   await mod.update(mod.ref(db, BOARD_ROOT), {
-    [`posts/${safePostId}`]: null,
-    [`comments/${safePostId}`]: null,
+    [`${posts}/${safePostId}`]: null,
+    [`${comments}/${safePostId}`]: null,
   })
 }
 
-export async function deleteBoardComment(postId, commentId) {
+export async function deleteBoardComment(postId, commentId, options) {
   const safePostId = validateKey(postId, 'postId')
   const safeCommentId = validateKey(commentId, 'commentId')
   const { db, mod } = await getClient()
-  await mod.remove(mod.ref(db, `${BOARD_ROOT}/comments/${safePostId}/${safeCommentId}`))
+  const collection = options?.isPrivate === true ? 'privateComments' : 'comments'
+  await mod.remove(mod.ref(db, `${BOARD_ROOT}/${collection}/${safePostId}/${safeCommentId}`))
 }
