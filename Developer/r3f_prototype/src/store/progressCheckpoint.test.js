@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { beforeEach, expect, it, vi } from 'vitest'
-vi.mock('../lib/firebaseRanking.js',()=>({submitRun:async()=>({status:'skipped'}),describeSubmission:()=>({status:'skipped'})}))
+vi.mock('../lib/firebaseRanking.js',()=>({prepareRankingSubmission: run => run, retryPendingRankings: async () => ({written:[],skipped:[],failed:[]}), submitRun:async()=>({status:'skipped'}),describeSubmission:()=>({status:'skipped'})}))
 import { useGameStore } from './useGameStore.js'
 import { useAuthStore } from './useAuthStore.js'
 import { applyCloudProgressSnapshot, buildCloudProgressSnapshot, _setFirebaseProgressClientForTests, requestCloudProgressSave, setCloudProgressUser, claimFirebaseMissionReward, updateFirebasePlayerProgress, readFirebasePlayerProgress } from '../lib/firebaseProgress.js'

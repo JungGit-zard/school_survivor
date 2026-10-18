@@ -1,6 +1,6 @@
 ﻿// @vitest-environment jsdom
 import {expect,it,vi} from 'vitest'
-vi.mock('../lib/firebaseRanking.js',()=>({submitRun:async()=>({status:'skipped'}),describeSubmission:()=>({status:'skipped'})}))
+vi.mock('../lib/firebaseRanking.js',()=>({prepareRankingSubmission: run => run, retryPendingRankings: async () => ({written:[],skipped:[],failed:[]}), submitRun:async()=>({status:'skipped'}),describeSubmission:()=>({status:'skipped'})}))
 vi.mock('../lib/guestRankingIdentity.js',()=>({getRankingUser:async user=>user}))
 it('hydrates and retries title-only sign-in without inventing a gameplay run',async()=>{
  const P=await import('../lib/firebaseProgress.js'),{useAuthStore:A}=await import('./useAuthStore.js'),{useGameStore:G}=await import('./useGameStore.js')

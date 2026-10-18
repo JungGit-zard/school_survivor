@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 
 // 랭킹 제출만 가짜로 바꾼다. describeSubmission은 실제 구현을 그대로 써야 스토어가 결과를
 // 올바르게 접는지 검증된다(둘 다 가짜면 매핑이 틀려도 테스트가 통과한다).
-const ranking = vi.hoisted(() => ({ submitRun: vi.fn() }))
+const ranking = vi.hoisted(() => ({ prepareRankingSubmission: run => run, retryPendingRankings: async () => ({written:[],skipped:[],failed:[]}), submitRun: vi.fn() }))
 vi.mock('../lib/firebaseRanking.js', async (importOriginal) => ({
   ...(await importOriginal()),
   submitRun: ranking.submitRun,

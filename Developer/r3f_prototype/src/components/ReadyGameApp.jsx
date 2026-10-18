@@ -46,11 +46,12 @@ export default function ReadyGameApp({
   const rankingEntrantsRef = useRef(new Set())
 
   useEffect(() => {
-    if (!authUser?.uid) return
     let stopped = false
     const retry = () => {
       void import('../store/useGameStore.js').then(({useGameStore}) => {
-        if (!stopped) return useGameStore.getState().reconcileCloudProgress()
+        if (stopped) return
+        if (authUser?.uid) void useGameStore.getState().reconcileCloudProgress()
+        return useGameStore.getState().retryRankingSubmission()
       }).catch(() => {})
     }
     const timer = window.setInterval(retry,5000)

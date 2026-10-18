@@ -1,4 +1,6 @@
 import { readFileSync } from 'node:fs'
+import { getSavedNickname } from './userNickname.js'
+import { t } from './i18n.js'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 // season/E2E 게이트를 결정적으로 제어하기 위한 훅(hoisted — 팩토리가 참조해도 TDZ 안전).
@@ -23,13 +25,12 @@ function makeFakeClient({ existingScore = null } = {}) {
   const writes = {}
   const mod = {
     ref: (_db, path) => ({ path: path ?? '' }),
-    get: vi.fn(async () => ({
-      exists: () => existingScore != null,
-      child: () => ({ val: () => existingScore }),
-    })),
-    set: vi.fn(async (ref, value) => {
-      writes[ref.path] = value
+    get: vi.fn(async ref => {
+      const existing = existingScore == null ? null : { uid: ref.path.split('/').at(-1), displayName: getSavedNickname().trim() || t('ranking.anonymousSurvivor', null, '\uC775\uBA85 \uC0DD\uC874\uC790'), score: existingScore, timeMs: 1000, stageId: 'stage1', cleared: false, submittedAt: 1, lastPlayedAt: Number.MAX_SAFE_INTEGER }
+      const row = writes[ref.path] ?? existing
+      return { exists: () => !!row, val: () => structuredClone(row), child: key => ({ val: () => row?.[key] }) }
     }),
+    set: vi.fn(async (ref, value) => { writes[ref.path] = value }),
   }
   return { client: { db: {}, mod }, mod, writes }
 }
@@ -38,6 +39,7 @@ describe('firebaseRanking submitRun — direct RTDB write (Spark, no Cloud Funct
   beforeEach(() => {
     gates.seasonConfig = {}
     guest.nickname = ''
+    guest.getClient.mockReset()
     vi.stubEnv('VITE_FIREBASE_DATABASE_URL', 'https://x-default-rtdb.firebaseio.com')
   })
   afterEach(() => {
@@ -110,8 +112,9 @@ describe('firebaseRanking submitRun — direct RTDB write (Spark, no Cloud Funct
   it('uses the isolated anonymous client and chosen nickname for guest zero-score registration', async () => {
     const { client, writes } = makeFakeClient()
     _setFirebaseRankingClientForTests(null)
-    guest.getClient.mockResolvedValueOnce(client)
+    guest.getClient.mockResolvedValue(client)
     await submitRun({ uid: 'guest-uid', isAnonymous: true, displayName: '좀비학생' }, { stageId: 'stage1', score: 0, timeMs: 0 })
+
     expect(guest.getClient).toHaveBeenCalled()
     expect(Object.values(writes)).toHaveLength(6)
     expect(Object.values(writes).every((entry) => entry.displayName === '좀비학생' && entry.uid === 'guest-uid' && entry.score === 0)).toBe(true)
@@ -174,7 +177,7 @@ describe('firebaseRanking submitRun — direct RTDB write (Spark, no Cloud Funct
     const firstWrite = new Promise((resolve) => { signalFirstWrite = resolve })
     let delay = true
     const mod = { ref: (_db, path) => ({ path }),
-      get: vi.fn(async ({ path }) => ({ exists: () => records.has(path), child: (key) => ({ val: () => records.get(path)?.[key] }) })),
+      get: vi.fn(async ({ path }) => ({ exists: () => records.has(path), val: () => structuredClone(records.get(path)), child: (key) => ({ val: () => records.get(path)?.[key] }) })),
       set: vi.fn(async ({ path }, entry) => { if (delay) { signalFirstWrite(); await writesReleased } records.set(path, entry) }),
       update: vi.fn(async ({ path }, patch) => { records.set(path, { ...records.get(path), ...patch }) }) }
     _setFirebaseRankingClientForTests({ db: {}, mod })
@@ -196,9 +199,9 @@ describe('firebaseRanking submitRun — direct RTDB write (Spark, no Cloud Funct
 
   it('continues the guest write queue after a failed request', async () => {
     _setFirebaseRankingClientForTests(null)
-    guest.getClient.mockRejectedValueOnce(new Error('offline'))
+    guest.getClient.mockRejectedValue(new Error('offline'))
     const user = { uid: 'guest-retry', isAnonymous: true, displayName: '학생이름' }
-    await expect(submitRun(user, { score: 0 })).rejects.toThrow('offline')
+    expect((await submitRun(user, { score: 0 })).failed).toHaveLength(6)
     const { client, mod } = makeFakeClient()
     _setFirebaseRankingClientForTests(client)
     await submitRun(user, { stageId: 'stage1', score: 0, timeMs: 0 })
@@ -333,7 +336,7 @@ describe('describeSubmission — 제출 결과를 화면이 읽을 단일 상태
 
   it('일부라도 실패하면 failed — 같은 요청에 written이 섞여 있어도 실패가 이긴다', () => {
     expect(describeSubmission({ written: ['a'], skipped: [], failed: ['b'], failureKind: 'rejected' }))
-      .toEqual({ status: 'failed', reason: 'rejected' })
+      .toEqual({ status: 'failed', reason: 'rejected', partial: true, acknowledgedCount: 1, failedCount: 1 })
   })
 
   it('규칙 거부와 네트워크 실패를 다른 reason으로 구분한다', () => {

@@ -1,0 +1,20 @@
+{
+  "observedAt": "2026-10-18T11:35:32.821Z",
+  "readOnly": true,
+  "remoteWrites": 0,
+  "rankingLastPlayedAtValidators": {
+    "/$seasonId/global/$window/$periodKey/entries/$uid/lastPlayedAt": {
+      ".validate": "newData.isNumber() && newData.val() >= 0 && (!data.exists() || newData.val() >= data.val())"
+    },
+    "/$seasonId/stage/$stageId/$window/$periodKey/entries/$uid/lastPlayedAt": {
+      ".validate": "newData.isNumber() && newData.val() >= 0 && (!data.exists() || newData.val() >= data.val())"
+    }
+  },
+  "rankingSubtreeMatchesCurrentCandidate": true,
+  "combinedRulesSemanticallyMatchCurrentCandidate": false,
+  "expectedRulesCanonicalHash": "dfade4e6a7af476d178c4903b660f7add6c5466edf6057feaeb526916c8e2a6f",
+  "liveRulesCanonicalHash": "67c9ca226866f53ae4849733602201d96dedba66e0a9941784ac3b238684b467",
+  "matchesCandidate": false,
+  "hostingVersion": "sites/escape-zombie-school/versions/0a6810bb54bf1b61",
+  "hostingExpectedUnchanged": "d6b5abe3d7bb45aa"
+}

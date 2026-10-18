@@ -1,0 +1,14 @@
+{
+  "observedAt": "2026-10-18T11:36:06.693Z",
+  "channel": "p0-progress-20261018",
+  "url": "https://escape-zombie-school--p0-progress-20261018-msidj7ch.web.app",
+  "version": "sites/escape-zombie-school/versions/9134dbafbe671337",
+  "files": 618,
+  "baselineFiles": 527,
+  "missingBaselineNonSystemPaths": [],
+  "changedBaselinePaths": [
+    "/index.html"
+  ],
+  "manifestHash": "a8f3afb2d901ee0d28aee4f3914ac44375551293306d0259b37b0ee51996ab9c",
+  "authorizedDomain": true
+}

@@ -8,6 +8,7 @@ afterEach(() => { vi.unstubAllEnvs(); _setFirebaseRankingClientForTests(null) })
 function client() {
   const rows = new Map()
   const mod = { ref: (_, path) => path,
+    get: vi.fn(async path => ({exists:()=>rows.has(path),val:()=>structuredClone(rows.get(path))})),
     runTransaction: vi.fn(async (path, updater) => {
       const value = updater(rows.get(path) ?? null)
       if (value) rows.set(path, structuredClone(value))

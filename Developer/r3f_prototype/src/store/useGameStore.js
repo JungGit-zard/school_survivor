@@ -54,7 +54,7 @@ import {
   getCounterChanges,
 } from '../lib/missionProgress.js'
 import { getApprovedMissionRewardAllowlist, MISSION_BY_ID } from '../lib/missionCatalog.js'
-import { submitRun, describeSubmission } from '../lib/firebaseRanking.js'
+import { submitRun, describeSubmission, prepareRankingSubmission, retryPendingRankings } from '../lib/firebaseRanking.js'
 import { getRankingUser } from '../lib/guestRankingIdentity.js'
 import { isProjectMaster } from '../lib/projectAdmin.js'
 import { useAuthStore } from './useAuthStore.js'
@@ -769,14 +769,17 @@ export const useGameStore = create(
     // 게임 흐름은 절대 막지 않는다 — 이 함수는 await되지 않고 던지지도 않는다.
     submitRunToRanking: async (user, run) => {
       const gameKey = get().gameKey
-      const pending = { ...run, status: 'pending' }
+      run = prepareRankingSubmission(run)
+      const pending = { ...run, uid: user?.uid ?? null, status: 'pending' }
       set({ rankingSubmission: pending })
       try {
         const rankingUser = user ?? await getRankingUser(user)
+        pending.uid = rankingUser?.uid
+        pending.anonymous = rankingUser?.isAnonymous === true
         const outcome = await submitRun(rankingUser, run)
-        if (get().gameKey === gameKey && get().rankingSubmission === pending) set({ rankingSubmission: { ...run, ...describeSubmission(outcome) } })
+        if (get().gameKey === gameKey && get().rankingSubmission === pending && (user?.uid ? useAuthStore.getState().user?.uid === user.uid : !useAuthStore.getState().user?.uid)) set({ rankingSubmission: { ...run, uid: rankingUser.uid, anonymous: rankingUser.isAnonymous === true, ...describeSubmission(outcome) } })
       } catch {
-        if (get().gameKey === gameKey && get().rankingSubmission === pending) set({ rankingSubmission: { ...run, status: 'failed', reason: 'network' } })
+        if (get().gameKey === gameKey && get().rankingSubmission === pending && (user?.uid ? useAuthStore.getState().user?.uid === user.uid : !useAuthStore.getState().user?.uid)) set({ rankingSubmission: { ...pending, status: 'failed', reason: 'network' } })
       }
     },
 
@@ -804,12 +807,22 @@ export const useGameStore = create(
     },
 
     // 실패한 제출만 다시 시도한다. 성공/스킵을 다시 쏘면 서버 왕복만 늘고 얻는 게 없다.
-    retryRankingSubmission: () => {
-      const pending = get().rankingSubmission
-      if (!pending || pending.status !== 'failed') return Promise.resolve(false)
-      const user = useAuthStore.getState().user
-      const { stageId, score, stageScore, timeMs, globalTimeMs, cleared } = pending
-      return get().submitRunToRanking(user, { stageId, score, stageScore, timeMs, globalTimeMs, cleared }).then(() => true)
+    retryRankingSubmission: async () => {
+      const captured = get().rankingSubmission
+      const currentUser = useAuthStore.getState().user
+      const gameKey = get().gameKey
+      const visible = captured?.status === 'failed' && (currentUser?.uid ? captured.uid === currentUser.uid : captured.anonymous)
+      const retrying = visible ? { ...captured, status: 'pending' } : captured
+      if (visible) set({ rankingSubmission: retrying })
+      try {
+        const outcome = await retryPendingRankings(currentUser)
+        if (useAuthStore.getState().user?.uid !== currentUser?.uid) return false
+        if (visible && get().gameKey === gameKey && get().rankingSubmission === retrying && (!outcome.uid || captured.uid === outcome.uid)) set({ rankingSubmission: { ...captured, ...describeSubmission(outcome) } })
+        return outcome.failed.length === 0 && (outcome.written.length + outcome.skipped.length) > 0
+      } catch {
+        if (visible && get().rankingSubmission === retrying) set({ rankingSubmission: captured })
+        return false
+      }
     },
 
     acknowledgeNewWeaponUnlocks: () => {

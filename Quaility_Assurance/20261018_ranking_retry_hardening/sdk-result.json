@@ -1,0 +1,28 @@
+{
+  "actualModifiedSource": true,
+  "actualSDK": true,
+  "syntheticAuth": true,
+  "productionWrites": 0,
+  "partialWritten": 4,
+  "partialFailed": 2,
+  "partialNotice": {
+    "status": "failed",
+    "reason": "network",
+    "partial": true,
+    "acknowledgedCount": 4,
+    "failedCount": 2
+  },
+  "retryFailed": 0,
+  "originalSundayScore": 203,
+  "originalSubmittedAt": 1792335480000,
+  "mondayScore": 1,
+  "uidIsolation": true,
+  "allTimeBestPreserved": true,
+  "offlineAcknowledgedBeforeReconnect": false,
+  "reconnectedWritten": 6,
+  "initialHash": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+  "finalHash": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+  "revisionBefore": null,
+  "revisionAfter": null,
+  "rulesSHA256": "d575bf5d26d6d1f98c0811a9531b95d81ba3450c91505147452270c01aabd854"
+}

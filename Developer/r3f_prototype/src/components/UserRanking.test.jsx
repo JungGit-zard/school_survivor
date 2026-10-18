@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import React from 'react'
+vi.mock('../lib/guestRankingIdentity.js',()=>({getRankingUser:async user=>user??{uid:'synthetic-ui-guest',isAnonymous:true},getGuestRankingClient:async()=>{throw new Error('Unexpected external guest client in UI test')},getGuestRankingNicknameForUid:()=>''}))
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { createRoot } from 'react-dom/client'
@@ -233,8 +234,8 @@ describe('UserRanking', () => {
 
     expect(container.textContent).toContain('Cloud allTime')
     expect(container.textContent).not.toContain('Local lifetime')
-    expect(subscribeGlobalRanking).toHaveBeenCalledWith('daily', expect.any(Function), { limit: 30 })
-    expect(subscribeGlobalRanking).toHaveBeenCalledWith('weekly', expect.any(Function), { limit: 30 })
+    expect(subscribeGlobalRanking).toHaveBeenCalledWith('daily', expect.any(Function), { limit: 30, onError: expect.any(Function) })
+    expect(subscribeGlobalRanking).toHaveBeenCalledWith('weekly', expect.any(Function), { limit: 30, onError: expect.any(Function) })
 
     act(() => {
       root.unmount()
@@ -315,7 +316,7 @@ describe('UserRanking 랭킹 제출 안내', () => {
     const { text, alert, retry } = textOf({ status: 'failed', reason: 'rejected', stageId: 'stage1', score: 415 })
     expect(text).toContain('서버가 이번 기록을 거부했습니다')
     expect(alert).toBe(true)
-    expect(retry).toBe(false)
+    expect(retry).toBe(true)
   })
 
   it('네트워크 실패는 재시도 버튼과 함께 드러난다', () => {
@@ -358,4 +359,29 @@ describe('UserRanking 랭킹 제출 안내', () => {
     close()
     useGameStore.setState({ retryRankingSubmission: realRetry })
   })
+})
+
+it('shows a read error and retry without empty placeholders until a fresh subscription succeeds',()=>{
+ useAuthStore.setState({user:null});useGameStore.setState({rankingSubmission:null})
+ isFirebaseRankingConfigured.mockReturnValue(true);subscribeGlobalRanking.mockReset().mockReturnValue(vi.fn())
+ const container=document.createElement('div'),root=createRoot(container)
+ try{
+ act(()=>root.render(<UserRanking/>))
+ expect(container.querySelector('ol')).toBeNull()
+ act(()=>subscribeGlobalRanking.mock.calls.find(call=>call[0]==='allTime')[2].onError(new Error('injected read failure')))
+ expect(container.querySelector('[role="alert"]')).not.toBeNull()
+ expect(container.querySelector('ol')).toBeNull()
+ const before=subscribeGlobalRanking.mock.calls.length
+ act(()=>[...container.querySelectorAll('button')].find(button=>button.textContent==='\uB2E4\uC2DC \uC2DC\uB3C4').click())
+ expect(subscribeGlobalRanking.mock.calls.length).toBe(before+3)
+ act(()=>subscribeGlobalRanking.mock.calls.filter(call=>call[0]==='allTime').at(-1)[1]([]))
+ expect(container.querySelector('[role="alert"]')).toBeNull()
+ expect(container.querySelector('ol')).not.toBeNull()
+ }finally{act(()=>root.unmount())}
+})
+it('labels partial acknowledgement without claiming that every leaderboard lost the score',()=>{
+ isFirebaseRankingConfigured.mockReturnValue(false);useAuthStore.setState({user:null})
+ useGameStore.setState({rankingSubmission:{status:'failed',reason:'rejected',partial:true,acknowledgedCount:4,failedCount:2}})
+ const container=document.createElement('div'),root=createRoot(container)
+ try{act(()=>root.render(<UserRanking entries={[]}/>));const notice=container.querySelector('[role="alert"]');expect(notice.textContent).toContain('\uC77C\uBD80 \uB7AD\uD0B9');expect(notice.textContent).not.toContain('\uC774 \uC810\uC218\uB294 \uB7AD\uD0B9\uC5D0 \uC62C\uB77C\uAC00\uC9C0 \uC54A\uC558\uC2B5\uB2C8\uB2E4.')}finally{act(()=>root.unmount())}
 })

@@ -20,7 +20,7 @@ vi.mock('./firebaseProgress.js', async (importOriginal) => {
   }
 })
 vi.mock('../store/useAuthStore.js', () => ({ useAuthStore: { getState: () => ({ user: null }) } }))
-vi.mock('./firebaseRanking.js', () => ({ submitRun: () => { throw new Error('Ranking write forbidden') }, describeSubmission: () => '' }))
+vi.mock('./firebaseRanking.js', () => ({ prepareRankingSubmission: run => run, retryPendingRankings: async () => ({written:[],skipped:[],failed:[]}), submitRun: () => { throw new Error('Ranking write forbidden') }, describeSubmission: () => '' }))
 vi.mock('./guestRankingIdentity.js',()=>({getRankingUser:async()=>({uid:'isolated-verifier-guest',isAnonymous:true})}))
 vi.mock('./gameRuntimeTime.js', () => ({
   getRuntimeElapsedMs: (storeMs = 0) => Math.max(isolated.clock.elapsedMs, storeMs),

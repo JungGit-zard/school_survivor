@@ -1,0 +1,18 @@
+{
+  "baselineNonProviderPaths": 525,
+  "copiedMissingPaths": 201,
+  "normalBuildExit": 0,
+  "studioTests": 45,
+  "verifiedJavaScriptAssets": 62,
+  "temporaryConfig": "firebase.preview-p0.temporary.json",
+  "configSha256": "2f0f3b6aeb66bbdbc17cd3504ef8102144b6f4a3c90ea330fcee913105ef2e27",
+  "originalFirebaseConfigChanged": false,
+  "buildSourceRankingSha256": "82d73ad9aa220634db54f134677dd21a066c7e4daf671515a0eb75833f0e5baa",
+  "temporaryConfigSHA256": "26a740c1118672a3ad5123e0a2630ae60826aeede6bbaf4acce0b6ae2a6ae67c",
+  "safeScriptExit": 0,
+  "previewOnly": true,
+  "lastPredeploy": "Exact baseline share manifest copy after existing nonce/legal/cards gates",
+  "baselineManifestPlainSHA256": "1d94baea4414fe75f2d66b04e0ec37ec307e3a074ad60c6dfa83bb6d8ac6295d",
+  "baselineManifestHostingGzip9SHA256": "959d1024e33644f6d2130976db74754a119f69ea8b1f31262dd968327fcae2dc",
+  "productSourceHashesUnchangedAfterBuild": true
+}

@@ -10,7 +10,7 @@
 // 주석 참조.
 import { createFirebaseAuthClient } from './firebaseAuth.js'
 import { deleteFirebaseProgressDocument, FirebaseProgressError } from './firebaseProgress.js'
-import { deleteRankingEntriesForUser } from './firebaseRanking.js'
+import { deleteRankingEntriesForUser, resumeRankingSubmissions, completeRankingAccountDeletion } from './firebaseRanking.js'
 import { deleteAdminVisitor, resumeAdminVisitorRecording } from './firebaseAdminVisitors.js'
 import { resetRuntimeRefs } from './refs.js'
 
@@ -34,6 +34,7 @@ export async function deleteAccountAndData(user) {
     await deleteFirebaseProgressDocument(user)
   } catch (error) {
     resumeAdminVisitorRecording(user)
+    resumeRankingSubmissions(user)
     return {
       ok: false,
       reason: classifyProgressDeleteError(error),
@@ -48,16 +49,20 @@ export async function deleteAccountAndData(user) {
     authClient = await createFirebaseAuthClient()
   } catch (error) {
     resumeAdminVisitorRecording(user)
+    resumeRankingSubmissions(user)
     return { ok: false, reason: 'unknown', message: getErrorMessage(error), ranking }
   }
   if (!authClient?.configured) {
     resumeAdminVisitorRecording(user)
+    resumeRankingSubmissions(user)
     return { ok: false, reason: 'unknown', message: 'Firebase auth가 설정되지 않았습니다.', ranking }
   }
   try {
     await authClient.deleteAccount()
+    completeRankingAccountDeletion(user)
   } catch (error) {
     resumeAdminVisitorRecording(user)
+    resumeRankingSubmissions(user)
     return { ok: false, reason: classifyAuthDeleteError(error), message: getErrorMessage(error), ranking }
   }
 

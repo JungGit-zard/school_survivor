@@ -15,6 +15,7 @@ const mocks = vi.hoisted(() => ({
     resetGame: vi.fn(),
     submitRunToRanking: vi.fn(async () => {}),
     reconcileCloudProgress: vi.fn(async () => true),
+    retryRankingSubmission: vi.fn(async () => true),
     startStage1Intro: vi.fn(),
   },
 }))

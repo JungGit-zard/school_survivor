@@ -1,0 +1,610 @@
+{
+  "ranking-hardening-red.json": {
+    "success": false,
+    "total": 2,
+    "passed": 0,
+    "failed": 2,
+    "cases": [
+      {
+        "name": "retains the exact original event time when retrying a rejected request",
+        "status": "failed"
+      },
+      {
+        "name": "never retries the previous account gameplay using a newly signed-in identity",
+        "status": "failed"
+      }
+    ]
+  },
+  "ranking-delete-red.json": {
+    "success": false,
+    "total": 6,
+    "passed": 0,
+    "failed": 1,
+    "cases": [
+      {
+        "name": "preserves highest metrics and latest original event when failed requests are coalesced",
+        "status": "skipped"
+      },
+      {
+        "name": "keeps original daily and weekly paths when retries cross a KST Monday boundary",
+        "status": "skipped"
+      },
+      {
+        "name": "retries only the provided UID and never transfers another account score",
+        "status": "skipped"
+      },
+      {
+        "name": "retains a request until the readback confirms the event and reports partial ACK honestly",
+        "status": "skipped"
+      },
+      {
+        "name": "blocks a new submission after account deletion instead of recreating a ranking row",
+        "status": "failed"
+      },
+      {
+        "name": "drains in-flight writes before deletion and resumes only after explicit failure recovery",
+        "status": "skipped"
+      }
+    ]
+  },
+  "ranking-delete-period-red.json": {
+    "success": false,
+    "total": 11,
+    "passed": 10,
+    "failed": 1,
+    "cases": [
+      {
+        "name": "preserves highest metrics and latest original event when failed requests are coalesced",
+        "status": "passed"
+      },
+      {
+        "name": "keeps original daily and weekly paths when retries cross a KST Monday boundary",
+        "status": "passed"
+      },
+      {
+        "name": "retries only the provided UID and never transfers another account score",
+        "status": "passed"
+      },
+      {
+        "name": "retains a request until the readback confirms the event and reports partial ACK honestly",
+        "status": "passed"
+      },
+      {
+        "name": "blocks a new submission after account deletion instead of recreating a ranking row",
+        "status": "passed"
+      },
+      {
+        "name": "drains in-flight writes before deletion and resumes only after explicit failure recovery",
+        "status": "passed"
+      },
+      {
+        "name": "uses the existing faster-time tie break for both pending and server best selection",
+        "status": "passed"
+      },
+      {
+        "name": "flushes older guest period requests even after a new period succeeds",
+        "status": "passed"
+      },
+      {
+        "name": "keeps a confirmed nickname when replaying an older failed payload",
+        "status": "passed"
+      },
+      {
+        "name": "reports subscription read errors without emitting an empty successful board",
+        "status": "passed"
+      },
+      {
+        "name": "deletes prior-period committed rows whose readback remains pending",
+        "status": "failed"
+      }
+    ]
+  },
+  "ranking-delete-period-green.json": {
+    "success": true,
+    "total": 11,
+    "passed": 11,
+    "failed": 0,
+    "cases": [
+      {
+        "name": "preserves highest metrics and latest original event when failed requests are coalesced",
+        "status": "passed"
+      },
+      {
+        "name": "keeps original daily and weekly paths when retries cross a KST Monday boundary",
+        "status": "passed"
+      },
+      {
+        "name": "retries only the provided UID and never transfers another account score",
+        "status": "passed"
+      },
+      {
+        "name": "retains a request until the readback confirms the event and reports partial ACK honestly",
+        "status": "passed"
+      },
+      {
+        "name": "blocks a new submission after account deletion instead of recreating a ranking row",
+        "status": "passed"
+      },
+      {
+        "name": "drains in-flight writes before deletion and resumes only after explicit failure recovery",
+        "status": "passed"
+      },
+      {
+        "name": "uses the existing faster-time tie break for both pending and server best selection",
+        "status": "passed"
+      },
+      {
+        "name": "flushes older guest period requests even after a new period succeeds",
+        "status": "passed"
+      },
+      {
+        "name": "keeps a confirmed nickname when replaying an older failed payload",
+        "status": "passed"
+      },
+      {
+        "name": "reports subscription read errors without emitting an empty successful board",
+        "status": "passed"
+      },
+      {
+        "name": "deletes prior-period committed rows whose readback remains pending",
+        "status": "passed"
+      }
+    ]
+  },
+  "ranking-main-final.json": {
+    "success": true,
+    "total": 112,
+    "passed": 112,
+    "failed": 0,
+    "cases": [
+      {
+        "name": "ranking entry registration registers an unhydrated guest at exactly zero on stage1 without holding the game",
+        "status": "passed"
+      },
+      {
+        "name": "ranking entry registration registers an unhydrated guest at exactly zero on stage4 without holding the game",
+        "status": "passed"
+      },
+      {
+        "name": "ranking entry registration registers a Google player without waiting for progress",
+        "status": "passed"
+      },
+      {
+        "name": "ranking entry registration submits guest checkpoints and run end without account progress",
+        "status": "passed"
+      },
+      {
+        "name": "ranking entry registration keeps a newer checkpoint result when a delayed entry resolves",
+        "status": "passed"
+      },
+      {
+        "name": "ranking entry registration leaves a newer run submission intact after old identity failure",
+        "status": "passed"
+      },
+      {
+        "name": "retains the exact original event time when retrying a rejected request",
+        "status": "passed"
+      },
+      {
+        "name": "never retries the previous account gameplay using a newly signed-in identity",
+        "status": "passed"
+      },
+      {
+        "name": "retries cloud progress while paused or on a result, and on network return, then removes the timer",
+        "status": "passed"
+      },
+      {
+        "name": "ReadyGameApp stage bypass hydration registers zero immediately before pressing start, once per guest/account identity",
+        "status": "passed"
+      },
+      {
+        "name": "ReadyGameApp stage bypass hydration applies one external side-gutter background from the /game title screen onward and preserves the phoneFrame contract",
+        "status": "passed"
+      },
+      {
+        "name": "ReadyGameApp stage bypass hydration does not render the login title for even one frame while a redirect account is restored",
+        "status": "passed"
+      },
+      {
+        "name": "ReadyGameApp stage bypass hydration restores the saved bypass only after the signed-in user progress becomes ready",
+        "status": "passed"
+      },
+      {
+        "name": "ReadyGameApp stage bypass hydration clears the bypass immediately while switching users or loading their progress",
+        "status": "passed"
+      },
+      {
+        "name": "ReadyGameApp stage bypass hydration marks the next game render for immediate result popup after returning from the game result coin shop",
+        "status": "passed"
+      },
+      {
+        "name": "ReadyGameApp stage bypass hydration marks the next game render for immediate result popup after returning from game-over ranking",
+        "status": "passed"
+      },
+      {
+        "name": "ReadyGameApp stage bypass hydration marks the next game render for immediate result popup after returning from game-over mission center",
+        "status": "passed"
+      },
+      {
+        "name": "ReadyGameApp stage bypass hydration does not mark a normal game return as an already-confirmed game over result",
+        "status": "passed"
+      },
+      {
+        "name": "ReadyGameApp stage bypass hydration routes a result weapon encyclopedia request to the lobby with its selected weapon",
+        "status": "passed"
+      },
+      {
+        "name": "records actual title/game entry and a changed account without blocking entry",
+        "status": "passed"
+      },
+      {
+        "name": "records an account change while staying in the lobby",
+        "status": "passed"
+      },
+      {
+        "name": "StageRanking subscribes to the permanent board without season or reset copy",
+        "status": "passed"
+      },
+      {
+        "name": "StageRanking shows the actual full KST play time on every period",
+        "status": "passed"
+      },
+      {
+        "name": "StageRanking opens on the permanent board and offers all three periods",
+        "status": "passed"
+      },
+      {
+        "name": "StageRanking resubscribes to the weekly window and drops the daily subscription when switching",
+        "status": "passed"
+      },
+      {
+        "name": "StageRanking swaps the heading, reset notice and board label to the weekly wording",
+        "status": "passed"
+      },
+      {
+        "name": "StageRanking exposes semantic panel states for winner and top rank rows",
+        "status": "passed"
+      },
+      {
+        "name": "StageRanking marks the selected period without relying on colour alone",
+        "status": "passed"
+      },
+      {
+        "name": "StageRanking keeps both period buttons at the mobile touch target minimum",
+        "status": "passed"
+      },
+      {
+        "name": "StageRanking shows a period-neutral empty message so the weekly board never reads as \"nothing today\"",
+        "status": "passed"
+      },
+      {
+        "name": "separates loading and read failure from an acknowledged empty board and retries the subscription",
+        "status": "passed"
+      },
+      {
+        "name": "UserRanking renders a guest without account progress hydration (configured=false)",
+        "status": "passed"
+      },
+      {
+        "name": "UserRanking renders a guest without account progress hydration (configured=true)",
+        "status": "passed"
+      },
+      {
+        "name": "UserRanking shows full KST time for a zero-score entrant and unknown for old records",
+        "status": "passed"
+      },
+      {
+        "name": "UserRanking does not disguise unavailable signed-in progress as zero: loading",
+        "status": "passed"
+      },
+      {
+        "name": "UserRanking does not disguise unavailable signed-in progress as zero: error",
+        "status": "passed"
+      },
+      {
+        "name": "UserRanking renders ranking rows from 1st through 30th place",
+        "status": "passed"
+      },
+      {
+        "name": "UserRanking renders the configured ranking season and reward summary",
+        "status": "passed"
+      },
+      {
+        "name": "UserRanking shows cumulative play and season best at the top of the ranking screen",
+        "status": "passed"
+      },
+      {
+        "name": "UserRanking keeps the bottom back button above mobile system UI safe areas",
+        "status": "passed"
+      },
+      {
+        "name": "UserRanking exposes colorful panel semantic states for season and local-player chips",
+        "status": "passed"
+      },
+      {
+        "name": "UserRanking returns to the title screen from the back button",
+        "status": "passed"
+      },
+      {
+        "name": "UserRanking switches the integrated board between daily and weekly entries",
+        "status": "passed"
+      },
+      {
+        "name": "UserRanking uses an arrived cloud board as the period ranking instead of adding a local lifetime record",
+        "status": "passed"
+      },
+      {
+        "name": "UserRanking 랭킹 제출 안내 제출 상태가 없으면 배너를 띄우지 않는다 — 빈 보드는 그냥 빈 보드다",
+        "status": "passed"
+      },
+      {
+        "name": "UserRanking 랭킹 제출 안내 제출이 왕복 중이면 보드가 비어 있어도 \"올리는 중\"이라고 말한다",
+        "status": "passed"
+      },
+      {
+        "name": "UserRanking 랭킹 제출 안내 새 최고점이 기록되면 반영됐다고 알린다",
+        "status": "passed"
+      },
+      {
+        "name": "UserRanking 랭킹 제출 안내 기존 최고점이 더 높은 정상 스킵은 실패처럼 보이지 않는다",
+        "status": "passed"
+      },
+      {
+        "name": "UserRanking 랭킹 제출 안내 규칙 거부는 화면에 드러나고 재시도 버튼은 주지 않는다 — 같은 점수는 또 거부된다",
+        "status": "passed"
+      },
+      {
+        "name": "UserRanking 랭킹 제출 안내 네트워크 실패는 재시도 버튼과 함께 드러난다",
+        "status": "passed"
+      },
+      {
+        "name": "UserRanking 랭킹 제출 안내 seasonOff·signedOut·unconfigured·progressUnavailable을 각각 다른 문구로 구분한다",
+        "status": "passed"
+      },
+      {
+        "name": "UserRanking 랭킹 제출 안내 재시도 버튼은 스토어의 retryRankingSubmission을 호출한다",
+        "status": "passed"
+      },
+      {
+        "name": "shows a read error and retry without empty placeholders until a fresh subscription succeeds",
+        "status": "passed"
+      },
+      {
+        "name": "labels partial acknowledgement without claiming that every leaderboard lost the score",
+        "status": "passed"
+      },
+      {
+        "name": "accountDeletion.js returns unauthenticated immediately without touching ranking/progress/auth when there is no user",
+        "status": "passed"
+      },
+      {
+        "name": "accountDeletion.js deletes in order: ranking -> users/{uid} document -> Firebase Auth account -> local runtime reset",
+        "status": "passed"
+      },
+      {
+        "name": "accountDeletion.js proceeds past a failed ranking deletion (best-effort) and still deletes progress + auth",
+        "status": "passed"
+      },
+      {
+        "name": "accountDeletion.js stops before deleting the Firebase Auth account when the users/{uid} document delete fails",
+        "status": "passed"
+      },
+      {
+        "name": "accountDeletion.js classifies an unauthenticated progress-delete failure distinctly from a generic failure",
+        "status": "passed"
+      },
+      {
+        "name": "accountDeletion.js classifies auth/requires-recent-login as reauthRequired and never resets local runtime",
+        "status": "passed"
+      },
+      {
+        "name": "accountDeletion.js classifies a network error on the auth delete step as network",
+        "status": "passed"
+      },
+      {
+        "name": "accountDeletion.js reauthenticateForDeletion resolves true on success and false on failure",
+        "status": "passed"
+      },
+      {
+        "name": "keeps Auth and progress when deleting the private visitor record fails",
+        "status": "passed"
+      },
+      {
+        "name": "preserves highest metrics and latest original event when failed requests are coalesced",
+        "status": "passed"
+      },
+      {
+        "name": "keeps original daily and weekly paths when retries cross a KST Monday boundary",
+        "status": "passed"
+      },
+      {
+        "name": "retries only the provided UID and never transfers another account score",
+        "status": "passed"
+      },
+      {
+        "name": "retains a request until the readback confirms the event and reports partial ACK honestly",
+        "status": "passed"
+      },
+      {
+        "name": "blocks a new submission after account deletion instead of recreating a ranking row",
+        "status": "passed"
+      },
+      {
+        "name": "drains in-flight writes before deletion and resumes only after explicit failure recovery",
+        "status": "passed"
+      },
+      {
+        "name": "uses the existing faster-time tie break for both pending and server best selection",
+        "status": "passed"
+      },
+      {
+        "name": "flushes older guest period requests even after a new period succeeds",
+        "status": "passed"
+      },
+      {
+        "name": "keeps a confirmed nickname when replaying an older failed payload",
+        "status": "passed"
+      },
+      {
+        "name": "reports subscription read errors without emitting an empty successful board",
+        "status": "passed"
+      },
+      {
+        "name": "deletes prior-period committed rows whose readback remains pending",
+        "status": "passed"
+      },
+      {
+        "name": "updates actual play time after lower and zero scores while preserving all best metrics",
+        "status": "passed"
+      },
+      {
+        "name": "retries idempotently and never replaces a newer event timestamp with an old request",
+        "status": "passed"
+      },
+      {
+        "name": "serializes overlapping signed-in submissions and atomically retains best plus latest play",
+        "status": "passed"
+      },
+      {
+        "name": "firebaseRanking submitRun — direct RTDB write (Spark, no Cloud Function) writes the caller entry independently to stage + global daily/weekly buckets keyed by auth uid",
+        "status": "passed"
+      },
+      {
+        "name": "firebaseRanking submitRun — direct RTDB write (Spark, no Cloud Function) skips the write in buckets where an existing entry already ties or beats the new score (best-only)",
+        "status": "passed"
+      },
+      {
+        "name": "firebaseRanking submitRun — direct RTDB write (Spark, no Cloud Function) keeps stage scores local and global scores cumulative without adding persisted fields",
+        "status": "passed"
+      },
+      {
+        "name": "firebaseRanking submitRun — direct RTDB write (Spark, no Cloud Function) writes zero at first entry, while an existing best score stays intact",
+        "status": "passed"
+      },
+      {
+        "name": "firebaseRanking submitRun — direct RTDB write (Spark, no Cloud Function) uses the isolated anonymous client and chosen nickname for guest zero-score registration",
+        "status": "passed"
+      },
+      {
+        "name": "firebaseRanking submitRun — direct RTDB write (Spark, no Cloud Function) keeps one permanent high-score path across day, week, and season changes",
+        "status": "passed"
+      },
+      {
+        "name": "firebaseRanking submitRun — direct RTDB write (Spark, no Cloud Function) deletes all five permanent entries along with the ten current-period entries",
+        "status": "passed"
+      },
+      {
+        "name": "firebaseRanking submitRun — direct RTDB write (Spark, no Cloud Function) renames only existing own entries including zero scores without changing any score or creating absent stages",
+        "status": "passed"
+      },
+      {
+        "name": "firebaseRanking submitRun — direct RTDB write (Spark, no Cloud Function) returns nickname-update failures rather than silently losing the update",
+        "status": "passed"
+      },
+      {
+        "name": "firebaseRanking submitRun — direct RTDB write (Spark, no Cloud Function) serializes delayed guest submissions and rename, then uses the confirmed name for stale later arguments",
+        "status": "passed"
+      },
+      {
+        "name": "firebaseRanking submitRun — direct RTDB write (Spark, no Cloud Function) continues the guest write queue after a failed request",
+        "status": "passed"
+      },
+      {
+        "name": "firebaseRanking submitRun — direct RTDB write (Spark, no Cloud Function) writes when the new score beats the existing entry",
+        "status": "passed"
+      },
+      {
+        "name": "firebaseRanking submitRun — direct RTDB write (Spark, no Cloud Function) reports a rules rejection as failed — not as a silent best-only skip",
+        "status": "passed"
+      },
+      {
+        "name": "firebaseRanking submitRun — direct RTDB write (Spark, no Cloud Function) reports an existing higher score as skipped, and never as failed",
+        "status": "passed"
+      },
+      {
+        "name": "firebaseRanking submitRun — direct RTDB write (Spark, no Cloud Function) keeps the buckets that succeeded when another bucket is rejected",
+        "status": "passed"
+      },
+      {
+        "name": "firebaseRanking submitRun — direct RTDB write (Spark, no Cloud Function) skips submission without a signed-in uid",
+        "status": "passed"
+      },
+      {
+        "name": "firebaseRanking submitRun — direct RTDB write (Spark, no Cloud Function) skips submission when the database URL is unconfigured",
+        "status": "passed"
+      },
+      {
+        "name": "firebaseRanking submitRun — direct RTDB write (Spark, no Cloud Function) records only permanent boards outside an active season window",
+        "status": "passed"
+      },
+      {
+        "name": "firebaseRanking client contract no longer routes writes through a Cloud Function (Spark-plan compatible)",
+        "status": "passed"
+      },
+      {
+        "name": "firebaseRanking client contract writes directly to RTDB via independent per-bucket set keyed by uid (not atomic multi-path)",
+        "status": "passed"
+      },
+      {
+        "name": "firebaseRanking client contract reads public global and stage projections across daily/weekly windows",
+        "status": "passed"
+      },
+      {
+        "name": "firebaseRanking client contract subscribes to ranking updates and rebinds at KST period boundaries",
+        "status": "passed"
+      },
+      {
+        "name": "describeSubmission — 제출 결과를 화면이 읽을 단일 상태로 접는다 새 최고점이 한 버킷이라도 기록되면 recorded",
+        "status": "passed"
+      },
+      {
+        "name": "describeSubmission — 제출 결과를 화면이 읽을 단일 상태로 접는다 전부 스킵이면 notBest — 유실이 아니라 정상이다",
+        "status": "passed"
+      },
+      {
+        "name": "describeSubmission — 제출 결과를 화면이 읽을 단일 상태로 접는다 일부라도 실패하면 failed — 같은 요청에 written이 섞여 있어도 실패가 이긴다",
+        "status": "passed"
+      },
+      {
+        "name": "describeSubmission — 제출 결과를 화면이 읽을 단일 상태로 접는다 규칙 거부와 네트워크 실패를 다른 reason으로 구분한다",
+        "status": "passed"
+      },
+      {
+        "name": "describeSubmission — 제출 결과를 화면이 읽을 단일 상태로 접는다 시도조차 못 한 사유(seasonOff·signedOut·unconfigured)를 notSubmitted로 보존한다",
+        "status": "passed"
+      },
+      {
+        "name": "submitRun failureKind — 재시도가 의미 있는 실패인지 구분한다 PERMISSION_DENIED는 rejected — 같은 페이로드를 다시 쏴도 또 거부된다",
+        "status": "passed"
+      },
+      {
+        "name": "submitRun failureKind — 재시도가 의미 있는 실패인지 구분한다 오프라인·타임아웃은 network — 재시도로 복구될 수 있다",
+        "status": "passed"
+      },
+      {
+        "name": "submitRun failureKind — 재시도가 의미 있는 실패인지 구분한다 시즌 밖에도 영구 기록은 제출되고 기간 기록은 만들지 않는다",
+        "status": "passed"
+      },
+      {
+        "name": "subscribeStageRanking — 1회성 조회가 아니라 실시간 구독이다 서버가 새 최고점을 밀어줄 때마다 onEntries를 다시 부른다",
+        "status": "passed"
+      },
+      {
+        "name": "subscribeStageRanking — 1회성 조회가 아니라 실시간 구독이다 reads and subscribes to permanent boards outside seasons without rollover timers",
+        "status": "passed"
+      },
+      {
+        "name": "permanent ranking rules ownership and fixed namespace allows only authenticated own best scores in the fixed permanent season and period",
+        "status": "passed"
+      },
+      {
+        "name": "permanent ranking rules ownership and fixed namespace allows account deletion of own null entries while rejecting deletion of another account",
+        "status": "passed"
+      },
+      {
+        "name": "permanent ranking rules ownership and fixed namespace keeps guest profiles private and nickname values restricted to strings of 2–12 characters",
+        "status": "passed"
+      }
+    ]
+  }
+}

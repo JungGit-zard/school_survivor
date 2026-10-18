@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import React from 'react'
+vi.mock('../lib/guestRankingIdentity.js',()=>({getRankingUser:async user=>user??{uid:'synthetic-ui-guest',isAnonymous:true},getGuestRankingClient:async()=>{throw new Error('Unexpected external guest client in UI test')},getGuestRankingNicknameForUid:()=>''}))
 import { act } from 'react'
 import { createRoot } from 'react-dom/client'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -39,7 +40,7 @@ describe('StageRanking', () => {
   it('subscribes to the permanent board without season or reset copy', async () => {
     const view = await renderStageRanking()
     await view.clickTab('무제한 누적')
-    expect(subscribeStageRanking).toHaveBeenLastCalledWith('stage1', 'allTime', expect.any(Function), { limit: 30 })
+    expect(subscribeStageRanking).toHaveBeenLastCalledWith('stage1', 'allTime', expect.any(Function), { limit: 30, onError: expect.any(Function) })
     expect(view.container.textContent).toContain('기간 제한 없는')
     expect(view.container.textContent).not.toContain('첫 생존 시즌')
     view.unmount()
@@ -66,7 +67,7 @@ describe('StageRanking', () => {
     // 주간으로 바뀌는 게 아니라 두 버튼이 나란히 있어야 한다.
     expect(view.tabLabels()).toEqual(['무제한 누적', '일일랭킹', '주간랭킹'])
     expect(subscribeStageRanking).toHaveBeenCalledTimes(1)
-    expect(subscribeStageRanking).toHaveBeenCalledWith('stage1', 'allTime', expect.any(Function), { limit: 30 })
+    expect(subscribeStageRanking).toHaveBeenCalledWith('stage1', 'allTime', expect.any(Function), { limit: 30, onError: expect.any(Function) })
     expect(fetchStageRanking).not.toHaveBeenCalled()
 
     view.unmount()
@@ -79,7 +80,7 @@ describe('StageRanking', () => {
 
     await view.clickTab('주간랭킹')
 
-    expect(subscribeStageRanking).toHaveBeenNthCalledWith(3, 'stage1', 'weekly', expect.any(Function), { limit: 30 })
+    expect(subscribeStageRanking).toHaveBeenNthCalledWith(3, 'stage1', 'weekly', expect.any(Function), { limit: 30, onError: expect.any(Function) })
     // 이전 구독을 정리하지 않으면 두 보드의 행이 서로 덮어쓴다.
     expect(unsubscribeDaily).toHaveBeenCalledTimes(1)
     expect(subscribeStageRanking.mock.results[2].value).not.toHaveBeenCalled()
@@ -151,7 +152,7 @@ describe('StageRanking', () => {
   })
 
   it('shows a period-neutral empty message so the weekly board never reads as "nothing today"', async () => {
-    subscribeStageRanking.mockImplementation(() => vi.fn())
+    subscribeStageRanking.mockImplementation((_stage, _window, onRows) => { onRows([]); return vi.fn() })
     const view = await renderStageRanking()
 
     await view.clickTab('주간랭킹')
@@ -191,3 +192,21 @@ async function renderStageRanking(props = {}) {
     },
   }
 }
+
+it('separates loading and read failure from an acknowledged empty board and retries the subscription',async()=>{
+ subscribeStageRanking.mockImplementation(()=>vi.fn())
+ const view=await renderStageRanking()
+ expect(view.container.querySelector('ol')).toBeNull()
+ expect(view.container.querySelector('[role="status"]')).not.toBeNull()
+ const call=subscribeStageRanking.mock.calls.at(-1)
+ await act(async()=>call[3].onError(new Error('injected read failure')))
+ expect(view.container.querySelector('[role="alert"]')).not.toBeNull()
+ expect(view.container.querySelector('ol')).toBeNull()
+ const before=subscribeStageRanking.mock.calls.length
+ await act(async()=>[...view.container.querySelectorAll('button')].find(button=>button.textContent==='\uB2E4\uC2DC \uC2DC\uB3C4').click())
+ expect(subscribeStageRanking.mock.calls.length).toBe(before+1)
+ await act(async()=>subscribeStageRanking.mock.calls.at(-1)[2]([]))
+ expect(view.container.querySelector('[role="alert"]')).toBeNull()
+ expect(view.container.querySelector('ol')).not.toBeNull()
+ view.unmount()
+})

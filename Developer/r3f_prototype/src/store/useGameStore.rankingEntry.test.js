@@ -17,10 +17,10 @@ describe('ranking entry registration', () => {
     const startedBefore = Date.now()
     useGameStore.getState().resetGame(stageId)
     expect(useGameStore.getState().phase).toBe('playing')
-    await vi.waitFor(() => expect(ranking.submit).toHaveBeenCalledWith({ uid: 'guest', displayName: 'Guest' }, {
+    await vi.waitFor(() => expect(ranking.submit).toHaveBeenCalledWith({ uid: 'guest', displayName: 'Guest' }, expect.objectContaining({
       stageId, score: 0, stageScore: 0, timeMs: 0, globalTimeMs: 0, cleared: false,
       lastPlayedAt: expect.any(Number),
-    }))
+    })))
     expect(ranking.submit.mock.calls[0][1].lastPlayedAt).toBeGreaterThanOrEqual(startedBefore)
     expect(ranking.submit.mock.calls[0][1].lastPlayedAt).toBeLessThanOrEqual(Date.now())
   })

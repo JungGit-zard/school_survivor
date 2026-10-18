@@ -35,6 +35,8 @@ export default function UserRanking({ onBack, entries }) {
   const submission = useGameStore((s) => s.rankingSubmission)
   const retrySubmission = useGameStore((s) => s.retryRankingSubmission)
   const [activeWindow, setActiveWindow] = useState('allTime')
+  const [readErrors, setReadErrors] = useState({})
+  const [readRevision, setReadRevision] = useState(0)
   const [cloudBoards, setCloudBoards] = useState({ allTime: null, daily: null, weekly: null })
   const localRecords = useMemo(() => isFirebaseProgressHydrated() ? loadPlayerRecords() : {}, [user, progressStatus])
 
@@ -48,7 +50,8 @@ export default function UserRanking({ onBack, entries }) {
     if (!isFirebaseRankingConfigured()) return
     const subscribe = (window) => subscribeGlobalRanking(window, (rows) => {
       setCloudBoards((boards) => ({ ...boards, [window]: rows }))
-    }, { limit: RANKING_LIMIT })
+      setReadErrors(errors => ({ ...errors, [window]: false }))
+    }, { limit: RANKING_LIMIT, onError: () => setReadErrors(errors => ({ ...errors, [window]: true })) })
     const unsubscribeAllTime = subscribe('allTime')
     const unsubscribeDaily = subscribe('daily')
     const unsubscribeWeekly = subscribe('weekly')
@@ -57,7 +60,7 @@ export default function UserRanking({ onBack, entries }) {
       unsubscribeDaily()
       unsubscribeWeekly()
     }
-  }, [])
+  }, [readRevision])
 
   const rankingEntries = useMemo(() => {
     const providedEntries = Array.isArray(entries) ? entries : entries?.[activeWindow]
@@ -67,8 +70,10 @@ export default function UserRanking({ onBack, entries }) {
     return isFirebaseRankingConfigured() || !isFirebaseProgressHydrated() ? [] : loadLocalRankingEntries(user ?? {})
   }, [entries, activeWindow, cloudBoards, user])
 
+  const suppliedRows = Array.isArray(entries) || Array.isArray(entries?.[activeWindow])
+  const reading = !suppliedRows && isFirebaseRankingConfigured() && cloudBoards[activeWindow] === null && !readErrors[activeWindow]
   const rows = useMemo(() => createRankingRows(rankingEntries), [rankingEntries])
-  const notice = useMemo(() => buildSubmitNotice(submission), [submission])
+  const notice = useMemo(() => submission?.uid && (user?.uid ? submission.uid !== user.uid : !submission.anonymous) ? null : buildSubmitNotice(submission), [submission, user?.uid])
   const season = useMemo(() => getAdminRankingSeasonConfig(), [])
   const activeCopy = RANKING_WINDOWS.find((window) => window.id === activeWindow) ?? RANKING_WINDOWS[0]
   const rewardSummary = useMemo(() => (
@@ -97,6 +102,8 @@ export default function UserRanking({ onBack, entries }) {
 
       <p style={styles.windowNote}>{t(activeCopy.noteKey)}</p>
 
+      {readErrors[activeWindow] && <div role="alert">{t('ranking.readFailed')} <button type="button" onClick={() => setReadRevision(value => value + 1)}>{t('common.retry')}</button></div>}
+
       {notice && (
         <div
           style={styles.submitNotice(notice.tone)}
@@ -124,11 +131,12 @@ export default function UserRanking({ onBack, entries }) {
         <span style={styles.seasonReward}>{rewardSummary}</span>
       </section>}
 
-      <ol style={styles.list} aria-label={t('ranking.listAria', { limit: RANKING_LIMIT })}>
+      {reading && <div role="status">{t('loading.ranking')}</div>}
+      {!reading && !readErrors[activeWindow] && <ol style={styles.list} aria-label={t('ranking.listAria', { limit: RANKING_LIMIT })}>
         {rows.map((row) => (
           <RankingRow key={row.rank} row={row} />
         ))}
-      </ol>
+      </ol>}
 
       <button type="button" style={styles.backButton} onClick={onBack}>
         {t('ranking.goBack')}
@@ -156,9 +164,9 @@ export function buildSubmitNotice(submission) {
     // 네트워크 실패만 재시도 버튼을 준다. 규칙 거부는 같은 페이로드를 다시 쏴도 또 거부된다.
     const network = submission.reason !== 'rejected'
     return {
-      key: network ? 'ranking.submit.failedNetwork' : 'ranking.submit.failedRejected',
+      key: submission.partial ? (network ? 'ranking.submit.partialNetwork' : 'ranking.submit.partialRejected') : (network ? 'ranking.submit.failedNetwork' : 'ranking.submit.failedRejected'),
       tone: 'bad',
-      canRetry: network,
+      canRetry: true,
     }
   }
   if (status === 'notSubmitted') {

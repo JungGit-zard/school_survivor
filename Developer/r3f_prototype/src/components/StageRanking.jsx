@@ -29,14 +29,19 @@ export default function StageRanking({ stageId = 'stage1', onBack }) {
   const season = useMemo(() => getActiveSeason(), [])
   const [activeWindow, setActiveWindow] = useState('allTime')
   const [rows, setRows] = useState([])
+  const [readError, setReadError] = useState(false)
+  const [reading, setReading] = useState(true)
+  const [readRevision, setReadRevision] = useState(0)
   const copy = WINDOW_COPY[activeWindow] ?? WINDOW_COPY.daily
 
   useEffect(() => {
     // activeWindow가 의존성에 있어야 창을 바꿀 때 이전 구독이 해지된다.
     // 빠지면 구독이 쌓여 두 보드의 행이 번갈아 덮어써진다.
     setRows([])
-    return subscribeStageRanking(stageId, activeWindow, setRows, { limit: 30 })
-  }, [stageId, activeWindow])
+    setReading(true)
+    setReadError(false)
+    return subscribeStageRanking(stageId, activeWindow, rows => { setRows(rows); setReadError(false); setReading(false) }, { limit: 30, onError: () => { setReadError(true); setReading(false) } })
+  }, [stageId, activeWindow, readRevision])
 
   return (
     <div style={styles.root}>
@@ -54,19 +59,22 @@ export default function StageRanking({ stageId = 'stage1', onBack }) {
         onChange={setActiveWindow}
       />
 
-      <section style={styles.summary}>
+      {!reading && !readError && <section style={styles.summary}>
         <TopWinner label={t(copy.topKey)} entry={rows[0]} />
-      </section>
+      </section>}
 
       <div style={styles.seasonLine}>{activeWindow !== 'allTime' && `${season.name} · `}{t(copy.windowKey)}</div>
 
-      <ol style={styles.list} aria-label={t(copy.ariaKey, { stage: stage.label })}>
+      {readError && <div role="alert">{t('ranking.readFailed')} <button type="button" onClick={() => setReadRevision(value => value + 1)}>{t('common.retry')}</button></div>}
+
+      {reading && <div role="status">{t('loading.ranking')}</div>}
+      {!reading && !readError && <ol style={styles.list} aria-label={t(copy.ariaKey, { stage: stage.label })}>
         {rows.length > 0 ? rows.map((entry, index) => (
           <StageRankingRow key={entry.uid ?? `${activeWindow}-${index}`} entry={entry} rank={index + 1} />
         )) : (
           <li data-panel-state="empty" style={styles.empty}>{t('ranking.waiting')}</li>
         )}
-      </ol>
+      </ol>}
     </div>
   )
 }

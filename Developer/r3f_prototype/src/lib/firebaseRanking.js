@@ -31,6 +31,13 @@ export function isFirebaseRankingConfigured() {
 // ponytail: singleton promise — same pattern as firebaseProgress.js
 let _clientPromise = null
 let _testClient = null
+let guestClientPromise = null
+const pendingBuckets = new Map()
+const deletingRankingUids = new Set()
+export function resumeRankingSubmissions(user) { if (user?.uid) deletingRankingUids.delete(user.uid) }
+export function completeRankingAccountDeletion(user) {
+  for (const [path, request] of pendingBuckets) if (request.user.uid === user?.uid) pendingBuckets.delete(path)
+}
 const guestWriteQueues = new Map()
 function enqueueGuestWrite(user, operation) {
   const previous = guestWriteQueues.get(user.uid) ?? Promise.resolve()
@@ -43,15 +50,18 @@ function enqueueGuestWrite(user, operation) {
 async function getClient(user) {
   if (_testClient) return _testClient
   if (user?.isAnonymous) {
-    const { getGuestRankingClient } = await import('./guestRankingIdentity.js')
-    return getGuestRankingClient()
+    if (!guestClientPromise) guestClientPromise = import('./guestRankingIdentity.js').then(module => module.getGuestRankingClient()).catch(error => { guestClientPromise = null; throw error })
+    return guestClientPromise
   }
-  if (!_clientPromise) _clientPromise = createClient()
+  if (!_clientPromise) _clientPromise = createClient().catch(error => { _clientPromise = null; throw error })
   return _clientPromise
 }
 
 // 테스트 전용 주입 seam — { db, mod }를 밀어넣어 실제 firebase/database 없이 submit/fetch 검증.
 export function _setFirebaseRankingClientForTests(client) {
+  guestClientPromise = null
+  pendingBuckets.clear()
+  deletingRankingUids.clear()
   _testClient = client
   _clientPromise = null
 }
@@ -103,25 +113,72 @@ function globalEntriesPath(seasonId, window, key) {
 // E2E 우회/미설정/시즌 밖이면 skip. 최고점(max) 모델 — 기존보다 낮은 점수는 규칙이 거른다.
 // 반환: { written[], skipped[], failed[], reason? }. skipped는 정상(기존 최고점이 더 높음),
 // failed는 최고점 유실(권한 거부·규칙 불일치·네트워크)이라 절대 같이 묶으면 안 된다.
-export async function submitRun(user, { stageId, score, stageScore = score, timeMs, globalTimeMs = timeMs, cleared, lastPlayedAt = Date.now() } = {}) {
-  // Capture the gameplay event before asynchronous guest authentication/queues.
-  const run = { stageId, score, stageScore, timeMs, globalTimeMs, cleared, lastPlayedAt }
-  if (!user?.uid) return notSubmitted('signedOut')
-  return enqueueGuestWrite(user, async () => {
-    if (user.isAnonymous) {
-      const { getGuestRankingNicknameForUid } = await import('./guestRankingIdentity.js')
-      return submitRunNow({ ...user, displayName: getGuestRankingNicknameForUid(user.uid) || user.displayName }, run)
-    }
-    return submitRunNow(user, run)
-  })
+export function prepareRankingSubmission(run = {}, eventAt = Date.now()) {
+  const submittedAt = run.submittedAt ?? eventAt
+  const season = getActiveSeason(submittedAt)
+  return { ...run, submittedAt, lastPlayedAt: run.lastPlayedAt ?? submittedAt,
+    rankingPeriod: run.rankingPeriod ?? { seasonId: season.seasonId, active: season.active,
+      dailyKey: kstDailyKey(submittedAt), weeklyKey: kstWeeklyKey(submittedAt) } }
 }
 
-async function submitRunNow(user, { stageId, score, stageScore = score, timeMs, globalTimeMs = timeMs, cleared, lastPlayedAt } = {}) {
+export async function submitRun(user, run = {}) {
+  if (!user?.uid) return notSubmitted('signedOut')
+  const captured = prepareRankingSubmission(run)
+  if (deletingRankingUids.has(user.uid)) return notSubmitted('accountDeleting')
+  if (user.isAnonymous) {
+    await guestWriteQueues.get(user.uid)?.catch(() => {})
+    const { getGuestRankingNicknameForUid } = await import('./guestRankingIdentity.js')
+    user = { ...user, displayName: getGuestRankingNicknameForUid(user.uid) || user.displayName }
+  }
+  if (deletingRankingUids.has(user.uid)) return notSubmitted('accountDeleting')
+  return submitRunNow(user, captured)
+}
+
+export async function retryPendingRankings(user = null) {
+  user ??= [...pendingBuckets.values()].find(request => request.user.isAnonymous && !deletingRankingUids.has(request.user.uid))?.user
+  if (!user?.uid || deletingRankingUids.has(user.uid)) return notSubmitted('signedOut')
+  const requests = [...pendingBuckets.values()].filter(request => request.user.uid === user.uid)
+  return { ...summarize(await Promise.all(requests.map(writePendingBucket))), uid: user.uid, anonymous: user.isAnonymous === true }
+}
+
+async function writePendingBucket(request) {
+  if (request.promise) return request.promise
+  request.promise = (async () => {
+    while (!deletingRankingUids.has(request.user.uid)) {
+      const incoming = request.entry
+      try {
+        const { db, mod } = await getClient(request.user)
+        if (deletingRankingUids.has(request.user.uid)) break
+        const entryRef = mod.ref(db, request.path)
+        let written = false
+        if (mod.runTransaction) {
+          const result = await mod.runTransaction(entryRef, current => mergeRankingPlay(current, incoming), { applyLocally: false })
+          written = result.committed === true
+        } else {
+          const snapshot = await mod.get(entryRef)
+          const current = snapshot.exists() ? snapshot.val() : null
+          const merged = mergeRankingPlay(current, incoming)
+          if (merged) { await mod.set(entryRef, merged); written = true }
+        }
+        const snapshot = await mod.get(entryRef)
+        const saved = snapshot.exists() ? snapshot.val() : null
+        if (!saved || saved.uid !== incoming.uid || saved.score < incoming.score || (saved.lastPlayedAt ?? 0) < (incoming.lastPlayedAt ?? 0)) throw new Error('Ranking server readback did not acknowledge this event')
+        if (request.entry !== incoming) continue
+        pendingBuckets.delete(request.path)
+        return { path: request.path, status: written ? 'written' : 'skipped' }
+      } catch (error) { return { path: request.path, status: 'failed', error } }
+    }
+    return { path: request.path, status: 'failed', error: new Error('Account deletion in progress') }
+  })().finally(() => { request.promise = null })
+  return request.promise
+}
+
+async function submitRunNow(user, { stageId, score, stageScore = score, timeMs, globalTimeMs = timeMs, cleared, lastPlayedAt, submittedAt, rankingPeriod } = {}) {
   if (!user?.uid) return notSubmitted('signedOut')
   if (!isFirebaseRankingConfigured()) return notSubmitted('unconfigured')
   // E2E 우회 유저 점수는 실랭킹에 오염되지 않게 차단
-  const now = Date.now()
-  const season = getActiveSeason(now)
+  const now = submittedAt
+  const season = rankingPeriod
 
   // 엔트리 키 = auth.uid (해시키 아님). 규칙이 "$uid === auth.uid"로 본인 쓰기만 강제하려면
   // 키가 opaque uid여야 검증 가능하기 때문. Firebase uid는 이메일이 아닌 불투명 식별자라
@@ -139,9 +196,8 @@ async function submitRunNow(user, { stageId, score, stageScore = score, timeMs, 
     ...(Number.isFinite(lastPlayedAt) && lastPlayedAt > 0 ? { lastPlayedAt } : {}),
   }
 
-  const { db, mod } = await getClient(user)
-  const dailyKey = kstDailyKey(now)
-  const weeklyKey = kstWeeklyKey(now)
+  const dailyKey = rankingPeriod.dailyKey
+  const weeklyKey = rankingPeriod.weeklyKey
   const paths = [
     ...(season.active ? [
     entriesPath(season.seasonId, sid, 'daily', dailyKey),
@@ -158,37 +214,22 @@ async function submitRunNow(user, { stageId, score, stageScore = score, timeMs, 
   // 이번 점수가 주간 최고보다 낮아도 새 일일 버킷에는 최고일 수 있다. atomic이면
   // 주간 경로의 best-only 거부가 전체 쓰기를 롤백해 일일 기록까지 유실된다.
   // 버킷별로 기존 최고점을 읽어 더 높을 때만 쓰고, 규칙이 best-only의 최종 방어선이다.
-  const results = await Promise.all(paths.map(async (path) => {
-    const bucketEntry = path.includes('/stage/')
-      ? { ...entry, score: readScore(stageScore) }
-      : { ...entry, timeMs: readNonNegInt(globalTimeMs) }
-    const entryRef = mod.ref(db, `${path}/${uid}`)
-    try {
-      // A replay or a slower session must never erase a higher score. Updating
-      // the last actual play is independent of which run owns the best score.
-      if (mod.runTransaction) {
-        const result = await mod.runTransaction(entryRef, (current) => mergeRankingPlay(current, bucketEntry), { applyLocally: false })
-        return { path, status: result.committed ? 'written' : 'skipped' }
-      }
-      const snap = await mod.get(entryRef)
-      const current = snap?.exists?.() ? snap.val?.() : null
-      if (!current && snap?.exists?.() && readNonNegInt(snap.child('score').val()) >= bucketEntry.score) return { path, status: 'skipped' }
-      const merged = mergeRankingPlay(current, bucketEntry)
-      if (!merged) return { path, status: 'skipped' }
-      await mod.set(entryRef, merged)
-      return { path, status: 'written' }
-    } catch (error) {
-      // 실패한 버킷만 failed로 남긴다 — 다른 버킷은 계속 진행한다.
-      return { path, status: 'failed', error }
-    }
-  }))
+  const requests = paths.map(path => {
+    const incoming = path.includes('/stage/') ? { ...entry, score: readScore(stageScore) } : { ...entry, timeMs: readNonNegInt(globalTimeMs) }
+    const fullPath = `${path}/${uid}`
+    const existing = pendingBuckets.get(fullPath)
+    if (existing) existing.entry = mergeRankingPlay(existing.entry, incoming) ?? existing.entry
+    else pendingBuckets.set(fullPath, { path: fullPath, user, entry: incoming, promise: null })
+    return pendingBuckets.get(fullPath)
+  })
+  const results = await Promise.all(requests.map(writePendingBucket))
 
   // skipped(기존 최고점이 더 높음)와 failed(권한 거부·규칙 불일치·네트워크)는 전혀 다른 사건이다.
   // 예전에는 둘 다 같은 빈 catch로 삼켜서, 배포된 규칙이 클라 점수식보다 낡아 제출이 통째로
   // 거부돼도 아무도 몰랐다. failed는 "최고점이 유실됐다"는 뜻이므로 반드시 드러나야 한다.
   const outcome = summarize(results)
   if (outcome.failed.length > 0 && typeof console !== 'undefined') {
-    console.warn('[ranking] submission rejected — this score was NOT recorded.', {
+    console.warn('[ranking] submission has unacknowledged buckets', {
       stageId: sid, score: entry.score, timeMs: entry.timeMs, cleared: entry.cleared, failed: outcome.failed,
     })
   }
@@ -197,7 +238,7 @@ async function submitRunNow(user, { stageId, score, stageScore = score, timeMs, 
 
 function mergeRankingPlay(current, incoming) {
   if (!current) return incoming
-  const best = readNonNegInt(current.score) >= incoming.score ? current : incoming
+  const best = compareRankingWindowEntries(current, incoming) <= 0 ? current : incoming
   const lastPlayedAt = Math.max(readNonNegInt(current.lastPlayedAt), readNonNegInt(incoming.lastPlayedAt))
   const next = { ...best, displayName: incoming.displayName, ...(lastPlayedAt > 0 ? { lastPlayedAt } : {}) }
   return JSON.stringify(next) === JSON.stringify(current) ? undefined : next
@@ -236,7 +277,7 @@ function notSubmitted(reason) {
 export function describeSubmission(outcome) {
   if (!outcome) return { status: 'failed', reason: 'network' }
   if (outcome.reason) return { status: 'notSubmitted', reason: outcome.reason }
-  if (outcome.failed?.length > 0) return { status: 'failed', reason: outcome.failureKind ?? 'network' }
+  if (outcome.failed?.length > 0) return { status: 'failed', reason: outcome.failureKind ?? 'network', ...((outcome.written?.length || outcome.skipped?.length) ? { partial: true, acknowledgedCount: (outcome.written?.length ?? 0) + (outcome.skipped?.length ?? 0), failedCount: outcome.failed.length } : {}) }
   if (outcome.written?.length > 0) return { status: 'recorded' }
   return { status: 'notBest' }
 }
@@ -274,7 +315,9 @@ function knownRankingEntryPaths(uid) {
 
 export async function deleteRankingEntriesForUser(user) {
   if (!user?.uid || !isFirebaseRankingConfigured()) return { attempted: 0, deleted: [], failed: [] }
-  const paths = knownRankingEntryPaths(user.uid)
+  deletingRankingUids.add(user.uid)
+  await Promise.allSettled([...pendingBuckets.values()].filter(request => request.user.uid === user.uid && request.promise).map(request => request.promise))
+  const paths = [...new Set([...knownRankingEntryPaths(user.uid), ...[...pendingBuckets.values()].filter(request => request.user.uid === user.uid).map(request => request.path)])]
 
   let client = null
   try {
@@ -295,11 +338,15 @@ export async function deleteRankingEntriesForUser(user) {
 }
 
 export async function renameRankingEntriesForUser(user, nickname) {
-  if (user?.isAnonymous) return enqueueGuestWrite(user, () => renameRankingEntriesNow(user, nickname))
+  if (user?.isAnonymous) return enqueueGuestWrite(user, async () => {
+    await Promise.allSettled([...pendingBuckets.values()].filter(request => request.user.uid === user.uid && request.promise).map(request => request.promise))
+    return renameRankingEntriesNow(user, nickname)
+  })
   return renameRankingEntriesNow(user, nickname)
 }
 
 async function renameRankingEntriesNow(user, nickname) {
+  if (deletingRankingUids.has(user?.uid)) return { attempted: 0, updated: [], failed: [], reason: 'accountDeleting' }
   if (!user?.uid || !isFirebaseRankingConfigured()) return { attempted: 0, updated: [], failed: [], reason: 'unavailable' }
   if (typeof nickname !== 'string' || nickname.length < 2 || nickname.length > 12 || !nickname.trim()) {
     return { attempted: 0, updated: [], failed: [], reason: 'invalidNickname' }
@@ -323,6 +370,9 @@ async function renameRankingEntriesNow(user, nickname) {
       return { path, status: 'failed' }
     }
   }))
+  if (results.every(result => result.status !== 'failed')) {
+    for (const request of pendingBuckets.values()) if (request.user.uid === user.uid) request.entry = { ...request.entry, displayName: nickname }
+  }
   return { attempted: paths.length,
     updated: results.filter((result) => result.status === 'updated').map((result) => result.path),
     failed: results.filter((result) => result.status === 'failed').map((result) => result.path) }
@@ -353,12 +403,13 @@ export async function fetchStageRanking(stageId, window, { limit = 100 } = {}) {
   return readRankingEntries(await mod.get(q), limit)
 }
 
-export function subscribeStageRanking(stageId, window, onEntries, { limit = 100 } = {}) {
+export function subscribeStageRanking(stageId, window, onEntries, { limit = 100, onError } = {}) {
   return subscribeRankingWindow(
     window,
     (seasonId, win, key) => entriesPath(seasonId, readStageId(stageId), win, key),
     onEntries,
     limit,
+    onError,
   )
 }
 
@@ -380,12 +431,13 @@ export async function fetchGlobalRanking(window, { limit = 100 } = {}) {
   return readRankingEntries(await mod.get(q), limit)
 }
 
-export function subscribeGlobalRanking(window, onEntries, { limit = 100 } = {}) {
+export function subscribeGlobalRanking(window, onEntries, { limit = 100, onError } = {}) {
   return subscribeRankingWindow(
     window,
     (seasonId, win, key) => globalEntriesPath(seasonId, win, key),
     onEntries,
     limit,
+    onError,
   )
 }
 
@@ -409,7 +461,7 @@ function readStageId(stageId) {
   return id || 'stage1'
 }
 
-function subscribeRankingWindow(window, pathForWindow, onEntries, limit) {
+function subscribeRankingWindow(window, pathForWindow, onEntries, limit, onError) {
   if (typeof onEntries !== 'function') return () => {}
   if (!isFirebaseRankingConfigured()) {
     onEntries([])
@@ -440,12 +492,12 @@ function subscribeRankingWindow(window, pathForWindow, onEntries, limit) {
       )
       unsubscribe = mod.onValue(
         q,
-        (snap) => onEntries(readRankingEntries(snap, limit)),
-        () => onEntries([]),
+        (snap) => { if (!closed) onEntries(readRankingEntries(snap, limit)) },
+        (error) => { if (!closed) onError?.(error) },
       )
       if (win !== 'allTime') boundaryTimer = globalThis.setTimeout(subscribe, msUntilNextWindow(win, now))
-    } catch {
-      onEntries([])
+    } catch (error) {
+      if (!closed) onError?.(error)
     }
   }
 

@@ -3,7 +3,7 @@ import { beforeEach, afterEach, expect, it, vi } from 'vitest'
 
 const authClient = vi.hoisted(() => ({ signOut: vi.fn(async () => {}) }))
 vi.mock('../lib/firebaseRanking.js', () => ({
-  submitRun: vi.fn(async () => ({ status: 'skipped' })),
+  prepareRankingSubmission: run => run, retryPendingRankings: async () => ({written:[],skipped:[],failed:[]}), submitRun: vi.fn(async () => ({ status: 'skipped' })),
   describeSubmission: () => ({ status: 'skipped' }),
 }))
 vi.mock('../lib/firebaseAuth.js', () => ({

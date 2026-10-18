@@ -15,6 +15,8 @@ let mockReauthenticateError = null
 vi.mock('./firebaseAdminVisitors.js', () => ({ resumeAdminVisitorRecording: vi.fn(), deleteAdminVisitor: vi.fn(async () => { mockCallOrder.push('visitors'); if (mockVisitorThrow) throw mockVisitorThrow }) }))
 
 vi.mock('./firebaseRanking.js', () => ({
+  resumeRankingSubmissions: vi.fn(),
+  completeRankingAccountDeletion: vi.fn(),
   deleteRankingEntriesForUser: vi.fn(async () => {
     mockCallOrder.push('ranking')
     if (mockRankingThrow) throw mockRankingThrow

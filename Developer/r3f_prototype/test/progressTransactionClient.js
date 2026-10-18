@@ -6,6 +6,7 @@ export function installProgressTransactionTestClient() {
   const rankings = new Map()
   _setFirebaseRankingClientForTests({db:{},mod:{
     ref:(_db,path)=>path,
+    get:async path=>({exists:()=>rankings.has(path),val:()=>structuredClone(rankings.get(path))}),
     runTransaction:async(path,mutate)=>{
       const next=mutate(rankings.get(path)??null)
       if(next!==undefined)rankings.set(path,structuredClone(next))
