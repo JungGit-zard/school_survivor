@@ -53,3 +53,7 @@ F:\From_SSD_D_20261005\JungSil\2.Minigame_project\school_survivor-integration\ma
 
 - 사용자가 지정한 순차 선택을 적용했다. 설정된 풀의 1번부터 마지막까지 사용 이력의 SHA-256과 대조해 미사용 그림을 하나씩 선택한다. 파일 이름을 바꾸거나 같은 그림을 다른 폴더에 복사해도 사용한 그림은 다시 선택하지 않는다. 전체 소진 시 자동 재사용하지 않고 `IMAGE_POOL_EXHAUSTED`를 기록한다.
 - Facebook 한국어의 변경된 파일명과 기존 canonical 파일이 동일한 SHA-256임을 확인한 뒤 기존 경로 16개를 복구했다. 사용자가 정리한 파일은 그대로 보존했다. 위 15:30 점검에서 빠져 있던 활성 만화 5개도 복구되어 현재 설정된 만화 후보는 플랫폼·언어별 각각 15개, 총 120개다. 그 외 원본·시안·정리 복사본은 활성 만화 풀과 별도다.
+
+## 16:37 KST 재시도 결과
+
+2026-10-16 12:00 회차의 남은 Facebook 베트남어·한국어 Post 버튼을 각각 2026-10-18 **16:35:10**, **16:36:26 KST**에 한 번씩 실행했고 두 작성창이 닫힌 것을 확인했다. 일본어·영어는 기존 게시 의도가 불확실하므로 새로 작성하지 않았다. 대기열은 `submitted_with_unresolved_intents`로 갱신했다. 피드 확인이나 `verified` 승격은 하지 않았다. 증거 파일은 `Developer/agent_room/facebook_posting_receipts/runlogs/2026-10-16-1200-retry-click-evidence-20261018.json`이다.

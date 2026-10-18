@@ -29,3 +29,10 @@ Kanban: `escape-zombie-school / t_bd0b01fc` (operations: madangsue). 구현은 C
 Facebook 로그인과 `Hyun Uk Jung` 계정은 실제 UI에서 확인했다. 원래 영어 초안은 이후 사라져 새로 작성하지 않았다. 베트남어 빈 작성창은 열었으나 사용자 게임 `SO3D_x64` (`-KR_LIVE_x64`)가 전면을 반복적으로 회수해 본문 입력에 실패했다. 게임만 최소화해도 즉시 복귀했으며, 사용자 기존 방해 앱 종료 지시에 따라 해당 프로세스 한 개를 종료하려 했지만 Windows가 `Access is denied`로 거부했다. 다른 사용자 앱은 종료하지 않았다.
 
 따라서 이 복구의 게시 완료를 주장하지 않는다. 2026-10-16 12:00 회차의 ja/en은 `publish_intent`로 실제 게시 여부 미확정, vi/ko는 미게시다. 사용자 게임의 전면 점유가 해제되어야 남은 입력을 진행할 수 있다. 00/06/12/18 정규 예약, RetryDrain, 30분 보고 작업은 활성 상태다.
+
+## 사용자 재시도 지시 후 — 2026-10-18 16:35~16:37 KST
+
+- Chrome 본문 입력이 가능해져 남은 베트남어·한국어 게시를 실행했다. 베트남어 Post UIA Invoke: **16:35:10 KST**, 작성창 닫힘 확인: 16:35:20. 한국어 Post UIA Invoke: **16:36:26 KST**, 작성창 닫힘 확인: 16:36:42.
+- 실행 증거: `Developer/agent_room/facebook_posting_receipts/runlogs/2026-10-16-1200-retry-click-evidence-20261018.json`. 메인이 두 이미지의 SHA-256, 클릭 후 작성창 닫힘 시각 순서, X/Facebook의 해당 회차 8개 영수증 상태를 대조했다.
+- 일본어·영어는 기존 `publish_intent`가 불확실해 새로 작성하거나 클릭하지 않았다. 피드·고유 게시물 주소 확인은 수행하지 않았고 어떤 영수증도 `verified`로 바꾸지 않았다.
+- 해당 회차 대기열은 상태 잠금 아래 `submitted_with_unresolved_intents`, 시도 3회로 갱신하고 실행 증거 경로를 연결했다. 이전 오류 기록은 보존했다. 이는 일본어·영어의 실제 게시 성공이나 사후 검증 완료를 뜻하지 않는다.

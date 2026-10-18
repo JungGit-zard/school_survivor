@@ -1,0 +1,32 @@
+﻿{
+    "runId":  "2026-10-16-1200",
+    "profileUrl":  "https://www.facebook.com/hyunuk.jung.56/",
+    "author":  "Hyun Uk Jung",
+    "windowId":  8915958,
+    "actions":  [
+                    {
+                        "language":  "vi",
+                        "method":  "uia_invoke",
+                        "clickedUtc":  "2026-10-18T07:35:10.7209860+00:00",
+                        "composerClosedObservedUtc":  "2026-10-18T07:35:20.7962835+00:00",
+                        "imagePath":  "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\facebook\\vi\\zombie_catch_comic_words_20261015\\01.png",
+                        "imageSha256":  "39f23222d96b7d1e9276310261b120119b7f427c64c3b9245a6acd262378e981"
+                    },
+                    {
+                        "language":  "ko",
+                        "method":  "uia_invoke",
+                        "clickedUtc":  "2026-10-18T07:36:26.0351803+00:00",
+                        "composerClosedObservedUtc":  "2026-10-18T07:36:42.3661736+00:00",
+                        "imagePath":  "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\facebook\\ko\\backlog_comic_20261015\\01.png",
+                        "imageSha256":  "30d6412bea13002f0c19441b7ee62d92c30613a6ec969273ad8f80b3f30ef763"
+                    }
+                ],
+    "receiptStates":  {
+                          "ko":  "publish_intent",
+                          "vi":  "publish_intent",
+                          "ja":  "publish_intent",
+                          "en":  "publish_intent"
+                      },
+    "postPublicationVerified":  false,
+    "note":  "Actual Post UIA invocations and subsequent composer closure observed. No permalink or published-feed verification performed. ja/en were not recreated or clicked in this retry."
+}
