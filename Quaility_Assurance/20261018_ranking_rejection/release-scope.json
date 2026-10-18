@@ -1,0 +1,13 @@
+{
+  "scope": {
+    "database": {
+      "rules": "Quaility_Assurance/20261018_ranking_rejection/ranking-only-rules.json"
+    }
+  },
+  "configPath": "firebase.ranking-only.temporary.json at repository root",
+  "configSHA256": "c730e0486a5aed0ff9a9383dea946a26b0d60e2fafe1d338a8f489b30e54acb4",
+  "removed": true,
+  "independentAdvisorReadbackAt": "2026-10-18T10:39:51.714Z",
+  "rulesOnlyLeaseReleased": true,
+  "noAutomaticPromotionPending": true
+}

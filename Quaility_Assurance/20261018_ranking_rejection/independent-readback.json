@@ -1,0 +1,10 @@
+{
+  "observedAt": "2026-10-18T10:39:51.714Z",
+  "readOnly": true,
+  "remoteWrites": 0,
+  "expectedRulesCanonicalHash": "dfade4e6a7af476d178c4903b660f7add6c5466edf6057feaeb526916c8e2a6f",
+  "liveRulesCanonicalHash": "dfade4e6a7af476d178c4903b660f7add6c5466edf6057feaeb526916c8e2a6f",
+  "matchesCandidate": true,
+  "hostingVersion": "sites/escape-zombie-school/versions/d6b5abe3d7bb45aa",
+  "hostingExpectedUnchanged": "d6b5abe3d7bb45aa"
+}

@@ -1,0 +1,41 @@
+{
+  "actualSDK": true,
+  "syntheticAuth": true,
+  "productionWrites": 0,
+  "payload": {
+    "uid": "synthetic-ranking-user",
+    "displayName": "QA",
+    "score": 203,
+    "timeMs": 203000,
+    "cleared": false,
+    "stageId": "stage1",
+    "submittedAt": 1792319733237,
+    "lastPlayedAt": 1792319733237
+  },
+  "results": [
+    {
+      "path": "rankingService/v1/public/season-001/stage/stage1/daily/2026-10-18/entries/synthetic-ranking-user",
+      "status": "failed"
+    },
+    {
+      "path": "rankingService/v1/public/season-001/stage/stage1/weekly/2026-10-12/entries/synthetic-ranking-user",
+      "status": "failed"
+    },
+    {
+      "path": "rankingService/v1/public/season-001/global/daily/2026-10-18/entries/synthetic-ranking-user",
+      "status": "failed"
+    },
+    {
+      "path": "rankingService/v1/public/season-001/global/weekly/2026-10-12/entries/synthetic-ranking-user",
+      "status": "failed"
+    },
+    {
+      "path": "rankingService/v1/public/all-time/stage/stage1/allTime/all-time/entries/synthetic-ranking-user",
+      "status": "failed"
+    },
+    {
+      "path": "rankingService/v1/public/all-time/global/allTime/all-time/entries/synthetic-ranking-user",
+      "status": "failed"
+    }
+  ]
+}
