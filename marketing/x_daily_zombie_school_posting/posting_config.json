@@ -411,7 +411,7 @@
   },
   "web_url": "https://escapezombie.com",
   "x_link_card": {
-    "enabled": false,
+    "enabled": true,
     "base_url": "https://escapezombie.com"
   }
 }

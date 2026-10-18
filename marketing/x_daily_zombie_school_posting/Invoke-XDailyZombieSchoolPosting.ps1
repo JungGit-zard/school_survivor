@@ -42,6 +42,7 @@ try {
   if ($config.web_url -cne 'https://escapezombie.com') { throw 'Unexpected campaign web URL' }
   $cardConfig = if ($config.PSObject.Properties.Name -contains 'x_link_card' -and $null -ne $config.x_link_card) { $config.x_link_card } else { [pscustomobject]@{ enabled=$false; base_url='https://escapezombie.com' } }
   $cardBaseUrl = if ($cardConfig.PSObject.Properties.Name -contains 'base_url' -and -not [string]::IsNullOrWhiteSpace([string]$cardConfig.base_url)) { [string]$cardConfig.base_url } else { 'https://escapezombie.com' }
+  if ($cardConfig.enabled -and $PublishOnly -and $SinglePost -and $DirectPhoto) { throw '-DirectPhoto cannot bypass enabled X website cards for PublishOnly SinglePost.' }
   if ($cardConfig.enabled -and $PublishOnly -and $SinglePost -and -not $DirectPhoto) { $WebsiteCardOnly = $true }
   if ($DirectPhoto) { $WebsiteCardOnly = $false }
   $cardBaseUri = $null
