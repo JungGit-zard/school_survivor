@@ -67,6 +67,48 @@ function Test-TodayOnlyUnsafeFailure([string]$Message) {
   return $Message -match '(?i)UNCERTAIN|publish_intent|invalid receipt|unsupported immutable receipt state|malformed receipt'
 }
 
+function Test-LoginRequiredEvidence([string]$Evidence) {
+  return $Evidence -match '(?i)\bLOGIN_REQUIRED\b|Authentication dialog visible|X login form did not expose exactly one Log in button|(?:Facebook|X) (?:login|sign.in) (?:page|form) (?:visible|detected|required)'
+}
+
+function Record-LoginRequiredFailure {
+  param([Parameter(Mandatory)][string]$Name,[Parameter(Mandatory)][object[]]$Arguments,[string]$Output='',[string]$RunnerError='')
+  $evidence=$Output + "`n" + $RunnerError
+  if (-not (Test-LoginRequiredEvidence $evidence)) { return }
+  $platform=if($Name -match '(?i)facebook'){'facebook'}elseif($Name -match '(?i)(^|\W)X(\W|$)'){'x'}else{return}
+  $language=if($Name -match '(?i)\b(ja|en|vi|ko)\b'){$Matches[1].ToLowerInvariant()}else{'all'}
+  $cycleId=''
+  for($i=0;$i -lt $Arguments.Count-1;$i++){
+    if([string]$Arguments[$i] -in @('-RunId','-CycleId')){$cycleId=[string]$Arguments[$i+1];break}
+  }
+  if([string]::IsNullOrWhiteSpace($cycleId) -and -not [string]::IsNullOrWhiteSpace($script:RunId)){$cycleId=[string]$script:RunId}
+  if([string]::IsNullOrWhiteSpace($cycleId)){return}
+  $repoRoot=Split-Path -Parent $PSScriptRoot
+  $agentRoom=Join-Path $repoRoot 'Developer\agent_room'
+  $ledgerPath=Join-Path $agentRoom 'social_posting_login_failures.json'
+  $mutex=[Threading.Mutex]::new($false,'Local\EscapeZombieSchoolLoginFailureLedger')
+  $locked=$false
+  $newEvent=$false
+  try{
+    try{$locked=$mutex.WaitOne()}catch [Threading.AbandonedMutexException]{$locked=$true}
+    [IO.Directory]::CreateDirectory($agentRoom)|Out-Null
+    $ledger=if(Test-Path -LiteralPath $ledgerPath){Get-Content -LiteralPath $ledgerPath -Raw -Encoding UTF8|ConvertFrom-Json}else{[pscustomobject]@{schema=1;events=@()}}
+    if($ledger.schema -ne 1){throw 'Social posting login-failure ledger has an unsupported schema.'}
+    $existing=@($ledger.events|Where-Object{$_.cycleId -ceq $cycleId -and $_.platform -ceq $platform})
+    if($existing.Count -eq 0){
+      $ledger.events=@($ledger.events)+@([pscustomobject]@{platform=$platform;language=$language;cycleId=$cycleId;code='LOGIN_REQUIRED';detectedAtUtc=[DateTimeOffset]::UtcNow.ToString('o')})
+      $temporary=$ledgerPath+'.'+[guid]::NewGuid().ToString('N')+'.tmp'
+      [IO.File]::WriteAllText($temporary,($ledger|ConvertTo-Json -Depth 8),[Text.UTF8Encoding]::new($false))
+      if([IO.File]::Exists($ledgerPath)){[IO.File]::Replace($temporary,$ledgerPath,[NullString]::Value)}else{[IO.File]::Move($temporary,$ledgerPath)}
+      $newEvent=$true
+    }
+  } finally{if($locked){$mutex.ReleaseMutex()};$mutex.Dispose()}
+  if($newEvent){
+    $reportPath=Join-Path $agentRoom 'Write-ZombieSchoolPostingStatusReport.ps1'
+    if(Test-Path -LiteralPath $reportPath -PathType Leaf){try{$null=& $reportPath 2>$null}catch{}}
+  }
+}
+
 function New-HiddenPowerShellStartInfo {
   param([Parameter(Mandatory)][string]$ScriptPath,[Parameter(Mandatory)][object[]]$Arguments)
   $ps = (Get-Command powershell.exe -ErrorAction SilentlyContinue).Source
@@ -125,6 +167,7 @@ function Invoke-JsonRunner {
   if (-not (Test-Path -LiteralPath $ScriptPath -PathType Leaf)) { throw "$Name runner not found: $ScriptPath" }
   $child = Invoke-HiddenPowerShell -ScriptPath $ScriptPath -Arguments $Arguments
   $exit = [int]$child.exitCode
+  Record-LoginRequiredFailure -Name $Name -Arguments $Arguments -Output ([string]$child.output) -RunnerError ([string]$child.error)
   if ($exit -ne 0) { throw "$Name runner failed (exit $exit): $($child.output)`n$($child.error)" }
   $lines = @(([string]$child.output -split "`r?`n") | ForEach-Object { [string]$_ })
   $joined=($lines -join "`n").Trim()

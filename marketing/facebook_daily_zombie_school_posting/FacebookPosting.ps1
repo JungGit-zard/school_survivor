@@ -65,7 +65,7 @@ function Get-FacebookPair($Config, [ValidateSet('ja','en','vi','ko')][string]$La
   $imagePath = Resolve-FacebookPlatformImagePath $selectedImagePath $Language
   if ([string]::IsNullOrWhiteSpace($text) -or [string]::IsNullOrWhiteSpace($imagePath)) { throw "Missing canonical Facebook pair for $Language" }
   if (-not $text.Contains($script:FacebookPlayUrl) -or -not $text.Contains([string]$Config.copy.$Language.hashtag)) { throw "Canonical $Language copy is missing its exact Play link or hashtag" }
-  [pscustomobject]@{ language=$Language; variantId=$variant[0].id; text=$text; textSha256=(Get-FacebookSha256 $text); imagePath=[IO.Path]::GetFullPath($imagePath); attachmentCount=1 }
+  [pscustomobject]@{ language=$Language; variantId=$variant[0].id; text=$text; textSha256=(Get-FacebookSha256 $text); imagePath=[IO.Path]::GetFullPath($imagePath); imageSha256=(Get-FileHash -LiteralPath $imagePath -Algorithm SHA256).Hash.ToLowerInvariant(); attachmentCount=1 }
 }
 function Get-FacebookPairFromSelectedVariant($Config,[ValidateSet('ja','en','vi','ko')][string]$Language,$SelectedVariant) {
   if($null -eq $SelectedVariant -or [string]::IsNullOrWhiteSpace([string]$SelectedVariant.id) -or [string]::IsNullOrWhiteSpace([string]$SelectedVariant.imagePath)){throw 'Selected Facebook variant must contain its exact ID and selected X catalog image path'}

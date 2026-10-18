@@ -50,7 +50,7 @@ function Get-FailureSummary($Value) {
 }
 
 function Get-TaskResultLabel($Task) {
-  $result = [int]$Task.lastTaskResult
+  $result = [int64]$Task.lastTaskResult
   if ($result -eq 267011) { return '미실행(실패 아님)' }
   if ($result -eq 0) { return '정상 종료(게시 성공을 뜻하지 않음)' }
   if ($result -eq 1) {
@@ -62,8 +62,10 @@ function Get-TaskResultLabel($Task) {
 
 function Get-StatusSummary($Data) {
   $activeFailures=@(@($Data.nextRetries)+@($Data.queuedCycles)|Where-Object{$_.status -in @('retry_wait','failed','partial_failed','stopped_unsafe','stopped_cutoff')})
+  $loginFailures=@(Get-ObjectValue $Data 'loginRequiredFailures'|Where-Object{ -not $_.resolved })
   $missedStarts=@($Data.warnings|Where-Object{$_ -like '예정시각경과·시작기록없음 *'})
   $parts=[System.Collections.Generic.List[string]]::new()
+  if($loginFailures.Count){$login=$loginFailures[0];$parts.Add(("로그인 실패 LOGIN_REQUIRED {0}/{1} 회차 {2}" -f $login.platform,$login.language,$login.cycleId))}
   if($activeFailures.Count){$failure=$activeFailures[0];$reason=ConvertTo-OneLine ([string]$failure.failureReason) 70;$when='';$failureNextRetryUtc=Get-ObjectValue $failure 'nextRetryUtc';if($failureNextRetryUtc){try{$when=' 다음 재시도 '+[DateTimeOffset]::Parse([string]$failureNextRetryUtc).ToOffset([TimeSpan]::FromHours(9)).ToString("HH:mm 'KST'")}catch{}};$parts.Add(("활성 실패 {0}: {1}.{2}" -f $failure.status,$reason,$when))}else{$parts.Add('활성 재시도 없음')}
   if($missedStarts.Count){$parts.Add((ConvertTo-OneLine ([string]$missedStarts[0]) 100))}
   $intentCount=@($Data.postingStates|Where-Object rawState -eq 'publish_intent').Count;$parts.Add("사용자 확인 대기 $intentCount")
@@ -77,7 +79,8 @@ function Get-StatusSummary($Data) {
 function Get-NotificationGate($Data, [switch]$NoNotify) {
   $activeFailures=@(@($Data.nextRetries)+@($Data.queuedCycles)|Where-Object{$_.status -in @('retry_wait','failed','partial_failed','stopped_unsafe')})
   $cutoffFailures=@(@($Data.nextRetries)+@($Data.queuedCycles)|Where-Object{$_.status -eq 'stopped_cutoff' -and -not [string]::IsNullOrWhiteSpace([string]$_.failureReason) -and [string]$_.failureReason -notmatch '(?i)cutoff|자정|종료 시각|마감 시각'})
-  $hasFailure=($activeFailures.Count -gt 0 -or $cutoffFailures.Count -gt 0 -or @($Data.warnings).Count -gt 0)
+  $loginFailures=@(Get-ObjectValue $Data 'loginRequiredFailures'|Where-Object{ -not $_.resolved })
+  $hasFailure=($activeFailures.Count -gt 0 -or $cutoffFailures.Count -gt 0 -or $loginFailures.Count -gt 0 -or @($Data.warnings).Count -gt 0)
   $suppressionReason=if($NoNotify){'NoNotify'}elseif(-not $hasFailure){'no_active_failure'}else{''}
   [pscustomobject]@{hasActiveFailure=[bool]$hasFailure;notify=([bool]$hasFailure -and -not $NoNotify);suppressionReason=$suppressionReason}
 }
@@ -114,6 +117,14 @@ function Format-StatusReport($Data) {
   foreach ($retry in $Data.nextRetries) {
     if($retry.status -ne 'retry_wait'){continue}
     $lines.Add(("- {0}: {1}; 다음 재시도 UTC {2}; 원인 {3}" -f $retry.cycleId, $retry.status, $(if ($retry.nextRetryUtc) { $retry.nextRetryUtc } else { '예약 없음' }), (ConvertTo-OneLine ([string]$retry.failureReason) 160)))
+  }
+  $loginFailures=@(Get-ObjectValue $Data 'loginRequiredFailures')
+  $lines.Add('')
+  $lines.Add('## 로그인 실패 영구 기록')
+  if($loginFailures.Count -eq 0){$lines.Add('로그인 실패 기록 없음')}
+  foreach($login in $loginFailures){
+    $resolution=if($login.resolved){'해결됨'}else{'미해결 — 알림 대상'}
+    $lines.Add(("- {0}/{1} · 회차 {2} · {3} · LOGIN_REQUIRED · {4}" -f $login.platform,$login.language,$login.cycleId,$login.detectedAtKst,$resolution))
   }
   $lines.Add('')
   $lines.Add('## 대기열')
@@ -206,14 +217,14 @@ function Get-ReportDataFromSnapshot([string]$RepoRoot,$TaskSnapshot) {
   $warnings=[System.Collections.Generic.List[string]]::new()
   $tasks = @()
   foreach ($task in @($TaskSnapshot)) {
-    if($null -ne $task.PSObject.Properties['lastTaskResult']){$tasks+= [pscustomobject]@{taskName=[string]$task.taskName;taskPath=[string]$task.taskPath;state=[string]$task.state;enabled=[bool]$task.enabled;lastTaskResult=[int]$task.lastTaskResult;lastRunTime=[string]$task.lastRunTime;nextRunTime=[string]$task.nextRunTime};continue}
+    if($null -ne $task.PSObject.Properties['lastTaskResult']){$tasks+= [pscustomobject]@{taskName=[string]$task.taskName;taskPath=[string]$task.taskPath;state=[string]$task.state;enabled=[bool]$task.enabled;lastTaskResult=[int64]$task.lastTaskResult;lastRunTime=[string]$task.lastRunTime;nextRunTime=[string]$task.nextRunTime};continue}
     $info = $null
     try { $info = Get-ScheduledTaskInfo -TaskName $task.TaskName -TaskPath $task.TaskPath -ErrorAction Stop } catch { $warnings.Add("예약 작업 정보 읽기 실패: $($task.TaskName) — $($_.Exception.Message)") }
     $next = ''; $last = ''; $result = 267011
     if ($null -ne $info) {
       if ($info.NextRunTime -and $info.NextRunTime.Year -gt 1900) { $next = [TimeZoneInfo]::ConvertTime([DateTimeOffset]$info.NextRunTime, [TimeZoneInfo]::FindSystemTimeZoneById('Korea Standard Time')).ToString("yyyy-MM-dd HH:mm:ss 'KST'") }
       if ($info.LastRunTime -and $info.LastRunTime.Year -gt 1900) { $last = [TimeZoneInfo]::ConvertTime([DateTimeOffset]$info.LastRunTime, [TimeZoneInfo]::FindSystemTimeZoneById('Korea Standard Time')).ToString("yyyy-MM-dd HH:mm:ss 'KST'") }
-      $result = [int]$info.LastTaskResult
+      $result = [int64]$info.LastTaskResult
     }
     $tasks += [pscustomobject]@{ taskName=$task.TaskName; taskPath=$task.TaskPath; state=[string]$task.State; enabled=[bool]$task.Settings.Enabled; lastTaskResult=$result; lastRunTime=$last; nextRunTime=$next }
   }
@@ -258,8 +269,23 @@ function Get-ReportDataFromSnapshot([string]$RepoRoot,$TaskSnapshot) {
   }
   foreach($row in @($queueRows)){if($row.status -in @('complete','submitted','submitted_with_unresolved_intents')){$terminalRows+=$row}}
   $queueRows=@($queueRows|Where-Object{$_.status -notin @('complete','submitted','submitted_with_unresolved_intents')})
+  $loginRequiredFailures=@()
+  $loginLedgerPath=Join-Path $RepoRoot 'Developer/agent_room/social_posting_login_failures.json'
+  if(Test-Path -LiteralPath $loginLedgerPath){
+    try{
+      $loginLedger=Get-Content -LiteralPath $loginLedgerPath -Raw -Encoding UTF8|ConvertFrom-Json -ErrorAction Stop
+      if($loginLedger.schema -ne 1){throw '로그인 실패 기록 schema가 지원되지 않습니다.'}
+      $resolvedCycleIds=@($terminalRows|Where-Object{$_.status -in @('complete','submitted')}|ForEach-Object{$_.cycleId})
+      foreach($event in @($loginLedger.events)){
+        if($event.code -cne 'LOGIN_REQUIRED' -or [string]$event.platform -notin @('x','facebook') -or [string]::IsNullOrWhiteSpace([string]$event.cycleId)){continue}
+        $detectedAtKst='시각 확인 불가'
+        try{$detectedAtKst=[DateTimeOffset]::Parse([string]$event.detectedAtUtc).ToOffset([TimeSpan]::FromHours(9)).ToString("yyyy-MM-dd HH:mm:ss 'KST'")}catch{}
+        $loginRequiredFailures+= [pscustomobject]@{platform=[string]$event.platform;language=[string]$event.language;cycleId=[string]$event.cycleId;detectedAtUtc=[string]$event.detectedAtUtc;detectedAtKst=$detectedAtKst;code='LOGIN_REQUIRED';resolved=([string]$event.cycleId -in $resolvedCycleIds)}
+      }
+    }catch{$warnings.Add("로그인 실패 기록 읽기 실패: $($_.Exception.Message)")}
+  }
   Get-MissedStartWarnings $RepoRoot $today $kst $warnings
-  return [pscustomobject]@{ generatedAtKst=$kst.ToString("yyyy-MM-dd HH:mm:ss 'KST'"); tasks=$tasks; postingStates=$latest; queuedCycles=$queueRows; nextRetries=$retryRows; terminalCycles=@($terminalRows|Sort-Object cycleId -Unique);warnings=@($warnings) }
+  return [pscustomobject]@{ generatedAtKst=$kst.ToString("yyyy-MM-dd HH:mm:ss 'KST'"); tasks=$tasks; postingStates=$latest; queuedCycles=$queueRows; nextRetries=$retryRows; terminalCycles=@($terminalRows|Sort-Object cycleId -Unique);loginRequiredFailures=$loginRequiredFailures;warnings=@($warnings) }
 }
 
 function Get-LiveReportData([string]$RepoRoot) {

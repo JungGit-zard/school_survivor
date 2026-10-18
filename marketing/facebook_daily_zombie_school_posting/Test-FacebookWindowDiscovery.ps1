@@ -4,6 +4,14 @@ $ErrorActionPreference='Stop'
 function Assert-True($Value,[string]$Name){if(-not $Value){throw "FAILED: $Name"};"PASS $Name"}
 function Assert-Throws([scriptblock]$Action,[string]$Name){$threw=$false;try{$null=& $Action}catch{$threw=$true};Assert-True $threw $Name}
 function New-TestWindow([long]$Id,[string[]]$Tabs){[pscustomobject]@{windowId=$Id;isChrome=$true;tabNames=$Tabs}}
+$englishLogin=@([pscustomobject]@{isVisible=$true;controlType='Edit';name='Password';isPassword=$false},[pscustomobject]@{isVisible=$true;controlType='Button';name='Log in';isPassword=$false})
+$koreanLogin=@([pscustomobject]@{isVisible=$true;controlType='Edit';name='';isPassword=$true},[pscustomobject]@{isVisible=$true;controlType='Button';name='로그인';isPassword=$false})
+$loggedInProfile=@([pscustomobject]@{isVisible=$true;controlType='Edit';name='Address and search bar';isPassword=$false},[pscustomobject]@{isVisible=$true;controlType='Button';name="What's on your mind?";isPassword=$false})
+$securityChallenge=@([pscustomobject]@{isVisible=$true;controlType='Text';name='Security check';isPassword=$false},[pscustomobject]@{isVisible=$true;controlType='Button';name='Continue';isPassword=$false})
+Assert-True (Test-FacebookLoginControls $englishLogin) 'visible English password edit and Log in button identify an explicit login form'
+Assert-True (Test-FacebookLoginControls $koreanLogin) 'visible password edit and Korean 로그인 button identify an explicit login form'
+Assert-True (-not (Test-FacebookLoginControls $loggedInProfile)) 'logged-in profile controls are not classified as a login form'
+Assert-True (-not (Test-FacebookLoginControls $securityChallenge)) 'security challenge controls are not classified as a login form'
 
 $unrelated=@((New-TestWindow 1 @('X')),(New-TestWindow 2 @('Google Search')),(New-TestWindow 3 @('YouTube')))
 $oneFacebook=@($unrelated+(New-TestWindow 4 @('(2) Facebook')))
@@ -26,11 +34,14 @@ Assert-True ($nativeSource -match 'function Get-FacebookChromeWindowForDiscovery
 Assert-True ($nativeSource -match "LocalizedControlType -match 'heading" -and $nativeSource -match '\$token -in @\(''edit'',''link''\)') 'native fallback preserves headings outside post text and limits Value serialization to parser-relevant controls'
 Assert-True ($nativeSource -match "source='native_uia'" -and $nativeSource -match 'Get-FacebookNativeTree \$window' -and $nativeSource -match 'Supplied Facebook PID does not own') 'native UIA tree is primary and revalidates exact PID/window scope'
 Assert-True ($nativeSource -match 'AutomationId -eq .1.' -and $nativeSource -match 'Invoke-FacebookNativeOpenButton') 'native chooser fallback requires one AutomationId 1 Open button with InvokePattern'
-Assert-True ($nativeSource -match 'function Get-FacebookVisibleComposerButton' -and $nativeSource -match 'ScrollItemPattern' -and $nativeSource -match 'Expected one exact Facebook composer button' -and $nativeSource -match 'Assert-FacebookForeground \$w;Invoke-FacebookUiClick') 'offscreen composer button is uniquely scoped, scrolled into view, freshly visibility-checked, and foreground-checked before click'
+$composerButtonSource=[regex]::Match($nativeSource,'(?s)function Get-FacebookVisibleComposerButton.*?(?=\r?\nfunction |\z)').Value
+$composerInvokeSource=[regex]::Match($nativeSource,'(?s)function Invoke-FacebookComposerButton.*?(?=\r?\nfunction |\z)').Value
+$openComposerSource=[regex]::Match($nativeSource,'(?s)function Open-FacebookComposerNative.*?(?=\r?\nfunction |\z)').Value
+Assert-True ($composerButtonSource -match 'ScrollItemPattern' -and $composerButtonSource -match 'Expected one exact Facebook composer button' -and $composerInvokeSource -match 'Test-FacebookVisiblePostingIdentity' -and $composerInvokeSource -match 'Assert-FacebookForeground \$Window' -and $openComposerSource -match 'Assert-FacebookForeground \$w;\$click=Invoke-FacebookComposerButton \$button \$w') 'composer selection keeps exact scoping and scroll checks; semantic invoke rechecks identity and foreground before click'
 Assert-True ((Get-Command Focus-FacebookChromeWindow -ErrorAction Stop).CommandType -eq 'Function') 'focus helper is loaded as an executable native adapter function'
 Assert-True ($nativeSource -match 'IsIconic' -and $nativeSource -match 'ShowWindow\(\$target,9\)' -and $nativeSource -match 'AttachThreadInput' -and $nativeSource -match 'Assert-FacebookForeground \$Window') 'focus helper restores Chrome, attaches input only after direct foreground fails, then asserts the exact HWND'
 $publishSource=[regex]::Match($nativeSource,'(?s)function Invoke-FacebookPublishNative.*?(?=\r?\nfunction |\z)').Value
-Assert-True ($publishSource -match 'Focus-FacebookChromeWindow \$w' -and @([regex]::Matches($publishSource,'Assert-FacebookForeground \$w')).Count -eq 2) 'publish reacquires and rechecks the exact Chrome foreground before the semantic Post click'
+Assert-True ($publishSource -match 'Focus-FacebookChromeWindow \$w' -and $publishSource -match 'Get-FacebookComposerDialog \$w' -and $publishSource -match 'Get-FacebookScopedButton \$freshDialog @\(''Post'',''게시''\)' -and $publishSource -match 'Fresh exact Facebook composer Post button changed before semantic invoke' -and $publishSource -match 'Assert-FacebookForeground \$w\s+Invoke-FacebookUiClick \$post \$w') 'publish reacquires the exact composer and enabled Post button before semantic invoke; coordinate fallback asserts the exact foreground'
 Assert-True ((Resolve-FacebookComposerReadiness @()).state -eq 'wait') 'deferred composer readiness waits without another click when no exact composer exists yet'
 $emptyComposer=[pscustomobject]@{isEmpty=$true;attachmentCount=0;authorCount=1;friendsCount=1}
 Assert-True ((Resolve-FacebookComposerReadiness @($emptyComposer)).state -eq 'reuse_empty') 'one exact empty Friends composer is reused instead of clicking another composer button'

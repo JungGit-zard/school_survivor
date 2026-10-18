@@ -8,7 +8,7 @@ function Resolve-PostingImagePath([string]$Path, [ValidateSet('X','Facebook')][s
   if ([string]::IsNullOrWhiteSpace($Path)) { return $Path }
   $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot 'image_pool'))
   $rootPrefix = $root.TrimEnd([IO.Path]::DirectorySeparatorChar, [IO.Path]::AltDirectorySeparatorChar) + [IO.Path]::DirectorySeparatorChar
-  $normalized = $Path -replace '\\', '/'
+  $normalized = [regex]::Replace(($Path -replace '\\', '/'), '/{2,}', '/')
   $match = [regex]::Match($normalized, '(?:^|/)image_pool/(.+)$', [Text.RegularExpressions.RegexOptions]::IgnoreCase)
   $suffix = if ($match.Success) { $match.Groups[1].Value } else { $normalized.TrimStart('/') }
   $catalog = Get-PostingImageCatalog
@@ -132,53 +132,62 @@ function Get-PostingPreviousImagePath($Config, [string]$Language, [string]$Cycle
   }
   return $null
 }
-function Select-PostingLocaleImagePath($Config, [string]$Language, [string]$CycleId, [string]$ReceiptDirectory, [ValidateSet('X','Facebook')][string]$Platform = 'X', $Catalog = $null) {
+function Get-PostingDefaultReceiptDirectories([ValidateSet('X','Facebook')][string]$Platform) {
+  if ($Platform -eq 'X') { return @((Join-Path $PSScriptRoot 'receipts'), (Join-Path $PSScriptRoot '..\..\Developer\agent_room\x_posting_receipts')) }
+  return @()
+}
+function Select-PostingLocaleImagePath($Config, [string]$Language, [string]$CycleId, [string]$ReceiptDirectory, [ValidateSet('X','Facebook')][string]$Platform = 'X', $Catalog = $null, $ReceiptDirectoryOverrides = $null) {
   $gatedCandidates = @(Get-PostingLocaleImageCandidates $Config $Language -RequireGameStartText -Platform $Platform -Catalog $Catalog)
   $pool = if ($Platform -eq 'Facebook' -and $Config.PSObject.Properties.Name -contains 'facebook_rotation_image_pool' -and $Config.facebook_rotation_image_pool.PSObject.Properties.Name -contains $Language) { @($Config.facebook_rotation_image_pool.$Language.images) } elseif ($Platform -eq 'X' -and $Config.PSObject.Properties.Name -contains 'localized_social_image_pool' -and $Config.localized_social_image_pool.PSObject.Properties.Name -contains $Language) { @($Config.localized_social_image_pool.$Language.images) } else { @() }
   $poolPaths = @($pool | ForEach-Object { Resolve-PostingImagePath ([string]$_) -Platform $Platform } | Select-Object -Unique)
   $candidates = if ($poolPaths.Count -gt 0) { @($poolPaths | Where-Object { $gatedCandidates -ccontains $_ }) } else { $gatedCandidates }
   if ($candidates.Count -eq 0) { throw "No confirmed localized game-start CTA images are eligible for $Platform/$Language." }
-  $receiptDirectories = @($ReceiptDirectory)
-  if ($Platform -eq 'X') { $receiptDirectories += (Join-Path $PSScriptRoot 'receipts'); $receiptDirectories += (Join-Path $PSScriptRoot '..\..\Developer\agent_room\x_posting_receipts') }
-  $used = @{}
-  $latestImage = $null
-  $latestStamp = ''
-  foreach ($directory in @($receiptDirectories | Select-Object -Unique)) {
+  $receiptSearchDirectories = @($ReceiptDirectory)
+  if ($null -ne $ReceiptDirectoryOverrides) { $receiptSearchDirectories = @($ReceiptDirectoryOverrides) }
+  elseif ($Platform -eq 'X') { $receiptSearchDirectories += @(Get-PostingDefaultReceiptDirectories $Platform) }
+  $usedHashes = @{}
+  $candidateHashes = @{}
+  foreach ($candidate in $candidates) {
+    $hash = (Get-FileHash -LiteralPath $candidate -Algorithm SHA256).Hash
+    $candidateHashes[$candidate] = $hash
+  }
+  foreach ($directory in @($receiptSearchDirectories | Select-Object -Unique)) {
     if (-not (Test-Path -LiteralPath $directory -PathType Container)) { continue }
     foreach ($file in @(Get-ChildItem -LiteralPath $directory -Filter '*.json' -File)) {
       try { $receipt = Get-Content -LiteralPath $file.FullName -Raw -Encoding UTF8 | ConvertFrom-Json } catch { continue }
       if ($null -eq $receipt -or $receipt.PSObject.Properties.Name -notcontains 'entries') { continue }
       $entry = $receipt.entries.$Language
-      if ($null -eq $entry -or $entry.state -notin @('selected','prepared','publish_intent','verified') -or $null -eq $entry.intent) { continue }
-      try { $image = Resolve-PostingImagePath ([string]$entry.intent.imagePath) -Platform $Platform } catch { continue }
-      if (@($candidates | Where-Object { $_ -ceq $image }).Count -ne 1) { continue }
-      $stamp = if ($entry.intent.PSObject.Properties.Name -contains 'createdUtc') { [string]$entry.intent.createdUtc } else { '' }
-      if ([string]::IsNullOrWhiteSpace($stamp)) { $stamp = [string]$receipt.cycleId }
-      if ([string]::IsNullOrWhiteSpace($stamp)) { $stamp = $file.LastWriteTimeUtc.ToString('o') }
-      if ($stamp -ge $latestStamp) { $latestStamp = $stamp; $latestImage = $image }
-      if ($entry.state -in @('publish_intent','verified')) { $used[$image] = $true }
+      if ($null -eq $entry -or $entry.state -notin @('publish_intent','verified') -or $null -eq $entry.intent) { continue }
+      $historyHash = ''
+      foreach ($hashProperty in @('imageSha256','sha256')) {
+        if ($entry.intent.PSObject.Properties.Name -contains $hashProperty) {
+          $value = [string]$entry.intent.$hashProperty
+          if ($value -match '^[A-Fa-f0-9]{64}$') { $historyHash = $value.ToLowerInvariant(); break }
+        }
+      }
+      if ([string]::IsNullOrWhiteSpace($historyHash)) {
+        $historyPath = [string]$entry.intent.imagePath
+        $normalizedHistoryPath = [regex]::Replace(($historyPath -replace '\\', '/'), '/{2,}', '/')
+        $historyMatch = [regex]::Match($normalizedHistoryPath, '(?:^|/)image_pool/(.+)$', [Text.RegularExpressions.RegexOptions]::IgnoreCase)
+        $historySuffix = if ($historyMatch.Success) { $historyMatch.Groups[1].Value } else { '' }
+        $historyCatalog = if ($null -ne $Catalog) { $Catalog } else { Get-PostingImageCatalog }
+        if (-not [string]::IsNullOrWhiteSpace($historySuffix) -and $historyCatalog.PSObject.Properties.Name -contains 'legacyImageHashes' -and $historyCatalog.legacyImageHashes.PSObject.Properties.Name -contains $historySuffix) {
+          $legacyHash = [string]$historyCatalog.legacyImageHashes.$historySuffix
+          if ($legacyHash -match '^[A-Fa-f0-9]{64}$') { $historyHash = $legacyHash.ToLowerInvariant() }
+        }
+        if ([string]::IsNullOrWhiteSpace($historyHash)) {
+          try { $image = Resolve-PostingImagePath $historyPath -Platform $Platform } catch { throw "IMAGE_HISTORY_HASH_UNKNOWN: cannot resolve a posted image from receipt '$($file.FullName)' for $Platform/$Language." }
+          if (-not (Test-Path -LiteralPath $image -PathType Leaf)) { throw "IMAGE_HISTORY_HASH_UNKNOWN: receipt image is missing and has no stored SHA256: '$($file.FullName)' for $Platform/$Language." }
+          $historyHash = (Get-FileHash -LiteralPath $image -Algorithm SHA256).Hash.ToLowerInvariant()
+        }
+      }
+      $usedHashes[$historyHash] = $true
     }
   }
-  if ($candidates.Count -gt 1) {
-    $start = if ($null -ne $latestImage) { ([array]::IndexOf([string[]]$candidates, [string]$latestImage) + 1) % $candidates.Count } else { 0 }
-    for ($offset = 0; $offset -lt $candidates.Count; $offset++) {
-      $candidate = [string]$candidates[($start + $offset) % $candidates.Count]
-      if (-not $used.ContainsKey($candidate)) { return $candidate }
-    }
-    return [string]$candidates[$start]
+  foreach ($candidate in $candidates) {
+    if (-not $usedHashes.ContainsKey($candidateHashes[$candidate])) { return [string]$candidate }
   }
-  $previous = Get-PostingPreviousImagePath $Config $Language $CycleId $ReceiptDirectory $candidates $Platform
-  if ($null -ne $previous) { return [string]$previous }
-  $ordinal = $null
-  if ($CycleId -match '^(\d{4}-\d{2}-\d{2})-(\d{4})$') {
-    $day = [datetime]::ParseExact($Matches[1], 'yyyy-MM-dd', [Globalization.CultureInfo]::InvariantCulture)
-    $slot = $Matches[2].Insert(2, ':')
-    $slots = @($Config.schedule_times | Sort-Object)
-    $index = [array]::IndexOf($slots, $slot)
-    if ($index -ge 0) { $ordinal = [long](($day - [datetime]'2026-09-06').TotalDays * $slots.Count + $index) }
-  }
-  if ($null -eq $ordinal) { $ordinal = [Convert]::ToInt64((Get-CopyDigest $CycleId).Substring(0, 12), 16) }
-  return [string]$candidates[($ordinal % $candidates.Count + $candidates.Count) % $candidates.Count]
+  throw "IMAGE_POOL_EXHAUSTED: all unique SHA256 images are already used for $Platform/$Language."
 }
 function Get-XWeightedLength([string]$Text) {
   $withoutUrls = [regex]::Replace($Text, 'https?://[^\s]+', ('x' * 23))

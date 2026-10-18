@@ -4543,5 +4543,10 @@
     "boss_series/boss_b02_promotional.png": "reference/boss_series/boss_b02_promotional.png",
     "boss_series/boss_b03_promotional.png": "reference/boss_series/boss_b03_promotional.png",
     "boss_series/boss_b04_promotional.png": "reference/boss_series/boss_b04_promotional.png"
+  },
+  "legacyImageHashes": {
+    "x_jp/post_jp_02_supplies_recovery_20261004.png": "d3cb51a940e7336160c78d2e08e7dcc6049e29283a38ee670c36f0f5e2549370",
+    "x_en/post_eng_02_supplies.png": "6bae181f8d23b480e3e66b1ec92328e71e0537f9bc4e14db2998b5392adf3b2c",
+    "x_jp/post_jp.png": "3fa1824f7f342cc242ea2fc7c771692af1f73fd2bcbfb474f73ec8b094f73c9d"
   }
 }

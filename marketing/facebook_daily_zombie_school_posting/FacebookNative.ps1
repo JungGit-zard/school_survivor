@@ -33,6 +33,16 @@ $script:FacebookMouseLeftDown=0x0002
 $script:FacebookMouseLeftUp=0x0004
 $script:FacebookCoordinateCachePath=Join-Path ([IO.Path]::GetTempPath()) 'escape-zombie-school-facebook-coordinate-cache.json'
 function Get-FacebookUiAll($Root) { @($Root.FindAll([Windows.Automation.TreeScope]::Descendants,[Windows.Automation.Condition]::TrueCondition)) }
+function Test-FacebookLoginControls($Controls) {
+ $items=@($Controls)
+ $password=@($items|Where-Object{$_.isVisible -and $_.controlType -eq 'Edit' -and ($_.isPassword -or $_.name -in @('Password','비밀번호'))})
+ $login=@($items|Where-Object{$_.isVisible -and $_.controlType -eq 'Button' -and $_.name -in @('Log in','Login','로그인')})
+ ($password.Count -gt 0 -and $login.Count -gt 0)
+}
+function Assert-FacebookNotOnLoginForm($Window) {
+ $controls=@(Get-FacebookUiAll $Window|ForEach-Object{[pscustomobject]@{isVisible=(-not $_.Current.IsOffscreen);controlType=$_.Current.ControlType.ProgrammaticName -replace '^ControlType\.','';name=$_.Current.Name;isPassword=$_.Current.IsPassword}})
+ if(Test-FacebookLoginControls $controls){throw 'LOGIN_REQUIRED: Facebook login form visible'}
+}
 function Get-FacebookValue($Element) { $p=$null; if($Element.TryGetCurrentPattern([Windows.Automation.ValuePattern]::Pattern,[ref]$p)){return $p.Current.Value}; if($Element.TryGetCurrentPattern([Windows.Automation.TextPattern]::Pattern,[ref]$p)){return $p.DocumentRange.GetText(-1)}; '' }
 function Test-FacebookTabName([string]$Name) { return $Name -match '^(?:\(\d+\)\s+)?Facebook$|(?:\| | • )Facebook$' }
 function Resolve-FacebookDiscoveryPlan($Descriptors) {
@@ -277,7 +287,7 @@ function Wait-FacebookProfileReady($Window) {
   # A malformed/ambiguous storage warning is a safety error, not a loading state.
   # Let it fail immediately instead of hiding it in the profile-settle retry loop.
   Close-FacebookChromeStorageWarningIfPresent $Window|Out-Null
-  try { Assert-FacebookProfileAddress $Window;Assert-FacebookAccountMarker $Window;return } catch { Start-Sleep -Milliseconds 200 }
+  try { Assert-FacebookNotOnLoginForm $Window;Assert-FacebookProfileAddress $Window;Assert-FacebookAccountMarker $Window;return } catch { if($_.Exception.Message -match '^LOGIN_REQUIRED:'){throw};Start-Sleep -Milliseconds 200 }
  } while([DateTime]::UtcNow -lt $deadline)
  throw 'Exact Hyun Uk Jung profile address and account marker did not settle within 15 seconds'
 }
@@ -404,7 +414,33 @@ function Attach-FacebookImageNative([string]$ImagePath,[long]$WindowId=0,[string
 function Get-FacebookDraftEvidenceNative($Window) { $dialog=Get-FacebookComposerDialog $Window;$e=Get-FacebookComposerEditor $Window;$all=Get-FacebookUiAll $dialog;$attachments=@($all|Where-Object{!$_.Current.IsOffscreen -and $_.Current.Name -in @('Remove post attachment','게시물 첨부 파일 제거')}).Count;$privacy=@($all|Where-Object{!$_.Current.IsOffscreen -and $_.Current.Name -match '^Edit privacy\. Sharing with Your friends\.\s*$'}).Count;$authors=@($all|Where-Object{!$_.Current.IsOffscreen -and $_.Current.Name -ceq 'Hyun Uk Jung'}).Count;[pscustomobject]@{text=(Get-FacebookValue $e);attachmentCount=$attachments;audience=if($privacy -eq 1){'Friends'}else{'unknown'};authorCount=$authors} }
 function Get-FacebookDraftNative([long]$WindowId=0) { $w=Get-FacebookChromeWindow $WindowId;Get-FacebookDraftEvidenceNative $w|Select-Object text,attachmentCount,audience }
 function Resume-FacebookOwnDraftNative([string]$ExpectedText,[long]$WindowId=0) { $w=Get-FacebookChromeWindow $WindowId;$confirm=@((Get-FacebookUiAll $w)|Where-Object{!$_.Current.IsOffscreen -and $_.Current.ControlType -eq [Windows.Automation.ControlType]::Window -and $_.Current.Name -in @('Save this post as a draft?','게시물을 임시 저장하시겠어요?')});if($confirm.Count -ne 1){throw "Expected one exact Save this post as a draft confirmation; found $($confirm.Count)"};$close=Get-FacebookScopedButton $confirm[0] @('Close','닫기');$invoke=$null;if(-not $close.TryGetCurrentPattern([Windows.Automation.InvokePattern]::Pattern,[ref]$invoke)){throw 'Exact draft confirmation Close has no InvokePattern'};$invoke.Invoke();Start-Sleep -Milliseconds 200;$deadline=[DateTime]::UtcNow.AddSeconds(5);do{try{$draft=Get-FacebookDraftEvidenceNative $w;if((Normalize-FacebookText $draft.text) -ceq (Normalize-FacebookText $ExpectedText) -and $draft.attachmentCount -eq 1 -and $draft.audience -ceq 'Friends' -and $draft.authorCount -eq 1){return [pscustomobject]@{status='resumed_exact_own_draft';windowId=$w.Current.NativeWindowHandle}};throw 'Resumed composer does not match exact frozen text, author, Friends audience, and one attachment'}catch{if($_.Exception.Message -notmatch 'Expected one exact composer'){throw}};Start-Sleep -Milliseconds 150}while([DateTime]::UtcNow -lt $deadline);throw 'Exact own composer did not return after closing only the draft confirmation' }
-function Invoke-FacebookPublishNative([long]$WindowId=0) { $w=Get-FacebookChromeWindow $WindowId;Focus-FacebookChromeWindow $w;Assert-FacebookForeground $w;$postNames=@('Post','게시');$post=Find-FacebookUi -Names $postNames -ControlType 'Button' -Window $w;Assert-FacebookForeground $w;Invoke-FacebookUiClick $post $w }
+function Invoke-FacebookPublishNative([long]$WindowId=0) {
+ $w=Get-FacebookChromeWindow $WindowId
+ Assert-FacebookProfileAddress $w
+ Assert-FacebookAccountMarker $w
+ $dialog=Get-FacebookComposerDialog $w
+ $post=Get-FacebookScopedButton $dialog @('Post','게시')
+ if(-not $post.Current.IsEnabled){throw 'Exact Facebook composer Post button is disabled; publish stopped'}
+ $bounds=$post.Current.BoundingRectangle
+ if($bounds.IsEmpty -or $bounds.Width -lt 2 -or $bounds.Height -lt 2){throw 'Exact Facebook composer Post button has no visible frame; publish stopped'}
+ $invoke=$null
+ if($post.TryGetCurrentPattern([Windows.Automation.InvokePattern]::Pattern,[ref]$invoke)){
+  Assert-FacebookProfileAddress $w
+  Assert-FacebookAccountMarker $w
+  $freshDialog=Get-FacebookComposerDialog $w
+  $freshPost=Get-FacebookScopedButton $freshDialog @('Post','게시')
+  if($freshPost.Current.IsOffscreen -or -not $freshPost.Current.IsEnabled -or $freshPost.Current.Name -cne $post.Current.Name){throw 'Fresh exact Facebook composer Post button changed before semantic invoke; publish stopped'}
+  $freshBounds=$freshPost.Current.BoundingRectangle
+  if($freshBounds.IsEmpty -or $freshBounds.Width -lt 2 -or $freshBounds.Height -lt 2){throw 'Fresh exact Facebook composer Post button has no visible frame; publish stopped'}
+  $freshInvoke=$null
+  if(-not $freshPost.TryGetCurrentPattern([Windows.Automation.InvokePattern]::Pattern,[ref]$freshInvoke)){throw 'Fresh exact Facebook composer Post button lost InvokePattern; publish stopped'}
+  $freshInvoke.Invoke()
+  return [pscustomobject]@{method='uia_invoke';button=$freshPost.Current.Name;windowId=$WindowId;clickedUtc=[DateTimeOffset]::UtcNow.ToString('o')}
+ }
+ Focus-FacebookChromeWindow $w
+ Assert-FacebookForeground $w
+ Invoke-FacebookUiClick $post $w
+}
 function Get-FacebookScopedButton($Root,[string[]]$Names) { $hits=@((Get-FacebookUiAll $Root)|Where-Object{!$_.Current.IsOffscreen -and $_.Current.ControlType -eq [Windows.Automation.ControlType]::Button -and $_.Current.Name -in $Names});if($hits.Count -ne 1){throw "Expected one scoped button [$($Names -join ', ')]; found $($hits.Count)"};$hits[0] }
 function Close-FacebookPostNative([long]$WindowId=0) { $w=Get-FacebookChromeWindow $WindowId;Focus-FacebookChromeWindow $w;Assert-FacebookForeground $w;$post=@((Get-FacebookUiAll $w)|Where-Object{!$_.Current.IsOffscreen -and $_.Current.ControlType -eq [Windows.Automation.ControlType]::Window -and $_.Current.Name -eq "Hyun Uk Jung's Post"});if($post.Count -ne 1){throw "Expected one exact Hyun Uk Jung's Post dialog; found $($post.Count)"};Invoke-FacebookUiClick (Get-FacebookScopedButton $post[0] @('Close','닫기')) $w }
 function Cancel-FacebookOwnDraftNative([string]$ExpectedText,[string]$ExpectedFileName,[long]$WindowId=0) { $w=Get-FacebookChromeWindow $WindowId;Focus-FacebookChromeWindow $w;Assert-FacebookForeground $w;$draft=Get-FacebookDraftNative $WindowId;if((Normalize-FacebookText $draft.text) -cne (Normalize-FacebookText $ExpectedText) -or $draft.attachmentCount -ne 1 -or $draft.audience -cne 'Friends'){throw 'Unknown/noncanonical draft is never cancelled'};$dialog=Get-FacebookComposerDialog $w;$filename=@((Get-FacebookUiAll $dialog)|Where-Object{!$_.Current.IsOffscreen -and $_.Current.Name -match [regex]::Escape($ExpectedFileName)});if($filename.Count -ne 1){throw 'Exact frozen attachment filename is required before cancelling'};Assert-FacebookForeground $w;$close=Get-FacebookScopedButton $dialog @('Close composer dialog','작성 창 닫기');Invoke-FacebookUiClick $close $w;Start-Sleep -Milliseconds 200;$discard=Get-FacebookScopedButton $w @('Discard','삭제');Invoke-FacebookUiClick $discard $w }

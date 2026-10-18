@@ -5,6 +5,11 @@ $fixturePath = Join-Path $tempRoot 'fixture.json'
 function Assert-True($value,[string]$message){if(-not $value){throw "FAILED: $message"}}
 function Get-TestNotificationGate([string]$Output){$line=@($Output -split "`r?`n"|Where-Object{$_ -like 'STATUS_NOTIFICATION_GATE_JSON=*'}|Select-Object -Last 1);if(-not $line.Count){throw 'Notification gate result missing from TestOnly output'};ConvertFrom-Json ($line[0].Substring('STATUS_NOTIFICATION_GATE_JSON='.Length))}
 try {
+  $postingSupervisor=Join-Path (Split-Path -Parent (Split-Path -Parent $PSScriptRoot)) '포스팅/Invoke-ZombieSchoolFiveSlotPosting.ps1'
+  . $postingSupervisor -TestOnly
+  Assert-True (Test-LoginRequiredEvidence 'X runner failed: Authentication dialog visible') 'existing X login-dialog detection is classified as confirmed login required'
+  Assert-True (Test-LoginRequiredEvidence 'Facebook login form detected') 'explicit Facebook login-form detection is classified as confirmed login required'
+  Assert-True (-not (Test-LoginRequiredEvidence 'Facebook profile readiness failed') -and -not (Test-LoginRequiredEvidence 'Authentication/security challenge visible')) 'uncertain profile readiness and security challenges are not mislabeled as logout'
   $today=([DateTimeOffset]::UtcNow.ToOffset([TimeSpan]::FromHours(9))).ToString('yyyy-MM-dd')
   $agentRoom=Join-Path $tempRoot 'Developer/agent_room'
   $null=New-Item -ItemType Directory -Force -Path (Join-Path $agentRoom 'x_posting_receipts'),(Join-Path $agentRoom 'facebook_posting_receipts'),(Join-Path $agentRoom 'social_posting_scheduled_retries')
@@ -44,6 +49,20 @@ try {
   [pscustomobject]@{repoRoot=$quietRoot;tasks=$tasks}|ConvertTo-Json -Depth 10|Set-Content -LiteralPath $fixturePath -Encoding UTF8;$quietOutput=(& $scriptPath -TestOnly -FixturePath $fixturePath|Out-String);$quietGate=Get-TestNotificationGate $quietOutput
   Assert-True ($quietOutput.Contains('게시 의도 기록·사용자 확인 대기') -and $quietOutput.Contains('submitted_with_unresolved_intents') -and $quietOutput.Contains('running')) 'quiet fixture includes intent-only, submitted, and transient running states'
   Assert-True (-not $quietGate.hasActiveFailure -and -not $quietGate.notify -and $quietGate.suppressionReason -eq 'no_active_failure') 'publish intent, terminal submission, transient running, midnight cutoff alone, and old task result errors suppress notification'
+  $loginRoot=Join-Path $tempRoot 'login-required-state';$loginRoom=Join-Path $loginRoot 'Developer/agent_room';$loginRetryDir=Join-Path $loginRoom 'social_posting_scheduled_retries';New-Item -ItemType Directory -Force -Path $loginRetryDir|Out-Null
+  $loginCycle="$today-0600";$loginEvent=[pscustomobject]@{platform='facebook';language='ko';cycleId=$loginCycle;code='LOGIN_REQUIRED';detectedAtUtc='2026-10-16T03:00:00.0000000Z'}
+  [pscustomobject]@{schema=1;events=@($loginEvent)}|ConvertTo-Json -Depth 8|Set-Content -LiteralPath (Join-Path $loginRoom 'social_posting_login_failures.json') -Encoding UTF8
+  $loginRetry=[pscustomobject]@{entries=@([pscustomobject]@{cycleId=$loginCycle;status='retry_wait';attempts=1;lastError='LOGIN_REQUIRED';nextRetryUtc='2026-10-16T03:05:00Z'})}
+  $loginRetryPath=Join-Path $loginRetryDir "$loginCycle.json";$loginRetry|ConvertTo-Json -Depth 8|Set-Content -LiteralPath $loginRetryPath -Encoding UTF8
+  [pscustomobject]@{repoRoot=$loginRoot;tasks=$tasks}|ConvertTo-Json -Depth 8|Set-Content -LiteralPath $fixturePath -Encoding UTF8
+  $loginOutput=(& $scriptPath -TestOnly -FixturePath $fixturePath|Out-String);$loginGate=Get-TestNotificationGate $loginOutput
+  Assert-True ($loginGate.hasActiveFailure -and $loginGate.notify) 'confirmed LOGIN_REQUIRED ledger event bypasses normal and terminal-state notification suppression'
+  Assert-True ($loginOutput.Contains('facebook/ko') -and $loginOutput.Contains($loginCycle) -and $loginOutput.Contains('2026-10-16 12:00:00 KST') -and $loginOutput.Contains('LOGIN_REQUIRED') -and $loginOutput.Contains('미해결 — 알림 대상')) 'login failure report retains platform, language, cycle, detection time, and explicit code'
+  $repeatLoginOutput=(& $scriptPath -TestOnly -FixturePath $fixturePath|Out-String);$repeatLoginGate=Get-TestNotificationGate $repeatLoginOutput
+  Assert-True ($repeatLoginGate.hasActiveFailure -and $repeatLoginGate.notify) 'the unresolved permanent login event remains eligible for each scheduled 30-minute failure report'
+  $loginRetry.entries[0].status='complete';$loginRetry.entries[0].lastError=$null;$loginRetry.entries[0].nextRetryUtc=$null;$loginRetry|ConvertTo-Json -Depth 8|Set-Content -LiteralPath $loginRetryPath -Encoding UTF8
+  $resolvedOutput=(& $scriptPath -TestOnly -FixturePath $fixturePath|Out-String);$resolvedGate=Get-TestNotificationGate $resolvedOutput
+  Assert-True (-not $resolvedGate.hasActiveFailure -and -not $resolvedGate.notify -and $resolvedGate.suppressionReason -eq 'no_active_failure' -and $resolvedOutput.Contains('해결됨')) 'successful cycle resolution suppresses repeat login notifications while retaining the permanent event record'
   $nowKst=[DateTimeOffset]::UtcNow.ToOffset([TimeSpan]::FromHours(9));$proofRoot=Join-Path $tempRoot 'future-proof';$proofRoom=Join-Path $proofRoot 'Developer/agent_room';New-Item -ItemType Directory -Force -Path $proofRoom|Out-Null
   $futureNext=$nowKst.AddMinutes(15).ToString('o');@([pscustomobject]@{name='today-override-future';enabled=$true;state='Ready';next=$futureNext;runId="$today-0600"})|ConvertTo-Json -Depth 5|Set-Content -LiteralPath (Join-Path $proofRoom "social_posting_today_schedule_$($nowKst.ToString('yyyyMMdd')).json") -Encoding UTF8
   [pscustomobject]@{repoRoot=$proofRoot;tasks=$tasks}|ConvertTo-Json -Depth 8|Set-Content -LiteralPath $fixturePath -Encoding UTF8;$futureOutput=(& $scriptPath -TestOnly -NoNotify -FixturePath $fixturePath|Out-String)
