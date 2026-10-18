@@ -1,0 +1,317 @@
+{
+  "oldRejected": true,
+  "saved": true,
+  "checkpointSaved": true,
+  "beforeClear": {
+    "bestSurvivalSeconds": 0,
+    "bossKills": 0,
+    "stage10BestSurvivalSec": 0,
+    "stage10Clears": 0,
+    "stage1Clears": 1,
+    "stage1Survival180Runs": 0,
+    "stage2BestSurvivalSec": 0,
+    "stage2Clears": 0,
+    "stage3BestSurvivalSec": 0,
+    "stage3Clears": 0,
+    "stage4BestSurvivalSec": 0,
+    "stage4Clears": 0,
+    "stage5BestSurvivalSec": 0,
+    "stage5Clears": 0,
+    "stage6BestSurvivalSec": 0,
+    "stage6Clears": 0,
+    "stage7BestSurvivalSec": 0,
+    "stage7Clears": 0,
+    "stage8BestSurvivalSec": 0,
+    "stage8Clears": 0,
+    "stage9BestSurvivalSec": 0,
+    "stage9Clears": 0,
+    "totalGold": 2,
+    "totalKills": 1,
+    "totalLevelUps": 0,
+    "totalPickups": 0,
+    "totalRuns": 2,
+    "totalSurvivalSeconds": 0,
+    "weaponMasterCount": 0
+  },
+  "records": {
+    "totalRuns": 2,
+    "totalKills": 1,
+    "totalGold": 2,
+    "totalSurvivalSeconds": 240,
+    "bestSurvivalSeconds": 240,
+    "stage1Clears": 2,
+    "stage1Survival180Runs": 1,
+    "stage2Clears": 0,
+    "stage2BestSurvivalSec": 0,
+    "stage3Clears": 0,
+    "stage3BestSurvivalSec": 0,
+    "stage4Clears": 0,
+    "stage4BestSurvivalSec": 0,
+    "stage5Clears": 0,
+    "stage5BestSurvivalSec": 0,
+    "stage6Clears": 0,
+    "stage6BestSurvivalSec": 0,
+    "stage7Clears": 0,
+    "stage7BestSurvivalSec": 0,
+    "stage8Clears": 0,
+    "stage8BestSurvivalSec": 0,
+    "stage9Clears": 0,
+    "stage9BestSurvivalSec": 0,
+    "stage10Clears": 0,
+    "stage10BestSurvivalSec": 0,
+    "bossKills": 0,
+    "totalLevelUps": 0,
+    "totalPickups": 0,
+    "weaponMasterCount": 0
+  },
+  "gold": 321,
+  "claim": true,
+  "claimSave": true,
+  "goldAfterClaim": 331,
+  "continued": true,
+  "nextSaved": true,
+  "nextStage": "stage2",
+  "missions": {
+    "schemaVersion": 1,
+    "catalogVersion": "missions_2026_08_15_v1",
+    "updatedAt": "",
+    "counters": {
+      "stage.stage1.startCount": 1,
+      "stage.stage1.bestSurvivalSec": 240,
+      "stage.stage1.clearCount": 1
+    },
+    "active": {
+      "first_xp_textbook": {
+        "counter": 0,
+        "target": 1,
+        "completedAt": null,
+        "claimedAt": null,
+        "claimId": null
+      },
+      "first_stage1_30_seconds": {
+        "counter": 30,
+        "target": 30,
+        "completedAt": "2026-10-18T09:44:44.992Z",
+        "claimedAt": null,
+        "claimId": null
+      },
+      "first_e01_kills": {
+        "counter": 0,
+        "target": 10,
+        "completedAt": null,
+        "claimedAt": null,
+        "claimId": null
+      },
+      "pencil_throw_training": {
+        "counter": 0,
+        "target": 15,
+        "completedAt": null,
+        "claimedAt": null,
+        "claimId": null
+      },
+      "first_gold_coin": {
+        "counter": 0,
+        "target": 1,
+        "completedAt": null,
+        "claimedAt": null,
+        "claimId": null
+      },
+      "first_levelup_choice": {
+        "counter": 0,
+        "target": 1,
+        "completedAt": null,
+        "claimedAt": null,
+        "claimId": null
+      },
+      "stage1_one_minute": {
+        "counter": 60,
+        "target": 60,
+        "completedAt": "2026-10-18T09:44:44.992Z",
+        "claimedAt": null,
+        "claimId": null
+      },
+      "e07_recognition": {
+        "counter": 0,
+        "target": 3,
+        "completedAt": null,
+        "claimedAt": null,
+        "claimId": null
+      },
+      "e02_tanker_practice": {
+        "counter": 0,
+        "target": 3,
+        "completedAt": null,
+        "claimedAt": null,
+        "claimId": null
+      },
+      "e03_runner_survival": {
+        "counter": 0,
+        "target": 20,
+        "completedAt": null,
+        "claimedAt": null,
+        "claimId": null
+      },
+      "first_stage1_escape": {
+        "counter": 1,
+        "target": 1,
+        "completedAt": "2026-10-18T09:44:44.994Z",
+        "claimedAt": null,
+        "claimId": null
+      },
+      "lunch_secured": {
+        "counter": 0,
+        "target": 1,
+        "completedAt": null,
+        "claimedAt": null,
+        "claimId": null
+      },
+      "first_stage2_start": {
+        "counter": 0,
+        "target": 1,
+        "completedAt": null,
+        "claimedAt": null,
+        "claimId": null
+      },
+      "stage2_e04_response": {
+        "counter": 0,
+        "target": 1,
+        "completedAt": null,
+        "claimedAt": null,
+        "claimId": null
+      },
+      "stage2_guard_chase": {
+        "counter": 0,
+        "target": 30,
+        "completedAt": null,
+        "claimedAt": null,
+        "claimId": null
+      },
+      "stage2_b02_encounter": {
+        "counter": 0,
+        "target": 1,
+        "completedAt": null,
+        "claimedAt": null,
+        "claimId": null
+      },
+      "stage2_escape": {
+        "counter": 0,
+        "target": 1,
+        "completedAt": null,
+        "claimedAt": null,
+        "claimId": null
+      },
+      "stage3_runner_crew": {
+        "counter": 0,
+        "target": 30,
+        "completedAt": null,
+        "claimedAt": null,
+        "claimId": null
+      },
+      "stage3_escape": {
+        "counter": 0,
+        "target": 1,
+        "completedAt": null,
+        "claimedAt": null,
+        "claimId": null
+      },
+      "stage4_escape": {
+        "counter": 0,
+        "target": 1,
+        "completedAt": null,
+        "claimedAt": null,
+        "claimId": null
+      },
+      "school_bag_pushback": {
+        "counter": 0,
+        "target": 10,
+        "completedAt": null,
+        "claimedAt": null,
+        "claimId": null
+      },
+      "tumbler_orbit": {
+        "counter": 0,
+        "target": 50,
+        "completedAt": null,
+        "claimedAt": null,
+        "claimId": null
+      },
+      "science_flask_experiment": {
+        "counter": 0,
+        "target": 8,
+        "completedAt": null,
+        "claimedAt": null,
+        "claimId": null
+      },
+      "bell_shockwave": {
+        "counter": 0,
+        "target": 20,
+        "completedAt": null,
+        "claimedAt": null,
+        "claimId": null
+      },
+      "weapon_level_five": {
+        "counter": 0,
+        "target": 1,
+        "completedAt": null,
+        "claimedAt": null,
+        "claimId": null
+      },
+      "four_active_weapons": {
+        "counter": 0,
+        "target": 4,
+        "completedAt": null,
+        "claimedAt": null,
+        "claimId": null
+      },
+      "first_investigation": {
+        "counter": 0,
+        "target": 1,
+        "completedAt": null,
+        "claimedAt": null,
+        "claimId": null
+      },
+      "first_quest_complete": {
+        "counter": 0,
+        "target": 1,
+        "completedAt": null,
+        "claimedAt": null,
+        "claimId": null
+      },
+      "hanako_cheer": {
+        "counter": 0,
+        "target": 1,
+        "completedAt": null,
+        "claimedAt": null,
+        "claimId": null
+      },
+      "boss_hunter": {
+        "counter": 0,
+        "target": 1,
+        "completedAt": null,
+        "claimedAt": null,
+        "claimId": null
+      }
+    },
+    "completed": {
+      "first_stage1_30_seconds": {
+        "completedAt": "2026-10-18T09:44:44.992Z",
+        "counter": 30,
+        "target": 30
+      },
+      "stage1_one_minute": {
+        "completedAt": "2026-10-18T09:44:44.992Z",
+        "counter": 60,
+        "target": 60
+      },
+      "first_stage1_escape": {
+        "completedAt": "2026-10-18T09:44:44.994Z",
+        "counter": 1,
+        "target": 1
+      }
+    },
+    "claimed": {},
+    "pinnedMissionIds": [],
+    "claimLedger": {}
+  },
+  "storageAttempts": []
+}

@@ -2,6 +2,14 @@
 // 게임 데이터(무기 카탈로그·퀘스트·조사 대사·법적 문서·스테이지 프롭)의 한국어는
 // 각 데이터 파일에 그대로 남아 있고 i18n의 fallback으로 들어온다. 여기 중복 기재하지 않는다.
 export default {
+  'persistence.saveFailed': '진행도를 서버에 저장하지 못했습니다. 연결을 확인하고 다시 시도해 주세요.',
+  'persistence.retry': '저장 다시 시도',
+  'persistence.saving': '저장 중 · 서버 확인을 기다리고 있습니다.',
+  'ranking.lastPlayed': '마지막 플레이',
+  'ranking.progressLoading': '불러오는 중',
+  'ranking.progressUnknown': '기록 미수신',
+  'ranking.progressFailed': '기록 불러오기 실패',
+  'ranking.playTimeUnknown': '시각 기록 없음',
   // ─── 공통 ───
   'common.close': '닫기',
   'common.cancel': '취소',

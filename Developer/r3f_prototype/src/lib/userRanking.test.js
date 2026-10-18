@@ -5,6 +5,7 @@ import {
   buildLocalPlayerRankingEntry,
   createRankingRows,
   formatSurvivalTime,
+  formatLastPlayedAt,
   mergeCloudEntries,
 } from './userRanking.js'
 import { saveNicknameForUser } from './userNickname.js'
@@ -142,5 +143,21 @@ describe('user ranking helpers', () => {
     const rows = createRankingRows([{ uid: 'uid-1', displayName: '합산왕', score: 500, timeMs: 120000 }], 1)
 
     expect(rows[0]).toMatchObject({ displayName: '합산왕', score: 500, survivalSeconds: 120, empty: false })
+  })
+})
+
+describe('actual last-play presentation', () => {
+  it('keeps numeric event times through normalization and formats exact KST', () => {
+    const value = Date.parse('2026-10-17T15:01:02Z')
+    const row = createRankingRows([{ uid: 'real', score: 0, timeMs: 0, lastPlayedAt: value }])[0]
+    expect(row.lastPlayedAt).toBe(value)
+    expect(formatLastPlayedAt(row.lastPlayedAt)).toBe('2026-10-18 00:01:02 KST')
+  })
+  it.each([undefined, null, '', 0, -1, NaN, '0', '1', 'not a date'])('marks unknown times without inventing epoch: %s', (value) => {
+    expect(formatLastPlayedAt(value)).toBe('시각 기록 없음')
+  })
+  it('never substitutes submission or login metadata for actual play time', () => {
+    const row = createRankingRows([{ uid: 'real', score: 0, timeMs: 0, submittedAt: Date.now(), lastLoginAt: Date.now() }])[0]
+    expect(formatLastPlayedAt(row.lastPlayedAt)).toBe('시각 기록 없음')
   })
 })

@@ -4483,6 +4483,1026 @@
         "Quay vòng!",
         "Vũ trụ an toàn!"
       ]
+    },
+    {
+      "platform": "X",
+      "locale": "ko",
+      "collection": "dialogue_filled_20261018",
+      "path": "x/ko/dialogue_filled_20261018/backlog_comic_20261015_04.png",
+      "gameStartText": "게임시작",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "music_room_rhythm",
+      "title": "음악실 드럼 리듬",
+      "dialogueWords": [
+        "쉿!",
+        "리듬 타!",
+        "쿵!",
+        "앵콜?"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/backlog_comic_20261015/04.png"
+    },
+    {
+      "platform": "X",
+      "locale": "ko",
+      "collection": "dialogue_filled_20261018",
+      "path": "x/ko/dialogue_filled_20261018/backlog_comic_20261015_05.png",
+      "gameStartText": "게임시작",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "art_room_paper_roll",
+      "title": "미술실 종이말이 작전",
+      "dialogueWords": [
+        "어라?",
+        "돌돌돌!",
+        "꽁꽁!",
+        "완성!"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/backlog_comic_20261015/05.png"
+    },
+    {
+      "platform": "X",
+      "locale": "ko",
+      "collection": "dialogue_filled_20261018",
+      "path": "x/ko/dialogue_filled_20261018/backlog_comic_20261015_06.png",
+      "gameStartText": "게임시작",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "cafeteria_gelatin_trays",
+      "title": "급식실 푸딩 트레이 소동",
+      "dialogueWords": [
+        "푸딩이다!",
+        "출발!",
+        "와장창!",
+        "한입?"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/backlog_comic_20261015/06.png"
+    },
+    {
+      "platform": "X",
+      "locale": "ko",
+      "collection": "dialogue_filled_20261018",
+      "path": "x/ko/dialogue_filled_20261018/backlog_comic_20261015_07.png",
+      "gameStartText": "게임시작",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "auditorium_curtain_call",
+      "title": "강당 커튼콜 작전",
+      "dialogueWords": [
+        "좀비 등장!",
+        "주목!",
+        "커튼 콰앙!",
+        "감사합니다!"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/backlog_comic_20261015/07.png"
+    },
+    {
+      "platform": "X",
+      "locale": "ko",
+      "collection": "dialogue_filled_20261018",
+      "path": "x/ko/dialogue_filled_20261018/backlog_comic_20261015_08.png",
+      "gameStartText": "게임시작",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "greenhouse_sprinkler",
+      "title": "온실 스프링클러 대작전",
+      "dialogueWords": [
+        "좀비다!",
+        "물 뿌려!",
+        "으악!",
+        "새싹 성공!"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/backlog_comic_20261015/08.png"
+    },
+    {
+      "platform": "X",
+      "locale": "ko",
+      "collection": "dialogue_filled_20261018",
+      "path": "x/ko/dialogue_filled_20261018/backlog_comic_20261015_09.png",
+      "gameStartText": "게임시작",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "gym_mat_maze",
+      "title": "체육관 매트 미로",
+      "dialogueWords": [
+        "코스 준비!",
+        "점프!",
+        "여긴 어디?",
+        "완주!"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/backlog_comic_20261015/09.png"
+    },
+    {
+      "platform": "X",
+      "locale": "ko",
+      "collection": "dialogue_filled_20261018",
+      "path": "x/ko/dialogue_filled_20261018/backlog_comic_20261015_10.png",
+      "gameStartText": "게임시작",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "planetarium_star_projector",
+      "title": "천문관 별빛 유인 작전",
+      "dialogueWords": [
+        "별이다!",
+        "달 떴다!",
+        "빙글빙글!",
+        "우주 정복!"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/backlog_comic_20261015/10.png"
+    },
+    {
+      "platform": "Facebook",
+      "locale": "ko",
+      "collection": "dialogue_filled_20261018",
+      "path": "facebook/ko/dialogue_filled_20261018/backlog_comic_20261015_06.png",
+      "gameStartText": "게임시작",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "cafeteria_gelatin_trays",
+      "title": "급식실 푸딩 트레이 소동",
+      "dialogueWords": [
+        "푸딩이다!",
+        "출발!",
+        "와장창!",
+        "한입?"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/backlog_comic_20261015/06.png"
+    },
+    {
+      "platform": "Facebook",
+      "locale": "ko",
+      "collection": "dialogue_filled_20261018",
+      "path": "facebook/ko/dialogue_filled_20261018/backlog_comic_20261015_07.png",
+      "gameStartText": "게임시작",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "auditorium_curtain_call",
+      "title": "강당 커튼콜 작전",
+      "dialogueWords": [
+        "좀비 등장!",
+        "주목!",
+        "커튼 콰앙!",
+        "감사합니다!"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/backlog_comic_20261015/07.png"
+    },
+    {
+      "platform": "Facebook",
+      "locale": "ko",
+      "collection": "dialogue_filled_20261018",
+      "path": "facebook/ko/dialogue_filled_20261018/backlog_comic_20261015_08.png",
+      "gameStartText": "게임시작",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "greenhouse_sprinkler",
+      "title": "온실 스프링클러 대작전",
+      "dialogueWords": [
+        "좀비다!",
+        "물 뿌려!",
+        "으악!",
+        "새싹 성공!"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/backlog_comic_20261015/08.png"
+    },
+    {
+      "platform": "Facebook",
+      "locale": "ko",
+      "collection": "dialogue_filled_20261018",
+      "path": "facebook/ko/dialogue_filled_20261018/backlog_comic_20261015_09.png",
+      "gameStartText": "게임시작",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "gym_mat_maze",
+      "title": "체육관 매트 미로",
+      "dialogueWords": [
+        "코스 준비!",
+        "점프!",
+        "여긴 어디?",
+        "완주!"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/backlog_comic_20261015/09.png"
+    },
+    {
+      "platform": "Facebook",
+      "locale": "ko",
+      "collection": "dialogue_filled_20261018",
+      "path": "facebook/ko/dialogue_filled_20261018/backlog_comic_20261015_10.png",
+      "gameStartText": "게임시작",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "planetarium_star_projector",
+      "title": "천문관 별빛 유인 작전",
+      "dialogueWords": [
+        "별이다!",
+        "달 떴다!",
+        "빙글빙글!",
+        "우주 정복!"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/backlog_comic_20261015/10.png"
+    },
+    {
+      "platform": "Facebook",
+      "locale": "ko",
+      "collection": "dialogue_filled_20261018",
+      "path": "facebook/ko/dialogue_filled_20261018/backlog_comic_20261015_02.png",
+      "gameStartText": "게임시작",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "science_magnet_lockers",
+      "title": "자석 사물함 소동",
+      "dialogueWords": [
+        "좀비다!",
+        "붙어라!",
+        "철썩!",
+        "성공!"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/backlog_comic_20261015/02.png"
+    },
+    {
+      "platform": "Facebook",
+      "locale": "ko",
+      "collection": "dialogue_filled_20261018",
+      "path": "facebook/ko/dialogue_filled_20261018/backlog_comic_20261015_03.png",
+      "gameStartText": "게임시작",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "library_cart_books",
+      "title": "도서관 책수레 미끼",
+      "dialogueWords": [
+        "쉿!",
+        "수레 출발!",
+        "책 폭포!",
+        "대출 끝!"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/backlog_comic_20261015/03.png"
+    },
+    {
+      "platform": "Facebook",
+      "locale": "ko",
+      "collection": "dialogue_filled_20261018",
+      "path": "facebook/ko/dialogue_filled_20261018/backlog_comic_20261015_04.png",
+      "gameStartText": "게임시작",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "music_room_rhythm",
+      "title": "음악실 드럼 리듬",
+      "dialogueWords": [
+        "쉿!",
+        "리듬 타!",
+        "쿵!",
+        "앵콜?"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/backlog_comic_20261015/04.png"
+    },
+    {
+      "platform": "Facebook",
+      "locale": "ko",
+      "collection": "dialogue_filled_20261018",
+      "path": "facebook/ko/dialogue_filled_20261018/backlog_comic_20261015_05.png",
+      "gameStartText": "게임시작",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "art_room_paper_roll",
+      "title": "미술실 종이말이 작전",
+      "dialogueWords": [
+        "어라?",
+        "돌돌돌!",
+        "꽁꽁!",
+        "완성!"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/backlog_comic_20261015/05.png"
+    },
+    {
+      "platform": "Facebook",
+      "locale": "en",
+      "collection": "dialogue_filled_20261018",
+      "path": "facebook/en/dialogue_filled_20261018/backlog_comic_20261015_02.png",
+      "gameStartText": "START GAME",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "science_magnet_lockers",
+      "title": "Magnet and Locker Mix-up",
+      "dialogueWords": [
+        "Zombies!",
+        "Magnet on!",
+        "Click!",
+        "Success!"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/backlog_comic_20261015/02.png"
+    },
+    {
+      "platform": "Facebook",
+      "locale": "en",
+      "collection": "dialogue_filled_20261018",
+      "path": "facebook/en/dialogue_filled_20261018/backlog_comic_20261015_03.png",
+      "gameStartText": "START GAME",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "library_cart_books",
+      "title": "Library Cart Lure",
+      "dialogueWords": [
+        "Shh!",
+        "Cart away!",
+        "Book avalanche!",
+        "Gotcha!"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/backlog_comic_20261015/03.png"
+    },
+    {
+      "platform": "Facebook",
+      "locale": "en",
+      "collection": "dialogue_filled_20261018",
+      "path": "facebook/en/dialogue_filled_20261018/backlog_comic_20261015_04.png",
+      "gameStartText": "START GAME",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "music_room_rhythm",
+      "title": "Music Room Drumroll",
+      "dialogueWords": [
+        "Shh!",
+        "Drumroll!",
+        "Boom!",
+        "Encore?"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/backlog_comic_20261015/04.png"
+    },
+    {
+      "platform": "Facebook",
+      "locale": "en",
+      "collection": "dialogue_filled_20261018",
+      "path": "facebook/en/dialogue_filled_20261018/backlog_comic_20261015_05.png",
+      "gameStartText": "START GAME",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "art_room_paper_roll",
+      "title": "Art Room Paper Wrap",
+      "dialogueWords": [
+        "Uh-oh!",
+        "Roll, roll!",
+        "Paper wrap!",
+        "Ta-da!"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/backlog_comic_20261015/05.png"
+    },
+    {
+      "platform": "X",
+      "locale": "en",
+      "collection": "dialogue_filled_20261018",
+      "path": "x/en/dialogue_filled_20261018/backlog_comic_20261015_06.png",
+      "gameStartText": "START GAME",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "cafeteria_gelatin_trays",
+      "title": "Cafeteria Wobble and Trays",
+      "dialogueWords": [
+        "Pudding!",
+        "Sneak away!",
+        "Wobble!",
+        "Yum!"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/en/backlog_comic_20261015/06.png"
+    },
+    {
+      "platform": "Facebook",
+      "locale": "en",
+      "collection": "dialogue_filled_20261018",
+      "path": "facebook/en/dialogue_filled_20261018/backlog_comic_20261015_06.png",
+      "gameStartText": "START GAME",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "cafeteria_gelatin_trays",
+      "title": "Cafeteria Wobble and Trays",
+      "dialogueWords": [
+        "Pudding!",
+        "Sneak away!",
+        "Wobble!",
+        "Yum!"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/backlog_comic_20261015/06.png"
+    },
+    {
+      "platform": "X",
+      "locale": "en",
+      "collection": "dialogue_filled_20261018",
+      "path": "x/en/dialogue_filled_20261018/backlog_comic_20261015_07.png",
+      "gameStartText": "START GAME",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "auditorium_curtain_call",
+      "title": "Auditorium Curtain Call",
+      "dialogueWords": [
+        "Zombies!",
+        "Encore!",
+        "Ta-da!",
+        "Thank you!"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/en/backlog_comic_20261015/07.png"
+    },
+    {
+      "platform": "Facebook",
+      "locale": "en",
+      "collection": "dialogue_filled_20261018",
+      "path": "facebook/en/dialogue_filled_20261018/backlog_comic_20261015_07.png",
+      "gameStartText": "START GAME",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "auditorium_curtain_call",
+      "title": "Auditorium Curtain Call",
+      "dialogueWords": [
+        "Zombies!",
+        "Encore!",
+        "Ta-da!",
+        "Thank you!"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/backlog_comic_20261015/07.png"
+    },
+    {
+      "platform": "X",
+      "locale": "en",
+      "collection": "dialogue_filled_20261018",
+      "path": "x/en/dialogue_filled_20261018/backlog_comic_20261015_08.png",
+      "gameStartText": "START GAME",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "greenhouse_sprinkler",
+      "title": "Greenhouse Sprinkler Spin",
+      "dialogueWords": [
+        "Zombies!",
+        "Whoa!",
+        "Too wet!",
+        "Great job!"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/en/backlog_comic_20261015/08.png"
+    },
+    {
+      "platform": "Facebook",
+      "locale": "en",
+      "collection": "dialogue_filled_20261018",
+      "path": "facebook/en/dialogue_filled_20261018/backlog_comic_20261015_08.png",
+      "gameStartText": "START GAME",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "greenhouse_sprinkler",
+      "title": "Greenhouse Sprinkler Spin",
+      "dialogueWords": [
+        "Zombies!",
+        "Whoa!",
+        "Too wet!",
+        "Great job!"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/backlog_comic_20261015/08.png"
+    },
+    {
+      "platform": "X",
+      "locale": "en",
+      "collection": "dialogue_filled_20261018",
+      "path": "x/en/dialogue_filled_20261018/backlog_comic_20261015_09.png",
+      "gameStartText": "START GAME",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "gym_mat_maze",
+      "title": "Gym Mat Maze",
+      "dialogueWords": [
+        "Course set!",
+        "Go, go!",
+        "This way!",
+        "We did it!"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/en/backlog_comic_20261015/09.png"
+    },
+    {
+      "platform": "Facebook",
+      "locale": "en",
+      "collection": "dialogue_filled_20261018",
+      "path": "facebook/en/dialogue_filled_20261018/backlog_comic_20261015_09.png",
+      "gameStartText": "START GAME",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "gym_mat_maze",
+      "title": "Gym Mat Maze",
+      "dialogueWords": [
+        "Course set!",
+        "Go, go!",
+        "This way!",
+        "We did it!"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/backlog_comic_20261015/09.png"
+    },
+    {
+      "platform": "X",
+      "locale": "en",
+      "collection": "dialogue_filled_20261018",
+      "path": "x/en/dialogue_filled_20261018/backlog_comic_20261015_10.png",
+      "gameStartText": "START GAME",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "planetarium_star_projector",
+      "title": "Planetarium Starry Distraction",
+      "dialogueWords": [
+        "Stars!",
+        "Whoa!",
+        "Stars!",
+        "Amazing!"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/en/backlog_comic_20261015/10.png"
+    },
+    {
+      "platform": "Facebook",
+      "locale": "en",
+      "collection": "dialogue_filled_20261018",
+      "path": "facebook/en/dialogue_filled_20261018/backlog_comic_20261015_10.png",
+      "gameStartText": "START GAME",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "planetarium_star_projector",
+      "title": "Planetarium Starry Distraction",
+      "dialogueWords": [
+        "Stars!",
+        "Whoa!",
+        "Stars!",
+        "Amazing!"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/backlog_comic_20261015/10.png"
+    },
+    {
+      "platform": "Facebook",
+      "locale": "ja",
+      "collection": "dialogue_filled_20261018",
+      "path": "facebook/ja/dialogue_filled_20261018/backlog_comic_20261015_02.png",
+      "gameStartText": "ゲームスタート",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "science_magnet_lockers",
+      "title": "磁石とロッカーの大騒ぎ",
+      "dialogueWords": [
+        "ゾンビだ！",
+        "磁石オン！",
+        "ピタッ！",
+        "大成功！"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/backlog_comic_20261015/02.png"
+    },
+    {
+      "platform": "Facebook",
+      "locale": "ja",
+      "collection": "dialogue_filled_20261018",
+      "path": "facebook/ja/dialogue_filled_20261018/backlog_comic_20261015_03.png",
+      "gameStartText": "ゲームスタート",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "library_cart_books",
+      "title": "図書カートの作戦",
+      "dialogueWords": [
+        "しーっ！",
+        "カート発進！",
+        "本の雪崩！",
+        "貸出完了！"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/backlog_comic_20261015/03.png"
+    },
+    {
+      "platform": "Facebook",
+      "locale": "ja",
+      "collection": "dialogue_filled_20261018",
+      "path": "facebook/ja/dialogue_filled_20261018/backlog_comic_20261015_04.png",
+      "gameStartText": "ゲームスタート",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "music_room_rhythm",
+      "title": "音楽室のドラムロール",
+      "dialogueWords": [
+        "しーっ！",
+        "リズムに乗って！",
+        "ドーン！",
+        "演奏終了！"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/backlog_comic_20261015/04.png"
+    },
+    {
+      "platform": "Facebook",
+      "locale": "ja",
+      "collection": "dialogue_filled_20261018",
+      "path": "facebook/ja/dialogue_filled_20261018/backlog_comic_20261015_05.png",
+      "gameStartText": "ゲームスタート",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "art_room_paper_roll",
+      "title": "美術室の紙ぐるぐる作戦",
+      "dialogueWords": [
+        "あれ？",
+        "ころころ！",
+        "ぐるぐる巻き！",
+        "作品完成！"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/backlog_comic_20261015/05.png"
+    },
+    {
+      "platform": "X",
+      "locale": "ja",
+      "collection": "dialogue_filled_20261018",
+      "path": "x/ja/dialogue_filled_20261018/backlog_comic_20261015_06.png",
+      "gameStartText": "ゲームスタート",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "cafeteria_gelatin_trays",
+      "title": "食堂プリンとトレー騒動",
+      "dialogueWords": [
+        "プリンだ！",
+        "そーっと！",
+        "ぷるぷる！",
+        "召し上がれ！"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ja/backlog_comic_20261015/06.png"
+    },
+    {
+      "platform": "Facebook",
+      "locale": "ja",
+      "collection": "dialogue_filled_20261018",
+      "path": "facebook/ja/dialogue_filled_20261018/backlog_comic_20261015_06.png",
+      "gameStartText": "ゲームスタート",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "cafeteria_gelatin_trays",
+      "title": "食堂プリンとトレー騒動",
+      "dialogueWords": [
+        "プリンだ！",
+        "そーっと！",
+        "ぷるぷる！",
+        "召し上がれ！"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/backlog_comic_20261015/06.png"
+    },
+    {
+      "platform": "X",
+      "locale": "ja",
+      "collection": "dialogue_filled_20261018",
+      "path": "x/ja/dialogue_filled_20261018/backlog_comic_20261015_07.png",
+      "gameStartText": "ゲームスタート",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "auditorium_curtain_call",
+      "title": "講堂のカーテンコール作戦",
+      "dialogueWords": [
+        "ゾンビだ！",
+        "ライトオン！",
+        "幕を下ろして！",
+        "ご清聴ありがとう！"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ja/backlog_comic_20261015/07.png"
+    },
+    {
+      "platform": "Facebook",
+      "locale": "ja",
+      "collection": "dialogue_filled_20261018",
+      "path": "facebook/ja/dialogue_filled_20261018/backlog_comic_20261015_07.png",
+      "gameStartText": "ゲームスタート",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "auditorium_curtain_call",
+      "title": "講堂のカーテンコール作戦",
+      "dialogueWords": [
+        "ゾンビだ！",
+        "ライトオン！",
+        "幕を下ろして！",
+        "ご清聴ありがとう！"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/backlog_comic_20261015/07.png"
+    },
+    {
+      "platform": "X",
+      "locale": "ja",
+      "collection": "dialogue_filled_20261018",
+      "path": "x/ja/dialogue_filled_20261018/backlog_comic_20261015_08.png",
+      "gameStartText": "ゲームスタート",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "greenhouse_sprinkler",
+      "title": "温室スプリンクラー作戦",
+      "dialogueWords": [
+        "ゾンビだ！",
+        "水まき開始！",
+        "すべった！",
+        "よく育ってね！"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ja/backlog_comic_20261015/08.png"
+    },
+    {
+      "platform": "Facebook",
+      "locale": "ja",
+      "collection": "dialogue_filled_20261018",
+      "path": "facebook/ja/dialogue_filled_20261018/backlog_comic_20261015_08.png",
+      "gameStartText": "ゲームスタート",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "greenhouse_sprinkler",
+      "title": "温室スプリンクラー作戦",
+      "dialogueWords": [
+        "ゾンビだ！",
+        "水まき開始！",
+        "すべった！",
+        "よく育ってね！"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/backlog_comic_20261015/08.png"
+    },
+    {
+      "platform": "X",
+      "locale": "ja",
+      "collection": "dialogue_filled_20261018",
+      "path": "x/ja/dialogue_filled_20261018/backlog_comic_20261015_09.png",
+      "gameStartText": "ゲームスタート",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "gym_mat_maze",
+      "title": "体育館マット迷路",
+      "dialogueWords": [
+        "コース完成！",
+        "ジャンプ！",
+        "こっちだよ！",
+        "ゴール！"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ja/backlog_comic_20261015/09.png"
+    },
+    {
+      "platform": "Facebook",
+      "locale": "ja",
+      "collection": "dialogue_filled_20261018",
+      "path": "facebook/ja/dialogue_filled_20261018/backlog_comic_20261015_09.png",
+      "gameStartText": "ゲームスタート",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "gym_mat_maze",
+      "title": "体育館マット迷路",
+      "dialogueWords": [
+        "コース完成！",
+        "ジャンプ！",
+        "こっちだよ！",
+        "ゴール！"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/backlog_comic_20261015/09.png"
+    },
+    {
+      "platform": "X",
+      "locale": "ja",
+      "collection": "dialogue_filled_20261018",
+      "path": "x/ja/dialogue_filled_20261018/backlog_comic_20261015_10.png",
+      "gameStartText": "ゲームスタート",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "planetarium_star_projector",
+      "title": "プラネタリウム星空大作戦",
+      "dialogueWords": [
+        "星だ！",
+        "大きな月！",
+        "ぐるぐる！",
+        "宇宙制圧！"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ja/backlog_comic_20261015/10.png"
+    },
+    {
+      "platform": "Facebook",
+      "locale": "ja",
+      "collection": "dialogue_filled_20261018",
+      "path": "facebook/ja/dialogue_filled_20261018/backlog_comic_20261015_10.png",
+      "gameStartText": "ゲームスタート",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "planetarium_star_projector",
+      "title": "プラネタリウム星空大作戦",
+      "dialogueWords": [
+        "星だ！",
+        "大きな月！",
+        "ぐるぐる！",
+        "宇宙制圧！"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/backlog_comic_20261015/10.png"
+    },
+    {
+      "platform": "Facebook",
+      "locale": "vi",
+      "collection": "dialogue_filled_20261018",
+      "path": "facebook/vi/dialogue_filled_20261018/backlog_comic_20261015_01.png",
+      "gameStartText": "BẮT ĐẦU CHƠI",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "globe_cart_dodgeballs",
+      "title": "Xe địa cầu và bão bóng",
+      "dialogueWords": [
+        "Ơ kìa!",
+        "Quả địa cầu đây rồi!",
+        "Xả bóng nào!",
+        "Chụp được rồi!"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/backlog_comic_20261015/01.png"
+    },
+    {
+      "platform": "Facebook",
+      "locale": "vi",
+      "collection": "dialogue_filled_20261018",
+      "path": "facebook/vi/dialogue_filled_20261018/backlog_comic_20261015_02.png",
+      "gameStartText": "BẮT ĐẦU CHƠI",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "science_magnet_lockers",
+      "title": "Nam châm và tủ đồ",
+      "dialogueWords": [
+        "Zombie kìa!",
+        "Hút hết nào!",
+        "Dính chặt rồi!",
+        "Thành công!"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/backlog_comic_20261015/02.png"
+    },
+    {
+      "platform": "Facebook",
+      "locale": "vi",
+      "collection": "dialogue_filled_20261018",
+      "path": "facebook/vi/dialogue_filled_20261018/backlog_comic_20261015_03.png",
+      "gameStartText": "BẮT ĐẦU CHƠI",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "library_cart_books",
+      "title": "Mồi nhử xe sách",
+      "dialogueWords": [
+        "Suỵt!",
+        "Đẩy xe thôi!",
+        "Lấy sách nào!",
+        "Có thẻ rồi!"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/backlog_comic_20261015/03.png"
+    },
+    {
+      "platform": "Facebook",
+      "locale": "vi",
+      "collection": "dialogue_filled_20261018",
+      "path": "facebook/vi/dialogue_filled_20261018/backlog_comic_20261015_04.png",
+      "gameStartText": "BẮT ĐẦU CHƠI",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "music_room_rhythm",
+      "title": "Nhịp trống phòng nhạc",
+      "dialogueWords": [
+        "Suỵt!",
+        "Vào nhịp nhé!",
+        "Bùm!",
+        "Chơi tiếp nào!"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/backlog_comic_20261015/04.png"
+    },
+    {
+      "platform": "X",
+      "locale": "vi",
+      "collection": "dialogue_filled_20261018",
+      "path": "x/vi/dialogue_filled_20261018/backlog_comic_20261015_05.png",
+      "gameStartText": "BẮT ĐẦU CHƠI",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "art_room_paper_roll",
+      "title": "Cuộn giấy phòng mỹ thuật",
+      "dialogueWords": [
+        "Ơ kìa!",
+        "Kéo giấy nào!",
+        "Quấn chặt rồi!",
+        "Tada!"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/vi/backlog_comic_20261015/05.png"
+    },
+    {
+      "platform": "Facebook",
+      "locale": "vi",
+      "collection": "dialogue_filled_20261018",
+      "path": "facebook/vi/dialogue_filled_20261018/backlog_comic_20261015_05.png",
+      "gameStartText": "BẮT ĐẦU CHƠI",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "art_room_paper_roll",
+      "title": "Cuộn giấy phòng mỹ thuật",
+      "dialogueWords": [
+        "Ơ kìa!",
+        "Kéo giấy nào!",
+        "Quấn chặt rồi!",
+        "Tada!"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/backlog_comic_20261015/05.png"
+    },
+    {
+      "platform": "X",
+      "locale": "vi",
+      "collection": "dialogue_filled_20261018",
+      "path": "x/vi/dialogue_filled_20261018/backlog_comic_20261015_06.png",
+      "gameStartText": "BẮT ĐẦU CHƠI",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "cafeteria_gelatin_trays",
+      "title": "Bánh flan và khay ăn",
+      "dialogueWords": [
+        "Bánh flan!",
+        "Đẩy xe nào!",
+        "Úi, ngã rồi!",
+        "Mời ăn nhé!"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/vi/backlog_comic_20261015/06.png"
+    },
+    {
+      "platform": "Facebook",
+      "locale": "vi",
+      "collection": "dialogue_filled_20261018",
+      "path": "facebook/vi/dialogue_filled_20261018/backlog_comic_20261015_06.png",
+      "gameStartText": "BẮT ĐẦU CHƠI",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "cafeteria_gelatin_trays",
+      "title": "Bánh flan và khay ăn",
+      "dialogueWords": [
+        "Bánh flan!",
+        "Đẩy xe nào!",
+        "Úi, ngã rồi!",
+        "Mời ăn nhé!"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/backlog_comic_20261015/06.png"
+    },
+    {
+      "platform": "X",
+      "locale": "vi",
+      "collection": "dialogue_filled_20261018",
+      "path": "x/vi/dialogue_filled_20261018/backlog_comic_20261015_07.png",
+      "gameStartText": "BẮT ĐẦU CHƠI",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "auditorium_curtain_call",
+      "title": "Màn sân khấu hội trường",
+      "dialogueWords": [
+        "Zombie kìa!",
+        "Bật đèn nào!",
+        "Màn mở rồi!",
+        "Cảm ơn nhé!"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/vi/backlog_comic_20261015/07.png"
+    },
+    {
+      "platform": "Facebook",
+      "locale": "vi",
+      "collection": "dialogue_filled_20261018",
+      "path": "facebook/vi/dialogue_filled_20261018/backlog_comic_20261015_07.png",
+      "gameStartText": "BẮT ĐẦU CHƠI",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "auditorium_curtain_call",
+      "title": "Màn sân khấu hội trường",
+      "dialogueWords": [
+        "Zombie kìa!",
+        "Bật đèn nào!",
+        "Màn mở rồi!",
+        "Cảm ơn nhé!"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/backlog_comic_20261015/07.png"
+    },
+    {
+      "platform": "X",
+      "locale": "vi",
+      "collection": "dialogue_filled_20261018",
+      "path": "x/vi/dialogue_filled_20261018/backlog_comic_20261015_08.png",
+      "gameStartText": "BẮT ĐẦU CHƠI",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "greenhouse_sprinkler",
+      "title": "Vòi phun nhà kính",
+      "dialogueWords": [
+        "Zombie kìa!",
+        "Tưới thật đều!",
+        "Nảy mầm rồi!",
+        "Cùng trồng nhé!"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/vi/backlog_comic_20261015/08.png"
+    },
+    {
+      "platform": "Facebook",
+      "locale": "vi",
+      "collection": "dialogue_filled_20261018",
+      "path": "facebook/vi/dialogue_filled_20261018/backlog_comic_20261015_08.png",
+      "gameStartText": "BẮT ĐẦU CHƠI",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "greenhouse_sprinkler",
+      "title": "Vòi phun nhà kính",
+      "dialogueWords": [
+        "Zombie kìa!",
+        "Tưới thật đều!",
+        "Nảy mầm rồi!",
+        "Cùng trồng nhé!"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/backlog_comic_20261015/08.png"
+    },
+    {
+      "platform": "X",
+      "locale": "vi",
+      "collection": "dialogue_filled_20261018",
+      "path": "x/vi/dialogue_filled_20261018/backlog_comic_20261015_09.png",
+      "gameStartText": "BẮT ĐẦU CHƠI",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "gym_mat_maze",
+      "title": "Mê cung nệm phòng thể chất",
+      "dialogueWords": [
+        "Sẵn sàng!",
+        "Nhảy qua nào!",
+        "Bắt được rồi!",
+        "Về đích thôi!"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/vi/backlog_comic_20261015/09.png"
+    },
+    {
+      "platform": "Facebook",
+      "locale": "vi",
+      "collection": "dialogue_filled_20261018",
+      "path": "facebook/vi/dialogue_filled_20261018/backlog_comic_20261015_09.png",
+      "gameStartText": "BẮT ĐẦU CHƠI",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "gym_mat_maze",
+      "title": "Mê cung nệm phòng thể chất",
+      "dialogueWords": [
+        "Sẵn sàng!",
+        "Nhảy qua nào!",
+        "Bắt được rồi!",
+        "Về đích thôi!"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/backlog_comic_20261015/09.png"
+    },
+    {
+      "platform": "X",
+      "locale": "vi",
+      "collection": "dialogue_filled_20261018",
+      "path": "x/vi/dialogue_filled_20261018/backlog_comic_20261015_10.png",
+      "gameStartText": "BẮT ĐẦU CHƠI",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "planetarium_star_projector",
+      "title": "Màn sao ở cung thiên văn",
+      "dialogueWords": [
+        "Sao kìa!",
+        "Nhìn kìa!",
+        "Vũ trụ rộng quá!",
+        "Soi sao nào!"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/vi/backlog_comic_20261015/10.png"
+    },
+    {
+      "platform": "Facebook",
+      "locale": "vi",
+      "collection": "dialogue_filled_20261018",
+      "path": "facebook/vi/dialogue_filled_20261018/backlog_comic_20261015_10.png",
+      "gameStartText": "BẮT ĐẦU CHƠI",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "planetarium_star_projector",
+      "title": "Màn sao ở cung thiên văn",
+      "dialogueWords": [
+        "Sao kìa!",
+        "Nhìn kìa!",
+        "Vũ trụ rộng quá!",
+        "Soi sao nào!"
+      ],
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/backlog_comic_20261015/10.png"
     }
   ],
   "legacyPaths": {

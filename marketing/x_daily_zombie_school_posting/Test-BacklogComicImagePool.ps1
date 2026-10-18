@@ -45,7 +45,7 @@ foreach ($platform in $platforms) {
 
     $poolKey = if ($platform -eq 'X') { 'localized_social_image_pool' } else { 'facebook_rotation_image_pool' }
     $pool = @($config.$poolKey.$locale.images)
-    $registered = @($pool | Where-Object { $_ -like "image_pool/$folder/$locale/$collection/*.png" })
+    $registered = @($pool | Where-Object { $_ -like "image_pool/$folder/$locale/$collection/*.png" -or $_ -like "image_pool/$folder/$locale/dialogue_filled_20261018/${collection}_*.png" })
     Assert-True ($registered.Count -eq 10) "$platform/$locale rotation pool registers ten backlog comics"
   }
 }

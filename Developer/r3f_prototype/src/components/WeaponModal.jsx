@@ -108,6 +108,9 @@ function describeCondition(cond, records) {
   const unit = meta.unitKey ? translate(meta.unitKey, null, meta.unit) : meta.unit
   const target = Number(cond.value)
   if (meta.cumulative) {
+    if (!records || !Number.isFinite(Number(records[cond.type])) || records[cond.type] == null) {
+      return { text: `${label} · ${translate('ranking.progressUnknown')}`, ratio: 0, measurable: false }
+    }
     const current = Math.min(Number(records[cond.type] ?? 0), target)
     return { text: `${label} ${current}/${target}${unit}`, ratio: target > 0 ? current / target : 0, measurable: true }
   }
@@ -119,6 +122,7 @@ function hasNoProgressAuthUser() {
 }
 
 function isAccountWeaponUnlocked(id) {
+  if (!getFirebaseProgressRuntimeSnapshot().hydrated) return false
   try {
     return isWeaponUnlocked(id)
   } catch (error) {
@@ -143,9 +147,9 @@ function loadReadOnlyWeaponRecords() {
   }
 }
 
-export default function WeaponModal({ onClose, initialWeaponId = null, newlyUnlockedWeaponIds = [], playerRecords }) {
+export default function WeaponModal({ onClose, initialWeaponId = null, newlyUnlockedWeaponIds = [], playerRecords, recordsStatus = 'ready', onRetryRecords }) {
   const t = useT()
-  const records = playerRecords ?? loadReadOnlyWeaponRecords()
+  const records = playerRecords === undefined ? loadReadOnlyWeaponRecords() : playerRecords
   const unlockedByRecords = evaluateUnlocks(records)
   const ids = getAllWeaponIds()
   const accountIds = ids.filter((id) => !isRuntimeCombinationWeapon(id))
@@ -174,9 +178,14 @@ export default function WeaponModal({ onClose, initialWeaponId = null, newlyUnlo
           </div>
           <div style={styles.countBadge} aria-label={t('weaponModal.countAria', { unlocked: unlockedCount, total: accountIds.length }, `${unlockedCount}/${accountIds.length} 해금`)}>
             <span style={styles.countLabel}>{t('weaponModal.countLabel')}</span>
-            <strong data-testid="weapon-account-unlock-count" style={styles.countValue}>{unlockedCount}/{accountIds.length}</strong>
+            <strong data-testid="weapon-account-unlock-count" style={styles.countValue}>{records === null ? '—' : `${unlockedCount}/${accountIds.length}`}</strong>
           </div>
         </div>
+
+        {records === null && <div role={recordsStatus === 'error' ? 'alert' : 'status'}>
+          {t(recordsStatus === 'error' ? 'ranking.progressFailed' : 'ranking.progressLoading')}
+          {recordsStatus === 'error' && onRetryRecords && <button type="button" onClick={onRetryRecords}>{t('common.retry')}</button>}
+        </div>}
 
         {selectedEntry ? (
           <WeaponDetail

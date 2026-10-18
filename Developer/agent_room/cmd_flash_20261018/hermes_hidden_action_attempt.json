@@ -1,0 +1,37 @@
+{
+  "taskId": "t_c66448c6",
+  "scope": ["Hermes_Gateway", "Hermes_Gateway_Watchdog", "Hermes_Gateway_HourlyRestart"],
+  "backupDirectory": "C:/Users/admin/AppData/Local/hermes/gateway-service/task-backups/20261018-184008-cmdflash",
+  "newWrapper": "C:/Users/admin/AppData/Local/hermes/gateway-service/Hermes_Gateway_HiddenRun.vbs",
+  "wrapperBehavior": "WScript.Shell.Run(cmd /d /s /c exact original CMD path, windowStyle 0, wait true); WScript.Quit forwards child exit code",
+  "smokeTest": {
+    "fixture": "C:/Users/admin/AppData/Local/Temp/hermes-hidden-exit7-20261018.cmd",
+    "expectedExitCode": 7,
+    "actualExitCode": 7,
+    "markerCreated": true,
+    "realGatewayOrWatchdogInvoked": false,
+    "visibleWindowAbsenceMeasured": false
+  },
+  "taskUpdate": {
+    "status": "blocked_by_windows_permissions",
+    "firstTask": "Hermes_Gateway",
+    "error": "Set-ScheduledTask: Access is denied. HRESULT 0x80070005",
+    "taskActionsChanged": 0,
+    "existingGatewayStopped": false,
+    "hooksModified": false,
+    "schedulesDisabled": false,
+    "elevationAttempted": false
+  },
+  "plannedActions": {
+    "Hermes_Gateway": "wscript.exe quoted HiddenRun.vbs quoted original Hermes_Gateway.cmd",
+    "Hermes_Gateway_Watchdog": "wscript.exe quoted HiddenRun.vbs quoted original Hermes_Gateway_Watchdog.cmd",
+    "Hermes_Gateway_HourlyRestart": "retain powershell.exe and all existing arguments; prepend -WindowStyle Hidden"
+  },
+  "preservationRequired": ["original script bytes", "triggers", "principal", "enabled state", "settings", "working directory", "environment", "normalizer and guard hooks"],
+  "installerRisk": {
+    "path": "C:/Users/admin/AppData/Local/hermes/hermes-agent/hermes_cli/gateway_windows.py",
+    "function": "_install_scheduled_task",
+    "line": 389,
+    "detail": "Installer deletes and recreates the ONLOGON task with the CMD path directly in /TR. A future gateway reinstall can replace an externally repaired hidden action. Installer was not modified."
+  }
+}

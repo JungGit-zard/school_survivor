@@ -2,7 +2,6 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import {
   _seedHydratedFirebaseProgressForTests,
-  _setFirebaseProgressClientForTests,
   applyCloudProgressSnapshot,
   buildCloudProgressSnapshot,
   buildCloudUserProfile,
@@ -13,10 +12,12 @@ import { RECORD_KEYS } from '../lib/playerRecords.js'
 import { saveNicknameForUser } from '../lib/userNickname.js'
 import { useGameStore } from './useGameStore.js'
 import { getWeaponPermanentUpgradeLevel, purchaseWeaponPermanentUpgrade } from '../lib/weaponPermanentUpgrades.js'
+import { installProgressTransactionTestClient } from '../../test/progressTransactionClient.js'
 
+let fixtureId = 0
 function resetProgressState(stageId = 'stage1') {
-  _setFirebaseProgressClientForTests({ save: async () => {}, load: async () => null })
-  _seedHydratedFirebaseProgressForTests({ uid: 'progress-test-user' })
+  _seedHydratedFirebaseProgressForTests({ uid: `progress-test-user-${++fixtureId}` })
+  installProgressTransactionTestClient()
   useGameStore.getState().resetGame(stageId)
   useGameStore.setState({
     elapsedMs: 0,
@@ -68,7 +69,8 @@ describe('Google user progress persistence snapshot', () => {
     expect(state.goldSession).toBe(4)
     expect(state.goldTotal).toBe(4)
     expect(snapshot.progress.goldTotal).toBe(4)
-    expect(snapshot.progress.records.totalGold).toBe(0)
+    // Earned coins are checkpointed during play, before a terminal result.
+    expect(snapshot.progress.records.totalGold).toBe(4)
   })
 
   it('snapshots and restores weapon permanent upgrade levels', () => {

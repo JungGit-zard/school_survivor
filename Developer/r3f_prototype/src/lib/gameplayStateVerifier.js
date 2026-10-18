@@ -241,8 +241,10 @@ function runAction(action, random, stageId, stats) {
       if (random() < 0.45) {
         const before = useGameStore.getState().currentStageId
         if (random() < 0.65) {
-          if (store.clearStageAndStartNext()) stats.nextStageTransitions += 1
-          else stats.clears += 1
+          // This synchronous state verifier cannot claim an asynchronous cloud
+          // ACK/transition. Exercise clear here; browser SDK QA covers continue.
+          store.clearStage()
+          stats.clears += 1
         } else {
           store.clearStage()
           stats.clears += 1

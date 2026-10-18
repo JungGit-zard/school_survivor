@@ -1,0 +1,16 @@
+{
+  "startedAt": "2026-10-18T10:38:46.400Z",
+  "finishedAt": "2026-10-18T10:38:55.112Z",
+  "cliExitCode": 0,
+  "scope": "database rules only: two optional ranking lastPlayedAt validators",
+  "hostingDeployments": 0,
+  "userDataWrites": 0,
+  "authChanges": 0,
+  "sourceP0CombinedRulesDeployed": false,
+  "beforeHash": "0d8065625d1ea06cce37e894d14a3da5acec9307170c68f69d710c77eafc7417",
+  "expectedCanonicalHash": "dfade4e6a7af476d178c4903b660f7add6c5466edf6057feaeb526916c8e2a6f",
+  "readbackCanonicalHash": "dfade4e6a7af476d178c4903b660f7add6c5466edf6057feaeb526916c8e2a6f",
+  "exactSemanticReadback": true,
+  "rollbackSource": "deployed-rules.json",
+  "temporaryConfigRemoved": true
+}

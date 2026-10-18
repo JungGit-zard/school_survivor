@@ -6,6 +6,7 @@ import { WEB_BACKGROUND_URLS, selectedWebBackgroundUrl } from '../lib/webBackgro
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 const mocks = vi.hoisted(() => ({
+  visitor: vi.fn(async () => ({ recorded: true })),
   hydrated: false,
   titleCheat: false,
   gameStore: {
@@ -13,6 +14,7 @@ const mocks = vi.hoisted(() => ({
     phase: 'idle',
     resetGame: vi.fn(),
     submitRunToRanking: vi.fn(async () => {}),
+    reconcileCloudProgress: vi.fn(async () => true),
     startStage1Intro: vi.fn(),
   },
 }))
@@ -53,6 +55,7 @@ vi.mock('./SfxLayer.jsx', () => ({ default: () => null }))
 vi.mock('./VirtualJoystick.jsx', () => ({ default: () => null }))
 vi.mock('./gameCanvasLoader.js', () => ({ loadGameCanvas: async () => ({ default: () => null }) }))
 vi.mock('./E2ERuntimePerformanceDiagnostics.jsx', () => ({ default: () => null }))
+vi.mock('../lib/firebaseAdminVisitors.js', () => ({ recordAdminVisitor: (...args) => mocks.visitor(...args) }))
 vi.mock('../lib/playtestLogger.js', () => ({ initPlaytestLogger: vi.fn() }))
 vi.mock('../lib/keyboardInput.js', () => ({ initKeyboardInput: vi.fn() }))
 vi.mock('../lib/mobileInput.js', () => ({ isMobileJoystickEnvironment: () => false }))
@@ -69,6 +72,22 @@ vi.mock('../store/useGameStore.js', () => ({
 }))
 
 const { default: ReadyGameApp } = await import('./ReadyGameApp.jsx')
+
+it('retries cloud progress while paused or on a result, and on network return, then removes the timer',async()=>{
+  vi.useFakeTimers()
+  const view=await renderReadyWithoutEntering({authUser:{uid:'retry-user'},progressStatus:'ready'})
+  mocks.gameStore.phase='paused'
+  mocks.gameStore.reconcileCloudProgress.mockClear()
+  await act(async()=>{await vi.advanceTimersByTimeAsync(5000);await vi.dynamicImportSettled()})
+  expect(mocks.gameStore.reconcileCloudProgress).toHaveBeenCalledTimes(1)
+  mocks.gameStore.phase='cleared'
+  await act(async()=>{window.dispatchEvent(new Event('online'));await vi.dynamicImportSettled()})
+  expect(mocks.gameStore.reconcileCloudProgress).toHaveBeenCalledTimes(2)
+  view.unmount()
+  await vi.advanceTimersByTimeAsync(10000)
+  expect(mocks.gameStore.reconcileCloudProgress).toHaveBeenCalledTimes(2)
+  vi.useRealTimers()
+})
 
 async function renderReady(props) {
   const container = document.createElement('div')
@@ -324,4 +343,26 @@ describe('ReadyGameApp stage bypass hydration', () => {
     view.unmount()
   })
 
+})
+
+it('records actual title/game entry and a changed account without blocking entry', async () => {
+  mocks.visitor.mockClear()
+  const view = await renderReadyWithoutEntering({ authUser: { uid: 'visit-a' }, progressStatus: 'ready' })
+  expect(mocks.visitor).toHaveBeenCalledWith({ uid: 'visit-a' })
+  await act(async () => { view.container.querySelector('button').click(); await vi.dynamicImportSettled() })
+  await act(async () => { view.container.querySelector('[data-testid="start-stage"]').click(); await vi.dynamicImportSettled() })
+  expect(mocks.visitor).toHaveBeenCalledTimes(3)
+  await view.render({ authUser: { uid: 'visit-b' }, progressStatus: 'ready' })
+  expect(mocks.visitor).toHaveBeenLastCalledWith({ uid: 'visit-b' })
+  expect(view.container.querySelector('[data-testid="gameplay-screen"]')).not.toBeNull()
+  view.unmount()
+})
+
+it('records an account change while staying in the lobby', async () => {
+  const view = await renderReady({ authUser: null, progressStatus: 'idle' })
+  mocks.visitor.mockClear()
+  await view.render({ authUser: { uid: 'oauth-return-user' }, authStatus: 'signedIn', progressStatus: 'ready' })
+  expect(mocks.visitor).toHaveBeenCalledWith({ uid: 'oauth-return-user' })
+  expect(view.container.querySelector('[data-testid="start-stage"]')).not.toBeNull()
+  view.unmount()
 })

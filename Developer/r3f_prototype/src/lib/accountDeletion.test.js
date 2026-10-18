@@ -6,10 +6,13 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 let mockCallOrder = []
 let mockRankingResult = { attempted: 10, deleted: ['a'], failed: [] }
 let mockRankingThrow = null
+let mockVisitorThrow = null
 let mockProgressThrow = null
 let mockAuthConfigured = true
 let mockDeleteAccountError = null
 let mockReauthenticateError = null
+
+vi.mock('./firebaseAdminVisitors.js', () => ({ resumeAdminVisitorRecording: vi.fn(), deleteAdminVisitor: vi.fn(async () => { mockCallOrder.push('visitors'); if (mockVisitorThrow) throw mockVisitorThrow }) }))
 
 vi.mock('./firebaseRanking.js', () => ({
   deleteRankingEntriesForUser: vi.fn(async () => {
@@ -62,6 +65,7 @@ describe('accountDeletion.js', () => {
     mockCallOrder = []
     mockRankingResult = { attempted: 10, deleted: ['a'], failed: [] }
     mockRankingThrow = null
+    mockVisitorThrow = null
     mockProgressThrow = null
     mockAuthConfigured = true
     mockDeleteAccountError = null
@@ -78,7 +82,7 @@ describe('accountDeletion.js', () => {
   it('deletes in order: ranking -> users/{uid} document -> Firebase Auth account -> local runtime reset', async () => {
     const result = await deleteAccountAndData(USER)
 
-    expect(mockCallOrder).toEqual(['ranking', 'progress', 'auth', 'reset'])
+    expect(mockCallOrder).toEqual(['ranking', 'visitors', 'progress', 'auth', 'reset'])
     expect(result.ok).toBe(true)
     expect(result.ranking).toEqual({ attempted: 10, deleted: ['a'], failed: [] })
   })
@@ -88,7 +92,7 @@ describe('accountDeletion.js', () => {
 
     const result = await deleteAccountAndData(USER)
 
-    expect(mockCallOrder).toEqual(['ranking', 'progress', 'auth', 'reset'])
+    expect(mockCallOrder).toEqual(['ranking', 'visitors', 'progress', 'auth', 'reset'])
     expect(result.ok).toBe(true)
     expect(result.ranking.error).toMatch(/ranking permission denied/)
   })
@@ -98,7 +102,7 @@ describe('accountDeletion.js', () => {
 
     const result = await deleteAccountAndData(USER)
 
-    expect(mockCallOrder).toEqual(['ranking', 'progress'])
+    expect(mockCallOrder).toEqual(['ranking', 'visitors', 'progress'])
     expect(result).toMatchObject({ ok: false, reason: 'progressDeleteFailed' })
   })
 
@@ -108,7 +112,7 @@ describe('accountDeletion.js', () => {
     const result = await deleteAccountAndData(USER)
 
     expect(result).toMatchObject({ ok: false, reason: 'unauthenticated' })
-    expect(mockCallOrder).toEqual(['ranking', 'progress'])
+    expect(mockCallOrder).toEqual(['ranking', 'visitors', 'progress'])
   })
 
   it('classifies auth/requires-recent-login as reauthRequired and never resets local runtime', async () => {
@@ -116,7 +120,7 @@ describe('accountDeletion.js', () => {
 
     const result = await deleteAccountAndData(USER)
 
-    expect(mockCallOrder).toEqual(['ranking', 'progress', 'auth'])
+    expect(mockCallOrder).toEqual(['ranking', 'visitors', 'progress', 'auth'])
     expect(result).toMatchObject({ ok: false, reason: 'reauthRequired' })
   })
 
@@ -135,4 +139,14 @@ describe('accountDeletion.js', () => {
     mockReauthenticateError = new Error('popup closed')
     await expect(reauthenticateForDeletion()).resolves.toBe(false)
   })
+})
+
+it('keeps Auth and progress when deleting the private visitor record fails', async () => {
+  mockCallOrder = []
+  mockVisitorThrow = new Error('visitor delete failed')
+  const result = await deleteAccountAndData(USER)
+  expect(result.ok).toBe(false)
+  expect(result.message).toBe('visitor delete failed')
+  expect(mockCallOrder).toEqual(['ranking', 'visitors'])
+  mockVisitorThrow = null
 })

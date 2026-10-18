@@ -327,7 +327,7 @@ export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onO
         <button type="button" className="lobby-press" style={styles.bottomNavButton} onClick={() => !showtimeStageId && onOpenMissionCenter?.()}>미션</button>
       </nav>
 
-      {modal === 'weapon' && <WeaponModal onClose={closeWeaponModal} initialWeaponId={weaponModalInitialId} newlyUnlockedWeaponIds={newlyUnlockedWeaponIds} playerRecords={records ?? {}} />}
+      {modal === 'weapon' && <WeaponModal onClose={closeWeaponModal} initialWeaponId={weaponModalInitialId} newlyUnlockedWeaponIds={newlyUnlockedWeaponIds} playerRecords={records} recordsStatus={progressStatus} onRetryRecords={() => { void useAuthStore.getState().retryCloudProgress?.() }} />}
       {modal === 'settings' && (
         <LobbySettingsModal onClose={closeModal} onNicknameChange={setNickname} onLogoutToTitle={onLogoutToTitle} />
       )}

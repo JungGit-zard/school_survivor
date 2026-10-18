@@ -11,6 +11,7 @@
 import { createFirebaseAuthClient } from './firebaseAuth.js'
 import { deleteFirebaseProgressDocument, FirebaseProgressError } from './firebaseProgress.js'
 import { deleteRankingEntriesForUser } from './firebaseRanking.js'
+import { deleteAdminVisitor, resumeAdminVisitorRecording } from './firebaseAdminVisitors.js'
 import { resetRuntimeRefs } from './refs.js'
 
 export async function deleteAccountAndData(user) {
@@ -29,8 +30,10 @@ export async function deleteAccountAndData(user) {
   // 2) users/{uid} 문서 삭제 — 실패하면 여기서 중단한다(Auth를 지우지 않는다).
   // 데이터가 남은 채 Auth만 지우면 다음 로그인 없이는 복구 불가능한 고아 데이터가 된다.
   try {
+    await deleteAdminVisitor(user)
     await deleteFirebaseProgressDocument(user)
   } catch (error) {
+    resumeAdminVisitorRecording(user)
     return {
       ok: false,
       reason: classifyProgressDeleteError(error),
@@ -44,14 +47,17 @@ export async function deleteAccountAndData(user) {
   try {
     authClient = await createFirebaseAuthClient()
   } catch (error) {
+    resumeAdminVisitorRecording(user)
     return { ok: false, reason: 'unknown', message: getErrorMessage(error), ranking }
   }
   if (!authClient?.configured) {
+    resumeAdminVisitorRecording(user)
     return { ok: false, reason: 'unknown', message: 'Firebase auth가 설정되지 않았습니다.', ranking }
   }
   try {
     await authClient.deleteAccount()
   } catch (error) {
+    resumeAdminVisitorRecording(user)
     return { ok: false, reason: classifyAuthDeleteError(error), message: getErrorMessage(error), ranking }
   }
 

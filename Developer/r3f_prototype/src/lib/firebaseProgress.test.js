@@ -22,7 +22,7 @@ vi.mock('firebase/app', () => firebaseSdk)
 vi.mock('firebase/database', () => databaseSdk)
 import {
   _resetFirebaseProgressForTests,
-  _setFirebaseProgressClientForTests,
+  _setFirebaseProgressClientForTests as injectProgressClient,
   applyCloudProgressSnapshot,
   buildCloudProgressSnapshot,
   buildCloudUserProfile,
@@ -54,6 +54,22 @@ const COMPLETE_ENV = {
 }
 
 const USER = { uid: 'uid-1', displayName: 'Tester', email: 'tester@example.com', photoURL: 'https://example.com/me.png' }
+
+function _setFirebaseProgressClientForTests(client) {
+  if (client.transaction || !client.save) return injectProgressClient(client)
+  let remote = null
+  injectProgressClient({ ...client,
+    ...(client.load ? {load:async(...args)=>{remote=await client.load(...args);return structuredClone(remote)}} : {}),
+    transaction:async(path,mutate)=>{
+      const current=remote??(isFirebaseProgressHydrated(USER)?buildCloudProgressSnapshot():remoteSnapshot())
+      const next=mutate(structuredClone(current))
+      if(next===undefined)return{committed:false,snapshot:{val:()=>structuredClone(current)}}
+      await client.save(path,next)
+      remote=structuredClone(next)
+      return{committed:true,snapshot:{val:()=>structuredClone(remote)}}
+    },
+  })
+}
 
 function remoteSnapshot(overrides = {}) {
   const progressOverrides = overrides.progress ?? {}
@@ -114,7 +130,8 @@ describe('firebase-only player progress runtime', () => {
     _resetFirebaseProgressForTests()
     applyCloudProgressSnapshot(remoteSnapshot(), USER)
 
-    await expect(requestCloudProgressSave(USER)).resolves.toBe(true)
+    // The reset client has no server transaction ACK; it must not invent one.
+    await expect(requestCloudProgressSave(USER)).resolves.toBe(false)
 
     expect(firebaseSdk.getApps).not.toHaveBeenCalled()
   })
@@ -207,20 +224,20 @@ describe('firebase-only player progress runtime', () => {
     expect(consumeFirebaseProgressSaveWarning()).toBeNull()
   })
 
-  it('does not expose a warning when an unhydrated save request cannot start', async () => {
+  it('warns when an authenticated unhydrated save request cannot start', async () => {
     setCloudProgressUser(USER)
     await expect(requestCloudProgressSave(USER)).resolves.toBe(false)
 
-    expect(consumeFirebaseProgressSaveWarning()).toBeNull()
+    expect(consumeFirebaseProgressSaveWarning()).toBe('save-failed')
   })
 
-  it('does not expose a warning when Firebase is not configured', async () => {
+  it('warns when Firebase is not configured', async () => {
     vi.stubEnv('VITE_FIREBASE_API_KEY', '')
     vi.stubEnv('VITE_FIREBASE_DATABASE_URL', '')
     applyCloudProgressSnapshot(remoteSnapshot(), USER)
     await expect(requestCloudProgressSave(USER)).resolves.toBe(false)
 
-    expect(consumeFirebaseProgressSaveWarning()).toBeNull()
+    expect(consumeFirebaseProgressSaveWarning()).toBe('save-failed')
   })
 
   it('preserves implemented B01 and B02 boss passive flags through Firebase progress snapshots', () => {
@@ -398,7 +415,8 @@ describe('firebase-only player progress runtime', () => {
     releaseFirstSave()
 
     await expect(firstSave).resolves.toBe(true)
-    await expect(queuedSave).resolves.toBe(false)
+    expect(queuedSave).toBe(firstSave)
+    await expect(queuedSave).resolves.toBe(true)
     expect(consumeFirebaseProgressSaveWarning()).toBeNull()
     expect(save).toHaveBeenCalledTimes(1)
   })
@@ -464,13 +482,13 @@ describe('firebase-only player progress runtime', () => {
     await hydrateCloudProgress(USER)
 
     const p1 = requestCloudProgressSave()
-    applyCloudProgressSnapshot(remoteSnapshot({ progress: { goldTotal: 99 } }), USER)
+    updateFirebasePlayerProgress(progress => { progress.goldTotal = 99 })
     const p2 = requestCloudProgressSave()
     releaseFirst()
     await Promise.all([p1, p2])
 
     expect(maxInFlight).toBe(1)
-    expect(saved).toEqual([99, 99])
+    expect(saved).toEqual([99])
   })
 
   // 회귀: 저장 큐가 rejected 상태로 남으면 이후 .then 핸들러가 실행되지 않아 그 세션의
@@ -492,9 +510,9 @@ describe('firebase-only player progress runtime', () => {
 
     await expect(requestCloudProgressSave()).resolves.toBe(false)
 
-    applyCloudProgressSnapshot(remoteSnapshot({ progress: { goldTotal: 120 } }), USER)
+    updateFirebasePlayerProgress(progress => { progress.goldTotal = 120 })
     await expect(requestCloudProgressSave()).resolves.toBe(true)
-    applyCloudProgressSnapshot(remoteSnapshot({ progress: { goldTotal: 340 } }), USER)
+    updateFirebasePlayerProgress(progress => { progress.goldTotal = 340 })
     await expect(requestCloudProgressSave()).resolves.toBe(true)
 
     expect(saved).toEqual([120, 340])
@@ -508,5 +526,19 @@ describe('firebase-only player progress runtime', () => {
     expect(() => localStorage.getItem('school_survivor:passiveUpgrades')).toThrow(/Firebase-only player data/)
     expect(() => localStorage.setItem('school_survivor:bossPassiveUnlocks', '{}')).toThrow(/Firebase-only player data/)
     expect(() => localStorage.setItem('school_survivor:adminConfig', '{}')).not.toThrow()
+  })
+
+  it('retries a transient Firebase SDK initialization failure instead of caching its rejected promise',async()=>{
+    const original=firebaseSdk.getApps.getMockImplementation()
+    injectProgressClient(null)
+    firebaseSdk.getApps.mockImplementationOnce(()=>{throw new Error('one-time-sdk-init')}).mockReturnValue([])
+    firebaseSdk.initializeApp.mockReturnValue({name:'qa'})
+    databaseSdk.getDatabase.mockReturnValue({})
+    databaseSdk.get.mockResolvedValue({exists:()=>true,val:()=>remoteSnapshot()})
+    try {
+      await expect(hydrateCloudProgress(USER)).rejects.toThrow('one-time-sdk-init')
+      await expect(hydrateCloudProgress(USER)).resolves.toBe(true)
+      expect(firebaseSdk.getApps).toHaveBeenCalledTimes(2)
+    } finally { firebaseSdk.getApps.mockImplementation(original) }
   })
 })

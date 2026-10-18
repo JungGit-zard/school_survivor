@@ -1,3 +1,4 @@
+import { installProgressTransactionTestClient } from '../../test/progressTransactionClient.js'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { createStageQuestProgress, getStageQuestDefinitions } from '../lib/quests.js'
 import { saveStagePropPlacements } from '../lib/stagePropPlacements.js'
@@ -12,6 +13,7 @@ const TALK_BOOK_GIVER_ID = getStageQuestDefinitions('stage1')
 
 describe('quest game state', () => {
   beforeEach(() => {
+    installProgressTransactionTestClient()
     commitFirebaseStudioRuntime({ propPlacements: {} }, { revision: 0 })
     useGameStore.setState({
       currentStageId: 'stage1',
@@ -131,7 +133,7 @@ describe('quest game state', () => {
     expect(useGameStore.getState()).toMatchObject({ phase: 'paused', pauseSource: 'manual' })
   })
 
-  it('preserves completed journey only while moving to the next stage', () => {
+  it('preserves completed journey only while moving to the next stage', async () => {
     useGameStore.setState({
       questProgress: {
         ...createStageQuestProgress('stage1'),
@@ -145,7 +147,7 @@ describe('quest game state', () => {
     })
 
     expect(useGameStore.getState().clearStage()).toBe(true)
-    expect(useGameStore.getState().continueToNextStage()).toBe(true)
+    expect(await useGameStore.getState().continueToNextStage()).toBe(true)
     expect(useGameStore.getState().currentStageId).toBe('stage2')
     expect(useGameStore.getState().questJourneyCompletedIds).toEqual(['stage1-talk-book'])
     expect(useGameStore.getState().questProgress).toEqual(createStageQuestProgress('stage2'))

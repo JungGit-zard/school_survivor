@@ -1,0 +1,16 @@
+{
+  "baselineVersion": "d6b5abe3d7bb45aa",
+  "baselineFileCount": 527,
+  "baselineRetainedNonSystemPaths": 525,
+  "providerReservedPaths": 2,
+  "selectivelyCopied": 201,
+  "missing": [],
+  "temporaryConfig": "firebase.preview-p0.temporary.json",
+  "temporaryConfigSHA256": "840225bf5f69114c94df8a49c8ba3486c9aab6e53c3596d85d9a86871e4e31ef",
+  "buildAlreadyPassed": true,
+  "remainingPredeploy": [
+    "npm.cmd run require:safe-hosting-promotion",
+    "npm.cmd run build:legal",
+    "npm.cmd run build:x-website-cards"
+  ]
+}

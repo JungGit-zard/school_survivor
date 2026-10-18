@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react'
 import { appendFile, mkdir, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import { spawn } from 'node:child_process'
+import { firebaseDatabaseMemoryStoragePlugin } from './scripts/firebase-database-memory-storage.mjs'
 
 const FORBIDDEN_PROJECT_HOSTS = new Set(['127.0.0.1', '172.22.41.219'])
 
@@ -160,7 +161,7 @@ function runtimePlaytestLogPlugin() {
 }
 
 export default defineConfig({
-  plugins: [forbiddenProjectHostPlugin(), react(), runtimePlaytestLogPlugin()],
+  plugins: [firebaseDatabaseMemoryStoragePlugin(), forbiddenProjectHostPlugin(), react(), runtimePlaytestLogPlugin()],
   server: {
     host: true,
     port: 5173,

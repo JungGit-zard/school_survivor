@@ -15,6 +15,8 @@ export const useAuthStore = create((set, get) => ({
   progressStatus: 'idle',
   progressError: null,
 
+  retryCloudProgress: () => syncCloudProgressUser(get().user),
+
   initializeAuth: async () => {
     if (get().initialized) return
     // DEV 전용 E2E 우회 — 가짜 유저로 즉시 signedIn. syncCloudProgressUser를
@@ -131,7 +133,7 @@ function getAuthClient() {
   return authClientPromise
 }
 
-function syncCloudProgressUser(user) {
+export function syncCloudProgressUser(user) {
   setCloudProgressUser(user)
   if (!user) {
     useAuthStore.setState({ progressStatus: 'idle', progressError: null })

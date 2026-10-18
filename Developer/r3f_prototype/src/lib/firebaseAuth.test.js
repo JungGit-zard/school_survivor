@@ -42,6 +42,8 @@ vi.mock('firebase/app', () => ({
 }))
 
 vi.mock('firebase/auth', () => ({
+  initializeAuth: (...args) => firebaseAuthMock.auth.getAuth(...args),
+  browserPopupRedirectResolver: {},
   GoogleAuthProvider: firebaseAuthMock.auth.GoogleAuthProvider,
   getAuth: (...args) => firebaseAuthMock.auth.getAuth(...args),
   inMemoryPersistence: firebaseAuthMock.auth.inMemoryPersistence,

@@ -1,0 +1,895 @@
+{
+  "status": "passed",
+  "editedFiles": 80,
+  "uniqueEdits": 40,
+  "sourceHashesPreserved": 80,
+  "dimensionsPreserved": 80,
+  "byLocale": {
+    "ko": 20,
+    "en": 20,
+    "ja": 20,
+    "vi": 20
+  },
+  "files": [
+    {
+      "locale": "ko",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/backlog_comic_20261015/01.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/dialogue_filled_20261018/backlog_comic_20261015_01.png",
+      "sourceSha256": "30d6412bea13002f0c19441b7ee62d92c30613a6ec969273ad8f80b3f30ef763",
+      "targetSha256": "dca6c1ab3f441a57bce18b5ff1cc809ff96c4c7a0e1c7f1f15e15661694afb16",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "locale": "ko",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/backlog_comic_20261015/02.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/dialogue_filled_20261018/backlog_comic_20261015_02.png",
+      "sourceSha256": "21048273c0b6ca89bb5928c9cfeb0b3737f1036bfb193977b8ec21917d9072bc",
+      "targetSha256": "bbf30f66da7a5949c8326ac20557c9ea94a0bda81d7b07d8fa4726075a6edb79",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "locale": "ko",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/backlog_comic_20261015/03.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/dialogue_filled_20261018/backlog_comic_20261015_03.png",
+      "sourceSha256": "4036258606fb33aea915868540eaefccac8f1f5483572a90e44f629dff4cc096",
+      "targetSha256": "d57327a4604e1b4ca41b0f175373e03597f52e90d308c4412c94dcfcfc6a7746",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "locale": "ko",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/backlog_comic_20261015/04.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/dialogue_filled_20261018/backlog_comic_20261015_04.png",
+      "sourceSha256": "e9232f983e19581fd578efbd1c2d9af5b89b930f670e88c1ad4ebead076f9e00",
+      "targetSha256": "20650156a69972cba9393acc0696ab9d4ebdbd738cd3279c9e1488318fd7b663",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "locale": "ko",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/backlog_comic_20261015/05.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/dialogue_filled_20261018/backlog_comic_20261015_05.png",
+      "sourceSha256": "7125383b143e7dafb215e41472702cda0245976a8e74ad87dda11874f8704801",
+      "targetSha256": "ff056efa64501462e0edbaca60736edfc5e54e68d540445d6f78ec4c0bfd0e50",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "locale": "ko",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/backlog_comic_20261015/06.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/dialogue_filled_20261018/backlog_comic_20261015_06.png",
+      "sourceSha256": "e5360249d88e31da384d68f4f6360cc5c5967b4fcc56972b2c947aad1584684d",
+      "targetSha256": "24beaa2b72107965c33552a9510b454aaac51e63bbb930d09c87af1649a50acf",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "locale": "ko",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/backlog_comic_20261015/07.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/dialogue_filled_20261018/backlog_comic_20261015_07.png",
+      "sourceSha256": "c546cfd1af35e7f2e78e37879acbafdc29a0f60a315d13e6ec06c65a22935e8e",
+      "targetSha256": "e5d84fd7d830e5cd99bdf0dc2dab68383605412b50a56033da4f34a8f5e0e3fe",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "locale": "ko",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/backlog_comic_20261015/08.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/dialogue_filled_20261018/backlog_comic_20261015_08.png",
+      "sourceSha256": "d150cd01de8512b44984ca74c57771f6b8fd7735e3fb4f47f1ac1be0324fa3ec",
+      "targetSha256": "02c9e0c4135afb12b8e3a72fa96c02d8d70ff59a0add0c4bef21be516721d9ba",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "locale": "ko",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/backlog_comic_20261015/09.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/dialogue_filled_20261018/backlog_comic_20261015_09.png",
+      "sourceSha256": "633217700f5dd47b477afb187607176dd97fb0240c7b7c9c02fffcf8160184b8",
+      "targetSha256": "f67b03c0fba7831638ac3339f32aa580d6abebb2f50daf80ce0240978702d9ba",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "locale": "ko",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/backlog_comic_20261015/10.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/dialogue_filled_20261018/backlog_comic_20261015_10.png",
+      "sourceSha256": "b584310ff4614a455ad4baf67e57f29c03940ee72c5aa5c6a3be178263157b27",
+      "targetSha256": "a8ced09a7fda4e1dca539d07a5bc54a682284d44bdd7afd657656874a077c0fa",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "locale": "ko",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/backlog_comic_20261015/06.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/dialogue_filled_20261018/backlog_comic_20261015_06.png",
+      "sourceSha256": "e5360249d88e31da384d68f4f6360cc5c5967b4fcc56972b2c947aad1584684d",
+      "targetSha256": "24beaa2b72107965c33552a9510b454aaac51e63bbb930d09c87af1649a50acf",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "locale": "ko",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/backlog_comic_20261015/07.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/dialogue_filled_20261018/backlog_comic_20261015_07.png",
+      "sourceSha256": "c546cfd1af35e7f2e78e37879acbafdc29a0f60a315d13e6ec06c65a22935e8e",
+      "targetSha256": "e5d84fd7d830e5cd99bdf0dc2dab68383605412b50a56033da4f34a8f5e0e3fe",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "locale": "ko",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/backlog_comic_20261015/08.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/dialogue_filled_20261018/backlog_comic_20261015_08.png",
+      "sourceSha256": "d150cd01de8512b44984ca74c57771f6b8fd7735e3fb4f47f1ac1be0324fa3ec",
+      "targetSha256": "02c9e0c4135afb12b8e3a72fa96c02d8d70ff59a0add0c4bef21be516721d9ba",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "locale": "ko",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/backlog_comic_20261015/09.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/dialogue_filled_20261018/backlog_comic_20261015_09.png",
+      "sourceSha256": "633217700f5dd47b477afb187607176dd97fb0240c7b7c9c02fffcf8160184b8",
+      "targetSha256": "f67b03c0fba7831638ac3339f32aa580d6abebb2f50daf80ce0240978702d9ba",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "locale": "ko",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/backlog_comic_20261015/10.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/dialogue_filled_20261018/backlog_comic_20261015_10.png",
+      "sourceSha256": "b584310ff4614a455ad4baf67e57f29c03940ee72c5aa5c6a3be178263157b27",
+      "targetSha256": "a8ced09a7fda4e1dca539d07a5bc54a682284d44bdd7afd657656874a077c0fa",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "locale": "ko",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/backlog_comic_20261015/01.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/dialogue_filled_20261018/backlog_comic_20261015_01.png",
+      "sourceSha256": "30d6412bea13002f0c19441b7ee62d92c30613a6ec969273ad8f80b3f30ef763",
+      "targetSha256": "dca6c1ab3f441a57bce18b5ff1cc809ff96c4c7a0e1c7f1f15e15661694afb16",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "locale": "ko",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/backlog_comic_20261015/02.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/dialogue_filled_20261018/backlog_comic_20261015_02.png",
+      "sourceSha256": "21048273c0b6ca89bb5928c9cfeb0b3737f1036bfb193977b8ec21917d9072bc",
+      "targetSha256": "bbf30f66da7a5949c8326ac20557c9ea94a0bda81d7b07d8fa4726075a6edb79",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "locale": "ko",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/backlog_comic_20261015/03.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/dialogue_filled_20261018/backlog_comic_20261015_03.png",
+      "sourceSha256": "4036258606fb33aea915868540eaefccac8f1f5483572a90e44f629dff4cc096",
+      "targetSha256": "d57327a4604e1b4ca41b0f175373e03597f52e90d308c4412c94dcfcfc6a7746",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "locale": "ko",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/backlog_comic_20261015/04.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/dialogue_filled_20261018/backlog_comic_20261015_04.png",
+      "sourceSha256": "e9232f983e19581fd578efbd1c2d9af5b89b930f670e88c1ad4ebead076f9e00",
+      "targetSha256": "20650156a69972cba9393acc0696ab9d4ebdbd738cd3279c9e1488318fd7b663",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "locale": "ko",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/backlog_comic_20261015/05.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/dialogue_filled_20261018/backlog_comic_20261015_05.png",
+      "sourceSha256": "7125383b143e7dafb215e41472702cda0245976a8e74ad87dda11874f8704801",
+      "targetSha256": "ff056efa64501462e0edbaca60736edfc5e54e68d540445d6f78ec4c0bfd0e50",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "locale": "ja",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ja/backlog_comic_20261015/01.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/ja/dialogue_filled_20261018/backlog_comic_20261015_01.png",
+      "sourceSha256": "708fab950e3f2e1ca7b4dc7eb2f8cb350aace963eb5145f571862667abffd300",
+      "targetSha256": "86fd4083561fe7f955c6fe075d7cd067522c258dbb8ed9db1510e4181e7eb336",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "locale": "ja",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/backlog_comic_20261015/01.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/dialogue_filled_20261018/backlog_comic_20261015_01.png",
+      "sourceSha256": "708fab950e3f2e1ca7b4dc7eb2f8cb350aace963eb5145f571862667abffd300",
+      "targetSha256": "86fd4083561fe7f955c6fe075d7cd067522c258dbb8ed9db1510e4181e7eb336",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "locale": "ja",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ja/backlog_comic_20261015/02.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/ja/dialogue_filled_20261018/backlog_comic_20261015_02.png",
+      "sourceSha256": "9ecca86f15aba0c60e01df0a1b78e10609ddf4279738458376cb010e56b2603f",
+      "targetSha256": "2af2c70fde23a5c107375bf01e1fd8a36e4c40d6a5a509d0358746a1700e026f",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "locale": "ja",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/backlog_comic_20261015/02.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/dialogue_filled_20261018/backlog_comic_20261015_02.png",
+      "sourceSha256": "9ecca86f15aba0c60e01df0a1b78e10609ddf4279738458376cb010e56b2603f",
+      "targetSha256": "2af2c70fde23a5c107375bf01e1fd8a36e4c40d6a5a509d0358746a1700e026f",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "locale": "ja",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ja/backlog_comic_20261015/03.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/ja/dialogue_filled_20261018/backlog_comic_20261015_03.png",
+      "sourceSha256": "7ba395e482aadfc0ee7299d1543ea7928b54321b46847fef4e7a252efc384a6c",
+      "targetSha256": "36bb4f13b97cb07c4df71aed3d376cee0809047fe3177245f55cae941f75706b",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "locale": "ja",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/backlog_comic_20261015/03.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/dialogue_filled_20261018/backlog_comic_20261015_03.png",
+      "sourceSha256": "7ba395e482aadfc0ee7299d1543ea7928b54321b46847fef4e7a252efc384a6c",
+      "targetSha256": "36bb4f13b97cb07c4df71aed3d376cee0809047fe3177245f55cae941f75706b",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "locale": "ja",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ja/backlog_comic_20261015/04.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/ja/dialogue_filled_20261018/backlog_comic_20261015_04.png",
+      "sourceSha256": "9a8647341431b2caa2fea23838467e45a9dbe80e77992ac2e5eaa820e99e6c11",
+      "targetSha256": "55f0b215c39d16b16491ea6d36b95ce4131524796bb29f67d1027dac10dd126d",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "locale": "ja",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/backlog_comic_20261015/04.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/dialogue_filled_20261018/backlog_comic_20261015_04.png",
+      "sourceSha256": "9a8647341431b2caa2fea23838467e45a9dbe80e77992ac2e5eaa820e99e6c11",
+      "targetSha256": "55f0b215c39d16b16491ea6d36b95ce4131524796bb29f67d1027dac10dd126d",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "locale": "ja",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ja/backlog_comic_20261015/05.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/ja/dialogue_filled_20261018/backlog_comic_20261015_05.png",
+      "sourceSha256": "e55ac706760321d5c46207cc2f9b3ab6ab8c6750d4438c125fc3ae8d37364274",
+      "targetSha256": "0debadbc53bf311e46b30e8945d680fa52f1dfa7a73d646b12497db4a946ff23",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "locale": "ja",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/backlog_comic_20261015/05.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/dialogue_filled_20261018/backlog_comic_20261015_05.png",
+      "sourceSha256": "e55ac706760321d5c46207cc2f9b3ab6ab8c6750d4438c125fc3ae8d37364274",
+      "targetSha256": "0debadbc53bf311e46b30e8945d680fa52f1dfa7a73d646b12497db4a946ff23",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "locale": "ja",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ja/backlog_comic_20261015/06.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/ja/dialogue_filled_20261018/backlog_comic_20261015_06.png",
+      "sourceSha256": "e631826a95fb8fd1dee5153ba5b17bead5e00bd91f8c3bf6dabbaaa347f1d086",
+      "targetSha256": "555f084bc70b267c32555cd161f3671d28d99ab6d8c31a890a0a15d53b350a55",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "locale": "ja",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/backlog_comic_20261015/06.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/dialogue_filled_20261018/backlog_comic_20261015_06.png",
+      "sourceSha256": "e631826a95fb8fd1dee5153ba5b17bead5e00bd91f8c3bf6dabbaaa347f1d086",
+      "targetSha256": "555f084bc70b267c32555cd161f3671d28d99ab6d8c31a890a0a15d53b350a55",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "locale": "ja",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ja/backlog_comic_20261015/07.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/ja/dialogue_filled_20261018/backlog_comic_20261015_07.png",
+      "sourceSha256": "c48c4962238c019758a8c3dc40ca92ba8a9006bbd3946f11eaf1e52c02f5c5ee",
+      "targetSha256": "b9c2d4bb6067cc81d5398833a7bfd65f925dcb8779006f914c4d44f204a6ac30",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "locale": "ja",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/backlog_comic_20261015/07.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/dialogue_filled_20261018/backlog_comic_20261015_07.png",
+      "sourceSha256": "c48c4962238c019758a8c3dc40ca92ba8a9006bbd3946f11eaf1e52c02f5c5ee",
+      "targetSha256": "b9c2d4bb6067cc81d5398833a7bfd65f925dcb8779006f914c4d44f204a6ac30",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "locale": "ja",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ja/backlog_comic_20261015/08.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/ja/dialogue_filled_20261018/backlog_comic_20261015_08.png",
+      "sourceSha256": "db3e7ebe59b1d0062839ef4b69cbb17ae6c7e26214061de7893834484c6e0fce",
+      "targetSha256": "5a921712d74e0ca4f298871133245c4dca99493f49259fbbf2a61f5f0029833c",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "locale": "ja",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/backlog_comic_20261015/08.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/dialogue_filled_20261018/backlog_comic_20261015_08.png",
+      "sourceSha256": "db3e7ebe59b1d0062839ef4b69cbb17ae6c7e26214061de7893834484c6e0fce",
+      "targetSha256": "5a921712d74e0ca4f298871133245c4dca99493f49259fbbf2a61f5f0029833c",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "locale": "ja",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ja/backlog_comic_20261015/09.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/ja/dialogue_filled_20261018/backlog_comic_20261015_09.png",
+      "sourceSha256": "d8d7515b7898c2daddf0de2ac91c11803712e6bda6049602fbd5ead605b1c1cc",
+      "targetSha256": "1abe97c4fead709a5b92aa5b1b07a0437f0dd990415c965e5bbeff382c3bb8f3",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "locale": "ja",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/backlog_comic_20261015/09.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/dialogue_filled_20261018/backlog_comic_20261015_09.png",
+      "sourceSha256": "d8d7515b7898c2daddf0de2ac91c11803712e6bda6049602fbd5ead605b1c1cc",
+      "targetSha256": "1abe97c4fead709a5b92aa5b1b07a0437f0dd990415c965e5bbeff382c3bb8f3",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "locale": "ja",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ja/backlog_comic_20261015/10.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/ja/dialogue_filled_20261018/backlog_comic_20261015_10.png",
+      "sourceSha256": "558eb8588fba15ac588808bb57b5ec560b200d473833a7c7e674185214403542",
+      "targetSha256": "95dcc37320669513025d7074b1c8dc5580893f0dbf1e40c2982fe87e186b36d9",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "locale": "ja",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/backlog_comic_20261015/10.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/dialogue_filled_20261018/backlog_comic_20261015_10.png",
+      "sourceSha256": "558eb8588fba15ac588808bb57b5ec560b200d473833a7c7e674185214403542",
+      "targetSha256": "95dcc37320669513025d7074b1c8dc5580893f0dbf1e40c2982fe87e186b36d9",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "locale": "en",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/en/backlog_comic_20261015/01.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/en/dialogue_filled_20261018/backlog_comic_20261015_01.png",
+      "sourceSha256": "dedc5b2972f6b3e573697f335f6b2a1f6ce907da8051a0f622645aacd7d938bb",
+      "targetSha256": "4c3f3187669ae4eeb6cb8f3aea7bc33fbb3591139f54892e2f682c89ac4da756",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "locale": "en",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/backlog_comic_20261015/01.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/dialogue_filled_20261018/backlog_comic_20261015_01.png",
+      "sourceSha256": "dedc5b2972f6b3e573697f335f6b2a1f6ce907da8051a0f622645aacd7d938bb",
+      "targetSha256": "4c3f3187669ae4eeb6cb8f3aea7bc33fbb3591139f54892e2f682c89ac4da756",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "locale": "en",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/en/backlog_comic_20261015/02.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/en/dialogue_filled_20261018/backlog_comic_20261015_02.png",
+      "sourceSha256": "3947f513e13c604c2aef8f16d01e454b7f0bf4f358688cf83d83050f6ba986ae",
+      "targetSha256": "6ece693959edb94fe3e219829f58547941ba720174f30a2254e7906641dbd967",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "locale": "en",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/backlog_comic_20261015/02.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/dialogue_filled_20261018/backlog_comic_20261015_02.png",
+      "sourceSha256": "3947f513e13c604c2aef8f16d01e454b7f0bf4f358688cf83d83050f6ba986ae",
+      "targetSha256": "6ece693959edb94fe3e219829f58547941ba720174f30a2254e7906641dbd967",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "locale": "en",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/en/backlog_comic_20261015/03.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/en/dialogue_filled_20261018/backlog_comic_20261015_03.png",
+      "sourceSha256": "65d0c0f35bc957aaed39c262967e7805114f53a6ada8bf2e0d6086f0cd073218",
+      "targetSha256": "733db7cbd04a8d1eacc8fc8c63bbe0500251ee8058264aa0883109f65c499129",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "locale": "en",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/backlog_comic_20261015/03.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/dialogue_filled_20261018/backlog_comic_20261015_03.png",
+      "sourceSha256": "65d0c0f35bc957aaed39c262967e7805114f53a6ada8bf2e0d6086f0cd073218",
+      "targetSha256": "733db7cbd04a8d1eacc8fc8c63bbe0500251ee8058264aa0883109f65c499129",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "locale": "en",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/en/backlog_comic_20261015/04.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/en/dialogue_filled_20261018/backlog_comic_20261015_04.png",
+      "sourceSha256": "f3f856b6f873b9c432ede569a8e3568372b9c336a04c346d9c2c02b45cd638a4",
+      "targetSha256": "5647227caf8e480e9a407c72f8222315648c82ffe784fc905ab5af3c7a6a99fb",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "locale": "en",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/backlog_comic_20261015/04.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/dialogue_filled_20261018/backlog_comic_20261015_04.png",
+      "sourceSha256": "f3f856b6f873b9c432ede569a8e3568372b9c336a04c346d9c2c02b45cd638a4",
+      "targetSha256": "5647227caf8e480e9a407c72f8222315648c82ffe784fc905ab5af3c7a6a99fb",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "locale": "en",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/en/backlog_comic_20261015/05.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/en/dialogue_filled_20261018/backlog_comic_20261015_05.png",
+      "sourceSha256": "7c4288890e1e68a8aec206782ea00c0ed750725a006d03e591d7cddb8f845fe9",
+      "targetSha256": "ced9177fb291b5eebd986be0a6d804f17cef77fc8e2592be9bcc040e86b886f4",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "locale": "en",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/backlog_comic_20261015/05.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/dialogue_filled_20261018/backlog_comic_20261015_05.png",
+      "sourceSha256": "7c4288890e1e68a8aec206782ea00c0ed750725a006d03e591d7cddb8f845fe9",
+      "targetSha256": "ced9177fb291b5eebd986be0a6d804f17cef77fc8e2592be9bcc040e86b886f4",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "locale": "en",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/en/backlog_comic_20261015/06.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/en/dialogue_filled_20261018/backlog_comic_20261015_06.png",
+      "sourceSha256": "69a4bf222516247c5febb7b36e04f3b04e964a994854f1aba0af04073aa6a71f",
+      "targetSha256": "ba5eedd9009e106acc03bf9e8212b8d78d11752c569dc767408ff52415ab88e5",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "locale": "en",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/backlog_comic_20261015/06.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/dialogue_filled_20261018/backlog_comic_20261015_06.png",
+      "sourceSha256": "69a4bf222516247c5febb7b36e04f3b04e964a994854f1aba0af04073aa6a71f",
+      "targetSha256": "ba5eedd9009e106acc03bf9e8212b8d78d11752c569dc767408ff52415ab88e5",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "locale": "en",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/en/backlog_comic_20261015/07.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/en/dialogue_filled_20261018/backlog_comic_20261015_07.png",
+      "sourceSha256": "469dfb972d2f5a83e14f4f521663d2da978e34fd06f0772e955b3c754622b2d6",
+      "targetSha256": "c75f787e8a02cd90358d21279fd3c87b7e7397cd45f1f6b9b8da32c5eb345dc4",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "locale": "en",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/backlog_comic_20261015/07.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/dialogue_filled_20261018/backlog_comic_20261015_07.png",
+      "sourceSha256": "469dfb972d2f5a83e14f4f521663d2da978e34fd06f0772e955b3c754622b2d6",
+      "targetSha256": "c75f787e8a02cd90358d21279fd3c87b7e7397cd45f1f6b9b8da32c5eb345dc4",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "locale": "en",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/en/backlog_comic_20261015/08.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/en/dialogue_filled_20261018/backlog_comic_20261015_08.png",
+      "sourceSha256": "416ca2e71169600c3775878b0f04093d7f62fe608bf7d60156874b74359480b0",
+      "targetSha256": "0f20cf141b5719c1de41a1fb3c16357c38663bac188356712aab25e3e2eb9ad5",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "locale": "en",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/backlog_comic_20261015/08.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/dialogue_filled_20261018/backlog_comic_20261015_08.png",
+      "sourceSha256": "416ca2e71169600c3775878b0f04093d7f62fe608bf7d60156874b74359480b0",
+      "targetSha256": "0f20cf141b5719c1de41a1fb3c16357c38663bac188356712aab25e3e2eb9ad5",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "locale": "en",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/en/backlog_comic_20261015/09.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/en/dialogue_filled_20261018/backlog_comic_20261015_09.png",
+      "sourceSha256": "272c9e4f469632cc215a6807d1b06455d0790865e693df8ed0d2ff788415f062",
+      "targetSha256": "bfeae7b826de5591e2e3e40d2c134fa146cc897fdb57bc4647fc1393aa394ad1",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "locale": "en",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/backlog_comic_20261015/09.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/dialogue_filled_20261018/backlog_comic_20261015_09.png",
+      "sourceSha256": "272c9e4f469632cc215a6807d1b06455d0790865e693df8ed0d2ff788415f062",
+      "targetSha256": "bfeae7b826de5591e2e3e40d2c134fa146cc897fdb57bc4647fc1393aa394ad1",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "locale": "en",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/en/backlog_comic_20261015/10.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/en/dialogue_filled_20261018/backlog_comic_20261015_10.png",
+      "sourceSha256": "6daf3c705b2bca66d28a8ccd09af1a68dc20090b8a09819db40a648ce1c5fa46",
+      "targetSha256": "044f8cc2fb89e9f3d629025be858daeec07ecd82eec5068ff5e1fdfb28bf82a1",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "locale": "en",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/backlog_comic_20261015/10.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/dialogue_filled_20261018/backlog_comic_20261015_10.png",
+      "sourceSha256": "6daf3c705b2bca66d28a8ccd09af1a68dc20090b8a09819db40a648ce1c5fa46",
+      "targetSha256": "044f8cc2fb89e9f3d629025be858daeec07ecd82eec5068ff5e1fdfb28bf82a1",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "locale": "vi",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/vi/backlog_comic_20261015/01.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/vi/dialogue_filled_20261018/backlog_comic_20261015_01.png",
+      "sourceSha256": "015ddd4a21f887af78ccde30c826ef90e96042fb09135ea4e01c4d187ceb2a2d",
+      "targetSha256": "45b4eb9591ed4e18578be3bc6a05af386f099ef2c6361b39e9ccc33b80632320",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "locale": "vi",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/backlog_comic_20261015/01.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/dialogue_filled_20261018/backlog_comic_20261015_01.png",
+      "sourceSha256": "015ddd4a21f887af78ccde30c826ef90e96042fb09135ea4e01c4d187ceb2a2d",
+      "targetSha256": "45b4eb9591ed4e18578be3bc6a05af386f099ef2c6361b39e9ccc33b80632320",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "locale": "vi",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/vi/backlog_comic_20261015/02.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/vi/dialogue_filled_20261018/backlog_comic_20261015_02.png",
+      "sourceSha256": "8c49dd2b0b0fff9bfccc0f2ff522e0b3d75ae0267b8e415c67b1b6aec365ee39",
+      "targetSha256": "3ccef51e0865afae296e4733fd87570aa70c70425343b578f8fc51d515964f2f",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "locale": "vi",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/backlog_comic_20261015/02.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/dialogue_filled_20261018/backlog_comic_20261015_02.png",
+      "sourceSha256": "8c49dd2b0b0fff9bfccc0f2ff522e0b3d75ae0267b8e415c67b1b6aec365ee39",
+      "targetSha256": "3ccef51e0865afae296e4733fd87570aa70c70425343b578f8fc51d515964f2f",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "locale": "vi",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/vi/backlog_comic_20261015/03.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/vi/dialogue_filled_20261018/backlog_comic_20261015_03.png",
+      "sourceSha256": "ad22a385cbcad90fee871a2123e8ea0ae42f554e987e94ccdc4d587ae7591459",
+      "targetSha256": "6f30a7a9407ca64ea3ded6cfda668900abff79fad5b1a116249a118a6660445c",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "locale": "vi",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/backlog_comic_20261015/03.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/dialogue_filled_20261018/backlog_comic_20261015_03.png",
+      "sourceSha256": "ad22a385cbcad90fee871a2123e8ea0ae42f554e987e94ccdc4d587ae7591459",
+      "targetSha256": "6f30a7a9407ca64ea3ded6cfda668900abff79fad5b1a116249a118a6660445c",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "locale": "vi",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/vi/backlog_comic_20261015/04.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/vi/dialogue_filled_20261018/backlog_comic_20261015_04.png",
+      "sourceSha256": "da2d7beed6d3904661432b362ec61c29e64608d950c83818f2264e8aa892c385",
+      "targetSha256": "8d7151c3385b4d2d3435ae136b762a3143196676f9a17d65eb7f90dc3b80945d",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "locale": "vi",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/backlog_comic_20261015/04.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/dialogue_filled_20261018/backlog_comic_20261015_04.png",
+      "sourceSha256": "da2d7beed6d3904661432b362ec61c29e64608d950c83818f2264e8aa892c385",
+      "targetSha256": "8d7151c3385b4d2d3435ae136b762a3143196676f9a17d65eb7f90dc3b80945d",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "locale": "vi",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/vi/backlog_comic_20261015/05.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/vi/dialogue_filled_20261018/backlog_comic_20261015_05.png",
+      "sourceSha256": "a2b096504a2e5d8c1ea59daf5597006da6fb6866b253c6bb4aa4a9048b7c8936",
+      "targetSha256": "cc5766b7f486b2c70697a569de596a4f4ee49b273a0dc1f842bb00036c17f04a",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "locale": "vi",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/backlog_comic_20261015/05.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/dialogue_filled_20261018/backlog_comic_20261015_05.png",
+      "sourceSha256": "a2b096504a2e5d8c1ea59daf5597006da6fb6866b253c6bb4aa4a9048b7c8936",
+      "targetSha256": "cc5766b7f486b2c70697a569de596a4f4ee49b273a0dc1f842bb00036c17f04a",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "locale": "vi",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/vi/backlog_comic_20261015/06.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/vi/dialogue_filled_20261018/backlog_comic_20261015_06.png",
+      "sourceSha256": "c76f3b0ec24666fd128f9831909c9be976d51f4b374d27cba082a47c5c45e571",
+      "targetSha256": "4be7964bdb7568193792f0a5ccf92c8577e49de82c0234fe1cd5f3dce04c6059",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "locale": "vi",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/backlog_comic_20261015/06.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/dialogue_filled_20261018/backlog_comic_20261015_06.png",
+      "sourceSha256": "c76f3b0ec24666fd128f9831909c9be976d51f4b374d27cba082a47c5c45e571",
+      "targetSha256": "4be7964bdb7568193792f0a5ccf92c8577e49de82c0234fe1cd5f3dce04c6059",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "locale": "vi",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/vi/backlog_comic_20261015/07.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/vi/dialogue_filled_20261018/backlog_comic_20261015_07.png",
+      "sourceSha256": "b0bd5f0a729a7a91f4f0c3b2d489e86e57ab5bdf80c5cc2b580fbbc32ddb6947",
+      "targetSha256": "8e6f0bb1063dcb6ddd355501f06fa52d0e0ae48ba17e550b22d7cb0dfec716ea",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "locale": "vi",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/backlog_comic_20261015/07.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/dialogue_filled_20261018/backlog_comic_20261015_07.png",
+      "sourceSha256": "b0bd5f0a729a7a91f4f0c3b2d489e86e57ab5bdf80c5cc2b580fbbc32ddb6947",
+      "targetSha256": "8e6f0bb1063dcb6ddd355501f06fa52d0e0ae48ba17e550b22d7cb0dfec716ea",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "locale": "vi",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/vi/backlog_comic_20261015/08.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/vi/dialogue_filled_20261018/backlog_comic_20261015_08.png",
+      "sourceSha256": "733b238bc570f2771bb21ae12056fd6e303f5787ca78d5e956477c27a0360cc7",
+      "targetSha256": "844ea96cf174c9c66c1746439e49252c3e25d7361d309278700f81b9a3379c63",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "locale": "vi",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/backlog_comic_20261015/08.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/dialogue_filled_20261018/backlog_comic_20261015_08.png",
+      "sourceSha256": "733b238bc570f2771bb21ae12056fd6e303f5787ca78d5e956477c27a0360cc7",
+      "targetSha256": "844ea96cf174c9c66c1746439e49252c3e25d7361d309278700f81b9a3379c63",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "locale": "vi",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/vi/backlog_comic_20261015/09.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/vi/dialogue_filled_20261018/backlog_comic_20261015_09.png",
+      "sourceSha256": "be77f7158be73ff8aefd94e66858a8459df3f2c1795428f48925728e8b030197",
+      "targetSha256": "967410e770093c735f1d19f891341d464a876aaca03c0724db75d71285828678",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "locale": "vi",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/backlog_comic_20261015/09.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/dialogue_filled_20261018/backlog_comic_20261015_09.png",
+      "sourceSha256": "be77f7158be73ff8aefd94e66858a8459df3f2c1795428f48925728e8b030197",
+      "targetSha256": "967410e770093c735f1d19f891341d464a876aaca03c0724db75d71285828678",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "locale": "vi",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/vi/backlog_comic_20261015/10.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/x/vi/dialogue_filled_20261018/backlog_comic_20261015_10.png",
+      "sourceSha256": "439af835b9c71a3cfa64d270f62490a55e385b5ac58e3b5a50c2b94f018d76c5",
+      "targetSha256": "39a6f2b3456e71e934520e31a9ff1b21d248d4de031689e3f897b8e3a4090124",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "locale": "vi",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/backlog_comic_20261015/10.png",
+      "target": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/dialogue_filled_20261018/backlog_comic_20261015_10.png",
+      "sourceSha256": "439af835b9c71a3cfa64d270f62490a55e385b5ac58e3b5a50c2b94f018d76c5",
+      "targetSha256": "39a6f2b3456e71e934520e31a9ff1b21d248d4de031689e3f897b8e3a4090124",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    }
+  ]
+}

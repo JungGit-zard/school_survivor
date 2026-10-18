@@ -1,0 +1,9 @@
+{
+  "sdkRulesHash": "ead0122d1aaaf3d5a6454ff6fa2f25aabc30dcf6f4836a56d69d13f7984bf2f3",
+  "reconstructedSdkRulesHash": "ead0122d1aaaf3d5a6454ff6fa2f25aabc30dcf6f4836a56d69d13f7984bf2f3",
+  "exactSdkSourceReconstructed": true,
+  "adminSubtreeSHA256": "b29e60976f49170699d2052b69497a50c4d316bd5dc08ec514d80c27d8b5bdb6",
+  "finalAdminSubtreeUnchanged": true,
+  "sdkPassed": 13,
+  "finalRulesSHA256": "dfb149c29d7016af17714c5d063f83c83e6d691556b01a096d8028490155645f"
+}

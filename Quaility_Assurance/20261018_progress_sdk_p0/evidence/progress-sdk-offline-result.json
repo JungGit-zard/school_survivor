@@ -1,0 +1,42 @@
+{
+  "beforeOnline": {
+    "acknowledged": false,
+    "state": "pending",
+    "samePending": true
+  },
+  "recovered": true,
+  "records": {
+    "totalRuns": 6,
+    "totalKills": 5,
+    "totalGold": 6,
+    "totalSurvivalSeconds": 960,
+    "bestSurvivalSeconds": 240,
+    "stage1Clears": 3,
+    "stage1Survival180Runs": 1,
+    "stage2Clears": 1,
+    "stage2BestSurvivalSec": 240,
+    "stage3Clears": 1,
+    "stage3BestSurvivalSec": 240,
+    "stage4Clears": 1,
+    "stage4BestSurvivalSec": 240,
+    "stage5Clears": 0,
+    "stage5BestSurvivalSec": 0,
+    "stage6Clears": 0,
+    "stage6BestSurvivalSec": 0,
+    "stage7Clears": 0,
+    "stage7BestSurvivalSec": 0,
+    "stage8Clears": 0,
+    "stage8BestSurvivalSec": 0,
+    "stage9Clears": 0,
+    "stage9BestSurvivalSec": 0,
+    "stage10Clears": 0,
+    "stage10BestSurvivalSec": 0,
+    "bossKills": 0,
+    "totalLevelUps": 0,
+    "totalPickups": 0,
+    "weaponMasterCount": 0
+  },
+  "gold": 335,
+  "initialHash": "c22fc399cf1226d7d69487fbbe227c2f9398e3e1496cb8f2ded7689b908296ee",
+  "restoredHash": "c22fc399cf1226d7d69487fbbe227c2f9398e3e1496cb8f2ded7689b908296ee"
+}

@@ -5,6 +5,14 @@ const CONTACT_EMAIL = 'zard5388@gmail.com'
 const EFFECTIVE_DATE = 'July 29, 2026'
 
 export default {
+  'persistence.saveFailed': 'Could not save progress to the server. Check your connection and try again.',
+  'persistence.retry': 'Retry save',
+  'persistence.saving': 'Saving · waiting for server confirmation.',
+  'ranking.lastPlayed': 'Last played',
+  'ranking.progressLoading': 'Loading',
+  'ranking.progressUnknown': 'Records not received',
+  'ranking.progressFailed': 'Could not load records',
+  'ranking.playTimeUnknown': 'Time not recorded',
   // ─── Common ───
   'common.close': 'Close',
   'common.cancel': 'Cancel',

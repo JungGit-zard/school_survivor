@@ -22,11 +22,15 @@ import {
   stopInspection,
   subscribeInspectionMode,
 } from '../lib/firebaseInspectionMode.js'
+import { fetchAdminVisitors } from '../lib/firebaseAdminVisitors.js'
+import { isProjectMaster } from '../lib/projectAdmin.js'
+import { formatLastPlayedAt } from '../lib/userRanking.js'
 
 const TAB_BALANCE = 'balance'
 const TAB_RANKING = 'ranking'
 const TAB_WAVES = 'waves'
 const TAB_INSPECTION = 'inspection'
+const TAB_VISITORS = 'visitors'
 
 const ZOMBIE_LABELS = {
   E01: 'E01 기본',
@@ -309,6 +313,7 @@ export default function AdminPage({ user = null }) {
         >
           점검 모드
         </button>
+        {isProjectMaster(user) && <button type="button" style={styles.tab(activeTab === TAB_VISITORS)} onClick={() => setActiveTab(TAB_VISITORS)}>접속자</button>}
       </nav>
 
       <main style={styles.content}>
@@ -347,6 +352,7 @@ export default function AdminPage({ user = null }) {
               onStop={endInspectionNow}
             />
           )}
+          {activeTab === TAB_VISITORS && <VisitorControls user={user} />}
         </section>
 
         <aside style={styles.previewPanel}>
@@ -376,6 +382,49 @@ export default function AdminPage({ user = null }) {
       </main>
     </div>
   )
+}
+
+function VisitorControls({ user }) {
+  const [rows, setRows] = useState([])
+  const [status, setStatus] = useState('loading')
+  const [refresh, setRefresh] = useState(0)
+  useEffect(() => {
+    let cancelled = false
+    setRows([])
+    setStatus('loading')
+    fetchAdminVisitors(user).then((next) => {
+      if (!cancelled) { setRows(next); setStatus('ready') }
+    }).catch(() => { if (!cancelled) setStatus('error') })
+    return () => { cancelled = true }
+  }, [user, refresh])
+  if (!isProjectMaster(user)) return <p role="alert">최고관리자만 조회할 수 있습니다.</p>
+  const liveCount = rows.filter((row) => row.firstVisitedAt || row.lastVisitedAt).length
+  const historicalCount = rows.filter((row) => !row.firstVisitedAt && !row.lastVisitedAt && row.provenance === 'historical-ranking-auth').length
+  const authOnlyCount = rows.filter((row) => !row.firstVisitedAt && !row.lastVisitedAt && row.provenance === 'historical-auth-only').length
+  return <section aria-label="관리자 전용 접속자 명부">
+    <h2>접속자 · 관리자 전용</h2>
+    <p>Google 이메일은 이 보호 명부에서만 표시됩니다. 과거 시각 미확인은 방문하지 않았다는 뜻이 아닙니다.</p>
+    <button type="button" style={styles.linkButton} onClick={() => setRefresh((value) => value + 1)} disabled={status === 'loading'}>새로고침</button>
+    {status === 'loading' && <p role="status">접속자를 불러오는 중입니다.</p>}
+    {status === 'error' && <p role="alert">접속자 명부를 불러오지 못했습니다. 권한과 연결을 확인하고 새로고침해 주세요.</p>}
+    {status === 'ready' && rows.length === 0 && <p role="status">저장된 접속 기록이 없습니다.</p>}
+    {status === 'ready' && rows.length > 0 && <div style={{ overflowX: 'auto' }}>
+      <p>실제 방문 이벤트 {liveCount}계정 · 기존 랭킹 근거 {historicalCount}계정 · 인증 계정만 {authOnlyCount}계정 · 기타 미확인 {rows.length - liveCount - historicalCount - authOnlyCount}계정</p>
+      <table style={{ width: '100%', minWidth: 660, borderCollapse: 'collapse', textAlign: 'left' }}>
+        <caption>계정 {rows.length}개 · 시각은 KST · 고유 사람 수가 아닙니다</caption>
+        <thead><tr>{['닉네임', 'Google 이메일', 'UID', '인증 종류', '첫 방문', '최근 방문', '기록 근거'].map((label) => <th key={label} scope="col" style={{ padding: 8 }}>{label}</th>)}</tr></thead>
+        <tbody>{rows.map((row) => <tr key={row.uid}>
+          <td style={{ padding: 8 }}>{row.nickname || '미확인'}</td>
+          <td style={{ padding: 8, overflowWrap: 'anywhere' }}>{row.authType === 'anonymous' ? '게스트 · 이메일 없음' : row.authType === 'google.com' && row.email ? row.email : row.linkedGoogleEmail ? <>{row.linkedGoogleEmail}<small style={{ display: 'block' }}>연결된 Google 이메일 · 최근 로그인 방식 미상</small></> : '이메일 미확인'}</td>
+          <td style={{ padding: 8, overflowWrap: 'anywhere' }}>{row.uid}</td>
+          <td style={{ padding: 8 }}>{row.authType === 'anonymous' ? '게스트' : row.authType === 'google.com' ? 'Google' : '인증 종류 미확인'}</td>
+          <td style={{ padding: 8 }}>{formatLastPlayedAt(row.firstVisitedAt)}</td>
+          <td style={{ padding: 8 }}>{formatLastPlayedAt(row.lastVisitedAt)}</td>
+          <td style={{ padding: 8 }}>{row.firstVisitedAt || row.lastVisitedAt ? '실제 방문 이벤트' : row.provenance === 'historical-auth-only' ? '인증 계정만 · 방문 기록 미확인' : row.provenance === 'historical-ranking-auth' ? '기존 랭킹·인증정보 대조' : '방문 기록 미확인'}</td>
+        </tr>)}</tbody>
+      </table>
+    </div>}
+  </section>
 }
 
 // ── 스테이지별 웨이브 컨트롤 탭 ─────────────────────────────────────────────

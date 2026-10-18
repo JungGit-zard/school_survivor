@@ -1,0 +1,482 @@
+﻿[
+    {
+        "platform":  "x",
+        "locale":  "ja",
+        "sourcePath":  "marketing/x_daily_zombie_school_posting/image_pool/x/ja/backlog_comic_20261015/01.png",
+        "outputPath":  "marketing\\x_daily_zombie_school_posting\\image_pool\\x\\ja\\dialogue_filled_20261018\\backlog_comic_20261015_01.png",
+        "sourceSha256":  "708fab950e3f2e1ca7b4dc7eb2f8cb350aace963eb5145f571862667abffd300",
+        "outputSha256":  "86fd4083561fe7f955c6fe075d7cd067522c258dbb8ed9db1510e4181e7eb336",
+        "insertedText":  [
+                             "体育館へ！",
+                             "いっけー！",
+                             "やった！"
+                         ],
+        "generatedSourcePath":  "C:\\Users\\admin\\.codex\\generated_images\\01a14dde-cefd-7ed2-8d52-44670dd887fb\\exec-45246c62-6e86-4bae-ba40-6ffd16421d0c.png",
+        "sourceDimensions":  [
+                                 1254,
+                                 1254
+                             ],
+        "outputDimensions":  [
+                                 1254,
+                                 1254
+                             ],
+        "visualEvidence":  "Original and built-in generated output viewed. Three blank balloons filled; existing top-left text, external captions, art and CTA visually preserved.",
+        "visualVerified":  true
+    },
+    {
+        "platform":  "facebook",
+        "locale":  "ja",
+        "sourcePath":  "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/backlog_comic_20261015/01.png",
+        "outputPath":  "marketing\\x_daily_zombie_school_posting\\image_pool\\facebook\\ja\\dialogue_filled_20261018\\backlog_comic_20261015_01.png",
+        "sourceSha256":  "708fab950e3f2e1ca7b4dc7eb2f8cb350aace963eb5145f571862667abffd300",
+        "outputSha256":  "86fd4083561fe7f955c6fe075d7cd067522c258dbb8ed9db1510e4181e7eb336",
+        "insertedText":  [
+                             "体育館へ！",
+                             "いっけー！",
+                             "やった！"
+                         ],
+        "generatedSourcePath":  "C:\\Users\\admin\\.codex\\generated_images\\01a14dde-cefd-7ed2-8d52-44670dd887fb\\exec-45246c62-6e86-4bae-ba40-6ffd16421d0c.png",
+        "sourceDimensions":  [
+                                 1254,
+                                 1254
+                             ],
+        "outputDimensions":  [
+                                 1254,
+                                 1254
+                             ],
+        "visualEvidence":  "Original and built-in generated output viewed. Three blank balloons filled; existing top-left text, external captions, art and CTA visually preserved.",
+        "visualVerified":  true
+    },
+    {
+        "platform":  "x",
+        "locale":  "ja",
+        "sourcePath":  "marketing/x_daily_zombie_school_posting/image_pool/x/ja/backlog_comic_20261015/02.png",
+        "outputPath":  "marketing\\x_daily_zombie_school_posting\\image_pool\\x\\ja\\dialogue_filled_20261018\\backlog_comic_20261015_02.png",
+        "sourceSha256":  "9ecca86f15aba0c60e01df0a1b78e10609ddf4279738458376cb010e56b2603f",
+        "outputSha256":  "2af2c70fde23a5c107375bf01e1fd8a36e4c40d6a5a509d0358746a1700e026f",
+        "insertedText":  [
+                             "磁石オン！",
+                             "ピタッ！",
+                             "大成功！"
+                         ],
+        "generatedSourcePath":  "C:\\Users\\admin\\.codex\\generated_images\\01a14dde-cefd-7ed2-8d52-44670dd887fb\\exec-e337542c-2641-4e92-86b0-17613afe8cf2.png",
+        "sourceDimensions":  [
+                                 1254,
+                                 1254
+                             ],
+        "outputDimensions":  [
+                                 1254,
+                                 1254
+                             ],
+        "visualEvidence":  "Original and built-in generated output viewed. Three blank balloons filled; existing top-left text, external captions, art and CTA visually preserved.",
+        "visualVerified":  true
+    },
+    {
+        "platform":  "facebook",
+        "locale":  "ja",
+        "sourcePath":  "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/backlog_comic_20261015/02.png",
+        "outputPath":  "marketing\\x_daily_zombie_school_posting\\image_pool\\facebook\\ja\\dialogue_filled_20261018\\backlog_comic_20261015_02.png",
+        "sourceSha256":  "9ecca86f15aba0c60e01df0a1b78e10609ddf4279738458376cb010e56b2603f",
+        "outputSha256":  "2af2c70fde23a5c107375bf01e1fd8a36e4c40d6a5a509d0358746a1700e026f",
+        "insertedText":  [
+                             "磁石オン！",
+                             "ピタッ！",
+                             "大成功！"
+                         ],
+        "generatedSourcePath":  "C:\\Users\\admin\\.codex\\generated_images\\01a14dde-cefd-7ed2-8d52-44670dd887fb\\exec-e337542c-2641-4e92-86b0-17613afe8cf2.png",
+        "sourceDimensions":  [
+                                 1254,
+                                 1254
+                             ],
+        "outputDimensions":  [
+                                 1254,
+                                 1254
+                             ],
+        "visualEvidence":  "Original and built-in generated output viewed. Three blank balloons filled; existing top-left text, external captions, art and CTA visually preserved.",
+        "visualVerified":  true
+    },
+    {
+        "platform":  "x",
+        "locale":  "ja",
+        "sourcePath":  "marketing/x_daily_zombie_school_posting/image_pool/x/ja/backlog_comic_20261015/03.png",
+        "outputPath":  "marketing\\x_daily_zombie_school_posting\\image_pool\\x\\ja\\dialogue_filled_20261018\\backlog_comic_20261015_03.png",
+        "sourceSha256":  "7ba395e482aadfc0ee7299d1543ea7928b54321b46847fef4e7a252efc384a6c",
+        "outputSha256":  "36bb4f13b97cb07c4df71aed3d376cee0809047fe3177245f55cae941f75706b",
+        "insertedText":  [
+                             "カート発進！",
+                             "本の雪崩！",
+                             "貸出完了！"
+                         ],
+        "generatedSourcePath":  "C:\\Users\\admin\\.codex\\generated_images\\01a14dde-cefd-7ed2-8d52-44670dd887fb\\exec-cc52e92e-23cc-4bf8-a511-420ccd1cde41.png",
+        "sourceDimensions":  [
+                                 1254,
+                                 1254
+                             ],
+        "outputDimensions":  [
+                                 1254,
+                                 1254
+                             ],
+        "visualEvidence":  "Original and built-in generated output viewed. Three blank balloons filled; existing top-left text, external captions, art and CTA visually preserved.",
+        "visualVerified":  true
+    },
+    {
+        "platform":  "facebook",
+        "locale":  "ja",
+        "sourcePath":  "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/backlog_comic_20261015/03.png",
+        "outputPath":  "marketing\\x_daily_zombie_school_posting\\image_pool\\facebook\\ja\\dialogue_filled_20261018\\backlog_comic_20261015_03.png",
+        "sourceSha256":  "7ba395e482aadfc0ee7299d1543ea7928b54321b46847fef4e7a252efc384a6c",
+        "outputSha256":  "36bb4f13b97cb07c4df71aed3d376cee0809047fe3177245f55cae941f75706b",
+        "insertedText":  [
+                             "カート発進！",
+                             "本の雪崩！",
+                             "貸出完了！"
+                         ],
+        "generatedSourcePath":  "C:\\Users\\admin\\.codex\\generated_images\\01a14dde-cefd-7ed2-8d52-44670dd887fb\\exec-cc52e92e-23cc-4bf8-a511-420ccd1cde41.png",
+        "sourceDimensions":  [
+                                 1254,
+                                 1254
+                             ],
+        "outputDimensions":  [
+                                 1254,
+                                 1254
+                             ],
+        "visualEvidence":  "Original and built-in generated output viewed. Three blank balloons filled; existing top-left text, external captions, art and CTA visually preserved.",
+        "visualVerified":  true
+    },
+    {
+        "platform":  "x",
+        "locale":  "ja",
+        "sourcePath":  "marketing/x_daily_zombie_school_posting/image_pool/x/ja/backlog_comic_20261015/04.png",
+        "outputPath":  "marketing\\x_daily_zombie_school_posting\\image_pool\\x\\ja\\dialogue_filled_20261018\\backlog_comic_20261015_04.png",
+        "sourceSha256":  "9a8647341431b2caa2fea23838467e45a9dbe80e77992ac2e5eaa820e99e6c11",
+        "outputSha256":  "55f0b215c39d16b16491ea6d36b95ce4131524796bb29f67d1027dac10dd126d",
+        "insertedText":  [
+                             "リズムに乗って！",
+                             "ドーン！",
+                             "演奏終了！"
+                         ],
+        "generatedSourcePath":  "C:\\Users\\admin\\.codex\\generated_images\\01a14dde-cefd-7ed2-8d52-44670dd887fb\\exec-4388d1d0-8a99-4b23-9d69-0a89890ae6a5.png",
+        "sourceDimensions":  [
+                                 1254,
+                                 1254
+                             ],
+        "outputDimensions":  [
+                                 1254,
+                                 1254
+                             ],
+        "visualEvidence":  "Original and built-in generated output viewed. Three blank balloons filled; existing top-left text, external captions, art and CTA visually preserved.",
+        "visualVerified":  true
+    },
+    {
+        "platform":  "facebook",
+        "locale":  "ja",
+        "sourcePath":  "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/backlog_comic_20261015/04.png",
+        "outputPath":  "marketing\\x_daily_zombie_school_posting\\image_pool\\facebook\\ja\\dialogue_filled_20261018\\backlog_comic_20261015_04.png",
+        "sourceSha256":  "9a8647341431b2caa2fea23838467e45a9dbe80e77992ac2e5eaa820e99e6c11",
+        "outputSha256":  "55f0b215c39d16b16491ea6d36b95ce4131524796bb29f67d1027dac10dd126d",
+        "insertedText":  [
+                             "リズムに乗って！",
+                             "ドーン！",
+                             "演奏終了！"
+                         ],
+        "generatedSourcePath":  "C:\\Users\\admin\\.codex\\generated_images\\01a14dde-cefd-7ed2-8d52-44670dd887fb\\exec-4388d1d0-8a99-4b23-9d69-0a89890ae6a5.png",
+        "sourceDimensions":  [
+                                 1254,
+                                 1254
+                             ],
+        "outputDimensions":  [
+                                 1254,
+                                 1254
+                             ],
+        "visualEvidence":  "Original and built-in generated output viewed. Three blank balloons filled; existing top-left text, external captions, art and CTA visually preserved.",
+        "visualVerified":  true
+    },
+    {
+        "platform":  "x",
+        "locale":  "ja",
+        "sourcePath":  "marketing/x_daily_zombie_school_posting/image_pool/x/ja/backlog_comic_20261015/05.png",
+        "outputPath":  "marketing\\x_daily_zombie_school_posting\\image_pool\\x\\ja\\dialogue_filled_20261018\\backlog_comic_20261015_05.png",
+        "sourceSha256":  "e55ac706760321d5c46207cc2f9b3ab6ab8c6750d4438c125fc3ae8d37364274",
+        "outputSha256":  "0debadbc53bf311e46b30e8945d680fa52f1dfa7a73d646b12497db4a946ff23",
+        "insertedText":  [
+                             "ころころ！",
+                             "ぐるぐる巻き！",
+                             "作品完成！"
+                         ],
+        "generatedSourcePath":  "C:\\Users\\admin\\.codex\\generated_images\\01a14dde-cefd-7ed2-8d52-44670dd887fb\\exec-dda51461-5070-4436-b9d4-7a15307c3e39.png",
+        "sourceDimensions":  [
+                                 1254,
+                                 1254
+                             ],
+        "outputDimensions":  [
+                                 1254,
+                                 1254
+                             ],
+        "visualEvidence":  "Original and built-in generated output viewed. Three blank balloons filled; existing top-left text, external captions, art and CTA visually preserved.",
+        "visualVerified":  true
+    },
+    {
+        "platform":  "facebook",
+        "locale":  "ja",
+        "sourcePath":  "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/backlog_comic_20261015/05.png",
+        "outputPath":  "marketing\\x_daily_zombie_school_posting\\image_pool\\facebook\\ja\\dialogue_filled_20261018\\backlog_comic_20261015_05.png",
+        "sourceSha256":  "e55ac706760321d5c46207cc2f9b3ab6ab8c6750d4438c125fc3ae8d37364274",
+        "outputSha256":  "0debadbc53bf311e46b30e8945d680fa52f1dfa7a73d646b12497db4a946ff23",
+        "insertedText":  [
+                             "ころころ！",
+                             "ぐるぐる巻き！",
+                             "作品完成！"
+                         ],
+        "generatedSourcePath":  "C:\\Users\\admin\\.codex\\generated_images\\01a14dde-cefd-7ed2-8d52-44670dd887fb\\exec-dda51461-5070-4436-b9d4-7a15307c3e39.png",
+        "sourceDimensions":  [
+                                 1254,
+                                 1254
+                             ],
+        "outputDimensions":  [
+                                 1254,
+                                 1254
+                             ],
+        "visualEvidence":  "Original and built-in generated output viewed. Three blank balloons filled; existing top-left text, external captions, art and CTA visually preserved.",
+        "visualVerified":  true
+    },
+    {
+        "platform":  "x",
+        "locale":  "ja",
+        "sourcePath":  "marketing/x_daily_zombie_school_posting/image_pool/x/ja/backlog_comic_20261015/06.png",
+        "outputPath":  "marketing\\x_daily_zombie_school_posting\\image_pool\\x\\ja\\dialogue_filled_20261018\\backlog_comic_20261015_06.png",
+        "sourceSha256":  "e631826a95fb8fd1dee5153ba5b17bead5e00bd91f8c3bf6dabbaaa347f1d086",
+        "outputSha256":  "555f084bc70b267c32555cd161f3671d28d99ab6d8c31a890a0a15d53b350a55",
+        "insertedText":  [
+                             "そーっと！",
+                             "ぷるぷる！",
+                             "召し上がれ！"
+                         ],
+        "generatedSourcePath":  "C:\\Users\\admin\\.codex\\generated_images\\01a14dde-cefd-7ed2-8d52-44670dd887fb\\exec-d5874fea-2730-45c9-a307-a339bbd1c831.png",
+        "sourceDimensions":  [
+                                 1254,
+                                 1254
+                             ],
+        "outputDimensions":  [
+                                 1254,
+                                 1254
+                             ],
+        "visualEvidence":  "Original and built-in generated output viewed. Three blank balloons filled; existing top-left text, external captions, art and CTA visually preserved.",
+        "visualVerified":  true
+    },
+    {
+        "platform":  "facebook",
+        "locale":  "ja",
+        "sourcePath":  "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/backlog_comic_20261015/06.png",
+        "outputPath":  "marketing\\x_daily_zombie_school_posting\\image_pool\\facebook\\ja\\dialogue_filled_20261018\\backlog_comic_20261015_06.png",
+        "sourceSha256":  "e631826a95fb8fd1dee5153ba5b17bead5e00bd91f8c3bf6dabbaaa347f1d086",
+        "outputSha256":  "555f084bc70b267c32555cd161f3671d28d99ab6d8c31a890a0a15d53b350a55",
+        "insertedText":  [
+                             "そーっと！",
+                             "ぷるぷる！",
+                             "召し上がれ！"
+                         ],
+        "generatedSourcePath":  "C:\\Users\\admin\\.codex\\generated_images\\01a14dde-cefd-7ed2-8d52-44670dd887fb\\exec-d5874fea-2730-45c9-a307-a339bbd1c831.png",
+        "sourceDimensions":  [
+                                 1254,
+                                 1254
+                             ],
+        "outputDimensions":  [
+                                 1254,
+                                 1254
+                             ],
+        "visualEvidence":  "Original and built-in generated output viewed. Three blank balloons filled; existing top-left text, external captions, art and CTA visually preserved.",
+        "visualVerified":  true
+    },
+    {
+        "platform":  "x",
+        "locale":  "ja",
+        "sourcePath":  "marketing/x_daily_zombie_school_posting/image_pool/x/ja/backlog_comic_20261015/07.png",
+        "outputPath":  "marketing\\x_daily_zombie_school_posting\\image_pool\\x\\ja\\dialogue_filled_20261018\\backlog_comic_20261015_07.png",
+        "sourceSha256":  "c48c4962238c019758a8c3dc40ca92ba8a9006bbd3946f11eaf1e52c02f5c5ee",
+        "outputSha256":  "b9c2d4bb6067cc81d5398833a7bfd65f925dcb8779006f914c4d44f204a6ac30",
+        "insertedText":  [
+                             "ライトオン！",
+                             "幕を下ろして！",
+                             "ご清聴ありがとう！"
+                         ],
+        "generatedSourcePath":  "C:\\Users\\admin\\.codex\\generated_images\\01a14dde-cefd-7ed2-8d52-44670dd887fb\\exec-d7fed467-c7e6-4fe6-a4fc-17e030f571a0.png",
+        "sourceDimensions":  [
+                                 1254,
+                                 1254
+                             ],
+        "outputDimensions":  [
+                                 1254,
+                                 1254
+                             ],
+        "visualEvidence":  "Original and built-in generated output viewed. Three blank balloons filled; existing top-left text, external captions, art and CTA visually preserved.",
+        "visualVerified":  true
+    },
+    {
+        "platform":  "facebook",
+        "locale":  "ja",
+        "sourcePath":  "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/backlog_comic_20261015/07.png",
+        "outputPath":  "marketing\\x_daily_zombie_school_posting\\image_pool\\facebook\\ja\\dialogue_filled_20261018\\backlog_comic_20261015_07.png",
+        "sourceSha256":  "c48c4962238c019758a8c3dc40ca92ba8a9006bbd3946f11eaf1e52c02f5c5ee",
+        "outputSha256":  "b9c2d4bb6067cc81d5398833a7bfd65f925dcb8779006f914c4d44f204a6ac30",
+        "insertedText":  [
+                             "ライトオン！",
+                             "幕を下ろして！",
+                             "ご清聴ありがとう！"
+                         ],
+        "generatedSourcePath":  "C:\\Users\\admin\\.codex\\generated_images\\01a14dde-cefd-7ed2-8d52-44670dd887fb\\exec-d7fed467-c7e6-4fe6-a4fc-17e030f571a0.png",
+        "sourceDimensions":  [
+                                 1254,
+                                 1254
+                             ],
+        "outputDimensions":  [
+                                 1254,
+                                 1254
+                             ],
+        "visualEvidence":  "Original and built-in generated output viewed. Three blank balloons filled; existing top-left text, external captions, art and CTA visually preserved.",
+        "visualVerified":  true
+    },
+    {
+        "platform":  "x",
+        "locale":  "ja",
+        "sourcePath":  "marketing/x_daily_zombie_school_posting/image_pool/x/ja/backlog_comic_20261015/08.png",
+        "outputPath":  "marketing\\x_daily_zombie_school_posting\\image_pool\\x\\ja\\dialogue_filled_20261018\\backlog_comic_20261015_08.png",
+        "sourceSha256":  "db3e7ebe59b1d0062839ef4b69cbb17ae6c7e26214061de7893834484c6e0fce",
+        "outputSha256":  "5a921712d74e0ca4f298871133245c4dca99493f49259fbbf2a61f5f0029833c",
+        "insertedText":  [
+                             "水まき開始！",
+                             "すべった！",
+                             "よく育ってね！"
+                         ],
+        "generatedSourcePath":  "C:\\Users\\admin\\.codex\\generated_images\\01a14dde-cefd-7ed2-8d52-44670dd887fb\\exec-55a895e9-9985-47bb-a5cc-7cf794435ebc.png",
+        "sourceDimensions":  [
+                                 1254,
+                                 1254
+                             ],
+        "outputDimensions":  [
+                                 1254,
+                                 1254
+                             ],
+        "visualEvidence":  "Original and built-in generated output viewed. Three blank balloons filled; existing top-left text, external captions, art and CTA visually preserved.",
+        "visualVerified":  true
+    },
+    {
+        "platform":  "facebook",
+        "locale":  "ja",
+        "sourcePath":  "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/backlog_comic_20261015/08.png",
+        "outputPath":  "marketing\\x_daily_zombie_school_posting\\image_pool\\facebook\\ja\\dialogue_filled_20261018\\backlog_comic_20261015_08.png",
+        "sourceSha256":  "db3e7ebe59b1d0062839ef4b69cbb17ae6c7e26214061de7893834484c6e0fce",
+        "outputSha256":  "5a921712d74e0ca4f298871133245c4dca99493f49259fbbf2a61f5f0029833c",
+        "insertedText":  [
+                             "水まき開始！",
+                             "すべった！",
+                             "よく育ってね！"
+                         ],
+        "generatedSourcePath":  "C:\\Users\\admin\\.codex\\generated_images\\01a14dde-cefd-7ed2-8d52-44670dd887fb\\exec-55a895e9-9985-47bb-a5cc-7cf794435ebc.png",
+        "sourceDimensions":  [
+                                 1254,
+                                 1254
+                             ],
+        "outputDimensions":  [
+                                 1254,
+                                 1254
+                             ],
+        "visualEvidence":  "Original and built-in generated output viewed. Three blank balloons filled; existing top-left text, external captions, art and CTA visually preserved.",
+        "visualVerified":  true
+    },
+    {
+        "platform":  "x",
+        "locale":  "ja",
+        "sourcePath":  "marketing/x_daily_zombie_school_posting/image_pool/x/ja/backlog_comic_20261015/09.png",
+        "outputPath":  "marketing\\x_daily_zombie_school_posting\\image_pool\\x\\ja\\dialogue_filled_20261018\\backlog_comic_20261015_09.png",
+        "sourceSha256":  "d8d7515b7898c2daddf0de2ac91c11803712e6bda6049602fbd5ead605b1c1cc",
+        "outputSha256":  "1abe97c4fead709a5b92aa5b1b07a0437f0dd990415c965e5bbeff382c3bb8f3",
+        "insertedText":  [
+                             "ジャンプ！",
+                             "こっちだよ！",
+                             "ゴール！"
+                         ],
+        "generatedSourcePath":  "C:\\Users\\admin\\.codex\\generated_images\\01a14dde-cefd-7ed2-8d52-44670dd887fb\\exec-36ac2413-0eb9-44bc-b3e2-fafa46a13f52.png",
+        "sourceDimensions":  [
+                                 1254,
+                                 1254
+                             ],
+        "outputDimensions":  [
+                                 1254,
+                                 1254
+                             ],
+        "visualEvidence":  "Original and built-in generated output viewed. Three blank balloons filled; existing top-left text, external captions, art and CTA visually preserved.",
+        "visualVerified":  true
+    },
+    {
+        "platform":  "facebook",
+        "locale":  "ja",
+        "sourcePath":  "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/backlog_comic_20261015/09.png",
+        "outputPath":  "marketing\\x_daily_zombie_school_posting\\image_pool\\facebook\\ja\\dialogue_filled_20261018\\backlog_comic_20261015_09.png",
+        "sourceSha256":  "d8d7515b7898c2daddf0de2ac91c11803712e6bda6049602fbd5ead605b1c1cc",
+        "outputSha256":  "1abe97c4fead709a5b92aa5b1b07a0437f0dd990415c965e5bbeff382c3bb8f3",
+        "insertedText":  [
+                             "ジャンプ！",
+                             "こっちだよ！",
+                             "ゴール！"
+                         ],
+        "generatedSourcePath":  "C:\\Users\\admin\\.codex\\generated_images\\01a14dde-cefd-7ed2-8d52-44670dd887fb\\exec-36ac2413-0eb9-44bc-b3e2-fafa46a13f52.png",
+        "sourceDimensions":  [
+                                 1254,
+                                 1254
+                             ],
+        "outputDimensions":  [
+                                 1254,
+                                 1254
+                             ],
+        "visualEvidence":  "Original and built-in generated output viewed. Three blank balloons filled; existing top-left text, external captions, art and CTA visually preserved.",
+        "visualVerified":  true
+    },
+    {
+        "platform":  "x",
+        "locale":  "ja",
+        "sourcePath":  "marketing/x_daily_zombie_school_posting/image_pool/x/ja/backlog_comic_20261015/10.png",
+        "outputPath":  "marketing/x_daily_zombie_school_posting/image_pool/x/ja/dialogue_filled_20261018/backlog_comic_20261015_10.png",
+        "sourceSha256":  "558eb8588fba15ac588808bb57b5ec560b200d473833a7c7e674185214403542",
+        "outputSha256":  "95dcc37320669513025d7074b1c8dc5580893f0dbf1e40c2982fe87e186b36d9",
+        "insertedText":  [
+                             "大きな月！",
+                             "ぐるぐる！",
+                             "宇宙制圧！"
+                         ],
+        "generatedSourcePath":  "C:\\Users\\admin\\.codex\\generated_images\\01a14dde-cefd-7ed2-8d52-44670dd887fb\\exec-20eec300-328f-4b31-85d9-4441ac1fea2a.png",
+        "sourceDimensions":  [
+                                 1254,
+                                 1254
+                             ],
+        "outputDimensions":  [
+                                 1254,
+                                 1254
+                             ],
+        "visualEvidence":  "Original and generated output viewed. Three blank balloons filled. Targeted refinement restored existing top-left 星だ！ pink fill/navy outline; external captions, art and CTA visually preserved.",
+        "visualVerified":  true
+    },
+    {
+        "platform":  "facebook",
+        "locale":  "ja",
+        "sourcePath":  "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/backlog_comic_20261015/10.png",
+        "outputPath":  "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/dialogue_filled_20261018/backlog_comic_20261015_10.png",
+        "sourceSha256":  "558eb8588fba15ac588808bb57b5ec560b200d473833a7c7e674185214403542",
+        "outputSha256":  "95dcc37320669513025d7074b1c8dc5580893f0dbf1e40c2982fe87e186b36d9",
+        "insertedText":  [
+                             "大きな月！",
+                             "ぐるぐる！",
+                             "宇宙制圧！"
+                         ],
+        "generatedSourcePath":  "C:\\Users\\admin\\.codex\\generated_images\\01a14dde-cefd-7ed2-8d52-44670dd887fb\\exec-20eec300-328f-4b31-85d9-4441ac1fea2a.png",
+        "sourceDimensions":  [
+                                 1254,
+                                 1254
+                             ],
+        "outputDimensions":  [
+                                 1254,
+                                 1254
+                             ],
+        "visualEvidence":  "Original and generated output viewed. Three blank balloons filled. Targeted refinement restored existing top-left 星だ！ pink fill/navy outline; external captions, art and CTA visually preserved.",
+        "visualVerified":  true
+    }
+]

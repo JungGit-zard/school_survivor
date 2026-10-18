@@ -1,0 +1,29 @@
+{
+  "observedAt": "2026-10-18T10:34:04.941Z",
+  "remoteWrites": 0,
+  "hash": "0d8065625d1ea06cce37e894d14a3da5acec9307170c68f69d710c77eafc7417",
+  "stageFields": [
+    "uid",
+    "displayName",
+    "score",
+    "timeMs",
+    "cleared",
+    "stageId",
+    "submittedAt",
+    "$other"
+  ],
+  "globalFields": [
+    "uid",
+    "displayName",
+    "score",
+    "timeMs",
+    "cleared",
+    "stageId",
+    "submittedAt",
+    "$other"
+  ],
+  "stageWrite": "auth != null && $uid === auth.uid && ($window === 'daily' || $window === 'weekly' || ($window === 'allTime' && $seasonId === 'all-time' && $periodKey === 'all-time')) && ($stageId === 'stage1' || $stageId === 'stage2' || $stageId === 'stage3' || $stageId === 'stage4') && (!newData.exists() || newData.child('stageId').val() === $stageId) && (!newData.exists() || !data.exists() || newData.child('score').val() >= data.child('score').val())",
+  "globalWrite": "auth != null && $uid === auth.uid && ($window === 'daily' || $window === 'weekly' || ($window === 'allTime' && $seasonId === 'all-time' && $periodKey === 'all-time')) && (!newData.exists() || !data.exists() || newData.child('score').val() >= data.child('score').val())",
+  "stageLastPlayedAtAllowed": false,
+  "globalLastPlayedAtAllowed": false
+}

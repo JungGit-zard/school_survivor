@@ -4,6 +4,7 @@ import { createRoot } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import HUD from './HUD.jsx'
 import { useGameStore } from '../store/useGameStore.js'
+import { useAuthStore } from '../store/useAuthStore.js'
 import { _resetFirebaseProgressForTests, _seedHydratedFirebaseProgressForTests, getFirebaseProgressRuntimeSnapshot } from '../lib/firebaseProgress.js'
 import { getRankingScore } from '../lib/rankingScorePolicy.js'
 import { getLocale, setLocale } from '../lib/i18n.js'
@@ -15,6 +16,7 @@ beforeEach(() => {
   originalLocale = getLocale()
   setLocale('ko')
   _resetFirebaseProgressForTests()
+  useAuthStore.setState({ user: null, status: 'signedOut' })
   useGameStore.getState().resetGame('stage1')
   useGameStore.setState({ phase: 'playing', elapsedMs: 240_000 })
   container = document.createElement('div')
@@ -38,7 +40,7 @@ function renderSuccess(props = {}) {
 }
 
 describe('escape success choices', () => {
-  it('waits for the choice and continues the cleared score without guest progress writes', () => {
+  it('waits for the choice and continues the cleared score without guest progress writes', async () => {
     const remoteBefore = getFirebaseProgressRuntimeSnapshot()
     renderSuccess()
     const score = getRankingScore({ stageId: 'stage1', survivalSeconds: 240, cleared: true })
@@ -50,7 +52,7 @@ describe('escape success choices', () => {
     expect(container.querySelector('[data-testid="escape-total-score"]').textContent).toContain(String(score))
     expect(container.querySelector('[data-testid="escape-success-screen"] img').getAttribute('src')).toContain('escape_success.png')
     expect(useGameStore.getState()).toMatchObject({ phase: 'cleared', currentStageId: 'stage1' })
-    act(() => actions.querySelector('button').click())
+    await act(async () => actions.querySelector('button').click())
     expect(useGameStore.getState()).toMatchObject({ phase: 'playing', currentStageId: 'stage2', continuousScoreBase: score })
     expect(container.querySelector('[data-testid="live-score"]').textContent).toContain(String(score + getRankingScore({ stageId: 'stage2' })))
     expect(getFirebaseProgressRuntimeSnapshot()).toEqual(remoteBefore)

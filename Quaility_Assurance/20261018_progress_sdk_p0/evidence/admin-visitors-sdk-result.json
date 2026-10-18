@@ -1,0 +1,67 @@
+{
+  "timestamp": "2026-10-18T09:30:35.171Z",
+  "actualSDK": true,
+  "syntheticAuth": true,
+  "productionWrites": 0,
+  "rulesHash": "ead0122d1aaaf3d5a6454ff6fa2f25aabc30dcf6f4836a56d69d13f7984bf2f3",
+  "passed": 13,
+  "failed": 0,
+  "rows": [
+    {
+      "name": "google own actual visit",
+      "passed": true
+    },
+    {
+      "name": "master root read",
+      "passed": true
+    },
+    {
+      "name": "ordinary root read denied",
+      "passed": true
+    },
+    {
+      "name": "other uid read denied",
+      "passed": true
+    },
+    {
+      "name": "other uid write denied",
+      "passed": true
+    },
+    {
+      "name": "forged email denied",
+      "passed": true
+    },
+    {
+      "name": "anonymous without email",
+      "passed": true
+    },
+    {
+      "name": "anonymous email forbidden",
+      "passed": true
+    },
+    {
+      "name": "master historical import has no invented visit time",
+      "passed": true
+    },
+    {
+      "name": "owner cannot forge historical metadata",
+      "passed": true
+    },
+    {
+      "name": "owner can read own transaction record",
+      "passed": true
+    },
+    {
+      "name": "other uid delete denied",
+      "passed": true
+    },
+    {
+      "name": "own explicit account-delete allowed",
+      "passed": true
+    }
+  ],
+  "initialHash": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+  "finalHash": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+  "revisionBefore": null,
+  "revisionAfter": null
+}

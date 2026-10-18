@@ -1,0 +1,78 @@
+{
+  "kind": "Latest-result-per-file aggregate, not a new full-suite execution",
+  "createdAt": "2026-10-18T09:10:37.846Z",
+  "success": true,
+  "passed": 93,
+  "failed": 0,
+  "files": [
+    {
+      "evidence": "progress-worker-500-current.json",
+      "startedAt": "2026-10-18T09:08:51.843Z",
+      "name": "C:/Users/admin/AppData/Local/Temp/stage-progress-p0-release-20261018/Developer/r3f_prototype/src/store/useGameStore.500runStress.test.js",
+      "passed": 1,
+      "failed": []
+    },
+    {
+      "evidence": "progress-worker-fixtures-current.json",
+      "startedAt": "2026-10-18T09:09:26.521Z",
+      "name": "C:/Users/admin/AppData/Local/Temp/stage-progress-p0-release-20261018/Developer/r3f_prototype/src/store/useGameStore.guidedMissileUnlock.test.js",
+      "passed": 3,
+      "failed": []
+    },
+    {
+      "evidence": "progress-worker-fixtures-current.json",
+      "startedAt": "2026-10-18T09:09:21.657Z",
+      "name": "C:/Users/admin/AppData/Local/Temp/stage-progress-p0-release-20261018/Developer/r3f_prototype/src/store/useGameStore.progressPersistence.test.js",
+      "passed": 5,
+      "failed": []
+    },
+    {
+      "evidence": "progress-worker-fixtures-current.json",
+      "startedAt": "2026-10-18T09:09:22.255Z",
+      "name": "C:/Users/admin/AppData/Local/Temp/stage-progress-p0-release-20261018/Developer/r3f_prototype/src/store/useGameStore.rankingEntry.test.js",
+      "passed": 6,
+      "failed": []
+    },
+    {
+      "evidence": "progress-worker-fixtures-current.json",
+      "startedAt": "2026-10-18T09:09:25.535Z",
+      "name": "C:/Users/admin/AppData/Local/Temp/stage-progress-p0-release-20261018/Developer/r3f_prototype/src/store/useGameStore.sharkMissileUnlock.test.js",
+      "passed": 3,
+      "failed": []
+    },
+    {
+      "evidence": "progress-worker-fixtures-current.json",
+      "startedAt": "2026-10-18T09:09:24.180Z",
+      "name": "C:/Users/admin/AppData/Local/Temp/stage-progress-p0-release-20261018/Developer/r3f_prototype/src/components/HUD.escapeSuccess.test.jsx",
+      "passed": 4,
+      "failed": []
+    },
+    {
+      "evidence": "progress-worker-hud-current.json",
+      "startedAt": "2026-10-18T09:09:54.198Z",
+      "name": "C:/Users/admin/AppData/Local/Temp/stage-progress-p0-release-20261018/Developer/r3f_prototype/src/components/HUD.test.jsx",
+      "passed": 62,
+      "failed": []
+    },
+    {
+      "evidence": "progress-worker-fixtures-current.json",
+      "startedAt": "2026-10-18T09:09:27.464Z",
+      "name": "C:/Users/admin/AppData/Local/Temp/stage-progress-p0-release-20261018/Developer/r3f_prototype/src/lib/consent.test.js",
+      "passed": 7,
+      "failed": []
+    },
+    {
+      "evidence": "progress-worker-fixtures-result.json",
+      "startedAt": "2026-10-18T09:03:42.106Z",
+      "name": "C:/Users/admin/AppData/Local/Temp/stage-progress-p0-release-20261018/Developer/r3f_prototype/src/lib/firebaseAuth.twaStress100000.test.js",
+      "passed": 2,
+      "failed": []
+    }
+  ],
+  "sourceHashesAtFinalRead": {
+    "src/store/useGameStore.js": "65fb6d179e90f54bbe2cddfdef78a6a87420c3001488d83fe8de42ae864ddb60",
+    "src/lib/firebaseProgress.js": "83fcc8853da7d2dba71f32155dca416024052d2624d13d3be00dc36ac5c8b83c",
+    "src/lib/firebaseAuth.js": "aa7457845f5a96f9951694ce5dc2ee21ea18a0a7242b847a90cc9438e8b51afa"
+  },
+  "limits": "TWA 100000 iteration test succeeded during earlier core snapshot and its auth source was not edited by this worker. Current 500 run and 7 file results were collected after the performance fix. Parent may make additional core fixes; this aggregate does not claim those later bytes were retested."
+}

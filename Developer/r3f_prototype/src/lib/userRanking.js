@@ -113,6 +113,14 @@ export function formatRankScore(score) {
   return t('ranking.scoreSuffix', { score: readScore(score) }, `${readScore(score)}점`)
 }
 
+export function formatLastPlayedAt(value) {
+  const timestamp = typeof value === 'number' ? value : typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(value) ? Date.parse(value) : NaN
+  if (!Number.isFinite(timestamp) || timestamp <= 0) return t('ranking.playTimeUnknown')
+  const date = new Date(timestamp + 9 * 60 * 60 * 1000)
+  if (Number.isNaN(date.getTime())) return t('ranking.playTimeUnknown')
+  return `${date.toISOString().slice(0, 19).replace('T', ' ')} KST`
+}
+
 function buildLocalStageEntry({ displayName, stageId, survivalSeconds, clearCount }) {
   const stage = getStageConfig(stageId)
   const safeSurvivalSeconds = readScore(survivalSeconds)
@@ -157,6 +165,7 @@ function normalizeRankingEntry(entry, policy) {
     kills: readScore(entry.kills),
     cleared,
     submittedAt: readString(entry.submittedAt),
+    lastPlayedAt: entry.lastPlayedAt ?? entry.lastStartedAt ?? null,
     local: entry.local === true,
   }
 }

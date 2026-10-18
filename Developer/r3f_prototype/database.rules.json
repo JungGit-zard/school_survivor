@@ -6,7 +6,36 @@
       "$uid": {
         ".read": "auth != null && (auth.uid === $uid || (auth.token.email === 'zard5388@gmail.com' && auth.token.email_verified === true && auth.token.firebase.sign_in_provider === 'google.com'))",
         ".write": "auth != null && (auth.uid === $uid || (auth.token.email === 'zard5388@gmail.com' && auth.token.email_verified === true && auth.token.firebase.sign_in_provider === 'google.com'))",
-        ".validate": "newData.hasChildren(['schemaVersion', 'updatedAt', 'profile', 'progress'])",
+        ".validate": "newData.hasChildren(['schemaVersion', 'updatedAt', 'profile', 'progress']) && (!data.child('checkpointLedger').exists() || newData.child('checkpointLedger').exists()) && (!data.child('runLedger').exists() || newData.child('runLedger').exists())",
+        "runLedger": {
+          "$run": {
+            ".validate": "newData.hasChildren(['stageId','records','gold','best'])",
+            "stageId": { ".validate": "newData.isString() && newData.val().matches(/^stage([1-9]|10)$/)" },
+            "gold": { ".validate": "newData.isNumber() && newData.val() >= 0" },
+            "records": { "$key": { ".validate": "newData.isNumber() && newData.val() >= 0" } },
+            "best": { "$key": { ".validate": "newData.isNumber() && newData.val() >= 0" } },
+            "missionCounters": { "$key": { ".validate": "newData.isNumber() && newData.val() >= 0" } },
+            "$other": { ".validate": false }
+          }
+        },
+        "checkpointLedger": {
+          ".validate": "newData.hasChildren()",
+          "$session": {
+            ".validate": "newData.hasChildren(['gold', 'records', 'sequence'])",
+            "gold": { ".validate": "newData.isNumber()" },
+            "sequence": { ".validate": "newData.isNumber() && newData.val() > 0 && (!data.exists() || newData.val() >= data.val())" },
+            "records": { "$record": { ".validate": "newData.isNumber()" } },
+            "missionCounters": { "$counter": { ".validate": "newData.isNumber()" } },
+            "purchases": { "$category": { "$item": { ".validate": "newData.isNumber() && newData.val() >= 0" } } },
+            "purchaseReceipts": { "$id": {
+              ".validate": "newData.hasChildren(['status','price'])",
+              "status": { ".validate": "newData.val() === 'accepted' || newData.val() === 'conflict'" },
+              "price": { ".validate": "newData.isNumber() && newData.val() >= 0" },
+              "$other": { ".validate": false }
+            } },
+            "$other": { ".validate": false }
+          }
+        },
         "schemaVersion": { ".validate": "newData.isNumber() && newData.val() === 1" },
         "updatedAt": { ".validate": "newData.isString() && newData.val().length <= 40" },
         "profile": {
@@ -17,10 +46,12 @@
           "$other": { ".validate": false }
         },
         "progress": {
-          ".validate": "newData.hasChildren(['goldTotal', 'records', 'titleSettings'])",
+          ".validate": "newData.hasChildren(['goldTotal', 'records', 'titleSettings']) && (!data.child('checkpointRevision').exists() || (newData.child('checkpointRevision').isNumber() && newData.child('checkpointRevision').val() > data.child('checkpointRevision').val()))",
+          "checkpointRevision": { ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() % 1 === 0" },
           "goldTotal": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 1000000000" },
           "records": {
-            "$recordKey": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 1000000000" }
+            ".validate": "(!data.child('totalRuns').exists() || newData.child('totalRuns').exists()) && (!data.child('totalKills').exists() || newData.child('totalKills').exists()) && (!data.child('totalGold').exists() || newData.child('totalGold').exists()) && (!data.child('totalSurvivalSeconds').exists() || newData.child('totalSurvivalSeconds').exists()) && (!data.child('bestSurvivalSeconds').exists() || newData.child('bestSurvivalSeconds').exists()) && (!data.child('stage1Clears').exists() || newData.child('stage1Clears').exists()) && (!data.child('stage1Survival180Runs').exists() || newData.child('stage1Survival180Runs').exists()) && (!data.child('stage2Clears').exists() || newData.child('stage2Clears').exists()) && (!data.child('stage2BestSurvivalSec').exists() || newData.child('stage2BestSurvivalSec').exists()) && (!data.child('stage3Clears').exists() || newData.child('stage3Clears').exists()) && (!data.child('stage3BestSurvivalSec').exists() || newData.child('stage3BestSurvivalSec').exists()) && (!data.child('stage4Clears').exists() || newData.child('stage4Clears').exists()) && (!data.child('stage4BestSurvivalSec').exists() || newData.child('stage4BestSurvivalSec').exists()) && (!data.child('stage5Clears').exists() || newData.child('stage5Clears').exists()) && (!data.child('stage5BestSurvivalSec').exists() || newData.child('stage5BestSurvivalSec').exists()) && (!data.child('stage6Clears').exists() || newData.child('stage6Clears').exists()) && (!data.child('stage6BestSurvivalSec').exists() || newData.child('stage6BestSurvivalSec').exists()) && (!data.child('stage7Clears').exists() || newData.child('stage7Clears').exists()) && (!data.child('stage7BestSurvivalSec').exists() || newData.child('stage7BestSurvivalSec').exists()) && (!data.child('stage8Clears').exists() || newData.child('stage8Clears').exists()) && (!data.child('stage8BestSurvivalSec').exists() || newData.child('stage8BestSurvivalSec').exists()) && (!data.child('stage9Clears').exists() || newData.child('stage9Clears').exists()) && (!data.child('stage9BestSurvivalSec').exists() || newData.child('stage9BestSurvivalSec').exists()) && (!data.child('stage10Clears').exists() || newData.child('stage10Clears').exists()) && (!data.child('stage10BestSurvivalSec').exists() || newData.child('stage10BestSurvivalSec').exists()) && (!data.child('bossKills').exists() || newData.child('bossKills').exists()) && (!data.child('totalLevelUps').exists() || newData.child('totalLevelUps').exists()) && (!data.child('totalPickups').exists() || newData.child('totalPickups').exists()) && (!data.child('weaponMasterCount').exists() || newData.child('weaponMasterCount').exists())",
+            "$recordKey": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 1000000000 && (!data.exists() || newData.val() >= data.val())" }
           },
           "weaponUnlockSchemaVersion": { ".validate": "newData.isNumber() && newData.val() === 2" },
           "weaponUnlocks": {
@@ -48,7 +79,7 @@
             "catalogVersion": { ".validate": "newData.isString() && newData.val().matches(/^missions_[0-9]{4}_[0-9]{2}_[0-9]{2}_v[0-9]+$/)" },
             "updatedAt": { ".validate": "newData.val() === '' || (newData.isString() && newData.val().length <= 40)" },
             "counters": {
-              "$counterKey": { ".validate": "$counterKey.matches(/^[A-Za-z0-9_.-]{1,96}$/) && newData.isNumber() && newData.val() >= 0 && newData.val() <= 1000000 && newData.val() % 1 === 0" }
+              "$counterKey": { ".validate": "$counterKey.matches(/^([A-Za-z0-9_-]|%2E){1,96}$/) && newData.isNumber() && newData.val() >= 0 && newData.val() <= 1000000 && newData.val() % 1 === 0" }
             },
             "active": {
               "$missionId": {
@@ -214,6 +245,7 @@
                       "cleared": { ".validate": "newData.isBoolean()" },
                       "stageId": { ".validate": "newData.isString() && (newData.val() === 'stage1' || newData.val() === 'stage2' || newData.val() === 'stage3' || newData.val() === 'stage4')" },
                       "submittedAt": { ".validate": "newData.isNumber() && newData.val() >= 0" },
+                      "lastPlayedAt": { ".validate": "newData.isNumber() && newData.val() >= 0 && (!data.exists() || newData.val() >= data.val())" },
                       "$other": { ".validate": false }
                     }
                   }
@@ -237,6 +269,7 @@
                         "cleared": { ".validate": "newData.isBoolean()" },
                         "stageId": { ".validate": "newData.isString() && (newData.val() === 'stage1' || newData.val() === 'stage2' || newData.val() === 'stage3' || newData.val() === 'stage4')" },
                         "submittedAt": { ".validate": "newData.isNumber() && newData.val() >= 0" },
+                        "lastPlayedAt": { ".validate": "newData.isNumber() && newData.val() >= 0 && (!data.exists() || newData.val() >= data.val())" },
                         "$other": { ".validate": false }
                       }
                     }
@@ -311,6 +344,48 @@
         "$other": { ".validate": false }
       },
       "$other": { ".validate": false }
+    }
+,
+    "adminVisitors": {
+      ".read": "auth != null && auth.token.email === 'zard5388@gmail.com' && auth.token.email_verified === true && auth.token.firebase.sign_in_provider === 'google.com'",
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && (auth.uid === $uid || (auth != null && auth.token.email === 'zard5388@gmail.com' && auth.token.email_verified === true && auth.token.firebase.sign_in_provider === 'google.com'))",
+        ".validate": "newData.hasChildren(['uid','nickname','authType']) && ((auth != null && auth.token.email === 'zard5388@gmail.com' && auth.token.email_verified === true && auth.token.firebase.sign_in_provider === 'google.com') || (newData.hasChildren(['firstVisitedAt','lastVisitedAt']) && newData.child('provenance').val() === data.child('provenance').val() && newData.child('importedAt').val() === data.child('importedAt').val() && newData.child('historicalLastPlayedAt').val() === data.child('historicalLastPlayedAt').val() && newData.child('linkedGoogleEmail').val() === data.child('linkedGoogleEmail').val()))",
+        "uid": {
+          ".validate": "newData.isString() && newData.val() === $uid"
+        },
+        "nickname": {
+          ".validate": "newData.isString() && newData.val().length <= 40"
+        },
+        "authType": {
+          ".validate": "((auth != null && auth.token.email === 'zard5388@gmail.com' && auth.token.email_verified === true && auth.token.firebase.sign_in_provider === 'google.com') && newData.val() === 'unknown' && !newData.parent().child('email').exists()) || (newData.val() === 'anonymous' && auth.token.firebase.sign_in_provider === 'anonymous' && !newData.parent().child('email').exists()) || (newData.val() === 'google.com' && auth.token.firebase.sign_in_provider === 'google.com' && auth.token.email_verified === true && newData.parent().child('email').val() === auth.token.email) || (newData.val() === 'unknown' && auth.token.firebase.sign_in_provider !== 'anonymous' && auth.token.firebase.sign_in_provider !== 'google.com' && !newData.parent().child('email').exists())"
+        },
+        "email": {
+          ".validate": "newData.isString() && newData.val() === auth.token.email && auth.token.email_verified === true && auth.token.firebase.sign_in_provider === 'google.com'"
+        },
+        "firstVisitedAt": {
+          ".validate": "newData.isNumber() && ((!data.exists() && newData.val() === now) || (data.exists() && newData.val() === data.val()))"
+        },
+        "lastVisitedAt": {
+          ".validate": "newData.isNumber() && newData.val() === now"
+        },
+        "provenance": {
+          ".validate": "newData.val() === 'historical-auth-only' || newData.val() === 'historical-ranking-auth'"
+        },
+        "importedAt": {
+          ".validate": "newData.isNumber() && newData.val() > 0 && newData.val() <= now"
+        },
+        "historicalLastPlayedAt": {
+          ".validate": "newData.isNumber() && newData.val() > 0 && newData.val() <= now"
+        },
+        "linkedGoogleEmail": {
+          ".validate": "newData.isString() && newData.val().length <= 320"
+        },
+        "$other": {
+          ".validate": false
+        }
+      }
     }
   }
 }
