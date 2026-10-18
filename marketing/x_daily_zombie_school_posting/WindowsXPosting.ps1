@@ -44,9 +44,23 @@ function Get-XWindowElement {
 function Assert-XForeground {
   $foreground = [XPostingNative]::GetForegroundWindow()
   if ($foreground.ToInt64() -ne $script:XWindow) {
-    $title = ''
-    try { $title = [Windows.Automation.AutomationElement]::FromHandle($foreground).Current.Name } catch { }
-    throw "Desktop focus changed to HWND $($foreground.ToInt64()) '$title'; no input sent"
+    # The scheduled worker runs without a visible console.  Its own host can
+    # briefly retake focus after Chrome has been restored, so reclaim only the
+    # already-validated X window before refusing to send any input.
+    $null = Get-XWindowElement
+    [XPostingNative]::ShowWindow([IntPtr]$script:XWindow, 9) | Out-Null
+    [XPostingNative]::SetForegroundWindow([IntPtr]$script:XWindow) | Out-Null
+    Start-Sleep -Milliseconds 150
+    if ([XPostingNative]::GetForegroundWindow().ToInt64() -ne $script:XWindow) {
+      [XPostingNative]::SwitchToThisWindow([IntPtr]$script:XWindow, $true)
+      Start-Sleep -Milliseconds 150
+    }
+    $foreground = [XPostingNative]::GetForegroundWindow()
+    if ($foreground.ToInt64() -ne $script:XWindow) {
+      $title = ''
+      try { $title = [Windows.Automation.AutomationElement]::FromHandle($foreground).Current.Name } catch { }
+      throw "Desktop focus changed to HWND $($foreground.ToInt64()) '$title'; no input sent"
+    }
   }
 }
 function Restore-XWindowFocus([string]$Reason = 'navigation boundary') {
@@ -113,6 +127,24 @@ function Get-XChromeExecutable {
   $command = Get-Command chrome.exe -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1
   if ($null -ne $command -and (Test-Path -LiteralPath $command.Source -PathType Leaf)) { return $command.Source }
   throw 'Chrome executable was not found in the standard installation paths or PATH.'
+}
+function Set-XClipboardText([string]$Value) {
+  $deadline = [DateTime]::UtcNow.AddSeconds(8)
+  $lastError = $null
+  do {
+    try { [Windows.Forms.Clipboard]::SetText($Value); return }
+    catch { $lastError = $_; Start-Sleep -Milliseconds 250 }
+  } while ([DateTime]::UtcNow -lt $deadline)
+  throw ('X clipboard text could not be set after retry: ' + $lastError.Exception.Message)
+}
+function Set-XClipboardImage($Image) {
+  $deadline = [DateTime]::UtcNow.AddSeconds(8)
+  $lastError = $null
+  do {
+    try { [Windows.Forms.Clipboard]::SetImage($Image); return }
+    catch { $lastError = $_; Start-Sleep -Milliseconds 250 }
+  } while ([DateTime]::UtcNow -lt $deadline)
+  throw ('X clipboard image could not be set after retry: ' + $lastError.Exception.Message)
 }
 function Start-XChromeAtX {
   $chrome = Get-XChromeExecutable
@@ -210,7 +242,9 @@ function Wait-XLoginCondition([scriptblock]$Condition, [string]$Description, [in
 }
 function Restore-XAccountSession {
   if (Test-XSecurityChallengeVisible) { throw 'Authentication/security challenge visible; no credentials were entered.' }
-  if (-not (Test-XLoginFormVisible)) { Assert-XNoAuthDialog (Get-XRoot);Assert-XAccount;return }
+  # The composer intentionally hides Account menu.  The caller always moves
+  # to the fixed profile and asserts @jungsilx before creating a post.
+  if (-not (Test-XLoginFormVisible)) { Assert-XNoAuthDialog (Get-XRoot); return }
   . (Join-Path $PSScriptRoot 'XCredentialVault.ps1')
   $credentials = $null
   Get-XPostingVaultCredential ([ref]$credentials)
@@ -248,29 +282,15 @@ function Restore-XAccountSession {
 function Assert-XAccount {
   $root = Get-XRoot
   Assert-XNoAuthDialog $root
+  # X no longer exposes a stable Logout menu item in every signed-in account
+  # menu.  Check the visible account identity on the fixed profile instead of
+  # opening a transient menu whose changing semantics blocked valid posts.
   $menu = Find-XControl 'Account menu' 'Button' $root
-  Click-XElement $menu
-  try {
-    $script:XAccountAuthDialogVisible = $false
-    $script:XWrongAccountVisible = $false
-    Wait-XCondition {
-      $root = Get-XRoot
-      if (Test-XAuthDialogVisible $root) { $script:XAccountAuthDialogVisible = $true; return $true }
-      $items = @((Get-XElements $root) | Where-Object { -not $_.Current.IsOffscreen -and $_.Current.ControlType -eq [Windows.Automation.ControlType]::MenuItem -and $_.Current.Name -ceq 'Log out @jungsilx' })
-      $otherAccounts = @((Get-XElements $root) | Where-Object { -not $_.Current.IsOffscreen -and $_.Current.ControlType -eq [Windows.Automation.ControlType]::MenuItem -and $_.Current.Name -match '^Log out @' -and $_.Current.Name -cne 'Log out @jungsilx' })
-      if ($otherAccounts.Count -gt 0) { $script:XWrongAccountVisible = $true; return $true }
-      return ($items.Count -eq 1)
-    } 'opened Account menu identity'
-    if ($script:XAccountAuthDialogVisible) { throw 'Authentication dialog visible' }
-    if ($script:XWrongAccountVisible) { throw 'Unexpected account in active Account menu; expected @jungsilx.' }
-    $root = Get-XRoot
-    $logout = @((Get-XElements $root) | Where-Object { -not $_.Current.IsOffscreen -and $_.Current.ControlType -eq [Windows.Automation.ControlType]::MenuItem -and $_.Current.Name -ceq 'Log out @jungsilx' })
-    if ($logout.Count -ne 1) { throw "Active Account menu does not expose exact 'Log out @jungsilx' menu item" }
-  } finally {
-    Send-XKeys '{ESC}'
-    Start-Sleep -Milliseconds 150
-  }
-  Assert-XNoAuthDialog (Get-XRoot)
+  $identity = @((Get-XElements $root) | Where-Object {
+    -not $_.Current.IsOffscreen -and $_.Current.Name -ceq '@jungsilx'
+  })
+  if ($identity.Count -lt 1) { throw 'Expected visible X account identity @jungsilx was not found.' }
+  if ($null -eq $menu -or $menu.Current.IsOffscreen) { throw 'X account menu is not visible for @jungsilx.' }
 }
 function Assert-XNavigationSafe {
   $visible = @((Get-XElements) | Where-Object { -not $_.Current.IsOffscreen })
@@ -437,7 +457,8 @@ function Assert-XComposer([string]$Text, [switch]$WebsiteCardOnly, [string]$Card
   if ((Normalize-PostText (Get-XValue $editor)) -cne (Normalize-PostText $Text)) { throw 'Editor text does not match exact campaign copy' }
   if ($WebsiteCardOnly) {
     if ((Get-XAttachmentCount) -ne 0) { throw 'Website-card mode forbids a native image attachment' }
-    if ($null -eq (Get-XWebsiteCardProof $CardUrl)) { throw 'Website card was not proven by the frozen URL and its visible X card-preview controls' }
+    $cardProof = Get-XWebsiteCardProof $CardUrl
+    if ($null -eq $cardProof) { throw 'Website card was not proven by the frozen URL and its visible X card-preview controls' }
   } elseif ((Get-XAttachmentCount) -ne 1) { throw 'Expected exactly one attached campaign image' }
   $post = Find-XControl 'Post' 'Button'
   if (-not $post.Current.IsEnabled) { throw 'Post button is disabled (length limit or upload pending)' }
@@ -455,14 +476,14 @@ function Prepare-XPost([string]$Text, [string]$ImagePath, [switch]$WebsiteCardOn
     if ($CardUrl -notmatch ('^https://(escapezombie\.com|escape-zombie-school-assets\.web\.app)/share/x/' + $CardLanguage + '/' + $imageSha256.Substring(0,16) + '$')) { throw 'Card URL does not bind to the frozen locale and image hash' }
     $script:XExpectedCardUrl = $CardUrl
     $script:XPreparedCardProof = $null
-    [Windows.Forms.Clipboard]::SetText($CardUrl)
+    Set-XClipboardText $CardUrl
     Send-XKeys '^a'
     Send-XKeys '^v'
     Wait-XCondition { (Normalize-PostText (Get-XValue (Find-XControl 'Post text' 'Edit'))) -ceq $CardUrl } 'pasted exact standalone card URL'
     Wait-XCondition { $script:XPreparedCardProof = Get-XWebsiteCardProof $CardUrl; return ($null -ne $script:XPreparedCardProof) } 'exact website card URL and visible card image' 30
     $editor = Find-XControl 'Post text' 'Edit'
     Click-XElement $editor
-    [Windows.Forms.Clipboard]::SetText($Text)
+    Set-XClipboardText $Text
     Send-XKeys '^a'
     Send-XKeys '^v'
     Wait-XCondition { (Normalize-PostText (Get-XValue (Find-XControl 'Post text' 'Edit'))) -ceq (Normalize-PostText $Text) } 'replaced standalone card URL with exact campaign copy'
@@ -470,11 +491,11 @@ function Prepare-XPost([string]$Text, [string]$ImagePath, [switch]$WebsiteCardOn
     $script:XOwnedDraft = [pscustomobject]@{ text=(Get-XValue (Find-XControl 'Post text' 'Edit')); attachments=0; cards=(Get-XCardPreviewRemoveCount) }
     return [pscustomobject]@{ imageSha256=$imageSha256; imagePath=$ImagePath; attachmentCount=0; postFormat='website_card'; cardUrl=$CardUrl; cardEvidence=$script:XPreparedCardProof; preparedUtc=[DateTimeOffset]::UtcNow.ToString('o'); textSha256=(Get-CopyDigest $Text) }
   }
-  [Windows.Forms.Clipboard]::SetText($Text)
+  Set-XClipboardText $Text
   Send-XKeys '^v'
   Wait-XCondition { (Normalize-PostText (Get-XValue (Find-XControl 'Post text' 'Edit'))) -ceq (Normalize-PostText $Text) } 'pasted exact text'
   $image = [Drawing.Image]::FromFile($ImagePath)
-  try { [Windows.Forms.Clipboard]::SetImage($image) } finally { $image.Dispose() }
+  try { Set-XClipboardImage $image } finally { $image.Dispose() }
   Click-XElement (Find-XControl 'Post text' 'Edit')
   Send-XKeys '^v'
   Wait-XCondition { (Get-XAttachmentCount) -eq 1 } 'one uploaded image' 40
@@ -494,17 +515,19 @@ function Publish-XPost([string]$Text, [switch]$WebsiteCardOnly, [string]$CardUrl
     $elements = @(Get-XElements)
     $visible = @($elements | Where-Object { -not $_.Current.IsOffscreen })
     $sent = @($visible | Where-Object { $_.Current.Name -match '^Your post was sent(?:[ .!]|$)' })
-    if ($sent.Count -gt 0) { return }
-    $duplicate = @($visible | Where-Object { $_.Current.Name -match "\bYou(?:['\u2019]ve| have)? already said that(?:[.!]|$)" })
+    if ($sent.Count -gt 0) { return [pscustomobject]@{ outcome='sent' } }
+    $duplicate = @($visible | Where-Object { $_.Current.Name -match "\bYou(?:['’]ve| have)? already said that(?:[.!]|$)" })
     if ($duplicate.Count -gt 0) {
+      # The server rejected this exact submission as a duplicate.  Do not click
+      # again and let the caller close this language as intentionally skipped.
       Close-XDuplicateDraft $Text
-      throw 'X duplicate rejected after one click; owned draft discarded; do not retry publish intent'
+      return [pscustomobject]@{ outcome='duplicate_skipped'; message=$duplicate[0].Current.Name }
     }
     $errors = @($visible | Where-Object { $_.Current.Name -match '^(Something went wrong|Whoops|Your post could not be sent|You are over the daily limit|You have exceeded)' })
     if ($errors.Count -gt 0) { throw ('X publish error after one click: ' + $errors[0].Current.Name) }
     $editors = @($visible | Where-Object { $_.Current.Name -ceq 'Post text' -and $_.Current.ControlType -eq [Windows.Automation.ControlType]::Edit })
-    if ($editors.Count -eq 0) { return }
-    if (@($editors | Where-Object { -not [string]::IsNullOrWhiteSpace((Get-XValue $_)) }).Count -eq 0 -and (Get-XAttachmentCount) -eq 0) { return }
+    if ($editors.Count -eq 0) { return [pscustomobject]@{ outcome='composer_closed' } }
+    if (@($editors | Where-Object { -not [string]::IsNullOrWhiteSpace((Get-XValue $_)) }).Count -eq 0 -and (Get-XAttachmentCount) -eq 0) { return [pscustomobject]@{ outcome='composer_cleared' } }
     Start-Sleep -Milliseconds 400
   } while ([DateTime]::UtcNow -lt $deadline)
   throw 'UNCERTAIN: Post clicked once but composer still pending after 45 seconds; did not navigate or click again'

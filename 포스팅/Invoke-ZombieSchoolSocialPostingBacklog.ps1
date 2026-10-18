@@ -11,9 +11,9 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 function Get-SocialBacklogCycleIds([string[]]$Ids) {
-  $validSlots = @('0200','0600','1100','1700','2100')
+  $validSlots = @('0300','1200','1800','2100')
   foreach ($id in $Ids) {
-    if ($id -notmatch '^\d{4}-\d{2}-\d{2}-(0200|0600|1100|1700|2100)$') { throw "Invalid scheduled cycle ID: $id" }
+    if ($id -notmatch '^\d{4}-\d{2}-\d{2}-(0300|1200|1800|2100)$') { throw "Invalid scheduled cycle ID: $id" }
     $null = [datetime]::ParseExact($id.Substring(0,10), 'yyyy-MM-dd', [Globalization.CultureInfo]::InvariantCulture)
   }
   return @($Ids | Sort-Object -Unique)
@@ -87,8 +87,12 @@ function Invoke-SocialPostingBacklog {
           return [pscustomobject]@{ status='stopped_unsafe';cycleId=$id;attempts=$entry.attempts;reason=$message;statePath=$StatePath }
         }
       }
-      $entry.status='retry_wait';$entry.lastError=$message;$entry.nextRetryUtc=[DateTimeOffset]::UtcNow.AddSeconds(300).ToString('o');$state.status='retry_wait';Save-SocialBacklogState $state $StatePath
-      & $Sleep 300
+      # X explicitly detected duplicate or near-duplicate content.  Do not
+      # repeatedly resubmit it; defer that cycle for six hours.  All other
+      # transient failures retain the required five-minute retry cadence.
+      $delaySeconds = if ($message -match '(?i)you have already said that') { 21600 } else { 300 }
+      $entry.status='retry_wait';$entry.lastError=$message;$entry.nextRetryUtc=[DateTimeOffset]::UtcNow.AddSeconds($delaySeconds).ToString('o');$state.status='retry_wait';Save-SocialBacklogState $state $StatePath
+      & $Sleep $delaySeconds
     }
   }
   $terminalStatuses=@($state.entries|Where-Object{$_.status -in @('submitted_with_unresolved_intents')})

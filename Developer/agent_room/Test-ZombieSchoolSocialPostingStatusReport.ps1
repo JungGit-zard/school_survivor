@@ -60,6 +60,11 @@ try {
   Assert-True ($loginOutput.Contains('facebook/ko') -and $loginOutput.Contains($loginCycle) -and $loginOutput.Contains('2026-10-16 12:00:00 KST') -and $loginOutput.Contains('LOGIN_REQUIRED') -and $loginOutput.Contains('미해결 — 알림 대상')) 'login failure report retains platform, language, cycle, detection time, and explicit code'
   $repeatLoginOutput=(& $scriptPath -TestOnly -FixturePath $fixturePath|Out-String);$repeatLoginGate=Get-TestNotificationGate $repeatLoginOutput
   Assert-True ($repeatLoginGate.hasActiveFailure -and $repeatLoginGate.notify) 'the unresolved permanent login event remains eligible for each scheduled 30-minute failure report'
+  $loginRetry.entries[0].status='canceled_by_user';$loginRetry.entries[0].lastError=$null;$loginRetry.entries[0].nextRetryUtc=$null;$loginRetry|ConvertTo-Json -Depth 8|Set-Content -LiteralPath $loginRetryPath -Encoding UTF8
+  [pscustomobject]@{cycles=@([pscustomobject]@{cycleId=$loginCycle;status='canceled_by_user';attempts=1;lastError=$null})}|ConvertTo-Json -Depth 8|Set-Content -LiteralPath (Join-Path $loginRoom 'social_posting_scheduled_queue.json') -Encoding UTF8
+  $canceledOutput=(& $scriptPath -TestOnly -FixturePath $fixturePath|Out-String);$canceledGate=Get-TestNotificationGate $canceledOutput
+  Assert-True (-not $canceledGate.hasActiveFailure -and -not $canceledGate.notify -and $canceledOutput.Contains('취소됨 — 알림 제외') -and -not $canceledOutput.Contains('해결됨')) 'user-canceled login cycle remains recorded as canceled, not resolved, and is excluded from repeat failure notifications'
+  [pscustomobject]@{cycles=@()}|ConvertTo-Json -Depth 8|Set-Content -LiteralPath (Join-Path $loginRoom 'social_posting_scheduled_queue.json') -Encoding UTF8
   $loginRetry.entries[0].status='complete';$loginRetry.entries[0].lastError=$null;$loginRetry.entries[0].nextRetryUtc=$null;$loginRetry|ConvertTo-Json -Depth 8|Set-Content -LiteralPath $loginRetryPath -Encoding UTF8
   $resolvedOutput=(& $scriptPath -TestOnly -FixturePath $fixturePath|Out-String);$resolvedGate=Get-TestNotificationGate $resolvedOutput
   Assert-True (-not $resolvedGate.hasActiveFailure -and -not $resolvedGate.notify -and $resolvedGate.suppressionReason -eq 'no_active_failure' -and $resolvedOutput.Contains('해결됨')) 'successful cycle resolution suppresses repeat login notifications while retaining the permanent event record'

@@ -1,0 +1,61 @@
+{
+    "recordedUtc":  "2026-10-18T17:28:11.8090922+09:00",
+    "timezone":  "Asia/Seoul",
+    "scheduleTimes":  [
+                          "03:00",
+                          "12:00",
+                          "18:00",
+                          "21:00"
+                      ],
+    "tasks":  [
+                  {
+                      "name":  "EscapeZombieSchool-SocialPostingFiveSlots",
+                      "enabled":  true,
+                      "runId":  "2026-10-19-0300",
+                      "next":  "2026-10-19T03:00:00.0000000+09:00"
+                  },
+                  {
+                      "name":  "EscapeZombieSchool-SocialPostingFiveSlots-1200",
+                      "enabled":  true,
+                      "runId":  "2026-10-19-1200",
+                      "next":  "2026-10-19T12:00:00.0000000+09:00"
+                  },
+                  {
+                      "name":  "EscapeZombieSchool-SocialPostingFiveSlots-1800",
+                      "enabled":  true,
+                      "runId":  "2026-10-18-1800",
+                      "next":  "2026-10-18T18:00:00.0000000+09:00"
+                  },
+                  {
+                      "name":  "EscapeZombieSchool-SocialPostingFiveSlots-2100",
+                      "enabled":  true,
+                      "runId":  "2026-10-18-2100",
+                      "next":  "2026-10-18T21:00:00.0000000+09:00"
+                  }
+              ],
+    "retryDrainEnabled":  false,
+    "postingStarted":  false,
+    "retired0600Enabled":  false,
+    "supersededOneOffTasks":  [
+                                  {
+                                      "name":  "EscapeZombieSchool-SocialPostingToday-20261010-1427",
+                                      "exists":  true,
+                                      "enabled":  false
+                                  },
+                                  {
+                                      "name":  "EscapeZombieSchool-SocialPostingToday-20261010-1727",
+                                      "exists":  true,
+                                      "enabled":  false
+                                  },
+                                  {
+                                      "name":  "EscapeZombieSchool-SocialPostingToday-20261010-2027",
+                                      "exists":  true,
+                                      "enabled":  false
+                                  },
+                                  {
+                                      "name":  "EscapeZombieSchool-SocialPostingToday-20261010-2327",
+                                      "exists":  true,
+                                      "enabled":  false
+                                  }
+                              ]
+}

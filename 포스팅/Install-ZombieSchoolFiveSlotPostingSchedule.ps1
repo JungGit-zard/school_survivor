@@ -7,9 +7,9 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
-$times = @('02:00','06:00','11:00','17:00','21:00')
+$times = @('03:00','12:00','18:00','21:00')
 $taskPath = '\'
-$description = 'EscapeZombieSchool queued serial Facebook then X posting; one slot-specific intake task; one interactive desktop worker.'
+$description = 'EscapeZombieSchool slot-specific X-first then Facebook posting; current-slot intake only; one interactive desktop worker.'
 $timezone = Get-TimeZone
 if ($timezone.Id -notin @('Korea Standard Time', 'Asia/Seoul')) { throw "Host timezone is '$($timezone.Id)'; Asia/Seoul (Korea Standard Time) is required. No schedule was changed." }
 
@@ -18,12 +18,13 @@ $powershell = (Resolve-Path -LiteralPath (Join-Path $env:SystemRoot 'System32/Wi
 $identity = [Security.Principal.WindowsIdentity]::GetCurrent()
 $userSid = $identity.User.Value
 $slotSpecs = @(
-  [pscustomobject]@{ taskName=$TaskName; slot='0200'; time='02:00' },
-  [pscustomobject]@{ taskName=($TaskName + '-0600'); slot='0600'; time='06:00' },
-  [pscustomobject]@{ taskName=($TaskName + '-1100'); slot='1100'; time='11:00' },
-  [pscustomobject]@{ taskName=($TaskName + '-1700'); slot='1700'; time='17:00' },
+  [pscustomobject]@{ taskName=$TaskName; slot='0300'; time='03:00' },
+  [pscustomobject]@{ taskName=($TaskName + '-1200'); slot='1200'; time='12:00' },
+  [pscustomobject]@{ taskName=($TaskName + '-1800'); slot='1800'; time='18:00' },
   [pscustomobject]@{ taskName=($TaskName + '-2100'); slot='2100'; time='21:00' }
 )
+$retiredSlotTaskNames = @(($TaskName + '-0200'), ($TaskName + '-0500'), ($TaskName + '-0600'), ($TaskName + '-0800'), ($TaskName + '-1100'), ($TaskName + '-1400'), ($TaskName + '-1700'), ($TaskName + '-2000'), ($TaskName + '-2300'))
+$retryDrainTaskName = $TaskName + '-RetryDrain'
 $rollbackDir = Join-Path (Join-Path (Split-Path -Parent $PSScriptRoot) 'Developer\agent_room\social_posting_schedule_rollback_t_77083b1f') ([DateTimeOffset]::Now.ToString('yyyyMMdd-HHmmssfff') + '-' + [guid]::NewGuid().ToString('N'))
 [IO.Directory]::CreateDirectory($rollbackDir) | Out-Null
 
@@ -68,7 +69,9 @@ function Test-NewTaskReadback([string]$Name,[string]$ExpectedTime,[string]$Expec
 
 $oldBefore = @($OldTaskNames | ForEach-Object { Get-TaskStateRecord $_ 'before' })
 $slotBefore = @($slotSpecs | ForEach-Object { Get-TaskStateRecord $_.taskName 'before' })
-$proof = [ordered]@{ status='planned'; taskName=$TaskName; timezone='Asia/Seoul'; hostTimezone=$timezone.Id; times=$times; slotTasks=@($slotSpecs); user=$identity.Name; userSid=$userSid; logonType='InteractiveToken'; multipleInstances='Parallel'; executionTimeLimit='PT0S'; triggerQueue='social_posting_scheduled_queue.json'; queueWorkerMutexPrefix='Local\EscapeZombieSchoolQueueWorker_'; queueStateMutexPrefix='Local\EscapeZombieSchoolQueueState_'; desktopMutex='Local\EscapeZombieSchoolFiveSlotSerial'; retryDelaySeconds=300; historicalRunAuthorization=$false; startWhenAvailable=$false; scheduledSupervisor='PersistentScheduledRun'; executable=$powershell; workingDirectory=$PSScriptRoot; rollbackDir=$rollbackDir; slotBefore=$slotBefore; oldBefore=$oldBefore; newReadback=$null; oldAfter=$null; postingStarted=$false }
+$retiredBefore = @($retiredSlotTaskNames | ForEach-Object { Get-TaskStateRecord $_ 'before' })
+$retryDrainBefore=Get-TaskStateRecord $retryDrainTaskName 'before'
+$proof = [ordered]@{ status='planned'; taskName=$TaskName; timezone='Asia/Seoul'; hostTimezone=$timezone.Id; times=$times; slotTasks=@($slotSpecs); user=$identity.Name; userSid=$userSid; logonType='InteractiveToken'; multipleInstances='Parallel'; executionTimeLimit='PT0S'; triggerQueue='social_posting_scheduled_queue.json'; queueWorkerMutexPrefix='Local\EscapeZombieSchoolQueueWorker_'; queueStateMutexPrefix='Local\EscapeZombieSchoolQueueState_'; desktopMutex='Local\EscapeZombieSchoolFiveSlotSerial'; retryDelaySeconds=300; historicalRunAuthorization=$false; startWhenAvailable=$false; scheduledSupervisor='PersistentScheduledRun'; retryDrainBefore=$retryDrainBefore; retryDrainAfter=$null; executable=$powershell; workingDirectory=$PSScriptRoot; rollbackDir=$rollbackDir; slotBefore=$slotBefore; oldBefore=$oldBefore; newReadback=$null; oldAfter=$null; postingStarted=$false }
 
 if (-not $PSCmdlet.ShouldProcess($TaskName, 'Register five-slot serial posting task and disable old per-platform tasks only after verified readback')) { $proof | ConvertTo-Json -Depth 8; return }
 
@@ -89,9 +92,13 @@ try {
     Test-NewTaskReadback $_.taskName $_.time $_.slot
   })
   foreach ($old in $oldBefore) { if ($old.exists -and $old.enabled) { Disable-ScheduledTask -TaskName $old.taskName -TaskPath '\' | Out-Null } }
+  foreach ($retired in $retiredSlotTaskNames) { Unregister-ScheduledTask -TaskName $retired -TaskPath $taskPath -Confirm:$false -ErrorAction SilentlyContinue }
+  if($retryDrainBefore.exists -and $retryDrainBefore.enabled){Disable-ScheduledTask -TaskName $retryDrainTaskName -TaskPath $taskPath|Out-Null}
+  $proof.retryDrainAfter=Get-TaskStateRecord $retryDrainTaskName 'after'
   $proof.oldAfter = @($OldTaskNames | ForEach-Object { Get-TaskStateRecord $_ 'after' })
+  $proof.retiredAfter = @($retiredSlotTaskNames | ForEach-Object { Get-TaskStateRecord $_ 'after' })
   $conflicts = @($proof.oldAfter | Where-Object { $_.exists -and $_.enabled })
-  if ($conflicts.Count -gt 0) { throw 'One or more old posting tasks remained enabled after disable.' }
+  if ($conflicts.Count -gt 0 -or @($proof.retiredAfter | Where-Object exists).Count -gt 0 -or ($proof.retryDrainAfter.exists -and $proof.retryDrainAfter.enabled)) { throw 'An obsolete posting task remained enabled or registered after schedule replacement.' }
   $proof.status = 'registered_verified_old_disabled'
   $proof | ConvertTo-Json -Depth 10
 }
@@ -106,6 +113,14 @@ catch {
     } catch { }
   }
   foreach ($name in $oldEnabledToRestore) { Enable-ScheduledTask -TaskName $name -TaskPath '\' -ErrorAction SilentlyContinue | Out-Null }
+  foreach($snapshot in $retiredBefore){
+    try {
+      if($snapshot.exists){
+        Register-ScheduledTask -TaskName $snapshot.taskName -TaskPath $taskPath -Xml (Get-Content -LiteralPath $snapshot.xmlPath -Raw -Encoding UTF8) -Force | Out-Null
+        if($snapshot.enabled){Enable-ScheduledTask -TaskName $snapshot.taskName -TaskPath $taskPath|Out-Null}else{Disable-ScheduledTask -TaskName $snapshot.taskName -TaskPath $taskPath|Out-Null}
+      }
+    } catch { }
+  }
   $proof.status = 'failed_restored_old_tasks'
   $proof.error = $_.Exception.Message
   $proof.oldAfter = @($OldTaskNames | ForEach-Object { Get-TaskStateRecord $_ 'after' })

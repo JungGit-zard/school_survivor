@@ -1,12 +1,12 @@
-# 포스팅 wrapper
+> Current schedule: 03:00, 12:00, 18:00, 21:00 KST. X runs before Facebook in each cycle. See [the maintained posting skill](../.agents/skills/escape-zombie-school-social-posting/SKILL.md).
 
-> 최신 운영 상태: [2026-10-10 인수인계](../Developer/agent_room/social_posting_operations_2026-10-10.md). 오늘은 즉시 실행 후 14:27·17:27·20:27·23:27 KST, 내일부터 원래 5개 시각에 실행한다. 게시 후 확인은 사용자가 맡는다.
+> Historical reference only: [2026-10-10 handoff](../Developer/agent_room/social_posting_operations_2026-10-10.md). Its old schedule is superseded by the current schedule above.
 
 이 폴더는 운영자가 쓰는 진입점입니다. 수동 게시 래퍼는 `marketing/Invoke-ZombieSchoolSocialPosting.ps1`로 인자를 전달하며, 예약 실행기는 기존 X·Facebook 게시기를 순서대로 호출합니다. 실제 브라우저 게시 로직은 `marketing/` 정본에만 있습니다.
 
 ## 매일 자동 게시
 
-Windows 예약 작업 `EscapeZombieSchool-SocialPostingFiveSlots`가 한국시간 **02:00, 06:00, 11:00, 17:00, 21:00**에 실행됩니다. 매 시각 Facebook 한국어·영어·일본어·베트남어 4건을 시도한 뒤 X의 같은 4건을 시도합니다. 한 플랫폼이 실패해도 다른 플랫폼은 시도하며, 성공·실패는 각 플랫폼 영수증에 남습니다. 기존 `EscapeZombieSchool-XPosting`과 `EscapeZombieSchool-FacebookPosting` 예약은 중복 실행 방지를 위해 비활성화했습니다.
+Windows 예약 작업은 한국시간 매일 **03:00, 12:00, 18:00, 21:00**에 실행됩니다. 각 회차는 X 일본어·영어·베트남어·한국어를 먼저 처리하고, 이어 Facebook의 같은 언어 순서를 처리합니다. 회차 영수증은 플랫폼별로 분리됩니다. 각 trigger는 자기 날짜·시각 ID만 만들며, 지난 슬롯이나 사용자 취소 backlog를 재생하지 않습니다. 실패 재시도는 진행 중인 현재 회차에만 적용됩니다.
 
 예약 재설치·검증은 `Install-ZombieSchoolFiveSlotPostingSchedule.ps1 -WhatIf`로 먼저 확인한 뒤 해당 파일을 `-WhatIf` 없이 실행합니다. 실제 게시에는 해당 Windows 사용자의 로그인 상태와 켜진 대화형 데스크톱이 필요합니다. 로그아웃·계정 인증·사이트 장애가 있으면 예약 시각이 되어도 성공을 보장하지 않습니다.
 
@@ -71,4 +71,4 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\Developer\agent_room\I
 
 ### 예약 트리거 큐와 순차 처리
 
-설치기는 5개의 task를 만듭니다. `EscapeZombieSchool-SocialPostingFiveSlots`는 02:00, 나머지는 `-0600`, `-1100`, `-1700`, `-2100` 접미사를 쓰며 각 task는 하루 한 번 자기 고정 `-ScheduledSlot` 값으로 intake를 시작합니다. `Parallel` 정책으로 active worker가 있어도 intake가 슬롯 ID를 `social_posting_scheduled_queue.json`에 먼저 기록합니다. 한 worker만 desktop mutex를 소유하고 큐의 정확한 ID를 시간순으로 처리합니다. 진행 중 새 슬롯 trigger가 발생하면 ID가 큐에 남아 현재 cycle이 완료되거나 안전 중단된 뒤 처리됩니다. 따라서 게시 시각은 앞선 cycle의 재시도 시간만큼 밀릴 수 있지만, trigger ID를 버리거나 과거 slot을 계산해 채우지 않습니다. 300초 무기한 재시도를 위해 Scheduled Task의 실행 제한은 무제한(PT0S)으로 검증합니다.
+설치기는 4개의 daily task를 만듭니다. 기본 `EscapeZombieSchool-SocialPostingFiveSlots`는 03:00이며, `-1200`, `-1800`, `-2100`이 각각 12:00, 18:00, 21:00을 담당합니다. 각 task는 하루 한 번 자기 고정 `-ScheduledSlot`으로 실행됩니다. `Parallel` intake와 desktop mutex로 현재 worker와 trigger 기록을 직렬화합니다. queue의 pending/running 항목은 자기 slot의 30분 intake window가 지난 경우 `canceled_by_user`로 종결하여 재생하지 않습니다. `-RetryDrain`은 비활성화 상태로 유지합니다. 현재 회차의 안전한 실패는 300초 간격으로 재시도하고, Scheduled Task 실행 제한은 무제한(PT0S)으로 검증합니다.

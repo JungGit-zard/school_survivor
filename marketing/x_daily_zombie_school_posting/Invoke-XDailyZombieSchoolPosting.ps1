@@ -5,7 +5,7 @@ param(
   [long]$WindowId = 0,
   [string]$ReceiptDirectory = (Join-Path $PSScriptRoot 'receipts'),
   [switch]$DryRun, [switch]$ValidateOnly, [switch]$FullCycle, [switch]$Run, [switch]$PrepareOnly, [switch]$SinglePost, [switch]$PublishOnly,
-  [switch]$ReconcileExistingPosts, [switch]$CredentialRecovery, [string]$StopAtKst = '', [switch]$WebsiteCardOnly
+  [switch]$ReconcileExistingPosts, [switch]$CredentialRecovery, [string]$StopAtKst = '', [switch]$WebsiteCardOnly, [switch]$DirectPhoto
 )
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
@@ -24,6 +24,7 @@ $receiptPath = $null
 $activeLanguage = $null
 $mutex = $null
 $locked = $false
+$cardReadinessByLanguage = @{}
 function Resolve-XIntentVariant($Config, [string]$Language, $Intent) {
   if ($Intent.PSObject.Properties.Name -contains 'postFormat' -and $Intent.postFormat -ceq 'website_card') {
     if ($Intent.PSObject.Properties.Name -notcontains 'sourceText' -or [string]::IsNullOrWhiteSpace([string]$Intent.sourceText)) { throw 'Website-card receipt is missing its canonical source text' }
@@ -41,7 +42,8 @@ try {
   if ($config.web_url -cne 'https://escapezombie.com') { throw 'Unexpected campaign web URL' }
   $cardConfig = if ($config.PSObject.Properties.Name -contains 'x_link_card' -and $null -ne $config.x_link_card) { $config.x_link_card } else { [pscustomobject]@{ enabled=$false; base_url='https://escapezombie.com' } }
   $cardBaseUrl = if ($cardConfig.PSObject.Properties.Name -contains 'base_url' -and -not [string]::IsNullOrWhiteSpace([string]$cardConfig.base_url)) { [string]$cardConfig.base_url } else { 'https://escapezombie.com' }
-  if ($cardConfig.enabled -and $PublishOnly -and $SinglePost) { $WebsiteCardOnly = $true }
+  if ($cardConfig.enabled -and $PublishOnly -and $SinglePost -and -not $DirectPhoto) { $WebsiteCardOnly = $true }
+  if ($DirectPhoto) { $WebsiteCardOnly = $false }
   $cardBaseUri = $null
   if (-not [Uri]::TryCreate($cardBaseUrl, [UriKind]::Absolute, [ref]$cardBaseUri) -or $cardBaseUri.Scheme -cne 'https' -or $cardBaseUri.AbsolutePath -notin @('', '/') -or $cardBaseUri.Query -or $cardBaseUri.Fragment -or $cardBaseUri.Host -notin @('escapezombie.com','escape-zombie-school-assets.web.app')) { throw 'X website-card base URL must use an approved HTTPS origin with no path, query, or fragment' }
   foreach ($lang in $config.language_order) {
@@ -134,7 +136,8 @@ try {
       $cardEntry = $receipt.entries.$lang
       if ($null -ne $cardEntry -and $cardEntry.state -in @('selected', 'prepared') -and
           $cardEntry.intent.PSObject.Properties.Name -contains 'postFormat' -and $cardEntry.intent.postFormat -ceq 'website_card') {
-        $null = Assert-XWebsiteCardPublished ([string]$cardEntry.intent.cardUrl)
+        $cardReadiness = Assert-XWebsiteCardPublished ([string]$cardEntry.intent.cardUrl)
+        $cardReadinessByLanguage[$lang] = $cardReadiness
       }
     }
     . (Join-Path $PSScriptRoot 'WindowsXPosting.ps1')
@@ -164,6 +167,10 @@ try {
         if ($null -eq $evidence) { throw "UNCERTAIN $lang`: prior publish intent; no matching new status visible. No second click." }
         $entry.state = 'verified'; $entry.evidence = $evidence
         Save-CycleReceipt $receipt $receiptPath
+        continue
+      }
+      if ($null -ne $entry -and $entry.state -eq 'skipped_duplicate') {
+        Write-Output "DUPLICATE_SKIP $lang"
         continue
       }
       $variant = Resolve-XIntentVariant $config $lang $entry.intent
@@ -226,8 +233,20 @@ try {
       Assert-XBeforePublishCutoff $StopAtKst
       Save-CycleReceipt $receipt $receiptPath
       Assert-XBeforePublishCutoff $StopAtKst
-      if ($websiteCardMode) { Publish-XPost -Text $composerText -WebsiteCardOnly -CardUrl $cardUrl }
-      else { Publish-XPost -Text $text }
+      if ($websiteCardMode) { $publishResult = Publish-XPost -Text $composerText -WebsiteCardOnly -CardUrl $cardUrl }
+      else { $publishResult = Publish-XPost -Text $text }
+      if ($publishResult.outcome -eq 'duplicate_skipped') {
+        $entry.state = 'skipped_duplicate'
+        $entry | Add-Member -Force -NotePropertyName skipReason -NotePropertyValue 'x_already_said_that'
+        $entry | Add-Member -Force -NotePropertyName skippedUtc -NotePropertyValue ([DateTimeOffset]::UtcNow.ToString('o'))
+        Save-CycleReceipt $receipt $receiptPath
+        if ($PublishOnly) {
+          [pscustomobject]@{ status='skipped_duplicate'; published=0; language=$lang; cycleId=$CycleId; receiptPath=$receiptPath; receiptState='skipped_duplicate' } | ConvertTo-Json -Compress
+          exit 0
+        }
+        Write-Output "DUPLICATE_SKIP $lang"
+        continue
+      }
       if ($PublishOnly) {
         [pscustomobject]@{ status='published_unverified'; published=1; language=$lang; cycleId=$CycleId; receiptPath=$receiptPath; receiptState='publish_intent' } | ConvertTo-Json -Compress
         exit 0
@@ -248,7 +267,17 @@ try {
       [pscustomobject]@{ status='partial_verified'; published=1; language=$Language; cycleId=$CycleId; receiptPath=$receiptPath } | ConvertTo-Json -Compress
       exit 0
     }
-    if (-not (Test-CycleComplete $receipt)) { throw 'Incomplete cycle: all four distinct verified URLs required' }
+    $duplicateSkipped = @($config.language_order | Where-Object { $receipt.entries.$_.state -eq 'skipped_duplicate' })
+    $settled = @($config.language_order | Where-Object { $receipt.entries.$_.state -in @('verified','skipped_duplicate') }).Count -eq $config.language_order.Count
+    if (-not (Test-CycleComplete $receipt) -and -not $settled) { throw 'Incomplete cycle: each language must be verified or explicitly skipped as a duplicate' }
+    if ($duplicateSkipped.Count -gt 0) {
+      $receipt.status = 'complete_with_duplicate_skips'
+      $receipt.lastError = $null
+      $receipt.failedLanguage = $null
+      Save-CycleReceipt $receipt $receiptPath
+      [pscustomobject]@{ status='complete_with_duplicate_skips'; published=(4-$duplicateSkipped.Count); skippedDuplicate=$duplicateSkipped; cycleId=$CycleId; receiptPath=$receiptPath } | ConvertTo-Json -Compress
+      exit 0
+    }
     $receipt.status = 'complete'
     $receipt.lastError = $null
     $receipt.failedLanguage = $null

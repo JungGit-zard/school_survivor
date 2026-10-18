@@ -62,7 +62,7 @@ function Get-TaskResultLabel($Task) {
 
 function Get-StatusSummary($Data) {
   $activeFailures=@(@($Data.nextRetries)+@($Data.queuedCycles)|Where-Object{$_.status -in @('retry_wait','failed','partial_failed','stopped_unsafe','stopped_cutoff')})
-  $loginFailures=@(Get-ObjectValue $Data 'loginRequiredFailures'|Where-Object{ -not $_.resolved })
+  $loginFailures=@(Get-ObjectValue $Data 'loginRequiredFailures'|Where-Object{ -not $_.resolved -and -not $_.canceled })
   $missedStarts=@($Data.warnings|Where-Object{$_ -like '예정시각경과·시작기록없음 *'})
   $parts=[System.Collections.Generic.List[string]]::new()
   if($loginFailures.Count){$login=$loginFailures[0];$parts.Add(("로그인 실패 LOGIN_REQUIRED {0}/{1} 회차 {2}" -f $login.platform,$login.language,$login.cycleId))}
@@ -79,7 +79,7 @@ function Get-StatusSummary($Data) {
 function Get-NotificationGate($Data, [switch]$NoNotify) {
   $activeFailures=@(@($Data.nextRetries)+@($Data.queuedCycles)|Where-Object{$_.status -in @('retry_wait','failed','partial_failed','stopped_unsafe')})
   $cutoffFailures=@(@($Data.nextRetries)+@($Data.queuedCycles)|Where-Object{$_.status -eq 'stopped_cutoff' -and -not [string]::IsNullOrWhiteSpace([string]$_.failureReason) -and [string]$_.failureReason -notmatch '(?i)cutoff|자정|종료 시각|마감 시각'})
-  $loginFailures=@(Get-ObjectValue $Data 'loginRequiredFailures'|Where-Object{ -not $_.resolved })
+  $loginFailures=@(Get-ObjectValue $Data 'loginRequiredFailures'|Where-Object{ -not $_.resolved -and -not $_.canceled })
   $hasFailure=($activeFailures.Count -gt 0 -or $cutoffFailures.Count -gt 0 -or $loginFailures.Count -gt 0 -or @($Data.warnings).Count -gt 0)
   $suppressionReason=if($NoNotify){'NoNotify'}elseif(-not $hasFailure){'no_active_failure'}else{''}
   [pscustomobject]@{hasActiveFailure=[bool]$hasFailure;notify=([bool]$hasFailure -and -not $NoNotify);suppressionReason=$suppressionReason}
@@ -123,7 +123,7 @@ function Format-StatusReport($Data) {
   $lines.Add('## 로그인 실패 영구 기록')
   if($loginFailures.Count -eq 0){$lines.Add('로그인 실패 기록 없음')}
   foreach($login in $loginFailures){
-    $resolution=if($login.resolved){'해결됨'}else{'미해결 — 알림 대상'}
+    $resolution=if($login.canceled){'취소됨 — 알림 제외'}elseif($login.resolved){'해결됨'}else{'미해결 — 알림 대상'}
     $lines.Add(("- {0}/{1} · 회차 {2} · {3} · LOGIN_REQUIRED · {4}" -f $login.platform,$login.language,$login.cycleId,$login.detectedAtKst,$resolution))
   }
   $lines.Add('')
@@ -268,6 +268,7 @@ function Get-ReportDataFromSnapshot([string]$RepoRoot,$TaskSnapshot) {
     }
   }
   foreach($row in @($queueRows)){if($row.status -in @('complete','submitted','submitted_with_unresolved_intents')){$terminalRows+=$row}}
+  $canceledCycleIds=@(@($queueRows)+@($retryRows)|Where-Object{$_.status -eq 'canceled_by_user'}|ForEach-Object{$_.cycleId})
   $queueRows=@($queueRows|Where-Object{$_.status -notin @('complete','submitted','submitted_with_unresolved_intents')})
   $loginRequiredFailures=@()
   $loginLedgerPath=Join-Path $RepoRoot 'Developer/agent_room/social_posting_login_failures.json'
@@ -280,7 +281,8 @@ function Get-ReportDataFromSnapshot([string]$RepoRoot,$TaskSnapshot) {
         if($event.code -cne 'LOGIN_REQUIRED' -or [string]$event.platform -notin @('x','facebook') -or [string]::IsNullOrWhiteSpace([string]$event.cycleId)){continue}
         $detectedAtKst='시각 확인 불가'
         try{$detectedAtKst=[DateTimeOffset]::Parse([string]$event.detectedAtUtc).ToOffset([TimeSpan]::FromHours(9)).ToString("yyyy-MM-dd HH:mm:ss 'KST'")}catch{}
-        $loginRequiredFailures+= [pscustomobject]@{platform=[string]$event.platform;language=[string]$event.language;cycleId=[string]$event.cycleId;detectedAtUtc=[string]$event.detectedAtUtc;detectedAtKst=$detectedAtKst;code='LOGIN_REQUIRED';resolved=([string]$event.cycleId -in $resolvedCycleIds)}
+        $isResolved=[string]$event.cycleId -in $resolvedCycleIds
+        $loginRequiredFailures+= [pscustomobject]@{platform=[string]$event.platform;language=[string]$event.language;cycleId=[string]$event.cycleId;detectedAtUtc=[string]$event.detectedAtUtc;detectedAtKst=$detectedAtKst;code='LOGIN_REQUIRED';resolved=$isResolved;canceled=(-not $isResolved -and [string]$event.cycleId -in $canceledCycleIds)}
       }
     }catch{$warnings.Add("로그인 실패 기록 읽기 실패: $($_.Exception.Message)")}
   }

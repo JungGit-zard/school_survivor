@@ -1,6 +1,6 @@
 <#
 Serial five-slot scheduler entrypoint for Escape Zombie School social posting.
-Runs one date-slot RunId through Facebook full four-language cycle first, then X full four-language cycle.
+Runs one date-slot RunId through the complete X cycle first, then Facebook.
 No live posting occurs with -ValidateOnly.
 #>
 [CmdletBinding()]
@@ -17,6 +17,7 @@ param(
   [switch]$CredentialRecovery,
   [Parameter(DontShow=$true)][switch]$TestOnly,
   [switch]$PersistentScheduledRun,
+  [switch]$DrainScheduledQueue,
   [string]$ScheduledSlot = '',
   [switch]$TodayOnlyOverride
 )
@@ -24,7 +25,7 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
-$script:FiveSlotTimes = @('02:00','06:00','11:00','17:00','21:00')
+$script:FiveSlotTimes = @('03:00','12:00','18:00','21:00')
 $script:Languages = @('ja','en','vi','ko')
 
 function Get-FiveSlotRunId {
@@ -40,7 +41,7 @@ function Get-FiveSlotRunId {
 
 function Get-FiveSlotScheduledTriggerRunId {
   param([Parameter(Mandatory)][string]$Slot,[Parameter(Mandatory)][DateTimeOffset]$NowKst)
-  if ($Slot -notin @('0200','0600','1100','1700','2100')) { throw 'ScheduledSlot must identify one configured daily trigger.' }
+  if ($Slot -notin @('0300','1200','1800','2100')) { throw 'ScheduledSlot must identify one configured daily trigger.' }
   $slotTime=$Slot.Insert(2,':')
   $slotStart=[DateTimeOffset]::ParseExact($NowKst.ToString('yyyy-MM-dd')+' '+$slotTime+' +09:00','yyyy-MM-dd HH:mm zzz',[Globalization.CultureInfo]::InvariantCulture)
   $slotAge=$NowKst-$slotStart
@@ -48,10 +49,16 @@ function Get-FiveSlotScheduledTriggerRunId {
   return $NowKst.ToString('yyyy-MM-dd-')+$Slot
 }
 
+function Get-FiveSlotCutoffKst([string]$RunId) {
+  Assert-FiveSlotRunId $RunId
+  $slot=$RunId.Substring(11,4).Insert(2,':')
+  return [DateTimeOffset]::ParseExact($RunId.Substring(0,10)+' '+$slot+' +09:00','yyyy-MM-dd HH:mm zzz',[Globalization.CultureInfo]::InvariantCulture).AddMinutes(30)
+}
+
 function Assert-FiveSlotRunId {
   param([Parameter(Mandatory)][string]$Value)
-  if ($Value -notmatch '^\d{4}-\d{2}-\d{2}-(0200|0600|1100|1700|2100)$') {
-    throw 'RunId must be exactly yyyy-MM-dd-HHmm for one of 02:00, 06:00, 11:00, 17:00, or 21:00 KST.'
+  if ($Value -notmatch '^\d{4}-\d{2}-\d{2}-(0300|1200|1800|2100)$') {
+    throw 'RunId must be exactly yyyy-MM-dd-HHmm for the configured KST schedule.'
   }
 }
 
@@ -64,7 +71,7 @@ function Get-TodayOverrideStopAtKst {
 }
 
 function Test-TodayOnlyUnsafeFailure([string]$Message) {
-  return $Message -match '(?i)UNCERTAIN|publish_intent|invalid receipt|unsupported immutable receipt state|malformed receipt'
+  return $Message -match '(?i)UNCERTAIN|publish_intent|you have already said that|invalid receipt|unsupported immutable receipt state|malformed receipt'
 }
 
 function Test-LoginRequiredEvidence([string]$Evidence) {
@@ -199,7 +206,7 @@ function New-ScheduledAttemptResult($AttemptResult) {
   return [pscustomobject]@{exitCode=if($AttemptResult.status -in $accepted){0}else{1};status=$AttemptResult.status;reason=$reason;output=($AttemptResult|ConvertTo-Json -Compress -Depth 10)}
 }
 
-function Test-ScheduledSuccessfulTerminal([string]$Status) { return $Status -in @('complete','queued','submitted','submitted_with_unresolved_intents','stopped_cutoff') }
+function Test-ScheduledSuccessfulTerminal([string]$Status) { return $Status -in @('complete','idle','queued','submitted','submitted_with_unresolved_intents','stopped_cutoff','canceled_by_user') }
 
 function Invoke-ZombieSchoolFiveSlotPosting {
   param(
@@ -223,7 +230,7 @@ function Invoke-ZombieSchoolFiveSlotPosting {
       runId = $RunId
       slots = @($script:FiveSlotTimes)
       languages = @($script:Languages)
-      order = @('facebook','x')
+      order = @('x','facebook')
       facebookReceiptDirectory = [IO.Path]::GetFullPath($facebookReceiptDirectory)
       xReceiptDirectory = [IO.Path]::GetFullPath($xReceiptDirectory)
       uiTouched = $false
@@ -236,20 +243,13 @@ function Invoke-ZombieSchoolFiveSlotPosting {
   if ($TestBypassSlotCheck) { $fbArgs += '-TestBypassSlotCheck' }
   if ($AuthorizedHistoricalRun) { $fbArgs += '-AuthorizedHistoricalRun' }
   if ($ReconcileExistingPosts) { $fbArgs += '-ReconcileExistingPosts' }
-  $facebook = $null
-  $x = $null
-  $errors = @()
-  try {
-    $facebook = Invoke-JsonRunner -ScriptPath $FacebookRunnerPath -Arguments $fbArgs -Name 'Facebook full-cycle'
-    if ($facebook.status -ne 'complete') { $errors += "Facebook full-cycle did not complete: $($facebook | ConvertTo-Json -Compress -Depth 6)" }
-  } catch {
-    $errors += $_.Exception.Message
-    $facebook = New-RunnerFailureResult -Platform 'facebook' -Message $_.Exception.Message
-  }
   $xArgs = @('-CycleId', $RunId, '-ReceiptDirectory', $xReceiptDirectory)
   if ($ReconcileExistingPosts) { $xArgs += '-ReconcileExistingPosts' }
   if ($CredentialRecovery -or -not $ValidateOnly) { $xArgs += '-CredentialRecovery' }
   if ($PersistentRetryMode) { $xArgs += @('-MaxAttempts','1') }
+  $facebook = $null
+  $x = $null
+  $errors = @()
   try {
     $x = Invoke-JsonRunner -ScriptPath $XRunnerPath -Arguments $xArgs -Name 'X full-cycle'
     if ($x.status -ne 'complete') { $errors += "X full-cycle did not complete: $($x | ConvertTo-Json -Compress -Depth 6)" }
@@ -257,11 +257,18 @@ function Invoke-ZombieSchoolFiveSlotPosting {
     $errors += $_.Exception.Message
     $x = New-RunnerFailureResult -Platform 'x' -Message $_.Exception.Message
   }
+  try {
+    $facebook = Invoke-JsonRunner -ScriptPath $FacebookRunnerPath -Arguments $fbArgs -Name 'Facebook full-cycle'
+    if ($facebook.status -ne 'complete') { $errors += "Facebook full-cycle did not complete: $($facebook | ConvertTo-Json -Compress -Depth 6)" }
+  } catch {
+    $errors += $_.Exception.Message
+    $facebook = New-RunnerFailureResult -Platform 'facebook' -Message $_.Exception.Message
+  }
   $overallStatus = if ($errors.Count -eq 0) { 'complete' } else { 'partial_failed' }
   return [pscustomobject]@{
     status = $overallStatus
     runId = $RunId
-    order = @('facebook','x')
+    order = @('x','facebook')
     languages = @($script:Languages)
     facebook = $facebook
     x = $x
@@ -274,10 +281,14 @@ function Invoke-ZombieSchoolFiveSlotPosting {
 function Invoke-SerializedPublishOnlyCycle {
   param([Parameter(Mandatory)][string]$RunId,[Parameter(Mandatory)][string]$ReceiptRoot,[Parameter(Mandatory)][string]$FacebookActionRunnerPath,[Parameter(Mandatory)][string]$XRunnerPath,[string]$StopAtKst='',[scriptblock]$NowKst={ [DateTimeOffset]::UtcNow.ToOffset([TimeSpan]::FromHours(9)) })
   $cutoffReached={ -not [string]::IsNullOrWhiteSpace($StopAtKst) -and (& $NowKst) -ge [DateTimeOffset]::Parse($StopAtKst,[Globalization.CultureInfo]::InvariantCulture) }
-  $languages=@('ja','en','vi','ko');$submitted=@();$unresolved=@();$verified=@();$errors=@()
+  $languages=@('ja','en','vi','ko');$submitted=@();$unresolved=@();$verified=@();$skipped=@();$errors=@()
   $fbRoot=Join-Path $ReceiptRoot 'facebook_posting_receipts';$xRoot=Join-Path $ReceiptRoot 'x_posting_receipts'
   [IO.Directory]::CreateDirectory($fbRoot)|Out-Null;[IO.Directory]::CreateDirectory($xRoot)|Out-Null
-  foreach($language in $languages){
+  $xReceiptPath=Join-Path $xRoot ($RunId+'.json')
+  $xReceipt=if(Test-Path -LiteralPath $xReceiptPath){Get-Content -LiteralPath $xReceiptPath -Raw -Encoding UTF8|ConvertFrom-Json}else{$null}
+  $xPending=$null -eq $xReceipt -or @($languages|Where-Object{$null -eq $xReceipt.entries.$_ -or $xReceipt.entries.$_.state -in @('selected','prepared')}).Count -gt 0
+  # User priority: complete the X cycle before opening or changing Facebook.
+  if(-not $xPending){ foreach($language in $languages){
     if(& $cutoffReached){return [pscustomobject]@{exitCode=0;status='stopped_cutoff';reason='KST midnight reached before starting the next language'} }
     $receiptPath=Join-Path $fbRoot ($RunId+'.json')
     $entry=if(Test-Path -LiteralPath $receiptPath){(Get-Content -LiteralPath $receiptPath -Raw -Encoding UTF8|ConvertFrom-Json).entries.$language}else{$null}
@@ -304,27 +315,34 @@ function Invoke-SerializedPublishOnlyCycle {
       if($null -eq $after -or $after.state -ne 'publish_intent'){throw "UNSAFE Facebook $language PublishOnce returned without a persisted publish_intent"}
       $submitted += "facebook/$language"
     } catch {$message=$_.Exception.Message;if($message -match 'SCHEDULE_CUTOFF'){return [pscustomobject]@{exitCode=0;status='stopped_cutoff';reason=$message}}elseif(Test-TodayOnlyUnsafeFailure $message){return [pscustomobject]@{exitCode=1;status='stopped_unsafe';output=$message}}else{$errors += $message}}
-  }
+  } }
   foreach($language in $languages){
     if(& $cutoffReached){return [pscustomobject]@{exitCode=0;status='stopped_cutoff';reason='KST midnight reached before starting the next language'} }
     $receiptPath=Join-Path $xRoot ($RunId+'.json')
     $entry=if(Test-Path -LiteralPath $receiptPath){(Get-Content -LiteralPath $receiptPath -Raw -Encoding UTF8|ConvertFrom-Json).entries.$language}else{$null}
     if($null -ne $entry -and $entry.state -eq 'verified'){$verified += "x/$language";continue}
     if($null -ne $entry -and $entry.state -eq 'publish_intent'){$unresolved += "x/$language";continue}
+    if($null -ne $entry -and $entry.state -eq 'skipped_duplicate'){$skipped += "x/$language";continue}
     try {
       if(& $cutoffReached){return [pscustomobject]@{exitCode=0;status='stopped_cutoff';reason="KST midnight reached before X $language PublishOnly"} }
       $args=@('-Run','-SinglePost','-PublishOnly','-Language',$language,'-CycleId',$RunId,'-ReceiptDirectory',$xRoot,'-CredentialRecovery')
       if(-not [string]::IsNullOrWhiteSpace($StopAtKst)){$args+=@('-StopAtKst',$StopAtKst)}
       $result=Invoke-JsonRunner -ScriptPath $XRunnerPath -Arguments $args -Name "X $language PublishOnly"
       $after=(Get-Content -LiteralPath $receiptPath -Raw -Encoding UTF8|ConvertFrom-Json).entries.$language
+      if($null -ne $after -and $after.state -eq 'skipped_duplicate' -and $result.status -eq 'skipped_duplicate'){$skipped += "x/$language";continue}
       if($null -eq $after -or $after.state -ne 'publish_intent'){throw "UNSAFE X $language PublishOnly returned without a persisted publish_intent"}
       if($result.status -notin @('published_unverified','partial_verified','complete')){throw "X $language PublishOnly returned unexpected status '$($result.status)'"}
       $submitted += "x/$language"
     } catch {$message=$_.Exception.Message;if($message -match 'SCHEDULE_CUTOFF'){return [pscustomobject]@{exitCode=0;status='stopped_cutoff';reason=$message}}elseif(Test-TodayOnlyUnsafeFailure $message){return [pscustomobject]@{exitCode=1;status='stopped_unsafe';output=$message}}else{$errors += $message}}
   }
+  if($xPending -and $errors.Count -eq 0){
+    # A new slot reaches X first.  Once its four immutable intents have been
+    # recorded, continue immediately with Facebook in the same scheduled run.
+    return Invoke-SerializedPublishOnlyCycle -RunId $RunId -ReceiptRoot $ReceiptRoot -FacebookActionRunnerPath $FacebookActionRunnerPath -XRunnerPath $XRunnerPath -StopAtKst $StopAtKst -NowKst $NowKst
+  }
   if($errors.Count -gt 0){return [pscustomobject]@{exitCode=1;status='partial_failed';output=($errors -join ' | ')}}
   $status=if($unresolved.Count -gt 0){'submitted_with_unresolved_intents'}else{'submitted'}
-  return [pscustomobject]@{exitCode=0;status=$status;output=([pscustomobject]@{status=$status;runId=$RunId;submitted=$submitted;priorPublishIntentNotReplayed=$unresolved;verifiedSkipped=$verified;verification='intentionally_deferred_to_user'}|ConvertTo-Json -Compress -Depth 6)}
+  return [pscustomobject]@{exitCode=0;status=$status;output=([pscustomobject]@{status=$status;runId=$RunId;submitted=$submitted;priorPublishIntentNotReplayed=$unresolved;verifiedSkipped=$verified;duplicateSkipped=$skipped;verification='intentionally_deferred_to_user'}|ConvertTo-Json -Compress -Depth 6)}
 }
 
 function Invoke-FiveSlotPersistentScheduledRun {
@@ -372,9 +390,16 @@ function Save-ScheduledQueueState($State, [string]$Path) {
   else { [IO.File]::Move($temporary, $Path) }
 }
 
+function Get-ScheduledQueueResultStatus($State,[string]$CycleId,[string[]]$Processed) {
+  $resultId=if($Processed.Count -gt 0){$Processed[-1]}else{$CycleId}
+  $entry=@($State.cycles|Where-Object cycleId -ceq $resultId|Select-Object -First 1)
+  if($entry.Count -eq 1 -and $entry[0].status -in @('submitted','submitted_with_unresolved_intents','stopped_cutoff','stopped_unsafe','complete','canceled_by_user')){return [string]$entry[0].status}
+  return 'complete'
+}
+
 function Add-ScheduledTriggerCycle {
   param([Parameter(Mandatory)][string]$QueuePath,[Parameter(Mandatory)][string]$CycleId)
-  if ($CycleId -notmatch '^\d{4}-\d{2}-\d{2}-(0200|0600|1100|1700|2100)$') { throw "Invalid scheduled trigger CycleId: $CycleId" }
+  if ($CycleId -notmatch '^\d{4}-\d{2}-\d{2}-(0300|1200|1800|2100)$') { throw "Invalid scheduled trigger CycleId: $CycleId" }
   $names = Get-ScheduledQueueMutexNames $QueuePath
   $mutex = [Threading.Mutex]::new($false, $names.state);$locked=$false
   try {
@@ -387,6 +412,71 @@ function Add-ScheduledTriggerCycle {
     Save-ScheduledQueueState $state $QueuePath
     return [pscustomobject]@{cycleId=$CycleId;added=(-not $exists);status=if($exists){(@($state.cycles|Where-Object{$_.cycleId -ceq $CycleId}|Select-Object -First 1)[0].status)}else{'pending'}}
   } finally { if($locked){$mutex.ReleaseMutex()};$mutex.Dispose() }
+}
+
+function Cancel-ScheduledQueueBacklogByUser {
+  param([Parameter(Mandatory)][string]$QueuePath)
+  if (-not (Test-Path -LiteralPath $QueuePath -PathType Leaf)) { return [pscustomobject]@{cancelled=@();queuePath=$QueuePath} }
+  $names=Get-ScheduledQueueMutexNames $QueuePath
+  $mutex=[Threading.Mutex]::new($false,$names.state);$locked=$false
+  try {
+    try{$locked=$mutex.WaitOne()}catch [Threading.AbandonedMutexException]{$locked=$true}
+    $state=Get-Content -LiteralPath $QueuePath -Raw -Encoding UTF8|ConvertFrom-Json
+    if($state.schema -ne 1){throw 'Scheduled trigger queue has an unsupported schema.'}
+    $changed=@()
+    foreach($cycle in @($state.cycles|Where-Object status -in @('pending','running','retry_wait','stopped_unsafe','failed','partial_failed','stopped_cutoff'))){
+      $cycle.status='canceled_by_user'
+      $cycle.updatedUtc=[DateTimeOffset]::UtcNow.ToString('o')
+      $cycle|Add-Member -Force -NotePropertyName cancellationReason -NotePropertyValue 'Canceled by user; scheduled backlog will not be replayed.'
+      $cycle|Add-Member -Force -NotePropertyName canceledAtUtc -NotePropertyValue $cycle.updatedUtc
+      $changed += [string]$cycle.cycleId
+    }
+    if($changed.Count -gt 0){$state.updatedUtc=[DateTimeOffset]::UtcNow.ToString('o');Save-ScheduledQueueState $state $QueuePath}
+    return [pscustomobject]@{cancelled=@($changed);queuePath=$QueuePath}
+  } finally {if($locked){$mutex.ReleaseMutex()};$mutex.Dispose()}
+}
+
+function Cancel-SocialPostingRetryStatesByUser {
+  param([Parameter(Mandatory)][string]$RetryDirectory)
+  if(-not (Test-Path -LiteralPath $RetryDirectory -PathType Container)){return [pscustomobject]@{cancelled=@();directory=$RetryDirectory}}
+  $serialMutex=[Threading.Mutex]::new($false,'Local\EscapeZombieSchoolFiveSlotSerial');$serialLocked=$false
+  try {
+    try{$serialLocked=$serialMutex.WaitOne(0)}catch [Threading.AbandonedMutexException]{$serialLocked=$true}
+    if(-not $serialLocked){throw 'Cannot cancel scheduled retry state while a social posting worker holds the serial lock.'}
+    $records=@(Get-ChildItem -LiteralPath $RetryDirectory -Filter '*.json' -File|ForEach-Object{
+      $state=Get-Content -LiteralPath $_.FullName -Raw -Encoding UTF8|ConvertFrom-Json
+      if($state.schema -ne 1){throw "Scheduled retry state has an unsupported schema: $($_.FullName)"}
+      [pscustomobject]@{path=$_.FullName;state=$state}
+    })
+    $cancelled=@()
+    foreach($record in $records){
+      $changed=0
+      foreach($entry in @($record.state.entries|Where-Object status -in @('pending','running','retry_wait','stopped_unsafe','failed','partial_failed','stopped_cutoff'))){
+        $entry.status='canceled_by_user';$entry.updatedUtc=[DateTimeOffset]::UtcNow.ToString('o')
+        $entry|Add-Member -Force -NotePropertyName cancellationReason -NotePropertyValue 'Canceled by user; old scheduled retry is not replayed.'
+        $entry|Add-Member -Force -NotePropertyName canceledAtUtc -NotePropertyValue $entry.updatedUtc
+        $changed++
+      }
+      if($changed -gt 0){
+        if($record.state.status -in @('pending','running','retry_wait','stopped_unsafe','failed','partial_failed','stopped_cutoff')){$record.state.status='canceled_by_user'}
+        $record.state|Add-Member -Force -NotePropertyName cancellationReason -NotePropertyValue 'Canceled by user; old scheduled retry is not replayed.'
+        $record.state|Add-Member -Force -NotePropertyName canceledAtUtc -NotePropertyValue ([DateTimeOffset]::UtcNow.ToString('o'))
+        $temporary=$record.path+'.'+[guid]::NewGuid().ToString('N')+'.tmp'
+        [IO.File]::WriteAllText($temporary,($record.state|ConvertTo-Json -Depth 12),[Text.UTF8Encoding]::new($false))
+        [IO.File]::Replace($temporary,$record.path,[NullString]::Value)
+        $cancelled += [pscustomobject]@{path=$record.path;entries=$changed}
+      }
+    }
+    return [pscustomobject]@{cancelled=@($cancelled);directory=$RetryDirectory}
+  } finally {if($serialLocked){$serialMutex.ReleaseMutex()};$serialMutex.Dispose()}
+}
+
+function Test-ScheduledQueueCycleWithinIntakeGrace($Entry,[DateTimeOffset]$NowKst) {
+  if([string]$Entry.cycleId -notmatch '^(\d{4}-\d{2}-\d{2})-(0300|1200|1800|2100)$'){return $false}
+  $cycleId=[string]$Entry.cycleId;$slot=$Matches[2]
+  try{$queuedAt=[DateTimeOffset]::Parse([string]$Entry.updatedUtc).ToOffset([TimeSpan]::FromHours(9));$expected=Get-FiveSlotScheduledTriggerRunId -Slot $slot -NowKst $queuedAt}catch{return $false}
+  $age=$NowKst-$queuedAt
+  return $expected -ceq $cycleId -and $age.TotalMinutes -ge 0 -and $age.TotalMinutes -le 30
 }
 
 function Invoke-FiveSlotScheduledQueue {
@@ -413,21 +503,26 @@ function Invoke-FiveSlotScheduledQueue {
       try {
         try { $stateLocked=$stateMutex.WaitOne() } catch [Threading.AbandonedMutexException] { $stateLocked=$true }
         $state=Get-Content -LiteralPath $QueuePath -Raw -Encoding UTF8|ConvertFrom-Json
+        # Never replay old pending/running cycles; only an intake recorded in
+        # its own 30-minute slot window can be claimed by the queue worker.
+        $currentKst=& $NowKst;$stale=@($state.cycles|Where-Object{$_.status -in @('pending','running') -and -not (Test-ScheduledQueueCycleWithinIntakeGrace $_ $currentKst)})
+        if($stale.Count -gt 0){foreach($old in $stale){$old.status='stopped_cutoff';if([string]::IsNullOrWhiteSpace([string]$old.lastError)){$old.lastError='Slot intake grace expired; stale cycle was not backfilled.'};$old.updatedUtc=[DateTimeOffset]::UtcNow.ToString('o');$old|Add-Member -Force -NotePropertyName cutoffReason -NotePropertyValue 'Slot intake grace expired; stale cycle was not backfilled.'};$state.updatedUtc=[DateTimeOffset]::UtcNow.ToString('o');Save-ScheduledQueueState $state $QueuePath}
         if(-not [string]::IsNullOrWhiteSpace($StopAtKst) -and (& $NowKst) -ge [DateTimeOffset]::Parse($StopAtKst,[Globalization.CultureInfo]::InvariantCulture)){
           foreach($pending in @($state.cycles|Where-Object{$_.status -in @('pending','running')})){$pending.status='stopped_cutoff';$pending.lastError='Same-day override reached its KST midnight cutoff.';$pending.updatedUtc=[DateTimeOffset]::UtcNow.ToString('o')}
           $state.updatedUtc=[DateTimeOffset]::UtcNow.ToString('o');Save-ScheduledQueueState $state $QueuePath
-          $terminal=if(@($state.cycles|Where-Object status -eq 'stopped_cutoff').Count){'stopped_cutoff'}elseif(@($state.cycles|Where-Object status -eq 'submitted_with_unresolved_intents').Count){'submitted_with_unresolved_intents'}elseif(@($state.cycles|Where-Object status -eq 'submitted').Count){'submitted'}else{'complete'}
+          $terminal=Get-ScheduledQueueResultStatus $state $CycleId $processed
           $workerMutex.ReleaseMutex();$workerLocked=$false
           return [pscustomobject]@{status=$terminal;cycleIds=@($processed);queuePath=$QueuePath}
         }
-        $entry=@($state.cycles|Where-Object{$_.status -in @('pending','running')}|Sort-Object cycleId|Select-Object -First 1)
+        $entry=@($state.cycles|Where-Object{$_.status -in @('pending','running') -and (Test-ScheduledQueueCycleWithinIntakeGrace $_ $currentKst)}|Sort-Object cycleId|Select-Object -First 1)
         if($entry.Count -eq 0){
           if($null -ne $BeforeWorkerRelease){& $BeforeWorkerRelease $QueuePath}
           $state=Get-Content -LiteralPath $QueuePath -Raw -Encoding UTF8|ConvertFrom-Json
-          $entry=@($state.cycles|Where-Object{$_.status -in @('pending','running')}|Sort-Object cycleId|Select-Object -First 1)
+          $currentKst=& $NowKst
+          $entry=@($state.cycles|Where-Object{$_.status -in @('pending','running') -and (Test-ScheduledQueueCycleWithinIntakeGrace $_ $currentKst)}|Sort-Object cycleId|Select-Object -First 1)
           if($entry.Count -eq 0){
             $workerMutex.ReleaseMutex();$workerLocked=$false
-            $terminal=if(@($state.cycles|Where-Object status -eq 'stopped_cutoff').Count){'stopped_cutoff'}elseif(@($state.cycles|Where-Object status -eq 'submitted_with_unresolved_intents').Count){'submitted_with_unresolved_intents'}elseif(@($state.cycles|Where-Object status -eq 'submitted').Count){'submitted'}else{'complete'}
+            $terminal=Get-ScheduledQueueResultStatus $state $CycleId $processed
             return [pscustomobject]@{status=$terminal;cycleIds=@($processed);queuePath=$QueuePath}
           }
         }
@@ -441,7 +536,7 @@ function Invoke-FiveSlotScheduledQueue {
           $serialMutex=[Threading.Mutex]::new($false,$SerialMutexName)
           try{$serialLocked=$serialMutex.WaitOne()}catch [Threading.AbandonedMutexException]{$serialLocked=$true}
         }
-        $cycleResult = Invoke-FiveSlotPersistentScheduledRun -RunId $cycleId -StatePath (Join-Path (Split-Path -Parent $QueuePath) (Join-Path 'social_posting_scheduled_retries' ($cycleId+'.json'))) -RunCycle $RunCycle -Sleep $Sleep -StopAtKst $StopAtKst -RetryGuardedFailures -NowKst $NowKst
+        $cycleResult = Invoke-FiveSlotPersistentScheduledRun -RunId $cycleId -StatePath (Join-Path (Split-Path -Parent $QueuePath) (Join-Path 'social_posting_scheduled_retries' ($cycleId+'.json'))) -RunCycle $RunCycle -Sleep $Sleep -StopAtKst $StopAtKst -NowKst $NowKst
       } finally {if($serialLocked){$serialMutex.ReleaseMutex()};if($null -ne $serialMutex){$serialMutex.Dispose()}}
       $processed += $cycleId
       $stateMutex=[Threading.Mutex]::new($false,$names.state);$stateLocked=$false
@@ -459,18 +554,50 @@ function Invoke-FiveSlotScheduledQueue {
   } finally { if($workerLocked){$workerMutex.ReleaseMutex()};$workerMutex.Dispose() }
 }
 
+function Get-FirstDrainableScheduledQueueCycle {
+  param([Parameter(Mandatory)][string]$QueuePath)
+  if (-not (Test-Path -LiteralPath $QueuePath)) { return $null }
+  $names = Get-ScheduledQueueMutexNames $QueuePath
+  $stateMutex=[Threading.Mutex]::new($false,$names.state);$stateLocked=$false
+  try {
+    try { $stateLocked=$stateMutex.WaitOne() } catch [Threading.AbandonedMutexException] { $stateLocked=$true }
+    $state=Get-Content -LiteralPath $QueuePath -Raw -Encoding UTF8|ConvertFrom-Json
+    if($state.schema -ne 1){throw 'Scheduled trigger queue has an unsupported schema.'}
+    $entry=@($state.cycles|Where-Object{$_.status -in @('pending','running')}|Sort-Object cycleId|Select-Object -First 1)
+    if($entry.Count -eq 0){return $null}
+    return [string]$entry[0].cycleId
+  } finally { if($stateLocked){$stateMutex.ReleaseMutex()};$stateMutex.Dispose() }
+}
+
+function Invoke-FiveSlotScheduledQueueDrain {
+  param(
+    [Parameter(Mandatory)][string]$QueuePath,
+    [string]$SerialMutexName = '',
+    [Parameter(Mandatory)][scriptblock]$RunCycle,
+    [scriptblock]$Sleep = { param($seconds) Start-Sleep -Seconds $seconds },
+    [scriptblock]$BeforeWorkerRelease,
+    [string]$StopAtKst = '',
+    [scriptblock]$NowKst = { [DateTimeOffset]::UtcNow.ToOffset([TimeSpan]::FromHours(9)) }
+  )
+  $cycleId = Get-FirstDrainableScheduledQueueCycle -QueuePath $QueuePath
+  if([string]::IsNullOrWhiteSpace($cycleId)){return [pscustomobject]@{status='idle';cycleIds=@();queuePath=$QueuePath}}
+  return Invoke-FiveSlotScheduledQueue -QueuePath $QueuePath -CycleId $cycleId -SerialMutexName $SerialMutexName -RunCycle $RunCycle -Sleep $Sleep -BeforeWorkerRelease $BeforeWorkerRelease -StopAtKst $StopAtKst -NowKst $NowKst
+}
+
 if ($TestOnly) { return }
 
-if($TodayOnlyOverride -and ($PersistentScheduledRun -or [string]::IsNullOrWhiteSpace($RunId) -or $ValidateOnly -or $TestBypassSlotCheck -or $AuthorizedHistoricalRun)){throw 'TodayOnlyOverride requires one explicit same-day slot RunId; historical authorization is granted internally only.'}
+if($DrainScheduledQueue -and ($PersistentScheduledRun -or $TodayOnlyOverride -or -not [string]::IsNullOrWhiteSpace($RunId) -or -not [string]::IsNullOrWhiteSpace($ScheduledSlot) -or $ValidateOnly -or $TestBypassSlotCheck -or $AuthorizedHistoricalRun)){throw 'DrainScheduledQueue only drains the durable scheduled queue; do not pass a RunId, slot, validation, or historical flags.'}
+if($TodayOnlyOverride -and ($PersistentScheduledRun -or $DrainScheduledQueue -or [string]::IsNullOrWhiteSpace($RunId) -or $ValidateOnly -or $TestBypassSlotCheck -or $AuthorizedHistoricalRun)){throw 'TodayOnlyOverride requires one explicit same-day slot RunId; historical authorization is granted internally only.'}
 if ($PersistentScheduledRun -and -not [string]::IsNullOrWhiteSpace($RunId)) { throw 'PersistentScheduledRun derives its slot-specific CycleId internally; explicit RunIds are forbidden.' }
 if ($TodayOnlyOverride) {
   $StopAtKst=Get-TodayOverrideStopAtKst -RunId $RunId -NowKst ([DateTimeOffset]::UtcNow.ToOffset([TimeSpan]::FromHours(9)))
 } elseif ($PersistentScheduledRun) {
   $nowKst=[DateTimeOffset]::UtcNow.ToOffset([TimeSpan]::FromHours(9))
   $RunId=Get-FiveSlotScheduledTriggerRunId -Slot $ScheduledSlot -NowKst $nowKst
-} elseif ([string]::IsNullOrWhiteSpace($RunId)) { $RunId = Get-FiveSlotRunId ([DateTimeOffset]::UtcNow.ToOffset([TimeSpan]::FromHours(9))) }
+  $StopAtKst=(Get-FiveSlotCutoffKst $RunId).ToString('o')
+} elseif (-not $DrainScheduledQueue -and [string]::IsNullOrWhiteSpace($RunId)) { $RunId = Get-FiveSlotRunId ([DateTimeOffset]::UtcNow.ToOffset([TimeSpan]::FromHours(9))) }
 if (-not $PersistentScheduledRun -and -not [string]::IsNullOrWhiteSpace($ScheduledSlot)) { throw 'ScheduledSlot is only valid with PersistentScheduledRun.' }
-Assert-FiveSlotRunId $RunId
+if(-not $DrainScheduledQueue){Assert-FiveSlotRunId $RunId}
 if ([string]::IsNullOrWhiteSpace($ReceiptRoot)) { $ReceiptRoot = Join-Path (Split-Path -Parent $PSScriptRoot) 'Developer\agent_room' }
 if ([string]::IsNullOrWhiteSpace($FacebookRunnerPath)) { $FacebookRunnerPath = Join-Path (Split-Path -Parent $PSScriptRoot) 'marketing\facebook_daily_zombie_school_posting\Invoke-FacebookScheduledPosting.ps1' }
 if ([string]::IsNullOrWhiteSpace($XRunnerPath)) { $XRunnerPath = Join-Path (Split-Path -Parent $PSScriptRoot) 'marketing\x_daily_zombie_school_posting\Invoke-XDailyZombieSchoolPostingRecovery.ps1' }
@@ -487,8 +614,8 @@ try {
 $receiptRootFull = [IO.Path]::GetFullPath($ReceiptRoot)
   $facebookRunnerFull = [IO.Path]::GetFullPath($FacebookRunnerPath)
   $xRunnerFull = [IO.Path]::GetFullPath($XRunnerPath)
-  if ($PersistentScheduledRun -or $TodayOnlyOverride) {
-    $todayCutoffIso=if($TodayOnlyOverride){[string]$StopAtKst.ToString('o')}else{''}
+  if ($PersistentScheduledRun -or $TodayOnlyOverride -or $DrainScheduledQueue) {
+    $todayCutoffIso=if($TodayOnlyOverride -or $PersistentScheduledRun){[string]$StopAtKst}else{''}
     $queueName=if($TodayOnlyOverride){'social_posting_today_override_queue_'+$RunId.Substring(0,10)+'.json'}else{'social_posting_scheduled_queue.json'}
     $queuePath = Join-Path $receiptRootFull $queueName
     $todayRunCycle = {
@@ -500,7 +627,11 @@ $receiptRootFull = [IO.Path]::GetFullPath($ReceiptRoot)
         [pscustomobject]@{ exitCode=1;status='failed';output=$_.Exception.Message }
       }
     }.GetNewClosure()
-    $result = Invoke-FiveSlotScheduledQueue -QueuePath $queuePath -CycleId $RunId -SerialMutexName 'Local\EscapeZombieSchoolFiveSlotSerial' -StopAtKst $todayCutoffIso -RunCycle $todayRunCycle
+    if($DrainScheduledQueue){
+      $result = Invoke-FiveSlotScheduledQueueDrain -QueuePath $queuePath -SerialMutexName 'Local\EscapeZombieSchoolFiveSlotSerial' -StopAtKst $todayCutoffIso -RunCycle $todayRunCycle
+    } else {
+      $result = Invoke-FiveSlotScheduledQueue -QueuePath $queuePath -CycleId $RunId -SerialMutexName 'Local\EscapeZombieSchoolFiveSlotSerial' -StopAtKst $todayCutoffIso -RunCycle $todayRunCycle
+    }
   } else {
     $result = Invoke-ZombieSchoolFiveSlotPosting -RunId $RunId -ReceiptRoot $receiptRootFull -FacebookRunnerPath $facebookRunnerFull -XRunnerPath $xRunnerFull -ValidateOnly:$ValidateOnly -TestBypassSlotCheck:$TestBypassSlotCheck -AuthorizedHistoricalRun:$AuthorizedHistoricalRun -ReconcileExistingPosts:$ReconcileExistingPosts -PersistentRetryMode:$PersistentRetryMode -CredentialRecovery:$CredentialRecovery
   }

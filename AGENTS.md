@@ -1,3 +1,5 @@
+> Latest user decision (2026-10-18): daily KST 03:00, 12:00, 18:00, 21:00; all X locales first, then all Facebook locales. Backlog canceled. Use `.agents/skills/escape-zombie-school-social-posting/SKILL.md`. This supersedes older posting schedules, platform ordering, and backlog retry rules.
+
 <div style="font-size: 10em; font-weight: 900;">포스팅 자동화는 사용자 지정 시각에 반드시 실행한다. 예약을 비활성화한 채 작업을 끝내지 않는다.</div>
 
 ## 포스팅 자동화 실행 — 2026-10-10 사용자 최우선 지시
