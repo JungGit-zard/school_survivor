@@ -15,6 +15,8 @@ const inspectionMocks = vi.hoisted(() => ({
   stop: vi.fn(),
   subscribe: vi.fn(),
 }))
+const visitorMocks = vi.hoisted(() => ({ fetch: vi.fn() }))
+vi.mock('../lib/firebaseAdminVisitors.js', () => ({ fetchAdminVisitors: visitorMocks.fetch }))
 
 vi.mock('../lib/firebaseInspectionMode.js', () => ({
   startInspection: inspectionMocks.start,
@@ -41,6 +43,7 @@ describe('AdminPage', () => {
     inspectionMocks.start.mockReset()
     inspectionMocks.stop.mockReset()
     inspectionMocks.subscribe.mockReset().mockReturnValue(vi.fn())
+    visitorMocks.fetch.mockReset().mockResolvedValue([])
   })
 
   afterEach(() => {
@@ -57,6 +60,61 @@ describe('AdminPage', () => {
     expect(container.textContent).toContain('게임 밸런스')
     expect(container.textContent).toContain('랭킹/시즌')
     expect(container.textContent).toContain('Stage 1 생존 시간')
+  })
+
+  const master = { uid: 'qa-master', email: 'zard5388@gmail.com', emailVerified: true, providerIds: ['google.com'] }
+  const openVisitors = async (user = master) => {
+    await act(async () => root.render(<AdminPage user={user} />))
+    const button = [...container.querySelectorAll('nav button')].find((b) => b.textContent === '접속자')
+    if (button) await act(async () => button.click())
+    return button
+  }
+
+  it('never displays the protected visitor tab or fetches emails for a non-master', async () => {
+    expect(await openVisitors({ ...master, emailVerified: false })).toBeUndefined()
+    expect(visitorMocks.fetch).not.toHaveBeenCalled()
+  })
+
+  it('shows Google mail, UID, nickname and full visit time, with honest guest and unknown rows', async () => {
+    visitorMocks.fetch.mockResolvedValueOnce([
+      { uid: 'qa-google', nickname: '닉네임', authType: 'google.com', email: 'actual@example.com', firstVisitedAt: Date.parse('2026-10-18T00:00:00Z'), lastVisitedAt: Date.parse('2026-10-18T01:02:03Z') },
+      { uid: 'qa-guest', authType: 'anonymous' },
+      { uid: 'qa-unknown', authType: 'unknown', linkedGoogleEmail: 'linked@example.com', provenance: 'historical-auth-only' },
+    ])
+    await openVisitors()
+    expect(container.textContent).toContain('actual@example.com')
+    expect(container.textContent).toContain('qa-google')
+    expect(container.textContent).toContain('닉네임')
+    expect(container.textContent).toContain('2026-10-18 10:02:03 KST')
+    expect(container.textContent).toContain('게스트 · 이메일 없음')
+    expect(container.textContent).toContain('인증 종류 미확인')
+    expect(container.textContent).toContain('linked@example.com')
+    expect(container.textContent).toContain('연결된 Google 이메일 · 최근 로그인 방식 미상')
+    expect(container.textContent).toContain('인증 계정만 · 방문 기록 미확인')
+    expect(container.querySelector('caption').textContent).toContain('계정 3개')
+    expect(container.textContent).toContain('시각 기록 없음')
+    expect(container.querySelector('table').parentElement.style.overflowX).toBe('auto')
+  })
+
+  it('shows loading, failure, retry and an empty directory without retaining prior private rows', async () => {
+    let reject
+    visitorMocks.fetch.mockReturnValueOnce(new Promise((_resolve, no) => { reject = no }))
+    await openVisitors()
+    expect(container.textContent).toContain('접속자를 불러오는 중')
+    await act(async () => reject(new Error('permission denied')))
+    expect(container.querySelector('[role="alert"]').textContent).toContain('불러오지 못했습니다')
+    visitorMocks.fetch.mockResolvedValueOnce([])
+    await act(async () => [...container.querySelectorAll('button')].find((b) => b.textContent === '새로고침').click())
+    expect(container.textContent).toContain('저장된 접속 기록이 없습니다')
+  })
+
+  it('immediately removes private emails when the current user loses master access', async () => {
+    visitorMocks.fetch.mockResolvedValue([{ uid: 'qa-private', authType: 'google.com', email: 'private@example.com' }])
+    await openVisitors()
+    expect(container.textContent).toContain('private@example.com')
+    await act(async () => root.render(<AdminPage user={{ uid: 'qa-other' }} />))
+    expect(container.textContent).not.toContain('private@example.com')
+    expect(container.textContent).toContain('최고관리자만 조회할 수 있습니다')
   })
 
   it('saves balance changes to the admin config store', () => {

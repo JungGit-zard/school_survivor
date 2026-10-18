@@ -34,3 +34,9 @@ Advisor의 최종 독립 실제 SDK 실행은 `evidence/progress-main-sdk-releas
 - safe script의 nonce, legal/cards 생성, preview JS 자산62개 검증은 유지했다. `--preview-only`로 clone 직전에 종료했고 종료코드0이다. 정상 build를 이미 통과한 동일 source의 중복 build만 임시 config에서 제외했다. 정확 preview 도메인의 Auth authorizedDomains 등록을 정상 API로 확인했다.
 
 실제 Google 새 OAuth와 인증 후 핵심 진입은 아직 미검증이다. 현재 운영 Hosting과 Rules는 승격하지 않았다.
+
+## 관리자 명부의 별도 범위
+
+관리자 화면의 명부는 보호 경로에만 저장하며 verified Google 최고관리자만 전체 조회한다. Ready의 실제 화면 진입/UID 전환과 기존 계정삭제를 연결했다. 삭제 중 신규·늦은 방문 쓰기를 UID별로 차단하고 이미 진행 중인 방문은 종료 후 지운다. 독립 단위 테스트50개와 실제 SDK Rules 권한 검사13개가 통과했다. `evidence/admin-rules-subtree-proof.json`은 최종 Admin Rules 분기가 검사 당시와 동일함을 증명한다.
+
+정상 Auth metadata와 기존 랭킹의 목적 제한 대조 뒤 승인된 CAS로 87계정의 보호 명부를 등록했다. Google 연결 이메일39, 랭킹 근거45, 인증 계정만42다. 과거 실제 방문시간은 생성하지 않았고 job 시간을 방문시간으로 표시하지 않는다. 계정 생성/Auth 변경0·다른 DB 경로 쓰기0이며 PRIVATE 원본과 ETag를 보존했다. Advisor의 09:43:26.867Z 독립 GET 해시가 동일했고 인증 없는 GET은 HTTP401이었다. 실제 Google OAuth와 live/Rules 승격은 여전히 미완료다.

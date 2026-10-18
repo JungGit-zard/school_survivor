@@ -70,6 +70,23 @@ export default function ReadyGameApp({
   }, [authUser?.uid])
 
   useEffect(() => {
+    let stopped = false
+    const recordVisit = () => {
+      void import('../lib/firebaseAdminVisitors.js').then(({ recordAdminVisitor }) => (
+        stopped ? undefined : recordAdminVisitor(authUser ?? null)
+      )).catch(() => {
+        if (stopped) return
+        void import('../store/useGameStore.js').then(({ useGameStore }) => {
+          if (!stopped) useGameStore.setState({ progressSaveWarning: t('persistence.saveFailed') })
+        })
+      })
+    }
+    recordVisit()
+    window.addEventListener('online', recordVisit)
+    return () => { stopped = true; window.removeEventListener('online', recordVisit) }
+  }, [authUser?.uid, screen])
+
+  useEffect(() => {
     initializeRuntimeUtilities()
   }, [])
 
