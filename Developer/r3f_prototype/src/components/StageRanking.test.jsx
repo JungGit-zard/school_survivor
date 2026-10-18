@@ -28,6 +28,7 @@ vi.mock('../lib/firebaseRanking.js', async () => {
         score: window === 'daily' ? 900 : 1200,
         timeMs: 240000,
         cleared: true,
+        lastPlayedAt: Date.parse('2026-10-18T01:02:03Z'),
       }])
       return vi.fn()
     }),
@@ -43,21 +44,29 @@ describe('StageRanking', () => {
     expect(view.container.textContent).not.toContain('첫 생존 시즌')
     view.unmount()
   })
+  it('shows the actual full KST play time on every period', async () => {
+    const view = await renderStageRanking()
+    for (const label of ['무제한 누적', '일일랭킹', '주간랭킹']) {
+      await view.clickTab(label)
+      expect(view.container.textContent).toContain('마지막 플레이 · 2026-10-18 10:02:03 KST')
+    }
+    view.unmount()
+  })
   beforeEach(() => {
     vi.clearAllMocks()
   })
 
-  it('opens on the daily board and offers both period buttons', async () => {
+  it('opens on the permanent board and offers all three periods', async () => {
     const view = await renderStageRanking()
 
     expect(view.container.textContent).toContain('스테이지 랭킹')
-    expect(view.container.textContent).toContain('오늘 1위')
-    expect(view.container.textContent).toContain('한국시간 당일 00:00:01 - 23:59:59')
-    expect(view.container.textContent).toContain('실시간 일일왕')
+    expect(view.container.textContent).toContain('역대 1위')
+    expect(view.container.textContent).toContain('기간 제한 없는')
+    expect(view.container.textContent).toContain('실시간 주간왕')
     // 주간으로 바뀌는 게 아니라 두 버튼이 나란히 있어야 한다.
     expect(view.tabLabels()).toEqual(['무제한 누적', '일일랭킹', '주간랭킹'])
     expect(subscribeStageRanking).toHaveBeenCalledTimes(1)
-    expect(subscribeStageRanking).toHaveBeenCalledWith('stage1', 'daily', expect.any(Function), { limit: 30 })
+    expect(subscribeStageRanking).toHaveBeenCalledWith('stage1', 'allTime', expect.any(Function), { limit: 30 })
     expect(fetchStageRanking).not.toHaveBeenCalled()
 
     view.unmount()
@@ -65,14 +74,15 @@ describe('StageRanking', () => {
 
   it('resubscribes to the weekly window and drops the daily subscription when switching', async () => {
     const view = await renderStageRanking()
-    const unsubscribeDaily = subscribeStageRanking.mock.results[0].value
+    await view.clickTab('일일랭킹')
+    const unsubscribeDaily = subscribeStageRanking.mock.results[1].value
 
     await view.clickTab('주간랭킹')
 
-    expect(subscribeStageRanking).toHaveBeenNthCalledWith(2, 'stage1', 'weekly', expect.any(Function), { limit: 30 })
+    expect(subscribeStageRanking).toHaveBeenNthCalledWith(3, 'stage1', 'weekly', expect.any(Function), { limit: 30 })
     // 이전 구독을 정리하지 않으면 두 보드의 행이 서로 덮어쓴다.
     expect(unsubscribeDaily).toHaveBeenCalledTimes(1)
-    expect(subscribeStageRanking.mock.results[1].value).not.toHaveBeenCalled()
+    expect(subscribeStageRanking.mock.results[2].value).not.toHaveBeenCalled()
 
     expect(view.container.textContent).toContain('실시간 주간왕')
     expect(view.container.textContent).not.toContain('실시간 일일왕')
@@ -113,6 +123,7 @@ describe('StageRanking', () => {
 
   it('marks the selected period without relying on colour alone', async () => {
     const view = await renderStageRanking()
+    await view.clickTab('일일랭킹')
 
     expect(view.tab('일일랭킹').getAttribute('aria-pressed')).toBe('true')
     expect(view.tab('주간랭킹').getAttribute('aria-pressed')).toBe('false')

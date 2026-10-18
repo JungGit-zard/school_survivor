@@ -103,16 +103,20 @@ function globalEntriesPath(seasonId, window, key) {
 // E2E 우회/미설정/시즌 밖이면 skip. 최고점(max) 모델 — 기존보다 낮은 점수는 규칙이 거른다.
 // 반환: { written[], skipped[], failed[], reason? }. skipped는 정상(기존 최고점이 더 높음),
 // failed는 최고점 유실(권한 거부·규칙 불일치·네트워크)이라 절대 같이 묶으면 안 된다.
-export async function submitRun(user, { stageId, score, stageScore = score, timeMs, globalTimeMs = timeMs, cleared } = {}) {
-  const run = { stageId, score, stageScore, timeMs, globalTimeMs, cleared }
-  if (user?.isAnonymous) return enqueueGuestWrite(user, async () => {
-    const { getGuestRankingNicknameForUid } = await import('./guestRankingIdentity.js')
-    return submitRunNow({ ...user, displayName: getGuestRankingNicknameForUid(user.uid) || user.displayName }, run)
+export async function submitRun(user, { stageId, score, stageScore = score, timeMs, globalTimeMs = timeMs, cleared, lastPlayedAt = Date.now() } = {}) {
+  // Capture the gameplay event before asynchronous guest authentication/queues.
+  const run = { stageId, score, stageScore, timeMs, globalTimeMs, cleared, lastPlayedAt }
+  if (!user?.uid) return notSubmitted('signedOut')
+  return enqueueGuestWrite(user, async () => {
+    if (user.isAnonymous) {
+      const { getGuestRankingNicknameForUid } = await import('./guestRankingIdentity.js')
+      return submitRunNow({ ...user, displayName: getGuestRankingNicknameForUid(user.uid) || user.displayName }, run)
+    }
+    return submitRunNow(user, run)
   })
-  return submitRunNow(user, run)
 }
 
-async function submitRunNow(user, { stageId, score, stageScore = score, timeMs, globalTimeMs = timeMs, cleared } = {}) {
+async function submitRunNow(user, { stageId, score, stageScore = score, timeMs, globalTimeMs = timeMs, cleared, lastPlayedAt } = {}) {
   if (!user?.uid) return notSubmitted('signedOut')
   if (!isFirebaseRankingConfigured()) return notSubmitted('unconfigured')
   // E2E 우회 유저 점수는 실랭킹에 오염되지 않게 차단
@@ -132,6 +136,7 @@ async function submitRunNow(user, { stageId, score, stageScore = score, timeMs, 
     cleared: cleared === true,
     stageId: sid,
     submittedAt: now,
+    ...(Number.isFinite(lastPlayedAt) && lastPlayedAt > 0 ? { lastPlayedAt } : {}),
   }
 
   const { db, mod } = await getClient(user)
@@ -159,9 +164,18 @@ async function submitRunNow(user, { stageId, score, stageScore = score, timeMs, 
       : { ...entry, timeMs: readNonNegInt(globalTimeMs) }
     const entryRef = mod.ref(db, `${path}/${uid}`)
     try {
+      // A replay or a slower session must never erase a higher score. Updating
+      // the last actual play is independent of which run owns the best score.
+      if (mod.runTransaction) {
+        const result = await mod.runTransaction(entryRef, (current) => mergeRankingPlay(current, bucketEntry), { applyLocally: false })
+        return { path, status: result.committed ? 'written' : 'skipped' }
+      }
       const snap = await mod.get(entryRef)
-      if (snap?.exists?.() && readNonNegInt(snap.child('score').val()) >= bucketEntry.score) return { path, status: 'skipped' }
-      await mod.set(entryRef, bucketEntry)
+      const current = snap?.exists?.() ? snap.val?.() : null
+      if (!current && snap?.exists?.() && readNonNegInt(snap.child('score').val()) >= bucketEntry.score) return { path, status: 'skipped' }
+      const merged = mergeRankingPlay(current, bucketEntry)
+      if (!merged) return { path, status: 'skipped' }
+      await mod.set(entryRef, merged)
       return { path, status: 'written' }
     } catch (error) {
       // 실패한 버킷만 failed로 남긴다 — 다른 버킷은 계속 진행한다.
@@ -179,6 +193,14 @@ async function submitRunNow(user, { stageId, score, stageScore = score, timeMs, 
     })
   }
   return outcome
+}
+
+function mergeRankingPlay(current, incoming) {
+  if (!current) return incoming
+  const best = readNonNegInt(current.score) >= incoming.score ? current : incoming
+  const lastPlayedAt = Math.max(readNonNegInt(current.lastPlayedAt), readNonNegInt(incoming.lastPlayedAt))
+  const next = { ...best, displayName: incoming.displayName, ...(lastPlayedAt > 0 ? { lastPlayedAt } : {}) }
+  return JSON.stringify(next) === JSON.stringify(current) ? undefined : next
 }
 
 function summarize(results) {
@@ -378,6 +400,7 @@ export async function fetchTopRanking(_seasonId, limit = 100) {
     survivalSeconds: Math.floor((row.timeMs ?? 0) / 1000),
     cleared: row.cleared,
     submittedAt: '',
+    lastPlayedAt: row.lastPlayedAt ?? null,
   }))
 }
 

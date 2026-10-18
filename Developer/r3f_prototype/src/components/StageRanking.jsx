@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { getActiveSeason, subscribeStageRanking } from '../lib/firebaseRanking.js'
 import { getStageConfig } from '../lib/stageConfig.js'
-import { formatRankScore, formatSurvivalTime } from '../lib/userRanking.js'
+import { formatRankScore, formatSurvivalTime, formatLastPlayedAt } from '../lib/userRanking.js'
 import { stageTitle, t as translate, useT } from '../lib/i18n.js'
 import RankingWindowTabs from './RankingWindowTabs.jsx'
 
@@ -27,7 +27,7 @@ export default function StageRanking({ stageId = 'stage1', onBack }) {
   const t = useT()
   const stage = useMemo(() => getStageConfig(stageId), [stageId])
   const season = useMemo(() => getActiveSeason(), [])
-  const [activeWindow, setActiveWindow] = useState('daily')
+  const [activeWindow, setActiveWindow] = useState('allTime')
   const [rows, setRows] = useState([])
   const copy = WINDOW_COPY[activeWindow] ?? WINDOW_COPY.daily
 
@@ -89,6 +89,7 @@ function StageRankingRow({ entry, rank }) {
       <span style={styles.name}>{entry.displayName || translate('ranking.anonymous')}</span>
       <span style={styles.score}>{formatRankScore(entry.score)}</span>
       <span style={styles.meta}>{seconds > 0 ? formatSurvivalTime(seconds) : ''}{entry.cleared ? translate('ranking.clearedSuffix') : ''}</span>
+      <span style={styles.lastPlayed}>{translate('ranking.lastPlayed')} · {formatLastPlayedAt(entry.lastPlayedAt ?? entry.lastStartedAt)}</span>
     </li>
   )
 }
@@ -195,6 +196,7 @@ const styles = {
     boxSizing: 'border-box',
   },
   topRow: { borderLeft: `6px solid ${panelTone.amber}`, background: panelTone.paper },
+  lastPlayed: { gridColumn: '1 / -1', marginTop: 6, fontSize: 10, lineHeight: 1.4, overflowWrap: 'anywhere', color: '#51495a' },
   rank: { gridRow: '1 / span 2', fontSize: 14, lineHeight: 1, fontWeight: 1000 },
   name: {
     // rank/score가 gridRow를 명시해 먼저 배치되므로, name도 칸을 못박지 않으면

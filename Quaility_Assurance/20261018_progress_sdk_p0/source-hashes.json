@@ -1,0 +1,8 @@
+{
+  "src/lib/firebaseProgress.js": "2e0cd70f864db4e8c7c38730da7f03133ab4498c028c9b8754daec0c74ffbccd",
+  "src/store/useGameStore.js": "8809e1314308432ac70218cef52065981583f8b5205926c124038f3edc82ec11",
+  "src/components/ReadyGameApp.jsx": "7d9c88f585733fba95833dce61dfd331e0152ce39b6308010f4fbaf611dfb1ee",
+  "database.rules.json": "dfb149c29d7016af17714c5d063f83c83e6d691556b01a096d8028490155645f",
+  "src/lib/firebaseAuth.js": "aa7457845f5a96f9951694ce5dc2ee21ea18a0a7242b847a90cc9438e8b51afa",
+  "src/lib/firebaseAdminVisitors.js": "b0848ac51b4079c33019fe246f18ad00d0f27150f2d0153da5b78a75aed2f5be"
+}

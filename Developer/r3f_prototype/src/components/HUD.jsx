@@ -761,6 +761,9 @@ export default function HUD({
   // 과학적 기수법 설정을 구독한다 - 토글하면 즉시 표기가 바뀐다.
   const gameNumber = useGameNumber()
   const authUser = useAuthStore((state) => state.user)
+  const progressSaveWarning = useGameStore((state) => state.progressSaveWarning)
+  const progressSaveState = useGameStore((state) => state.progressSaveState)
+  const retryProgressSave = useGameStore((state) => state.reconcileCloudProgress)
   const devToolsVisible = DEV_CHEATS_ENABLED && devCheatsVisible
   const showMasterRoleBadge = isProjectMaster(authUser)
   const questBagButtonRef = useRef(null)
@@ -1359,6 +1362,13 @@ export default function HUD({
 
   return (
     <div style={styles.root}>
+      {authUser && progressSaveState === 'pending' && <div role="status" style={{position:'absolute',top:48,left:12,zIndex:10000,color:'#fff',background:'#252525',padding:6}}>{t('persistence.saving')}</div>}
+      {progressSaveWarning && (
+        <div role="alert" style={{ position: 'absolute', top: 72, left: 12, right: 12, zIndex: 10000, padding: 12, background: '#331b1b', color: '#fff', pointerEvents: 'auto' }}>
+          {t('persistence.saveFailed')}
+          <button type="button" onClick={() => retryProgressSave()}>{t('persistence.retry')}</button>
+        </div>
+      )}
       {/* 저체력 비네트 */}
       {lowHp && (
         <div style={{

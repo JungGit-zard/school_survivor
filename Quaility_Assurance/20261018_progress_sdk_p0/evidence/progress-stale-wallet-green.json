@@ -1,0 +1,11 @@
+{
+  "actualSDK": true,
+  "syntheticAuth": true,
+  "productionWrites": 0,
+  "staleWriteAcknowledged": false,
+  "beforeGold": 90,
+  "afterGold": 90,
+  "beforeMagnet": 1,
+  "afterMagnet": 1,
+  "ledgerPreserved": true
+}

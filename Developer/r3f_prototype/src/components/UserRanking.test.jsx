@@ -29,6 +29,14 @@ describe('UserRanking', () => {
     expect(html).toContain('Guest zero')
     expect(html).toContain('0점')
   })
+  it('shows full KST time for a zero-score entrant and unknown for old records', () => {
+    const html = renderToStaticMarkup(<UserRanking entries={[
+      { uid: 'real', displayName: '????', score: 0, timeMs: 0, lastPlayedAt: Date.parse('2026-10-18T01:02:03Z') },
+      { uid: 'old', displayName: '????', score: 0, timeMs: 0, submittedAt: Date.now() },
+    ]} />)
+    expect(html).toContain('2026-10-18 10:02:03 KST')
+    expect(html).toContain('시각 기록 없음')
+  })
   beforeEach(() => {
     _seedHydratedFirebaseProgressForTests()
     useAuthStore.setState({ user: null })
@@ -36,6 +44,19 @@ describe('UserRanking', () => {
     isFirebaseRankingConfigured.mockReturnValue(false)
     subscribeGlobalRanking.mockReset()
     subscribeGlobalRanking.mockReturnValue(vi.fn())
+  })
+
+  it.each(['loading', 'error'])('does not disguise unavailable signed-in progress as zero: %s', (progressStatus) => {
+    _resetFirebaseProgressForTests()
+    useAuthStore.setState({ user: { uid: 'real' }, progressStatus })
+    const container = document.createElement('div')
+    const root = createRoot(container)
+    try {
+      act(() => root.render(<UserRanking entries={[]} />))
+      expect(container.textContent).toContain(progressStatus === 'error' ? '기록 불러오기 실패' : '불러오는 중')
+      expect(container.querySelector('header').textContent).not.toMatch(/누적 플레이\s*0/)
+      if (progressStatus === 'error') expect(container.textContent).toContain('다시 시도')
+    } finally { act(() => root.unmount()) }
   })
 
   it('renders ranking rows from 1st through 30th place', () => {

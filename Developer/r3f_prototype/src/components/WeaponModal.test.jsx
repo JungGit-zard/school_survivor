@@ -2,6 +2,7 @@
 import React from 'react'
 import { act } from 'react'
 import { createRoot } from 'react-dom/client'
+import { renderToStaticMarkup } from 'react-dom/server'
 import { beforeEach, describe, expect, it } from 'vitest'
 import WeaponModal from './WeaponModal.jsx'
 import { _resetFirebaseProgressForTests, _seedHydratedFirebaseProgressForTests, setCloudProgressUser } from '../lib/firebaseProgress.js'
@@ -12,6 +13,14 @@ describe('WeaponModal encyclopedia', () => {
   beforeEach(() => {
     _seedHydratedFirebaseProgressForTests()
     resetWeaponUnlocks()
+  })
+
+  it.each(['loading', 'error'])('keeps absent records distinct from real zero: %s', (recordsStatus) => {
+    const html = renderToStaticMarkup(<WeaponModal playerRecords={null} recordsStatus={recordsStatus} initialWeaponId="guidedMissile" onRetryRecords={() => {}} />)
+    expect(html).toContain('기록 미수신')
+    expect(html).toContain(recordsStatus === 'error' ? '기록 불러오기 실패' : '불러오는 중')
+    expect(html).not.toMatch(/0\/\d+/)
+    if (recordsStatus === 'error') expect(html).toContain('다시 시도')
   })
 
   it('opens a requested weapon detail and exposes unlock-state filters', () => {

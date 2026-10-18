@@ -21,7 +21,6 @@ import { setMagnetMultiplier } from '../lib/pickup.js'
 import {
   incrementRecord as incrementPlayerRecord,
   setBestIfHigher as setBestPlayerRecord,
-  snapshot as snapshotPlayerRecords,
   load as loadPlayerRecords,
 } from '../lib/playerRecords.js'
 import { evaluateUnlocks, isStarter, WEAPON_CATALOG } from '../lib/weaponCatalog.js'
@@ -39,6 +38,10 @@ import {
   readFirebaseMissionProgress,
   recordPlayActivity,
   requestCloudProgressSave,
+  recordFirebaseRunCheckpoint,
+  recordFirebaseProgressPurchase,
+  flushCloudProgressBeforeSignOut,
+  hydrateCloudProgress,
   saveFirebaseMissionProgress,
   updateFirebaseMissionProgress,
   readFirebasePlayerProgress,
@@ -48,6 +51,7 @@ import {
   createMissionProgressState,
   reconcileMissionProgress,
   reduceMissionEvent,
+  getCounterChanges,
 } from '../lib/missionProgress.js'
 import { getApprovedMissionRewardAllowlist, MISSION_BY_ID } from '../lib/missionCatalog.js'
 import { submitRun, describeSubmission } from '../lib/firebaseRanking.js'
@@ -76,6 +80,53 @@ const FOLLOWUP_GUARANTEED_UPGRADE_BY_PREREQUISITE = Object.freeze({
 
 const MAX_MISSION_KILL_KEYS = 512
 const RANKING_CHECKPOINT_INTERVAL_MS = 10_000
+const pendingRuns = new Map()
+
+function checkpointRun(state, phaseName = state.phase) {
+  const uid = useAuthStore.getState().user?.uid
+  if (!uid) return false
+  let run = pendingRuns.get(state.progressRunId)
+  if (!run && state.progressRunId && ['playing','paused','levelup','cleared','gameover'].includes(phaseName)) {
+    const id = state.progressRunId
+    run = pendingRuns.get(id) ?? { uid, stageId: state.currentStageId, applied: {}, walletApplied: 0 }
+    pendingRuns.set(id,run)
+  }
+  // Capture the visible run only for its owner, but still replay this account's
+  // older pending runs when another account last used the visible game state.
+  if (run?.uid === uid) {
+    const stage = getStageConfig(run.stageId)
+    run.values = {
+    totalRuns: 1,
+    totalKills: state.runKills,
+    totalGold: state.goldSession,
+    totalLevelUps: state.runLevelUps,
+    bossKills: state.runBossKills ?? 0,
+    totalSurvivalSeconds: Math.floor(getRuntimeElapsedMs(state.elapsedMs) / 1000),
+    [stage.clearRecordKey]: phaseName === 'cleared' || run.values?.[stage.clearRecordKey] === 1 ? 1 : 0,
+    stage1Survival180Runs: run.stageId === 'stage1' && state.elapsedMs >= 180000 ? 1 : 0,
+    }
+    run.best = { bestSurvivalSeconds: run.values.totalSurvivalSeconds, [stage.bestRecordKey]: run.values.totalSurvivalSeconds }
+    run.bossPassiveUnlocks = { ...state.bossPassiveUnlocks }
+  }
+  if (!isFirebaseProgressHydrated({ uid })) {
+    useGameStore.setState({ progressSaveWarning: 'save-failed' })
+    return false
+  }
+  const ownedBossUnlocks = { ...readFirebasePlayerProgress().bossPassiveUnlocks }
+  for (const [runId,pending] of pendingRuns.entries()) {
+    if (pending.uid !== uid || !pending.values) continue
+    recordFirebaseRunCheckpoint(runId, { stageId: pending.stageId, records: pending.values, best: pending.best, missionCounters: pending.missionCounters })
+    const newBossUnlocks = Object.fromEntries(Object.entries(pending.bossPassiveUnlocks??{}).filter(([key,value])=>value===true&&ownedBossUnlocks[key]!==true))
+    if(Object.keys(newBossUnlocks).length) {
+      Object.assign(ownedBossUnlocks,newBossUnlocks)
+      updateFirebasePlayerProgress(progress => { progress.bossPassiveUnlocks = { ...progress.bossPassiveUnlocks,...newBossUnlocks } })
+    }
+    pending.applied = { ...pending.values }
+    pending.walletApplied = pending.values.totalGold
+  }
+  saveRuntimeProgress()
+  return true
+}
 
 function floorNonNegativeMs(value) {
   const ms = Number(value)
@@ -219,13 +270,18 @@ function loadBossPassiveUnlocks() {
 function saveRuntimeProgress() {
   const uidAtRequest = getFirebaseProgressRuntimeSnapshot().uid
   if (!uidAtRequest || !isFirebaseProgressConfigured() || !isFirebaseProgressHydrated({ uid: uidAtRequest })) return
+  useGameStore.setState({ progressSaveState: 'pending' })
   const markCurrentAccountWarning = () => {
     if (isFirebaseProgressHydrated({ uid: uidAtRequest })) {
-      useGameStore.setState({ progressSaveWarning: 'save-failed' })
+      useGameStore.setState(s => ({ progressSaveWarning: 'save-failed', goldTotal: loadGoldTotal(), passiveVersion: s.passiveVersion + 1 }))
     }
   }
   void requestCloudProgressSave().then((saved) => {
-    if (saved) return
+    if (saved) {
+      if (isFirebaseProgressHydrated({uid:uidAtRequest})) useGameStore.setState({progressSaveState:'saved'})
+      return
+    }
+    if (isFirebaseProgressHydrated({uid:uidAtRequest})) useGameStore.setState({progressSaveState:'failed'})
     if (consumeFirebaseProgressSaveWarning() === 'save-failed') markCurrentAccountWarning()
   }).catch(markCurrentAccountWarning)
 }
@@ -502,8 +558,9 @@ export const useGameStore = create(
           player: applyBossPassiveMaxHp(applyBossPassiveMovementSpeed(state.player, nextBossPassiveUnlocks), nextBossPassiveUnlocks),
         })
       }
+      set(s => ({ runBossKills: (s.runBossKills ?? 0) + 1 }))
+      checkpointRun(get())
       if (!isFirebaseProgressHydrated()) return
-      incrementPlayerRecord('bossKills', 1)
       if (unlockedNow) {
         updateFirebasePlayerProgress((progress) => {
           progress.bossPassiveUnlocks = nextBossPassiveUnlocks
@@ -525,8 +582,19 @@ export const useGameStore = create(
     },
 
     recordMissionEvent: (event) => {
+      const pending = pendingRuns.get(get().progressRunId)
+      if (pending && pending.uid === useAuthStore.getState().user?.uid) {
+        pending.missionCounters ??= {}
+        for(const {key,value,mode} of getCounterChanges(event)) pending.missionCounters[key] = mode === 'max'
+          ? Math.max(pending.missionCounters[key]??0,value)
+          : (pending.missionCounters[key]??0)+value
+      }
       const missionProgress = reduceMissionEvent(get().missionProgress, event)
       set({ missionProgress })
+      if (isFirebaseProgressHydrated()) {
+        checkpointRun(get())
+        set({ missionProgress: reconcileMissionProgress(readFirebasePlayerProgress().missions) })
+      }
       return missionProgress
     },
 
@@ -616,6 +684,7 @@ export const useGameStore = create(
     // 순서가 정확성을 결정: 평가는 snapshot 전, 합본에 본 런 카운터 포함, snapshot은 평가 후.
     _onRunEnd: (phaseName) => {
       const s = get()
+      checkpointRun(s, phaseName)
       const elapsedMs = getRuntimeElapsedMs(s.elapsedMs)
       const runSurvivalSeconds = Math.floor(elapsedMs / 1000)
       const stage = getStageConfig(s.currentStageId)
@@ -631,13 +700,9 @@ export const useGameStore = create(
         runLevelUps: s.runLevelUps,
         runSurvivalSeconds,
       }
-      evalInput.totalRuns = (evalInput.totalRuns ?? 0) + 1
-      evalInput.totalKills = (evalInput.totalKills ?? 0) + Math.max(0, Math.floor(s.runKills))
-      evalInput.totalGold = (evalInput.totalGold ?? 0) + Math.max(0, Math.floor(s.goldSession))
-      evalInput.totalLevelUps = (evalInput.totalLevelUps ?? 0) + Math.max(0, Math.floor(s.runLevelUps))
-      evalInput.totalSurvivalSeconds = (evalInput.totalSurvivalSeconds ?? 0) + runSurvivalSeconds
-      if (phaseName === 'cleared') {
-        evalInput[stage.clearRecordKey] = (evalInput[stage.clearRecordKey] ?? 0) + 1
+      if (!progressReady) {
+        Object.assign(evalInput, { totalRuns: 1, totalKills: s.runKills, totalGold: s.goldSession, totalLevelUps: s.runLevelUps, totalSurvivalSeconds: runSurvivalSeconds })
+        if (phaseName === 'cleared') evalInput[stage.clearRecordKey] = 1
       }
 
       // 미션은 여기서만 run-end batch로 저장한다. component/frame/pickup별 Firebase 쓰기는 없다.
@@ -678,12 +743,6 @@ export const useGameStore = create(
       }
 
       // 3. 평가 후 누적 snapshot
-      snapshotPlayerRecords({
-        runKills: s.runKills,
-        runGold: s.goldSession,
-        runLevelUps: s.runLevelUps,
-        runSurvivalSeconds,
-      })
       // stage1.bestRecordKey === 'bestSurvivalSeconds' 이므로 stage별 키만 기록하면 충분하다.
       // 글로벌 bestSurvivalSeconds는 stage2 종료 시에도 함께 갱신해야 하므로 두 줄 유지하되
       // stage1에서 동일 키 이중 기록되던 버그를 키 비교로 방지.
@@ -691,10 +750,6 @@ export const useGameStore = create(
         setBestPlayerRecord('bestSurvivalSeconds', runSurvivalSeconds)
       }
       setBestPlayerRecord(stage.bestRecordKey, runSurvivalSeconds)
-      if (s.currentStageId === 'stage1' && runSurvivalSeconds >= 180) {
-        incrementPlayerRecord('stage1Survival180Runs', 1)
-      }
-      if (phaseName === 'cleared') incrementPlayerRecord(stage.clearRecordKey, 1)
       if (phaseName === 'gameover') emitSfx({ id: 'gameOver' })
 
       set({ newlyUnlockedWeaponIds: Object.freeze(diff) })
@@ -763,12 +818,37 @@ export const useGameStore = create(
 
     dismissProgressSaveWarning: () => set({ progressSaveWarning: null }),
 
+    reconcileCloudProgress: async () => {
+      const user = useAuthStore.getState().user
+      if (!user?.uid) return false
+      try {
+        if (!isFirebaseProgressHydrated(user)) await hydrateCloudProgress(user)
+        if (useAuthStore.getState().user?.uid !== user.uid) return false
+        checkpointRun(get())
+        const saved = await requestCloudProgressSave(user)
+        set({ progressSaveWarning: saved ? null : 'save-failed' })
+        return saved
+      } catch {
+        if (useAuthStore.getState().user?.uid === user.uid) set({ progressSaveWarning: 'save-failed' })
+        return false
+      }
+    },
+
+    flushProgressBeforeTransition: async () => {
+      checkpointRun(get())
+      const user = useAuthStore.getState().user
+      if (!user?.uid) return true
+      const saved = await flushCloudProgressBeforeSignOut(user)
+      if (!saved) set({ progressSaveWarning: 'save-failed' })
+      return saved
+    },
+
     gainGold: (amount) => {
       if (!amount) return
       const { goldSession, goldTotal } = get()
       const nextTotal = goldTotal + amount
-      saveGoldTotal(nextTotal)
       set({ goldSession: goldSession + amount, goldTotal: nextTotal })
+      checkpointRun(get())
       saveRuntimeProgress()
     },
 
@@ -789,6 +869,7 @@ export const useGameStore = create(
       const result = purchasePassiveStorage(id, goldTotal)
       if (!result.ok) return result
       saveGoldTotal(result.nextGold)
+      recordFirebaseProgressPurchase({category:'passiveUpgrades',id,price:result.price,nextLevel:result.nextLevel})
       set((s) => ({ goldTotal: result.nextGold, passiveVersion: s.passiveVersion + 1 }))
       saveRuntimeProgress()
       return result
@@ -800,6 +881,7 @@ export const useGameStore = create(
       const result = purchaseWeaponPermanentUpgradeStorage(id, goldTotal)
       if (!result.ok) return result
       saveGoldTotal(result.nextGold)
+      recordFirebaseProgressPurchase({category:'weaponPermanentUpgrades',id,price:result.price,nextLevel:result.nextLevel})
       const levels = getAllLevels()
       set((s) => ({
         goldTotal: result.nextGold,
@@ -829,6 +911,7 @@ export const useGameStore = create(
 
     reloadPersistentProgress: () => {
       if (!isFirebaseProgressHydrated()) return false
+      checkpointRun(get())
       const levels = getAllLevels()
       const bossPassiveUnlocks = loadBossPassiveUnlocks()
       applyMagnetPassive(levels)
@@ -859,7 +942,6 @@ export const useGameStore = create(
       emitSfx({ id: 'milestoneGold' })
       const gold = earned.reduce((sum, milestone) => sum + milestone.gold, 0)
       const nextTotal = s.goldTotal + gold
-      saveGoldTotal(nextTotal)
       set({
         goldSession: s.goldSession + gold,
         goldTotal: nextTotal,
@@ -925,7 +1007,6 @@ export const useGameStore = create(
         || !matchesQuestCompletionSource(quest, sourceId)) return false
       const gold = quest.rewardGold
       const goldTotal = s.goldTotal + gold
-      saveGoldTotal(goldTotal)
       set({
         questProgress: {
           ...s.questProgress,
@@ -986,7 +1067,6 @@ export const useGameStore = create(
 
       if (reward?.type === 'gold') {
         const goldTotal = s.goldTotal + reward.amount
-        saveGoldTotal(goldTotal)
         emitSfx({ id: 'coinCollect' })
         return {
           phase: 'playing',
@@ -1282,11 +1362,13 @@ export const useGameStore = create(
       return true
     },
 
-    continueToNextStage: () => {
+    continueToNextStage: async () => {
       const s = get()
       if (s.phase !== 'cleared' || !s.escapeResult) return false
       const nextStageId = getNextStageId(s.currentStageId)
       if (!nextStageId) return false
+      if (!await get().flushProgressBeforeTransition()) return false
+      if (get().progressRunId !== s.progressRunId || get().phase !== 'cleared') return false
       get().resetGame(nextStageId, { preserveQuestJourney: true, preserveContinuousScore: true })
       return true
     },
@@ -1298,6 +1380,9 @@ export const useGameStore = create(
       const nextStageId = getStageConfig(stageId).id
       resetRuntimeRefs(getPlayerStartPosition(nextStageId))
       const progressReady = isFirebaseProgressHydrated()
+      const progressRunId = globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`
+      const uid = useAuthStore.getState().user?.uid
+      if (uid) pendingRuns.set(progressRunId, { uid, stageId: nextStageId, applied: {}, walletApplied: 0 })
       const levels = loadRuntimePassiveLevels()
       const bossPassiveUnlocks = progressReady ? loadBossPassiveUnlocks() : get().bossPassiveUnlocks
       applyMagnetPassive(levels)
@@ -1313,6 +1398,7 @@ export const useGameStore = create(
         introDialogue: null,
         elapsedMs:   0,
         currentStageId: nextStageId,
+        progressRunId,
         bossSpawnSec: getBossSpawnSec(nextStageId),
         bossSpawned: false,
         bossAliveCount: 0,
@@ -1328,6 +1414,7 @@ export const useGameStore = create(
         gameKey:     s.gameKey + 1,
         goldSession: 0,
         runKills:    0,
+        runBossKills: 0,
         runLevelUps: 0,
         newlyUnlockedWeaponIds: [],
         rankingCheckpoint: null,
@@ -1354,10 +1441,20 @@ export const useGameStore = create(
       }))
       get().recordMissionEvent({ type: 'stage_started', stageId: nextStageId })
       recordRuntimePlayActivity(nextStageId)
+      checkpointRun(get())
       saveRuntimeProgress()
       void get().submitRunToRanking(useAuthStore.getState().user, {
-        stageId: nextStageId, score: 0, stageScore: 0, timeMs: 0, globalTimeMs: 0, cleared: false,
+        stageId: nextStageId, score: 0, stageScore: 0, timeMs: 0, globalTimeMs: 0, cleared: false, lastPlayedAt: Date.now(),
       })
     },
   }))
+)
+
+// Meaningful gameplay changes checkpoint immediately; frame-only changes do not.
+useGameStore.subscribe(
+  state => `${state.progressRunId}|${state.runKills}|${state.goldSession}|${state.runLevelUps}|${Math.floor(state.elapsedMs / 1000)}|${state.phase}`,
+  () => {
+    const state = useGameStore.getState()
+    if (['playing','paused','levelup','cleared','gameover'].includes(state.phase)) checkpointRun(state)
+  },
 )

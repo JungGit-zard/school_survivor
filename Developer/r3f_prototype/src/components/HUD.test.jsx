@@ -37,6 +37,7 @@ import { subscribeSfx } from '../lib/sfxEvents.js'
 import { resetCriticalScreenShakeForTest, subscribeWholeScreenCriticalShake } from '../lib/criticalScreenShake.js'
 import { getSpawnCatchUpOffsetSec, publishSpawnCatchUpOffsetSec } from '../lib/spawnCatchUp.js'
 import { UPGRADE_EFFECTS } from '../lib/upgrades.js'
+import { installProgressTransactionTestClient } from '../../test/progressTransactionClient.js'
 
 const TEST_STUDIO_USER = { uid: 'hud-test-user' }
 const EMPTY_STUDIO_SNAPSHOT = {
@@ -52,8 +53,10 @@ const EMPTY_STUDIO_SNAPSHOT = {
   },
 }
 
+let progressFixtureId = 0
 beforeEach(async () => {
-  _seedHydratedFirebaseProgressForTests()
+  _seedHydratedFirebaseProgressForTests({ uid: `hud-progress-${++progressFixtureId}` })
+  installProgressTransactionTestClient()
   setFirebaseStudioUser(TEST_STUDIO_USER)
   await hydrateFirebaseStudio({
     user: TEST_STUDIO_USER,
@@ -93,7 +96,7 @@ describe('portal direction objective', () => {
       expect(objective?.textContent).toBe('탈출구 ↑ 2zm')
       expect(objective?.getAttribute('aria-hidden')).toBe('true')
       expect(objective?.style.bottom).toBe('102px')
-      const status = container.querySelector('[role="status"]')
+      const status = container.querySelector('[role="status"][aria-label="탈출구로 이동"]')
       expect(status?.getAttribute('aria-label')).toBe('탈출구로 이동')
       expect(status?.textContent).toBe('탈출구로 이동')
 
@@ -1617,7 +1620,7 @@ describe('pause lobby return', () => {
 })
 
 describe('stage clear presentation', () => {
-  it('uses 다음 스테이지 계속 as the primary Stage 1 escape action', () => {
+  it('uses 다음 스테이지 계속 as the primary Stage 1 escape action', async () => {
     useGameStore.getState().resetGame('stage1')
     useGameStore.setState({
       phase: 'playing',
@@ -1637,7 +1640,7 @@ describe('stage clear presentation', () => {
       const buttons = [...container.querySelector('[data-testid="result-primary-actions"]').querySelectorAll('button')]
       expect(buttons[0].textContent.trim()).toBe('다음 스테이지 계속')
 
-      clickButtonByText(container, '다음 스테이지 계속')
+      await act(async () => buttons[0].click())
 
       expect(useGameStore.getState()).toMatchObject({
         currentStageId: 'stage2',

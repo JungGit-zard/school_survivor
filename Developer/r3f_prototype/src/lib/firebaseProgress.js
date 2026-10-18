@@ -1,5 +1,6 @@
 import { getFirebaseConfig, isFirebaseAuthConfigured } from './firebaseAuth.js'
 import { normalizeBossPassiveUnlocks } from './bossPassiveItems.js'
+import { reconcileMissionProgress } from './missionProgress.js'
 import {
   WEAPON_UNLOCK_SCHEMA_VERSION,
   mergeLegacyAccountEntitlements,
@@ -38,6 +39,12 @@ const RECORD_KEYS = [
   'stage3BestSurvivalSec',
   'stage4Clears',
   'stage4BestSurvivalSec',
+  'stage5Clears', 'stage5BestSurvivalSec',
+  'stage6Clears', 'stage6BestSurvivalSec',
+  'stage7Clears', 'stage7BestSurvivalSec',
+  'stage8Clears', 'stage8BestSurvivalSec',
+  'stage9Clears', 'stage9BestSurvivalSec',
+  'stage10Clears', 'stage10BestSurvivalSec',
   'bossKills',
   'totalLevelUps',
   'totalPickups',
@@ -68,8 +75,55 @@ let cloudUser = null
 let progressClientPromise = null
 let testProgressClient = null
 let writeQueue = Promise.resolve()
+const pendingSaves = new Map()
 let storageGuardInstalled = false
 let pendingProgressSaveWarning = null
+let persistenceSession = ''
+let persistenceBase = null
+let persistenceSequence = 0
+let purchaseOperations = new Map()
+let runCheckpoints = new Map()
+let runBaseline = {}
+let runContribution = { gold: 0, records: {}, missionCounters: {} }
+
+export function recordFirebaseRunCheckpoint(runId, { stageId, records, best, missionCounters = {} }) {
+  ensureHydrated()
+  const previous = runCheckpoints.get(runId) ?? runBaseline[runId] ?? { records: {}, gold: 0 }
+  const gold = records.totalGold ?? 0
+  const previousCounters = normalizeMissionCounters(previous.missionCounters)
+  if (gold === previous.gold
+    && Object.entries(records).every(([key,value])=>value===(previous.records[key]??0))
+    && Object.entries(best).every(([key,value])=>value===(previous.best?.[key]??0))
+    && Object.entries(missionCounters).every(([key,value])=>value===(previousCounters[key]??0))) return false
+  updateFirebasePlayerProgress(progress => {
+    for (const [key,value] of Object.entries(records)) {
+      const difference = value - (previous.records[key] ?? 0)
+      progress.records[key] = (progress.records[key] ?? 0) + difference
+      runContribution.records[key] = (runContribution.records[key] ?? 0) + difference
+    }
+    for (const [key,value] of Object.entries(best)) progress.records[key] = Math.max(progress.records[key] ?? 0,value)
+    progress.goldTotal += gold - previous.gold
+    runContribution.gold += gold - previous.gold
+    for(const [key,value] of Object.entries(missionCounters)) {
+      const difference=value-(previousCounters[key]??0)
+      runContribution.missionCounters[key]=(runContribution.missionCounters[key]??0)+difference
+      progress.missions.counters[key]=/bestSurvivalSec|survivedAfterSpawnSec/.test(key)
+        ? Math.max(progress.missions.counters[key]??0,value)
+        : (progress.missions.counters[key]??0)+difference
+    }
+    progress.missions = reconcileMissionProgress(progress.missions)
+  })
+  runCheckpoints.set(runId, { stageId, records: { ...records }, best: { ...best }, gold, missionCounters: { ...missionCounters } })
+  return true
+}
+
+export function recordFirebaseProgressPurchase({ category, id, price, nextLevel }) {
+  ensureHydrated()
+  if (!['passiveUpgrades','weaponPermanentUpgrades'].includes(category) || !Number.isFinite(price) || price < 0) return false
+  const operationId = globalThis.crypto?.randomUUID?.() ?? `purchase-${Date.now()}-${Math.random().toString(36).slice(2)}`
+  purchaseOperations.set(operationId, { category, id, price, fromLevel: nextLevel - 1, nextLevel, refundApplied: false })
+  return true
+}
 
 const VITEST_PROGRESS_CLIENT = Object.freeze({
   load: async () => null,
@@ -129,7 +183,7 @@ export function buildCloudUserProfile(user = cloudUser) {
 
 export function buildCloudProgressSnapshot(now = Date.now()) {
   ensureHydrated()
-  return buildRemotePayload(now)
+  return { ...buildRemotePayload(now), progress: cloneProgress(runtime.progress) }
 }
 
 export async function hydrateCloudProgress(user = cloudUser) {
@@ -144,6 +198,9 @@ export async function hydrateCloudProgress(user = cloudUser) {
     const client = await getProgressClient()
     const snapshot = await client.load(path)
     if (readUserId(cloudUser) !== requestedUid) return false
+    // A live account already owns a session ledger and possibly unsent edits.
+    // Only a fresh runtime may replace its baseline with a remote snapshot.
+    if (runtimeAtRequest.remoteHydrated && isFirebaseProgressHydrated(user)) return true
     // A same-account refresh must not roll back progress earned while its read was in flight.
     if (runtime !== runtimeAtRequest && isFirebaseProgressHydrated(user)) return true
     if (!snapshot) {
@@ -179,12 +236,24 @@ export async function saveLocalProgressToCloud(user = cloudUser) {
 
 // Keep authentication alive until all earlier writes and the latest complete snapshot are saved.
 export async function flushCloudProgressBeforeSignOut(user = cloudUser) {
-  if (!isFirebaseProgressHydrated(user)) return true
+  if (!isFirebaseProgressHydrated(user)) return !readUserId(user)
   while (isFirebaseProgressHydrated(user)) {
-    const runtimeAtSave = runtime
     if (!await requestCloudProgressSave(user)) return false
+    const runtimeAtSave = runtime
     if (!isFirebaseProgressHydrated(user)) return false
-    if (runtime === runtimeAtSave) return true
+    if (runtime === runtimeAtSave) {
+      const uid = readUserId(user)
+      try {
+        const session = persistenceSession
+        const sequence = persistenceSequence
+        const saved = await (await getProgressClient()).load(getUserProgressPath(user))
+        if (!isFirebaseProgressHydrated(user) || session !== persistenceSession) return false
+        if (runtime !== runtimeAtSave) continue
+        if ((saved?.checkpointLedger?.[session]?.sequence ?? 0) >= sequence) return true
+      } catch { /* Pending progress remains in memory for the next retry. */ }
+      markProgressSaveWarning(uid)
+      return false
+    }
   }
   return false
 }
@@ -196,6 +265,13 @@ export function applyCloudProgressSnapshot(snapshot, user = cloudUser, { keepClo
   if (!uid) return false
   const normalized = normalizeRemoteSnapshot(snapshot, uid, user)
   if (!normalized) return false
+  persistenceSession = globalThis.crypto?.randomUUID?.() ?? `session-${Date.now()}-${Math.random().toString(36).slice(2)}`
+  persistenceBase = structuredClone(normalized)
+  persistenceSequence = 0
+  purchaseOperations = new Map()
+  runCheckpoints = new Map()
+  runBaseline = structuredClone(snapshot?.runLedger ?? {})
+  runContribution = { gold: 0, records: {}, missionCounters: {} }
   cloudUser = keepCloudUserNull ? null : (user ?? cloudUser)
     runtime = {
       uid,
@@ -285,11 +361,17 @@ export async function claimFirebaseMissionReward({
   if (!isFirebaseProgressHydrated(user)) return { ok: false, committed: false, reason: 'progress-not-hydrated' }
   if (!isFirebaseProgressConfigured()) return { ok: false, committed: false, reason: 'unconfigured' }
 
+  if (!await requestCloudProgressSave(user)) return { ok: false, committed: false, reason: 'save-failed' }
+
   const claimId = `${safeMissionId}:${safeCatalogVersion}`
   if (!MISSION_CLAIM_ID_PATTERN.test(claimId)) return { ok: false, committed: false, reason: 'invalid-claim-id' }
 
   const attempt = writeQueue.catch(() => {}).then(async () => {
+    if (!isFirebaseProgressHydrated(user)) return { ok: false, committed: false, reason: 'account-changed' }
+    const sessionAtClaim = persistenceSession
+    const progressAtClaim = cloneProgress(runtime.progress)
     const client = await getProgressClient()
+    if (!isFirebaseProgressHydrated(user) || persistenceSession !== sessionAtClaim) return { ok: false, committed: false, reason: 'account-changed' }
     if (typeof client.transaction !== 'function') {
       return { ok: false, committed: false, reason: 'transaction-unavailable', claimId }
     }
@@ -348,14 +430,35 @@ export async function claimFirebaseMissionReward({
       nextProgress.goldTotal = readNonNegativeInt(nextProgress.goldTotal) + reward.amount
       nextProgress.missions = normalizeMissionProgress(missions)
       blockedReason = 'claimed'
-      return nextProgress
+      return { ...progress, ...serializeProgress(nextProgress), checkpointRevision: (progress?.checkpointRevision ?? 0) + 1 }
     })
 
     const snapshotValue = readTransactionSnapshotValue(transactionResult?.snapshot)
+    if (!isFirebaseProgressHydrated(user) || persistenceSession !== sessionAtClaim) return { ok: false, committed: false, reason: 'account-changed' }
     if (snapshotValue && typeof snapshotValue === 'object') {
+      const server = normalizeProgress(snapshotValue)
+      // The server reward is already durable. Rebase it rather than charging it
+      // again as this session's local gold delta, and retain in-flight pickups.
+      persistenceBase.progress.goldTotal += server.goldTotal - progressAtClaim.goldTotal
+      for (const key of RECORD_KEYS) persistenceBase.progress.records[key] += server.records[key] - progressAtClaim.records[key]
+      const progressDuringClaim = cloneProgress(runtime.progress)
+      const mergedProgress = normalizeProgress(mergeChangedProgress(server, progressAtClaim, progressDuringClaim))
+      mergedProgress.goldTotal = server.goldTotal + progressDuringClaim.goldTotal - progressAtClaim.goldTotal
+      for (const key of RECORD_KEYS) mergedProgress.records[key] = /best/i.test(key)
+        ? Math.max(server.records[key],progressDuringClaim.records[key])
+        : server.records[key] + progressDuringClaim.records[key] - progressAtClaim.records[key]
+      for(const key of new Set([...Object.keys(server.missions.counters),...Object.keys(progressDuringClaim.missions.counters)])) {
+        const before=progressAtClaim.missions.counters[key]??0
+        const remote=server.missions.counters[key]??0
+        persistenceBase.progress.missions.counters[key]=(persistenceBase.progress.missions.counters[key]??0)+remote-before
+        mergedProgress.missions.counters[key]=/bestSurvivalSec|survivedAfterSpawnSec/.test(key)
+          ? Math.max(remote,progressDuringClaim.missions.counters[key]??0)
+          : remote+(progressDuringClaim.missions.counters[key]??0)-before
+      }
+      mergedProgress.missions=reconcileMissionProgress(mergedProgress.missions)
       runtime = {
         ...runtime,
-        progress: normalizeProgress(snapshotValue),
+        progress: mergedProgress,
       }
     }
 
@@ -424,9 +527,21 @@ export function recordPlayActivity(stageId, now = Date.now()) {
 // rejected promise에 .then(handler)를 걸면 handler가 아예 실행되지 않으므로, 저장이 한 번
 // 실패한 순간부터 그 세션의 모든 코인·업그레이드 저장이 조용히 건너뛰어진다(오프라인 한 번에
 // 이후 진행도 전부 유실). 실패는 큐에서 흡수하고 호출자에게는 false로 알린다.
-export async function requestCloudProgressSave(user = cloudUser) {
+export function requestCloudProgressSave(user = cloudUser) {
+  const key = `${readUserId(user)}:${persistenceSession}`
+  if (pendingSaves.has(key)) return pendingSaves.get(key)
+  const pending = performCloudProgressSave(user).finally(() => {
+    if (pendingSaves.get(key) === pending) pendingSaves.delete(key)
+  })
+  pendingSaves.set(key,pending)
+  return pending
+}
+
+async function performCloudProgressSave(user) {
   const uidAtRequest = readUserId(user)
+  let runtimeAtSave
   if (!isFirebaseProgressHydrated(user) || !isFirebaseProgressConfigured()) {
+    markProgressSaveWarning(uidAtRequest)
     return false
   }
   const path = getUserProgressPath(user)
@@ -435,14 +550,136 @@ export async function requestCloudProgressSave(user = cloudUser) {
       return { saved: false, shouldWarn: false }
     }
     const payload = buildRemotePayload()
+    runtimeAtSave = runtime
+    const session = persistenceSession
+    const base = structuredClone(persistenceBase)
+    base.progress = serializeProgress(base.progress)
+    const sequence = ++persistenceSequence
+    const purchasesAtSave = [...purchaseOperations.entries()]
+    const runsAtSave = [...runCheckpoints.entries()].map(([id,run])=>[id,structuredClone(run)])
+    const contributionAtSave = structuredClone(runContribution)
     const client = await getProgressClient()
-    await client.save(path, payload)
-    return { saved: true, shouldWarn: false }
-  }).catch(() => ({ saved: false, shouldWarn: true }))
+    if (!isFirebaseProgressHydrated({ uid: uidAtRequest }) || persistenceSession !== session) return { saved: false, shouldWarn: false }
+    if (typeof client.transaction !== 'function') throw new FirebaseProgressError('Transactional progress storage is required.', 'transaction-unavailable')
+    const delta = {
+      gold: payload.progress.goldTotal - base.progress.goldTotal - contributionAtSave.gold,
+      records: Object.fromEntries(RECORD_KEYS.map(key => [key, payload.progress.records[key] - base.progress.records[key] - (contributionAtSave.records[key] ?? 0)])),
+      purchases: { passiveUpgrades: payload.progress.passiveUpgrades, weaponPermanentUpgrades: payload.progress.weaponPermanentUpgrades },
+      missionCounters: Object.fromEntries(Object.entries(payload.progress.missions.counters).map(([key,value])=>[key,value-(base.progress.missions.counters[key]??0)-(contributionAtSave.missionCounters[key.replaceAll('%2E','.')]??0)])),
+      sequence,
+    }
+    const result = await client.transaction(path, current => {
+      // RTDB invokes transactions once with an empty local cache, then retries
+      // against the authoritative node. Returning undefined here aborts forever.
+      current = current ?? { ...payload, progress: structuredClone(base.progress) }
+      if (!current.progress) return undefined
+      const previous = current.checkpointLedger?.[session] ?? { gold: 0, records: {}, sequence: 0 }
+      if (previous.sequence >= sequence) return { ...current, progress: { ...current.progress, checkpointRevision: (current.progress.checkpointRevision ?? 0) + 1 } }
+      const purchaseReceipts = { ...previous.purchaseReceipts }
+      const effectivePurchases = structuredClone(delta.purchases)
+      const projected = { passiveUpgrades: { ...current.progress.passiveUpgrades }, weaponPermanentUpgrades: { ...current.progress.weaponPermanentUpgrades } }
+      let refund = 0
+      for (const [operationId, purchase] of purchasesAtSave) {
+        let receipt = purchaseReceipts[operationId]
+        if (!receipt) {
+          const conflict = (projected[purchase.category][purchase.id] ?? 0) !== purchase.fromLevel || current.progress.goldTotal < purchase.price
+          receipt = { status: conflict ? 'conflict' : 'accepted', price: purchase.price }
+          purchaseReceipts[operationId] = receipt
+          if (!conflict) projected[purchase.category][purchase.id] = purchase.nextLevel
+        }
+        if (receipt.status === 'conflict' && !purchase.refundApplied) refund += receipt.price
+        effectivePurchases[purchase.category][purchase.id] = projected[purchase.category][purchase.id] ?? 0
+      }
+      for (const category of ['passiveUpgrades','weaponPermanentUpgrades']) {
+        for (const [key,value] of Object.entries(payload.progress[category])) {
+          if (purchasesAtSave.some(([,p]) => p.category === category && p.id === key)) continue
+          if (value === (base.progress[category][key] ?? 0)) continue
+          const expected = previous.purchases?.[category]?.[key] ?? base.progress[category][key] ?? 0
+          if ((current.progress[category]?.[key] ?? 0) !== expected) return undefined
+        }
+      }
+      const next = mergeChangedProgress(current, base, payload)
+      next.progress.checkpointRevision = (current.progress.checkpointRevision ?? 0) + 1
+      next.progress.goldTotal = current.progress.goldTotal + delta.gold + refund - previous.gold
+      for (const [category, values] of Object.entries(effectivePurchases)) next.progress[category] = { ...next.progress[category], ...values }
+      for (const key of RECORD_KEYS) {
+        const prior = current.progress.records?.[key] ?? 0
+        next.progress.records[key] = /best/i.test(key)
+          ? Math.max(prior, payload.progress.records[key])
+          : prior + delta.records[key] - (previous.records[key] ?? 0)
+      }
+      if (Object.keys(delta.missionCounters).length) {
+        next.progress.missions ??= structuredClone(payload.progress.missions)
+        next.progress.missions.counters ??= {}
+        for (const [key,change] of Object.entries(delta.missionCounters)) {
+          const prior = current.progress.missions?.counters?.[key] ?? 0
+          next.progress.missions.counters[key] = /bestSurvivalSec|survivedAfterSpawnSec/.test(key)
+            ? Math.max(prior,payload.progress.missions.counters[key])
+            : prior + change - (previous.missionCounters?.[key] ?? 0)
+        }
+        for(const [id,entry] of Object.entries(current.progress.missions?.active??{})) {
+          if(next.progress.missions.active?.[id]) next.progress.missions.active[id].counter = Math.max(entry.counter,next.progress.missions.active[id].counter)
+        }
+      }
+      next.runLedger = { ...current.runLedger }
+      for (const [runId,run] of runsAtSave) {
+        const before = current.runLedger?.[runId] ?? { records: {}, gold: 0 }
+        for (const [key,value] of Object.entries(run.records)) next.progress.records[key] += value - (before.records[key] ?? 0)
+        for (const [key,value] of Object.entries(run.best)) next.progress.records[key] = Math.max(next.progress.records[key] ?? 0,value)
+        next.progress.goldTotal += run.gold - before.gold
+        const wireCounters = Object.fromEntries(Object.entries(run.missionCounters).map(([key,value])=>[key.replaceAll('.','%2E'),value]))
+        next.progress.missions ??= structuredClone(payload.progress.missions)
+        next.progress.missions.counters ??= {}
+        for(const [key,value] of Object.entries(wireCounters)) {
+          const prior=next.progress.missions.counters[key]??0
+          next.progress.missions.counters[key]=/bestSurvivalSec|survivedAfterSpawnSec/.test(key)
+            ? Math.max(prior,value)
+            : prior+value-(before.missionCounters?.[key]??0)
+        }
+        next.runLedger[runId] = { ...run, missionCounters: wireCounters }
+      }
+      next.checkpointLedger = { ...current.checkpointLedger, [session]: { ...delta, gold: delta.gold + refund, purchases: effectivePurchases, purchaseReceipts } }
+      return next
+    })
+    if (!result?.committed) throw new FirebaseProgressError('Progress transaction was not acknowledged.', 'save-not-acknowledged')
+    const savedNode = readTransactionSnapshotValue(result.snapshot)
+    let purchaseConflict = false
+    if (isFirebaseProgressHydrated({ uid: uidAtRequest }) && persistenceSession === session) {
+      for (const [operationId,purchase] of purchasesAtSave) {
+        if (savedNode?.checkpointLedger?.[session]?.purchaseReceipts?.[operationId]?.status !== 'conflict' || purchase.refundApplied) continue
+        purchase.refundApplied = true
+        purchaseConflict = true
+        const progress = cloneProgress(runtime.progress)
+        progress.goldTotal += purchase.price
+        if (progress[purchase.category][purchase.id] === payload.progress[purchase.category][purchase.id]) progress[purchase.category][purchase.id] = savedNode.progress[purchase.category]?.[purchase.id] ?? 0
+        runtime = { ...runtime, progress }
+      }
+    }
+    return { saved: !purchaseConflict, shouldWarn: purchaseConflict }
+  }).catch(error => {
+    console.warn('Firebase progress was not acknowledged.', error?.code ?? error?.message ?? 'save-failed')
+    return { saved: false, shouldWarn: true }
+  })
   writeQueue = attempt.then(({ saved }) => saved)
   const { saved, shouldWarn } = await attempt
   if (shouldWarn) markProgressSaveWarning(uidAtRequest)
+  if(saved && isFirebaseProgressHydrated({uid:uidAtRequest}) && runtime !== runtimeAtSave) return performCloudProgressSave(user)
   return saved
+}
+
+// Apply only locally changed leaves; a stale tab must retain remote purchases,
+// mission receipts, settings, unknown fields and every other session's ledger.
+function mergeChangedProgress(current, base, next) {
+  if (current === undefined) return structuredClone(next)
+  if (JSON.stringify(base) === JSON.stringify(next)) return structuredClone(current)
+  if (!next || typeof next !== 'object' || Array.isArray(next)) return structuredClone(next)
+  const merged = { ...(current && typeof current === 'object' ? current : {}) }
+  for (const key of Object.keys(next)) {
+    if (JSON.stringify(base?.[key]) !== JSON.stringify(next[key])) {
+      merged[key] = mergeChangedProgress(current?.[key], base?.[key], next[key])
+    }
+  }
+  return merged
 }
 
 export function consumeFirebaseProgressSaveWarning() {
@@ -502,6 +739,9 @@ export function _resetFirebaseProgressForTests() {
   writeQueue = Promise.resolve()
   pendingProgressSaveWarning = null
   runtime = createEmptyRuntime()
+  persistenceSession = ''
+  persistenceBase = null
+  persistenceSequence = 0
 }
 
 export function _seedHydratedFirebaseProgressForTests(user = { uid: 'test-user' }, snapshot = null) {
@@ -515,7 +755,12 @@ export function _seedHydratedFirebaseProgressForTests(user = { uid: 'test-user' 
 
 async function getProgressClient() {
   if (testProgressClient) return testProgressClient
-  if (!progressClientPromise) progressClientPromise = createFirebaseProgressClient()
+  if (!progressClientPromise) {
+    progressClientPromise = createFirebaseProgressClient().catch(error => {
+      progressClientPromise = null
+      throw error
+    })
+  }
   return progressClientPromise
 }
 
@@ -548,8 +793,17 @@ function buildRemotePayload(now = Date.now()) {
     profile: { ...runtime.profile },
     ...(runtime.activity ? { activity: { ...runtime.activity } } : {}),
     ...(runtime.consent ? { consent: cloneConsent(runtime.consent) } : {}),
-    progress: cloneProgress(runtime.progress),
+    progress: serializeProgress(runtime.progress),
   }
+}
+
+// Mission identifiers use dots in memory; RTDB rejects dots in object keys
+// before any network write. % cannot appear in canonical counter keys, making
+// this encoding unambiguous while leaving all counter values unchanged.
+function serializeProgress(value) {
+  const progress = cloneProgress(value)
+  progress.missions.counters = Object.fromEntries(Object.entries(progress.missions.counters).map(([key,count]) => [key.replaceAll('.', '%2E'),count]))
+  return progress
 }
 
 function ensureHydrated() {
@@ -648,7 +902,8 @@ function normalizeMissionProgress(value) {
 function normalizeMissionCounters(value) {
   const out = {}
   if (!value || typeof value !== 'object' || Array.isArray(value)) return out
-  for (const [key, raw] of Object.entries(value)) {
+  for (const [wireKey, raw] of Object.entries(value)) {
+    const key = wireKey.replaceAll('%2E', '.')
     if (!MISSION_COUNTER_KEY_PATTERN.test(key)) continue
     out[key] = Math.min(readNonNegativeInt(raw), MAX_MISSION_COUNTER_VALUE)
   }

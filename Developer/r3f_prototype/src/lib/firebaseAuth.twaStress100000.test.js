@@ -60,6 +60,8 @@ vi.mock('firebase/auth', () => ({
     static credential = vi.fn()
   },
   getAuth: vi.fn(() => firebaseAuthMock.auth),
+  initializeAuth: vi.fn(() => firebaseAuthMock.auth),
+  browserPopupRedirectResolver: {},
   inMemoryPersistence: firebaseAuthMock.inMemoryPersistence,
   setPersistence: (...args) => firebaseAuthMock.setPersistence(...args),
   getRedirectResult: (...args) => firebaseAuthMock.getRedirectResult(...args),

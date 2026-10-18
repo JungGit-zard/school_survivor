@@ -5,6 +5,7 @@ import {
   createRankingRows,
   formatRankScore,
   formatSurvivalTime,
+  formatLastPlayedAt,
   loadLocalRankingEntries,
   buildLocalPlayerRankingEntry,
   RANKING_LIMIT,
@@ -30,6 +31,7 @@ export default function UserRanking({ onBack, entries }) {
   const t = useT()
   const user = useAuthStore((s) => s.user)
   const progressStatus = useAuthStore((s) => s.progressStatus)
+  const retryProgress = useAuthStore((s) => s.retryCloudProgress)
   const submission = useGameStore((s) => s.rankingSubmission)
   const retrySubmission = useGameStore((s) => s.retryRankingSubmission)
   const [activeWindow, setActiveWindow] = useState('allTime')
@@ -39,6 +41,8 @@ export default function UserRanking({ onBack, entries }) {
   const localEntry = useMemo(() => buildLocalPlayerRankingEntry(localRecords, user ?? {}), [localRecords, user])
   const totalRuns = localRecords.totalRuns ?? 0
   const bestScore = localEntry?.score ?? 0
+  const progressKnown = !user || (progressStatus === 'ready' && isFirebaseProgressHydrated(user))
+  const unknownProgress = t(progressStatus === 'error' ? 'ranking.progressFailed' : 'ranking.progressLoading')
 
   useEffect(() => {
     if (!isFirebaseRankingConfigured()) return
@@ -79,8 +83,9 @@ export default function UserRanking({ onBack, entries }) {
           <h1 style={styles.title}>{t('ranking.globalTitle')}</h1>
         </div>
         <div style={styles.playerStats}>
-          <span style={styles.playerStatChip}>{t('ranking.myRuns')} <strong>{totalRuns}</strong>{t('ranking.myRunsUnit')}</span>
-          {activeWindow !== 'allTime' && <span style={styles.playerStatChip}>{t('ranking.myBest')} <strong>{formatRankScore(bestScore)}</strong></span>}
+          <span style={styles.playerStatChip}>{t('ranking.myRuns')} <strong>{progressKnown ? totalRuns : unknownProgress}</strong>{progressKnown && t('ranking.myRunsUnit')}</span>
+          {activeWindow !== 'allTime' && <span style={styles.playerStatChip}>{t('ranking.myBest')} <strong>{progressKnown ? formatRankScore(bestScore) : unknownProgress}</strong></span>}
+          {!progressKnown && progressStatus === 'error' && <button type="button" style={styles.submitRetryButton} onClick={() => { void retryProgress?.() }}>{t('common.retry')}</button>}
         </div>
       </header>
 
@@ -172,6 +177,7 @@ function RankingRow({ row }) {
       </span>
       <span style={styles.score}>{row.empty ? '-' : formatRankScore(row.score)}</span>
       <span style={styles.stage}>{row.empty ? '' : `${row.stageLabel} · ${formatSurvivalTime(row.survivalSeconds)}${row.cleared ? translate('ranking.clearedSuffix') : ''}`}</span>
+      {!row.empty && <span style={styles.lastPlayed}>{translate('ranking.lastPlayed')} · {formatLastPlayedAt(row.lastPlayedAt)}</span>}
     </li>
   )
 }
@@ -408,4 +414,5 @@ const styles = {
     cursor: 'pointer',
     boxShadow: '0 4px 0 #050209',
   },
+  lastPlayed: { gridColumn: '1 / -1', marginTop: 6, fontSize: 10, lineHeight: 1.4, overflowWrap: 'anywhere', color: '#51495a' },
 }

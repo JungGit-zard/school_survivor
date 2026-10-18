@@ -21,6 +21,7 @@ vi.mock('./firebaseProgress.js', async (importOriginal) => {
 })
 vi.mock('../store/useAuthStore.js', () => ({ useAuthStore: { getState: () => ({ user: null }) } }))
 vi.mock('./firebaseRanking.js', () => ({ submitRun: () => { throw new Error('Ranking write forbidden') }, describeSubmission: () => '' }))
+vi.mock('./guestRankingIdentity.js',()=>({getRankingUser:async()=>({uid:'isolated-verifier-guest',isAnonymous:true})}))
 vi.mock('./gameRuntimeTime.js', () => ({
   getRuntimeElapsedMs: (storeMs = 0) => Math.max(isolated.clock.elapsedMs, storeMs),
   advanceRuntimeTime: (delta) => (isolated.clock.elapsedMs += delta),
@@ -113,7 +114,10 @@ describe('헤드리스 게임 상태 검증기', () => {
     expect(result.stats.stage4Runs).toBeGreaterThan(0)
     expect(result.stats.levelUps).toBeGreaterThan(0)
     expect(result.stats.upgradesApplied).toBeGreaterThan(0)
-    for (const stat of ['gameovers', 'clears', 'nextStageTransitions', 'replacementsConfirmed', 'replacementsDiscarded']) expect(result.stats[stat]).toBeGreaterThan(0)
+    for (const stat of ['gameovers', 'clears', 'replacementsConfirmed', 'replacementsDiscarded']) expect(result.stats[stat]).toBeGreaterThan(0)
+    // This synchronous reducer harness never treats an async Promise as a successful transition.
+    // Actual ACK-gated next-stage/reset and fresh-session restoration are exercised by progress-sdk-red.mjs.
+    expect(result.stats.nextStageTransitions).toBe(0)
     expect(result.stats.localStorageTouches).toBe(0)
   }, 5 * 60 * 1000)
 })

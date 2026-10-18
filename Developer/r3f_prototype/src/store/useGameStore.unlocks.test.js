@@ -1,3 +1,4 @@
+import { installProgressTransactionTestClient } from '../../test/progressTransactionClient.js'
 // @vitest-environment jsdom
 import { describe, it, expect, beforeEach } from 'vitest'
 import { useGameStore } from './useGameStore.js'
@@ -11,6 +12,7 @@ describe('useGameStore run-end unlock evaluator', () => {
     _seedHydratedFirebaseProgressForTests()
     _resetRecords()
     _resetUnlocks()
+    installProgressTransactionTestClient()
     useGameStore.getState().resetGame()
     useGameStore.setState({
       runKills: 0,
@@ -73,14 +75,14 @@ describe('useGameStore run-end unlock evaluator', () => {
     expect(records.stage1Clears).toBe(0)
   })
 
-  it('portal clear records Stage 1 and continues to Stage 2 only after the choice', () => {
+  it('portal clear records Stage 1 and continues to Stage 2 only after the choice', async () => {
     useGameStore.getState().resetGame('stage1')
     useGameStore.setState({ elapsedMs: 240_000, runKills: 80, goldSession: 12 })
     const beforeKey = useGameStore.getState().gameKey
 
     expect(useGameStore.getState().clearStage()).toBe(true)
     expect(useGameStore.getState()).toMatchObject({ phase: 'cleared', currentStageId: 'stage1', gameKey: beforeKey })
-    expect(useGameStore.getState().continueToNextStage()).toBe(true)
+    expect(await useGameStore.getState().continueToNextStage()).toBe(true)
 
     const s = useGameStore.getState()
     expect(s).toMatchObject({
@@ -99,14 +101,14 @@ describe('useGameStore run-end unlock evaluator', () => {
     expect(records.totalGold).toBe(12)
   })
 
-  it('portal clear on final stage stays on the cleared result', () => {
+  it('portal clear on final stage stays on the cleared result', async () => {
     // stage4가 최종 스테이지(getNextStageId('stage4') === null) — 포탈 클리어 시 다음으로 넘어가지 않는다.
     useGameStore.getState().resetGame('stage4')
     useGameStore.setState({ elapsedMs: 240_000 })
     const beforeKey = useGameStore.getState().gameKey
 
     expect(useGameStore.getState().clearStage()).toBe(true)
-    expect(useGameStore.getState().continueToNextStage()).toBe(false)
+    expect(await useGameStore.getState().continueToNextStage()).toBe(false)
 
     const s = useGameStore.getState()
     expect(s).toMatchObject({
@@ -191,13 +193,17 @@ describe('useGameStore run-end unlock evaluator', () => {
       profile: { uid: 'unlock-order-user', displayName: '', nickname: '' },
       progress: { records: { totalKills: 2400 } },
     })
+    installProgressTransactionTestClient()
+    useGameStore.getState().resetGame('stage1')
+    expect(getAllUnlocked().has('compassBlade')).toBe(true)
+    expect(getAllUnlocked().has('starlink')).toBe(false)
     useGameStore.setState({ runKills: 100 })
     useGameStore.getState()._onRunEnd('gameover')
 
     const ids = useGameStore.getState().newlyUnlockedWeaponIds
     // 이번 런 포함 평가에서 정확히 2500에 도달해 starlink를 해금한다.
     expect(ids).toContain('starlink')
-    expect(ids).toContain('compassBlade')
+    expect(ids).not.toContain('compassBlade')
 
     // snapshot은 평가 후 실행되어 totalKills를 2500으로 올린다.
     const records = loadPlayerRecords()
@@ -242,6 +248,7 @@ describe('보스 격퇴 보너스와 포탈 클리어 분리', () => {
     _seedHydratedFirebaseProgressForTests()
     _resetRecords()
     _resetUnlocks()
+    installProgressTransactionTestClient()
     useGameStore.getState().resetGame('stage3')
     useGameStore.setState({ elapsedMs: 150_000 })
   })
@@ -275,9 +282,10 @@ describe('보스 격퇴 보너스와 포탈 클리어 분리', () => {
     expect(useGameStore.getState().phase).toBe('playing')
     expect(useGameStore.getState()).toMatchObject({ bossDefeated: true, bossBonus: 0 })
 
-    expect(loadPlayerRecords().totalRuns).toBe(0)
+    // Both explicit starts are checkpointed, even before either run ends.
+    expect(loadPlayerRecords().totalRuns).toBe(2)
     expect(useGameStore.getState().clearStage()).toBe(true)
-    expect(loadPlayerRecords()).toMatchObject({ stage1Clears: 1, totalRuns: 1 })
+    expect(loadPlayerRecords()).toMatchObject({ stage1Clears: 1, totalRuns: 2 })
   })
 
   it('resetGame은 bossAliveCount를 0으로 되돌린다', () => {

@@ -4,6 +4,11 @@ import { resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const channel = process.argv[2]
+const previewOnly = process.argv.includes('--preview-only')
+const configIndex = process.argv.indexOf('--config')
+const configPath = configIndex < 0 ? null : process.argv[configIndex + 1]
+if (configIndex >= 0 && configPath !== 'firebase.preview-p0.temporary.json') throw new Error('Only the fixed preview temporary config is supported')
+const configArguments = configPath ? ['--config', configPath] : []
 if (!channel || !/^[a-z0-9-]{1,63}$/i.test(channel)) {
   console.error('Usage: npm run deploy:hosting:safe -- <preview-channel>')
   process.exit(2)
@@ -16,6 +21,7 @@ const run = (arguments_) => spawnSync(firebase, arguments_, {
   cwd: prototypeRoot,
   encoding: 'utf8',
   shell: process.platform === 'win32',
+  windowsHide: true,
   env: { ...process.env, ESCAPE_HOSTING_PROMOTION_NONCE: promotionNonce },
 })
 const reauthenticationMessage = Buffer.from('Firebase \uc778\uc99d\uc774 \ub9cc\ub8cc\ub418\uc5c8\uc2b5\ub2c8\ub2e4. \ub2e4\uc2dc \uc778\uc99d\ud574 \uc8fc\uc138\uc694.', 'utf8')
@@ -29,7 +35,7 @@ function stopForFirebaseFailure(result, fallbackMessage) {
   process.exit(result.status || 1)
 }
 
-const deploy = run(['hosting:channel:deploy', channel, '--json'])
+const deploy = run(['hosting:channel:deploy', channel, '--json', ...configArguments])
 process.stdout.write(deploy.stdout ?? '')
 process.stderr.write(deploy.stderr ?? '')
 stopForFirebaseFailure(deploy, 'Firebase preview deployment failed')
@@ -41,12 +47,17 @@ if (!previewUrl) {
   process.exit(1)
 }
 
-const verification = spawnSync(process.execPath, ['scripts/verify-hosting-assets.mjs', '--url', previewUrl], { cwd: prototypeRoot, encoding: 'utf8' })
+const verification = spawnSync(process.execPath, ['scripts/verify-hosting-assets.mjs', '--url', previewUrl], { cwd: prototypeRoot, encoding: 'utf8', windowsHide: true })
 process.stdout.write(verification.stdout ?? '')
 process.stderr.write(verification.stderr ?? '')
 if (verification.status !== 0) {
   console.error('Preview asset verification failed; live promotion was not run.')
   process.exit(verification.status || 1)
+}
+
+if (previewOnly) {
+  console.log(`Preview channel ${channel} verified. Preview-only mode: live promotion was not run.`)
+  process.exit(0)
 }
 
 const clone = run(['hosting:clone', `escape-zombie-school:${channel}`, 'escape-zombie-school:live'])

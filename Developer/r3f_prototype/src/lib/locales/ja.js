@@ -5,6 +5,14 @@ const CONTACT_EMAIL = 'zard5388@gmail.com'
 const EFFECTIVE_DATE = '2026年7月29日'
 
 export default {
+  'persistence.saveFailed': '進行状況をサーバーに保存できませんでした。接続を確認して再試行してください。',
+  'persistence.retry': '保存を再試行',
+  'persistence.saving': '保存中 · サーバーの確認を待っています。',
+  'ranking.lastPlayed': '最終プレイ',
+  'ranking.progressLoading': '読み込み中',
+  'ranking.progressUnknown': '記録未受信',
+  'ranking.progressFailed': '記録の読み込みに失敗',
+  'ranking.playTimeUnknown': '時刻の記録なし',
   // ─── 共通 ───
   'common.close': '閉じる',
   'common.cancel': 'キャンセル',

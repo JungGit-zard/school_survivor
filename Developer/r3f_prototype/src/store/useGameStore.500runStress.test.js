@@ -6,6 +6,8 @@ import { load as loadPlayerRecords, _resetForTests as resetPlayerRecords } from 
 import { _resetForTests as resetWeaponUnlocks } from '../lib/weaponUnlocks.js'
 import { _resetForTests as resetPassiveUpgrades } from '../lib/passiveUpgrades.js'
 import { useGameStore } from './useGameStore.js'
+import { _seedHydratedFirebaseProgressForTests } from '../lib/firebaseProgress.js'
+import { installProgressTransactionTestClient } from '../../test/progressTransactionClient.js'
 
 const DIRECTIONS = [
   { x: 0, z: 0, active: false },
@@ -28,10 +30,11 @@ function applyDirection(direction) {
 
 describe('500 internal gameplay stress runs', () => {
   beforeEach(() => {
+    _seedHydratedFirebaseProgressForTests()
+    installProgressTransactionTestClient()
     resetPlayerRecords()
     resetWeaponUnlocks()
     resetPassiveUpgrades()
-    useGameStore.getState().resetGame('stage1')
   })
 
   it('survives 500 runs across directions, stages, rewards, damage, and upgrades', () => {

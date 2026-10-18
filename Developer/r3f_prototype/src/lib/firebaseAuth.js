@@ -139,7 +139,10 @@ export async function createFirebaseAuthClient(env = getDefaultEnv(), globalScop
   ])
   const app = resolveFirebaseAppForRoute(firebaseAppModule, env, globalScope)
   await maybeInitAppCheck(app, env)
-  const auth = authModule.getAuth(app)
+  const auth = authModule.initializeAuth(app, {
+    persistence: authModule.inMemoryPersistence,
+    popupRedirectResolver: authModule.browserPopupRedirectResolver,
+  })
   const isStudioRoute = isGraphicsStudioLocation(globalScope?.location)
   const useNativeGoogle = shouldUseNativeGoogleSignIn(globalScope)
   const useWebRedirectGoogle = !isStudioRoute && shouldUseWebRedirectGoogleSignIn(globalScope)

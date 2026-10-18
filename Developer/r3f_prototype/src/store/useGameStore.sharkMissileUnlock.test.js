@@ -9,12 +9,13 @@ import {
   getAllUnlocked,
   setUnlocked,
 } from '../lib/weaponUnlocks.js'
-import { _seedHydratedFirebaseProgressForTests, _setFirebaseProgressClientForTests } from '../lib/firebaseProgress.js'
+import { _seedHydratedFirebaseProgressForTests } from '../lib/firebaseProgress.js'
+import { installProgressTransactionTestClient } from '../../test/progressTransactionClient.js'
 
 describe('sharkMissile unlock and card access', () => {
   beforeEach(() => {
-    _setFirebaseProgressClientForTests({ save: async () => {}, load: async () => null })
     _seedHydratedFirebaseProgressForTests()
+    installProgressTransactionTestClient()
     _resetRecords()
     _resetUnlocks()
     useGameStore.getState().resetGame()

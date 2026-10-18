@@ -46,6 +46,19 @@ export default function ReadyGameApp({
   const rankingEntrantsRef = useRef(new Set())
 
   useEffect(() => {
+    if (!authUser?.uid) return
+    let stopped = false
+    const retry = () => {
+      void import('../store/useGameStore.js').then(({useGameStore}) => {
+        if (!stopped) return useGameStore.getState().reconcileCloudProgress()
+      }).catch(() => {})
+    }
+    const timer = window.setInterval(retry,5000)
+    window.addEventListener('online',retry)
+    return () => { stopped = true; window.clearInterval(timer); window.removeEventListener('online',retry) }
+  },[authUser?.uid])
+
+  useEffect(() => {
     const identity = authUser?.uid ?? 'guest'
     if (rankingEntrantsRef.current.has(identity)) return
     rankingEntrantsRef.current.add(identity)
@@ -149,6 +162,11 @@ export default function ReadyGameApp({
     setScreen(nextScreen)
   }
 
+  const leaveGameplay = async (destination) => {
+    const { useGameStore } = await import('../store/useGameStore.js')
+    if (await useGameStore.getState().flushProgressBeforeTransition()) setScreen(destination)
+  }
+
   const viewportStyle = {
     ...styles.viewport,
     ...getSelectedWebBackgroundStyle(),
@@ -232,8 +250,8 @@ export default function ReadyGameApp({
                 mobileJoystickEnabled={mobileJoystickEnabled}
                 phoneFrameRef={phoneFrameRef}
                 onOpenCoinShop={() => openCoinShopFrom('game')}
-                onGoToTitle={() => setScreen('title')}
-                onGoToLobby={() => setScreen('lobby')}
+                onGoToTitle={() => leaveGameplay('title')}
+                onGoToLobby={() => leaveGameplay('lobby')}
                 onGoToRanking={() => openRankingFrom('game')}
                 onOpenMissionCenter={() => openMissionCenterFrom('game')}
                 onOpenWeaponEncyclopedia={openWeaponEncyclopedia}

@@ -33,6 +33,18 @@ const {
 
 const USER = { uid: 'consent-user', displayName: 'Tester' }
 
+function consentClient(fail = false) {
+  let remote = remoteSnapshot()
+  const transaction = vi.fn(async (_path, mutate) => {
+    if (fail) throw new Error('network down')
+    const next = mutate(structuredClone(remote))
+    if (next === undefined) return { committed: false }
+    remote = structuredClone(next)
+    return { committed: true, snapshot: { val: () => structuredClone(remote) } }
+  })
+  return { load: vi.fn(async () => structuredClone(remote)), transaction }
+}
+
 function remoteSnapshot(overrides = {}) {
   return {
     schemaVersion: 1,
@@ -64,21 +76,15 @@ describe('consent.js', () => {
   })
 
   it('requires consent when hydrated but no consent record exists yet', async () => {
-    _setFirebaseProgressClientForTests({
-      load: vi.fn(async () => remoteSnapshot()),
-      save: vi.fn(async () => {}),
-    })
+    _setFirebaseProgressClientForTests(consentClient())
     await hydrateCloudProgress(USER)
 
     expect(needsConsent(USER)).toBe(true)
   })
 
   it('does not need consent after a successful recordConsent, and readConsent reflects it', async () => {
-    const save = vi.fn(async () => {})
-    _setFirebaseProgressClientForTests({
-      load: vi.fn(async () => remoteSnapshot()),
-      save,
-    })
+    const client = consentClient()
+    _setFirebaseProgressClientForTests(client)
     await hydrateCloudProgress(USER)
 
     await expect(recordConsent(USER)).resolves.toBe(true)
@@ -88,14 +94,11 @@ describe('consent.js', () => {
     expect(consent.terms.version).toBe(TERMS_VERSION)
     expect(consent.privacy.version).toBe(PRIVACY_VERSION)
     expect(Number.isNaN(Date.parse(consent.terms.acceptedAt))).toBe(false)
-    expect(save).toHaveBeenCalled()
+    expect(client.transaction).toHaveBeenCalled()
   })
 
   it('requires consent again when the stored version is lower than the current legal document version', async () => {
-    _setFirebaseProgressClientForTests({
-      load: vi.fn(async () => remoteSnapshot()),
-      save: vi.fn(async () => {}),
-    })
+    _setFirebaseProgressClientForTests(consentClient())
     await hydrateCloudProgress(USER)
     applyCloudProgressSnapshot(remoteSnapshot({
       consent: {
@@ -108,10 +111,7 @@ describe('consent.js', () => {
   })
 
   it('rolls back the runtime consent record and returns false when the remote save fails', async () => {
-    _setFirebaseProgressClientForTests({
-      load: vi.fn(async () => remoteSnapshot()),
-      save: vi.fn(async () => { throw new Error('network down') }),
-    })
+    _setFirebaseProgressClientForTests(consentClient(true))
     await hydrateCloudProgress(USER)
 
     await expect(recordConsent(USER)).resolves.toBe(false)
@@ -121,10 +121,7 @@ describe('consent.js', () => {
   })
 
   it('never persists consent to browser storage', async () => {
-    _setFirebaseProgressClientForTests({
-      load: vi.fn(async () => remoteSnapshot()),
-      save: vi.fn(async () => {}),
-    })
+    _setFirebaseProgressClientForTests(consentClient())
     await hydrateCloudProgress(USER)
 
     await recordConsent(USER)
@@ -135,10 +132,7 @@ describe('consent.js', () => {
   it('does not hard-code needsConsent to always return false (no leftover scaffold behavior)', async () => {
     // 미하이드레이트 상태에서 이미 true를 반환하지만, 하이드레이트 이후에도 실제
     // 동의 상태에 따라 값이 바뀌는지까지 확인해 "항상 false" 스캡폴드 회귀를 잡는다.
-    _setFirebaseProgressClientForTests({
-      load: vi.fn(async () => remoteSnapshot()),
-      save: vi.fn(async () => {}),
-    })
+    _setFirebaseProgressClientForTests(consentClient())
     await hydrateCloudProgress(USER)
     expect(needsConsent(USER)).toBe(true)
 

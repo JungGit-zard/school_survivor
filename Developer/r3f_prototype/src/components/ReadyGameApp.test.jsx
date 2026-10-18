@@ -13,6 +13,7 @@ const mocks = vi.hoisted(() => ({
     phase: 'idle',
     resetGame: vi.fn(),
     submitRunToRanking: vi.fn(async () => {}),
+    reconcileCloudProgress: vi.fn(async () => true),
     startStage1Intro: vi.fn(),
   },
 }))
@@ -69,6 +70,22 @@ vi.mock('../store/useGameStore.js', () => ({
 }))
 
 const { default: ReadyGameApp } = await import('./ReadyGameApp.jsx')
+
+it('retries cloud progress while paused or on a result, and on network return, then removes the timer',async()=>{
+  vi.useFakeTimers()
+  const view=await renderReadyWithoutEntering({authUser:{uid:'retry-user'},progressStatus:'ready'})
+  mocks.gameStore.phase='paused'
+  mocks.gameStore.reconcileCloudProgress.mockClear()
+  await act(async()=>{await vi.advanceTimersByTimeAsync(5000);await vi.dynamicImportSettled()})
+  expect(mocks.gameStore.reconcileCloudProgress).toHaveBeenCalledTimes(1)
+  mocks.gameStore.phase='cleared'
+  await act(async()=>{window.dispatchEvent(new Event('online'));await vi.dynamicImportSettled()})
+  expect(mocks.gameStore.reconcileCloudProgress).toHaveBeenCalledTimes(2)
+  view.unmount()
+  await vi.advanceTimersByTimeAsync(10000)
+  expect(mocks.gameStore.reconcileCloudProgress).toHaveBeenCalledTimes(2)
+  vi.useRealTimers()
+})
 
 async function renderReady(props) {
   const container = document.createElement('div')

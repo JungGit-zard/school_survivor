@@ -1,0 +1,268 @@
+{
+  "afterConflictSaved": true,
+  "afterConflict": {
+    "checkpointRevision": 22,
+    "goldTotal": 324,
+    "missions": {
+      "active": {
+        "bell_shockwave": {
+          "counter": 0,
+          "target": 20
+        },
+        "boss_hunter": {
+          "counter": 0,
+          "target": 1
+        },
+        "e02_tanker_practice": {
+          "counter": 0,
+          "target": 3
+        },
+        "e03_runner_survival": {
+          "counter": 0,
+          "target": 20
+        },
+        "e07_recognition": {
+          "counter": 0,
+          "target": 3
+        },
+        "first_e01_kills": {
+          "counter": 0,
+          "target": 10
+        },
+        "first_gold_coin": {
+          "counter": 0,
+          "target": 1
+        },
+        "first_investigation": {
+          "counter": 0,
+          "target": 1
+        },
+        "first_levelup_choice": {
+          "counter": 0,
+          "target": 1
+        },
+        "first_quest_complete": {
+          "counter": 0,
+          "target": 1
+        },
+        "first_stage1_30_seconds": {
+          "completedAt": "2026-10-18T09:44:44.992Z",
+          "counter": 30,
+          "target": 30
+        },
+        "first_stage1_escape": {
+          "claimId": "first_stage1_escape:missions_2026_08_15_v1",
+          "claimedAt": "2026-10-18T09:44:45.669Z",
+          "completedAt": "2026-10-18T09:44:44.994Z",
+          "counter": 1,
+          "target": 1
+        },
+        "first_stage2_start": {
+          "completedAt": "2026-10-18T09:44:45.861Z",
+          "counter": 1,
+          "target": 1
+        },
+        "first_xp_textbook": {
+          "counter": 0,
+          "target": 1
+        },
+        "four_active_weapons": {
+          "counter": 0,
+          "target": 4
+        },
+        "hanako_cheer": {
+          "counter": 0,
+          "target": 1
+        },
+        "lunch_secured": {
+          "counter": 0,
+          "target": 1
+        },
+        "pencil_throw_training": {
+          "counter": 0,
+          "target": 15
+        },
+        "school_bag_pushback": {
+          "counter": 0,
+          "target": 10
+        },
+        "science_flask_experiment": {
+          "counter": 0,
+          "target": 8
+        },
+        "stage1_one_minute": {
+          "completedAt": "2026-10-18T09:44:44.992Z",
+          "counter": 60,
+          "target": 60
+        },
+        "stage2_b02_encounter": {
+          "counter": 0,
+          "target": 1
+        },
+        "stage2_e04_response": {
+          "counter": 0,
+          "target": 1
+        },
+        "stage2_escape": {
+          "completedAt": "2026-10-18T09:44:46.645Z",
+          "counter": 1,
+          "target": 1
+        },
+        "stage2_guard_chase": {
+          "counter": 0,
+          "target": 30
+        },
+        "stage3_escape": {
+          "completedAt": "2026-10-18T09:44:49.018Z",
+          "counter": 1,
+          "target": 1
+        },
+        "stage3_runner_crew": {
+          "counter": 0,
+          "target": 30
+        },
+        "stage4_escape": {
+          "completedAt": "2026-10-18T09:44:51.407Z",
+          "counter": 1,
+          "target": 1
+        },
+        "tumbler_orbit": {
+          "counter": 0,
+          "target": 50
+        },
+        "weapon_level_five": {
+          "counter": 0,
+          "target": 1
+        }
+      },
+      "catalogVersion": "missions_2026_08_15_v1",
+      "claimLedger": {
+        "first_stage1_escape:missions_2026_08_15_v1": {
+          "catalogVersion": "missions_2026_08_15_v1",
+          "claimedAt": "2026-10-18T09:44:45.669Z",
+          "missionId": "first_stage1_escape",
+          "reward": {
+            "amount": 10,
+            "type": "gold"
+          }
+        }
+      },
+      "claimed": {
+        "first_stage1_escape": {
+          "catalogVersion": "missions_2026_08_15_v1",
+          "claimId": "first_stage1_escape:missions_2026_08_15_v1",
+          "claimedAt": "2026-10-18T09:44:45.669Z",
+          "reward": {
+            "amount": 10,
+            "type": "gold"
+          }
+        }
+      },
+      "completed": {
+        "first_stage1_30_seconds": {
+          "completedAt": "2026-10-18T09:44:44.992Z",
+          "counter": 30,
+          "target": 30
+        },
+        "first_stage1_escape": {
+          "completedAt": "2026-10-18T09:44:44.994Z",
+          "counter": 1,
+          "target": 1
+        },
+        "first_stage2_start": {
+          "completedAt": "2026-10-18T09:44:45.861Z",
+          "counter": 1,
+          "target": 1
+        },
+        "stage1_one_minute": {
+          "completedAt": "2026-10-18T09:44:44.992Z",
+          "counter": 60,
+          "target": 60
+        },
+        "stage2_escape": {
+          "completedAt": "2026-10-18T09:44:46.645Z",
+          "counter": 1,
+          "target": 1
+        },
+        "stage3_escape": {
+          "completedAt": "2026-10-18T09:44:49.018Z",
+          "counter": 1,
+          "target": 1
+        },
+        "stage4_escape": {
+          "completedAt": "2026-10-18T09:44:51.407Z",
+          "counter": 1,
+          "target": 1
+        }
+      },
+      "counters": {
+        "stage%2Estage1%2EbestSurvivalSec": 240,
+        "stage%2Estage1%2EclearCount": 1,
+        "stage%2Estage1%2EstartCount": 1,
+        "stage%2Estage2%2EbestSurvivalSec": 240,
+        "stage%2Estage2%2EclearCount": 1,
+        "stage%2Estage2%2EstartCount": 1,
+        "stage%2Estage3%2EbestSurvivalSec": 240,
+        "stage%2Estage3%2EclearCount": 1,
+        "stage%2Estage3%2EstartCount": 1,
+        "stage%2Estage4%2EbestSurvivalSec": 240,
+        "stage%2Estage4%2EclearCount": 1,
+        "stage%2Estage4%2EstartCount": 1
+      },
+      "schemaVersion": 1,
+      "updatedAt": "2026-10-18T09:44:45.669Z"
+    },
+    "passiveUpgrades": {
+      "magnet": 1
+    },
+    "records": {
+      "bestSurvivalSeconds": 240,
+      "bossKills": 0,
+      "stage10BestSurvivalSec": 0,
+      "stage10Clears": 0,
+      "stage1Clears": 2,
+      "stage1Survival180Runs": 1,
+      "stage2BestSurvivalSec": 240,
+      "stage2Clears": 2,
+      "stage3BestSurvivalSec": 240,
+      "stage3Clears": 1,
+      "stage4BestSurvivalSec": 240,
+      "stage4Clears": 1,
+      "stage5BestSurvivalSec": 0,
+      "stage5Clears": 0,
+      "stage6BestSurvivalSec": 0,
+      "stage6Clears": 0,
+      "stage7BestSurvivalSec": 0,
+      "stage7Clears": 0,
+      "stage8BestSurvivalSec": 0,
+      "stage8Clears": 0,
+      "stage9BestSurvivalSec": 0,
+      "stage9Clears": 0,
+      "totalGold": 5,
+      "totalKills": 5,
+      "totalLevelUps": 0,
+      "totalPickups": 0,
+      "totalRuns": 5,
+      "totalSurvivalSeconds": 960,
+      "weaponMasterCount": 0
+    },
+    "titleSettings": {
+      "hitCameraShake": true,
+      "reducedEffects": false,
+      "unlockAllStagesCheat": false,
+      "unlockAllWeaponsCheat": false,
+      "vibration": true
+    },
+    "weaponUnlockSchemaVersion": 2,
+    "weaponUnlocks": {
+      "bell": 1,
+      "chibiko": 1,
+      "scienceFlask": 1,
+      "sharkMissile": 1,
+      "studentLantern": 1,
+      "stunGun": 1,
+      "umbrellaGuard": 1
+    }
+  },
+  "missionCount": 6
+}

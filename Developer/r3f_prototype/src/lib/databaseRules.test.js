@@ -171,7 +171,10 @@ function fullyAccepts(entryRule, { entry, existing, auth, $uid, $window, $stageI
   for (const [child, rule] of Object.entries(entryRule)) {
     if (child.startsWith('.') || child === '$other') continue
     if (rule?.['.validate'] == null) continue
-    if (!evalRule(rule['.validate'], { newData: ruleData(entry[child]), data, auth, $uid, $window, $stageId })) return false
+    // RTDB skips child validation for absent/deleted optional fields, and data
+    // at a child rule is that child's old snapshot, not the whole entry.
+    if (entry[child] === undefined || entry[child] === null) continue
+    if (!evalRule(rule['.validate'], { newData: ruleData(entry[child]), data: ruleData(existing?.[child]), auth, $uid, $window, $stageId })) return false
   }
   return true
 }
