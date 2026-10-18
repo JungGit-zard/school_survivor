@@ -9,6 +9,7 @@ import webLandingSource from './WebLandingPage.jsx?raw'
 import { WEB_BACKGROUND_URLS, WEB_LANDING_ART_URLS, WEB_LANDING_COMIC_URLS, getWebBacklogComicUrl, selectedWebBackgroundUrl } from '../lib/webBackgroundAssets.js'
 
 vi.mock('./TitleSceneCanvas.jsx', () => ({ default: ({ style }) => <div data-testid="title-scene-canvas" style={style} /> }))
+vi.mock('../lib/firebaseBoard.js', () => ({ subscribeBoardPosts: (onData) => { onData([]); return () => {} } }))
 vi.mock('./ZombieBoard.jsx', () => ({
   default: ({ open, onClose, copy }) => open ? (
     <section role="dialog" aria-label={copy.title} data-testid="zombie-board-mock">

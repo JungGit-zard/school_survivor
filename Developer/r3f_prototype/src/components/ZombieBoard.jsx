@@ -8,7 +8,15 @@ const BOARD_MODES = { list: 'list', write: 'write', detail: 'detail' }
 const POST_PAGE_SIZE = 50
 const COMMENT_PAGE_SIZE = 100
 
-export default function ZombieBoard({ open, onClose, language = 'ko', copy, api = null }) {
+// A privilege/identity change destroys the entire private session before the public
+// session mounts: subscriptions, detail, cursors, drafts and pending callbacks.
+export default function ZombieBoard(props) {
+  const user = useAuthStore((state) => state.user)
+  const sessionKey = isProjectMaster(user) ? `admin:${user?.uid || user?.email}` : 'public'
+  return <BoardSession key={sessionKey} {...props} />
+}
+
+function BoardSession({ open, onClose, language = 'ko', copy, api = null, initialPostId = '' }) {
   const boardCopy = copy || ZOMBIE_BOARD_COPY[language] || ZOMBIE_BOARD_COPY.ko
   const authUser = useAuthStore((state) => state.user)
   const authSigningIn = useAuthStore((state) => state.signingIn)
@@ -27,10 +35,12 @@ export default function ZombieBoard({ open, onClose, language = 'ko', copy, api 
   const commentsRequestRef = useRef(0)
   const commentSubmitRef = useRef(0)
   const [boardApi, setBoardApi] = useState(api)
+  const [privateFeed, setPrivateFeed] = useState(false)
+  const [postSuccess, setPostSuccess] = useState(false)
   const [posts, setPosts] = useState([])
   const [comments, setComments] = useState([])
-  const [selectedPostId, setSelectedPostId] = useState('')
-  const [mode, setMode] = useState(BOARD_MODES.list)
+  const [selectedPostId, setSelectedPostId] = useState(initialPostId)
+  const [mode, setMode] = useState(initialPostId ? BOARD_MODES.detail : BOARD_MODES.list)
   const [postCursorStack, setPostCursorStack] = useState([])
   const [commentCursorStack, setCommentCursorStack] = useState([])
   const [loading, setLoading] = useState(false)
@@ -39,7 +49,7 @@ export default function ZombieBoard({ open, onClose, language = 'ko', copy, api 
   const [commentsError, setCommentsError] = useState('')
   const [postSubmitting, setPostSubmitting] = useState(false)
   const [commentSubmittingPostId, setCommentSubmittingPostId] = useState('')
-  const [postForm, setPostForm] = useState({ title: '', body: '', nickname: '' })
+  const [postForm, setPostForm] = useState({ title: '', body: '', nickname: '', isPrivate: false })
   const [commentForm, setCommentForm] = useState({ body: '', nickname: '' })
   const selectedPost = useMemo(() => posts.find((post) => post.id === selectedPostId) || null, [posts, selectedPostId])
   const selectedPostIsSubmittingComment = Boolean(selectedPost?.id && commentSubmittingPostId === selectedPost.id)
@@ -51,6 +61,15 @@ export default function ZombieBoard({ open, onClose, language = 'ko', copy, api 
   const canShowNewerComments = commentCursorStack.length > 0
 
   useEffect(() => { setBoardApi(api) }, [api])
+
+  useEffect(() => {
+    if (!open || !initialPostId) return
+    setSelectedPostId(initialPostId)
+    setMode(BOARD_MODES.detail)
+    setPostCursorStack([])
+    setCommentCursorStack([])
+    setCommentsError('')
+  }, [open, initialPostId])
 
   useEffect(() => {
     mountedRef.current = true
@@ -120,7 +139,15 @@ export default function ZombieBoard({ open, onClose, language = 'ko', copy, api 
   }, [onClose, open])
 
   useEffect(() => {
-    if (!open || !boardApi?.subscribeBoardPosts) return undefined
+    if (!open || !boardApi) return undefined
+    const subscribe = privateFeed && admin ? boardApi.subscribePrivateBoardPosts : boardApi.subscribeBoardPosts
+    if (!subscribe) {
+      setPosts([])
+      setPostsLoaded(false)
+      setLoading(false)
+      setPostsError(boardCopy.backendMissing)
+      return undefined
+    }
     const requestId = postsRequestRef.current + 1
     postsRequestRef.current = requestId
     setLoading(true)
@@ -128,7 +155,7 @@ export default function ZombieBoard({ open, onClose, language = 'ko', copy, api 
     setPostsError('')
     postsUnsubscribeRef.current?.()
     const options = postCursor ? { before: postCursor } : undefined
-    postsUnsubscribeRef.current = boardApi.subscribeBoardPosts(
+    postsUnsubscribeRef.current = subscribe(
       (items) => {
         if (!mountedRef.current || postsRequestRef.current !== requestId) return
         setPosts(Array.isArray(items) ? items : [])
@@ -148,7 +175,7 @@ export default function ZombieBoard({ open, onClose, language = 'ko', copy, api 
       postsUnsubscribeRef.current?.()
       postsUnsubscribeRef.current = null
     }
-  }, [boardApi, boardCopy.loadError, open, postCursor])
+  }, [admin, boardApi, boardCopy.backendMissing, boardCopy.loadError, open, postCursor, privateFeed])
 
   useEffect(() => {
     if (!open || !selectedPost?.id || mode !== BOARD_MODES.detail || !boardApi?.subscribeBoardComments) {
@@ -163,7 +190,7 @@ export default function ZombieBoard({ open, onClose, language = 'ko', copy, api 
     const postId = selectedPost.id
     const requestId = commentsRequestRef.current + 1
     commentsRequestRef.current = requestId
-    const options = commentCursor ? { before: commentCursor } : undefined
+    const options = privateFeed ? { ...(commentCursor ? { before: commentCursor } : {}), isPrivate: true } : (commentCursor ? { before: commentCursor } : undefined)
     commentsUnsubscribeRef.current = boardApi.subscribeBoardComments(
       postId,
       (items) => {
@@ -179,7 +206,7 @@ export default function ZombieBoard({ open, onClose, language = 'ko', copy, api 
       commentsUnsubscribeRef.current?.()
       commentsUnsubscribeRef.current = null
     }
-  }, [boardApi, boardCopy.commentLoadError, commentCursor, mode, open, selectedPost?.id])
+  }, [boardApi, boardCopy.commentLoadError, commentCursor, mode, open, privateFeed, selectedPost?.id])
 
   if (!open) return null
 
@@ -203,6 +230,7 @@ export default function ZombieBoard({ open, onClose, language = 'ko', copy, api 
   }
 
   const openWrite = () => {
+    setPostSuccess(false)
     setMode(BOARD_MODES.write)
     setSelectedPostId('')
     setCommentCursorStack([])
@@ -210,10 +238,38 @@ export default function ZombieBoard({ open, onClose, language = 'ko', copy, api 
   }
 
   const openDetail = (postId) => {
+    setPostSuccess(false)
     setSelectedPostId(postId)
     setCommentCursorStack([])
     setMode(BOARD_MODES.detail)
     setCommentsError('')
+  }
+
+  const switchFeed = (nextPrivate) => {
+    if (nextPrivate && !admin) return
+    boardSessionRef.current += 1
+    postsRequestRef.current += 1
+    commentsRequestRef.current += 1
+    commentSubmitRef.current += 1
+    postsUnsubscribeRef.current?.()
+    commentsUnsubscribeRef.current?.()
+    postsUnsubscribeRef.current = null
+    commentsUnsubscribeRef.current = null
+    selectedPostIdRef.current = ''
+    setPosts([])
+    setComments([])
+    setSelectedPostId('')
+    setPostCursorStack([])
+    setCommentCursorStack([])
+    setCommentsError('')
+    setPostsError('')
+    setPostsLoaded(false)
+    setCommentForm({ body: '', nickname: '' })
+    setPostSubmitting(false)
+    setCommentSubmittingPostId('')
+    setPostSuccess(false)
+    setMode(BOARD_MODES.list)
+    setPrivateFeed(nextPrivate)
   }
 
   const showOlderPosts = () => {
@@ -243,6 +299,7 @@ export default function ZombieBoard({ open, onClose, language = 'ko', copy, api 
       title: postForm.title.trim(),
       body: postForm.body.trim(),
       nickname: postForm.nickname.trim(),
+      ...(postForm.isPrivate ? { isPrivate: true } : {}),
     }
     const limitError = validatePostPayload(payload, boardCopy)
     if (limitError) {
@@ -260,12 +317,15 @@ export default function ZombieBoard({ open, onClose, language = 'ko', copy, api 
     try {
       await boardApi.createBoardPost(payload)
       if (isCurrentBoardContext({ mountedRef, openRef, boardSessionRef, sessionId })) {
-        setPostForm((current) => sameDraft(current, submitted) ? { title: '', body: '', nickname: current.nickname } : current)
+        setPostForm((current) => sameDraft(current, submitted) ? { title: '', body: '', nickname: current.nickname, isPrivate: false } : current)
+        if (privateFeed) switchFeed(false)
+        setPostSuccess(Boolean(payload.isPrivate))
+        if (payload.isPrivate) dialogRef.current.querySelector('.zombie-board__body').scrollTop = 0
         setPostCursorStack([])
         setMode(BOARD_MODES.list)
       }
     } catch (error) {
-      if (isCurrentBoardContext({ mountedRef, openRef, boardSessionRef, sessionId })) setPostsError(errorMessage(error, boardCopy.loadError))
+      if (isCurrentBoardContext({ mountedRef, openRef, boardSessionRef, sessionId })) setPostsError(payload.isPrivate ? boardCopy.loadError : errorMessage(error, boardCopy.loadError))
     } finally {
       if (isCurrentBoardContext({ mountedRef, openRef, boardSessionRef, sessionId })) setPostSubmitting(false)
     }
@@ -277,6 +337,7 @@ export default function ZombieBoard({ open, onClose, language = 'ko', copy, api 
     const payload = {
       body: commentForm.body.trim(),
       nickname: commentForm.nickname.trim(),
+      ...(privateFeed ? { isPrivate: true } : {}),
     }
     const limitError = validateCommentPayload(payload, boardCopy)
     if (limitError) {
@@ -298,7 +359,7 @@ export default function ZombieBoard({ open, onClose, language = 'ko', copy, api 
       await boardApi.createBoardComment(postId, payload)
       setCommentForm((current) => (isCurrentBoardContext({ mountedRef, openRef, boardSessionRef, sessionId }) && selectedPostIdRef.current === postId && commentSubmitRef.current === submitId && sameDraft(current, submitted)) ? { body: '', nickname: current.nickname } : current)
     } catch (error) {
-      if (isCurrentBoardContext({ mountedRef, openRef, boardSessionRef, sessionId }) && selectedPostIdRef.current === postId && commentSubmitRef.current === submitId) setCommentsError(errorMessage(error, boardCopy.commentLoadError))
+      if (isCurrentBoardContext({ mountedRef, openRef, boardSessionRef, sessionId }) && selectedPostIdRef.current === postId && commentSubmitRef.current === submitId) setCommentsError(privateFeed ? boardCopy.commentLoadError : errorMessage(error, boardCopy.commentLoadError))
     } finally {
       if (isCurrentBoardContext({ mountedRef, openRef, boardSessionRef, sessionId }) && commentSubmitRef.current === submitId) setCommentSubmittingPostId((current) => current === postId ? '' : current)
     }
@@ -307,21 +368,24 @@ export default function ZombieBoard({ open, onClose, language = 'ko', copy, api 
   const deletePost = async (postId) => {
     if (!admin || !boardApi?.deleteBoardPost || !window.confirm(boardCopy.confirmDeletePost)) return
     setPostsError('')
+    const sessionId = boardSessionRef.current
     try {
-      await boardApi.deleteBoardPost(postId)
-      if (selectedPostIdRef.current === postId) openList()
+      await (privateFeed ? boardApi.deleteBoardPost(postId, { isPrivate: true }) : boardApi.deleteBoardPost(postId))
+      if (isCurrentBoardContext({ mountedRef, openRef, boardSessionRef, sessionId }) && selectedPostIdRef.current === postId) openList()
     } catch (error) {
-      setPostsError(errorMessage(error, boardCopy.loadError))
+      if (isCurrentBoardContext({ mountedRef, openRef, boardSessionRef, sessionId })) setPostsError(privateFeed ? boardCopy.loadError : errorMessage(error, boardCopy.loadError))
     }
   }
 
   const deleteComment = async (commentId) => {
     if (!admin || !selectedPost || !boardApi?.deleteBoardComment || !window.confirm(boardCopy.confirmDeleteComment)) return
     setCommentsError('')
+    const sessionId = boardSessionRef.current
+    const postId = selectedPost.id
     try {
-      await boardApi.deleteBoardComment(selectedPost.id, commentId)
+      await (privateFeed ? boardApi.deleteBoardComment(postId, commentId, { isPrivate: true }) : boardApi.deleteBoardComment(postId, commentId))
     } catch (error) {
-      setCommentsError(errorMessage(error, boardCopy.commentLoadError))
+      if (isCurrentBoardContext({ mountedRef, openRef, boardSessionRef, sessionId }) && selectedPostIdRef.current === postId) setCommentsError(privateFeed ? boardCopy.commentLoadError : errorMessage(error, boardCopy.commentLoadError))
     }
   }
 
@@ -350,10 +414,15 @@ export default function ZombieBoard({ open, onClose, language = 'ko', copy, api 
         {!admin && authError ? <p className="zombie-board__auth-error" role="alert">{boardCopy.adminLoginError || boardCopy.loadError}</p> : null}
 
         <div className="zombie-board__body">
+          {admin ? <nav className="zombie-board__feeds" aria-label={boardCopy.adminOnly}>
+            <button type="button" data-board-feed="public" aria-pressed={!privateFeed} disabled={!privateFeed} onClick={() => switchFeed(false)}>{boardCopy.publicFeed}</button>
+            <button type="button" data-board-feed="private" aria-pressed={privateFeed} disabled={privateFeed} onClick={() => switchFeed(true)}>{boardCopy.privateFeed}</button>
+          </nav> : null}
+          {postSuccess ? <p className="zombie-board__notice" role="status">{boardCopy.privateSuccess}</p> : null}
           {mode === BOARD_MODES.list ? (
             <section className="zombie-board__panel" aria-label={boardCopy.listLabel}>
               <div className="zombie-board__toolbar">
-                <h3>{boardCopy.listLabel}</h3>
+                <h3>{privateFeed ? boardCopy.privateFeed : boardCopy.listLabel}</h3>
                 <button type="button" className="zombie-board__primary" onClick={openWrite}>{boardCopy.writePost}</button>
               </div>
               {loading ? <p className="zombie-board__notice">{boardCopy.loading}</p> : null}
@@ -390,6 +459,8 @@ export default function ZombieBoard({ open, onClose, language = 'ko', copy, api 
                 <label>{boardCopy.titleLabel}<input name="postTitle" maxLength={LIMITS.title} value={postForm.title} onChange={(event) => setPostForm({ ...postForm, title: event.target.value })} /></label>
                 <label>{boardCopy.bodyLabel}<textarea name="postBody" maxLength={LIMITS.body} value={postForm.body} onChange={(event) => setPostForm({ ...postForm, body: event.target.value })} /></label>
                 <label>{boardCopy.nicknameLabel}<input name="postNickname" maxLength={LIMITS.nickname} placeholder={boardCopy.nicknamePlaceholder} value={postForm.nickname} onChange={(event) => setPostForm({ ...postForm, nickname: event.target.value })} /></label>
+                <label className="zombie-board__private-option"><input type="checkbox" name="postPrivate" checked={postForm.isPrivate} aria-describedby="zombie-board-private-help" onChange={(event) => setPostForm({ ...postForm, isPrivate: event.target.checked })} />{boardCopy.privatePost}</label>
+                <p id="zombie-board-private-help" className="zombie-board__notice">{boardCopy.privateExplanation}</p>
                 <button type="submit" className="zombie-board__primary" disabled={postSubmitting || !boardApi?.createBoardPost}>{postSubmitting ? boardCopy.submittingPost : boardCopy.submitPost}</button>
               </form>
             </section>
@@ -441,7 +512,7 @@ export default function ZombieBoard({ open, onClose, language = 'ko', copy, api 
               ) : (
                 <>
                   <button type="button" className="zombie-board__back" onClick={openList}>{boardCopy.back}</button>
-                  <p className="zombie-board__notice">{boardCopy.missingPost}</p>
+                  <p className="zombie-board__notice" role={postsError ? 'alert' : 'status'}>{postsError || (loading || !postsLoaded ? boardCopy.loading : boardCopy.missingPost)}</p>
                 </>
               )}
             </section>
@@ -668,7 +739,7 @@ const zombieBoardCss = `
   font-weight: 850;
 }
 
-.zombie-board__form input,
+.zombie-board__form input:not([type="checkbox"]),
 .zombie-board__form textarea {
   width: 100%;
   min-height: 44px;
@@ -679,6 +750,18 @@ const zombieBoardCss = `
   color: #172033;
   font: inherit;
 }
+
+.zombie-board__form .zombie-board__private-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  cursor: pointer;
+}
+.zombie-board__private-option input { width: 22px; height: 22px; margin: 0; flex: 0 0 auto; }
+.zombie-board__feeds { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+.zombie-board__feeds button { padding: 8px 12px; }
+.zombie-board button:focus-visible, .zombie-board input:focus-visible { outline: 3px solid #7C3AED; outline-offset: 2px; }
 
 .zombie-board__form textarea {
   min-height: 110px;

@@ -11,6 +11,7 @@ import {
   sanitizeBoardText,
   subscribeBoardComments,
   subscribeBoardPosts,
+  subscribePrivateBoardPosts,
 } from './firebaseBoard.js'
 
 function makeFakeClient() {
@@ -189,6 +190,67 @@ describe('firebaseBoard public anonymous board client', () => {
       { type: 'endBefore', value: 777, key: 'c7' },
       { type: 'limitToLast', limit: 100 },
     )
+  })
+
+  it('writes private post content only to privatePosts and never falls back on permission failure', async () => {
+    const { client, mod, writes } = makeFakeClient()
+    _setFirebaseBoardClientForTests(client)
+    await createBoardPost({ title: 'secret title', body: 'secret body', nickname: 'secret name', isPrivate: true })
+    expect(writes).toEqual([{
+      path: `${BOARD_ROOT}/privatePosts/generated-1`,
+      value: { title: 'secret title', body: 'secret body', nickname: 'secret name', createdAt: { '.sv': 'timestamp' } },
+    }])
+    mod.set.mockRejectedValueOnce(new Error('PERMISSION_DENIED'))
+    await expect(createBoardPost({ title: 'secret', body: 'secret', isPrivate: true })).rejects.toThrow('PERMISSION_DENIED')
+    expect(mod.set).toHaveBeenCalledTimes(2)
+    expect(mod.push.mock.calls.every(([r]) => r.path === `${BOARD_ROOT}/privatePosts`)).toBe(true)
+  })
+
+  it('keeps explicit public writes and subscriptions on public roots even with a private feed option', async () => {
+    const { client, writes, listeners } = makeFakeClient()
+    _setFirebaseBoardClientForTests(client)
+    await createBoardPost({ title: 'public', body: 'public', isPrivate: false })
+    subscribeBoardPosts(vi.fn(), vi.fn(), { isPrivate: true })
+    await Promise.resolve()
+    expect(writes[0].path).toBe(`${BOARD_ROOT}/posts/generated-1`)
+    expect(writes[0].value).not.toHaveProperty('isPrivate')
+    expect(listeners[0].query.ref.path).toBe(`${BOARD_ROOT}/posts`)
+  })
+
+  it('subscribes to a separate private paginated feed, marks records, propagates denial and detaches', async () => {
+    const { client, mod, listeners } = makeFakeClient()
+    _setFirebaseBoardClientForTests(client)
+    const onData = vi.fn(), onError = vi.fn()
+    const off = subscribePrivateBoardPosts(onData, onError, { before: { createdAt: 99, id: 'p99' } })
+    await Promise.resolve()
+    expect(mod.query).toHaveBeenCalledWith({ path: `${BOARD_ROOT}/privatePosts` },
+      { type: 'orderByChild', key: 'createdAt' }, { type: 'endBefore', value: 99, key: 'p99' }, { type: 'limitToLast', limit: 50 })
+    listeners[0].onData(snapFromObject({ p1: { title: 's', body: 's', nickname: 'n', createdAt: 1 } }))
+    expect(onData).toHaveBeenCalledWith([{ id: 'p1', title: 's', body: 's', nickname: 'n', createdAt: 1, isPrivate: true }])
+    const denied = new Error('PERMISSION_DENIED')
+    listeners[0].onError(denied)
+    expect(onError).toHaveBeenCalledWith(denied)
+    expect(listeners).toHaveLength(1)
+    off()
+    expect(listeners[0].off).toHaveBeenCalledOnce()
+  })
+
+  it('routes private comments and atomic moderation only to private roots', async () => {
+    const { client, mod, writes, removes, listeners } = makeFakeClient()
+    _setFirebaseBoardClientForTests(client)
+    await createBoardComment('secret', { body: 'reply', isPrivate: true })
+    subscribeBoardComments('secret', vi.fn(), vi.fn(), { isPrivate: true, before: { createdAt: 9, id: 'c9' } })
+    await Promise.resolve()
+    expect(listeners[0].query.ref.path).toBe(`${BOARD_ROOT}/privateComments/secret`)
+    expect(mod.endBefore).toHaveBeenCalledWith(9, 'c9')
+    expect(writes[0].path).toBe(`${BOARD_ROOT}/privateComments/secret/generated-1`)
+    await deleteBoardPost('secret', { isPrivate: true })
+    expect(writes[1]).toEqual({ path: BOARD_ROOT, value: { 'privatePosts/secret': null, 'privateComments/secret': null }, update: true })
+    await deleteBoardComment('secret', 'c1', { isPrivate: true })
+    expect(removes).toEqual([`${BOARD_ROOT}/privateComments/secret/c1`])
+    mod.set.mockRejectedValueOnce(new Error('PERMISSION_DENIED'))
+    await expect(createBoardComment('secret', { body: 'denied', isPrivate: true })).rejects.toThrow('PERMISSION_DENIED')
+    expect(mod.set).toHaveBeenCalledTimes(2)
   })
 
   it('preserves safe plain text while trimming and bounding text fields', () => {
