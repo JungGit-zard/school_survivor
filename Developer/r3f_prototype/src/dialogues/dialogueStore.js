@@ -53,6 +53,7 @@ export const DIALOGUE_POOL_TARGETS = Object.freeze({
   'investigation.kitchenTrashBins': 5,
   'investigation.kitchenCrateStack': 5,
   'investigation.kitchenClutter': 5,
+  'investigation.pressureCauldron': 5,
 })
 
 function resolveLocale(locale) {

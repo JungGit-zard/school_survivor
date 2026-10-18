@@ -44,6 +44,7 @@ import { schoolButton, schoolPanel, uiBorders, uiPalette, uiShadows, uiType } fr
 import { getMissionStatus } from '../lib/missionProgress.js'
 import { MISSION_BY_ID } from '../lib/missionCatalog.js'
 import MissionTracker from './MissionTracker.jsx'
+import StageVendingPrompt from './StageVendingPrompt.jsx'
 import { milestoneLabel, t as translate, useT, weaponLabel } from '../lib/i18n.js'
 import { dispatchStarlinkCheatCrash } from './Weapons/Starlink.jsx'
 import pencilIconSrc from '../assets/weapon_icon/01_wea_pencil.png.webp'
@@ -1531,6 +1532,7 @@ export default function HUD({
         </>
       )}
 
+      <StageVendingPrompt />
       <MissionTracker
         missionProgress={missionProgress}
         hidden={phase !== 'playing' || bossWarning != null || e04IntroWarning != null || matildaWarning != null || formationWarning != null || questInventoryOpen}
@@ -1674,6 +1676,7 @@ export default function HUD({
       )}
 
       {questToastMessage && !questDialoguePopup && (
+        <div data-testid="quest-banner-viewport" style={questStarted || questItemReceived || questCompleted ? styles.questBannerViewport : undefined}>
         <div
           role="status"
           aria-live={questStarted || questCompleted ? 'assertive' : 'polite'}
@@ -1720,6 +1723,7 @@ export default function HUD({
               )}
             </span>
           )}
+        </div>
         </div>
       )}
 
@@ -1913,6 +1917,7 @@ export default function HUD({
           }}
         >
           {questDialoguePopup ? (
+            <div data-testid="quest-banner-viewport" style={styles.questBannerViewport}>
             <div
               data-testid="quest-dialogue-popup"
               style={{
@@ -1924,6 +1929,7 @@ export default function HUD({
               }}
               role="dialog"
               aria-label={t('hud.investigateAria', { name: studentDialogue.subjectName ?? t('hud.defaultSubject') })}
+              onPointerDown={(event) => event.stopPropagation()}
             >
               <img
                 data-testid="quest-dialogue-giver-profile"
@@ -1940,8 +1946,9 @@ export default function HUD({
                   <strong style={{ ...styles.questDialogueNotice, ...(questStarted ? styles.questAcceptanceNotice : null) }}>{questToastMessage}</strong>
                   {questPopupNextAction && <small style={{ ...styles.questDialogueNextAction, ...(questStarted ? styles.questAcceptanceAction : null) }}>{questPopupNextAction}</small>}
                 </div>
-                <div style={styles.questDialogueHint}>{t('hud.tapToContinue')}</div>
+                <button type="button" style={{ ...styles.questDialogueHint, minHeight: 44, cursor: 'pointer', border: '1px solid #c9b98d', borderRadius: 8, background: '#181d28', touchAction: 'manipulation' }} onClick={() => { emitSfx({ id: 'buttonClick' }); clearQuestToast(); closeStudentDialogue() }}>{t('hud.tapToContinue')}</button>
               </div>
+            </div>
             </div>
           ) : (
             <div style={styles.dialogueBox} role="dialog" aria-label={t('hud.investigateAria', { name: studentDialogue.subjectName ?? t('hud.defaultSubject') })}>
@@ -2654,13 +2661,27 @@ const styles = {
     fontWeight: uiType.weightStrong,
     pointerEvents: 'none',
   },
+  questBannerViewport: {
+    position: 'absolute',
+    top: 'calc(max(14px, var(--quest-safe-top, env(safe-area-inset-top, 0px))) + 60px)',
+    bottom: 'calc(100px + var(--quest-safe-bottom, env(safe-area-inset-bottom, 0px)))',
+    left: 'max(14px, var(--quest-safe-left, env(safe-area-inset-left, 0px)))',
+    right: 'max(14px, var(--quest-safe-right, env(safe-area-inset-right, 0px)))',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    minHeight: 0, minWidth: 0, pointerEvents: 'none', zIndex: 30,
+  },
   questPopupCenter: {
-    top: '50%',
-    transform: 'translate(-50%, -50%)',
+    overscrollBehavior: 'contain',
+    touchAction: 'pan-y',
+    overflowWrap: 'anywhere',
+    pointerEvents: 'auto',
+    position: 'relative',
+    top: 'auto', left: 'auto',
+    transform: 'none',
     zIndex: 30,
-    width: 'min(calc(100% - 24px), calc(56.25dvh - 24px), 560px)',
-    maxWidth: 'min(calc(100% - 24px), calc(56.25dvh - 24px), 560px)',
-    maxHeight: 'calc(100dvh - 48px)',
+    width: 'min(100%, 560px)',
+    maxWidth: '100%',
+    maxHeight: '100%',
     overflowY: 'auto',
     boxSizing: 'border-box',
     justifyContent: 'flex-start',
@@ -2676,12 +2697,14 @@ const styles = {
     textAlign: 'left',
   },
   questTransientTopPopup: {
+    position: 'absolute',
+    left: '50%',
     top: 12,
     transform: 'translateX(-50%) scale(0.5)',
     transformOrigin: 'top center',
-    width: 'min(calc(100% - 24px), calc(56.25dvh - 24px), 560px)',
-    maxWidth: 'min(calc(100% - 24px), calc(56.25dvh - 24px), 560px)',
-    maxHeight: 'calc(100dvh - 48px)',
+    width: 'min(100%, 560px)',
+    maxWidth: '100%',
+    maxHeight: '100%',
   },
   questPopupText: { display: 'grid', gap: 3 },
   questPopupCenterText: { flex: 1, minWidth: 0, textAlign: 'center' },
@@ -2694,8 +2717,8 @@ const styles = {
     boxShadow: '0 6px 0 rgba(4, 6, 10, 0.7), 0 0 0 4px rgba(255, 243, 214, 0.14)',
   },
   questGiverProfile: {
-    flex: '0 0 76px',
-    width: 76,
+    flex: '0 0 clamp(44px, 12vw, 76px)',
+    width: 'clamp(44px, 12vw, 76px)',
     height: 76,
     objectFit: 'cover',
     borderRadius: 10,
@@ -2703,7 +2726,7 @@ const styles = {
     background: '#10141d',
   },
   questStartContent: { flex: 1, minWidth: 0, display: 'grid', gap: 12 },
-  questStartHeader: { display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10 },
+  questStartHeader: { flexWrap: 'wrap', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10 },
   questStartTitle: { color: '#fff3d6', fontSize: 18, lineHeight: 1.25 },
   questAcceptanceNotice: {
     color: '#cbd8ff',
@@ -2801,20 +2824,20 @@ const styles = {
   questItemNextAction: { fontSize: 15.6, lineHeight: 1.25 },
   questDialogueCatcher: {
     alignItems: 'center',
-    paddingBottom: 'clamp(32px, 8dvh, 96px)',
+    paddingBottom: 0,
   },
   questDialoguePopup: {
-    alignItems: 'center',
+    alignItems: 'flex-start',
     flexDirection: 'row',
-    pointerEvents: 'none',
+    pointerEvents: 'auto',
     border: '2px solid #c9b98d',
     background: 'linear-gradient(180deg, #2f3440 0%, #181d28 100%)',
     color: '#fff3d6',
     boxShadow: '0 6px 0 rgba(4, 6, 10, 0.7), 0 0 0 4px rgba(255, 243, 214, 0.14)',
   },
   questDialogueGiverProfile: {
-    flex: '0 0 clamp(56px, 18vw, 76px)',
-    width: 'clamp(56px, 18vw, 76px)',
+    flex: '0 0 clamp(44px, 12vw, 76px)',
+    width: 'clamp(44px, 12vw, 76px)',
     height: 'clamp(56px, 18vw, 76px)',
     objectFit: 'cover',
     borderRadius: 10,

@@ -5,6 +5,7 @@ import { getStageObjectPlacements } from './stageObjectPlacements.js'
 import { STAGE_PROP_PLACEMENTS_EVENT } from '../../lib/stagePropPlacements.js'
 
 export const BLOCKING_STAGE_OBJECT_TYPES = new Set([
+  'expansionObstacle',
   'classroomChair',
   'classroomDesk',
   'corridorLockerBank',
@@ -350,6 +351,7 @@ function combineRotations(modelRotation, partRotation = [0, 0, 0]) {
 }
 
 export function getStageObjectColliderParts(placement = {}) {
+  if(placement.type==='expansionObstacle') return [{key:placement.id,args:[placement.props.halfX,.6,placement.props.halfZ],position:[0,.6,0],rotation:[0,0,0]}]
   const def = COLLIDER_DEFS[placement.type]
   if (!def) return []
 

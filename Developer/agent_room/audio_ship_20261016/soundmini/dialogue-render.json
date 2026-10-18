@@ -1,0 +1,300 @@
+{
+  "source": "src/lib/dialogueVoice.js",
+  "sourceSha256": "e69cfc0a9889d01b3ecbabdd64c92d2c22adfb5dc7850a2cbb832117b3972d0c",
+  "method": "Native Chromium OfflineAudioContext, direct private playGlyphBleep graph via read-only source evaluation, current fixed per-glyph index, volume=1, no gain normalization",
+  "samples": [
+    {
+      "profileName": "protagonistIntro",
+      "text": "학교에서 무슨 일이 생긴 걸까.",
+      "path": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\Developer\\r3f_prototype\\public\\sfx\\audition-20261016\\dialogue-protagonistIntro-original.wav",
+      "profile": {
+        "waveform": "triangle",
+        "baseFrequency": 315,
+        "semitonePattern": [
+          -2,
+          0,
+          2,
+          4,
+          0,
+          -1
+        ],
+        "detuneCents": 14,
+        "glyphMs": 52,
+        "durationMs": 48,
+        "gain": 0.045,
+        "attackMs": 3,
+        "releaseMs": 28,
+        "filterType": "lowpass",
+        "filterFrequency": 1900,
+        "highpassFrequency": 190,
+        "punctuationPauseMs": 135,
+        "sentencePauseMs": 210
+      },
+      "schedule": [
+        {
+          "glyph": "학",
+          "index": 0,
+          "at": 0
+        },
+        {
+          "glyph": "교",
+          "index": 1,
+          "at": 0.052
+        },
+        {
+          "glyph": "에",
+          "index": 2,
+          "at": 0.104
+        },
+        {
+          "glyph": "서",
+          "index": 3,
+          "at": 0.156
+        },
+        {
+          "glyph": "무",
+          "index": 4,
+          "at": 0.252
+        },
+        {
+          "glyph": "슨",
+          "index": 5,
+          "at": 0.304
+        },
+        {
+          "glyph": "일",
+          "index": 6,
+          "at": 0.4
+        },
+        {
+          "glyph": "이",
+          "index": 7,
+          "at": 0.452
+        },
+        {
+          "glyph": "생",
+          "index": 8,
+          "at": 0.548
+        },
+        {
+          "glyph": "긴",
+          "index": 9,
+          "at": 0.6
+        },
+        {
+          "glyph": "걸",
+          "index": 10,
+          "at": 0.696
+        },
+        {
+          "glyph": "까",
+          "index": 11,
+          "at": 0.748
+        }
+      ],
+      "sampleRate": 44100,
+      "frames": 55566,
+      "sha256": "b6d0ce65e266c37d97a6c494ba3395f7dcd91c62859a11200f1104a6c98c845b"
+    },
+    {
+      "profileName": "protagonistUrgent",
+      "text": "난 여기서 빠져나가야겠어!",
+      "path": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\Developer\\r3f_prototype\\public\\sfx\\audition-20261016\\dialogue-protagonistUrgent-original.wav",
+      "profile": {
+        "waveform": "triangle",
+        "baseFrequency": 360,
+        "semitonePattern": [
+          0,
+          3,
+          5,
+          2,
+          7,
+          4
+        ],
+        "detuneCents": 16,
+        "glyphMs": 47,
+        "durationMs": 48,
+        "gain": 0.052,
+        "attackMs": 3,
+        "releaseMs": 26,
+        "filterType": "lowpass",
+        "filterFrequency": 2150,
+        "highpassFrequency": 210,
+        "punctuationPauseMs": 115,
+        "sentencePauseMs": 190
+      },
+      "schedule": [
+        {
+          "glyph": "난",
+          "index": 0,
+          "at": 0
+        },
+        {
+          "glyph": "여",
+          "index": 1,
+          "at": 0.087
+        },
+        {
+          "glyph": "기",
+          "index": 2,
+          "at": 0.134
+        },
+        {
+          "glyph": "서",
+          "index": 3,
+          "at": 0.181
+        },
+        {
+          "glyph": "빠",
+          "index": 4,
+          "at": 0.268
+        },
+        {
+          "glyph": "져",
+          "index": 5,
+          "at": 0.315
+        },
+        {
+          "glyph": "나",
+          "index": 6,
+          "at": 0.362
+        },
+        {
+          "glyph": "가",
+          "index": 7,
+          "at": 0.409
+        },
+        {
+          "glyph": "야",
+          "index": 8,
+          "at": 0.456
+        },
+        {
+          "glyph": "겠",
+          "index": 9,
+          "at": 0.503
+        },
+        {
+          "glyph": "어",
+          "index": 10,
+          "at": 0.55
+        }
+      ],
+      "sampleRate": 44100,
+      "frames": 45732,
+      "sha256": "7d8e0bdcdd41fe11814f4407549be25235be18fcb3ddb5ef306600d79050248c"
+    },
+    {
+      "profileName": "matilda",
+      "text": "오호호호! 떡하나주면 안잡아먹지!",
+      "path": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\Developer\\r3f_prototype\\public\\sfx\\audition-20261016\\dialogue-matilda-original.wav",
+      "profile": {
+        "waveform": "triangle",
+        "overtoneWaveform": "square",
+        "overtoneGain": 0.18,
+        "baseFrequency": 720,
+        "semitonePattern": [
+          7,
+          5,
+          7,
+          10,
+          3,
+          8,
+          5,
+          0
+        ],
+        "detuneCents": 28,
+        "glyphMs": 46,
+        "durationMs": 58,
+        "gain": 0.041,
+        "attackMs": 2,
+        "releaseMs": 24,
+        "filterType": "bandpass",
+        "filterFrequency": 1350,
+        "filterQ": 1.15,
+        "punctuationPauseMs": 100,
+        "sentencePauseMs": 165,
+        "vibratoRate": 8.5,
+        "vibratoDepthCents": 20
+      },
+      "schedule": [
+        {
+          "glyph": "오",
+          "index": 0,
+          "at": 0
+        },
+        {
+          "glyph": "호",
+          "index": 1,
+          "at": 0.046
+        },
+        {
+          "glyph": "호",
+          "index": 2,
+          "at": 0.092
+        },
+        {
+          "glyph": "호",
+          "index": 3,
+          "at": 0.138
+        },
+        {
+          "glyph": "떡",
+          "index": 4,
+          "at": 0.388
+        },
+        {
+          "glyph": "하",
+          "index": 5,
+          "at": 0.434
+        },
+        {
+          "glyph": "나",
+          "index": 6,
+          "at": 0.48
+        },
+        {
+          "glyph": "주",
+          "index": 7,
+          "at": 0.526
+        },
+        {
+          "glyph": "면",
+          "index": 8,
+          "at": 0.572
+        },
+        {
+          "glyph": "안",
+          "index": 9,
+          "at": 0.657
+        },
+        {
+          "glyph": "잡",
+          "index": 10,
+          "at": 0.703
+        },
+        {
+          "glyph": "아",
+          "index": 11,
+          "at": 0.749
+        },
+        {
+          "glyph": "먹",
+          "index": 12,
+          "at": 0.795
+        },
+        {
+          "glyph": "지",
+          "index": 13,
+          "at": 0.841
+        }
+      ],
+      "sampleRate": 44100,
+      "frames": 57419,
+      "sha256": "2edc66f87874c7957fc46a41af0cf624b0b41d645efbc89bf94c393d8f01d605"
+    }
+  ],
+  "closed": true,
+  "browserPid": 2084,
+  "browserVersion": "155.0.8059.41"
+}

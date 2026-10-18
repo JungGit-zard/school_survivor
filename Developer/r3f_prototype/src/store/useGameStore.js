@@ -58,6 +58,7 @@ import { submitRun, describeSubmission, prepareRankingSubmission, retryPendingRa
 import { getRankingUser } from '../lib/guestRankingIdentity.js'
 import { isProjectMaster } from '../lib/projectAdmin.js'
 import { useAuthStore } from './useAuthStore.js'
+import { getStageVendingItem, getStageVendingPlacement, isWithinStageVendingRange } from '../lib/stageVending.js'
 import { getBossClearBonus, getRankingScore, getRankingScorePolicy } from '../lib/rankingScorePolicy.js'
 import { logDamageTaken } from '../lib/playtestLogger.js'
 import { emitSfx } from '../lib/sfxEvents.js'
@@ -360,6 +361,7 @@ export const useGameStore = create(
     escapeResult: null,
     godMode: false,
     gameKey:     0,
+    stageVendingPurchasedItemIds: [],
     goldSession: 0,
     goldTotal:   0,
     runKills:    0,
@@ -684,6 +686,7 @@ export const useGameStore = create(
     // 순서가 정확성을 결정: 평가는 snapshot 전, 합본에 본 런 카운터 포함, snapshot은 평가 후.
     _onRunEnd: (phaseName) => {
       const s = get()
+      set({ stageVendingPurchasedItemIds: [] })
       checkpointRun(s, phaseName)
       const elapsedMs = getRuntimeElapsedMs(s.elapsedMs)
       const runSurvivalSeconds = Math.floor(elapsedMs / 1000)
@@ -874,6 +877,49 @@ export const useGameStore = create(
       set({ goldTotal: nextTotal })
       saveRuntimeProgress()
       return true
+    },
+
+    purchaseStageVendingItem: (itemId, { machineId = null, stageId = null, gameKey = null } = {}) => {
+      const item = getStageVendingItem(itemId)
+      if (!item) return { ok: false, reason: 'invalid-item', itemId }
+      if (!isFirebaseProgressHydrated()) return { ok: false, reason: 'progressUnavailable', itemId }
+      const progressUid = getFirebaseProgressRuntimeSnapshot().uid
+      const authUid = useAuthStore.getState().user?.uid
+      const runOwnerUid = pendingRuns.get(get().progressRunId)?.uid
+      if (!authUid || authUid !== progressUid || runOwnerUid !== authUid) return { ok: false, reason: 'progressUnavailable', itemId }
+      let result = { ok: false, reason: 'not-applied', itemId }
+      set((s) => {
+        const reject = (reason) => { result = { ok: false, reason, itemId }; return s }
+        if (s.phase !== 'playing') return reject('not-playing')
+        if (stageId !== null && stageId !== s.currentStageId) return reject('stale-stage')
+        if (gameKey !== null && gameKey !== s.gameKey) return reject('stale-run')
+        if (!Number.isFinite(s.player.hp) || s.player.hp <= 0) return reject('not-alive')
+        const placement = getStageVendingPlacement(s.currentStageId)
+        if (!placement) return reject('no-placement')
+        if (machineId !== null && machineId !== placement.id) return reject('stale-machine')
+        if (!isWithinStageVendingRange(playerPos, placement)) return reject('out-of-range')
+        if (s.stageVendingPurchasedItemIds.includes(item.id)) return reject('already-purchased')
+        if (item.effectType !== 'heal') return reject('unsupported-effect')
+        const maxHp = s.player.maxHp
+        if (!Number.isFinite(maxHp) || maxHp <= s.player.hp) return reject('full-health')
+        if (!Number.isFinite(s.goldTotal) || s.goldTotal < item.priceGold) return reject('insufficient-gold')
+        const nextHp = Math.min(maxHp, s.player.hp + item.healHp)
+        const nextGold = s.goldTotal - item.priceGold
+        // Persist before synchronous subscribers; a reentrant pickup/click must
+        // not overwrite the new wallet or spend the entitlement twice.
+        saveGoldTotal(nextGold)
+        result = { ok: true, itemId: item.id, machineId: placement.id,
+          goldSpent: item.priceGold, hpRestored: nextHp - s.player.hp, nextGold }
+        return { player: { ...s.player, hp: nextHp }, goldTotal: nextGold,
+          stageVendingPurchasedItemIds: [...s.stageVendingPurchasedItemIds, item.id] }
+      })
+      if (result.ok && isFirebaseProgressHydrated({ uid: progressUid })) {
+        // Reconcile the latest visible wallet, not the pre-notification value.
+        // Existing gainGold checkpoints only when an authenticated owner exists.
+        saveGoldTotal(get().goldTotal)
+        saveRuntimeProgress()
+      }
+      return result
     },
 
     purchasePassive: (id) => {
@@ -1425,6 +1471,7 @@ export const useGameStore = create(
         escapeResult: null,
         godMode: false,
         gameKey:     s.gameKey + 1,
+        stageVendingPurchasedItemIds: [],
         goldSession: 0,
         runKills:    0,
         runBossKills: 0,

@@ -162,6 +162,11 @@ function runtimePlaytestLogPlugin() {
 
 export default defineConfig({
   plugins: [firebaseDatabaseMemoryStoragePlugin(), forbiddenProjectHostPlugin(), react(), runtimePlaytestLogPlugin()],
+  optimizeDeps: {
+    rolldownOptions: {
+      plugins: [firebaseDatabaseMemoryStoragePlugin()],
+    },
+  },
   server: {
     host: true,
     port: 5173,

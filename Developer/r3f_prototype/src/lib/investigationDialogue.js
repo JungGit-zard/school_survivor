@@ -2,7 +2,11 @@ import { STAGE_PROP_PALETTE } from './stagePropEditorGeometry.js'
 import { pickDialogueId } from '../dialogues/dialogueStore.js'
 import { propLabel, t } from './i18n.js'
 
-const SUBJECT_NAMES = new Map(STAGE_PROP_PALETTE.map(({ type, label }) => [type, label]))
+// Authored hazards can be investigated without becoming editor palette entries.
+const SUBJECT_NAMES = new Map([
+  ...STAGE_PROP_PALETTE.map(({ type, label }) => [type, label]),
+  ['pressureCauldron', '압력 가마솥'],
+])
 
 const REWARD_SUBJECT_TYPES = Object.freeze({
   classroomDesk: 'desk',

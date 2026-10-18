@@ -2,7 +2,10 @@
 import React from 'react'
 import { act } from 'react'
 import { createRoot } from 'react-dom/client'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { mkdtempSync, writeFileSync } from 'node:fs'
+import { join } from 'node:path'
+import { tmpdir } from 'node:os'
 import Lobby, { BOSS_SHOWTIME } from './Lobby.jsx'
 import { saveStageBossPreview } from '../lib/graphicsStudioConfig.js'
 import { playSfx } from '../lib/sfxRegistry.js'
@@ -17,6 +20,7 @@ import { commitFirebaseStudioRuntime } from '../lib/studioRuntimeState.js'
 import { useAuthStore } from '../store/useAuthStore.js'
 import { useGameStore } from '../store/useGameStore.js'
 import { saveTitleSettings } from '../lib/titleSettings.js'
+import { runLobbyHydrationCycles } from '../../test/lobbyHydrationCycles.jsx'
 
 const stageBossPreviewRenderState = vi.hoisted(() => ({ count: 0 }))
 vi.mock('../lib/guestRankingIdentity.js', () => ({
@@ -30,6 +34,9 @@ vi.mock('@react-three/fiber', () => ({
 }))
 
 vi.mock('./LobbyBgm.jsx', () => ({ default: () => null }))
+// Audio initialization and canvas chunk loading are outside this DOM hydration gate.
+vi.mock('./gameCanvasLoader.js', () => ({ preloadGameCanvasChunk: vi.fn(async () => {}) }))
+vi.mock('howler', () => ({ Howl: vi.fn(), Howler: {} }))
 
 vi.mock('../lib/sfxRegistry.js', () => ({
   playSfx: vi.fn(),
@@ -84,7 +91,10 @@ vi.mock('../lib/firebaseRanking.js', async () => {
 })
 
 describe('Lobby', () => {
+  let previousActEnvironment
   beforeEach(() => {
+    previousActEnvironment = Object.getOwnPropertyDescriptor(globalThis, 'IS_REACT_ACT_ENVIRONMENT')
+    globalThis.IS_REACT_ACT_ENVIRONMENT = true
     _seedHydratedFirebaseProgressForTests({ uid: 'lobby-user', displayName: 'Lobby Tester' })
     commitFirebaseStudioRuntime({
       tunings: {},
@@ -103,6 +113,11 @@ describe('Lobby', () => {
     })
     useGameStore.setState({ goldTotal: 12 })
     stageBossPreviewRenderState.count = 0
+  })
+
+  afterEach(() => {
+    if (previousActEnvironment) Object.defineProperty(globalThis, 'IS_REACT_ACT_ENVIRONMENT', previousActEnvironment)
+    else delete globalThis.IS_REACT_ACT_ENVIRONMENT
   })
 
   it('opens stage play, ranking, and coin shop from the lobby', () => {
@@ -207,7 +222,7 @@ describe('Lobby', () => {
     const loadingView = renderLobby({ onStartStage, onOpenCoinShop: () => {}, onOpenRanking: () => {} })
 
     expect(loadingView.container.querySelector('[data-testid="lobby-records-pending"]')).not.toBeNull()
-    expect(loadingView.container.querySelectorAll('[data-testid="stage-lock-preview"]')).toHaveLength(3)
+    expect(loadingView.container.querySelectorAll('[data-testid="stage-lock-preview"]')).toHaveLength(9)
     expect(loadingView.container.querySelectorAll('[data-testid="stage-boss-preview"]')).toHaveLength(1)
     expect(Array.from(loadingView.container.querySelectorAll('button')).filter((button) => button.textContent === '입장하기')).toHaveLength(1)
     clickButtonByText(loadingView.container, '입장하기')
@@ -220,7 +235,7 @@ describe('Lobby', () => {
     useAuthStore.setState({ progressStatus: 'error', progressError: new Error('remote snapshot unavailable') })
     const errorView = renderLobby({ onStartStage, onOpenCoinShop: () => {}, onOpenRanking: () => {} })
     expect(errorView.container.querySelector('[data-testid="lobby-records-pending"]')).not.toBeNull()
-    expect(errorView.container.querySelectorAll('[data-testid="stage-lock-preview"]')).toHaveLength(3)
+    expect(errorView.container.querySelectorAll('[data-testid="stage-lock-preview"]')).toHaveLength(9)
     expect(errorView.container.querySelectorAll('[data-testid="stage-boss-preview"]')).toHaveLength(1)
     expect(Array.from(errorView.container.querySelectorAll('button')).filter((button) => button.textContent === '입장하기')).toHaveLength(1)
     errorView.unmount()
@@ -232,7 +247,7 @@ describe('Lobby', () => {
     const view = renderLobby({ onStartStage: () => {}, onOpenCoinShop: () => {}, onOpenRanking: () => {} })
 
     expect(view.container.querySelector('[data-testid="lobby-records-pending"]')).not.toBeNull()
-    expect(view.container.querySelectorAll('[data-testid="stage-lock-preview"]')).toHaveLength(3)
+    expect(view.container.querySelectorAll('[data-testid="stage-lock-preview"]')).toHaveLength(9)
     expect(view.container.querySelectorAll('[data-testid="stage-boss-preview"]')).toHaveLength(1)
     expect(view.container.textContent).toContain('Stage 1 클리어 시 열림')
     expect(view.container.textContent).toContain('Stage 3 클리어 시 열림')
@@ -252,9 +267,8 @@ describe('Lobby', () => {
     })
 
     expect(view.container.querySelector('[data-testid="lobby-records-pending"]')).toBeNull()
-    expect(view.container.querySelectorAll('[data-testid="stage-lock-preview"]')).toHaveLength(0)
-    expect(view.container.querySelectorAll('[data-testid="stage-boss-preview"]')).toHaveLength(4)
-    expect(Array.from(view.container.querySelectorAll('button')).filter((button) => button.textContent === '입장하기')).toHaveLength(4)
+    expect(Array.from(view.container.querySelectorAll('button')).filter((button) => button.textContent === '입장하기')).toHaveLength(5)
+    expectVerifiedFixtureStageAccess(view.container)
     expect(view.container.textContent).toContain('12:46')
     expect(view.container.textContent).toContain('6:06')
     expect(view.container.textContent).toContain('5:21')
@@ -263,51 +277,23 @@ describe('Lobby', () => {
     view.unmount()
   })
 
-  it('keeps the verified account records across 10,000 login-hydrate-lobby cycles', () => {
-    const account = { uid: 'master-account', displayName: '정실장', email: 'zard5388@gmail.com' }
-    const canonicalRecords = {
-      stage1Clears: 23,
-      stage2Clears: 9,
-      stage3Clears: 2,
-      stage4Clears: 1,
-      bestSurvivalSeconds: 766,
-      stage2BestSurvivalSec: 366,
-      stage3BestSurvivalSec: 321,
-      stage4BestSurvivalSec: 481,
-    }
+  if (process.env.UI10000_DIAGNOSTIC === '1') it('profiles bounded real Lobby DOM cost without reducing the final gate', async () => {
+    const result = await runLobbyHydrationCycles({ count: 20, profileDom: true })
+    writeFileSync(join(process.env.UI10000_EVIDENCE_DIR, 'jsdom-bounded-profile.json'), JSON.stringify(result, null, 2))
+    expect(result.completed).toBe(20)
+    expect(result.warnings.act).toBe(0)
+  }, 60_000)
 
-    for (let attempt = 1; attempt <= 10_000; attempt += 1) {
-      _resetFirebaseProgressForTests()
-      useAuthStore.setState({
-        status: 'signedIn',
-        user: account,
-        initialized: true,
-        progressStatus: 'loading',
-        progressError: null,
-      })
-      const view = renderLobby({ onStartStage: () => {}, onOpenCoinShop: () => {}, onOpenRanking: () => {} })
-
-      expect(view.container.querySelector('[data-testid="lobby-records-pending"]'), `attempt ${attempt}`).not.toBeNull()
-      expect(view.container.querySelectorAll('[data-testid="stage-lock-preview"]'), `attempt ${attempt}`).toHaveLength(3)
-      expect(view.container.querySelectorAll('[data-testid="stage-boss-preview"]'), `attempt ${attempt}`).toHaveLength(1)
-
-      act(() => {
-        _seedHydratedFirebaseProgressForTests(account)
-        seedPlayerRecords(canonicalRecords)
-        useAuthStore.setState({ progressStatus: 'ready' })
-      })
-
-      expect(view.container.querySelector('[data-testid="lobby-records-pending"]'), `attempt ${attempt}`).toBeNull()
-      expect(view.container.querySelectorAll('[data-testid="stage-lock-preview"]'), `attempt ${attempt}`).toHaveLength(0)
-      expect(view.container.querySelectorAll('[data-testid="stage-boss-preview"]'), `attempt ${attempt}`).toHaveLength(4)
-      expect(view.container.textContent, `attempt ${attempt}`).not.toContain('기록 없음')
-      expect(view.container.textContent, `attempt ${attempt}`).toContain('12:46')
-      expect(view.container.textContent, `attempt ${attempt}`).toContain('6:06')
-      expect(view.container.textContent, `attempt ${attempt}`).toContain('5:21')
-      expect(view.container.textContent, `attempt ${attempt}`).toContain('8:01')
-
-      view.unmount()
-    }
+  it('keeps the verified account records across 10,000 login-hydrate-lobby cycles', async () => {
+    // Same real Lobby/store/fixture oracle, native Chrome DOM instead of jsdom CSS parsing.
+    // This gate remains in ordinary npm test, with unchanged iteration count and timeout.
+    const { runLobbyHydrationChrome } = await import('../../test/lobbyHydrationChrome.mjs')
+    const evidenceDir = process.env.UI10000_EVIDENCE_DIR || mkdtempSync(join(tmpdir(), 'lobby-ui10000-'))
+    const result = await runLobbyHydrationChrome({ evidenceDir })
+    expect(result.completed).toBe(10_000)
+    expect(result.assertions).toBe(690_004)
+    expect(result.warnings).toEqual({ warn: 0, error: 0, act: 0 })
+    expect(result.elapsedMs).toBeLessThan(600_000)
   }, 600_000)
 
   it('caps the desktop stage list width so cards do not stretch across wide monitors', () => {
@@ -804,6 +790,28 @@ function findStageCard(container, ariaLabel) {
   const card = container.querySelector(`[aria-label="${ariaLabel}"]`)
   if (!card) throw new Error(`Missing stage card: ${ariaLabel}`)
   return card
+}
+
+// This fixture clears Stage1–4 only: Stage5 is unlocked without a record,
+// while expansion Stage6–10 must remain locked. Loading retains Stage1 preview and nine locks.
+function expectVerifiedFixtureStageAccess(container, context = 'verified fixture') {
+  expect(container.querySelectorAll('section'), context).toHaveLength(10)
+  for (let stage = 1; stage <= 10; stage += 1) {
+    const card = container.querySelector(`section[aria-label^="Stage ${stage} "]`)
+    expect(card, `${context}: Stage ${stage}`).not.toBeNull()
+    if (stage <= 5) {
+      const enter = Array.from(card.querySelectorAll('button')).find(button => button.textContent === '입장하기')
+      expect(enter, `${context}: Stage ${stage} entry`).toBeDefined()
+      expect(enter.disabled, `${context}: Stage ${stage} unlocked`).toBe(false)
+      expect(card.querySelector('[data-testid="stage-lock-preview"]'), context).toBeNull()
+      if (stage <= 4) expect(card.textContent, `${context}: Stage ${stage} record`).not.toContain('기록 없음')
+      else expect(card.textContent, `${context}: Stage5 has not been played`).toContain('기록 없음')
+    } else {
+      expect(card.querySelector('[data-testid="stage-lock-preview"]'), `${context}: Stage ${stage} locked`).not.toBeNull()
+      expect(card.querySelectorAll('button'), context).toHaveLength(2)
+      for (const button of card.querySelectorAll('button')) expect(button.disabled, context).toBe(true)
+    }
+  }
 }
 
 function seedPlayerRecords(records) {

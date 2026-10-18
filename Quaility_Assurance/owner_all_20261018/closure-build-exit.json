@@ -1,0 +1,12 @@
+{
+  "startedAt": "2026-10-18T15:33:24.439230+00:00",
+  "command": [
+    "npm.cmd",
+    "run",
+    "build"
+  ],
+  "status": "EXITED",
+  "pid": 5152,
+  "exit_code": 0,
+  "finishedAt": "2026-10-18T15:33:45.393441+00:00"
+}

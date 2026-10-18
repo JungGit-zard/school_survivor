@@ -748,14 +748,17 @@ const sounds = {
 // ── 생성 실행 ─────────────────────────────────────────────────────────────────
 // 필터 인자: node generate_sfx.mjs [부분문자열] — 매칭되는 사운드만 재생성.
 // (noise 파형이 Math.random 기반이라 전체 재생성 시 모든 파일이 바뀜 → 선택 재생성 필수)
-const filter = process.argv[2]
-let count = 0
-for (const [id, gen] of Object.entries(sounds)) {
-  if (filter && !id.includes(filter)) continue
-  const samples = gen()
-  const filepath = join(OUT, id + '.wav')
-  writeWav(filepath, samples)
-  count++
-  process.stdout.write(`\r생성 중... ${count}/${Object.keys(sounds).length} — ${id}.wav`)
+export { sounds, synth, writeWav }
+if (process.argv[1] && process.argv[1].endsWith('generate_sfx.mjs')) {
+  const filter = process.argv[2]
+  let count = 0
+  for (const [id, gen] of Object.entries(sounds)) {
+    if (filter && !id.includes(filter)) continue
+    const samples = gen()
+    const filepath = join(OUT, id + '.wav')
+    writeWav(filepath, samples)
+    count++
+    process.stdout.write(`\r생성 중... ${count}/${Object.keys(sounds).length} — ${id}.wav`)
+  }
+  console.log(`\n✓ ${count}개 사운드 생성 완료 → public/sfx/`)
 }
-console.log(`\n✓ ${count}개 사운드 생성 완료 → public/sfx/`)

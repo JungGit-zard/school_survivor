@@ -1,5 +1,5 @@
 // SFX 레지스트리. 모든 사운드 ID → 파일 경로 매핑 + Howler 인스턴스 지연 생성.
-// 파일이 없으면 onloaderror에서 _failed에 등록 → 이후 호출 무시 (무음 실패).
+// 로드 실패는 짧은 backoff 후 다음 이벤트에서 재시도한다 (게임 진행은 막지 않음).
 // 에셋 준비 전에도 코드는 정상 동작한다.
 
 import { Howl, Howler } from 'howler'
@@ -136,7 +136,8 @@ export const DEFAULT_SFX_TUNING = {
 export const SFX_TUNING_STORAGE_KEY = 'escape-zombie-school.sfxTunings.v1'
 
 const _cache  = {}
-const _failed = new Set()
+const _failed = new Map()
+const SFX_RETRY_DELAY_MS = 3000
 const _activeCombatVoices = new Set()
 
 // 위험/플레이어/UI 신호는 전역 전투 보이스 상한 때문에 버리지 않는다.
@@ -351,7 +352,11 @@ export function saveSfxTunings(tunings) {
 }
 
 export function playSfx(id, volume = 1, options = {}) {
-  if (!SOUND_MAP[id] || _failed.has(id)) return
+  if (!SOUND_MAP[id]) return
+  if (_failed.has(id)) {
+    if (performance.now() < _failed.get(id)) return
+    _failed.delete(id)
+  }
   if (!isSfxAllowedForAuthOverlay(id, options.authOverlayActive)) return
   const tuning = normalizeSfxTuning(options.tuningOverride ?? loadOptionalSfxTunings()[id])
   const tunedVolume = clamp(volume * tuning.volume, 0, 1)
@@ -376,26 +381,46 @@ export function playSfx(id, volume = 1, options = {}) {
   if (!_cache[id]) {
     const ogg = SOUND_MAP[id]
     const mp3 = ogg.replace('.ogg', '.mp3')
-    _cache[id] = new Howl({
+    let howl
+    const release = (soundId) => {
+      if (_cache[id] === howl) releaseCombatVoice(id, soundId)
+    }
+    howl = new Howl({
       src: [ogg, mp3],   // OGG 우선, 미지원 브라우저는 MP3 fallback
       volume: tunedVolume,
       onloaderror: () => {
+        if (_cache[id] !== howl) return
         releaseCombatVoicesForLogicalId(id)
-        _failed.add(id)
+        _failed.set(id, performance.now() + SFX_RETRY_DELAY_MS)
+        delete _lastPlayed[id]
         delete _cache[id]
+        // Failed Howls otherwise remain in Howler._howls across every retry.
+        try { howl.unload?.() } catch {}
       },
-      onend: (soundId) => releaseCombatVoice(id, soundId),
-      onstop: (soundId) => releaseCombatVoice(id, soundId),
-      onplayerror: (soundId) => releaseCombatVoice(id, soundId),
+      onend: release,
+      onstop: release,
+      onpause: release,
+      onplayerror: release,
     })
+    _cache[id] = howl
   }
   for (let voiceIndex = 0; voiceIndex < playbackVoiceCount; voiceIndex += 1) {
-    const soundId = _cache[id].play()
-    if (!protectedSfx) _activeCombatVoices.add(combatVoiceKey(id, soundId))
-    _cache[id].volume?.(tunedVolume, soundId)
-    // Howler retains a cached instance's prior playback rate. Apply the saved
-    // value even when it is 1 so an admin reset takes effect on the next play.
-    _cache[id].rate?.(tunedRate, soundId)
+    const howl = _cache[id]
+    let soundId
+    try {
+      soundId = howl.play()
+      // null means no allocated voice, not a slot that can be released later.
+      if (soundId == null) return
+      if (!protectedSfx) _activeCombatVoices.add(combatVoiceKey(id, soundId))
+      howl.volume?.(tunedVolume, soundId)
+      // Always reset a cached voice to the latest saved rate (including 1).
+      howl.rate?.(tunedRate, soundId)
+    } catch {
+      releaseCombatVoice(id, soundId)
+      try { if (soundId != null) howl.stop?.(soundId) } catch {}
+      delete _lastPlayed[id]
+      return
+    }
   }
 }
 

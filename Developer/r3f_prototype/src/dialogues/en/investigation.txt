@@ -426,3 +426,8 @@ investigation.kitchenClutter.002	That spoon is too well behaved. Suspicious — 
 investigation.kitchenClutter.003	Pots and ladles have a meeting in code.
 investigation.kitchenClutter.004	The quiet spoon is the one that scares me.
 investigation.kitchenClutter.005	Steam carries my shadow into a complaint form.
+investigation.pressureCauldron.001	I stopped in my tracks at that bubbling sound.
+investigation.pressureCauldron.002	I can feel the heat on my face. I am not getting any closer.
+investigation.pressureCauldron.003	I cannot see through that white steam. I should step aside.
+investigation.pressureCauldron.004	I tucked my hands into my pockets when the lid rattled.
+investigation.pressureCauldron.005	I am keeping my distance from that hot pot. Just looking, then leaving.

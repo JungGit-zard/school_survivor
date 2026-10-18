@@ -283,10 +283,10 @@ export function describeSubmission(outcome) {
 }
 
 // 계정 삭제 시 지울 수 있는 랭킹 버킷의 스테이지 목록(규칙의 $stageId 화이트리스트와 일치).
-const RANKING_STAGE_IDS = Object.freeze(['stage1', 'stage2', 'stage3', 'stage4'])
+const RANKING_STAGE_IDS = Object.freeze(['stage1', 'stage2', 'stage3', 'stage4', 'stage5', 'stage6', 'stage7', 'stage8', 'stage9', 'stage10'])
 
 // 계정 삭제 경로 전용. 활성 시즌의 "오늘 daily + 이번 주 weekly" 버킷에서 본인 엔트리를 제거한다.
-// 현재 기간 10경로 + 영구 스테이지 4경로/글로벌 1경로 = 15경로.
+// 현재 기간 스테이지 10개 및 글로벌의 daily/weekly + 각 allTime 경로.
 //
 // 한계(의도된 것이 아니라 구조적 제약): 클라이언트가 지울 수 있는 건 지금 계산 가능한
 // periodKey뿐이다. 과거 날짜/주의 periodKey와 과거 시즌 ID는 열거할 방법이 없다 —

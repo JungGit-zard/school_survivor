@@ -1,13 +1,13 @@
 import { createHash } from 'node:crypto'
 
-export const ALLOWED_STAGE_IDS = new Set(['stage1', 'stage2', 'stage3', 'stage4'])
+export const ALLOWED_STAGE_IDS = new Set(['stage1', 'stage2', 'stage3', 'stage4', 'stage5', 'stage6', 'stage7', 'stage8', 'stage9', 'stage10'])
 export const KST_OFFSET_MS = 9 * 60 * 60 * 1000
 
 // 점수 구성 상수. 단일 출처는 클라이언트 src/lib/rankingScorePolicy.js — 값 변경 시 함께 갱신한다.
 // 런 길이에도 점수에도 상한을 두지 않는다: 무한모드 경합이 이 게임의 핵심 컨텐츠라
 // 100시간을 버티든 3년을 버티든 버틴 그대로 기록되어야 한다. 예전에 여기 있던
 // MAX_RUN_SCORE / MAX_RUN_TIME_MS와 maxLegitScore 재검증은 그 요구와 정면으로 충돌해 걷어냈다.
-export const SERVER_STAGE_BONUS = { stage1: 0, stage2: 60, stage3: 120, stage4: 180 }
+export const SERVER_STAGE_BONUS = { stage1: 0, stage2: 60, stage3: 120, stage4: 180, stage5: 240, stage6: 300, stage7: 360, stage8: 420, stage9: 480, stage10: 540 }
 export const SERVER_ESCAPE_BONUS_RATE = 0.15
 export const BOSS_BONUS_RATE = 0.2
 

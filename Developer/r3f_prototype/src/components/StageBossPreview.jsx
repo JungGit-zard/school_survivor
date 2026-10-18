@@ -25,7 +25,11 @@ export const ENEMY_VISUAL_SCALE = 0.333
 
 // 얼굴(머리) 중간지점의 로컬 Y = ZombieMesh reg('head') 그룹 position.y.
 // 머리 블록/얼굴 텍스처의 기하 중심이라 '얼굴 중간지점' 앵커로 사용한다. 보스 타입별로 다르다.
-export const FACE_LOCAL_Y = Object.freeze({ B01: 0.88, B02: 0.88, B03: 0.88, B04: 0.93 })
+export const FACE_LOCAL_Y = Object.freeze({
+  B01: 0.88, B02: 0.88, B03: 0.88, B04: 0.93,
+  // expansionVisuals.js makeRig(): head group position.y (read-only authored rig).
+  B05: 0.83, B06: 0.83, B07: 0.83, B08: 0.83, B09: 0.83,
+})
 const DEFAULT_FACE_LOCAL_Y = 0.82 // 표준 좀비(E01~E06) 머리 그룹 Y
 // ortho 카메라는 rotation을 주지 않아 R3F가 lookAt(0,0,0)을 적용한다(원점 응시).
 // 그래서 화면 세로 중앙에 투영되는 월드 Y ≈ 0(카메라가 바라보는 원점)이다.
@@ -229,7 +233,7 @@ export default function StageBossPreview({
       data-boss-type={bossType}
       data-motion-active={motionEnabled}
       aria-label={ariaLabel}
-      style={{ ...previewFrameStyle, ...style }}
+      style={{ ...previewFrameStyle, ...style, touchAction: !interactive && ['B05', 'B06', 'B07', 'B08', 'B09'].includes(bossType) ? 'pan-y' : 'none' }}
       onWheel={(event) => {
         if (!interactive) return
         event.preventDefault()

@@ -1,0 +1,596 @@
+{
+  "verdict": "NO_GO",
+  "review": "SAME independent serial QA closure; no new worker/card/status/publish",
+  "root": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\releases\\owner-all-complete-20261018",
+  "parent": "launchmini t_e2815ba8",
+  "mirror": "balanceqa t_eebe49ae advisor-managed BLOCKED/do-not-dispatch; unchanged",
+  "sourceHashManifest": "533c7977c5a5cfdd3ac1e00cdd69f65dffeaf38a5dbd2dcbed388aebc26064f1",
+  "verifiedHashCount": 2469,
+  "unchangedAtExit": true,
+  "gate": {
+    "matched_domains": [
+      "ui",
+      "gameplay",
+      "qa",
+      "backend"
+    ],
+    "match_evidence": [
+      {
+        "domain": "ui",
+        "keyword": "ui"
+      },
+      {
+        "domain": "gameplay",
+        "keyword": "gameplay"
+      },
+      {
+        "domain": "qa",
+        "keyword": "qa"
+      },
+      {
+        "domain": "backend",
+        "keyword": "backend"
+      }
+    ],
+    "combined_receipt_sha256": "0e354e7f6c8a061b3f5f3d338822a2c420b7a8baea468ffecdb94d1175d489c3",
+    "sameAsPriorReceipt": true,
+    "documents": "Same receipt/domain required documents already fully read in same QA; closure brief and canonical final-execution-authority re-read; no broad rediscovery"
+  },
+  "closure": {
+    "B01": {
+      "verdict": "CLOSED_PASS",
+      "sourceSHA": "fa809f24960cd75185c5f70e4b73a4e70322712ef5fded679afa196bfe81a711",
+      "independentOracle": {
+        "passed": 10,
+        "failed": 0,
+        "path": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\releases\\owner-all-complete-20261018\\Quaility_Assurance\\owner_all_20261018\\closure-ranking-oracle.json"
+      },
+      "freshRankingRenders": [
+        "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\releases\\owner-all-complete-20261018\\Quaility_Assurance\\owner_all_20261018\\closure-ranking-alltime.png",
+        "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\releases\\owner-all-complete-20261018\\Quaility_Assurance\\owner_all_20261018\\closure-ranking-daily.png",
+        "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\releases\\owner-all-complete-20261018\\Quaility_Assurance\\owner_all_20261018\\closure-ranking-weekly.png"
+      ],
+      "qualification": "Actual product UserRanking and memory/synthetic identity only; alltime zero-participation row, Stage5 daily and Stage6 weekly label verified. Personal progress remains fail-closed/unhydrated."
+    },
+    "B02": {
+      "verdict": "CLOSED_PASS",
+      "tests": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\releases\\owner-all-complete-20261018\\Quaility_Assurance\\owner_all_20261018\\closure-tests.json",
+      "qualification": "Approved nonfinal Stage4 HUD oracle now uses stage-aware expectation; normal runner/pretest unchanged. Daily fixture dates at Date.now and exact test base restored; no test assertion or production source edited by QA."
+    },
+    "B03": {
+      "verdict": "CLOSED_PASS_BOUNDED_RASTER",
+      "outline": {
+        "verdict": "PASS_WITH_STATED_AA_TOLERANCE",
+        "measurement": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\releases\\owner-all-complete-20261018\\Quaility_Assurance\\owner_all_20261018\\closure-outline-measurement.json",
+        "caseCount": 6,
+        "expectedCSS": 2,
+        "toleranceCSS": 0.75,
+        "medianRange": [
+          1.7888543819998317,
+          2.0
+        ],
+        "qualification": "Actual GLB/Canvas on/off PNG silhouette measurements, not uniforms/build/DOM stand-in. Frontal and 35-degree nonuniform/limb pose at render DPR1/2/3; geometric normal correction and RGB threshold; excludes crown/sole/strong curvature. MSAA and pixel-center quantization require stated tolerance; not pixel-perfect equality claim."
+      },
+      "errorRetry": {
+        "verdict": "PASS",
+        "method": "Cleared exact Vite-resolved useGLTF loader cache and Three cache, one-shot rejected actual GLB fetch, clicked product Retry, restored fetch; no component mock",
+        "evidence": [
+          "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\releases\\owner-all-complete-20261018\\Quaility_Assurance\\owner_all_20261018\\closure-room-load-error.json",
+          "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\releases\\owner-all-complete-20261018\\Quaility_Assurance\\owner_all_20261018\\closure-room-load-error.png",
+          "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\releases\\owner-all-complete-20261018\\Quaility_Assurance\\owner_all_20261018\\closure-room-after-retry.json",
+          "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\releases\\owner-all-complete-20261018\\Quaility_Assurance\\owner_all_20261018\\closure-room-after-retry.png"
+        ]
+      },
+      "dialogueClosure": {
+        "verdict": "PASS",
+        "actualEnd": {
+          "dialogue": null,
+          "questToast": null,
+          "phase": "playing"
+        },
+        "evidence": [
+          "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\releases\\owner-all-complete-20261018\\Quaility_Assurance\\owner_all_20261018\\closure-quest-long-closure.json",
+          "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\releases\\owner-all-complete-20261018\\Quaility_Assurance\\owner_all_20261018\\closure-quest-long-before.png",
+          "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\releases\\owner-all-complete-20261018\\Quaility_Assurance\\owner_all_20261018\\closure-quest-long-closed.png"
+        ]
+      }
+    }
+  },
+  "populationPriority": {
+    "verdict": "FAIL_EXPANSION_SCOPE",
+    "sourceHashManifest": "533c7977c5a5cfdd3ac1e00cdd69f65dffeaf38a5dbd2dcbed388aebc26064f1",
+    "sourceSHA": "730caaaa240dbe05aa8294965f07bea092e00a7555d4cc051dde2553da742764",
+    "actualCallerLine": 1936,
+    "exactBranch": "if (!isExpansionStage(stageRuntime.id) && (lowDensity.shouldSpawn || retryLowDensity)) {\n      runtimeQueueRef.current.lowDensityDeferred = !enqueueScheduled(SCHEDULE_LOW_DENSITY_REINFORCEMENT)\n    }",
+    "baseStages": {
+      "passed": 5,
+      "stages": "1~5"
+    },
+    "expansionStages": {
+      "failed": 5,
+      "stages": "6~10",
+      "actual": "Detector produces E07x10 + E01x10 at 600 active 1/60 frames, alive3 and slots20; actual caller condition rejects enqueue for expansion stages",
+      "expected": "In currently supported approved Stage6~10, <=3 alive sustained gameplay10s requests both batches while preserving caps, normal timing, reservations/pool/atomic drain"
+    },
+    "evidenceType": "production detector + EXACT actual Enemies caller branch extracted/executed; enqueueScheduled is an observing stub; not a complete R3F/physics spawn-drain simulation",
+    "evidence": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\releases\\owner-all-complete-20261018\\Quaility_Assurance\\owner_all_20261018\\closure-lowdensity-caller.json",
+    "fullPhysicsSpawnDrain": "NOT_VERIFIED; not needed to establish explicit caller gate rejection",
+    "scopeDecision": "Current candidate still exposes approved Stage6~10, not a separate four-stage-only hotfix. No partial GO granted.",
+    "stageCases": [
+      {
+        "stageId": "stage1",
+        "isExpansion": false,
+        "activeFrames": 600,
+        "activeDeltaSec": 0.016666666666666666,
+        "aliveEnemyCount": 3,
+        "availableSpawnSlots": 20,
+        "detectorShouldSpawn": true,
+        "entries": [
+          {
+            "type": "E07",
+            "count": 10
+          },
+          {
+            "type": "E01",
+            "count": 10
+          }
+        ],
+        "actualCallerEnqueueCalls": 1,
+        "expectedCallerEnqueueCalls": 1,
+        "passed": true
+      },
+      {
+        "stageId": "stage2",
+        "isExpansion": false,
+        "activeFrames": 600,
+        "activeDeltaSec": 0.016666666666666666,
+        "aliveEnemyCount": 3,
+        "availableSpawnSlots": 20,
+        "detectorShouldSpawn": true,
+        "entries": [
+          {
+            "type": "E07",
+            "count": 10
+          },
+          {
+            "type": "E01",
+            "count": 10
+          }
+        ],
+        "actualCallerEnqueueCalls": 1,
+        "expectedCallerEnqueueCalls": 1,
+        "passed": true
+      },
+      {
+        "stageId": "stage3",
+        "isExpansion": false,
+        "activeFrames": 600,
+        "activeDeltaSec": 0.016666666666666666,
+        "aliveEnemyCount": 3,
+        "availableSpawnSlots": 20,
+        "detectorShouldSpawn": true,
+        "entries": [
+          {
+            "type": "E07",
+            "count": 10
+          },
+          {
+            "type": "E01",
+            "count": 10
+          }
+        ],
+        "actualCallerEnqueueCalls": 1,
+        "expectedCallerEnqueueCalls": 1,
+        "passed": true
+      },
+      {
+        "stageId": "stage4",
+        "isExpansion": false,
+        "activeFrames": 600,
+        "activeDeltaSec": 0.016666666666666666,
+        "aliveEnemyCount": 3,
+        "availableSpawnSlots": 20,
+        "detectorShouldSpawn": true,
+        "entries": [
+          {
+            "type": "E07",
+            "count": 10
+          },
+          {
+            "type": "E01",
+            "count": 10
+          }
+        ],
+        "actualCallerEnqueueCalls": 1,
+        "expectedCallerEnqueueCalls": 1,
+        "passed": true
+      },
+      {
+        "stageId": "stage5",
+        "isExpansion": false,
+        "activeFrames": 600,
+        "activeDeltaSec": 0.016666666666666666,
+        "aliveEnemyCount": 3,
+        "availableSpawnSlots": 20,
+        "detectorShouldSpawn": true,
+        "entries": [
+          {
+            "type": "E07",
+            "count": 10
+          },
+          {
+            "type": "E01",
+            "count": 10
+          }
+        ],
+        "actualCallerEnqueueCalls": 1,
+        "expectedCallerEnqueueCalls": 1,
+        "passed": true
+      },
+      {
+        "stageId": "stage6",
+        "isExpansion": true,
+        "activeFrames": 600,
+        "activeDeltaSec": 0.016666666666666666,
+        "aliveEnemyCount": 3,
+        "availableSpawnSlots": 20,
+        "detectorShouldSpawn": true,
+        "entries": [
+          {
+            "type": "E07",
+            "count": 10
+          },
+          {
+            "type": "E01",
+            "count": 10
+          }
+        ],
+        "actualCallerEnqueueCalls": 0,
+        "expectedCallerEnqueueCalls": 1,
+        "passed": false
+      },
+      {
+        "stageId": "stage7",
+        "isExpansion": true,
+        "activeFrames": 600,
+        "activeDeltaSec": 0.016666666666666666,
+        "aliveEnemyCount": 3,
+        "availableSpawnSlots": 20,
+        "detectorShouldSpawn": true,
+        "entries": [
+          {
+            "type": "E07",
+            "count": 10
+          },
+          {
+            "type": "E01",
+            "count": 10
+          }
+        ],
+        "actualCallerEnqueueCalls": 0,
+        "expectedCallerEnqueueCalls": 1,
+        "passed": false
+      },
+      {
+        "stageId": "stage8",
+        "isExpansion": true,
+        "activeFrames": 600,
+        "activeDeltaSec": 0.016666666666666666,
+        "aliveEnemyCount": 3,
+        "availableSpawnSlots": 20,
+        "detectorShouldSpawn": true,
+        "entries": [
+          {
+            "type": "E07",
+            "count": 10
+          },
+          {
+            "type": "E01",
+            "count": 10
+          }
+        ],
+        "actualCallerEnqueueCalls": 0,
+        "expectedCallerEnqueueCalls": 1,
+        "passed": false
+      },
+      {
+        "stageId": "stage9",
+        "isExpansion": true,
+        "activeFrames": 600,
+        "activeDeltaSec": 0.016666666666666666,
+        "aliveEnemyCount": 3,
+        "availableSpawnSlots": 20,
+        "detectorShouldSpawn": true,
+        "entries": [
+          {
+            "type": "E07",
+            "count": 10
+          },
+          {
+            "type": "E01",
+            "count": 10
+          }
+        ],
+        "actualCallerEnqueueCalls": 0,
+        "expectedCallerEnqueueCalls": 1,
+        "passed": false
+      },
+      {
+        "stageId": "stage10",
+        "isExpansion": true,
+        "activeFrames": 600,
+        "activeDeltaSec": 0.016666666666666666,
+        "aliveEnemyCount": 3,
+        "availableSpawnSlots": 20,
+        "detectorShouldSpawn": true,
+        "entries": [
+          {
+            "type": "E07",
+            "count": 10
+          },
+          {
+            "type": "E01",
+            "count": 10
+          }
+        ],
+        "actualCallerEnqueueCalls": 0,
+        "expectedCallerEnqueueCalls": 1,
+        "passed": false
+      }
+    ]
+  },
+  "actualTests": {
+    "runner": "Normal npm test including pretest; --maxWorkers=1 --no-fileParallelism; no bypass/config/source changes",
+    "freshChangedScope": {
+      "passed": 133,
+      "failed": 0,
+      "total": 133,
+      "exit": 0,
+      "json": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\releases\\owner-all-complete-20261018\\Quaility_Assurance\\owner_all_20261018\\closure-tests.json",
+      "log": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\releases\\owner-all-complete-20261018\\Quaility_Assurance\\owner_all_20261018\\closure-tests.log",
+      "files": [
+        {
+          "file": "F:/From_SSD_D_20261005/JungSil/2.Minigame_project/releases/owner-all-complete-20261018/Developer/r3f_prototype/src/store/useGameStore.stageVending.test.js",
+          "passed": 11,
+          "failed": 0
+        },
+        {
+          "file": "F:/From_SSD_D_20261005/JungSil/2.Minigame_project/releases/owner-all-complete-20261018/Developer/r3f_prototype/src/components/Enemies.stage5.test.jsx",
+          "passed": 2,
+          "failed": 0
+        },
+        {
+          "file": "F:/From_SSD_D_20261005/JungSil/2.Minigame_project/releases/owner-all-complete-20261018/Developer/r3f_prototype/src/components/HUD.escapeSuccess.test.jsx",
+          "passed": 6,
+          "failed": 0
+        },
+        {
+          "file": "F:/From_SSD_D_20261005/JungSil/2.Minigame_project/releases/owner-all-complete-20261018/Developer/r3f_prototype/src/components/UserRanking.test.jsx",
+          "passed": 23,
+          "failed": 0
+        },
+        {
+          "file": "F:/From_SSD_D_20261005/JungSil/2.Minigame_project/releases/owner-all-complete-20261018/Developer/r3f_prototype/src/lib/firebaseRanking.hardening.test.js",
+          "passed": 11,
+          "failed": 0
+        },
+        {
+          "file": "F:/From_SSD_D_20261005/JungSil/2.Minigame_project/releases/owner-all-complete-20261018/Developer/r3f_prototype/src/lib/lowDensityReinforcement.test.js",
+          "passed": 25,
+          "failed": 0
+        },
+        {
+          "file": "F:/From_SSD_D_20261005/JungSil/2.Minigame_project/releases/owner-all-complete-20261018/Developer/r3f_prototype/src/lib/stageVending.test.js",
+          "passed": 4,
+          "failed": 0
+        },
+        {
+          "file": "F:/From_SSD_D_20261005/JungSil/2.Minigame_project/releases/owner-all-complete-20261018/Developer/r3f_prototype/src/lib/userRanking.expansion.test.js",
+          "passed": 28,
+          "failed": 0
+        },
+        {
+          "file": "F:/From_SSD_D_20261005/JungSil/2.Minigame_project/releases/owner-all-complete-20261018/Developer/r3f_prototype/src/lib/userRanking.test.js",
+          "passed": 23,
+          "failed": 0
+        }
+      ]
+    },
+    "independentRankingOracle": {
+      "passed": 10,
+      "failed": 0,
+      "exit": 0
+    },
+    "independentActualCallerBranchOracle": {
+      "passed": 5,
+      "failed": 5,
+      "exit": 1,
+      "qualification": "production detector + EXACT actual Enemies caller branch extracted/executed; enqueueScheduled is an observing stub; not a complete R3F/physics spawn-drain simulation"
+    },
+    "vendingMemoryContracts": {
+      "passed": 7,
+      "failed": 0,
+      "evidence": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\releases\\owner-all-complete-20261018\\Quaility_Assurance\\owner_all_20261018\\closure-vending-checks.json"
+    },
+    "previousCounts": "Prior independent-final.json/.md preserved; not relabeled as fresh execution. Parent 404 count is not substituted for independent results."
+  },
+  "vending": {
+    "verdict": "PASS_ISOLATED_REAL_COMPONENT_STORE",
+    "stage5Purchase": {
+      "blocked": [],
+      "distanceBlocks": 0.3125,
+      "distanceUnits": 1.25,
+      "gold": 15,
+      "hp": 85,
+      "machinePosition": {
+        "x": 6.25,
+        "y": 0,
+        "z": -14
+      },
+      "maxHp": 100,
+      "memoryTransactions": 3,
+      "playerPosition": [
+        6.25,
+        0,
+        -12.75
+      ],
+      "purchased": [
+        "recoveryDrink"
+      ],
+      "stage": "stage5",
+      "ui": "purchased",
+      "wallet": 15
+    },
+    "evidence": [
+      "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\releases\\owner-all-complete-20261018\\Quaility_Assurance\\owner_all_20261018\\closure-vending-stage5-purchased.png",
+      "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\releases\\owner-all-complete-20261018\\Quaility_Assurance\\owner_all_20261018\\closure-vending-stage5-purchased.json",
+      "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\releases\\owner-all-complete-20261018\\Quaility_Assurance\\owner_all_20261018\\closure-vending-checks.json"
+    ],
+    "limitations": "Actual StageVendingMachine/Prompt/store using synthetic Auth/memory wallet. Not production account wallet, physical Stage5 traversal, Google OAuth or full game completion."
+  },
+  "security": {
+    "rules": {
+      "exactSHA": "d7aa0a2d335ecff33e9527f9bf6d684421faa8b8a71802bd1a07b513e1b2a581",
+      "unchangedFromOriginal": true,
+      "liveBaseSemanticallyEqualsCurrentHEAD": true,
+      "onlyReviewedFiveLeaves": true,
+      "changedLeafCount": 5,
+      "sourceSecurityVerdict": "APPROVE_EXACT_MINIMAL_SOURCE",
+      "separateRulesDeploymentRequired": true,
+      "securityReviewPermitsRequiredSeparateRulesDeployment": true,
+      "currentFullCandidateReleaseAllowed": false,
+      "conditions": "Same reviewed source SHA, same live Rules base and unchanged live guard; publisher only after applicable release QA GO. Full candidate currently NO_GO for expansion population gap. No Functions deployment.",
+      "qaDeployed": false
+    },
+    "liveAssets": {
+      "version": "projects/escape-zombie-school/sites/escape-zombie-school/versions/f57cc4e5eeac71c3",
+      "total": 785,
+      "checked": 782,
+      "exclusions": [
+        "/__/firebase/init.js",
+        "/__/firebase/init.json"
+      ],
+      "replacement": "/index.html",
+      "mismatches": []
+    },
+    "guards": [
+      {
+        "path": "Developer/r3f_prototype/firebase.json",
+        "sha256": "e76a42b2f4aae2a6f4dd737652035e29907d2cd8079ac5d17ad86c439b784dd0",
+        "sameAsOriginal": true,
+        "sameAsHEAD": true
+      },
+      {
+        "path": "Developer/r3f_prototype/package.json",
+        "sha256": "14abd9705e11963a72273639b04e573b3e3d3149c21b7269416d7f96db23b88f",
+        "sameAsOriginal": true,
+        "sameAsHEAD": true
+      },
+      {
+        "path": "Developer/r3f_prototype/scripts/promote-hosting-preview.mjs",
+        "sha256": "47fbe400fe57f597d11f954abb5ad225d2f83a285fe9f42b6dc8cc46876e5d5b",
+        "sameAsOriginal": true,
+        "sameAsHEAD": true
+      },
+      {
+        "path": "Developer/r3f_prototype/scripts/assert-firebase-release-env.mjs",
+        "sha256": "572db953dbde4d59798364f2952783a6415730cb2063bb0c4c4355b5cc80feba",
+        "sameAsOriginal": true,
+        "sameAsHEAD": true
+      },
+      {
+        "path": "Developer/r3f_prototype/scripts/require-safe-hosting-promotion.mjs",
+        "sha256": "a9c64726909979cd38ba73d890c7044b352c60ac4a32a9be7d13d2f4feb11977",
+        "sameAsOriginal": true,
+        "sameAsHEAD": true
+      }
+    ],
+    "audio315": {
+      "count": 315,
+      "mismatches": [],
+      "docsOutsideCandidateFreezeCount": 22,
+      "qualification": "All 315 actual package file SHA match approved audio provenance, including independently hashed documentation outside candidate source/dist freeze; absent freeze entries are not misreported as changed bytes."
+    },
+    "approvedGLB": {
+      "oldSHA": "a341578580d0e2afbefd7a673a8b32cff3a5d0c6ad2119f2d9a230e3df668f7d",
+      "newSHA": "a341578580d0e2afbefd7a673a8b32cff3a5d0c6ad2119f2d9a230e3df668f7d",
+      "actualSHA": "a341578580d0e2afbefd7a673a8b32cff3a5d0c6ad2119f2d9a230e3df668f7d"
+    },
+    "updatedComicSources": {
+      "count": 40,
+      "allCurrentHEAD": true,
+      "meaning": "Published comic fast-forward public source reconciliation; live dist preservation independently rechecked above."
+    },
+    "sourceInheritance": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\releases\\owner-all-complete-20261018\\Quaility_Assurance\\owner_all_20261018\\closure-security-inheritance.json",
+    "guardCurrentLiveCheck": {
+      "verdict": "PASS",
+      "log": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\releases\\owner-all-complete-20261018\\Quaility_Assurance\\owner_all_20261018\\closure-freeze-exit.log"
+    },
+    "rulesEmulator": "NOT_VERIFIED_DEFERRED; prior no Java PATH blocker unchanged, no network emulator install or production writes",
+    "functionsDeployment": "OUT_OF_SCOPE_NOT_PERMITTED"
+  },
+  "inheritedEvidence": {
+    "oldSourceHashManifest": "bc1fbd81b7ea1a29cefff6bc9fe1e96e1e8b3627135d915d6989478374dad6a9",
+    "equalPathSHAEntries": 2412,
+    "completeOldSHAtoNewSHAMapping": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\releases\\owner-all-complete-20261018\\Quaility_Assurance\\owner_all_20261018\\closure-security-inheritance.json",
+    "oldReport": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\releases\\owner-all-complete-20261018\\Quaility_Assurance\\owner_all_20261018\\independent-final.json",
+    "policy": "Only unchanged production/test/asset dependencies inherit earlier evidence. userRanking.js changed and was freshly tested/rendered; intentional test fixes freshly executed. New dist was freeze/live-asset checked, not treated as old built entrypoint. New population caller finding overrides any broad prior low-density PASS."
+  },
+  "console": {
+    "expectedControlledLoadPageErrors": 4,
+    "allExpected": true,
+    "errors": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\releases\\owner-all-complete-20261018\\Quaility_Assurance\\owner_all_20261018\\closure-errors.json",
+    "console": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\releases\\owner-all-complete-20261018\\Quaility_Assurance\\owner_all_20261018\\closure-console.json",
+    "observations": [
+      "Initial cache-clear attempt imported an unversioned duplicate dependency; cached load produced no failure and wait hit os10060. Exact Vite dependency URL corrected in QA harness only; subsequent actual load error/retry succeeded.",
+      "Duplicate Three.js import warning originates from initial QA attempt; expected React error-boundary and WebGL Context Lost messages recorded. No zero-console-error claim.",
+      "Fresh ranking screenshot shows compact user/stage labels close together; existing presentation observation, not changed-scope security or cloud mutation."
+    ]
+  },
+  "blockers": [
+    {
+      "id": "C-POP-EXPANSION",
+      "owner": "Parent publisher + gameplay/Enemies owner",
+      "actual": "Enemies.jsx:1936 explicitly !isExpansionStage gate excludes Stage6~10",
+      "minimalFollowup": "Provide an approved expansion-capable fix with E07/E01 configuration, pooling, caps/timing/reservations and atomic queue drain integration tests, or provide a genuinely separate approved four-stage-only hotfix artifact and new freeze. Do not silently drop currently supported expansion scope. Re-QA exact new manifest before publisher deployment."
+    }
+  ],
+  "observations": [
+    "B01/B02/B03 prior blockers closed for this freeze; overall NO_GO is the newly required expansion low-population gap, not stale graphics331/331 or deferred OAuth/Android.",
+    "No automatic healing/player weakening/pressure source weakening or Stage5 scope edits by QA.",
+    "Audio inheritance check initially treated 22 unfrozen provenance docs as missing hash mappings; corrected QA classification still checks all approved file SHA exactly, with zero byte mismatches.",
+    "Earlier interim message overincluded Stage5; exact production isExpansionStage and per-stage caller results correct the failure scope to Stage6~10. Stage5 enqueues normally."
+  ],
+  "limitations": {
+    "realOAuth": "NOT_VERIFIED_DEFERRED",
+    "AndroidPhysicalDevice": "NOT_VERIFIED_DEFERRED",
+    "productionAccountPlay": "NOT_VERIFIED_DEFERRED",
+    "FullSuite": "NOT_RUN_NO_GREEN_CLAIM",
+    "physicalStage5Walkthrough": "NOT_VERIFIED",
+    "scopedDeferredPolicy": "OAuth/Android are not infinite blockers for scoped web changes; they are not the NO_GO reason."
+  },
+  "operations": {
+    "noProductSourceDistReadyOrExistingTestWrites": true,
+    "noDeployCloneRulesWriteCommit": true,
+    "noConfigGuardOrCardStateChange": true,
+    "browser": "Only balanceqa-closure-owner; normal browser:reserve before launch; closed own session",
+    "server": {
+      "port": 4198,
+      "PID": 23088,
+      "parentPID": 30596,
+      "command": "npm --prefix <ROOT>/Developer/r3f_prototype run dev -- --host localhost --port 4198 --strictPort",
+      "readiness": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\releases\\owner-all-complete-20261018\\Quaility_Assurance\\owner_all_20261018\\closure-server-ready.log",
+      "processProof": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\releases\\owner-all-complete-20261018\\Quaility_Assurance\\owner_all_20261018\\closure-processes.json",
+      "cleanup": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\releases\\owner-all-complete-20261018\\Quaility_Assurance\\owner_all_20261018\\closure-resource-cleanup.log"
+    },
+    "existingChrome5173": "Not terminated; existing5173 listener captured at exit",
+    "browserCommands": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\releases\\owner-all-complete-20261018\\Quaility_Assurance\\owner_all_20261018\\closure-browser-commands.json",
+    "gitEntry": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\releases\\owner-all-complete-20261018\\Quaility_Assurance\\owner_all_20261018\\closure-git-entry.txt",
+    "gitExit": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\releases\\owner-all-complete-20261018\\Quaility_Assurance\\owner_all_20261018\\closure-git-exit.txt"
+  },
+  "artifacts": {
+    "json": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\releases\\owner-all-complete-20261018\\Quaility_Assurance\\owner_all_20261018\\independent-closure.json",
+    "md": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\releases\\owner-all-complete-20261018\\Quaility_Assurance\\owner_all_20261018\\independent-closure.md"
+  },
+  "generatedAtObservedSystemUTC": "2026-10-18T15:27:25.543590+00:00"
+}

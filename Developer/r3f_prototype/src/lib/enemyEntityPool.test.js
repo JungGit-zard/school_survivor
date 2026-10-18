@@ -49,7 +49,7 @@ describe('EnemyEntityPool', () => {
   })
 
   it('E01-E06, RZL/RZC 및 B01-B04 타입을 고정 코드로 변환한다', () => {
-    expect(Object.keys(ENEMY_TYPE_CODES)).toEqual(['E01', 'E02', 'E03', 'E04', 'E05', 'E06', 'RZL', 'RZC', 'B01', 'B02', 'B03', 'B04', 'RZT', 'RZG', 'E07', 'E08'])
+    expect(Object.keys(ENEMY_TYPE_CODES).filter(id=>!/^E(?:19|2[0-9]|3[0-3])$|^B0[5-9]$/.test(id))).toEqual(['E01', 'E02', 'E03', 'E04', 'E05', 'E06', 'RZL', 'RZC', 'B01', 'B02', 'B03', 'B04', 'RZT', 'RZG', 'E07', 'E08'])
     expect(enemyTypeToCode('B04')).toBe(12)
     expect(enemyTypeToCode('RZT')).toBe(13)
     expect(enemyTypeToCode('RZG')).toBe(14)

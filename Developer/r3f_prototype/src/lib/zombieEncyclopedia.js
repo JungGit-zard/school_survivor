@@ -22,10 +22,32 @@ const ZOMBIE_TYPE_LABELS = Object.freeze({
   B02: '보스 좀비 B02',
   B03: '보스 좀비 B03',
   B04: '주방장 좀비',
+  E19: '서가운반 좀비',
+  E20: '색인질주 좀비',
+  E21: '반납투척 좀비',
+  E22: '배양액 좀비',
+  E23: '자석실험 좀비',
+  E24: '보안경돌격 좀비',
+  E25: '분무정원 좀비',
+  E26: '덩굴견인 좀비',
+  E27: '종자도약 좀비',
+  E28: '조명기사 좀비',
+  E29: '리본무용 좀비',
+  E30: '북채행진 좀비',
+  E31: '전선수리 좀비',
+  E32: '풍향계질주 좀비',
+  E33: '축전지운반 좀비',
+  B05: '금서관장',
+  B06: '융합과학교사',
+  B07: '온실관리장',
+  B08: '가면지휘자',
+  B09: '폭풍교장',
 })
 
 export const ZOMBIE_ENCYCLOPEDIA_TYPES = Object.freeze(
-  ENEMY_TYPE_NAMES.filter((type) => type && ZOMBIE_TYPE_LABELS[type]),
+  // Persistence IDs are stable even before the gameplay pool registration lands.
+  [...new Set([...ENEMY_TYPE_NAMES, 'E19', 'E20', 'E21', 'E22', 'E23', 'E24', 'E25', 'E26', 'E27', 'E28', 'E29', 'E30', 'E31', 'E32', 'E33', 'B05', 'B06', 'B07', 'B08', 'B09'])]
+    .filter((type) => type && ZOMBIE_TYPE_LABELS[type]),
 )
 
 const ZOMBIE_TYPE_SET = new Set(ZOMBIE_ENCYCLOPEDIA_TYPES)

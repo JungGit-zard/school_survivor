@@ -98,7 +98,7 @@ describe('stage configuration registry', () => {
   })
 
   it('adds Stage 4 as a playable B04 cafeteria stage after the existing stages', () => {
-    expect(Object.keys(STAGE_CONFIGS)).toEqual(['stage1', 'stage2', 'stage3', 'stage4'])
+    expect(Object.keys(STAGE_CONFIGS)).toEqual(Array.from({length:10},(_,i)=>`stage${i+1}`))
     expect(getStageDurationSec('stage4')).toBe(240)
     expect(getStageConfig('stage4')).toMatchObject({
       id: 'stage4',
@@ -125,8 +125,9 @@ describe('stage configuration registry', () => {
     expect(getNextStageId('stage2')).toBe('stage3')
     // stage4가 playable로 해제되어 stage3 클리어→stage4 경로가 열렸다.
     expect(getNextStageId('stage3')).toBe('stage4')
-    // stage4는 마지막 스테이지 — 다음 없음.
-    expect(getNextStageId('stage4')).toBeNull()
+    // Stage5 existing terminal remains independent from expansion lobby entry.
+    expect(getNextStageId('stage4')).toBe('stage5')
+    expect(getNextStageId('stage5')).toBeNull()
   })
 
   it('wires Stage 4 cafeteria timing, bounds, and cafeteria-themed milestones', () => {

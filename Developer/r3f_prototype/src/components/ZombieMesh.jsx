@@ -7,6 +7,8 @@ import boss01FaceUrl from '../assets/faces/b01_math_teacher_face.webp'
 import boss02FaceUrl from '../assets/faces/b02_stage2_boss_face.webp'
 import boss03FaceUrl from '../assets/faces/b03_pe_teacher_face.webp'
 import boss04FaceUrl from '../assets/faces/b04_chef_boss_face.webp'
+import ExpansionZombieMesh from './expansion/ExpansionZombieMesh.jsx'
+import { getExpansionVisual } from '../lib/expansionVisuals.js'
 import MatildaMesh from './MatildaMesh.jsx'
 import ProceduralFaceTestZombie from './ProceduralFaceTestZombie.jsx'
 import StudioTunedGroup, { composeStudioPartPosition, composeStudioPartRotation, composeStudioPartScale } from './StudioTunedGroup.jsx'
@@ -1011,6 +1013,10 @@ export default function ZombieMesh({ type = 'E01', animPhase = 'normal', hitFlas
     // 머리 흔들림
     if (pt.head) pt.head.rotation.z = composeZombieRotation(pt.head, 'z', Math.sin(t * 1.6) * (type === 'B02' ? 0.045 : 0.07))
   })
+
+  if (!isMatilda && getExpansionVisual(type)) {
+    return <ExpansionZombieMesh type={type} animPhase={animPhase} hitFlash={hitFlash} staticPose={staticPose} />
+  }
 
   if (isMatilda) {
     return <MatildaMesh movementPose={animPhase !== 'stun'} />

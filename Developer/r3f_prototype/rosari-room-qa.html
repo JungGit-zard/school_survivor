@@ -1,0 +1,8 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Rosari room isolated QA</title><style>html,body{margin:0;width:100%;height:100%;overflow:hidden}#room-host{position:relative;width:100%;height:100%}</style></head><body><div id="room-host"></div><script type="module">
+import React from 'react'
+import { createRoot } from 'react-dom/client'
+import RosariRoom from './src/components/RosariRoom.jsx'
+window.rosariQaBackCount = 0
+createRoot(document.getElementById('room-host')).render(React.createElement(RosariRoom, { onBack: () => { window.rosariQaBackCount += 1 } }))
+</script></body></html>

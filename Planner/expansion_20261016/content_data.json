@@ -1,0 +1,2263 @@
+{
+  "schemaVersion": 1,
+  "contractId": "t_3beb016a",
+  "status": "reserved_document_only",
+  "unitsPerBlock": 4,
+  "stageIds": [
+    "stage6",
+    "stage7",
+    "stage8",
+    "stage9",
+    "stage10"
+  ],
+  "enemyIds": [
+    "E19",
+    "E20",
+    "E21",
+    "E22",
+    "E23",
+    "E24",
+    "E25",
+    "E26",
+    "E27",
+    "E28",
+    "E29",
+    "E30",
+    "E31",
+    "E32",
+    "E33"
+  ],
+  "bossIds": [
+    "B05",
+    "B06",
+    "B07",
+    "B08",
+    "B09"
+  ],
+  "behaviors": {
+    "chase": {
+      "windupMs": 0,
+      "activeMs": 0,
+      "recoveryMs": 0,
+      "cooldownMs": 0,
+      "rangeUnits": 0,
+      "rangeBlocks": 0.0,
+      "widthUnits": 0,
+      "widthBlocks": 0.0,
+      "attackDamage": 0,
+      "attackSpeedUnitsPerSec": 0,
+      "attackSpeedBlocksPerSec": 0.0,
+      "rule": "추적만; 추가 공격 없음"
+    },
+    "sidestep": {
+      "windupMs": 700,
+      "activeMs": 300,
+      "recoveryMs": 500,
+      "cooldownMs": 5000,
+      "rangeUnits": 1.2,
+      "rangeBlocks": 0.3,
+      "widthUnits": 0.48,
+      "widthBlocks": 0.12,
+      "attackDamage": 0,
+      "attackSpeedUnitsPerSec": 4,
+      "attackSpeedBlocksPerSec": 1.0,
+      "rule": "좌우 번갈아 측면 이동; 접촉 피해만, 무적 없음"
+    },
+    "lob": {
+      "windupMs": 1000,
+      "activeMs": 500,
+      "recoveryMs": 600,
+      "cooldownMs": 5200,
+      "rangeUnits": 4,
+      "rangeBlocks": 1.0,
+      "widthUnits": 0.8,
+      "widthBlocks": 0.2,
+      "attackDamage": 10,
+      "attackSpeedUnitsPerSec": 0,
+      "attackSpeedBlocksPerSec": 0.0,
+      "rule": "고정 목표 원형 착탄; 투사체는 시각만, 착탄 1회 판정"
+    },
+    "trail": {
+      "windupMs": 900,
+      "activeMs": 1800,
+      "recoveryMs": 700,
+      "cooldownMs": 6200,
+      "rangeUnits": 1.2,
+      "rangeBlocks": 0.3,
+      "widthUnits": 0.6,
+      "widthBlocks": 0.15,
+      "attackDamage": 8,
+      "attackSpeedUnitsPerSec": 0,
+      "attackSpeedBlocksPerSec": 0.0,
+      "rule": "경고 당시 자신의 위치에 웅덩이 1개; 대상당 1회"
+    },
+    "pulse": {
+      "windupMs": 1100,
+      "activeMs": 250,
+      "recoveryMs": 900,
+      "cooldownMs": 6500,
+      "rangeUnits": 1.6,
+      "rangeBlocks": 0.4,
+      "widthUnits": 0.3,
+      "widthBlocks": 0.075,
+      "attackDamage": 12,
+      "attackSpeedUnitsPerSec": 0,
+      "attackSpeedBlocksPerSec": 0.0,
+      "rule": "고정 원형 펄스; 끌어당김/입력 방해 없음"
+    },
+    "dash": {
+      "windupMs": 900,
+      "activeMs": 700,
+      "recoveryMs": 1000,
+      "cooldownMs": 5600,
+      "rangeUnits": 1.4,
+      "rangeBlocks": 0.35,
+      "widthUnits": 0.5,
+      "widthBlocks": 0.125,
+      "attackDamage": 12,
+      "attackSpeedUnitsPerSec": 2,
+      "attackSpeedBlocksPerSec": 0.5,
+      "rule": "고정 방향 돌진; 장애물에서 중단; 공격당 1회"
+    },
+    "fan": {
+      "windupMs": 1000,
+      "activeMs": 250,
+      "recoveryMs": 700,
+      "cooldownMs": 5800,
+      "rangeUnits": 2.4,
+      "rangeBlocks": 0.6,
+      "widthUnits": 1.2,
+      "widthBlocks": 0.3,
+      "attackDamage": 10,
+      "attackSpeedUnitsPerSec": 0,
+      "attackSpeedBlocksPerSec": 0.0,
+      "rule": "정면 60도 부채꼴; 투사체 없이 단일 범위 판정"
+    },
+    "rootline": {
+      "windupMs": 1200,
+      "activeMs": 300,
+      "recoveryMs": 1000,
+      "cooldownMs": 6800,
+      "rangeUnits": 3.2,
+      "rangeBlocks": 0.8,
+      "widthUnits": 0.48,
+      "widthBlocks": 0.12,
+      "attackDamage": 13,
+      "attackSpeedUnitsPerSec": 0,
+      "attackSpeedBlocksPerSec": 0.0,
+      "rule": "고정 직선 덩굴; 속박/당김 없음"
+    },
+    "hop": {
+      "windupMs": 1100,
+      "activeMs": 300,
+      "recoveryMs": 900,
+      "cooldownMs": 5600,
+      "rangeUnits": 2,
+      "rangeBlocks": 0.5,
+      "widthUnits": 0.8,
+      "widthBlocks": 0.2,
+      "attackDamage": 11,
+      "attackSpeedUnitsPerSec": 0,
+      "attackSpeedBlocksPerSec": 0.0,
+      "rule": "XZ 목표 이동 거리 최대 2; 착지 원형 반경 .8; 비행 중 접촉 없음/피격 가능"
+    },
+    "beam": {
+      "windupMs": 1200,
+      "activeMs": 350,
+      "recoveryMs": 900,
+      "cooldownMs": 6400,
+      "rangeUnits": 4,
+      "rangeBlocks": 1.0,
+      "widthUnits": 0.48,
+      "widthBlocks": 0.12,
+      "attackDamage": 13,
+      "attackSpeedUnitsPerSec": 0,
+      "attackSpeedBlocksPerSec": 0.0,
+      "rule": "직선 조명; 벽에서 차단; 경고 고정 후 추적 없음"
+    },
+    "orbit": {
+      "windupMs": 900,
+      "activeMs": 700,
+      "recoveryMs": 700,
+      "cooldownMs": 5400,
+      "rangeUnits": 1.6,
+      "rangeBlocks": 0.4,
+      "widthUnits": 0.48,
+      "widthBlocks": 0.12,
+      "attackDamage": 11,
+      "attackSpeedUnitsPerSec": 0,
+      "attackSpeedBlocksPerSec": 0.0,
+      "rule": "정면 120도 리본 부채꼴 1회; orbit은 모델 동작명"
+    },
+    "ring": {
+      "windupMs": 1200,
+      "activeMs": 300,
+      "recoveryMs": 1000,
+      "cooldownMs": 7000,
+      "rangeUnits": 1.8,
+      "rangeBlocks": 0.45,
+      "widthUnits": 0.3,
+      "widthBlocks": 0.075,
+      "attackDamage": 14,
+      "attackSpeedUnitsPerSec": 0,
+      "attackSpeedBlocksPerSec": 0.0,
+      "rule": "외반경 1.8/폭 .3 고정 고리; 내부 안전"
+    },
+    "cross": {
+      "windupMs": 1200,
+      "activeMs": 300,
+      "recoveryMs": 1000,
+      "cooldownMs": 6800,
+      "rangeUnits": 3.2,
+      "rangeBlocks": 0.8,
+      "widthUnits": 0.48,
+      "widthBlocks": 0.12,
+      "attackDamage": 14,
+      "attackSpeedUnitsPerSec": 0,
+      "attackSpeedBlocksPerSec": 0.0,
+      "rule": "중심 기준 직교 두 선; 경고 위치 고정"
+    }
+  },
+  "enemies": [
+    {
+      "id": "E19",
+      "typeCode": 17,
+      "nameKo": "서가운반 좀비",
+      "stageId": "stage6",
+      "hp": 48,
+      "speedUnitsPerSec": 0.58,
+      "speedBlocksPerSec": 0.145,
+      "contactDamage": 10,
+      "xpPerTextbook": 10,
+      "textbookChance": 0.3,
+      "goldDrop": 0,
+      "scale": 1.1,
+      "contactDistUnits": 0.3,
+      "contactDistBlocks": 0.075,
+      "behaviorId": "chase",
+      "silhouette": "책등을 쌓은 각진 배낭과 한쪽 긴 팔",
+      "studioItemId": "zombie-e19",
+      "modelKey": "expansion-e19",
+      "maxConcurrentSpecial": 2
+    },
+    {
+      "id": "E20",
+      "typeCode": 18,
+      "nameKo": "색인질주 좀비",
+      "stageId": "stage6",
+      "hp": 24,
+      "speedUnitsPerSec": 1.12,
+      "speedBlocksPerSec": 0.28,
+      "contactDamage": 8,
+      "xpPerTextbook": 7,
+      "textbookChance": 0.3,
+      "goldDrop": 0,
+      "scale": 0.85,
+      "contactDistUnits": 0.24,
+      "contactDistBlocks": 0.06,
+      "behaviorId": "sidestep",
+      "silhouette": "부채꼴 색인 탭 머리와 비대칭 짧은 다리",
+      "studioItemId": "zombie-e20",
+      "modelKey": "expansion-e20",
+      "maxConcurrentSpecial": 2
+    },
+    {
+      "id": "E21",
+      "typeCode": 19,
+      "nameKo": "반납투척 좀비",
+      "stageId": "stage6",
+      "hp": 60,
+      "speedUnitsPerSec": 0.48,
+      "speedBlocksPerSec": 0.12,
+      "contactDamage": 10,
+      "xpPerTextbook": 14,
+      "textbookChance": 0.3,
+      "goldDrop": 0,
+      "scale": 1,
+      "contactDistUnits": 0.28,
+      "contactDistBlocks": 0.07,
+      "behaviorId": "lob",
+      "silhouette": "열린 반납함 가슴과 책 한 권을 든 높은 팔",
+      "studioItemId": "zombie-e21",
+      "modelKey": "expansion-e21",
+      "maxConcurrentSpecial": 2
+    },
+    {
+      "id": "E22",
+      "typeCode": 20,
+      "nameKo": "배양액 좀비",
+      "stageId": "stage7",
+      "hp": 56,
+      "speedUnitsPerSec": 0.56,
+      "speedBlocksPerSec": 0.14,
+      "contactDamage": 11,
+      "xpPerTextbook": 12,
+      "textbookChance": 0.3,
+      "goldDrop": 0,
+      "scale": 1.05,
+      "contactDistUnits": 0.3,
+      "contactDistBlocks": 0.075,
+      "behaviorId": "trail",
+      "silhouette": "투명 원통 배낭과 방울 형태 어깨",
+      "studioItemId": "zombie-e22",
+      "modelKey": "expansion-e22",
+      "maxConcurrentSpecial": 2
+    },
+    {
+      "id": "E23",
+      "typeCode": 21,
+      "nameKo": "자석실험 좀비",
+      "stageId": "stage7",
+      "hp": 88,
+      "speedUnitsPerSec": 0.46,
+      "speedBlocksPerSec": 0.115,
+      "contactDamage": 13,
+      "xpPerTextbook": 18,
+      "textbookChance": 0.3,
+      "goldDrop": 0,
+      "scale": 1.2,
+      "contactDistUnits": 0.34,
+      "contactDistBlocks": 0.085,
+      "behaviorId": "pulse",
+      "silhouette": "커다란 U자 자석과 벌어진 장갑 손",
+      "studioItemId": "zombie-e23",
+      "modelKey": "expansion-e23",
+      "maxConcurrentSpecial": 2
+    },
+    {
+      "id": "E24",
+      "typeCode": 22,
+      "nameKo": "보안경돌격 좀비",
+      "stageId": "stage7",
+      "hp": 44,
+      "speedUnitsPerSec": 0.72,
+      "speedBlocksPerSec": 0.18,
+      "contactDamage": 10,
+      "xpPerTextbook": 11,
+      "textbookChance": 0.3,
+      "goldDrop": 0,
+      "scale": 0.95,
+      "contactDistUnits": 0.26,
+      "contactDistBlocks": 0.065,
+      "behaviorId": "dash",
+      "silhouette": "넓은 고글과 앞으로 숙인 삼각 어깨",
+      "studioItemId": "zombie-e24",
+      "modelKey": "expansion-e24",
+      "maxConcurrentSpecial": 2
+    },
+    {
+      "id": "E25",
+      "typeCode": 23,
+      "nameKo": "분무정원 좀비",
+      "stageId": "stage8",
+      "hp": 64,
+      "speedUnitsPerSec": 0.52,
+      "speedBlocksPerSec": 0.13,
+      "contactDamage": 11,
+      "xpPerTextbook": 14,
+      "textbookChance": 0.3,
+      "goldDrop": 0,
+      "scale": 1.05,
+      "contactDistUnits": 0.3,
+      "contactDistBlocks": 0.075,
+      "behaviorId": "fan",
+      "silhouette": "꽃잎 후드와 길게 뻗은 분무기",
+      "studioItemId": "zombie-e25",
+      "modelKey": "expansion-e25",
+      "maxConcurrentSpecial": 2
+    },
+    {
+      "id": "E26",
+      "typeCode": 24,
+      "nameKo": "덩굴견인 좀비",
+      "stageId": "stage8",
+      "hp": 100,
+      "speedUnitsPerSec": 0.44,
+      "speedBlocksPerSec": 0.11,
+      "contactDamage": 14,
+      "xpPerTextbook": 20,
+      "textbookChance": 0.3,
+      "goldDrop": 0,
+      "scale": 1.25,
+      "contactDistUnits": 0.34,
+      "contactDistBlocks": 0.085,
+      "behaviorId": "rootline",
+      "silhouette": "덩굴 한쪽 팔과 둥근 화분 하체",
+      "studioItemId": "zombie-e26",
+      "modelKey": "expansion-e26",
+      "maxConcurrentSpecial": 2
+    },
+    {
+      "id": "E27",
+      "typeCode": 25,
+      "nameKo": "종자도약 좀비",
+      "stageId": "stage8",
+      "hp": 40,
+      "speedUnitsPerSec": 0.8,
+      "speedBlocksPerSec": 0.2,
+      "contactDamage": 9,
+      "xpPerTextbook": 10,
+      "textbookChance": 0.3,
+      "goldDrop": 0,
+      "scale": 0.85,
+      "contactDistUnits": 0.24,
+      "contactDistBlocks": 0.06,
+      "behaviorId": "hop",
+      "silhouette": "씨앗 꼬투리 등과 긴 접힌 무릎",
+      "studioItemId": "zombie-e27",
+      "modelKey": "expansion-e27",
+      "maxConcurrentSpecial": 2
+    },
+    {
+      "id": "E28",
+      "typeCode": 26,
+      "nameKo": "조명기사 좀비",
+      "stageId": "stage9",
+      "hp": 76,
+      "speedUnitsPerSec": 0.55,
+      "speedBlocksPerSec": 0.1375,
+      "contactDamage": 12,
+      "xpPerTextbook": 16,
+      "textbookChance": 0.3,
+      "goldDrop": 0,
+      "scale": 1.1,
+      "contactDistUnits": 0.3,
+      "contactDistBlocks": 0.075,
+      "behaviorId": "beam",
+      "silhouette": "사각 스포트라이트 머리와 긴 스탠드 팔",
+      "studioItemId": "zombie-e28",
+      "modelKey": "expansion-e28",
+      "maxConcurrentSpecial": 2
+    },
+    {
+      "id": "E29",
+      "typeCode": 27,
+      "nameKo": "리본무용 좀비",
+      "stageId": "stage9",
+      "hp": 46,
+      "speedUnitsPerSec": 1.0,
+      "speedBlocksPerSec": 0.25,
+      "contactDamage": 9,
+      "xpPerTextbook": 12,
+      "textbookChance": 0.3,
+      "goldDrop": 0,
+      "scale": 0.9,
+      "contactDistUnits": 0.24,
+      "contactDistBlocks": 0.06,
+      "behaviorId": "orbit",
+      "silhouette": "S자 리본 팔과 넓은 주름 치마",
+      "studioItemId": "zombie-e29",
+      "modelKey": "expansion-e29",
+      "maxConcurrentSpecial": 2
+    },
+    {
+      "id": "E30",
+      "typeCode": 28,
+      "nameKo": "북채행진 좀비",
+      "stageId": "stage9",
+      "hp": 120,
+      "speedUnitsPerSec": 0.42,
+      "speedBlocksPerSec": 0.105,
+      "contactDamage": 15,
+      "xpPerTextbook": 24,
+      "textbookChance": 0.3,
+      "goldDrop": 0,
+      "scale": 1.3,
+      "contactDistUnits": 0.36,
+      "contactDistBlocks": 0.09,
+      "behaviorId": "ring",
+      "silhouette": "큰 원형 북 배와 양손 북채",
+      "studioItemId": "zombie-e30",
+      "modelKey": "expansion-e30",
+      "maxConcurrentSpecial": 2
+    },
+    {
+      "id": "E31",
+      "typeCode": 29,
+      "nameKo": "전선수리 좀비",
+      "stageId": "stage10",
+      "hp": 84,
+      "speedUnitsPerSec": 0.6,
+      "speedBlocksPerSec": 0.15,
+      "contactDamage": 13,
+      "xpPerTextbook": 18,
+      "textbookChance": 0.3,
+      "goldDrop": 0,
+      "scale": 1.05,
+      "contactDistUnits": 0.3,
+      "contactDistBlocks": 0.075,
+      "behaviorId": "cross",
+      "silhouette": "번개 모양 절연 머리와 케이블 릴 등",
+      "studioItemId": "zombie-e31",
+      "modelKey": "expansion-e31",
+      "maxConcurrentSpecial": 2
+    },
+    {
+      "id": "E32",
+      "typeCode": 30,
+      "nameKo": "풍향계질주 좀비",
+      "stageId": "stage10",
+      "hp": 52,
+      "speedUnitsPerSec": 1.15,
+      "speedBlocksPerSec": 0.2875,
+      "contactDamage": 10,
+      "xpPerTextbook": 13,
+      "textbookChance": 0.3,
+      "goldDrop": 0,
+      "scale": 0.9,
+      "contactDistUnits": 0.24,
+      "contactDistBlocks": 0.06,
+      "behaviorId": "dash",
+      "silhouette": "화살표 풍향계 어깨와 납작한 날개 소매",
+      "studioItemId": "zombie-e32",
+      "modelKey": "expansion-e32",
+      "maxConcurrentSpecial": 2
+    },
+    {
+      "id": "E33",
+      "typeCode": 31,
+      "nameKo": "축전지운반 좀비",
+      "stageId": "stage10",
+      "hp": 140,
+      "speedUnitsPerSec": 0.4,
+      "speedBlocksPerSec": 0.1,
+      "contactDamage": 16,
+      "xpPerTextbook": 28,
+      "textbookChance": 0.3,
+      "goldDrop": 0,
+      "scale": 1.35,
+      "contactDistUnits": 0.38,
+      "contactDistBlocks": 0.095,
+      "behaviorId": "pulse",
+      "silhouette": "등의 거대한 원통 축전지 두 개",
+      "studioItemId": "zombie-e33",
+      "modelKey": "expansion-e33",
+      "maxConcurrentSpecial": 2
+    }
+  ],
+  "bosses": [
+    {
+      "id": "B05",
+      "typeCode": 32,
+      "nameKo": "금서관장",
+      "stageId": "stage6",
+      "hp": 1800,
+      "speedUnitsPerSec": 0.5,
+      "speedBlocksPerSec": 0.125,
+      "contactDamage": 20,
+      "scale": 2,
+      "contactDistUnits": 0.4,
+      "contactDistBlocks": 0.1,
+      "xp": 0,
+      "studioItemId": "zombie-b05",
+      "modelKey": "expansion-b05",
+      "silhouette": "거대한 펼친 책 망토, 초승달 책갈피 왕관",
+      "enrageHpRatio": 0.5,
+      "enrageTransitionMs": 1500,
+      "firstAttackDelayMs": 2500,
+      "textbooks": 3,
+      "textbookXp": 40,
+      "gold": 8,
+      "patterns": [
+        {
+          "id": "b05_p1",
+          "nameKo": "책장십자",
+          "windupMs": 1400,
+          "activeMs": 350,
+          "recoveryMs": 1400,
+          "cooldownMs": 6000,
+          "phase2CooldownMs": 5200,
+          "rangeUnits": 4,
+          "rangeBlocks": 1.0,
+          "widthUnits": 0.8,
+          "widthBlocks": 0.2,
+          "damage": 18,
+          "maxHitsPerTarget": 1,
+          "shape": "cross",
+          "origin": "boss_snapshot",
+          "angleDeg": 45,
+          "targetLockedAtWindupStart": true
+        },
+        {
+          "id": "b05_p2",
+          "nameKo": "낙장고리",
+          "windupMs": 1600,
+          "activeMs": 350,
+          "recoveryMs": 1400,
+          "cooldownMs": 6000,
+          "phase2CooldownMs": 5200,
+          "rangeUnits": 1.8,
+          "rangeBlocks": 0.45,
+          "widthUnits": 0.4,
+          "widthBlocks": 0.1,
+          "damage": 18,
+          "maxHitsPerTarget": 1,
+          "shape": "annulus",
+          "origin": "boss_snapshot",
+          "targetLockedAtWindupStart": true
+        }
+      ]
+    },
+    {
+      "id": "B06",
+      "typeCode": 33,
+      "nameKo": "융합과학교사",
+      "stageId": "stage7",
+      "hp": 2000,
+      "speedUnitsPerSec": 0.5,
+      "speedBlocksPerSec": 0.125,
+      "contactDamage": 21,
+      "scale": 2,
+      "contactDistUnits": 0.4,
+      "contactDistBlocks": 0.1,
+      "xp": 0,
+      "studioItemId": "zombie-b06",
+      "modelKey": "expansion-b06",
+      "silhouette": "쌍구형 반응기 어깨와 길고 가는 집게 팔",
+      "enrageHpRatio": 0.5,
+      "enrageTransitionMs": 1500,
+      "firstAttackDelayMs": 2500,
+      "textbooks": 3,
+      "textbookXp": 40,
+      "gold": 10,
+      "patterns": [
+        {
+          "id": "b06_p1",
+          "nameKo": "반응폭발",
+          "windupMs": 1400,
+          "activeMs": 350,
+          "recoveryMs": 1400,
+          "cooldownMs": 6000,
+          "phase2CooldownMs": 5200,
+          "rangeUnits": 1.6,
+          "rangeBlocks": 0.4,
+          "widthUnits": 0,
+          "widthBlocks": 0.0,
+          "damage": 20,
+          "maxHitsPerTarget": 1,
+          "shape": "disk",
+          "origin": "player_snapshot",
+          "targetLockedAtWindupStart": true
+        },
+        {
+          "id": "b06_p2",
+          "nameKo": "시험관삼연",
+          "windupMs": 1600,
+          "activeMs": 350,
+          "recoveryMs": 1400,
+          "cooldownMs": 6000,
+          "phase2CooldownMs": 5200,
+          "rangeUnits": 1.2,
+          "rangeBlocks": 0.3,
+          "widthUnits": 0,
+          "widthBlocks": 0.0,
+          "damage": 20,
+          "maxHitsPerTarget": 1,
+          "shape": "three_disks",
+          "origin": "player_snapshot",
+          "offsetsUnits": [
+            [
+              -2,
+              0
+            ],
+            [
+              0,
+              0
+            ],
+            [
+              2,
+              0
+            ]
+          ],
+          "offsetsBlocks": [
+            [
+              -0.5,
+              0
+            ],
+            [
+              0,
+              0
+            ],
+            [
+              0.5,
+              0
+            ]
+          ],
+          "targetLockedAtWindupStart": true
+        }
+      ]
+    },
+    {
+      "id": "B07",
+      "typeCode": 34,
+      "nameKo": "온실관리장",
+      "stageId": "stage8",
+      "hp": 2200,
+      "speedUnitsPerSec": 0.48,
+      "speedBlocksPerSec": 0.12,
+      "contactDamage": 22,
+      "scale": 2,
+      "contactDistUnits": 0.4,
+      "contactDistBlocks": 0.1,
+      "xp": 0,
+      "studioItemId": "zombie-b07",
+      "modelKey": "expansion-b07",
+      "silhouette": "꽃봉오리 머리와 계단식 화분 망토",
+      "enrageHpRatio": 0.5,
+      "enrageTransitionMs": 1500,
+      "firstAttackDelayMs": 2500,
+      "textbooks": 3,
+      "textbookXp": 40,
+      "gold": 12,
+      "patterns": [
+        {
+          "id": "b07_p1",
+          "nameKo": "덩굴쐐기",
+          "windupMs": 1400,
+          "activeMs": 350,
+          "recoveryMs": 1400,
+          "cooldownMs": 6000,
+          "phase2CooldownMs": 5200,
+          "rangeUnits": 4,
+          "rangeBlocks": 1.0,
+          "widthUnits": 0.7,
+          "widthBlocks": 0.175,
+          "damage": 22,
+          "maxHitsPerTarget": 1,
+          "shape": "three_lines",
+          "origin": "boss_snapshot",
+          "anglesDeg": [
+            -30,
+            0,
+            30
+          ],
+          "targetLockedAtWindupStart": true
+        },
+        {
+          "id": "b07_p2",
+          "nameKo": "개화원환",
+          "windupMs": 1600,
+          "activeMs": 350,
+          "recoveryMs": 1400,
+          "cooldownMs": 6000,
+          "phase2CooldownMs": 5200,
+          "rangeUnits": 2.4,
+          "rangeBlocks": 0.6,
+          "widthUnits": 0.5,
+          "widthBlocks": 0.125,
+          "damage": 22,
+          "maxHitsPerTarget": 1,
+          "shape": "annulus",
+          "origin": "boss_snapshot",
+          "targetLockedAtWindupStart": true
+        }
+      ]
+    },
+    {
+      "id": "B08",
+      "typeCode": 35,
+      "nameKo": "가면지휘자",
+      "stageId": "stage9",
+      "hp": 2400,
+      "speedUnitsPerSec": 0.52,
+      "speedBlocksPerSec": 0.13,
+      "contactDamage": 23,
+      "scale": 2,
+      "contactDistUnits": 0.4,
+      "contactDistBlocks": 0.1,
+      "xp": 0,
+      "studioItemId": "zombie-b08",
+      "modelKey": "expansion-b08",
+      "silhouette": "반쪽 가면과 부채꼴 지휘봉 날개",
+      "enrageHpRatio": 0.5,
+      "enrageTransitionMs": 1500,
+      "firstAttackDelayMs": 2500,
+      "textbooks": 3,
+      "textbookXp": 40,
+      "gold": 14,
+      "patterns": [
+        {
+          "id": "b08_p1",
+          "nameKo": "교차조명",
+          "windupMs": 1400,
+          "activeMs": 350,
+          "recoveryMs": 1400,
+          "cooldownMs": 6000,
+          "phase2CooldownMs": 5200,
+          "rangeUnits": 5,
+          "rangeBlocks": 1.25,
+          "widthUnits": 0.7,
+          "widthBlocks": 0.175,
+          "damage": 24,
+          "maxHitsPerTarget": 1,
+          "shape": "cross",
+          "origin": "boss_snapshot",
+          "angleDeg": 0,
+          "targetLockedAtWindupStart": true
+        },
+        {
+          "id": "b08_p2",
+          "nameKo": "커튼일격",
+          "windupMs": 1600,
+          "activeMs": 350,
+          "recoveryMs": 1400,
+          "cooldownMs": 6000,
+          "phase2CooldownMs": 5200,
+          "rangeUnits": 3.2,
+          "rangeBlocks": 0.8,
+          "widthUnits": 0,
+          "widthBlocks": 0.0,
+          "damage": 24,
+          "maxHitsPerTarget": 1,
+          "shape": "sector",
+          "origin": "boss_snapshot",
+          "angleDeg": 120,
+          "targetLockedAtWindupStart": true
+        }
+      ]
+    },
+    {
+      "id": "B09",
+      "typeCode": 36,
+      "nameKo": "폭풍교장",
+      "stageId": "stage10",
+      "hp": 2600,
+      "speedUnitsPerSec": 0.54,
+      "speedBlocksPerSec": 0.135,
+      "contactDamage": 24,
+      "scale": 2,
+      "contactDistUnits": 0.4,
+      "contactDistBlocks": 0.1,
+      "xp": 0,
+      "studioItemId": "zombie-b09",
+      "modelKey": "expansion-b09",
+      "silhouette": "피뢰침 왕관과 번개형 코트, 원형 발전기 지팡이",
+      "enrageHpRatio": 0.5,
+      "enrageTransitionMs": 1500,
+      "firstAttackDelayMs": 2500,
+      "textbooks": 3,
+      "textbookXp": 40,
+      "gold": 16,
+      "patterns": [
+        {
+          "id": "b09_p1",
+          "nameKo": "번개격자",
+          "windupMs": 1400,
+          "activeMs": 350,
+          "recoveryMs": 1400,
+          "cooldownMs": 6000,
+          "phase2CooldownMs": 5200,
+          "rangeUnits": 4.8,
+          "rangeBlocks": 1.2,
+          "widthUnits": 0.6,
+          "widthBlocks": 0.15,
+          "damage": 26,
+          "maxHitsPerTarget": 1,
+          "shape": "grid",
+          "origin": "boss_snapshot",
+          "lineOffsetsUnits": [
+            -1.6,
+            1.6
+          ],
+          "lineOffsetsBlocks": [
+            -0.4,
+            0.4
+          ],
+          "targetLockedAtWindupStart": true
+        },
+        {
+          "id": "b09_p2",
+          "nameKo": "폭풍눈",
+          "windupMs": 1600,
+          "activeMs": 350,
+          "recoveryMs": 1400,
+          "cooldownMs": 6000,
+          "phase2CooldownMs": 5200,
+          "rangeUnits": 2.8,
+          "rangeBlocks": 0.7,
+          "widthUnits": 0.5,
+          "widthBlocks": 0.125,
+          "damage": 26,
+          "maxHitsPerTarget": 1,
+          "shape": "annulus",
+          "origin": "boss_snapshot",
+          "targetLockedAtWindupStart": true
+        }
+      ]
+    }
+  ],
+  "stages": [
+    {
+      "id": "stage6",
+      "order": 6,
+      "nameKo": "금서 도서관",
+      "themeKey": "library",
+      "palette": "남색·금색",
+      "spectacle": "끝없이 솟은 서가, 공중을 흐르는 책 띠, 거대한 원형 천창",
+      "lesson": "책장 사이 길 찾기 → 원형 착탄 회피",
+      "enemyIds": [
+        "E19",
+        "E20",
+        "E21"
+      ],
+      "bossId": "B05",
+      "durationSec": 240,
+      "bossSec": 150,
+      "portalSec": 210,
+      "matildaWarningSec": 205,
+      "matildaSec": 210,
+      "mapHalfXUnits": 7.5,
+      "mapHalfXBlocks": 1.875,
+      "mapHalfZUnits": 19.2,
+      "mapHalfZBlocks": 4.8,
+      "unlockClearsKey": "stage5Clears",
+      "unlockClearsRequired": 1,
+      "clearRecordKey": "stage6Clears",
+      "bestRecordKey": "stage6BestSurvivalSec",
+      "nextStageId": "stage7",
+      "spawnClock": "gameplayElapsedSec",
+      "stageHpMultiplier": 1,
+      "newEnemyHpMode": "absolute",
+      "existingEnemyHpMultiplier": 2.4883199999999994,
+      "milestones": [
+        {
+          "sec": 48,
+          "gold": 6
+        },
+        {
+          "sec": 144,
+          "gold": 8
+        },
+        {
+          "sec": 192,
+          "gold": 12
+        },
+        {
+          "sec": 240,
+          "gold": 22
+        }
+      ],
+      "events": [
+        {
+          "sec": 5,
+          "type": "E19",
+          "count": 6
+        },
+        {
+          "sec": 24,
+          "type": "E19",
+          "count": 8
+        },
+        {
+          "sec": 40,
+          "type": "E20",
+          "count": 2
+        },
+        {
+          "sec": 60,
+          "type": "E19",
+          "count": 8
+        },
+        {
+          "sec": 60,
+          "type": "E20",
+          "count": 3
+        },
+        {
+          "sec": 72,
+          "type": "E21",
+          "count": 1
+        },
+        {
+          "sec": 96,
+          "type": "E19",
+          "count": 8
+        },
+        {
+          "sec": 96,
+          "type": "E20",
+          "count": 4
+        },
+        {
+          "sec": 110,
+          "type": "E07",
+          "count": 3
+        },
+        {
+          "sec": 110,
+          "type": "E02",
+          "count": 3
+        },
+        {
+          "sec": 120,
+          "type": "E19",
+          "count": 8
+        },
+        {
+          "sec": 120,
+          "type": "E21",
+          "count": 2
+        },
+        {
+          "sec": 144,
+          "type": "E20",
+          "count": 4
+        },
+        {
+          "sec": 144,
+          "type": "E21",
+          "count": 2
+        },
+        {
+          "sec": 150,
+          "type": "B05",
+          "count": 1
+        },
+        {
+          "sec": 168,
+          "type": "E19",
+          "count": 8
+        },
+        {
+          "sec": 168,
+          "type": "E20",
+          "count": 3
+        },
+        {
+          "sec": 184,
+          "type": "E19",
+          "count": 8
+        },
+        {
+          "sec": 184,
+          "type": "E21",
+          "count": 2
+        },
+        {
+          "sec": 200,
+          "type": "E20",
+          "count": 4
+        },
+        {
+          "sec": 216,
+          "type": "E19",
+          "count": 8
+        },
+        {
+          "sec": 216,
+          "type": "E20",
+          "count": 3
+        },
+        {
+          "sec": 216,
+          "type": "E21",
+          "count": 2
+        }
+      ],
+      "bonusEvents": [
+        {
+          "sec": 90,
+          "type": "E08",
+          "count": 1
+        },
+        {
+          "sec": 180,
+          "type": "E08",
+          "count": 1
+        }
+      ],
+      "overtime": {
+        "startSec": 300,
+        "intervalSec": 30,
+        "count": 30,
+        "mixedTypes": [
+          "E19",
+          "E20",
+          "E21"
+        ],
+        "scaleStartSec": 300,
+        "scaleIntervalSec": 90,
+        "scaleStep": 0.1
+      },
+      "scoreStageBonus": 300,
+      "spawnPolicy": {
+        "minDistanceUnits": 8.5,
+        "minDistanceBlocks": 2.125,
+        "maxDistanceUnits": 12.5,
+        "maxDistanceBlocks": 3.125,
+        "maxAttempts": 16,
+        "unsafeAction": "skip_individual",
+        "introSpecialDelayMs": 2500,
+        "formation": "ring_safe_candidates",
+        "bossSpawnDistanceUnits": 6,
+        "bossSpawnDistanceBlocks": 1.5
+      },
+      "layout": {
+        "layoutId": "expansion_library",
+        "centralSafeHalfXUnits": 2,
+        "centralSafeHalfXBlocks": 0.5,
+        "clearLaneWidthUnits": 2,
+        "clearLaneWidthBlocks": 0.5,
+        "obstacles": [
+          {
+            "id": "exp_s6_prop_1",
+            "xUnits": -4,
+            "xBlocks": -1.0,
+            "zUnits": -10,
+            "zBlocks": -2.5,
+            "halfXUnits": 0.6,
+            "halfXBlocks": 0.15,
+            "halfZUnits": 1,
+            "halfZBlocks": 0.25
+          },
+          {
+            "id": "exp_s6_prop_2",
+            "xUnits": 4,
+            "xBlocks": 1.0,
+            "zUnits": -5,
+            "zBlocks": -1.25,
+            "halfXUnits": 0.6,
+            "halfXBlocks": 0.15,
+            "halfZUnits": 1,
+            "halfZBlocks": 0.25
+          },
+          {
+            "id": "exp_s6_prop_3",
+            "xUnits": -4,
+            "xBlocks": -1.0,
+            "zUnits": 2,
+            "zBlocks": 0.5,
+            "halfXUnits": 0.6,
+            "halfXBlocks": 0.15,
+            "halfZUnits": 1,
+            "halfZBlocks": 0.25
+          },
+          {
+            "id": "exp_s6_prop_4",
+            "xUnits": 4,
+            "xBlocks": 1.0,
+            "zUnits": 9,
+            "zBlocks": 2.25,
+            "halfXUnits": 0.6,
+            "halfXBlocks": 0.15,
+            "halfZUnits": 1,
+            "halfZBlocks": 0.25
+          }
+        ],
+        "portalAnchorUnits": [
+          0,
+          0,
+          -16
+        ],
+        "portalAnchorBlocks": [
+          0,
+          0,
+          -4
+        ]
+      }
+    },
+    {
+      "id": "stage7",
+      "order": 7,
+      "nameKo": "프리즘 과학실",
+      "themeKey": "laboratory",
+      "palette": "청록·자홍",
+      "spectacle": "거대 유리 반응탑, 천장 프리즘 광선, 벽 밖 회전 분자 구조물",
+      "lesson": "지면 잔류 위험 → 고정 방향 돌진",
+      "enemyIds": [
+        "E22",
+        "E23",
+        "E24"
+      ],
+      "bossId": "B06",
+      "durationSec": 240,
+      "bossSec": 150,
+      "portalSec": 210,
+      "matildaWarningSec": 205,
+      "matildaSec": 210,
+      "mapHalfXUnits": 7.5,
+      "mapHalfXBlocks": 1.875,
+      "mapHalfZUnits": 19.2,
+      "mapHalfZBlocks": 4.8,
+      "unlockClearsKey": "stage6Clears",
+      "unlockClearsRequired": 1,
+      "clearRecordKey": "stage7Clears",
+      "bestRecordKey": "stage7BestSurvivalSec",
+      "nextStageId": "stage8",
+      "spawnClock": "gameplayElapsedSec",
+      "stageHpMultiplier": 1,
+      "newEnemyHpMode": "absolute",
+      "existingEnemyHpMultiplier": 2.9859839999999993,
+      "milestones": [
+        {
+          "sec": 48,
+          "gold": 7
+        },
+        {
+          "sec": 144,
+          "gold": 9
+        },
+        {
+          "sec": 192,
+          "gold": 13
+        },
+        {
+          "sec": 240,
+          "gold": 24
+        }
+      ],
+      "events": [
+        {
+          "sec": 5,
+          "type": "E22",
+          "count": 6
+        },
+        {
+          "sec": 24,
+          "type": "E22",
+          "count": 8
+        },
+        {
+          "sec": 40,
+          "type": "E23",
+          "count": 2
+        },
+        {
+          "sec": 60,
+          "type": "E22",
+          "count": 8
+        },
+        {
+          "sec": 60,
+          "type": "E23",
+          "count": 3
+        },
+        {
+          "sec": 72,
+          "type": "E24",
+          "count": 1
+        },
+        {
+          "sec": 96,
+          "type": "E22",
+          "count": 8
+        },
+        {
+          "sec": 96,
+          "type": "E23",
+          "count": 4
+        },
+        {
+          "sec": 110,
+          "type": "E07",
+          "count": 3
+        },
+        {
+          "sec": 110,
+          "type": "E02",
+          "count": 3
+        },
+        {
+          "sec": 120,
+          "type": "E22",
+          "count": 8
+        },
+        {
+          "sec": 120,
+          "type": "E24",
+          "count": 2
+        },
+        {
+          "sec": 144,
+          "type": "E23",
+          "count": 4
+        },
+        {
+          "sec": 144,
+          "type": "E24",
+          "count": 2
+        },
+        {
+          "sec": 150,
+          "type": "B06",
+          "count": 1
+        },
+        {
+          "sec": 168,
+          "type": "E22",
+          "count": 8
+        },
+        {
+          "sec": 168,
+          "type": "E23",
+          "count": 3
+        },
+        {
+          "sec": 184,
+          "type": "E22",
+          "count": 8
+        },
+        {
+          "sec": 184,
+          "type": "E24",
+          "count": 2
+        },
+        {
+          "sec": 200,
+          "type": "E23",
+          "count": 4
+        },
+        {
+          "sec": 216,
+          "type": "E22",
+          "count": 8
+        },
+        {
+          "sec": 216,
+          "type": "E23",
+          "count": 3
+        },
+        {
+          "sec": 216,
+          "type": "E24",
+          "count": 2
+        }
+      ],
+      "bonusEvents": [
+        {
+          "sec": 90,
+          "type": "E08",
+          "count": 1
+        },
+        {
+          "sec": 180,
+          "type": "E08",
+          "count": 1
+        }
+      ],
+      "overtime": {
+        "startSec": 300,
+        "intervalSec": 30,
+        "count": 30,
+        "mixedTypes": [
+          "E22",
+          "E23",
+          "E24"
+        ],
+        "scaleStartSec": 300,
+        "scaleIntervalSec": 90,
+        "scaleStep": 0.1
+      },
+      "scoreStageBonus": 360,
+      "spawnPolicy": {
+        "minDistanceUnits": 8.5,
+        "minDistanceBlocks": 2.125,
+        "maxDistanceUnits": 12.5,
+        "maxDistanceBlocks": 3.125,
+        "maxAttempts": 16,
+        "unsafeAction": "skip_individual",
+        "introSpecialDelayMs": 2500,
+        "formation": "ring_safe_candidates",
+        "bossSpawnDistanceUnits": 6,
+        "bossSpawnDistanceBlocks": 1.5
+      },
+      "layout": {
+        "layoutId": "expansion_laboratory",
+        "centralSafeHalfXUnits": 2,
+        "centralSafeHalfXBlocks": 0.5,
+        "clearLaneWidthUnits": 2,
+        "clearLaneWidthBlocks": 0.5,
+        "obstacles": [
+          {
+            "id": "exp_s7_prop_1",
+            "xUnits": -4,
+            "xBlocks": -1.0,
+            "zUnits": -10,
+            "zBlocks": -2.5,
+            "halfXUnits": 0.6,
+            "halfXBlocks": 0.15,
+            "halfZUnits": 1,
+            "halfZBlocks": 0.25
+          },
+          {
+            "id": "exp_s7_prop_2",
+            "xUnits": 4,
+            "xBlocks": 1.0,
+            "zUnits": -5,
+            "zBlocks": -1.25,
+            "halfXUnits": 0.6,
+            "halfXBlocks": 0.15,
+            "halfZUnits": 1,
+            "halfZBlocks": 0.25
+          },
+          {
+            "id": "exp_s7_prop_3",
+            "xUnits": -4,
+            "xBlocks": -1.0,
+            "zUnits": 2,
+            "zBlocks": 0.5,
+            "halfXUnits": 0.6,
+            "halfXBlocks": 0.15,
+            "halfZUnits": 1,
+            "halfZBlocks": 0.25
+          },
+          {
+            "id": "exp_s7_prop_4",
+            "xUnits": 4,
+            "xBlocks": 1.0,
+            "zUnits": 9,
+            "zBlocks": 2.25,
+            "halfXUnits": 0.6,
+            "halfXBlocks": 0.15,
+            "halfZUnits": 1,
+            "halfZBlocks": 0.25
+          }
+        ],
+        "portalAnchorUnits": [
+          0,
+          0,
+          -16
+        ],
+        "portalAnchorBlocks": [
+          0,
+          0,
+          -4
+        ]
+      }
+    },
+    {
+      "id": "stage8",
+      "order": 8,
+      "nameKo": "월광 유리온실",
+      "themeKey": "greenhouse",
+      "palette": "옥색·분홍",
+      "spectacle": "별빛 유리 돔, 외곽 거대 발광 꽃, 공중 수로와 꽃가루 흐름",
+      "lesson": "부채꼴 빈틈 → 직선 경고 → 착지 회피",
+      "enemyIds": [
+        "E25",
+        "E26",
+        "E27"
+      ],
+      "bossId": "B07",
+      "durationSec": 240,
+      "bossSec": 150,
+      "portalSec": 210,
+      "matildaWarningSec": 205,
+      "matildaSec": 210,
+      "mapHalfXUnits": 7.5,
+      "mapHalfXBlocks": 1.875,
+      "mapHalfZUnits": 19.2,
+      "mapHalfZBlocks": 4.8,
+      "unlockClearsKey": "stage7Clears",
+      "unlockClearsRequired": 1,
+      "clearRecordKey": "stage8Clears",
+      "bestRecordKey": "stage8BestSurvivalSec",
+      "nextStageId": "stage9",
+      "spawnClock": "gameplayElapsedSec",
+      "stageHpMultiplier": 1,
+      "newEnemyHpMode": "absolute",
+      "existingEnemyHpMultiplier": 3.583180799999999,
+      "milestones": [
+        {
+          "sec": 48,
+          "gold": 8
+        },
+        {
+          "sec": 144,
+          "gold": 10
+        },
+        {
+          "sec": 192,
+          "gold": 14
+        },
+        {
+          "sec": 240,
+          "gold": 26
+        }
+      ],
+      "events": [
+        {
+          "sec": 5,
+          "type": "E25",
+          "count": 6
+        },
+        {
+          "sec": 24,
+          "type": "E25",
+          "count": 8
+        },
+        {
+          "sec": 40,
+          "type": "E26",
+          "count": 2
+        },
+        {
+          "sec": 60,
+          "type": "E25",
+          "count": 8
+        },
+        {
+          "sec": 60,
+          "type": "E26",
+          "count": 3
+        },
+        {
+          "sec": 72,
+          "type": "E27",
+          "count": 1
+        },
+        {
+          "sec": 96,
+          "type": "E25",
+          "count": 8
+        },
+        {
+          "sec": 96,
+          "type": "E26",
+          "count": 4
+        },
+        {
+          "sec": 110,
+          "type": "E07",
+          "count": 3
+        },
+        {
+          "sec": 110,
+          "type": "E02",
+          "count": 3
+        },
+        {
+          "sec": 120,
+          "type": "E25",
+          "count": 8
+        },
+        {
+          "sec": 120,
+          "type": "E27",
+          "count": 2
+        },
+        {
+          "sec": 144,
+          "type": "E26",
+          "count": 4
+        },
+        {
+          "sec": 144,
+          "type": "E27",
+          "count": 2
+        },
+        {
+          "sec": 150,
+          "type": "B07",
+          "count": 1
+        },
+        {
+          "sec": 168,
+          "type": "E25",
+          "count": 8
+        },
+        {
+          "sec": 168,
+          "type": "E26",
+          "count": 3
+        },
+        {
+          "sec": 184,
+          "type": "E25",
+          "count": 8
+        },
+        {
+          "sec": 184,
+          "type": "E27",
+          "count": 2
+        },
+        {
+          "sec": 200,
+          "type": "E26",
+          "count": 4
+        },
+        {
+          "sec": 216,
+          "type": "E25",
+          "count": 8
+        },
+        {
+          "sec": 216,
+          "type": "E26",
+          "count": 3
+        },
+        {
+          "sec": 216,
+          "type": "E27",
+          "count": 2
+        }
+      ],
+      "bonusEvents": [
+        {
+          "sec": 90,
+          "type": "E08",
+          "count": 1
+        },
+        {
+          "sec": 180,
+          "type": "E08",
+          "count": 1
+        }
+      ],
+      "overtime": {
+        "startSec": 300,
+        "intervalSec": 30,
+        "count": 30,
+        "mixedTypes": [
+          "E25",
+          "E26",
+          "E27"
+        ],
+        "scaleStartSec": 300,
+        "scaleIntervalSec": 90,
+        "scaleStep": 0.1
+      },
+      "scoreStageBonus": 420,
+      "spawnPolicy": {
+        "minDistanceUnits": 8.5,
+        "minDistanceBlocks": 2.125,
+        "maxDistanceUnits": 12.5,
+        "maxDistanceBlocks": 3.125,
+        "maxAttempts": 16,
+        "unsafeAction": "skip_individual",
+        "introSpecialDelayMs": 2500,
+        "formation": "ring_safe_candidates",
+        "bossSpawnDistanceUnits": 6,
+        "bossSpawnDistanceBlocks": 1.5
+      },
+      "layout": {
+        "layoutId": "expansion_greenhouse",
+        "centralSafeHalfXUnits": 2,
+        "centralSafeHalfXBlocks": 0.5,
+        "clearLaneWidthUnits": 2,
+        "clearLaneWidthBlocks": 0.5,
+        "obstacles": [
+          {
+            "id": "exp_s8_prop_1",
+            "xUnits": -4,
+            "xBlocks": -1.0,
+            "zUnits": -10,
+            "zBlocks": -2.5,
+            "halfXUnits": 0.6,
+            "halfXBlocks": 0.15,
+            "halfZUnits": 1,
+            "halfZBlocks": 0.25
+          },
+          {
+            "id": "exp_s8_prop_2",
+            "xUnits": 4,
+            "xBlocks": 1.0,
+            "zUnits": -5,
+            "zBlocks": -1.25,
+            "halfXUnits": 0.6,
+            "halfXBlocks": 0.15,
+            "halfZUnits": 1,
+            "halfZBlocks": 0.25
+          },
+          {
+            "id": "exp_s8_prop_3",
+            "xUnits": -4,
+            "xBlocks": -1.0,
+            "zUnits": 2,
+            "zBlocks": 0.5,
+            "halfXUnits": 0.6,
+            "halfXBlocks": 0.15,
+            "halfZUnits": 1,
+            "halfZBlocks": 0.25
+          },
+          {
+            "id": "exp_s8_prop_4",
+            "xUnits": 4,
+            "xBlocks": 1.0,
+            "zUnits": 9,
+            "zBlocks": 2.25,
+            "halfXUnits": 0.6,
+            "halfXBlocks": 0.15,
+            "halfZUnits": 1,
+            "halfZBlocks": 0.25
+          }
+        ],
+        "portalAnchorUnits": [
+          0,
+          0,
+          -16
+        ],
+        "portalAnchorBlocks": [
+          0,
+          0,
+          -4
+        ]
+      }
+    },
+    {
+      "id": "stage9",
+      "order": 9,
+      "nameKo": "가면 축제극장",
+      "themeKey": "theater",
+      "palette": "보라·호박",
+      "spectacle": "층층이 떠 있는 관람석, 거대 가면 장식, 외곽 커튼과 회전 조명",
+      "lesson": "조명 직선 → 리본 부채꼴 → 고리 내부",
+      "enemyIds": [
+        "E28",
+        "E29",
+        "E30"
+      ],
+      "bossId": "B08",
+      "durationSec": 240,
+      "bossSec": 150,
+      "portalSec": 210,
+      "matildaWarningSec": 205,
+      "matildaSec": 210,
+      "mapHalfXUnits": 7.5,
+      "mapHalfXBlocks": 1.875,
+      "mapHalfZUnits": 19.2,
+      "mapHalfZBlocks": 4.8,
+      "unlockClearsKey": "stage8Clears",
+      "unlockClearsRequired": 1,
+      "clearRecordKey": "stage9Clears",
+      "bestRecordKey": "stage9BestSurvivalSec",
+      "nextStageId": "stage10",
+      "spawnClock": "gameplayElapsedSec",
+      "stageHpMultiplier": 1,
+      "newEnemyHpMode": "absolute",
+      "existingEnemyHpMultiplier": 4.2998169599999985,
+      "milestones": [
+        {
+          "sec": 48,
+          "gold": 9
+        },
+        {
+          "sec": 144,
+          "gold": 11
+        },
+        {
+          "sec": 192,
+          "gold": 15
+        },
+        {
+          "sec": 240,
+          "gold": 28
+        }
+      ],
+      "events": [
+        {
+          "sec": 5,
+          "type": "E28",
+          "count": 6
+        },
+        {
+          "sec": 24,
+          "type": "E28",
+          "count": 8
+        },
+        {
+          "sec": 40,
+          "type": "E29",
+          "count": 2
+        },
+        {
+          "sec": 60,
+          "type": "E28",
+          "count": 8
+        },
+        {
+          "sec": 60,
+          "type": "E29",
+          "count": 3
+        },
+        {
+          "sec": 72,
+          "type": "E30",
+          "count": 1
+        },
+        {
+          "sec": 96,
+          "type": "E28",
+          "count": 8
+        },
+        {
+          "sec": 96,
+          "type": "E29",
+          "count": 4
+        },
+        {
+          "sec": 110,
+          "type": "E07",
+          "count": 3
+        },
+        {
+          "sec": 110,
+          "type": "E02",
+          "count": 3
+        },
+        {
+          "sec": 120,
+          "type": "E28",
+          "count": 8
+        },
+        {
+          "sec": 120,
+          "type": "E30",
+          "count": 2
+        },
+        {
+          "sec": 144,
+          "type": "E29",
+          "count": 4
+        },
+        {
+          "sec": 144,
+          "type": "E30",
+          "count": 2
+        },
+        {
+          "sec": 150,
+          "type": "B08",
+          "count": 1
+        },
+        {
+          "sec": 168,
+          "type": "E28",
+          "count": 8
+        },
+        {
+          "sec": 168,
+          "type": "E29",
+          "count": 3
+        },
+        {
+          "sec": 184,
+          "type": "E28",
+          "count": 8
+        },
+        {
+          "sec": 184,
+          "type": "E30",
+          "count": 2
+        },
+        {
+          "sec": 200,
+          "type": "E29",
+          "count": 4
+        },
+        {
+          "sec": 216,
+          "type": "E28",
+          "count": 8
+        },
+        {
+          "sec": 216,
+          "type": "E29",
+          "count": 3
+        },
+        {
+          "sec": 216,
+          "type": "E30",
+          "count": 2
+        }
+      ],
+      "bonusEvents": [
+        {
+          "sec": 90,
+          "type": "E08",
+          "count": 1
+        },
+        {
+          "sec": 180,
+          "type": "E08",
+          "count": 1
+        }
+      ],
+      "overtime": {
+        "startSec": 300,
+        "intervalSec": 30,
+        "count": 30,
+        "mixedTypes": [
+          "E28",
+          "E29",
+          "E30"
+        ],
+        "scaleStartSec": 300,
+        "scaleIntervalSec": 90,
+        "scaleStep": 0.1
+      },
+      "scoreStageBonus": 480,
+      "spawnPolicy": {
+        "minDistanceUnits": 8.5,
+        "minDistanceBlocks": 2.125,
+        "maxDistanceUnits": 12.5,
+        "maxDistanceBlocks": 3.125,
+        "maxAttempts": 16,
+        "unsafeAction": "skip_individual",
+        "introSpecialDelayMs": 2500,
+        "formation": "ring_safe_candidates",
+        "bossSpawnDistanceUnits": 6,
+        "bossSpawnDistanceBlocks": 1.5
+      },
+      "layout": {
+        "layoutId": "expansion_theater",
+        "centralSafeHalfXUnits": 2,
+        "centralSafeHalfXBlocks": 0.5,
+        "clearLaneWidthUnits": 2,
+        "clearLaneWidthBlocks": 0.5,
+        "obstacles": [
+          {
+            "id": "exp_s9_prop_1",
+            "xUnits": -4,
+            "xBlocks": -1.0,
+            "zUnits": -10,
+            "zBlocks": -2.5,
+            "halfXUnits": 0.6,
+            "halfXBlocks": 0.15,
+            "halfZUnits": 1,
+            "halfZBlocks": 0.25
+          },
+          {
+            "id": "exp_s9_prop_2",
+            "xUnits": 4,
+            "xBlocks": 1.0,
+            "zUnits": -5,
+            "zBlocks": -1.25,
+            "halfXUnits": 0.6,
+            "halfXBlocks": 0.15,
+            "halfZUnits": 1,
+            "halfZBlocks": 0.25
+          },
+          {
+            "id": "exp_s9_prop_3",
+            "xUnits": -4,
+            "xBlocks": -1.0,
+            "zUnits": 2,
+            "zBlocks": 0.5,
+            "halfXUnits": 0.6,
+            "halfXBlocks": 0.15,
+            "halfZUnits": 1,
+            "halfZBlocks": 0.25
+          },
+          {
+            "id": "exp_s9_prop_4",
+            "xUnits": 4,
+            "xBlocks": 1.0,
+            "zUnits": 9,
+            "zBlocks": 2.25,
+            "halfXUnits": 0.6,
+            "halfXBlocks": 0.15,
+            "halfZUnits": 1,
+            "halfZBlocks": 0.25
+          }
+        ],
+        "portalAnchorUnits": [
+          0,
+          0,
+          -16
+        ],
+        "portalAnchorBlocks": [
+          0,
+          0,
+          -4
+        ]
+      }
+    },
+    {
+      "id": "stage10",
+      "order": 10,
+      "nameKo": "폭풍 옥상발전소",
+      "themeKey": "rooftop",
+      "palette": "군청·전기노랑",
+      "spectacle": "거대한 외곽 터빈, 번개 구름과 도심 실루엣, 하늘을 가르는 피뢰탑",
+      "lesson": "십자 격자 빈칸 → 고리 안쪽 → 최종 복합 회피",
+      "enemyIds": [
+        "E31",
+        "E32",
+        "E33"
+      ],
+      "bossId": "B09",
+      "durationSec": 240,
+      "bossSec": 150,
+      "portalSec": 210,
+      "matildaWarningSec": 205,
+      "matildaSec": 210,
+      "mapHalfXUnits": 7.5,
+      "mapHalfXBlocks": 1.875,
+      "mapHalfZUnits": 19.2,
+      "mapHalfZBlocks": 4.8,
+      "unlockClearsKey": "stage9Clears",
+      "unlockClearsRequired": 1,
+      "clearRecordKey": "stage10Clears",
+      "bestRecordKey": "stage10BestSurvivalSec",
+      "nextStageId": null,
+      "spawnClock": "gameplayElapsedSec",
+      "stageHpMultiplier": 1,
+      "newEnemyHpMode": "absolute",
+      "existingEnemyHpMultiplier": 5.1597803519999985,
+      "milestones": [
+        {
+          "sec": 48,
+          "gold": 10
+        },
+        {
+          "sec": 144,
+          "gold": 12
+        },
+        {
+          "sec": 192,
+          "gold": 16
+        },
+        {
+          "sec": 240,
+          "gold": 30
+        }
+      ],
+      "events": [
+        {
+          "sec": 5,
+          "type": "E31",
+          "count": 6
+        },
+        {
+          "sec": 24,
+          "type": "E31",
+          "count": 8
+        },
+        {
+          "sec": 40,
+          "type": "E32",
+          "count": 2
+        },
+        {
+          "sec": 60,
+          "type": "E31",
+          "count": 8
+        },
+        {
+          "sec": 60,
+          "type": "E32",
+          "count": 3
+        },
+        {
+          "sec": 72,
+          "type": "E33",
+          "count": 1
+        },
+        {
+          "sec": 96,
+          "type": "E31",
+          "count": 8
+        },
+        {
+          "sec": 96,
+          "type": "E32",
+          "count": 4
+        },
+        {
+          "sec": 110,
+          "type": "E07",
+          "count": 3
+        },
+        {
+          "sec": 110,
+          "type": "E02",
+          "count": 3
+        },
+        {
+          "sec": 120,
+          "type": "E31",
+          "count": 8
+        },
+        {
+          "sec": 120,
+          "type": "E33",
+          "count": 2
+        },
+        {
+          "sec": 144,
+          "type": "E32",
+          "count": 4
+        },
+        {
+          "sec": 144,
+          "type": "E33",
+          "count": 2
+        },
+        {
+          "sec": 150,
+          "type": "B09",
+          "count": 1
+        },
+        {
+          "sec": 168,
+          "type": "E31",
+          "count": 8
+        },
+        {
+          "sec": 168,
+          "type": "E32",
+          "count": 3
+        },
+        {
+          "sec": 184,
+          "type": "E31",
+          "count": 8
+        },
+        {
+          "sec": 184,
+          "type": "E33",
+          "count": 2
+        },
+        {
+          "sec": 200,
+          "type": "E32",
+          "count": 4
+        },
+        {
+          "sec": 216,
+          "type": "E31",
+          "count": 8
+        },
+        {
+          "sec": 216,
+          "type": "E32",
+          "count": 3
+        },
+        {
+          "sec": 216,
+          "type": "E33",
+          "count": 2
+        }
+      ],
+      "bonusEvents": [
+        {
+          "sec": 90,
+          "type": "E08",
+          "count": 1
+        },
+        {
+          "sec": 180,
+          "type": "E08",
+          "count": 1
+        }
+      ],
+      "overtime": {
+        "startSec": 300,
+        "intervalSec": 30,
+        "count": 30,
+        "mixedTypes": [
+          "E31",
+          "E32",
+          "E33"
+        ],
+        "scaleStartSec": 300,
+        "scaleIntervalSec": 90,
+        "scaleStep": 0.1
+      },
+      "scoreStageBonus": 540,
+      "spawnPolicy": {
+        "minDistanceUnits": 8.5,
+        "minDistanceBlocks": 2.125,
+        "maxDistanceUnits": 12.5,
+        "maxDistanceBlocks": 3.125,
+        "maxAttempts": 16,
+        "unsafeAction": "skip_individual",
+        "introSpecialDelayMs": 2500,
+        "formation": "ring_safe_candidates",
+        "bossSpawnDistanceUnits": 6,
+        "bossSpawnDistanceBlocks": 1.5
+      },
+      "layout": {
+        "layoutId": "expansion_rooftop",
+        "centralSafeHalfXUnits": 2,
+        "centralSafeHalfXBlocks": 0.5,
+        "clearLaneWidthUnits": 2,
+        "clearLaneWidthBlocks": 0.5,
+        "obstacles": [
+          {
+            "id": "exp_s10_prop_1",
+            "xUnits": -4,
+            "xBlocks": -1.0,
+            "zUnits": -10,
+            "zBlocks": -2.5,
+            "halfXUnits": 0.6,
+            "halfXBlocks": 0.15,
+            "halfZUnits": 1,
+            "halfZBlocks": 0.25
+          },
+          {
+            "id": "exp_s10_prop_2",
+            "xUnits": 4,
+            "xBlocks": 1.0,
+            "zUnits": -5,
+            "zBlocks": -1.25,
+            "halfXUnits": 0.6,
+            "halfXBlocks": 0.15,
+            "halfZUnits": 1,
+            "halfZBlocks": 0.25
+          },
+          {
+            "id": "exp_s10_prop_3",
+            "xUnits": -4,
+            "xBlocks": -1.0,
+            "zUnits": 2,
+            "zBlocks": 0.5,
+            "halfXUnits": 0.6,
+            "halfXBlocks": 0.15,
+            "halfZUnits": 1,
+            "halfZBlocks": 0.25
+          },
+          {
+            "id": "exp_s10_prop_4",
+            "xUnits": 4,
+            "xBlocks": 1.0,
+            "zUnits": 9,
+            "zBlocks": 2.25,
+            "halfXUnits": 0.6,
+            "halfXBlocks": 0.15,
+            "halfZUnits": 1,
+            "halfZBlocks": 0.25
+          }
+        ],
+        "portalAnchorUnits": [
+          0,
+          0,
+          -16
+        ],
+        "portalAnchorBlocks": [
+          0,
+          0,
+          -4
+        ]
+      }
+    }
+  ],
+  "limits": {
+    "globalActiveAndDeferredEnemies": 150,
+    "bosses": 1,
+    "simultaneousNewTelegraphs": 2,
+    "simultaneousDamagingAreas": 4
+  },
+  "visualInterface": {
+    "exports": [
+      "ExpansionEnemyVisual",
+      "ExpansionBossVisual",
+      "ExpansionStageEnvironment",
+      "ExpansionAttackTelegraph"
+    ],
+    "props": [
+      "type",
+      "stageId",
+      "animPhase",
+      "hitFlash",
+      "staticPose",
+      "attackSnapshot"
+    ]
+  },
+  "notes": [
+    "기존 E09~E18은 미확정 무한모드 후보이므로 미사용 보존",
+    "stage9는 기존 DB 거절 테스트 문자열로만 존재; 콘텐츠 ID 충돌 아님. backend whitelist 연계 전 원격 저장 승인 금지",
+    "Stage5 기존 마지막 포탈과 종료 동작 변경 금지. stage6는 Stage5 clear 후 별도 로비 진입"
+  ]
+}

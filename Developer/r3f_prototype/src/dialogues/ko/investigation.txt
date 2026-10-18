@@ -426,3 +426,8 @@ investigation.kitchenClutter.002	숟가락이 너무 얌전해. 오히려 수상
 investigation.kitchenClutter.003	냄비·국자들이 암호 회의 중이야.
 investigation.kitchenClutter.004	조용한 숟가락이 제일 무서워.
 investigation.kitchenClutter.005	김이 내 그림자를 민원지로 몰아.
+investigation.pressureCauldron.001	보글보글 끓는 소리에 나도 모르게 발을 멈췄어.
+investigation.pressureCauldron.002	열기가 얼굴까지 와. 난 여기서 더 다가가지 않을래.
+investigation.pressureCauldron.003	하얀 증기가 내 앞을 가려. 난 옆으로 비켜야겠어.
+investigation.pressureCauldron.004	뚜껑이 덜컹대서 난 손을 주머니에 꼭 숨겼어.
+investigation.pressureCauldron.005	뜨거운 솥과는 거리 두기. 난 구경만 하고 지나갈래.

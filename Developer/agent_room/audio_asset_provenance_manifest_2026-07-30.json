@@ -1348,18 +1348,18 @@
       "paths": [
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/inuconBite.ogg",
-          "bytes": 4545,
-          "sha256": "89d22b09ddd691ec437859bcb7ea55a2714fc86ec93e29dadbdfaa30216a5cf5"
+          "bytes": 6656,
+          "sha256": "91a515d574ea36ce148a09ba7d3ff2dcae2d71695d1be7e5c856bdd3e63126c4"
         },
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/inuconBite.mp3",
-          "bytes": 2342,
-          "sha256": "4a1428aecb41d99378dd76163aa49f220e2db96dc9b985e6255adea7dff1a058"
+          "bytes": 3761,
+          "sha256": "0cc80254c7fa8348379e9749b445348cd226d5d82a8758a1688176b7c673bb99"
         }
       ],
       "provenanceType": "generated",
-      "source": "scripts/generate_zombie_death_voices.mjs / scripts/generate_voice_sfx.mjs (project procedural source-filter voice synthesis; OGG/MP3 conversion via @ffmpeg-installer/ffmpeg)",
-      "notes": "Project-generated voice-like procedural SFX; no external samples or third-party audio assets used.",
+      "source": "Developer/agent_room/soundmini_inucon_bite_dog_bark_sfx_2026-08-30.md; project-owned Python numpy noise/formant synthesis, soundfile/lameenc encoding; asset commit bb88ebb9bbdd945e6aba807d5bf8d7e59f679c80",
+      "notes": "Two-bark Inucon push cue replaced on 2026-08-30. On 2026-10-16, file bytes/SHA were confirmed identical to bb88ebb9 and the dated source record; only stale metadata refreshed, audio preserved. No external samples or third-party audio assets used.",
       "licenseEvidence": "project-generated-procedural"
     },
     {

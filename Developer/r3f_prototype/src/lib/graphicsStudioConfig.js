@@ -1,3 +1,4 @@
+import { EXPANSION_VISUALS, EXPANSION_STAGE_VISUALS } from './expansionVisuals.js'
 import stage1FloorUrl from '../assets/background_floor/tile_stage01.webp'
 import stage2FloorUrl from '../assets/background_floor/tile_stage02_corridor.webp'
 import stage2EndWallUrl from '../assets/background_floor/stage02_corridor_end_wall.webp'
@@ -697,6 +698,19 @@ export const GRAPHICS_STUDIO_CATALOG = Object.freeze([
     previewKind: 'healthBar',
     applyTargets: ['components/MiniHealthBar.jsx', 'components/Enemy.jsx'],
   },
+  ...Object.values(EXPANSION_VISUALS).map((def) => ({
+    id: def.studioItemId, category: 'enemy', label: `${def.id} · ${def.label}`,
+    source: 'components/expansion/ExpansionZombieMesh.jsx', previewKind: 'zombie',
+    runtimePreviewSource: 'components/Enemy.jsx', runtimePreviewComponent: 'EnemyVisual',
+    zombieType: def.id,
+    applyTargets: ['components/expansion/ExpansionZombieMesh.jsx', 'components/expansion/ExpansionZombieInstanceLayer.jsx', 'lib/expansionVisuals.js'],
+  })),
+  ...Object.entries(EXPANSION_STAGE_VISUALS).map(([stageId, def]) => ({
+    id: `stage-floor-${stageId}`, category: 'floor', label: `${stageId} · ${def.label}`,
+    source: 'components/expansion/ExpansionStageEnvironment.jsx', previewKind: 'floor',
+    runtimePreviewComponent: 'FloorVisual', stageId,
+    applyTargets: ['components/Floor.jsx', 'components/expansion/ExpansionStageEnvironment.jsx', 'lib/expansionVisuals.js'],
+  })),
 ])
 
 const NUMERIC_RANGES = Object.freeze({

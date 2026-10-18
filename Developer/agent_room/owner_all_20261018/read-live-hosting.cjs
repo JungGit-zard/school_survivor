@@ -1,0 +1,20 @@
+const fs=require('node:fs'),path=require('node:path');
+const base='C:/Users/admin/AppData/Roaming/npm/node_modules/firebase-tools/lib';
+const {getGlobalDefaultAccount}=require(base+'/auth.js');
+const {requireAuth}=require(base+'/requireAuth.js');
+const {Client}=require(base+'/apiv2.js');
+const {hostingApiOrigin}=require(base+'/api.js');
+const {getChannel}=require(base+'/hosting/api.js');
+(async()=>{
+ const account=getGlobalDefaultAccount();if(!account)throw Error('Firebase CLI login required');
+ await requireAuth({project:'escape-zombie-school',...account});
+ const live=await getChannel('escape-zombie-school','escape-zombie-school','live');
+ const version=live.release.version.name;
+ const client=new Client({urlPrefix:hostingApiOrigin(),apiVersion:'v1beta1',auth:true});
+ const files=[];let pageToken;
+ do{const r=await client.get('/'+version+'/files',{queryParams:{pageSize:1000,...(pageToken?{pageToken}:{})}});files.push(...(r.body.files||[]));pageToken=r.body.nextPageToken;}while(pageToken);
+ if(!files.length)throw Error('No real live files returned');
+ const out=path.resolve(__dirname,'../../../Quaility_Assurance/owner_all_20261018/live-asset-baseline.json');
+ fs.writeFileSync(out,JSON.stringify({version,releaseTime:live.release.releaseTime,config:live.release.version.config,files,readAt:new Date().toISOString()},null,2));
+ console.log(JSON.stringify({version,files:files.length,receipt:out}));
+})().catch(e=>{console.error(e.message);process.exit(1)});

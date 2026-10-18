@@ -141,8 +141,8 @@ describe('firebaseRanking submitRun — direct RTDB write (Spark, no Cloud Funct
     mod.remove = vi.fn(async () => {})
     _setFirebaseRankingClientForTests(client)
     const result = await deleteRankingEntriesForUser({ uid: 'me' })
-    expect(result).toMatchObject({ attempted: 15, failed: [] })
-    expect(result.deleted.filter((path) => path.includes('/allTime/all-time/'))).toHaveLength(5)
+    expect(result).toMatchObject({ attempted: 33, failed: [] })
+    expect(result.deleted.filter((path) => path.includes('/allTime/all-time/'))).toHaveLength(11)
     expect(result.deleted.every((path) => path.endsWith('/me'))).toBe(true)
   })
 
@@ -153,7 +153,7 @@ describe('firebaseRanking submitRun — direct RTDB write (Spark, no Cloud Funct
     mod.update = vi.fn(async (ref, patch) => { Object.assign(ref.path.includes('/global/') ? records.global : records.stage, patch) })
     _setFirebaseRankingClientForTests(client)
     const result = await renameRankingEntriesForUser({ uid: 'me', isAnonymous: true }, '새닉네임')
-    expect(result).toMatchObject({ attempted: 15, failed: [] })
+    expect(result).toMatchObject({ attempted: 33, failed: [] })
     expect(result.updated).toHaveLength(2)
     expect(mod.set).not.toHaveBeenCalled()
     expect(mod.update.mock.calls.every(([ref, patch]) => ref.path.endsWith('/me') && JSON.stringify(patch) === JSON.stringify({ displayName: '새닉네임' }))).toBe(true)
@@ -165,7 +165,7 @@ describe('firebaseRanking submitRun — direct RTDB write (Spark, no Cloud Funct
     mod.update = vi.fn(async () => { throw new Error('permission denied') })
     _setFirebaseRankingClientForTests(client)
     const result = await renameRankingEntriesForUser({ uid: 'me' }, '새닉네임')
-    expect(result.failed).toHaveLength(15)
+    expect(result.failed).toHaveLength(33)
     expect(result.updated).toEqual([])
   })
 

@@ -1,5 +1,5 @@
 import { load as loadPlayerRecords } from './playerRecords.js'
-import { getStageConfig } from './stageConfig.js'
+import { getStageConfig, STAGE_CONFIGS } from './stageConfig.js'
 import { compareRankingEntries, getRankingScore, getRankingScorePolicy, SCORE_TYPE } from './rankingScorePolicy.js'
 import { getSavedNickname } from './userNickname.js'
 import { t } from './i18n.js'
@@ -171,10 +171,11 @@ function normalizeRankingEntry(entry, policy) {
 }
 
 function readStageId(stageId, stageLabel) {
-  if (stageId === 'stage4' || stageLabel === 'Stage 4') return 'stage4'
-  if (stageId === 'stage3' || stageLabel === 'Stage 3') return 'stage3'
-  if (stageId === 'stage2' || stageLabel === 'Stage 2') return 'stage2'
-  return 'stage1'
+  // Approved stageConfig identities are authoritative; never collapse Stage5–10
+  // to Stage1 or accept inherited object keys as a valid stage.
+  if (typeof stageId === 'string' && Object.hasOwn(STAGE_CONFIGS, stageId)) return stageId
+  const legacyStage = Object.values(STAGE_CONFIGS).find((stage) => stage.label === stageLabel)
+  return legacyStage?.id ?? 'stage1'
 }
 
 function readScore(value) {

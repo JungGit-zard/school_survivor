@@ -65,6 +65,8 @@ import {
 import { getStageObjectSightObstacles, isStageObjectEnemyTrackingBlocked } from './StageObjects/stageObjectColliders.js'
 import { isPlayerWeaponSightBlocked } from '../lib/weaponTargeting.js'
 import ZombieMesh from './ZombieMesh.jsx'
+import { EXPANSION_STATS, isExpansionBoss, isExpansionStage } from '../lib/expansionContent.js'
+import { createExpansionAttackState, stepExpansionAttack, cancelExpansionAttack } from '../lib/expansionAttackRuntime.js'
 import MiniHealthBar from './MiniHealthBar.jsx'
 import {
   MATH_TEACHER_SWING_RADIUS,
@@ -387,6 +389,7 @@ export const ENEMY_STATS = {
          chefBoss: true,
          chefPhase1: { ranged: true, rangedCooldown: 2600, rangedDmg: 14, rangedSpeed: 1.6, preferDist: 5.0, minDist: 3.0 },
          chefPhase2: { charger: true, chargeSpeed: 1.4, warnDist: 6.0, warnDuration: 800, stunDuration: 1200, chargeDuration: 2200 } },
+  ...EXPANSION_STATS,
 }
 
 // 肄쒕씪?대뜑 湲곕낯 諛섑겕湲?(scale=1 湲곗?)
@@ -893,6 +896,9 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
   const hpRef                 = useRef(stats.hp)
   const stage4BoundedVelocityRef = useRef({ x: 0, z: 0 })
   const dead                  = useRef(false)
+  const expansionAttackRef = useRef(null)
+  const expansionArgsRef = useRef({deltaMs:0,playing:true,alive:true,gameKey:0,x:0,z:0,playerX:0,playerZ:0,hpRatio:1})
+  useEffect(() => () => cancelExpansionAttack(expansionAttackRef.current), [])
   const knockbackUntilRef     = useRef(0)
   const knockbackDir          = useRef(new THREE.Vector3())
   const knockbackSpeedRef     = useRef(3.8)
@@ -1061,6 +1067,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
       queueVisualState('hp', hpRef.current)
       if (hpRef.current <= 0) {
         dead.current = true
+        cancelExpansionAttack(expansionAttackRef.current)
         if (type === 'B04') {
           b04SoupBlastRef.current = createB04SoupBlastState()
           syncB04SoupBlastVisual(b04SoupBlastRef.current)
@@ -1118,7 +1125,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
     if (!rb.current || dead.current || phase !== 'playing') return
 
     const t = rb.current.translation()
-    if (currentStageId === 'stage4') {
+    if (currentStageId === 'stage4' || isExpansionStage(currentStageId)) {
       const { halfX, halfZ } = stageCombatConfig.bounds
       const boundedX = Math.min(halfX - colArgs[0], Math.max(-halfX + colArgs[0], t.x))
       const boundedZ = Math.min(halfZ - colArgs[2], Math.max(-halfZ + colArgs[2], t.z))
@@ -1129,7 +1136,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
       }
     }
     const applySpecialEnemyVelocity = () => {
-      if (currentStageId === 'stage4') {
+      if (currentStageId === 'stage4' || isExpansionStage(currentStageId)) {
         writeSpecialEnemyVelocityWithinStageBounds(stage4BoundedVelocityRef.current, t, _vel, stageCombatConfig.bounds, colArgs, delta)
         _vel.x = stage4BoundedVelocityRef.current.x
         _vel.z = stage4BoundedVelocityRef.current.z
@@ -1144,6 +1151,22 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
     // Update visual registry immediately — before any early return (knockback/ranged/charger)
     const now = performance.now()
 
+    if (isExpansionBoss(type)) {
+      const store=useGameStore.getState()
+      const state=expansionAttackRef.current ??= createExpansionAttackState(type,id,store.gameKey)
+      const a=expansionArgsRef.current
+      a.deltaMs=Math.min(delta,1/30)*1000;a.playing=phase==='playing';a.alive=!dead.current;a.gameKey=store.gameKey
+      a.x=t.x;a.z=t.z;a.playerX=playerPos.x;a.playerZ=playerPos.z;a.hpRatio=hpRef.current/stats.hp
+      const attack=stepExpansionAttack(state,a)
+      if(attack.damage>0) damagePlayer(attack.damage)
+      const speed=attack.stop?0:stats.speed
+      _vel.x=dist>0.001?_dir.x/dist*speed:0;_vel.y=0;_vel.z=dist>0.001?_dir.z/dist*speed:0
+      applySpecialEnemyVelocity()
+      if(dist>0.001) _applyRotation(groupRef,_dir.x/dist,_dir.z/dist,.22)
+      queueVisualState('animPhase',state.enrageRemainingMs>0?'stun':state.snapshot?.phase==='windup'?'warn':'normal')
+      if(dist<=stats.contactDist*ENEMY_SIZE_MULTIPLIER && state.ageMs-lastContactDmgRef.current>=500){damagePlayer(stats.damage);lastContactDmgRef.current=state.ageMs}
+      return
+    }
     if (now < knockbackUntilRef.current) {
       _vel.x = knockbackDir.current.x * knockbackSpeedRef.current
       _vel.y = 0

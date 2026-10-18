@@ -12,6 +12,12 @@ export const STAGE_BONUS = {
   stage2: 60,
   stage3: 120,
   stage4: 180,
+  stage5: 240,
+  stage6: 300,
+  stage7: 360,
+  stage8: 420,
+  stage9: 480,
+  stage10: 540,
 }
 
 const STAGE_PRIORITY = {
@@ -19,6 +25,12 @@ const STAGE_PRIORITY = {
   stage2: 2,
   stage3: 3,
   stage4: 4,
+  stage5: 5,
+  stage6: 6,
+  stage7: 7,
+  stage8: 8,
+  stage9: 9,
+  stage10: 10,
 }
 
 // 기본 점수 = 생존 초 + 스테이지 보너스. 탈출/보스 보너스는 전부 이 값에서 파생된다.
@@ -55,6 +67,12 @@ export function getRankingScorePolicy(seasonConfig = getAdminRankingSeasonConfig
       stage2: readNonNegativeInt(scorePolicy.stageBonus?.stage2 ?? STAGE_BONUS.stage2),
       stage3: readNonNegativeInt(scorePolicy.stageBonus?.stage3 ?? STAGE_BONUS.stage3),
       stage4: readNonNegativeInt(scorePolicy.stageBonus?.stage4 ?? STAGE_BONUS.stage4),
+      stage5: readNonNegativeInt(scorePolicy.stageBonus?.stage5 ?? STAGE_BONUS.stage5),
+      stage6: readNonNegativeInt(scorePolicy.stageBonus?.stage6 ?? STAGE_BONUS.stage6),
+      stage7: readNonNegativeInt(scorePolicy.stageBonus?.stage7 ?? STAGE_BONUS.stage7),
+      stage8: readNonNegativeInt(scorePolicy.stageBonus?.stage8 ?? STAGE_BONUS.stage8),
+      stage9: readNonNegativeInt(scorePolicy.stageBonus?.stage9 ?? STAGE_BONUS.stage9),
+      stage10: readNonNegativeInt(scorePolicy.stageBonus?.stage10 ?? STAGE_BONUS.stage10),
     },
   }
 }

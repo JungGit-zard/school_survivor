@@ -1,0 +1,2257 @@
+{
+  "startedAt": "2026-10-16T00:40:19.175Z",
+  "url": "http://localhost:5173/sfx-audition-20261016.html",
+  "played": [
+    {
+      "id": "pencilFire",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/weapons/pencilFire.ogg",
+      "ok": true
+    },
+    {
+      "id": "pencilFire",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/pencilFire-A.wav",
+      "ok": true
+    },
+    {
+      "id": "pencilFire",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/pencilFire-B.wav",
+      "ok": true
+    },
+    {
+      "id": "pencilFire",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/pencilFire-C.wav",
+      "ok": true
+    },
+    {
+      "id": "rulerFire",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/weapons/rulerFire.ogg",
+      "ok": true
+    },
+    {
+      "id": "rulerFire",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/rulerFire-A.wav",
+      "ok": true
+    },
+    {
+      "id": "rulerFire",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/rulerFire-B.wav",
+      "ok": true
+    },
+    {
+      "id": "rulerFire",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/rulerFire-C.wav",
+      "ok": true
+    },
+    {
+      "id": "boxCutterFire",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/weapons/boxCutterFire.ogg",
+      "ok": true
+    },
+    {
+      "id": "boxCutterFire",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/boxCutterFire-A.wav",
+      "ok": true
+    },
+    {
+      "id": "boxCutterFire",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/boxCutterFire-B.wav",
+      "ok": true
+    },
+    {
+      "id": "boxCutterFire",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/boxCutterFire-C.wav",
+      "ok": true
+    },
+    {
+      "id": "tumblerFire",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/weapons/tumblerFire.ogg",
+      "ok": true
+    },
+    {
+      "id": "tumblerFire",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/tumblerFire-A.wav",
+      "ok": true
+    },
+    {
+      "id": "tumblerFire",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/tumblerFire-B.wav",
+      "ok": true
+    },
+    {
+      "id": "tumblerFire",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/tumblerFire-C.wav",
+      "ok": true
+    },
+    {
+      "id": "bellFire",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/weapons/bellFire.ogg",
+      "ok": true
+    },
+    {
+      "id": "bellFire",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/bellFire-A.wav",
+      "ok": true
+    },
+    {
+      "id": "bellFire",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/bellFire-B.wav",
+      "ok": true
+    },
+    {
+      "id": "bellFire",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/bellFire-C.wav",
+      "ok": true
+    },
+    {
+      "id": "flaskFire",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/weapons/flaskFire.ogg",
+      "ok": true
+    },
+    {
+      "id": "flaskFire",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/flaskFire-A.wav",
+      "ok": true
+    },
+    {
+      "id": "flaskFire",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/flaskFire-B.wav",
+      "ok": true
+    },
+    {
+      "id": "flaskFire",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/flaskFire-C.wav",
+      "ok": true
+    },
+    {
+      "id": "onigiriFire",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/weapons/onigiriFire.ogg",
+      "ok": true
+    },
+    {
+      "id": "onigiriFire",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/onigiriFire-A.wav",
+      "ok": true
+    },
+    {
+      "id": "onigiriFire",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/onigiriFire-B.wav",
+      "ok": true
+    },
+    {
+      "id": "onigiriFire",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/onigiriFire-C.wav",
+      "ok": true
+    },
+    {
+      "id": "stunGunFire",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/weapons/stunGunFire.ogg",
+      "ok": true
+    },
+    {
+      "id": "stunGunFire",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/stunGunFire-A.wav",
+      "ok": true
+    },
+    {
+      "id": "stunGunFire",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/stunGunFire-B.wav",
+      "ok": true
+    },
+    {
+      "id": "stunGunFire",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/stunGunFire-C.wav",
+      "ok": true
+    },
+    {
+      "id": "missileFire",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/weapons/missileFire.ogg",
+      "ok": true
+    },
+    {
+      "id": "missileFire",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/missileFire-A.wav",
+      "ok": true
+    },
+    {
+      "id": "missileFire",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/missileFire-B.wav",
+      "ok": true
+    },
+    {
+      "id": "missileFire",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/missileFire-C.wav",
+      "ok": true
+    },
+    {
+      "id": "starlinkFire",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/weapons/starlinkFire.ogg",
+      "ok": true
+    },
+    {
+      "id": "starlinkFire",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/starlinkFire-A.wav",
+      "ok": true
+    },
+    {
+      "id": "starlinkFire",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/starlinkFire-B.wav",
+      "ok": true
+    },
+    {
+      "id": "starlinkFire",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/starlinkFire-C.wav",
+      "ok": true
+    },
+    {
+      "id": "starlinkFall",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/weapons/starlinkFall.ogg",
+      "ok": true
+    },
+    {
+      "id": "starlinkFall",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/starlinkFall-A.wav",
+      "ok": true
+    },
+    {
+      "id": "starlinkFall",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/starlinkFall-B.wav",
+      "ok": true
+    },
+    {
+      "id": "starlinkFall",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/starlinkFall-C.wav",
+      "ok": true
+    },
+    {
+      "id": "starlinkExplosion",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/weapons/starlinkExplosion.ogg",
+      "ok": true
+    },
+    {
+      "id": "starlinkExplosion",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/starlinkExplosion-A.wav",
+      "ok": true
+    },
+    {
+      "id": "starlinkExplosion",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/starlinkExplosion-B.wav",
+      "ok": true
+    },
+    {
+      "id": "starlinkExplosion",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/starlinkExplosion-C.wav",
+      "ok": true
+    },
+    {
+      "id": "compassFire",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/weapons/compassFire.ogg",
+      "ok": true
+    },
+    {
+      "id": "compassFire",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/compassFire-A.wav",
+      "ok": true
+    },
+    {
+      "id": "compassFire",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/compassFire-B.wav",
+      "ok": true
+    },
+    {
+      "id": "compassFire",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/compassFire-C.wav",
+      "ok": true
+    },
+    {
+      "id": "umbrellaFire",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/weapons/umbrellaFire.ogg",
+      "ok": true
+    },
+    {
+      "id": "umbrellaFire",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/umbrellaFire-A.wav",
+      "ok": true
+    },
+    {
+      "id": "umbrellaFire",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/umbrellaFire-B.wav",
+      "ok": true
+    },
+    {
+      "id": "umbrellaFire",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/umbrellaFire-C.wav",
+      "ok": true
+    },
+    {
+      "id": "eraserFire",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/weapons/eraserFire.ogg",
+      "ok": true
+    },
+    {
+      "id": "eraserFire",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/eraserFire-A.wav",
+      "ok": true
+    },
+    {
+      "id": "eraserFire",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/eraserFire-B.wav",
+      "ok": true
+    },
+    {
+      "id": "eraserFire",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/eraserFire-C.wav",
+      "ok": true
+    },
+    {
+      "id": "chibikoFire",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/weapons/chibikoFire.ogg",
+      "ok": true
+    },
+    {
+      "id": "chibikoFire",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/chibikoFire-A.wav",
+      "ok": true
+    },
+    {
+      "id": "chibikoFire",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/chibikoFire-B.wav",
+      "ok": true
+    },
+    {
+      "id": "chibikoFire",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/chibikoFire-C.wav",
+      "ok": true
+    },
+    {
+      "id": "sharkFire",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/weapons/sharkFire.ogg",
+      "ok": true
+    },
+    {
+      "id": "sharkFire",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/sharkFire-A.wav",
+      "ok": true
+    },
+    {
+      "id": "sharkFire",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/sharkFire-B.wav",
+      "ok": true
+    },
+    {
+      "id": "sharkFire",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/sharkFire-C.wav",
+      "ok": true
+    },
+    {
+      "id": "lanternFire",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/weapons/lanternFire.ogg",
+      "ok": true
+    },
+    {
+      "id": "lanternFire",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/lanternFire-A.wav",
+      "ok": true
+    },
+    {
+      "id": "lanternFire",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/lanternFire-B.wav",
+      "ok": true
+    },
+    {
+      "id": "lanternFire",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/lanternFire-C.wav",
+      "ok": true
+    },
+    {
+      "id": "bikittyCutterFire",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/weapons/bikittyCutterFire.ogg",
+      "ok": true
+    },
+    {
+      "id": "bikittyCutterFire",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/bikittyCutterFire-A.wav",
+      "ok": true
+    },
+    {
+      "id": "bikittyCutterFire",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/bikittyCutterFire-B.wav",
+      "ok": true
+    },
+    {
+      "id": "bikittyCutterFire",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/bikittyCutterFire-C.wav",
+      "ok": true
+    },
+    {
+      "id": "bikittyCutterSnap",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/weapons/bikittyCutterSnap.ogg",
+      "ok": true
+    },
+    {
+      "id": "bikittyCutterSnap",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/bikittyCutterSnap-A.wav",
+      "ok": true
+    },
+    {
+      "id": "bikittyCutterSnap",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/bikittyCutterSnap-B.wav",
+      "ok": true
+    },
+    {
+      "id": "bikittyCutterSnap",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/bikittyCutterSnap-C.wav",
+      "ok": true
+    },
+    {
+      "id": "bikittyCutterReload",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/weapons/bikittyCutterReload.ogg",
+      "ok": true
+    },
+    {
+      "id": "bikittyCutterReload",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/bikittyCutterReload-A.wav",
+      "ok": true
+    },
+    {
+      "id": "bikittyCutterReload",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/bikittyCutterReload-B.wav",
+      "ok": true
+    },
+    {
+      "id": "bikittyCutterReload",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/bikittyCutterReload-C.wav",
+      "ok": true
+    },
+    {
+      "id": "lineDrawSlash",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/weapons/lineDrawSlash.ogg",
+      "ok": true
+    },
+    {
+      "id": "lineDrawSlash",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/lineDrawSlash-A.wav",
+      "ok": true
+    },
+    {
+      "id": "lineDrawSlash",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/lineDrawSlash-B.wav",
+      "ok": true
+    },
+    {
+      "id": "lineDrawSlash",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/lineDrawSlash-C.wav",
+      "ok": true
+    },
+    {
+      "id": "lineDrawCross",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/weapons/lineDrawCross.ogg",
+      "ok": true
+    },
+    {
+      "id": "lineDrawCross",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/lineDrawCross-A.wav",
+      "ok": true
+    },
+    {
+      "id": "lineDrawCross",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/lineDrawCross-B.wav",
+      "ok": true
+    },
+    {
+      "id": "lineDrawCross",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/lineDrawCross-C.wav",
+      "ok": true
+    },
+    {
+      "id": "lineDrawExpire",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/weapons/lineDrawExpire.ogg",
+      "ok": true
+    },
+    {
+      "id": "lineDrawExpire",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/lineDrawExpire-A.wav",
+      "ok": true
+    },
+    {
+      "id": "lineDrawExpire",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/lineDrawExpire-B.wav",
+      "ok": true
+    },
+    {
+      "id": "lineDrawExpire",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/lineDrawExpire-C.wav",
+      "ok": true
+    },
+    {
+      "id": "pencilHit",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/weapons/pencilHit.ogg",
+      "ok": true
+    },
+    {
+      "id": "pencilHit",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/pencilHit-A.wav",
+      "ok": true
+    },
+    {
+      "id": "pencilHit",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/pencilHit-B.wav",
+      "ok": true
+    },
+    {
+      "id": "pencilHit",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/pencilHit-C.wav",
+      "ok": true
+    },
+    {
+      "id": "rulerHit",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/weapons/rulerHit.ogg",
+      "ok": true
+    },
+    {
+      "id": "rulerHit",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/rulerHit-A.wav",
+      "ok": true
+    },
+    {
+      "id": "rulerHit",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/rulerHit-B.wav",
+      "ok": true
+    },
+    {
+      "id": "rulerHit",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/rulerHit-C.wav",
+      "ok": true
+    },
+    {
+      "id": "boxCutterHit",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/weapons/boxCutterHit.ogg",
+      "ok": true
+    },
+    {
+      "id": "boxCutterHit",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/boxCutterHit-A.wav",
+      "ok": true
+    },
+    {
+      "id": "boxCutterHit",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/boxCutterHit-B.wav",
+      "ok": true
+    },
+    {
+      "id": "boxCutterHit",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/boxCutterHit-C.wav",
+      "ok": true
+    },
+    {
+      "id": "tumblerHit",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/weapons/tumblerHit.ogg",
+      "ok": true
+    },
+    {
+      "id": "tumblerHit",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/tumblerHit-A.wav",
+      "ok": true
+    },
+    {
+      "id": "tumblerHit",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/tumblerHit-B.wav",
+      "ok": true
+    },
+    {
+      "id": "tumblerHit",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/tumblerHit-C.wav",
+      "ok": true
+    },
+    {
+      "id": "bellHit",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/weapons/bellHit.ogg",
+      "ok": true
+    },
+    {
+      "id": "bellHit",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/bellHit-A.wav",
+      "ok": true
+    },
+    {
+      "id": "bellHit",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/bellHit-B.wav",
+      "ok": true
+    },
+    {
+      "id": "bellHit",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/bellHit-C.wav",
+      "ok": true
+    },
+    {
+      "id": "flaskHit",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/weapons/flaskHit.ogg",
+      "ok": true
+    },
+    {
+      "id": "flaskHit",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/flaskHit-A.wav",
+      "ok": true
+    },
+    {
+      "id": "flaskHit",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/flaskHit-B.wav",
+      "ok": true
+    },
+    {
+      "id": "flaskHit",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/flaskHit-C.wav",
+      "ok": true
+    },
+    {
+      "id": "onigiriHit",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/weapons/onigiriHit.ogg",
+      "ok": true
+    },
+    {
+      "id": "onigiriHit",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/onigiriHit-A.wav",
+      "ok": true
+    },
+    {
+      "id": "onigiriHit",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/onigiriHit-B.wav",
+      "ok": true
+    },
+    {
+      "id": "onigiriHit",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/onigiriHit-C.wav",
+      "ok": true
+    },
+    {
+      "id": "stunGunHit",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/weapons/stunGunHit.ogg",
+      "ok": true
+    },
+    {
+      "id": "stunGunHit",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/stunGunHit-A.wav",
+      "ok": true
+    },
+    {
+      "id": "stunGunHit",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/stunGunHit-B.wav",
+      "ok": true
+    },
+    {
+      "id": "stunGunHit",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/stunGunHit-C.wav",
+      "ok": true
+    },
+    {
+      "id": "missileHit",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/weapons/missileHit.ogg",
+      "ok": true
+    },
+    {
+      "id": "missileHit",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/missileHit-A.wav",
+      "ok": true
+    },
+    {
+      "id": "missileHit",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/missileHit-B.wav",
+      "ok": true
+    },
+    {
+      "id": "missileHit",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/missileHit-C.wav",
+      "ok": true
+    },
+    {
+      "id": "starlinkHit",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/weapons/starlinkHit.ogg",
+      "ok": true
+    },
+    {
+      "id": "starlinkHit",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/starlinkHit-A.wav",
+      "ok": true
+    },
+    {
+      "id": "starlinkHit",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/starlinkHit-B.wav",
+      "ok": true
+    },
+    {
+      "id": "starlinkHit",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/starlinkHit-C.wav",
+      "ok": true
+    },
+    {
+      "id": "compassHit",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/weapons/compassHit.ogg",
+      "ok": true
+    },
+    {
+      "id": "compassHit",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/compassHit-A.wav",
+      "ok": true
+    },
+    {
+      "id": "compassHit",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/compassHit-B.wav",
+      "ok": true
+    },
+    {
+      "id": "compassHit",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/compassHit-C.wav",
+      "ok": true
+    },
+    {
+      "id": "compassQuack",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/weapons/compassQuack.ogg",
+      "ok": true
+    },
+    {
+      "id": "compassQuack",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/compassQuack-A.wav",
+      "ok": true
+    },
+    {
+      "id": "compassQuack",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/compassQuack-B.wav",
+      "ok": true
+    },
+    {
+      "id": "compassQuack",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/compassQuack-C.wav",
+      "ok": true
+    },
+    {
+      "id": "umbrellaHit",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/weapons/umbrellaHit.ogg",
+      "ok": true
+    },
+    {
+      "id": "umbrellaHit",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/umbrellaHit-A.wav",
+      "ok": true
+    },
+    {
+      "id": "umbrellaHit",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/umbrellaHit-B.wav",
+      "ok": true
+    },
+    {
+      "id": "umbrellaHit",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/umbrellaHit-C.wav",
+      "ok": true
+    },
+    {
+      "id": "eraserHit",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/weapons/eraserHit.ogg",
+      "ok": true
+    },
+    {
+      "id": "eraserHit",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/eraserHit-A.wav",
+      "ok": true
+    },
+    {
+      "id": "eraserHit",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/eraserHit-B.wav",
+      "ok": true
+    },
+    {
+      "id": "eraserHit",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/eraserHit-C.wav",
+      "ok": true
+    },
+    {
+      "id": "chibikoHit",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/weapons/chibikoHit.ogg",
+      "ok": true
+    },
+    {
+      "id": "chibikoHit",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/chibikoHit-A.wav",
+      "ok": true
+    },
+    {
+      "id": "chibikoHit",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/chibikoHit-B.wav",
+      "ok": true
+    },
+    {
+      "id": "chibikoHit",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/chibikoHit-C.wav",
+      "ok": true
+    },
+    {
+      "id": "sharkHit",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/weapons/sharkHit.ogg",
+      "ok": true
+    },
+    {
+      "id": "sharkHit",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/sharkHit-A.wav",
+      "ok": true
+    },
+    {
+      "id": "sharkHit",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/sharkHit-B.wav",
+      "ok": true
+    },
+    {
+      "id": "sharkHit",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/sharkHit-C.wav",
+      "ok": true
+    },
+    {
+      "id": "flaskTick",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/weapons/flaskTick.ogg",
+      "ok": true
+    },
+    {
+      "id": "flaskTick",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/flaskTick-A.wav",
+      "ok": true
+    },
+    {
+      "id": "flaskTick",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/flaskTick-B.wav",
+      "ok": true
+    },
+    {
+      "id": "flaskTick",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/flaskTick-C.wav",
+      "ok": true
+    },
+    {
+      "id": "lanternTick",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/weapons/lanternTick.ogg",
+      "ok": true
+    },
+    {
+      "id": "lanternTick",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/lanternTick-A.wav",
+      "ok": true
+    },
+    {
+      "id": "lanternTick",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/lanternTick-B.wav",
+      "ok": true
+    },
+    {
+      "id": "lanternTick",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/lanternTick-C.wav",
+      "ok": true
+    },
+    {
+      "id": "playerHit",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/player/playerHit.ogg",
+      "ok": true
+    },
+    {
+      "id": "playerHit",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/playerHit-A.wav",
+      "ok": true
+    },
+    {
+      "id": "playerHit",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/playerHit-B.wav",
+      "ok": true
+    },
+    {
+      "id": "playerHit",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/playerHit-C.wav",
+      "ok": true
+    },
+    {
+      "id": "playerDeath",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/player/playerDeath.ogg",
+      "ok": true
+    },
+    {
+      "id": "playerDeath",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/playerDeath-A.wav",
+      "ok": true
+    },
+    {
+      "id": "playerDeath",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/playerDeath-B.wav",
+      "ok": true
+    },
+    {
+      "id": "playerDeath",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/playerDeath-C.wav",
+      "ok": true
+    },
+    {
+      "id": "playerHeal",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/player/playerHeal.ogg",
+      "ok": true
+    },
+    {
+      "id": "playerHeal",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/playerHeal-A.wav",
+      "ok": true
+    },
+    {
+      "id": "playerHeal",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/playerHeal-B.wav",
+      "ok": true
+    },
+    {
+      "id": "playerHeal",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/playerHeal-C.wav",
+      "ok": true
+    },
+    {
+      "id": "playerStep",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/player/playerStep.ogg",
+      "ok": true
+    },
+    {
+      "id": "playerStep",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/playerStep-A.wav",
+      "ok": true
+    },
+    {
+      "id": "playerStep",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/playerStep-B.wav",
+      "ok": true
+    },
+    {
+      "id": "playerStep",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/playerStep-C.wav",
+      "ok": true
+    },
+    {
+      "id": "zombieGroan",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/enemies/zombieGroan.ogg",
+      "ok": true
+    },
+    {
+      "id": "zombieGroan",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/zombieGroan-A.wav",
+      "ok": true
+    },
+    {
+      "id": "zombieGroan",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/zombieGroan-B.wav",
+      "ok": true
+    },
+    {
+      "id": "zombieGroan",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/zombieGroan-C.wav",
+      "ok": true
+    },
+    {
+      "id": "zombieSpawn",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/enemies/zombieSpawn.ogg",
+      "ok": true
+    },
+    {
+      "id": "zombieSpawn",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/zombieSpawn-A.wav",
+      "ok": true
+    },
+    {
+      "id": "zombieSpawn",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/zombieSpawn-B.wav",
+      "ok": true
+    },
+    {
+      "id": "zombieSpawn",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/zombieSpawn-C.wav",
+      "ok": true
+    },
+    {
+      "id": "zombieTankGroan",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/enemies/zombieTankGroan.ogg",
+      "ok": true
+    },
+    {
+      "id": "zombieTankGroan",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/zombieTankGroan-A.wav",
+      "ok": true
+    },
+    {
+      "id": "zombieTankGroan",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/zombieTankGroan-B.wav",
+      "ok": true
+    },
+    {
+      "id": "zombieTankGroan",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/zombieTankGroan-C.wav",
+      "ok": true
+    },
+    {
+      "id": "zombieRunnerScreech",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/enemies/zombieRunnerScreech.ogg",
+      "ok": true
+    },
+    {
+      "id": "zombieRunnerScreech",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/zombieRunnerScreech-A.wav",
+      "ok": true
+    },
+    {
+      "id": "zombieRunnerScreech",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/zombieRunnerScreech-B.wav",
+      "ok": true
+    },
+    {
+      "id": "zombieRunnerScreech",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/zombieRunnerScreech-C.wav",
+      "ok": true
+    },
+    {
+      "id": "zombieRangedShoot",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/enemies/zombieRangedShoot.ogg",
+      "ok": true
+    },
+    {
+      "id": "zombieRangedShoot",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/zombieRangedShoot-A.wav",
+      "ok": true
+    },
+    {
+      "id": "zombieRangedShoot",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/zombieRangedShoot-B.wav",
+      "ok": true
+    },
+    {
+      "id": "zombieRangedShoot",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/zombieRangedShoot-C.wav",
+      "ok": true
+    },
+    {
+      "id": "zombieChargeRoar",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/enemies/zombieChargeRoar.ogg",
+      "ok": true
+    },
+    {
+      "id": "zombieChargeRoar",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/zombieChargeRoar-A.wav",
+      "ok": true
+    },
+    {
+      "id": "zombieChargeRoar",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/zombieChargeRoar-B.wav",
+      "ok": true
+    },
+    {
+      "id": "zombieChargeRoar",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/zombieChargeRoar-C.wav",
+      "ok": true
+    },
+    {
+      "id": "zombieGiantThud",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/enemies/zombieGiantThud.ogg",
+      "ok": true
+    },
+    {
+      "id": "zombieGiantThud",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/zombieGiantThud-A.wav",
+      "ok": true
+    },
+    {
+      "id": "zombieGiantThud",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/zombieGiantThud-B.wav",
+      "ok": true
+    },
+    {
+      "id": "zombieGiantThud",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/zombieGiantThud-C.wav",
+      "ok": true
+    },
+    {
+      "id": "bossRoar",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/enemies/bossRoar.ogg",
+      "ok": true
+    },
+    {
+      "id": "bossRoar",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/bossRoar-A.wav",
+      "ok": true
+    },
+    {
+      "id": "bossRoar",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/bossRoar-B.wav",
+      "ok": true
+    },
+    {
+      "id": "bossRoar",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/bossRoar-C.wav",
+      "ok": true
+    },
+    {
+      "id": "matildaSpawn",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/enemies/matildaSpawn.ogg",
+      "ok": true
+    },
+    {
+      "id": "matildaSpawn",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/matildaSpawn-A.wav",
+      "ok": true
+    },
+    {
+      "id": "matildaSpawn",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/matildaSpawn-B.wav",
+      "ok": true
+    },
+    {
+      "id": "matildaSpawn",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/matildaSpawn-C.wav",
+      "ok": true
+    },
+    {
+      "id": "matildaDash",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/enemies/matildaDash.ogg",
+      "ok": true
+    },
+    {
+      "id": "matildaDash",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/matildaDash-A.wav",
+      "ok": true
+    },
+    {
+      "id": "matildaDash",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/matildaDash-B.wav",
+      "ok": true
+    },
+    {
+      "id": "matildaDash",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/matildaDash-C.wav",
+      "ok": true
+    },
+    {
+      "id": "matildaLaugh",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/enemies/matildaLaugh.ogg",
+      "ok": true
+    },
+    {
+      "id": "matildaLaugh",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/matildaLaugh-A.wav",
+      "ok": true
+    },
+    {
+      "id": "matildaLaugh",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/matildaLaugh-B.wav",
+      "ok": true
+    },
+    {
+      "id": "matildaLaugh",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/matildaLaugh-C.wav",
+      "ok": true
+    },
+    {
+      "id": "zombieDeathGrunt",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/enemies/zombieDeathGrunt.ogg",
+      "ok": true
+    },
+    {
+      "id": "zombieDeathGrunt",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/zombieDeathGrunt-A.wav",
+      "ok": true
+    },
+    {
+      "id": "zombieDeathGrunt",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/zombieDeathGrunt-B.wav",
+      "ok": true
+    },
+    {
+      "id": "zombieDeathGrunt",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/zombieDeathGrunt-C.wav",
+      "ok": true
+    },
+    {
+      "id": "zombieDeathHeavy",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/enemies/zombieDeathHeavy.ogg",
+      "ok": true
+    },
+    {
+      "id": "zombieDeathHeavy",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/zombieDeathHeavy-A.wav",
+      "ok": true
+    },
+    {
+      "id": "zombieDeathHeavy",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/zombieDeathHeavy-B.wav",
+      "ok": true
+    },
+    {
+      "id": "zombieDeathHeavy",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/zombieDeathHeavy-C.wav",
+      "ok": true
+    },
+    {
+      "id": "zombieDeathShriek",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/enemies/zombieDeathShriek.ogg",
+      "ok": true
+    },
+    {
+      "id": "zombieDeathShriek",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/zombieDeathShriek-A.wav",
+      "ok": true
+    },
+    {
+      "id": "zombieDeathShriek",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/zombieDeathShriek-B.wav",
+      "ok": true
+    },
+    {
+      "id": "zombieDeathShriek",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/zombieDeathShriek-C.wav",
+      "ok": true
+    },
+    {
+      "id": "zombieDeathGurgle",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/enemies/zombieDeathGurgle.ogg",
+      "ok": true
+    },
+    {
+      "id": "zombieDeathGurgle",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/zombieDeathGurgle-A.wav",
+      "ok": true
+    },
+    {
+      "id": "zombieDeathGurgle",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/zombieDeathGurgle-B.wav",
+      "ok": true
+    },
+    {
+      "id": "zombieDeathGurgle",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/zombieDeathGurgle-C.wav",
+      "ok": true
+    },
+    {
+      "id": "zombieDeathBellow",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/enemies/zombieDeathBellow.ogg",
+      "ok": true
+    },
+    {
+      "id": "zombieDeathBellow",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/zombieDeathBellow-A.wav",
+      "ok": true
+    },
+    {
+      "id": "zombieDeathBellow",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/zombieDeathBellow-B.wav",
+      "ok": true
+    },
+    {
+      "id": "zombieDeathBellow",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/zombieDeathBellow-C.wav",
+      "ok": true
+    },
+    {
+      "id": "bossDeath",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/enemies/bossDeath.ogg",
+      "ok": true
+    },
+    {
+      "id": "bossDeath",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/bossDeath-A.wav",
+      "ok": true
+    },
+    {
+      "id": "bossDeath",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/bossDeath-B.wav",
+      "ok": true
+    },
+    {
+      "id": "bossDeath",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/bossDeath-C.wav",
+      "ok": true
+    },
+    {
+      "id": "matildaDeath",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/enemies/matildaDeath.ogg",
+      "ok": true
+    },
+    {
+      "id": "matildaDeath",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/matildaDeath-A.wav",
+      "ok": true
+    },
+    {
+      "id": "matildaDeath",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/matildaDeath-B.wav",
+      "ok": true
+    },
+    {
+      "id": "matildaDeath",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/matildaDeath-C.wav",
+      "ok": true
+    },
+    {
+      "id": "dogeDeath",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/enemies/dogeDeath.ogg",
+      "ok": true
+    },
+    {
+      "id": "dogeDeath",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/dogeDeath-A.wav",
+      "ok": true
+    },
+    {
+      "id": "dogeDeath",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/dogeDeath-B.wav",
+      "ok": true
+    },
+    {
+      "id": "dogeDeath",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/dogeDeath-C.wav",
+      "ok": true
+    },
+    {
+      "id": "dogeEscape",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/enemies/dogeEscape.ogg",
+      "ok": true
+    },
+    {
+      "id": "dogeEscape",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/dogeEscape-A.wav",
+      "ok": true
+    },
+    {
+      "id": "dogeEscape",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/dogeEscape-B.wav",
+      "ok": true
+    },
+    {
+      "id": "dogeEscape",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/dogeEscape-C.wav",
+      "ok": true
+    },
+    {
+      "id": "dogeYelp",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/enemies/dogeYelp.ogg",
+      "ok": true
+    },
+    {
+      "id": "dogeYelp",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/dogeYelp-A.wav",
+      "ok": true
+    },
+    {
+      "id": "dogeYelp",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/dogeYelp-B.wav",
+      "ok": true
+    },
+    {
+      "id": "dogeYelp",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/dogeYelp-C.wav",
+      "ok": true
+    },
+    {
+      "id": "inuconBite",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/enemies/inuconBite.ogg",
+      "ok": true
+    },
+    {
+      "id": "inuconBite",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/inuconBite-A.wav",
+      "ok": true
+    },
+    {
+      "id": "inuconBite",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/inuconBite-B.wav",
+      "ok": true
+    },
+    {
+      "id": "inuconBite",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/inuconBite-C.wav",
+      "ok": true
+    },
+    {
+      "id": "inuconHeal",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/enemies/inuconHeal.ogg",
+      "ok": true
+    },
+    {
+      "id": "inuconHeal",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/inuconHeal-A.wav",
+      "ok": true
+    },
+    {
+      "id": "inuconHeal",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/inuconHeal-B.wav",
+      "ok": true
+    },
+    {
+      "id": "inuconHeal",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/inuconHeal-C.wav",
+      "ok": true
+    },
+    {
+      "id": "buttonClick",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/ui/buttonClick.ogg",
+      "ok": true
+    },
+    {
+      "id": "buttonClick",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/buttonClick-A.wav",
+      "ok": true
+    },
+    {
+      "id": "buttonClick",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/buttonClick-B.wav",
+      "ok": true
+    },
+    {
+      "id": "buttonClick",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/buttonClick-C.wav",
+      "ok": true
+    },
+    {
+      "id": "coinCollect",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/ui/coinCollect.ogg",
+      "ok": true
+    },
+    {
+      "id": "coinCollect",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/coinCollect-A.wav",
+      "ok": true
+    },
+    {
+      "id": "coinCollect",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/coinCollect-B.wav",
+      "ok": true
+    },
+    {
+      "id": "coinCollect",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/coinCollect-C.wav",
+      "ok": true
+    },
+    {
+      "id": "textbookCollect",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/ui/textbookCollect.ogg",
+      "ok": true
+    },
+    {
+      "id": "textbookCollect",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/textbookCollect-A.wav",
+      "ok": true
+    },
+    {
+      "id": "textbookCollect",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/textbookCollect-B.wav",
+      "ok": true
+    },
+    {
+      "id": "textbookCollect",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/textbookCollect-C.wav",
+      "ok": true
+    },
+    {
+      "id": "levelUp",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/ui/levelUp.ogg",
+      "ok": true
+    },
+    {
+      "id": "levelUp",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/levelUp-A.wav",
+      "ok": true
+    },
+    {
+      "id": "levelUp",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/levelUp-B.wav",
+      "ok": true
+    },
+    {
+      "id": "levelUp",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/levelUp-C.wav",
+      "ok": true
+    },
+    {
+      "id": "stageClear",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/ui/stageClear.ogg",
+      "ok": true
+    },
+    {
+      "id": "stageClear",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/stageClear-A.wav",
+      "ok": true
+    },
+    {
+      "id": "stageClear",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/stageClear-B.wav",
+      "ok": true
+    },
+    {
+      "id": "stageClear",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/stageClear-C.wav",
+      "ok": true
+    },
+    {
+      "id": "gameOver",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/ui/gameOver.ogg",
+      "ok": true
+    },
+    {
+      "id": "gameOver",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/gameOver-A.wav",
+      "ok": true
+    },
+    {
+      "id": "gameOver",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/gameOver-B.wav",
+      "ok": true
+    },
+    {
+      "id": "gameOver",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/gameOver-C.wav",
+      "ok": true
+    },
+    {
+      "id": "criticalHit",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/events/criticalHit.ogg",
+      "ok": true
+    },
+    {
+      "id": "criticalHit",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/criticalHit-A.wav",
+      "ok": true
+    },
+    {
+      "id": "criticalHit",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/criticalHit-B.wav",
+      "ok": true
+    },
+    {
+      "id": "criticalHit",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/criticalHit-C.wav",
+      "ok": true
+    },
+    {
+      "id": "bossWarning",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/events/bossWarning.ogg",
+      "ok": true
+    },
+    {
+      "id": "bossWarning",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/bossWarning-A.wav",
+      "ok": true
+    },
+    {
+      "id": "bossWarning",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/bossWarning-B.wav",
+      "ok": true
+    },
+    {
+      "id": "bossWarning",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/bossWarning-C.wav",
+      "ok": true
+    },
+    {
+      "id": "bossSpawn",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/events/bossSpawn.ogg",
+      "ok": true
+    },
+    {
+      "id": "bossSpawn",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/bossSpawn-A.wav",
+      "ok": true
+    },
+    {
+      "id": "bossSpawn",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/bossSpawn-B.wav",
+      "ok": true
+    },
+    {
+      "id": "bossSpawn",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/bossSpawn-C.wav",
+      "ok": true
+    },
+    {
+      "id": "portalAppear",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/events/portalAppear.ogg",
+      "ok": true
+    },
+    {
+      "id": "portalAppear",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/portalAppear-A.wav",
+      "ok": true
+    },
+    {
+      "id": "portalAppear",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/portalAppear-B.wav",
+      "ok": true
+    },
+    {
+      "id": "portalAppear",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/portalAppear-C.wav",
+      "ok": true
+    },
+    {
+      "id": "portalSuction",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/events/portalSuction.ogg",
+      "ok": true
+    },
+    {
+      "id": "portalSuction",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/portalSuction-A.wav",
+      "ok": true
+    },
+    {
+      "id": "portalSuction",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/portalSuction-B.wav",
+      "ok": true
+    },
+    {
+      "id": "portalSuction",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/portalSuction-C.wav",
+      "ok": true
+    },
+    {
+      "id": "matildaWarningTick",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/events/matildaWarningTick.ogg",
+      "ok": true
+    },
+    {
+      "id": "matildaWarningTick",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/matildaWarningTick-A.wav",
+      "ok": true
+    },
+    {
+      "id": "matildaWarningTick",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/matildaWarningTick-B.wav",
+      "ok": true
+    },
+    {
+      "id": "matildaWarningTick",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/matildaWarningTick-C.wav",
+      "ok": true
+    },
+    {
+      "id": "matildaCountdownEnd",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/events/matildaCountdownEnd.ogg",
+      "ok": true
+    },
+    {
+      "id": "matildaCountdownEnd",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/matildaCountdownEnd-A.wav",
+      "ok": true
+    },
+    {
+      "id": "matildaCountdownEnd",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/matildaCountdownEnd-B.wav",
+      "ok": true
+    },
+    {
+      "id": "matildaCountdownEnd",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/matildaCountdownEnd-C.wav",
+      "ok": true
+    },
+    {
+      "id": "escapePortalClear",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/events/escapePortalClear.ogg",
+      "ok": true
+    },
+    {
+      "id": "escapePortalClear",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/escapePortalClear-A.wav",
+      "ok": true
+    },
+    {
+      "id": "escapePortalClear",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/escapePortalClear-B.wav",
+      "ok": true
+    },
+    {
+      "id": "escapePortalClear",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/escapePortalClear-C.wav",
+      "ok": true
+    },
+    {
+      "id": "bossClearJingle",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/events/bossClearJingle.ogg",
+      "ok": true
+    },
+    {
+      "id": "bossClearJingle",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/bossClearJingle-A.wav",
+      "ok": true
+    },
+    {
+      "id": "bossClearJingle",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/bossClearJingle-B.wav",
+      "ok": true
+    },
+    {
+      "id": "bossClearJingle",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/bossClearJingle-C.wav",
+      "ok": true
+    },
+    {
+      "id": "milestoneGold",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/events/milestoneGold.ogg",
+      "ok": true
+    },
+    {
+      "id": "milestoneGold",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/milestoneGold-A.wav",
+      "ok": true
+    },
+    {
+      "id": "milestoneGold",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/milestoneGold-B.wav",
+      "ok": true
+    },
+    {
+      "id": "milestoneGold",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/milestoneGold-C.wav",
+      "ok": true
+    },
+    {
+      "id": "chestDrop",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/events/chestDrop.ogg",
+      "ok": true
+    },
+    {
+      "id": "chestDrop",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/chestDrop-A.wav",
+      "ok": true
+    },
+    {
+      "id": "chestDrop",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/chestDrop-B.wav",
+      "ok": true
+    },
+    {
+      "id": "chestDrop",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/chestDrop-C.wav",
+      "ok": true
+    },
+    {
+      "id": "chestOpen",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/events/chestOpen.ogg",
+      "ok": true
+    },
+    {
+      "id": "chestOpen",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/chestOpen-A.wav",
+      "ok": true
+    },
+    {
+      "id": "chestOpen",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/chestOpen-B.wav",
+      "ok": true
+    },
+    {
+      "id": "chestOpen",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/chestOpen-C.wav",
+      "ok": true
+    },
+    {
+      "id": "textbookLand",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/events/textbookLand.ogg",
+      "ok": true
+    },
+    {
+      "id": "textbookLand",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/textbookLand-A.wav",
+      "ok": true
+    },
+    {
+      "id": "textbookLand",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/textbookLand-B.wav",
+      "ok": true
+    },
+    {
+      "id": "textbookLand",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/textbookLand-C.wav",
+      "ok": true
+    },
+    {
+      "id": "rzlWhistle",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/events/rzlWhistle.ogg",
+      "ok": true
+    },
+    {
+      "id": "rzlWhistle",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/rzlWhistle-A.wav",
+      "ok": true
+    },
+    {
+      "id": "rzlWhistle",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/rzlWhistle-B.wav",
+      "ok": true
+    },
+    {
+      "id": "rzlWhistle",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/rzlWhistle-C.wav",
+      "ok": true
+    },
+    {
+      "id": "stage2GuardWhistle",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/events/stage2GuardWhistle.ogg",
+      "ok": true
+    },
+    {
+      "id": "stage2GuardWhistle",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/stage2GuardWhistle-A.wav",
+      "ok": true
+    },
+    {
+      "id": "stage2GuardWhistle",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/stage2GuardWhistle-B.wav",
+      "ok": true
+    },
+    {
+      "id": "stage2GuardWhistle",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/stage2GuardWhistle-C.wav",
+      "ok": true
+    },
+    {
+      "id": "dialogue-protagonistIntro",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/audition-20261016/dialogue-protagonistIntro-original.wav",
+      "ok": true
+    },
+    {
+      "id": "dialogue-protagonistIntro",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/dialogue-protagonistIntro-A.wav",
+      "ok": true
+    },
+    {
+      "id": "dialogue-protagonistIntro",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/dialogue-protagonistIntro-B.wav",
+      "ok": true
+    },
+    {
+      "id": "dialogue-protagonistIntro",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/dialogue-protagonistIntro-C.wav",
+      "ok": true
+    },
+    {
+      "id": "dialogue-protagonistUrgent",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/audition-20261016/dialogue-protagonistUrgent-original.wav",
+      "ok": true
+    },
+    {
+      "id": "dialogue-protagonistUrgent",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/dialogue-protagonistUrgent-A.wav",
+      "ok": true
+    },
+    {
+      "id": "dialogue-protagonistUrgent",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/dialogue-protagonistUrgent-B.wav",
+      "ok": true
+    },
+    {
+      "id": "dialogue-protagonistUrgent",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/dialogue-protagonistUrgent-C.wav",
+      "ok": true
+    },
+    {
+      "id": "dialogue-matilda",
+      "variant": "original",
+      "src": "http://localhost:5173/sfx/audition-20261016/dialogue-matilda-original.wav",
+      "ok": true
+    },
+    {
+      "id": "dialogue-matilda",
+      "variant": "A",
+      "src": "http://localhost:5173/sfx/audition-20261016/dialogue-matilda-A.wav",
+      "ok": true
+    },
+    {
+      "id": "dialogue-matilda",
+      "variant": "B",
+      "src": "http://localhost:5173/sfx/audition-20261016/dialogue-matilda-B.wav",
+      "ok": true
+    },
+    {
+      "id": "dialogue-matilda",
+      "variant": "C",
+      "src": "http://localhost:5173/sfx/audition-20261016/dialogue-matilda-C.wav",
+      "ok": true
+    }
+  ],
+  "errors": [],
+  "closed": true,
+  "browserPid": 31344,
+  "preferenceDownload": "sfx-audition-preferences-20261016.json",
+  "preferenceData": {
+    "schemaVersion": 1,
+    "purpose": "audition-preferences-only",
+    "manifestGeneratedAt": "2026-10-16T00:30:11.358Z",
+    "exportedAt": "2026-10-16T00:41:16.320Z",
+    "choices": [
+      {
+        "caseId": "dialogue-matilda",
+        "name": "마틸다 대사",
+        "selected": "C"
+      }
+    ]
+  },
+  "passed": true,
+  "finishedAt": "2026-10-16T00:41:20.151Z"
+}

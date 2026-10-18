@@ -59,15 +59,20 @@ export const ENEMY_STUCK_MOVE_EPSILON_SQ = 1e-6
 // RZT(코드 13) hp 28→140 (2026-08-16): ENEMY_STATS는 커밋 10240ef "Double Stage 2 trench zombie
 // size and raise HP"에서 이미 140/1.76으로 올랐는데 이 복사본만 옛 28/0.88로 남아 있었다.
 // 프로브가 경비추격 탱커 리더를 1/5 체력으로 계산해 "고쳤는데 프로브는 옛 값으로 합격"이 나던 자리다.
-export const ENEMY_RUNTIME_HP = new Float32Array([0, 8, 70, 10, 32, 70, 320, 90, 28, 0, 0, 0, 0, 140, 48, 16, 12])
+import { EXPANSION_ENEMIES } from './expansionContent.js'
+import { stepExpansionPooledAttack, cleanupExpansionPoolAttacks, resetExpansionPoolAttacks } from './expansionAttackRuntime.js'
+const expansionRows = Object.values(EXPANSION_ENEMIES)
+const extendRuntime = (values, key) => new Float32Array([...values, ...expansionRows.map(e => e[key])])
+
+export const ENEMY_RUNTIME_HP = extendRuntime([0, 8, 70, 10, 32, 70, 320, 90, 28, 0, 0, 0, 0, 140, 48, 16, 12], 'hp')
 // speed 전 슬롯 ×1.1 (2026-08-13). ENEMY_STATS와 한 벌이라 한쪽만 고치면 게임과 프로브가 갈라진다.
-export const ENEMY_RUNTIME_SPEED = new Float32Array([0, 0.5225, 0.4235, 1.21, 0.495, 0.55, 0.66, 2.695, 2.398, 0, 0, 0, 0, 1.4025, 1.3475, 1.045, 0.88])
-export const ENEMY_RUNTIME_DAMAGE = new Float32Array([0, 8, 14, 6, 8, 16, 20, 14, 7, 0, 0, 0, 0, 6, 9, 16, 0])
+export const ENEMY_RUNTIME_SPEED = extendRuntime([0, 0.5225, 0.4235, 1.21, 0.495, 0.55, 0.66, 2.695, 2.398, 0, 0, 0, 0, 1.4025, 1.3475, 1.045, 0.88], 'speedUnitsPerSec')
+export const ENEMY_RUNTIME_DAMAGE = extendRuntime([0, 8, 14, 6, 8, 16, 20, 14, 7, 0, 0, 0, 0, 6, 9, 16, 0], 'contactDamage')
 // RZT(코드 13) scale 0.88→1.76 — 위 hp와 같은 커밋에서 두 배가 됐다. 이 값은 히트박스 반경
 // (enemyContactRadius)까지 좌우해서, 어긋난 채로 두면 프로브가 절반 크기 판정으로 돌아간다.
-export const ENEMY_RUNTIME_SCALE = new Float32Array([0, 1, 1.4, 0.75, 0.9, 1.15, 1.6, 1.08, 0.78, 0, 0, 0, 0, 1.76, 0.92, 1, 0.92])
-export const ENEMY_RUNTIME_XP = new Float32Array([0, 4, 15, 5, 10, 15, 56, 12, 5, 0, 0, 0, 0, 5, 6, 8, 6])
-export const ENEMY_RUNTIME_CONTACT_DIST = new Float32Array([0, 0.28, 0.36, 0.22, 0.26, 0.32, 0.42, 0.28, 0.22, 0, 0, 0, 0, 0.22, 0.24, 0.28, 0.26])
+export const ENEMY_RUNTIME_SCALE = extendRuntime([0, 1, 1.4, 0.75, 0.9, 1.15, 1.6, 1.08, 0.78, 0, 0, 0, 0, 1.76, 0.92, 1, 0.92], 'scale')
+export const ENEMY_RUNTIME_XP = extendRuntime([0, 4, 15, 5, 10, 15, 56, 12, 5, 0, 0, 0, 0, 5, 6, 8, 6], 'xpPerTextbook')
+export const ENEMY_RUNTIME_CONTACT_DIST = extendRuntime([0, 0.28, 0.36, 0.22, 0.26, 0.32, 0.42, 0.28, 0.22, 0, 0, 0, 0, 0.22, 0.24, 0.28, 0.26], 'contactDistUnits')
 
 function isFiniteNumber(value) {
   return Number.isFinite(value)
@@ -104,7 +109,7 @@ function ignoresObstacles(type) {
 }
 
 function isMelee(type) {
-  return type === 1 || type === 2 || type === 3 || type === 5 || type === 6 || type === 7 || type === 8 || type === 13 || type === 14 || type === 15
+  return type >= 17 && type <= 31 || type === 1 || type === 2 || type === 3 || type === 5 || type === 6 || type === 7 || type === 8 || type === 13 || type === 14 || type === 15
 }
 
 export function enemyContactDistance(type) {
@@ -593,6 +598,7 @@ export class EnemySimulationRuntime {
   reset() {
     this.grid.reset()
     this.events.reset()
+    if(this._pool) resetExpansionPoolAttacks(this._pool)
   }
 
   _despawn(pool, index, eventType, value = 0, callback) {
@@ -603,6 +609,7 @@ export class EnemySimulationRuntime {
     this.events.push(eventType, index, generation, x, y, z, value)
     if (callback) callback(index, generation, x, y, z, value)
     pool.despawnIndex(index, generation)
+    cleanupExpansionPoolAttacks(pool)
   }
 
   _isolateAll(pool) {
@@ -614,6 +621,7 @@ export class EnemySimulationRuntime {
 
   step(pool, context) {
     if (!pool || !context || typeof context !== 'object') return false
+    this._pool=pool
     const rawDelta = context.delta
     const playerX = context.playerX
     const playerZ = context.playerZ
@@ -626,6 +634,7 @@ export class EnemySimulationRuntime {
       || !isFiniteNumber(elapsedSec) || elapsedSec < 0 || !Number.isInteger(initialProjectileCount) || initialProjectileCount < 0) return this._isolateAll(pool)
     const delta = Math.min(rawDelta, 1 / 30)
     if (delta < 0) return this._isolateAll(pool)
+    cleanupExpansionPoolAttacks(pool)
     const deltaMs = delta * 1000
     const obstacles = context.obstacles
     const obstacleCount = obstacles && Number.isInteger(context.obstacleCount) ? Math.max(0, context.obstacleCount) : 0
@@ -647,7 +656,7 @@ export class EnemySimulationRuntime {
     for (let index = 0; index <= pool.highestActive; index += 1) {
       if (!pool.active[index]) continue
       // 유효 타입 = 1~8(E01~E06/RZL/RZC), 13~15(RZT/RZG/E07). 9~12는 보스라 이 런타임을 타지 않는다.
-      if (pool.type[index] < 1 || pool.type[index] > 8 && pool.type[index] < 13 || pool.type[index] > 16 || !hasFiniteSlot(pool, index)) {
+      if (pool.type[index] < 1 || pool.type[index] > 8 && pool.type[index] < 13 || pool.type[index] > 31 || !hasFiniteSlot(pool, index)) {
         this._despawn(pool, index, ENEMY_EVENT_ERROR, 0, null)
         continue
       }
@@ -711,6 +720,7 @@ export class EnemySimulationRuntime {
       let velocityZ = 0
       let moving = false
       let preserveFacing = false
+      let expansionAttack = null
 
       if (isScreenRunner(type)) {
         velocityX = pool.runDirX[index] * ENEMY_RUNTIME_SPEED[type]
@@ -782,6 +792,13 @@ export class EnemySimulationRuntime {
         }
       }
 
+      if (type >= 17 && pool.knockbackTimer[index] <= 0) {
+        const a = this._expansionArgs ??= { deltaMs:0, playing:true, alive:true,gameKey:0,x:0,z:0,playerX:0,playerZ:0,hpRatio:1,blocked:false }
+        a.deltaMs=deltaMs; a.playerX=playerX; a.playerZ=playerZ; a.blocked=!!sightBlocked?.[index]
+        expansionAttack = stepExpansionPooledAttack(pool,index,a)
+        if(expansionAttack.stop) { velocityX=expansionAttack.velocityX;velocityZ=expansionAttack.velocityZ;moving=velocityX!==0||velocityZ!==0;preserveFacing=true }
+        if(expansionAttack.damage>0) this._emit(ENEMY_EVENT_CONTACT,pool,index,playerX,0,playerZ,expansionAttack.damage,context.onContact)
+      }
       if (sightBlocked && sightBlocked[index] && !isScreenRunner(type) && !preserveFacing) {
         const side = ((index + generation) & 1) === 0 ? 1 : -1
         velocityX = -nz * side * ENEMY_RUNTIME_SPEED[type] * 0.55
@@ -883,7 +900,7 @@ export class EnemySimulationRuntime {
         this._despawn(pool, index, ENEMY_EVENT_DESPAWN, 0, context.onDespawn)
         continue
       }
-      if (isMelee(type) && distance <= contactDistance(type) && pool.hitCooldown[index] <= 0) {
+      if (isMelee(type) && !expansionAttack?.noContact && distance <= contactDistance(type) && pool.hitCooldown[index] <= 0) {
         pool.hitCooldown[index] = ENEMY_CONTACT_COOLDOWN_MS
         pool.lastContactX[index] = playerX
         pool.lastContactZ[index] = playerZ

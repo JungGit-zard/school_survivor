@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { createHash } from 'node:crypto'
+import pinned from './__fixtures__/placements-revision1947-b1d1d58.json'
 import { CLASSROOM_CHAIR_VARIANTS } from './ClassroomChair.jsx'
 import { CLASSROOM_DESK_VARIANTS } from './ClassroomDesk.jsx'
 import { UNCONSCIOUS_STUDENT_VARIANTS } from './UnconsciousStudent.jsx'
@@ -24,6 +25,14 @@ import {
 } from '../../lib/studioRuntimeState.js'
 
 describe('stage object placements', () => {
+  it('pins independent historical fixture array hashes and exact three-delta provenance', () => {
+    expect(pinned.provenance.revision).toBe(1947)
+    expect(pinned.provenance.position_deltas).toHaveLength(3)
+    expect(createHash('sha256').update(JSON.stringify(pinned.stage1)).digest('hex'))
+      .toBe('e1edd8d5e0e5493fd7e434f6f694344feba2a160786ef5c7a61611fd772d9f6e')
+    expect(createHash('sha256').update(JSON.stringify(pinned.stage2)).digest('hex'))
+      .toBe('ad20461ab755a1fcb42549cf29708b54eb0be04fa0f41afa9f06c2b78ce42cbe')
+  })
   it('provides supported stage object props for both playable stages', () => {
     const supportedTypes = new Set([
       'classroomChair',
@@ -53,10 +62,10 @@ describe('stage object placements', () => {
     expect(getStageObjectPlacements('stage3').every((item) => supportedTypes.has(item.type))).toBe(true)
   })
 
-  it('keeps Stage 1 desks away from the central spawn/play zone', () => {
-    expect(
-      getStageObjectPlacements('stage1').every(({ position: [x, , z] }) => Math.abs(x) >= 6 || Math.abs(z) >= 12)
-    ).toBe(true)
+  // Owner PHASE2: July central predicate superseded by revision1947 + exact3 deltas.
+  // Physical spawn/exit/quest access is tested independently in authoredPlacementSafety.test.js.
+  it('pins every Stage 1 authored field to the independent accepted historical fixture', () => {
+    expect(STAGE_OBJECT_PLACEMENTS.stage1).toEqual(pinned.stage1)
   })
 
   it('uses disrupted Stage 1 desk variants for a zombie-scattered classroom feel', () => {
@@ -104,25 +113,25 @@ describe('stage object placements', () => {
     expect([...studentVariants].every((variant) => UNCONSCIOUS_STUDENT_VARIANTS[variant])).toBe(true)
   })
 
-  // stage1은 수제 배치 정본 그대로(2026-07-12 복원) — 복제/분산/확대 파이프라인은 stage2 전용.
-  it('keeps exactly the 31 authored Stage 1 props that can enter the visible envelope', () => {
+  // revision1947 baked inventory, with exactly three b1d1d58 safety deltas.
+  it('keeps exactly the 21 historically accepted Stage 1 props in the visible envelope', () => {
     const placements = getStageObjectPlacements('stage1')
     const { halfX, halfZ } = getStageBounds('stage1')
 
-    expect(STAGE_OBJECT_PLACEMENTS.stage1).toHaveLength(31)
-    expect(placements).toHaveLength(31)
-    expect(60 - STAGE_OBJECT_PLACEMENTS.stage1.length).toBe(29)
+    expect(pinned.stage1).toHaveLength(21)
+    expect(STAGE_OBJECT_PLACEMENTS.stage1).toEqual(pinned.stage1)
+    expect(placements).toHaveLength(pinned.stage1.length)
     expect(STAGE_OBJECT_PLACEMENTS.stage1.every(isStage1VisiblePropPlacement)).toBe(true)
     expect(placements.every(isStage1VisiblePropPlacement)).toBe(true)
     expect(halfX + STAGE1_VISIBLE_PROP_PADDING).toBe(13)
     expect(halfZ + STAGE1_VISIBLE_PROP_PADDING).toBe(17.4)
-    expect(placements.filter(({ type }) => type === 'classroomDesk')).toHaveLength(9)
-    expect(placements.filter(({ type }) => type === 'classroomChair')).toHaveLength(6)
-    expect(placements.filter(({ type }) => type === 'unconsciousStudent')).toHaveLength(14)
+    expect(placements.filter(({ type }) => type === 'classroomDesk')).toHaveLength(7)
+    expect(placements.filter(({ type }) => type === 'classroomChair')).toHaveLength(4)
+    expect(placements.filter(({ type }) => type === 'unconsciousStudent')).toHaveLength(8)
     // 반장 둘 = 비상 출석부 제공자 + 말빨기술책 제공자.
     expect(placements.filter(({ type }) => type === 'classPresidentStudent')).toHaveLength(2)
     placements.forEach((item, index) => {
-      const authored = STAGE_OBJECT_PLACEMENTS.stage1[index]
+      const authored = pinned.stage1[index]
       expect(item.id).toBe(authored.id)
       expect(item.position).toEqual(authored.position)
       expect(item.scale).toEqual(authored.scale)
@@ -166,18 +175,17 @@ describe('stage object placements', () => {
     expect(boardRotations.every((rotation) => Math.abs(rotation - Math.PI / 4) <= 0.14)).toBe(true)
   })
 
-  it('renders every prepared stage2 prop at 110 percent of its authored scale', () => {
-    const placements = getStageObjectPlacements('stage2')
-
-    placements.forEach(({ id, scale }) => {
-      const authored = STAGE_OBJECT_PLACEMENTS.stage2.find((item) => id.startsWith(`${item.id}-copy-`))
-      const authoredScale = authored.scale ?? 1
-      const expected = Array.isArray(authoredScale)
-        ? authoredScale.map((value) => value * 1.1)
-        : authoredScale * 1.1
-
-      expect(scale).toEqual(expected)
-    })
+  it('preserves exact baked Stage 2 IDs and final scales without a second copy or 1.1 multiplier', () => {
+    expect(STAGE_OBJECT_PLACEMENTS.stage2).toEqual(pinned.stage2)
+    for (const actual of getStageObjectPlacements('stage2')) {
+      const historical = pinned.stage2.find(({ id }) => id === actual.id)
+      expect(historical, actual.id).toBeDefined()
+      expect(actual.scale, actual.id).toEqual(historical.scale)
+      expect(actual.position, actual.id).toEqual(historical.position)
+      expect(actual.rotation, actual.id).toEqual(historical.rotation)
+      expect(actual.type, actual.id).toEqual(historical.type)
+      expect(actual.blocking, actual.id).toEqual(historical.blocking)
+    }
   })
 
   it('keeps stage1 unconscious students at the authored player-matched scale', () => {
@@ -201,7 +209,7 @@ describe('stage object placements', () => {
 
     expect(classPresident).toMatchObject({
       type: 'classPresidentStudent',
-      position: [-3.7, 0, 17.2],
+      position: pinned.stage1.find(({ id }) => id === 'stage1-student-south-01').position,
       rotation: [0, 1.42, 0],
       scale: UNCONSCIOUS_STUDENT_PLAYER_SCALE,
     })
@@ -229,11 +237,9 @@ describe('stage object placements', () => {
     expect(positions.some((x) => Math.abs(x) < halfX * 0.5)).toBe(true)
   })
 
-  it('moves every Stage 2 prop into the interior blocker field', () => {
-    const positions = getStageObjectPlacements('stage2').map(({ position: [x, , z] }) => [x, z])
-
-    expect(positions.every(([x, z]) => Math.abs(x) <= 4.8 && Math.abs(z) <= 14.5)).toBe(true)
-    expect(positions.some(([x, z]) => Math.max(Math.abs(x), Math.abs(z)) < 4.5)).toBe(true)
+  it('pins the authored Stage 2 field to revision1947 instead of the retired scatter envelope', () => {
+    expect(getStageObjectPlacements('stage2').map(({ id, type, position, rotation, scale }) => ({ id, type, position, rotation, scale })))
+      .toEqual(pinned.stage2.map(({ id, type, position, rotation, scale }) => ({ id, type, position, rotation, scale })))
   })
 
   it('keeps scattered Stage 2 props separated enough for solid desk collisions', () => {
@@ -251,22 +257,14 @@ describe('stage object placements', () => {
     expect(nearestDistance).toBeGreaterThanOrEqual(2)
   })
 
-  it('distributes props across each stage without occupying its central spawn lane', () => {
-    for (const stageId of ['stage2']) {
+  it('preserves unique exact baked IDs and positions on BOTH accepted authored stages', () => {
+    for (const stageId of ['stage1', 'stage2']) {
       const placements = getStageObjectPlacements(stageId)
-      const { halfX, halfZ } = getStageBounds(stageId)
-      const positions = placements.map(({ position: [x, , z] }) => [x, z])
-
-      expect(new Set(positions.map(([x, z]) => `${x}:${z}`)).size).toBe(placements.length)
-      expect(positions.every(([x, z]) => Math.abs(x) <= halfX - 0.6 && Math.abs(z) <= halfZ - 0.6)).toBe(true)
-      expect(positions.every(([x, z]) => Math.abs(x) <= 4.8 && Math.abs(z) <= 14.5)).toBe(true)
-
-      if (stageId === 'stage1') {
-        expect(positions.every(([x, z]) => Math.abs(x) >= 6 || Math.abs(z) >= 12)).toBe(true)
-      } else {
-        // stage2: 테두리 금지(벽에서 1.2 이상 안쪽) — 전역 산포는 위 span 검증이 보장.
-        expect(positions.every(([x]) => Math.abs(x) <= halfX - 1.2)).toBe(true)
-      }
+      const expected = pinned[stageId]
+      expect(new Set(placements.map(({ id }) => id)).size).toBe(expected.length)
+      expect(new Set(placements.map(({ position: [x, , z] }) => `${x}:${z}`)).size).toBe(expected.length)
+      expect(placements.map(({ id, position }) => ({ id, position })))
+        .toEqual(expected.map(({ id, position }) => ({ id, position })))
     }
   })
 

@@ -29,6 +29,7 @@ const howlerMasterVolume = vi.fn()
 const howlPlay = vi.fn(() => 7)
 const howlRate = vi.fn()
 const howlVolume = vi.fn()
+const howlUnload = vi.fn()
 const howlConfigs = []
 let studioSfxTunings = {}
 
@@ -40,6 +41,7 @@ vi.mock('howler', () => ({
       play: howlPlay,
       rate: howlRate,
       volume: howlVolume,
+      unload: howlUnload,
     }
   }),
 }))
@@ -58,6 +60,7 @@ describe('playSfx', () => {
     howlerMasterVolume.mockClear()
     howlRate.mockClear()
     howlVolume.mockClear()
+    howlUnload.mockClear()
     howlConfigs.length = 0
     studioSfxTunings = {}
     vi.resetModules()
@@ -445,6 +448,63 @@ describe('playSfx', () => {
 
     expect(howlPlay).toHaveBeenCalledTimes(weaponCap + 1)
     expect(howlConfigs.at(-1).src).toEqual(['/sfx/weapons/rulerFire.ogg', '/sfx/weapons/rulerFire.mp3'])
+  })
+
+  it('retries transient asset failures after backoff instead of permanently muting the ID', async () => {
+    const now = vi.spyOn(performance, 'now').mockReturnValue(0)
+    const { playSfx } = await import('./sfxRegistry.js')
+    playSfx('pencilFire')
+    howlConfigs[0].onloaderror(null, 'temporary network failure')
+    playSfx('pencilFire')
+    expect(howlConfigs).toHaveLength(1)
+    now.mockReturnValue(5000)
+    playSfx('pencilFire')
+    expect(howlConfigs).toHaveLength(2)
+  })
+
+  it('unloads failed instances and ignores their delayed callbacks after a retry', async () => {
+    const now = vi.spyOn(performance, 'now').mockReturnValue(0)
+    const { playSfx } = await import('./sfxRegistry.js')
+    playSfx('pencilFire')
+    const oldConfig = howlConfigs[0]
+    oldConfig.onloaderror()
+    expect(howlUnload).toHaveBeenCalledTimes(1)
+    now.mockReturnValue(5000)
+    playSfx('pencilFire')
+    oldConfig.onloaderror()
+    playSfx('pencilFire')
+    expect(howlConfigs).toHaveLength(2)
+    expect(howlPlay).toHaveBeenCalledTimes(3)
+    expect(howlUnload).toHaveBeenCalledTimes(1)
+  })
+
+  it('does not reserve combat slots for null playback IDs', async () => {
+    const { playSfx } = await import('./sfxRegistry.js')
+    howlPlay.mockReturnValueOnce(null)
+    playSfx('pencilFire')
+    let next = 100
+    howlPlay.mockImplementation(() => ++next)
+    for (let i = 0; i < 4; i++) playSfx('rulerFire')
+    expect(howlPlay).toHaveBeenCalledTimes(5)
+  })
+
+  it('contains synchronous playback failure so the event bus can continue', async () => {
+    const { playSfx } = await import('./sfxRegistry.js')
+    howlPlay.mockImplementationOnce(() => { throw new Error('audio device lost') })
+    expect(() => playSfx('pencilFire')).not.toThrow()
+    playSfx('rulerFire')
+    expect(howlPlay).toHaveBeenCalledTimes(2)
+  })
+
+  it('returns paused voice slots to the combat budget', async () => {
+    const { playSfx } = await import('./sfxRegistry.js')
+    let next = 100
+    howlPlay.mockImplementation(() => ++next)
+    for (let i = 0; i < 4; i++) playSfx('pencilFire')
+    expect(howlConfigs[0].onpause).toBeTypeOf('function')
+    howlConfigs[0].onpause(101)
+    playSfx('rulerFire')
+    expect(howlPlay).toHaveBeenCalledTimes(5)
   })
 
   it('holds the master bus below full scale so overlapping cues cannot clip', async () => {

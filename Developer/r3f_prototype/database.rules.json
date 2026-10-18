@@ -71,7 +71,7 @@
             "$other": { ".validate": false }
           },
           "encounteredZombieTypes": {
-            "$zombieType": { ".validate": "newData.val() === 1 && ($zombieType === 'E01' || $zombieType === 'E02' || $zombieType === 'E03' || $zombieType === 'E04' || $zombieType === 'E05' || $zombieType === 'E06' || $zombieType === 'E07' || $zombieType === 'E08' || $zombieType === 'RZL' || $zombieType === 'RZC' || $zombieType === 'RZT' || $zombieType === 'RZG' || $zombieType === 'B01' || $zombieType === 'B02' || $zombieType === 'B03' || $zombieType === 'B04')" }
+            "$zombieType": { ".validate": "newData.val() === 1 && ($zombieType === 'E01' || $zombieType === 'E02' || $zombieType === 'E03' || $zombieType === 'E04' || $zombieType === 'E05' || $zombieType === 'E06' || $zombieType === 'E07' || $zombieType === 'E08' || $zombieType === 'RZL' || $zombieType === 'RZC' || $zombieType === 'RZT' || $zombieType === 'RZG' || $zombieType === 'B01' || $zombieType === 'B02' || $zombieType === 'B03' || $zombieType === 'B04' || $zombieType === 'E19' || $zombieType === 'E20' || $zombieType === 'E21' || $zombieType === 'E22' || $zombieType === 'E23' || $zombieType === 'E24' || $zombieType === 'E25' || $zombieType === 'E26' || $zombieType === 'E27' || $zombieType === 'E28' || $zombieType === 'E29' || $zombieType === 'E30' || $zombieType === 'E31' || $zombieType === 'E32' || $zombieType === 'E33' || $zombieType === 'B05' || $zombieType === 'B06' || $zombieType === 'B07' || $zombieType === 'B08' || $zombieType === 'B09')" }
           },
           "missions": {
             ".validate": "newData.hasChildren(['schemaVersion', 'catalogVersion', 'updatedAt'])",
@@ -243,7 +243,7 @@
                       "score": { ".validate": "newData.isNumber() && newData.val() >= 0" },
                       "timeMs": { ".validate": "newData.isNumber() && newData.val() >= 0" },
                       "cleared": { ".validate": "newData.isBoolean()" },
-                      "stageId": { ".validate": "newData.isString() && (newData.val() === 'stage1' || newData.val() === 'stage2' || newData.val() === 'stage3' || newData.val() === 'stage4')" },
+                      "stageId": { ".validate": "newData.isString() && (newData.val() === 'stage1' || newData.val() === 'stage2' || newData.val() === 'stage3' || newData.val() === 'stage4' || newData.val() === 'stage5' || newData.val() === 'stage6' || newData.val() === 'stage7' || newData.val() === 'stage8' || newData.val() === 'stage9' || newData.val() === 'stage10')" },
                       "submittedAt": { ".validate": "newData.isNumber() && newData.val() >= 0" },
                       "lastPlayedAt": { ".validate": "newData.isNumber() && newData.val() >= 0 && (!data.exists() || newData.val() >= data.val())" },
                       "$other": { ".validate": false }
@@ -257,17 +257,17 @@
                 "$window": {
                   "$periodKey": {
                     "entries": {
-                      ".read": "($window === 'daily' || $window === 'weekly' || ($window === 'allTime' && $seasonId === 'all-time' && $periodKey === 'all-time')) && ($stageId === 'stage1' || $stageId === 'stage2' || $stageId === 'stage3' || $stageId === 'stage4')",
+                      ".read": "($window === 'daily' || $window === 'weekly' || ($window === 'allTime' && $seasonId === 'all-time' && $periodKey === 'all-time')) && ($stageId === 'stage1' || $stageId === 'stage2' || $stageId === 'stage3' || $stageId === 'stage4' || $stageId === 'stage5' || $stageId === 'stage6' || $stageId === 'stage7' || $stageId === 'stage8' || $stageId === 'stage9' || $stageId === 'stage10')",
                       ".indexOn": ["score"],
                       "$uid": {
-                        ".write": "auth != null && $uid === auth.uid && ($window === 'daily' || $window === 'weekly' || ($window === 'allTime' && $seasonId === 'all-time' && $periodKey === 'all-time')) && ($stageId === 'stage1' || $stageId === 'stage2' || $stageId === 'stage3' || $stageId === 'stage4') && (!newData.exists() || newData.child('stageId').val() === $stageId) && (!newData.exists() || !data.exists() || newData.child('score').val() >= data.child('score').val())",
+                        ".write": "auth != null && $uid === auth.uid && ($window === 'daily' || $window === 'weekly' || ($window === 'allTime' && $seasonId === 'all-time' && $periodKey === 'all-time')) && ($stageId === 'stage1' || $stageId === 'stage2' || $stageId === 'stage3' || $stageId === 'stage4' || $stageId === 'stage5' || $stageId === 'stage6' || $stageId === 'stage7' || $stageId === 'stage8' || $stageId === 'stage9' || $stageId === 'stage10') && (!newData.exists() || newData.child('stageId').val() === $stageId) && (!newData.exists() || !data.exists() || newData.child('score').val() >= data.child('score').val())",
                         ".validate": "newData.hasChildren(['uid', 'displayName', 'score', 'timeMs', 'cleared', 'stageId', 'submittedAt'])",
                         "uid": { ".validate": "newData.isString() && newData.val() === $uid" },
                         "displayName": { ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 40" },
                         "score": { ".validate": "newData.isNumber() && newData.val() >= 0" },
                         "timeMs": { ".validate": "newData.isNumber() && newData.val() >= 0" },
                         "cleared": { ".validate": "newData.isBoolean()" },
-                        "stageId": { ".validate": "newData.isString() && (newData.val() === 'stage1' || newData.val() === 'stage2' || newData.val() === 'stage3' || newData.val() === 'stage4')" },
+                        "stageId": { ".validate": "newData.isString() && (newData.val() === 'stage1' || newData.val() === 'stage2' || newData.val() === 'stage3' || newData.val() === 'stage4' || newData.val() === 'stage5' || newData.val() === 'stage6' || newData.val() === 'stage7' || newData.val() === 'stage8' || newData.val() === 'stage9' || newData.val() === 'stage10')" },
                         "submittedAt": { ".validate": "newData.isNumber() && newData.val() >= 0" },
                         "lastPlayedAt": { ".validate": "newData.isNumber() && newData.val() >= 0 && (!data.exists() || newData.val() >= data.val())" },
                         "$other": { ".validate": false }

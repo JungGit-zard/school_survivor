@@ -138,6 +138,7 @@ export function showFatalStudioLocalStorageDialog({ operation, key = null, docum
 
 function isLocalStorageInstance(storage, scope) {
   try {
+    if (storage === scope.sessionStorage) return false
     return storage === scope.localStorage
   } catch {
     return false

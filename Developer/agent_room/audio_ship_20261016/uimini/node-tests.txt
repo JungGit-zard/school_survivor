@@ -1,0 +1,17 @@
+✔ 누락 manifest는 가짜 93건 없이 대기 상태 (439.8552ms)
+✔ 93건 원본+A/B/C, 자동재생 없음 및 검색/분류 (745.1787ms)
+✔ 원본 A B C 전환과 동일 샘플 다시 재생은 하나만 활성 (1763.0689ms)
+✔ 늦은 play resolve/reject가 전환 또는 정지 후 소리/상태를 되살리지 않음 (730.1368ms)
+✔ 재생 거절/미디어 오류 가시화, 볼륨 및 개별 정지 (273.1139ms)
+✔ 선호 선택은 메모리 전용, 필터 후 유지, JSON만 내보냄 (470.7369ms)
+✔ 숨김/pagehide/Escape 시 pending 오디오 취소 및 정리 (1291.8841ms)
+✔ stale error/load disposal is idempotent while late playback stays muted (264.2348ms)
+✔ 외부 의존/저장소/게임 튜닝 쓰기 없음, 올바른 manifest 계약 (2.3624ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 8718.4828

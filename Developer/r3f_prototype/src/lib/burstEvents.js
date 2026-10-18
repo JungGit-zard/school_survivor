@@ -6,7 +6,9 @@
 
 // 보스 버스트 타입. 등장 시각 파생의 기준 + 보스 판별 단일 소스.
 // (하드코딩 나열이 여러 파일로 번지지 않도록 isBossType 헬퍼로 통일 — Enemy/Enemies/AdminPage가 재사용한다.)
-export const BOSS_BURST_TYPES = ['B01', 'B02', 'B03', 'B04']
+import { EXPANSION_STAGES, EXPANSION_BOSSES } from './expansionContent.js'
+
+export const BOSS_BURST_TYPES = ['B01', 'B02', 'B03', 'B04', ...Object.keys(EXPANSION_BOSSES)]
 export const isBossType = (type) => BOSS_BURST_TYPES.includes(type)
 export const RUN_ZOMBIE_CREW_FORMATION = 'runZombieCrew'
 export const STAGE2_GUARD_CHASE_FORMATION = 'stage2GuardChase'
@@ -252,7 +254,29 @@ export const STAGE4_BURST_EVENTS = [
   { sec: 184, type: 'E06', count:  2, formation: 'pincer' },   // 보스 구간 거대 앞뒤 벽
 ]
 
+// Stage5: 승인된 기존 적만 사용. 반복 descriptor 종료는 exclusive다.
+export const STAGE5_BURST_EVENTS = [
+  { sec: 5, type: 'E01', count: 12 },
+  { sec: 24, type: 'E03', count: 6 },
+  { sec: 40, type: 'E07', count: 6 },
+  { sec: 60, type: 'E03', count: 8, formation: 'ring' },
+  { sec: 72, type: 'E04', count: 2 },
+  { sec: 108, type: 'E02', count: 4, formation: 'pincer' },
+  ...ALL_STAGES_110SEC_SMILING_TANKER_REINFORCEMENT_EVENTS,
+  { sec: 120, type: 'E05', count: 4, formation: 'ring' },
+  { sec: 144, type: 'E07', count: 6 },
+  { sec: 150, type: 'B03', count: 1 },
+  { sec: 150, type: 'E01', count: 8 },
+  { sec: 168, type: 'E04', count: 2 },
+  { sec: 184, type: 'E06', count: 2, formation: 'pincer' },
+  { sec: 216, type: 'E05', count: 4 },
+  { sec: 160, endExclusiveSec: 240, repeatIntervalSec: 20, type: 'E01', count: 8 },
+  { sec: 160, endExclusiveSec: 240, repeatIntervalSec: 20, type: 'E07', count: 2 },
+]
+
 export function getBurstEventsForStage(stageId) {
+  if (EXPANSION_STAGES[stageId]) return EXPANSION_STAGES[stageId].events
+  if (stageId === 'stage5') return STAGE5_BURST_EVENTS
   if (stageId === 'stage2') return STAGE2_BURST_EVENTS
   if (stageId === 'stage3') return STAGE3_BURST_EVENTS
   if (stageId === 'stage4') return STAGE4_BURST_EVENTS

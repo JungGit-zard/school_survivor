@@ -7,6 +7,7 @@
 const ACTIVE_TIMERS = new Set()
 const ACTIVE_NODES = new Set()
 let audioContext = null
+let utteranceGeneration = 0
 
 export const DIALOGUE_VOICE_PROFILES = Object.freeze({
   protagonistIntro: Object.freeze({
@@ -96,30 +97,42 @@ export function playDialogueVoice(text, profileName = 'protagonistIntro', option
   const profile = getDialogueVoiceProfile(profileName, text)
   const context = getAudioContext()
   if (!context) return () => {}
-  if (context.state === 'suspended') void context.resume?.()
-
-  const glyphs = segmentDialogueText(text)
-  const volume = clamp(Number(options.volume ?? 1), 0, 1.5)
-  let cursorMs = Math.max(0, Number(options.delayMs ?? 0))
-  let voicedIndex = 0
-
-  glyphs.forEach((glyph) => {
-    const delayMs = getDialogueGlyphDelay(glyph, profile)
-    if (!isSilentDialogueGlyph(glyph)) {
-      const timer = setTimeout(() => {
-        ACTIVE_TIMERS.delete(timer)
-        playGlyphBleep(context, profile, glyph, voicedIndex, volume)
-      }, cursorMs)
-      ACTIVE_TIMERS.add(timer)
-      voicedIndex += 1
-    }
-    cursorMs += delayMs
-  })
-
-  return stopDialogueVoice
+  const generation = utteranceGeneration
+  const cancel = () => {
+    if (generation === utteranceGeneration) stopDialogueVoice()
+  }
+  const schedule = () => {
+    if (generation !== utteranceGeneration || context.state !== 'running') return
+    const glyphs = segmentDialogueText(text)
+    const volume = clamp(Number(options.volume ?? 1), 0, 1.5)
+    let cursorMs = Math.max(0, Number(options.delayMs ?? 0))
+    let voicedIndex = 0
+    glyphs.forEach((glyph) => {
+      const delayMs = getDialogueGlyphDelay(glyph, profile)
+      if (!isSilentDialogueGlyph(glyph)) {
+        const index = voicedIndex++
+        const timer = setTimeout(() => {
+          ACTIVE_TIMERS.delete(timer)
+          if (generation !== utteranceGeneration || context.state !== 'running') return
+          try { playGlyphBleep(context, profile, glyph, index, volume) } catch { cancel() }
+        }, cursorMs)
+        ACTIVE_TIMERS.add(timer)
+      }
+      cursorMs += delayMs
+    })
+  }
+  // Resume must still be invoked synchronously within the user's gesture. Only
+  // the glyph schedule waits; rejection is optional silent feedback, not a game error.
+  try {
+    if (context.state === 'suspended' || context.state === 'interrupted') {
+      Promise.resolve(context.resume?.()).then(schedule).catch(cancel)
+    } else schedule()
+  } catch { cancel() }
+  return cancel
 }
 
 export function stopDialogueVoice() {
+  utteranceGeneration += 1
   ACTIVE_TIMERS.forEach((timer) => clearTimeout(timer))
   ACTIVE_TIMERS.clear()
   ACTIVE_NODES.forEach((node) => {
@@ -130,11 +143,11 @@ export function stopDialogueVoice() {
 }
 
 function getAudioContext() {
-  if (audioContext) return audioContext
+  if (audioContext && audioContext.state !== 'closed') return audioContext
   if (typeof window === 'undefined') return null
   const AudioContextCtor = window.AudioContext ?? window.webkitAudioContext
   if (!AudioContextCtor) return null
-  audioContext = new AudioContextCtor()
+  try { audioContext = new AudioContextCtor() } catch { return null }
   return audioContext
 }
 
@@ -158,6 +171,9 @@ function playGlyphBleep(context, profile, glyph, index, volume) {
   filter.frequency.setValueAtTime(profile.filterFrequency ?? 1800, now)
   if (profile.filterQ) filter.Q.setValueAtTime(profile.filterQ, now)
 
+  const graphNodes = [master, filter]
+  ACTIVE_NODES.add(master)
+  ACTIVE_NODES.add(filter)
   let output = filter
   if (profile.highpassFrequency) {
     const highpass = context.createBiquadFilter()
@@ -165,6 +181,8 @@ function playGlyphBleep(context, profile, glyph, index, volume) {
     highpass.frequency.setValueAtTime(profile.highpassFrequency, now)
     highpass.connect(filter)
     output = highpass
+    graphNodes.push(highpass)
+    ACTIVE_NODES.add(highpass)
   }
 
   const oscillator = context.createOscillator()
@@ -176,6 +194,8 @@ function playGlyphBleep(context, profile, glyph, index, volume) {
   if (profile.overtoneWaveform && profile.overtoneGain > 0) {
     const overtone = context.createOscillator()
     const overtoneGain = context.createGain()
+    graphNodes.push(overtoneGain)
+    ACTIVE_NODES.add(overtoneGain)
     overtone.type = profile.overtoneWaveform
     overtone.frequency.setValueAtTime(frequency * 2, now)
     overtoneGain.gain.setValueAtTime(gainAmount * profile.overtoneGain, now)
@@ -191,17 +211,25 @@ function playGlyphBleep(context, profile, glyph, index, volume) {
   filter.connect(master)
   master.connect(context.destination)
   startAndTrack(oscillator, now, duration + release)
-  setTimeout(() => {
-    try { master.disconnect() } catch {}
-    try { filter.disconnect() } catch {}
-    try { output.disconnect?.() } catch {}
+  const cleanupTimer = setTimeout(() => {
+    ACTIVE_TIMERS.delete(cleanupTimer)
+    graphNodes.forEach((node) => {
+      ACTIVE_NODES.delete(node)
+      try { node.disconnect() } catch {}
+    })
   }, Math.ceil((duration + release) * 1000) + 40)
+  ACTIVE_TIMERS.add(cleanupTimer)
 }
 
 function applyVibrato(context, oscillator, profile, now, duration) {
   if (!profile.vibratoRate || !profile.vibratoDepthCents) return
   const vibrato = context.createOscillator()
   const vibratoGain = context.createGain()
+  ACTIVE_NODES.add(vibratoGain)
+  vibrato.onended = () => {
+    ACTIVE_NODES.delete(vibratoGain)
+    try { vibratoGain.disconnect() } catch {}
+  }
   vibrato.type = 'sine'
   vibrato.frequency.setValueAtTime(profile.vibratoRate, now)
   vibratoGain.gain.setValueAtTime(profile.vibratoDepthCents, now)
@@ -214,7 +242,9 @@ function startAndTrack(node, now, duration) {
   ACTIVE_NODES.add(node)
   node.start(now)
   node.stop(now + duration)
+  const previousOnEnded = node.onended
   node.onended = () => {
+    previousOnEnded?.()
     ACTIVE_NODES.delete(node)
     try { node.disconnect?.() } catch {}
   }

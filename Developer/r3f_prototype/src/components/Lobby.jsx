@@ -31,6 +31,11 @@ import { preloadStageEntryAssets } from '../lib/stageEntryPreload.js'
 const STAGE_UNLOCK_HINT_KEYS = {
   stage2: 'lobby.unlock.stage2',
   stage4: 'lobby.unlock.stage4',
+  stage6: 'lobby.unlock.stage6',
+  stage7: 'lobby.unlock.stage7',
+  stage8: 'lobby.unlock.stage8',
+  stage9: 'lobby.unlock.stage9',
+  stage10: 'lobby.unlock.stage10',
 }
 
 // 카드 클릭 뒤 약 1초 동안 보스별 쇼타임을 보여준 뒤 해당 스테이지를 시작한다.
@@ -287,7 +292,7 @@ export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onO
       </header>
 
       {/* 스테이지 리스트 */}
-      <div style={styles.stageList} aria-label={t('lobby.stageListAria')}>
+      <div style={styles.stageList} role="region" tabIndex={0} aria-label={t('lobby.stageListAria')}>
         {records == null ? <div data-testid="lobby-records-pending" aria-busy="true" style={styles.recordsPending}>{t('loading.game')}</div> : null}
         {stageIds.map((stageId, index) => {
           const stage = getStageConfig(stageId)
@@ -343,12 +348,18 @@ function showtimeLabel(translateFn, bossType) {
 function StageCard({ index = 0, stageId, stage, unlocked, cleared, bestSurvivalSec, recordsPending = false, stageBossPreview, showtimeStageId, devAllStagesUnlocked = false, onBeginShowtime, onFinishShowtime, onStart, onRanking }) {
   const t = useT()
   const localizedStageTitle = stageTitle(stageId, stage.title)
+  const isExpansionStage = ['stage6', 'stage7', 'stage8', 'stage9', 'stage10'].includes(stageId)
   const [showtimeToken, setShowtimeToken] = useState(0)
   const [showtimeActive, setShowtimeActive] = useState(false)
   const startTimerRef = useRef(null)
   const soundTimerRefs = useRef([])
   const showtimePendingRef = useRef(false)
   const lobbyBossType = stage.lobbyBossType ?? stage.bossType
+  // New card previews are decorative; the card/entry button owns the click.
+  // Let swipes reach the list instead of either R3F Canvas capturing touch.
+  const previewStyle = isExpansionStage
+    ? { ...styles.cardBossPreview, pointerEvents: 'none', touchAction: 'pan-y' }
+    : styles.cardBossPreview
   const playable = stage.playable !== false || devAllStagesUnlocked
   const unlockUnknown = recordsPending && !devAllStagesUnlocked && stageId !== 'stage1'
   const canStart = unlocked && playable && !unlockUnknown
@@ -403,14 +414,15 @@ function StageCard({ index = 0, stageId, stage, unlocked, cleared, bestSurvivalS
           : null),
       }}
       aria-label={`${stage.label} ${localizedStageTitle}`}
+      aria-describedby={isExpansionStage ? `${stageId}-description` : undefined}
       onClick={handleCardClick}
       onPointerEnter={() => preloadStageEntryAssets(stageId)}
       onFocus={() => preloadStageEntryAssets(stageId)}
     >
       {unlocked ? (
         <div style={styles.previewStack} data-testid="stage-card-preview-row">
-          <StageBossPreview framing={stageBossPreview} bossType={lobbyBossType} motionToken={showtimeToken} reactOnTap={false} ariaLabel={t('lobby.bossPreviewAria', { stage: stageId })} style={styles.cardBossPreview} />
-          {showtimeActive ? <span data-testid="stage-card-showtime" style={styles.showtimeLabel}>{showtimeLabel(t, lobbyBossType)}</span> : null}
+          <StageBossPreview framing={stageBossPreview} bossType={lobbyBossType} motionToken={showtimeToken} reactOnTap={false} ariaLabel={t('lobby.bossPreviewAria', { stage: stageId })} style={previewStyle} />
+          {showtimeActive ? <span data-testid="stage-card-showtime" style={styles.showtimeLabel}>{isExpansionStage ? t(`stage.${stageId}.boss`) : showtimeLabel(t, lobbyBossType)}</span> : null}
           {cleared ? <span style={styles.previewClearBadge}>{t('lobby.cleared')}</span> : null}
           <div style={styles.previewTextLayer} data-testid="stage-card-preview-overlay">
             <div style={{ ...styles.cardTitleRow, ...styles.previewTitleRow }}>
@@ -460,7 +472,7 @@ function StageCard({ index = 0, stageId, stage, unlocked, cleared, bestSurvivalS
         <div style={styles.previewStack} data-testid="stage-card-preview-row">
           <StageLockPreview
             ariaLabel={t('lobby.lockPreviewAria', { stage: stageId })}
-            style={styles.cardBossPreview}
+            style={previewStyle}
           />
           {cleared ? <span style={styles.previewClearBadge}>{t('lobby.cleared')}</span> : null}
           <div style={styles.previewTextLayer} data-testid="stage-card-preview-overlay">
@@ -487,6 +499,11 @@ function StageCard({ index = 0, stageId, stage, unlocked, cleared, bestSurvivalS
             onClick={(event) => event.stopPropagation()}
           >{t('lobby.scoreRecord')}</button>
         </div>
+      )}
+      {isExpansionStage && (
+        <p id={`${stageId}-description`} style={styles.expansionDescription}>
+          {t(`stage.${stageId}.description`, null, stage.description)}
+        </p>
       )}
     </section>
   )
@@ -743,8 +760,17 @@ const styles = {
     lineHeight: 1,
     fontWeight: uiType.weightHeavy,
   },
+  expansionDescription: {
+    margin: 0,
+    padding: '6px 8px',
+    color: uiPalette.ink,
+    fontSize: 13,
+    lineHeight: 1.4,
+    overflowWrap: 'anywhere',
+  },
   card: {
     ...schoolPanel('paper'),
+    flexShrink: 0,
     display: 'flex',
     flexDirection: 'column',
     gap: 6,

@@ -426,3 +426,8 @@ investigation.kitchenClutter.002	大人しく見えるスプーンは不穏。
 investigation.kitchenClutter.003	鍋とおたまは符丁で会議。
 investigation.kitchenClutter.004	静かなスプーンこそ最悪。
 investigation.kitchenClutter.005	蒸気が影を苦情に送る。
+investigation.pressureCauldron.001	ぐつぐつ煮える音に、思わず足を止めちゃった。
+investigation.pressureCauldron.002	顔まで熱気が来る。私はこれ以上近づかないよ。
+investigation.pressureCauldron.003	白い湯気で前が見えない。私は横によけよう。
+investigation.pressureCauldron.004	ふたがガタガタ鳴って、私は手をポケットに隠した。
+investigation.pressureCauldron.005	熱い釜とは距離を置こう。私は見るだけで通り過ぎるよ。

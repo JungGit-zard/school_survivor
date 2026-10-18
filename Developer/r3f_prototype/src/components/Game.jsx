@@ -6,6 +6,7 @@ import { getStageBounds, getStageConfig } from '../lib/stageConfig.js'
 import { playerPos, screenBounds } from '../lib/refs.js'
 import Player from './Player.jsx'
 import Floor from './Floor.jsx'
+import { clearExpansionAttacks } from '../lib/expansionAttackRuntime.js'
 import Enemies from './Enemies.jsx'
 import LunchItems from './LunchItems.jsx'
 import VFXLayer from './VFXLayer.jsx'
@@ -51,6 +52,8 @@ export default function Game() {
   const checkSurvivalMilestone = useGameStore((s) => s.checkSurvivalMilestone)
   const publishRuntimeElapsedMs = useGameStore((s) => s.publishRuntimeElapsedMs)
   const gameKey = useGameStore((s) => s.gameKey)
+  useEffect(() => { clearExpansionAttacks(); return clearExpansionAttacks }, [gameKey,currentStageId])
+  useEffect(() => { if(phase==='gameover'||phase==='cleared')clearExpansionAttacks() }, [phase])
 
   // DEV E2E 전용: resetGame이 상태를 초기화한 뒤(매 런 시작 = gameKey 증가) URL 쿼리로
   // 지정한 무기 무장·쿨다운·hp를 덮어쓴다. e2e 우회가 아니면 완전 no-op(프로덕션은 데드 브랜치).
@@ -121,7 +124,11 @@ export default function Game() {
     const reachUp = base.reachUp / fitZoom
     const reachDown = base.reachDown / fitZoom
     const fz = clampGameplayCameraFocus(playerPos.z, reachUp, reachDown, halfZ)
-    const mapFocusX = clampGameplayCameraFocus(playerPos.x, reachSide, reachSide, halfX)
+    // Expansion furniture sits outside the collision-safe arena. Clamping the
+    // view to the floor hides it even at legal movement edges; follow there.
+    const mapFocusX = ['stage6', 'stage7', 'stage8', 'stage9', 'stage10'].includes(currentStageId)
+      ? playerPos.x
+      : clampGameplayCameraFocus(playerPos.x, reachSide, reachSide, halfX)
     // 몸통보다 좁아지는 원근 가까운 행에서도 머리까지 화면 안에 둔다.
     const fx = keepPlayerInsideCameraX({
       focusX: mapFocusX,

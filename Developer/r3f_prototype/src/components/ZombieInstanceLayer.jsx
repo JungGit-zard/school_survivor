@@ -6,6 +6,7 @@ import { useFrame, useLoader, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import spawnSmokeUrl from '../assets/effects/spawn_smoke_puff.webp'
 import { enemyPool, playerPos, screenBounds } from '../lib/refs.js'
+import { isExpansionNormalCode } from '../lib/expansionVisuals.js'
 import { getFirebaseStudioRuntimeState } from '../lib/studioRuntimeState.js'
 import { GRAPHICS_STUDIO_TUNING_EVENT, getStudioZombieItemId, loadStudioTunings } from '../lib/graphicsStudioConfig.js'
 import { composeStudioPartMultiplier, composeStudioPartOffset, composeStudioPartTransformCache, getStudioTransformProps } from './StudioTunedGroup.jsx'
@@ -190,7 +191,7 @@ export default function ZombieInstanceLayer({ resetKey }) {
     let bodyCount=0; let healthCount=0; let smokeCount=0
     for(let i=0;i<200;i++) {
       const active=i<=max&&pool.active[i]===1; if(!active){tiers[i]=0;continue}
-      const timer=pool.spawnTimer[i]; const type=pool.type[i]; const tier=getPooledEnemyRenderTier(screenBounds,pool.posX[i],pool.posZ[i],playerPos.x,playerPos.z,tiers[i]); tiers[i]=tier
+      const timer=pool.spawnTimer[i]; const type=pool.type[i]; if(isExpansionNormalCode(type))continue; const tier=getPooledEnemyRenderTier(screenBounds,pool.posX[i],pool.posZ[i],playerPos.x,playerPos.z,tiers[i]); tiers[i]=tier
       if(!tier)continue
       const bodyVisible=timer>=SPAWN_REVEAL_MS&&((type>=1&&type<=8)||type===13||type===14||type===15||type===COIN_JINGLE_TYPE); const smokeVisible=timer>=0&&timer<SPAWN_SMOKE_MS
       if(bodyVisible){const renderSlot=bodyCount++;const rootMatrix=studio.current.rootMatrices[type]||IDENTITY;const scale=(pool.visualScale[i]||1)*.333;const state=phase(pool,i);const time=getPooledEnemyAnimationTime(timer,tier);const pal=TYPE_PALETTES[type];const parts=type===13?RZT:type===14?RZG:RUN_TYPES.has(type)?RUN:STANDARD;const renderParts=type===COIN_JINGLE_TYPE?COIN_JINGLE:parts;const offset=type===13?RZT_OFFSET:type===14?RZG_OFFSET:type===COIN_JINGLE_TYPE?COIN_JINGLE_OFFSET:RUN_TYPES.has(type)?STANDARD.length:0;const partCount=type===15?NO_INSTANCED_PART_COUNT:renderParts.length

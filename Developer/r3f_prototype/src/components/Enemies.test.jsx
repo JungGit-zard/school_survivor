@@ -1,6 +1,9 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { readFileSync } from 'node:fs'
 import {
+  countAliveSpecialZombies,
+  countPendingZombieSchedules,
+  buildLowDensityReinforcementBatch,
   ELITE_BONUS,
   getEliteBonusTextbookXp,
   getWavePhasesForStage,
@@ -94,10 +97,183 @@ import { BOSS_BURST_TYPES, STAGE2_MIXED_REINFORCEMENT, getBurstEventsForStage as
 import { getStageBounds } from '../lib/stageConfig.js'
 import { getStageObjectSightObstacles } from './StageObjects/stageObjectColliders.js'
 import { ENEMY_STATS, getActiveE04ProjectileCount, resetActiveE04ProjectileCountForTest } from './Enemy.jsx'
-import { createEnemyEntityPool } from '../lib/enemyEntityPool.js'
+import { createEnemyEntityPool, enemyTypeFromCode } from '../lib/enemyEntityPool.js'
 import { MAX_ENEMIES } from '../lib/enemyEntityPool.js'
 import { playerPos } from '../lib/refs.js'
 import { resolveRangedEnemyVelocity } from './Enemy.jsx'
+
+describe('Team A low-density runtime integration', () => {
+  it('executes the real Enemies frame, scheduler and pool drain: pause, exact10, cap deferral and repeat', async () => {
+    const refs = []; const effects = []; const rafs = []; const cleanups = []
+    let frame; let refCursor = 0
+    const state = { phase: 'playing', currentStageId: 'stage1', gameKey: 91, elapsedMs: 0, bossSpawnSec: 150,
+      matildaSpawned: false, player: { hp: 1, maxHp: 100, speed: 1 }, weapons: [],
+      spawnBoss: vi.fn(), damagePlayer: vi.fn(), recordMissionEvent: vi.fn(), recordMissionEnemyKill: vi.fn() }
+    const React = await import('react')
+    vi.resetModules()
+    vi.doMock('react', () => ({ ...React,
+      useRef: (value) => {
+        const index = refCursor++
+        return refs[index] ?? (refs[index] = { current: value })
+      },
+      useState: (value) => [value, vi.fn()], useCallback: (callback) => callback,
+      useEffect: (callback) => effects.push(callback),
+    }))
+    vi.doMock('../store/useGameStore.js', () => ({ useGameStore: Object.assign((selector) => selector(state), { getState: () => state }) }))
+    vi.doMock('../lib/usePlayingFrame.js', () => ({ usePlayingFrame: (callback) => {
+      frame = (delta) => { if (state.phase === 'playing') callback({}, delta) }
+    } }))
+    // Isolate the reinforcement clock from existing catch-up's immediate table/overtime delivery.
+    // The real catch-up/dominance implementations are exercised separately in the regression suite.
+    const catchUpModule = await import('../lib/spawnCatchUp.js')
+    vi.doMock('../lib/spawnCatchUp.js', () => ({ ...catchUpModule, advanceSpawnCatchUp: vi.fn() }))
+    vi.stubGlobal('requestAnimationFrame', (callback) => { rafs.push(callback); return rafs.length })
+    vi.stubGlobal('cancelAnimationFrame', vi.fn())
+    let pool
+    const clearPool = () => {
+      if (!pool) return
+      for (let index = pool.highestActive; index >= 0; index--) {
+        if (pool.active[index]) pool.despawnIndex(index, pool.generation[index])
+      }
+    }
+    try {
+      const runtime = await import('./Enemies.jsx')
+      const runtimeRefs = await import('../lib/refs.js')
+      pool = runtimeRefs.enemyPool
+      clearPool()
+      runtime.default()
+      for (const effect of effects) { const cleanup = effect(); if (typeof cleanup === 'function') cleanups.push(cleanup) }
+      const queue = refs.find((ref) => ref.current?.scheduleKind)?.current
+      const cache = refs.find((ref) => ref.current?.burstEvents)?.current
+      // Isolate this new rule, not replace production catch-up/dominance: exhausted table, fixed game clock, low HP.
+      cache.burstEvents = []
+      runtimeRefs.playerPos.x = 0; runtimeRefs.playerPos.z = 0
+      frame(9.999)
+      expect(queue.scheduleCount).toBe(0)
+      state.phase = 'paused'; frame(100); state.phase = 'playing'
+      frame(0.001)
+      expect(queue.scheduleCount).toBe(1)
+      expect(runtime.countPendingZombieSchedules(queue)).toBe(1)
+      frame(0.001)
+      expect(queue.scheduleCount).toBe(1)
+      // Another earlier source wins capacity before the consumer; preserve one full-wave request.
+      const handle = {}
+      for (let i = 0; i < 140; i++) pool.spawnInto(handle, { type: 'E01', x: 100, y: 0, z: 100, hp: 8, maxHp: 8 })
+      rafs.shift()()
+      expect(queue.lowDensityDeferred).toBe(true)
+      expect(pool.activeCount).toBe(140)
+      expect(queue.spawnDrain.count).toBe(0)
+      clearPool()
+      frame(0.001)
+      expect(queue.scheduleCount).toBe(1)
+      expect(pool.activeCount).toBe(0)
+      rafs.shift()()
+      expect(pool.activeCount).toBe(20)
+      expect(queue.spawnDrain.count).toBe(0)
+      expect(queue.scheduleCount).toBe(0)
+      const counts = {}
+      for (let index = 0; index <= pool.highestActive; index++) {
+        if (!pool.active[index]) continue
+        const type = enemyTypeFromCode(pool.type[index])
+        counts[type] = (counts[type] ?? 0) + 1
+        expect(pool.hp[index]).toBe(stageHpOverride(type, 'stage1')?.hp ?? ENEMY_STATS[type].hp)
+        expect(pool.maxHp[index]).toBe(pool.hp[index])
+      }
+      expect(counts).toEqual({ E07: 10, E01: 10 })
+      frame(0.001) // >=4 resets
+      clearPool()
+      frame(9.999)
+      expect(queue.scheduleCount).toBe(0)
+      frame(0.001)
+      expect(queue.scheduleCount).toBe(1)
+      rafs.shift()()
+      expect(pool.activeCount).toBe(20) // repeat also delivers in one consumer
+      expect(queue.spawnDrain.count).toBe(0)
+      clearPool()
+      frame(9)
+      // The unrelated real gold timer can now be due; it is not a zombie schedule.
+      expect(runtime.countPendingZombieSchedules(queue)).toBe(0)
+      frame(1)
+      expect(runtime.countPendingZombieSchedules(queue)).toBe(1)
+      // Restart before dispatch: stale queued callback may not deliver into the new run.
+      state.gameKey += 1
+      rafs.shift()()
+      expect(pool.activeCount).toBe(0)
+      const effectStart = effects.length
+      refCursor = 0
+      runtime.default()
+      effects[effectStart]() // production stage/gameKey reset effect
+      refs.find((ref) => ref.current?.burstEvents).current.burstEvents = []
+      expect(queue.scheduleCount).toBe(0)
+      expect(queue.spawnDrain.count).toBe(0)
+      expect(queue.lowDensityDeferred).toBe(false)
+      frame(9.999)
+      expect(queue.scheduleCount).toBe(0)
+      frame(0.001)
+      expect(queue.scheduleCount).toBe(1)
+      rafs.shift()()
+      expect(pool.activeCount).toBe(20)
+      const restartedCounts = {}
+      for (let index = 0; index <= pool.highestActive; index++) {
+        if (!pool.active[index]) continue
+        const type = enemyTypeFromCode(pool.type[index])
+        restartedCounts[type] = (restartedCounts[type] ?? 0) + 1
+      }
+      expect(restartedCounts).toEqual({ E07: 10, E01: 10 })
+    } finally {
+      for (const cleanup of cleanups.reverse()) cleanup()
+      clearPool()
+      vi.doUnmock('react'); vi.doUnmock('../store/useGameStore.js'); vi.doUnmock('../lib/usePlayingFrame.js')
+      vi.doUnmock('../lib/spawnCatchUp.js')
+      vi.unstubAllGlobals(); vi.resetModules()
+    }
+  })
+
+  it('counts globally alive specials, excluding pending removals, invalid/dead bodies and nonzombie events', () => {
+    const specials = ['live', 'removing', 'dead', 'invalid', 'reveal'].map((id) => ({ id, type: 'B01' }))
+    specials.push({ id: 'doge', type: 'DOGE' })
+    const bodies = new Map([
+      ['live', { _enemyDead: false, isValid: () => true }],
+      ['dead', { _enemyDead: true }],
+      ['invalid', { isValid: () => false }],
+    ])
+    expect(countAliveSpecialZombies(specials, ['removing', 'removing'], bodies)).toBe(2)
+  })
+  it('recognizes low-density and dominance schedules across a wrapped ring while ignoring gold', () => {
+    expect(countPendingZombieSchedules({ scheduleKind: Uint8Array.from([9, 1, 0, 8]), scheduleRead: 3, scheduleCount: 3 })).toBe(2)
+  })
+  it.each(['stage1', 'stage2', 'stage3', 'stage4'])('builds twenty ordinary-stat safe pooled entries in %s', (stageId) => {
+    const prior = { x: playerPos.x, z: playerPos.z }
+    playerPos.x = 0; playerPos.z = 0
+    try {
+      const batch = buildLowDensityReinforcementBatch({ id: stageId, bounds: getStageBounds(stageId), obstacles: getStageObjectSightObstacles(stageId) }, 20, () => 0.25)
+      expect(batch).toHaveLength(20)
+      expect(batch.filter((entry) => entry.type === 'E07')).toHaveLength(10)
+      expect(batch.filter((entry) => entry.type === 'E01')).toHaveLength(10)
+      for (const entry of batch) {
+        expect(isPooledEnemyType(entry.type)).toBe(true)
+        expect(entry.statOverride).toEqual(stageHpOverride(entry.type, stageId))
+        expect(spawnOverlapsObstacle(entry.pos[0], entry.pos[2], entry.type, getStageObjectSightObstacles(stageId))).toBe(false)
+      }
+      expect(buildLowDensityReinforcementBatch({ id: stageId, bounds: getStageBounds(stageId), obstacles: [] }, 7, () => 0.25)).toHaveLength(7)
+    } finally { playerPos.x = prior.x; playerPos.z = prior.z }
+  })
+  it('wires the independent global timer before catch-up and uses bounded ordinary HP drain with run resets', () => {
+    const source = readFileSync(new URL('./Enemies.jsx', import.meta.url), 'utf8')
+    expect(source).toContain('const lowDensityReinforcementRef')
+    expect(source).toContain('resetLowDensityReinforcementState(lowDensityReinforcementRef.current)')
+    expect(source).toContain('aliveEnemyCount: zombieCounts.pooledActive + zombieCounts.specialActive')
+    expect(source).toContain('enqueueScheduled(SCHEDULE_LOW_DENSITY_REINFORCEMENT)')
+    expect(source).toContain('finishLowDensityReinforcement(lowDensityReinforcementRef.current)')
+    expect(source.indexOf('const lowDensity = advanceLowDensityReinforcement')).toBeLessThan(source.indexOf('advanceSpawnCatchUp(catchUp, {'))
+    expect(source).toContain('if (count < 20 || batch.length !== 20)')
+    expect(source).toContain('queue.lowDensityDeferred = true')
+    expect(source).toContain('lowDensityReinforcementRef.current.pending && runtimeQueueRef.current.lowDensityDeferred')
+    const lowDensityBranch = source.slice(source.indexOf('} else if (kind === SCHEDULE_LOW_DENSITY_REINFORCEMENT)'), source.indexOf('} else if (kind === SCHEDULE_DOMINANCE_SWARM)'))
+    expect(lowDensityBranch).toContain('addEnemies(batch, false, cache.spawnToken)')
+    expect(lowDensityBranch).not.toContain('addEnemies(batch, true')
+  })
+})
 
 describe('coin monster reward contract', () => {
   it('routes E08 through the pooled runtime and guarantees ten gold coins on death', () => {
@@ -160,7 +336,7 @@ describe('boss runtime spawn routes', () => {
     const enemySource = readFileSync(new URL('./Enemy.jsx', import.meta.url), 'utf8')
     const zombieMeshSource = readFileSync(new URL('./ZombieMesh.jsx', import.meta.url), 'utf8')
 
-    expect(BOSS_BURST_TYPES).toEqual(bossStages.map(([, type]) => type))
+    expect(BOSS_BURST_TYPES).toEqual([...bossStages.map(([, type]) => type), 'B05','B06','B07','B08','B09'])
     expect(pooledRendererSource).toContain('type>=1&&type<=8)||type===13||type===14')
     expect(enemySource).toContain('!useInstanced && <ZombieMesh')
     const previousPlayerPosition = { x: playerPos.x, z: playerPos.z }
@@ -441,7 +617,7 @@ describe('all-stage overtime mixed ordinary reinforcements', () => {
     expect(playingFrameBody).not.toContain('cache.id')
     expect(source).toContain('enqueueScheduled(SCHEDULE_OVERTIME)')
     expect(source).toContain('pooledActive: enemyPool.activeCount')
-    expect(source).toContain('specialActive: enemiesRef.current.length')
+    expect(source).toContain('specialActive: countAliveSpecialZombies(enemiesRef.current, runtimeQueueRef.current.specialRemovals, enemyBodies)')
     expect(source).toContain('pooledQueued: runtimeQueueRef.current.spawnDrain.count')
     expect(source).toContain('const overtimeTick = overtimeTickRef.current')
     expect(source).toContain('const requested = overtimeReinforcementCountForTick(overtimeTick, cache.id)')
@@ -787,10 +963,10 @@ describe('boss entrance escort wave', () => {
 describe('all zombie HP follows the cumulative 1.2x-per-stage curve', () => {
   it('applies the same cumulative Stage 1 baseline multiplier to every static zombie type', () => {
     expect(STAGE2_SAME_TYPE_HP_MULTIPLIER).toBe(1.2)
-    expect(Object.keys(ENEMY_STATS)).toEqual(['E01', 'E02', 'E03', 'E04', 'E05', 'E06', 'RZL', 'RZC', 'RZT', 'RZG', 'E07', 'E08', 'B01', 'B02', 'B03', 'B04'])
+    expect(Object.keys(ENEMY_STATS).filter(id=>!/^E(?:19|2[0-9]|3[0-3])$|^B0[5-9]$/.test(id))).toEqual(['E01', 'E02', 'E03', 'E04', 'E05', 'E06', 'RZL', 'RZC', 'RZT', 'RZG', 'E07', 'E08', 'B01', 'B02', 'B03', 'B04'])
     const stageMultipliers = { stage1: 1, stage2: 1.2, stage3: 1.44, stage4: 1.728 }
     for (const [stageId, multiplier] of Object.entries(stageMultipliers)) {
-      for (const [type, stats] of Object.entries(ENEMY_STATS)) {
+      for (const [type, stats] of Object.entries(ENEMY_STATS).filter(([id])=>!/^E(?:19|2[0-9]|3[0-3])$|^B0[5-9]$/.test(id))) {
         const expectedHp = Math.round(stats.hp * multiplier)
         expect(sameTypeZombieHpForStage(stats.hp, stageId)).toBe(expectedHp)
         expect(stageHpOverride(type, stageId)).toEqual(stageId === 'stage1' ? undefined : { hp: expectedHp })

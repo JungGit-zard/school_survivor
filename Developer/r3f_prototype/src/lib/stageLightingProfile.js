@@ -30,6 +30,31 @@ export const STAGE_LIGHTING_PROFILES = Object.freeze({
     { kind: 'spot', position: [0, 6.5, 0], target: [0, 0, 0], color: '#FFE27A', intensity: 142, distance: 11, angle: 0.62, penumbra: 0.48 },
     { kind: 'spot', position: [1.5, 7, 12], target: [0, 0, 10], color: '#DFF6FF', intensity: 162, distance: 14, angle: 0.72, penumbra: 0.42 },
   ]),
+  stage6: freezeProfile([
+    {kind:'spot',position:[-2,7,-14],target:[0,0,-10],color:'#F3D59D',intensity:162,distance:16,angle:.75,penumbra:.5},
+    {kind:'spot',position:[5,7,0],target:[0,0,0],color:'#A0BBEF',intensity:145,distance:14,angle:.72,penumbra:.5},
+    {kind:'spot',position:[1,7,14],target:[0,0,10],color:'#E6BC69',intensity:168,distance:16,angle:.75,penumbra:.5},
+  ]),
+  stage7: freezeProfile([
+    {kind:'spot',position:[0,7,-14],target:[0,0,-10],color:'#8FE8DA',intensity:150,distance:16,angle:.75,penumbra:.5},
+    {kind:'spot',position:[-4,7,0],target:[0,0,0],color:'#AEBFF1',intensity:142,distance:14,angle:.72,penumbra:.5},
+    {kind:'spot',position:[1,7,14],target:[0,0,10],color:'#C5ECE7',intensity:158,distance:16,angle:.75,penumbra:.5},
+  ]),
+  stage8: freezeProfile([
+    {kind:'spot',position:[-1,7,-14],target:[0,0,-10],color:'#C2E3D9',intensity:152,distance:16,angle:.75,penumbra:.5},
+    {kind:'spot',position:[4,7,0],target:[0,0,0],color:'#F1BBD4',intensity:132,distance:14,angle:.72,penumbra:.5},
+    {kind:'spot',position:[0,7,14],target:[0,0,10],color:'#C8EAA2',intensity:148,distance:16,angle:.75,penumbra:.5},
+  ]),
+  stage9: freezeProfile([
+    {kind:'spot',position:[-2,8,-14],target:[0,0,-10],color:'#F0D6A0',intensity:168,distance:16,angle:.75,penumbra:.5},
+    {kind:'spot',position:[5,7,0],target:[0,0,0],color:'#CCA4DC',intensity:136,distance:14,angle:.72,penumbra:.5},
+    {kind:'spot',position:[0,8,14],target:[0,0,10],color:'#F2C7AA',intensity:170,distance:16,angle:.75,penumbra:.5},
+  ]),
+  stage10: freezeProfile([
+    {kind:'spot',position:[0,8,-14],target:[0,0,-10],color:'#AFE2F5',intensity:166,distance:16,angle:.75,penumbra:.5},
+    {kind:'spot',position:[-4,7,0],target:[0,0,0],color:'#B6CEEE',intensity:138,distance:14,angle:.72,penumbra:.5},
+    {kind:'spot',position:[1,8,14],target:[0,0,10],color:'#DFE7BC',intensity:156,distance:16,angle:.75,penumbra:.5},
+  ]),
 })
 
 export function getStageLightingProfile(stageId) {

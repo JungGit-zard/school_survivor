@@ -1,7 +1,9 @@
+import { EXPANSION_ENEMIES, EXPANSION_BOSSES } from './expansionContent.js'
 // 적 런타임의 정적 슬롯 풀. React/Three/Rapier 및 저장소에 의존하지 않는다.
 export const MAX_ENEMIES = 150
 export const MAX_ENEMY_GENERATION = 0xffff
 
+const expansionRows = [...Object.values(EXPANSION_ENEMIES), ...Object.values(EXPANSION_BOSSES)]
 export const ENEMY_TYPE_CODES = Object.freeze({
   E01: 1,
   E02: 2,
@@ -23,10 +25,12 @@ export const ENEMY_TYPE_CODES = Object.freeze({
   E07: 15,
   // E08 "동전 짤랑 좀비" — 아직 스폰 스케줄에는 넣지 않고 치트 소환/시각 검수 전용으로 등록한다.
   E08: 16,
+  ...Object.fromEntries(expansionRows.map(e => [e.id, e.typeCode])),
 })
 
 export const ENEMY_TYPE_NAMES = Object.freeze([
   '', 'E01', 'E02', 'E03', 'E04', 'E05', 'E06', 'RZL', 'RZC', 'B01', 'B02', 'B03', 'B04', 'RZT', 'RZG', 'E07', 'E08',
+  ...expansionRows.map(e => e.id),
 ])
 
 const MAX_GENERATION = MAX_ENEMY_GENERATION

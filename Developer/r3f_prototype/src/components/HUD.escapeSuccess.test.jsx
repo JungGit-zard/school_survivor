@@ -68,13 +68,25 @@ describe('escape success choices', () => {
     expect(useGameStore.getState().continuousScoreBase).toBe(0)
   })
 
-  it('shows the cumulative final escape without a nonexistent next stage', () => {
+  it('continues Stage4 into the explicitly approved Stage5 and preserves cumulative score', async () => {
     useGameStore.getState().resetGame('stage4')
+    useGameStore.setState({ phase: 'playing', elapsedMs: 100_000, continuousScoreBase: 500 })
+    renderSuccess()
+    const score = 500 + getRankingScore({ stageId: 'stage4', survivalSeconds: 100, cleared: true })
+    const next = [...container.querySelector('[data-testid="result-primary-actions"]').querySelectorAll('button')].find((button) => button.textContent === '다음 스테이지 계속')
+    expect(next).toBeDefined()
+    expect(container.querySelector('[data-testid="escape-total-score"]').textContent).toContain(String(score))
+    await act(async () => next.click())
+    expect(useGameStore.getState()).toMatchObject({ phase: 'playing', currentStageId: 'stage5', continuousScoreBase: score })
+  })
+
+  it.each(['stage5', 'stage10'])('shows the cumulative final escape at %s without a nonexistent next stage', (stageId) => {
+    useGameStore.getState().resetGame(stageId)
     useGameStore.setState({ phase: 'playing', elapsedMs: 100_000, continuousScoreBase: 500 })
     renderSuccess()
     expect(container.textContent).not.toContain('다음 스테이지 계속')
     expect(container.textContent).toContain('모든 스테이지를 탈출했습니다!')
-    expect(container.querySelector('[data-testid="escape-total-score"]').textContent).toContain(String(500 + getRankingScore({ stageId: 'stage4', survivalSeconds: 100, cleared: true })))
+    expect(container.querySelector('[data-testid="escape-total-score"]').textContent).toContain((500 + getRankingScore({ stageId, survivalSeconds: 100, cleared: true })).toLocaleString())
     expect(container.querySelector('section').style.overflowY).toBe('auto')
     expect(container.querySelector('section').style.maxHeight).toBe('100%')
     expect(container.querySelector('details').open).toBe(false)

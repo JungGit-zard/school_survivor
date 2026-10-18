@@ -1,5 +1,6 @@
 // Stage timing and progression rules live in one place so future modes can reuse them.
 import { getAdminBalanceConfig } from './adminConfig.js'
+import { EXPANSION_STAGES, getExpansionStageConfig } from './expansionContent.js'
 
 export const DEFAULT_STAGE_ID = 'stage1'
 
@@ -125,10 +126,32 @@ export const STAGE_CONFIGS = {
   },
 }
 
+STAGE_CONFIGS.stage5 = {
+  id: 'stage5', label: 'Stage 5', title: '학교 최종 돌파',
+  description: '3분 30초 후 열린 마지막 탈출구로 탈출하기',
+  durationSec: STAGE_DURATION_SEC,
+  clearRecordKey: 'stage5Clears', bestRecordKey: 'stage5BestSurvivalSec',
+  bossWarningSec: BOSS_SPAWN_CENTER_SEC, bossType: 'B03', e04IntroSec: 72,
+  escapePortalSec: ESCAPE_PORTAL_OPEN_SEC,
+  matildaWarningSec: MATILDA_WARNING_SEC, matildaSec: MATILDA_SPAWN_SEC,
+  // Stage3 경계 재사용: 반폭 1.875블록 / 반길이 4.8블록.
+  mapHalfX: 7.5, mapHalfZ: 19.2,
+  survivalMilestones: [
+    { atMs: 48_000, gold: 5, label: '최종 돌파 적응 보너스' },
+    { atMs: 144_000, gold: 7, label: '최종 방어선 돌파 보너스' },
+    { atMs: 192_000, gold: 11, label: '체육교사 재대결 보너스' },
+    { atMs: 240_000, gold: 20, label: '최종 탈출 보너스' },
+  ],
+}
+
+for (const id of Object.keys(EXPANSION_STAGES)) STAGE_CONFIGS[id] = getExpansionStageConfig(id)
+
 const NEXT_STAGE_BY_STAGE = {
+  stage6: 'stage7', stage7: 'stage8', stage8: 'stage9', stage9: 'stage10',
   stage1: 'stage2',
   stage2: 'stage3',
   stage3: 'stage4',
+  stage4: 'stage5',
 }
 
 export function getStageConfig(stageId = DEFAULT_STAGE_ID) {
@@ -164,6 +187,9 @@ export function getStageBounds(stageId = DEFAULT_STAGE_ID) {
 }
 
 export function isStageUnlocked(stageId, records = {}) {
+  const expansion = EXPANSION_STAGES[stageId]
+  if (expansion) return (records[expansion.unlockClearsKey] ?? 0) >= expansion.unlockClearsRequired
+  if (stageId === 'stage5') return (records.stage4Clears ?? 0) >= 1
   if (stageId === 'stage1') return true
   if (stageId === 'stage2') {
     return (records.stage1Clears ?? 0) >= 1

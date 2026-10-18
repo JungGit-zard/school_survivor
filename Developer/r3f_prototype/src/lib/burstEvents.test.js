@@ -362,7 +362,7 @@ describe('stage3 체육교사 B03 단일 보스 + 형태 버스트 런타임 복
 
 describe('보스 타입 단일 소스(isBossType) + B04 배선', () => {
   it('BOSS_BURST_TYPES는 B01~B04를 포함하고 isBossType이 판별한다', () => {
-    expect(BOSS_BURST_TYPES).toEqual(['B01', 'B02', 'B03', 'B04'])
+    expect(BOSS_BURST_TYPES).toEqual(['B01','B02','B03','B04','B05','B06','B07','B08','B09'])
     expect(isBossType('B04')).toBe(true)
     expect(isBossType('B01')).toBe(true)
     expect(isBossType('E04')).toBe(false)

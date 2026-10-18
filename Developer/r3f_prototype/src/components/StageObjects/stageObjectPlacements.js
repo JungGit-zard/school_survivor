@@ -1,5 +1,6 @@
 import { UNCONSCIOUS_STUDENT_PLAYER_SCALE } from '../../lib/characterVisualScale.js'
 import { getStageBounds } from '../../lib/stageConfig.js'
+import { EXPANSION_STAGES } from '../../lib/expansionContent.js'
 import { getStagePropOverride } from '../../lib/stagePropPlacements.js'
 
 // Rule: every stage1 object must satisfy Math.abs(x) >= 6 OR Math.abs(z) >= 12
@@ -935,6 +936,8 @@ export function computeDefaultStageObjectPlacements(stageId = 'stage1') {
 // 없으면 기본 파이프라인(computeDefaultStageObjectPlacements)을 반환한다.
 // 오버라이드 항목에도 학생 방향 다양화(withMixedUnconsciousStudentFacing)는 유지한다.
 export function getStageObjectPlacements(stageId = 'stage1') {
+  const expansion=EXPANSION_STAGES[stageId]
+  if(expansion) return expansion.layout.obstacles.map(o=>({id:o.id,type:'expansionObstacle',position:[o.xUnits,0,o.zUnits],rotation:[0,0,0],scale:1,blocking:true,props:{halfX:o.halfXUnits,halfZ:o.halfZUnits}}))
   const override = getStagePropOverride(stageId)
   const placements = override
     ? (stageId === 'stage4' ? withStage4CurrentWidthOverrideCoordinates(override) : override)

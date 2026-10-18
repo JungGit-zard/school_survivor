@@ -4,6 +4,8 @@ import { emitSfx } from '../lib/sfxEvents.js'
 import { usePlayingFrame } from '../lib/usePlayingFrame.js'
 import { playerPos, screenBounds, enemyBodies, enemyPool, enemySimulationRuntime, enemyProjectilePool, enemySightBlocked, enemyHandleScratch } from '../lib/refs.js'
 import Enemy, { ENEMY_SIZE_MULTIPLIER, ENEMY_STATS } from './Enemy.jsx'
+import { EXPANSION_STAGES, EXPANSION_ENEMIES, EXPANSION_BOSSES, isExpansionStage, isExpansionEnemy, isExpansionBoss } from '../lib/expansionContent.js'
+import { expansionSpawnPosition } from '../lib/expansionSpawns.js'
 import EnemyDeathCollapse from './EnemyDeathCollapse.jsx'
 import GoldCoin from './GoldCoin.jsx'
 import XpTextbook from './XpTextbook.jsx'
@@ -44,6 +46,7 @@ import {
 } from '../lib/pooledEnemySpawnDrain.js'
 import { recordZombieEncounter } from '../lib/zombieEncyclopedia.js'
 import { BOSS_TELEGRAPH_LEAD_SEC, LOW_DENSITY_ENEMY_THRESHOLD, advanceSpawnCatchUp, createSpawnCatchUpState, publishSpawnCatchUpOffsetSec, resetSpawnCatchUpState } from '../lib/spawnCatchUp.js'
+import { LOW_DENSITY_REINFORCEMENT_ENTRIES, advanceLowDensityReinforcement, createLowDensityReinforcementState, finishLowDensityReinforcement, resetLowDensityReinforcementState } from '../lib/lowDensityReinforcement.js'
 import { createDominanceSwarmSpawnPlan, createDominanceSwarmState, evaluateDominanceSwarm, recordDominanceSwarmSpawn, recordEmptyField, recordEnemyKill, recordPlayerDamage, resetDominanceSwarmState } from '../lib/dominanceSwarmRespawn.js'
 
 // 황금 코인 시계 드랍: 4분에 약 10개 → 20–28s 무작위 간격 (5분 기준 ×0.8)
@@ -79,6 +82,7 @@ function recordMissionBurstSpawns(store, entries, stageId, spawnSec) {
 
 // 보스/엘리트 사망 시 추가 보너스 (기획서 §3-3)
 export const ELITE_BONUS = {
+  ...Object.fromEntries(Object.values(EXPANSION_BOSSES).map(b => [b.id, {textbook:b.textbooks,textbookXp:b.textbookXp,gold:b.gold}])),
   E06: { textbook: 1, gold: 1 },
   // E08 코인 몬스터는 일반 확률 드롭 대신 코인 10개를 확정 산포한다.
   E08: { textbook: 0, gold: 10 },
@@ -97,7 +101,7 @@ export function getEliteBonusTextbookXp(type, fallbackXp) {
 }
 
 export function shouldDropTextbook(dropData, roll = Math.random(), elapsedSec = Infinity) {
-  return (dropData?.xp ?? 0) > 0 && roll < getTextbookDropRate(elapsedSec)
+  return (dropData?.xp ?? 0) > 0 && roll < (EXPANSION_ENEMIES[dropData?.type]?.textbookChance ?? getTextbookDropRate(elapsedSec))
 }
 
 export function createDeathCollapseEntry(id, dropData) {
@@ -293,6 +297,8 @@ function spawnPosOnValidRing(type, bounds, minRadius, maxRadius, taken = [], ran
 }
 
 export function randomSpawnPos(type, bounds, taken = [], random = Math.random, obstacles = [], scaleOverride) {
+  const stageId=useGameStore.getState().currentStageId
+  if(isExpansionStage(stageId)) return expansionSpawnPosition(type,stageId,playerPos,bounds,taken,obstacles,random,scaleOverride??ENEMY_STATS[type]?.scale)
   return spawnPosOnValidRing(type, bounds, SPAWN_MIN_RADIUS, SPAWN_MAX_RADIUS, taken, random, obstacles, scaleOverride)
 }
 
@@ -326,6 +332,7 @@ export function pickMixedReinforcementTypes(types, count, random = Math.random) 
 export const STAGE3_OVERTIME_REINFORCEMENT_START_SEC = 240
 
 export function getOvertimeReinforcementStartSec(stageId) {
+  if (EXPANSION_STAGES[stageId]) return EXPANSION_STAGES[stageId].overtime.startSec
   return OVERTIME_REINFORCEMENT_START_SEC
 }
 
@@ -378,6 +385,7 @@ export function overtimeHpStatOverride(type, stageId, tick) {
 }
 
 export function overtimeMixedTypesForStage(stageId) {
+  if (EXPANSION_STAGES[stageId]) return [...EXPANSION_STAGES[stageId].overtime.mixedTypes]
   return [...(stageId === 'stage1' ? STAGE1_OVERTIME_MIXED_TYPES : DEFAULT_OVERTIME_MIXED_TYPES)]
 }
 
@@ -818,7 +826,7 @@ const JARMOB_HP_TYPES = new Set(['E01', 'E02', 'E03', 'E04', 'E05', 'E06', 'E07'
 export const STAGE2_SAME_TYPE_HP_MULTIPLIER = 1.2
 
 export function sameTypeZombieHpForStage(baseHp, stageId) {
-  const multiplier = STAGE_HP_MULTIPLIER[stageId]
+  const multiplier = EXPANSION_STAGES[stageId]?.existingEnemyHpMultiplier ?? STAGE_HP_MULTIPLIER[stageId]
   return multiplier ? Math.round(baseHp * multiplier) : baseHp
 }
 
@@ -834,7 +842,7 @@ function jarmobHpPerSpawn(phase) {
 // 스테이지 상승 HP 정본: Stage 1 ×1.0 / Stage 2 ×1.2 / Stage 3 ×1.44 / Stage 4 ×1.728.
 // 모든 ENEMY_STATS 좀비와 동적 HP를 쓰는 마틸다가 이 표를 공유한다. 도지는 좀비가 아닌 이벤트 몬스터라
 // 기존 전용 경로를 유지한다. 이 값은 스폰 밀도·총 HP 예산으로 역산하거나 낮추지 않는다.
-const STAGE_HP_MULTIPLIER = { stage2: 1.2, stage3: 1.44, stage4: 1.728 }
+const STAGE_HP_MULTIPLIER = { stage2: 1.2, stage3: 1.44, stage4: 1.728, stage5: 1.2 ** 4 }
 // 스폰 밀도는 사용자 요청 범위 밖이므로, 기존 밀도 파생식이 사용하던 특수 크루 HP 곡선을 별도로
 // 고정한다. 이 값은 실제 크루 HP에는 절대 쓰지 않고, 기존 density 결과만 보존한다.
 const DENSITY_DERIVATION_CREW_HP_MULTIPLIER = { stage2: 1.10, stage3: 1.21, stage4: 1.331 }
@@ -1027,6 +1035,7 @@ export function stageJarmobLoadWindows(stageId, windowSec = 20, totalSec = 240) 
 }
 
 export function stageHpOverride(type, stageId) {
+  if (isExpansionEnemy(type) || isExpansionBoss(type)) return undefined
   const base = ENEMY_STATS[type]
   if (!base) return undefined
   const hp = sameTypeZombieHpForStage(base.hp, stageId)
@@ -1132,12 +1141,13 @@ const SCHEDULE_BURST = 5
 const SCHEDULE_MATILDA = 6
 const SCHEDULE_OVERTIME = 7
 const SCHEDULE_DOMINANCE_SWARM = 8
+const SCHEDULE_LOW_DENSITY_REINFORCEMENT = 9
 
 export function isPooledEnemyType(type) {
   const code = enemyTypeToCode(type)
   // Boss meshes (including the current stage2-boss-v2 B02) are rendered by
   // Enemy/ZombieMesh. ZombieInstanceLayer intentionally has no boss body mesh.
-  return code >= 1 && code <= STANDARD_POOL_TYPE_MAX && !isBossType(type)
+  return (code >= 1 && code <= STANDARD_POOL_TYPE_MAX || isExpansionEnemy(type)) && !isBossType(type)
 }
 
 export function shouldScheduleBurst(fired, elapsedSec, eventSec) {
@@ -1154,7 +1164,7 @@ export function countPendingZombieSchedules(queue) {
   let count = 0
   for (let offset = 0; offset < pending; offset += 1) {
     const kind = queue.scheduleKind[(queue.scheduleRead + offset) % capacity]
-    if (kind === SCHEDULE_BURST || kind === SCHEDULE_OVERTIME || kind === SCHEDULE_MATILDA || kind === SCHEDULE_DOGE) count += 1
+    if (kind === SCHEDULE_BURST || kind === SCHEDULE_OVERTIME || kind === SCHEDULE_MATILDA || kind === SCHEDULE_DOGE || kind === SCHEDULE_DOMINANCE_SWARM || kind === SCHEDULE_LOW_DENSITY_REINFORCEMENT) count += 1
   }
   return count
 }
@@ -1227,6 +1237,52 @@ export function nextPendingSpawnSec(burstEvents, firedFlags, scheduledRepeatTick
   return best
 }
 
+// React special은 reveal 중 아직 body가 없더라도 살아 있다. 사망/삭제 대기는 즉시 제외한다.
+export function countAliveSpecialZombies(entries, pendingRemovals = [], bodies = enemyBodies) {
+  let count = 0
+  for (const entry of entries ?? []) {
+    if (!ENEMY_STATS[entry.type] || pendingRemovals.includes(entry.id)) continue
+    const body = bodies?.get(entry.id)
+    if (body?._enemyDead || (typeof body?.isValid === 'function' && !body.isValid())) continue
+    count += 1
+  }
+  return count
+}
+
+export function buildLowDensityReinforcementBatch(cache, count = 20, random = Math.random) {
+  const batch = []
+  const taken = []
+  const wanted = Math.min(20, Math.max(0, Math.floor(count) || 0))
+  for (const entry of LOW_DENSITY_REINFORCEMENT_ENTRIES) {
+    for (let index = 0; index < entry.count && batch.length < wanted; index += 1) {
+      const type = entry.type
+      // 기존 링/장애물 검사를 먼저 사용. 링 밀집으로 실패해도 안전한 기존 formation 탐색으로 보충한다.
+      const pos = spawnPosForBurstType(type, cache.bounds, taken, random, cache.obstacles)
+        ?? findNearestFreeFormationPosition(
+          [playerPos.x + SPAWN_MIN_RADIUS, BASE_COL_Y * ENEMY_STATS[type].scale * ENEMY_SIZE_MULTIPLIER, playerPos.z],
+          type, cache.bounds, cache.obstacles, taken,
+        )
+      if (!pos) continue
+      taken.push(pos)
+      batch.push({ id: ++_uid, type, pos, statOverride: stageHpOverride(type, cache.id) })
+    }
+  }
+  return batch
+}
+
+// The scheduler and clock harness consume this same safe/capped authoring path.
+export function buildExpansionBurstBatch(cache,evt,counts,random=Math.random) {
+  const count=clampZombieSpawnRequest(evt.count??1,counts)
+  const batch=[],taken=[]
+  for(let index=0;index<count;index++) {
+    const type=evt.mixedTypes?evt.mixedTypes[index%evt.mixedTypes.length]:evt.type
+    const pos=expansionSpawnPosition(type,cache.id,playerPos,cache.bounds,taken,cache.obstacles,random,ENEMY_STATS[type]?.scale)
+    if(!pos)continue
+    taken.push(pos)
+    batch.push({id:++_uid,type,pos,statOverride:stageHpOverride(type,cache.id)})
+  }
+  return batch
+}
 function countPooledType(type) {
   const code = enemyTypeToCode(type)
   let count = 0
@@ -1296,6 +1352,7 @@ export default function Enemies() {
   const overtimeTickRef          = useRef(-1)
   const spawnCatchUpRef          = useRef(createSpawnCatchUpState())
   const dominanceSwarmRef        = useRef(createDominanceSwarmState())
+  const lowDensityReinforcementRef = useRef(createLowDensityReinforcementState())
   const liveDogeCountRef         = useRef(0)   // 빈 화면 판정용 — 도지도 HP를 가진 적이다
   const stageSpawnTokenRef       = useRef(0)
   const sightGenerationRef       = useRef(new Uint16Array(MAX_ENEMIES))
@@ -1326,6 +1383,7 @@ export default function Enemies() {
     queue.scheduleCount = 0
     queue.matildaEntry = null
     const bounds = getStageBounds(currentStageId)
+    queue.lowDensityDeferred = false
     stageRuntimeCacheRef.current = {
       id: currentStageId,
       gameKey,
@@ -1342,6 +1400,7 @@ export default function Enemies() {
     liveDogeCountRef.current = 0
     resetSpawnCatchUpState(spawnCatchUpRef.current)
     resetDominanceSwarmState(dominanceSwarmRef.current)
+    resetLowDensityReinforcementState(lowDensityReinforcementRef.current)
     publishSpawnCatchUpOffsetSec(0)
     sightGenerationRef.current.fill(0)
     sightTierRef.current.fill(0)
@@ -1553,7 +1612,7 @@ export default function Enemies() {
 
   const totalZombieCounts = useCallback(() => ({
     pooledActive: enemyPool.activeCount,
-    specialActive: enemiesRef.current.length,
+    specialActive: countAliveSpecialZombies(enemiesRef.current, runtimeQueueRef.current.specialRemovals, enemyBodies),
     pooledQueued: runtimeQueueRef.current.spawnDrain.count,
   }), [])
 
@@ -1627,6 +1686,18 @@ export default function Enemies() {
       dropGoldCoin(pickGoldDropPos(cache.bounds))
     } else if (kind === SCHEDULE_DOGE) {
       spawnDoge()
+    } else if (kind === SCHEDULE_LOW_DENSITY_REINFORCEMENT) {
+      const count = clampZombieSpawnRequest(20, totalZombieCounts())
+      const batch = buildLowDensityReinforcementBatch(cache, count)
+      // 20마리 전체가 들어갈 때만 내보낸다. 같은 RAF에서 재예약 루프를 만들지 않는다.
+      if (count < 20 || batch.length !== 20) {
+        queue.lowDensityDeferred = true
+        return
+      }
+      // false는 기존 즉시 pooled 경로: 이 소비에서 정확히 20개만 생성, max3/RAF 큐는 사용하지 않는다.
+      addEnemies(batch, false, cache.spawnToken)
+      queue.lowDensityDeferred = false
+      finishLowDensityReinforcement(lowDensityReinforcementRef.current)
     } else if (kind === SCHEDULE_DOMINANCE_SWARM) {
       const requested = Math.max(0, Math.floor(a) || 0)
       const count = clampZombieSpawnRequest(requested, totalZombieCounts())
@@ -1692,6 +1763,16 @@ export default function Enemies() {
     } else if (kind === SCHEDULE_BURST) {
       const evt = cache.burstEvents[Math.trunc(a)]
       if (!evt) return
+      if(isExpansionStage(cache.id)) {
+        const batch=buildExpansionBurstBatch(cache,evt,totalZombieCounts())
+        if(isExpansionBoss(evt.type)) {
+          if(!batch.length){firedBurstsRef.current[Math.trunc(a)]=0;return}
+          spawnBoss()
+        }
+        recordMissionBurstSpawns(store,batch,cache.id,b)
+        addEnemies(batch,true,cache.spawnToken)
+        return
+      }
       if (isRepeatingBurstEvent(evt)) {
         const eventIndex = Math.trunc(a)
         const firstTick = consumedRepeatBurstTicksRef.current[eventIndex] + 1
@@ -1719,10 +1800,14 @@ export default function Enemies() {
         return
       }
       if (isBossType(evt.type)) {
-        spawnBoss()
         const bossBatch = []
         const bossPos = randomSpawnPos(evt.type, cache.bounds, [], Math.random, cache.obstacles)
         if (bossPos) bossBatch.push({ id: ++_uid, type: evt.type, pos: bossPos, statOverride: stageHpOverride(evt.type, cache.id) })
+        if (isExpansionBoss(evt.type) && (!bossBatch.length || clampZombieSpawnRequest(1,totalZombieCounts())<=0)) {
+          firedBurstsRef.current[Math.trunc(a)]=0
+          return
+        }
+        spawnBoss()
         if (evt.type === 'B02' && bossBatch.length > 0) {
           store.recordMissionEvent({ type: 'boss_spawned', bossId: 'B02' })
         }
@@ -1836,6 +1921,22 @@ export default function Enemies() {
     const stageRuntime = stageRuntimeCacheRef.current
     if (!stageRuntime || stageRuntime.id !== currentStageId) return
 
+    // 실제 전역 생존 좀비가 3마리 이하인 활성 10초. 캐치업 시계/HP/보스압력과 독립.
+    const zombieCounts = totalZombieCounts()
+    const lowDensity = advanceLowDensityReinforcement(lowDensityReinforcementRef.current, {
+      deltaSec: delta,
+      stageId: stageRuntime.id,
+      gameKey: stageRuntime.gameKey,
+      aliveEnemyCount: zombieCounts.pooledActive + zombieCounts.specialActive,
+      queuedEnemyCount: zombieCounts.pooledQueued + countPendingZombieSchedules(runtimeQueueRef.current),
+      availableSpawnSlots: clampZombieSpawnRequest(20, zombieCounts) === 20 ? 20 : 0,
+    })
+    const retryLowDensity = lowDensityReinforcementRef.current.pending && runtimeQueueRef.current.lowDensityDeferred
+      && clampZombieSpawnRequest(20, zombieCounts) === 20
+    if (lowDensity.shouldSpawn || retryLowDensity) {
+      runtimeQueueRef.current.lowDensityDeferred = !enqueueScheduled(SCHEDULE_LOW_DENSITY_REINFORCEMENT)
+    }
+
     // ── 스폰 시계 캐치업 ───────────────────────────────────────────────────────────
     // 화면 안 몹이 3마리 이하이고 생성 대기가 없으면 다음 일반 스폰을 즉시 당긴다.
     // 남은 스케줄의 상대 간격은 유지한다. 스폰 게이트만 spawnSec을 읽고,
@@ -1865,6 +1966,7 @@ export default function Enemies() {
         : null,
     })
     publishSpawnCatchUpOffsetSec(catchUp.offsetSec)
+    if (isExpansionStage(stageRuntime.id)) { catchUp.offsetSec=0; publishSpawnCatchUpOffsetSec(0) }
     const spawnSec = sec + catchUp.offsetSec
 
     const bounds = stageRuntime.bounds
@@ -1911,7 +2013,7 @@ export default function Enemies() {
       isBossActive: context.bossPressure,
       isSpecialPatternActive: matildaSpawned || liveDogeCountRef.current > 0,
     })
-    if (dominance.shouldSpawn && enqueueScheduled(SCHEDULE_DOMINANCE_SWARM, dominance.spawnCount, dominance.dominanceScore)) {
+    if (!isExpansionStage(stageRuntime.id) && dominance.shouldSpawn && enqueueScheduled(SCHEDULE_DOMINANCE_SWARM, dominance.spawnCount, dominance.dominanceScore)) {
       recordDominanceSwarmSpawn(dominanceSwarmRef.current, sec * 1000)
     }
     context.obstacles = obstacles
@@ -1938,7 +2040,7 @@ export default function Enemies() {
     }
 
     // 춤추는 도지 이벤트 — 모든 스테이지 60초 시점에 중앙에서 1회 스폰(스폰 펑 연출 경유).
-    if (shouldSpawnDoge(spawnSec, dogeSpawnedRef.current)) {
+    if (!isExpansionStage(stageRuntime.id) && shouldSpawnDoge(spawnSec, dogeSpawnedRef.current)) {
       dogeSpawnedRef.current = true
       enqueueScheduled(SCHEDULE_DOGE)
     }
@@ -1963,6 +2065,10 @@ export default function Enemies() {
         continue
       }
       if (!shouldScheduleBurst(firedBurstsRef.current[burstIndex], eventSpawnSec, evt.sec)) continue
+      if (isExpansionStage(stageRuntime.id)) {
+        if(enqueueScheduled(SCHEDULE_BURST,burstIndex,sec)) firedBurstsRef.current[burstIndex]=1
+        continue
+      }
       firedBurstsRef.current[burstIndex] = 1
       // 세 번째 인자는 미션 생존 집계용 스폰 실시각이다(runSurvivalSeconds와 뺄셈한다).
       // 스폰 게이트만 당겨진 시계를 쓰고, 여기 기록은 실시간 sec을 유지해야 한다.

@@ -3,6 +3,15 @@
 // 3D 컴포넌트 체인 없이 기본 타임라인을 읽을 수 있게 한다.
 // 기존 import 경로 호환을 위해 Enemies.jsx가 재수출한다.
 
+import { EXPANSION_STAGES } from './expansionContent.js'
+const EXPANSION_WAVE_PHASES=Object.fromEntries(Object.values(EXPANSION_STAGES).map(s=>{
+ const times=[...new Set([0,...s.events.filter(e=>s.enemyIds.includes(e.type)||e.type==='E07'||e.type==='E02').map(e=>e.sec),s.durationSec])].sort((a,b)=>a-b)
+ return [s.id,times.slice(0,-1).map((start,i)=>{
+  const events=s.events.filter(e=>e.sec===start&&!e.type.startsWith('B')); const target=events.reduce((n,e)=>n+e.count,0)
+  return {start,end:times[i+1],target,weights:Object.fromEntries(events.map(e=>[e.type,e.count/(target||1)]))}
+ })]
+}))
+
 const REDUCED_STAGE_ZOMBIE_WEIGHTS = Object.freeze({
   E02: 0.9, // 보라색 탱커 좀비: abb28 기준 개체수 10% 감소
   E03: 0.9, // 녹색 러너 좀비: abb28 기준 개체수 10% 감소
@@ -229,7 +238,24 @@ export const STAGE2_WAVE_PHASES = retuneReducedStageZombieWeights(BASE_STAGE2_WA
 export const STAGE3_WAVE_PHASES = retuneReducedStageZombieWeights(BASE_STAGE3_WAVE_PHASES)
 export const STAGE4_WAVE_PHASES = retuneReducedStageZombieWeights(BASE_STAGE4_WAVE_PHASES)
 
+export const STAGE5_WAVE_PHASES = [
+  { start: 0, end: 48, target: 18, weights: { E01: 1 } },
+  { start: 48, end: 108, target: 24, weights: { E01: 0.6, E03: 0.2, E04: 0.2 } },
+  { start: 108, end: 150, target: 28, weights: { E01: 0.4, E02: 0.3, E05: 0.3 } },
+  { start: 150, end: 192, target: 18, weights: { E01: 0.5, E02: 0.3, E05: 0.2 } },
+  { start: 192, end: 240, target: 24, weights: { E01: 0.6, E05: 0.2, E07: 0.2 } },
+]
+
+export const STAGE5_SPAWN_TELEGRAPHS = [
+  { sec: 60, leadSec: 2.5, label: '마지막 방어선이 에워싼다' },
+  { sec: 108, leadSec: 2.5, label: '앞뒤에서 조여온다' },
+  { sec: 120, leadSec: 2.5, label: '돌진 무리가 몰려온다' },
+  { sec: 184, leadSec: 2.5, label: '거대들이 탈출로를 막는다' },
+]
+
 export function getDefaultWavePhases(stageId = 'stage1') {
+  if(EXPANSION_WAVE_PHASES[stageId])return EXPANSION_WAVE_PHASES[stageId]
+  if (stageId === 'stage5') return STAGE5_WAVE_PHASES
   if (stageId === 'stage2') return STAGE2_WAVE_PHASES
   if (stageId === 'stage3') return STAGE3_WAVE_PHASES
   if (stageId === 'stage4') return STAGE4_WAVE_PHASES

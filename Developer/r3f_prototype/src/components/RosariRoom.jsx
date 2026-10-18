@@ -10,6 +10,7 @@ import {
 } from '../lib/rosariRoom.js'
 
 const ROSARI_GLB_URL = '/assets/rosari-room/PLAYER_wholebody_refined_t_efe49b7c.glb'
+const rosariLoadErrors = new WeakSet()
 const OUTLINE_STENCIL_REF = 3
 const OUTLINE_WIDTH_PX = 2
 const OUTLINE_COLOR = 0x050209
@@ -20,6 +21,7 @@ const DIRECTION_LABELS = Object.freeze({ up: '위', down: '아래', left: '왼�
 export default function RosariRoom({ onBack }) {
   const [wardrobeOpen, setWardrobeOpen] = useState(false)
   const [nearWardrobe, setNearWardrobe] = useState(false)
+  const [overview, setOverview] = useState(false)
   const [pressedKeys, setPressedKeys] = useState(EMPTY_KEYS)
   const mobileKeysRef = useRef({ ...EMPTY_KEYS })
   const keyboardKeysRef = useRef({ ...EMPTY_KEYS })
@@ -28,7 +30,7 @@ export default function RosariRoom({ onBack }) {
   const heldKeyboard = useRef(new Map())
   const wasWardrobeOpen = useRef(false)
   const heldPointers = useRef(new Map())
-  const padKeyboard = useRef(new Set())
+  const padKeyboard = useRef(new Map())
   const [roomSize, setRoomSize] = useState({ width: 0, height: 0 })
   const layout = getRosariRoomLayout(roomSize)
 
@@ -72,6 +74,7 @@ export default function RosariRoom({ onBack }) {
     }
     const down = (event) => {
       if (event.key === 'Escape') {
+        if (event.repeat) return
         if (wardrobeOpen) setWardrobeOpen(false)
         else onBack?.()
         return
@@ -108,7 +111,7 @@ export default function RosariRoom({ onBack }) {
   const refreshMobileKeys = useCallback(() => {
     const next = { ...EMPTY_KEYS }
     for (const held of heldPointers.current.values()) next[held.key] = true
-    for (const key of padKeyboard.current) next[key] = true
+    for (const key of padKeyboard.current.values()) next[key] = true
     mobileKeysRef.current = next
     setPressedKeys(next)
   }, [])
@@ -135,13 +138,13 @@ export default function RosariRoom({ onBack }) {
         if (event.key !== ' ' && event.key !== 'Enter') return
         if (wardrobeOpen) return
         event.preventDefault()
-        padKeyboard.current.add(key)
+        padKeyboard.current.set(event.code || event.key, key)
         refreshMobileKeys()
       },
       onKeyUp: (event) => {
         if (event.key !== ' ' && event.key !== 'Enter') return
         event.preventDefault()
-        padKeyboard.current.delete(key)
+        padKeyboard.current.delete(event.code || event.key)
         refreshMobileKeys()
       },
       onBlur: clearMobileKeys,
@@ -168,6 +171,7 @@ export default function RosariRoom({ onBack }) {
         >
           <Suspense fallback={<Html center><div role="status" style={{ ...panel, padding: 12, width: 140, color: '#5f2d58' }}>로자리의 방을 불러오는 중…</div></Html>}>
             <RoomScene
+              overview={overview}
               keyboardKeysRef={keyboardKeysRef}
               mobileKeysRef={mobileKeysRef}
               wardrobeOpen={wardrobeOpen}
@@ -177,6 +181,7 @@ export default function RosariRoom({ onBack }) {
           </Suspense>
         </Canvas>
         </RoomErrorBoundary>
+        <button type="button" aria-pressed={overview} style={styles.cameraButton} onClick={() => setOverview((value) => !value)}>{overview ? '캐릭터 따라보기' : '방 전체 보기'}</button>
         {wardrobeOpen && (
           <section role="dialog" aria-modal="false" aria-label="로자리 옷장" style={styles.wardrobePanel} onKeyDown={(event) => { if (event.key !== 'Escape') event.stopPropagation() }}>
             <div style={styles.wardrobeHeader}>
@@ -198,7 +203,7 @@ export default function RosariRoom({ onBack }) {
           <PadButton direction="right" style={styles.padButton} handlers={makePadHandlers('right')}>▶</PadButton>
         </div>
         <div style={styles.actionPanel}>
-          <p style={styles.hint}>키보드: 방향키/WASD · ESC: 타이틀</p>
+          <p style={styles.hint} title="방향키/WASD: 이동 · ESC: 옷장 닫기/타이틀">{nearWardrobe ? '옷장을 열어보세요' : '옷장 근처로 이동'}{!layout.compact && <><br />방향키/WASD · ESC: 닫기/타이틀</>}</p>
           <button
             ref={wardrobeButtonRef}
             type="button"
@@ -217,12 +222,16 @@ export default function RosariRoom({ onBack }) {
 
 export class RoomErrorBoundary extends Component {
   state = { failed: false }
-  static getDerivedStateFromError() { return { failed: true } }
+  static getDerivedStateFromError(error) { return { failed: true, error } }
   render() {
     if (this.state.failed) return (
       <div role="alert" style={{ padding: 12, overflowY: 'auto', maxHeight: '100%', boxSizing: 'border-box' }}>
         <p>방을 불러오지 못했어요. 다시 시도하거나 위의 타이틀 버튼으로 돌아가 주세요.</p>
-        <button type="button" style={styles.backButton} onClick={() => this.setState({ failed: false })}>다시 시도</button>
+        <button type="button" style={styles.backButton} onClick={() => {
+          // Evict only a rejected room load, never a successful shared loader entry.
+          if (this.state.error && rosariLoadErrors.has(this.state.error)) useGLTF.clear(ROSARI_GLB_URL)
+          this.setState({ failed: false, error: null })
+        }}>다시 시도</button>
       </div>
     )
     return this.props.children
@@ -250,11 +259,18 @@ export function getRosariRoomLayout(size) {
 }
 
 // Fit the authored floor and wall bounds, not guessed camera distances.
-export function getRosariCameraLayout(size) {
+export function getRosariCameraLayout(size, { overview = true, position = { x: 0, z: 0.65 } } = {}) {
   const { width, height } = getRosariOutlineViewport(size)
   const fov = 48
   const target = new THREE.Vector3(0, 1, 0)
   const backward = new THREE.Vector3(0, 0.7, 0.8).normalize()
+  if (!overview) {
+    // Readable inspection view; the overview toggle still fits every authored corner.
+    // Only the camera follows. Approved model size and furniture/collisions stay fixed.
+    target.set(position.x, 0.66, position.z)
+    const distance = Math.max(3, Math.min(8, height * 0.95 / (2 * Math.tan(THREE.MathUtils.degToRad(fov / 2)) * 72)))
+    return { position: target.clone().addScaledVector(backward, distance).toArray(), target: target.toArray(), fov }
+  }
   const right = new THREE.Vector3(1, 0, 0)
   const up = new THREE.Vector3().crossVectors(backward, right)
   const tanY = Math.tan(THREE.MathUtils.degToRad(fov / 2))
@@ -267,7 +283,7 @@ export function getRosariCameraLayout(size) {
   return { position: target.clone().addScaledVector(backward, distance).toArray(), target: target.toArray(), fov }
 }
 
-function RoomScene({ keyboardKeysRef, mobileKeysRef, wardrobeOpen, onNearWardrobeChange, onWardrobeToggle }) {
+function RoomScene({ keyboardKeysRef, mobileKeysRef, wardrobeOpen, overview, onNearWardrobeChange, onWardrobeToggle }) {
   const characterRef = useRef(null)
   const positionRef = useRef({ x: 0, z: 0.65 })
   const walkTimeRef = useRef(0)
@@ -277,12 +293,12 @@ function RoomScene({ keyboardKeysRef, mobileKeysRef, wardrobeOpen, onNearWardrob
   const { camera, size } = useThree()
 
   useEffect(() => {
-    const layout = getRosariCameraLayout(size)
+    const layout = getRosariCameraLayout(size, { overview, position: positionRef.current })
     camera.position.set(...layout.position)
     camera.fov = layout.fov
     camera.updateProjectionMatrix()
     camera.lookAt(...layout.target)
-  }, [camera, size.height, size.width])
+  }, [camera, size.height, size.width, overview])
 
   useFrame((_, rawDelta) => {
     const delta = capRosariFrameDelta(rawDelta)
@@ -297,6 +313,11 @@ function RoomScene({ keyboardKeysRef, mobileKeysRef, wardrobeOpen, onNearWardrob
       walkTimeRef.current += delta * 8
     }
     const root = characterRef.current
+    if (!overview && root) {
+      // Translation-only follow retains the framing/orientation calculated on resize.
+      camera.position.x += positionRef.current.x - root.position.x
+      camera.position.z += positionRef.current.z - root.position.z
+    }
     if (root) {
       root.position.set(positionRef.current.x, (moving ? Math.sin(walkTimeRef.current * 2) * 0.015 : 0), positionRef.current.z)
       if (moving) root.rotation.y = Math.atan2(vector.x, vector.z)
@@ -323,8 +344,13 @@ function RoomScene({ keyboardKeysRef, mobileKeysRef, wardrobeOpen, onNearWardrob
   )
 }
 
-function RosariModel({ refObject, limbRefs }) {
-  const gltf = useGLTF(ROSARI_GLB_URL)
+export function RosariModel({ refObject, limbRefs }) {
+  let gltf
+  try { gltf = useGLTF(ROSARI_GLB_URL) }
+  catch (error) {
+    if (error && typeof error === 'object' && typeof error.then !== 'function') rosariLoadErrors.add(error)
+    throw error
+  }
   const { gl } = useThree()
   const [container] = useState(() => new THREE.Group())
   // Each committed setup owns a fresh clone, including R3F StrictMode replay.
@@ -802,9 +828,10 @@ const styles = {
   },
   titleBlock: { ...panel, flex: 1, minWidth: 0, padding: 6, boxSizing: 'border-box' },
   title: { margin: 0, fontSize: 20, lineHeight: 1.15, fontWeight: 1000, overflowWrap: 'anywhere' },
-  subtitle: { margin: '4px 0 0', fontSize: 11, lineHeight: 1.22, fontWeight: 800, overflowWrap: 'anywhere' },
+  subtitle: { margin: '4px 0 0', fontSize: 14, lineHeight: 1.3, fontWeight: 800, overflowWrap: 'anywhere' },
   stage: { ...panel, position: 'relative', minHeight: 0, minWidth: 0, overflow: 'hidden', borderRadius: 18 },
   canvas: { position: 'absolute', inset: 0, width: '100%', height: '100%', touchAction: 'none' },
+  cameraButton: { position: 'absolute', bottom: 6, left: 6, zIndex: 2, minHeight: 44, maxWidth: 'calc(100% - 12px)', padding: '6px 10px', border: '2px solid #7c416e', borderRadius: 12, background: '#fff3cd', color: '#5f2d58', fontWeight: 800, cursor: 'pointer', touchAction: 'manipulation' },
   bottomHud: {
     zIndex: 3,
     display: 'grid',
@@ -816,7 +843,7 @@ const styles = {
   controlPanel: { ...panel, width: 'fit-content', display: 'grid', gridTemplateColumns: 'repeat(2, 44px)', justifyItems: 'center', gap: 4, padding: 6, touchAction: 'none', userSelect: 'none', boxSizing: 'border-box' },
   padButton: { width: 44, minWidth: 44, height: 44, minHeight: 44, border: '2px solid #894d82', borderRadius: 12, background: '#ffd4e4', color: '#67315c', fontWeight: 1000, cursor: 'pointer', touchAction: 'none', userSelect: 'none' },
   actionPanel: { ...panel, justifySelf: 'stretch', padding: 4, minWidth: 0, boxSizing: 'border-box', overflowWrap: 'anywhere' },
-  hint: { margin: '0 0 4px', fontSize: 11, fontWeight: 900, lineHeight: 1.25 },
+  hint: { margin: '0 0 4px', fontSize: 14, fontWeight: 900, lineHeight: 1.3 },
   wardrobeButton: { width: '100%', minHeight: 44, border: '3px solid #7c416e', borderRadius: 14, background: '#ffacd0', color: '#4e2449', fontWeight: 1000, cursor: 'pointer', touchAction: 'manipulation', userSelect: 'none' },
   wardrobeButtonDisabled: { width: '100%', minHeight: 44, border: '3px solid #b991ab', borderRadius: 14, background: '#eadfe7', color: '#8b7286', fontWeight: 900, cursor: 'not-allowed', touchAction: 'manipulation', userSelect: 'none' },
   wardrobePanel: { ...panel, position: 'absolute', zIndex: 4, top: 4, right: 4, width: 'min(292px, calc(100% - 8px))', maxHeight: 'calc(100% - 8px)', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', overflow: 'hidden', padding: 6, touchAction: 'pan-y' },

@@ -1,0 +1,1498 @@
+{
+  "checks": {
+    "SOUND_MAP_exact": true,
+    "tuning_functions_exact": true,
+    "master_volume_function_exact": true,
+    "dialogue_profiles_exact": true,
+    "dialogue_volume_clamp_exact": true,
+    "src/components/SfxLayer.jsx_unchanged_from_HEAD": true,
+    "src/lib/sfxEvents.js_unchanged_from_HEAD": true,
+    "src/lib/enemyDeathSfx.js_unchanged_from_HEAD": true,
+    "src/assets/audio/title_bgm.m4a_unchanged_from_HEAD": true,
+    "provenance_only_inuconBite": true,
+    "provenance_other_top_level_exact": true
+  },
+  "passed": true,
+  "provenanceChangedIds": [
+    "inuconBite"
+  ],
+  "deletions": [],
+  "exactImplementationFiles": [
+    {
+      "path": "Developer/r3f_prototype/src/lib/sfxRegistry.js",
+      "bytes": 20441,
+      "sha256": "d1fcbfa197af5d68cb9fa6855a18e0d5863da46588c21c620359768346a2b76b"
+    },
+    {
+      "path": "Developer/r3f_prototype/src/lib/dialogueVoice.js",
+      "bytes": 9238,
+      "sha256": "e69cfc0a9889d01b3ecbabdd64c92d2c22adfb5dc7850a2cbb832117b3972d0c"
+    },
+    {
+      "path": "Developer/agent_room/audio_asset_provenance_manifest_2026-07-30.json",
+      "bytes": 78946,
+      "sha256": "f0362ad3ab357139474ec70e350d387465090ad8caec70063cb3fc581e48aa34"
+    },
+    {
+      "path": "Developer/r3f_prototype/src/lib/sfxRegistry.test.js",
+      "bytes": 23871,
+      "sha256": "9f8766b08988258c751b8f67d037cd35d2b65d176864696ade171382f73739a2"
+    },
+    {
+      "path": "Developer/r3f_prototype/src/lib/dialogueVoice.lifecycle.test.js",
+      "bytes": 3291,
+      "sha256": "78230d2f7b186a44849909b67dec9ecff5d88710a66acc29ac60fc05f55ab758"
+    },
+    {
+      "path": "Developer/r3f_prototype/scripts/generate_sfx.mjs",
+      "bytes": 42518,
+      "sha256": "20d0ff98c851cd895d57ed77db69bcbe6261305f5c0273403aa0fe8f9d2355a5"
+    },
+    {
+      "path": "Developer/r3f_prototype/scripts/generate-audition-20261016.mjs",
+      "bytes": 13908,
+      "sha256": "193aef6481ceeb6fe7cd984871f95e6b6c7480eea4f72cd2b1c68d49202fac29"
+    },
+    {
+      "path": "Developer/r3f_prototype/scripts/generate-audition-20261016.test.js",
+      "bytes": 1236,
+      "sha256": "833f160c479093de890bb642c67ad3f78ef90f686d7617cb2a54ee1e80f28ce5"
+    },
+    {
+      "path": "Developer/r3f_prototype/scripts/render-dialogue-audition-20261016.mjs",
+      "bytes": 3556,
+      "sha256": "765ebc225676b5ecb68a58091fb8b0581196929c84bfb3064f3ddb0bc9bee427"
+    },
+    {
+      "path": "Developer/r3f_prototype/scripts/verify-audition-20261016.mjs",
+      "bytes": 7142,
+      "sha256": "ea83186a3251cfceb3268429a0ed0e170629498899336b78ea19d2f9ee09fd01"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/bellFire-A.wav",
+      "bytes": 58962,
+      "sha256": "513caecdc43bf49d0b4cc374da43294981aff87da2129acadba35b04121be1b2"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/bellFire-B.wav",
+      "bytes": 85688,
+      "sha256": "31a13c374f04d123af43d7f64644a6f80c98d9074790db59a819f05735350324"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/bellFire-C.wav",
+      "bytes": 90220,
+      "sha256": "be45a8aed82422d0e315c4e30a7a6ad856071df7e0a64f74deba166fbad1d1f3"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/bellHit-A.wav",
+      "bytes": 44496,
+      "sha256": "bc224ae7ffd46fcf1fca32254cc13d76d169f5f9082406385f55e9ca2a7d9986"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/bellHit-B.wav",
+      "bytes": 65930,
+      "sha256": "9dfb18e931a232acb55e0153859efcd1b27fce138b4123e9aee162ece5a26f52"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/bellHit-C.wav",
+      "bytes": 69352,
+      "sha256": "00b60d75ffc15e65d5f601e6c8179e9bace5ce17635ee98a370ab409274adbe3"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/bikittyCutterFire-A.wav",
+      "bytes": 5512,
+      "sha256": "22470d4065275ff2c360bb38483fdbfc610911bfd0f1ff3dc2d04294885456b1"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/bikittyCutterFire-B.wav",
+      "bytes": 12684,
+      "sha256": "f0948ffd8838987ef323175a63093376085fccb2d21ffe87f918e3ae15749d7c"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/bikittyCutterFire-C.wav",
+      "bytes": 10386,
+      "sha256": "c18eafed1a42dd3a768c0333ce58a990eea511a5609a7adc794479efc73ee448"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/bikittyCutterReload-A.wav",
+      "bytes": 69810,
+      "sha256": "e03f3cc1224305bb91537c4cc0209aad92f64fa9d3ad0b11ea99095991bc00b7"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/bikittyCutterReload-B.wav",
+      "bytes": 100504,
+      "sha256": "0242be3fffdad19ea028826ee37eea973f8eab885b9cee9d518b3a245cf25ee0"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/bikittyCutterReload-C.wav",
+      "bytes": 105978,
+      "sha256": "8858fee340356f727c0d2fc2169c013c6941cfa4962e023d0186296d9f2857ed"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/bikittyCutterSnap-A.wav",
+      "bytes": 46376,
+      "sha256": "e85d3d5e4fe0fce5c20df32e0b4498ca96cce66b8353ffe9df9513cb71fef46e"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/bikittyCutterSnap-B.wav",
+      "bytes": 68498,
+      "sha256": "904e12e3c8c997393469d90c7d9ebb5003d567344db181ab1cff50127119b338"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/bikittyCutterSnap-C.wav",
+      "bytes": 71966,
+      "sha256": "8d8a170d480f8a3ac56dcc63c5aa05f56c2c770d73317ee48343ae44f5d1e075"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/bossClearJingle-A.wav",
+      "bytes": 77040,
+      "sha256": "3360c30dafa8f4c1900512ca29290a0fea9761e41419daa596c8d9360b114904"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/bossClearJingle-B.wav",
+      "bytes": 110380,
+      "sha256": "d8b46c56e6aeed936972b61880d79a43a07c73843c49cc1fab5aa599d847604f"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/bossClearJingle-C.wav",
+      "bytes": 117694,
+      "sha256": "9e39c152d65f21055e2a91d169cc27821809b18240f6218eaa0ad89d321f0b08"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/bossDeath-A.wav",
+      "bytes": 69808,
+      "sha256": "269acf75fa5cd78b18c99f3036712814bf881f113319dc450e39f4740e32a84a"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/bossDeath-B.wav",
+      "bytes": 100502,
+      "sha256": "19838bafa3b40a13f68112bbfa81836f692810322d3e8e80084a601498725ef4"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/bossDeath-C.wav",
+      "bytes": 105450,
+      "sha256": "fbf58f896542f345a5537adf4eaf8434293fb852cb2e837410f1aedd7f009d59"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/bossRoar-A.wav",
+      "bytes": 63300,
+      "sha256": "d1cd48228bdb7e28e895dada73f7273cd5945f9b3515757c21e5b237eed1dc11"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/bossRoar-B.wav",
+      "bytes": 91614,
+      "sha256": "f62e18f4ff14a14db8d5f1e35f7404ec59c58c000064ebdedb37a8938b7329f7"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/bossRoar-C.wav",
+      "bytes": 96402,
+      "sha256": "39a51ad49441ebaa7f3f1e176993bf98bab53f4a26b1172e6887a0f72080b404"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/bossSpawn-A.wav",
+      "bytes": 53176,
+      "sha256": "fbaef8322c0af32baa6d00006e40c7e9a7da5fd26c9274c0df83cf2f3b9036e9"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/bossSpawn-B.wav",
+      "bytes": 77784,
+      "sha256": "ffa962d8d294fe5e56379ce7c4ba26331c0ce045701118a57259716395e9b119"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/bossSpawn-C.wav",
+      "bytes": 81976,
+      "sha256": "360676097191db15b5509e17ed547196dda31795e84a352abe4f9d1440b5fb32"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/bossWarning-A.wav",
+      "bytes": 22800,
+      "sha256": "39cba8a4414b006cb6a546bbc57f14f7e460fc1d574b286472b1147a59477eae"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/bossWarning-B.wav",
+      "bytes": 36296,
+      "sha256": "522466b862cdc54c4f48f14303dcc516045bb2a06a80cea7377223f18835b865"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/bossWarning-C.wav",
+      "bytes": 36594,
+      "sha256": "22b0bdc1eb903e6bdb9f6aef8e1f4ac74a5f09b3a76fbe39d20afb115fa96ce3"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/boxCutterFire-A.wav",
+      "bytes": 11950,
+      "sha256": "fafd8b3c46002d740339c709c501b7b6e5decbf77550830e3d451d6c79171543"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/boxCutterFire-B.wav",
+      "bytes": 21478,
+      "sha256": "1caba2137d509000f8513e49fedee59dde11ddcb66aec67cb6d05d6f25d95f6d"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/boxCutterFire-C.wav",
+      "bytes": 20394,
+      "sha256": "989ef85cd5d8e214ceec45d9072a0b772ecca7420a14a9fa49002cb116da190d"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/boxCutterHit-A.wav",
+      "bytes": 9780,
+      "sha256": "a4a4db51d82c6cb1ba663886dc4329e828952d43f6b7c724957ff682e8513a8a"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/boxCutterHit-B.wav",
+      "bytes": 18514,
+      "sha256": "2ab4adb35c40159a96f6eb24d2491f1a6db79a266c307c2da381dce52df14096"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/boxCutterHit-C.wav",
+      "bytes": 16814,
+      "sha256": "8c28c584f23f2190264d1e16ae18ba0b20313a14affc87d9f48defe894c6be95"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/buttonClick-A.wav",
+      "bytes": 8334,
+      "sha256": "8cd3de9b3303c2555f30ea9b44d3b3e6348d70facc606fca807999a60a6756c5"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/buttonClick-B.wav",
+      "bytes": 16538,
+      "sha256": "e6fdd7e94b0f6d5de3544f270d297d1a5b81ae3bafabf84807456e480dc350e0"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/buttonClick-C.wav",
+      "bytes": 15284,
+      "sha256": "a9cf586333fb283bf1c299f11667c6bde2ef5f7794929b148a6335a7a805a9a9"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/chestDrop-A.wav",
+      "bytes": 22618,
+      "sha256": "5aac75ddd88dd68ca53d02de1e26f16e5e09c914d650a4027f50b61182edcf80"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/chestDrop-B.wav",
+      "bytes": 36048,
+      "sha256": "92d3ac7da3312630baa9d5e135ab53dec97fdc846b7b09de593082ef55ef9360"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/chestDrop-C.wav",
+      "bytes": 35974,
+      "sha256": "bd3d81291be7982e8cb460326dcdb60d62fe0997f5ef78f07b4ee94f1e324dbb"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/chestOpen-A.wav",
+      "bytes": 36054,
+      "sha256": "9203cd22ea1a2c576ad3fb5b32d1f01c356f37f86d3f008c60d868c81bb6ebf5"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/chestOpen-B.wav",
+      "bytes": 54398,
+      "sha256": "11c82cc652cd626a54e9fd94bd3e890222c441ec470c3fe0a3918455539f2dee"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/chestOpen-C.wav",
+      "bytes": 56544,
+      "sha256": "29bb1ecc1f802d31ac10cb6ed8ae17a9d10a4354faf7c8ede36275ed1ebb70f3"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/chibikoFire-A.wav",
+      "bytes": 9780,
+      "sha256": "f9d44fe36f50038d517c6aef823810ff96db0ebb7231ad9cb3ad3d469b8b6cad"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/chibikoFire-B.wav",
+      "bytes": 18514,
+      "sha256": "9f151fd9251b9776b5617c7ce2f0fa1fb9c243b22f9fa887f825b58583845f68"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/chibikoFire-C.wav",
+      "bytes": 17344,
+      "sha256": "10fdc89c2e85c640e65826a9d70514b96a9d54522ab25f3d74f819367f03326d"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/chibikoHit-A.wav",
+      "bytes": 6888,
+      "sha256": "45361db42f029c6614443b53be068db733297daa512ad856dcfa51851c4592b7"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/chibikoHit-B.wav",
+      "bytes": 14562,
+      "sha256": "dc1fcd49dfb6fe267c6cf76163d5404e0018d87b383ed6635b6a470063d418c0"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/chibikoHit-C.wav",
+      "bytes": 11992,
+      "sha256": "7363f55f7ad6ff2d8f6307332745602b4ffb2b2dce89e06dab8625c00289f705"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/coinCollect-A.wav",
+      "bytes": 15566,
+      "sha256": "78adf485a14d3bdd46f0e34b3e0e6476b4646a1fa03877f365212b7864ac213b"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/coinCollect-B.wav",
+      "bytes": 26416,
+      "sha256": "461f2e710f82141059926db271a0cc8c96547af485adc0c59d5acafb3fee51c7"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/coinCollect-C.wav",
+      "bytes": 25234,
+      "sha256": "472aa22229ddac9c6213e0b55f23ea72fec87c1e09ecbe629f6c55acc65f2d6a"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/compassFire-A.wav",
+      "bytes": 15566,
+      "sha256": "616aa266673419c376908b2304e245eef10771560b12dc1da5a12f37e9d66332"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/compassFire-B.wav",
+      "bytes": 26416,
+      "sha256": "7522a88fbf001fb7bbfeba6c770b2a3f7a9c25e611fddf3104bae46c1b0a1ecb"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/compassFire-C.wav",
+      "bytes": 26116,
+      "sha256": "97ac01ae505cf9217c90481865d97735cc27e0c90498fafd1de69f89a3204dd5"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/compassHit-A.wav",
+      "bytes": 37264,
+      "sha256": "c38fb71ca2faffba4eccb0661a01a86028994970a1fc26e5428ccfbe010f27ee"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/compassHit-B.wav",
+      "bytes": 56052,
+      "sha256": "4970d1a5de60bec5398e460fc6757ab9536a36f24be2ebb978f4a52fdb15e4c4"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/compassHit-C.wav",
+      "bytes": 57992,
+      "sha256": "fc8fa2a22e52f82b5ea953e55a483bd073e7046d820a68dbe3933f81b3d49339"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/compassQuack-A.wav",
+      "bytes": 12674,
+      "sha256": "dbd0003ebddbb70e2e3408ec653335d4f1c7fe6eccec897b232174eb22abbb26"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/compassQuack-B.wav",
+      "bytes": 22466,
+      "sha256": "7fb41468f02ecbaab2ab39c11a0861c186e7583d1435261f27b7a3b79b7ec847"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/compassQuack-C.wav",
+      "bytes": 22084,
+      "sha256": "6170b59b89614f4cd503afb36c66da8f81eeb9ae1f89bdac4beee63a13a1ee72"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/criticalHit-A.wav",
+      "bytes": 12332,
+      "sha256": "420424b9feb56be777212c318351ff014cb14712fbb8611a1af43c89b5fd7607"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/criticalHit-B.wav",
+      "bytes": 22000,
+      "sha256": "eaa163463610e6faf558a3b07cba909e764206bf3e701ed0e16f40cb47618f71"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/criticalHit-C.wav",
+      "bytes": 20962,
+      "sha256": "b7fce7960b04f7873df7eb04236be4be0f4491f991b7e2894fabe8efb03d5e0c"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/dialogue-matilda-A.wav",
+      "bytes": 91596,
+      "sha256": "60d4970424656c210dc03423590a8331b8faa694cc045eae0572743443c776cd"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/dialogue-matilda-B.wav",
+      "bytes": 111352,
+      "sha256": "b519f7bf00ccd9e29303f347523ecb2ce44dfacea909e0fb7f350c0769878ad9"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/dialogue-matilda-C.wav",
+      "bytes": 100240,
+      "sha256": "c00544f4a3a1691e433d9814c85a7644124b62abe8a345b312833805b1ed9498"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/dialogue-matilda-original.wav",
+      "bytes": 114882,
+      "sha256": "2edc66f87874c7957fc46a41af0cf624b0b41d645efbc89bf94c393d8f01d605"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/dialogue-protagonistIntro-A.wav",
+      "bytes": 79776,
+      "sha256": "2ab60075a96ccb3a5aaeea782a8d1d433cbf2e7bbd33cca4c65ff328817ff8d1"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/dialogue-protagonistIntro-B.wav",
+      "bytes": 96712,
+      "sha256": "10e54174d507b49f5cdde19919439b324635cfefa3bb5cb47bb74bbef5ec1d5f"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/dialogue-protagonistIntro-C.wav",
+      "bytes": 87186,
+      "sha256": "9af0abe945284dca2e981b325e4f7d4cecb8c4f4cd9dcaa9e071e61b21495204"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/dialogue-protagonistIntro-original.wav",
+      "bytes": 111176,
+      "sha256": "b6d0ce65e266c37d97a6c494ba3395f7dcd91c62859a11200f1104a6c98c845b"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/dialogue-protagonistUrgent-A.wav",
+      "bytes": 73868,
+      "sha256": "02bfbde9f77f2bb00709c6643d22db3aa6fbd6122ecd1d0fd3ab3dbbee6e6c1f"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/dialogue-protagonistUrgent-B.wav",
+      "bytes": 89390,
+      "sha256": "4f67f5bb0dbd2fa016853a28240169ff5051591a0234c2c09721464c2583c50c"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/dialogue-protagonistUrgent-C.wav",
+      "bytes": 80658,
+      "sha256": "def504ae105b90437e644f5809371046df33ba1258184270ecb83bcb0acde2eb"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/dialogue-protagonistUrgent-original.wav",
+      "bytes": 91508,
+      "sha256": "7d8e0bdcdd41fe11814f4407549be25235be18fcb3ddb5ef306600d79050248c"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/dogeDeath-A.wav",
+      "bytes": 22800,
+      "sha256": "66eb64c65b5eb442b6a9a292953ea114c35c84ae3b0108ceca87260018ae8870"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/dogeDeath-B.wav",
+      "bytes": 36296,
+      "sha256": "4c22777a0e08cbe7f6d5dd9472c5b31a4a7f8e63bc799046c7e92313d93be5d2"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/dogeDeath-C.wav",
+      "bytes": 36594,
+      "sha256": "f6175a6d4fd94b9af59f3a8b3ad83fa8634a9ef6c3b0beaf6db8dc3549ffcde2"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/dogeEscape-A.wav",
+      "bytes": 17014,
+      "sha256": "ac0bea38bcc5bbaec047877fbff2ebc58129e2afb9537be868ff7e2623771112"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/dogeEscape-B.wav",
+      "bytes": 28392,
+      "sha256": "80c141157e43a54b639adf0e592e041dea4486649570517e56969c0470e92006"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/dogeEscape-C.wav",
+      "bytes": 27822,
+      "sha256": "bee3c5908100c50719dbba5a7b4704408a2c7236d3523b16b856db22e845751a"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/dogeYelp-A.wav",
+      "bytes": 14120,
+      "sha256": "0a332d7f8a8c5b0fcdb0881c053d9b6df26339cd3e6e13d7deb6f8adecf9ef1a"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/dogeYelp-B.wav",
+      "bytes": 24442,
+      "sha256": "630572b78677970a10278050a6423a53079c1797b127b3f668607036e6d8f098"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/dogeYelp-C.wav",
+      "bytes": 23528,
+      "sha256": "8c78d05431a4e0850d40fdbb93e9e107beecdef1eaf83bd470c848e788f760d5"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/eraserFire-A.wav",
+      "bytes": 21352,
+      "sha256": "54044dc5799c8bed2f5e28edcb7d88996b6cc8ec69fa05e5d11cb162900ea886"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/eraserFire-B.wav",
+      "bytes": 34320,
+      "sha256": "2c549b9d77a527173e129e096bd83737bfd554cb05a7903dbedf1b2332c5fc45"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/eraserFire-C.wav",
+      "bytes": 34888,
+      "sha256": "4a37f7861f0f657cbbb838ed8d1ef92dc3f4b2d9dcd1c0a89ff23dc207346ef7"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/eraserHit-A.wav",
+      "bytes": 30032,
+      "sha256": "d29f3d532e78c196856dc53bc5bda49cca8db2fd4b71a7bc983d88058cfd081f"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/eraserHit-B.wav",
+      "bytes": 46174,
+      "sha256": "362fdd84ba2915d2b3c55a1298e2cdeac11ed524bcdf06049b36d663d63f0ed5"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/eraserHit-C.wav",
+      "bytes": 47690,
+      "sha256": "71d1f3253273fbb92095341a2e9c05dfc89789139def2e0e451a282197d2ca69"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/escapePortalClear-A.wav",
+      "bytes": 82104,
+      "sha256": "0c5c0aac5a9ab054cd24245e01c24b4d4f641c6656366ce6289a9b8babd89411"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/escapePortalClear-B.wav",
+      "bytes": 117298,
+      "sha256": "050d899a08d3956b9762a41b3d14c099ebd0dd8668fe5023014368b48c5de3f8"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/escapePortalClear-C.wav",
+      "bytes": 124420,
+      "sha256": "972970e14384406524173648165e9632ef7c22a6767377e855c6c140e00b341e"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/flaskFire-A.wav",
+      "bytes": 15566,
+      "sha256": "ca8e8c576fcc67dfffc569f892f7b471bc63f037976d6ba9851860bf646c512f"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/flaskFire-B.wav",
+      "bytes": 26416,
+      "sha256": "1d5ca44807535356521ca5cf91a36eee8fa267b38291c5794c57792b286daafd"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/flaskFire-C.wav",
+      "bytes": 26116,
+      "sha256": "34e016019d54dfbab07b51145318a7d89c140f3fc28ef7143a0fac90ca4ec7f2"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/flaskHit-A.wav",
+      "bytes": 26414,
+      "sha256": "3411aa6fc99cebc4c990827e2f47655066785c961d27ebb2880add5de3031d9b"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/flaskHit-B.wav",
+      "bytes": 41232,
+      "sha256": "e92f906c08cfa8a90cc74fb29962a488fce7a0189b4d9148e1ed5793c5322771"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/flaskHit-C.wav",
+      "bytes": 41700,
+      "sha256": "ec57a9b54e1d731d77c384a454d95dcea8ce7b51df0ef11d5401b971ad630b9a"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/flaskTick-A.wav",
+      "bytes": 14222,
+      "sha256": "f8e6b91b62b5ba64468382a69ab041847114e133ccae6f7a1dab6ce0c4c8bbee"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/flaskTick-B.wav",
+      "bytes": 24580,
+      "sha256": "3b7348a9e203226deb4783d899fae44430b9ea371b5386a48b379ea5f4be6627"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/flaskTick-C.wav",
+      "bytes": 22884,
+      "sha256": "202b72ba4081633f9cbf9d171b3b90e540a042540cf842cda34e7f50b016f812"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/gameOver-A.wav",
+      "bytes": 84272,
+      "sha256": "5926fbd0e3db15da3fcdd394d58ae05681b5a18d68fed0a0c3ab1ff0826178b8"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/gameOver-B.wav",
+      "bytes": 120258,
+      "sha256": "2457c05fa2e60052af19c4f37a06dae926c4363da8a8abb873fa0a8aa38324b7"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/gameOver-C.wav",
+      "bytes": 127990,
+      "sha256": "4c3995074238942349d25c6f217c8415e84cfec0b6ef23f763325f10b2637f85"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/inuconBite-A.wav",
+      "bytes": 32694,
+      "sha256": "94f59d30f56ed2bfb3a7070a88a2d2124a7f7fb0e914437d410eeb0dfaa6cf0e"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/inuconBite-B.wav",
+      "bytes": 49812,
+      "sha256": "cf20d3a4b129d4a208d39a108d7523db590ef45f5f974973e9e2af917545f47c"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/inuconBite-C.wav",
+      "bytes": 51558,
+      "sha256": "d67cf4112dcda7d89f2fe9d10d3c16ea751184959fdb69534e48b3ee43838879"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/inuconHeal-A.wav",
+      "bytes": 24246,
+      "sha256": "2a72c18dafa42a2cabd5fed0bcb236939bd693a25aed92c3b5e4befcd9f67221"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/inuconHeal-B.wav",
+      "bytes": 38270,
+      "sha256": "7f3cf46bf13ce9a4622f4ec603cd5aa7293c11d3029f6f2c7113162ee3ff61fb"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/inuconHeal-C.wav",
+      "bytes": 38478,
+      "sha256": "95e3425718f377e07df3450439d529a1e0e24deac1a342217710a587b8714fbb"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/lanternFire-A.wav",
+      "bytes": 26188,
+      "sha256": "9b5b8237417060c57da2ca2c9ff551902ea8fd219f33da828f77e007ccfdc069"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/lanternFire-B.wav",
+      "bytes": 40924,
+      "sha256": "c8a82e89e0d8148d1b43703978b9fcb41668a1058f4805332a8efbeaed9618c0"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/lanternFire-C.wav",
+      "bytes": 41274,
+      "sha256": "b4b5d3b2582b2c68d3ca91920dac092efd560fd5865d0502dc17306c648be499"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/lanternTick-A.wav",
+      "bytes": 12542,
+      "sha256": "20bb584996789887e46c0c072dbeb8da8fb706dcbbe160eb961bcce11159b8aa"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/lanternTick-B.wav",
+      "bytes": 22286,
+      "sha256": "74b5c76e9376469be8eef72eeadeabd64fdf6fefa239b33cc74ec881119ee445"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/lanternTick-C.wav",
+      "bytes": 21270,
+      "sha256": "87bf2794c9bd1e344070f3bafbfea7e5baf8f5292119efeb82893f43b927a232"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/levelUp-A.wav",
+      "bytes": 56792,
+      "sha256": "f949b2f7135b541111ea334d509b25e9e3b65b7d91903e96ff556ef2477e5e44"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/levelUp-B.wav",
+      "bytes": 82724,
+      "sha256": "5b74d03b567a21125c497b903a933171a5132094bb05392164bf469285c5e481"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/levelUp-C.wav",
+      "bytes": 86734,
+      "sha256": "5d5195a0ae90e1c9c9120e62bee85b9359154fd04cb29ce1ffb2be3c7ce79a79"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/lineDrawCross-A.wav",
+      "bytes": 3850,
+      "sha256": "15033ab12b66687492aa66eeede40b2b1eb938419782185bdfcf63c864717661"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/lineDrawCross-B.wav",
+      "bytes": 10412,
+      "sha256": "25c98501256420b18ea7b78a5f15fc9b1964af12225848df284eeaa8fb1da35c"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/lineDrawCross-C.wav",
+      "bytes": 8448,
+      "sha256": "071deb45857bd87dde2a8aa7a7588dc122621255a25af2b6239c17711e40da34"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/lineDrawExpire-A.wav",
+      "bytes": 17014,
+      "sha256": "0543b5c21c9eb7c77e290395c0c2fec7a5fa2b4860b897c293e95f99b04ac0dd"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/lineDrawExpire-B.wav",
+      "bytes": 28392,
+      "sha256": "6ceb360cff436b11798ed6f0ea06ec99f30470f2695518011609556644b6aef3"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/lineDrawExpire-C.wav",
+      "bytes": 28086,
+      "sha256": "3d8f0fa52b208b47cfb94083c6bcd38b7c0e373bb91ebcb2c72b46faa9bd83f6"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/lineDrawSlash-A.wav",
+      "bytes": 34372,
+      "sha256": "f3ebb6d603115dd707f2085ddf0ee967c9954741ccac2006faf0fc5d18d3fcf9"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/lineDrawSlash-B.wav",
+      "bytes": 52100,
+      "sha256": "65eee391bef63d132143227535e34877c1c97c041b2098dbf74818bdf651bd8c"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/lineDrawSlash-C.wav",
+      "bytes": 53340,
+      "sha256": "1bc62fe4587e934eb7f571ec6988c1a5618f327ee5ae1762ee9564342926b8e3"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/manifest.js",
+      "bytes": 99315,
+      "sha256": "768cc83eefaaef59d0a4715a07efb158227c37b130d4542b820646870e50106d"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/matildaCountdownEnd-A.wav",
+      "bytes": 31478,
+      "sha256": "2f2f055f721678b210a77fb5361ca2261698300c6789893989c05aeff219e2e6"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/matildaCountdownEnd-B.wav",
+      "bytes": 48150,
+      "sha256": "f23138a427cc68e81de2f8a660ce1d88df9cef3a02c33725832be020457d887c"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/matildaCountdownEnd-C.wav",
+      "bytes": 48690,
+      "sha256": "facadf8c1e1ad5cd4ee975318008e2de33c3fde57649bbe069bd3309048d6a4e"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/matildaDash-A.wav",
+      "bytes": 17014,
+      "sha256": "dc3096c7f7affc7596967abe8878384643efb06f6270c065e1ecc44647a5eb76"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/matildaDash-B.wav",
+      "bytes": 28392,
+      "sha256": "7e3e6b6e467a71d12e8e1e7d3c5b5f0d9ed9ab62cc2f973ae46398103f467781"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/matildaDash-C.wav",
+      "bytes": 27556,
+      "sha256": "81306ab34f1c24bd396201af319be497e3d1eb6ac89f8df3848813d3aef14ea4"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/matildaDeath-A.wav",
+      "bytes": 37264,
+      "sha256": "73591b01b1494a96a8fbddf58d5dc803922fd99053f179421bd133cd47006b74"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/matildaDeath-B.wav",
+      "bytes": 56052,
+      "sha256": "a48dbeb14873e311625fa78d76f484ae45520ed39075f2eec7c8e9be9ff5b343"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/matildaDeath-C.wav",
+      "bytes": 58168,
+      "sha256": "cfb91ce9a53389a34fc9c9970306c92ba875bd81481181872602ef80f59d587f"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/matildaLaugh-A.wav",
+      "bytes": 51726,
+      "sha256": "b74fb50bc244e3443d15b7fe45e92a0cbc9cb133d01963102751dde58e77d4f0"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/matildaLaugh-B.wav",
+      "bytes": 75804,
+      "sha256": "c96c90442c60542b79fc848dc0f906367b872983db5a28c1fe6ea570211cdabd"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/matildaLaugh-C.wav",
+      "bytes": 79738,
+      "sha256": "24a7ac77ac6030b4c46f6037cb9719dd6b11313b9377bc76a797ce2926bf7d63"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/matildaSpawn-A.wav",
+      "bytes": 45942,
+      "sha256": "88eb2611562dced159c3cfbcb480cec4c290a9941477719e63fef3f249cc79ee"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/matildaSpawn-B.wav",
+      "bytes": 67906,
+      "sha256": "4baf44486cb9e6eeabb9e035ec9ada59257d59909d6c3e713ba918ded3417005"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/matildaSpawn-C.wav",
+      "bytes": 70440,
+      "sha256": "4b0583c5be7eac52768ed5a2f8633015e43ec34015a939a44511cfd1d897dcd9"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/matildaWarningTick-A.wav",
+      "bytes": 11950,
+      "sha256": "bc6ab7dfb413f7c150b0069ec4d2029eea3cff80e5d6e372a0e0a56115828ca5"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/matildaWarningTick-B.wav",
+      "bytes": 21478,
+      "sha256": "4ade2fc056c2e115ab90226eab53d87da9c7c2605eb4e8bb1c8eeb1aeaf27447"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/matildaWarningTick-C.wav",
+      "bytes": 19776,
+      "sha256": "4244865f4353e5aac9475b1bd8950cf97905c135d27b822c6b174cbd8156fb05"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/milestoneGold-A.wav",
+      "bytes": 19184,
+      "sha256": "6438db4399210c101e4f71eac5eec470bdc6bae800bed201c611b301f12ce781"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/milestoneGold-B.wav",
+      "bytes": 31356,
+      "sha256": "cf8822024fd25857e0231f083190bcc14c6c008ad55e2c35edbafe3a2d3ab03d"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/milestoneGold-C.wav",
+      "bytes": 30252,
+      "sha256": "d933580f7027e826ffa623e554c78fc3ecfe0f19792646135fb069cb67bea448"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/missileFire-A.wav",
+      "bytes": 26414,
+      "sha256": "f79c523cd9e33e30dda78d32e9499f582f7df1a0f9e57ebe281aab0b979be94f"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/missileFire-B.wav",
+      "bytes": 41232,
+      "sha256": "3d5747be40e304e9658dc55c9e102c7b76a5f63174ac39268f306bed21345a08"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/missileFire-C.wav",
+      "bytes": 41082,
+      "sha256": "7bc8b8dee9ab7bd0fb6381e39ec73278df4ceeda93920861071228f1c843a462"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/missileHit-A.wav",
+      "bytes": 33648,
+      "sha256": "87e676cf8a9a8219ae3a71fc3604982946f1553f596f11fbb16aae589d4e956d"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/missileHit-B.wav",
+      "bytes": 51112,
+      "sha256": "dfc46776ced5ce9c9b1a8ea25c615b43f49927c8396186a5654faeeea7c18b67"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/missileHit-C.wav",
+      "bytes": 53328,
+      "sha256": "67c257c43fbdd25e58a8465aceff61b5b9d3b58ab892f2ed910aa1ceb1fbec55"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/onigiriFire-A.wav",
+      "bytes": 19184,
+      "sha256": "d6260ae1044c7a3a08d59c5cae5a876325e324c64298f69794c01e823d6443ce"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/onigiriFire-B.wav",
+      "bytes": 31356,
+      "sha256": "ce492b19989f828a3c2b20eef2cd9dacc1efefb2f14c9c5de3a915eb57d72086"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/onigiriFire-C.wav",
+      "bytes": 31310,
+      "sha256": "c1085bb01605f8a1006edf076ad213fbfc52b6a62554db590bfe68bf9c8ac64c"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/onigiriHit-A.wav",
+      "bytes": 15566,
+      "sha256": "80f7d140d95355fb9f195e94cf6e1643ebd91e03f43924394bb8c431ad1bf932"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/onigiriHit-B.wav",
+      "bytes": 26416,
+      "sha256": "78e7f05074caa9bcc60e8e79c9a7ff35c81808309368a7120557923002432f92"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/onigiriHit-C.wav",
+      "bytes": 25322,
+      "sha256": "8c05538f8481b325c41c2e62219f2df57487c593ac32f207ae7434f677db8903"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/pencilFire-A.wav",
+      "bytes": 14120,
+      "sha256": "9173882159a6ea944d5f5b7bf5911c4961281458bdb9079bef58a3a3965d10a8"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/pencilFire-B.wav",
+      "bytes": 24442,
+      "sha256": "cd511555ef96c4689a307afb67b22075baf307d54b87fe2a9f9b168aaed52d1f"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/pencilFire-C.wav",
+      "bytes": 23792,
+      "sha256": "300fd09ba9665d64b78b796b23722f5118396589dc7d928f8e5459315e4eaf2b"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/pencilHit-A.wav",
+      "bytes": 8334,
+      "sha256": "04546cd67500d0fceb91e382b9952f70fb1b3fbdd542aed7f4b37985baa9c037"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/pencilHit-B.wav",
+      "bytes": 16538,
+      "sha256": "03861ee1010178f3dc5d04efd3bfc0ed1453a0dc602ad23e7d84b3a6427ec7a5"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/pencilHit-C.wav",
+      "bytes": 14844,
+      "sha256": "ab39ad790c83a6e1e35dcaaf16749461e961aefefc61e0e56b13f7024b7f2333"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/playerDeath-A.wav",
+      "bytes": 43050,
+      "sha256": "bd8947b822d1f99453b50b8129e19ee262bacd81abf8996fb12ab74e1addb99c"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/playerDeath-B.wav",
+      "bytes": 63954,
+      "sha256": "0f79fe28d8a27b06cca5986a46612c4ffd34ed53be1d7e2318c2130064814383"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/playerDeath-C.wav",
+      "bytes": 65706,
+      "sha256": "73246ea05851a0cd0a4782d486d561274dcb8a95faef30d65775d948335a974f"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/playerHeal-A.wav",
+      "bytes": 27138,
+      "sha256": "f88ce5034b9da2fe6aaa1925da1322899e1e7b87ab2526717fa3c33a82f53d58"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/playerHeal-B.wav",
+      "bytes": 42222,
+      "sha256": "d669d1f2d985525b0303aec2411c49609c4cde8e9dd2fee4b21a0588fc15f677"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/playerHeal-C.wav",
+      "bytes": 42510,
+      "sha256": "057ccd56a42d5151ff8076f4a484502188c8c4efb24fe7a2a3ed584674761a86"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/playerHit-A.wav",
+      "bytes": 15566,
+      "sha256": "031e5a62a27867727aea838f8b6ce9d8a506d5881f116e523016705404416314"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/playerHit-B.wav",
+      "bytes": 26416,
+      "sha256": "31d5cc5346cc0a0900c96f58e78533de2b3d67d7556e355bae8d07a4e88579a0"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/playerHit-C.wav",
+      "bytes": 25322,
+      "sha256": "bab52bae5821b738cf87470ae70d33de9a7118352b9b8b3170e87b64c5a88cf9"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/playerStep-A.wav",
+      "bytes": 8334,
+      "sha256": "73b07e63dde7c70a59fd1dc14744ae53ac84febde3d3416ffa9a1f5ab519bd2b"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/playerStep-B.wav",
+      "bytes": 16538,
+      "sha256": "b0d2c9661c33d28b93a48d851b43a38886f8b43a5df7944684b4952fc0d21e29"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/playerStep-C.wav",
+      "bytes": 14932,
+      "sha256": "96dbb3a1e58f5d6499afbc4c6c4a4a1571111bdf8e3422578c69ddd7b6d99802"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/portalAppear-A.wav",
+      "bytes": 51728,
+      "sha256": "62272ebab52096c2fdb2fd903cfc99d61c08323252e1f8c9e4d1181636a2078d"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/portalAppear-B.wav",
+      "bytes": 75806,
+      "sha256": "38f42b3039d312d86b8eb20f62f5d61509570bce54481c23698b48c66c00ad0b"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/portalAppear-C.wav",
+      "bytes": 79738,
+      "sha256": "ef47c817ca778adc141ad59742ce229ef141114a3f73891338ec5ed9eab39eb7"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/portalSuction-A.wav",
+      "bytes": 73426,
+      "sha256": "73357f5c7aa42b11effd080a66fc82d0a3b257319e59c025e85bc2bfdb5ba511"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/portalSuction-B.wav",
+      "bytes": 105444,
+      "sha256": "b7114298806aacd97ea31339c33b09c1bd30028deca03ddfbc78f8249f34b10b"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/portalSuction-C.wav",
+      "bytes": 111000,
+      "sha256": "cf2be85d755fb25283efbf6e461f04d1807abc4d769868dbe8a763c10892c6b3"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/rulerFire-A.wav",
+      "bytes": 17014,
+      "sha256": "65d4673d23e783d2f5e97c7180df6e48882de743ef1d00acf7fd4fa7a9016145"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/rulerFire-B.wav",
+      "bytes": 28392,
+      "sha256": "26329d2a0f80c176518140985df7d7d49a872d0900b9e0e5772a62bd8c0b67fc"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/rulerFire-C.wav",
+      "bytes": 28174,
+      "sha256": "1ccca9b26ab2b2077969cc59f3153a9f5bc8e2fcb935f78fb6fa941e011dd38e"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/rulerHit-A.wav",
+      "bytes": 11950,
+      "sha256": "135cbce842255fa61c4bd38367d7588b393bb1d95aeaec691e73309accd2f6fe"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/rulerHit-B.wav",
+      "bytes": 21478,
+      "sha256": "56854c629d3a5a984842e911652dc1201181b93cd938b86746f64237b196165c"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/rulerHit-C.wav",
+      "bytes": 20482,
+      "sha256": "bf44fbc780018a28caeef5705387b9c8251df053570fbee23543cb81872c9057"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/rzlWhistle-A.wav",
+      "bytes": 31478,
+      "sha256": "48bcc48fd6d63690b5f68646a0ad9cbf106ffd503cdf2693d01c89f8dec0729d"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/rzlWhistle-B.wav",
+      "bytes": 48150,
+      "sha256": "66441937fd85c4f2a50f5d5964f6e51fb7cedcf29818738e36be44380b28e366"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/rzlWhistle-C.wav",
+      "bytes": 48602,
+      "sha256": "25af890ae389c4baa13b5ae10b9655cfb2a3286ad025f2455b83a6d572b1127f"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/sharkFire-A.wav",
+      "bytes": 30032,
+      "sha256": "35acdddcac75ee9c1f99515bfcbf18d1f78cd8173dd0e722e062523986de8b51"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/sharkFire-B.wav",
+      "bytes": 46174,
+      "sha256": "68ac652424d7fb4ebaf8c0e4b3260cd7e2c7b4f54a0a0432f0e47bfc38e4587d"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/sharkFire-C.wav",
+      "bytes": 47956,
+      "sha256": "20d9b4c3747bcf77f51222fc992c6b45603495a60c2b27d85e58d815729721f1"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/sharkHit-A.wav",
+      "bytes": 40880,
+      "sha256": "186217b8811bd0f5cc700c9ec7655640f03183636d187d742518aea980b28ed2"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/sharkHit-B.wav",
+      "bytes": 60992,
+      "sha256": "4721a460bf1f3560b7745435b32c37f98b5e24210f4fdb4c252d088a78f1aed9"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/sharkHit-C.wav",
+      "bytes": 62834,
+      "sha256": "87a6ea34a97be8264f5c2c2e18eadd6c9e207ee3552e0b5ea6533e3648d84992"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/stage2GuardWhistle-A.wav",
+      "bytes": 37264,
+      "sha256": "6a109d28c20c9afe9744629dab0e0a26844e4a57b91154620756c203df6f2b1c"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/stage2GuardWhistle-B.wav",
+      "bytes": 56052,
+      "sha256": "c8b732dc78c45cedb7aba85331073c7d952039ecf10a514a76f3b9b52256a5d2"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/stage2GuardWhistle-C.wav",
+      "bytes": 58256,
+      "sha256": "abcb5dfda6ebdfacb8ba98601bfc4c388c90cf810c3b758e29692100e3109d98"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/stageClear-A.wav",
+      "bytes": 73426,
+      "sha256": "9d3d0acce95b0313897e38e72ae0ba041d377971d6e31849f4b2976e0d3f22f5"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/stageClear-B.wav",
+      "bytes": 105444,
+      "sha256": "92fa9d301cdc40bd1eb1b79f6762a80e6a4aca70eaa1d29e1b695ba6403c37db"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/stageClear-C.wav",
+      "bytes": 111706,
+      "sha256": "f3ccde2de46715edefe02014615a098b832ecb3c861e4d10b1797f0e74fcbf0d"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/starlinkExplosion-A.wav",
+      "bytes": 63880,
+      "sha256": "ec991087adf920343883f6f2182980f4d16adec32bf65920a45ecdac88bcd7de"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/starlinkExplosion-B.wav",
+      "bytes": 92404,
+      "sha256": "20cf0af97211a154d5e63008bced19d421f7b8d202459548a21db589786561d4"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/starlinkExplosion-C.wav",
+      "bytes": 96906,
+      "sha256": "cc17afbe4776e71b0039d582d6e7947975b63f9b5d0e8cbf1418f58477bc0729"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/starlinkFall-A.wav",
+      "bytes": 88372,
+      "sha256": "ec0dad47971af1e26e296170fd691fde25ee93a4f1d975e8ce51b4b97f2f4922"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/starlinkFall-B.wav",
+      "bytes": 125860,
+      "sha256": "ea91c43ab3101e076d080be468318500411a853dc8296da12555d7b8dd8fb8d5"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/starlinkFall-C.wav",
+      "bytes": 133378,
+      "sha256": "a8d40f6d88229700a2ccd5b53b3d0c7d68b6f757224614d9936ae5e71aed5c22"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/starlinkFire-A.wav",
+      "bytes": 19184,
+      "sha256": "4eec53b6050cdffb816a181b12cc7280a99e3aa07257d9e54bb64cbee90fe975"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/starlinkFire-B.wav",
+      "bytes": 31356,
+      "sha256": "e518813b78fed1910e72fd415b6b22f1143bbfb1ef195e77358a8a1b3c714d07"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/starlinkFire-C.wav",
+      "bytes": 30516,
+      "sha256": "1eba6821adba13f7bb394c612aeefa49d3297ef6b5faafb5f1104fc42f9e9985"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/starlinkHit-A.wav",
+      "bytes": 19184,
+      "sha256": "09c188a2529b9c81a25b85aec4b192ca2a64c30a47d600b7a548c2800ddedd5e"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/starlinkHit-B.wav",
+      "bytes": 31356,
+      "sha256": "b1799ae983b4354ebedc6238418887b8ddb7d172783466e4d0ed8ca577e18323"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/starlinkHit-C.wav",
+      "bytes": 31398,
+      "sha256": "c4f20a87ece7661498f9f3f068d9733dd25c531a088fa54a0946ecf0f06e02d8"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/stunGunFire-A.wav",
+      "bytes": 22800,
+      "sha256": "dc5397ff39eb7fe6a91f546458b80bcd0c699d223f185d1c139712e9a1496fb6"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/stunGunFire-B.wav",
+      "bytes": 36296,
+      "sha256": "c668beecfbe9bd1a5f8b8269140078743a8810725c6c2f8304a701818b94649b"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/stunGunFire-C.wav",
+      "bytes": 36506,
+      "sha256": "282fe721a96d843bf51193ee1b94e027a7e8c29c581a12775526a9a191df75c7"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/stunGunHit-A.wav",
+      "bytes": 15566,
+      "sha256": "39d00e6423ad2d5c49aca3c01ac307569426bba2784a54ca9194d51e6bf4c6d6"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/stunGunHit-B.wav",
+      "bytes": 26416,
+      "sha256": "3e1200ce3cb15cdde8558c16784aadf63cdd830b0358302dd76fec255a8e1280"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/stunGunHit-C.wav",
+      "bytes": 25234,
+      "sha256": "d8a881b5022e84afc913fc831003c2cb36d607c403a3fdf48dc1a875e31627f2"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/textbookCollect-A.wav",
+      "bytes": 21780,
+      "sha256": "73823e0b55ec51a35c797320171af98ca08a47f71f9c5625c5da29ee12718109"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/textbookCollect-B.wav",
+      "bytes": 34902,
+      "sha256": "0637245913f47171c4259c56f675e1a21b3d6b559ba5a89327a6415c3bf6a06f"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/textbookCollect-C.wav",
+      "bytes": 35698,
+      "sha256": "97014183ca2960436dc780584dbc2ee21aa119005f59ebfa6d0fd3d00b38cb3c"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/textbookLand-A.wav",
+      "bytes": 10864,
+      "sha256": "f8d9fa6f98c32cbef9255ee1a4d1934768905712e3211fecc9a6ef282cce1465"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/textbookLand-B.wav",
+      "bytes": 19992,
+      "sha256": "d00a02fd8c62536fa2be01c49e061ffc50cebe81c0b0982dc58ab6761da5d1c7"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/textbookLand-C.wav",
+      "bytes": 18952,
+      "sha256": "939d3d1daabf4d7a79727d26068fdea40da7ba6c66539687015d4a7f38be34ac"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/tumblerFire-A.wav",
+      "bytes": 30032,
+      "sha256": "8658f098ca7b3126189a1402f0782f7dbe0a3fc078298dc2a984d227555c1759"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/tumblerFire-B.wav",
+      "bytes": 46174,
+      "sha256": "9c9a3bbacebeabadc2b1f2c7fba19351e78f3c23fe07bc85b263596430bde257"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/tumblerFire-C.wav",
+      "bytes": 46368,
+      "sha256": "0054d0a97f4a8f03c219e78a40849a240deaf31dff2943a8ce791c9d61b063d9"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/tumblerHit-A.wav",
+      "bytes": 11950,
+      "sha256": "9ebd82513e4462eb5130d9d292d415551a9c69b346bb89aae0e8a38cdf9b6cb4"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/tumblerHit-B.wav",
+      "bytes": 21478,
+      "sha256": "da8dee3f8c724a693d9a8bf5e22f74c12b321396e6dcd3bf0f09f9ae024cb9e3"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/tumblerHit-C.wav",
+      "bytes": 20040,
+      "sha256": "aa5423d738bc09f6bc2a085e4cfc3caa7a9dd966bd4b344a823a4c0d7d30740d"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/umbrellaFire-A.wav",
+      "bytes": 22800,
+      "sha256": "914791205cd75b943ed84b3816b2e3628b529e1a25bdfa7a505b41166b809016"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/umbrellaFire-B.wav",
+      "bytes": 36296,
+      "sha256": "3b2b63066fbb9b76f00fcd31064cf81968109b0e6b25c706939adc47bdd25d9f"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/umbrellaFire-C.wav",
+      "bytes": 36242,
+      "sha256": "5a6db1056618c2cfd5783193fea73ece828b70dcf144f43e814d46224b4eaba4"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/umbrellaHit-A.wav",
+      "bytes": 15566,
+      "sha256": "97ad59623066d9052dec7404d2d0c2fac7a8a2f59607620ed6602eaaa43829f3"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/umbrellaHit-B.wav",
+      "bytes": 26416,
+      "sha256": "0b773cb89cced69cfaf0ef685d132fb085d8774618a4034dbc2da92faa29a426"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/umbrellaHit-C.wav",
+      "bytes": 25852,
+      "sha256": "2e8e5e5febd8f7770161b51268576a04769e4720824b498a0dd5cccd35ad5e1a"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/zombieChargeRoar-A.wav",
+      "bytes": 38710,
+      "sha256": "bfe538d5b1df9baa89dcae612b8a95a61e4d742401c09fbb8fdf461b88fa377a"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/zombieChargeRoar-B.wav",
+      "bytes": 58028,
+      "sha256": "2476c338e2e48a3f2a3eb5fdc0f51df7857fa16deea13cda3c7178906f42ed79"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/zombieChargeRoar-C.wav",
+      "bytes": 59696,
+      "sha256": "fe6c8ea3bd863c70ead243d388016b0449af972be1e5a91aa4285ad6e619d9d5"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/zombieDeathBellow-A.wav",
+      "bytes": 60408,
+      "sha256": "29e54f26c7fec751b922b99bb7504e8d1d0b4b95d0aa3b78615558b5a1a8f2e7"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/zombieDeathBellow-B.wav",
+      "bytes": 87662,
+      "sha256": "87d5a635ee6c511101cce40a244ac70575c49616a28f439bbc34a97b50eda51a"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/zombieDeathBellow-C.wav",
+      "bytes": 92368,
+      "sha256": "a200ebf171f815e21727819e587a1d184a33644fc4fef5562616e6a501476040"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/zombieDeathGrunt-A.wav",
+      "bytes": 25692,
+      "sha256": "d17d8f5999c99bd2678a466de912866da16088c1049b8b335a49ebf9f2ee966e"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/zombieDeathGrunt-B.wav",
+      "bytes": 40246,
+      "sha256": "226602ac5390154fce998a8498f20eb2676d749485252c0fbec3c118cd3e14a8"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/zombieDeathGrunt-C.wav",
+      "bytes": 40274,
+      "sha256": "b4295acd79414ff4d8317d96f439ee7d043edb19ca7f6d80be7406517ac7a054"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/zombieDeathGurgle-A.wav",
+      "bytes": 35818,
+      "sha256": "c82bfbc78c7845ac3d2be2d6120319822d305eb1a212295c5f2c8b0d42a13dca"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/zombieDeathGurgle-B.wav",
+      "bytes": 54076,
+      "sha256": "dea7b9f2d498169d1334bb473ab066b21197032368206df42e0f4686fd50172c"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/zombieDeathGurgle-C.wav",
+      "bytes": 55844,
+      "sha256": "7f6871d6a450635f5f00729e753c6bef8fb2f8952351d297f4d65f6381f84a73"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/zombieDeathHeavy-A.wav",
+      "bytes": 44496,
+      "sha256": "b221f89d9220c6b2058eb2330464501a70e5d80053fc44c3a275d7b031458a2b"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/zombieDeathHeavy-B.wav",
+      "bytes": 65930,
+      "sha256": "2f8f226b5ca16c062332d73aa0f461ed38bf567058f7d8f4b0e5f807deca5a9f"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/zombieDeathHeavy-C.wav",
+      "bytes": 68822,
+      "sha256": "52c3ff5e0121c4cf0f1856bcbce1028e27ad22628aabbd7e5e0f52bd541ae0b5"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/zombieDeathShriek-A.wav",
+      "bytes": 22800,
+      "sha256": "2045cced90efc249098c621234ed4c5ff30abea579279b7904e244c9e5a1763d"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/zombieDeathShriek-B.wav",
+      "bytes": 36296,
+      "sha256": "219b4f5feccacc79ef47abf1d25632f1b628436faa1041ae18aebd42e73c10f0"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/zombieDeathShriek-C.wav",
+      "bytes": 37212,
+      "sha256": "c7a83b70b1b9b8980a39001569899f800b2792468238926e9ab398814060d12b"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/zombieGiantThud-A.wav",
+      "bytes": 37264,
+      "sha256": "3a6a228fc26684d2ef4a0e03cfb7a65a9a9857629c6d89b44224330748924f02"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/zombieGiantThud-B.wav",
+      "bytes": 56052,
+      "sha256": "b696e131035878cf4370b646c94fdc35068615a8a9975b309d72270ec73d3de4"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/zombieGiantThud-C.wav",
+      "bytes": 57992,
+      "sha256": "85a1c344f0b426ddb90d080bfba6116782d8f43479670a57636f4ab00e332eca"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/zombieGroan-A.wav",
+      "bytes": 43050,
+      "sha256": "1f2bf59936d1be823c126794e9b3797e003a2c5a429c9b408e9bdea79ac63c35"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/zombieGroan-B.wav",
+      "bytes": 63954,
+      "sha256": "ade2d72b513feb3c09d2d54d0267944c18682473b62320e02ebafe2c476e3be1"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/zombieGroan-C.wav",
+      "bytes": 66324,
+      "sha256": "e5c3ffcf12509a7b5360ba966de827f2c260c9b2cd34ee9f90ae3e856c92a76c"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/zombieRangedShoot-A.wav",
+      "bytes": 19906,
+      "sha256": "f13048a029c23bbfaacf39d7353208c18ee70e538fd9e6be7cb61bb61d4afed7"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/zombieRangedShoot-B.wav",
+      "bytes": 32344,
+      "sha256": "9037120c08e93cd0f9f4420782aff87e07d365fa4a9844baf96ede9616f496c2"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/zombieRangedShoot-C.wav",
+      "bytes": 32472,
+      "sha256": "5361ae50fee2b121364d3837cacd03d1ef978dc3312d5dbd7ea7b040bba839d6"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/zombieRunnerScreech-A.wav",
+      "bytes": 24246,
+      "sha256": "2aa671d027d6d81a3b24387c6fd122600375979a3ca35a36af8e9c031281ec00"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/zombieRunnerScreech-B.wav",
+      "bytes": 38270,
+      "sha256": "0aca5cde54855cee6b1e8788179c79a26691cb9983e11e3a449517949600ee26"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/zombieRunnerScreech-C.wav",
+      "bytes": 39094,
+      "sha256": "ec783fbab5f25b2c95489d722cc9adade6c08eb271e6ea3b208161a212ee5916"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/zombieSpawn-A.wav",
+      "bytes": 25692,
+      "sha256": "b225d43e211b82d4ea72cfead6d17e21b1c1c01f18f3c0bbc013e135c05b087e"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/zombieSpawn-B.wav",
+      "bytes": 40246,
+      "sha256": "03d2c910f67b65ffc607c23675dec546093f2ce8ab1a3fe5accaaefe424fee36"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/zombieSpawn-C.wav",
+      "bytes": 40892,
+      "sha256": "8ea8af83038369f6c69fdf1eb475796b6164d457ec33cd0efc20034dc2c635d2"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/zombieTankGroan-A.wav",
+      "bytes": 56068,
+      "sha256": "c9edb35c2618fe425847cfe5e640b8b4085e6489d3f8cd3d319848b3a334fc13"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/zombieTankGroan-B.wav",
+      "bytes": 81736,
+      "sha256": "bb703878a60b87593b28b8a17a8d8d08d14fc5cb885a0e3bbe1ebb72ec913c26"
+    },
+    {
+      "path": "Developer/r3f_prototype/public/sfx/audition-20261016/zombieTankGroan-C.wav",
+      "bytes": 86628,
+      "sha256": "1bea7f59c66585dc01de790361dff71c521ec5403550bb740f4ab1b6bc1b6a83"
+    }
+  ],
+  "evidenceFiles": [
+    "audit-preservation.py",
+    "decode-measurements.json",
+    "dialogue-render.json",
+    "focused-tests.txt",
+    "README.md",
+    "reproducibility.json",
+    "scope-audit.json",
+    "source-reason-sha.json"
+  ],
+  "notes": "Audition HTML belongs to uimini and is intentionally excluded. Existing unrelated dirty paths were never reset/stashed/staged. No claim is made that concurrently edited files equal HEAD."
+}

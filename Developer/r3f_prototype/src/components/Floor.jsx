@@ -1,21 +1,32 @@
 import { RigidBody } from '@react-three/rapier'
 import ClassroomFloor from './ClassroomFloor.jsx'
+import ExpansionStageEnvironment from './expansion/ExpansionStageEnvironment.jsx'
+import { EXPANSION_STAGE_VISUALS } from '../lib/expansionVisuals.js'
 import { StageObjectColliderLayer, StageObjectLayer } from './StageObjects/index.js'
+import Stage5Environment, { getStage5EnvironmentScale } from './Stage5Environment.jsx'
+import StageVendingLayer from './StageVendingLayer.jsx'
 import StudioTunedGroup from './StudioTunedGroup.jsx'
 import { getStageBounds } from '../lib/stageConfig.js'
 
 export function FloorVisual({ stageId = 'stage1' }) {
+  if (stageId === 'stage5' && !getStage5EnvironmentScale()) return null
+
   return (
     <>
-      <StudioTunedGroup itemId={`stage-floor-${stageId}`} materialTuning={false}>
-        <ClassroomFloor stageId={stageId} />
-      </StudioTunedGroup>
+      {EXPANSION_STAGE_VISUALS[stageId] ? <ExpansionStageEnvironment stageId={stageId} /> : stageId === 'stage5' ? <Stage5Environment /> : (
+        <StudioTunedGroup itemId={`stage-floor-${stageId}`} materialTuning={false}>
+          <ClassroomFloor stageId={stageId} />
+        </StudioTunedGroup>
+      )}
       <StageObjectLayer stageId={stageId} />
+      <StageVendingLayer stageId={stageId} />
     </>
   )
 }
 
 export default function Floor({ stageId = 'stage1' }) {
+  if (stageId === 'stage5' && !getStage5EnvironmentScale()) return null
+
   // 맵 경계는 스테이지별로 다르다 (stage1: 세로로 긴 직사각형, stage2: 정사각).
   const { halfX, halfZ } = getStageBounds(stageId)
 
