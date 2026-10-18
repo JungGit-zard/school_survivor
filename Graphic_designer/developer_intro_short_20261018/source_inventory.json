@@ -1,0 +1,48 @@
+{
+  "title": "개발자의 게임 소개",
+  "duration_seconds": 30,
+  "video": "개발자의_게임소개_30초_ko.mp4",
+  "render_script": "render_short.py",
+  "resolution": "1080x1920",
+  "fps": 30,
+  "video_codec": "H.264",
+  "audio_codec": "AAC",
+  "audio_source": "Developer/r3f_prototype/src/assets/audio/title_bgm.m4a",
+  "audio_source_sha256": "991bf9871fe70b55852920390b3b1434892cfc50da79d3e8fd900062b191cffe",
+  "audio_source_bytes": 998122,
+  "audio_edit": "first 30 seconds, 1-second fade-out; source file untouched",
+  "voiceover": null,
+  "visual_sources": [
+    {
+      "path": "Quaility_Assurance/screenshots/stage1-visual-loop-01-initial-player-e01-floor-pencil-2026-06-24.png",
+      "sha256": "fe0ef7964175a78a6f19d029a07475fce0966f52011c01544428083c6641908d",
+      "caption": "안녕하세요. 제가 만든 게임,\n《탈출! 좀비학교》를 소개합니다."
+    },
+    {
+      "path": "Graphic_designer/쇼츠프로젝트_20261010/images/A02_연필투척.png",
+      "sha256": "af7a56e6e7f8631a66c0ac7a37ea7d95abe8c325a9b0fda577fbb6f7cc7c01de",
+      "caption": "좀비가 나타난 학교에서\n살아남아 출구까지 달려보세요."
+    },
+    {
+      "path": "Quaility_Assurance/screenshots/stage1-visual-loop-02-e05-charge-weapons-pickups-2026-06-24.png",
+      "sha256": "29e0e2fc39a7c8139b7ef4b41204ba99776d1728054d40ca63f2a99da83afc85",
+      "caption": "연필, 지우개, 자!\n익숙한 학용품이 무기가 됩니다."
+    },
+    {
+      "path": "Graphic_designer/쇼츠프로젝트_20261010/images/A03_자공격.png",
+      "sha256": "66fd645ff7d348ef28c0aaa7fd5318da46ec68f3566fc96cccdba15d55ee571b",
+      "caption": "무기를 강화하고 좀비를 피하며\n나만의 생존 방법을 찾아보세요."
+    },
+    {
+      "path": "Quaility_Assurance/screenshots/stage1-visual-loop-03-b01-boss-loop-2026-06-24.png",
+      "sha256": "c1d6f4f5e7e3237ef3b1fd70b2f301846705399e4064bc1dd3e1c269ef2825c1",
+      "caption": "무섭기보다는 귀엽고 유쾌하게,\n다시 도전하고 싶은 게임을 만들었습니다."
+    },
+    {
+      "path": "Graphic_designer/쇼츠프로젝트_20261010/images/A08_탈출질주.png",
+      "sha256": "fa53446ea292596a396a2abb203c252c94fbb870057dfe0d23a65373c67fd8ea",
+      "caption": "무료로, 광고 없이 즐겨보세요!\n게임 시작 → escapezombie.com"
+    }
+  ],
+  "slides_srt": "개발자의_게임소개_30초_ko.srt"
+}
