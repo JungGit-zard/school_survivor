@@ -1,0 +1,32 @@
+{
+  "observedAt": "2026-10-18T12:02:17.955Z",
+  "readOnly": true,
+  "productionDataWrites": 0,
+  "hostingVersion": "sites/escape-zombie-school/versions/d41e90ef5ec76803",
+  "releaseTime": "2026-10-18T12:01:37.555Z",
+  "sourceCommit": "47f4a4e1d1c2a8fdf3a857e2c5aabce830cb25b3",
+  "rulesCanonicalSha256": "67c9ca226866f53ae4849733602201d96dedba66e0a9941784ac3b238684b467",
+  "pages": [
+    {
+      "path": "/",
+      "status": 200,
+      "html": true,
+      "matchesBuiltIndex": true
+    },
+    {
+      "path": "/game",
+      "status": 200,
+      "html": true,
+      "matchesBuiltIndex": true
+    },
+    {
+      "path": "/landing",
+      "status": 200,
+      "html": true,
+      "matchesBuiltIndex": true
+    }
+  ],
+  "cardsManifestMatchesBuild": true,
+  "actualGoogleOAuthVerified": false,
+  "actualGameplayVerified": false
+}

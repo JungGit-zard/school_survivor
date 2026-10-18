@@ -1,0 +1,14 @@
+{
+  "name": "firebase.preview-p0.temporary.json",
+  "sha256": "abecf5159f4a00fd6937fdd8309d7171e7aed38d70b9051ea36da629cf97a3c3",
+  "predeploy": [
+    "npm.cmd run require:safe-hosting-promotion",
+    "npm.cmd run build:legal",
+    "npm.cmd run build:x-website-cards",
+    "node .ranking-preserve-live.mjs"
+  ],
+  "normalBuildExit": 0,
+  "studioTests": 45,
+  "javascriptAssets": 62,
+  "sourceCommit": "47f4a4e1d1c2a8fdf3a857e2c5aabce830cb25b3"
+}

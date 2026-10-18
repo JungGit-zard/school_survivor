@@ -1,0 +1,13 @@
+{
+  "baselineVersion": "sites/escape-zombie-school/versions/65d2acb686b75f1b",
+  "nonProviderPaths": 625,
+  "preservedWithoutIndex": 624,
+  "changedBaselinePaths": [
+    "/index.html"
+  ],
+  "restoredAfterGenerators": [
+    "/x-website-cards-manifest.json"
+  ],
+  "frozenProduct9": true,
+  "checkedAt": "2026-10-18T12:00:30.439Z"
+}

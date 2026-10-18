@@ -1,0 +1,22 @@
+{
+  "sourceCommit": "47f4a4e1d1c2a8fdf3a857e2c5aabce830cb25b3",
+  "rankingCommit": "13399c91",
+  "workingRelease": "C:\\Users\\admin\\AppData\\Local\\Temp\\stage-progress-p0-release-20261018",
+  "frozenRanking9Unchanged": true,
+  "hashes": {
+    "src/lib/firebaseRanking.js": "82d73ad9aa220634db54f134677dd21a066c7e4daf671515a0eb75833f0e5baa",
+    "src/store/useGameStore.js": "43b66f471e9818b590fc27c20b67aa0208d0a58f9bed3086d9d13536fedfd622",
+    "src/components/ReadyGameApp.jsx": "42c65f4ce34860c33dc9e99814a81ada74b87a686ec4817a29429aefc0cbc07e",
+    "src/lib/accountDeletion.js": "554dfc291c821f9eeca3785c2fd393861f481330659fdaae79845ca4af1f5043",
+    "src/components/UserRanking.jsx": "a3f51c6be2161671568cc841cecd651ee19182fea67daa4fca65ebfd30ae1fb6",
+    "src/components/StageRanking.jsx": "70f3468e09972bf6a6364f8d2c80057e6e31ea5728297fcfc8c9dff1f5e75ff5",
+    "src/lib/locales/ko.js": "ca2697bd7942934126706fa3a262da3acdf9739e0819e16fa613d061ccfba824",
+    "src/lib/locales/en.js": "0e68967b9097af641519fc73091a796ffbcf587c37389e8c485392d20216f6ee",
+    "src/lib/locales/ja.js": "6c848aa3ff7f96c9cd4aad4e5f6d724360aa7044a82eaaa49165db305f8a7223"
+  },
+  "normalBuildExit": 0,
+  "studioTests": 45,
+  "javascriptAssetChecks": 62,
+  "previewSafeScriptExit": 0,
+  "liveCloneExit": 0
+}
