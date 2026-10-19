@@ -1,0 +1,370 @@
+{
+  "sourceCommit": "408fb6a89626acf51327b3a022ad4eb5878456be",
+  "currentSourceCommit": "e6b93e7c5e29015d21062ee37deafbfb4ffe59d2",
+  "sourceHashManifest": "589585edcc026843cb8aafd3a421720a8a2253c03d71a2421d5b8f2ad88a315c",
+  "total": 40,
+  "passed": 40,
+  "failed": 0,
+  "results": [
+    {
+      "path": "Developer/r3f_prototype/public/comics/backlog-20261015/en/03.png",
+      "urlPath": "/comics/backlog-20261015/en/03.png",
+      "status": 200,
+      "mime": "image/png",
+      "bytes": 2390530,
+      "sha256": "544bd21c8f7175df7d041ef1e15772324f65989f767b522a2ab1738b8121b4a4",
+      "pass": true
+    },
+    {
+      "path": "Developer/r3f_prototype/public/comics/backlog-20261015/en/01.png",
+      "urlPath": "/comics/backlog-20261015/en/01.png",
+      "status": 200,
+      "mime": "image/png",
+      "bytes": 2221841,
+      "sha256": "8fe81fa90a2776411a72bd0f826831e2aca5657534d7860efc0e0ce08d9824b4",
+      "pass": true
+    },
+    {
+      "path": "Developer/r3f_prototype/public/comics/backlog-20261015/en/04.png",
+      "urlPath": "/comics/backlog-20261015/en/04.png",
+      "status": 200,
+      "mime": "image/png",
+      "bytes": 2432336,
+      "sha256": "b5203127aa4d5806df0d9416b5f5e5650d0c33f419c95541eef0d4e92e1bccb3",
+      "pass": true
+    },
+    {
+      "path": "Developer/r3f_prototype/public/comics/backlog-20261015/en/02.png",
+      "urlPath": "/comics/backlog-20261015/en/02.png",
+      "status": 200,
+      "mime": "image/png",
+      "bytes": 2333006,
+      "sha256": "882806294becd0bdaacabc5fcb33b08da05be2721dc80de13537c0cf4becce8c",
+      "pass": true
+    },
+    {
+      "path": "Developer/r3f_prototype/public/comics/backlog-20261015/en/05.png",
+      "urlPath": "/comics/backlog-20261015/en/05.png",
+      "status": 200,
+      "mime": "image/png",
+      "bytes": 2319161,
+      "sha256": "733bfb1c42b811b46a0c706262580dda4cced1b41ce9ce70c17386c558f79d87",
+      "pass": true
+    },
+    {
+      "path": "Developer/r3f_prototype/public/comics/backlog-20261015/en/07.png",
+      "urlPath": "/comics/backlog-20261015/en/07.png",
+      "status": 200,
+      "mime": "image/png",
+      "bytes": 2136239,
+      "sha256": "df98169b809dd9a003066e075acfe45f42369ce345c4911dc699e4aac936f797",
+      "pass": true
+    },
+    {
+      "path": "Developer/r3f_prototype/public/comics/backlog-20261015/en/08.png",
+      "urlPath": "/comics/backlog-20261015/en/08.png",
+      "status": 200,
+      "mime": "image/png",
+      "bytes": 2633592,
+      "sha256": "836ad5c2fc86194d6f08a69a9678eb1bfa2d760c4112fcf188288b4d574dc7cb",
+      "pass": true
+    },
+    {
+      "path": "Developer/r3f_prototype/public/comics/backlog-20261015/en/06.png",
+      "urlPath": "/comics/backlog-20261015/en/06.png",
+      "status": 200,
+      "mime": "image/png",
+      "bytes": 2577947,
+      "sha256": "bd3744345d6b94c3a874fd324d9f2f80ce896d17aafb732f8c13818e4caa2340",
+      "pass": true
+    },
+    {
+      "path": "Developer/r3f_prototype/public/comics/backlog-20261015/en/09.png",
+      "urlPath": "/comics/backlog-20261015/en/09.png",
+      "status": 200,
+      "mime": "image/png",
+      "bytes": 2269824,
+      "sha256": "ae084cb2f5e338d4696ec5101a48dfa51c54fafb35b96daa90faed13f98ae86d",
+      "pass": true
+    },
+    {
+      "path": "Developer/r3f_prototype/public/comics/backlog-20261015/en/10.png",
+      "urlPath": "/comics/backlog-20261015/en/10.png",
+      "status": 200,
+      "mime": "image/png",
+      "bytes": 2050593,
+      "sha256": "bf00e4612c1979b1f3f74f23a2a8b7f2869746ae874eda7f4dfb17efeeb54759",
+      "pass": true
+    },
+    {
+      "path": "Developer/r3f_prototype/public/comics/backlog-20261015/ja/03.png",
+      "urlPath": "/comics/backlog-20261015/ja/03.png",
+      "status": 200,
+      "mime": "image/png",
+      "bytes": 2739553,
+      "sha256": "5dab323fcd6e6334759239903167cdfb0ab531a9d82231c3be2a155a8edbaddf",
+      "pass": true
+    },
+    {
+      "path": "Developer/r3f_prototype/public/comics/backlog-20261015/ja/01.png",
+      "urlPath": "/comics/backlog-20261015/ja/01.png",
+      "status": 200,
+      "mime": "image/png",
+      "bytes": 2506643,
+      "sha256": "99d26d1af0d914c0680daaaa87707db6ea99009b23eff1889ad93e0834d803c0",
+      "pass": true
+    },
+    {
+      "path": "Developer/r3f_prototype/public/comics/backlog-20261015/ja/04.png",
+      "urlPath": "/comics/backlog-20261015/ja/04.png",
+      "status": 200,
+      "mime": "image/png",
+      "bytes": 2715527,
+      "sha256": "0b0910f2a4af875747d2759bbfa5b8d3fd1957b15c97fefcf74891dc9d52b6b4",
+      "pass": true
+    },
+    {
+      "path": "Developer/r3f_prototype/public/comics/backlog-20261015/ja/05.png",
+      "urlPath": "/comics/backlog-20261015/ja/05.png",
+      "status": 200,
+      "mime": "image/png",
+      "bytes": 2620080,
+      "sha256": "056d603a70bffb549a096fc53e2c32fb9c6f32d5f6b5e9b0a7c12e0ea8e94e94",
+      "pass": true
+    },
+    {
+      "path": "Developer/r3f_prototype/public/comics/backlog-20261015/ja/07.png",
+      "urlPath": "/comics/backlog-20261015/ja/07.png",
+      "status": 200,
+      "mime": "image/png",
+      "bytes": 2306474,
+      "sha256": "b3643f554b881b77fb30a1f11c556604a7ae545d8a86066ae5ad14e997d3b403",
+      "pass": true
+    },
+    {
+      "path": "Developer/r3f_prototype/public/comics/backlog-20261015/ja/06.png",
+      "urlPath": "/comics/backlog-20261015/ja/06.png",
+      "status": 200,
+      "mime": "image/png",
+      "bytes": 2645636,
+      "sha256": "dd3c9fa15b0ba6d5416d65e9a7a1919a871937da720efd958685da8a80e3495c",
+      "pass": true
+    },
+    {
+      "path": "Developer/r3f_prototype/public/comics/backlog-20261015/ja/02.png",
+      "urlPath": "/comics/backlog-20261015/ja/02.png",
+      "status": 200,
+      "mime": "image/png",
+      "bytes": 2606799,
+      "sha256": "9951c81ab40aadf4b81cb4d833a5ef7fba922c95fe7dae583d1d18e1f3f8ea33",
+      "pass": true
+    },
+    {
+      "path": "Developer/r3f_prototype/public/comics/backlog-20261015/ja/09.png",
+      "urlPath": "/comics/backlog-20261015/ja/09.png",
+      "status": 200,
+      "mime": "image/png",
+      "bytes": 2489328,
+      "sha256": "50a8f7f29df4c9ae0afe2469441be879588a9342442890b6de0e41212e0bb56c",
+      "pass": true
+    },
+    {
+      "path": "Developer/r3f_prototype/public/comics/backlog-20261015/ja/10.png",
+      "urlPath": "/comics/backlog-20261015/ja/10.png",
+      "status": 200,
+      "mime": "image/png",
+      "bytes": 2469509,
+      "sha256": "80d902709afb351af478f6644e924e03c9a270bb25dc7eed08c3ae59703aa986",
+      "pass": true
+    },
+    {
+      "path": "Developer/r3f_prototype/public/comics/backlog-20261015/ja/08.png",
+      "urlPath": "/comics/backlog-20261015/ja/08.png",
+      "status": 200,
+      "mime": "image/png",
+      "bytes": 3132411,
+      "sha256": "1fd8a31ace910dc74efbeb78b05e56cf84aec6d54dc2b4253c41e803ce3827ae",
+      "pass": true
+    },
+    {
+      "path": "Developer/r3f_prototype/public/comics/backlog-20261015/ko/03.png",
+      "urlPath": "/comics/backlog-20261015/ko/03.png",
+      "status": 200,
+      "mime": "image/png",
+      "bytes": 2704543,
+      "sha256": "ce28b3ac0d6845e1e06db127ef157408c80be0e9a5a43b15cabc46e11e1548e4",
+      "pass": true
+    },
+    {
+      "path": "Developer/r3f_prototype/public/comics/backlog-20261015/ko/02.png",
+      "urlPath": "/comics/backlog-20261015/ko/02.png",
+      "status": 200,
+      "mime": "image/png",
+      "bytes": 2571603,
+      "sha256": "85de4b7a710c5944b41635bd70e0acc4e632d8aebcc5305311501a7e480ceaa5",
+      "pass": true
+    },
+    {
+      "path": "Developer/r3f_prototype/public/comics/backlog-20261015/ko/01.png",
+      "urlPath": "/comics/backlog-20261015/ko/01.png",
+      "status": 200,
+      "mime": "image/png",
+      "bytes": 2546009,
+      "sha256": "4362f193dfb1d81158a76d7ed602bf7374b9ca9492be020cd7907b9fc50e5c04",
+      "pass": true
+    },
+    {
+      "path": "Developer/r3f_prototype/public/comics/backlog-20261015/ko/04.png",
+      "urlPath": "/comics/backlog-20261015/ko/04.png",
+      "status": 200,
+      "mime": "image/png",
+      "bytes": 2642753,
+      "sha256": "84d1ec7096b946c38048162b614bad3e9773b12a26f615efdb74c187ca9535c3",
+      "pass": true
+    },
+    {
+      "path": "Developer/r3f_prototype/public/comics/backlog-20261015/ko/05.png",
+      "urlPath": "/comics/backlog-20261015/ko/05.png",
+      "status": 200,
+      "mime": "image/png",
+      "bytes": 2561084,
+      "sha256": "1464d75104b9683cb7d272a980c02ff9974b9fe516b3a54161c04b54ed0f5e98",
+      "pass": true
+    },
+    {
+      "path": "Developer/r3f_prototype/public/comics/backlog-20261015/ko/08.png",
+      "urlPath": "/comics/backlog-20261015/ko/08.png",
+      "status": 200,
+      "mime": "image/png",
+      "bytes": 3005305,
+      "sha256": "348f85e4c5ac5b9bff0279e4fbb8da899c28455613f58879336f5eb9ae749e51",
+      "pass": true
+    },
+    {
+      "path": "Developer/r3f_prototype/public/comics/backlog-20261015/ko/07.png",
+      "urlPath": "/comics/backlog-20261015/ko/07.png",
+      "status": 200,
+      "mime": "image/png",
+      "bytes": 2178545,
+      "sha256": "cbbe87db96b56d4ecd4fc3c56aab03e9950684d01be7b418ba41cd44eeb01561",
+      "pass": true
+    },
+    {
+      "path": "Developer/r3f_prototype/public/comics/backlog-20261015/ko/06.png",
+      "urlPath": "/comics/backlog-20261015/ko/06.png",
+      "status": 200,
+      "mime": "image/png",
+      "bytes": 2652940,
+      "sha256": "4c13a11674686d5c483401e2e96d468b7954eb6887a1c96311c1ec88a7d4df22",
+      "pass": true
+    },
+    {
+      "path": "Developer/r3f_prototype/public/comics/backlog-20261015/ko/09.png",
+      "urlPath": "/comics/backlog-20261015/ko/09.png",
+      "status": 200,
+      "mime": "image/png",
+      "bytes": 2425595,
+      "sha256": "51c328e731e1d4d2217d14d38a86f0b9ea8a0bde81693eb9cc62c6becfb5fc06",
+      "pass": true
+    },
+    {
+      "path": "Developer/r3f_prototype/public/comics/backlog-20261015/ko/10.png",
+      "urlPath": "/comics/backlog-20261015/ko/10.png",
+      "status": 200,
+      "mime": "image/png",
+      "bytes": 2453048,
+      "sha256": "ba3b2d87f4a117a3da6cad575039923405cfaca977937e01546dcb002a0414e5",
+      "pass": true
+    },
+    {
+      "path": "Developer/r3f_prototype/public/comics/backlog-20261015/vi/02.png",
+      "urlPath": "/comics/backlog-20261015/vi/02.png",
+      "status": 200,
+      "mime": "image/png",
+      "bytes": 2576924,
+      "sha256": "47bc47dcce8ea62cbbd63196fba764145715771a07f0565e40f64d454cc8ce43",
+      "pass": true
+    },
+    {
+      "path": "Developer/r3f_prototype/public/comics/backlog-20261015/vi/01.png",
+      "urlPath": "/comics/backlog-20261015/vi/01.png",
+      "status": 200,
+      "mime": "image/png",
+      "bytes": 2553348,
+      "sha256": "c602e65259bff55b7f5ae8ba54c1b68ee9fce235dd95bd501d7af6aa3f70034a",
+      "pass": true
+    },
+    {
+      "path": "Developer/r3f_prototype/public/comics/backlog-20261015/vi/03.png",
+      "urlPath": "/comics/backlog-20261015/vi/03.png",
+      "status": 200,
+      "mime": "image/png",
+      "bytes": 2724091,
+      "sha256": "25c6278c1a89e79e14cc0f6c14767023622a1bf532fbcbb86d59dda207af47aa",
+      "pass": true
+    },
+    {
+      "path": "Developer/r3f_prototype/public/comics/backlog-20261015/vi/06.png",
+      "urlPath": "/comics/backlog-20261015/vi/06.png",
+      "status": 200,
+      "mime": "image/png",
+      "bytes": 2248642,
+      "sha256": "9a9b0a4db0185dff2b08a35aed2f3dd17cca31b8f86ffb812e3c4ba0c6041ac7",
+      "pass": true
+    },
+    {
+      "path": "Developer/r3f_prototype/public/comics/backlog-20261015/vi/05.png",
+      "urlPath": "/comics/backlog-20261015/vi/05.png",
+      "status": 200,
+      "mime": "image/png",
+      "bytes": 2261362,
+      "sha256": "7cfb4a170279ca9882b6b4805c77f27f3a6fd811a955187f7a1497b09bb9787e",
+      "pass": true
+    },
+    {
+      "path": "Developer/r3f_prototype/public/comics/backlog-20261015/vi/04.png",
+      "urlPath": "/comics/backlog-20261015/vi/04.png",
+      "status": 200,
+      "mime": "image/png",
+      "bytes": 2784125,
+      "sha256": "757acae7a1ad428937ea78c6b6f428a93ad1f723297bc25d554b8fe0950d2937",
+      "pass": true
+    },
+    {
+      "path": "Developer/r3f_prototype/public/comics/backlog-20261015/vi/09.png",
+      "urlPath": "/comics/backlog-20261015/vi/09.png",
+      "status": 200,
+      "mime": "image/png",
+      "bytes": 2347719,
+      "sha256": "6b3ffc819caeb5fd3e498f9d9d5cbbfa503af3a2cca17aa5c4213479a24851bb",
+      "pass": true
+    },
+    {
+      "path": "Developer/r3f_prototype/public/comics/backlog-20261015/vi/07.png",
+      "urlPath": "/comics/backlog-20261015/vi/07.png",
+      "status": 200,
+      "mime": "image/png",
+      "bytes": 2209768,
+      "sha256": "f06aeee3331a828bd3c17df3f600540dcd4df442b9597cbad6f675f686ff8d38",
+      "pass": true
+    },
+    {
+      "path": "Developer/r3f_prototype/public/comics/backlog-20261015/vi/10.png",
+      "urlPath": "/comics/backlog-20261015/vi/10.png",
+      "status": 200,
+      "mime": "image/png",
+      "bytes": 2333685,
+      "sha256": "e25d4d26702f959abfdc452832924bac189c5c2a49f5931b8576fdae6fff5a5e",
+      "pass": true
+    },
+    {
+      "path": "Developer/r3f_prototype/public/comics/backlog-20261015/vi/08.png",
+      "urlPath": "/comics/backlog-20261015/vi/08.png",
+      "status": 200,
+      "mime": "image/png",
+      "bytes": 3054853,
+      "sha256": "71db1538d6c23d4e1111a1be98c1c0307a697cf83e1f8d62dbb5947ad50749d9",
+      "pass": true
+    }
+  ]
+}

@@ -1,0 +1,1963 @@
+{
+  "baseline": "e6b93e7c5e29015d21062ee37deafbfb4ffe59d2",
+  "repositories": [
+    {
+      "path": "C:\\tmp\\uimini_t_ed51b199\\c5x_short_181908",
+      "head": "c5099369e8c1755d4935cdf253ee550c82fe55e4",
+      "branch": "zombie_only",
+      "ancestorOfBaseline": true,
+      "dirtyStatusLines": 3,
+      "branches": "zombie_only c5099369e8c1755d4935cdf253ee550c82fe55e4",
+      "disposition": "already ancestor; no branch merge"
+    },
+    {
+      "path": "C:\\tmp\\uimini_t_ed51b199\\comic_modal_baseline",
+      "head": "c5099369e8c1755d4935cdf253ee550c82fe55e4",
+      "branch": "",
+      "ancestorOfBaseline": true,
+      "dirtyStatusLines": 0,
+      "branches": "zombie_only 06e740d38a94c23e99d89c67b465bdfae40eb406",
+      "disposition": "already ancestor; no branch merge"
+    },
+    {
+      "path": "C:\\tmp\\zr09477_clone",
+      "head": "15cb067c304665547076e52c1cf80af40ef4b28b",
+      "branch": "zombie_only",
+      "ancestorOfBaseline": false,
+      "dirtyStatusLines": 0,
+      "branches": "zombie_only 15cb067c304665547076e52c1cf80af40ef4b28b",
+      "disposition": "file-scoped history comparison; no blind merge"
+    },
+    {
+      "path": "C:\\tmp\\zr09477_release",
+      "head": "73809a0649986402a26a047abffb94e5464a8791",
+      "branch": "",
+      "ancestorOfBaseline": false,
+      "dirtyStatusLines": 0,
+      "branches": "feature/comic-gallery-20261016 a80435641741e1e9f9ffd1e1a95cd327676b9b83\nlaunchmini/t_25c9cb8a-owned-weapon-push 709be06a90dc8c8bedbed111d8d8793a6b2ade7a\nsync/posting-20261015 a80435641741e1e9f9ffd1e1a95cd327676b9b83\nsync/zombie_only_20261013 08862d23366c6c31255bc7ab84c4a05686ec05c9\nzombie_only 6f416d836e355d22a4e348516cca45e194bcc56c",
+      "disposition": "file-scoped history comparison; no blind merge"
+    },
+    {
+      "path": "C:\\Users\\admin\\AppData\\Local\\hermes\\kanban\\boards\\escape-zombie-school\\workspaces\\t_309e540a\\release\\repo",
+      "error": "('rev-parse', 'HEAD'): fatal: not a git repository (or any of the parent directories): .git\n",
+      "disposition": "unreadable/missing historical checkout retained unchanged, not declared integrated"
+    },
+    {
+      "path": "C:\\Users\\admin\\AppData\\Local\\Temp\\escape-appearance-publish-20261005",
+      "head": "dbd2209c4e2f3809966f49db415fd9c9128b9a70",
+      "branch": "",
+      "ancestorOfBaseline": true,
+      "dirtyStatusLines": 3474,
+      "branches": "feature/comic-gallery-20261016 a80435641741e1e9f9ffd1e1a95cd327676b9b83\nlaunchmini/t_25c9cb8a-owned-weapon-push 709be06a90dc8c8bedbed111d8d8793a6b2ade7a\nsync/posting-20261015 a80435641741e1e9f9ffd1e1a95cd327676b9b83\nsync/zombie_only_20261013 08862d23366c6c31255bc7ab84c4a05686ec05c9\nzombie_only 6f416d836e355d22a4e348516cca45e194bcc56c",
+      "disposition": "already ancestor; no branch merge"
+    },
+    {
+      "path": "C:\\Users\\admin\\AppData\\Local\\Temp\\escape-appearance-release-20261005",
+      "head": "47c9f87faa516e13ee9faff5ba81a6bfd408fae5",
+      "branch": "zombie_only",
+      "ancestorOfBaseline": true,
+      "dirtyStatusLines": 2310,
+      "branches": "zombie_only 47c9f87faa516e13ee9faff5ba81a6bfd408fae5",
+      "disposition": "already ancestor; no branch merge"
+    },
+    {
+      "path": "C:\\Users\\admin\\AppData\\Local\\Temp\\escape-bgm-release-bcca78a",
+      "head": "6f416d836e355d22a4e348516cca45e194bcc56c",
+      "branch": "zombie_only",
+      "ancestorOfBaseline": false,
+      "dirtyStatusLines": 6036,
+      "branches": "feature/comic-gallery-20261016 a80435641741e1e9f9ffd1e1a95cd327676b9b83\nlaunchmini/t_25c9cb8a-owned-weapon-push 709be06a90dc8c8bedbed111d8d8793a6b2ade7a\nsync/posting-20261015 a80435641741e1e9f9ffd1e1a95cd327676b9b83\nsync/zombie_only_20261013 08862d23366c6c31255bc7ab84c4a05686ec05c9\nzombie_only 6f416d836e355d22a4e348516cca45e194bcc56c",
+      "disposition": "file-scoped history comparison; no blind merge"
+    },
+    {
+      "path": "C:\\Users\\admin\\AppData\\Local\\Temp\\escape-comic-gallery-20261016",
+      "head": "a80435641741e1e9f9ffd1e1a95cd327676b9b83",
+      "branch": "feature/comic-gallery-20261016",
+      "ancestorOfBaseline": true,
+      "dirtyStatusLines": 7,
+      "branches": "feature/comic-gallery-20261016 a80435641741e1e9f9ffd1e1a95cd327676b9b83\nlaunchmini/t_25c9cb8a-owned-weapon-push 709be06a90dc8c8bedbed111d8d8793a6b2ade7a\nsync/posting-20261015 a80435641741e1e9f9ffd1e1a95cd327676b9b83\nsync/zombie_only_20261013 08862d23366c6c31255bc7ab84c4a05686ec05c9\nzombie_only 6f416d836e355d22a4e348516cca45e194bcc56c",
+      "disposition": "already ancestor; no branch merge"
+    },
+    {
+      "path": "C:\\Users\\admin\\AppData\\Local\\Temp\\escape-comic-release-20261016",
+      "head": "408fb6a89626acf51327b3a022ad4eb5878456be",
+      "branch": "zombie_only",
+      "ancestorOfBaseline": true,
+      "dirtyStatusLines": 3,
+      "branches": "zombie_only 408fb6a89626acf51327b3a022ad4eb5878456be",
+      "disposition": "already ancestor; no branch merge"
+    },
+    {
+      "path": "C:\\Users\\admin\\AppData\\Local\\Temp\\escape-docs-comic-20261011",
+      "head": "06e740d38a94c23e99d89c67b465bdfae40eb406",
+      "branch": "zombie_only",
+      "ancestorOfBaseline": true,
+      "dirtyStatusLines": 0,
+      "branches": "zombie_only 06e740d38a94c23e99d89c67b465bdfae40eb406",
+      "disposition": "already ancestor; no branch merge"
+    },
+    {
+      "path": "C:\\Users\\admin\\AppData\\Local\\Temp\\escape-face-icons-32150873",
+      "head": "17cfcd7e405bbecc9555a83df412a24b4a390f89",
+      "branch": "zombie_only",
+      "ancestorOfBaseline": true,
+      "dirtyStatusLines": 3,
+      "branches": "zombie_only 17cfcd7e405bbecc9555a83df412a24b4a390f89",
+      "disposition": "already ancestor; no branch merge"
+    },
+    {
+      "path": "C:\\Users\\admin\\AppData\\Local\\Temp\\escape-homepage-release-20261005-b",
+      "error": "('rev-parse', 'HEAD'): fatal: not a git repository (or any of the parent directories): .git\n",
+      "disposition": "unreadable/missing historical checkout retained unchanged, not declared integrated"
+    },
+    {
+      "path": "C:\\Users\\admin\\AppData\\Local\\Temp\\escape-hosting-head-audit-81df09f-20261004-copy",
+      "error": "('rev-parse', 'HEAD'): fatal: not a git repository (or any of the parent directories): .git\n",
+      "disposition": "unreadable/missing historical checkout retained unchanged, not declared integrated"
+    },
+    {
+      "path": "C:\\Users\\admin\\AppData\\Local\\Temp\\escape-landing-layout-20261010",
+      "head": "6bf31a0acdc161b2ca1171d3195dbc838ece600d",
+      "branch": "zombie_only",
+      "ancestorOfBaseline": true,
+      "dirtyStatusLines": 2,
+      "branches": "zombie_only 6bf31a0acdc161b2ca1171d3195dbc838ece600d",
+      "disposition": "already ancestor; no branch merge"
+    },
+    {
+      "path": "C:\\Users\\admin\\AppData\\Local\\Temp\\escape-lounge-inspect-20261011",
+      "head": "ba8fbe8a7bad4ef1319523822d58e7171f75b7bd",
+      "branch": "master",
+      "ancestorOfBaseline": null,
+      "dirtyStatusLines": 563,
+      "branches": "master ba8fbe8a7bad4ef1319523822d58e7171f75b7bd",
+      "disposition": "file-scoped history comparison; no blind merge"
+    },
+    {
+      "path": "C:\\Users\\admin\\AppData\\Local\\Temp\\escape-portrait-restore-20261010",
+      "head": "6a72e2817147d69afc46e974dd6fc0d25937f80a",
+      "branch": "zombie_only",
+      "ancestorOfBaseline": true,
+      "dirtyStatusLines": 0,
+      "branches": "zombie_only 6a72e2817147d69afc46e974dd6fc0d25937f80a",
+      "disposition": "already ancestor; no branch merge"
+    },
+    {
+      "path": "C:\\Users\\admin\\AppData\\Local\\Temp\\escape-posting-sync-20261015",
+      "head": "a80435641741e1e9f9ffd1e1a95cd327676b9b83",
+      "branch": "sync/posting-20261015",
+      "ancestorOfBaseline": true,
+      "dirtyStatusLines": 0,
+      "branches": "feature/comic-gallery-20261016 a80435641741e1e9f9ffd1e1a95cd327676b9b83\nlaunchmini/t_25c9cb8a-owned-weapon-push 709be06a90dc8c8bedbed111d8d8793a6b2ade7a\nsync/posting-20261015 a80435641741e1e9f9ffd1e1a95cd327676b9b83\nsync/zombie_only_20261013 08862d23366c6c31255bc7ab84c4a05686ec05c9\nzombie_only 6f416d836e355d22a4e348516cca45e194bcc56c",
+      "disposition": "already ancestor; no branch merge"
+    },
+    {
+      "path": "C:\\Users\\admin\\AppData\\Local\\Temp\\escape-route-release-20261009",
+      "head": "0749b58ad0ccf288967b2242337f17ec5e007694",
+      "branch": "zombie_only",
+      "ancestorOfBaseline": true,
+      "dirtyStatusLines": 0,
+      "branches": "zombie_only 0749b58ad0ccf288967b2242337f17ec5e007694",
+      "disposition": "already ancestor; no branch merge"
+    },
+    {
+      "path": "C:\\Users\\admin\\AppData\\Local\\Temp\\escape-social-handoff-publish-20261009",
+      "head": "a2356186eb7e28262712264776e60a1d2541d1f7",
+      "branch": "zombie_only",
+      "ancestorOfBaseline": true,
+      "dirtyStatusLines": 0,
+      "branches": "zombie_only a2356186eb7e28262712264776e60a1d2541d1f7",
+      "disposition": "already ancestor; no branch merge"
+    },
+    {
+      "path": "C:\\Users\\admin\\AppData\\Local\\Temp\\school-survivor-social-restore-20261005-235224142-a42c6b3c",
+      "head": "c42fc99937155bf4d81a73559db3fb8407bb00c0",
+      "branch": "zombie_only",
+      "ancestorOfBaseline": true,
+      "dirtyStatusLines": 7,
+      "branches": "zombie_only c42fc99937155bf4d81a73559db3fb8407bb00c0",
+      "disposition": "already ancestor; no branch merge"
+    },
+    {
+      "path": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\releases\\glowing-stone-publish",
+      "head": "ff7f28f3c15e2e1330ecdc102619d9d9e2c4c001",
+      "branch": "",
+      "ancestorOfBaseline": true,
+      "dirtyStatusLines": 0,
+      "branches": "feature/comic-gallery-20261016 a80435641741e1e9f9ffd1e1a95cd327676b9b83\nlaunchmini/t_25c9cb8a-owned-weapon-push 709be06a90dc8c8bedbed111d8d8793a6b2ade7a\nsync/posting-20261015 a80435641741e1e9f9ffd1e1a95cd327676b9b83\nsync/zombie_only_20261013 08862d23366c6c31255bc7ab84c4a05686ec05c9\nzombie_only 6f416d836e355d22a4e348516cca45e194bcc56c",
+      "disposition": "already ancestor; no branch merge"
+    },
+    {
+      "path": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\releases\\homepage-board-inline-20261018",
+      "head": "bb3fef972e2c1e70b758c5ac535cb3f7ac96c9cb",
+      "branch": "zombie_only",
+      "ancestorOfBaseline": true,
+      "dirtyStatusLines": 1,
+      "branches": "zombie_only bb3fef972e2c1e70b758c5ac535cb3f7ac96c9cb",
+      "disposition": "already ancestor; no branch merge"
+    },
+    {
+      "path": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\releases\\integrated-game-20261016-t_e2815ba8",
+      "head": "62dc162b4db451ea4edef9c8f320340faf822622",
+      "branch": "zombie_only",
+      "ancestorOfBaseline": false,
+      "dirtyStatusLines": 47,
+      "branches": "zombie_only 62dc162b4db451ea4edef9c8f320340faf822622",
+      "disposition": "file-scoped history comparison; no blind merge"
+    },
+    {
+      "path": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\releases\\lobby-cdn-20261005",
+      "error": "('status', '--short', '--untracked-files=normal'): error: unable to normalize alternate object path: D:/JungSil/2.Minigame_project/school_survivor-integration/.git/objects\nfatal: bad object HEAD\n",
+      "disposition": "unreadable/missing historical checkout retained unchanged, not declared integrated"
+    },
+    {
+      "path": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\releases\\owner-all-complete-20261018",
+      "head": "e6b93e7c5e29015d21062ee37deafbfb4ffe59d2",
+      "branch": "zombie_only",
+      "ancestorOfBaseline": true,
+      "dirtyStatusLines": 311,
+      "branches": "zombie_only e6b93e7c5e29015d21062ee37deafbfb4ffe59d2",
+      "disposition": "current lane"
+    },
+    {
+      "path": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\releases\\respawn-live-aa3cdc7d",
+      "head": "aa3cdc7df171d99076e335f2020cf1f2f34d31bd",
+      "branch": "zombie_only",
+      "ancestorOfBaseline": true,
+      "dirtyStatusLines": 0,
+      "branches": "zombie_only aa3cdc7df171d99076e335f2020cf1f2f34d31bd",
+      "disposition": "already ancestor; no branch merge"
+    },
+    {
+      "path": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\releases\\respawn-push-06b822a0",
+      "head": "aa3cdc7df171d99076e335f2020cf1f2f34d31bd",
+      "branch": "",
+      "ancestorOfBaseline": true,
+      "dirtyStatusLines": 0,
+      "branches": "feature/comic-gallery-20261016 a80435641741e1e9f9ffd1e1a95cd327676b9b83\nlaunchmini/t_25c9cb8a-owned-weapon-push 709be06a90dc8c8bedbed111d8d8793a6b2ade7a\nsync/posting-20261015 a80435641741e1e9f9ffd1e1a95cd327676b9b83\nsync/zombie_only_20261013 08862d23366c6c31255bc7ab84c4a05686ec05c9\nzombie_only 6f416d836e355d22a4e348516cca45e194bcc56c",
+      "disposition": "already ancestor; no branch merge"
+    },
+    {
+      "path": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\releases\\title-cdn-20261005",
+      "error": "('status', '--short', '--untracked-files=normal'): error: unable to normalize alternate object path: D:/JungSil/2.Minigame_project/school_survivor-integration/.git/objects\nfatal: bad object HEAD\n",
+      "disposition": "unreadable/missing historical checkout retained unchanged, not declared integrated"
+    },
+    {
+      "path": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\releases\\vending-owner-20261018",
+      "head": "86e81c7d9728413b73a32f27aad4276bc4afef16",
+      "branch": "",
+      "ancestorOfBaseline": true,
+      "dirtyStatusLines": 0,
+      "branches": "feature/comic-gallery-20261016 a80435641741e1e9f9ffd1e1a95cd327676b9b83\nlaunchmini/t_25c9cb8a-owned-weapon-push 709be06a90dc8c8bedbed111d8d8793a6b2ade7a\nsync/posting-20261015 a80435641741e1e9f9ffd1e1a95cd327676b9b83\nsync/zombie_only_20261013 08862d23366c6c31255bc7ab84c4a05686ec05c9\nzombie_only 6f416d836e355d22a4e348516cca45e194bcc56c",
+      "disposition": "already ancestor; no branch merge"
+    },
+    {
+      "path": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\releases\\vending-owner-20261018-ready",
+      "head": "86e81c7d9728413b73a32f27aad4276bc4afef16",
+      "branch": "zombie_only",
+      "ancestorOfBaseline": true,
+      "dirtyStatusLines": 18,
+      "branches": "zombie_only 86e81c7d9728413b73a32f27aad4276bc4afef16",
+      "disposition": "already ancestor; no branch merge"
+    },
+    {
+      "path": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-deploy-clone-t_bc44e181",
+      "error": "('status', '--short', '--untracked-files=normal'): error: unable to normalize alternate object path: D:/JungSil/2.Minigame_project/school_survivor-integration/.git/objects\nfatal: bad object HEAD\n",
+      "disposition": "unreadable/missing historical checkout retained unchanged, not declared integrated"
+    },
+    {
+      "path": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-deploy-t_bc44e181",
+      "error": "('rev-parse', 'HEAD'): fatal: not a git repository: (NULL)\n",
+      "disposition": "unreadable/missing historical checkout retained unchanged, not declared integrated"
+    },
+    {
+      "path": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration",
+      "head": "6f416d836e355d22a4e348516cca45e194bcc56c",
+      "branch": "zombie_only",
+      "ancestorOfBaseline": false,
+      "dirtyStatusLines": 945,
+      "branches": "feature/comic-gallery-20261016 a80435641741e1e9f9ffd1e1a95cd327676b9b83\nlaunchmini/t_25c9cb8a-owned-weapon-push 709be06a90dc8c8bedbed111d8d8793a6b2ade7a\nsync/posting-20261015 a80435641741e1e9f9ffd1e1a95cd327676b9b83\nsync/zombie_only_20261013 08862d23366c6c31255bc7ab84c4a05686ec05c9\nzombie_only 6f416d836e355d22a4e348516cca45e194bcc56c",
+      "disposition": "file-scoped history comparison; no blind merge"
+    },
+    {
+      "path": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\.task-temp\\c5x",
+      "head": "ceda34adcac5f76a7b09a71a74a1af38bc01d226",
+      "branch": "zombie_only",
+      "ancestorOfBaseline": true,
+      "dirtyStatusLines": 3,
+      "branches": "zombie_only ceda34adcac5f76a7b09a71a74a1af38bc01d226",
+      "disposition": "already ancestor; no branch merge"
+    },
+    {
+      "path": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\.task-temp\\launchmini_t_27c3dfd1_clean_20261005_003047\\repo",
+      "head": "8514a544c4b4f2f0b025bde998ed6020b7908042",
+      "branch": "zombie_only",
+      "ancestorOfBaseline": true,
+      "dirtyStatusLines": 3701,
+      "branches": "zombie_only 8514a544c4b4f2f0b025bde998ed6020b7908042",
+      "disposition": "already ancestor; no branch merge"
+    },
+    {
+      "path": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\.task-temp\\twa-flash-7c28bc4",
+      "head": "7c28bc4e9d319d493cb789516833b8f5e81e4a7a",
+      "branch": "zombie_only",
+      "ancestorOfBaseline": true,
+      "dirtyStatusLines": 0,
+      "branches": "zombie_only 7c28bc4e9d319d493cb789516833b8f5e81e4a7a",
+      "disposition": "already ancestor; no branch merge"
+    },
+    {
+      "path": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\.task-temp\\twa-release-8716840",
+      "head": "871684042dc774d999e9a96a071cfa88f2f940e8",
+      "branch": "zombie_only",
+      "ancestorOfBaseline": true,
+      "dirtyStatusLines": 0,
+      "branches": "zombie_only 871684042dc774d999e9a96a071cfa88f2f940e8",
+      "disposition": "already ancestor; no branch merge"
+    },
+    {
+      "path": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\.task-temp\\uimini_t_ed51b199_comic5x_clone_20261011",
+      "head": "ceda34adcac5f76a7b09a71a74a1af38bc01d226",
+      "branch": "zombie_only",
+      "ancestorOfBaseline": true,
+      "dirtyStatusLines": 4187,
+      "branches": "zombie_only ceda34adcac5f76a7b09a71a74a1af38bc01d226",
+      "disposition": "already ancestor; no branch merge"
+    },
+    {
+      "path": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-release-audit-81df09f-20261004",
+      "head": "81df09fea2b9497d71980a1387b67e327399bb70",
+      "branch": "zombie_only",
+      "ancestorOfBaseline": true,
+      "dirtyStatusLines": 1,
+      "branches": "zombie_only 81df09fea2b9497d71980a1387b67e327399bb70",
+      "disposition": "already ancestor; no branch merge"
+    },
+    {
+      "path": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-release-audit-81df09f-20261004\\.c-temp-holding\\escape-hosting-head-audit-81df09f-20261004-copy",
+      "head": "81df09fea2b9497d71980a1387b67e327399bb70",
+      "branch": "zombie_only",
+      "ancestorOfBaseline": true,
+      "dirtyStatusLines": 3495,
+      "branches": "zombie_only 81df09fea2b9497d71980a1387b67e327399bb70",
+      "disposition": "already ancestor; no branch merge"
+    },
+    {
+      "path": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor_launchmini_t_25c9cb8a_push",
+      "head": "709be06a90dc8c8bedbed111d8d8793a6b2ade7a",
+      "branch": "launchmini/t_25c9cb8a-owned-weapon-push",
+      "ancestorOfBaseline": true,
+      "dirtyStatusLines": 1,
+      "branches": "feature/comic-gallery-20261016 a80435641741e1e9f9ffd1e1a95cd327676b9b83\nlaunchmini/t_25c9cb8a-owned-weapon-push 709be06a90dc8c8bedbed111d8d8793a6b2ade7a\nsync/posting-20261015 a80435641741e1e9f9ffd1e1a95cd327676b9b83\nsync/zombie_only_20261013 08862d23366c6c31255bc7ab84c4a05686ec05c9\nzombie_only 6f416d836e355d22a4e348516cca45e194bcc56c",
+      "disposition": "already ancestor; no branch merge"
+    }
+  ],
+  "branches": [
+    {
+      "path": "C:\\tmp\\uimini_t_ed51b199\\c5x_short_181908",
+      "branch": "zombie_only",
+      "head": "c5099369e8c1755d4935cdf253ee550c82fe55e4",
+      "ancestor": true,
+      "cherry": ""
+    },
+    {
+      "path": "C:\\tmp\\uimini_t_ed51b199\\comic_modal_baseline",
+      "branch": "zombie_only",
+      "head": "06e740d38a94c23e99d89c67b465bdfae40eb406",
+      "ancestor": true,
+      "cherry": ""
+    },
+    {
+      "path": "C:\\tmp\\zr09477_clone",
+      "branch": "zombie_only",
+      "head": "15cb067c304665547076e52c1cf80af40ef4b28b",
+      "ancestor": false,
+      "cherry": "+ 15cb067c304665547076e52c1cf80af40ef4b28b"
+    },
+    {
+      "path": "C:\\tmp\\zr09477_release",
+      "branch": "feature/comic-gallery-20261016",
+      "head": "a80435641741e1e9f9ffd1e1a95cd327676b9b83",
+      "ancestor": true,
+      "cherry": ""
+    },
+    {
+      "path": "C:\\tmp\\zr09477_release",
+      "branch": "launchmini/t_25c9cb8a-owned-weapon-push",
+      "head": "709be06a90dc8c8bedbed111d8d8793a6b2ade7a",
+      "ancestor": true,
+      "cherry": ""
+    },
+    {
+      "path": "C:\\tmp\\zr09477_release",
+      "branch": "sync/posting-20261015",
+      "head": "a80435641741e1e9f9ffd1e1a95cd327676b9b83",
+      "ancestor": true,
+      "cherry": ""
+    },
+    {
+      "path": "C:\\tmp\\zr09477_release",
+      "branch": "sync/zombie_only_20261013",
+      "head": "08862d23366c6c31255bc7ab84c4a05686ec05c9",
+      "ancestor": false,
+      "cherry": "+ b28a72faf2d969967cd2a984fa594d8ab9778022\n+ 92d38a82ec646b323498428fe1f2f91b4b246d01\n+ 16640b9010db58adef5ca16a51a9b742da059dea\n+ 9867176566909ba2bf914e9ba2c75405bb2501e4\n+ ed334eee2453d5f4cf14e5e6f52c2057cd133b48\n- 06b822a081a28d97c7e38faf39db3cca05c658e9\n- c36d9a42181e60527f6fbd423bc9dc12b9dce611\n- be7a1e724598d98f1802c5dc9d32878bf0c4e2f4\n- ce91ee62335003e41c7a61c1304e0c585518f239\n- 04b9cd33763832683587dd8706824d0fe1c5ec58\n- 155461be5a12d4f0422dfd2025f367543dc42e5e\n+ 776fad6e623356cac66cd8c3cf4a86c924121d5e\n+ d48732c88ca4494778fbce483c94104309acafe1\n+ cc709351bccbbd5a939f84c57c58acd29668025c\n+ 08862d23366c6c31255bc7ab84c4a05686ec05c9"
+    },
+    {
+      "path": "C:\\tmp\\zr09477_release",
+      "branch": "zombie_only",
+      "head": "6f416d836e355d22a4e348516cca45e194bcc56c",
+      "ancestor": false,
+      "cherry": "+ b28a72faf2d969967cd2a984fa594d8ab9778022\n+ 92d38a82ec646b323498428fe1f2f91b4b246d01\n+ 16640b9010db58adef5ca16a51a9b742da059dea\n+ 9867176566909ba2bf914e9ba2c75405bb2501e4\n+ ed334eee2453d5f4cf14e5e6f52c2057cd133b48\n- 06b822a081a28d97c7e38faf39db3cca05c658e9\n- c36d9a42181e60527f6fbd423bc9dc12b9dce611\n- be7a1e724598d98f1802c5dc9d32878bf0c4e2f4\n- ce91ee62335003e41c7a61c1304e0c585518f239\n- 04b9cd33763832683587dd8706824d0fe1c5ec58\n- 155461be5a12d4f0422dfd2025f367543dc42e5e\n+ 776fad6e623356cac66cd8c3cf4a86c924121d5e\n+ d48732c88ca4494778fbce483c94104309acafe1\n+ cc709351bccbbd5a939f84c57c58acd29668025c\n+ 08862d23366c6c31255bc7ab84c4a05686ec05c9\n+ 234d461ee787bb83ca6604ca99aec11dfc74d669\n+ 09477dcc163844cd1e848791937cc68f2f64f160\n- 37414992750d79d1d730a0645dbc2ec623f98d30\n- 7782814a23460d99110fbfeeb8f8a6fb7766820d\n+ 6f416d836e355d22a4e348516cca45e194bcc56c"
+    },
+    {
+      "path": "C:\\Users\\admin\\AppData\\Local\\Temp\\escape-appearance-publish-20261005",
+      "branch": "feature/comic-gallery-20261016",
+      "head": "a80435641741e1e9f9ffd1e1a95cd327676b9b83",
+      "ancestor": true,
+      "cherry": ""
+    },
+    {
+      "path": "C:\\Users\\admin\\AppData\\Local\\Temp\\escape-appearance-publish-20261005",
+      "branch": "launchmini/t_25c9cb8a-owned-weapon-push",
+      "head": "709be06a90dc8c8bedbed111d8d8793a6b2ade7a",
+      "ancestor": true,
+      "cherry": ""
+    },
+    {
+      "path": "C:\\Users\\admin\\AppData\\Local\\Temp\\escape-appearance-publish-20261005",
+      "branch": "sync/posting-20261015",
+      "head": "a80435641741e1e9f9ffd1e1a95cd327676b9b83",
+      "ancestor": true,
+      "cherry": ""
+    },
+    {
+      "path": "C:\\Users\\admin\\AppData\\Local\\Temp\\escape-appearance-publish-20261005",
+      "branch": "sync/zombie_only_20261013",
+      "head": "08862d23366c6c31255bc7ab84c4a05686ec05c9",
+      "ancestor": false,
+      "cherry": "+ b28a72faf2d969967cd2a984fa594d8ab9778022\n+ 92d38a82ec646b323498428fe1f2f91b4b246d01\n+ 16640b9010db58adef5ca16a51a9b742da059dea\n+ 9867176566909ba2bf914e9ba2c75405bb2501e4\n+ ed334eee2453d5f4cf14e5e6f52c2057cd133b48\n- 06b822a081a28d97c7e38faf39db3cca05c658e9\n- c36d9a42181e60527f6fbd423bc9dc12b9dce611\n- be7a1e724598d98f1802c5dc9d32878bf0c4e2f4\n- ce91ee62335003e41c7a61c1304e0c585518f239\n- 04b9cd33763832683587dd8706824d0fe1c5ec58\n- 155461be5a12d4f0422dfd2025f367543dc42e5e\n+ 776fad6e623356cac66cd8c3cf4a86c924121d5e\n+ d48732c88ca4494778fbce483c94104309acafe1\n+ cc709351bccbbd5a939f84c57c58acd29668025c\n+ 08862d23366c6c31255bc7ab84c4a05686ec05c9"
+    },
+    {
+      "path": "C:\\Users\\admin\\AppData\\Local\\Temp\\escape-appearance-publish-20261005",
+      "branch": "zombie_only",
+      "head": "6f416d836e355d22a4e348516cca45e194bcc56c",
+      "ancestor": false,
+      "cherry": "+ b28a72faf2d969967cd2a984fa594d8ab9778022\n+ 92d38a82ec646b323498428fe1f2f91b4b246d01\n+ 16640b9010db58adef5ca16a51a9b742da059dea\n+ 9867176566909ba2bf914e9ba2c75405bb2501e4\n+ ed334eee2453d5f4cf14e5e6f52c2057cd133b48\n- 06b822a081a28d97c7e38faf39db3cca05c658e9\n- c36d9a42181e60527f6fbd423bc9dc12b9dce611\n- be7a1e724598d98f1802c5dc9d32878bf0c4e2f4\n- ce91ee62335003e41c7a61c1304e0c585518f239\n- 04b9cd33763832683587dd8706824d0fe1c5ec58\n- 155461be5a12d4f0422dfd2025f367543dc42e5e\n+ 776fad6e623356cac66cd8c3cf4a86c924121d5e\n+ d48732c88ca4494778fbce483c94104309acafe1\n+ cc709351bccbbd5a939f84c57c58acd29668025c\n+ 08862d23366c6c31255bc7ab84c4a05686ec05c9\n+ 234d461ee787bb83ca6604ca99aec11dfc74d669\n+ 09477dcc163844cd1e848791937cc68f2f64f160\n- 37414992750d79d1d730a0645dbc2ec623f98d30\n- 7782814a23460d99110fbfeeb8f8a6fb7766820d\n+ 6f416d836e355d22a4e348516cca45e194bcc56c"
+    },
+    {
+      "path": "C:\\Users\\admin\\AppData\\Local\\Temp\\escape-appearance-release-20261005",
+      "branch": "zombie_only",
+      "head": "47c9f87faa516e13ee9faff5ba81a6bfd408fae5",
+      "ancestor": true,
+      "cherry": ""
+    },
+    {
+      "path": "C:\\Users\\admin\\AppData\\Local\\Temp\\escape-bgm-release-bcca78a",
+      "branch": "feature/comic-gallery-20261016",
+      "head": "a80435641741e1e9f9ffd1e1a95cd327676b9b83",
+      "ancestor": true,
+      "cherry": ""
+    },
+    {
+      "path": "C:\\Users\\admin\\AppData\\Local\\Temp\\escape-bgm-release-bcca78a",
+      "branch": "launchmini/t_25c9cb8a-owned-weapon-push",
+      "head": "709be06a90dc8c8bedbed111d8d8793a6b2ade7a",
+      "ancestor": true,
+      "cherry": ""
+    },
+    {
+      "path": "C:\\Users\\admin\\AppData\\Local\\Temp\\escape-bgm-release-bcca78a",
+      "branch": "sync/posting-20261015",
+      "head": "a80435641741e1e9f9ffd1e1a95cd327676b9b83",
+      "ancestor": true,
+      "cherry": ""
+    },
+    {
+      "path": "C:\\Users\\admin\\AppData\\Local\\Temp\\escape-bgm-release-bcca78a",
+      "branch": "sync/zombie_only_20261013",
+      "head": "08862d23366c6c31255bc7ab84c4a05686ec05c9",
+      "ancestor": false,
+      "cherry": "+ b28a72faf2d969967cd2a984fa594d8ab9778022\n+ 92d38a82ec646b323498428fe1f2f91b4b246d01\n+ 16640b9010db58adef5ca16a51a9b742da059dea\n+ 9867176566909ba2bf914e9ba2c75405bb2501e4\n+ ed334eee2453d5f4cf14e5e6f52c2057cd133b48\n- 06b822a081a28d97c7e38faf39db3cca05c658e9\n- c36d9a42181e60527f6fbd423bc9dc12b9dce611\n- be7a1e724598d98f1802c5dc9d32878bf0c4e2f4\n- ce91ee62335003e41c7a61c1304e0c585518f239\n- 04b9cd33763832683587dd8706824d0fe1c5ec58\n- 155461be5a12d4f0422dfd2025f367543dc42e5e\n+ 776fad6e623356cac66cd8c3cf4a86c924121d5e\n+ d48732c88ca4494778fbce483c94104309acafe1\n+ cc709351bccbbd5a939f84c57c58acd29668025c\n+ 08862d23366c6c31255bc7ab84c4a05686ec05c9"
+    },
+    {
+      "path": "C:\\Users\\admin\\AppData\\Local\\Temp\\escape-bgm-release-bcca78a",
+      "branch": "zombie_only",
+      "head": "6f416d836e355d22a4e348516cca45e194bcc56c",
+      "ancestor": false,
+      "cherry": "+ b28a72faf2d969967cd2a984fa594d8ab9778022\n+ 92d38a82ec646b323498428fe1f2f91b4b246d01\n+ 16640b9010db58adef5ca16a51a9b742da059dea\n+ 9867176566909ba2bf914e9ba2c75405bb2501e4\n+ ed334eee2453d5f4cf14e5e6f52c2057cd133b48\n- 06b822a081a28d97c7e38faf39db3cca05c658e9\n- c36d9a42181e60527f6fbd423bc9dc12b9dce611\n- be7a1e724598d98f1802c5dc9d32878bf0c4e2f4\n- ce91ee62335003e41c7a61c1304e0c585518f239\n- 04b9cd33763832683587dd8706824d0fe1c5ec58\n- 155461be5a12d4f0422dfd2025f367543dc42e5e\n+ 776fad6e623356cac66cd8c3cf4a86c924121d5e\n+ d48732c88ca4494778fbce483c94104309acafe1\n+ cc709351bccbbd5a939f84c57c58acd29668025c\n+ 08862d23366c6c31255bc7ab84c4a05686ec05c9\n+ 234d461ee787bb83ca6604ca99aec11dfc74d669\n+ 09477dcc163844cd1e848791937cc68f2f64f160\n- 37414992750d79d1d730a0645dbc2ec623f98d30\n- 7782814a23460d99110fbfeeb8f8a6fb7766820d\n+ 6f416d836e355d22a4e348516cca45e194bcc56c"
+    },
+    {
+      "path": "C:\\Users\\admin\\AppData\\Local\\Temp\\escape-comic-gallery-20261016",
+      "branch": "feature/comic-gallery-20261016",
+      "head": "a80435641741e1e9f9ffd1e1a95cd327676b9b83",
+      "ancestor": true,
+      "cherry": ""
+    },
+    {
+      "path": "C:\\Users\\admin\\AppData\\Local\\Temp\\escape-comic-gallery-20261016",
+      "branch": "launchmini/t_25c9cb8a-owned-weapon-push",
+      "head": "709be06a90dc8c8bedbed111d8d8793a6b2ade7a",
+      "ancestor": true,
+      "cherry": ""
+    },
+    {
+      "path": "C:\\Users\\admin\\AppData\\Local\\Temp\\escape-comic-gallery-20261016",
+      "branch": "sync/posting-20261015",
+      "head": "a80435641741e1e9f9ffd1e1a95cd327676b9b83",
+      "ancestor": true,
+      "cherry": ""
+    },
+    {
+      "path": "C:\\Users\\admin\\AppData\\Local\\Temp\\escape-comic-gallery-20261016",
+      "branch": "sync/zombie_only_20261013",
+      "head": "08862d23366c6c31255bc7ab84c4a05686ec05c9",
+      "ancestor": false,
+      "cherry": "+ b28a72faf2d969967cd2a984fa594d8ab9778022\n+ 92d38a82ec646b323498428fe1f2f91b4b246d01\n+ 16640b9010db58adef5ca16a51a9b742da059dea\n+ 9867176566909ba2bf914e9ba2c75405bb2501e4\n+ ed334eee2453d5f4cf14e5e6f52c2057cd133b48\n- 06b822a081a28d97c7e38faf39db3cca05c658e9\n- c36d9a42181e60527f6fbd423bc9dc12b9dce611\n- be7a1e724598d98f1802c5dc9d32878bf0c4e2f4\n- ce91ee62335003e41c7a61c1304e0c585518f239\n- 04b9cd33763832683587dd8706824d0fe1c5ec58\n- 155461be5a12d4f0422dfd2025f367543dc42e5e\n+ 776fad6e623356cac66cd8c3cf4a86c924121d5e\n+ d48732c88ca4494778fbce483c94104309acafe1\n+ cc709351bccbbd5a939f84c57c58acd29668025c\n+ 08862d23366c6c31255bc7ab84c4a05686ec05c9"
+    },
+    {
+      "path": "C:\\Users\\admin\\AppData\\Local\\Temp\\escape-comic-gallery-20261016",
+      "branch": "zombie_only",
+      "head": "6f416d836e355d22a4e348516cca45e194bcc56c",
+      "ancestor": false,
+      "cherry": "+ b28a72faf2d969967cd2a984fa594d8ab9778022\n+ 92d38a82ec646b323498428fe1f2f91b4b246d01\n+ 16640b9010db58adef5ca16a51a9b742da059dea\n+ 9867176566909ba2bf914e9ba2c75405bb2501e4\n+ ed334eee2453d5f4cf14e5e6f52c2057cd133b48\n- 06b822a081a28d97c7e38faf39db3cca05c658e9\n- c36d9a42181e60527f6fbd423bc9dc12b9dce611\n- be7a1e724598d98f1802c5dc9d32878bf0c4e2f4\n- ce91ee62335003e41c7a61c1304e0c585518f239\n- 04b9cd33763832683587dd8706824d0fe1c5ec58\n- 155461be5a12d4f0422dfd2025f367543dc42e5e\n+ 776fad6e623356cac66cd8c3cf4a86c924121d5e\n+ d48732c88ca4494778fbce483c94104309acafe1\n+ cc709351bccbbd5a939f84c57c58acd29668025c\n+ 08862d23366c6c31255bc7ab84c4a05686ec05c9\n+ 234d461ee787bb83ca6604ca99aec11dfc74d669\n+ 09477dcc163844cd1e848791937cc68f2f64f160\n- 37414992750d79d1d730a0645dbc2ec623f98d30\n- 7782814a23460d99110fbfeeb8f8a6fb7766820d\n+ 6f416d836e355d22a4e348516cca45e194bcc56c"
+    },
+    {
+      "path": "C:\\Users\\admin\\AppData\\Local\\Temp\\escape-comic-release-20261016",
+      "branch": "zombie_only",
+      "head": "408fb6a89626acf51327b3a022ad4eb5878456be",
+      "ancestor": true,
+      "cherry": ""
+    },
+    {
+      "path": "C:\\Users\\admin\\AppData\\Local\\Temp\\escape-docs-comic-20261011",
+      "branch": "zombie_only",
+      "head": "06e740d38a94c23e99d89c67b465bdfae40eb406",
+      "ancestor": true,
+      "cherry": ""
+    },
+    {
+      "path": "C:\\Users\\admin\\AppData\\Local\\Temp\\escape-face-icons-32150873",
+      "branch": "zombie_only",
+      "head": "17cfcd7e405bbecc9555a83df412a24b4a390f89",
+      "ancestor": true,
+      "cherry": ""
+    },
+    {
+      "path": "C:\\Users\\admin\\AppData\\Local\\Temp\\escape-landing-layout-20261010",
+      "branch": "zombie_only",
+      "head": "6bf31a0acdc161b2ca1171d3195dbc838ece600d",
+      "ancestor": true,
+      "cherry": ""
+    },
+    {
+      "path": "C:\\Users\\admin\\AppData\\Local\\Temp\\escape-lounge-inspect-20261011",
+      "branch": "master",
+      "head": "ba8fbe8a7bad4ef1319523822d58e7171f75b7bd",
+      "error": "remote: warning: lazy fetching disabled; some objects may not be available        \nremote: fatal: could not fetch dff74e67f85285c460d3b3d209a19783dcc6d259 from promisor remote        \nerror: git upload-pack: git-pack-objects died with error.\nfatal: git upload-pack: aborting due to possible repository corruption on the remote side.\nremote: aborting due to possible repository corruption on the remote side.\nfatal: protocol error: bad pack header\n"
+    },
+    {
+      "path": "C:\\Users\\admin\\AppData\\Local\\Temp\\escape-portrait-restore-20261010",
+      "branch": "zombie_only",
+      "head": "6a72e2817147d69afc46e974dd6fc0d25937f80a",
+      "ancestor": true,
+      "cherry": ""
+    },
+    {
+      "path": "C:\\Users\\admin\\AppData\\Local\\Temp\\escape-posting-sync-20261015",
+      "branch": "feature/comic-gallery-20261016",
+      "head": "a80435641741e1e9f9ffd1e1a95cd327676b9b83",
+      "ancestor": true,
+      "cherry": ""
+    },
+    {
+      "path": "C:\\Users\\admin\\AppData\\Local\\Temp\\escape-posting-sync-20261015",
+      "branch": "launchmini/t_25c9cb8a-owned-weapon-push",
+      "head": "709be06a90dc8c8bedbed111d8d8793a6b2ade7a",
+      "ancestor": true,
+      "cherry": ""
+    },
+    {
+      "path": "C:\\Users\\admin\\AppData\\Local\\Temp\\escape-posting-sync-20261015",
+      "branch": "sync/posting-20261015",
+      "head": "a80435641741e1e9f9ffd1e1a95cd327676b9b83",
+      "ancestor": true,
+      "cherry": ""
+    },
+    {
+      "path": "C:\\Users\\admin\\AppData\\Local\\Temp\\escape-posting-sync-20261015",
+      "branch": "sync/zombie_only_20261013",
+      "head": "08862d23366c6c31255bc7ab84c4a05686ec05c9",
+      "ancestor": false,
+      "cherry": "+ b28a72faf2d969967cd2a984fa594d8ab9778022\n+ 92d38a82ec646b323498428fe1f2f91b4b246d01\n+ 16640b9010db58adef5ca16a51a9b742da059dea\n+ 9867176566909ba2bf914e9ba2c75405bb2501e4\n+ ed334eee2453d5f4cf14e5e6f52c2057cd133b48\n- 06b822a081a28d97c7e38faf39db3cca05c658e9\n- c36d9a42181e60527f6fbd423bc9dc12b9dce611\n- be7a1e724598d98f1802c5dc9d32878bf0c4e2f4\n- ce91ee62335003e41c7a61c1304e0c585518f239\n- 04b9cd33763832683587dd8706824d0fe1c5ec58\n- 155461be5a12d4f0422dfd2025f367543dc42e5e\n+ 776fad6e623356cac66cd8c3cf4a86c924121d5e\n+ d48732c88ca4494778fbce483c94104309acafe1\n+ cc709351bccbbd5a939f84c57c58acd29668025c\n+ 08862d23366c6c31255bc7ab84c4a05686ec05c9"
+    },
+    {
+      "path": "C:\\Users\\admin\\AppData\\Local\\Temp\\escape-posting-sync-20261015",
+      "branch": "zombie_only",
+      "head": "6f416d836e355d22a4e348516cca45e194bcc56c",
+      "ancestor": false,
+      "cherry": "+ b28a72faf2d969967cd2a984fa594d8ab9778022\n+ 92d38a82ec646b323498428fe1f2f91b4b246d01\n+ 16640b9010db58adef5ca16a51a9b742da059dea\n+ 9867176566909ba2bf914e9ba2c75405bb2501e4\n+ ed334eee2453d5f4cf14e5e6f52c2057cd133b48\n- 06b822a081a28d97c7e38faf39db3cca05c658e9\n- c36d9a42181e60527f6fbd423bc9dc12b9dce611\n- be7a1e724598d98f1802c5dc9d32878bf0c4e2f4\n- ce91ee62335003e41c7a61c1304e0c585518f239\n- 04b9cd33763832683587dd8706824d0fe1c5ec58\n- 155461be5a12d4f0422dfd2025f367543dc42e5e\n+ 776fad6e623356cac66cd8c3cf4a86c924121d5e\n+ d48732c88ca4494778fbce483c94104309acafe1\n+ cc709351bccbbd5a939f84c57c58acd29668025c\n+ 08862d23366c6c31255bc7ab84c4a05686ec05c9\n+ 234d461ee787bb83ca6604ca99aec11dfc74d669\n+ 09477dcc163844cd1e848791937cc68f2f64f160\n- 37414992750d79d1d730a0645dbc2ec623f98d30\n- 7782814a23460d99110fbfeeb8f8a6fb7766820d\n+ 6f416d836e355d22a4e348516cca45e194bcc56c"
+    },
+    {
+      "path": "C:\\Users\\admin\\AppData\\Local\\Temp\\escape-route-release-20261009",
+      "branch": "zombie_only",
+      "head": "0749b58ad0ccf288967b2242337f17ec5e007694",
+      "ancestor": true,
+      "cherry": ""
+    },
+    {
+      "path": "C:\\Users\\admin\\AppData\\Local\\Temp\\escape-social-handoff-publish-20261009",
+      "branch": "zombie_only",
+      "head": "a2356186eb7e28262712264776e60a1d2541d1f7",
+      "ancestor": true,
+      "cherry": ""
+    },
+    {
+      "path": "C:\\Users\\admin\\AppData\\Local\\Temp\\school-survivor-social-restore-20261005-235224142-a42c6b3c",
+      "branch": "zombie_only",
+      "head": "c42fc99937155bf4d81a73559db3fb8407bb00c0",
+      "ancestor": true,
+      "cherry": ""
+    },
+    {
+      "path": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\releases\\glowing-stone-publish",
+      "branch": "feature/comic-gallery-20261016",
+      "head": "a80435641741e1e9f9ffd1e1a95cd327676b9b83",
+      "ancestor": true,
+      "cherry": ""
+    },
+    {
+      "path": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\releases\\glowing-stone-publish",
+      "branch": "launchmini/t_25c9cb8a-owned-weapon-push",
+      "head": "709be06a90dc8c8bedbed111d8d8793a6b2ade7a",
+      "ancestor": true,
+      "cherry": ""
+    },
+    {
+      "path": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\releases\\glowing-stone-publish",
+      "branch": "sync/posting-20261015",
+      "head": "a80435641741e1e9f9ffd1e1a95cd327676b9b83",
+      "ancestor": true,
+      "cherry": ""
+    },
+    {
+      "path": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\releases\\glowing-stone-publish",
+      "branch": "sync/zombie_only_20261013",
+      "head": "08862d23366c6c31255bc7ab84c4a05686ec05c9",
+      "ancestor": false,
+      "cherry": "+ b28a72faf2d969967cd2a984fa594d8ab9778022\n+ 92d38a82ec646b323498428fe1f2f91b4b246d01\n+ 16640b9010db58adef5ca16a51a9b742da059dea\n+ 9867176566909ba2bf914e9ba2c75405bb2501e4\n+ ed334eee2453d5f4cf14e5e6f52c2057cd133b48\n- 06b822a081a28d97c7e38faf39db3cca05c658e9\n- c36d9a42181e60527f6fbd423bc9dc12b9dce611\n- be7a1e724598d98f1802c5dc9d32878bf0c4e2f4\n- ce91ee62335003e41c7a61c1304e0c585518f239\n- 04b9cd33763832683587dd8706824d0fe1c5ec58\n- 155461be5a12d4f0422dfd2025f367543dc42e5e\n+ 776fad6e623356cac66cd8c3cf4a86c924121d5e\n+ d48732c88ca4494778fbce483c94104309acafe1\n+ cc709351bccbbd5a939f84c57c58acd29668025c\n+ 08862d23366c6c31255bc7ab84c4a05686ec05c9"
+    },
+    {
+      "path": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\releases\\glowing-stone-publish",
+      "branch": "zombie_only",
+      "head": "6f416d836e355d22a4e348516cca45e194bcc56c",
+      "ancestor": false,
+      "cherry": "+ b28a72faf2d969967cd2a984fa594d8ab9778022\n+ 92d38a82ec646b323498428fe1f2f91b4b246d01\n+ 16640b9010db58adef5ca16a51a9b742da059dea\n+ 9867176566909ba2bf914e9ba2c75405bb2501e4\n+ ed334eee2453d5f4cf14e5e6f52c2057cd133b48\n- 06b822a081a28d97c7e38faf39db3cca05c658e9\n- c36d9a42181e60527f6fbd423bc9dc12b9dce611\n- be7a1e724598d98f1802c5dc9d32878bf0c4e2f4\n- ce91ee62335003e41c7a61c1304e0c585518f239\n- 04b9cd33763832683587dd8706824d0fe1c5ec58\n- 155461be5a12d4f0422dfd2025f367543dc42e5e\n+ 776fad6e623356cac66cd8c3cf4a86c924121d5e\n+ d48732c88ca4494778fbce483c94104309acafe1\n+ cc709351bccbbd5a939f84c57c58acd29668025c\n+ 08862d23366c6c31255bc7ab84c4a05686ec05c9\n+ 234d461ee787bb83ca6604ca99aec11dfc74d669\n+ 09477dcc163844cd1e848791937cc68f2f64f160\n- 37414992750d79d1d730a0645dbc2ec623f98d30\n- 7782814a23460d99110fbfeeb8f8a6fb7766820d\n+ 6f416d836e355d22a4e348516cca45e194bcc56c"
+    },
+    {
+      "path": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\releases\\homepage-board-inline-20261018",
+      "branch": "zombie_only",
+      "head": "bb3fef972e2c1e70b758c5ac535cb3f7ac96c9cb",
+      "ancestor": true,
+      "cherry": ""
+    },
+    {
+      "path": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\releases\\integrated-game-20261016-t_e2815ba8",
+      "branch": "zombie_only",
+      "head": "62dc162b4db451ea4edef9c8f320340faf822622",
+      "ancestor": false,
+      "cherry": "+ 1a0b2e95a5d07134701e606b3a0e8f9f77001a34\n+ 7023dca05bf560e43a01cfb8eb75ea0d7e619c56"
+    },
+    {
+      "path": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\releases\\owner-all-complete-20261018",
+      "branch": "zombie_only",
+      "head": "e6b93e7c5e29015d21062ee37deafbfb4ffe59d2",
+      "ancestor": true,
+      "cherry": ""
+    },
+    {
+      "path": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\releases\\respawn-live-aa3cdc7d",
+      "branch": "zombie_only",
+      "head": "aa3cdc7df171d99076e335f2020cf1f2f34d31bd",
+      "ancestor": true,
+      "cherry": ""
+    },
+    {
+      "path": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\releases\\respawn-push-06b822a0",
+      "branch": "feature/comic-gallery-20261016",
+      "head": "a80435641741e1e9f9ffd1e1a95cd327676b9b83",
+      "ancestor": true,
+      "cherry": ""
+    },
+    {
+      "path": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\releases\\respawn-push-06b822a0",
+      "branch": "launchmini/t_25c9cb8a-owned-weapon-push",
+      "head": "709be06a90dc8c8bedbed111d8d8793a6b2ade7a",
+      "ancestor": true,
+      "cherry": ""
+    },
+    {
+      "path": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\releases\\respawn-push-06b822a0",
+      "branch": "sync/posting-20261015",
+      "head": "a80435641741e1e9f9ffd1e1a95cd327676b9b83",
+      "ancestor": true,
+      "cherry": ""
+    },
+    {
+      "path": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\releases\\respawn-push-06b822a0",
+      "branch": "sync/zombie_only_20261013",
+      "head": "08862d23366c6c31255bc7ab84c4a05686ec05c9",
+      "ancestor": false,
+      "cherry": "+ b28a72faf2d969967cd2a984fa594d8ab9778022\n+ 92d38a82ec646b323498428fe1f2f91b4b246d01\n+ 16640b9010db58adef5ca16a51a9b742da059dea\n+ 9867176566909ba2bf914e9ba2c75405bb2501e4\n+ ed334eee2453d5f4cf14e5e6f52c2057cd133b48\n- 06b822a081a28d97c7e38faf39db3cca05c658e9\n- c36d9a42181e60527f6fbd423bc9dc12b9dce611\n- be7a1e724598d98f1802c5dc9d32878bf0c4e2f4\n- ce91ee62335003e41c7a61c1304e0c585518f239\n- 04b9cd33763832683587dd8706824d0fe1c5ec58\n- 155461be5a12d4f0422dfd2025f367543dc42e5e\n+ 776fad6e623356cac66cd8c3cf4a86c924121d5e\n+ d48732c88ca4494778fbce483c94104309acafe1\n+ cc709351bccbbd5a939f84c57c58acd29668025c\n+ 08862d23366c6c31255bc7ab84c4a05686ec05c9"
+    },
+    {
+      "path": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\releases\\respawn-push-06b822a0",
+      "branch": "zombie_only",
+      "head": "6f416d836e355d22a4e348516cca45e194bcc56c",
+      "ancestor": false,
+      "cherry": "+ b28a72faf2d969967cd2a984fa594d8ab9778022\n+ 92d38a82ec646b323498428fe1f2f91b4b246d01\n+ 16640b9010db58adef5ca16a51a9b742da059dea\n+ 9867176566909ba2bf914e9ba2c75405bb2501e4\n+ ed334eee2453d5f4cf14e5e6f52c2057cd133b48\n- 06b822a081a28d97c7e38faf39db3cca05c658e9\n- c36d9a42181e60527f6fbd423bc9dc12b9dce611\n- be7a1e724598d98f1802c5dc9d32878bf0c4e2f4\n- ce91ee62335003e41c7a61c1304e0c585518f239\n- 04b9cd33763832683587dd8706824d0fe1c5ec58\n- 155461be5a12d4f0422dfd2025f367543dc42e5e\n+ 776fad6e623356cac66cd8c3cf4a86c924121d5e\n+ d48732c88ca4494778fbce483c94104309acafe1\n+ cc709351bccbbd5a939f84c57c58acd29668025c\n+ 08862d23366c6c31255bc7ab84c4a05686ec05c9\n+ 234d461ee787bb83ca6604ca99aec11dfc74d669\n+ 09477dcc163844cd1e848791937cc68f2f64f160\n- 37414992750d79d1d730a0645dbc2ec623f98d30\n- 7782814a23460d99110fbfeeb8f8a6fb7766820d\n+ 6f416d836e355d22a4e348516cca45e194bcc56c"
+    },
+    {
+      "path": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\releases\\vending-owner-20261018",
+      "branch": "feature/comic-gallery-20261016",
+      "head": "a80435641741e1e9f9ffd1e1a95cd327676b9b83",
+      "ancestor": true,
+      "cherry": ""
+    },
+    {
+      "path": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\releases\\vending-owner-20261018",
+      "branch": "launchmini/t_25c9cb8a-owned-weapon-push",
+      "head": "709be06a90dc8c8bedbed111d8d8793a6b2ade7a",
+      "ancestor": true,
+      "cherry": ""
+    },
+    {
+      "path": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\releases\\vending-owner-20261018",
+      "branch": "sync/posting-20261015",
+      "head": "a80435641741e1e9f9ffd1e1a95cd327676b9b83",
+      "ancestor": true,
+      "cherry": ""
+    },
+    {
+      "path": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\releases\\vending-owner-20261018",
+      "branch": "sync/zombie_only_20261013",
+      "head": "08862d23366c6c31255bc7ab84c4a05686ec05c9",
+      "ancestor": false,
+      "cherry": "+ b28a72faf2d969967cd2a984fa594d8ab9778022\n+ 92d38a82ec646b323498428fe1f2f91b4b246d01\n+ 16640b9010db58adef5ca16a51a9b742da059dea\n+ 9867176566909ba2bf914e9ba2c75405bb2501e4\n+ ed334eee2453d5f4cf14e5e6f52c2057cd133b48\n- 06b822a081a28d97c7e38faf39db3cca05c658e9\n- c36d9a42181e60527f6fbd423bc9dc12b9dce611\n- be7a1e724598d98f1802c5dc9d32878bf0c4e2f4\n- ce91ee62335003e41c7a61c1304e0c585518f239\n- 04b9cd33763832683587dd8706824d0fe1c5ec58\n- 155461be5a12d4f0422dfd2025f367543dc42e5e\n+ 776fad6e623356cac66cd8c3cf4a86c924121d5e\n+ d48732c88ca4494778fbce483c94104309acafe1\n+ cc709351bccbbd5a939f84c57c58acd29668025c\n+ 08862d23366c6c31255bc7ab84c4a05686ec05c9"
+    },
+    {
+      "path": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\releases\\vending-owner-20261018",
+      "branch": "zombie_only",
+      "head": "6f416d836e355d22a4e348516cca45e194bcc56c",
+      "ancestor": false,
+      "cherry": "+ b28a72faf2d969967cd2a984fa594d8ab9778022\n+ 92d38a82ec646b323498428fe1f2f91b4b246d01\n+ 16640b9010db58adef5ca16a51a9b742da059dea\n+ 9867176566909ba2bf914e9ba2c75405bb2501e4\n+ ed334eee2453d5f4cf14e5e6f52c2057cd133b48\n- 06b822a081a28d97c7e38faf39db3cca05c658e9\n- c36d9a42181e60527f6fbd423bc9dc12b9dce611\n- be7a1e724598d98f1802c5dc9d32878bf0c4e2f4\n- ce91ee62335003e41c7a61c1304e0c585518f239\n- 04b9cd33763832683587dd8706824d0fe1c5ec58\n- 155461be5a12d4f0422dfd2025f367543dc42e5e\n+ 776fad6e623356cac66cd8c3cf4a86c924121d5e\n+ d48732c88ca4494778fbce483c94104309acafe1\n+ cc709351bccbbd5a939f84c57c58acd29668025c\n+ 08862d23366c6c31255bc7ab84c4a05686ec05c9\n+ 234d461ee787bb83ca6604ca99aec11dfc74d669\n+ 09477dcc163844cd1e848791937cc68f2f64f160\n- 37414992750d79d1d730a0645dbc2ec623f98d30\n- 7782814a23460d99110fbfeeb8f8a6fb7766820d\n+ 6f416d836e355d22a4e348516cca45e194bcc56c"
+    },
+    {
+      "path": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\releases\\vending-owner-20261018-ready",
+      "branch": "zombie_only",
+      "head": "86e81c7d9728413b73a32f27aad4276bc4afef16",
+      "ancestor": true,
+      "cherry": ""
+    },
+    {
+      "path": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration",
+      "branch": "feature/comic-gallery-20261016",
+      "head": "a80435641741e1e9f9ffd1e1a95cd327676b9b83",
+      "ancestor": true,
+      "cherry": ""
+    },
+    {
+      "path": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration",
+      "branch": "launchmini/t_25c9cb8a-owned-weapon-push",
+      "head": "709be06a90dc8c8bedbed111d8d8793a6b2ade7a",
+      "ancestor": true,
+      "cherry": ""
+    },
+    {
+      "path": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration",
+      "branch": "sync/posting-20261015",
+      "head": "a80435641741e1e9f9ffd1e1a95cd327676b9b83",
+      "ancestor": true,
+      "cherry": ""
+    },
+    {
+      "path": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration",
+      "branch": "sync/zombie_only_20261013",
+      "head": "08862d23366c6c31255bc7ab84c4a05686ec05c9",
+      "ancestor": false,
+      "cherry": "+ b28a72faf2d969967cd2a984fa594d8ab9778022\n+ 92d38a82ec646b323498428fe1f2f91b4b246d01\n+ 16640b9010db58adef5ca16a51a9b742da059dea\n+ 9867176566909ba2bf914e9ba2c75405bb2501e4\n+ ed334eee2453d5f4cf14e5e6f52c2057cd133b48\n- 06b822a081a28d97c7e38faf39db3cca05c658e9\n- c36d9a42181e60527f6fbd423bc9dc12b9dce611\n- be7a1e724598d98f1802c5dc9d32878bf0c4e2f4\n- ce91ee62335003e41c7a61c1304e0c585518f239\n- 04b9cd33763832683587dd8706824d0fe1c5ec58\n- 155461be5a12d4f0422dfd2025f367543dc42e5e\n+ 776fad6e623356cac66cd8c3cf4a86c924121d5e\n+ d48732c88ca4494778fbce483c94104309acafe1\n+ cc709351bccbbd5a939f84c57c58acd29668025c\n+ 08862d23366c6c31255bc7ab84c4a05686ec05c9"
+    },
+    {
+      "path": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration",
+      "branch": "zombie_only",
+      "head": "6f416d836e355d22a4e348516cca45e194bcc56c",
+      "ancestor": false,
+      "cherry": "+ b28a72faf2d969967cd2a984fa594d8ab9778022\n+ 92d38a82ec646b323498428fe1f2f91b4b246d01\n+ 16640b9010db58adef5ca16a51a9b742da059dea\n+ 9867176566909ba2bf914e9ba2c75405bb2501e4\n+ ed334eee2453d5f4cf14e5e6f52c2057cd133b48\n- 06b822a081a28d97c7e38faf39db3cca05c658e9\n- c36d9a42181e60527f6fbd423bc9dc12b9dce611\n- be7a1e724598d98f1802c5dc9d32878bf0c4e2f4\n- ce91ee62335003e41c7a61c1304e0c585518f239\n- 04b9cd33763832683587dd8706824d0fe1c5ec58\n- 155461be5a12d4f0422dfd2025f367543dc42e5e\n+ 776fad6e623356cac66cd8c3cf4a86c924121d5e\n+ d48732c88ca4494778fbce483c94104309acafe1\n+ cc709351bccbbd5a939f84c57c58acd29668025c\n+ 08862d23366c6c31255bc7ab84c4a05686ec05c9\n+ 234d461ee787bb83ca6604ca99aec11dfc74d669\n+ 09477dcc163844cd1e848791937cc68f2f64f160\n- 37414992750d79d1d730a0645dbc2ec623f98d30\n- 7782814a23460d99110fbfeeb8f8a6fb7766820d\n+ 6f416d836e355d22a4e348516cca45e194bcc56c"
+    },
+    {
+      "path": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\.task-temp\\c5x",
+      "branch": "zombie_only",
+      "head": "ceda34adcac5f76a7b09a71a74a1af38bc01d226",
+      "ancestor": true,
+      "cherry": ""
+    },
+    {
+      "path": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\.task-temp\\launchmini_t_27c3dfd1_clean_20261005_003047\\repo",
+      "branch": "zombie_only",
+      "head": "8514a544c4b4f2f0b025bde998ed6020b7908042",
+      "ancestor": true,
+      "cherry": ""
+    },
+    {
+      "path": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\.task-temp\\twa-flash-7c28bc4",
+      "branch": "zombie_only",
+      "head": "7c28bc4e9d319d493cb789516833b8f5e81e4a7a",
+      "ancestor": true,
+      "cherry": ""
+    },
+    {
+      "path": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\.task-temp\\twa-release-8716840",
+      "branch": "zombie_only",
+      "head": "871684042dc774d999e9a96a071cfa88f2f940e8",
+      "ancestor": true,
+      "cherry": ""
+    },
+    {
+      "path": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\.task-temp\\uimini_t_ed51b199_comic5x_clone_20261011",
+      "branch": "zombie_only",
+      "head": "ceda34adcac5f76a7b09a71a74a1af38bc01d226",
+      "ancestor": true,
+      "cherry": ""
+    },
+    {
+      "path": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-release-audit-81df09f-20261004",
+      "branch": "zombie_only",
+      "head": "81df09fea2b9497d71980a1387b67e327399bb70",
+      "ancestor": true,
+      "cherry": ""
+    },
+    {
+      "path": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-release-audit-81df09f-20261004\\.c-temp-holding\\escape-hosting-head-audit-81df09f-20261004-copy",
+      "branch": "zombie_only",
+      "head": "81df09fea2b9497d71980a1387b67e327399bb70",
+      "ancestor": true,
+      "cherry": ""
+    },
+    {
+      "path": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor_launchmini_t_25c9cb8a_push",
+      "branch": "feature/comic-gallery-20261016",
+      "head": "a80435641741e1e9f9ffd1e1a95cd327676b9b83",
+      "ancestor": true,
+      "cherry": ""
+    },
+    {
+      "path": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor_launchmini_t_25c9cb8a_push",
+      "branch": "launchmini/t_25c9cb8a-owned-weapon-push",
+      "head": "709be06a90dc8c8bedbed111d8d8793a6b2ade7a",
+      "ancestor": true,
+      "cherry": ""
+    },
+    {
+      "path": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor_launchmini_t_25c9cb8a_push",
+      "branch": "sync/posting-20261015",
+      "head": "a80435641741e1e9f9ffd1e1a95cd327676b9b83",
+      "ancestor": true,
+      "cherry": ""
+    },
+    {
+      "path": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor_launchmini_t_25c9cb8a_push",
+      "branch": "sync/zombie_only_20261013",
+      "head": "08862d23366c6c31255bc7ab84c4a05686ec05c9",
+      "ancestor": false,
+      "cherry": "+ b28a72faf2d969967cd2a984fa594d8ab9778022\n+ 92d38a82ec646b323498428fe1f2f91b4b246d01\n+ 16640b9010db58adef5ca16a51a9b742da059dea\n+ 9867176566909ba2bf914e9ba2c75405bb2501e4\n+ ed334eee2453d5f4cf14e5e6f52c2057cd133b48\n- 06b822a081a28d97c7e38faf39db3cca05c658e9\n- c36d9a42181e60527f6fbd423bc9dc12b9dce611\n- be7a1e724598d98f1802c5dc9d32878bf0c4e2f4\n- ce91ee62335003e41c7a61c1304e0c585518f239\n- 04b9cd33763832683587dd8706824d0fe1c5ec58\n- 155461be5a12d4f0422dfd2025f367543dc42e5e\n+ 776fad6e623356cac66cd8c3cf4a86c924121d5e\n+ d48732c88ca4494778fbce483c94104309acafe1\n+ cc709351bccbbd5a939f84c57c58acd29668025c\n+ 08862d23366c6c31255bc7ab84c4a05686ec05c9"
+    },
+    {
+      "path": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor_launchmini_t_25c9cb8a_push",
+      "branch": "zombie_only",
+      "head": "6f416d836e355d22a4e348516cca45e194bcc56c",
+      "ancestor": false,
+      "cherry": "+ b28a72faf2d969967cd2a984fa594d8ab9778022\n+ 92d38a82ec646b323498428fe1f2f91b4b246d01\n+ 16640b9010db58adef5ca16a51a9b742da059dea\n+ 9867176566909ba2bf914e9ba2c75405bb2501e4\n+ ed334eee2453d5f4cf14e5e6f52c2057cd133b48\n- 06b822a081a28d97c7e38faf39db3cca05c658e9\n- c36d9a42181e60527f6fbd423bc9dc12b9dce611\n- be7a1e724598d98f1802c5dc9d32878bf0c4e2f4\n- ce91ee62335003e41c7a61c1304e0c585518f239\n- 04b9cd33763832683587dd8706824d0fe1c5ec58\n- 155461be5a12d4f0422dfd2025f367543dc42e5e\n+ 776fad6e623356cac66cd8c3cf4a86c924121d5e\n+ d48732c88ca4494778fbce483c94104309acafe1\n+ cc709351bccbbd5a939f84c57c58acd29668025c\n+ 08862d23366c6c31255bc7ab84c4a05686ec05c9\n+ 234d461ee787bb83ca6604ca99aec11dfc74d669\n+ 09477dcc163844cd1e848791937cc68f2f64f160\n- 37414992750d79d1d730a0645dbc2ec623f98d30\n- 7782814a23460d99110fbfeeb8f8a6fb7766820d\n+ 6f416d836e355d22a4e348516cca45e194bcc56c"
+    }
+  ],
+  "commits": [
+    {
+      "commit": "15cb067c304665547076e52c1cf80af40ef4b28b",
+      "subject": "Add Rosari bedroom with wardrobe and player movement",
+      "status": "SCOPED_RECOVERY",
+      "reason": "Only exact selected paths recovered; current protected runtime retained.",
+      "pathCount": 11,
+      "byteIdenticalPaths": [
+        "Developer/r3f_prototype/public/assets/rosari-room/PLAYER_wholebody_refined_t_efe49b7c.glb",
+        "Developer/r3f_prototype/src/components/RosariRoom.titleEntry.test.jsx",
+        "Developer/r3f_prototype/src/lib/rosariRoom.js",
+        "Developer/r3f_prototype/src/lib/rosariRoom.test.js"
+      ],
+      "differentPaths": [
+        "Developer/r3f_prototype/src/components/ReadyGameApp.jsx",
+        "Developer/r3f_prototype/src/components/RosariRoom.jsx",
+        "Developer/r3f_prototype/src/components/TitleScreen.jsx"
+      ],
+      "missingPathCount": 4,
+      "recoveredPaths": [
+        "Graphic_designer/rosari_room_t_82a8198c.md",
+        "Quaility_Assurance/t_82a8198c/review.md",
+        "Quaility_Assurance/t_82a8198c/room-desktop.png",
+        "Quaility_Assurance/t_82a8198c/room-mobile.png"
+      ],
+      "matchingRemoteSubjects": []
+    },
+    {
+      "commit": "73809a0649986402a26a047abffb94e5464a8791",
+      "subject": "Add Rosari bedroom with wardrobe and player movement",
+      "status": "SCOPED_RECOVERY",
+      "reason": "Only exact selected paths recovered; current protected runtime retained.",
+      "pathCount": 11,
+      "byteIdenticalPaths": [
+        "Developer/r3f_prototype/public/assets/rosari-room/PLAYER_wholebody_refined_t_efe49b7c.glb",
+        "Developer/r3f_prototype/src/components/RosariRoom.titleEntry.test.jsx",
+        "Developer/r3f_prototype/src/lib/rosariRoom.js",
+        "Developer/r3f_prototype/src/lib/rosariRoom.test.js"
+      ],
+      "differentPaths": [
+        "Developer/r3f_prototype/src/components/ReadyGameApp.jsx",
+        "Developer/r3f_prototype/src/components/RosariRoom.jsx",
+        "Developer/r3f_prototype/src/components/TitleScreen.jsx"
+      ],
+      "missingPathCount": 4,
+      "recoveredPaths": [
+        "Graphic_designer/rosari_room_t_82a8198c.md",
+        "Quaility_Assurance/t_82a8198c/review.md",
+        "Quaility_Assurance/t_82a8198c/room-desktop.png",
+        "Quaility_Assurance/t_82a8198c/room-mobile.png"
+      ],
+      "matchingRemoteSubjects": []
+    },
+    {
+      "commit": "6f416d836e355d22a4e348516cca45e194bcc56c",
+      "subject": "Repair Facebook comic rotation and on-demand posting",
+      "status": "SUBJECT_MATCH_REQUIRES_FILE_SCOPE",
+      "reason": "Matching remote subject is evidence of integration lineage, not blanket tree equivalence; retain latest current bytes.",
+      "pathCount": 5,
+      "byteIdenticalPaths": [
+        "marketing/facebook_daily_zombie_school_posting/FacebookTree.ps1"
+      ],
+      "differentPaths": [
+        "marketing/facebook_daily_zombie_school_posting/FacebookPosting.ps1",
+        "marketing/facebook_daily_zombie_school_posting/Invoke-FacebookDailyZombieSchoolPosting.ps1",
+        "marketing/facebook_daily_zombie_school_posting/Invoke-FacebookScheduledPosting.ps1",
+        "marketing/x_daily_zombie_school_posting/PostingVariant.ps1"
+      ],
+      "missingPathCount": 0,
+      "recoveredPaths": [],
+      "matchingRemoteSubjects": [
+        "1fa1ed81625724c44751095cb1f0679af4c1e7a2"
+      ]
+    },
+    {
+      "commit": "7782814a23460d99110fbfeeb8f8a6fb7766820d",
+      "subject": "Add localized Facebook comic captions and correct X CTA metadata",
+      "status": "PATCH_EQUIVALENT_ALREADY_IN_HISTORY",
+      "reason": "git cherry reports minus; current touched files may have accepted later evolution.",
+      "pathCount": 24,
+      "byteIdenticalPaths": [
+        "Graphic_designer/generate_facebook_comic_words.py",
+        "Graphic_designer/generate_x_comic_words.py",
+        "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/zombie_catch_comic_words_20261015/01.png",
+        "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/zombie_catch_comic_words_20261015/02.png",
+        "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/zombie_catch_comic_words_20261015/03.png",
+        "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/zombie_catch_comic_words_20261015/04.png",
+        "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/zombie_catch_comic_words_20261015/05.png",
+        "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/zombie_catch_comic_words_20261015/01.png",
+        "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/zombie_catch_comic_words_20261015/02.png",
+        "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/zombie_catch_comic_words_20261015/03.png",
+        "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/zombie_catch_comic_words_20261015/04.png",
+        "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/zombie_catch_comic_words_20261015/05.png",
+        "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/zombie_catch_comic_words_20261015/01.png",
+        "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/zombie_catch_comic_words_20261015/02.png",
+        "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/zombie_catch_comic_words_20261015/03.png",
+        "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/zombie_catch_comic_words_20261015/04.png",
+        "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/zombie_catch_comic_words_20261015/05.png",
+        "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/zombie_catch_comic_words_20261015/01.png",
+        "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/zombie_catch_comic_words_20261015/02.png",
+        "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/zombie_catch_comic_words_20261015/03.png",
+        "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/zombie_catch_comic_words_20261015/04.png",
+        "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/zombie_catch_comic_words_20261015/05.png"
+      ],
+      "differentPaths": [
+        "marketing/x_daily_zombie_school_posting/image_pool/image_catalog.json",
+        "marketing/x_daily_zombie_school_posting/posting_config.json"
+      ],
+      "missingPathCount": 0,
+      "recoveredPaths": [],
+      "matchingRemoteSubjects": [
+        "9907577d166a8b2c4d3b1ebc03401955d9c54136"
+      ]
+    },
+    {
+      "commit": "37414992750d79d1d730a0645dbc2ec623f98d30",
+      "subject": "Add localized words to X zombie comics",
+      "status": "PATCH_EQUIVALENT_ALREADY_IN_HISTORY",
+      "reason": "git cherry reports minus; current touched files may have accepted later evolution.",
+      "pathCount": 24,
+      "byteIdenticalPaths": [
+        "Developer/agent_room/x_comic_words_threemini_review_2026-10-14.md",
+        "marketing/x_daily_zombie_school_posting/image_pool/x/en/zombie_catch_comic_words_20261014/01.png",
+        "marketing/x_daily_zombie_school_posting/image_pool/x/en/zombie_catch_comic_words_20261014/02.png",
+        "marketing/x_daily_zombie_school_posting/image_pool/x/en/zombie_catch_comic_words_20261014/03.png",
+        "marketing/x_daily_zombie_school_posting/image_pool/x/en/zombie_catch_comic_words_20261014/04.png",
+        "marketing/x_daily_zombie_school_posting/image_pool/x/en/zombie_catch_comic_words_20261014/05.png",
+        "marketing/x_daily_zombie_school_posting/image_pool/x/ja/zombie_catch_comic_words_20261014/01.png",
+        "marketing/x_daily_zombie_school_posting/image_pool/x/ja/zombie_catch_comic_words_20261014/02.png",
+        "marketing/x_daily_zombie_school_posting/image_pool/x/ja/zombie_catch_comic_words_20261014/03.png",
+        "marketing/x_daily_zombie_school_posting/image_pool/x/ja/zombie_catch_comic_words_20261014/04.png",
+        "marketing/x_daily_zombie_school_posting/image_pool/x/ja/zombie_catch_comic_words_20261014/05.png",
+        "marketing/x_daily_zombie_school_posting/image_pool/x/ko/zombie_catch_comic_words_20261014/01.png",
+        "marketing/x_daily_zombie_school_posting/image_pool/x/ko/zombie_catch_comic_words_20261014/02.png",
+        "marketing/x_daily_zombie_school_posting/image_pool/x/ko/zombie_catch_comic_words_20261014/03.png",
+        "marketing/x_daily_zombie_school_posting/image_pool/x/ko/zombie_catch_comic_words_20261014/04.png",
+        "marketing/x_daily_zombie_school_posting/image_pool/x/ko/zombie_catch_comic_words_20261014/05.png",
+        "marketing/x_daily_zombie_school_posting/image_pool/x/vi/zombie_catch_comic_words_20261014/01.png",
+        "marketing/x_daily_zombie_school_posting/image_pool/x/vi/zombie_catch_comic_words_20261014/02.png",
+        "marketing/x_daily_zombie_school_posting/image_pool/x/vi/zombie_catch_comic_words_20261014/03.png",
+        "marketing/x_daily_zombie_school_posting/image_pool/x/vi/zombie_catch_comic_words_20261014/04.png",
+        "marketing/x_daily_zombie_school_posting/image_pool/x/vi/zombie_catch_comic_words_20261014/05.png"
+      ],
+      "differentPaths": [
+        "Graphic_designer/generate_x_comic_words.py",
+        "marketing/x_daily_zombie_school_posting/image_pool/image_catalog.json",
+        "marketing/x_daily_zombie_school_posting/posting_config.json"
+      ],
+      "missingPathCount": 0,
+      "recoveredPaths": [],
+      "matchingRemoteSubjects": [
+        "3bb62360094e7483b0687807ef2b41ccce7f636f"
+      ]
+    },
+    {
+      "commit": "09477dcc163844cd1e848791937cc68f2f64f160",
+      "subject": "Add Rosari bedroom with wardrobe and player movement",
+      "status": "SCOPED_RECOVERY",
+      "reason": "Only exact selected paths recovered; current protected runtime retained.",
+      "pathCount": 11,
+      "byteIdenticalPaths": [
+        "Developer/r3f_prototype/public/assets/rosari-room/PLAYER_wholebody_refined_t_efe49b7c.glb",
+        "Developer/r3f_prototype/src/components/RosariRoom.titleEntry.test.jsx",
+        "Developer/r3f_prototype/src/lib/rosariRoom.js",
+        "Developer/r3f_prototype/src/lib/rosariRoom.test.js"
+      ],
+      "differentPaths": [
+        "Developer/r3f_prototype/src/components/ReadyGameApp.jsx",
+        "Developer/r3f_prototype/src/components/RosariRoom.jsx",
+        "Developer/r3f_prototype/src/components/TitleScreen.jsx"
+      ],
+      "missingPathCount": 4,
+      "recoveredPaths": [
+        "Graphic_designer/rosari_room_t_82a8198c.md",
+        "Quaility_Assurance/t_82a8198c/review.md",
+        "Quaility_Assurance/t_82a8198c/room-desktop.png",
+        "Quaility_Assurance/t_82a8198c/room-mobile.png"
+      ],
+      "matchingRemoteSubjects": []
+    },
+    {
+      "commit": "234d461ee787bb83ca6604ca99aec11dfc74d669",
+      "subject": "Save refined player model with uniform 6px outlines",
+      "status": "SCOPED_RECOVERY",
+      "reason": "Only exact selected paths recovered; current protected runtime retained.",
+      "pathCount": 13,
+      "byteIdenticalPaths": [],
+      "differentPaths": [],
+      "missingPathCount": 13,
+      "recoveredPaths": [
+        "Developer/prototypes/player_wholebody_anatomy_t_efe49b7c/blender_refine_to_references.py",
+        "Developer/prototypes/player_wholebody_anatomy_t_efe49b7c/build_refined_viewer.py",
+        "Developer/prototypes/player_wholebody_anatomy_t_efe49b7c/chrome_refined_qa.mjs",
+        "Developer/prototypes/player_wholebody_anatomy_t_efe49b7c/verify_lower_face_geometry_identity.py",
+        "Developer/prototypes/player_wholebody_anatomy_t_efe49b7c/verify_refined_glb.py",
+        "Graphic_designer/game_resource_library/source-art/player_wholebody_refined_t_efe49b7c/PLAYER_wholebody_refined_t_efe49b7c.blend",
+        "Graphic_designer/game_resource_library/source-art/player_wholebody_refined_t_efe49b7c/PLAYER_wholebody_refined_t_efe49b7c.glb",
+        "Graphic_designer/game_resource_library/source-art/player_wholebody_refined_t_efe49b7c/PLAYER_wholebody_refined_t_efe49b7c_standalone.html",
+        "Graphic_designer/game_resource_library/source-art/player_wholebody_refined_t_efe49b7c/README.md",
+        "Quaility_Assurance/player_wholebody_refined_t_efe49b7c/blender_rebuild_report.json",
+        "Quaility_Assurance/player_wholebody_refined_t_efe49b7c/chrome/after_threequarter_outline_6px.png",
+        "Quaility_Assurance/player_wholebody_refined_t_efe49b7c/outline_6px_check.json",
+        "Quaility_Assurance/player_wholebody_refined_t_efe49b7c/viewer_build.json"
+      ],
+      "matchingRemoteSubjects": []
+    },
+    {
+      "commit": "08862d23366c6c31255bc7ab84c4a05686ec05c9",
+      "subject": "Add rotating Facebook campaign images",
+      "status": "SUBJECT_MATCH_REQUIRES_FILE_SCOPE",
+      "reason": "Matching remote subject is evidence of integration lineage, not blanket tree equivalence; retain latest current bytes.",
+      "pathCount": 24,
+      "byteIdenticalPaths": [
+        "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/facebook_rotation_20261013/01.png",
+        "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/facebook_rotation_20261013/02.png",
+        "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/facebook_rotation_20261013/03.png",
+        "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/facebook_rotation_20261013/04.png",
+        "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/facebook_rotation_20261013/05.png",
+        "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/facebook_rotation_20261013/01.png",
+        "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/facebook_rotation_20261013/02.png",
+        "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/facebook_rotation_20261013/03.png",
+        "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/facebook_rotation_20261013/04.png",
+        "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/facebook_rotation_20261013/05.png",
+        "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/facebook_rotation_20261013/01.png",
+        "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/facebook_rotation_20261013/02.png",
+        "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/facebook_rotation_20261013/03.png",
+        "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/facebook_rotation_20261013/04.png",
+        "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/facebook_rotation_20261013/05.png",
+        "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/facebook_rotation_20261013/01.png",
+        "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/facebook_rotation_20261013/02.png",
+        "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/facebook_rotation_20261013/03.png",
+        "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/facebook_rotation_20261013/04.png",
+        "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/facebook_rotation_20261013/05.png"
+      ],
+      "differentPaths": [
+        "marketing/facebook_daily_zombie_school_posting/FacebookPosting.ps1",
+        "marketing/x_daily_zombie_school_posting/PostingVariant.ps1",
+        "marketing/x_daily_zombie_school_posting/image_pool/image_catalog.json",
+        "marketing/x_daily_zombie_school_posting/posting_config.json"
+      ],
+      "missingPathCount": 0,
+      "recoveredPaths": [],
+      "matchingRemoteSubjects": [
+        "c4d4c50c1000616791c655793e1c98f00a8f0e62"
+      ]
+    },
+    {
+      "commit": "cc709351bccbbd5a939f84c57c58acd29668025c",
+      "subject": "Prepare Android v69 bundle with Firebase Analytics",
+      "status": "SCOPED_RECOVERY",
+      "reason": "Only exact selected paths recovered; current protected runtime retained.",
+      "pathCount": 2,
+      "byteIdenticalPaths": [],
+      "differentPaths": [
+        "Developer/r3f_prototype/android/app/build.gradle"
+      ],
+      "missingPathCount": 1,
+      "recoveredPaths": [
+        "Developer/r3f_prototype/android/app/build.gradle",
+        "Developer/구현기록/빌드배포/aab_build_v69_2026-10-11.md"
+      ],
+      "matchingRemoteSubjects": []
+    },
+    {
+      "commit": "d48732c88ca4494778fbce483c94104309acafe1",
+      "subject": "Add Firebase Analytics to Android app",
+      "status": "SCOPED_RECOVERY",
+      "reason": "Only exact selected paths recovered; current protected runtime retained.",
+      "pathCount": 3,
+      "byteIdenticalPaths": [],
+      "differentPaths": [
+        "Developer/r3f_prototype/android/app/build.gradle",
+        "Developer/r3f_prototype/android/build.gradle"
+      ],
+      "missingPathCount": 1,
+      "recoveredPaths": [
+        "Developer/android_firebase_analytics_module_t_023cea87_2026-10-11.md",
+        "Developer/r3f_prototype/android/app/build.gradle",
+        "Developer/r3f_prototype/android/build.gradle"
+      ],
+      "matchingRemoteSubjects": []
+    },
+    {
+      "commit": "776fad6e623356cac66cd8c3cf4a86c924121d5e",
+      "subject": "Add illustrated Tistory playtest article",
+      "status": "SCOPED_RECOVERY",
+      "reason": "Only exact selected paths recovered; current protected runtime retained.",
+      "pathCount": 3,
+      "byteIdenticalPaths": [],
+      "differentPaths": [],
+      "missingPathCount": 3,
+      "recoveredPaths": [
+        "Graphic_designer/blog_tistory_20261011/preview.html",
+        "Graphic_designer/blog_tistory_20261011/tistory_body.html",
+        "Graphic_designer/blog_tistory_20261011/title.txt"
+      ],
+      "matchingRemoteSubjects": []
+    },
+    {
+      "commit": "155461be5a12d4f0422dfd2025f367543dc42e5e",
+      "subject": "Add comprehensive game concept and implementation HTML guide",
+      "status": "BYTE_IDENTICAL_CURRENT",
+      "reason": "Every touched path is byte-identical in current remote tree.",
+      "pathCount": 3,
+      "byteIdenticalPaths": [
+        "Planner/escape_zombie_school_complete_guide_20261011.html",
+        "Planner/game_guide_evidence_20261011.md",
+        "Quaility_Assurance/game_guide_html_20261011.md"
+      ],
+      "differentPaths": [],
+      "missingPathCount": 0,
+      "recoveredPaths": [],
+      "matchingRemoteSubjects": [
+        "a82392d787e3039b089bf9c6fc4a81eff3d56afe"
+      ]
+    },
+    {
+      "commit": "04b9cd33763832683587dd8706824d0fe1c5ec58",
+      "subject": "Add chronological Shorts storyboard HTML",
+      "status": "BYTE_IDENTICAL_CURRENT",
+      "reason": "Every touched path is byte-identical in current remote tree.",
+      "pathCount": 4,
+      "byteIdenticalPaths": [
+        "Graphic_designer/쇼츠프로젝트_20261010/README.md",
+        "Graphic_designer/쇼츠프로젝트_20261010/shot_manifest_t_79747b5f.json",
+        "Graphic_designer/쇼츠프로젝트_20261010/storyboard_full.html",
+        "Quaility_Assurance/shorts_storyboard_html_validation_20261010.md"
+      ],
+      "differentPaths": [],
+      "missingPathCount": 0,
+      "recoveredPaths": [],
+      "matchingRemoteSubjects": [
+        "1bd60670c6927adc0d0e2a6d89ae14defb599e93"
+      ]
+    },
+    {
+      "commit": "ce91ee62335003e41c7a61c1304e0c585518f239",
+      "subject": "Add detailed Shorts video generation dossier",
+      "status": "SUBJECT_MATCH_REQUIRES_FILE_SCOPE",
+      "reason": "Matching remote subject is evidence of integration lineage, not blanket tree equivalence; retain latest current bytes.",
+      "pathCount": 9,
+      "byteIdenticalPaths": [
+        "Graphic_designer/쇼츠프로젝트_20261010/audio_cues.md",
+        "Graphic_designer/쇼츠프로젝트_20261010/editor_instructions_ko_t_79747b5f.md",
+        "Graphic_designer/쇼츠프로젝트_20261010/i2v_prompts_en_t_79747b5f.md",
+        "Graphic_designer/쇼츠프로젝트_20261010/preview.html",
+        "Graphic_designer/쇼츠프로젝트_20261010/production_master_t_79747b5f.md",
+        "Quaility_Assurance/shorts_audio_cue_sheet_t_0e230cce_2026-10-10.md",
+        "Quaility_Assurance/shorts_video_dossier_validation_20261010.md"
+      ],
+      "differentPaths": [
+        "Graphic_designer/쇼츠프로젝트_20261010/README.md",
+        "Graphic_designer/쇼츠프로젝트_20261010/shot_manifest_t_79747b5f.json"
+      ],
+      "missingPathCount": 0,
+      "recoveredPaths": [],
+      "matchingRemoteSubjects": [
+        "5f1ee7b443888013441c093b0cf2c482d7bc489a"
+      ]
+    },
+    {
+      "commit": "be7a1e724598d98f1802c5dc9d32878bf0c4e2f4",
+      "subject": "Add zombie school Shorts storyboard image package",
+      "status": "SUBJECT_MATCH_REQUIRES_FILE_SCOPE",
+      "reason": "Matching remote subject is evidence of integration lineage, not blanket tree equivalence; retain latest current bytes.",
+      "pathCount": 25,
+      "byteIdenticalPaths": [
+        "Graphic_designer/쇼츠프로젝트_20261010/footage/README.md",
+        "Graphic_designer/쇼츠프로젝트_20261010/images/A01_뒤돌아보기.png",
+        "Graphic_designer/쇼츠프로젝트_20261010/images/A02_연필투척.png",
+        "Graphic_designer/쇼츠프로젝트_20261010/images/A03_자공격.png",
+        "Graphic_designer/쇼츠프로젝트_20261010/images/A04_치비코지원.png",
+        "Graphic_designer/쇼츠프로젝트_20261010/images/A05_하나코회복.png",
+        "Graphic_designer/쇼츠프로젝트_20261010/images/A06_이누콘구조.png",
+        "Graphic_designer/쇼츠프로젝트_20261010/images/A07_B01보스.png",
+        "Graphic_designer/쇼츠프로젝트_20261010/images/A08_탈출질주.png",
+        "Graphic_designer/쇼츠프로젝트_20261010/images/E01_엔드카드배경.png",
+        "Graphic_designer/쇼츠프로젝트_20261010/prompts.md",
+        "Graphic_designer/쇼츠프로젝트_20261010/references/01_stage1_classroom.png",
+        "Graphic_designer/쇼츠프로젝트_20261010/references/01_wea_pencil.webp",
+        "Graphic_designer/쇼츠프로젝트_20261010/references/02_stage2_corridor.png",
+        "Graphic_designer/쇼츠프로젝트_20261010/references/02_wea_30ruller.webp",
+        "Graphic_designer/쇼츠프로젝트_20261010/references/05_school_exit_finale.png",
+        "Graphic_designer/쇼츠프로젝트_20261010/references/14_wea_chibiko.webp",
+        "Graphic_designer/쇼츠프로젝트_20261010/references/15_wea_hanako.webp",
+        "Graphic_designer/쇼츠프로젝트_20261010/references/19_wea_inucon.webp",
+        "Graphic_designer/쇼츠프로젝트_20261010/references/PLAYER_reference.png",
+        "Graphic_designer/쇼츠프로젝트_20261010/references/logo.png",
+        "Graphic_designer/쇼츠프로젝트_20261010/references/texture_boss01.png",
+        "Graphic_designer/쇼츠프로젝트_20261010/storyboard.md",
+        "Graphic_designer/쇼츠프로젝트_20261010/timeline.csv"
+      ],
+      "differentPaths": [
+        "Graphic_designer/쇼츠프로젝트_20261010/README.md"
+      ],
+      "missingPathCount": 0,
+      "recoveredPaths": [],
+      "matchingRemoteSubjects": [
+        "bd53d87e567ec145b24b04c797e3a4a2d058a5b7"
+      ]
+    },
+    {
+      "commit": "c36d9a42181e60527f6fbd423bc9dc12b9dce611",
+      "subject": "Allow owned weapon upgrades during replacement choice",
+      "status": "PATCH_EQUIVALENT_ALREADY_IN_HISTORY",
+      "reason": "git cherry reports minus; current touched files may have accepted later evolution.",
+      "pathCount": 4,
+      "byteIdenticalPaths": [],
+      "differentPaths": [
+        "Developer/r3f_prototype/src/components/HUD.jsx",
+        "Developer/r3f_prototype/src/components/HUD.test.jsx",
+        "Developer/r3f_prototype/src/store/useGameStore.js",
+        "Developer/r3f_prototype/src/store/useGameStore.test.js"
+      ],
+      "missingPathCount": 0,
+      "recoveredPaths": [],
+      "matchingRemoteSubjects": [
+        "709be06a90dc8c8bedbed111d8d8793a6b2ade7a"
+      ]
+    },
+    {
+      "commit": "06b822a081a28d97c7e38faf39db3cca05c658e9",
+      "subject": "fix: 화면 몬스터 3마리 이하 시 스폰 스케줄 즉시 당겨오기",
+      "status": "PATCH_EQUIVALENT_ALREADY_IN_HISTORY",
+      "reason": "git cherry reports minus; current touched files may have accepted later evolution.",
+      "pathCount": 4,
+      "byteIdenticalPaths": [
+        "Developer/r3f_prototype/src/lib/spawnCatchUp.js",
+        "Developer/r3f_prototype/src/lib/spawnCatchUp.test.js"
+      ],
+      "differentPaths": [
+        "Developer/r3f_prototype/src/components/Enemies.jsx",
+        "Developer/r3f_prototype/src/components/Enemies.test.jsx"
+      ],
+      "missingPathCount": 0,
+      "recoveredPaths": [],
+      "matchingRemoteSubjects": [
+        "aa3cdc7df171d99076e335f2020cf1f2f34d31bd"
+      ]
+    },
+    {
+      "commit": "ed334eee2453d5f4cf14e5e6f52c2057cd133b48",
+      "subject": "Capture all outstanding project work",
+      "status": "MIXED_UNRESOLVED_EXCLUDED",
+      "reason": "Bulk historical commit includes cache/private/temporary/obsolete material. No blanket merge; unreviewed paths remain excluded.",
+      "pathCount": 2339,
+      "byteIdenticalPaths": [
+        "Developer/agent_room/social_restore_20261005/live-results.md"
+      ],
+      "differentPaths": [
+        "AGENTS.md",
+        "Developer/agent_room/facebook_posting_receipts/2026-10-05-2347-restore01.json",
+        "Developer/agent_room/guards/README_ten_confirmations.md",
+        "Developer/agent_room/guards/destructive_shell_deletion_guard.py",
+        "Developer/agent_room/guards/ten_confirmation_dialog.py",
+        "Developer/agent_room/guards/test_destructive_shell_deletion_guard.py",
+        "Developer/agent_room/guards/test_ten_confirmation_dialog.py",
+        "Developer/agent_room/social_restore_20261005/restoration.md",
+        "Developer/r3f_prototype/src/assets/weapon_icon/14_wea_chibiko.webp",
+        "Developer/r3f_prototype/src/assets/weapon_icon/15_wea_hanako.webp",
+        "Developer/r3f_prototype/src/components/ProceduralFaceTestZombie.jsx",
+        "Developer/r3f_prototype/src/components/ProceduralFaceTestZombie.test.jsx",
+        "Developer/r3f_prototype/src/components/StageObjects/stageObjectPlacements.js",
+        "Developer/r3f_prototype/src/components/StageObjects/stageObjectPlacements.test.js",
+        "Developer/r3f_prototype/src/components/WebLandingPage.jsx",
+        "Developer/r3f_prototype/src/components/WebLandingPage.test.jsx",
+        "Developer/stage4_lighting_runtime_technical_map_2026-08-23.md",
+        "Graphic_designer/game_resource_library/player_r3f_blender_20261003/10_v9_backpack_viewer/final/PLAYER_v9_final_back.png",
+        "Graphic_designer/game_resource_library/player_r3f_blender_20261003/10_v9_backpack_viewer/final/PLAYER_v9_final_front.png",
+        "Graphic_designer/game_resource_library/player_r3f_blender_20261003/10_v9_backpack_viewer/final/PLAYER_v9_final_qa.json",
+        "Graphic_designer/game_resource_library/player_r3f_blender_20261003/10_v9_backpack_viewer/final/PLAYER_v9_final_side.png",
+        "Graphic_designer/game_resource_library/player_r3f_blender_20261003/10_v9_backpack_viewer/final/PLAYER_v9_final_threequarter.png",
+        "Graphic_designer/game_resource_library/player_r3f_blender_20261003/10_v9_backpack_viewer/final/PLAYER_v9_pose_right_arm_swing.png",
+        "Graphic_designer/game_resource_library/player_r3f_blender_20261003/10_v9_backpack_viewer/final/PLAYER_v9_pose_walk.png",
+        "Graphic_designer/game_resource_library/player_r3f_blender_20261003/10_v9_backpack_viewer/final/PLAYER_v9_turn_000.png",
+        "Graphic_designer/game_resource_library/player_r3f_blender_20261003/10_v9_backpack_viewer/final/PLAYER_v9_turn_045.png",
+        "Graphic_designer/game_resource_library/player_r3f_blender_20261003/10_v9_backpack_viewer/final/PLAYER_v9_turn_090.png",
+        "Graphic_designer/game_resource_library/player_r3f_blender_20261003/10_v9_backpack_viewer/final/PLAYER_v9_turn_135.png",
+        "Graphic_designer/game_resource_library/player_r3f_blender_20261003/10_v9_backpack_viewer/final/PLAYER_v9_turn_180.png",
+        "Graphic_designer/game_resource_library/player_r3f_blender_20261003/10_v9_backpack_viewer/final/PLAYER_v9_turn_225.png",
+        "Graphic_designer/game_resource_library/player_r3f_blender_20261003/10_v9_backpack_viewer/final/PLAYER_v9_turn_270.png",
+        "Graphic_designer/game_resource_library/player_r3f_blender_20261003/10_v9_backpack_viewer/final/PLAYER_v9_turn_315.png",
+        "Graphic_designer/recovery_20261004/posted_images_by_country/manifest.json",
+        "Graphic_designer/recovery_20261004/posted_images_by_country/manifest.md",
+        "marketing/facebook_daily_zombie_school_posting/FacebookNative.ps1",
+        "marketing/facebook_daily_zombie_school_posting/Invoke-FacebookDailyZombieSchoolPosting.ps1",
+        "marketing/facebook_daily_zombie_school_posting/Test-FacebookDailyZombieSchoolPosting.ps1",
+        "marketing/google_playstore_image/store_20261003/README.md",
+        "marketing/google_playstore_image/store_20261003/bottom_character_energy_overlay.png",
+        "marketing/google_playstore_image/store_20261003/build_store_images.py",
+        "marketing/google_playstore_image/store_20261003/en/01_primary.png",
+        "marketing/google_playstore_image/store_20261003/en/02_primary.png",
+        "marketing/google_playstore_image/store_20261003/en/03_primary.png",
+        "marketing/google_playstore_image/store_20261003/en/04_primary.png",
+        "marketing/google_playstore_image/store_20261003/en/05_primary.png",
+        "marketing/google_playstore_image/store_20261003/en/06_primary.png",
+        "marketing/google_playstore_image/store_20261003/en/07_primary.png",
+        "marketing/google_playstore_image/store_20261003/en/08_primary.png",
+        "marketing/google_playstore_image/store_20261003/en/09_alternate.png",
+        "marketing/google_playstore_image/store_20261003/en/10_alternate.png",
+        "marketing/google_playstore_image/store_20261003/ja/01_primary.png",
+        "marketing/google_playstore_image/store_20261003/ja/02_primary.png",
+        "marketing/google_playstore_image/store_20261003/ja/03_primary.png",
+        "marketing/google_playstore_image/store_20261003/ja/04_primary.png",
+        "marketing/google_playstore_image/store_20261003/ja/05_primary.png",
+        "marketing/google_playstore_image/store_20261003/ja/06_primary.png",
+        "marketing/google_playstore_image/store_20261003/ja/07_primary.png",
+        "marketing/google_playstore_image/store_20261003/ja/08_primary.png",
+        "marketing/google_playstore_image/store_20261003/ja/09_alternate.png",
+        "marketing/google_playstore_image/store_20261003/ja/10_alternate.png",
+        "marketing/google_playstore_image/store_20261003/ko/01_primary.png",
+        "marketing/google_playstore_image/store_20261003/ko/02_primary.png",
+        "marketing/google_playstore_image/store_20261003/ko/03_primary.png",
+        "marketing/google_playstore_image/store_20261003/ko/04_primary.png",
+        "marketing/google_playstore_image/store_20261003/ko/05_primary.png",
+        "marketing/google_playstore_image/store_20261003/ko/06_primary.png",
+        "marketing/google_playstore_image/store_20261003/ko/07_primary.png",
+        "marketing/google_playstore_image/store_20261003/ko/08_primary.png",
+        "marketing/google_playstore_image/store_20261003/ko/09_alternate.png",
+        "marketing/google_playstore_image/store_20261003/ko/10_alternate.png",
+        "marketing/x_daily_zombie_school_posting/Invoke-XDailyZombieSchoolPostingRecovery.ps1",
+        "marketing/x_daily_zombie_school_posting/Test-XDailyZombieSchoolPostingRecovery.ps1",
+        "marketing/x_daily_zombie_school_posting/image_pool/x_en/post_eng.png",
+        "marketing/x_daily_zombie_school_posting/image_pool/x_en/post_eng_01_bell.png",
+        "marketing/x_daily_zombie_school_posting/image_pool/x_en/post_eng_02_supplies.png",
+        "marketing/x_daily_zombie_school_posting/image_pool/x_en/post_eng_03_escape.png",
+        "marketing/x_daily_zombie_school_posting/image_pool/x_jp/post_jp.png",
+        "marketing/x_daily_zombie_school_posting/image_pool/x_jp/post_jp_01_bell.png",
+        "marketing/x_daily_zombie_school_posting/image_pool/x_jp/post_jp_01_bell_recovery_20261004.png",
+        "marketing/x_daily_zombie_school_posting/image_pool/x_jp/post_jp_02_supplies.png",
+        "marketing/x_daily_zombie_school_posting/image_pool/x_jp/post_jp_02_supplies_recovery_20261004.png",
+        "marketing/x_daily_zombie_school_posting/image_pool/x_jp/post_jp_03_escape.png",
+        "marketing/x_daily_zombie_school_posting/image_pool/x_jp/post_jp_03_escape_recovery_20261004.png",
+        "marketing/x_daily_zombie_school_posting/image_pool/x_ko/post_ko.png",
+        "marketing/x_daily_zombie_school_posting/image_pool/x_ko/post_ko_01_bell.png",
+        "marketing/x_daily_zombie_school_posting/image_pool/x_ko/post_ko_02_supplies.png",
+        "marketing/x_daily_zombie_school_posting/image_pool/x_ko/post_ko_03_escape.png",
+        "marketing/x_daily_zombie_school_posting/image_pool/x_viet/post_viet.png",
+        "marketing/x_daily_zombie_school_posting/image_pool/x_viet/post_viet_01_bell.png",
+        "marketing/x_daily_zombie_school_posting/image_pool/x_viet/post_viet_02_supplies.png",
+        "marketing/x_daily_zombie_school_posting/image_pool/x_viet/post_viet_03_escape.png",
+        "marketing/x_daily_zombie_school_posting/posting_config.json",
+        "포스팅/Install-ZombieSchoolFiveSlotPostingSchedule.ps1"
+      ],
+      "missingPathCount": 2245,
+      "recoveredPaths": [],
+      "matchingRemoteSubjects": []
+    },
+    {
+      "commit": "9867176566909ba2bf914e9ba2c75405bb2501e4",
+      "subject": "Align three weapon models with their icons",
+      "status": "BYTE_IDENTICAL_CURRENT",
+      "reason": "Every touched path is byte-identical in current remote tree.",
+      "pathCount": 9,
+      "byteIdenticalPaths": [
+        "Developer/r3f_prototype/src/components/Weapons/SharkMissile.jsx",
+        "Developer/r3f_prototype/src/components/Weapons/Tumbler.jsx",
+        "Developer/r3f_prototype/src/components/Weapons/Tumbler.test.jsx",
+        "Developer/r3f_prototype/src/components/Weapons/UmbrellaGuard.jsx",
+        "Graphic_designer/weapons/weapon_icon_model_alignment_20261005.md",
+        "Quaility_Assurance/weapon_icon_models_t_bb95cd58/README.md",
+        "Quaility_Assurance/weapon_icon_models_t_bb95cd58/models-final.png",
+        "Quaility_Assurance/weapon_icon_models_t_bb95cd58/models-front.png",
+        "Quaility_Assurance/weapon_icon_models_t_bb95cd58/models-game-angle.png"
+      ],
+      "differentPaths": [],
+      "missingPathCount": 0,
+      "recoveredPaths": [],
+      "matchingRemoteSubjects": [
+        "5edf7a00a8a052245b69a369f832ad929f806bc6"
+      ]
+    },
+    {
+      "commit": "16640b9010db58adef5ca16a51a9b742da059dea",
+      "subject": "Record player appearance database rules deployment",
+      "status": "BYTE_IDENTICAL_CURRENT",
+      "reason": "Every touched path is byte-identical in current remote tree.",
+      "pathCount": 1,
+      "byteIdenticalPaths": [
+        "Developer/agent_room/player_appearance_rules_deploy_20261005.md"
+      ],
+      "differentPaths": [],
+      "missingPathCount": 0,
+      "recoveredPaths": [],
+      "matchingRemoteSubjects": [
+        "dbd2209c4e2f3809966f49db415fd9c9128b9a70"
+      ]
+    },
+    {
+      "commit": "92d38a82ec646b323498428fe1f2f91b4b246d01",
+      "subject": "Add new and legacy player appearance setting",
+      "status": "SUBJECT_MATCH_REQUIRES_FILE_SCOPE",
+      "reason": "Matching remote subject is evidence of integration lineage, not blanket tree equivalence; retain latest current bytes.",
+      "pathCount": 17,
+      "byteIdenticalPaths": [
+        "Developer/agent_room/player_appearance_backend_review_20261005.md",
+        "Developer/agent_room/player_appearance_toggle_20261005.md",
+        "Developer/r3f_prototype/src/components/Player.jsx",
+        "Developer/r3f_prototype/src/components/Player.modelComparison.test.jsx",
+        "Developer/r3f_prototype/src/lib/firebaseProgressRules.test.js",
+        "Quaility_Assurance/player_appearance_settings_20261005.md",
+        "Quaility_Assurance/player_appearance_settings_desktop_20261005.png",
+        "Quaility_Assurance/player_appearance_settings_mobile_20261005.png"
+      ],
+      "differentPaths": [
+        "Developer/r3f_prototype/database.rules.json",
+        "Developer/r3f_prototype/src/components/LobbySettingsModal.jsx",
+        "Developer/r3f_prototype/src/components/LobbySettingsModal.test.jsx",
+        "Developer/r3f_prototype/src/lib/firebaseProgress.js",
+        "Developer/r3f_prototype/src/lib/firebaseProgress.test.js",
+        "Developer/r3f_prototype/src/lib/locales/en.js",
+        "Developer/r3f_prototype/src/lib/locales/ja.js",
+        "Developer/r3f_prototype/src/lib/locales/ko.js",
+        "Developer/r3f_prototype/src/lib/titleSettings.js"
+      ],
+      "missingPathCount": 0,
+      "recoveredPaths": [],
+      "matchingRemoteSubjects": [
+        "f8424957f4f5ea192ca297f2a3c7a3ec3fcdc7fe"
+      ]
+    },
+    {
+      "commit": "b28a72faf2d969967cd2a984fa594d8ab9778022",
+      "subject": "Record BGM deployment and full test results",
+      "status": "SCOPED_RECOVERY",
+      "reason": "Only exact selected paths recovered; current protected runtime retained.",
+      "pathCount": 1,
+      "byteIdenticalPaths": [],
+      "differentPaths": [],
+      "missingPathCount": 1,
+      "recoveredPaths": [
+        "Quaility_Assurance/bgm_release_full_test_20261005.md"
+      ],
+      "matchingRemoteSubjects": []
+    },
+    {
+      "commit": "7023dca05bf560e43a01cfb8eb75ea0d7e619c56",
+      "subject": "Fix duplicate Rosari lazy declaration introduced by integration merge",
+      "status": "SUPERSEDED_OLD_CANDIDATE",
+      "reason": "Older integration/test fixtures superseded by e6b93 exact independent QA; never re-promote older graph.",
+      "pathCount": 1,
+      "byteIdenticalPaths": [],
+      "differentPaths": [
+        "Developer/r3f_prototype/src/components/ReadyGameApp.jsx"
+      ],
+      "missingPathCount": 0,
+      "recoveredPaths": [],
+      "matchingRemoteSubjects": []
+    },
+    {
+      "commit": "1a0b2e95a5d07134701e606b3a0e8f9f77001a34",
+      "subject": "Integrate completed game expansion ranking vending and exact audio package",
+      "status": "SUPERSEDED_OLD_CANDIDATE",
+      "reason": "Older integration/test fixtures superseded by e6b93 exact independent QA; never re-promote older graph.",
+      "pathCount": 428,
+      "byteIdenticalPaths": [
+        "Developer/agent_room/audio_asset_provenance_manifest_2026-07-30.json",
+        "Developer/agent_room/audio_ship_20261016/advisor-baseline.md",
+        "Developer/agent_room/audio_ship_20261016/advisor-browser-qa.cjs",
+        "Developer/agent_room/audio_ship_20261016/advisor-browser-qa.json",
+        "Developer/agent_room/audio_ship_20261016/advisor-final-tests.txt",
+        "Developer/agent_room/audio_ship_20261016/audition-desktop-verified.png",
+        "Developer/agent_room/audio_ship_20261016/audition-mobile-verified.png",
+        "Developer/agent_room/audio_ship_20261016/finalize-package.cjs",
+        "Developer/agent_room/audio_ship_20261016/soundmini/README.md",
+        "Developer/agent_room/audio_ship_20261016/soundmini/audit-preservation.py",
+        "Developer/agent_room/audio_ship_20261016/soundmini/decode-measurements.json",
+        "Developer/agent_room/audio_ship_20261016/soundmini/dialogue-render.json",
+        "Developer/agent_room/audio_ship_20261016/soundmini/reproducibility.json",
+        "Developer/agent_room/audio_ship_20261016/soundmini/scope-audit.json",
+        "Developer/agent_room/audio_ship_20261016/soundmini/source-reason-sha.json",
+        "Developer/agent_room/audio_ship_20261016/uimini-audition.test.cjs",
+        "Developer/agent_room/audio_ship_20261016/uimini/node-tests.txt",
+        "Developer/agent_room/audio_ship_20261016/uimini/sha256.json",
+        "Developer/r3f_prototype/functions/src/ranking.js",
+        "Developer/r3f_prototype/public/assets/rosari-room/PLAYER_wholebody_refined_t_efe49b7c.glb",
+        "Developer/r3f_prototype/public/sfx-audition-20261016.html",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/bellFire-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/bellFire-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/bellFire-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/bellHit-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/bellHit-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/bellHit-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/bikittyCutterFire-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/bikittyCutterFire-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/bikittyCutterFire-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/bikittyCutterReload-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/bikittyCutterReload-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/bikittyCutterReload-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/bikittyCutterSnap-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/bikittyCutterSnap-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/bikittyCutterSnap-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/bossClearJingle-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/bossClearJingle-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/bossClearJingle-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/bossDeath-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/bossDeath-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/bossDeath-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/bossRoar-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/bossRoar-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/bossRoar-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/bossSpawn-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/bossSpawn-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/bossSpawn-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/bossWarning-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/bossWarning-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/bossWarning-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/boxCutterFire-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/boxCutterFire-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/boxCutterFire-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/boxCutterHit-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/boxCutterHit-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/boxCutterHit-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/buttonClick-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/buttonClick-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/buttonClick-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/chestDrop-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/chestDrop-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/chestDrop-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/chestOpen-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/chestOpen-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/chestOpen-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/chibikoFire-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/chibikoFire-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/chibikoFire-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/chibikoHit-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/chibikoHit-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/chibikoHit-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/coinCollect-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/coinCollect-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/coinCollect-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/compassFire-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/compassFire-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/compassFire-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/compassHit-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/compassHit-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/compassHit-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/compassQuack-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/compassQuack-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/compassQuack-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/criticalHit-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/criticalHit-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/criticalHit-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/dialogue-matilda-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/dialogue-matilda-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/dialogue-matilda-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/dialogue-matilda-original.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/dialogue-protagonistIntro-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/dialogue-protagonistIntro-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/dialogue-protagonistIntro-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/dialogue-protagonistIntro-original.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/dialogue-protagonistUrgent-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/dialogue-protagonistUrgent-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/dialogue-protagonistUrgent-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/dialogue-protagonistUrgent-original.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/dogeDeath-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/dogeDeath-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/dogeDeath-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/dogeEscape-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/dogeEscape-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/dogeEscape-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/dogeYelp-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/dogeYelp-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/dogeYelp-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/eraserFire-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/eraserFire-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/eraserFire-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/eraserHit-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/eraserHit-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/eraserHit-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/escapePortalClear-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/escapePortalClear-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/escapePortalClear-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/flaskFire-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/flaskFire-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/flaskFire-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/flaskHit-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/flaskHit-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/flaskHit-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/flaskTick-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/flaskTick-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/flaskTick-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/gameOver-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/gameOver-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/gameOver-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/inuconBite-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/inuconBite-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/inuconBite-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/inuconHeal-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/inuconHeal-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/inuconHeal-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/lanternFire-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/lanternFire-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/lanternFire-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/lanternTick-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/lanternTick-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/lanternTick-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/levelUp-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/levelUp-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/levelUp-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/lineDrawCross-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/lineDrawCross-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/lineDrawCross-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/lineDrawExpire-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/lineDrawExpire-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/lineDrawExpire-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/lineDrawSlash-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/lineDrawSlash-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/lineDrawSlash-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/manifest.js",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/matildaCountdownEnd-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/matildaCountdownEnd-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/matildaCountdownEnd-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/matildaDash-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/matildaDash-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/matildaDash-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/matildaDeath-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/matildaDeath-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/matildaDeath-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/matildaLaugh-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/matildaLaugh-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/matildaLaugh-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/matildaSpawn-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/matildaSpawn-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/matildaSpawn-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/matildaWarningTick-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/matildaWarningTick-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/matildaWarningTick-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/milestoneGold-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/milestoneGold-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/milestoneGold-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/missileFire-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/missileFire-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/missileFire-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/missileHit-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/missileHit-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/missileHit-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/onigiriFire-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/onigiriFire-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/onigiriFire-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/onigiriHit-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/onigiriHit-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/onigiriHit-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/pencilFire-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/pencilFire-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/pencilFire-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/pencilHit-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/pencilHit-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/pencilHit-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/playerDeath-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/playerDeath-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/playerDeath-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/playerHeal-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/playerHeal-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/playerHeal-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/playerHit-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/playerHit-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/playerHit-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/playerStep-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/playerStep-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/playerStep-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/portalAppear-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/portalAppear-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/portalAppear-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/portalSuction-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/portalSuction-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/portalSuction-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/rulerFire-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/rulerFire-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/rulerFire-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/rulerHit-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/rulerHit-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/rulerHit-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/rzlWhistle-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/rzlWhistle-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/rzlWhistle-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/sharkFire-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/sharkFire-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/sharkFire-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/sharkHit-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/sharkHit-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/sharkHit-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/stage2GuardWhistle-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/stage2GuardWhistle-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/stage2GuardWhistle-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/stageClear-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/stageClear-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/stageClear-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/starlinkExplosion-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/starlinkExplosion-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/starlinkExplosion-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/starlinkFall-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/starlinkFall-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/starlinkFall-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/starlinkFire-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/starlinkFire-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/starlinkFire-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/starlinkHit-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/starlinkHit-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/starlinkHit-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/stunGunFire-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/stunGunFire-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/stunGunFire-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/stunGunHit-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/stunGunHit-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/stunGunHit-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/textbookCollect-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/textbookCollect-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/textbookCollect-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/textbookLand-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/textbookLand-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/textbookLand-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/tumblerFire-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/tumblerFire-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/tumblerFire-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/tumblerHit-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/tumblerHit-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/tumblerHit-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/umbrellaFire-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/umbrellaFire-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/umbrellaFire-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/umbrellaHit-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/umbrellaHit-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/umbrellaHit-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/zombieChargeRoar-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/zombieChargeRoar-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/zombieChargeRoar-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/zombieDeathBellow-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/zombieDeathBellow-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/zombieDeathBellow-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/zombieDeathGrunt-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/zombieDeathGrunt-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/zombieDeathGrunt-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/zombieDeathGurgle-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/zombieDeathGurgle-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/zombieDeathGurgle-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/zombieDeathHeavy-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/zombieDeathHeavy-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/zombieDeathHeavy-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/zombieDeathShriek-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/zombieDeathShriek-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/zombieDeathShriek-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/zombieGiantThud-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/zombieGiantThud-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/zombieGiantThud-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/zombieGroan-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/zombieGroan-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/zombieGroan-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/zombieRangedShoot-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/zombieRangedShoot-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/zombieRangedShoot-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/zombieRunnerScreech-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/zombieRunnerScreech-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/zombieRunnerScreech-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/zombieSpawn-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/zombieSpawn-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/zombieSpawn-C.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/zombieTankGroan-A.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/zombieTankGroan-B.wav",
+        "Developer/r3f_prototype/public/sfx/audition-20261016/zombieTankGroan-C.wav",
+        "Developer/r3f_prototype/scripts/generate-audition-20261016.mjs",
+        "Developer/r3f_prototype/scripts/generate-audition-20261016.test.js",
+        "Developer/r3f_prototype/scripts/generate_sfx.mjs",
+        "Developer/r3f_prototype/scripts/render-dialogue-audition-20261016.mjs",
+        "Developer/r3f_prototype/scripts/verify-audition-20261016.mjs",
+        "Developer/r3f_prototype/src/components/Enemies.stage5.test.jsx",
+        "Developer/r3f_prototype/src/components/Enemies.test.jsx",
+        "Developer/r3f_prototype/src/components/Enemy.jsx",
+        "Developer/r3f_prototype/src/components/GameCanvas.jsx",
+        "Developer/r3f_prototype/src/components/Lobby.expansion.test.jsx",
+        "Developer/r3f_prototype/src/components/Lobby.test.jsx",
+        "Developer/r3f_prototype/src/components/RosariRoom.lifecycle.test.jsx",
+        "Developer/r3f_prototype/src/components/RosariRoom.outline.test.jsx",
+        "Developer/r3f_prototype/src/components/RosariRoom.titleEntry.test.jsx",
+        "Developer/r3f_prototype/src/components/Stage5Environment.jsx",
+        "Developer/r3f_prototype/src/components/Stage5Environment.readiness.test.jsx",
+        "Developer/r3f_prototype/src/components/Stage5Environment.test.jsx",
+        "Developer/r3f_prototype/src/components/StageBossPreview.expansion.test.jsx",
+        "Developer/r3f_prototype/src/components/StageBossPreview.jsx",
+        "Developer/r3f_prototype/src/components/StageObjects/__fixtures__/placements-revision1947-b1d1d58.json",
+        "Developer/r3f_prototype/src/components/StageObjects/authoredPlacementSafety.test.js",
+        "Developer/r3f_prototype/src/components/StageObjects/stageObjectColliders.js",
+        "Developer/r3f_prototype/src/components/StageObjects/stageObjectPlacements.js",
+        "Developer/r3f_prototype/src/components/StageObjects/stageObjectPlacements.test.js",
+        "Developer/r3f_prototype/src/components/StageVendingLayer.jsx",
+        "Developer/r3f_prototype/src/components/ZombieInstanceLayer.jsx",
+        "Developer/r3f_prototype/src/components/ZombieMesh.jsx",
+        "Developer/r3f_prototype/src/components/expansion/ExpansionAttackGeometry.test.js",
+        "Developer/r3f_prototype/src/components/expansion/ExpansionEnvironment.test.js",
+        "Developer/r3f_prototype/src/components/expansion/ExpansionHazardLayer.jsx",
+        "Developer/r3f_prototype/src/components/expansion/ExpansionInstances.test.js",
+        "Developer/r3f_prototype/src/components/expansion/ExpansionRuntimeRetention.test.js",
+        "Developer/r3f_prototype/src/components/expansion/ExpansionStageEnvironment.jsx",
+        "Developer/r3f_prototype/src/components/expansion/ExpansionVisuals.test.js",
+        "Developer/r3f_prototype/src/components/expansion/ExpansionWarningCues.test.js",
+        "Developer/r3f_prototype/src/components/expansion/ExpansionZombieInstanceLayer.jsx",
+        "Developer/r3f_prototype/src/components/expansion/ExpansionZombieMesh.jsx",
+        "Developer/r3f_prototype/src/components/expansion/expansionEnvironment.js",
+        "Developer/r3f_prototype/src/components/expansion/expansionInstances.js",
+        "Developer/r3f_prototype/src/components/expansion/expansionRig.js",
+        "Developer/r3f_prototype/src/components/expansion/expansionTelegraphs.js",
+        "Developer/r3f_prototype/src/lib/burstEvents.js",
+        "Developer/r3f_prototype/src/lib/burstEvents.test.js",
+        "Developer/r3f_prototype/src/lib/dialogueVoice.js",
+        "Developer/r3f_prototype/src/lib/dialogueVoice.lifecycle.test.js",
+        "Developer/r3f_prototype/src/lib/enemyEntityPool.js",
+        "Developer/r3f_prototype/src/lib/enemyEntityPool.test.js",
+        "Developer/r3f_prototype/src/lib/enemySimulation.js",
+        "Developer/r3f_prototype/src/lib/expansionAttackRuntime.js",
+        "Developer/r3f_prototype/src/lib/expansionAttackSafety.js",
+        "Developer/r3f_prototype/src/lib/expansionAttackSafety.test.js",
+        "Developer/r3f_prototype/src/lib/expansionAttackSafetyAdvisor.test.js",
+        "Developer/r3f_prototype/src/lib/expansionAttackSafetyOracle.test.js",
+        "Developer/r3f_prototype/src/lib/expansionContent.js",
+        "Developer/r3f_prototype/src/lib/expansionGameplay.test.js",
+        "Developer/r3f_prototype/src/lib/expansionIntegration.test.js",
+        "Developer/r3f_prototype/src/lib/expansionPersistence.test.js",
+        "Developer/r3f_prototype/src/lib/expansionSpawns.js",
+        "Developer/r3f_prototype/src/lib/expansionVisuals.js",
+        "Developer/r3f_prototype/src/lib/graphicsStudioConfig.js",
+        "Developer/r3f_prototype/src/lib/lowDensityReinforcement.independent.test.js",
+        "Developer/r3f_prototype/src/lib/lowDensityReinforcement.js",
+        "Developer/r3f_prototype/src/lib/lowDensityReinforcement.test.js",
+        "Developer/r3f_prototype/src/lib/rankingScorePolicy.js",
+        "Developer/r3f_prototype/src/lib/rosariRoom.js",
+        "Developer/r3f_prototype/src/lib/rosariRoom.test.js",
+        "Developer/r3f_prototype/src/lib/sfxRegistry.js",
+        "Developer/r3f_prototype/src/lib/sfxRegistry.test.js",
+        "Developer/r3f_prototype/src/lib/stageConfig.js",
+        "Developer/r3f_prototype/src/lib/stageConfig.test.js",
+        "Developer/r3f_prototype/src/lib/stageLightingProfile.js",
+        "Developer/r3f_prototype/src/lib/waveTimelines.js",
+        "Developer/r3f_prototype/src/lib/zombieEncyclopedia.js",
+        "Developer/r3f_prototype/test/lobbyHydrationCycles.jsx",
+        "Planner/expansion_20261016/content_data.json",
+        "Quaility_Assurance/audio_ship_20261016/uimini/node-review.md",
+        "Quaility_Assurance/audio_ship_20261016_soundmini.md"
+      ],
+      "differentPaths": [
+        "Developer/r3f_prototype/database.rules.json",
+        "Developer/r3f_prototype/src/components/Enemies.jsx",
+        "Developer/r3f_prototype/src/components/Floor.jsx",
+        "Developer/r3f_prototype/src/components/Game.jsx",
+        "Developer/r3f_prototype/src/components/Lobby.jsx",
+        "Developer/r3f_prototype/src/components/RankingWindowTabs.jsx",
+        "Developer/r3f_prototype/src/components/ReadyGameApp.jsx",
+        "Developer/r3f_prototype/src/components/ReadyGameApp.test.jsx",
+        "Developer/r3f_prototype/src/components/RosariRoom.jsx",
+        "Developer/r3f_prototype/src/components/RosariRoom.mobileInteraction.test.jsx",
+        "Developer/r3f_prototype/src/components/StageRanking.jsx",
+        "Developer/r3f_prototype/src/components/StageRanking.test.jsx",
+        "Developer/r3f_prototype/src/components/StageVendingMachine.jsx",
+        "Developer/r3f_prototype/src/components/StageVendingPrompt.jsx",
+        "Developer/r3f_prototype/src/components/TitleScreen.jsx",
+        "Developer/r3f_prototype/src/components/UserRanking.jsx",
+        "Developer/r3f_prototype/src/components/UserRanking.test.jsx",
+        "Developer/r3f_prototype/src/lib/firebaseProgress.js",
+        "Developer/r3f_prototype/src/lib/firebaseRanking.js",
+        "Developer/r3f_prototype/src/lib/firebaseRanking.test.js",
+        "Developer/r3f_prototype/src/lib/locales/en.js",
+        "Developer/r3f_prototype/src/lib/locales/ja.js",
+        "Developer/r3f_prototype/src/lib/locales/ko.js",
+        "Developer/r3f_prototype/src/lib/playerRecords.js",
+        "Developer/r3f_prototype/src/lib/projectAdminRules.test.js",
+        "Developer/r3f_prototype/src/lib/stageVending.js",
+        "Developer/r3f_prototype/src/lib/stageVending.test.js",
+        "Developer/r3f_prototype/src/lib/userRanking.js",
+        "Developer/r3f_prototype/src/lib/userRanking.test.js",
+        "Developer/r3f_prototype/src/store/useGameStore.escapeSuccess.test.js",
+        "Developer/r3f_prototype/src/store/useGameStore.expansion.test.js",
+        "Developer/r3f_prototype/src/store/useGameStore.js",
+        "Developer/r3f_prototype/src/store/useGameStore.stage5.test.js",
+        "Developer/r3f_prototype/src/store/useGameStore.stageVending.test.js",
+        "Developer/r3f_prototype/src/store/useGameStore.test.js"
+      ],
+      "missingPathCount": 12,
+      "recoveredPaths": [],
+      "matchingRemoteSubjects": []
+    }
+  ],
+  "canonicalAheadBehind": "21/108 on inventory; merge commits included in count",
+  "equivalenceCaution": "git cherry minus is patch equivalence; byte identity is separately reported; source/graph ancestry is not inferred from matching subjects."
+}

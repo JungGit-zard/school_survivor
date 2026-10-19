@@ -1,0 +1,220 @@
+{
+  "evidenceType": "Production detector + exact source caller branch; observing enqueue stub, not full R3F/physics drain",
+  "sourceSHA": "360fd766e324d82329e93dc84b08d05eefb2d1311711f42f9a1ea162d2b6afb9",
+  "line": 1936,
+  "exactBranch": "if (lowDensity.shouldSpawn || retryLowDensity) {\n      runtimeQueueRef.current.lowDensityDeferred = !enqueueScheduled(SCHEDULE_LOW_DENSITY_REINFORCEMENT)\n    }",
+  "cases": [
+    {
+      "stageId": "stage1",
+      "isExpansion": false,
+      "activeFrames": 600,
+      "aliveEnemyCount": 3,
+      "availableSpawnSlots": 20,
+      "detectorShouldSpawn": true,
+      "entries": [
+        {
+          "type": "E07",
+          "count": 10
+        },
+        {
+          "type": "E01",
+          "count": 10
+        }
+      ],
+      "actualCallerEnqueueCalls": 1,
+      "expectedCallerEnqueueCalls": 1,
+      "passed": true
+    },
+    {
+      "stageId": "stage2",
+      "isExpansion": false,
+      "activeFrames": 600,
+      "aliveEnemyCount": 3,
+      "availableSpawnSlots": 20,
+      "detectorShouldSpawn": true,
+      "entries": [
+        {
+          "type": "E07",
+          "count": 10
+        },
+        {
+          "type": "E01",
+          "count": 10
+        }
+      ],
+      "actualCallerEnqueueCalls": 1,
+      "expectedCallerEnqueueCalls": 1,
+      "passed": true
+    },
+    {
+      "stageId": "stage3",
+      "isExpansion": false,
+      "activeFrames": 600,
+      "aliveEnemyCount": 3,
+      "availableSpawnSlots": 20,
+      "detectorShouldSpawn": true,
+      "entries": [
+        {
+          "type": "E07",
+          "count": 10
+        },
+        {
+          "type": "E01",
+          "count": 10
+        }
+      ],
+      "actualCallerEnqueueCalls": 1,
+      "expectedCallerEnqueueCalls": 1,
+      "passed": true
+    },
+    {
+      "stageId": "stage4",
+      "isExpansion": false,
+      "activeFrames": 600,
+      "aliveEnemyCount": 3,
+      "availableSpawnSlots": 20,
+      "detectorShouldSpawn": true,
+      "entries": [
+        {
+          "type": "E07",
+          "count": 10
+        },
+        {
+          "type": "E01",
+          "count": 10
+        }
+      ],
+      "actualCallerEnqueueCalls": 1,
+      "expectedCallerEnqueueCalls": 1,
+      "passed": true
+    },
+    {
+      "stageId": "stage5",
+      "isExpansion": false,
+      "activeFrames": 600,
+      "aliveEnemyCount": 3,
+      "availableSpawnSlots": 20,
+      "detectorShouldSpawn": true,
+      "entries": [
+        {
+          "type": "E07",
+          "count": 10
+        },
+        {
+          "type": "E01",
+          "count": 10
+        }
+      ],
+      "actualCallerEnqueueCalls": 1,
+      "expectedCallerEnqueueCalls": 1,
+      "passed": true
+    },
+    {
+      "stageId": "stage6",
+      "isExpansion": true,
+      "activeFrames": 600,
+      "aliveEnemyCount": 3,
+      "availableSpawnSlots": 20,
+      "detectorShouldSpawn": true,
+      "entries": [
+        {
+          "type": "E07",
+          "count": 10
+        },
+        {
+          "type": "E01",
+          "count": 10
+        }
+      ],
+      "actualCallerEnqueueCalls": 1,
+      "expectedCallerEnqueueCalls": 1,
+      "passed": true
+    },
+    {
+      "stageId": "stage7",
+      "isExpansion": true,
+      "activeFrames": 600,
+      "aliveEnemyCount": 3,
+      "availableSpawnSlots": 20,
+      "detectorShouldSpawn": true,
+      "entries": [
+        {
+          "type": "E07",
+          "count": 10
+        },
+        {
+          "type": "E01",
+          "count": 10
+        }
+      ],
+      "actualCallerEnqueueCalls": 1,
+      "expectedCallerEnqueueCalls": 1,
+      "passed": true
+    },
+    {
+      "stageId": "stage8",
+      "isExpansion": true,
+      "activeFrames": 600,
+      "aliveEnemyCount": 3,
+      "availableSpawnSlots": 20,
+      "detectorShouldSpawn": true,
+      "entries": [
+        {
+          "type": "E07",
+          "count": 10
+        },
+        {
+          "type": "E01",
+          "count": 10
+        }
+      ],
+      "actualCallerEnqueueCalls": 1,
+      "expectedCallerEnqueueCalls": 1,
+      "passed": true
+    },
+    {
+      "stageId": "stage9",
+      "isExpansion": true,
+      "activeFrames": 600,
+      "aliveEnemyCount": 3,
+      "availableSpawnSlots": 20,
+      "detectorShouldSpawn": true,
+      "entries": [
+        {
+          "type": "E07",
+          "count": 10
+        },
+        {
+          "type": "E01",
+          "count": 10
+        }
+      ],
+      "actualCallerEnqueueCalls": 1,
+      "expectedCallerEnqueueCalls": 1,
+      "passed": true
+    },
+    {
+      "stageId": "stage10",
+      "isExpansion": true,
+      "activeFrames": 600,
+      "aliveEnemyCount": 3,
+      "availableSpawnSlots": 20,
+      "detectorShouldSpawn": true,
+      "entries": [
+        {
+          "type": "E07",
+          "count": 10
+        },
+        {
+          "type": "E01",
+          "count": 10
+        }
+      ],
+      "actualCallerEnqueueCalls": 1,
+      "expectedCallerEnqueueCalls": 1,
+      "passed": true
+    }
+  ],
+  "passed": 10,
+  "failed": 0
+}

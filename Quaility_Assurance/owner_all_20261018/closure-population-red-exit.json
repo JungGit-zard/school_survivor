@@ -1,0 +1,25 @@
+{
+  "started_at": "2026-10-18T15:30:02.762231+00:00",
+  "command": [
+    "npm.cmd",
+    "test",
+    "--",
+    "src/components/Enemies.lowDensityAllStages.test.jsx",
+    "--maxWorkers=1",
+    "--no-file-parallelism",
+    "--pool=threads",
+    "--testTimeout=60000",
+    "--hookTimeout=60000",
+    "--reporter=default",
+    "--reporter=json",
+    "--outputFile.json=../../Quaility_Assurance/owner_all_20261018/closure-population-red.json"
+  ],
+  "files": [
+    "src/components/Enemies.lowDensityAllStages.test.jsx"
+  ],
+  "status": "EXITED",
+  "notes": "Normal npm pretest guards retained; assertions unchanged; threads single-worker avoids previous forks startup failure.",
+  "pid": 24244,
+  "exit_code": 1,
+  "finished_at": "2026-10-18T15:30:21.840820+00:00"
+}

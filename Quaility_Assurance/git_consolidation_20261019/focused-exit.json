@@ -1,0 +1,25 @@
+{
+  "command": [
+    "npm.cmd",
+    "test",
+    "--",
+    "src/lib/stageConfig.test.js",
+    "src/lib/userRanking.expansion.test.js",
+    "src/components/Enemies.lowDensityAllStages.test.jsx",
+    "src/lib/sfxRegistry.test.js",
+    "src/components/RosariRoom.titleEntry.test.jsx",
+    "--maxWorkers=1",
+    "--no-file-parallelism",
+    "--pool=threads",
+    "--testTimeout=60000",
+    "--hookTimeout=60000",
+    "--reporter=default",
+    "--reporter=json",
+    "--outputFile.json=../../Quaility_Assurance/git_consolidation_20261019/focused-tests.json"
+  ],
+  "startedAt": "2026-10-19T00:58:55.581995+00:00",
+  "scope": "unchanged protected release source regression; Android exact-source integration separately verified; no Android runtime claim",
+  "pid": 26004,
+  "exitCode": 0,
+  "finishedAt": "2026-10-19T00:59:04.120831+00:00"
+}

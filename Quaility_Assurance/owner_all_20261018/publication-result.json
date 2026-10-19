@@ -1,0 +1,223 @@
+{
+  "status": "LIVE_STATIC_VERIFIED_PENDING_RENDERED_ACCEPTANCE",
+  "commit": "e6b93e7c5e29015d21062ee37deafbfb4ffe59d2",
+  "sourceHashManifest": "589585edcc026843cb8aafd3a421720a8a2253c03d71a2421d5b8f2ad88a315c",
+  "independentVerdict": "GO_SCOPED",
+  "previewChannel": "owner-all-20261019-005230",
+  "rollbackChannel": "owner-rollback-20261019-005230",
+  "startedAt": "2026-10-18T15:52:30.948722+00:00",
+  "publisher": {
+    "pid": 28724,
+    "createTime": 1792338750.1218207,
+    "owner": "launchmini t_e2815ba8",
+    "sourceHashManifest": "589585edcc026843cb8aafd3a421720a8a2253c03d71a2421d5b8f2ad88a315c",
+    "at": "2026-10-18T15:52:30.948722+00:00"
+  },
+  "commands": [
+    {
+      "command": [
+        "node",
+        "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\releases\\owner-all-complete-20261018\\Developer\\agent_room\\owner_all_20261018\\assert-final-freeze.cjs"
+      ],
+      "pid": 23320,
+      "createTime": 1792338750.9521208,
+      "startedAt": "2026-10-18T15:52:30.956232+00:00",
+      "log": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\releases\\owner-all-complete-20261018\\Quaility_Assurance\\owner_all_20261018\\publish-source-live-fence.log",
+      "exitCode": 0,
+      "finishedAt": "2026-10-18T15:52:53.971307+00:00"
+    },
+    {
+      "command": [
+        "git",
+        "fetch",
+        "origin"
+      ],
+      "pid": 28844,
+      "createTime": 1792338773.9839108,
+      "startedAt": "2026-10-18T15:52:53.987847+00:00",
+      "log": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\releases\\owner-all-complete-20261018\\Quaility_Assurance\\owner_all_20261018\\publish-fetch.log",
+      "exitCode": 0,
+      "finishedAt": "2026-10-18T15:52:54.603686+00:00"
+    },
+    {
+      "command": [
+        "git",
+        "ls-remote",
+        "origin",
+        "refs/heads/zombie_only"
+      ],
+      "pid": 2276,
+      "createTime": 1792338774.6064353,
+      "startedAt": "2026-10-18T15:52:54.609686+00:00",
+      "log": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\releases\\owner-all-complete-20261018\\Quaility_Assurance\\owner_all_20261018\\publish-remote.log",
+      "exitCode": 0,
+      "finishedAt": "2026-10-18T15:52:55.097511+00:00"
+    },
+    {
+      "command": [
+        "firebase.cmd",
+        "hosting:clone",
+        "escape-zombie-school:live",
+        "escape-zombie-school:owner-rollback-20261019-005230",
+        "--project",
+        "escape-zombie-school"
+      ],
+      "pid": 22940,
+      "createTime": 1792338775.12597,
+      "startedAt": "2026-10-18T15:52:55.134851+00:00",
+      "log": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\releases\\owner-all-complete-20261018\\Quaility_Assurance\\owner_all_20261018\\rollback-backup-clone.log",
+      "exitCode": 0,
+      "finishedAt": "2026-10-18T15:52:59.888445+00:00"
+    },
+    {
+      "command": [
+        "node",
+        "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\releases\\owner-all-complete-20261018\\Quaility_Assurance\\owner_all_20261018\\check-rollback-backup.cjs",
+        "owner-rollback-20261019-005230"
+      ],
+      "pid": 26288,
+      "createTime": 1792338779.9013803,
+      "startedAt": "2026-10-18T15:52:59.904479+00:00",
+      "log": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\releases\\owner-all-complete-20261018\\Quaility_Assurance\\owner_all_20261018\\rollback-backup-check.log",
+      "exitCode": 0,
+      "finishedAt": "2026-10-18T15:53:02.082452+00:00"
+    },
+    {
+      "command": [
+        "firebase.cmd",
+        "database:get",
+        "/.settings/rules",
+        "--project",
+        "escape-zombie-school",
+        "--output",
+        "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\releases\\owner-all-complete-20261018\\Quaility_Assurance\\owner_all_20261018\\rules-just-before-deploy.json"
+      ],
+      "pid": 13300,
+      "createTime": 1792338782.0927165,
+      "startedAt": "2026-10-18T15:53:02.099966+00:00",
+      "log": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\releases\\owner-all-complete-20261018\\Quaility_Assurance\\owner_all_20261018\\rules-just-before-read.log",
+      "exitCode": 0,
+      "finishedAt": "2026-10-18T15:53:07.541618+00:00"
+    },
+    {
+      "command": [
+        "firebase.cmd",
+        "deploy",
+        "--only",
+        "database",
+        "--project",
+        "escape-zombie-school",
+        "--non-interactive"
+      ],
+      "pid": 12500,
+      "createTime": 1792338787.5782287,
+      "startedAt": "2026-10-18T15:53:07.586631+00:00",
+      "log": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\releases\\owner-all-complete-20261018\\Quaility_Assurance\\owner_all_20261018\\rules-only-deploy.log",
+      "exitCode": 0,
+      "finishedAt": "2026-10-18T15:53:18.326891+00:00"
+    },
+    {
+      "command": [
+        "firebase.cmd",
+        "database:get",
+        "/.settings/rules",
+        "--project",
+        "escape-zombie-school",
+        "--output",
+        "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\releases\\owner-all-complete-20261018\\Quaility_Assurance\\owner_all_20261018\\rules-after-deploy.json"
+      ],
+      "pid": 7768,
+      "createTime": 1792338798.3499,
+      "startedAt": "2026-10-18T15:53:18.357526+00:00",
+      "log": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\releases\\owner-all-complete-20261018\\Quaility_Assurance\\owner_all_20261018\\rules-after-read.log",
+      "exitCode": 0,
+      "finishedAt": "2026-10-18T15:53:22.421496+00:00"
+    },
+    {
+      "command": [
+        "npm.cmd",
+        "run",
+        "deploy:hosting:safe",
+        "--",
+        "owner-all-20261019-005230",
+        "--config",
+        "firebase.preview-p0.temporary.json"
+      ],
+      "pid": 21588,
+      "createTime": 1792338802.43777,
+      "startedAt": "2026-10-18T15:53:22.447029+00:00",
+      "log": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\releases\\owner-all-complete-20261018\\Quaility_Assurance\\owner_all_20261018\\hosting-safe-preview-to-live.log",
+      "exitCode": 0,
+      "finishedAt": "2026-10-18T15:55:38.710210+00:00"
+    },
+    {
+      "command": [
+        "node",
+        "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\releases\\owner-all-complete-20261018\\Quaility_Assurance\\owner_all_20261018\\verify-live-delivery.cjs",
+        "owner-all-20261019-005230"
+      ],
+      "pid": 23700,
+      "createTime": 1792338938.7239907,
+      "startedAt": "2026-10-18T15:55:38.727987+00:00",
+      "log": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\releases\\owner-all-complete-20261018\\Quaility_Assurance\\owner_all_20261018\\live-static-exact-verification.log",
+      "exitCode": 0,
+      "finishedAt": "2026-10-18T15:56:21.046859+00:00"
+    }
+  ],
+  "rules": {
+    "sourceSHA": "d7aa0a2d335ecff33e9527f9bf6d684421faa8b8a71802bd1a07b513e1b2a581",
+    "liveBaseMatchesReviewed": true,
+    "alreadyDesired": false,
+    "securityApproval": {
+      "rulesSourceSHA": "d7aa0a2d335ecff33e9527f9bf6d684421faa8b8a71802bd1a07b513e1b2a581",
+      "sourceApproval": "APPROVE_EXACT_MINIMAL_SOURCE (inherited unchanged)",
+      "conditionalDatabaseDeployAllowed": true,
+      "liveBaseStillMatches": true,
+      "basis": "Reviewed rules-live-before snapshot equals current HEAD base; reviewed minimal source SHA unchanged. This is not a fresh production Rules fetch.",
+      "freshProductionRulesRecheck": "Publisher must read/compare live Rules immediately before Rules-only deployment; changed base requires stop/review.",
+      "liveHostingGuard": "PASS Quaility_Assurance/owner_all_20261018/population-final-freeze.log",
+      "preservedLiveCustomerFiles": 782,
+      "onlyExistingPathReplacement": "/index.html",
+      "providerExclusions": [
+        "/__/firebase/init.js",
+        "/__/firebase/init.json"
+      ],
+      "unchangedReleaseGuards": [
+        {
+          "path": "Developer/r3f_prototype/firebase.json",
+          "SHA": "e76a42b2f4aae2a6f4dd737652035e29907d2cd8079ac5d17ad86c439b784dd0"
+        },
+        {
+          "path": "Developer/r3f_prototype/package.json",
+          "SHA": "14abd9705e11963a72273639b04e573b3e3d3149c21b7269416d7f96db23b88f"
+        },
+        {
+          "path": "Developer/r3f_prototype/scripts/promote-hosting-preview.mjs",
+          "SHA": "47fbe400fe57f597d11f954abb5ad225d2f83a285fe9f42b6dc8cc46876e5d5b"
+        },
+        {
+          "path": "Developer/r3f_prototype/scripts/assert-firebase-release-env.mjs",
+          "SHA": "572db953dbde4d59798364f2952783a6415730cb2063bb0c4c4355b5cc80feba"
+        },
+        {
+          "path": "Developer/r3f_prototype/scripts/require-safe-hosting-promotion.mjs",
+          "SHA": "a9c64726909979cd38ba73d890c7044b352c60ac4a32a9be7d13d2f4feb11977"
+        }
+      ],
+      "functionsDeployAllowed": false
+    },
+    "scope": "database Rules only; no user data writes or Functions",
+    "actualReadbackExact": true
+  },
+  "hostingPromotedCommandExit0": true,
+  "liveVersion": "projects/escape-zombie-school/sites/escape-zombie-school/versions/a42e8ab5d8b35349",
+  "liveURL": "https://escapezombie.com",
+  "staticCounts": {
+    "http": 534,
+    "passed": 534,
+    "failed": 0,
+    "wav": 282,
+    "packageFiles": 315
+  },
+  "finishedAt": "2026-10-18T15:56:21.065839+00:00"
+}

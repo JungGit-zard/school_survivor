@@ -1,0 +1,49 @@
+{
+  "html": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\Graphic_designer\\game_resource_library\\source-art\\player_wholebody_refined_t_efe49b7c\\PLAYER_wholebody_refined_t_efe49b7c_standalone.html",
+  "html_bytes": 3315989,
+  "html_sha256": "835897ba584e3d38c3538d3f7487224a0937d056789fd4ddc5acf9ab54fa9ce0",
+  "asset_keys": [
+    "before_topshape",
+    "after_wholebody"
+  ],
+  "embedded_module_sha256": "22ca1edcd83e4579464d120085de6b47c95c184d01ff82c93968b1fa1a57bf6a",
+  "network_required": false,
+  "mesh_toon": true,
+  "gradient_values": [
+    45,
+    105,
+    170,
+    225,
+    255
+  ],
+  "gradient_filter": "NearestFilter",
+  "materials": {
+    "source_side": "FrontSide",
+    "source_transparent": false,
+    "source_opacity": 1,
+    "source_depthTest": true,
+    "source_depthWrite": true,
+    "source_stencilRef": 3,
+    "source_stencilFunc": "Always",
+    "source_stencilZPass": "Replace",
+    "outline_side": "BackSide",
+    "outline_color": "0x050209",
+    "outline_opacity": 0.96,
+    "outline_depthTest": true,
+    "outline_depthWrite": false,
+    "outline_stencilRef": 3,
+    "outline_stencilFunc": "NotEqual",
+    "outline_stencilOps": "Keep"
+  },
+  "outline_fx": true,
+  "outline_technique": "project-existing stencil screen-space pixel inverted hull",
+  "outline_toggle": true,
+  "outline_width_px_default": 6,
+  "outline_normal_mode": "welded_position_average",
+  "base_triangles": 1220,
+  "added_outline_draw_triangles": 1220,
+  "runtime_change": false,
+  "source_asset_mutation": false,
+  "backup_before_stencil_outline_fix": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\Graphic_designer\\game_resource_library\\source-art\\player_wholebody_refined_t_efe49b7c\\before_stencil_outline_fix\\PLAYER_wholebody_refined_t_efe49b7c_standalone.html",
+  "backup_before_uniform_pixel_outline": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\Graphic_designer\\game_resource_library\\source-art\\player_wholebody_refined_t_efe49b7c\\before_uniform_pixel_outline\\PLAYER_wholebody_refined_t_efe49b7c_standalone.html"
+}

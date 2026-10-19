@@ -1,0 +1,126 @@
+{
+  "sourceHashManifest": "589585edcc026843cb8aafd3a421720a8a2253c03d71a2421d5b8f2ad88a315c",
+  "expected": "589585edcc026843cb8aafd3a421720a8a2253c03d71a2421d5b8f2ad88a315c",
+  "verifiedHashCount": 2470,
+  "mismatches": [],
+  "previousManifest": "533c7977c5a5cfdd3ac1e00cdd69f65dffeaf38a5dbd2dcbed388aebc26064f1",
+  "changedFiles": [
+    {
+      "path": "Developer/r3f_prototype/dist/assets/App-CG7y4lsk.js",
+      "oldSHA": null,
+      "newSHA": "17ef2f89352c9a4df27e51c69452f2437150b8bc0592f3eb22772168093891e1"
+    },
+    {
+      "path": "Developer/r3f_prototype/dist/assets/GameCanvas-me1ItNBj.js",
+      "oldSHA": null,
+      "newSHA": "06c742cd03b7fb00851b793c8a8a44b6656ac7040c02b19e536a87823858a489"
+    },
+    {
+      "path": "Developer/r3f_prototype/dist/assets/GameplayScreen-B6Q9kQDz.js",
+      "oldSHA": null,
+      "newSHA": "a2dc50dfe7e78fa7ca1063faa009f5d3b8e28687c15093c2bfec7339334c6d8f"
+    },
+    {
+      "path": "Developer/r3f_prototype/dist/assets/HUD-sdtGmvn7.js",
+      "oldSHA": null,
+      "newSHA": "17e09532de4fe79744f9b349c6f752f5f3efc7018b3ebbc169b6aa9f500b5676"
+    },
+    {
+      "path": "Developer/r3f_prototype/dist/assets/Lobby-B5go0p1W.js",
+      "oldSHA": null,
+      "newSHA": "790a5cc86233c6ac62031ddd621dcc5504646acc11c284f3365b2a46c4cace59"
+    },
+    {
+      "path": "Developer/r3f_prototype/dist/assets/ReadyGameApp-Blz6IHYL.js",
+      "oldSHA": null,
+      "newSHA": "a5757123e69accfade2d683d9105bd42f89bf7b0b14bb5051ada79b4eb163515"
+    },
+    {
+      "path": "Developer/r3f_prototype/dist/assets/firebaseBoard-DfDXQt_J.js",
+      "oldSHA": null,
+      "newSHA": "1bb8b88d5e29d2c981f786af264a3addf85058b97a856705b1391d61282e0107"
+    },
+    {
+      "path": "Developer/r3f_prototype/dist/assets/gameCanvasLoader-CbZggwdk.js",
+      "oldSHA": null,
+      "newSHA": "356b9080a9fc48b496fd971bb28df60b16df573642f2413f883302339279f83d"
+    },
+    {
+      "path": "Developer/r3f_prototype/dist/assets/index-KuP-xBUq.js",
+      "oldSHA": null,
+      "newSHA": "9bf2b23b0e1335691246c6a9056f27e8700aceef854ab024d913456a8222eaa6"
+    },
+    {
+      "path": "Developer/r3f_prototype/dist/assets/rootBootstrap-C2cQz7mO.js",
+      "oldSHA": null,
+      "newSHA": "e4395638a2fbca72265d188f21e95b26dd1ea6887246f50073babeee8ceaf40d"
+    },
+    {
+      "path": "Developer/r3f_prototype/dist/index.html",
+      "oldSHA": "46145966e7c92148803128dad279a368ebe0b4241eea972461fd129ea073c92a",
+      "newSHA": "0a1a344f7feb9ac8de34474fdd02b87725cc75b73b922cde7076ae9b3c2dfe0a"
+    },
+    {
+      "path": "Developer/r3f_prototype/src/components/Enemies.jsx",
+      "oldSHA": "730caaaa240dbe05aa8294965f07bea092e00a7555d4cc051dde2553da742764",
+      "newSHA": "360fd766e324d82329e93dc84b08d05eefb2d1311711f42f9a1ea162d2b6afb9"
+    },
+    {
+      "path": "Developer/r3f_prototype/src/components/Enemies.lowDensityAllStages.test.jsx",
+      "oldSHA": null,
+      "newSHA": "4f0a6b2019a8878d9a43b64650408e6d31eaf53c2ed6a2142b0b646122b9ce44"
+    }
+  ],
+  "removed": [
+    {
+      "path": "Developer/r3f_prototype/dist/assets/App-BCuYuxj0.js",
+      "sha256": "9abb264428993745562e1283b072c48d57d8f1d821ab12e123d2b7d5c212c305",
+      "bytes": 114581
+    },
+    {
+      "path": "Developer/r3f_prototype/dist/assets/GameCanvas-Bm3nj6tD.js",
+      "sha256": "e736e81710509350f3ba45e94ab38198bad38c73ac8b4190b8bb96ab6994fa5d",
+      "bytes": 113901
+    },
+    {
+      "path": "Developer/r3f_prototype/dist/assets/GameplayScreen-DdwMEtS-.js",
+      "sha256": "10563499b473fe9786c03ef6dad2921977de568b4693dfdea711ac844d29eba7",
+      "bytes": 7581
+    },
+    {
+      "path": "Developer/r3f_prototype/dist/assets/HUD-BxX4lF-D.js",
+      "sha256": "f0eb9c9934f1fdd9cef95015fe09d2fb2e3d078f4d8bcf8d0a00f3784d826f97",
+      "bytes": 109948
+    },
+    {
+      "path": "Developer/r3f_prototype/dist/assets/Lobby-CDAw8roe.js",
+      "sha256": "0214ab36777015c38e9ccca21fb87c3e3e4edf3977f501717501dc5e5429feec",
+      "bytes": 54510
+    },
+    {
+      "path": "Developer/r3f_prototype/dist/assets/ReadyGameApp-CisJ6RYP.js",
+      "sha256": "273e0677e73f60b834d2aba413d369150199d4644e5e6a6cfb43d518d2871ded",
+      "bytes": 15906
+    },
+    {
+      "path": "Developer/r3f_prototype/dist/assets/firebaseBoard-BjkA2N1u.js",
+      "sha256": "63ceed4b34d332de12dfe3fa4e1745a5853f7ce6d2f7fd0b92945037e83c1530",
+      "bytes": 418
+    },
+    {
+      "path": "Developer/r3f_prototype/dist/assets/gameCanvasLoader-DAjSvnIH.js",
+      "sha256": "65683181acac62989871f9173e9ed5f206c74fe7a9ee05d4045e6775d409b131",
+      "bytes": 1251
+    },
+    {
+      "path": "Developer/r3f_prototype/dist/assets/index-B_kCD41m.js",
+      "sha256": "c228437a07e26c368cdc4a20214d56aa3e8bc3bdb194040a9c1eb667a7975a15",
+      "bytes": 1698
+    },
+    {
+      "path": "Developer/r3f_prototype/dist/assets/rootBootstrap-Cvp6pAZ4.js",
+      "sha256": "0e5b0b858706f9a4efd1fb13152d18fea11a6bcb76b4c1b8e8c8f666c72f80c9",
+      "bytes": 3525
+    }
+  ]
+}

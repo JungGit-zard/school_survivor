@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tistory paste preview — 탈출! 좀비학교 플레이테스트 글</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #10131f; color: #f4f1ff; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; line-height: 1.65; }
+    header { max-width: 980px; margin: 0 auto; padding: 28px 18px 12px; }
+    main { max-width: 980px; margin: 0 auto; padding: 0 18px 40px; }
+    .panel { background: #191d2c; border: 1px solid #343a55; border-radius: 16px; padding: 18px; margin: 14px 0; box-shadow: 0 14px 34px rgba(0,0,0,.25); }
+    h1 { margin: 0 0 8px; font-size: clamp(1.45rem, 4vw, 2.2rem); }
+    h2 { margin: 0 0 10px; font-size: 1.1rem; color: #d8ccff; }
+    p { margin: 0 0 10px; }
+    code { background: #0b0d15; border: 1px solid #343a55; border-radius: 6px; padding: 2px 5px; color: #c8fff0; }
+    .actions { display: flex; flex-wrap: wrap; gap: 10px; margin: 12px 0; }
+    button { min-height: 44px; border: 0; border-radius: 999px; padding: 0 18px; background: #7f65d9; color: #fff; font-weight: 800; cursor: pointer; }
+    button.secondary { background: #2e354f; color: #f4f1ff; border: 1px solid #59617f; }
+    textarea { width: 100%; min-height: 340px; resize: vertical; border: 1px solid #454e70; border-radius: 12px; background: #070914; color: #d9fff3; padding: 14px; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 13px; line-height: 1.55; }
+    .status { min-height: 1.6em; color: #9effcf; font-weight: 700; }
+    .preview-wrap { background: #ffffff; border-radius: 16px; padding: 18px; overflow: auto; }
+    .note { color: #c6c0dc; font-size: .95rem; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Tistory HTML 모드 붙여넣기 미리보기</h1>
+    <p class="note">아래 <code>HTML 복사</code> 버튼을 누른 뒤 티스토리 글쓰기의 <strong>HTML 모드</strong>에 붙여넣으세요. 이 파일은 미리보기/복사용이며 블로그 게시를 자동으로 수행하지 않습니다.</p>
+  </header>
+  <main>
+    <section class="panel">
+      <h2>제목</h2>
+      <p id="postTitle">연필 하나 들고 좀비학교 탈출! 개발 중인 게임을 테스트해 주실 분을 찾습니다</p>
+    </section>
+
+    <section class="panel">
+      <h2>본문 HTML</h2>
+      <div class="actions">
+        <button type="button" id="copyHtml">HTML 복사</button>
+        <button type="button" id="copyRich" class="secondary">리치 텍스트 복사(지원 브라우저만)</button>
+        <button type="button" id="selectHtml" class="secondary">선택만 하기</button>
+      </div>
+      <p id="status" class="status" aria-live="polite"></p>
+      <textarea id="htmlSource" spellcheck="false"><div style="max-width:760px;margin:0 auto;color:#292b35;font-size:17px;line-height:1.95;word-break:keep-all;overflow-wrap:anywhere;">
+  <p style="margin:0 0 24px;color:#69627a;font-size:14px;letter-spacing:1px;">개발자의 플레이 테스트 초대 · 탈출! 좀비학교</p>
+  <p>안녕하세요. 학교를 배경으로 한 3D 생존 액션 게임 <strong>〈탈출! 좀비학교〉</strong>를 개발하고 있습니다. 평범한 교실이 좀비로 가득 찬다면, 책상 위의 연필 하나가 탈출의 시작이 될 수 있을까요? 익숙한 학용품과 생활용품을 무기로 바꾸는 상상에서 출발한 게임입니다.</p>
+  <p>직접 만들다 보니 제가 이미 알고 있다는 이유로 놓치는 부분이 많습니다. 처음 만나는 분도 조작을 이해할 수 있는지, 무기를 고르는 순간이 재미있는지 알고 싶습니다. 그래서 여러분께 <strong>짧은 플레이 테스트를 부탁드립니다.</strong></p>
+  <div style="margin:28px 0;padding:22px 24px;background:#f3efff;border-left:4px solid #8061bb;border-radius:8px;">
+    <p style="margin:0 0 10px;"><strong>이 게임에는 광고나 비즈니스 모델이 일절 없습니다.</strong><br>수익화가 목적이 아니라, 여러분의 의견을 듣고 게임을 더 재미있고 편하게 다듬고 싶습니다.</p>
+    <p style="margin:0;">게임 웹사이트 · <a href="https://escapezombie.com/" target="_blank" rel="noopener noreferrer" style="color:#6240a1;font-weight:700;text-decoration:underline;">https://escapezombie.com/</a></p>
+  </div>
+  <p style="margin:32px 0 6px;"><img src="https://escape-zombie-school-assets.web.app/web-landing/v1/landing_classroom_survival.png" alt="탈출! 좀비학교의 교실 생존 콘셉트 아트" style="display:block;width:100%;max-width:760px;height:auto;border-radius:12px;" /></p>
+  <p style="margin:0 0 30px;color:#777;font-size:13px;text-align:center;">콘셉트 아트이며 실제 게임 화면이 아닙니다.</p>
+  <h2 style="margin:36px 0 14px;color:#40324e;font-size:24px;line-height:1.5;">이동은 직접, 공격은 자동으로</h2>
+  <p>모바일에서는 화면의 조이스틱으로, PC에서는 WASD나 방향키로 움직입니다. 공격은 자동으로 이루어집니다. 좀비 사이에서 빠져나갈 틈을 찾고, 경험치를 모으고, 레벨이 오르면 <strong>네 장의 카드 중 하나</strong>를 골라 새 무기를 얻거나 기존 무기를 강화하면 됩니다.</p>
+  <p>무작정 달리기만 해서는 길이 막힐 수도 있습니다. 가까이 붙는 적을 막을지, 멀리 있는 적부터 공격할지, 회복을 챙길지. 카드 한 장을 고를 때마다 이번 판의 전투가 달라지는 재미를 담고 싶었습니다.</p>
+  <p>무대는 <strong>교실 → 복도 → 체육관 → 급식실</strong>로 이어지는 네 개의 스테이지입니다. 각 공간에서 몰려오는 좀비와 보스의 압박을 견디고, 탈출 포탈을 향해 나아가게 됩니다. 익숙한 학교 공간을 조금 다른 마음으로 돌아보게 되는 모험입니다.</p>
+  <h2 style="margin:36px 0 14px;color:#40324e;font-size:24px;line-height:1.5;">연필, 텀블러, 그리고 상어미사일</h2>
+  <p>연필을 던지고, 30cm 자를 휘두르고, 텀블러를 주변에 회전시킵니다. 우산 방어막과 귀여운 상어미사일도 준비했습니다. 현재 구현된 무기 카탈로그는 <strong>동료형 카드를 포함해 총 20종</strong>입니다. 손에 익은 생활용품을 엉뚱한 방식으로 활용하는 재미를 담았습니다.</p>
+  <p style="margin:28px 0 6px;"><img src="https://escape-zombie-school-assets.web.app/web-landing/v1/landing_school_supplies.png" alt="학용품과 생활용품을 무기로 활용하는 좀비학교 콘셉트 아트" style="display:block;width:100%;max-width:760px;height:auto;border-radius:12px;" /></p>
+  <p style="margin:0 0 30px;color:#777;font-size:13px;text-align:center;">콘셉트 아트이며 실제 게임 화면이 아닙니다.</p>
+  <p>함께 싸우는 동료도 있습니다. <strong>치비코</strong>는 공격을 돕고, <strong>하나코</strong>는 회복을 맡습니다. <strong>이누콘</strong>은 회복과 적을 밀어내는 행동으로 곁을 지켜줍니다. 혼자 버티는 긴장감 속에서 누군가 함께 있다는 느낌도 전하고 싶었습니다.</p>
+  <h2 style="margin:36px 0 14px;color:#40324e;font-size:24px;line-height:1.5;">도망치는 중에도 친구의 부탁을</h2>
+  <p>학교 안에는 스테이지마다 두 개씩, <strong>총 여덟 개의 학생 퀘스트</strong>가 있습니다. 반장의 출석부를 찾거나 다친 학생에게 붕대를 가져다주는 식입니다. 좀비에게 쫓기면서도 잠깐 발걸음을 돌려 친구를 돕는 장면을 넣고 싶었습니다.</p>
+  <p>성장은 두 가지로 나뉩니다. 레벨업 카드는 <strong>이번 판의 무기 구성</strong>을 바꾸고, 플레이하며 얻은 골드는 코인샵에서 이동속도·체력·공격력 등의 <strong>영구 성장과 무기 강화</strong>에 사용합니다. 실패한 뒤에도 다음 도전을 준비할 거리가 남도록 구성했습니다.</p>
+  <p style="margin:28px 0 6px;"><img src="https://escape-zombie-school-assets.web.app/web-landing/v1/landing_sunset_escape.png" alt="학교를 탈출하는 모험의 분위기를 담은 석양 콘셉트 아트" style="display:block;width:100%;max-width:760px;height:auto;border-radius:12px;" /></p>
+  <p style="margin:0 0 30px;color:#777;font-size:13px;text-align:center;">콘셉트 아트이며 실제 게임 화면이 아닙니다.</p>
+  <h2 style="margin:36px 0 14px;color:#40324e;font-size:24px;line-height:1.5;">첫인상을 들려주세요</h2>
+  <p>아직 다듬고 있는 게임이라 여러분의 첫인상이 필요합니다. 긴 리뷰나 전문적인 분석은 필요하지 않습니다. 아래 내용 중 하나만 알려주셔도 큰 도움이 됩니다.</p>
+  <ul style="padding-left:24px;">
+    <li>처음 시작했을 때 조작과 목표를 이해할 수 있었나요?</li>
+    <li>재미있었던 무기, 쓰기 불편했던 무기가 있었나요?</li>
+    <li>너무 어렵거나 지루하게 느껴진 구간은 어디였나요?</li>
+    <li>화면 끊김이나 버튼이 눌리지 않는 문제가 있었나요?</li>
+  </ul>
+  <p>“텀블러가 마음에 들었다”, “여기서 길이 막혀 답답했다”처럼 짧고 솔직한 댓글을 기다립니다. 문제가 생겼다면 <strong>사용한 기기와 브라우저, 발생한 장면</strong>을 함께 남겨주세요. 가능하다면 스크린샷도 원인을 찾는 데 도움이 됩니다.</p>
+  <div style="margin:30px 0;padding:24px;background:#eef7f4;border-radius:12px;">
+    <p style="margin:0 0 8px;font-size:20px;"><strong>탈출! 좀비학교를 플레이해 보세요</strong></p>
+    <p style="margin:0 0 12px;"><a href="https://escapezombie.com/" target="_blank" rel="noopener noreferrer" style="color:#206753;font-weight:700;text-decoration:underline;">https://escapezombie.com/</a></p>
+    <p style="margin:0;">잠깐의 플레이와 한 줄의 의견이 다음 수정의 방향을 찾는 데 큰 도움이 됩니다. 함께 만들어가는 마음으로 읽고 플레이해 주셔서 감사합니다.</p>
+  </div>
+  <p style="margin:30px 0 0;color:#777;font-size:14px;">#탈출좀비학교 #인디게임 #게임개발 #플레이테스트 #테스터모집 #생존액션 #좀비게임 #웹게임</p>
+</div>
+</textarea>
+    </section>
+
+    <section class="panel">
+      <h2>렌더링 미리보기</h2>
+      <div class="preview-wrap" id="renderedPreview"></div>
+    </section>
+  </main>
+
+  <script>
+    const source = document.getElementById('htmlSource');
+    const rendered = document.getElementById('renderedPreview');
+    const status = document.getElementById('status');
+    function render() { rendered.innerHTML = source.value; }
+    function selectSource() { source.focus(); source.select(); }
+    async function copyHtml() {
+      selectSource();
+      try {
+        await navigator.clipboard.writeText(source.value);
+        status.textContent = 'HTML을 클립보드에 복사했습니다. 티스토리 HTML 모드에 붙여넣으세요.';
+      } catch (error) {
+        document.execCommand('copy');
+        status.textContent = '브라우저 복사 권한이 제한되어 선택 상태로 두었습니다. Ctrl+C로 복사하세요.';
+      }
+    }
+    async function copyRich() {
+      render();
+      try {
+        const blobHtml = new Blob([source.value], { type: 'text/html' });
+        const blobText = new Blob([rendered.innerText], { type: 'text/plain' });
+        await navigator.clipboard.write([new ClipboardItem({ 'text/html': blobHtml, 'text/plain': blobText })]);
+        status.textContent = '리치 텍스트를 복사했습니다. 티스토리 편집기 일반 모드 테스트용입니다.';
+      } catch (error) {
+        status.textContent = '이 브라우저는 리치 텍스트 복사를 지원하지 않습니다. HTML 복사를 사용하세요.';
+      }
+    }
+    document.getElementById('copyHtml').addEventListener('click', copyHtml);
+    document.getElementById('copyRich').addEventListener('click', copyRich);
+    document.getElementById('selectHtml').addEventListener('click', () => { selectSource(); status.textContent = '본문 HTML을 선택했습니다. Ctrl+C로 복사하세요.'; });
+    source.addEventListener('input', render);
+    render();
+  </script>
+</body>
+</html>

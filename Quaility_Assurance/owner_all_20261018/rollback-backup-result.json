@@ -1,0 +1,11 @@
+{
+  "status": "PASS",
+  "channel": "owner-rollback-20261019-005230",
+  "sourceLiveVersion": "projects/escape-zombie-school/sites/escape-zombie-school/versions/f57cc4e5eeac71c3",
+  "liveUnchanged": true,
+  "backupVersion": "projects/escape-zombie-school/sites/escape-zombie-school/versions/f57cc4e5eeac71c3",
+  "files": 785,
+  "graphAndConfigExact": true,
+  "url": "https://escape-zombie-school--owner-rollback-20261019-005230-tima8r1e.web.app",
+  "at": "2026-10-18T15:53:02.067Z"
+}

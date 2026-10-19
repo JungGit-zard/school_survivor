@@ -1,0 +1,35 @@
+{
+  "started_at": "2026-10-18T15:32:08.046709+00:00",
+  "command": [
+    "npm.cmd",
+    "test",
+    "--",
+    "src/components/Enemies.lowDensityAllStages.test.jsx",
+    "src/lib/lowDensityReinforcement.test.js",
+    "src/lib/lowDensityReinforcement.independent.test.js",
+    "src/components/Enemies.stage5.test.jsx",
+    "src/lib/expansionIntegration.test.js",
+    "src/lib/expansionGameplay.test.js",
+    "--maxWorkers=1",
+    "--no-file-parallelism",
+    "--pool=threads",
+    "--testTimeout=60000",
+    "--hookTimeout=60000",
+    "--reporter=default",
+    "--reporter=json",
+    "--outputFile.json=../../Quaility_Assurance/owner_all_20261018/closure-population-green.json"
+  ],
+  "files": [
+    "src/components/Enemies.lowDensityAllStages.test.jsx",
+    "src/lib/lowDensityReinforcement.test.js",
+    "src/lib/lowDensityReinforcement.independent.test.js",
+    "src/components/Enemies.stage5.test.jsx",
+    "src/lib/expansionIntegration.test.js",
+    "src/lib/expansionGameplay.test.js"
+  ],
+  "status": "EXITED",
+  "notes": "Normal npm pretest guards retained; assertions unchanged; threads single-worker avoids previous forks startup failure.",
+  "pid": 6556,
+  "exit_code": 0,
+  "finished_at": "2026-10-18T15:32:17.040972+00:00"
+}

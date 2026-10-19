@@ -1,0 +1,252 @@
+{
+  "Developer/prototypes/player_wholebody_anatomy_t_efe49b7c/blender_refine_to_references.py": {
+    "commit": "234d461ee787bb83ca6604ca99aec11dfc74d669",
+    "sha256": "d719341dd6ac24f02796f4ed872c9f793ccf1039c62fca5b26c1933328cbd4b4",
+    "category": "completed-history-archive-not-current-runtime"
+  },
+  "Developer/prototypes/player_wholebody_anatomy_t_efe49b7c/build_refined_viewer.py": {
+    "commit": "234d461ee787bb83ca6604ca99aec11dfc74d669",
+    "sha256": "cd3a90e3e90dde585fae630f6ad4107c35160f9232ed68432f841dec0826b9f4",
+    "category": "completed-history-archive-not-current-runtime"
+  },
+  "Developer/prototypes/player_wholebody_anatomy_t_efe49b7c/chrome_refined_qa.mjs": {
+    "commit": "234d461ee787bb83ca6604ca99aec11dfc74d669",
+    "sha256": "33d6d6aad17048931561098a2b610614906de266d8a185d5c7eede66bb5b5732",
+    "category": "completed-history-archive-not-current-runtime"
+  },
+  "Developer/prototypes/player_wholebody_anatomy_t_efe49b7c/verify_lower_face_geometry_identity.py": {
+    "commit": "234d461ee787bb83ca6604ca99aec11dfc74d669",
+    "sha256": "8aa3fc9e4144bbed43289125f4593f1b7d7e99a42b046657e1b7aa07e3876540",
+    "category": "completed-history-archive-not-current-runtime"
+  },
+  "Developer/prototypes/player_wholebody_anatomy_t_efe49b7c/verify_refined_glb.py": {
+    "commit": "234d461ee787bb83ca6604ca99aec11dfc74d669",
+    "sha256": "cc25e796d49dc7deae2c2835b0d3aca80e6bbdb18cd7437dfc584f67104936ab",
+    "category": "completed-history-archive-not-current-runtime"
+  },
+  "Graphic_designer/game_resource_library/source-art/player_wholebody_refined_t_efe49b7c/PLAYER_wholebody_refined_t_efe49b7c.blend": {
+    "commit": "234d461ee787bb83ca6604ca99aec11dfc74d669",
+    "sha256": "3e91d59953b7e6b088857cef4189555fe5e0118e4e7815c9f7cc6d77032abf26",
+    "category": "completed-history-archive-not-current-runtime"
+  },
+  "Graphic_designer/game_resource_library/source-art/player_wholebody_refined_t_efe49b7c/PLAYER_wholebody_refined_t_efe49b7c.glb": {
+    "commit": "234d461ee787bb83ca6604ca99aec11dfc74d669",
+    "sha256": "a341578580d0e2afbefd7a673a8b32cff3a5d0c6ad2119f2d9a230e3df668f7d",
+    "category": "completed-history-archive-not-current-runtime"
+  },
+  "Graphic_designer/game_resource_library/source-art/player_wholebody_refined_t_efe49b7c/PLAYER_wholebody_refined_t_efe49b7c_standalone.html": {
+    "commit": "234d461ee787bb83ca6604ca99aec11dfc74d669",
+    "sha256": "835897ba584e3d38c3538d3f7487224a0937d056789fd4ddc5acf9ab54fa9ce0",
+    "category": "completed-history-archive-not-current-runtime"
+  },
+  "Graphic_designer/game_resource_library/source-art/player_wholebody_refined_t_efe49b7c/README.md": {
+    "commit": "234d461ee787bb83ca6604ca99aec11dfc74d669",
+    "sha256": "c1e7a2297904fc6b7146b7325093685050728f0b2540e497d16d6661832cfdf1",
+    "category": "completed-history-archive-not-current-runtime"
+  },
+  "Quaility_Assurance/player_wholebody_refined_t_efe49b7c/blender_rebuild_report.json": {
+    "commit": "234d461ee787bb83ca6604ca99aec11dfc74d669",
+    "sha256": "249f6174c0514c9becc3218daa26b219b1de1b412f0651b16458c369f37bf1aa",
+    "category": "completed-history-archive-not-current-runtime"
+  },
+  "Quaility_Assurance/player_wholebody_refined_t_efe49b7c/chrome/after_threequarter_outline_6px.png": {
+    "commit": "234d461ee787bb83ca6604ca99aec11dfc74d669",
+    "sha256": "b0a6c9bfd53704c1f940988d95f439f878fec86ca3c23a8c32f8afcb95694847",
+    "category": "completed-history-archive-not-current-runtime"
+  },
+  "Quaility_Assurance/player_wholebody_refined_t_efe49b7c/outline_6px_check.json": {
+    "commit": "234d461ee787bb83ca6604ca99aec11dfc74d669",
+    "sha256": "279f80052c25a82d8a7461f99447a1ee5ecdf34d72ea8aa5c4180a478002ac84",
+    "category": "completed-history-archive-not-current-runtime"
+  },
+  "Quaility_Assurance/player_wholebody_refined_t_efe49b7c/viewer_build.json": {
+    "commit": "234d461ee787bb83ca6604ca99aec11dfc74d669",
+    "sha256": "56ebf93bed4ff3c0af1e876cea1f134a02a1da853e5ed5ed12967095fd5b3a73",
+    "category": "completed-history-archive-not-current-runtime"
+  },
+  "Graphic_designer/blog_tistory_20261011/preview.html": {
+    "commit": "776fad6e623356cac66cd8c3cf4a86c924121d5e",
+    "sha256": "3dfb6697ff158895f94e1e955d6274fe7adcf6bdddbc1e4bb7cf1f7bb17ef73b",
+    "category": "completed-history-archive-not-current-runtime"
+  },
+  "Graphic_designer/blog_tistory_20261011/tistory_body.html": {
+    "commit": "776fad6e623356cac66cd8c3cf4a86c924121d5e",
+    "sha256": "9bea891951a84f108bbb1366ca3b007582b2047a1fc4d96c938cc944545443a3",
+    "category": "completed-history-archive-not-current-runtime"
+  },
+  "Graphic_designer/blog_tistory_20261011/title.txt": {
+    "commit": "776fad6e623356cac66cd8c3cf4a86c924121d5e",
+    "sha256": "9b0224dfb1b691a1accb81650b92bc89823ffa8cc1f4e31da33a52ab83bbe6db",
+    "category": "completed-history-archive-not-current-runtime"
+  },
+  "Quaility_Assurance/bgm_release_full_test_20261005.md": {
+    "commit": "b28a72faf2d969967cd2a984fa594d8ab9778022",
+    "sha256": "4d2693e19973d9f4006eacafd991d8da2688f3329fd5b2dda584b3fce432dbc4",
+    "category": "completed-history-archive-not-current-runtime"
+  },
+  "Graphic_designer/rosari_room_t_82a8198c.md": {
+    "commit": "15cb067c304665547076e52c1cf80af40ef4b28b",
+    "sha256": "5b689c3a0a607eea4f858222d9ac87653f5fa75d70debd4469efd7909f2acbd2",
+    "category": "completed-history-archive-not-current-runtime"
+  },
+  "Quaility_Assurance/t_82a8198c/review.md": {
+    "commit": "15cb067c304665547076e52c1cf80af40ef4b28b",
+    "sha256": "0e8b4680d236323267de945656dc6009be4062508159cc8a9123ba8a64c3535a",
+    "category": "completed-history-archive-not-current-runtime"
+  },
+  "Quaility_Assurance/t_82a8198c/room-desktop.png": {
+    "commit": "15cb067c304665547076e52c1cf80af40ef4b28b",
+    "sha256": "84cdcd854430e49159e6f676a5f29abf4d228a7b45fb02f164db3c91c879587b",
+    "category": "completed-history-archive-not-current-runtime"
+  },
+  "Quaility_Assurance/t_82a8198c/room-mobile.png": {
+    "commit": "15cb067c304665547076e52c1cf80af40ef4b28b",
+    "sha256": "e6a77cbb7ac1acf3a2b2c61295968356f0c8da9eaaf0d93585d376c8e9d1fa61",
+    "category": "completed-history-archive-not-current-runtime"
+  },
+  "Developer/r3f_prototype/android/build.gradle": {
+    "commit": "d48732c8 + cc709351",
+    "sha256": "46ade7db7afeb8049ccea59fce83095dca736ceb8c9acd79cc944e988c3357d9",
+    "category": "reviewed-exact-source-integration-no-build-no-deploy"
+  },
+  "Developer/r3f_prototype/android/app/build.gradle": {
+    "commit": "d48732c8 + cc709351",
+    "sha256": "1e2b38eaa6febe71728b88cd49e96a0965849dbeb600657dfecf43a4b9f67b52",
+    "category": "reviewed-exact-source-integration-no-build-no-deploy"
+  },
+  "Developer/android_firebase_analytics_module_t_023cea87_2026-10-11.md": {
+    "commit": "d48732c8",
+    "sha256": "ce34b5f26af78b3b0f9fb147aee95d4317ad409c5d5578e5699ada4b8320874a",
+    "category": "existing-compile-build-history-not-new-execution"
+  },
+  "Developer/구현기록/빌드배포/aab_build_v69_2026-10-11.md": {
+    "commit": "cc709351",
+    "sha256": "dfed4bd8d4ec020ab29efcf864b1665bd41e18480bbc817018126584b8e2953f",
+    "category": "existing-compile-build-history-not-new-execution"
+  },
+  "Quaility_Assurance/owner_all_20261018/commit-push-result.json": {
+    "source": "existing owner release evidence",
+    "sha256": "f055c64f9afab8aad58732d051be4364117901722d8a07d65de7d44df601e5d7",
+    "category": "historical-execution-receipt-not-new-run"
+  },
+  "Quaility_Assurance/owner_all_20261018/publication-result.json": {
+    "source": "existing owner release evidence",
+    "sha256": "1e232e2e0279ba97f6f2c8b1083443ddbe8093463e2ed5d04d7c2d9b29a8d662",
+    "category": "historical-execution-receipt-not-new-run"
+  },
+  "Quaility_Assurance/owner_all_20261018/rollback-backup-result.json": {
+    "source": "existing owner release evidence",
+    "sha256": "d6b8b1f433c6e47e955b86b79226508e0a80d5ae1a808e616ced602bf451a874",
+    "category": "historical-execution-receipt-not-new-run"
+  },
+  "Quaility_Assurance/owner_all_20261018/live-execution-verification.json": {
+    "source": "existing owner release evidence",
+    "sha256": "b88f749b4ce83e2de72c3800e1e045a6552ac71eab4b1cfc89371798ad612d53",
+    "category": "historical-execution-receipt-not-new-run"
+  },
+  "Quaility_Assurance/owner_all_20261018/live-current-comic-verification.json": {
+    "source": "existing owner release evidence",
+    "sha256": "ebb2e84c1a5e465d64e290267e8d999640eca569f31df6314579bf4b3e96a6b0",
+    "category": "historical-execution-receipt-not-new-run"
+  },
+  "Quaility_Assurance/owner_all_20261018/live-home.png": {
+    "source": "existing owner release evidence",
+    "sha256": "43f24d77c6cd69675284b06a6316baa3e3d0cf834de4d0d6c89e363564df3d94",
+    "category": "historical-execution-receipt-not-new-run"
+  },
+  "Quaility_Assurance/owner_all_20261018/live-room-portrait.png": {
+    "source": "existing owner release evidence",
+    "sha256": "4ec69918433295ad086e4da59c0484eabdffec1bb2598860df5dfe73cdca28b9",
+    "category": "historical-execution-receipt-not-new-run"
+  },
+  "Quaility_Assurance/owner_all_20261018/live-room-landscape.png": {
+    "source": "existing owner release evidence",
+    "sha256": "732d545893b3f23a9bcce3a7afd9a3f702086c9e69303e4e8ce040ccdeb2a5e0",
+    "category": "historical-execution-receipt-not-new-run"
+  },
+  "Quaility_Assurance/owner_all_20261018/live-title-return.png": {
+    "source": "existing owner release evidence",
+    "sha256": "1407042573316a6c85878dbbad508fac9bb06d48a4ad116e1c31dcdec10f7ebf",
+    "category": "historical-execution-receipt-not-new-run"
+  },
+  "Quaility_Assurance/owner_all_20261018/live-landing.png": {
+    "source": "existing owner release evidence",
+    "sha256": "5ca99716c9c3f063b3bdfdc5bd2badd036f5db6ed5c4fe7930d3f954f9f1c857",
+    "category": "historical-execution-receipt-not-new-run"
+  },
+  "Quaility_Assurance/owner_all_20261018/closure-outline-measurement.json": {
+    "source": "existing owner release evidence",
+    "sha256": "d4a4a3c694b117bb1d391b0b8c4a8591d473f60c9cfb872e8e317a14e4aed286",
+    "category": "historical-execution-receipt-not-new-run"
+  },
+  "Quaility_Assurance/owner_all_20261018/closure-room-load-error.png": {
+    "source": "existing owner release evidence",
+    "sha256": "4ac220cc10d161659f62c84034fe56d19ef302b2e00fa8f67fe0c1d80b2198c5",
+    "category": "historical-execution-receipt-not-new-run"
+  },
+  "Quaility_Assurance/owner_all_20261018/closure-room-after-retry.png": {
+    "source": "existing owner release evidence",
+    "sha256": "7187949a9178ea61aff41a91e8d3502de4ee408beacb1ed0b9becd351b242f2a",
+    "category": "historical-execution-receipt-not-new-run"
+  },
+  "Quaility_Assurance/owner_all_20261018/closure-quest-long-closure.json": {
+    "source": "existing owner release evidence",
+    "sha256": "55758e3b831425daaa0ac6ca5fa05ceb6e986cc78be9be29e06fb32a8a45dd5c",
+    "category": "historical-execution-receipt-not-new-run"
+  },
+  "Quaility_Assurance/owner_all_20261018/closure-quest-long-closed.png": {
+    "source": "existing owner release evidence",
+    "sha256": "522d3ea76780e06e25d4778b500347a830364a6ae967319f20e12988eadc2d08",
+    "category": "historical-execution-receipt-not-new-run"
+  },
+  "Quaility_Assurance/owner_all_20261018/closure-vending-checks.json": {
+    "source": "existing owner release evidence",
+    "sha256": "66df2c3a2883953639cad165e7f3555147f262e488ff0d4b8d36a2a70c02c952",
+    "category": "historical-execution-receipt-not-new-run"
+  },
+  "Quaility_Assurance/owner_all_20261018/closure-vending-stage5-purchased.png": {
+    "source": "existing owner release evidence",
+    "sha256": "586c885182394029012e2a9ded730ca056c8001c1bd8a4cb29a3302344a22819",
+    "category": "historical-execution-receipt-not-new-run"
+  },
+  "Quaility_Assurance/owner_all_20261018/population-final-caller.json": {
+    "source": "existing owner release evidence",
+    "sha256": "0ac8b8e050e36b707e5e002ad1351488d35fe586f59bbdd558a7131a63a65306",
+    "category": "historical-execution-receipt-not-new-run"
+  },
+  "Quaility_Assurance/owner_all_20261018/population-final-tests.json": {
+    "source": "existing owner release evidence",
+    "sha256": "b04fd6f87f566577bb85d88d5ffd60260305a81530f0558d4dddc6ff8afaa8a4",
+    "category": "historical-execution-receipt-not-new-run"
+  },
+  "Quaility_Assurance/owner_all_20261018/population-final-entry.json": {
+    "source": "existing owner release evidence",
+    "sha256": "7f1ba3e0fb159f4970895d0684ae50a08452dc691921bfae427a50f22338e14d",
+    "category": "historical-execution-receipt-not-new-run"
+  },
+  "Quaility_Assurance/owner_all_20261018/closure-final-tests-exit.json": {
+    "source": "existing owner release evidence",
+    "sha256": "a7459649e322e24c595dd87bd96b418fef1d6506c12859a3928f99d9f899fab0",
+    "category": "historical-execution-receipt-not-new-run"
+  },
+  "Quaility_Assurance/owner_all_20261018/closure-population-green-exit.json": {
+    "source": "existing owner release evidence",
+    "sha256": "c9451a09a5ef81a48adbe9ce65cbd62109078963ed7c4dd3ec8081abe29f6387",
+    "category": "historical-execution-receipt-not-new-run"
+  },
+  "Quaility_Assurance/owner_all_20261018/closure-population-red-exit.json": {
+    "source": "existing owner release evidence",
+    "sha256": "c49607e01ca11d3cc8598e1e34a7ae4aa719c79fc7e43891d78210798d19b9e7",
+    "category": "historical-execution-receipt-not-new-run"
+  },
+  "Quaility_Assurance/owner_all_20261018/live-audition-native-state.json": {
+    "source": "existing owner release evidence",
+    "sha256": "538016f8d16261253f2d72dc19dac0937b6cb20b47fb88d519ed78f2d525550c",
+    "category": "historical-execution-receipt-not-new-run"
+  },
+  "Quaility_Assurance/owner_all_20261018/live-audition-errors.json": {
+    "source": "existing owner release evidence",
+    "sha256": "86f7d26de02aa87a800a522f11b198ee3128c02a7ff1dad8507169472aff92f3",
+    "category": "historical-execution-receipt-not-new-run"
+  }
+}
