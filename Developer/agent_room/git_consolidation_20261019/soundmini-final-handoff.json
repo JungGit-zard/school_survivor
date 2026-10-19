@@ -1,0 +1,184 @@
+{
+  "schemaVersion": 1,
+  "status": "FINAL_SOURCE_OWNER_HANDOFF",
+  "scope": "Matilda-only; Git consolidation decision aid. No deployment, generation, or READY315 overwrite.",
+  "sourceSelection": {
+    "preferencesExport": {
+      "path": "C:\\Users\\admin\\Downloads\\sfx-audition-preferences-20261016 (1).json",
+      "sha256": "0dd4ae2ec3da08acd4c07b2a6a79a717af718b4743782e7c77ceae6133bd7b32"
+    },
+    "selections": {
+      "matildaSpawn": "C",
+      "matildaDeath": "C",
+      "matildaWarningTick": "C",
+      "matildaDash": "original",
+      "matildaLaugh": "original",
+      "matildaCountdownEnd": "original",
+      "dialogue-matilda": "A"
+    }
+  },
+  "runtimeSelections": [
+    {
+      "logicalId": "matildaSpawn",
+      "userSelection": "C",
+      "runtimeFiles": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/matildaSpawn.ogg",
+          "bytes": 7133,
+          "sha256": "e5a19f7955f34680817304d120cc1247fea58718ed675dfebc0cfcc68ac134af"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/matildaSpawn.mp3",
+          "bytes": 7149,
+          "sha256": "4eac667f37d6e2952c025c5518c7ec91b90a4cf38d153537a7888f263a4d663f"
+        }
+      ],
+      "selectedAuditionSource": {
+        "path": "Developer/r3f_prototype/public/sfx/audition-20261016/matildaSpawn-C.wav",
+        "bytes": 70440,
+        "sha256": "4b0583c5be7eac52768ed5a2f8633015e43ec34015a939a44511cfd1d897dcd9"
+      },
+      "provenance": "project-generated procedural audio; user-selected through supplied audition preferences export"
+    },
+    {
+      "logicalId": "matildaDeath",
+      "userSelection": "C",
+      "runtimeFiles": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/matildaDeath.ogg",
+          "bytes": 6599,
+          "sha256": "f345745d2be112f16c8be6b875b27e94fd68eded93814659ef02be3074361b98"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/matildaDeath.mp3",
+          "bytes": 6104,
+          "sha256": "3d4021d55d80693a6a7aa924be079b1597725702ec3b8ccb790d0ad1f1b478ae"
+        }
+      ],
+      "selectedAuditionSource": {
+        "path": "Developer/r3f_prototype/public/sfx/audition-20261016/matildaDeath-C.wav",
+        "bytes": 58168,
+        "sha256": "cfb91ce9a53389a34fc9c9970306c92ba875bd81481181872602ef80f59d587f"
+      },
+      "provenance": "project-generated procedural audio; user-selected through supplied audition preferences export"
+    },
+    {
+      "logicalId": "matildaWarningTick",
+      "userSelection": "C",
+      "runtimeFiles": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/events/matildaWarningTick.ogg",
+          "bytes": 4460,
+          "sha256": "0bb56c645ad13da9e721d292f4c64e3b92928c6db9b730da3c85b420ff0b7cd3"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/events/matildaWarningTick.mp3",
+          "bytes": 2551,
+          "sha256": "f0ffdfbb952b85fba284da02503d7d1f141bdc10d0a31b03f5ebff2a0997ed8d"
+        }
+      ],
+      "selectedAuditionSource": {
+        "path": "Developer/r3f_prototype/public/sfx/audition-20261016/matildaWarningTick-C.wav",
+        "bytes": 19776,
+        "sha256": "4244865f4353e5aac9475b1bd8950cf97905c135d27b822c6b174cbd8156fb05"
+      },
+      "provenance": "project-generated procedural audio; user-selected through supplied audition preferences export"
+    },
+    {
+      "logicalId": "matildaLaugh",
+      "userSelection": "original",
+      "runtimeFiles": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/matildaLaugh.ogg",
+          "bytes": 5709,
+          "sha256": "dab2f2a8aaeb3f946d9434adb34f456251aaf1d58df2fc23267007ae1e2289fc"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/matildaLaugh.mp3",
+          "bytes": 4641,
+          "sha256": "322ef0812fd87cda83a628751bda7d49966a4721f8a9b84030a2e3f1be9d4fbe"
+        }
+      ],
+      "provenance": "project-generated procedural audio; user-selected through supplied audition preferences export"
+    }
+  ],
+  "dialogueMatilda": {
+    "userSelection": "A",
+    "runtimePath": "Developer/r3f_prototype/src/lib/dialogueVoice.js",
+    "bytes": 9237,
+    "sha256": "f5cdc6229683a2569321e70e67111858cfe9e7740526c8d3b56d2dabb0006321",
+    "selectedRuntimeProfile": {
+      "waveform": "triangle",
+      "overtoneWaveform": "square",
+      "overtoneGain": 0.25,
+      "baseFrequency": 610,
+      "semitonePattern": [
+        0,
+        4,
+        2,
+        5,
+        -2,
+        0,
+        -1,
+        2
+      ],
+      "detuneCents": 20,
+      "glyphMs": 76,
+      "durationMs": 64,
+      "gain": 0.043,
+      "attackMs": 2,
+      "releaseMs": 16,
+      "filterType": "bandpass",
+      "filterFrequency": 1800,
+      "filterQ": 1.4,
+      "punctuationPauseMs": 120,
+      "sentencePauseMs": 185,
+      "vibratoRate": 10,
+      "vibratoDepthCents": 18
+    },
+    "provenance": "This is the runtime mapping actually applied after the user selected A. The old audition text describing A as 52 ms is candidate-copy only and must not override this selected runtime profile."
+  },
+  "originalSelectionResolution": {
+    "matildaLaugh": {
+      "selectedRuntimeFiles": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/matildaLaugh.ogg",
+          "bytes": 5709,
+          "sha256": "dab2f2a8aaeb3f946d9434adb34f456251aaf1d58df2fc23267007ae1e2289fc"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/matildaLaugh.mp3",
+          "bytes": 4641,
+          "sha256": "322ef0812fd87cda83a628751bda7d49966a4721f8a9b84030a2e3f1be9d4fbe"
+        }
+      ],
+      "meaning": "The user selected original after the post-charge cue had already been refreshed. Therefore original refers to the then-current audition runtime bytes above, not the older READY315 pair.",
+      "supersededReady315": {
+        "oggSha256": "a1741cf6537d37e45bcf231c950823bb6c9b0786316b1861a721577c4059020d",
+        "mp3Sha256": "129ad10629364be6203c7598b59b1384db80ddd11f07145140b4a982cf33eccc"
+      }
+    }
+  },
+  "explicitExclusions": [
+    {
+      "path": "Developer/r3f_prototype/scripts/generate_voice_sfx.mjs",
+      "bytes": 16976,
+      "sha256": "314003256556d2b45f9c87ff3518ec07f15a4c197b348c6b7722155046d2527a",
+      "reason": "EXCLUDE from Matilda consolidation. Its matildaSpawn recipe is the superseded experimental five-beat O-ho-ho-ho-ho generator and does not reproduce user-selected Spawn C runtime bytes."
+    },
+    {
+      "path": "Developer/agent_room/audio_asset_provenance_manifest_2026-07-30.json",
+      "reason": "Do not stage wholesale: it is shared and contains unrelated entries. If included, cherry-pick only the three Matilda C runtime asset entries after comparing against this handoff."
+    }
+  ],
+  "unchangedBySelection": [
+    "matildaDash",
+    "matildaCountdownEnd"
+  ],
+  "evidence": [
+    "Developer/agent_room/audio_ship_20261016/soundmini/matilda-stage-cues-20261018.md",
+    "Developer/agent_room/audio_ship_20261016/soundmini/source-reason-sha.json",
+    "Developer/agent_room/git_consolidation_20261019/source-owner-questions.md"
+  ],
+  "integrationInstruction": "Integrate only runtime asset files and dialogueVoice.js listed above. Do not import the generator. Keep READY315 otherwise unchanged."
+}

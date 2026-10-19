@@ -1,0 +1,26 @@
+{
+  "command": [
+    "npm.cmd",
+    "test",
+    "--",
+    "src/lib/dialogueVoice.matildaSelection.test.js",
+    "src/lib/dialogueVoice.test.js",
+    "src/lib/dialogueVoice.lifecycle.test.js",
+    "src/lib/sfxRegistry.test.js",
+    "src/components/HUD.dialogueVoice.test.js",
+    "src/components/EnemyVisual.test.js",
+    "--maxWorkers=1",
+    "--no-file-parallelism",
+    "--pool=threads",
+    "--testTimeout=60000",
+    "--hookTimeout=60000",
+    "--reporter=default",
+    "--reporter=json",
+    "--outputFile.json=../../Quaility_Assurance/git_consolidation_20261019/matilda-green.json"
+  ],
+  "startedAt": "2026-10-19T01:07:07.465581+00:00",
+  "guardBypass": false,
+  "pid": 21744,
+  "exitCode": 0,
+  "finishedAt": "2026-10-19T01:07:14.303345+00:00"
+}

@@ -1,0 +1,21 @@
+{
+  "command": [
+    "npm.cmd",
+    "test",
+    "--",
+    "src/lib/dialogueVoice.matildaSelection.test.js",
+    "--maxWorkers=1",
+    "--no-file-parallelism",
+    "--pool=threads",
+    "--testTimeout=60000",
+    "--hookTimeout=60000",
+    "--reporter=default",
+    "--reporter=json",
+    "--outputFile.json=../../Quaility_Assurance/git_consolidation_20261019/matilda-red.json"
+  ],
+  "startedAt": "2026-10-19T01:05:59.192249+00:00",
+  "guardBypass": false,
+  "pid": 30880,
+  "exitCode": 1,
+  "finishedAt": "2026-10-19T01:06:03.706280+00:00"
+}

@@ -1088,18 +1088,18 @@
       "paths": [
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/matildaSpawn.ogg",
-          "bytes": 6302,
-          "sha256": "0d95bd2df87706f5a835932998005d65df2d398dd6dbee2c9693724da68e88a8"
+          "bytes": 7133,
+          "sha256": "e5a19f7955f34680817304d120cc1247fea58718ed675dfebc0cfcc68ac134af"
         },
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/matildaSpawn.mp3",
-          "bytes": 5686,
-          "sha256": "c1c97931a929fc8e1779fdddefa674ebf17be06d0b76047806ec2ee706040888"
+          "bytes": 7149,
+          "sha256": "4eac667f37d6e2952c025c5518c7ec91b90a4cf38d153537a7888f263a4d663f"
         }
       ],
       "provenanceType": "generated",
-      "source": "scripts/generate_zombie_death_voices.mjs / scripts/generate_voice_sfx.mjs (project procedural source-filter voice synthesis; OGG/MP3 conversion via @ffmpeg-installer/ffmpeg)",
-      "notes": "Project-generated voice-like procedural SFX; no external samples or third-party audio assets used.",
+      "source": "soundmini final source-owner handoff: Developer/agent_room/git_consolidation_20261019/soundmini-final-handoff.json",
+      "notes": "User-selected C; Exact supplied audition selection. Project-generated procedural audio; no new generation. Supersession: matilda-supersession.json; experimental generator excluded.",
       "licenseEvidence": "project-generated-procedural"
     },
     {
@@ -1128,18 +1128,18 @@
       "paths": [
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/matildaLaugh.ogg",
-          "bytes": 6909,
-          "sha256": "a1741cf6537d37e45bcf231c950823bb6c9b0786316b1861a721577c4059020d"
+          "bytes": 5709,
+          "sha256": "dab2f2a8aaeb3f946d9434adb34f456251aaf1d58df2fc23267007ae1e2289fc"
         },
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/matildaLaugh.mp3",
-          "bytes": 6313,
-          "sha256": "129ad10629364be6203c7598b59b1384db80ddd11f07145140b4a982cf33eccc"
+          "bytes": 4641,
+          "sha256": "322ef0812fd87cda83a628751bda7d49966a4721f8a9b84030a2e3f1be9d4fbe"
         }
       ],
       "provenanceType": "generated",
-      "source": "scripts/generate_zombie_death_voices.mjs / scripts/generate_voice_sfx.mjs (project procedural source-filter voice synthesis; OGG/MP3 conversion via @ffmpeg-installer/ffmpeg)",
-      "notes": "Project-generated voice-like procedural SFX; no external samples or third-party audio assets used.",
+      "source": "soundmini final source-owner handoff: Developer/agent_room/git_consolidation_20261019/soundmini-final-handoff.json",
+      "notes": "User-selected original; post-charge refreshed original, not old READY315 bytes. Project-generated procedural audio; no new generation. Supersession: matilda-supersession.json; experimental generator excluded.",
       "licenseEvidence": "project-generated-procedural"
     },
     {
@@ -1268,18 +1268,18 @@
       "paths": [
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/matildaDeath.ogg",
-          "bytes": 5766,
-          "sha256": "4d4c14861632444c75a96b9e8b05a3a3a0010a477276621b87c21e0459361d0b"
+          "bytes": 6599,
+          "sha256": "f345745d2be112f16c8be6b875b27e94fd68eded93814659ef02be3074361b98"
         },
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/matildaDeath.mp3",
-          "bytes": 4850,
-          "sha256": "d366672c86aa0f5411a993a1b814607f0fa0cac928edb0558e10bd20c6f9b169"
+          "bytes": 6104,
+          "sha256": "3d4021d55d80693a6a7aa924be079b1597725702ec3b8ccb790d0ad1f1b478ae"
         }
       ],
       "provenanceType": "generated",
-      "source": "scripts/generate_zombie_death_voices.mjs / scripts/generate_voice_sfx.mjs (project procedural source-filter voice synthesis; OGG/MP3 conversion via @ffmpeg-installer/ffmpeg)",
-      "notes": "Project-generated voice-like procedural SFX; no external samples or third-party audio assets used.",
+      "source": "soundmini final source-owner handoff: Developer/agent_room/git_consolidation_20261019/soundmini-final-handoff.json",
+      "notes": "User-selected C; Exact supplied audition selection. Project-generated procedural audio; no new generation. Supersession: matilda-supersession.json; experimental generator excluded.",
       "licenseEvidence": "project-generated-procedural"
     },
     {
@@ -1608,18 +1608,18 @@
       "paths": [
         {
           "path": "Developer/r3f_prototype/public/sfx/events/matildaWarningTick.ogg",
-          "bytes": 6245,
-          "sha256": "3a4ecf3b714f50a26378b535a80ee1007807cf4339536699c7bb721587694edf"
+          "bytes": 4460,
+          "sha256": "0bb56c645ad13da9e721d292f4c64e3b92928c6db9b730da3c85b420ff0b7cd3"
         },
         {
           "path": "Developer/r3f_prototype/public/sfx/events/matildaWarningTick.mp3",
-          "bytes": 2471,
-          "sha256": "0862a18b73151773e7390013ac01f881b8ff090fd64085767706bf2f28113c9b"
+          "bytes": 2551,
+          "sha256": "f0ffdfbb952b85fba284da02503d7d1f141bdc10d0a31b03f5ebff2a0997ed8d"
         }
       ],
       "provenanceType": "generated",
-      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
-      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "source": "soundmini final source-owner handoff: Developer/agent_room/git_consolidation_20261019/soundmini-final-handoff.json",
+      "notes": "User-selected C; Exact supplied audition selection. Project-generated procedural audio; no new generation. Supersession: matilda-supersession.json; experimental generator excluded.",
       "licenseEvidence": "project-generated-procedural"
     },
     {
