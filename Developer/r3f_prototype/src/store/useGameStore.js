@@ -25,7 +25,7 @@ import {
 } from '../lib/playerRecords.js'
 import { evaluateUnlocks, isStarter, WEAPON_CATALOG } from '../lib/weaponCatalog.js'
 import { getAllUnlocked, setUnlocked as setWeaponUnlocked } from '../lib/weaponUnlocks.js'
-import { DEFAULT_STAGE_ID, getNextStageId, getStageConfig } from '../lib/stageConfig.js'
+import { DEFAULT_STAGE_ID, getNextStageId, getStageConfig, isStageUnlocked } from '../lib/stageConfig.js'
 import { getBossSpawnSec } from '../lib/burstEvents.js'
 import { getAdminBalanceConfig } from '../lib/adminConfig.js'
 import { vibrateFeedback } from '../lib/titleSettings.js'
@@ -104,6 +104,7 @@ function checkpointRun(state, phaseName = state.phase) {
     bossKills: state.runBossKills ?? 0,
     totalSurvivalSeconds: Math.floor(getRuntimeElapsedMs(state.elapsedMs) / 1000),
     [stage.clearRecordKey]: phaseName === 'cleared' || run.values?.[stage.clearRecordKey] === 1 ? 1 : 0,
+    [`${run.stageId}BossDefeats`]: state.bossDefeated || run.values?.[`${run.stageId}BossDefeats`] === 1 ? 1 : 0,
     stage1Survival180Runs: run.stageId === 'stage1' && state.elapsedMs >= 180000 ? 1 : 0,
     }
     run.best = { bestSurvivalSeconds: run.values.totalSurvivalSeconds, [stage.bestRecordKey]: run.values.totalSurvivalSeconds }
@@ -1395,8 +1396,9 @@ export const useGameStore = create(
     // 보스 처치 시 호출(Enemy.jsx). 마지막 생존 보스에서는 처치 사실과 징글만 기록한다.
     // 스테이지 클리어/런 종료는 하지 않으며, 점수 보너스는 포탈 클리어에서만 확정한다.
     // bossAliveCount=0 가드가 중복 기록과 징글을 막는다.
-    recordBossDefeat: () => {
+    recordBossDefeat: (bossType) => {
       const s = get()
+      if (bossType != null && bossType !== getStageConfig(s.currentStageId).bossType) return false
       if (s.phase !== 'playing' || s.bossAliveCount <= 0) return false
       const remaining = Math.max(0, s.bossAliveCount - 1)
       if (remaining > 0) {
@@ -1404,6 +1406,7 @@ export const useGameStore = create(
         return true
       }
       set({ bossAliveCount: 0, bossDefeated: true })
+      checkpointRun(get())
       emitSfx({ id: 'bossClearJingle' })
       return true
     },
@@ -1425,11 +1428,10 @@ export const useGameStore = create(
       const s = get()
       if (s.phase !== 'cleared' || !s.escapeResult) return false
       const nextStageId = getNextStageId(s.currentStageId)
-      if (!nextStageId) return false
+      if (!nextStageId || !isStageUnlocked(nextStageId, isFirebaseProgressHydrated() ? loadPlayerRecords() : {})) return false
       if (!await get().flushProgressBeforeTransition()) return false
       if (get().progressRunId !== s.progressRunId || get().phase !== 'cleared') return false
-      get().resetGame(nextStageId, { preserveQuestJourney: true, preserveContinuousScore: true })
-      return true
+      return get().resetGame(nextStageId, { preserveQuestJourney: true, preserveContinuousScore: true })
     },
 
     clearStageAndStartNext: () => get().continueToNextStage(),
@@ -1437,6 +1439,7 @@ export const useGameStore = create(
     // 게임 리셋. gameKey를 올려 Physics 트리를 새로 마운트한다.
     resetGame: (stageId = DEFAULT_STAGE_ID, { preserveQuestJourney = false, preserveContinuousScore = false } = {}) => {
       const nextStageId = getStageConfig(stageId).id
+      if (!isStageUnlocked(nextStageId, isFirebaseProgressHydrated() ? loadPlayerRecords() : {})) return false
       resetRuntimeRefs(getPlayerStartPosition(nextStageId))
       const progressReady = isFirebaseProgressHydrated()
       const progressRunId = globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`
@@ -1506,6 +1509,7 @@ export const useGameStore = create(
       void get().submitRunToRanking(useAuthStore.getState().user, {
         stageId: nextStageId, score: 0, stageScore: 0, timeMs: 0, globalTimeMs: 0, cleared: false, lastPlayedAt: Date.now(),
       })
+      return true
     },
   }))
 )

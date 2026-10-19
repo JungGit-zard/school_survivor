@@ -3,7 +3,7 @@ const ranking=vi.hoisted(()=>({submitRun:vi.fn(),registerRankingEntry:vi.fn()}))
 vi.mock('../lib/firebaseRanking.js',async original=>({...await original(),...ranking}))
 import { useGameStore } from './useGameStore.js'
 import { installProgressTransactionTestClient } from '../../test/progressTransactionClient.js'
-import { _resetFirebaseProgressForTests,_seedHydratedFirebaseProgressForTests,readFirebasePlayerProgress,buildCloudProgressSnapshot } from '../lib/firebaseProgress.js'
+import { _resetFirebaseProgressForTests,_seedHydratedFirebaseProgressForTests,readFirebasePlayerProgress,buildCloudProgressSnapshot,updateFirebasePlayerProgress } from '../lib/firebaseProgress.js'
 import { load } from '../lib/playerRecords.js'
 import { getStageConfig,isStageUnlocked,getNextStageId } from '../lib/stageConfig.js'
 import { enemyPool,enemySimulationRuntime } from '../lib/refs.js'
@@ -12,17 +12,19 @@ import { expansionAttackSnapshots } from '../lib/expansionAttackRuntime.js'
 import { getBossClearBonus,getRankingScore } from '../lib/rankingScorePolicy.js'
 beforeEach(()=>{
  _resetFirebaseProgressForTests()
- _seedHydratedFirebaseProgressForTests({uid:'expansion-offline-test'},{progress:{goldTotal:30,records:{stage5Clears:1}}})
+ _seedHydratedFirebaseProgressForTests({uid:'expansion-offline-test'},{progress:{goldTotal:30,records:{stage5BossDefeats:1}}})
  installProgressTransactionTestClient()
  ranking.submitRun.mockResolvedValue({written:[],skipped:[],failed:[]});ranking.registerRankingEntry.mockResolvedValue({written:[],skipped:[],failed:[]})
  useGameStore.getState().reloadPersistentProgress()
 })
 describe('new stage gameplay progression against offline-only progress fixture',()=>{
- it.each(Object.values(EXPANSION_STAGES))('$id selectable→boss→portal→own persisted keys and next stage (Stage5 remains terminal)',async stage=>{
+ it.each(Object.values(EXPANSION_STAGES))('$id selectable→boss→portal→own persisted keys and next stage (Stage10 terminal)',async stage=>{
   const store=()=>useGameStore.getState(),next=getNextStageId(stage.id)
-  expect(getNextStageId('stage5')).toBeNull()
+  expect(getNextStageId('stage5')).toBe('stage6')
+  updateFirebasePlayerProgress(p => {p.records[`stage${stage.order-1}BossDefeats`]=1})
   expect(isStageUnlocked(stage.id,{})).toBe(false)
-  expect(isStageUnlocked(stage.id,{[stage.unlockClearsKey]:1})).toBe(true)
+  expect(isStageUnlocked(stage.id,{[stage.unlockClearsKey]:1})).toBe(false)
+  expect(isStageUnlocked(stage.id,{[`stage${stage.order-1}BossDefeats`]:1})).toBe(true)
   store().resetGame(stage.id)
   expect(store()).toMatchObject({currentStageId:stage.id,phase:'playing',bossSpawnSec:150,bossDefeated:false,escapePortalActive:false})
   store().tickTime(150000);store().spawnBoss();expect(store().recordBossDefeat()).toBe(true)
@@ -52,6 +54,7 @@ describe('new stage gameplay progression against offline-only progress fixture',
   // Game's actual frame loop gates advancement on playing; publication is not a tick.
   store().publishRuntimeElapsedMs();expect(store().elapsedMs).toBe(elapsed)
   useGameStore.setState({phase:'playing'});store().tickTime(1000);expect(store().elapsedMs).toBe(elapsed+1000)
+  updateFirebasePlayerProgress(p => {p.records.stage6BossDefeats=1})
   store().resetGame('stage7');expect(expansionAttackSnapshots.size).toBe(0);expect(enemyPool.activeCount).toBe(0)
  })
 })

@@ -14,6 +14,7 @@ const TALK_BOOK_GIVER_ID = getStageQuestDefinitions('stage1')
 describe('quest game state', () => {
   beforeEach(() => {
     installProgressTransactionTestClient()
+    useGameStore.getState().resetGame('stage1')
     commitFirebaseStudioRuntime({ propPlacements: {} }, { revision: 0 })
     useGameStore.setState({
       currentStageId: 'stage1',
@@ -146,6 +147,8 @@ describe('quest game state', () => {
       currentStageId: 'stage1',
     })
 
+    useGameStore.getState().spawnBoss()
+    useGameStore.getState().recordBossDefeat()
     expect(useGameStore.getState().clearStage()).toBe(true)
     expect(await useGameStore.getState().continueToNextStage()).toBe(true)
     expect(useGameStore.getState().currentStageId).toBe('stage2')

@@ -176,7 +176,8 @@ describe('useGameStore cloud progress integration', () => {
     expect(useGameStore.getState().progressSaveWarning).toBe('save-failed')
   })
 
-  it('records and saves a minimal activity record when a stage starts', () => {
+  it('records and saves a minimal activity record when an unlocked stage starts', () => {
+    mockProgress.records.stage1BossDefeats=1
     useGameStore.getState().resetGame('stage2')
 
     expect(recordPlayActivity).toHaveBeenCalledWith('stage2')

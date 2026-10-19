@@ -86,7 +86,7 @@ describe('expansion lobby UI', () => {
     click(card(id))
     act(() => vi.advanceTimersByTime(1000))
     expect(onStartStage).not.toHaveBeenCalled()
-    act(() => updateFirebasePlayerProgress(p => ({ ...p, records: { ...p.records, [`stage${i + 5}Clears`]: 1 } })))
+    act(() => updateFirebasePlayerProgress(p => ({ ...p, records: { ...p.records, [`stage${i + 5}BossDefeats`]: 1 } })))
     // Existing Lobby refreshes records on progress readiness changes; preserve that contract.
     act(() => useAuthStore.setState({ progressStatus: 'loading' }))
     act(() => useAuthStore.setState({ progressStatus: 'ready' }))
@@ -111,4 +111,18 @@ describe('expansion lobby UI', () => {
       expect(entry(card(id)).disabled).toBe(true)
     }
   })
+})
+
+
+it.each([2,3,4,5,6,7,8,9,10])('normal UI stage %i ignores clear-only history and dev unlock prop, then accepts only its previous boss', n => {
+  act(() => updateFirebasePlayerProgress(p => {
+    for(let i=1;i<=10;i++) {p.records[`stage${i}Clears`]=999;p.records[`stage${i}BossDefeats`]=0}
+  }))
+  render({devAllStagesUnlocked:true})
+  for(let i=2;i<=10;i++) expect(entry(card(`stage${i}`)).disabled).toBe(true)
+  expect(entry(card('stage1')).disabled).toBe(false)
+  act(() => updateFirebasePlayerProgress(p => {p.records[`stage${n-1}BossDefeats`]=1}))
+  act(() => useAuthStore.setState({progressStatus:'loading'}))
+  act(() => useAuthStore.setState({progressStatus:'ready'}))
+  for(let i=2;i<=10;i++) expect(entry(card(`stage${i}`)).disabled).toBe(i!==n)
 })

@@ -1,3 +1,4 @@
+import { seedStageEntryForTests } from '../../test/progressTransactionClient.js'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 
 const ranking = vi.hoisted(() => ({ submitRun: vi.fn() }))
@@ -26,7 +27,7 @@ function seedProgressGold(goldTotal = 20) {
 function resetStageWithGold(stageId = 'stage1', goldTotal = 20) {
   seedProgressGold(goldTotal)
   installProgressTransactionTestClient()
-  useGameStore.getState().resetGame(stageId)
+  seedStageEntryForTests(stageId); useGameStore.getState().resetGame(stageId)
   useGameStore.setState({ goldTotal })
   ranking.submitRun.mockClear()
 }
@@ -164,7 +165,7 @@ describe('useGameStore stage vending purchase', () => {
     expect(useGameStore.getState().purchaseStageVendingItem('recoveryDrink').ok).toBe(true)
     expect(useGameStore.getState().stageVendingPurchasedItemIds).toEqual(['recoveryDrink'])
 
-    useGameStore.getState().resetGame('stage2')
+    seedStageEntryForTests('stage2'); useGameStore.getState().resetGame('stage2')
 
     expect(useGameStore.getState().currentStageId).toBe('stage2')
     expect(useGameStore.getState().stageVendingPurchasedItemIds).toEqual([])

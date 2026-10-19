@@ -51,6 +51,10 @@ const RECORD_KEYS = [
   'weaponMasterCount',
 ]
 
+// Read-only API projection; these keys never enter progress.records on the wire.
+const BOSS_RECORD_KEYS = Array.from({ length: 10 }, (_, i) => `stage${i + 1}BossDefeats`)
+const RECORD_KEY_SET = new Set(RECORD_KEYS)
+
 const SUPPORTED_LANGUAGES = new Set(['ko', 'en', 'ja'])
 const ZOMBIE_ENCOUNTER_TYPES = new Set(['E01', 'E02', 'E03', 'E04', 'E05', 'E06', 'RZL', 'RZC', 'B01', 'B02', 'B03', 'B04', 'RZT', 'RZG', 'E07', 'E08', 'E19', 'E20', 'E21', 'E22', 'E23', 'E24', 'E25', 'E26', 'E27', 'E28', 'E29', 'E30', 'E31', 'E32', 'E33', 'B05', 'B06', 'B07', 'B08', 'B09'])
 const MISSION_PROGRESS_SCHEMA_VERSION = 1
@@ -95,8 +99,12 @@ export function recordFirebaseRunCheckpoint(runId, { stageId, records, best, mis
     && Object.entries(records).every(([key,value])=>value===(previous.records[key]??0))
     && Object.entries(best).every(([key,value])=>value===(previous.best?.[key]??0))
     && Object.entries(missionCounters).every(([key,value])=>value===(previousCounters[key]??0))) return false
+  // Publish the ledger first: even a flag-only checkpoint changes runtime identity
+  // below, so an in-flight save sees dirty state and repeats its normal transaction.
+  runCheckpoints.set(runId, { stageId, records: { ...records }, best: { ...best }, gold, missionCounters: { ...missionCounters } })
   updateFirebasePlayerProgress(progress => {
     for (const [key,value] of Object.entries(records)) {
+      if (!RECORD_KEY_SET.has(key)) continue
       const difference = value - (previous.records[key] ?? 0)
       progress.records[key] = (progress.records[key] ?? 0) + difference
       runContribution.records[key] = (runContribution.records[key] ?? 0) + difference
@@ -113,7 +121,6 @@ export function recordFirebaseRunCheckpoint(runId, { stageId, records, best, mis
     }
     progress.missions = reconcileMissionProgress(progress.missions)
   })
-  runCheckpoints.set(runId, { stageId, records: { ...records }, best: { ...best }, gold, missionCounters: { ...missionCounters } })
   return true
 }
 
@@ -157,6 +164,9 @@ export function setCloudProgressUser(user) {
   cloudUser = user ?? null
   if (!nextUid || nextUid !== currentUid) {
     pendingProgressSaveWarning = null
+    runCheckpoints = new Map()
+    runBaseline = {}
+    runContribution = { gold: 0, records: {}, missionCounters: {} }
     runtime = createEmptyRuntime(nextUid)
   }
 }
@@ -183,7 +193,9 @@ export function buildCloudUserProfile(user = cloudUser) {
 
 export function buildCloudProgressSnapshot(now = Date.now()) {
   ensureHydrated()
-  return { ...buildRemotePayload(now), progress: cloneProgress(runtime.progress) }
+  const progress = cloneProgress(runtime.progress)
+  progress.records = normalizeNumberMap(progress.records, RECORD_KEYS)
+  return { ...buildRemotePayload(now), progress }
 }
 
 export async function hydrateCloudProgress(user = cloudUser) {
@@ -309,7 +321,17 @@ export function updateFirebasePlayerProfile(mutator) {
 
 export function readFirebasePlayerProgress() {
   ensureHydrated()
-  return cloneProgress(runtime.progress)
+  const progress = cloneProgress(runtime.progress)
+  const counts = Object.fromEntries(BOSS_RECORD_KEYS.map(key => [key, 0]))
+  // Pending is the latest version of a baseline row, not another completion.
+  for (const run of Object.values({ ...runBaseline, ...Object.fromEntries(runCheckpoints) })) {
+    if (!/^stage([1-9]|10)$/.test(run?.stageId) || typeof run?.stageId !== 'string') continue
+    const key = `${run.stageId}BossDefeats`
+    const value = Object.hasOwn(run.records ?? {}, key) ? run.records[key] : run.records?.bossKills
+    if (Number.isSafeInteger(value) && value >= 1) counts[key]++
+  }
+  for (const key of BOSS_RECORD_KEYS) progress.records[key] = Math.max(progress.records[key] ?? 0, counts[key])
+  return progress
 }
 
 export function readFirebaseMissionProgress() {
@@ -624,7 +646,9 @@ async function performCloudProgressSave(user) {
       next.runLedger = { ...current.runLedger }
       for (const [runId,run] of runsAtSave) {
         const before = current.runLedger?.[runId] ?? { records: {}, gold: 0 }
-        for (const [key,value] of Object.entries(run.records)) next.progress.records[key] += value - (before.records[key] ?? 0)
+        for (const [key,value] of Object.entries(run.records)) {
+          if (RECORD_KEY_SET.has(key)) next.progress.records[key] += value - (before.records[key] ?? 0)
+        }
         for (const [key,value] of Object.entries(run.best)) next.progress.records[key] = Math.max(next.progress.records[key] ?? 0,value)
         next.progress.goldTotal += run.gold - before.gold
         const wireCounters = Object.fromEntries(Object.entries(run.missionCounters).map(([key,value])=>[key.replaceAll('.','%2E'),value]))
@@ -742,6 +766,9 @@ export function _resetFirebaseProgressForTests() {
   persistenceSession = ''
   persistenceBase = null
   persistenceSequence = 0
+  runCheckpoints = new Map()
+  runBaseline = {}
+  runContribution = { gold: 0, records: {}, missionCounters: {} }
 }
 
 export function _seedHydratedFirebaseProgressForTests(user = { uid: 'test-user' }, snapshot = null) {
@@ -802,6 +829,7 @@ function buildRemotePayload(now = Date.now()) {
 // this encoding unambiguous while leaving all counter values unchanged.
 function serializeProgress(value) {
   const progress = cloneProgress(value)
+  progress.records = normalizeNumberMap(progress.records, RECORD_KEYS)
   progress.missions.counters = Object.fromEntries(Object.entries(progress.missions.counters).map(([key,count]) => [key.replaceAll('.', '%2E'),count]))
   return progress
 }
@@ -859,6 +887,11 @@ function normalizeProgress(progress) {
   const out = createEmptyProgress()
   out.goldTotal = readNonNegativeInt(progress.goldTotal)
   out.records = normalizeNumberMap(progress.records, RECORD_KEYS)
+  // Retain any genuine dedicated proof in memory, never coerce malformed values.
+  for (const key of BOSS_RECORD_KEYS) {
+    const value = progress.records?.[key]
+    if (Number.isSafeInteger(value) && value >= 1) out.records[key] = value
+  }
   out.weaponUnlockSchemaVersion = normalizeWeaponUnlockSchemaVersion(progress.weaponUnlockSchemaVersion)
   out.weaponUnlocks = normalizeFlagMap(progress.weaponUnlocks)
   out.weaponPermanentUpgrades = normalizeNumberMap(progress.weaponPermanentUpgrades)

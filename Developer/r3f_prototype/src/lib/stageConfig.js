@@ -152,6 +152,7 @@ const NEXT_STAGE_BY_STAGE = {
   stage2: 'stage3',
   stage3: 'stage4',
   stage4: 'stage5',
+  stage5: 'stage6',
 }
 
 export function getStageConfig(stageId = DEFAULT_STAGE_ID) {
@@ -187,20 +188,14 @@ export function getStageBounds(stageId = DEFAULT_STAGE_ID) {
 }
 
 export function isStageUnlocked(stageId, records = {}) {
-  const expansion = EXPANSION_STAGES[stageId]
-  if (expansion) return (records[expansion.unlockClearsKey] ?? 0) >= expansion.unlockClearsRequired
-  if (stageId === 'stage5') return (records.stage4Clears ?? 0) >= 1
   if (stageId === 'stage1') return true
-  if (stageId === 'stage2') {
-    return (records.stage1Clears ?? 0) >= 1
-  }
-  if (stageId === 'stage3') {
-    return (records.stage2Clears ?? 0) >= 1
-  }
-  if (stageId === 'stage4') {
-    return (records.stage3Clears ?? 0) >= 1
-  }
-  return false
+  if (!Object.hasOwn(STAGE_CONFIGS, stageId)) return false
+  const previousId = Object.keys(STAGE_CONFIGS).find(id => getNextStageId(id) === stageId)
+  if (!previousId) return false
+  // Escape clears (including historical ones) are not per-stage boss evidence.
+  // Missing evidence stays locked; never fabricate or backfill boss history.
+  const defeats = records[`${previousId}BossDefeats`]
+  return Number.isSafeInteger(defeats) && defeats >= 1
 }
 
 function applyAdminStageOverrides(base) {

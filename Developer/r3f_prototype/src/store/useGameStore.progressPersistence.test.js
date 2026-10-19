@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { seedStageEntryForTests } from '../../test/progressTransactionClient.js'
 import { beforeEach, describe, expect, it } from 'vitest'
 import {
   _seedHydratedFirebaseProgressForTests,
@@ -18,7 +19,7 @@ let fixtureId = 0
 function resetProgressState(stageId = 'stage1') {
   _seedHydratedFirebaseProgressForTests({ uid: `progress-test-user-${++fixtureId}` })
   installProgressTransactionTestClient()
-  useGameStore.getState().resetGame(stageId)
+  seedStageEntryForTests(stageId); useGameStore.getState().resetGame(stageId)
   useGameStore.setState({
     elapsedMs: 0,
     goldSession: 0,

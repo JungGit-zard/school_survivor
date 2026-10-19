@@ -30,6 +30,8 @@ import { preloadStageEntryAssets } from '../lib/stageEntryPreload.js'
 
 const STAGE_UNLOCK_HINT_KEYS = {
   stage2: 'lobby.unlock.stage2',
+  stage3: 'lobby.unlock.stage3',
+  stage5: 'lobby.unlock.stage5',
   stage4: 'lobby.unlock.stage4',
   stage6: 'lobby.unlock.stage6',
   stage7: 'lobby.unlock.stage7',
@@ -297,7 +299,7 @@ export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onO
         {stageIds.map((stageId, index) => {
           const stage = getStageConfig(stageId)
           const recordsReady = records != null
-          const unlocked = devAllStagesUnlocked || (recordsReady ? isStageUnlocked(stageId, records) : stageId === 'stage1')
+          const unlocked = recordsReady ? isStageUnlocked(stageId, records) : stageId === 'stage1'
           const bestSurvivalSec = recordsReady ? (records[stage.bestRecordKey] ?? 0) : null
           const cleared = recordsReady ? (records[stage.clearRecordKey] ?? 0) > 0 : false
           return (

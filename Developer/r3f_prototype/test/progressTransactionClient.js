@@ -1,6 +1,12 @@
-import { _setFirebaseProgressClientForTests, buildCloudProgressSnapshot, getFirebaseProgressRuntimeSnapshot } from '../src/lib/firebaseProgress.js'
+import { _setFirebaseProgressClientForTests, buildCloudProgressSnapshot, getFirebaseProgressRuntimeSnapshot, updateFirebasePlayerProgress } from '../src/lib/firebaseProgress.js'
 import { useAuthStore } from '../src/store/useAuthStore.js'
 import { _setFirebaseRankingClientForTests } from '../src/lib/firebaseRanking.js'
+
+// Synthetic prior-stage proof for tests of unrelated gameplay in later stages.
+export function seedStageEntryForTests(stageId) {
+  const previous = Number(stageId.slice(5)) - 1
+  if (previous >= 1) updateFirebasePlayerProgress(p => {p.records[`stage${previous}BossDefeats`] = 1})
+}
 
 export function installProgressTransactionTestClient() {
   const rankings = new Map()

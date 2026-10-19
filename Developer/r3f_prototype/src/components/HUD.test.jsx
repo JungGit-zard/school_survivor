@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { seedStageEntryForTests } from '../../test/progressTransactionClient.js'
 import React, { act } from 'react'
 import { createRoot } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -680,7 +681,7 @@ describe('gameover presentation', () => {
 
   it('returns a confirmed Matilda game over directly to its result popup without replaying the death presentation', () => {
     vi.useFakeTimers()
-    useGameStore.getState().resetGame('stage3')
+    seedStageEntryForTests('stage3'); useGameStore.getState().resetGame('stage3')
     useGameStore.setState({
       phase: 'gameover',
       deathCause: 'matilda',
@@ -1285,7 +1286,7 @@ describe('development weapon cheat panel', () => {
 
 describe('matilda entrance presentation', () => {
   it('starts the Stage 3 Matilda countdown at five seconds before spawn', () => {
-    useGameStore.getState().resetGame('stage3')
+    seedStageEntryForTests('stage3'); useGameStore.getState().resetGame('stage3')
     const spawnMs = getStageConfig('stage3').matildaSec * 1000
     useGameStore.setState({
       phase: 'playing',
@@ -1328,7 +1329,7 @@ describe('matilda entrance presentation', () => {
 
   it('shows Matilda profile and RPG dialogue when she spawns', () => {
     vi.useFakeTimers()
-    useGameStore.getState().resetGame('stage3')
+    seedStageEntryForTests('stage3'); useGameStore.getState().resetGame('stage3')
     useGameStore.setState({
       phase: 'playing',
       elapsedMs: getStageConfig('stage3').matildaSec * 1000,
@@ -1406,7 +1407,7 @@ describe('result action layout', () => {
 
   it('shows Matilda death dialogue before the game over popup and prints the Matilda death line', () => {
     vi.useFakeTimers()
-    useGameStore.getState().resetGame('stage3')
+    seedStageEntryForTests('stage3'); useGameStore.getState().resetGame('stage3')
     useGameStore.setState({
       phase: 'gameover',
       deathCause: 'matilda',
@@ -1483,7 +1484,7 @@ describe('matilda contact death impact presentation', () => {
 
   it('freezes on the collision frame, then fires sting + crit shake, then fades to grayscale', () => {
     vi.useFakeTimers()
-    useGameStore.getState().resetGame('stage3')
+    seedStageEntryForTests('stage3'); useGameStore.getState().resetGame('stage3')
     useGameStore.setState({ phase: 'gameover', deathCause: 'matilda' })
     const { container, root, sfxIds, shakes, cleanup } = renderMatildaDeath()
 
@@ -1528,7 +1529,7 @@ describe('matilda contact death impact presentation', () => {
 
   it('skips the shake when reduced effects are enabled but still plays sfx and grayscale', () => {
     vi.useFakeTimers()
-    useGameStore.getState().resetGame('stage3')
+    seedStageEntryForTests('stage3'); useGameStore.getState().resetGame('stage3')
     useGameStore.setState({ phase: 'gameover', deathCause: 'matilda' })
     const { container, root, sfxIds, shakes, cleanup } = renderMatildaDeath({ reducedEffects: true })
 
@@ -1548,7 +1549,7 @@ describe('matilda contact death impact presentation', () => {
 
   it('does not shake or play the matilda sting on an ordinary zombie death', () => {
     vi.useFakeTimers()
-    useGameStore.getState().resetGame('stage3')
+    seedStageEntryForTests('stage3'); useGameStore.getState().resetGame('stage3')
     useGameStore.setState({ phase: 'gameover', deathCause: 'zombie' })
     const { container, root, sfxIds, shakes, cleanup } = renderMatildaDeath()
 
@@ -1621,6 +1622,7 @@ describe('pause lobby return', () => {
 
 describe('stage clear presentation', () => {
   it('uses 다음 스테이지 계속 as the primary Stage 1 escape action', async () => {
+    seedStageEntryForTests('stage2')
     useGameStore.getState().resetGame('stage1')
     useGameStore.setState({
       phase: 'playing',
@@ -1684,7 +1686,7 @@ describe('stage clear presentation', () => {
   })
 
   it('sends the full playtest log to the assistant from the dev result tool', async () => {
-    useGameStore.getState().resetGame('stage4')
+    seedStageEntryForTests('stage4'); useGameStore.getState().resetGame('stage4')
     useGameStore.setState({
       phase: 'cleared',
       elapsedMs: 987_000,
@@ -1753,7 +1755,7 @@ describe('stage clear presentation', () => {
 
 describe('stage4 HUD telegraphs', () => {
   function renderPlayingStage(stageId, elapsedMs, extra = {}) {
-    useGameStore.getState().resetGame(stageId)
+    seedStageEntryForTests(stageId); useGameStore.getState().resetGame(stageId)
     useGameStore.setState({
       phase: 'playing',
       elapsedMs,

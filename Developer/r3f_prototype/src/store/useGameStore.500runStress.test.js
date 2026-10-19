@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { seedStageEntryForTests } from '../../test/progressTransactionClient.js'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { UPGRADE_EFFECTS } from '../lib/upgrades.js'
 import { joystickDir } from '../lib/refs.js'
@@ -48,7 +49,7 @@ describe('500 internal gameplay stress runs', () => {
       const directionIndex = run % DIRECTIONS.length
       const direction = DIRECTIONS[directionIndex]
 
-      useGameStore.getState().resetGame(stageId)
+      seedStageEntryForTests(stageId); useGameStore.getState().resetGame(stageId)
       applyDirection(direction)
       seenDirections.add(directionIndex)
       seenStages.add(stageId)

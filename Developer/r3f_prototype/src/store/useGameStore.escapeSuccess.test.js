@@ -42,8 +42,10 @@ describe('escape success and continuous score', () => {
   })
 
   it('final stage clear has no next stage and preserves the result', async () => {
-    useGameStore.getState().resetGame('stage4')
-    const score = clearAt('stage4', 240000)
+    const {updateFirebasePlayerProgress}=await import('../lib/firebaseProgress.js')
+    updateFirebasePlayerProgress(p => {p.records.stage9BossDefeats=1})
+    useGameStore.getState().resetGame('stage10')
+    const score = clearAt('stage10', 240000)
     expect(await useGameStore.getState().continueToNextStage()).toBe(false)
     expect(useGameStore.getState()).toMatchObject({ phase: 'cleared', escapeResult: { totalScore: score } })
   })

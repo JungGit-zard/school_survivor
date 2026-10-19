@@ -1086,7 +1086,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
         // 留덊떥?ㅻ뒗 B01 鍮꾩＜?쇱쓣 ?곗?留??대━??泥섎━?섏? ?딅뒗??
         if (isBossType(type) && !isMatilda) {
           store.recordBossKill(type)
-          store.recordBossDefeat()
+          store.recordBossDefeat(type)
         }
         logKill(type)
         const t = rb.current?.translation()

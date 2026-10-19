@@ -54,7 +54,7 @@ describe('stage configuration registry', () => {
 
   it('unlocks stage 2 only after clearing stage 1 through the exit', () => {
     expect(isStageUnlocked('stage2', {})).toBe(false)
-    expect(isStageUnlocked('stage2', { stage1Clears: 1 })).toBe(true)
+    expect(isStageUnlocked('stage2', { stage1BossDefeats: 1 })).toBe(true)
     expect(isStageUnlocked('stage2', { stage1Survival180Runs: 3 })).toBe(false)
     expect(isStageUnlocked('stage2', { stage1Survival180Runs: 2 })).toBe(false)
   })
@@ -93,7 +93,7 @@ describe('stage configuration registry', () => {
 
   it('unlocks stage 3 after one stage 2 clear', () => {
     expect(isStageUnlocked('stage3', {})).toBe(false)
-    expect(isStageUnlocked('stage3', { stage2Clears: 1 })).toBe(true)
+    expect(isStageUnlocked('stage3', { stage2BossDefeats: 1 })).toBe(true)
     expect(isStageUnlocked('stage3', { stage1Clears: 5 })).toBe(false)
   })
 
@@ -117,7 +117,7 @@ describe('stage configuration registry', () => {
   it('unlocks Stage 4 only after one Stage 3 clear', () => {
     expect(isStageUnlocked('stage4', {})).toBe(false)
     expect(isStageUnlocked('stage4', { stage2Clears: 5 })).toBe(false)
-    expect(isStageUnlocked('stage4', { stage3Clears: 1 })).toBe(true)
+    expect(isStageUnlocked('stage4', { stage3BossDefeats: 1 })).toBe(true)
   })
 
   it('maps portal progression stage 1 -> stage 2 -> stage 3 -> stage 4, then ends', () => {
@@ -127,7 +127,8 @@ describe('stage configuration registry', () => {
     expect(getNextStageId('stage3')).toBe('stage4')
     // Stage5 existing terminal remains independent from expansion lobby entry.
     expect(getNextStageId('stage4')).toBe('stage5')
-    expect(getNextStageId('stage5')).toBeNull()
+    expect(getNextStageId('stage5')).toBe('stage6')
+    expect(getNextStageId('stage10')).toBeNull()
   })
 
   it('wires Stage 4 cafeteria timing, bounds, and cafeteria-themed milestones', () => {

@@ -43,6 +43,8 @@ it('transition flush recovers after both earlier paths failed, with remote readb
   failing=true
   useGameStore.getState().resetGame('stage1')
   useGameStore.getState().recordKill()
+  useGameStore.getState().spawnBoss()
+  useGameStore.getState().recordBossDefeat()
   useGameStore.getState().clearStage()
   expect(await useGameStore.getState().reconcileCloudProgress()).toBe(false)
   expect(await useGameStore.getState().continueToNextStage()).toBe(false)
@@ -73,7 +75,7 @@ it('replays an unacknowledged run after A to B to A without losing or doubling g
   expect(await requestCloudProgressSave()).toBe(false)
   const other={uid:crypto.randomUUID()}
   useAuthStore.setState({user:other});applyCloudProgressSnapshot({progress:{goldTotal:7,records:{},weaponUnlockSchemaVersion:2}},other)
-  useGameStore.getState().resetGame('stage2');useGameStore.getState().recordKill();useGameStore.getState().recordKill();useGameStore.getState().gainGold(2);useGameStore.getState().clearStage()
+  useGameStore.getState().resetGame('stage1');useGameStore.getState().recordKill();useGameStore.getState().recordKill();useGameStore.getState().gainGold(2);useGameStore.getState().clearStage()
   useAuthStore.setState({user});applyCloudProgressSnapshot(initial,user);failing=false
   expect(await useGameStore.getState().reconcileCloudProgress()).toBe(true)
   expect(remote.progress.goldTotal).toBe(15)

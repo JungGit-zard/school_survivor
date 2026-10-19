@@ -14,7 +14,7 @@ import { getStageVendingPlacement } from '../lib/stageVending.js'
 
 beforeEach(() => {
   _resetFirebaseProgressForTests()
-  _seedHydratedFirebaseProgressForTests({ uid: 'stage5-offline-test' }, { progress: { goldTotal: 30, records: { stage4Clears: 1 } } })
+  _seedHydratedFirebaseProgressForTests({ uid: 'stage5-offline-test' }, { progress: { goldTotal: 30, records: { stage3BossDefeats: 1, stage4BossDefeats: 1 } } })
   installProgressTransactionTestClient()
   ranking.submitRun.mockResolvedValue({ written: [], skipped: [], failed: [] })
   ranking.registerRankingEntry.mockResolvedValue({ written: [], skipped: [], failed: [] })
@@ -24,9 +24,10 @@ beforeEach(() => {
 describe('Stage5 playable store vertical slice', () => {
   it('selects Stage5 after Stage4, retains independent config/spawn/timeline and terminal progression', () => {
     expect(isStageUnlocked('stage5', {})).toBe(false)
-    expect(isStageUnlocked('stage5', { stage4Clears: 1 })).toBe(true)
+    expect(isStageUnlocked('stage5', { stage4Clears: 1 })).toBe(false)
+    expect(isStageUnlocked('stage5', { stage4BossDefeats: 1 })).toBe(true)
     expect(getNextStageId('stage4')).toBe('stage5')
-    expect(getNextStageId('stage5')).toBeNull()
+    expect(getNextStageId('stage5')).toBe('stage6')
     useGameStore.getState().resetGame('stage5')
     expect(useGameStore.getState()).toMatchObject({ currentStageId: 'stage5', phase: 'playing', bossSpawnSec: 150 })
     expect(getStageConfig('stage5')).toMatchObject({ id: 'stage5', bossType: 'B03', durationSec: 240, escapePortalSec: 210 })
@@ -62,8 +63,9 @@ describe('Stage5 playable store vertical slice', () => {
     store().checkSurvivalMilestone()
     store().activateEscapePortal()
     expect(store().clearStage()).toBe(true)
-    expect(await store().continueToNextStage()).toBe(false)
     expect(store()).toMatchObject({ currentStageId: 'stage5', phase: 'cleared', stageVendingPurchasedItemIds: [] })
+    expect(await store().continueToNextStage()).toBe(true)
+    expect(store().currentStageId).toBe('stage6')
     expect(load()).toMatchObject({ stage5Clears: 1, stage5BestSurvivalSec: 210 })
     expect(readFirebasePlayerProgress().records).toMatchObject({ stage5Clears: 1, stage5BestSurvivalSec: 210 })
     expect(buildCloudProgressSnapshot().progress.records).toMatchObject({ stage5Clears: 1, stage5BestSurvivalSec: 210 })

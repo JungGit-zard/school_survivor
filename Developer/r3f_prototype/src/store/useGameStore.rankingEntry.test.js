@@ -13,7 +13,7 @@ describe('ranking entry registration', () => {
     ranking.submit.mockReset().mockResolvedValue({ written: ['allTime'], skipped: [], failed: [] })
     ranking.identity.mockReset().mockResolvedValue({ uid: 'guest', displayName: 'Guest' })
   })
-  it.each(['stage1', 'stage4'])('registers an unhydrated guest at exactly zero on %s without holding the game', async (stageId) => {
+  it.each(['stage1'])('registers an unhydrated guest at exactly zero on %s without holding the game', async (stageId) => {
     const startedBefore = Date.now()
     useGameStore.getState().resetGame(stageId)
     expect(useGameStore.getState().phase).toBe('playing')
@@ -26,7 +26,9 @@ describe('ranking entry registration', () => {
   })
   it('registers a Google player without waiting for progress', () => {
     useAuthStore.setState({ user: { uid: 'google' } })
-    useGameStore.getState().resetGame('stage2')
+    expect(useGameStore.getState().resetGame('stage2')).toBe(false)
+    expect(ranking.submit).not.toHaveBeenCalled()
+    useGameStore.getState().resetGame('stage1')
     expect(ranking.submit).toHaveBeenCalledWith({ uid: 'google' }, expect.objectContaining({ score: 0, stageScore: 0, timeMs: 0 }))
     expect(ranking.identity).not.toHaveBeenCalled()
   })

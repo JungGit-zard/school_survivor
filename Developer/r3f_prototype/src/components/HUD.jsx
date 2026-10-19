@@ -12,7 +12,8 @@ import { isUnlocked as isWeaponUnlocked } from '../lib/weaponUnlocks.js'
 import { buildPlaytestSummary, sendPlaytestSummaryToAssistant } from '../lib/playtestLogger.js'
 import { emitSfx } from '../lib/sfxEvents.js'
 import { playDialogueVoice, stopDialogueVoice } from '../lib/dialogueVoice.js'
-import { getNextStageId, getStageConfig } from '../lib/stageConfig.js'
+import { readFirebasePlayerProgress, isFirebaseProgressHydrated } from '../lib/firebaseProgress.js'
+import { getNextStageId, getStageConfig, isStageUnlocked } from '../lib/stageConfig.js'
 import { STAGE2_SPAWN_TELEGRAPHS, STAGE3_SPAWN_TELEGRAPHS, STAGE4_SPAWN_TELEGRAPHS } from '../lib/waveTimelines.js'
 import { getAdminOperationsConfig } from '../lib/adminConfig.js'
 import { getRankingScore } from '../lib/rankingScorePolicy.js'
@@ -1837,7 +1838,7 @@ export default function HUD({
               <p style={styles.escapeHint}>{t(nextStageId ? 'hud.continueScoreHint' : 'hud.continuousRunComplete')}</p>
               <div data-testid="result-primary-actions" style={styles.escapeActions}>
                 {nextStageId && (
-                  <button type="button" style={styles.escapeContinueBtn} onClick={continueToNextStage}>
+                  <button type="button" style={styles.escapeContinueBtn} disabled={!isStageUnlocked(nextStageId, isFirebaseProgressHydrated() ? readFirebasePlayerProgress().records : {})} onClick={continueToNextStage}>
                     {t('hud.continueNextStage')}
                   </button>
                 )}

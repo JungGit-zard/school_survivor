@@ -132,7 +132,7 @@ export default function ReadyGameApp({
     // Guest or failed-cloud sessions run on in-memory default progress; cloud save is optional.
     try {
       const { useGameStore } = await import('../store/useGameStore.js')
-      useGameStore.getState().resetGame(stageId)
+      if (useGameStore.getState().resetGame(stageId) === false) return
       if (stageId === 'stage1') useGameStore.getState().startStage1Intro()
       setShowGameoverResultImmediately(false)
       setScreen('game')

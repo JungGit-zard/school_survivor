@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { seedStageEntryForTests } from '../../test/progressTransactionClient.js'
 import { describe, it, expect, beforeEach } from 'vitest'
 import { useGameStore } from './useGameStore.js'
 import { UPGRADE_EFFECTS, isUpgradeAvailable } from '../lib/upgrades.js'
@@ -30,7 +31,7 @@ describe('sharkMissile unlock and card access', () => {
   })
 
   it('unlocks after the first Stage 2 clear', () => {
-    useGameStore.getState().resetGame('stage2')
+    seedStageEntryForTests('stage2'); useGameStore.getState().resetGame('stage2')
     useGameStore.getState().clearStage()
 
     expect(useGameStore.getState().newlyUnlockedWeaponIds).toContain('sharkMissile')

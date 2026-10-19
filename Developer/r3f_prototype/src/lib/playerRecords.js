@@ -24,6 +24,8 @@ export const RECORD_KEYS = [
   'stage8Clears', 'stage8BestSurvivalSec',
   'stage9Clears', 'stage9BestSurvivalSec',
   'stage10Clears', 'stage10BestSurvivalSec',
+  // Virtual read-only projection from the existing per-run ledger, never wire records.
+  ...Array.from({ length: 10 }, (_, i) => `stage${i + 1}BossDefeats`),
   'bossKills',
   'totalLevelUps',
   'totalPickups',

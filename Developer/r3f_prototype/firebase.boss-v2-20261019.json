@@ -1,0 +1,25 @@
+{
+  "hosting": {
+    "site": "escape-zombie-school",
+    "public": "dist",
+    "cleanUrls": true,
+    "ignore": ["__/firebase/init.js", "__/firebase/init.json"],
+    "predeploy": [
+      "node ../agent_room/boss_only_unlock_20261019/release-v2.cjs gate",
+      "npm.cmd run require:safe-hosting-promotion",
+      "node scripts/assert-firebase-release-env.mjs",
+      "npm.cmd run build",
+      "npm.cmd run build:legal",
+      "npm.cmd run build:x-website-cards",
+      "node ../agent_room/boss_only_unlock_20261019/release-v2.cjs preserve",
+      "node ../agent_room/boss_only_unlock_20261019/release-v2.cjs seal"
+    ],
+    "headers": [
+      {"source":"/","headers":[{"key":"Cache-Control","value":"no-cache, must-revalidate"}]},
+      {"source":"/index.html","headers":[{"key":"Cache-Control","value":"no-cache, must-revalidate"}]},
+      {"source":"/game","headers":[{"key":"Cache-Control","value":"no-cache"}]},
+      {"source":"/game/**","headers":[{"key":"Cache-Control","value":"no-cache"}]}
+    ],
+    "rewrites": [{"source":"**","destination":"/index.html"}]
+  }
+}

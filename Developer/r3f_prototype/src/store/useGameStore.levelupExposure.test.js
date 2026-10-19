@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { seedStageEntryForTests } from '../../test/progressTransactionClient.js'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { useGameStore } from './useGameStore.js'
 
@@ -46,7 +47,7 @@ describe('level-up acquire exposure ledger', () => {
 
     useGameStore.setState({ phase: 'levelup', levelUpChoiceSerial: 42 })
     useGameStore.getState().recordLevelupWeaponCycle(['pencilThrow'], 42)
-    useGameStore.getState().resetGame('stage2')
+    seedStageEntryForTests('stage2'); useGameStore.getState().resetGame('stage2')
     expect(useGameStore.getState()).toMatchObject({ levelUpWeaponCycleIds: [], levelUpWeaponCycleSerial: -1 })
   })
 

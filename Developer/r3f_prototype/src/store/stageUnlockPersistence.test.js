@@ -21,7 +21,8 @@ import { isStageUnlocked } from '../lib/stageConfig.js'
 import { useGameStore } from './useGameStore.js'
 import { useAuthStore, _resetAuthStoreForTests } from './useAuthStore.js'
 
-const user = { uid: 'clear-persistence-user', displayName: 'Player' }
+let user
+let fixtureSequence = 0
 let stored
 
 // Exercise the new transactional/readback contract with the existing delayed
@@ -37,6 +38,7 @@ function _setFirebaseProgressClientForTests(client) {
 }
 
 beforeEach(() => {
+  user = { uid: `clear-persistence-user-${++fixtureSequence}`, displayName: 'Player' }
   vi.stubEnv('VITE_FIREBASE_DATABASE_URL', 'https://test.invalid')
   _resetFirebaseProgressForTests()
   _resetAuthStoreForTests()
@@ -65,8 +67,10 @@ it('waits for the stage clear and all user data to persist before logout, then r
   useGameStore.getState().resetGame('stage1')
   useGameStore.setState({ currentStageId: 'stage1', phase: 'playing', elapsedMs: 240_000,
     runKills: 0, runLevelUps: 0, goldSession: 0, missionSpecialEnemySpawns: [] })
+  useGameStore.getState().spawnBoss()
+  useGameStore.getState().recordBossDefeat()
   useGameStore.getState().clearStage()
-  const expected = buildCloudProgressSnapshot().progress
+  const expected = readFirebasePlayerProgress()
   // Reconciliation must retain a pre-existing mission counter omitted by the
   // game store's current batch rather than erase it on the next full save.
   expected.missions.counters.kills = 23
@@ -112,7 +116,7 @@ it('saves changes made while logout is waiting before releasing the authenticate
     progress.weaponPermanentUpgrades.pencilThrow += 1
     progress.titleSettings.vibration = true
   })
-  const expected = buildCloudProgressSnapshot().progress
+  const expected = readFirebasePlayerProgress()
   releases[0]()
   await vi.waitFor(() => expect(releases).toHaveLength(2))
   expect(authClient.signOut).not.toHaveBeenCalled()
@@ -128,7 +132,7 @@ it('does not replace a new clear with an older in-flight same-account hydrate', 
   _setFirebaseProgressClientForTests({ load: () => new Promise((resolve) => { resolveLoad = resolve }) })
   const hydration = hydrateCloudProgress(user)
   await vi.waitFor(() => expect(resolveLoad).toBeTypeOf('function'))
-  updateFirebasePlayerProgress((progress) => { progress.records.stage1Clears = 1; progress.goldTotal += 5 })
+  updateFirebasePlayerProgress((progress) => { progress.records.stage1Clears = 1; progress.records.stage1BossDefeats = 1; progress.goldTotal += 5 })
   const expected = readFirebasePlayerProgress()
   resolveLoad(stored)
   await hydration
@@ -145,7 +149,7 @@ it('keeps newly earned progress when an older same-account hydrate rejects', asy
   _setFirebaseProgressClientForTests({ load: () => new Promise((_, reject) => { rejectLoad = reject }) })
   const hydration = hydrateCloudProgress(user)
   await vi.waitFor(() => expect(rejectLoad).toBeTypeOf('function'))
-  updateFirebasePlayerProgress((progress) => { progress.records.stage1Clears = 1; progress.goldTotal += 5 })
+  updateFirebasePlayerProgress((progress) => { progress.records.stage1Clears = 1; progress.records.stage1BossDefeats = 1; progress.goldTotal += 5 })
   const expected = readFirebasePlayerProgress()
   rejectLoad(new Error('late network failure'))
   await hydration
@@ -166,4 +170,64 @@ it('does not sign out a different user who replaces the user waiting for a save'
   expect(authClient.signOut).not.toHaveBeenCalled()
   expect(useAuthStore.getState().user).toEqual(otherUser)
   expect(readFirebasePlayerProgress()).toEqual(expected)
+})
+
+
+it.each([1,2,3,4,5,6,7,8,9])('boss-only stage %i failed save retries, survives title/logout and synthetic reload', async n => {
+  let offline = true
+  let writes = 0
+  _setFirebaseProgressClientForTests({
+    load: async () => structuredClone(stored),
+    save: async (_path,payload) => { if(offline) throw new Error('synthetic offline'); writes++; stored=structuredClone(payload) },
+  })
+  if(n>1) updateFirebasePlayerProgress(p => {p.records[`stage${n-1}BossDefeats`]=1})
+  expect(useGameStore.getState().resetGame(`stage${n}`)).toBe(true)
+  useGameStore.getState().spawnBoss()
+  useGameStore.getState().recordBossDefeat()
+  expect(isStageUnlocked(`stage${n+1}`,readFirebasePlayerProgress().records)).toBe(true)
+  expect(await useGameStore.getState().flushProgressBeforeTransition()).toBe(false)
+  expect(useGameStore.getState().progressSaveWarning).toBe('save-failed')
+  expect(writes).toBe(0)
+  expect(authClient.signOut).not.toHaveBeenCalled()
+  offline = false
+  expect(await useGameStore.getState().flushProgressBeforeTransition()).toBe(true)
+  // Title return starts no new cleared run. Repeated checkpoints must stay idempotent.
+  expect(await useGameStore.getState().flushProgressBeforeTransition()).toBe(true)
+  expect(stored.progress.records).not.toHaveProperty(`stage${n}BossDefeats`)
+  expect(stored.runLedger[useGameStore.getState().progressRunId].records[`stage${n}BossDefeats`]).toBe(1)
+  expect(stored.progress.records[`stage${n}Clears`]).toBe(0)
+  await useAuthStore.getState().signOutOfGoogle()
+  expect(authClient.signOut).toHaveBeenCalledTimes(1)
+  _resetFirebaseProgressForTests()
+  _setFirebaseProgressClientForTests({load: async () => structuredClone(stored)})
+  await hydrateCloudProgress(user)
+  expect(isStageUnlocked(`stage${n+1}`,readFirebasePlayerProgress().records)).toBe(true)
+})
+
+it('same-account stale hydrate cannot erase a boss-only unlock; account switch does not leak it', async () => {
+  let release
+  _setFirebaseProgressClientForTests({
+    load: () => new Promise(resolve => {release=resolve}),
+    save: async (_path,payload) => {stored=structuredClone(payload)},
+  })
+  const old = structuredClone(stored)
+  const hydration=hydrateCloudProgress(user)
+  await vi.waitFor(() => expect(release).toBeTypeOf('function'))
+  useGameStore.getState().resetGame('stage1')
+  useGameStore.getState().spawnBoss()
+  useGameStore.getState().recordBossDefeat()
+  release(old)
+  await hydration
+  expect(isStageUnlocked('stage2',readFirebasePlayerProgress().records)).toBe(true)
+  _setFirebaseProgressClientForTests({load:async()=>structuredClone(stored),save:async(_path,payload)=>{stored=structuredClone(payload)}})
+  expect(await useGameStore.getState().flushProgressBeforeTransition()).toBe(true)
+  const own=structuredClone(stored)
+  const other={uid:'other-boss-only-account'}
+  applyCloudProgressSnapshot({progress:{records:{}}},other)
+  useAuthStore.setState({user:other,status:'signedIn'})
+  expect(isStageUnlocked('stage2',readFirebasePlayerProgress().records)).toBe(false)
+  expect(useGameStore.getState().resetGame('stage2')).toBe(false)
+  applyCloudProgressSnapshot(own,user)
+  useAuthStore.setState({user,status:'signedIn'})
+  expect(isStageUnlocked('stage2',readFirebasePlayerProgress().records)).toBe(true)
 })

@@ -6,6 +6,7 @@ import HUD from './HUD.jsx'
 import { useGameStore } from '../store/useGameStore.js'
 import { useAuthStore } from '../store/useAuthStore.js'
 import { _resetFirebaseProgressForTests, _seedHydratedFirebaseProgressForTests, getFirebaseProgressRuntimeSnapshot } from '../lib/firebaseProgress.js'
+import { seedStageEntryForTests, installProgressTransactionTestClient } from '../../test/progressTransactionClient.js'
 import { getRankingScore } from '../lib/rankingScorePolicy.js'
 import { getLocale, setLocale } from '../lib/i18n.js'
 
@@ -40,7 +41,7 @@ function renderSuccess(props = {}) {
 }
 
 describe('escape success choices', () => {
-  it('waits for the choice and continues the cleared score without guest progress writes', async () => {
+  it('keeps no-boss guest continuation disabled without guest progress writes', async () => {
     const remoteBefore = getFirebaseProgressRuntimeSnapshot()
     renderSuccess()
     const score = getRankingScore({ stageId: 'stage1', survivalSeconds: 240, cleared: true })
@@ -52,9 +53,9 @@ describe('escape success choices', () => {
     expect(container.querySelector('[data-testid="escape-total-score"]').textContent).toContain(String(score))
     expect(container.querySelector('[data-testid="escape-success-screen"] img').getAttribute('src')).toContain('escape_success.png')
     expect(useGameStore.getState()).toMatchObject({ phase: 'cleared', currentStageId: 'stage1' })
+    expect(actions.querySelector('button').disabled).toBe(true)
     await act(async () => actions.querySelector('button').click())
-    expect(useGameStore.getState()).toMatchObject({ phase: 'playing', currentStageId: 'stage2', continuousScoreBase: score })
-    expect(container.querySelector('[data-testid="live-score"]').textContent).toContain(String(score + getRankingScore({ stageId: 'stage2' })))
+    expect(useGameStore.getState()).toMatchObject({ phase: 'cleared', currentStageId: 'stage1' })
     expect(getFirebaseProgressRuntimeSnapshot()).toEqual(remoteBefore)
   })
 
@@ -69,6 +70,10 @@ describe('escape success choices', () => {
   })
 
   it('continues Stage4 into the explicitly approved Stage5 and preserves cumulative score', async () => {
+    _seedHydratedFirebaseProgressForTests({uid:crypto.randomUUID()})
+    seedStageEntryForTests('stage4')
+    seedStageEntryForTests('stage5')
+    installProgressTransactionTestClient()
     useGameStore.getState().resetGame('stage4')
     useGameStore.setState({ phase: 'playing', elapsedMs: 100_000, continuousScoreBase: 500 })
     renderSuccess()
@@ -80,7 +85,10 @@ describe('escape success choices', () => {
     expect(useGameStore.getState()).toMatchObject({ phase: 'playing', currentStageId: 'stage5', continuousScoreBase: score })
   })
 
-  it.each(['stage5', 'stage10'])('shows the cumulative final escape at %s without a nonexistent next stage', (stageId) => {
+  it.each(['stage10'])('shows the cumulative final escape at %s without a nonexistent next stage', (stageId) => {
+    _seedHydratedFirebaseProgressForTests({uid:crypto.randomUUID()})
+    seedStageEntryForTests(stageId)
+    installProgressTransactionTestClient()
     useGameStore.getState().resetGame(stageId)
     useGameStore.setState({ phase: 'playing', elapsedMs: 100_000, continuousScoreBase: 500 })
     renderSuccess()
