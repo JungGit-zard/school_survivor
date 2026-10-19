@@ -29,8 +29,8 @@ describe('actual-game wiring and placement regression', () => {
       expect(mounts).toHaveLength(1)
       expect(mounts[0].props.stageId).toBe(stageId)
       expect(t.position).toEqual([p.position.x, 0, p.position.z])
-      // Owner-approved front presentation: preserve west/east +/-30 degrees.
-      const approvedYaw = { west: Math.PI / 6, east: -Math.PI / 6, north: 0, south: Math.PI }[p.wallSide]
+      // Static wall yaw improves front alignment toward QA's off-axis perspective views.
+      const approvedYaw = { west: Math.PI / 9, east: -Math.PI / 12, north: 0, south: Math.PI }[p.wallSide]
       expect(t.rotation).toEqual([0, approvedYaw, 0])
       const delta = { west: [1, 0], east: [-1, 0], north: [0, 1], south: [0, -1] }[p.wallSide]
       const approach = { x: p.position.x + delta[0] * 1.2, z: p.position.z + delta[1] * 1.2 }

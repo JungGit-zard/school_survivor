@@ -1,0 +1,147 @@
+{
+  "version": 2,
+  "card": "t_3446f36a",
+  "reviewer": "balanceqa",
+  "decision": "GO",
+  "scope": "Final bounded repair acceptance: static prop-facing yaw only, representative stage1 west/stage3 east original +/-30deg versus v2 +20/-15deg. Not full gameplay, suite or release approval.",
+  "base": "57a58d54400c7dba1a43c6da3eefa647c16132a7",
+  "createdAt": "2026-10-19T23:20:28.582Z",
+  "sourceReceiptMatches": true,
+  "implementationSha256": "2bcf303c7ce50d3759918b0e8381f3f72c5c74d47b0d3f8c2425064379455af2",
+  "hashes": {
+    "Developer/agent_room/vending_front_20261020/implementation.json": "2bcf303c7ce50d3759918b0e8381f3f72c5c74d47b0d3f8c2425064379455af2",
+    "Developer/r3f_prototype/src/components/StageVendingLayer.jsx": "4d2291219229165d7b31884e993b2e9df1ca8da3f2ce66dc5659993f2be04019",
+    "Developer/r3f_prototype/src/components/StageVending.integration.test.jsx": "5156907b21bf80924090c2e1eaa32e81b2367e828495d28622f1dc2e99aeb3ad",
+    "Developer/r3f_prototype/src/components/StageVendingLayer.transform.test.jsx": "853e095031cf152dfc53dd2589387fd4678ff5582d5d8b31d510fdddbffb2ea6",
+    "Developer/r3f_prototype/src/lib/stageVending.js": "3ece7f4b519e8630d65a467079722a03a13057162fbe934d806c38e9ce22b508",
+    "Developer/r3f_prototype/src/components/StageVendingMachine.jsx": "7239dee77c9558da50db4cc7d68e395e9073626a67cb227ecdd2bbc046c4c0ae",
+    "Developer/r3f_prototype/src/store/useGameStore.js": "a08ad30fa82e229c82d918308f059effca8ee76d20af1082dc931f95208bffb0",
+    "Developer/r3f_prototype/src/components/Game.jsx": "bbf864a85c58f95a518c894c64b07998f50409baccb640327659f2905379cf49",
+    "Developer/r3f_prototype/src/components/GameCanvas.jsx": "a3a20c140fc0f3266ae5a4db6d79b40fbe0bee0b2846f61ca32f7674c848fb7b",
+    "Developer/r3f_prototype/src/lib/gameCameraFraming.js": "e96e716a08567e1d4d20062a0d4772cb89ed3331bdd4bc8a8366961a649ba41c",
+    "Developer/agent_room/vending_front_20261020/v2-focused-tests.log": "548cffc5c63b3591e9ccb42c56a2790c24e05e6f475fd7c8e6d2b0b976581325",
+    "Developer/agent_room/vending_front_20261020/v2-build.log": "f4e07ad48275d5d656f64ac2a3a22acdfba61e3340b385c9a3c739dd44abafc1",
+    "Developer/r3f_prototype/dist/index.html": "731555c2e727107a114f349e5f48d2f99d93eae9b9be6f220f71f4a67d4efd83",
+    "Quaility_Assurance/vending_front_20261020/qa-v1.json": "c4e5374bcb9d2ec618799453025bf26ccad04fca9c364aa4b0a3f4a2e8951628",
+    "Quaility_Assurance/vending_front_20261020/qa-v1.md": "71a0fa92a6d59eeb1f5e2ca28c23bcceaab3f186afafb40331d32ad031a1e7f2",
+    "Quaility_Assurance/vending_front_20261020/oracle.cjs": "9a29697a6349af810894b6a54afd8b0a6826ec0a2c16080639ab14ec39cb4a9f",
+    "Quaility_Assurance/vending_front_20261020/oracle-v2.log": "2432208608691c5d7447b25411027980386202fdd7957ff85505cef06a2cfff3",
+    "Quaility_Assurance/vending_front_20261020/render.jsx": "374ca3dcdc18080280cb8cb59415d1df97f0b70152726077dbb2880f3655d504",
+    "Quaility_Assurance/vending_front_20261020/server.mjs": "ecf4486615c7fcb84de6bb2aedf4556bba6682b87ba0cf61310dbb9b18720578",
+    "Quaility_Assurance/vending_front_20261020/capture.cjs": "44de3f8f774c499525ec7d2dd59634d962b2eb1efc1c14361e09c020cd9e3df8",
+    "Quaility_Assurance/vending_front_20261020/browser-reserve-v2.log": "7f7ecf820e12338ab78a4433e89aa2647c61f4d6573b5cfd1045db15df364a3d",
+    "Quaility_Assurance/vending_front_20261020/server-v2.log": "11645bfe6bb1b07e4eeace1a086d828dc8f82a146c748d6f7fdf50057249cb59",
+    "Quaility_Assurance/vending_front_20261020/capture-v2.log": "7e56fdbb7d4b9074339e63cff2a21bc94394de81b818226283c3559a41286fff",
+    "Quaility_Assurance/vending_front_20261020/visual.json": "43e172cf1cb9b914d40b8d4a8c54e8db4834297a06e47bc486b2d0d1d5b5a4e4",
+    "Quaility_Assurance/vending_front_20261020/stage1-before.png": "3f313300155a21a9ad1073be031853d2e36b315a9e4a78ff0338bb53e9b6a140",
+    "Quaility_Assurance/vending_front_20261020/stage1-after.png": "9293e8c3844c4fdf21518b33ad4ba5aace10f7e7e76564486be3b1625c8b5b32",
+    "Quaility_Assurance/vending_front_20261020/stage3-before.png": "597619dd84ac114af36c36fba7aeac708c5c5c7e031ffdabe8128ab4900093cf",
+    "Quaility_Assurance/vending_front_20261020/stage3-after.png": "d3cdc94ff4733c3985783192f2215fe054c9c1561285f4b475c0037182a135fe",
+    "Quaility_Assurance/vending_front_20261020/cleanup-v2.log": "26fd37a7ccf817303c3947466c6da5041e5f66aef4fda448861059f8ae3193e5"
+  },
+  "sourceChange": "Only west/east production yaw: static +PI/9 and -PI/12; north 0/south PI unchanged. No billboard or runtime camera dependency.",
+  "checks": {
+    "runtimeDiffRestrictedToTwoYawEntries": true,
+    "preservedSourceBaselineMatch": true,
+    "diffCheck": "PASS",
+    "oracle": {
+      "command": "node Quaility_Assurance/vending_front_20261020/oracle.cjs",
+      "exit": 0,
+      "requirement": "Strictly greater actual camera view alignment than original +/-30deg at identical camera and position, plus byte-identical preserved sources"
+    },
+    "focused": {
+      "command": "npm test -- --dir src src/components/StageVendingLayer.transform.test.jsx src/components/StageVendingMachine.test.jsx src/components/StageVending.integration.test.jsx src/lib/stageVending.test.js src/store/useGameStore.stageVending.test.js --maxWorkers=1",
+      "exit": 0,
+      "files": 5,
+      "passed": 40,
+      "coverage": "Actual transform and unchanged coordinates for ten stages; representative actual perspective rays improve over original +/-PI/6 and yaw0; existing room-side access and vending/store tests.",
+      "log": {
+        "path": "Developer/agent_room/vending_front_20261020/v2-focused-tests.log",
+        "sha256": "548cffc5c63b3591e9ccb42c56a2790c24e05e6f475fd7c8e6d2b0b976581325"
+      },
+      "provenance": "Implementer v2 serial run; existing receipt, log and current source hashes independently checked; not rerun by QA"
+    },
+    "build": {
+      "command": "npm run build",
+      "exit": 0,
+      "prebuildTestsPassed": 45,
+      "serialAfterFocusedTests": true,
+      "normalGuards": true,
+      "log": {
+        "path": "Developer/agent_room/vending_front_20261020/v2-build.log",
+        "sha256": "f4e07ad48275d5d656f64ac2a3a22acdfba61e3340b385c9a3c739dd44abafc1"
+      },
+      "artifact": {
+        "path": "Developer/r3f_prototype/dist/index.html",
+        "sha256": "731555c2e727107a114f349e5f48d2f99d93eae9b9be6f220f71f4a67d4efd83"
+      },
+      "warnings": "React act, multiple Three.js, dynamic imports/chunk warnings retained in build log; no guard bypass.",
+      "provenance": "Implementer v2 normal serial build receipt reused; log/artifact/current source hashes checked, no repeat build"
+    }
+  },
+  "visual": {
+    "command": "npm.cmd run browser:reserve && node Quaility_Assurance/vending_front_20261020/capture.cjs (run in their respective prototype/root directories)",
+    "exit": 0,
+    "browser": "Installed Chrome via existing Playwright harness; browser reservation before launch",
+    "actualProp": true,
+    "afterYawSource": "Actual getStageVendingMachineTransform export, not duplicate hardcoded v2 yaw",
+    "camera": "Actual gameplay steady-state framing math and player visual dimensions, fov30, 1280x720; isolated prop and neutral QA lighting, no furniture/HUD",
+    "externalNetworkBlocked": true,
+    "pageErrors": [],
+    "alignment": [
+      {
+        "stage": "stage1",
+        "before": 0.8296359134583045,
+        "after": 0.8417963594852024,
+        "improvement": 0.01216044602689792,
+        "improved": true
+      },
+      {
+        "stage": "stage3",
+        "before": 0.796785428174928,
+        "after": 0.8210137662925746,
+        "improvement": 0.024228338117646575,
+        "improved": true
+      }
+    ],
+    "screenshots": [
+      "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\releases\\vending-front-20261020\\Quaility_Assurance\\vending_front_20261020\\stage1-before.png",
+      "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\releases\\vending-front-20261020\\Quaility_Assurance\\vending_front_20261020\\stage1-after.png",
+      "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\releases\\vending-front-20261020\\Quaility_Assurance\\vending_front_20261020\\stage3-before.png",
+      "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\releases\\vending-front-20261020\\Quaility_Assurance\\vending_front_20261020\\stage3-after.png"
+    ],
+    "humanReview": "Opened all four original/repair PNGs. West: slight reduction in front skew, glass/drinks and yellow/green controls remain distinct. East: side panel visibly reduced, front glass and controls presented more directly. Modest facing/readability improvement versus original, not a text legibility or full-game occlusion claim."
+  },
+  "blockers": [],
+  "resolved": [
+    {
+      "id": "VIS-01",
+      "result": "Resolved for scoped representative facing acceptance: both actual-view alignments strictly exceed original, independently recaptured using current production transform."
+    }
+  ],
+  "observations": [
+    "Historical v1 Prompt test failures are outside this yaw diff; unchanged Prompt source does not prove they were pre-existing. No full suite GREEN claimed. Broader suite not rerun.",
+    "Original room-side access contract preserved; no new center-front furniture-clearance guarantee.",
+    "v1 reports preserved byte-for-byte as qa-v1.json/md. Old tests.log/build.log are v1, NOT current-v2 verification evidence. Current logs are explicitly hash-bound to Developer/agent_room/vending_front_20261020/v2-*.log.",
+    "Kanban card state not updated; file-backed handoff only."
+  ],
+  "unverified": [
+    "Full gameplay furniture occlusion, HUD and moving-camera readability",
+    "Live purchase/Firebase/authenticated behavior",
+    "Mobile/WebView/AAB, all-camera/all-stage visual acceptance, deployment/production"
+  ],
+  "operations": {
+    "runtimeEdits": false,
+    "commit": false,
+    "push": false,
+    "deploy": false,
+    "liveWrites": false,
+    "broadSuiteOrBuildRerun": false,
+    "qaServersRemaining": 0,
+    "browserClosedByCaptureFinally": true
+  },
+  "gate": {
+    "continuation": true,
+    "combined_receipt_sha256": "850828fffaae4d15e8f1bac501271638d0eaf668e5c9dadb0b961a4292702f95"
+  }
+}

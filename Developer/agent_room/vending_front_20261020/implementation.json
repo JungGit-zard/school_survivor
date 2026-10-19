@@ -1,0 +1,157 @@
+{
+  "version": 2,
+  "taskId": "t_d188b259",
+  "board": "escape-zombie-school",
+  "repair": "VIS-01",
+  "checkout": "F:/From_SSD_D_20261005/JungSil/2.Minigame_project/releases/vending-front-20261020",
+  "baseSHA": "57a58d54400c7dba1a43c6da3eefa647c16132a7",
+  "status": "REPAIRED_FOCUSED_TESTS_AND_BUILD_PASSED_INDEPENDENT_VISUAL_QA_PENDING",
+  "previousReceipt": {
+    "path": "Developer/agent_room/vending_front_20261020/implementation-v1.json",
+    "sha256": "f95197ac4d1ec705ea1ec7a3af4da83934e06f96d727ceb0cbb47165a2d8ae5d"
+  },
+  "sourceChange": "Only west/east production yaw: static +PI/9 and -PI/12; north 0/south PI unchanged. No billboard or runtime camera dependency.",
+  "changedExplicitPaths": [
+    {
+      "path": "Developer/r3f_prototype/src/components/StageVendingLayer.jsx",
+      "sha256": "4d2291219229165d7b31884e993b2e9df1ca8da3f2ce66dc5659993f2be04019"
+    },
+    {
+      "path": "Developer/r3f_prototype/src/components/StageVending.integration.test.jsx",
+      "sha256": "5156907b21bf80924090c2e1eaa32e81b2367e828495d28622f1dc2e99aeb3ad"
+    },
+    {
+      "path": "Developer/r3f_prototype/src/components/StageVendingLayer.transform.test.jsx",
+      "sha256": "853e095031cf152dfc53dd2589387fd4678ff5582d5d8b31d510fdddbffb2ea6"
+    }
+  ],
+  "preserved": "All coordinates, placement IDs, model, camera, furniture, range, economy, purchases, mobile, title, audio, auth and Firebase source unchanged.",
+  "actualViewProof": {
+    "input": {
+      "path": "Quaility_Assurance/vending_front_20261020/visual.json",
+      "sha256": "1bc1c5afe04ff21b6101fb063ea287925d61ebc9fa8b049cd1982b94c29ba787"
+    },
+    "formula": "dot(rotY(yaw)*(0,0,1), normalize(camera - (machinePosition + (0,1.25,0))))",
+    "metrics": [
+      {
+        "stage": "stage1",
+        "machinePosition": {
+          "x": -8.5,
+          "y": 0,
+          "z": -8
+        },
+        "modelCenterHeight": 1.25,
+        "camera": [
+          0,
+          17,
+          15.04486372867091
+        ],
+        "baselineYaw": 0.5235987755982988,
+        "repairedYaw": 0.3490658503988659,
+        "baselineDot": 0.8296359134583045,
+        "zeroYawDot": 0.789792254408368,
+        "repairedDot": 0.8417963594852024,
+        "improvement": 0.01216044602689792,
+        "improved": true
+      },
+      {
+        "stage": "stage3",
+        "machinePosition": {
+          "x": 6.25,
+          "y": 0,
+          "z": -14
+        },
+        "modelCenterHeight": 1.25,
+        "camera": [
+          0,
+          17,
+          7.781669672215598
+        ],
+        "baselineYaw": -0.5235987755982988,
+        "repairedYaw": -0.2617993877991494,
+        "baselineDot": 0.796785428174928,
+        "zeroYawDot": 0.7892913730267823,
+        "repairedDot": 0.8210137662925746,
+        "improvement": 0.024228338117646575,
+        "improved": true
+      }
+    ],
+    "limitation": "Representative stage1/stage3 alignment only; not a new browser capture, projected-area measure or all-camera visual acceptance."
+  },
+  "tests": {
+    "red": {
+      "exit": 1,
+      "passed": 1,
+      "failed": 10,
+      "log": {
+        "path": "Developer/agent_room/vending_front_20261020/v2-red-tests.log",
+        "sha256": "db2e5cd3fd71a9a95aa8891b5cae1b1b4295b732ffa3720cb16c2f3c45faaf30"
+      },
+      "reason": "Expected static yaw mismatch against v1 yaw0."
+    },
+    "focused": {
+      "command": "npm test -- --dir src src/components/StageVendingLayer.transform.test.jsx src/components/StageVendingMachine.test.jsx src/components/StageVending.integration.test.jsx src/lib/stageVending.test.js src/store/useGameStore.stageVending.test.js --maxWorkers=1",
+      "exit": 0,
+      "files": 5,
+      "passed": 40,
+      "coverage": "Actual transform and unchanged coordinates for ten stages; representative actual perspective rays improve over original +/-PI/6 and yaw0; existing room-side access and vending/store tests.",
+      "log": {
+        "path": "Developer/agent_room/vending_front_20261020/v2-focused-tests.log",
+        "sha256": "548cffc5c63b3591e9ccb42c56a2790c24e05e6f475fd7c8e6d2b0b976581325"
+      }
+    },
+    "broaderHUD": "Not rerun or changed. Historical v1 failures remain recorded only in implementation-v1.json; no full-suite pass claimed."
+  },
+  "build": {
+    "command": "npm run build",
+    "exit": 0,
+    "prebuildTestsPassed": 45,
+    "serialAfterFocusedTests": true,
+    "normalGuards": true,
+    "log": {
+      "path": "Developer/agent_room/vending_front_20261020/v2-build.log",
+      "sha256": "f4e07ad48275d5d656f64ac2a3a22acdfba61e3340b385c9a3c739dd44abafc1"
+    },
+    "artifact": {
+      "path": "Developer/r3f_prototype/dist/index.html",
+      "sha256": "731555c2e727107a114f349e5f48d2f99d93eae9b9be6f220f71f4a67d4efd83"
+    },
+    "warnings": "React act, multiple Three.js, dynamic imports/chunk warnings retained in build log; no guard bypass."
+  },
+  "diffs": [
+    {
+      "path": "Developer/agent_room/vending_front_20261020/v2-scoped-tracked.diff",
+      "sha256": "d2f8861452c229e13c6c685e909b034a01e6b8cf4c87464417ef1255ef3c6847"
+    },
+    {
+      "path": "Developer/agent_room/vending_front_20261020/v2-added-transform-test.diff",
+      "sha256": "46cf52b5b79806920e382e398678e3980a5733612da995273fca0554a178afed"
+    }
+  ],
+  "verification": {
+    "diffCheck": "PASS",
+    "unchangedSourceCheck": "PASS: placement/economy/model/Game/GameCanvas/camera framing/store",
+    "qaInputs": [
+      {
+        "path": "Quaility_Assurance/vending_front_20261020/qa.json",
+        "sha256": "c4e5374bcb9d2ec618799453025bf26ccad04fca9c364aa4b0a3f4a2e8951628"
+      },
+      {
+        "path": "Quaility_Assurance/vending_front_20261020/qa.md",
+        "sha256": "71a0fa92a6d59eeb1f5e2ca28c23bcceaab3f186afafb40331d32ad031a1e7f2"
+      }
+    ],
+    "independentQA": "balanceqa rejected v1 under VIS-01; v2 pending independent harness reuse. No browser run by implementer.",
+    "preflight": "Previously completed mandatory checker/context/gstack and TOML/knowledge reads retained; not repeated.",
+    "originalAccessLimitations": "Original room-side access contract preserved; no new direct-front furniture-clearance claim."
+  },
+  "operations": {
+    "commit": false,
+    "push": false,
+    "deploy": false,
+    "browser": false,
+    "liveWrites": false,
+    "gitCheckout": false
+  },
+  "redaction": "No credentials or env contents copied into this receipt."
+}

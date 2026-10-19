@@ -6,8 +6,8 @@ import { useGameStore } from '../store/useGameStore.js'
 const WALL_ROTATION_Y = Object.freeze({
   north: 0,
   south: Math.PI,
-  west: Math.PI / 6,
-  east: -Math.PI / 6,
+  west: Math.PI / 9,
+  east: -Math.PI / 12,
 })
 
 function placementToVector(placement) {
