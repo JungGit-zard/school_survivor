@@ -1,48 +1,44 @@
 {
   "approved": true,
-  "sourceManifestSha256": "2c9bb0254843846fd31f91e0e41ef05802dd66362b3f48d2dc8acad51d600fe0",
+  "recommendation": "GO_SCOPED",
+  "sourceManifestSha256": "08da4eec2296321a15a5a747c8e7af31948dc58572c1647c238e2b9b6a113db4",
   "reviewer": "balanceqa",
   "card": "t_6cec1286",
-  "reviewedAtUtc": "2026-10-19T13:53:16.513008+00:00",
+  "reviewedAtUtc": "2026-10-19T13:59:39.507279+00:00",
   "baseCommit": "66c9198b9f97d146a16bb0ef611359b468072b1a",
-  "scope": "QA-01 repair-only rebind of prior independent source security/integrity review; not build, preview, live or publishing authorization",
+  "reviewedHead": "d23e20a3f1029c30243c2e432a6283788665e403",
+  "scope": "Byte-transport LF normalization rebind only; inherits review2 source security/integrity scope, not publishing or live approval",
   "findings": [],
-  "resolvedFindings": [
-    {
-      "id": "QA-01",
-      "status": "resolved",
-      "evidence": "prepare-source-freeze.py:13 now explicitly includes index.html. New manifest adds only Developer/r3f_prototype/index.html; all prior 1317 entries are identical. The added input actual bytes and HEAD blob match SHA256 5fff6ffc5ab7edb9cd8062f2d530e44966d7bf5262c80bb67e88fd219060f95d. Unchanged release-common.cjs:12 hashes every declared input, including this HTML.",
-      "negativeFixture": "html-binding-negative.cjs source inspected: VM fs overlay changes HTML bytes only in memory, supplies fixture QA approval without writing receipts, invokes actual sourceGate, and asserts exact Reviewed source drift Developer/r3f_prototype/index.html rejection before remote/auth/network. Publisher-reported PASS; reviewer did not rerun tests per request."
-    }
-  ],
+  "resolvedFindings": [{"id":"QA-01","status":"resolved in review2; unchanged"}],
   "verified": {
+    "jsonSemanticEqualityIncludingUtc": true,
+    "lfBytesEqualPriorCrLfBytesAfterCrLfReplacement": true,
+    "manifestRawBytesEqualHeadBlob": true,
     "manifestInputCount": 1318,
     "manifestUniqueInputCount": 1318,
-    "sourceHashMismatches": [],
-    "inputRootMembershipExact": true,
-    "addedInputs": ["Developer/r3f_prototype/index.html"],
-    "removedInputs": [],
-    "changedPriorInputEntries": [],
-    "unchangedPriorInputCount": 1317,
-    "changedNonFileManifestFields": ["utc"],
-    "indexActualAndHeadSha256": "5fff6ffc5ab7edb9cd8062f2d530e44966d7bf5262c80bb67e88fd219060f95d",
-    "priorRuntimeSecurityScriptsAndConfigHashesUnchanged": true,
-    "immutableReview1ReceiptsHashCheck": "PASS"
+    "sourceHashAndSizeMismatches": [],
+    "priorInputEntriesUnchanged": true,
+    "priorRuntimeGuardConfigHashesUnchanged": true,
+    "oldQaManifestHashMismatchBeforeRebind": true,
+    "generatorDiff": "prepare-source-freeze.py write_text adds only newline='\\n'; generator not run"
   },
-  "priorReview": {
-    "sourceManifest": "reviewed-source-review1.json",
-    "sourceManifestSha256": "57ea766fe1fda89fda2f343ed3eb86fec72bcbe10dcfd9460456b543800a9446",
-    "approval": "qa-approval-review1.json",
-    "approvalSha256": "baae93bd635d8ac65c3b98226c9487079f1b6f3b468673b6e97f2335aa64d94b",
-    "result": "qa-result-review1.md",
-    "resultSha256": "f3c6ee4dd7622bab6da027cb4f12d090981c656b58847951115b62a7e88c1a21",
-    "approved": false,
-    "preserved": true
+  "immutablePriorReceipts": {
+    "archive": "immutable-pre-normalization-receipts.zip",
+    "archiveSha256": "d18ae0e97c1fffb1bac2418f9a2eb974bd1913bb22b80592ca74a1cc730d78bb",
+    "review2ManifestRawSha256": "2c9bb0254843846fd31f91e0e41ef05802dd66362b3f48d2dc8acad51d600fe0",
+    "review2ApprovalRawSha256": "d8cb2a5caaf730c79b85d150fda7fcfb4644c21b15c1db323f13d1a6e37271cc",
+    "review2ResultRawSha256": "429208a78f78249e9a83c7a97743caf3ae811e91176714902b77ef5dab31a6d8",
+    "review2ApprovalTrueAndBound": true,
+    "review1ManifestRawSha256": "57ea766fe1fda89fda2f343ed3eb86fec72bcbe10dcfd9460456b543800a9446",
+    "review1ApprovalRawSha256": "baae93bd635d8ac65c3b98226c9487079f1b6f3b468673b6e97f2335aa64d94b",
+    "review1ResultRawSha256": "f3c6ee4dd7622bab6da027cb4f12d090981c656b58847951115b62a7e88c1a21",
+    "review1ApprovalRemainsFalse": true,
+    "archiveModified": false
   },
   "limits": [
-    "This PASS closes only QA-01 and rebinds the unchanged prior review scope to the new manifest SHA.",
-    "No test, build, game, browser, benchmark, preview/live, auth network, commit, push or deploy was run during this repair-only continuation.",
-    "Prior gameplay/audio/live evidence and verification limits remain as recorded in review1; no new live-preservation or device validation is claimed.",
-    "No source, manifest, release script, config or immutable review1 receipt was modified by this reviewer. Existing direct blocked fence remains. launchmini is the sole publisher."
+    "Read-only ZIP/JSON/raw-byte/source-hash/HEAD-blob checks only. No tests, builds, game, new worker, authentication network, preview or live execution.",
+    "The old QA hash mismatch was inspected in the JSON binding; sourceGate itself was not executed.",
+    "No source, manifest, guard, config, Git policy or original archived receipt modified by reviewer. No commit/push/deploy; publisher alone owns them.",
+    "Prior review limits remain. Publisher final evidence scripts are outside scope and were not run. GO_SCOPED is not live or publishing approval."
   ]
 }

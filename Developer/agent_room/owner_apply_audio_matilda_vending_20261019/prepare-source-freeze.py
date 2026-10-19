@@ -28,5 +28,5 @@ for f in old['files']:
     changed.append(f['path'])
     if f['path'] not in allowed_source and not ('.test.' in f['path']):raise RuntimeError('Unexpected frozen runtime drift '+f['path'])
 result={'schemaVersion':1,'utc':datetime.datetime.now(datetime.timezone.utc).isoformat(),'baseCommit':subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(),'authority':'Terry 2026-10-19 22:22 KST expanded scope; CEO/owner_apply_audio_matilda_vending_20261019.md','inputRoots':roots,'allowedExistingHostingReplacements':['/index.html']+public_audio,'replacementExpectedSha256':{p:sha((ROOT/'Developer/r3f_prototype/public'/p.lstrip('/')).read_bytes()) for p in public_audio},'oldFrozenRuntimeDrift':changed,'files':files}
-(D/'reviewed-source.json').write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+(D/'reviewed-source.json').write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n',encoding='utf-8',newline='\n')
 print(json.dumps({'files':len(files),'sourceManifestSha256':sha((D/'reviewed-source.json').read_bytes()),'allowedExistingReplacements':len(result['allowedExistingHostingReplacements']),'frozenRuntimeDrift':changed},ensure_ascii=False,indent=2))

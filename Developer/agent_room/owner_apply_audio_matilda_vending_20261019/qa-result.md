@@ -1,35 +1,30 @@
-# t_6cec1286 review2 — QA-01 수리 한정 재검토
+# t_6cec1286 review3 — byte-transport binding
 
-현재 판정: PASS / approved:true. 소스 security/integrity 검토의 새 SHA 재바인딩이며 게시 승인이나 build/preview/live 통과 선언이 아니다. launchmini만 publisher이다.
-검증 시각: 2026-10-19T13:53:16.513008+00:00.
+현재 판정: GO_SCOPED / approved:true. 직전 review2와 동일한 source security/integrity 승인 범위이며 live/게시 승인이 아니다. QA-01 해소 상태 유지.
+검증 시각: 2026-10-19T13:59:39.507279+00:00.
+관측 HEAD: d23e20a3f1029c30243c2e432a6283788665e403. 원격 push 여부는 이번에 재조회하지 않았다.
 
-## 대상과 실제 결과
-- lane: F:/From_SSD_D_20261005/JungSil/2.Minigame_project/releases/owner-all-complete-20261018
-- D: Developer/agent_room/owner_apply_audio_matilda_vending_20261019
-- 새 reviewed-source.json SHA256: 2c9bb0254843846fd31f91e0e41ef05802dd66362b3f48d2dc8acad51d600fe0.
-- baseCommit: 66c9198b9f97d146a16bb0ef611359b468072b1a. 이번에 원격을 다시 조회하지 않았다.
-- Python pathlib/json/hashlib 읽기전용 대조: 1318개/고유1318개 실제 SHA·크기 mismatch 0. src/public/scripts membership 모두 exact.
-- review1과 files 항목 대조: 추가 Developer/r3f_prototype/index.html 하나, 제거0, 기존1317 항목 변경0. files 외 차이는 utc뿐이다. 따라서 기존 runtime/security scripts/config 및 기존 검토 입력은 동일하다.
-- git show HEAD:Developer/r3f_prototype/index.html의 원본 bytes, 실제 HTML 및 새 manifest 해시 모두 5fff6ffc5ab7edb9cd8062f2d530e44966d7bf5262c80bb67e88fd219060f95d로 일치한다.
+## 실제 검증
+1. reviewed-source.json 실제 SHA256 = 08da4eec2296321a15a5a747c8e7af31948dc58572c1647c238e2b9b6a113db4. git show HEAD:Developer/agent_room/owner_apply_audio_matilda_vending_20261019/reviewed-source.json raw bytes와 완전히 동일하며 CR 없음.
+2. ZIP의 직전 manifest raw SHA = 2c9bb0254843846fd31f91e0e41ef05802dd66362b3f48d2dc8acad51d600fe0. 현재 bytes == 직전 bytes의 CRLF를 LF로 치환한 결과. JSON 전체 값(UTC 포함) 완전히 동일. source 파일 항목/게임/guard/config 바인딩 변경0.
+3. 현재 1318개 입력/고유1318개 실제 SHA와 크기 대조 mismatch0. 기존 sourceGate의 검증 구조를 변경하지 않고 QA SHA만 재바인딩.
+4. 재바인딩 전 qa-approval.json은 old2c9bb SHA로 승인되어 있어 새 manifest raw SHA와 다름을 확인. sourceGate 자체는 실행하지 않았다.
+5. prepare-source-freeze.py의 working diff는 write_text에 newline='\n' 한 인자 추가뿐. 생성기와 publisher final evidence scripts는 실행하지 않았다. 기존 LF 정책/가드는 수정하지 않았다.
 
-## QA-01 해소 근거
-prepare-source-freeze.py:13의 명시 목록에 index.html이 포함됐다. 이 생성기는 실행하지 않았다. 기존 release-common.cjs:12는 열거된 모든 입력 해시를 검사하므로 HTML도 이제 sourceGate 검사 대상이다. HTML 내용이나 기존 게이트를 바꾸지 않고 누락 바인딩만 수리했다.
-html-binding-negative.cjs:1-8을 직접 읽었다. 실제 sourceGate를 VM으로 로드하고 fs read overlay에서만 HTML bytes와 fixture QA 응답을 대체하며 정확한 HTML drift 오류를 요구한다. 해당 오류는 remote ls-remote/API 인증 이전 루프에서 발생한다. publisher의 PASS 보고는 이 코드와 부합한다. 사용자 테스트 금지에 따라 리뷰어는 fixture를 포함해 테스트를 재실행하지 않았다. 실제 파일/승인 receipt 변경 또는 auth/network 실행의 새 증거로 표현하지 않는다.
+## 불변 원본 보존
+D/immutable-pre-normalization-receipts.zip 실제 SHA256:
+d18ae0e97c1fffb1bac2418f9a2eb974bd1913bb22b80592ca74a1cc730d78bb
+압축 해제/쓰기 없이 ZIP 멤버 bytes를 읽어 확인했다:
+- review2 reviewed-source.json: 2c9bb0254843846fd31f91e0e41ef05802dd66362b3f48d2dc8acad51d600fe0
+- review2 qa-approval.json: d8cb2a5caaf730c79b85d150fda7fcfb4644c21b15c1db323f13d1a6e37271cc, approved:true 및 old2c9bb 바인딩 확인
+- review2 qa-result.md: 429208a78f78249e9a83c7a97743caf3ae811e91176714902b77ef5dab31a6d8
+- review1 manifest/approval/result: 각각 57ea766fe1fda89fda2f343ed3eb86fec72bcbe10dcfd9460456b543800a9446 / baae93bd635d8ac65c3b98226c9487079f1b6f3b468673b6e97f2335aa64d94b / f3c6ee4dd7622bab6da027cb4f12d090981c656b58847951115b62a7e88c1a21. 원래 approved:false 유지.
+원본 ZIP과 과거 receipts는 수정하지 않았다. canonical mirrors의 과거 보고 본문도 그대로 보존한다.
 
-Blocker: 없음(이번 QA-01 수리 및 기존 검토 재바인딩 범위).
+## 명령 및 경계
+Python pathlib/zipfile/json/hashlib 읽기전용 검사와 git rev-parse HEAD, git show HEAD:<manifest>, git diff -- <prepare-source-freeze.py> 사용. 모든 위 조건 assert PASS. 추가 source/runtime discovery 없음.
+필수 gate exit0; matched_domains ui/gameplay/qa/audio 및 각 keyword evidence 확인. receipt dff7356ebc64f7a361d13bdc800ada75eff66ef89c3e0acc8c6d1937f04f18f8. 직전과 같은 정책 문서 해시이며 갱신된 QA 기록만 재확인했다.
 
-## review1 불변 보존 검증
-다음 lane D 파일들의 실제 SHA를 이전 리뷰 결과와 대조해 모두 일치함을 확인했다. 파일은 수정하지 않았다.
-- reviewed-source-review1.json: 57ea766fe1fda89fda2f343ed3eb86fec72bcbe10dcfd9460456b543800a9446
-- qa-approval-review1.json: baae93bd635d8ac65c3b98226c9487079f1b6f3b468673b6e97f2335aa64d94b (approved:false, 옛 manifest에 바인딩)
-- qa-result-review1.md: f3c6ee4dd7622bab6da027cb4f12d090981c656b58847951115b62a7e88c1a21
-옛 HOLD는 역사적 판정으로 그대로 남는다. canonical 보고서도 기존 HOLD 본문 앞에 새 판정을 추가하고 옛 본문은 보존한다.
+Blocker: 없음(이 byte-transport 재바인딩 범위). 이전 실기기/OAuth/청음/live 등 미검증 한계 유지. 이번에 테스트/build/게임/새worker/인증 네트워크/commit/push/preview/live/deploy 미실행. source/manifest/guard/config/policy 수정 없음. direct blocked fence 유지. launchmini 단일 publisher. live 아직 실행하지 않았으며 publisher final evidence scripts는 범위 밖이다.
 
-## 명령·한계
-실행: Python 읽기전용 manifest 전항목 해시/크기·목록 delta·root membership·보존 receipt SHA 검사, git show HEAD:Developer/r3f_prototype/index.html. 실제 결과 PASS; 새 manifest SHA는 위 값과 일치.
-게이트: 같은 audio/gameplay/ui/qa summary, matched_domains ui/gameplay/qa/audio 및 각 keyword evidence 확인. combined receipt d99c5c9f7bafb91cd838c10588efbf9366df986fff84ebe16322533016082495로 이전과 달라 필수 문서를 재읽었다(SESSION_MEMORY는 최신 엔트리만). 작업 영역을 확장한 것은 아니다.
-이번 continuation에서 테스트·build·게임·브라우저·benchmark·preview/live·인증 네트워크·commit/push/deploy 없음. 소스/manifest/config 및 보존 receipt 수정 없음. 기존 direct blocked fence 유지. review1의 실제 실기기/OAuth/청음/새 live 미검증 등 한계는 그대로이며 신규 검증으로 승격하지 않는다.
-
-산출물: 이 폴더 qa-approval.json 및 qa-result.md.
-canonical 상세 mirror: F:/From_SSD_D_20261005/JungSil/2.Minigame_project/school_survivor-integration/Developer/agent_room/owner_apply_audio_matilda_vending_20261019/qa-result.md
-QA mirror: F:/From_SSD_D_20261005/JungSil/2.Minigame_project/school_survivor-integration/Quaility_Assurance/owner_apply_audio_matilda_vending_20261019/qa-result.md
+산출물: lane D/qa-approval.json 및 D/qa-result.md; canonical Developer/agent_room/owner_apply_audio_matilda_vending_20261019/qa-result.md와 Quaility_Assurance/owner_apply_audio_matilda_vending_20261019/qa-result.md에 현재 판정 추가.
