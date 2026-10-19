@@ -2765,7 +2765,7 @@ window.SFX_AUDITION_MANIFEST = {
       "id": "dialogue-matilda",
       "category": "dialogue",
       "name": "마틸다 대사",
-      "description": "동일 예문: 오호호호! 떡하나주면 안잡아먹지! / 원본은 현행 WebAudio 프로필 직접 렌더, 후보는 새 포먼트 토큰 방식.",
+      "description": "동일 예문: 오호호호! 떡하나주면 안잡아먹지! / 원본 보존. 후보 A/B/C는 기존 음원 없이 한국어 음절·성문·포먼트·호흡을 각각 새로 절차 합성한 비교 전용 보이스.",
       "original": {
         "src": "/sfx/audition-20261016/dialogue-matilda-original.wav",
         "label": "현행 프로필 직접 렌더 (기본 음량)"
@@ -2773,20 +2773,20 @@ window.SFX_AUDITION_MANIFEST = {
       "variants": [
         {
           "id": "A",
-          "label": "A · 밝은 토큰",
-          "description": "52ms 밝은 이-아 토큰, 빠른 발음",
+          "label": "A · 고음 칼웃음·스타카토",
+          "description": "새 절차 합성: 날카로운 고음 오호호호, 짧게 끊는 스타카토 도발. 밝은 성문·짧은 모음·촘촘한 쉼.",
           "src": "/sfx/audition-20261016/dialogue-matilda-A.wav"
         },
         {
           "id": "B",
-          "label": "B · 둥근 토큰",
-          "description": "72ms 둥근 우-어 토큰, 여유 있는 호흡",
+          "label": "B · 콧소리 교장·모음 영창",
+          "description": "새 절차 합성: 연극적인 콧소리 교장, 길게 늘이는 모음과 계단식 영창. 중음·비강 공명·느긋한 호흡.",
           "src": "/sfx/audition-20261016/dialogue-matilda-B.wav"
         },
         {
           "id": "C",
-          "label": "C · 장난 토큰",
-          "description": "60ms 아-이 토큰, 상승형 장난 리듬",
+          "label": "C · 쉰 괴물 사감·엇박 웃음",
+          "description": "새 절차 합성: 낮고 쉰 괴물 사감의 갈라진 웃음. 거친 성문·서브하모닉·불규칙한 멈춤과 엇박 도발.",
           "src": "/sfx/audition-20261016/dialogue-matilda-C.wav"
         }
       ]

@@ -1,0 +1,53 @@
+{
+  "card_id": "t_b82b3574",
+  "worker": "levelmini",
+  "status": "implemented-focused-offline-pass-handoff-to-launchmini",
+  "dispatcher_fence": "blocked-preserved-no-unblock-no-dispatch",
+  "lane": "F:/From_SSD_D_20261005/JungSil/2.Minigame_project/releases/owner-all-complete-20261018",
+  "branch": "zombie_only",
+  "base_head": "66c9198b9f97d146a16bb0ef611359b468072b1a",
+  "gate_receipt": "9636c6763a1cdec1d4b4659b0527e7fb6f367f0b56f2ece43b7af5ec96c81885",
+  "changed_files": [
+    {"path": "F:/From_SSD_D_20261005/JungSil/2.Minigame_project/releases/owner-all-complete-20261018/Bang_Rules.md", "kind": "scoped-policy-before-numeric-implementation", "sha256": "592537ebe1ec5aceb68b8cd5418af5f617ad7eaf63afaa11732ccaf7b0972c5f"},
+    {"path": "F:/From_SSD_D_20261005/JungSil/2.Minigame_project/releases/owner-all-complete-20261018/Developer/r3f_prototype/src/components/Enemy.jsx", "kind": "matilda-only-gameplay", "sha256": "26c11bca50a89e91f7b413cbd6561227b429827b5e8e5a99a91c021ddc43228f"},
+    {"path": "F:/From_SSD_D_20261005/JungSil/2.Minigame_project/releases/owner-all-complete-20261018/Developer/r3f_prototype/src/lib/matildaDashSpeed.js", "kind": "new-pure-helper", "sha256": "3ae7adafc70a506cc975cf715890dc20dacb98efad3469542d34f64f71b7c65d"},
+    {"path": "F:/From_SSD_D_20261005/JungSil/2.Minigame_project/releases/owner-all-complete-20261018/Developer/r3f_prototype/src/lib/matildaDashSpeed.test.js", "kind": "new-focused-tests", "sha256": "a759825c6e67286779bb22aa2265c0fe9a9a3dc28cf5ae0637aaa5e503b74879"},
+    {"path": "F:/From_SSD_D_20261005/JungSil/2.Minigame_project/releases/owner-all-complete-20261018/Developer/r3f_prototype/src/components/StageVendingLayer.jsx", "kind": "restore-approved-west-east-yaw", "sha256": "33fadf9c0bb75f48a27ea9297d24496d769d8266c19b518a532fd695a00c7c09"},
+    {"path": "F:/From_SSD_D_20261005/JungSil/2.Minigame_project/releases/owner-all-complete-20261018/Developer/r3f_prototype/src/components/StageVending.integration.test.jsx", "kind": "all-stage-floor-mount-and-yaw-contract", "sha256": "cad69caf20220c14236faab2609b38342952414a28fd52ab843273e1e7b0d1cf"},
+    {"path": "F:/From_SSD_D_20261005/JungSil/2.Minigame_project/releases/owner-all-complete-20261018/Developer/r3f_prototype/src/components/StageVendingPrompt.test.jsx", "kind": "all-stage-real-hud-store-purchase-tests", "sha256": "ec4318055439e1eb50e9869f43a7ae2f942f24143df358b3ddb2dd4ef5f69c88"},
+    {"path": "F:/From_SSD_D_20261005/JungSil/2.Minigame_project/releases/owner-all-complete-20261018/Planner/owner_apply_20261019/levelmini-matilda-vending-handoff.md", "kind": "acceptance-and-balance-qa-handoff"}
+  ],
+  "result_artifacts": [
+    "F:/From_SSD_D_20261005/JungSil/2.Minigame_project/school_survivor-integration/Developer/agent_room/owner_apply_audio_matilda_vending_20261019/level-result.md",
+    "F:/From_SSD_D_20261005/JungSil/2.Minigame_project/school_survivor-integration/Developer/agent_room/owner_apply_audio_matilda_vending_20261019/level-inventory.json"
+  ],
+  "test_artifacts": [
+    "F:/From_SSD_D_20261005/JungSil/2.Minigame_project/releases/owner-all-complete-20261018/Developer/agent_room/owner_apply_audio_matilda_vending_20261019/level-red.json",
+    "F:/From_SSD_D_20261005/JungSil/2.Minigame_project/releases/owner-all-complete-20261018/Developer/agent_room/owner_apply_audio_matilda_vending_20261019/level-green.json"
+  ],
+  "tests": {
+    "runner": "normal npm test with pretest",
+    "red_exit_code": 1,
+    "red": {"passed": 2, "yaw_assertions_failed": 10, "matilda_helper_missing_module": true},
+    "green_exit_code": 0,
+    "green": {"files": 11, "passed": 102, "failed": 0},
+    "files": ["src/lib/matildaDashSpeed.test.js", "src/components/EnemyVisual.test.js", "src/components/StageVending.integration.test.jsx", "src/components/StageVendingPrompt.test.jsx", "src/components/StageVendingMachine.test.jsx", "src/lib/stageVending.test.js", "src/store/useGameStore.stageVending.test.js", "src/store/useGameStore.vendingIntegration.test.js", "src/components/Stage5Environment.test.jsx", "src/components/Stage5Environment.readiness.test.jsx", "src/components/HUD.persistenceVisibility.test.jsx"],
+    "diff_check_exit_code": 0
+  },
+  "stage_ids_configured_and_hud_purchased_offline": ["stage1", "stage2", "stage3", "stage4", "stage5", "stage6", "stage7", "stage8", "stage9", "stage10"],
+  "matilda_formula": "baseChargeSpeed * (1 + max(0, actualStartedDashCount - 1) * 0.01)",
+  "vending_yaw_radians": {"west": "Math.PI / 6", "east": "-Math.PI / 6"},
+  "vending_interaction_range": {"units": 2.25, "blocks": 0.5625},
+  "preserved_sha256_before_equals_after": {
+    "Developer/r3f_prototype/src/components/HUD.jsx": "ed571a8f61481f5e72b57ef0d3b5899ad0bfb74882cc5e3ece7877d6588d7adb",
+    "Developer/r3f_prototype/src/components/Enemies.jsx": "360fd766e324d82329e93dc84b08d05eefb2d1311711f42f9a1ea162d2b6afb9",
+    "Developer/r3f_prototype/src/lib/burstEvents.js": "96fbdaf694fa714cc6100bf21e6db174a7e3cd5a50caa26283e2c3c6ca8481cc",
+    "Developer/r3f_prototype/src/lib/stageConfig.js": "2b07dad1ec6ee15265fa0de6c5a1bab4b23615d30db388edbb50581b225c6124",
+    "Developer/r3f_prototype/src/lib/expansionContent.js": "e898e0f0323d7faea18ba322309a6c0edcc43c743f6d80cb2a5790ef08879c71",
+    "Developer/r3f_prototype/src/store/useGameStore.js": "263f032d74a15481af24fb7e19d59df80d39d5bf7e54f1e725d6e97534c6e827",
+    "Developer/r3f_prototype/src/lib/stageVending.js": "3ece7f4b519e8630d65a467079722a03a13057162fbe934d806c38e9ce22b508"
+  },
+  "other_worker_changes_preserved": ["existing HUD save-overlay removal", "QA preservation-result dirty file", "parallel soundmini dialogue-matilda A/B/C WAV and manifest", "unrelated untracked artifacts"],
+  "prohibited_actions_performed": {"commit": false, "push": false, "build": false, "deploy": false, "guard_or_config_change": false, "live_firebase_user_reads_or_writes": false, "full_test_suite": false},
+  "limits": ["No WebGL/Rapier continuous-dash runtime or real-device playtest", "Matilda helper behavior plus Enemy source consumption/reset contract, not browser E2E", "HUD/store purchase uses in-memory Firebase transaction fixture; no remote success claim", "Publisher launchmini owns integration and deployment"]
+}

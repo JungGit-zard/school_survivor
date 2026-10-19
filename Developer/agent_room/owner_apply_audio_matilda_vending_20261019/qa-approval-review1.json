@@ -1,0 +1,44 @@
+{
+  "approved": false,
+  "sourceManifestSha256": "57ea766fe1fda89fda2f343ed3eb86fec72bcbe10dcfd9460456b543800a9446",
+  "reviewer": "balanceqa",
+  "card": "t_6cec1286",
+  "scope": "source security/integrity only; build/preview/live execution remains publisher responsibility",
+  "reviewedAtUtc": "2026-10-19T13:46:15.023031+00:00",
+  "baseCommit": "66c9198b9f97d146a16bb0ef611359b468072b1a",
+  "findings": [
+    {
+      "id": "QA-01",
+      "severity": "high",
+      "blocking": true,
+      "title": "Vite HTML 진입점이 source/QA binding에서 누락됨",
+      "locations": [
+        "Developer/agent_room/owner_apply_audio_matilda_vending_20261019/prepare-source-freeze.py:9-17",
+        "Developer/agent_room/owner_apply_audio_matilda_vending_20261019/release-common.cjs:10-14",
+        "Developer/agent_room/owner_apply_audio_matilda_vending_20261019/seal-candidate.cjs:6-8",
+        "Developer/r3f_prototype/index.html:9-13,37-38"
+      ],
+      "evidence": "실제 index.html은 존재하지만 reviewed-source.json files 및 inputRoots 모두의 검사 대상이 아니다. sourceGate는 열거된 파일 해시와 세 root membership만 검사하고 HEAD==remote만 확인한다. seal은 index 내용의 검토 해시 대신 생성된 JS entry 존재만 확인한 후 현재 dist를 승인된 소스 산출물처럼 봉인한다.",
+      "impact": "index.html의 inline script 또는 module entry 변경이 manifest/QA SHA를 바꾸지 않고 새 build/preview seal에 포함될 수 있다. 실제 악성 변경을 발견했다는 뜻이 아니라, 정확 소스 무결성 게이트의 검증된 누락이다.",
+      "minimalRepair": "publisher/구현자가 Developer/r3f_prototype/index.html을 명시적 source manifest 입력으로 추가하고 현재 승인된 원본과 대조한다. manifest를 재생성하여 새 SHA로 독립 QA를 다시 바인딩한다. 기존 receipt/guard는 수정하지 않는다. 메모리/fixture 기반으로 HTML drift 거부를 확인한다. 리뷰어는 소스나 manifest를 수정하지 않았다."
+    }
+  ],
+  "verified": {
+    "manifestInputCount": 1317,
+    "manifestUniqueInputCount": 1317,
+    "sourceHashMismatches": [],
+    "inputRootMembershipExact": true,
+    "oldFrozenRuntimeDriftCount": 18,
+    "oldFrozenRuntimeDriftMatchesDeclared": true,
+    "remoteHeadMatchesLocal": true,
+    "releasePathHashSyntheticChecks": "7/7 PASS",
+    "unboundIndexProbe": "memory-only; file hash changes but neither manifest enumeration nor root membership covers index.html; no source writes"
+  },
+  "limits": [
+    "HOLD는 QA-01 소스 무결성 결함에 한정한다. 옛 HUD-only 승인 범위 또는 실제 OAuth/Android/청음 미검증을 blocker로 재해석하지 않았다.",
+    "sound 8파일102 PASS, level 11파일102 PASS, preservation 6파일95 PASS는 기존 실제 로그/JSON 대조이며 리뷰어 재실행 결과가 아니다. 중복 테스트를 고유 합계로 더하지 않았다.",
+    "새 build/preview/live 실행 및 전체 suite/게임/benchmark를 실행하지 않았다. 기록된 과거 live provenance는 새 실시간 검증이 아니다.",
+    "실제 Google OAuth, 물리 Android/Play, 사람 청음 및 실제 WebGL/Rapier 연속 돌진은 NOT_VERIFIED.",
+    "추가 worker/redispatch/unblock, source 변경, commit/push/deploy, Firebase 사용자 writes/Rules/Functions/AAB/Play 변경 없음. launchmini가 유일한 publisher이다."
+  ]
+}

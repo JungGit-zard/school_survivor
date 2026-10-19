@@ -28,6 +28,7 @@ import {
 } from '../lib/chefBossPhase.js'
 import { getStageBounds, getStageConfig } from '../lib/stageConfig.js'
 import { getRuntimeElapsedMs } from '../lib/gameRuntimeTime.js'
+import { getMatildaDashSpeed } from '../lib/matildaDashSpeed.js'
 import { getSpawnCatchUpOffsetSec } from '../lib/spawnCatchUp.js'
 import { isBossType } from '../lib/burstEvents.js'
 import { deathSfxId } from '../lib/enemyDeathSfx.js'
@@ -918,6 +919,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
   const matildaLaughRemainingRef = useRef(0)
   const matildaLaughCuePendingRef = useRef(false)
   const matildaChargeStallMsRef = useRef(0)
+  const matildaDashCountRef = useRef(0)
   const matildaPreviousChargePosRef = useRef({ x: spawnPos[0], z: spawnPos[2] })
   const chargeDir    = useRef(new THREE.Vector3())
 
@@ -986,6 +988,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
     matildaLaughRemainingRef.current = isMatilda ? MATILDA_LAUGH_DURATION_MS : 0
     matildaLaughCuePendingRef.current = isMatilda
     matildaChargeStallMsRef.current = 0
+    matildaDashCountRef.current = 0
     matildaContactKillCountdownRef.current = createMatildaContactKillCountdown()
     matildaPreviousChargePosRef.current.x = spawnPos[0]
     matildaPreviousChargePosRef.current.z = spawnPos[2]
@@ -1433,6 +1436,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
           matildaPreviousChargePosRef.current.x = t.x
           matildaPreviousChargePosRef.current.z = t.z
           matildaChargeStallMsRef.current = 0
+          matildaDashCountRef.current += 1
           chargeState.current = 'charge'
           queueVisualState('animPhase', 'charge')
           _applyRotation(groupRef, chargeDir.current.x, chargeDir.current.z, 1)
@@ -1441,7 +1445,8 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
           const cd = chargeDir.current
           const previous = matildaPreviousChargePosRef.current
           const movedAlong = (t.x - previous.x) * cd.x + (t.z - previous.z) * cd.z
-          const expectedMove = stats.chargeSpeed * delta
+          const dashSpeed = getMatildaDashSpeed(stats.chargeSpeed, matildaDashCountRef.current)
+          const expectedMove = dashSpeed * delta
           const hitDistance = getChargeHitDistance(stats, true)
           const blockedFrame = isMatildaChargeBlockedValues(movedAlong, expectedMove, dist, hitDistance)
           matildaChargeStallMsRef.current = blockedFrame
@@ -1454,8 +1459,8 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
           }
           previous.x = t.x
           previous.z = t.z
-          _vel.x = cd.x * stats.chargeSpeed
-          _vel.z = cd.z * stats.chargeSpeed
+          _vel.x = cd.x * dashSpeed
+          _vel.z = cd.z * dashSpeed
           applySpecialEnemyVelocity()
           _applyRotation(groupRef, cd.x, cd.z, 1)
 

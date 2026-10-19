@@ -1,0 +1,1233 @@
+{
+  "utc": "2026-10-19T13:33:24.647Z",
+  "live": "a42e8ab5d8b35349",
+  "oldFrozenSourceHead": "408fb6a89626acf51327b3a022ad4eb5878456be",
+  "checked": 204,
+  "mismatch": [],
+  "results": [
+    {
+      "path": "/assets/AdminPage-BS6LuZrM.js",
+      "expected": "f8d462417c79f89791eff21bff97f1d378265e9a7c8c6234265c5156b8b3ce76",
+      "actual": "f8d462417c79f89791eff21bff97f1d378265e9a7c8c6234265c5156b8b3ce76",
+      "match": true
+    },
+    {
+      "path": "/assets/AdminPage-BZ0N2Q6T.js",
+      "expected": "b11f3e87c1dab6a754ea421c94ca9a36245234480e6d8cd361c683c2f842550c",
+      "actual": "b11f3e87c1dab6a754ea421c94ca9a36245234480e6d8cd361c683c2f842550c",
+      "match": true
+    },
+    {
+      "path": "/assets/AdminPage-DDd-YWJN.js",
+      "expected": "70762d1092822b552ef02db4d97cc0cb78eddd53123091e0d6056454edd704c5",
+      "actual": "70762d1092822b552ef02db4d97cc0cb78eddd53123091e0d6056454edd704c5",
+      "match": true
+    },
+    {
+      "path": "/assets/App-CG7y4lsk.js",
+      "expected": "17ef2f89352c9a4df27e51c69452f2437150b8bc0592f3eb22772168093891e1",
+      "actual": "17ef2f89352c9a4df27e51c69452f2437150b8bc0592f3eb22772168093891e1",
+      "match": true
+    },
+    {
+      "path": "/assets/16_wea_lantern-a3W7qkgX.js",
+      "expected": "d9e48e545a941ef9e02d5b00921398cb079de1606e084a509ec1174496c5e393",
+      "actual": "d9e48e545a941ef9e02d5b00921398cb079de1606e084a509ec1174496c5e393",
+      "match": true
+    },
+    {
+      "path": "/assets/AdminPage-D5a7OJnw.js",
+      "expected": "4f345e2f8a9f10692128747ba949eeb8d0e9b946b7ab7e4d5678adbbf2e161af",
+      "actual": "4f345e2f8a9f10692128747ba949eeb8d0e9b946b7ab7e4d5678adbbf2e161af",
+      "match": true
+    },
+    {
+      "path": "/assets/App-BCLtgXk7.js",
+      "expected": "41e8353711fb3c469b5663802d644d6d7d66bcdca9fc6a80f57dbc3c1345f90a",
+      "actual": "41e8353711fb3c469b5663802d644d6d7d66bcdca9fc6a80f57dbc3c1345f90a",
+      "match": true
+    },
+    {
+      "path": "/assets/App-CaPPAP0R.js",
+      "expected": "3abc562eb351708b77689aa8a16a5ff4e10c4ba9eb1b24f54e0b82faf52ead53",
+      "actual": "3abc562eb351708b77689aa8a16a5ff4e10c4ba9eb1b24f54e0b82faf52ead53",
+      "match": true
+    },
+    {
+      "path": "/assets/App-Cca_UrnK.js",
+      "expected": "8dfa5e00962ddf904e5c5058b5de56d898f5622644b89bb5d714c0a087580fc0",
+      "actual": "8dfa5e00962ddf904e5c5058b5de56d898f5622644b89bb5d714c0a087580fc0",
+      "match": true
+    },
+    {
+      "path": "/assets/App-DuHvwx0k.js",
+      "expected": "9afc868cf6e993d6be6f40b78ab3df0150f1a87d05492d1c4720efb2f6a014a4",
+      "actual": "9afc868cf6e993d6be6f40b78ab3df0150f1a87d05492d1c4720efb2f6a014a4",
+      "match": true
+    },
+    {
+      "path": "/assets/CoinShop-DUVLhRee.js",
+      "expected": "8e0ed2ca3da64fe0c5acd9b8d5fb2aa6664561e02da650c619a07fe1a3fcb1fc",
+      "actual": "8e0ed2ca3da64fe0c5acd9b8d5fb2aa6664561e02da650c619a07fe1a3fcb1fc",
+      "match": true
+    },
+    {
+      "path": "/assets/Enemy-BjKQfxc_.js",
+      "expected": "2714746653436d45f6f04ddb69ac443e69049a623098c665321d5eaf72286a8e",
+      "actual": "2714746653436d45f6f04ddb69ac443e69049a623098c665321d5eaf72286a8e",
+      "match": true
+    },
+    {
+      "path": "/assets/CoinShop-hm1k8C6B.js",
+      "expected": "0f3eeda148873a2a01e6ec5be07acec7751ccde2a170fb729930464a17952ad0",
+      "actual": "0f3eeda148873a2a01e6ec5be07acec7751ccde2a170fb729930464a17952ad0",
+      "match": true
+    },
+    {
+      "path": "/assets/CoinShop-d6qmEA6F.js",
+      "expected": "7ee77d4010e4e465dd48ca43cf0ad54883dcbb6ee236e24f866dc42eb0c6c73d",
+      "actual": "7ee77d4010e4e465dd48ca43cf0ad54883dcbb6ee236e24f866dc42eb0c6c73d",
+      "match": true
+    },
+    {
+      "path": "/assets/Enemy-CKHCOl0X.js",
+      "expected": "aa5c1891e9e208ea6673accdf432fb732f006769d270153074a2ff51f8b0cef1",
+      "actual": "aa5c1891e9e208ea6673accdf432fb732f006769d270153074a2ff51f8b0cef1",
+      "match": true
+    },
+    {
+      "path": "/assets/ErrorBoundary-DvS7ud3C.js",
+      "expected": "2f4e03e7abc0bba02b586a8aa534942cdf610dedb4dcb3211e41b6434ae89156",
+      "actual": "2f4e03e7abc0bba02b586a8aa534942cdf610dedb4dcb3211e41b6434ae89156",
+      "match": true
+    },
+    {
+      "path": "/assets/CoinShop-h7L_yUgJ.js",
+      "expected": "aa4a6f635646d676b6facf71e3dc6a4ab33e28f0b6add25fdf4d699796154c20",
+      "actual": "aa4a6f635646d676b6facf71e3dc6a4ab33e28f0b6add25fdf4d699796154c20",
+      "match": true
+    },
+    {
+      "path": "/assets/Enemy-CN2TWFvd.js",
+      "expected": "c065b484de87d757ae70b7f51bc97e0a1e8d2271b329edad447610fee0d3c8c8",
+      "actual": "c065b484de87d757ae70b7f51bc97e0a1e8d2271b329edad447610fee0d3c8c8",
+      "match": true
+    },
+    {
+      "path": "/assets/Enemy-CDuEJDIx.js",
+      "expected": "aa0aacae294e01b80c187dc592e8a7e9640bf1f636ebbb7b8fa0e17f8d0b5a7d",
+      "actual": "aa0aacae294e01b80c187dc592e8a7e9640bf1f636ebbb7b8fa0e17f8d0b5a7d",
+      "match": true
+    },
+    {
+      "path": "/assets/GameCanvas-me1ItNBj.js",
+      "expected": "06c742cd03b7fb00851b793c8a8a44b6656ac7040c02b19e536a87823858a489",
+      "actual": "06c742cd03b7fb00851b793c8a8a44b6656ac7040c02b19e536a87823858a489",
+      "match": true
+    },
+    {
+      "path": "/assets/GameplayScreen-B6Q9kQDz.js",
+      "expected": "a2dc50dfe7e78fa7ca1063faa009f5d3b8e28687c15093c2bfec7339334c6d8f",
+      "actual": "a2dc50dfe7e78fa7ca1063faa009f5d3b8e28687c15093c2bfec7339334c6d8f",
+      "match": true
+    },
+    {
+      "path": "/assets/GameCanvas-CRnCg6Qu.js",
+      "expected": "bc2ae9ce694dfe69bad6a63e3c6147830ac7dfbc8bff3491b04539d4f3c0e39e",
+      "actual": "bc2ae9ce694dfe69bad6a63e3c6147830ac7dfbc8bff3491b04539d4f3c0e39e",
+      "match": true
+    },
+    {
+      "path": "/assets/GameCanvas-BtUMhyRD.js",
+      "expected": "20ec997cfcad7f77a1dec11bf9668ecfc337a180b702068312e0f4229d895bb1",
+      "actual": "20ec997cfcad7f77a1dec11bf9668ecfc337a180b702068312e0f4229d895bb1",
+      "match": true
+    },
+    {
+      "path": "/assets/GameCanvas-CuLCTbjk.js",
+      "expected": "23d036153488a789d2f3bb1eb303de229f3ef6716605439cc235f9ef9ca7a77a",
+      "actual": "23d036153488a789d2f3bb1eb303de229f3ef6716605439cc235f9ef9ca7a77a",
+      "match": true
+    },
+    {
+      "path": "/assets/GameplayScreen-D0aae3Yz.js",
+      "expected": "094e581a7d7ca3fcc573e50dfcfd6ec05210ab0d853ec3300c4b90d3be732732",
+      "actual": "094e581a7d7ca3fcc573e50dfcfd6ec05210ab0d853ec3300c4b90d3be732732",
+      "match": true
+    },
+    {
+      "path": "/assets/GraphicsStudio-BDBJrboh.js",
+      "expected": "ba42ccc01b80067eb3cbefdd3c4aff8bd43e4538cfa19b17708ce6378433a604",
+      "actual": "ba42ccc01b80067eb3cbefdd3c4aff8bd43e4538cfa19b17708ce6378433a604",
+      "match": true
+    },
+    {
+      "path": "/assets/GameplayScreen-CERS7jW_.js",
+      "expected": "57c27af3569454fdde8bf6d08690b560930274967a7ac9bedc190ed326571dd1",
+      "actual": "57c27af3569454fdde8bf6d08690b560930274967a7ac9bedc190ed326571dd1",
+      "match": true
+    },
+    {
+      "path": "/assets/GameplayScreen-sY0kwr8d.js",
+      "expected": "3e98f052680f045679f08335092b4dc97b3936e2436894874cf8653d74ffef38",
+      "actual": "3e98f052680f045679f08335092b4dc97b3936e2436894874cf8653d74ffef38",
+      "match": true
+    },
+    {
+      "path": "/assets/GraphicsStudio-MnGenuq7.js",
+      "expected": "e4b9ebad721009155a32bc85b72300106fd236497770967e1147e8a3efb6b606",
+      "actual": "e4b9ebad721009155a32bc85b72300106fd236497770967e1147e8a3efb6b606",
+      "match": true
+    },
+    {
+      "path": "/assets/GraphicsStudio-D4uCQn1C.js",
+      "expected": "cf3a272cedead17f45f32c817c1402330a6b0a4d1b7364ea07054a71fc971fb0",
+      "actual": "cf3a272cedead17f45f32c817c1402330a6b0a4d1b7364ea07054a71fc971fb0",
+      "match": true
+    },
+    {
+      "path": "/assets/GameplayScreen-DY3q70Ht.js",
+      "expected": "0f73f68d6f7364306b1a193ad3ecfc7edb681d20087c3e1d144b3226fe9e3527",
+      "actual": "0f73f68d6f7364306b1a193ad3ecfc7edb681d20087c3e1d144b3226fe9e3527",
+      "match": true
+    },
+    {
+      "path": "/assets/GraphicsStudio-Z1LoPRE4.js",
+      "expected": "3a739a305087766c6a29ea6d318880c0ba68f5119ab6f0f45634d83e083851b6",
+      "actual": "3a739a305087766c6a29ea6d318880c0ba68f5119ab6f0f45634d83e083851b6",
+      "match": true
+    },
+    {
+      "path": "/assets/HUD-B9y96Ubm.js",
+      "expected": "30efd956a1ac40281ea071e4ec849138bc598d67bf13a4a4f5636c241601d4a1",
+      "actual": "30efd956a1ac40281ea071e4ec849138bc598d67bf13a4a4f5636c241601d4a1",
+      "match": true
+    },
+    {
+      "path": "/assets/HUD-DBM38grq.js",
+      "expected": "fb06f89fbdfb1144e4e323c8591b6faedff21d126efebba94388c36de9a96f1f",
+      "actual": "fb06f89fbdfb1144e4e323c8591b6faedff21d126efebba94388c36de9a96f1f",
+      "match": true
+    },
+    {
+      "path": "/assets/InspectionModeScreen-dQp4fnod.js",
+      "expected": "21781b5d2f34779dbf0a3f4c5b78c5fe08b14f0e61ea14d24ddaa54f741ac6b2",
+      "actual": "21781b5d2f34779dbf0a3f4c5b78c5fe08b14f0e61ea14d24ddaa54f741ac6b2",
+      "match": true
+    },
+    {
+      "path": "/assets/HUD-sdtGmvn7.js",
+      "expected": "17e09532de4fe79744f9b349c6f752f5f3efc7018b3ebbc169b6aa9f500b5676",
+      "actual": "17e09532de4fe79744f9b349c6f752f5f3efc7018b3ebbc169b6aa9f500b5676",
+      "match": true
+    },
+    {
+      "path": "/assets/Lobby-B5go0p1W.js",
+      "expected": "790a5cc86233c6ac62031ddd621dcc5504646acc11c284f3365b2a46c4cace59",
+      "actual": "790a5cc86233c6ac62031ddd621dcc5504646acc11c284f3365b2a46c4cace59",
+      "match": true
+    },
+    {
+      "path": "/assets/HUD-Bl7qPJkp.js",
+      "expected": "d6bd72f11042a5195a52b7b4805328403fc466696ed59aed03efb6132ec602ed",
+      "actual": "d6bd72f11042a5195a52b7b4805328403fc466696ed59aed03efb6132ec602ed",
+      "match": true
+    },
+    {
+      "path": "/assets/HUD-LWr1CjG2.js",
+      "expected": "7684c3beb6bf001ef8f374387a3ac93376332d958c22742681e9d002c5e971c3",
+      "actual": "7684c3beb6bf001ef8f374387a3ac93376332d958c22742681e9d002c5e971c3",
+      "match": true
+    },
+    {
+      "path": "/assets/Lobby-CBxHioKh.js",
+      "expected": "6633291c5cdcfd175eb411ce39d42c2c17164412e0b1ec4fd0e310d597f4813a",
+      "actual": "6633291c5cdcfd175eb411ce39d42c2c17164412e0b1ec4fd0e310d597f4813a",
+      "match": true
+    },
+    {
+      "path": "/assets/Lobby-CGMN_kkn.js",
+      "expected": "68663621bf7ce0f8f040a3704c74a6a0dbeb5aba30715aec3a9b8d44a9a4154d",
+      "actual": "68663621bf7ce0f8f040a3704c74a6a0dbeb5aba30715aec3a9b8d44a9a4154d",
+      "match": true
+    },
+    {
+      "path": "/assets/Lobby-2vOjIP2g.js",
+      "expected": "b9cb28c3e8c1697d7d10625d281a545227e003496c1c3e797406d9dcc85ac171",
+      "actual": "b9cb28c3e8c1697d7d10625d281a545227e003496c1c3e797406d9dcc85ac171",
+      "match": true
+    },
+    {
+      "path": "/assets/MissionCenter-bQqLqCmM.js",
+      "expected": "64386e0adfff1add05990bccdfdf047ccfd584d32c8d121a52c17289dde2da0d",
+      "actual": "64386e0adfff1add05990bccdfdf047ccfd584d32c8d121a52c17289dde2da0d",
+      "match": true
+    },
+    {
+      "path": "/assets/MissionCenter-BGOn_IFm.js",
+      "expected": "99fd3445a3fe7e894000afcb99e7260bd9a86bdf11df9d180c5ca7a7f6ab911d",
+      "actual": "99fd3445a3fe7e894000afcb99e7260bd9a86bdf11df9d180c5ca7a7f6ab911d",
+      "match": true
+    },
+    {
+      "path": "/assets/MissionCenter-KZ8UFcpW.js",
+      "expected": "274b817f555ddf16662d14eae119ebdbe56750884eca01e8a034c7653993c3d5",
+      "actual": "274b817f555ddf16662d14eae119ebdbe56750884eca01e8a034c7653993c3d5",
+      "match": true
+    },
+    {
+      "path": "/assets/PlayerMesh-Dl_PnNuj.js",
+      "expected": "c33745507eedd426d160def634cb9ec0fb01ce921aeaec9cbc249548387a5ac0",
+      "actual": "c33745507eedd426d160def634cb9ec0fb01ce921aeaec9cbc249548387a5ac0",
+      "match": true
+    },
+    {
+      "path": "/assets/MissionCenter-CCSJnK8g.js",
+      "expected": "7f95974f8efc686a79f1ed9177beb8350852a314cdaecfd8e511dd81da4cf098",
+      "actual": "7f95974f8efc686a79f1ed9177beb8350852a314cdaecfd8e511dd81da4cf098",
+      "match": true
+    },
+    {
+      "path": "/assets/PlayerMesh-DrBP9LNa.js",
+      "expected": "30c707f725087bb91160a21e45dc5cc5024c5be8055935a1886c973e1c294a7c",
+      "actual": "30c707f725087bb91160a21e45dc5cc5024c5be8055935a1886c973e1c294a7c",
+      "match": true
+    },
+    {
+      "path": "/assets/PlayerMesh-BibVbziE.js",
+      "expected": "0c255c29429950714273b400f1d6f1eda48b5261c36eaaa72271bd84df9ee319",
+      "actual": "0c255c29429950714273b400f1d6f1eda48b5261c36eaaa72271bd84df9ee319",
+      "match": true
+    },
+    {
+      "path": "/assets/PlayerMesh-CytoloD3.js",
+      "expected": "e4fc6e00456eedfd8da46264219ea0a7277f8337353d4729d9e9c63ed48959c0",
+      "actual": "e4fc6e00456eedfd8da46264219ea0a7277f8337353d4729d9e9c63ed48959c0",
+      "match": true
+    },
+    {
+      "path": "/assets/RankingWindowTabs-CUwVX4hS.js",
+      "expected": "492653946a2e6765ab65cb5b2e69e0174631357c1f7c99a9c809a3bb82ce8801",
+      "actual": "492653946a2e6765ab65cb5b2e69e0174631357c1f7c99a9c809a3bb82ce8801",
+      "match": true
+    },
+    {
+      "path": "/assets/RankingWindowTabs-9nQd0bgi.js",
+      "expected": "b73b58eda28006cefa830d1c1f24d14ec1dd5f43c06be1a53352e58b15ae3879",
+      "actual": "b73b58eda28006cefa830d1c1f24d14ec1dd5f43c06be1a53352e58b15ae3879",
+      "match": true
+    },
+    {
+      "path": "/assets/ReadyGameApp-Blz6IHYL.js",
+      "expected": "a5757123e69accfade2d683d9105bd42f89bf7b0b14bb5051ada79b4eb163515",
+      "actual": "a5757123e69accfade2d683d9105bd42f89bf7b0b14bb5051ada79b4eb163515",
+      "match": true
+    },
+    {
+      "path": "/assets/RankingWindowTabs-DxwbTu3X.js",
+      "expected": "adfc541ba0c3230e6d54763f6e98491e43a2aa8618cf5ada18fabd28f3a96b2c",
+      "actual": "adfc541ba0c3230e6d54763f6e98491e43a2aa8618cf5ada18fabd28f3a96b2c",
+      "match": true
+    },
+    {
+      "path": "/assets/ReadyGameApp-B-gLSYMP.js",
+      "expected": "c81a18e0f7b9a28a768c09fad2d1d961c3a2ce0e79b1b0a5f7d4736beb1912dc",
+      "actual": "c81a18e0f7b9a28a768c09fad2d1d961c3a2ce0e79b1b0a5f7d4736beb1912dc",
+      "match": true
+    },
+    {
+      "path": "/assets/ReadyGameApp-BpBZcTW3.js",
+      "expected": "f3cae53fa71cafccc7e02a0790b1d3d4f4d58286d1c675b5dbbfb9fa1269dc3b",
+      "actual": "f3cae53fa71cafccc7e02a0790b1d3d4f4d58286d1c675b5dbbfb9fa1269dc3b",
+      "match": true
+    },
+    {
+      "path": "/assets/ReadyGameApp-CXAbjUH4.js",
+      "expected": "06eb31a098c73419a7b1b10e6d8454983e035db21f1845d1f47655ac7e82381a",
+      "actual": "06eb31a098c73419a7b1b10e6d8454983e035db21f1845d1f47655ac7e82381a",
+      "match": true
+    },
+    {
+      "path": "/assets/RosariRoom-BC9KRcHG.js",
+      "expected": "e0e8e6dbb1b57dde9e5d93f2d0417ac74f6949c40592e43b2946471650c712bb",
+      "actual": "e0e8e6dbb1b57dde9e5d93f2d0417ac74f6949c40592e43b2946471650c712bb",
+      "match": true
+    },
+    {
+      "path": "/assets/ReadyGameApp-zmdYO3LU.js",
+      "expected": "26420509e394952c06968ea98d9e5854703a4c49768eed0a95742673c7edbfe6",
+      "actual": "26420509e394952c06968ea98d9e5854703a4c49768eed0a95742673c7edbfe6",
+      "match": true
+    },
+    {
+      "path": "/assets/SfxLayer-CCACu2lz.js",
+      "expected": "be3ec7ecd72faa790077827493678e8780f13566521487f8cdcbc05af453cf3d",
+      "actual": "be3ec7ecd72faa790077827493678e8780f13566521487f8cdcbc05af453cf3d",
+      "match": true
+    },
+    {
+      "path": "/assets/RankingWindowTabs-CABcgowt.js",
+      "expected": "91799a92a5b61fa9e55cbac0d79b93bdab688c8dcfd2b4fff7f78b7d6518c9ae",
+      "actual": "91799a92a5b61fa9e55cbac0d79b93bdab688c8dcfd2b4fff7f78b7d6518c9ae",
+      "match": true
+    },
+    {
+      "path": "/assets/RosariRoom-B-Ib9pwn.js",
+      "expected": "71822a2b50e50c008da4ac7f541296c08cef5cbedfebe881242c98f90f793b98",
+      "actual": "71822a2b50e50c008da4ac7f541296c08cef5cbedfebe881242c98f90f793b98",
+      "match": true
+    },
+    {
+      "path": "/assets/RosariRoom-CklQphx-.js",
+      "expected": "ab0985aad8010c9e408ecfb2a10fe8506c747c9b4a84739aa48536ad03ff7572",
+      "actual": "ab0985aad8010c9e408ecfb2a10fe8506c747c9b4a84739aa48536ad03ff7572",
+      "match": true
+    },
+    {
+      "path": "/assets/StageBossPreview-CPU45382.js",
+      "expected": "167c2932ca9b3ecfbfba4d70d0935fb785f9c27bee031bb83b8efb35f7360759",
+      "actual": "167c2932ca9b3ecfbfba4d70d0935fb785f9c27bee031bb83b8efb35f7360759",
+      "match": true
+    },
+    {
+      "path": "/assets/SfxLayer-CnKBgSIU.js",
+      "expected": "c3e437ae74fdd2b0289e20214dcca4f512aff68303c5e31216a6a7e274ea3607",
+      "actual": "c3e437ae74fdd2b0289e20214dcca4f512aff68303c5e31216a6a7e274ea3607",
+      "match": true
+    },
+    {
+      "path": "/assets/SfxLayer-D8dDZZjY.js",
+      "expected": "7cd5e6dc20af0ad43f37a8acd0834fb9fc9d5b63cae1aaa5940422d3680dcf86",
+      "actual": "7cd5e6dc20af0ad43f37a8acd0834fb9fc9d5b63cae1aaa5940422d3680dcf86",
+      "match": true
+    },
+    {
+      "path": "/assets/SfxLayer-CGjhlJ5X.js",
+      "expected": "9bf569599d91450c533edce05bef5d66ea0520626e2d04b13815e8cfa2259253",
+      "actual": "9bf569599d91450c533edce05bef5d66ea0520626e2d04b13815e8cfa2259253",
+      "match": true
+    },
+    {
+      "path": "/assets/StageBossPreview-DVGAdCpn.js",
+      "expected": "9a89114487289615f15c019d401938a71079d364690fad4447c8883412a3e07d",
+      "actual": "9a89114487289615f15c019d401938a71079d364690fad4447c8883412a3e07d",
+      "match": true
+    },
+    {
+      "path": "/assets/StageBossPreview-DeJ2Zp4q.js",
+      "expected": "9e12497747b4e8e3f5e3ad860256a0614ea4aa393d0338838ba41698081ce395",
+      "actual": "9e12497747b4e8e3f5e3ad860256a0614ea4aa393d0338838ba41698081ce395",
+      "match": true
+    },
+    {
+      "path": "/assets/StageBossPreview-L8WyF7Di.js",
+      "expected": "a65741a33afb3b72b86257b9a122eb4a496da4814c543fc48ab331903460ff04",
+      "actual": "a65741a33afb3b72b86257b9a122eb4a496da4814c543fc48ab331903460ff04",
+      "match": true
+    },
+    {
+      "path": "/assets/StageRanking-CmWGntiD.js",
+      "expected": "3a530d9e09611a051737962f77ab765d39be233005f93e5d6ad2acd173ce22ee",
+      "actual": "3a530d9e09611a051737962f77ab765d39be233005f93e5d6ad2acd173ce22ee",
+      "match": true
+    },
+    {
+      "path": "/assets/StageRanking-B2CF_k-M.js",
+      "expected": "314878e9b28d7fbcee6d99b96f9cb298684cb6d78f257c7507d10837750b2d40",
+      "actual": "314878e9b28d7fbcee6d99b96f9cb298684cb6d78f257c7507d10837750b2d40",
+      "match": true
+    },
+    {
+      "path": "/assets/StageRanking-swOBfbwo.js",
+      "expected": "f45601960c8f8a3128ba973a2d14ed370e42919d18cb7722e5369d6aa463cc7b",
+      "actual": "f45601960c8f8a3128ba973a2d14ed370e42919d18cb7722e5369d6aa463cc7b",
+      "match": true
+    },
+    {
+      "path": "/assets/Starlink-H_6AxsqV.js",
+      "expected": "8244579f2a9e65e723cadce7857badd80fb1d7d9c974c150d5c932ef8779caa6",
+      "actual": "8244579f2a9e65e723cadce7857badd80fb1d7d9c974c150d5c932ef8779caa6",
+      "match": true
+    },
+    {
+      "path": "/assets/Starlink-BLTzYd_8.js",
+      "expected": "fbf0ddbe729227735c2ba1b3b358a4581253057e332953f9da9e38378b40685c",
+      "actual": "fbf0ddbe729227735c2ba1b3b358a4581253057e332953f9da9e38378b40685c",
+      "match": true
+    },
+    {
+      "path": "/assets/StageRanking-BlKwmxtG.js",
+      "expected": "aabe20a1ae9fab79c0dc931be79b15edc97439b0b0a5990066a4aa52dbe0d8f0",
+      "actual": "aabe20a1ae9fab79c0dc931be79b15edc97439b0b0a5990066a4aa52dbe0d8f0",
+      "match": true
+    },
+    {
+      "path": "/assets/Starlink-CZW6mfdP.js",
+      "expected": "a90939409b440c9cadf631d644081329963b89b2d196da9896f6f41273db9119",
+      "actual": "a90939409b440c9cadf631d644081329963b89b2d196da9896f6f41273db9119",
+      "match": true
+    },
+    {
+      "path": "/assets/Starlink-Spg_FXWc.js",
+      "expected": "9e3fc206d83e49790cd8d143c9e3d34a6e666a59ba7746aa521baf1a08f69563",
+      "actual": "9e3fc206d83e49790cd8d143c9e3d34a6e666a59ba7746aa521baf1a08f69563",
+      "match": true
+    },
+    {
+      "path": "/assets/StarlinkSatellite-oeBTiH6c.js",
+      "expected": "598bd9b9a7081ddaf722237cee0be621ea4be62b0cbfa8600bca72749cabaeef",
+      "actual": "598bd9b9a7081ddaf722237cee0be621ea4be62b0cbfa8600bca72749cabaeef",
+      "match": true
+    },
+    {
+      "path": "/assets/StarlinkSatellite-Df3oFtGG.js",
+      "expected": "352961c4d22ce0e86cb20fb2dd23f14ae038a1ed0dc360377e3f425ecb45ad57",
+      "actual": "352961c4d22ce0e86cb20fb2dd23f14ae038a1ed0dc360377e3f425ecb45ad57",
+      "match": true
+    },
+    {
+      "path": "/assets/StarlinkSatellite-Dk-r56Rd.js",
+      "expected": "50fe99acebec82dacdd25f08b1b8e06b30bb4c95320633163794535bd650be8c",
+      "actual": "50fe99acebec82dacdd25f08b1b8e06b30bb4c95320633163794535bd650be8c",
+      "match": true
+    },
+    {
+      "path": "/assets/StudentLantern-DoM5t5yD.js",
+      "expected": "7723f60eea7d054786a64c19eee576e3b89d0efe91b51e1f6e1277c63cdee535",
+      "actual": "7723f60eea7d054786a64c19eee576e3b89d0efe91b51e1f6e1277c63cdee535",
+      "match": true
+    },
+    {
+      "path": "/assets/StarlinkSatellite-NWD4J0_M.js",
+      "expected": "2bf0b18ed783f87e3da1851a2588f7ca554adf3dc801dfc3a19a3fd96b20989c",
+      "actual": "2bf0b18ed783f87e3da1851a2588f7ca554adf3dc801dfc3a19a3fd96b20989c",
+      "match": true
+    },
+    {
+      "path": "/assets/StudentLantern-DiYCCSy3.js",
+      "expected": "baee2d39a93b1152e75339e549a73461a20329eb94ae2dd9cd142155d43a99ac",
+      "actual": "baee2d39a93b1152e75339e549a73461a20329eb94ae2dd9cd142155d43a99ac",
+      "match": true
+    },
+    {
+      "path": "/assets/StudentLantern-tpXTwJAj.js",
+      "expected": "023f07386a22dfe9c7eb9139222a57359b4f02ada7315709b051165017affcfb",
+      "actual": "023f07386a22dfe9c7eb9139222a57359b4f02ada7315709b051165017affcfb",
+      "match": true
+    },
+    {
+      "path": "/assets/StudentLantern-BWJEPpRr.js",
+      "expected": "3ab507b7378d03c2e1ba3748d8fb51d8defb8cb535640bed9280a350ee05234b",
+      "actual": "3ab507b7378d03c2e1ba3748d8fb51d8defb8cb535640bed9280a350ee05234b",
+      "match": true
+    },
+    {
+      "path": "/assets/TitleScene3D-CT-bOAom.js",
+      "expected": "a1e3d0d16b2aa6fce91a54bbf4251ee71ba3c0cd77e057963cf4063d2c0b5863",
+      "actual": "a1e3d0d16b2aa6fce91a54bbf4251ee71ba3c0cd77e057963cf4063d2c0b5863",
+      "match": true
+    },
+    {
+      "path": "/assets/TitleSceneCanvas-BT3sudcw.js",
+      "expected": "505e7385e8b13fe3dde849541d7921871fd70d4ba5da01ced557ddc9f3ce8b2a",
+      "actual": "505e7385e8b13fe3dde849541d7921871fd70d4ba5da01ced557ddc9f3ce8b2a",
+      "match": true
+    },
+    {
+      "path": "/assets/TitleScene3D-CezMTYxR.js",
+      "expected": "9639ccf388de6e0cff092625de65da7ed7b2cf83a419d48044f835adbc7712b0",
+      "actual": "9639ccf388de6e0cff092625de65da7ed7b2cf83a419d48044f835adbc7712b0",
+      "match": true
+    },
+    {
+      "path": "/assets/TitleScene3D-UFeY4ugg.js",
+      "expected": "6061228eb5a5e7d1cbc66970ce0a278513e585a6848f3961ba1372ee66840036",
+      "actual": "6061228eb5a5e7d1cbc66970ce0a278513e585a6848f3961ba1372ee66840036",
+      "match": true
+    },
+    {
+      "path": "/assets/TitleScreen-Bv0C0TaJ.js",
+      "expected": "2b33704f99f10a371b9cdced6fc315cee978cbb505abf4e3e8871749efb9c5e1",
+      "actual": "2b33704f99f10a371b9cdced6fc315cee978cbb505abf4e3e8871749efb9c5e1",
+      "match": true
+    },
+    {
+      "path": "/assets/TitleScene3D-D1_6GjGu.js",
+      "expected": "7cf84b3340beeb013f0b5ef32468d39554ed113123cf3521e14b110398390bd7",
+      "actual": "7cf84b3340beeb013f0b5ef32468d39554ed113123cf3521e14b110398390bd7",
+      "match": true
+    },
+    {
+      "path": "/assets/TitleSceneCanvas-CHH-Wyit.js",
+      "expected": "c45dd48806a38996ff7c825248ef17f4c63c575406bbd0629eb74cb85b681970",
+      "actual": "c45dd48806a38996ff7c825248ef17f4c63c575406bbd0629eb74cb85b681970",
+      "match": true
+    },
+    {
+      "path": "/assets/TitleScreen-CjNnkalO.js",
+      "expected": "aa1a2fd049591a88f2d94466f9f3c810bac968c1fb9786f871d63ffff45e06a3",
+      "actual": "aa1a2fd049591a88f2d94466f9f3c810bac968c1fb9786f871d63ffff45e06a3",
+      "match": true
+    },
+    {
+      "path": "/assets/UserRanking-BlU2pRm72.js",
+      "expected": "576f1580c031019db6ce08c270184b8bdfcafb351f0c99966a0621fd3c2511c4",
+      "actual": "576f1580c031019db6ce08c270184b8bdfcafb351f0c99966a0621fd3c2511c4",
+      "match": true
+    },
+    {
+      "path": "/assets/TitleScreen-C2JsYCo2.js",
+      "expected": "ae6559eebc04d2285dfbb13b0030c9aa49091d6f6b06e4c05799f1792c7a6f9f",
+      "actual": "ae6559eebc04d2285dfbb13b0030c9aa49091d6f6b06e4c05799f1792c7a6f9f",
+      "match": true
+    },
+    {
+      "path": "/assets/TitleScreen-DtAyaJ_P.js",
+      "expected": "30b35ba4ef2233977473d77ef2de35858924b7b6f58e742bec958a8c33f1aecb",
+      "actual": "30b35ba4ef2233977473d77ef2de35858924b7b6f58e742bec958a8c33f1aecb",
+      "match": true
+    },
+    {
+      "path": "/assets/TitleScreen-BEUUhmGu.js",
+      "expected": "bbaaabbc27bb4367be57fb05cfdd977392693615609877467533f91bbdca1e06",
+      "actual": "bbaaabbc27bb4367be57fb05cfdd977392693615609877467533f91bbdca1e06",
+      "match": true
+    },
+    {
+      "path": "/assets/adminConfig-wHY8Izbx.js",
+      "expected": "b82cc1307880d518c57dacc1ee44b1e0bd2450d500f8952d92ea5b66132db72e",
+      "actual": "b82cc1307880d518c57dacc1ee44b1e0bd2450d500f8952d92ea5b66132db72e",
+      "match": true
+    },
+    {
+      "path": "/assets/UserRanking-C9SPJXgg2.js",
+      "expected": "2283403237f70af4bd0e3f8c5d4a18cf97546d86b2c9fd8d45493bb1b0cacb95",
+      "actual": "2283403237f70af4bd0e3f8c5d4a18cf97546d86b2c9fd8d45493bb1b0cacb95",
+      "match": true
+    },
+    {
+      "path": "/assets/UserRanking-CbrJVzV72.js",
+      "expected": "6dca17e0d3d578a74e1fbb9a6698fcab3ad9d2c4f4a2454e54b20d89711aa2a3",
+      "actual": "6dca17e0d3d578a74e1fbb9a6698fcab3ad9d2c4f4a2454e54b20d89711aa2a3",
+      "match": true
+    },
+    {
+      "path": "/assets/criticalScreenShake-DZwTKshQ.js",
+      "expected": "983b521ea509715fcd0834633962d288dedcb2592701728bd78df30f7a9fdc77",
+      "actual": "983b521ea509715fcd0834633962d288dedcb2592701728bd78df30f7a9fdc77",
+      "match": true
+    },
+    {
+      "path": "/assets/UserRanking-CRVS8-Uh.js",
+      "expected": "6342210843e8ee6081e9f03a22ef4c0b15c8f49de33f82457f538bf2fc596e64",
+      "actual": "6342210843e8ee6081e9f03a22ef4c0b15c8f49de33f82457f538bf2fc596e64",
+      "match": true
+    },
+    {
+      "path": "/assets/dialogueStore-BvHJd9im.js",
+      "expected": "bd32b99c792ccc04c25d0794410b28bd099d75db4e5f548f61a5ce91c91a310c",
+      "actual": "bd32b99c792ccc04c25d0794410b28bd099d75db4e5f548f61a5ce91c91a310c",
+      "match": true
+    },
+    {
+      "path": "/assets/burstEvents-BTgG8uHd.js",
+      "expected": "4598e6f395072f1f56476e1c5b2e49193cf4ec374cfedb887f0661883ab19e79",
+      "actual": "4598e6f395072f1f56476e1c5b2e49193cf4ec374cfedb887f0661883ab19e79",
+      "match": true
+    },
+    {
+      "path": "/assets/burstEvents-Dh-IfWSc.js",
+      "expected": "5ce6b75eafe0f089d9b00c06aeb84e9a24afb458966b8c9b8733d0846ff26f65",
+      "actual": "5ce6b75eafe0f089d9b00c06aeb84e9a24afb458966b8c9b8733d0846ff26f65",
+      "match": true
+    },
+    {
+      "path": "/assets/dialogueStore-BN-i5mDz.js",
+      "expected": "8856aeffec697adfe33d32f981385b7e0061a5b7c6f1f777af65c7954ab12357",
+      "actual": "8856aeffec697adfe33d32f981385b7e0061a5b7c6f1f777af65c7954ab12357",
+      "match": true
+    },
+    {
+      "path": "/assets/enemyDeathSfx-I4KhXBoV.js",
+      "expected": "bb05e9e1bcd5e9391acba4378d62b6c76df417bc8946140989c915c7602b9a61",
+      "actual": "bb05e9e1bcd5e9391acba4378d62b6c76df417bc8946140989c915c7602b9a61",
+      "match": true
+    },
+    {
+      "path": "/assets/expansionContent-DIYmU21L.js",
+      "expected": "f099ca7fb9f9a839f3949185289953d05548ff4ece08284decf38fac55811893",
+      "actual": "f099ca7fb9f9a839f3949185289953d05548ff4ece08284decf38fac55811893",
+      "match": true
+    },
+    {
+      "path": "/assets/dialogueStore-D4HAsaaO.js",
+      "expected": "fc95ecc006576184431db695a5f4a9b9306aad6edf59de80619d59913eb973d8",
+      "actual": "fc95ecc006576184431db695a5f4a9b9306aad6edf59de80619d59913eb973d8",
+      "match": true
+    },
+    {
+      "path": "/assets/firebaseAdminVisitors-BizLsvJS.js",
+      "expected": "d84708d6005d1cf5b0697eb1f392f55c965f334c0b03f432be7f2a37de405e27",
+      "actual": "d84708d6005d1cf5b0697eb1f392f55c965f334c0b03f432be7f2a37de405e27",
+      "match": true
+    },
+    {
+      "path": "/assets/dialogueStore-CN8xdsoQ.js",
+      "expected": "157974955e8be2f5dbdb0fc80b51e986f669b9980347900a1ed5cf5ac391afd7",
+      "actual": "157974955e8be2f5dbdb0fc80b51e986f669b9980347900a1ed5cf5ac391afd7",
+      "match": true
+    },
+    {
+      "path": "/assets/enemyDeathSfx-CmVK2h0Q.js",
+      "expected": "0b815e0b1b9c84fa107c792336b576fbf25c31b388e1aa1d8f20e9cc975f0814",
+      "actual": "0b815e0b1b9c84fa107c792336b576fbf25c31b388e1aa1d8f20e9cc975f0814",
+      "match": true
+    },
+    {
+      "path": "/assets/firebaseAuth-DOg0XVO2.js",
+      "expected": "434e32c9008933b2a22db65fca8f2e80196a4174d153a4b19d587f377c2c170d",
+      "actual": "434e32c9008933b2a22db65fca8f2e80196a4174d153a4b19d587f377c2c170d",
+      "match": true
+    },
+    {
+      "path": "/assets/firebaseAdminVisitors-B4PkOnJ1.js",
+      "expected": "2f2eb7f5ca515ce1dfb2adc278acd7ac609f8150601fbe01b6e76ce61f7ec6a5",
+      "actual": "2f2eb7f5ca515ce1dfb2adc278acd7ac609f8150601fbe01b6e76ce61f7ec6a5",
+      "match": true
+    },
+    {
+      "path": "/assets/firebaseAuth-96kQh_JD.js",
+      "expected": "132b9cb0b315cecc34a505042d8f9ae2e3d0ee9873f40d88f77ad236c17e631f",
+      "actual": "132b9cb0b315cecc34a505042d8f9ae2e3d0ee9873f40d88f77ad236c17e631f",
+      "match": true
+    },
+    {
+      "path": "/assets/firebaseAdminVisitors-DAcCTAfK.js",
+      "expected": "52a401460b0f96b066e10e47d1c7a512198493a548dd9af58a4bac43d06f5221",
+      "actual": "52a401460b0f96b066e10e47d1c7a512198493a548dd9af58a4bac43d06f5221",
+      "match": true
+    },
+    {
+      "path": "/assets/firebaseBoard-BB_nSGHH.js",
+      "expected": "32033a6d7243e17eb46ed6295529fba57ce78d8b5ef00d2d1750ffae289a28cb",
+      "actual": "32033a6d7243e17eb46ed6295529fba57ce78d8b5ef00d2d1750ffae289a28cb",
+      "match": true
+    },
+    {
+      "path": "/assets/firebaseBoard-DfDXQt_J.js",
+      "expected": "1bb8b88d5e29d2c981f786af264a3addf85058b97a856705b1391d61282e0107",
+      "actual": "1bb8b88d5e29d2c981f786af264a3addf85058b97a856705b1391d61282e0107",
+      "match": true
+    },
+    {
+      "path": "/assets/firebaseBoard-CJ_nywUy.js",
+      "expected": "0fc037b9ee0d94171f6ed8cc473c77fbb30772d0f47bf7f6923830817a327fc9",
+      "actual": "0fc037b9ee0d94171f6ed8cc473c77fbb30772d0f47bf7f6923830817a327fc9",
+      "match": true
+    },
+    {
+      "path": "/assets/firebaseBoard-CIrpKpOk.js",
+      "expected": "9d8ff0c9a390bbf2c1ef103d266e6221c643e285803e80aa49b41e49b32b0559",
+      "actual": "9d8ff0c9a390bbf2c1ef103d266e6221c643e285803e80aa49b41e49b32b0559",
+      "match": true
+    },
+    {
+      "path": "/assets/firebaseInspectionMode-DG8ceFuf.js",
+      "expected": "056abf4cfedfa015e3cce58989102179c41e627070bb83cf371dd9d30f7a0af2",
+      "actual": "056abf4cfedfa015e3cce58989102179c41e627070bb83cf371dd9d30f7a0af2",
+      "match": true
+    },
+    {
+      "path": "/assets/firebaseInspectionMode-D1g0Uqlb.js",
+      "expected": "f1a5f941a06029db408e2d82648a59985ff9b4be737761af672909083a74d45d",
+      "actual": "f1a5f941a06029db408e2d82648a59985ff9b4be737761af672909083a74d45d",
+      "match": true
+    },
+    {
+      "path": "/assets/firebaseProgress-sbdiAruT.js",
+      "expected": "4202c7a72493b35d87fe732a886ebf2ac1a5620822d00f5dee214d3b898078ba",
+      "actual": "4202c7a72493b35d87fe732a886ebf2ac1a5620822d00f5dee214d3b898078ba",
+      "match": true
+    },
+    {
+      "path": "/assets/firebaseBoard-D5eK-Hgb.js",
+      "expected": "cbdafe387d3a58e780ec454e30ae4900f83f5ec19e3afbe3e7a9eaa53cbb7d38",
+      "actual": "cbdafe387d3a58e780ec454e30ae4900f83f5ec19e3afbe3e7a9eaa53cbb7d38",
+      "match": true
+    },
+    {
+      "path": "/assets/firebaseProgress-6lJpFfuo.js",
+      "expected": "100fa215074751180c228c973d990af3b01ce5d54677cf5be00dec12dbc1ba3f",
+      "actual": "100fa215074751180c228c973d990af3b01ce5d54677cf5be00dec12dbc1ba3f",
+      "match": true
+    },
+    {
+      "path": "/assets/firebaseProgress-DKUaDh2t.js",
+      "expected": "f375d46ddf09442acc290d7ad81917e90a8350ffaed190be6495f374e32ee5c7",
+      "actual": "f375d46ddf09442acc290d7ad81917e90a8350ffaed190be6495f374e32ee5c7",
+      "match": true
+    },
+    {
+      "path": "/assets/firebaseRanking-DeYynXzU.js",
+      "expected": "4324a0e7433d7d4492dc2697e07300dcbcada73d1c454a2623b0e10ff329a40c",
+      "actual": "4324a0e7433d7d4492dc2697e07300dcbcada73d1c454a2623b0e10ff329a40c",
+      "match": true
+    },
+    {
+      "path": "/assets/gameCanvasLoader-CbZggwdk.js",
+      "expected": "356b9080a9fc48b496fd971bb28df60b16df573642f2413f883302339279f83d",
+      "actual": "356b9080a9fc48b496fd971bb28df60b16df573642f2413f883302339279f83d",
+      "match": true
+    },
+    {
+      "path": "/assets/firebaseRanking-ByFrIcSw.js",
+      "expected": "7843546a57a10994a3b827556e9e20c80ef67559f16ccd08c4749c7191e08f91",
+      "actual": "7843546a57a10994a3b827556e9e20c80ef67559f16ccd08c4749c7191e08f91",
+      "match": true
+    },
+    {
+      "path": "/assets/firebaseRanking-Ck-ltzwZ.js",
+      "expected": "43088ad88344ac51b16e462aa9a34e9a5b660269331754b2a08b0fd05f6ef126",
+      "actual": "43088ad88344ac51b16e462aa9a34e9a5b660269331754b2a08b0fd05f6ef126",
+      "match": true
+    },
+    {
+      "path": "/assets/firebaseRanking-CQLBYDa2.js",
+      "expected": "ef91016e5bf2bc88dc2fb4b4b46ef23fafdd2a1e03b3419e09496fd26c5fc773",
+      "actual": "ef91016e5bf2bc88dc2fb4b4b46ef23fafdd2a1e03b3419e09496fd26c5fc773",
+      "match": true
+    },
+    {
+      "path": "/assets/gameCanvasLoader-DNhndQ3R.js",
+      "expected": "b9058cec4fd9a59920332f949efab561fdaaf1867656262718f4fc0059f02278",
+      "actual": "b9058cec4fd9a59920332f949efab561fdaaf1867656262718f4fc0059f02278",
+      "match": true
+    },
+    {
+      "path": "/assets/gameCanvasLoader-DEO8eDS2.js",
+      "expected": "377df60a7f2202599468ba4f268a0bf5b0ab8083e220b99cd210cc626d9724e6",
+      "actual": "377df60a7f2202599468ba4f268a0bf5b0ab8083e220b99cd210cc626d9724e6",
+      "match": true
+    },
+    {
+      "path": "/assets/guestRankingIdentity-pK2nyFR1.js",
+      "expected": "588775ae46a7defccf3e2de83dacc93528c387bc69386fbd5103b207324f5a13",
+      "actual": "588775ae46a7defccf3e2de83dacc93528c387bc69386fbd5103b207324f5a13",
+      "match": true
+    },
+    {
+      "path": "/assets/gameCanvasLoader-Dh-4xde2.js",
+      "expected": "8e88995ecab3733ff749387a4436947ef1f86175259dfa2922b8e42ab1596a06",
+      "actual": "8e88995ecab3733ff749387a4436947ef1f86175259dfa2922b8e42ab1596a06",
+      "match": true
+    },
+    {
+      "path": "/assets/guestRankingIdentity-CORZ5UBZ.js",
+      "expected": "d456dc1e7d5f2e9f76db1e5de0b64b9b4fc569780b483a6d7a31d6e9b29b4cbe",
+      "actual": "d456dc1e7d5f2e9f76db1e5de0b64b9b4fc569780b483a6d7a31d6e9b29b4cbe",
+      "match": true
+    },
+    {
+      "path": "/assets/index-BHczy9mu.js",
+      "expected": "1648452c8aa9e7cb031e984a576fd0fce35938bff666644e1bccc036691a7ee0",
+      "actual": "1648452c8aa9e7cb031e984a576fd0fce35938bff666644e1bccc036691a7ee0",
+      "match": true
+    },
+    {
+      "path": "/assets/guestRankingIdentity-Chk2khdy.js",
+      "expected": "069cb5cea1829fc9779ccf524831915f86e64c5d62d31f3892340ca1d889fa2a",
+      "actual": "069cb5cea1829fc9779ccf524831915f86e64c5d62d31f3892340ca1d889fa2a",
+      "match": true
+    },
+    {
+      "path": "/assets/guestRankingIdentity-y-Mv-E0T.js",
+      "expected": "d69b5cb599b8ed5d672634f16f5f6b5387c7928bc159562c1ec08f0bdccda526",
+      "actual": "d69b5cb599b8ed5d672634f16f5f6b5387c7928bc159562c1ec08f0bdccda526",
+      "match": true
+    },
+    {
+      "path": "/assets/index-KuP-xBUq.js",
+      "expected": "9bf2b23b0e1335691246c6a9056f27e8700aceef854ab024d913456a8222eaa6",
+      "actual": "9bf2b23b0e1335691246c6a9056f27e8700aceef854ab024d913456a8222eaa6",
+      "match": true
+    },
+    {
+      "path": "/assets/keyboardInput-Dx2_K2DC.js",
+      "expected": "2c2c85ea2df1f6a14f251ec08ab96807d7424b22889a272ce9b3b2359ceb9f75",
+      "actual": "2c2c85ea2df1f6a14f251ec08ab96807d7424b22889a272ce9b3b2359ceb9f75",
+      "match": true
+    },
+    {
+      "path": "/assets/legalDocuments-HKYyQGPG.js",
+      "expected": "f5071213f72253863be1a56b5cff223ba9e06f8d5e497acfb1a26f6a7137aae9",
+      "actual": "f5071213f72253863be1a56b5cff223ba9e06f8d5e497acfb1a26f6a7137aae9",
+      "match": true
+    },
+    {
+      "path": "/assets/loginContinuation-kKViRFZY.js",
+      "expected": "4ccffb881d0863b96b8c585e55523c4197d19f79292fb91e593e1fee2afc1529",
+      "actual": "4ccffb881d0863b96b8c585e55523c4197d19f79292fb91e593e1fee2afc1529",
+      "match": true
+    },
+    {
+      "path": "/assets/rankingScorePolicy-B73RIXPo.js",
+      "expected": "bb73c1577337d72e09be5dfb890d1f5830cc36b8327fbd237f4a15959af200a8",
+      "actual": "bb73c1577337d72e09be5dfb890d1f5830cc36b8327fbd237f4a15959af200a8",
+      "match": true
+    },
+    {
+      "path": "/assets/index-BNuo4AR0.js",
+      "expected": "5c8261ce5c3bb6c4836ae3c2891c0c77f7a023eae898c5d2cc643f245784b1e2",
+      "actual": "5c8261ce5c3bb6c4836ae3c2891c0c77f7a023eae898c5d2cc643f245784b1e2",
+      "match": true
+    },
+    {
+      "path": "/assets/index-GtMm_K5C.js",
+      "expected": "6baf0a5022b52d909dfdd9fdd3a97be7334df4032898293c7399ad1f033df041",
+      "actual": "6baf0a5022b52d909dfdd9fdd3a97be7334df4032898293c7399ad1f033df041",
+      "match": true
+    },
+    {
+      "path": "/assets/rolldown-runtime-QTnfLwEv.js",
+      "expected": "5db5ba82eef00d1dee7e86e663098c9427d01183a88d357437daff295aec3e75",
+      "actual": "5db5ba82eef00d1dee7e86e663098c9427d01183a88d357437daff295aec3e75",
+      "match": true
+    },
+    {
+      "path": "/assets/rootBootstrap-C2cQz7mO.js",
+      "expected": "e4395638a2fbca72265d188f21e95b26dd1ea6887246f50073babeee8ceaf40d",
+      "actual": "e4395638a2fbca72265d188f21e95b26dd1ea6887246f50073babeee8ceaf40d",
+      "match": true
+    },
+    {
+      "path": "/assets/index-CKp1hXu8.js",
+      "expected": "148d030450abcf8b53965cc08afd51a6a3c8fc697a8c540d6887784bc6a1aad1",
+      "actual": "148d030450abcf8b53965cc08afd51a6a3c8fc697a8c540d6887784bc6a1aad1",
+      "match": true
+    },
+    {
+      "path": "/assets/rankingScorePolicy-BxBzj4oZ.js",
+      "expected": "b0c1c6ce2d5ebaec0753162b111765e1e75879f7acddad00f20ccc9bc7a4ed75",
+      "actual": "b0c1c6ce2d5ebaec0753162b111765e1e75879f7acddad00f20ccc9bc7a4ed75",
+      "match": true
+    },
+    {
+      "path": "/assets/rankingScorePolicy-DXGgQBuP.js",
+      "expected": "94fa76a996c127d319b4a1f22b00e377c274d6d974d288a3a551300c3bfaadc0",
+      "actual": "94fa76a996c127d319b4a1f22b00e377c274d6d974d288a3a551300c3bfaadc0",
+      "match": true
+    },
+    {
+      "path": "/assets/rootBootstrap-CHz5aGKA.js",
+      "expected": "74f53a48ff46101612c1dfa33b2a1ccb3788412e0d2fb8c52daa6e37516b491d",
+      "actual": "74f53a48ff46101612c1dfa33b2a1ccb3788412e0d2fb8c52daa6e37516b491d",
+      "match": true
+    },
+    {
+      "path": "/assets/rootBootstrap-FbJCdMJO.js",
+      "expected": "a0d03f4d9312a4f0cdf5d40547cf63c67d910bb316f231e95509890a8c52deee",
+      "actual": "a0d03f4d9312a4f0cdf5d40547cf63c67d910bb316f231e95509890a8c52deee",
+      "match": true
+    },
+    {
+      "path": "/assets/sfxEvents-C31jkgfi.js",
+      "expected": "275a2bc57a649ed5b3332eb7a19993b93332a9b95edd994c26fa824a73411fc1",
+      "actual": "275a2bc57a649ed5b3332eb7a19993b93332a9b95edd994c26fa824a73411fc1",
+      "match": true
+    },
+    {
+      "path": "/assets/rootBootstrap-CYZPv32K.js",
+      "expected": "ad3f36c90334db2be7f0b22ab46471f5e9caa03bed62d77e072e7a790160042d",
+      "actual": "ad3f36c90334db2be7f0b22ab46471f5e9caa03bed62d77e072e7a790160042d",
+      "match": true
+    },
+    {
+      "path": "/assets/sfxEvents-BqG3xOTU.js",
+      "expected": "de9633ee0ef76841f4029888d9ad83c063af01a4e9f46d98c5bb7c599b1f38af",
+      "actual": "de9633ee0ef76841f4029888d9ad83c063af01a4e9f46d98c5bb7c599b1f38af",
+      "match": true
+    },
+    {
+      "path": "/assets/sfxRegistry-C3Mtqmg5.js",
+      "expected": "8d8d92d9ccf821c0a3548aeeb19c975548d8a0261434555ddbdac5899d0c9e22",
+      "actual": "8d8d92d9ccf821c0a3548aeeb19c975548d8a0261434555ddbdac5899d0c9e22",
+      "match": true
+    },
+    {
+      "path": "/assets/rootBootstrap-YlfeNtOq.js",
+      "expected": "f6e148dcb70e011a08e565592ebcabf92e657a2c129eccbfaf00a1c416e52b2b",
+      "actual": "f6e148dcb70e011a08e565592ebcabf92e657a2c129eccbfaf00a1c416e52b2b",
+      "match": true
+    },
+    {
+      "path": "/assets/sfxEvents-D_6trbQR.js",
+      "expected": "42c3c6c9daf234810fe05765e434f1a80e2ba172284487d5ff74093f7a833f7d",
+      "actual": "42c3c6c9daf234810fe05765e434f1a80e2ba172284487d5ff74093f7a833f7d",
+      "match": true
+    },
+    {
+      "path": "/assets/sfxEvents-DjmkwOIg.js",
+      "expected": "ce98ec62295d89f2b197673ca10b805edbfe15b60312cbfcff3f54f58fba096f",
+      "actual": "ce98ec62295d89f2b197673ca10b805edbfe15b60312cbfcff3f54f58fba096f",
+      "match": true
+    },
+    {
+      "path": "/assets/sfxRegistry-DDjltRwg.js",
+      "expected": "62be2a7b933d705fb876f974d2aa39cf921620217c24828c0c9ca6d22c1acd53",
+      "actual": "62be2a7b933d705fb876f974d2aa39cf921620217c24828c0c9ca6d22c1acd53",
+      "match": true
+    },
+    {
+      "path": "/assets/studioGameBridge-B8asg3Gz.js",
+      "expected": "3529c320b48e797504059dbf78480a9fc564af29d0fa2ee48a617923ce49c1a4",
+      "actual": "3529c320b48e797504059dbf78480a9fc564af29d0fa2ee48a617923ce49c1a4",
+      "match": true
+    },
+    {
+      "path": "/assets/sfxRegistry-Dda4KoZO.js",
+      "expected": "0485bc05c0db72685bd72c0533d04a5666011370aa07772653b99c970fb04387",
+      "actual": "0485bc05c0db72685bd72c0533d04a5666011370aa07772653b99c970fb04387",
+      "match": true
+    },
+    {
+      "path": "/assets/sfxRegistry-DqlvBrac.js",
+      "expected": "4f96c34084db4f155b83fc164a44a6aad9c10be358124262dc315ef93a95b250",
+      "actual": "4f96c34084db4f155b83fc164a44a6aad9c10be358124262dc315ef93a95b250",
+      "match": true
+    },
+    {
+      "path": "/assets/stageConfig-Bm4OYe2o.js",
+      "expected": "fca3af3447aa89cb600d60ccc35791d264134244b2efce8fb28f09b633fc8f87",
+      "actual": "fca3af3447aa89cb600d60ccc35791d264134244b2efce8fb28f09b633fc8f87",
+      "match": true
+    },
+    {
+      "path": "/assets/studioGameBridge-DjPTxqsQ.js",
+      "expected": "93fa540c8bf5444e3f5c0f01ce860eba7f33e4286947ef3095020756ccb8e773",
+      "actual": "93fa540c8bf5444e3f5c0f01ce860eba7f33e4286947ef3095020756ccb8e773",
+      "match": true
+    },
+    {
+      "path": "/assets/studioLocalStorageGuard-C6N9cStR.js",
+      "expected": "5da416d682672d7148ab8d53e47aa2a1f2de0a7381860575d2d2704788929f13",
+      "actual": "5da416d682672d7148ab8d53e47aa2a1f2de0a7381860575d2d2704788929f13",
+      "match": true
+    },
+    {
+      "path": "/assets/uiStyle-94ius156.js",
+      "expected": "9f7c7c70768f2a0059ab1ccd1873b963f37a631ef664db51ef82056254f4c63b",
+      "actual": "9f7c7c70768f2a0059ab1ccd1873b963f37a631ef664db51ef82056254f4c63b",
+      "match": true
+    },
+    {
+      "path": "/assets/useGameStore-CLY6fZee.js",
+      "expected": "d3eebd155419213204aa81675ec0f13bb34cd60c2454fe34dc3a0dabab7aff30",
+      "actual": "d3eebd155419213204aa81675ec0f13bb34cd60c2454fe34dc3a0dabab7aff30",
+      "match": true
+    },
+    {
+      "path": "/assets/studioGameBridge-ec1vyQXn.js",
+      "expected": "5e1356b1a99ab063f09b704445bfec39650c47a0696b550911d08dd7e2d2957e",
+      "actual": "5e1356b1a99ab063f09b704445bfec39650c47a0696b550911d08dd7e2d2957e",
+      "match": true
+    },
+    {
+      "path": "/assets/studioLocalStorageGuard-B8dLn9mU.js",
+      "expected": "84fa1a6ce5698326c4d1d4f8a79cf3b10099c4fdb78da6c2ef96e15ab8f6a3ad",
+      "actual": "84fa1a6ce5698326c4d1d4f8a79cf3b10099c4fdb78da6c2ef96e15ab8f6a3ad",
+      "match": true
+    },
+    {
+      "path": "/assets/useGameStore-DmhDiZun.js",
+      "expected": "89e529361d89a7587665520087c50c26d62f60bb59da48c39565922d9c42a68d",
+      "actual": "89e529361d89a7587665520087c50c26d62f60bb59da48c39565922d9c42a68d",
+      "match": true
+    },
+    {
+      "path": "/assets/userNickname-B0vGRR0o.js",
+      "expected": "04031fc0e8474d1cd6f8ff051d444e506177abdb656e5f5db191d632814c782b",
+      "actual": "04031fc0e8474d1cd6f8ff051d444e506177abdb656e5f5db191d632814c782b",
+      "match": true
+    },
+    {
+      "path": "/assets/useGameStore-Fazgztmh.js",
+      "expected": "04f32832a789cf26a12884d4ef70de1c91fcc99662a14ddfec92bd99dc418251",
+      "actual": "04f32832a789cf26a12884d4ef70de1c91fcc99662a14ddfec92bd99dc418251",
+      "match": true
+    },
+    {
+      "path": "/assets/studioGameBridge-BpHvuO9B.js",
+      "expected": "4971415b9330762684bcb73bb1fcd2e1f8aef249f9556d404dd05a0457d5869d",
+      "actual": "4971415b9330762684bcb73bb1fcd2e1f8aef249f9556d404dd05a0457d5869d",
+      "match": true
+    },
+    {
+      "path": "/assets/userNickname-DiXf1rVW.js",
+      "expected": "f23134796ba042880fae9ec6d618ebe582a3610ce95f3b57a3385584f1d9fe67",
+      "actual": "f23134796ba042880fae9ec6d618ebe582a3610ce95f3b57a3385584f1d9fe67",
+      "match": true
+    },
+    {
+      "path": "/assets/useGameStore-GmeRHCr0.js",
+      "expected": "8c2ed870f594f563eec49a1a2b148d257c98d69acf651625cdca3eccc2be4a50",
+      "actual": "8c2ed870f594f563eec49a1a2b148d257c98d69acf651625cdca3eccc2be4a50",
+      "match": true
+    },
+    {
+      "path": "/assets/userNickname-s83y6oMe.js",
+      "expected": "98bef19c7b416cf2a6fb0bb13b8b81b5e373032247c976799c77240b645851bd",
+      "actual": "98bef19c7b416cf2a6fb0bb13b8b81b5e373032247c976799c77240b645851bd",
+      "match": true
+    },
+    {
+      "path": "/assets/userRanking-Dtjreqp1.js",
+      "expected": "a3f2ad90419359c68480812f2aa9dbbde6847f85b66ffd2ef2b68be07111fd01",
+      "actual": "a3f2ad90419359c68480812f2aa9dbbde6847f85b66ffd2ef2b68be07111fd01",
+      "match": true
+    },
+    {
+      "path": "/assets/userNickname-DkRd9gHP.js",
+      "expected": "3a5ee90482a0097c99ed0568a95bb45e081f23303924c9205893f57d7c507661",
+      "actual": "3a5ee90482a0097c99ed0568a95bb45e081f23303924c9205893f57d7c507661",
+      "match": true
+    },
+    {
+      "path": "/assets/userRanking-B4aiMu7P.js",
+      "expected": "8c518973c2d916572399de0db0d1d1b4fa65c081ed7eb26ee871576a4d7838dc",
+      "actual": "8c518973c2d916572399de0db0d1d1b4fa65c081ed7eb26ee871576a4d7838dc",
+      "match": true
+    },
+    {
+      "path": "/assets/vendor-firebase-Dn9ut2EP.js",
+      "expected": "9f0491083202646bdc51a3bb35a394cf0e841ded0c8036ca51acf102150ff68d",
+      "actual": "9f0491083202646bdc51a3bb35a394cf0e841ded0c8036ca51acf102150ff68d",
+      "match": true
+    },
+    {
+      "path": "/assets/userRanking-JxU8UxDX.js",
+      "expected": "1f7d7599de5ac53b4e2de6b9f9795383daa5fd108d39d4eddec2e9a0f78cc110",
+      "actual": "1f7d7599de5ac53b4e2de6b9f9795383daa5fd108d39d4eddec2e9a0f78cc110",
+      "match": true
+    },
+    {
+      "path": "/assets/vendor-react-CtRwZXJb.js",
+      "expected": "28466993830631bdf509d23cbe98158ffbe04d7b8322e8e5756464aa0db98e12",
+      "actual": "28466993830631bdf509d23cbe98158ffbe04d7b8322e8e5756464aa0db98e12",
+      "match": true
+    },
+    {
+      "path": "/assets/vendor-three-B3qNm-z6.js",
+      "expected": "38eded4e377beb579356e445872aaea023631e29005acaa9748a5ebc1f52bdfb",
+      "actual": "38eded4e377beb579356e445872aaea023631e29005acaa9748a5ebc1f52bdfb",
+      "match": true
+    },
+    {
+      "path": "/assets/vendor-DNWj4Jdp.js",
+      "expected": "8f716730a9f7b16077a6d40023f2a607636a293bc1ea58471f1c4c52e310269d",
+      "actual": "8f716730a9f7b16077a6d40023f2a607636a293bc1ea58471f1c4c52e310269d",
+      "match": true
+    },
+    {
+      "path": "/assets/vendor-firebase-qnqWue91.js",
+      "expected": "27dcf399afe384a7be2792f3e55baf183e5736fca1b0744dc90aaff694839fb2",
+      "actual": "27dcf399afe384a7be2792f3e55baf183e5736fca1b0744dc90aaff694839fb2",
+      "match": true
+    },
+    {
+      "path": "/assets/waveTimelines-D2h4rPzq.js",
+      "expected": "dab3f3613e9951b28eb7ff8bf919e7c5697eb245bc518a25adef5f6217dcb1af",
+      "actual": "dab3f3613e9951b28eb7ff8bf919e7c5697eb245bc518a25adef5f6217dcb1af",
+      "match": true
+    },
+    {
+      "path": "/assets/userRanking-DstFZuy8.js",
+      "expected": "e7df2d72af2178c57715ed8606a2c0e5c6701debf52613567be44a0ae7f9d8b5",
+      "actual": "e7df2d72af2178c57715ed8606a2c0e5c6701debf52613567be44a0ae7f9d8b5",
+      "match": true
+    },
+    {
+      "path": "/assets/waveTimelines-T5OEa1x8.js",
+      "expected": "c35f7a5110f0fc1ad2bb814742480d799947af79653acb4ab699fd1c0f6d224d",
+      "actual": "c35f7a5110f0fc1ad2bb814742480d799947af79653acb4ab699fd1c0f6d224d",
+      "match": true
+    },
+    {
+      "path": "/assets/weaponTargeting-BE9VjYd7.js",
+      "expected": "7fdd6215ab95861e35da7f10b167e64efb171f164b4d2557e950cc812e37e0d7",
+      "actual": "7fdd6215ab95861e35da7f10b167e64efb171f164b4d2557e950cc812e37e0d7",
+      "match": true
+    },
+    {
+      "path": "/assets/vendor-three-DR0IPtWb.js",
+      "expected": "ed906b26b285778b28757b9be6ef75c74433af969c02fbfc6f27907198af73ff",
+      "actual": "ed906b26b285778b28757b9be6ef75c74433af969c02fbfc6f27907198af73ff",
+      "match": true
+    },
+    {
+      "path": "/assets/vendor-three-Ipto1SGk.js",
+      "expected": "9bd3e5268796f16b36b7628bb92097fcbc53fe25b2b77bc26521dfde6230279f",
+      "actual": "9bd3e5268796f16b36b7628bb92097fcbc53fe25b2b77bc26521dfde6230279f",
+      "match": true
+    },
+    {
+      "path": "/assets/weaponTargeting-BliefZpC.js",
+      "expected": "f2eb7b49f68cf29e22c130b5b23bc414ccfe1e93f394b75b72c023e9aafcfc47",
+      "actual": "f2eb7b49f68cf29e22c130b5b23bc414ccfe1e93f394b75b72c023e9aafcfc47",
+      "match": true
+    },
+    {
+      "path": "/assets/webBackgroundAssets-DtKQJYpi.js",
+      "expected": "44ca540a8e2d1698d5a0324f754a65760d01b9ff041ba41a55392415bd2f5f3c",
+      "actual": "44ca540a8e2d1698d5a0324f754a65760d01b9ff041ba41a55392415bd2f5f3c",
+      "match": true
+    },
+    {
+      "path": "/assets/weaponTargeting-B79Rg-UI.js",
+      "expected": "b49a568e6c5f342adf09b368d094679067d27a1f70727e28d8c68b04c4e4cac4",
+      "actual": "b49a568e6c5f342adf09b368d094679067d27a1f70727e28d8c68b04c4e4cac4",
+      "match": true
+    },
+    {
+      "path": "/assets/zombieBoardCopy-CVNapQ1-.js",
+      "expected": "9db4925ed917f7cb22b5022421d93dde059152df56f2c57a3ddfc93489f7c0da",
+      "actual": "9db4925ed917f7cb22b5022421d93dde059152df56f2c57a3ddfc93489f7c0da",
+      "match": true
+    },
+    {
+      "path": "/assets/weaponTargeting-CtD1kcvF.js",
+      "expected": "a2019dadc58c7a346ae34cfb775645d9d38ff35e4d5392cb9e45fc416e63db5b",
+      "actual": "a2019dadc58c7a346ae34cfb775645d9d38ff35e4d5392cb9e45fc416e63db5b",
+      "match": true
+    },
+    {
+      "path": "/assets/webBackgroundAssets-CJJbexum.js",
+      "expected": "3559e3b18fb55cc5eff03d2ad73a26ecb11ffc09eb208961efac6f81b13867ed",
+      "actual": "3559e3b18fb55cc5eff03d2ad73a26ecb11ffc09eb208961efac6f81b13867ed",
+      "match": true
+    },
+    {
+      "path": "/sfx/audition-20261016/manifest.js",
+      "expected": "768cc83eefaaef59d0a4715a07efb158227c37b130d4542b820646870e50106d",
+      "actual": "768cc83eefaaef59d0a4715a07efb158227c37b130d4542b820646870e50106d",
+      "match": true
+    },
+    {
+      "path": "/assets/zombieBoardCopy-KXQfkdJw.js",
+      "expected": "8ee032bd1a51a518de8cd80af7281ccca63deee8f3976206070782f075a2fec2",
+      "actual": "8ee032bd1a51a518de8cd80af7281ccca63deee8f3976206070782f075a2fec2",
+      "match": true
+    },
+    {
+      "path": "/assets/zombieBoardCopy-gKJiEn_-.js",
+      "expected": "cc1cbc08fef61e4eb057b422af1ec28c1e5dcfa92a77f4ac817669d179d4a88a",
+      "actual": "cc1cbc08fef61e4eb057b422af1ec28c1e5dcfa92a77f4ac817669d179d4a88a",
+      "match": true
+    },
+    {
+      "path": "/index.html",
+      "expected": "0a1a344f7feb9ac8de34474fdd02b87725cc75b73b922cde7076ae9b3c2dfe0a",
+      "actual": "0a1a344f7feb9ac8de34474fdd02b87725cc75b73b922cde7076ae9b3c2dfe0a",
+      "match": true
+    }
+  ]
+}

@@ -6,6 +6,7 @@ import StageVendingPrompt from './StageVendingPrompt.jsx'
 import { useGameStore } from '../store/useGameStore.js'
 import { playerPos } from '../lib/refs.js'
 import { getStageVendingPlacement } from '../lib/stageVending.js'
+import { STAGE_CONFIGS } from '../lib/stageConfig.js'
 import { _seedHydratedFirebaseProgressForTests } from '../lib/firebaseProgress.js'
 import { installProgressTransactionTestClient } from '../../test/progressTransactionClient.js'
 
@@ -31,6 +32,30 @@ beforeEach(() => {
 })
 afterEach(() => { act(() => root.unmount()); host.remove(); vi.useRealTimers() })
 describe('real prompt + real store', () => {
+  it.each(Object.keys(STAGE_CONFIGS).filter(id => STAGE_CONFIGS[id].playable !== false))('%s: real HUD purchase heals, clamps and prevents a second debit', (stageId) => {
+    live().resetGame(stageId)
+    move(stageId)
+    useGameStore.setState(s => ({ phase: 'playing', goldTotal: 20, player: { ...s.player, hp: 90, maxHp: 100 } }))
+    mount()
+    expect(button().disabled).toBe(false)
+    click()
+    expect(live().player.hp).toBe(100)
+    expect(live().goldTotal).toBe(15)
+    expect(live().stageVendingPurchasedItemIds).toEqual(['recoveryDrink'])
+    expect(button().disabled).toBe(true)
+    click()
+    expect(live().goldTotal).toBe(15)
+    // Same-stage retry starts a new run and restores the per-stage entitlement.
+    act(() => {
+      live().resetGame(stageId)
+      move(stageId)
+      useGameStore.setState(s => ({ phase: 'playing', goldTotal: 15, player: { ...s.player, hp: 40 } }))
+    })
+    expect(button().disabled).toBe(false)
+    click()
+    expect(live().player.hp).toBe(75)
+    expect(live().goldTotal).toBe(10)
+  })
   it('click heals once, debits persistent wallet and shows sold-out feedback', () => {
     mount(); expect(button().disabled).toBe(false)
     click(); expect(live().player.hp).toBe(75); expect(live().goldTotal).toBe(15)

@@ -1,0 +1,16 @@
+const {fs,path,app,dist,dir,sha,packed,read,write,git,api,map,sourceGate}=require('./release-common.cjs');
+const canonical=o=>JSON.stringify(o,(_,v)=>v&&!Array.isArray(v)&&typeof v==='object'?Object.fromEntries(Object.entries(v).sort(([a],[b])=>a.localeCompare(b))):v);
+(async()=>{
+ const channel=process.argv[2],mode=process.argv[3]||'preview';if(!/^[a-z0-9-]+$/.test(channel||'')||!['preview','live','rollback'].includes(mode))throw Error('Invalid channel/mode');
+ const b=read('live-baseline.json'),{client,get}=await api();const ch=await get(channel),version=ch.release.version.name;const remote=await map(client,version);
+ if(canonical(remote.config)!==canonical(b.config))throw Error('Hosting config drift');
+ if(mode==='rollback'){for(const f of b.files){const r=remote.files.find(r=>r.path===f.path);if(!r||r.hash!==f.hash)throw Error('Rollback mismatch '+f.path)}if(remote.files.length!==b.files.length)throw Error('Rollback file count mismatch');write('rollback-verified.json',{utc:new Date().toISOString(),channel,version,files:remote.files.length,baseline:b.version,pass:true});console.log('Rollback exact baseline PASS '+version);return}
+ if(mode==='preview')await sourceGate();
+ const s=read('candidate-seal.json');if(s.sourceCommit!==git('rev-parse','HEAD')||s.sourceManifestSha256!==sha(fs.readFileSync(path.join(dir,'reviewed-source.json')))||s.configSha256!==sha(fs.readFileSync(path.join(app,'firebase.owner-expanded-20261019.json'))))throw Error('Seal source/config drift');
+ const remoteHead=git('ls-remote','origin','refs/heads/zombie_only').split(/\s+/)[0];if(remoteHead!==s.sourceCommit)throw Error('Remote changed before promotion');
+ const actual=new Map(remote.files.map(f=>[f.path,f.hash]));if(actual.size!==s.files.length)throw Error('Candidate remote count mismatch '+actual.size+'/'+s.files.length);
+ for(const f of s.files){if(actual.get(f.path)!==f.hash)throw Error('Delivered candidate map mismatch '+f.path);const p=path.join(dist,f.path.replace(/^\//,''));if(!fs.existsSync(p)||sha(fs.readFileSync(p))!==f.sha256)throw Error('Local sealed bytes drift '+f.path)}
+ const old=new Map(b.files.map(f=>[f.path,f.hash]));const changed=s.files.filter(f=>old.get(f.path)!==f.hash);const urls=mode==='live'?['https://escapezombie.com','https://escape-zombie-school.web.app']:[ch.url];const http=[];
+ for(const base of urls){let next=0;async function worker(){while(next<changed.length){const f=changed[next++],url=base+f.path+'?owner-release='+s.sourceCommit.slice(0,12);const res=await fetch(url,{headers:{'Cache-Control':'no-cache'},signal:AbortSignal.timeout(60000)});const bytes=Buffer.from(await res.arrayBuffer());if(!res.ok||sha(bytes)!==f.sha256)throw Error('Fresh delivered bytes mismatch '+url);http.push({base,path:f.path,sha256:f.sha256,status:res.status})}}await Promise.all(Array.from({length:4},worker))}
+ write(mode+'-verified.json',{utc:new Date().toISOString(),channel,version,sourceCommit:s.sourceCommit,entry:s.entry,files:actual.size,preserved:b.files.filter(f=>actual.get(f.path)===f.hash).length,changed:changed.length,httpChecked:http.length,pass:true,http});console.log(mode+' exact map/config/delivered bytes PASS '+version+' files='+actual.size+' freshHTTP='+http.length);
+})().catch(e=>{console.error(e.message);process.exit(1)});

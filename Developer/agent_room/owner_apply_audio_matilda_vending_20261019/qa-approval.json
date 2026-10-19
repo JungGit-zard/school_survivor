@@ -1,0 +1,48 @@
+{
+  "approved": true,
+  "sourceManifestSha256": "2c9bb0254843846fd31f91e0e41ef05802dd66362b3f48d2dc8acad51d600fe0",
+  "reviewer": "balanceqa",
+  "card": "t_6cec1286",
+  "reviewedAtUtc": "2026-10-19T13:53:16.513008+00:00",
+  "baseCommit": "66c9198b9f97d146a16bb0ef611359b468072b1a",
+  "scope": "QA-01 repair-only rebind of prior independent source security/integrity review; not build, preview, live or publishing authorization",
+  "findings": [],
+  "resolvedFindings": [
+    {
+      "id": "QA-01",
+      "status": "resolved",
+      "evidence": "prepare-source-freeze.py:13 now explicitly includes index.html. New manifest adds only Developer/r3f_prototype/index.html; all prior 1317 entries are identical. The added input actual bytes and HEAD blob match SHA256 5fff6ffc5ab7edb9cd8062f2d530e44966d7bf5262c80bb67e88fd219060f95d. Unchanged release-common.cjs:12 hashes every declared input, including this HTML.",
+      "negativeFixture": "html-binding-negative.cjs source inspected: VM fs overlay changes HTML bytes only in memory, supplies fixture QA approval without writing receipts, invokes actual sourceGate, and asserts exact Reviewed source drift Developer/r3f_prototype/index.html rejection before remote/auth/network. Publisher-reported PASS; reviewer did not rerun tests per request."
+    }
+  ],
+  "verified": {
+    "manifestInputCount": 1318,
+    "manifestUniqueInputCount": 1318,
+    "sourceHashMismatches": [],
+    "inputRootMembershipExact": true,
+    "addedInputs": ["Developer/r3f_prototype/index.html"],
+    "removedInputs": [],
+    "changedPriorInputEntries": [],
+    "unchangedPriorInputCount": 1317,
+    "changedNonFileManifestFields": ["utc"],
+    "indexActualAndHeadSha256": "5fff6ffc5ab7edb9cd8062f2d530e44966d7bf5262c80bb67e88fd219060f95d",
+    "priorRuntimeSecurityScriptsAndConfigHashesUnchanged": true,
+    "immutableReview1ReceiptsHashCheck": "PASS"
+  },
+  "priorReview": {
+    "sourceManifest": "reviewed-source-review1.json",
+    "sourceManifestSha256": "57ea766fe1fda89fda2f343ed3eb86fec72bcbe10dcfd9460456b543800a9446",
+    "approval": "qa-approval-review1.json",
+    "approvalSha256": "baae93bd635d8ac65c3b98226c9487079f1b6f3b468673b6e97f2335aa64d94b",
+    "result": "qa-result-review1.md",
+    "resultSha256": "f3c6ee4dd7622bab6da027cb4f12d090981c656b58847951115b62a7e88c1a21",
+    "approved": false,
+    "preserved": true
+  },
+  "limits": [
+    "This PASS closes only QA-01 and rebinds the unchanged prior review scope to the new manifest SHA.",
+    "No test, build, game, browser, benchmark, preview/live, auth network, commit, push or deploy was run during this repair-only continuation.",
+    "Prior gameplay/audio/live evidence and verification limits remain as recorded in review1; no new live-preservation or device validation is claimed.",
+    "No source, manifest, release script, config or immutable review1 receipt was modified by this reviewer. Existing direct blocked fence remains. launchmini is the sole publisher."
+  ]
+}

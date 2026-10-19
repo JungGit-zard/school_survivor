@@ -1,0 +1,22 @@
+{
+  "hosting": {
+    "public": "dist",
+    "cleanUrls": true,
+    "ignore": ["__/firebase/init.js", "__/firebase/init.json"],
+    "predeploy": [
+      "npm.cmd run require:safe-hosting-promotion",
+      "npm.cmd run build",
+      "npm.cmd run build:legal",
+      "npm.cmd run build:x-website-cards",
+      "node ../agent_room/owner_apply_audio_matilda_vending_20261019/preserve-current-live.cjs",
+      "node ../agent_room/owner_apply_audio_matilda_vending_20261019/seal-candidate.cjs"
+    ],
+    "headers": [
+      {"source":"/","headers":[{"key":"Cache-Control","value":"no-cache, must-revalidate"}]},
+      {"source":"/index.html","headers":[{"key":"Cache-Control","value":"no-cache, must-revalidate"}]},
+      {"source":"/game","headers":[{"key":"Cache-Control","value":"no-cache"}]},
+      {"source":"/game/**","headers":[{"key":"Cache-Control","value":"no-cache"}]}
+    ],
+    "rewrites":[{"source":"**","destination":"/index.html"}]
+  }
+}

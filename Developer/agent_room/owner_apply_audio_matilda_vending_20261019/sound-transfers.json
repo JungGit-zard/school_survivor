@@ -1,0 +1,50 @@
+[
+  {
+    "path": "Developer/r3f_prototype/public/sfx/audition-20261016/dialogue-matilda-A.wav",
+    "origin": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\Developer\\r3f_prototype\\public\\sfx\\audition-20261016\\dialogue-matilda-A.wav",
+    "before": {
+      "bytes": 91596,
+      "sha256": "60d4970424656c210dc03423590a8331b8faa694cc045eae0572743443c776cd"
+    },
+    "after": {
+      "bytes": 162068,
+      "sha256": "f2e93b0eabb4d76a53ff4628ceb1b5b674d1975f4d12b8c52e525e7388f0484b"
+    }
+  },
+  {
+    "path": "Developer/r3f_prototype/public/sfx/audition-20261016/dialogue-matilda-B.wav",
+    "origin": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\Developer\\r3f_prototype\\public\\sfx\\audition-20261016\\dialogue-matilda-B.wav",
+    "before": {
+      "bytes": 111352,
+      "sha256": "b519f7bf00ccd9e29303f347523ecb2ce44dfacea909e0fb7f350c0769878ad9"
+    },
+    "after": {
+      "bytes": 457362,
+      "sha256": "8607c892a0afdd9cca845aac13f464d08f1ab4bd42ac31949e5f98391f81d1eb"
+    }
+  },
+  {
+    "path": "Developer/r3f_prototype/public/sfx/audition-20261016/dialogue-matilda-C.wav",
+    "origin": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\Developer\\r3f_prototype\\public\\sfx\\audition-20261016\\dialogue-matilda-C.wav",
+    "before": {
+      "bytes": 100240,
+      "sha256": "c00544f4a3a1691e433d9814c85a7644124b62abe8a345b312833805b1ed9498"
+    },
+    "after": {
+      "bytes": 342702,
+      "sha256": "8545b1016a20755a1e4afcf47427fa923e6d270d0b73ad3114b742c7f18123f0"
+    }
+  },
+  {
+    "path": "Developer/r3f_prototype/public/sfx/audition-20261016/manifest.js",
+    "origin": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\Developer\\r3f_prototype\\public\\sfx\\audition-20261016\\manifest.js",
+    "before": {
+      "bytes": 99315,
+      "sha256": "768cc83eefaaef59d0a4715a07efb158227c37b130d4542b820646870e50106d"
+    },
+    "after": {
+      "bytes": 99702,
+      "sha256": "a7d75c4ec302c0ae48dee3371a556198b522767578540ab5039618a1effa37f3"
+    }
+  }
+]

@@ -1,5 +1,7 @@
 # Bang_Rules.md
 
+> 🔄 **2026-10-19 — owner direct levelmini scoped 마틸다 돌진 누적 가속:** 지정 release lane에서 마틸다의 실제 `matildaAim → charge` 시작 횟수를 개체별 누적한다. 첫 돌진은 기존 기준 돌진속도 그대로, n번째 돌진은 **기준 돌진속도 × (1 + 0.01 × (n − 1))**이다. 복리/프레임별 증가/장애물 반전 시 증가는 금지한다. 새 개체 및 gameKey 리마운트 시 초기화한다. 동일 실효속도를 이동과 stall 예상 이동량에 사용한다. walk·telegraph·laugh duration·damage·다른 적 스탯·population/waves/spawn은 불변이다. 근거: canonical `Developer/agent_room/owner_apply_audio_matilda_vending_20261019/level-brief.md` §1, 카드 `t_b82b3574`. 자판기 기존 배치·구매 규칙은 보존하고 west/east front yaw는 승인된 **+π/6 / −π/6**으로 복원한다.
+
 > 🔄 **2026-08-23 — Stage 4 가로 크기 30% 재확장:** Stage 4 급식실의 `mapHalfX`는 직전 **7.2→9.36 units**로 정확히 30% 늘리고 전체 가로는 **18.72 units**로 한다. `mapHalfZ=16` units, 타일 1칸 `0.8×0.8` units, 바닥 깊이 32 units는 변경하지 않고, Stage 4 소품은 새 경계 안에서 관통·겹침·플레이어 전용 틈이 없도록 X 위치만 재배치하며 개수·타입·Y/Z·회전·스케일·props는 유지한다. Stage 1∼3은 변경하지 않는다.
 
 > 🔄 **2026-08-09 — Stage 1 0:40 녹색좀비·웃는좀비 추가 고정 스폰:** Stage 1은 기존 웨이브/버스트/110초 보강/150초 보강/보스/마틸다/오버타임을 보존한 상태에서 정확히 **0분 40초 = 40초**에 녹색좀비 `E01` **5마리**와 웃는좀비 `E07` **3마리**를 추가 고정 스폰한다. Stage 2~4에는 이 40초 보강을 추가하지 않는다. 런타임은 `getRuntimeBurstEventsForStage('stage1')` → `stageRuntime.burstEvents` → `SCHEDULE_BURST` → pooled `addEnemies(..., true, spawnToken)` 경로에서 실제 소비해야 하며, 적 스탯, AI, 모델, 오디오, Firebase, Graphics Studio, 타이틀, 스테이지 길이, 보스/마틸다/오버타임 타이밍은 변경하지 않는다.
