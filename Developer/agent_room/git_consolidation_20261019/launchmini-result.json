@@ -1,14 +1,14 @@
 {
   "task": "git_consolidation_20261019",
   "owner": "launchmini t_e2815ba8 reused; advisor-managed mirrors unchanged",
-  "status": "VERIFIED_SCOPED_NORMAL_PUSH_WITH_EXPLICIT_EXCLUSIONS",
+  "status": "VERIFIED_IDENTIFIED_COMPLETED_ACCEPTED_SCOPE_CLOSED_WITH_ACTIVE_HISTORICAL_EXCLUSIONS",
   "allWorkIntegrated": false,
   "baseline": "e6b93e7c5e29015d21062ee37deafbfb4ffe59d2",
   "origin": "https://github.com/JungGit-zard/school_survivor.git",
   "branch": "zombie_only",
   "integrationLane": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\releases\\owner-all-complete-20261018",
-  "sourceCommit": "d1df317818f07ec4e840db3217829928e3e9bdfe",
-  "verifiedRemoteAtContentPush": "d1df317818f07ec4e840db3217829928e3e9bdfe",
+  "sourceCommit": "1e326c9d737820c5e0a44d096bb43d13efbb20e2",
+  "verifiedRemoteAtContentPush": "1e326c9d737820c5e0a44d096bb43d13efbb20e2",
   "includedPathCount": 58,
   "inventory": {
     "discoveredPaths": 42,
@@ -24,7 +24,8 @@
     "Completed Tistory HTML/title from776fad6e",
     "Historical Rosari room art/review/screenshots from15cb067c; latest room runtime retained",
     "Historical BGM deployment/full-test result fromb28a72fa; failures kept as historical",
-    "Prior e6b93 Git/publish/static-rendered/QA evidence with audio playback explicitly unverified"
+    "Prior e6b93 Git/publish/static-rendered/QA evidence with audio playback explicitly unverified",
+    "마틸다 최종 승인 범위: Spawn/Death/WarningTick C, 갱신된 Laugh original, dialogue A610Hz/76ms. 런타임8파일과 프로필1블록 및 provenance4항목만 통합."
   ],
   "alreadyPresent": [
     "Latest comics7fc5840b..bb3fef97 and408fb6a8 are current ancestry",
@@ -32,53 +33,44 @@
     "Per-commit patch equivalence and byte-identity explicitly separated in thread-dispositions.json"
   ],
   "validation": {
-    "provenanceAndPreservation": {
-      "canonicalConcurrentDrift": [],
-      "status": "PASS",
-      "testsRun": 12,
-      "failures": 0,
-      "errors": 0,
-      "scope": "Git provenance / exact accepted Android source / immutable package and protected source preservation; no fresh Android runtime or build claim",
-      "at": "2026-10-19T00:56:10.683289+00:00"
-    },
-    "focusedTests": {
-      "passed": 88,
+    "currentSerialMatilda": {
+      "passed": 81,
       "failed": 0,
-      "files": 5,
-      "success": true,
-      "exitCode": 0,
-      "firstAttempt": {
-        "passed": 86,
+      "files": 6,
+      "normalNpmPretest": true,
+      "red": {
         "failed": 2,
-        "reason": "5000ms cold import timeout and following RAF cleanup failure; preserved unedited. Retry uses existing standard60000ms timeout; assertions unchanged."
+        "passed": 0,
+        "reason": "Old profile720Hz/glyph46 differs from selected610Hz/glyph76; expected assertion RED captured."
       }
     },
-    "secretScan": "PASS:60 initial explicit candidate paths,45 text; two original whitespace artifacts unstaged,58 committed",
-    "stagedDiffCheck": "PASS without bypass",
-    "relevantCommittedPathsClean": true,
-    "androidRuntime": "NOT_RERUN; exact source hashes match earlier accepted compile/build records; no new Android readiness claim"
+    "sourceAndProvenance": {
+      "exactFinalSourceAndTargetFiles": 9,
+      "otherProfilesAndLifecycleBytesUnchanged": true,
+      "provenanceOnlyFourMatildaEntries": true,
+      "ready315UnchangedExceptApprovedProfileAndSharedProvenance": 313,
+      "historicalManifestUnchanged": true,
+      "onlyApprovedTenTrackedPathsPlusPreexistingDirty": true,
+      "experimentalGeneratorExcluded": true,
+      "canonical192DirtyAndHeadPreserved": true,
+      "silentDecodeFilesPass": 8
+    },
+    "audioManifestAndVoiceAssets": "기존 검증기 모두 exit0",
+    "silentDecode": "8/8 PASS; 실제 청음 PASS 주장 아님",
+    "secretScan": "matilda-secret-scan.json PASS",
+    "diffCheck": "PASS",
+    "previousValidation": "previousGitPassValidation에 보존. 이전 READY315315파일 동일성은 통합 전 상태이며 현재 승인된2개 예외를 적용한다."
   },
   "preservation": {
     "canonicalHead": "6f416d836e355d22a4e348516cca45e194bcc56c",
     "originalCanonicalDirtyTrackedPaths": 192,
     "finalDrift": [],
     "webProductDiff": "",
-    "ready315": "315 exact hashes verified; title/BGM/auth/homepage unchanged",
+    "ready315": "과거 package-manifest.json 불변. 패키지315중313파일 동일; 승인 예외는 dialogueVoice.js와 공유 provenance manifest. 별도 runtime8파일은 handoff 정확 해시로 교체.",
     "existingLaneDirty": "preserved, not blanket staged",
     "live": "No Hosting/Rules/Functions/data/AAB/browser/server/Telegram action performed by this Git-only task. Existing deployment untouched; no fresh live verification claimed."
   },
   "pending": [
-    {
-      "owner": "existing soundmini/Matilda thread",
-      "status": "UNRESOLVED_EXCLUDED",
-      "paths": [
-        "Developer/r3f_prototype/src/lib/dialogueVoice.js",
-        "Developer/r3f_prototype/scripts/generate_voice_sfx.mjs",
-        "selected Matilda cue assets",
-        "selected audio provenance entries"
-      ],
-      "reason": "Final selection/original-vs-READY315/generator disagreement; exact hashes requested in source-owner-questions.md. No new audio decision or import."
-    },
     {
       "owner": "existing social/shorts thread",
       "status": "ACTIVE_EXCLUDED",
@@ -120,6 +112,53 @@
     }
   ],
   "authority": "Git-only source consolidation; no production/Play permission",
-  "at": "2026-10-19T01:01:50.852691+00:00",
-  "receiptNote": "Report is committed after verified source push. Final report-commit/ls-remote verification is in canonical final-push-receipt.json to avoid self-referential commit SHA."
+  "at": "2026-10-19T01:09:38.228052+00:00",
+  "receiptNote": "최신 최종 보고 커밋/ls-remote 일치는 matilda-final-push-receipt.json에 기록한다. 자기참조 SHA 방지를 위해 결과 문서는 검증된 소스 커밋을 기록한다.",
+  "initialSourceCommit": "d1df317818f07ec4e840db3217829928e3e9bdfe",
+  "previousContentPushRemote": "d1df317818f07ec4e840db3217829928e3e9bdfe",
+  "previousGitPassValidation": {
+    "provenanceAndPreservation": {
+      "canonicalConcurrentDrift": [],
+      "status": "PASS",
+      "testsRun": 12,
+      "failures": 0,
+      "errors": 0,
+      "scope": "Git provenance / exact accepted Android source / immutable package and protected source preservation; no fresh Android runtime or build claim",
+      "at": "2026-10-19T00:56:10.683289+00:00"
+    },
+    "focusedTests": {
+      "passed": 88,
+      "failed": 0,
+      "files": 5,
+      "success": true,
+      "exitCode": 0,
+      "firstAttempt": {
+        "passed": 86,
+        "failed": 2,
+        "reason": "5000ms cold import timeout and following RAF cleanup failure; preserved unedited. Retry uses existing standard60000ms timeout; assertions unchanged."
+      }
+    },
+    "secretScan": "PASS:60 initial explicit candidate paths,45 text; two original whitespace artifacts unstaged,58 committed",
+    "stagedDiffCheck": "PASS without bypass",
+    "relevantCommittedPathsClean": true,
+    "androidRuntime": "NOT_RERUN; exact source hashes match earlier accepted compile/build records; no new Android readiness claim"
+  },
+  "allIdentifiedCompletedAcceptedScopeClosed": true,
+  "resolvedMatilda": {
+    "status": "INTEGRATED_AND_PUSHED",
+    "sourceCommit": "1e326c9d737820c5e0a44d096bb43d13efbb20e2",
+    "sourceOwner": "soundmini t_92589769 final handoff",
+    "exactChanges": "matilda-integration-result.json",
+    "selections": {
+      "matildaSpawn": "C",
+      "matildaDeath": "C",
+      "matildaWarningTick": "C",
+      "matildaDash": "original",
+      "matildaLaugh": "original",
+      "matildaCountdownEnd": "original",
+      "dialogue-matilda": "A"
+    },
+    "generatorExcluded": true
+  },
+  "matildaCommittedPathCount": 20
 }

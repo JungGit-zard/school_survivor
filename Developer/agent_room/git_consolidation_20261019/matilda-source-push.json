@@ -1,0 +1,33 @@
+{
+  "status": "NORMAL_PUSH_SHA_CONFIRMED",
+  "base": "2c7d1985408760a544dabee6412ceb0f2366ef12",
+  "sourceCommit": "1e326c9d737820c5e0a44d096bb43d13efbb20e2",
+  "lsRemote": "1e326c9d737820c5e0a44d096bb43d13efbb20e2",
+  "pushExitCode": 0,
+  "pushOutput": "To https://github.com/JungGit-zard/school_survivor.git\n   2c7d1985..1e326c9d  HEAD -> zombie_only\n",
+  "paths": [
+    "Developer/r3f_prototype/src/lib/dialogueVoice.js",
+    "Developer/agent_room/audio_asset_provenance_manifest_2026-07-30.json",
+    "Developer/r3f_prototype/public/sfx/enemies/matildaSpawn.ogg",
+    "Developer/r3f_prototype/public/sfx/enemies/matildaSpawn.mp3",
+    "Developer/r3f_prototype/public/sfx/enemies/matildaDeath.ogg",
+    "Developer/r3f_prototype/public/sfx/enemies/matildaDeath.mp3",
+    "Developer/r3f_prototype/public/sfx/events/matildaWarningTick.ogg",
+    "Developer/r3f_prototype/public/sfx/events/matildaWarningTick.mp3",
+    "Developer/r3f_prototype/public/sfx/enemies/matildaLaugh.ogg",
+    "Developer/r3f_prototype/public/sfx/enemies/matildaLaugh.mp3",
+    "Developer/r3f_prototype/src/lib/dialogueVoice.matildaSelection.test.js",
+    "Developer/agent_room/git_consolidation_20261019/soundmini-final-handoff.json",
+    "Developer/agent_room/git_consolidation_20261019/soundmini-final-handoff.md",
+    "Developer/agent_room/git_consolidation_20261019/matilda-supersession.json",
+    "Quaility_Assurance/git_consolidation_20261019/matilda-red.json",
+    "Quaility_Assurance/git_consolidation_20261019/matilda-red-exit.json",
+    "Quaility_Assurance/git_consolidation_20261019/matilda-green.json",
+    "Quaility_Assurance/git_consolidation_20261019/matilda-green-exit.json",
+    "Quaility_Assurance/git_consolidation_20261019/matilda-validation.json",
+    "Developer/agent_room/git_consolidation_20261019/matilda-secret-scan.json"
+  ],
+  "explicitPathCount": 20,
+  "relevantPathsClean": true,
+  "at": "2026-10-19T01:08:42.192273+00:00"
+}
