@@ -6,6 +6,10 @@ Owner: Hana / Agent Room operations
 Board: `escape-zombie-school`
 Workdir: `D:/JungSil/2.Minigame_project/school_survivor-integration`
 
+## Shared integration destination — 2026-10-21
+
+모든 등록 프로필과 IDE 에이전트의 통합 목적지는 `https://github.com/JungGit-zard/school_survivor.git`의 `refs/heads/zombie_only` 하나뿐이다. Worker 격리, 단일 integrator 직렬화, 최종 소스 QA, dirty 이력 보존은 `Developer/agent_room/shared_agent_integration_20261021/contract.md`를 따른다. 이 문서의 과거 D: 경로는 기존 작업 기록이며 새 통합 lane은 계약의 F: 경로다. 카드 댓글 통지는 worker의 읽음/동의 증명이 아니다. 배포 권한은 별도다.
+
 ## Purpose
 
 Escape! zombie school uses a durable Hermes/Kanban subagent workflow for milestone-level game development. Use this process when a request spans multiple roles, needs independent review, touches release readiness, or asks for subagents/mini agents/automatic agent deployment.

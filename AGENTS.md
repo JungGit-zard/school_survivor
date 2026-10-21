@@ -76,9 +76,9 @@ Firebase 단일 저장 관련 작업에는 Claude Opus 4.8의 접근과 작업 �
 - Before making planning, implementation, asset, QA, or Git workflow decisions, check whether `project_develop_policy.md` contains relevant rules.
 - If `project_develop_policy.md` conflicts with other project notes, follow `project_develop_policy.md` and mention the conflict to the user.
 - If `project_develop_policy.md` is empty or missing relevant rules, use `AGENTS.md`, planning documents, and the user's latest request as guidance.
-- Treat `main` as the stable branch.
-- Use feature branches for new work, such as `feature/player-movement` or `feature/combat-system`.
-- Use fix branches for bug fixes, such as `fix/collision-bug`.
+- All agents share exactly one integration destination: `origin/zombie_only` (`refs/heads/zombie_only`), not `main` or an agent-specific long-term branch.
+- Workers use isolated task checkouts/worktrees; feature/fix branches are local source isolation only, never competing integration upstreams.
+- The serialized integrator, final-source QA and preservation contract is `Developer/agent_room/shared_agent_integration_20261021/contract.md`.
 - Check the planning documents in `Planner/` before making gameplay or content decisions.
 - Use `project_develop_policy.md` for project-wide development policy. Do not weaken, bypass, or reinterpret it through another project note.
 
@@ -193,7 +193,7 @@ Firebase 단일 저장 관련 작업에는 Claude Opus 4.8의 접근과 작업 �
 
 - Use `git status --short --branch` before and after meaningful work.
 - Terry's 2026-10-04 standing instruction authorizes committing and pushing each completed Escape! zombie school task's verified repository changes to GitHub as part of that task; do not wait for a separate commit or push request.
-- Stage only the explicit files changed for that task. Before pushing, verify the current branch and that `origin` is `https://github.com/JungGit-zard/school_survivor.git` (currently `zombie_only`); if the destination is unknown or differs, ask Terry instead of guessing. Report a failed commit or push without claiming GitHub was updated.
+- Stage only explicit task paths, never unrelated dirty work. All agent integration goes through the serialized integrator in `Developer/agent_room/shared_agent_integration_20261021/contract.md`, using the clean `releases/shared-agent-integration-20261021` checkout on `zombie_only`. Verify `origin` is `https://github.com/JungGit-zard/school_survivor.git`, fetch and confirm approved final source before ordinary `git push origin HEAD:refs/heads/zombie_only`. A rejected/non-fast-forward push requires stopping and renewed source QA, never force push. Existing dirty workspaces remain untouched.
 - If the user says `뻐꾸기`, interpret it as the combined workflow: pull, commit, and push, in that order when safe.
 - If the user says `오리`, interpret it as the combined workflow: commit and push, in that order when safe.
 - If the user says exactly `메기`, immediately close every Escape! zombie school game, Graphics Studio, and test-browser window or instance launched by agents, while leaving the port 5173 development server and its keep-alive/watchdog completely untouched and running; do not terminate unrelated user applications.

@@ -86,18 +86,20 @@ Using gstack skills: After install, skills like /qa, /ship, /review, /investigat
 and /browse are available. Use /browse for all web browsing.
 Use ~/.claude/skills/gstack/... for gstack file paths (the global path).
 
-## Git Workflow — 에이전트별 워크트리 + 단일 트렁크 (2026-08-21 갱신)
+## Git Workflow — 격리 Worker + 단일 통합 목적지 (2026-10-21)
 
-**에이전트마다 전용 워크트리에서 작업하고, 커밋은 전부 같은 원격 트렁크 브랜치에 쌓는다.** 단기 task 브랜치를 만들지 않는다. 현재 트렁크: `zombie_only`.
+**모든 에이전트의 유일한 통합 목적지는 `origin/zombie_only` (`refs/heads/zombie_only`)다.** Worker는 전용 checkout/worktree에서 작업하고 승인된 정확한 소스만 단일 integrator에게 인계한다. 로컬 feature/fix 브랜치는 작업 격리일 뿐 별도 장기 통합 목적지가 아니다.
 
-### 워크트리 배정 (정본)
+정본 계약: `Developer/agent_room/shared_agent_integration_20261021/contract.md`. 이 절은 아래 2026-08-21 기존 배정/환경 설명보다 우선한다. 기존 작업공간은 보존하며 이력이 같거나 모두 통합되었다고 가정하지 않는다.
+
+### 기존 워크트리 배정 (보존 기록; 신규 통합 작업 위치는 contract.md)
 
 | 디렉터리 | 담당 | 로컬 브랜치 | push 대상 |
 |---|---|---|---|
 | `zombie_claude/` | **Claude 전용** | `claude-dev` | `origin/zombie_only` (upstream 설정됨) |
 | `school_survivor-integration/` | **codex 전용** | `zombie_only` | `origin/zombie_only` |
 
-서로의 워크트리 파일은 절대 수정하지 않는다. 같은 트렁크를 공유하므로 커밋 히스토리는 하나다.
+서로의 워크트리 파일은 절대 수정하지 않는다. 공통 원격 목적지가 같아도 기존 로컬 이력과 미완성 변경은 다를 수 있다. 정본 dirty checkout에서 pull/reset/switch/stash를 하지 않는다.
 
 `zombie_claude/`는 2026-08-21에 재생성했다. 그전까지 두 에이전트가 `school_survivor-integration/`
 하나를 공유했고, 그래서 `e2975e8`이 Claude의 작업중 `Enemy.jsx`를 통째로 삼키는 사고가 났다.
@@ -110,28 +112,27 @@ Use ~/.claude/skills/gstack/... for gstack file paths (the global path).
 New-Item -ItemType Junction -Path "D:/JungSil/2.Minigame_project/zombie_claude/Developer/r3f_prototype/node_modules" -Target "D:/JungSil/2.Minigame_project/school_survivor-integration/Developer/r3f_prototype/node_modules"
 ```
 
-### Claude 워크플로우 (zombie_claude/에서)
+### 모든 에이전트의 통합 워크플로우
 
 ```bash
-cd d:/JungSil/2.Minigame_project/zombie_claude
-
-# 작업 전 최신 트렁크 동기화
-git fetch origin && git reset --hard origin/zombie_only
-
-# 작업 후 커밋 → 트렁크로 순차 push
-git add <files>
-git commit -m "feat/fix/chore: ..."
-git fetch origin && git rebase origin/zombie_only   # 남이 먼저 올렸으면 그 위로 쌓는다
-git push                                            # push.default=upstream → claude-dev:zombie_only
+# Worker: 자기 격리 checkout에서만 작업, 정확한 파일/커밋/해시/최종 QA 인계.
+# Integrator만 아래 깨끗한 lane에서 실행 (자세한 승인/직렬화 조건은 contract.md).
+cd F:/From_SSD_D_20261005/JungSil/2.Minigame_project/releases/shared-agent-integration-20261021
+git status --short --branch
+git fetch origin
+git merge --ff-only origin/zombie_only  # 깨끗하고 fast-forward 가능한 경우만
+# 승인된 명시 경로만 stage/commit; 최종 통합 소스 검증 후:
+git push origin HEAD:refs/heads/zombie_only
+git ls-remote origin refs/heads/zombie_only
 ```
 
 ### 규칙
 
-- `claude/<task>` 단기 브랜치 **절대 만들지 않는다**.
-- 작업 시작 전 반드시 `git fetch && git reset --hard origin/<트렁크>`로 최신화 — 전용 워크트리라 pathspec 없는 일반 커밋 가능.
-- push는 항상 **fetch → rebase → push** 순서다. 트렁크 하나에 순차로만 쌓고 force push는 하지 않는다.
+- 에이전트별 장기 upstream을 만들지 않는다. 로컬 task 브랜치/전용 worktree는 격리 목적으로만 허용한다.
+- dirty 또는 divergent 작업공간은 그대로 보존한다. reset/강제 checkout/stash/광범위 staging은 금지하며 깨끗한 통합 lane에서 명시 경로만 commit한다.
+- push는 지정된 integrator 한 명만 수행한다. 원격 변경/충돌/비 fast-forward 발견 시 중단하고 새 최종 소스 QA를 받는다. force push 및 hook/보안 가드 우회는 금지한다.
 - 남의 워크트리에서 `git pull`이 "commit your changes" 로 막히면 **그대로 둔다**. 그쪽 작업중 파일이다.
-- 트렁크 브랜치가 바뀌면(예: main 복귀) 이 표와 `branch.claude-dev.merge` 설정을 함께 갱신한다.
+- 목적지는 `refs/heads/zombie_only`로 고정한다. 다른 장기 대상이나 profile/upstream 변경은 별도 사용자 승인 없이 하지 않는다.
 - 서브에이전트는 `project_subagents/`에서 먼저 찾는다. 새로 만들지 않는다.
 
 ### 줄바꿈 (2026-08-21)
