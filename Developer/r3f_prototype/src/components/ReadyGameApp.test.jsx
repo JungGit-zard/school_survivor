@@ -35,6 +35,7 @@ vi.mock('./Lobby.jsx', () => ({
 vi.mock('./GameplayScreen.jsx', () => ({
   default: (props) => (
     <section data-testid="gameplay-screen">
+      <GameLifetime />
       <output data-testid="instant-result-prop">{String(props.showGameoverResultImmediately)}</output>
       <button type="button" data-testid="open-result-shop" onClick={props.onOpenCoinShop}>shop</button>
       <button type="button" data-testid="open-result-ranking" onClick={props.onGoToRanking}>ranking</button>
@@ -71,6 +72,32 @@ vi.mock('../store/useGameStore.js', () => ({
     { getState: () => mocks.gameStore },
   ),
 }))
+
+let gameMounts = 0
+let gameUnmounts = 0
+function GameLifetime() {
+  React.useEffect(() => { gameMounts++; return () => { gameUnmounts++ } }, [])
+  return null
+}
+
+it('preserves the paused world across ranking close and resumes without a new game mount', async () => {
+  gameMounts = 0; gameUnmounts = 0
+  const view = await renderReady({ authUser: null, progressStatus: 'loading' })
+  await act(async () => { view.container.querySelector('[data-testid="start-stage"]').click(); await vi.dynamicImportSettled() })
+  mocks.gameStore.phase = 'paused'
+  const resets = mocks.gameStore.resetGame.mock.calls.length
+  await act(async () => { view.container.querySelector('[data-testid="open-result-ranking"]').click(); await vi.dynamicImportSettled() })
+  expect(gameUnmounts).toBe(0)
+  expect(view.container.querySelector('[data-testid="gameplay-screen"]').closest('[hidden]')).not.toBeNull()
+  await act(async () => { view.container.querySelector('[data-testid="ranking-back"]').click(); await vi.dynamicImportSettled() })
+  expect(mocks.gameStore.phase).toBe('paused')
+  expect(gameMounts).toBe(1)
+  expect(mocks.gameStore.resetGame.mock.calls.length).toBe(resets)
+  mocks.gameStore.phase = 'playing'
+  await view.render({ authUser: null, progressStatus: 'loading' })
+  expect(gameMounts).toBe(1)
+  view.unmount()
+})
 
 const { default: ReadyGameApp } = await import('./ReadyGameApp.jsx')
 

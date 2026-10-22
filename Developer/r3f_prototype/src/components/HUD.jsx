@@ -1817,6 +1817,7 @@ export default function HUD({
                   <button style={styles.restartBtn} onClick={resumeGame}>
                     {pauseSource === 'auto' ? t('hud.resumeAway') : t('hud.resume')}
                   </button>
+                  {onGoToRanking && <button type="button" style={styles.titleBtn} onClick={onGoToRanking}>{t('hud.ranking')}</button>}
                   <button style={styles.titleBtn} onClick={() => setIsTitleReturnConfirmOpen(true)}>
                     {t('hud.backToLobby')}
                   </button>

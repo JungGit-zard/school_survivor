@@ -9,6 +9,7 @@ const GameCanvas = lazy(loadGameCanvas)
 const HUD = lazy(() => import('./HUD.jsx'))
 
 export default function GameplayScreen({
+  isActive = true,
   mobileJoystickEnabled,
   phoneFrameRef,
   onOpenCoinShop,
@@ -65,8 +66,8 @@ export default function GameplayScreen({
   return (
     <>
       <Suspense fallback={<div style={styles.loading}>{t('loading.game')}</div>}>
-        <GameCanvas gameKey={gameKey} phase={phase} />
-        <HUD
+        <GameCanvas gameKey={gameKey} phase={isActive ? phase : 'paused'} />
+        {isActive && <HUD
           onOpenCoinShop={onOpenCoinShop}
           onGoToTitle={onGoToTitle}
           onGoToLobby={onGoToLobby}
@@ -75,9 +76,9 @@ export default function GameplayScreen({
           onOpenWeaponEncyclopedia={onOpenWeaponEncyclopedia}
           devCheatsVisible={devCheatsVisible}
           showGameoverResultImmediately={showGameoverResultImmediately}
-        />
+        />}
       </Suspense>
-      {mobileJoystickEnabled && <VirtualJoystick enabled phase={phase} playAreaRef={phoneFrameRef} />}
+      {isActive && mobileJoystickEnabled && <VirtualJoystick enabled phase={phase} playAreaRef={phoneFrameRef} />}
     </>
   )
 }

@@ -261,10 +261,12 @@ export default function ReadyGameApp({
           </Suspense>
         )}
 
-        {screen === 'game' && (
+        {(screen === 'game' || (screen === 'ranking' && prevScreen === 'game')) && (
+          <div hidden={screen !== 'game'} style={{ display: screen === 'game' ? 'contents' : 'none' }}>
           <ErrorBoundary fallback={({ error, retry, reload }) => <ScreenFailure label={t('loading.game')} error={error} retry={retry} reload={reload} onBack={() => setScreen('lobby')} />}>
             <Suspense fallback={<ScreenLoading label={t('loading.game')} />}>
               <GameplayScreen
+                isActive={screen === 'game'}
                 mobileJoystickEnabled={mobileJoystickEnabled}
                 phoneFrameRef={phoneFrameRef}
                 onOpenCoinShop={() => openCoinShopFrom('game')}
@@ -278,6 +280,7 @@ export default function ReadyGameApp({
               />
             </Suspense>
           </ErrorBoundary>
+          </div>
         )}
 
         {screen === 'game-load-failed' && (

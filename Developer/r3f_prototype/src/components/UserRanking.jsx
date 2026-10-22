@@ -30,6 +30,7 @@ const panelTone = {
 export default function UserRanking({ onBack, entries }) {
   const t = useT()
   const user = useAuthStore((s) => s.user)
+  const authStatus = useAuthStore((s) => s.status)
   const progressStatus = useAuthStore((s) => s.progressStatus)
   const retryProgress = useAuthStore((s) => s.retryCloudProgress)
   const submission = useGameStore((s) => s.rankingSubmission)
@@ -48,19 +49,27 @@ export default function UserRanking({ onBack, entries }) {
 
   useEffect(() => {
     if (!isFirebaseRankingConfigured()) return
+    let closed = false
+    setCloudBoards({ allTime: null, daily: null, weekly: null })
+    setReadErrors({})
     const subscribe = (window) => subscribeGlobalRanking(window, (rows) => {
+      if (closed) return
       setCloudBoards((boards) => ({ ...boards, [window]: rows }))
       setReadErrors(errors => ({ ...errors, [window]: false }))
-    }, { limit: RANKING_LIMIT, onError: () => setReadErrors(errors => ({ ...errors, [window]: true })) })
+    }, { limit: RANKING_LIMIT, onError: () => { if (!closed) setReadErrors(errors => ({ ...errors, [window]: true })) } })
     const unsubscribeAllTime = subscribe('allTime')
     const unsubscribeDaily = subscribe('daily')
     const unsubscribeWeekly = subscribe('weekly')
+    const reconnect = () => setReadRevision(value => value + 1)
+    window.addEventListener('online', reconnect)
     return () => {
+      closed = true
+      window.removeEventListener('online', reconnect)
       unsubscribeAllTime()
       unsubscribeDaily()
       unsubscribeWeekly()
     }
-  }, [readRevision])
+  }, [readRevision, user?.uid, authStatus])
 
   const rankingEntries = useMemo(() => {
     const providedEntries = Array.isArray(entries) ? entries : entries?.[activeWindow]

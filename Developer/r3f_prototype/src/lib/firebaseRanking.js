@@ -471,19 +471,22 @@ function subscribeRankingWindow(window, pathForWindow, onEntries, limit, onError
   let closed = false
   let unsubscribe = () => {}
   let boundaryTimer = null
+  let generation = 0
   const subscribe = async () => {
+    const current = ++generation
     unsubscribe()
-    const now = Date.now()
-    const season = getActiveSeason(now)
+    if (boundaryTimer != null) globalThis.clearTimeout(boundaryTimer)
     const win = normalizeWindow(window)
-    if (!season.active && win !== 'allTime') {
-      onEntries([])
-      return
-    }
-
     try {
       const { db, mod } = await getClient()
-      if (closed) return
+      if (closed || current !== generation) return
+      // Client/auth initialization may finish after midnight or a season change.
+      const now = Date.now()
+      const season = getActiveSeason(now)
+      if (!season.active && win !== 'allTime') {
+        onEntries([])
+        return
+      }
       const key = periodKey(win, now)
       const q = mod.query(
         mod.ref(db, pathForWindow(win === 'allTime' ? 'all-time' : season.seasonId, win, key)),
@@ -492,12 +495,12 @@ function subscribeRankingWindow(window, pathForWindow, onEntries, limit, onError
       )
       unsubscribe = mod.onValue(
         q,
-        (snap) => { if (!closed) onEntries(readRankingEntries(snap, limit)) },
-        (error) => { if (!closed) onError?.(error) },
+        (snap) => { if (!closed && current === generation) onEntries(readRankingEntries(snap, limit)) },
+        (error) => { if (!closed && current === generation) onError?.(error) },
       )
-      if (win !== 'allTime') boundaryTimer = globalThis.setTimeout(subscribe, msUntilNextWindow(win, now))
+      if (win !== 'allTime') boundaryTimer = globalThis.setTimeout(subscribe, msUntilNextWindow(win, Date.now()))
     } catch (error) {
-      if (!closed) onError?.(error)
+      if (!closed && current === generation) onError?.(error)
     }
   }
 

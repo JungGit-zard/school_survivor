@@ -33,6 +33,9 @@ vi.mock('firebase/auth', () => { throw new Error('Firebase Auth forbidden in off
 vi.mock('firebase/database', () => { throw new Error('Firebase database forbidden in offline HUD regression') })
 
 import HUD from './HUD.jsx'
+import GameplayScreen from './GameplayScreen.jsx'
+vi.mock('./gameCanvasLoader.js', () => ({ loadGameCanvas: async () => ({ default: ({ phase }) => <output data-testid="retained-canvas-phase">{phase}</output> }) }))
+vi.mock('./VirtualJoystick.jsx', () => ({ default: () => <div data-testid="ranking-joystick" /> }))
 import { useGameStore } from '../store/useGameStore.js'
 import { setLocale, t } from '../lib/i18n.js'
 
@@ -64,6 +67,41 @@ afterEach(() => {
 })
 
 describe('gameplay persistence messages stay hidden', () => {
+  it('opens ranking from the actual pause menu and resumes only after returning', () => {
+    const onRanking = vi.fn()
+    const resumeGame = vi.fn(() => useGameStore.setState({ phase: 'playing' }))
+    useGameStore.setState({ phase: 'paused', pauseSource: 'manual', progressSaveState: 'error', progressSaveWarning: 'synthetic-failure', resumeGame })
+    act(() => root.render(<HUD onGoToRanking={onRanking} />))
+    const pause = container.querySelector('[role="dialog"]')
+    const rank = [...pause.querySelectorAll('button')].find(button => button.textContent === t('hud.ranking'))
+    expect(rank).toBeDefined()
+    act(() => rank.click())
+    expect(onRanking).toHaveBeenCalledOnce()
+    expect(useGameStore.getState().phase).toBe('paused')
+    expect(container.textContent).not.toContain(t('persistence.saveFailed'))
+    act(() => [...pause.querySelectorAll('button')].find(button => button.textContent === t('hud.resume')).click())
+    expect(resumeGame).toHaveBeenCalledOnce()
+    expect(useGameStore.getState().phase).toBe('playing')
+  })
+  it('detaches inactive HUD keys and joystick while retaining a paused canvas', async () => {
+    useGameStore.setState({ phase: 'paused', pauseSource: 'manual' })
+    await act(async () => { root.render(<GameplayScreen isActive={true} mobileJoystickEnabled={true} />); await vi.dynamicImportSettled() })
+    const canvas = container.querySelector('[data-testid="retained-canvas-phase"]')
+    expect(canvas).not.toBeNull()
+    await act(async () => { root.render(<GameplayScreen isActive={false} mobileJoystickEnabled={true} />) })
+    expect(container.querySelector('[data-testid="retained-canvas-phase"]')).toBe(canvas)
+    expect(canvas.textContent).toBe('paused')
+    act(() => {
+      window.dispatchEvent(new KeyboardEvent('keydown', { key: 'p', code: 'KeyP' }))
+      window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape' }))
+    })
+    expect(useGameStore.getState().togglePause).not.toHaveBeenCalled()
+    expect(container.querySelector('[data-testid="ranking-joystick"]')).toBeNull()
+    expect(container.querySelector('[data-testid="hud-hp-row"]')).toBeNull()
+    await act(async () => root.render(<GameplayScreen isActive={true} mobileJoystickEnabled={true} />))
+    expect(container.querySelector('[data-testid="retained-canvas-phase"]')).toBe(canvas)
+    expect(container.querySelector('[data-testid="hud-hp-row"]')).not.toBeNull()
+  })
   it.each([
     ['pending', null],
     ['error', 'offline-save-failure'],
