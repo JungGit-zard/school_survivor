@@ -1,0 +1,813 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'"><title>Stage 4 급식실 대탈출 — 고도화 문서집 · 2026-10-23</title><style>
+:root{--paper:#f5f1e8;--surface:#fffdf8;--ink:#252d2a;--muted:#626a62;--line:#d7d4c8;--accent:#355f58;--proposal:#805325}
+*{box-sizing:border-box}html{scroll-padding-top:92px}body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.85 "Malgun Gothic","Apple SD Gothic Neo",sans-serif;word-break:keep-all;overflow-wrap:anywhere}a{color:var(--accent);text-underline-offset:4px}a:hover{color:#813d24}a:focus-visible,summary:focus-visible,.table-wrap:focus-visible{outline:3px solid #805325;outline-offset:4px}.skip{position:absolute;top:-100px}.skip:focus{top:10px;background:white;padding:12px;z-index:10}.topbar{position:sticky;top:0;z-index:5;background:#f5f1e8f5;border-bottom:1px solid var(--line);padding:10px 28px;display:flex;justify-content:space-between;gap:16px;align-items:center}.topbar a{display:inline-block;padding:5px 10px;min-height:44px}.brand{font-weight:800;letter-spacing:.08em;font-size:13px}.layout{max-width:1580px;margin:auto;display:grid;grid-template-columns:275px minmax(0,1fr);gap:48px;padding:38px 32px 100px}aside{position:sticky;top:90px;max-height:calc(100vh - 115px);overflow:auto;align-self:start;padding-right:14px;font-size:13px}aside a{display:block;padding:6px 0;line-height:1.6}aside details{border-bottom:1px solid var(--line);padding:12px 0}summary{cursor:pointer;min-height:44px;padding:8px 0;font-weight:700}aside .sub{padding-left:13px;font-size:12px}main{min-width:0;max-width:1120px}.eyebrow{font-size:12px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);font-weight:800}h1{font-size:clamp(34px,5vw,62px);line-height:1.2;letter-spacing:-.045em;margin:20px 0 26px}h2{font-size:29px;line-height:1.5;letter-spacing:-.03em;margin-top:55px}h3{font-size:23px;line-height:1.5;margin:42px 0 18px}h4{font-size:19px;margin:32px 0 14px}h5,h6{font-size:17px}p{margin:14px 0}li{margin:8px 0}ul,ol{padding-left:25px}.lead{font-size:20px;max-width:820px}.note{padding:23px 28px;background:#e9e8dc;border:1px solid var(--line);margin:28px 0}.labels{display:flex;gap:9px;flex-wrap:wrap}.badge{font-size:12px;font-weight:800;letter-spacing:.03em;border:1px solid #bebba9;padding:4px 10px;display:inline-block;color:var(--accent);background:#edf0e7}.badge.proposal{color:var(--proposal);background:#f6ecdc;border-color:#d7b992}.meta{color:var(--muted);font-size:13px}.overview{display:grid;grid-template-columns:1fr 1fr;gap:25px;margin:30px 0}.overview>div{border-top:2px solid var(--ink);padding-top:14px}.overview h3{margin:0;font-size:19px}.cards{display:grid;grid-template-columns:1fr 1fr;gap:18px}.enemy{padding:24px;background:var(--surface);border:1px solid var(--line)}.enemy h3{margin:15px 0 8px;font-size:21px}.enemy a{display:inline-block;min-height:44px;padding-top:8px}.swatches{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}.swatch{padding:16px;background:var(--surface);border:1px solid var(--line);font-size:13px}.paint{height:52px;margin:10px 0;border:1px solid #0002;display:flex}.paint span{flex:1}.priority{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}.priority>div{border-top:3px solid var(--accent);padding:18px 0}.priority h3{margin:0}.doc{margin-top:65px;padding-top:32px;border-top:2px solid var(--ink)}.doc-head{padding-bottom:20px;border-bottom:1px solid var(--line)}.doc-head h2{margin:8px 0}.table-wrap{overflow-x:auto;margin:22px 0;background:var(--surface);border:1px solid var(--line)}table{border-collapse:collapse;width:100%;min-width:700px;text-align:left;font-size:14px}th{background:#e7e9df;font-weight:800}td,th{padding:13px 16px;border-bottom:1px solid var(--line);vertical-align:top}tr:last-child td{border-bottom:0}tbody tr:nth-child(even){background:#f8f6ef}code,kbd{font-family:Consolas,"Courier New",monospace;font-size:.9em;background:#eae8df;padding:2px 4px;border-radius:3px;word-break:break-word}pre{white-space:pre;overflow:auto;padding:22px;background:#29332e;color:#f2efe4;line-height:1.75;font-size:13px}pre code{background:none;padding:0;color:inherit;word-break:normal}.citation{font-size:11px;color:var(--muted)}.raw{margin-top:35px;border:1px solid var(--line);padding:15px}.raw pre{white-space:pre-wrap;max-height:560px}footer{border-top:1px solid var(--line);margin-top:60px;padding-top:25px;font-size:13px;color:var(--muted)}
+@media(min-width:1200px){.doc p,.doc li{max-width:96ch}}@media(max-width:1000px){.layout{grid-template-columns:220px minmax(0,1fr);gap:24px;padding:25px 20px}.priority{grid-template-columns:1fr}}@media(max-width:760px){.layout{display:block;padding:24px 18px}aside{position:relative;top:0;max-height:360px;margin-bottom:35px;padding:15px;border:1px solid var(--line)}.topbar{padding:8px 14px}.topbar .brand{display:none}.overview,.cards{grid-template-columns:1fr}body{font-size:15px}.lead{font-size:18px}h2{font-size:25px}table{min-width:640px}.note{padding:20px}}
+@media print{@page{margin:15mm}body{background:white;color:black;font-size:12pt;line-height:1.65}.topbar,aside,.skip,.raw{display:none}.layout{display:block;max-width:none;padding:0}main{max-width:none}.doc{break-before:page}.table-wrap{overflow:visible;border:0}table{min-width:0;font-size:12pt;table-layout:fixed}td,th{padding:6pt;overflow-wrap:anywhere}.cards,.overview,.priority{display:block}.enemy,.swatch{break-inside:avoid}.swatches{grid-template-columns:repeat(2,1fr)}h1{font-size:32pt}h2,h3,h4{break-after:avoid}pre{white-space:pre-wrap;background:#eee;color:black;font-size:12pt}a{color:inherit}header,section{box-shadow:none}.paint{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+</style></head><body><a class="skip" href="#overview">본문으로 건너뛰기</a><header class="topbar"><span class="brand">STAGE 04 / DOCUMENT COLLECTION</span><nav aria-label="빠른 이동"><a href="#plan">종합</a><a href="#graphics">그래픽</a><a href="#audio">오디오</a><a href="#priority-p0">P0</a><a href="#priority-p1">P1</a><a href="#priority-p2">P2</a></nav></header><div class="layout"><aside aria-label="전체 제목 목차"><p class="eyebrow">CONTENTS / 전체 목차</p><a href="#overview">편집 안내</a><a href="#priorities">P0 / P1 / P2</a><a href="#enemies">신규 좀비 제안</a><a href="#palette">제안 팔레트</a><details open><summary><a href="#index">문서 안내</a></summary><a class="" href="#index-h-1">4스테이지 고도화 세부 문서 모음</a><a class="" href="#index-h-7">읽는 순서</a><a class="" href="#index-h-15">적용 범위</a><a class="" href="#index-h-27">역할별 기록</a></details><details open><summary><a href="#plan">종합 기획</a></summary><a class="" href="#plan-h-1">Stage 4 고도화 제안 — 급식실 대탈출</a><a class="" href="#plan-h-5">1. 결론과 변경 경계</a><a class="" href="#plan-h-19">2. 근거의 시점과 신뢰 범위</a><a class="sub" href="#plan-h-33">인용 안내</a><a class="" href="#plan-h-38">3. 현재와 제안의 차이</a><a class="" href="#plan-h-54">4. Stage 4 정체성과 네 단계 학습</a><a class="" href="#plan-h-69">5. 급식실 공간과 읽을 수 있는 동선</a><a class="" href="#plan-h-96">6. 기존 퀘스트를 쓰는 선택적 미니 목표</a><a class="" href="#plan-h-107">7. 기존 시각을 보존하는 시간 국면</a><a class="" href="#plan-h-129">8. B04 기존 패턴 감사와 작은 개선</a><a class="sub" href="#plan-h-145">승인 후 적용할 최소 개선 후보</a><a class="" href="#plan-h-153">9. 적·웨이브 겹침과 보스전 공정성</a><a class="" href="#plan-h-170">10. 보상과 영구 진행의 보존</a><a class="" href="#plan-h-182">11. P0/P1/P2 실행 체크리스트와 파일 접점</a><a class="" href="#plan-h-200">12. Balance_QA_Mini 인계 — 미실행 수용 시나리오</a><a class="" href="#plan-h-215">13. 모바일 위험과 측정 계획</a><a class="" href="#plan-h-227">14. 결정 요청과 완료 정의</a></details><details open><summary><a href="#graphics">그래픽 · 신규 좀비</a></summary><a class="" href="#graphics-h-1">Escape! zombie school — Stage4 급식실 그래픽 고도화·추가 좀비 상세 기획</a><a class="" href="#graphics-h-9">1. 사실·요구·제안의 경계와 근거 판본</a><a class="sub" href="#graphics-h-19">1.1 파일·행 단위 출처</a><a class="sub" href="#graphics-h-40">1.2 a9·dirty canonical·origin/zombie_only 대조</a><a class="" href="#graphics-h-52">2. 변경 불가 경험과 기존 시각 정체성</a><a class="" href="#graphics-h-70">3. 그래픽 개선 명세 — 모두 승인 전 제안</a><a class="sub" href="#graphics-h-71">3.1 팔레트·재질 제안표</a><a class="sub" href="#graphics-h-89">3.2 바닥·동선·장애물</a><a class="sub" href="#graphics-h-100">3.3 중앙 압력 가마솥과 B04 공격 시각</a><a class="sub" href="#graphics-h-113">3.4 모바일 판독·가림·비용</a><a class="" href="#graphics-h-122">4. 신규 좀비 범위와 공통 구현 계약</a><a class="sub" href="#graphics-h-135">4.1 P1 권장 — 급식 배식원 <code>C4_SERVE</code></a><a class="sub" href="#graphics-h-154">4.2 P2 선택 — 식판 운반원 <code>C4_TRAY</code></a><a class="sub" href="#graphics-h-170">4.3 P2 선택 — 국자 투척수 <code>C4_LADLE</code></a><a class="sub" href="#graphics-h-186">4.4 P2 선택 — 청소 당번 <code>C4_MOP</code></a><a class="" href="#graphics-h-202">5. Studio 연결과 사용자 명시값 불변</a><a class="" href="#graphics-h-215">6. 기존 자산·신규 필요물·승인 게이트</a><a class="sub" href="#graphics-h-216">6.1 자산 체크리스트</a><a class="sub" href="#graphics-h-227">6.2 단계별 인수 조건 — 실행 결과 아닌 후속 검수 명세</a></details><details open><summary><a href="#audio">오디오 · 피드백</a></summary><a class="" href="#audio-h-1">Stage 4 급식실 — 오디오·피드백 고도화 제안</a><a class="" href="#audio-h-7">1. 범위와 진행 조건</a><a class="" href="#audio-h-16">2. 근거 시점과 읽는 법</a><a class="" href="#audio-h-51">3. 기존 자산 우선 재사용 결정</a><a class="" href="#audio-h-69">4. 급식실 사건별 청각·시각 계약 — 전부 PROPOSAL</a><a class="" href="#audio-h-91">5. 추가 좀비와 그래픽 협업 — 미등록 콘셉트 PROPOSAL</a><a class="" href="#audio-h-101">6. 우선순위·반복 억제·모바일 예산</a><a class="" href="#audio-h-116">7. 무음·실패·접근성 계약</a><a class="" href="#audio-h-123">8. 승인 후 제작 후보 체크리스트와 수용 기준</a></details></aside><main><section id="overview"><p class="eyebrow">Escape! zombie school / Editorial document collection</p><h1>급식실 대탈출<br>Stage 4 고도화 문서집</h1><div class="labels"><span class="badge">원문 작성 2026-10-22</span><span class="badge">편집 2026-10-23</span><span class="badge proposal">DOCUMENT ONLY · 승인 전 제안 포함</span></div><p class="lead">가마솥의 주기를 읽고, 사선을 끊고, 빈 방향을 선택하는 전투. 완성된 종합 기획·그래픽 및 신규 좀비·오디오 피드백을 하나의 읽기 흐름으로 묶었습니다.</p><div class="note"><strong>문서 편집 완료 ≠ 게임 구현 완료</strong><p>이 HTML은 기존 완성 문서를 제시하는 오프라인 열람본입니다. 게임 코드·모델·자산·Firebase·배포·실플레이 검증을 수행하거나 완료했다고 주장하지 않습니다. 원문의 제안 수치는 사용자 확정값을 대체하지 않습니다.</p></div><div class="overview"><div><h3>기존 / 확정 / 조사 근거</h3><p>SOURCE DEFAULT는 조사한 소스 기본값입니다. 사용자 확정 규칙, 과거 고정판, 작업본 W, 로컬 원격 추적 참조 R, 미조회 운영/Firebase를 구분해 읽습니다.</p></div><div><h3>제안 / 미실행 / 후속 승인</h3><p>PROPOSAL과 P0/P1/P2는 후속 승인·검증 대상입니다. 위험 가설은 화면 관측 사실이 아니며, 체크리스트는 실행 결과가 아닙니다.</p></div></div><p class="meta">읽는 법: 좌측 전체 목차 또는 상단 바로가기를 사용하세요. 본문 검색은 브라우저 <kbd>Ctrl</kbd> + <kbd>F</kbd> / <kbd>⌘</kbd> + <kbd>F</kbd>, 인쇄는 <kbd>Ctrl</kbd> + <kbd>P</kbd>입니다. 표는 좁은 화면에서 좌우 스크롤할 수 있습니다. JavaScript 없이 모두 열람 가능합니다.</p></section><section id="priorities"><h2>우선순위로 읽기</h2><p>아래는 원문을 찾기 위한 편집 안내이며, 새 일정·구현 승인·새 의존성을 추가하지 않습니다.</p><div class="priority"><div id="priority-p0"><h3>P0</h3><span class="badge proposal">후속 승인 대상</span><p>진행도 계약·시간과 국물 순서·실효 통로부터 확인</p><p><a href="#plan-h-182">종합 실행 체크리스트 →</a></p><p><a href="#plan-h-200">미실행 수용 시나리오 →</a></p></div><div id="priority-p1"><h3>P1</h3><span class="badge proposal">후속 승인 대상</span><p>국소 공정성 개선과 급식 배식원 우선 후보</p><p><a href="#plan-h-145">B04 최소 개선 후보 →</a></p><p><a href="#graphics-h-135">급식 배식원 상세 →</a></p></div><div id="priority-p2"><h3>P2</h3><span class="badge proposal">후속 승인 대상</span><p>필요할 때만 공유 풀 검토·선택 좀비 후보</p><p><a href="#graphics-h-154">식판 운반원 →</a></p><p><a href="#graphics-h-170">국자 투척수 →</a></p><p><a href="#graphics-h-186">청소 당번 →</a></p></div></div></section><section id="enemies"><h2>신규 좀비 — 네 가지 제안</h2><p>모두 <strong>PROPOSAL · 미등록 콘셉트</strong>입니다. P1은 배식원 우선 후보, P2 세 종류는 독립 선택지이며 동시 투입 계획이 아닙니다. 가칭은 실제 enemy ID·DB 키·Studio item ID가 아닙니다.</p><div class="cards"><article class="enemy"><span class="badge proposal">PROPOSAL · P1 권장</span><h3>급식 배식원</h3><code>C4_SERVE</code><p><strong>낮은 위생모 · 어두운 앞치마 · 수평 식판</strong></p><p>준비 자세를 읽고 옆으로 빠지는 근접 역할. 기존 요청 일부를 대체하는 우선 후보.</p><a href="#graphics-h-135">외형 · 수치 후보 · 동작 · 수용 기준 전체 읽기 →</a></article><article class="enemy"><span class="badge proposal">PROPOSAL · P2 선택</span><h3>식판 운반원</h3><code>C4_TRAY</code><p><strong>비대칭 어깨 식판 묶음 · 넓은 발</strong></p><p>방향을 고정한 짧은 직진과 회복의 빈틈. 방패 면역·장비 파괴 시스템은 제외.</p><a href="#graphics-h-154">외형 · 수치 후보 · 동작 · 수용 기준 전체 읽기 →</a></article><article class="enemy"><span class="badge proposal">PROPOSAL · P2 선택</span><h3>국자 투척수</h3><code>C4_LADLE</code><p><strong>긴 국자 · 작은 통 · 낮은 두건</strong></p><p>눈에 보이는 단발 음식 투사체. 지속 장판·느려짐·별도 무제한 투사체 풀은 제외.</p><a href="#graphics-h-170">외형 · 수치 후보 · 동작 · 수용 기준 전체 읽기 →</a></article><article class="enemy"><span class="badge proposal">PROPOSAL · P2 선택</span><h3>청소 당번</h3><code>C4_MOP</code><p><strong>긴 걸레 · 노란 장갑 · 작은 양동이</strong></p><p>짧은 정면 쓸기. 잔여 얼룩은 무해하며 둔화·미끄러짐·추가 충돌체는 제외.</p><a href="#graphics-h-186">외형 · 수치 후보 · 동작 · 수용 기준 전체 읽기 →</a></article></div></section><section id="palette"><h2>제안 팔레트 · 실제 HEX 견본</h2><span class="badge proposal">PROPOSAL · Studio 덮어쓰기용 아님</span><p>그래픽 상세안 §3.1의 역할·HEX·사용 규칙을 그대로 옮긴 색상 견본입니다. 기존 색의 유지 제안도 포함되며, 적용 완료 색상표가 아닙니다.</p><div class="swatches"><div class="swatch"><strong>바닥 밝은 면 / 줄눈</strong><div class="paint" aria-hidden="true"><span style="background:#E8ECEA"></span><span style="background:#A8B4B0"></span></div><code>#E8ECEA</code> / <code>#A8B4B0</code><p>기존 ceramic 텍스처 유지 우선, 줄눈보다 위험 경계가 강해야 함.</p></div><div class="swatch"><strong>벽 바탕 / 낮은 위생 띠</strong><div class="paint" aria-hidden="true"><span style="background:#DCE7E2"></span><span style="background:#527D73"></span></div><code>#DCE7E2</code> / <code>#527D73</code><p>기존 주방 맥락의 저채도 면 분리; 이동 안내를 안전 보장처럼 쓰지 않음.</p></div><div class="swatch"><strong>금속 상판 / 패널</strong><div class="paint" aria-hidden="true"><span style="background:#F2F5F7"></span><span style="background:#D7DDE1"></span></div><code>#F2F5F7</code> / <code>#D7DDE1</code><p>기존 S05와 같은 HEX를 제안 유지값으로 사용; 재질 시스템 교체 없음.</p></div><div class="swatch"><strong>금속 프레임 / 암부</strong><div class="paint" aria-hidden="true"><span style="background:#A9AFB3"></span><span style="background:#34383B"></span></div><code>#A9AFB3</code> / <code>#34383B</code><p>기존 4톤 분리 유지 제안; 실시간 반사·굴절 추가 금지.</p></div><div class="swatch"><strong>캐릭터·가구 외곽</strong><div class="paint" aria-hidden="true"><span style="background:#050209"></span></div><code>#050209</code><p>기존 선택 외곽선 유지 제안; 장면 전체 후처리 outline 신설 제외.</p></div><div class="swatch"><strong>비공격 길찾기 표식</strong><div class="paint" aria-hidden="true"><span style="background:#5C8E88"></span></div><code>#5C8E88</code><p>가는 직선/모서리 형태, 공격 원형·부채꼴과 형태 분리.</p></div><div class="swatch"><strong>공격 예고 / 발동 핵심</strong><div class="paint" aria-hidden="true"><span style="background:#F2B544"></span><span style="background:#D9533F"></span></div><code>#F2B544</code> / <code>#D9533F</code><p>예고는 테두리·해칭, 발동은 짧은 중심 변화; 색만으로 판단하지 않음.</p></div><div class="swatch"><strong>국물 투사체 / 밝은 심</strong><div class="paint" aria-hidden="true"><span style="background:#D88936"></span><span style="background:#FFE1A3"></span></div><code>#D88936</code> / <code>#FFE1A3</code><p>가마솥·B04 음식 계열 통일, 보상 코인처럼 지속 회전시키지 않음.</p></div><div class="swatch"><strong>P1 배식원 앞치마 / 피부</strong><div class="paint" aria-hidden="true"><span style="background:#355F68"></span><span style="background:#86A66C"></span></div><code>#355F68</code> / <code>#86A66C</code><p>넓고 어두운 몸통과 수평 은색 트레이를 기본 식별자로 사용.</p></div><div class="swatch"><strong>P2 식판 운반원 / 국자 투척수</strong><div class="paint" aria-hidden="true"><span style="background:#8C603E"></span><span style="background:#6C668A"></span></div><code>#8C603E</code> / <code>#6C668A</code><p>장비 형상 차이가 주 식별자, 색은 보조.</p></div><div class="swatch"><strong>P2 청소원 장갑 / 바닥 잔여물</strong><div class="paint" aria-hidden="true"><span style="background:#C8A544"></span><span style="background:#6F8C7A"></span></div><code>#C8A544</code> / <code>#6F8C7A</code><p>잔여물은 가장자리 얼룩에 한정, 무해한 얼룩에 공격색 금지.</p></div></div><p><a href="#graphics-h-71">팔레트·재질 원문으로 →</a></p></section><section class="doc" id="index"><header class="doc-head"><p class="eyebrow">INDEX</p><h2>문서 안내 · 전체 원문</h2><p class="meta">출처: <a href="#index">Planner/stage4_document_index_20261022.md</a><br>입력 SHA-256: <code>24a5902abadaf212e232dcf51a40c15b4d4ea4efe3ab59c9dca56c79cd08ce25</code></p></header><h2 id="index-h-1">4스테이지 고도화 세부 문서 모음</h2>
+<p>작성일: 2026-10-22 · 대상: 탈출 좀비학교 / 급식실 대탈출</p>
+<p>사용자 요청: 4스테이지 고도화 방안을 문서로 작성하고, 그래픽 개선안·추가 좀비안까지 세부 작성한다.</p>
+<h3 id="index-h-7">읽는 순서</h3>
+<div class="table-wrap" tabindex="0" role="region" aria-label="가로 스크롤 가능한 원문 표"><table><thead><tr><th scope="col">문서</th><th scope="col">내용</th></tr></thead><tbody><tr><td><a href="#plan">고도화 종합 기획</a></td><td>현행 근거, 플레이 목표, 동선·시간대·보스·적 편성, 우선순위, 구현 접점과 검증 기준</td></tr><tr><td><a href="#graphics">그래픽 개선·신규 좀비 상세안</a></td><td>급식실 시각 구분, 색·재질·실루엣·위험 표시, 신규 좀비의 외형·행동·대응법·제작 항목</td></tr><tr><td><a href="#audio">오디오·피드백 상세안</a></td><td>기존 사운드 재사용, 위험·공격·보스 신호, 소리 우선순위와 반복 제어, 무음 대응</td></tr></tbody></table></div>
+<h3 id="index-h-15">적용 범위</h3>
+<p>신규 좀비 상세안은 <strong>급식 배식원</strong>을 우선 후보로, <strong>식판 운반원·국자 투척수·청소 당번</strong>을 선택 후보로 다룬다. 각 안에는 실루엣·부품·크기 후보·준비/공격/회복 동작·대응법·등장 구간·기존 적 대체 방식·구현 접점·개별 수용 기준이 있다. 추가 적을 한꺼번에 투입하는 계획이 아니다.</p>
+<p>그래픽 문서는 팔레트 HEX·재질·바닥/동선·장애물·압력솥/보스 경고·모바일 가독성·Studio 연결·필요 자산까지, 종합 문서는 퀘스트·보상·영구 진행·우선순위·검증 시나리오까지 다룬다.</p>
+<p>이 묶음은 고도화 <strong>제안서</strong>다. 게임 코드·모델·자산·Firebase 값 변경이나 운영 배포를 뜻하지 않는다. 제안 수치는 사용자 확정값을 대체하지 않는다.</p>
+<p>기존 구현과 개선 제안은 각 문서에서 구분한다. 현재 화면을 직접 관측하지 않은 내용은 확인할 위험 또는 제안으로 취급한다. 과거 구현 추출본과 로컬 소스, 원격 추적 참조는 서로 다른 시점일 수 있으며 어느 것도 실제 운영 상태·Firebase 실효값의 검증을 대신하지 않는다.</p>
+<p>진행 조건의 기준은 사용자 지시다. 4스테이지는 3스테이지 보스 처치로, 5스테이지는 4스테이지 보스 처치로 즉시 영구 해금한다. 탈출·생존시간·퀘스트는 추가 해금 조건이 아니다. 현재 구현 일치 여부는 기획서의 근거와 후속 검증 항목을 참조한다.</p>
+<h3 id="index-h-27">역할별 기록</h3>
+<ul><li>종합 기획: <code>levelmini</code> / Kanban <code>t_fca09e10</code></li><li>그래픽·좀비 상세: <code>threemini</code> / Kanban <code>t_7aea070f</code></li><li>오디오 피드백: <code>soundmini</code> / Kanban <code>t_c2fa04cc</code></li></ul>
+<p>개발자 기록은 <code>Developer/agent_room/stage4_*20261022_receipt.md</code>에 보관한다. 이 문서 작성 과정에서는 실사용자 데이터나 실제 플레이 상태를 변경하는 시험을 수행하지 않는다.</p><details class="raw"><summary>원문 Markdown 대조 보기 · 문서 안내</summary><p class="meta">아래 텍스트는 서식 기호·원래 인용 경로까지 보존한 원문입니다. 본문 링크는 이 열람본에 맞게 변환했으며, 아래 원문 경로는 문자 그대로 제시합니다.</p><pre id="raw-index"># 4스테이지 고도화 세부 문서 모음
+
+작성일: 2026-10-22 · 대상: 탈출 좀비학교 / 급식실 대탈출
+
+사용자 요청: 4스테이지 고도화 방안을 문서로 작성하고, 그래픽 개선안·추가 좀비안까지 세부 작성한다.
+
+## 읽는 순서
+
+| 문서 | 내용 |
+|---|---|
+| [고도화 종합 기획](stage4_advancement_plan_20261022.md) | 현행 근거, 플레이 목표, 동선·시간대·보스·적 편성, 우선순위, 구현 접점과 검증 기준 |
+| [그래픽 개선·신규 좀비 상세안](../Graphic_designer/stage4_graphics_and_zombies_20261022.md) | 급식실 시각 구분, 색·재질·실루엣·위험 표시, 신규 좀비의 외형·행동·대응법·제작 항목 |
+| [오디오·피드백 상세안](stage4_audio_feedback_plan_20261022.md) | 기존 사운드 재사용, 위험·공격·보스 신호, 소리 우선순위와 반복 제어, 무음 대응 |
+
+## 적용 범위
+
+신규 좀비 상세안은 **급식 배식원**을 우선 후보로, **식판 운반원·국자 투척수·청소 당번**을 선택 후보로 다룬다. 각 안에는 실루엣·부품·크기 후보·준비/공격/회복 동작·대응법·등장 구간·기존 적 대체 방식·구현 접점·개별 수용 기준이 있다. 추가 적을 한꺼번에 투입하는 계획이 아니다.
+
+그래픽 문서는 팔레트 HEX·재질·바닥/동선·장애물·압력솥/보스 경고·모바일 가독성·Studio 연결·필요 자산까지, 종합 문서는 퀘스트·보상·영구 진행·우선순위·검증 시나리오까지 다룬다.
+
+이 묶음은 고도화 **제안서**다. 게임 코드·모델·자산·Firebase 값 변경이나 운영 배포를 뜻하지 않는다. 제안 수치는 사용자 확정값을 대체하지 않는다.
+
+기존 구현과 개선 제안은 각 문서에서 구분한다. 현재 화면을 직접 관측하지 않은 내용은 확인할 위험 또는 제안으로 취급한다. 과거 구현 추출본과 로컬 소스, 원격 추적 참조는 서로 다른 시점일 수 있으며 어느 것도 실제 운영 상태·Firebase 실효값의 검증을 대신하지 않는다.
+
+진행 조건의 기준은 사용자 지시다. 4스테이지는 3스테이지 보스 처치로, 5스테이지는 4스테이지 보스 처치로 즉시 영구 해금한다. 탈출·생존시간·퀘스트는 추가 해금 조건이 아니다. 현재 구현 일치 여부는 기획서의 근거와 후속 검증 항목을 참조한다.
+
+## 역할별 기록
+
+- 종합 기획: `levelmini` / Kanban `t_fca09e10`
+- 그래픽·좀비 상세: `threemini` / Kanban `t_7aea070f`
+- 오디오 피드백: `soundmini` / Kanban `t_c2fa04cc`
+
+개발자 기록은 `Developer/agent_room/stage4_*20261022_receipt.md`에 보관한다. 이 문서 작성 과정에서는 실사용자 데이터나 실제 플레이 상태를 변경하는 시험을 수행하지 않는다.
+</pre></details></section><section class="doc" id="plan"><header class="doc-head"><p class="eyebrow">FULL DOCUMENT</p><h2>종합 기획 · 전체 원문</h2><p class="meta">출처: <a href="#plan">Planner/stage4_advancement_plan_20261022.md</a><br>입력 SHA-256: <code>64409293c9e0af983ef5d950aeccfd62fd4324170e9f1bc2878164f54520c30a</code></p></header><h2 id="plan-h-1">Stage 4 고도화 제안 — 급식실 대탈출</h2>
+<p>작성: Level_Mini · 2026-10-22 · Kanban <code>t_fca09e10</code> · 상태: Advisor 검토용 / DOCUMENT ONLY</p>
+<h3 id="plan-h-5">1. 결론과 변경 경계</h3>
+<p>현재 급식실의 재료는 충분하다. 중앙 가마솥, 동·북쪽 조사 동선, 원거리 사격과 돌진을 전환하는 주방장을 <strong>읽고 선택할 수 있는 전투</strong>로 연결하는 것이 고도화의 핵심이다.</p>
+<p>전역 HP·스폰 증가나 신규 보스 추가보다, 기존 위험의 겹침과 이동 탈출로를 먼저 검증한다. Stage 1 모바일 플레이 루프 안정화가 제품 우선순위이며, 본안은 그 작업을 밀어내는 구현 지시가 아니다.</p>
+<p>이 문서는 기획만 한다. 코드·모델·자산·Firebase·배포·브라우저를 변경하거나 실행하지 않았다. 아래 실행 체크리스트는 후속 승인 범위다.</p>
+<p>새 수치가 있는 항목은 <code>PROPOSAL</code>이며 오너 확정값을 덮어쓰지 않는다. 기존 수치는 <code>SOURCE DEFAULT</code>로 구분하며 실제 Firebase/운영 실효값이라고 주장하지 않는다.</p>
+<ul><li>오너 확정: Stage 4는 Stage 3 보스 처치만으로 즉시 영구 해금한다.</li><li>오너 확정: Stage 5는 Stage 4 보스 처치만으로 즉시 영구 해금한다.</li><li>탈출·생존시간·퀘스트·추가 확인 버튼은 해금의 선행 조건이 아니다. 해금과 다음 판으로의 화면 전환은 별개다.</li><li>유지: 명목 240초, B04 150초, 마틸다 예고 205초/등장 210초, 포탈 210초. 자동 승리를 추가하지 않는다.</li><li>타이틀 문구·UI·모델·배경·음악·공유 연결은 잠금 유지. 이 기획을 타이틀 개선 권한으로 해석하지 않는다.</li><li>Studio 입력의 저장·조회 정본은 Firebase다. 로컬 시드·localStorage·복구 fallback을 제안하지 않는다. 저장 실패로 기존 그래픽을 숨기지도 않는다.</li></ul>
+<h3 id="plan-h-19">2. 근거의 시점과 신뢰 범위</h3>
+<div class="table-wrap" tabindex="0" role="region" aria-label="가로 스크롤 가능한 원문 표"><table><thead><tr><th scope="col">구분</th><th scope="col">실제 조사 대상</th><th scope="col">이 문서에서의 사용</th></tr></thead><tbody><tr><td>A: 과거 고정판</td><td><code>a9f84bf8e7f22d2b1b1c191f7b23ee2e0e908ff8</code> 추출 문서</td><td>과거 수치·해금 불일치의 기준선. live 아님</td></tr><tr><td>W: 현재 작업본</td><td>HEAD <code>6f416d836e355d22a4e348516cca45e194bcc56c</code> + 기존 dirty 변경</td><td>파일/줄 인용의 기본 대상. HEAD 커밋 내용과 동일하다는 뜻 아님</td></tr><tr><td>R: 원격 추적 참조</td><td><code>origin/zombie_only</code> = <code>ef9b701ed30a45144937686a5fe1c1eef1ed105c</code></td><td>로컬에 있는 참조를 <code>git show</code>로 조사. fetch/merge 없이 확인</td></tr><tr><td>운영/Firebase</td><td>조회하지 않음</td><td>배치·튜닝·저장 성공·배포 반영·모바일 체감 모두 미확인</td></tr></tbody></table></div>
+<p>R 커밋 시각은 2026-10-22 10:20:41 +09:00이다. 서버 최신 커밋을 실시간 조회한 결과는 아니며, 로컬 브랜치는 조사 시 R 대비 ahead 21 / behind 119였다.</p>
+<p>A 문서도 소스 기본값임을 명시한다(<a href="stage1_10_balance_implementation_20261019/stage04.md">과거 stage04 L1–24</a> <small class="citation">(원문 줄 인용: L1-L24 · 파일 열기)</small>). 사용자 요청에 따라 그래픽 개선과 신규 좀비까지 포함한 세부 제안을 별도 문서와 함께 제공한다.</p>
+<p><a href="current_game_rules.md">현행 공통 규칙 L9–19, L60–65</a> <small class="citation">(원문 줄 인용: L9-L19 · 파일 열기)</small>는 Stage 1 우선과 모바일 검증 원칙을 제공하지만, 오래된 Stage 1 보스 시각을 Stage 4에 적용하지 않는다.</p>
+<p>7월 초안의 옥상·B03·140초·클리어 횟수 해금, 8월 가로 절반 문서의 폭은 역사적 제안/중간 상태다. 현재 급식실·B04·9.36 반폭을 대체하지 않는다.</p>
+<h4 id="plan-h-33">인용 안내</h4>
+<p>아래 링크는 저장소 상대 경로와 조사 시 줄 범위다. W는 작업본, R은 지정 커밋의 <code>git show &lt;hash&gt;:&lt;path&gt;</code> 줄이다. R 인용은 W 링크를 원격 내용인 것처럼 연결하지 않는다.</p>
+<p>전체 조사 해시는 <a href="../Developer/agent_room/stage4_plan_20261022_receipt.md">작업 영수증</a>에 남긴다. 소스가 바뀌면 줄과 해시를 재대조한다.</p>
+<h3 id="plan-h-38">3. 현재와 제안의 차이</h3>
+<div class="table-wrap" tabindex="0" role="region" aria-label="가로 스크롤 가능한 원문 표"><table><thead><tr><th scope="col">항목</th><th scope="col">현재 조사 결과</th><th scope="col">제안 / 보존 기준</th></tr></thead><tbody><tr><td>테마·대표 보스</td><td>W 급식실 대탈출 / B04</td><td>유지. 체육교사·옥상 재도입 없음</td></tr><tr><td>세션 시각</td><td>W 240 / 150 / 205 / 210 / 210초</td><td>전부 유지. 240초를 강제 종료로 바꾸지 않음</td></tr><tr><td>해금</td><td>W stage3Clears·stage4Clears 참조, R 이전 stage BossDefeats 참조</td><td>오너 보스 처치 단독 규칙이 기준. W 불일치는 P0 인계</td></tr><tr><td>맵</td><td>W 반폭 X 9.36, Z 16 units</td><td>축소·확장 없음. 통로 실측 후 국소 문제만 후보화</td></tr><tr><td>B04 전환</td><td>국물 대폭발 후 돌진, 별도 순수 전환 모듈도 존재</td><td>새 페이즈를 더하지 않고 실제 경로의 읽기·회복창 보강</td></tr><tr><td>일반 적</td><td>명시 버스트 + 별도 보충 경로</td><td>HP·수·시각 유지. 겹침 관찰 후 국소 배치/공격 진입 검토</td></tr><tr><td>조사·보상</td><td>기존 퀘스트 두 개, 각 2 gold 기본값</td><td>선택적 경로 학습으로 활용. 필수 진행 조건 금지</td></tr><tr><td>시각·소리</td><td>기존 가마솥·투사체·경고 연결 존재</td><td>기존 연결을 기준으로 그래픽·신규 좀비·오디오 상세안의 개선 제안을 함께 검토</td></tr></tbody></table></div>
+<p>근거: <a href="../Developer/r3f_prototype/src/lib/stageConfig.js">stageConfig L7–15, L96–125</a> <small class="citation">(원문 줄 인용: L96-L125 · 파일 열기)</small>, <a href="../Developer/r3f_prototype/src/lib/stageConfig.js">W 해금 L189–203</a> <small class="citation">(원문 줄 인용: L189-L203 · 파일 열기)</small>.</p>
+<p>R <code>src/lib/stageConfig.js:L190–198</code>은 앞 스테이지의 <code>${previousId}BossDefeats</code> 정수 기록을 검사하고 과거 탈출 기록을 보스 증거로 보충하지 않는다.</p>
+<h3 id="plan-h-54">4. Stage 4 정체성과 네 단계 학습</h3>
+<p>정체성은 “피할 곳이 전혀 없다”가 아니라 <strong>“가마솥의 주기를 읽고 사선을 끊은 뒤, 빈 방향으로 이동한다”</strong>다. 안전한 선택이 남아 있어야 숙련의 의미가 생긴다.</p>
+<p>이하 네 단계는 Stage 4 내부 학습 단계이며 Stage 1~4의 구현을 다시 설계하는 표가 아니다.</p>
+<div class="table-wrap" tabindex="0" role="region" aria-label="가로 스크롤 가능한 원문 표"><table><thead><tr><th scope="col">학습 단계</th><th scope="col">체험과 판단</th><th scope="col">성공의 관찰 기준</th></tr></thead><tbody><tr><td>① 방향 읽기</td><td>남쪽 시작 → 중앙 가마솥 주기 → 동·서 통로 중 선택</td><td>첫 폭발을 본 뒤 위험 밖으로 이동하는 경로를 설명할 수 있음</td></tr><tr><td>② 경로 선택</td><td>E04 사선·E05 돌진 사이에서 외곽 조사와 전투를 선택</td><td>퀘스트를 포기해도 생존/해금에 손해 조건이 붙지 않음</td></tr><tr><td>③ 패턴 전환</td><td>B04 포격 → HP 임계 국물 → 돌진</td><td>기존 예고에서 위험 지점과 이동 방향을 구별하고 후딜에 반격</td></tr><tr><td>④ 목적 선택</td><td>보스 처치 영구 해금과 210초 포탈 탈출을 구별</td><td>보스 사망 후 다음 stage 해금 유지, 포탈 대기는 선택으로 이해</td></tr></tbody></table></div>
+<p>새 강제 튜토리얼·조작 잠금은 넣지 않는다. 기존 상호작용/위험 표현이 이 학습을 전달하는지 먼저 관찰하며, 설명 부족은 gameplay 내 안내 후보로만 인계한다.</p>
+<p>학습 성공률·이탈률은 현재 측정값이 없다. 위 문장은 설계 의도이며 실제 플레이 평가가 아니다.</p>
+<h3 id="plan-h-69">5. 급식실 공간과 읽을 수 있는 동선</h3>
+<p>좌표 표기: <code>(X,Z)</code> world units / blocks, <code>1 block = 4 units</code>. 물리 반경과 카메라 투영을 혼동하지 않는다. 장식 타일 하나를 block 하나로 세지 않는다.</p>
+<p>SOURCE DEFAULT: 전체 18.72 × 32 units / 4.68 × 8 blocks, 반폭 9.36 × 16 units / 2.34 × 4 blocks.</p>
+<p>바닥 타일은 0.8 units / 0.2 blocks다(<a href="../Developer/r3f_prototype/src/components/ClassroomFloor.jsx">ClassroomFloor L21–33, L52–58</a> <small class="citation">(원문 줄 인용: L21-L58 · 파일 열기)</small>). 새 바닥 설계는 범위 밖이다.</p>
+<pre><code>북(-Z)     냉장고       쿡라인(가스 완료)       싱크(손잡이)
+           서쪽 우회          북쪽 연결          조리부 학생
+서(-X)     외곽 회귀     [중앙 가마솥 위험]      동쪽 조리대(명단)   동(+X)
+                           남쪽 시작            급식 당번 학생
+남(+Z)                    배식대 / 복귀 동선</code></pre>
+<ul><li>중앙 가마솥 <code>(0,0)</code> units / <code>(0,0)</code> blocks와 남쪽 시작 <code>(0,7)</code> units / <code>(0,1.75)</code> blocks를 유지한다.</li><li>남쪽 당번 <code>(2.28,11.65)</code> units / <code>(0.57,2.9125)</code> blocks → 동 조리대 <code>(6.96,-3.9)</code> units / <code>(1.74,-0.975)</code> blocks → 당번 복귀가 첫 선택 동선이다.</li><li>조리부 학생 <code>(4.95,-6.2)</code> units / <code>(1.2375,-1.55)</code> blocks → 북동 싱크 <code>(4.45,-13.72)</code> units / <code>(1.1125,-3.43)</code> blocks → 쿡라인 <code>(-0.39,-13.75)</code> units / <code>(-0.0975,-3.4375)</code> blocks가 두 번째 동선이다.</li><li>상기 좌표는 authored 기본 배치다. 실제 조사 접근 지점·몸체 폭·회전·Studio 변경을 반영한 안전 경로 길이는 아직 측정하지 않았다.</li></ul>
+<p>근거: <a href="../Developer/r3f_prototype/src/components/StageObjects/stageObjectPlacements.js">배치 L460–530</a> <small class="citation">(원문 줄 인용: L460-L530 · 파일 열기)</small>, <a href="../Developer/r3f_prototype/src/components/StageObjects/stageObjectPlacements.js">동 조리대 L546–553</a> <small class="citation">(원문 줄 인용: L546-L553 · 파일 열기)</small>, <a href="../Developer/r3f_prototype/src/components/StageObjects/stageObjectPlacements.js">가마솥·학생 L725–750</a> <small class="citation">(원문 줄 인용: L725-L750 · 파일 열기)</small>.</p>
+<p>문두의 “전부 시각 전용” 주석만 믿으면 안 된다. 대형 주방 타입은 차단 집합에 있고 실제 collider는 blocking 플래그를 해석한다(<a href="../Developer/r3f_prototype/src/components/StageObjects/stageObjectColliders.js">colliders L24–35, L415–423</a> <small class="citation">(원문 줄 인용: L415-L423 · 파일 열기)</small>).</p>
+<p>배치 해석에는 중앙 가마솥 강제 보존과 과거 폭의 X 변환도 있다(<a href="../Developer/r3f_prototype/src/components/StageObjects/stageObjectPlacements.js">placements L770–789</a> <small class="citation">(원문 줄 인용: L770-L789 · 파일 열기)</small>). 따라서 원문 좌표만으로 운영 통행 가능을 확정하지 않는다.</p>
+<p>PROPOSAL: 현재 위치를 유지한 채 중앙 좌·우 우회와 북쪽 연결의 유효 통로를 측정한다. 통로 폭 목표 후보는 2.4 units / 0.6 blocks 이상이며, 보스·좀비 몸체와 회전 접촉을 포함해 확정한다.</p>
+<p>목표 미달 시 모든 소품을 밀거나 없애지 않는다. 막히는 collider/접근면만 특정해 Studio 담당에게 전달하고, 승인된 최소 배치 변경만 별도 수행한다.</p>
+<p>가마솥 폭발 반경 3.2 units / 0.8 blocks 바깥이라고 자동으로 안전하지 않다. 사선·몸막힘·돌진 접근이 겹치는지 함께 본다.</p>
+<h3 id="plan-h-96">6. 기존 퀘스트를 쓰는 선택적 미니 목표</h3>
+<p>SOURCE DEFAULT: <code>stage4-allergy-list</code>는 당번 → 동 조리대 명단 → 당번 반환, <code>stage4-gas-valve</code>는 조리부 학생 → 싱크 손잡이 → 쿡라인 설치다. 각각 2 gold다.</p>
+<p>근거: <a href="../Developer/r3f_prototype/src/lib/quests.js">quests L118–156</a> <small class="citation">(원문 줄 인용: L118-L156 · 파일 열기)</small>. 조사 시작/수집/완료의 placement ID를 유지하고 단순히 같은 타입이라는 이유로 다른 조리대로 바꾸지 않는다.</p>
+<ul><li>PROPOSAL: 초반은 명단 왕복, 중반은 북쪽 손잡이 전달의 <strong>권장 기회</strong>로 설명한다. 정해진 시각에 강제 시작·실패시키는 퀘스트로 만들지 않는다.</li><li>명단 경로는 동쪽 사선에서 중앙 쪽으로 무리하게 횡단하지 않고 외곽을 이용하는 연습이다. 돌아오는 길에 전투 압력이 높으면 보류할 수 있어야 한다.</li><li>가스 퀘스트는 북쪽의 시야/충돌 접근면을 배우는 기회다. “밸브 설치”를 가마솥 피해 제거 기능으로 확대하지 않는다. 현재 그런 연계는 본 조사로 확인하지 않았다.</li><li>보스전 중 조사 안내가 전투 판단을 가리면 안내 우선순위만 후속 검토한다. Stage 2~4 학생 조사문·퀘스트 대사 원문은 이 기획으로 수정하지 않는다.</li><li>퀘스트 미발견/아이템 보유/완료 여부가 Stage 4·5 해금 판정에 들어가면 불합격이다. 퀘스트 보상과 보스 보상도 합쳐 재지급하지 않는다.</li></ul>
+<h3 id="plan-h-107">7. 기존 시각을 보존하는 시간 국면</h3>
+<p>다음은 버스트 요청의 명목 시각이다. 일반 적은 캐치업/큐/보충 영향으로 실제 관측 시간이 달라질 수 있으며, 보스·환경·포탈의 실제 게임 시계와 분리 기록해야 한다.</p>
+<div class="table-wrap" tabindex="0" role="region" aria-label="가로 스크롤 가능한 원문 표"><table><thead><tr><th scope="col">시간(초)</th><th scope="col">SOURCE DEFAULT 이벤트</th><th scope="col">PROPOSAL 플레이 목적 / 확인할 위험</th></tr></thead><tbody><tr><td>0–24 미만</td><td>5초 E01×10, 가마솥 주기 시작</td><td>남쪽 출발·첫 위험 읽기. 조사 강요 없음</td></tr><tr><td>24–60 미만</td><td>24초 E04×4, 40초 E05×2</td><td>사선 우회와 돌진 횡회피. 명단 동선 선택</td></tr><tr><td>60–108 미만</td><td>60초 E03 ring×6, 72초 E06×1, 90초 E08 보상</td><td>포위의 빈 방향을 고르고 이동. 보상 추격은 선택</td></tr><tr><td>108–144 미만</td><td>108초 E07×2+E02 pincer×4, 110초 보강, 120초 E05 ring×4</td><td>북쪽 조사 마무리 기회는 보장 아님. 압력부터 읽음</td></tr><tr><td>144–150 미만</td><td>E04×4+E02×2</td><td>보스 준비. 기존 잡몹 정리를 유도하되 강제 삭제 금지</td></tr><tr><td>150–184 미만</td><td>150초 B04×1+E05×3+E03×6, 168초 E07×4+E04 ring×4</td><td>포격→국물→돌진의 읽기. 가마솥 동시 폭발 위험 확인</td></tr><tr><td>184–205 미만</td><td>184초 E06 pincer×2, 180초 E08 보상 잔존 가능</td><td>보스 압박과 욕심의 선택. 무리한 보상 추격 요구 금지</td></tr><tr><td>205–210 미만</td><td>마틸다 예고 205초</td><td>새 과업 대신 현재 도주 방향 확보</td></tr><tr><td>210–240 명목</td><td>마틸다·포탈 210초, E05×4는 216초</td><td>포탈 탈출 또는 잔여 목표 선택. 216초는 마틸다 등장 <strong>후</strong></td></tr></tbody></table></div>
+<p>근거: <a href="../Developer/r3f_prototype/src/lib/burstEvents.js">burstEvents L235–255, L294–303</a> <small class="citation">(원문 줄 인용: L235-L255 · 파일 열기)</small>, <a href="../Developer/r3f_prototype/src/lib/stageConfig.js">시간 정본 L7–15</a> <small class="citation">(원문 줄 인용: L7-L15 · 파일 열기)</small>, <a href="../Developer/r3f_prototype/src/components/Game.jsx">포탈 실행 Game L74–103</a> <small class="citation">(원문 줄 인용: L74-L103 · 파일 열기)</small>.</p>
+<p>명목 240초와 포탈 210초는 모순이 아니라 다른 필드다. 210초 이후 남기로 한 플레이어에게 240초 보상을 약속하며 대기를 강제하지 않는다.</p>
+<p>가마솥은 매 15초, 직전 3초 끓음, 폭발 표현 250ms, 최대 HP 20% 피해다(<a href="../Developer/r3f_prototype/src/lib/stage4PressureCauldronHazard.js">hazard L1–35</a> <small class="citation">(원문 줄 인용: L1-L35 · 파일 열기)</small>).</p>
+<p>따라서 150초 보스 등장과 210초 마틸다/포탈에는 가마솥 폭발도 겹친다. 이 중첩을 시간 변경으로 몰래 해결하지 말고, 위험 밖 동선과 공격 진입의 공정성을 먼저 검사한다.</p>
+<p>Game의 가마솥 피해는 <code>ignoreInvulnerability: true</code>다(<a href="../Developer/r3f_prototype/src/components/Game.jsx">Game L88–94</a> <small class="citation">(원문 줄 인용: L88-L94 · 파일 열기)</small>). 기존 무적을 믿고 중앙을 통과하도록 안내하면 안 된다.</p>
+<h3 id="plan-h-129">8. B04 기존 패턴 감사와 작은 개선</h3>
+<div class="table-wrap" tabindex="0" role="region" aria-label="가로 스크롤 가능한 원문 표"><table><thead><tr><th scope="col">요소</th><th scope="col">현재 소스가 하는 일</th><th scope="col">변경 없이 먼저 볼 것</th></tr></thead><tbody><tr><td>몸체 기본값</td><td>base HP 1500 / 접촉 22 / xp 0 / 추격 0.5225 units/s = 0.130625 blocks/s</td><td>단계 HP·Admin 오버라이드 후 실효값은 따로 기록</td></tr><tr><td>P1 포격</td><td>간격 2600ms, 피해 14, 속도 1.6 units/s = 0.4 blocks/s</td><td>E04와 공유 투사체 풀에 묶여 실제 발사 주기가 달라지는지</td></tr><tr><td>P1 거리</td><td>선호 5 units / 1.25 blocks, 최소 3 units / 0.75 blocks</td><td>공통 발사 가드의 최소 3.5 units / 0.875 blocks와 구분</td></tr><tr><td>HP 임계 국물</td><td>HP≤50%에서 1회, 최대 3원, 예고 1200ms·폭발 250ms·피해 16</td><td>발동 중 정지, 빈 원 후보 가능, 단일 피해 소비 여부</td></tr><tr><td>국물 영역</td><td>반경 1.1 units / 0.275 blocks, 플레이어 인접/장애물/원 겹침 후보 제외</td><td>시작 위치만 안전해도 다음 회피 경로가 막힐 수 있음</td></tr><tr><td>P2 돌진</td><td>속도 1.4 units/s = 0.35 blocks/s, 경고 거리 6 units / 1.5 blocks</td><td>예고 800ms·돌진 2200ms·stun 1200ms 보존</td></tr></tbody></table></div>
+<p>근거: <a href="../Developer/r3f_prototype/src/components/Enemy.jsx">Enemy L384–391</a> <small class="citation">(원문 줄 인용: L384-L391 · 파일 열기)</small>, <a href="../Developer/r3f_prototype/src/lib/b04SoupBlast.js">국물 모듈 L1–86</a> <small class="citation">(원문 줄 인용: L1-L86 · 파일 열기)</small>, <a href="../Developer/r3f_prototype/src/lib/stage2ProjectileRules.js">공통 발사 조건 L36–53</a> <small class="citation">(원문 줄 인용: L36-L53 · 파일 열기)</small>.</p>
+<p>중요: 순수 <code>chefBossPhase</code>에는 1000ms 전환이 있으나, Stage 4 실행은 국물 처리 뒤 <code>soup.phase===&#x27;done&#x27;</code>이면 P2를 직접 설정한다(<a href="../Developer/r3f_prototype/src/components/Enemy.jsx">Enemy L1295–1362</a> <small class="citation">(원문 줄 인용: L1295-L1362 · 파일 열기)</small>).</p>
+<p>따라서 “국물 1200+250ms 뒤 반드시 추가 1000ms 무적”이라고 쓰지 않는다. 전환 무적도 이번 조사로 확인한 규칙이 아니다.</p>
+<p>P1 재료 4종 순환은 비주얼 채널이며 별도 상태이상 4종이 아니다(<a href="../Developer/r3f_prototype/src/components/Enemy.jsx">Enemy L1392–1403</a> <small class="citation">(원문 줄 인용: L1392-L1403 · 파일 열기)</small>).</p>
+<h4 id="plan-h-145">승인 후 적용할 최소 개선 후보</h4>
+<ol><li>PROPOSAL / P0: 현재 국물 예고→폭발→돌진 순서를 테스트로 고정하고, 중단·처치·재시작 시 잔류 위험을 검사한다. 새 페이즈·무적·체력 증가 없음.</li><li>PROPOSAL / P1: 국물 후보 검사가 단순 비겹침뿐 아니라 플레이어의 바깥 연결 경로를 남기는지 확인하고, 실패 사례에서만 후보 선택 순서를 보강한다. 반경·피해·개수 상한은 유지한다.</li><li>PROPOSAL / P1: 첫 P2 돌진의 기존 800ms 경고가 실제 이동 전 모두 소비되는지 확인한다. 누락 때만 상태 초기화를 고치며 경고 시간을 임의 연장하지 않는다.</li><li>PROPOSAL / P1: 기존 1200ms stun에서 플레이어가 반격/이동을 선택할 수 있도록 E05 접근과 가마솥 경계를 함께 검사한다. 보스 후딜을 새 패턴으로 채우지 않는다.</li><li>PROPOSAL / P2: 공유 발사 슬롯 경쟁으로 주방장 포격이 읽히지 않을 때만 발사 예약 순서의 결정성을 검토한다. 풀 용량 확대나 E04 전면 비활성화는 기본 해법이 아니다.</li></ol>
+<h3 id="plan-h-153">9. 적·웨이브 겹침과 보스전 공정성</h3>
+<p>E04는 보스 구간 억제에서 Stage 4만 예외다(<a href="../Developer/r3f_prototype/src/components/Enemy.jsx">Enemy L1375–1403</a> <small class="citation">(원문 줄 인용: L1375-L1403 · 파일 열기)</small>, <a href="../Developer/r3f_prototype/src/components/Enemies.jsx">Enemies L1996–2004</a> <small class="citation">(원문 줄 인용: L1996-L2004 · 파일 열기)</small>). 이를 제거해 스테이지 개성을 지우지 않는다.</p>
+<p><code>getE04Cap</code>의 2/3기 숫자를 현재 실효 사수 상한으로 오독하지 않는다. 실제 발사 게이트는 비행 투사체 6개와 거리·쿨다운 등을 검사한다. 풀을 공유하므로 B04만 독립 6발도 아니다.</p>
+<p><code>waveTimelines</code> target/weights를 실제 정기 랜덤 스폰으로 보지 않는다. 버스트 요청 수는 실제 생존 수가 아니고, 처치·큐·위치 skip·캐치업이 개입한다.</p>
+<p>저밀도 보충은 생존 수≤3이 active 10초 지속되면 E07×10+E01×10을 준비한다(<a href="../Developer/r3f_prototype/src/lib/lowDensityReinforcement.js">lowDensity L1–7, L30–55</a> <small class="citation">(원문 줄 인용: L30-L55 · 파일 열기)</small>). 버스트 표만으로 한가한 구간을 보장할 수 없다.</p>
+<div class="table-wrap" tabindex="0" role="region" aria-label="가로 스크롤 가능한 원문 표"><table><thead><tr><th scope="col">핵심 겹침</th><th scope="col">실패 위험</th><th scope="col">승인 전 유지 / 이후 국소 후보</th></tr></thead><tbody><tr><td>144→150초</td><td>잔존 E04·탱커 + 보스·차저·러너 + 가마솥</td><td>시각·수 유지. 남쪽/양 측 우회에서 회피 불능 사례 기록</td></tr><tr><td>HP50%가 168초 부근</td><td>국물 3원 + E04 ring + E07 속공</td><td>국물 후보의 통로 보존 우선. 적 전체 삭제나 HP 완화 금지</td></tr><tr><td>184초</td><td>거대 앞뒤 벽 + P2 돌진</td><td>좌우 탈출 가능성 확인. 불가할 때만 formation 후보 위치 검토</td></tr><tr><td>210→216초</td><td>마틸다 + 가마솥 + 포탈 + 차저</td><td>포탈 접근권과 기존 경고 확인. 시각 앞당김/늦춤 금지</td></tr></tbody></table></div>
+<p>PROPOSAL: 공정성 판정은 “피격 0회” 강요가 아니라, 예고 시작부터 이동을 선택했을 때 적어도 한 연결 탈출로가 남는가로 한다. 통로 폭 후보는 §5를 사용한다.</p>
+<p>모바일 엄지 입력·카메라 경계·큰 적 충돌을 포함해야 한다. 정적 후보점 하나가 비어 있다는 것만으로 회피 가능 판정을 내리지 않는다.</p>
+<h3 id="plan-h-170">10. 보상과 영구 진행의 보존</h3>
+<p>SOURCE DEFAULT 마일스톤: 48초 4 gold / 144초 6 / 192초 9 / 240초 18. 지급 배율은 Admin 경로가 있어 운영 금액으로 단정하지 않는다(<a href="../Developer/r3f_prototype/src/lib/stageConfig.js">stageConfig L120–124, L206–217</a> <small class="citation">(원문 줄 인용: L206-L217 · 파일 열기)</small>).</p>
+<p>퀘스트 각 2 gold, E08 보상 기회, 기존 XP/보스 보너스는 현 계약을 유지한다. 새 화폐·필수 소비·메타 강화 구매 전제·추가 해금 보상을 넣지 않는다.</p>
+<p>210초 탈출 선택자는 아직 도달하지 않은 240초 보상을 포기할 수 있지만, 이미 획득한 보스 처치 해금은 잃지 않는다. 미도달 보상을 보스 보너스로 소급 지급하지 않는다.</p>
+<ul><li>W는 <code>recordBossDefeat()</code>에서 런 내 표지만 바꾸며 즉시 영구 체크포인트가 확인되지 않는다(<a href="../Developer/r3f_prototype/src/store/useGameStore.js">store L1380–1393</a> <small class="citation">(원문 줄 인용: L1380-L1393 · 파일 열기)</small>).</li><li>R <code>src/store/useGameStore.js:L1399–1411</code>은 대표 보스 타입 검증 후 <code>checkpointRun(get())</code>을 호출한다. 구현 진전의 근거이며 저장 성공의 실증은 아니다.</li><li>R <code>src/lib/firebaseProgress.js:L324–332</code>는 per-run ledger에서 stage별 보스 처치 읽기용 투영을 만든다. <code>stage4BossDefeats</code>를 새 wire 필드로 임의 저장하라는 뜻이 아니다.</li><li>후속 개발은 R의 동작/테스트를 먼저 비교하고 기존 흐름을 재사용한다. W에 독자적인 평행 진행도 저장체계를 만들지 않는다.</li><li>Firebase 쓰기 실패/재시도/중복 사망 콜백/계정 전환은 반드시 별도 검증한다. 탈출 완료를 기다려 저장하거나 과거 stageClears로 보스 이력을 만들어 채우면 안 된다.</li></ul>
+<h3 id="plan-h-182">11. P0/P1/P2 실행 체크리스트와 파일 접점</h3>
+<p>각 항목은 구현 승인 후 할 일이다. 이번 작업에서 아래 코드는 수정하지 않았다. Stage 1 안정화 게이트를 넘지 못하면 Stage 4 확장 구현을 착수하지 않는다.</p>
+<div class="table-wrap" tabindex="0" role="region" aria-label="가로 스크롤 가능한 원문 표"><table><thead><tr><th scope="col">우선</th><th scope="col">작은 실행 단위</th><th scope="col">후속 touch 후보</th><th scope="col">수용 기준</th></tr></thead><tbody><tr><td>P0</td><td>[ ] W/R 차이 재확인·boss-only 계약 고정</td><td>stageConfig.js / useGameStore.js / firebaseProgress.js / playerRecords.js 및 해당 tests</td><td>Stage3 보스만→4, Stage4 보스만→5; 영구·즉시; 탈출 독립</td></tr><tr><td>P0</td><td>[ ] 시간·국물 순서 회귀 잠금</td><td>stageConfig.test.js / burstEvents.test.js / b04SoupBlast·chefBossPhase tests</td><td>확정 시각·임계값 보존, 중복 발동·잔류 위험 없음</td></tr><tr><td>P0</td><td>[ ] 실효 배치와 최협 통로 측정</td><td>stageObjectPlacements.js / stageObjectColliders.js 관련 tests, 승인된 Studio 조회</td><td>기본과 Firebase 실효를 구분, 두 축 우회/조사 접근 가능</td></tr><tr><td>P1</td><td>[ ] 국물 후보의 연결 탈출로 보강</td><td>b04SoupBlast.js / Enemy.jsx 및 관련 tests</td><td>기존 원 수·반경 유지, 막힌 사례만 해결</td></tr><tr><td>P1</td><td>[ ] 첫 돌진 예고·후딜 실제 소비 확인</td><td>Enemy.jsx / chefBossPhase.js tests</td><td>경고 건너뜀 없음, 국물 종료 후 공격 순서 일관</td></tr><tr><td>P1</td><td>[ ] 퀘스트 안내와 전투 우선순위 점검</td><td>QuestWorldLayer.jsx / StudentDialogueTrigger.jsx / HUD.jsx</td><td>기존 대사 보존, 미완료가 진행을 막지 않음</td></tr><tr><td>P2</td><td>[ ] 공유 풀 경쟁 재현·예약 결정성 검토</td><td>enemyProjectilePool.js / enemySimulation.js / Enemies.jsx</td><td>기존 예산 유지, B04/E04 중 한쪽의 비의도적 굶김 확인</td></tr><tr><td>P2</td><td>[ ] 재현 기록으로 국소 배치안 확정</td><td>waveTimelines.js / burstEvents.js 관련 tests 및 Studio 담당</td><td>승인 없는 시각·HP·수 변경 없음, 광범위 리팩터링 없음</td></tr></tbody></table></div>
+<p>파일명은 모두 <code>Developer/r3f_prototype/src/</code> 아래의 기존 구성 접점이다. 경로의 존재는 구현 필요 확정이나 수정 권한을 의미하지 않는다.</p>
+<p>공유 모델·타이틀까지 영향을 주는 수정은 제외한다. 신규 그래픽·좀비·소리는 별도 담당 제안과 충돌 여부만 Advisor가 조정한다.</p>
+<h3 id="plan-h-200">12. Balance_QA_Mini 인계 — 미실행 수용 시나리오</h3>
+<div class="table-wrap" tabindex="0" role="region" aria-label="가로 스크롤 가능한 원문 표"><table><thead><tr><th scope="col">시나리오</th><th scope="col">준비/행동</th><th scope="col">합격 판정</th></tr></thead><tbody><tr><td>A: 4 해금 양성</td><td>테스트 계정 Stage3 보스 처치, 탈출 전 복귀·재접속</td><td>Stage4 즉시 접근·재접속 후 유지, quest/time 조건 없음</td></tr><tr><td>B: 5 해금 양성</td><td>Stage4 B04만 처치, 포탈 미접촉 상태에서 종료·재접속</td><td>Stage5 영구 접근; 런 사망도 해금 취소 사유 아님</td></tr><tr><td>C: 해금되면 안 되는 경우</td><td>보스 미처치로 시간 경과/퀘스트 완료/포탈 탈출만 각각 수행</td><td>해당 사건으로 새 다음 stage가 열리지 않음</td></tr><tr><td>D: 중복/계정</td><td>중복 사망 통지, 저장 지연·실패 후 재시도, 계정 전환</td><td>중복 보상 없음, 타 계정 누출 없음, 실패를 저장 성공으로 표시하지 않음</td></tr><tr><td>E: 위험 겹침</td><td>150·168·184·210·216초와 HP50% 전후를 양 측 통로에서 관찰</td><td>기존 예고가 보이고 입력 가능한 탈출로 존재; 중앙 위험 범위 일치</td></tr><tr><td>F: 경계/조사</td><td>회전 가구 모서리·벽·두 학생·수집/설치 접근</td><td>플레이어만 들어가는 무적 틈/접근 불능 없음, 퀘스트 완료 대사 우선</td></tr><tr><td>G: 중단/재시작</td><td>국물/돌진/가마솥 도중 pause·복귀·새 런</td><td>pause 중 피해 진행/이전 런 잔류 없음; 재개 경고 누락 없음</td></tr></tbody></table></div>
+<p>PROPOSAL: 최초 수동 검증은 저성장/기존 보유 성장 상태를 분리하고, 근접 중심/원거리 중심 빌드를 나눠 비교한다. 결제나 풀강을 입장 필수 전제로 삼지 않는다.</p>
+<p>현재 위 시나리오는 전부 미실행이다. 실기기·Firebase 검증은 별도 승인된 테스트 계정과 초기값/종료값 보존 절차가 확보된 환경에서만 수행한다.</p>
+<h3 id="plan-h-215">13. 모바일 위험과 측정 계획</h3>
+<p>위험은 적 HP 총량보다 공유 투사체 슬롯·동시 collision·조사 UI·보충 큐·카메라 밖 예고의 상호작용이다. 낮은 FPS를 적 추가로 보상하지 않는다.</p>
+<p>PROPOSAL: 동일 기기/해상도/빌드/입력 조건에서 변경 전후 각 3런을 비교하고, 콜드/워밍 상태와 성장 상태를 구분 기록한다. 표본은 탐색용이며 이용자 통계로 일반화하지 않는다.</p>
+<p>PROPOSAL: 비교 기준은 p95 프레임 시간 악화 10% 이내, 확정 시각 오발동·중복 해금/보상·잔류 위험 0건이다. 성능 수치는 승인 전 후보이며 측정한 결과가 아니다.</p>
+<ul><li>기록 항목: 실제 게임 시각, 일반 스폰 시각/캐치업 offset, 요청·큐·실생존 수, E04/B04 발사 시도·성공·풀 거절, 국물 원 수/선정 실패 사유.</li><li>공정성 항목: 피격 source, 당시 좌표 units/blocks, HP50% 시각, 경고 시작/돌진 시작, 이동 입력·경계 충돌, 가마솥 겹침 여부.</li><li>성능 항목: frame time p50/p95, 동시 적/투사체 수, 큐 길이, 장시간 런에서 메모리 추세. 실제 기기 사양·빌드 SHA를 붙인다.</li><li>기존 <code>b04-soup-blast-start</code> 기록 경로가 있다(<a href="../Developer/r3f_prototype/src/components/Enemy.jsx">Enemy L1309–1314</a> <small class="citation">(원문 줄 인용: L1309-L1314 · 파일 열기)</small>). 부족한 관측만 승인된 개발 진단으로 보강하고 상시 원격 수집을 자동 추가하지 않는다.</li><li>GA 이벤트·이탈률·클리어율·매출 지표는 이번 조사에서 조회하지 않았다. 예상 플레이어 수치나 개선 퍼센트를 만들어 채우지 않는다.</li></ul>
+<h3 id="plan-h-227">14. 결정 요청과 완료 정의</h3>
+<p>Advisor의 권고 순서는 <strong>P0 진행도 불일치 확인 → 기존 위험/통로 재현 → P1 국소 공정성 → 필요할 때만 P2</strong>다. 지금 승인할 새 전역 난이도 수치는 없다.</p>
+<p>실제 Firebase/모바일 상태, 원격 추적 참조 이후 변경, W/R 통합 여부가 남은 불확실성이다. 소스 조사만으로 “현재 서비스에서 잘 된다/고장 났다”라고 확정하지 않는다.</p>
+<p>이번 산출물의 완료는 문서·근거 링크·조사 해시 확인이다. 게임플레이 QA·빌드·성능·저장 검증 완료가 아니며, Main Advisor의 독립 검토가 후속 단계다.</p><details class="raw"><summary>원문 Markdown 대조 보기 · 종합 기획</summary><p class="meta">아래 텍스트는 서식 기호·원래 인용 경로까지 보존한 원문입니다. 본문 링크는 이 열람본에 맞게 변환했으며, 아래 원문 경로는 문자 그대로 제시합니다.</p><pre id="raw-plan"># Stage 4 고도화 제안 — 급식실 대탈출
+
+작성: Level_Mini · 2026-10-22 · Kanban `t_fca09e10` · 상태: Advisor 검토용 / DOCUMENT ONLY
+
+## 1. 결론과 변경 경계
+
+현재 급식실의 재료는 충분하다. 중앙 가마솥, 동·북쪽 조사 동선, 원거리 사격과 돌진을 전환하는 주방장을 **읽고 선택할 수 있는 전투**로 연결하는 것이 고도화의 핵심이다.
+전역 HP·스폰 증가나 신규 보스 추가보다, 기존 위험의 겹침과 이동 탈출로를 먼저 검증한다. Stage 1 모바일 플레이 루프 안정화가 제품 우선순위이며, 본안은 그 작업을 밀어내는 구현 지시가 아니다.
+이 문서는 기획만 한다. 코드·모델·자산·Firebase·배포·브라우저를 변경하거나 실행하지 않았다. 아래 실행 체크리스트는 후속 승인 범위다.
+새 수치가 있는 항목은 `PROPOSAL`이며 오너 확정값을 덮어쓰지 않는다. 기존 수치는 `SOURCE DEFAULT`로 구분하며 실제 Firebase/운영 실효값이라고 주장하지 않는다.
+
+- 오너 확정: Stage 4는 Stage 3 보스 처치만으로 즉시 영구 해금한다.
+- 오너 확정: Stage 5는 Stage 4 보스 처치만으로 즉시 영구 해금한다.
+- 탈출·생존시간·퀘스트·추가 확인 버튼은 해금의 선행 조건이 아니다. 해금과 다음 판으로의 화면 전환은 별개다.
+- 유지: 명목 240초, B04 150초, 마틸다 예고 205초/등장 210초, 포탈 210초. 자동 승리를 추가하지 않는다.
+- 타이틀 문구·UI·모델·배경·음악·공유 연결은 잠금 유지. 이 기획을 타이틀 개선 권한으로 해석하지 않는다.
+- Studio 입력의 저장·조회 정본은 Firebase다. 로컬 시드·localStorage·복구 fallback을 제안하지 않는다. 저장 실패로 기존 그래픽을 숨기지도 않는다.
+
+## 2. 근거의 시점과 신뢰 범위
+
+| 구분 | 실제 조사 대상 | 이 문서에서의 사용 |
+|---|---|---|
+| A: 과거 고정판 | `a9f84bf8e7f22d2b1b1c191f7b23ee2e0e908ff8` 추출 문서 | 과거 수치·해금 불일치의 기준선. live 아님 |
+| W: 현재 작업본 | HEAD `6f416d836e355d22a4e348516cca45e194bcc56c` + 기존 dirty 변경 | 파일/줄 인용의 기본 대상. HEAD 커밋 내용과 동일하다는 뜻 아님 |
+| R: 원격 추적 참조 | `origin/zombie_only` = `ef9b701ed30a45144937686a5fe1c1eef1ed105c` | 로컬에 있는 참조를 `git show`로 조사. fetch/merge 없이 확인 |
+| 운영/Firebase | 조회하지 않음 | 배치·튜닝·저장 성공·배포 반영·모바일 체감 모두 미확인 |
+
+R 커밋 시각은 2026-10-22 10:20:41 +09:00이다. 서버 최신 커밋을 실시간 조회한 결과는 아니며, 로컬 브랜치는 조사 시 R 대비 ahead 21 / behind 119였다.
+A 문서도 소스 기본값임을 명시한다([과거 stage04 L1–24](stage1_10_balance_implementation_20261019/stage04.md#L1-L24)). 사용자 요청에 따라 그래픽 개선과 신규 좀비까지 포함한 세부 제안을 별도 문서와 함께 제공한다.
+[현행 공통 규칙 L9–19, L60–65](current_game_rules.md#L9-L19)는 Stage 1 우선과 모바일 검증 원칙을 제공하지만, 오래된 Stage 1 보스 시각을 Stage 4에 적용하지 않는다.
+7월 초안의 옥상·B03·140초·클리어 횟수 해금, 8월 가로 절반 문서의 폭은 역사적 제안/중간 상태다. 현재 급식실·B04·9.36 반폭을 대체하지 않는다.
+
+### 인용 안내
+
+아래 링크는 저장소 상대 경로와 조사 시 줄 범위다. W는 작업본, R은 지정 커밋의 `git show &lt;hash&gt;:&lt;path&gt;` 줄이다. R 인용은 W 링크를 원격 내용인 것처럼 연결하지 않는다.
+전체 조사 해시는 [작업 영수증](../Developer/agent_room/stage4_plan_20261022_receipt.md)에 남긴다. 소스가 바뀌면 줄과 해시를 재대조한다.
+
+## 3. 현재와 제안의 차이
+
+| 항목 | 현재 조사 결과 | 제안 / 보존 기준 |
+|---|---|---|
+| 테마·대표 보스 | W 급식실 대탈출 / B04 | 유지. 체육교사·옥상 재도입 없음 |
+| 세션 시각 | W 240 / 150 / 205 / 210 / 210초 | 전부 유지. 240초를 강제 종료로 바꾸지 않음 |
+| 해금 | W stage3Clears·stage4Clears 참조, R 이전 stage BossDefeats 참조 | 오너 보스 처치 단독 규칙이 기준. W 불일치는 P0 인계 |
+| 맵 | W 반폭 X 9.36, Z 16 units | 축소·확장 없음. 통로 실측 후 국소 문제만 후보화 |
+| B04 전환 | 국물 대폭발 후 돌진, 별도 순수 전환 모듈도 존재 | 새 페이즈를 더하지 않고 실제 경로의 읽기·회복창 보강 |
+| 일반 적 | 명시 버스트 + 별도 보충 경로 | HP·수·시각 유지. 겹침 관찰 후 국소 배치/공격 진입 검토 |
+| 조사·보상 | 기존 퀘스트 두 개, 각 2 gold 기본값 | 선택적 경로 학습으로 활용. 필수 진행 조건 금지 |
+| 시각·소리 | 기존 가마솥·투사체·경고 연결 존재 | 기존 연결을 기준으로 그래픽·신규 좀비·오디오 상세안의 개선 제안을 함께 검토 |
+
+근거: [stageConfig L7–15, L96–125](../Developer/r3f_prototype/src/lib/stageConfig.js#L96-L125), [W 해금 L189–203](../Developer/r3f_prototype/src/lib/stageConfig.js#L189-L203).
+R `src/lib/stageConfig.js:L190–198`은 앞 스테이지의 `${previousId}BossDefeats` 정수 기록을 검사하고 과거 탈출 기록을 보스 증거로 보충하지 않는다.
+
+## 4. Stage 4 정체성과 네 단계 학습
+
+정체성은 “피할 곳이 전혀 없다”가 아니라 **“가마솥의 주기를 읽고 사선을 끊은 뒤, 빈 방향으로 이동한다”**다. 안전한 선택이 남아 있어야 숙련의 의미가 생긴다.
+이하 네 단계는 Stage 4 내부 학습 단계이며 Stage 1~4의 구현을 다시 설계하는 표가 아니다.
+
+| 학습 단계 | 체험과 판단 | 성공의 관찰 기준 |
+|---|---|---|
+| ① 방향 읽기 | 남쪽 시작 → 중앙 가마솥 주기 → 동·서 통로 중 선택 | 첫 폭발을 본 뒤 위험 밖으로 이동하는 경로를 설명할 수 있음 |
+| ② 경로 선택 | E04 사선·E05 돌진 사이에서 외곽 조사와 전투를 선택 | 퀘스트를 포기해도 생존/해금에 손해 조건이 붙지 않음 |
+| ③ 패턴 전환 | B04 포격 → HP 임계 국물 → 돌진 | 기존 예고에서 위험 지점과 이동 방향을 구별하고 후딜에 반격 |
+| ④ 목적 선택 | 보스 처치 영구 해금과 210초 포탈 탈출을 구별 | 보스 사망 후 다음 stage 해금 유지, 포탈 대기는 선택으로 이해 |
+
+새 강제 튜토리얼·조작 잠금은 넣지 않는다. 기존 상호작용/위험 표현이 이 학습을 전달하는지 먼저 관찰하며, 설명 부족은 gameplay 내 안내 후보로만 인계한다.
+학습 성공률·이탈률은 현재 측정값이 없다. 위 문장은 설계 의도이며 실제 플레이 평가가 아니다.
+
+## 5. 급식실 공간과 읽을 수 있는 동선
+
+좌표 표기: `(X,Z)` world units / blocks, `1 block = 4 units`. 물리 반경과 카메라 투영을 혼동하지 않는다. 장식 타일 하나를 block 하나로 세지 않는다.
+SOURCE DEFAULT: 전체 18.72 × 32 units / 4.68 × 8 blocks, 반폭 9.36 × 16 units / 2.34 × 4 blocks.
+바닥 타일은 0.8 units / 0.2 blocks다([ClassroomFloor L21–33, L52–58](../Developer/r3f_prototype/src/components/ClassroomFloor.jsx#L21-L58)). 새 바닥 설계는 범위 밖이다.
+
+```text
+북(-Z)     냉장고       쿡라인(가스 완료)       싱크(손잡이)
+           서쪽 우회          북쪽 연결          조리부 학생
+서(-X)     외곽 회귀     [중앙 가마솥 위험]      동쪽 조리대(명단)   동(+X)
+                           남쪽 시작            급식 당번 학생
+남(+Z)                    배식대 / 복귀 동선
+```
+
+- 중앙 가마솥 `(0,0)` units / `(0,0)` blocks와 남쪽 시작 `(0,7)` units / `(0,1.75)` blocks를 유지한다.
+- 남쪽 당번 `(2.28,11.65)` units / `(0.57,2.9125)` blocks → 동 조리대 `(6.96,-3.9)` units / `(1.74,-0.975)` blocks → 당번 복귀가 첫 선택 동선이다.
+- 조리부 학생 `(4.95,-6.2)` units / `(1.2375,-1.55)` blocks → 북동 싱크 `(4.45,-13.72)` units / `(1.1125,-3.43)` blocks → 쿡라인 `(-0.39,-13.75)` units / `(-0.0975,-3.4375)` blocks가 두 번째 동선이다.
+- 상기 좌표는 authored 기본 배치다. 실제 조사 접근 지점·몸체 폭·회전·Studio 변경을 반영한 안전 경로 길이는 아직 측정하지 않았다.
+
+근거: [배치 L460–530](../Developer/r3f_prototype/src/components/StageObjects/stageObjectPlacements.js#L460-L530), [동 조리대 L546–553](../Developer/r3f_prototype/src/components/StageObjects/stageObjectPlacements.js#L546-L553), [가마솥·학생 L725–750](../Developer/r3f_prototype/src/components/StageObjects/stageObjectPlacements.js#L725-L750).
+문두의 “전부 시각 전용” 주석만 믿으면 안 된다. 대형 주방 타입은 차단 집합에 있고 실제 collider는 blocking 플래그를 해석한다([colliders L24–35, L415–423](../Developer/r3f_prototype/src/components/StageObjects/stageObjectColliders.js#L415-L423)).
+배치 해석에는 중앙 가마솥 강제 보존과 과거 폭의 X 변환도 있다([placements L770–789](../Developer/r3f_prototype/src/components/StageObjects/stageObjectPlacements.js#L770-L789)). 따라서 원문 좌표만으로 운영 통행 가능을 확정하지 않는다.
+
+PROPOSAL: 현재 위치를 유지한 채 중앙 좌·우 우회와 북쪽 연결의 유효 통로를 측정한다. 통로 폭 목표 후보는 2.4 units / 0.6 blocks 이상이며, 보스·좀비 몸체와 회전 접촉을 포함해 확정한다.
+목표 미달 시 모든 소품을 밀거나 없애지 않는다. 막히는 collider/접근면만 특정해 Studio 담당에게 전달하고, 승인된 최소 배치 변경만 별도 수행한다.
+가마솥 폭발 반경 3.2 units / 0.8 blocks 바깥이라고 자동으로 안전하지 않다. 사선·몸막힘·돌진 접근이 겹치는지 함께 본다.
+
+## 6. 기존 퀘스트를 쓰는 선택적 미니 목표
+
+SOURCE DEFAULT: `stage4-allergy-list`는 당번 → 동 조리대 명단 → 당번 반환, `stage4-gas-valve`는 조리부 학생 → 싱크 손잡이 → 쿡라인 설치다. 각각 2 gold다.
+근거: [quests L118–156](../Developer/r3f_prototype/src/lib/quests.js#L118-L156). 조사 시작/수집/완료의 placement ID를 유지하고 단순히 같은 타입이라는 이유로 다른 조리대로 바꾸지 않는다.
+
+- PROPOSAL: 초반은 명단 왕복, 중반은 북쪽 손잡이 전달의 **권장 기회**로 설명한다. 정해진 시각에 강제 시작·실패시키는 퀘스트로 만들지 않는다.
+- 명단 경로는 동쪽 사선에서 중앙 쪽으로 무리하게 횡단하지 않고 외곽을 이용하는 연습이다. 돌아오는 길에 전투 압력이 높으면 보류할 수 있어야 한다.
+- 가스 퀘스트는 북쪽의 시야/충돌 접근면을 배우는 기회다. “밸브 설치”를 가마솥 피해 제거 기능으로 확대하지 않는다. 현재 그런 연계는 본 조사로 확인하지 않았다.
+- 보스전 중 조사 안내가 전투 판단을 가리면 안내 우선순위만 후속 검토한다. Stage 2~4 학생 조사문·퀘스트 대사 원문은 이 기획으로 수정하지 않는다.
+- 퀘스트 미발견/아이템 보유/완료 여부가 Stage 4·5 해금 판정에 들어가면 불합격이다. 퀘스트 보상과 보스 보상도 합쳐 재지급하지 않는다.
+
+## 7. 기존 시각을 보존하는 시간 국면
+
+다음은 버스트 요청의 명목 시각이다. 일반 적은 캐치업/큐/보충 영향으로 실제 관측 시간이 달라질 수 있으며, 보스·환경·포탈의 실제 게임 시계와 분리 기록해야 한다.
+
+| 시간(초) | SOURCE DEFAULT 이벤트 | PROPOSAL 플레이 목적 / 확인할 위험 |
+|---|---|---|
+| 0–24 미만 | 5초 E01×10, 가마솥 주기 시작 | 남쪽 출발·첫 위험 읽기. 조사 강요 없음 |
+| 24–60 미만 | 24초 E04×4, 40초 E05×2 | 사선 우회와 돌진 횡회피. 명단 동선 선택 |
+| 60–108 미만 | 60초 E03 ring×6, 72초 E06×1, 90초 E08 보상 | 포위의 빈 방향을 고르고 이동. 보상 추격은 선택 |
+| 108–144 미만 | 108초 E07×2+E02 pincer×4, 110초 보강, 120초 E05 ring×4 | 북쪽 조사 마무리 기회는 보장 아님. 압력부터 읽음 |
+| 144–150 미만 | E04×4+E02×2 | 보스 준비. 기존 잡몹 정리를 유도하되 강제 삭제 금지 |
+| 150–184 미만 | 150초 B04×1+E05×3+E03×6, 168초 E07×4+E04 ring×4 | 포격→국물→돌진의 읽기. 가마솥 동시 폭발 위험 확인 |
+| 184–205 미만 | 184초 E06 pincer×2, 180초 E08 보상 잔존 가능 | 보스 압박과 욕심의 선택. 무리한 보상 추격 요구 금지 |
+| 205–210 미만 | 마틸다 예고 205초 | 새 과업 대신 현재 도주 방향 확보 |
+| 210–240 명목 | 마틸다·포탈 210초, E05×4는 216초 | 포탈 탈출 또는 잔여 목표 선택. 216초는 마틸다 등장 **후** |
+
+근거: [burstEvents L235–255, L294–303](../Developer/r3f_prototype/src/lib/burstEvents.js#L235-L255), [시간 정본 L7–15](../Developer/r3f_prototype/src/lib/stageConfig.js#L7-L15), [포탈 실행 Game L74–103](../Developer/r3f_prototype/src/components/Game.jsx#L74-L103).
+명목 240초와 포탈 210초는 모순이 아니라 다른 필드다. 210초 이후 남기로 한 플레이어에게 240초 보상을 약속하며 대기를 강제하지 않는다.
+가마솥은 매 15초, 직전 3초 끓음, 폭발 표현 250ms, 최대 HP 20% 피해다([hazard L1–35](../Developer/r3f_prototype/src/lib/stage4PressureCauldronHazard.js#L1-L35)).
+따라서 150초 보스 등장과 210초 마틸다/포탈에는 가마솥 폭발도 겹친다. 이 중첩을 시간 변경으로 몰래 해결하지 말고, 위험 밖 동선과 공격 진입의 공정성을 먼저 검사한다.
+Game의 가마솥 피해는 `ignoreInvulnerability: true`다([Game L88–94](../Developer/r3f_prototype/src/components/Game.jsx#L88-L94)). 기존 무적을 믿고 중앙을 통과하도록 안내하면 안 된다.
+
+## 8. B04 기존 패턴 감사와 작은 개선
+
+| 요소 | 현재 소스가 하는 일 | 변경 없이 먼저 볼 것 |
+|---|---|---|
+| 몸체 기본값 | base HP 1500 / 접촉 22 / xp 0 / 추격 0.5225 units/s = 0.130625 blocks/s | 단계 HP·Admin 오버라이드 후 실효값은 따로 기록 |
+| P1 포격 | 간격 2600ms, 피해 14, 속도 1.6 units/s = 0.4 blocks/s | E04와 공유 투사체 풀에 묶여 실제 발사 주기가 달라지는지 |
+| P1 거리 | 선호 5 units / 1.25 blocks, 최소 3 units / 0.75 blocks | 공통 발사 가드의 최소 3.5 units / 0.875 blocks와 구분 |
+| HP 임계 국물 | HP≤50%에서 1회, 최대 3원, 예고 1200ms·폭발 250ms·피해 16 | 발동 중 정지, 빈 원 후보 가능, 단일 피해 소비 여부 |
+| 국물 영역 | 반경 1.1 units / 0.275 blocks, 플레이어 인접/장애물/원 겹침 후보 제외 | 시작 위치만 안전해도 다음 회피 경로가 막힐 수 있음 |
+| P2 돌진 | 속도 1.4 units/s = 0.35 blocks/s, 경고 거리 6 units / 1.5 blocks | 예고 800ms·돌진 2200ms·stun 1200ms 보존 |
+
+근거: [Enemy L384–391](../Developer/r3f_prototype/src/components/Enemy.jsx#L384-L391), [국물 모듈 L1–86](../Developer/r3f_prototype/src/lib/b04SoupBlast.js#L1-L86), [공통 발사 조건 L36–53](../Developer/r3f_prototype/src/lib/stage2ProjectileRules.js#L36-L53).
+중요: 순수 `chefBossPhase`에는 1000ms 전환이 있으나, Stage 4 실행은 국물 처리 뒤 `soup.phase===&#x27;done&#x27;`이면 P2를 직접 설정한다([Enemy L1295–1362](../Developer/r3f_prototype/src/components/Enemy.jsx#L1295-L1362)).
+따라서 “국물 1200+250ms 뒤 반드시 추가 1000ms 무적”이라고 쓰지 않는다. 전환 무적도 이번 조사로 확인한 규칙이 아니다.
+P1 재료 4종 순환은 비주얼 채널이며 별도 상태이상 4종이 아니다([Enemy L1392–1403](../Developer/r3f_prototype/src/components/Enemy.jsx#L1392-L1403)).
+
+### 승인 후 적용할 최소 개선 후보
+
+1. PROPOSAL / P0: 현재 국물 예고→폭발→돌진 순서를 테스트로 고정하고, 중단·처치·재시작 시 잔류 위험을 검사한다. 새 페이즈·무적·체력 증가 없음.
+2. PROPOSAL / P1: 국물 후보 검사가 단순 비겹침뿐 아니라 플레이어의 바깥 연결 경로를 남기는지 확인하고, 실패 사례에서만 후보 선택 순서를 보강한다. 반경·피해·개수 상한은 유지한다.
+3. PROPOSAL / P1: 첫 P2 돌진의 기존 800ms 경고가 실제 이동 전 모두 소비되는지 확인한다. 누락 때만 상태 초기화를 고치며 경고 시간을 임의 연장하지 않는다.
+4. PROPOSAL / P1: 기존 1200ms stun에서 플레이어가 반격/이동을 선택할 수 있도록 E05 접근과 가마솥 경계를 함께 검사한다. 보스 후딜을 새 패턴으로 채우지 않는다.
+5. PROPOSAL / P2: 공유 발사 슬롯 경쟁으로 주방장 포격이 읽히지 않을 때만 발사 예약 순서의 결정성을 검토한다. 풀 용량 확대나 E04 전면 비활성화는 기본 해법이 아니다.
+
+## 9. 적·웨이브 겹침과 보스전 공정성
+
+E04는 보스 구간 억제에서 Stage 4만 예외다([Enemy L1375–1403](../Developer/r3f_prototype/src/components/Enemy.jsx#L1375-L1403), [Enemies L1996–2004](../Developer/r3f_prototype/src/components/Enemies.jsx#L1996-L2004)). 이를 제거해 스테이지 개성을 지우지 않는다.
+`getE04Cap`의 2/3기 숫자를 현재 실효 사수 상한으로 오독하지 않는다. 실제 발사 게이트는 비행 투사체 6개와 거리·쿨다운 등을 검사한다. 풀을 공유하므로 B04만 독립 6발도 아니다.
+`waveTimelines` target/weights를 실제 정기 랜덤 스폰으로 보지 않는다. 버스트 요청 수는 실제 생존 수가 아니고, 처치·큐·위치 skip·캐치업이 개입한다.
+저밀도 보충은 생존 수≤3이 active 10초 지속되면 E07×10+E01×10을 준비한다([lowDensity L1–7, L30–55](../Developer/r3f_prototype/src/lib/lowDensityReinforcement.js#L30-L55)). 버스트 표만으로 한가한 구간을 보장할 수 없다.
+
+| 핵심 겹침 | 실패 위험 | 승인 전 유지 / 이후 국소 후보 |
+|---|---|---|
+| 144→150초 | 잔존 E04·탱커 + 보스·차저·러너 + 가마솥 | 시각·수 유지. 남쪽/양 측 우회에서 회피 불능 사례 기록 |
+| HP50%가 168초 부근 | 국물 3원 + E04 ring + E07 속공 | 국물 후보의 통로 보존 우선. 적 전체 삭제나 HP 완화 금지 |
+| 184초 | 거대 앞뒤 벽 + P2 돌진 | 좌우 탈출 가능성 확인. 불가할 때만 formation 후보 위치 검토 |
+| 210→216초 | 마틸다 + 가마솥 + 포탈 + 차저 | 포탈 접근권과 기존 경고 확인. 시각 앞당김/늦춤 금지 |
+
+PROPOSAL: 공정성 판정은 “피격 0회” 강요가 아니라, 예고 시작부터 이동을 선택했을 때 적어도 한 연결 탈출로가 남는가로 한다. 통로 폭 후보는 §5를 사용한다.
+모바일 엄지 입력·카메라 경계·큰 적 충돌을 포함해야 한다. 정적 후보점 하나가 비어 있다는 것만으로 회피 가능 판정을 내리지 않는다.
+
+## 10. 보상과 영구 진행의 보존
+
+SOURCE DEFAULT 마일스톤: 48초 4 gold / 144초 6 / 192초 9 / 240초 18. 지급 배율은 Admin 경로가 있어 운영 금액으로 단정하지 않는다([stageConfig L120–124, L206–217](../Developer/r3f_prototype/src/lib/stageConfig.js#L206-L217)).
+퀘스트 각 2 gold, E08 보상 기회, 기존 XP/보스 보너스는 현 계약을 유지한다. 새 화폐·필수 소비·메타 강화 구매 전제·추가 해금 보상을 넣지 않는다.
+210초 탈출 선택자는 아직 도달하지 않은 240초 보상을 포기할 수 있지만, 이미 획득한 보스 처치 해금은 잃지 않는다. 미도달 보상을 보스 보너스로 소급 지급하지 않는다.
+
+- W는 `recordBossDefeat()`에서 런 내 표지만 바꾸며 즉시 영구 체크포인트가 확인되지 않는다([store L1380–1393](../Developer/r3f_prototype/src/store/useGameStore.js#L1380-L1393)).
+- R `src/store/useGameStore.js:L1399–1411`은 대표 보스 타입 검증 후 `checkpointRun(get())`을 호출한다. 구현 진전의 근거이며 저장 성공의 실증은 아니다.
+- R `src/lib/firebaseProgress.js:L324–332`는 per-run ledger에서 stage별 보스 처치 읽기용 투영을 만든다. `stage4BossDefeats`를 새 wire 필드로 임의 저장하라는 뜻이 아니다.
+- 후속 개발은 R의 동작/테스트를 먼저 비교하고 기존 흐름을 재사용한다. W에 독자적인 평행 진행도 저장체계를 만들지 않는다.
+- Firebase 쓰기 실패/재시도/중복 사망 콜백/계정 전환은 반드시 별도 검증한다. 탈출 완료를 기다려 저장하거나 과거 stageClears로 보스 이력을 만들어 채우면 안 된다.
+
+## 11. P0/P1/P2 실행 체크리스트와 파일 접점
+
+각 항목은 구현 승인 후 할 일이다. 이번 작업에서 아래 코드는 수정하지 않았다. Stage 1 안정화 게이트를 넘지 못하면 Stage 4 확장 구현을 착수하지 않는다.
+
+| 우선 | 작은 실행 단위 | 후속 touch 후보 | 수용 기준 |
+|---|---|---|---|
+| P0 | [ ] W/R 차이 재확인·boss-only 계약 고정 | stageConfig.js / useGameStore.js / firebaseProgress.js / playerRecords.js 및 해당 tests | Stage3 보스만→4, Stage4 보스만→5; 영구·즉시; 탈출 독립 |
+| P0 | [ ] 시간·국물 순서 회귀 잠금 | stageConfig.test.js / burstEvents.test.js / b04SoupBlast·chefBossPhase tests | 확정 시각·임계값 보존, 중복 발동·잔류 위험 없음 |
+| P0 | [ ] 실효 배치와 최협 통로 측정 | stageObjectPlacements.js / stageObjectColliders.js 관련 tests, 승인된 Studio 조회 | 기본과 Firebase 실효를 구분, 두 축 우회/조사 접근 가능 |
+| P1 | [ ] 국물 후보의 연결 탈출로 보강 | b04SoupBlast.js / Enemy.jsx 및 관련 tests | 기존 원 수·반경 유지, 막힌 사례만 해결 |
+| P1 | [ ] 첫 돌진 예고·후딜 실제 소비 확인 | Enemy.jsx / chefBossPhase.js tests | 경고 건너뜀 없음, 국물 종료 후 공격 순서 일관 |
+| P1 | [ ] 퀘스트 안내와 전투 우선순위 점검 | QuestWorldLayer.jsx / StudentDialogueTrigger.jsx / HUD.jsx | 기존 대사 보존, 미완료가 진행을 막지 않음 |
+| P2 | [ ] 공유 풀 경쟁 재현·예약 결정성 검토 | enemyProjectilePool.js / enemySimulation.js / Enemies.jsx | 기존 예산 유지, B04/E04 중 한쪽의 비의도적 굶김 확인 |
+| P2 | [ ] 재현 기록으로 국소 배치안 확정 | waveTimelines.js / burstEvents.js 관련 tests 및 Studio 담당 | 승인 없는 시각·HP·수 변경 없음, 광범위 리팩터링 없음 |
+
+파일명은 모두 `Developer/r3f_prototype/src/` 아래의 기존 구성 접점이다. 경로의 존재는 구현 필요 확정이나 수정 권한을 의미하지 않는다.
+공유 모델·타이틀까지 영향을 주는 수정은 제외한다. 신규 그래픽·좀비·소리는 별도 담당 제안과 충돌 여부만 Advisor가 조정한다.
+
+## 12. Balance_QA_Mini 인계 — 미실행 수용 시나리오
+
+| 시나리오 | 준비/행동 | 합격 판정 |
+|---|---|---|
+| A: 4 해금 양성 | 테스트 계정 Stage3 보스 처치, 탈출 전 복귀·재접속 | Stage4 즉시 접근·재접속 후 유지, quest/time 조건 없음 |
+| B: 5 해금 양성 | Stage4 B04만 처치, 포탈 미접촉 상태에서 종료·재접속 | Stage5 영구 접근; 런 사망도 해금 취소 사유 아님 |
+| C: 해금되면 안 되는 경우 | 보스 미처치로 시간 경과/퀘스트 완료/포탈 탈출만 각각 수행 | 해당 사건으로 새 다음 stage가 열리지 않음 |
+| D: 중복/계정 | 중복 사망 통지, 저장 지연·실패 후 재시도, 계정 전환 | 중복 보상 없음, 타 계정 누출 없음, 실패를 저장 성공으로 표시하지 않음 |
+| E: 위험 겹침 | 150·168·184·210·216초와 HP50% 전후를 양 측 통로에서 관찰 | 기존 예고가 보이고 입력 가능한 탈출로 존재; 중앙 위험 범위 일치 |
+| F: 경계/조사 | 회전 가구 모서리·벽·두 학생·수집/설치 접근 | 플레이어만 들어가는 무적 틈/접근 불능 없음, 퀘스트 완료 대사 우선 |
+| G: 중단/재시작 | 국물/돌진/가마솥 도중 pause·복귀·새 런 | pause 중 피해 진행/이전 런 잔류 없음; 재개 경고 누락 없음 |
+
+PROPOSAL: 최초 수동 검증은 저성장/기존 보유 성장 상태를 분리하고, 근접 중심/원거리 중심 빌드를 나눠 비교한다. 결제나 풀강을 입장 필수 전제로 삼지 않는다.
+현재 위 시나리오는 전부 미실행이다. 실기기·Firebase 검증은 별도 승인된 테스트 계정과 초기값/종료값 보존 절차가 확보된 환경에서만 수행한다.
+
+## 13. 모바일 위험과 측정 계획
+
+위험은 적 HP 총량보다 공유 투사체 슬롯·동시 collision·조사 UI·보충 큐·카메라 밖 예고의 상호작용이다. 낮은 FPS를 적 추가로 보상하지 않는다.
+PROPOSAL: 동일 기기/해상도/빌드/입력 조건에서 변경 전후 각 3런을 비교하고, 콜드/워밍 상태와 성장 상태를 구분 기록한다. 표본은 탐색용이며 이용자 통계로 일반화하지 않는다.
+PROPOSAL: 비교 기준은 p95 프레임 시간 악화 10% 이내, 확정 시각 오발동·중복 해금/보상·잔류 위험 0건이다. 성능 수치는 승인 전 후보이며 측정한 결과가 아니다.
+
+- 기록 항목: 실제 게임 시각, 일반 스폰 시각/캐치업 offset, 요청·큐·실생존 수, E04/B04 발사 시도·성공·풀 거절, 국물 원 수/선정 실패 사유.
+- 공정성 항목: 피격 source, 당시 좌표 units/blocks, HP50% 시각, 경고 시작/돌진 시작, 이동 입력·경계 충돌, 가마솥 겹침 여부.
+- 성능 항목: frame time p50/p95, 동시 적/투사체 수, 큐 길이, 장시간 런에서 메모리 추세. 실제 기기 사양·빌드 SHA를 붙인다.
+- 기존 `b04-soup-blast-start` 기록 경로가 있다([Enemy L1309–1314](../Developer/r3f_prototype/src/components/Enemy.jsx#L1309-L1314)). 부족한 관측만 승인된 개발 진단으로 보강하고 상시 원격 수집을 자동 추가하지 않는다.
+- GA 이벤트·이탈률·클리어율·매출 지표는 이번 조사에서 조회하지 않았다. 예상 플레이어 수치나 개선 퍼센트를 만들어 채우지 않는다.
+
+## 14. 결정 요청과 완료 정의
+
+Advisor의 권고 순서는 **P0 진행도 불일치 확인 → 기존 위험/통로 재현 → P1 국소 공정성 → 필요할 때만 P2**다. 지금 승인할 새 전역 난이도 수치는 없다.
+실제 Firebase/모바일 상태, 원격 추적 참조 이후 변경, W/R 통합 여부가 남은 불확실성이다. 소스 조사만으로 “현재 서비스에서 잘 된다/고장 났다”라고 확정하지 않는다.
+이번 산출물의 완료는 문서·근거 링크·조사 해시 확인이다. 게임플레이 QA·빌드·성능·저장 검증 완료가 아니며, Main Advisor의 독립 검토가 후속 단계다.
+</pre></details></section><section class="doc" id="graphics"><header class="doc-head"><p class="eyebrow">FULL DOCUMENT</p><h2>그래픽 · 신규 좀비 · 전체 원문</h2><p class="meta">출처: <a href="#graphics">Graphic_designer/stage4_graphics_and_zombies_20261022.md</a><br>입력 SHA-256: <code>3bdb495ba992764a83f0b7c42c9367cf1e0aed3e7353f226a3a5386eeb24be8a</code></p></header><h2 id="graphics-h-1">Escape! zombie school — Stage4 급식실 그래픽 고도화·추가 좀비 상세 기획</h2>
+<ul><li>작성: 2026-10-22 / Three_Mini(threemini) / Kanban <code>t_7aea070f</code>.</li><li>산출물 성격: DOCUMENT ONLY. 아래 신규 색·크기·시간·편성·구현 후보는 모두 승인 전 제안이며 실제 적용값이 아니다.</li><li>기존 등록 전문가를 재사용했다. 신규 작업자·새 타이틀·다른 게임의 미술 체계는 만들지 않는다.</li><li>주 기획은 levelmini 소유 <a href="#plan"><code>Planner/stage4_advancement_plan_20261022.md</code></a>로 연결하되 이 작업에서는 수정하지 않는다.</li><li>이 문서와 <code>Developer/agent_room/stage4_threemini_20261022_receipt.md</code>만 작성한다. 런타임·DB·테스트·배포·스테이징은 범위 밖이다.</li></ul>
+<h3 id="graphics-h-9">1. 사실·요구·제안의 경계와 근거 판본</h3>
+<ul><li>[현행 확인] 기준 작업 디렉터리는 <code>F:/From_SSD_D_20261005/JungSil/2.Minigame_project/school_survivor-integration</code>이며 다른 작업자의 dirty 변경이 공존한다.</li><li>[스냅샷] <code>Planner/stage1_10_balance_implementation_20261019/stage04.md:1-24,286-288</code>은 a9 고정판의 설명이지 최신 실행 검증서가 아니다.</li><li>[스냅샷] a9는 <code>a9f84bf8e7f22d2b1b1c191f7b23ee2e0e908ff8</code>; 조회 당시 작업 HEAD는 <code>6f416d836e355d22a4e348516cca45e194bcc56c</code>다.</li><li>[원격 참조] 로컬 보유 <code>origin/zombie_only</code>는 <code>ef9b701ed30a45144937686a5fe1c1eef1ed105c</code>; fetch 없이 <code>git show</code>와 <code>git diff</code>로만 읽었다.</li><li>[한계] 이는 원격 서버의 최신 상태 보증이 아니다. checkout·merge·복원·commit·push를 하지 않았으며 동시 편집 뒤에는 행과 해시를 재확인해야 한다.</li><li>[현행 확인] 이하 <code>src/</code> 표기는 모두 <code>Developer/r3f_prototype/src/</code>의 축약이다. 행 번호는 조회한 작업본의 1-based 행이다.</li><li>[원문 우선] 근거 충돌 시 사용자 명시 요구를 보존하고, 소스 기본값·과거 주석·실효 Firebase 값·후속 제안을 분리한다.</li><li>[미확인] 이번 작업은 화면 캡처·브라우저·실기기·Firebase 조회를 하지 않았다. 시각 문제는 전부 소스 기반 위험 가설이다.</li></ul>
+<h4 id="graphics-h-19">1.1 파일·행 단위 출처</h4>
+<div class="table-wrap" tabindex="0" role="region" aria-label="가로 스크롤 가능한 원문 표"><table><thead><tr><th scope="col">표식</th><th scope="col">실제 파일·행</th><th scope="col">확인한 내용과 한계</th></tr></thead><tbody><tr><td>S01</td><td><code>Planner/stage1_10_balance_implementation_20261019/stage04.md:13-21,28-35,138-140</code></td><td>a9 해금·맵 치수·B04 설명; 운영 DB 실효값은 미조회.</td></tr><tr><td>S02</td><td><code>src/lib/stageConfig.js:96-124,189-203</code></td><td>작업본 Stage4 설정과 clear 기반 Stage4/5 판정; 사용자 최신 요구와 불일치.</td></tr><tr><td>S03</td><td><code>src/components/StageObjects/stageObjectPlacements.js:460-751,754-788,937-950</code></td><td>벽면 급식실 배치, 중앙 가마솥 강제 정본, Studio override 소비 경로.</td></tr><tr><td>S04</td><td><code>src/components/StageObjects/stageObjectColliders.js:24-35,137-183,415-423,466-482</code></td><td>가구 8종+가마솥, 물리 충돌·시야 OBB 분리, clutter 제외.</td></tr><tr><td>S05</td><td><code>src/components/StageObjects/KitchenProps.jsx:1-15,29-50,520-607,709-759</code></td><td>4톤 금속·제한 외곽선·트레이/카트/잡동사니 기존 모델.</td></tr><tr><td>S06</td><td><code>src/components/StageObjects/PressureCauldron.jsx:24-43,94-157</code></td><td>base scale 0.4, 끓음·흔들림·파편 시각 경로; 피해 반경과 구분 필요.</td></tr><tr><td>S07</td><td><code>src/lib/stage4PressureCauldronHazard.js:1-8,24-35</code></td><td>15초 주기·3초 예고·250ms 폭발 표시·반경 3.2 units.</td></tr><tr><td>S08</td><td><code>src/components/ZombieMesh.jsx:115-153,569-649,1075-1079</code></td><td>B04 요리사 팔레트·모자·스카프·앞치마·얼굴·리그; 실제 모델은 이 JSX 분기.</td></tr><tr><td>S09</td><td><code>src/components/Enemy.jsx:350-354,384-391,1068-1086,1295-1350</code></td><td>E04/E05 기본 블록, B04 통계/사망/국물 폭발/페이즈 호출.</td></tr><tr><td>S10</td><td><code>src/lib/chefBossPhase.js:5-23,35-40</code>; <code>src/lib/b04SoupBlast.js:1-4,22-25,44-68</code></td><td>50%·1000ms 순수 페이즈와 별도의 국물 대폭발 상태.</td></tr><tr><td>S11</td><td><code>src/components/ClassroomFloor.jsx:7,17-33,52-58</code></td><td>백색 세라믹 소스와 정사각 0.8-unit 타일 계약.</td></tr><tr><td>S12</td><td><code>src/lib/enemyEntityPool.js:3-33,38-48,70-95</code></td><td>150 슬롯·타입 코드·generation·typed array; 임의 신규 ID만으로 동작하지 않음.</td></tr><tr><td>S13</td><td><code>src/components/ZombieInstanceLayer.jsx:26-32,70-78,194-210</code></td><td>타입별 instance 부품/가시성/Studio root; ZombieMesh만 수정해서는 일반 적에 반영 불가.</td></tr><tr><td>S14</td><td><code>src/lib/enemySimulation.js:13-24,301-309</code>; <code>src/components/Enemies.jsx:1146-1151,1934-1937</code></td><td>일반 적 시뮬레이션·기존 특수 분리 및 보충 경로의 판본 차이.</td></tr><tr><td>S15</td><td><code>ZOMBIE_E01_STUDIO_TRANSFORM_CONNECTION_CODE.md:9-15,127-173,200-213,363-412,415-492</code></td><td>저장 키·숫자 child path·base 상대 변형 연결 원문.</td></tr><tr><td>S16</td><td><code>src/lib/graphicsStudioConfig.js:890-903</code>; <code>src/components/StudioTunedGroup.jsx:257-271,318-332</code></td><td>현행 Firebase runtime dataset과 base 합성 계약; 저장 어댑터 거절.</td></tr><tr><td>S17</td><td><code>Developer/lowpoly_player_b01_b04_faceted_geometry_implementation_2026-08-23.md:10-13,22-44</code></td><td>폐기 파셋 복구 금지, 기존 경로 보존, 새 원화·동일 revision 검증 전 적용 금지.</td></tr></tbody></table></div>
+<h4 id="graphics-h-40">1.2 a9·dirty canonical·origin/zombie_only 대조</h4>
+<ul><li>[확인] Stage4 설정·KitchenProps·배치·콜라이더·ZombieMesh·가마솥 hazard·chefBossPhase·b04SoupBlast는 a9와 현재 작업본이 줄바꿈 정규화 후 같다.</li><li>[확인] 위 항목 중 stageConfig를 제외한 동일 파일들은 조회한 origin/zombie_only와도 줄바꿈 정규화 후 같다. 바이트 동일성과는 구분한다.</li><li>[확인] 파일이 a9와 같아도 현재 HEAD 대비 dirty일 수 있다. 이를 ‘변경 없음’ 또는 다른 작업자의 수정이 없다는 뜻으로 쓰지 않는다.</li><li>[차이] <code>src/lib/stageConfig.js:192,200-201</code> 작업본은 stage4Clears/stage3Clears를 사용한다. a9도 같은 판정이다.</li><li>[차이] origin/zombie_only의 동일 파일 <code>:190-198</code>은 이전 stage의 <code>BossDefeats</code> 정수 기록을 확인한다. 클리어 이력을 보스 이력으로 역산하지 않는다.</li><li>[차이] origin/zombie_only <code>src/components/Enemy.jsx:1088</code>은 <code>recordBossDefeat(type)</code>, 작업본 <code>:1086</code>은 인자 없는 호출이다. 데이터 전달 차이를 숨기지 않는다.</li><li>[차이] 원격 참조 <code>src/store/useGameStore.js:107,1399-1410</code>에는 BossDefeats 체크포인트·보스 타입 가드가 있다. DB 영구 반영 성공을 입증한 것은 아니다.</li><li>[차이] 작업본 <code>src/components/Enemies.jsx:1936</code>의 expansion 제외 보충 가드가 a9/원격과 다르다. Stage4를 확장 스테이지로 취급하는 새 설계는 제안하지 않는다.</li><li>[차이] 작업본 Enemy에는 a9/원격의 마틸다 대시 횟수 가속 경로가 빠져 있다. Stage4 적의 현재 속도·난도를 a9 표 그대로 단정하지 않는다.</li><li>[현행 한계] stage04.md의 HP·시간·요청 수는 a9 출처다. 이 문서는 실효 HP를 재선언하거나 보충·큐 포함 실제 화면 마릿수를 계산하지 않는다.</li></ul>
+<h3 id="graphics-h-52">2. 변경 불가 경험과 기존 시각 정체성</h3>
+<ul><li>[사용자 고정] Stage4 접근은 Stage3 보스 사망만으로 즉시 영구 해금한다. 탈출·퀘스트·시간 경과를 추가 조건으로 붙이지 않는다.</li><li>[사용자 고정] Stage5 접근은 Stage4 B04 사망만으로 즉시 영구 해금한다. 포탈 진입·런 종료·정산까지 미루지 않는다.</li><li>[경계] 보스 사망 해금은 탈출 클리어·점수 확정·생존 기록과 별개다. 기존 clear 기록을 보스 처치 증거로 소급 변환하지 않는다.</li><li>[후속 검증 제안] 이전 보스만 처치→탈출 전 로비→재접속, 포탈만 탈출, 시간만 경과, 퀘스트만 완료를 각각 분리한다. 이번 실행 결과는 아니다.</li><li>[기존 정체성] 백색/냉회색 세라믹 바닥, 4단 스테인리스 가구, 식재료의 작은 원색, 블록형 툰과 어두운 선택 외곽선이 급식실 기반이다[S05,S11].</li><li>[기존 정체성] 북쪽 쿡라인·후드, 냉장고, 싱크대와 벽면 배식/수납 소품, 중앙 압력 가마솥이 주방의 장소성을 만든다[S03].</li><li>[기존 정체성] B04는 높은 흰 요리사 모자·녹색 얼굴·붉은 목수건·앞치마·체크 바지의 주방장이다. 새 보스로 교체하지 않는다[S08].</li><li>[기존 모델] 조리대, 쿡라인, 싱크대, 냉장고, 트레이랙, 선반카트, 쓰레기통, 상자더미의 solid 8종을 유지한다[S04].</li><li>[별도 모델] 중앙 pressureCauldron은 가구 8종 밖의 추가 고정 랜드마크다. kitchenClutter는 통과 가능 소품이며 solid로 승격하지 않는다.</li><li>[배치 고정] 중앙 가마솥은 <code>[0,0,0]</code> 한 기이며 과거 중앙 조리대 ID 제거·주입 로직을 보존한다. 새 가구로 순환 회피 공간을 채우지 않는다[S03].</li><li>[치수 경계] 기본 맵은 가로 18.72 units/4.68 blocks, 세로 32 units/8 blocks다[S01]. 실제 override 배치는 미확인이다.</li><li>[단위 계약] 이 문서의 크기는 최종 월드 치수이며 1 block=4 world units다. 모델 로컬 값·ENEMY_SIZE_MULTIPLIER·Studio scale로 중복 확대하지 않는다.</li><li>[위험 가설] 흰 가운·흰 바닥·은색 트레이의 명도 중첩으로 적/가구 경계가 약해질 수 있다. 현재 스크린샷에서 관찰했다는 주장이 아니다.</li><li>[위험 가설] 냉장고·후드·트레이랙의 높은 실루엣이 사선 카메라에서 적의 예고 동작을 가릴 수 있다. 실제 카메라 광선으로 확인해야 한다.</li><li>[위험 가설] 잡동사니 색/윤곽을 증폭하면 바닥 공격 표식과 경쟁하고 이동 불가 장애물처럼 오인될 수 있다. 배경 디테일 추가보다 의미 구분을 우선한다.</li><li>[문서 충돌] placements <code>:461</code>의 ‘전부 시각 전용’ 주석은 현행 collider 집합·중앙 blocking=true와 모순된다. 주석만 따라 전체 비충돌로 기획하지 않는다.</li></ul>
+<h3 id="graphics-h-70">3. 그래픽 개선 명세 — 모두 승인 전 제안</h3>
+<h4 id="graphics-h-71">3.1 팔레트·재질 제안표</h4>
+<div class="table-wrap" tabindex="0" role="region" aria-label="가로 스크롤 가능한 원문 표"><table><thead><tr><th scope="col">역할</th><th scope="col">제안 HEX</th><th scope="col">사용 규칙</th></tr></thead><tbody><tr><td>바닥 밝은 면 / 줄눈</td><td><code>#E8ECEA</code> / <code>#A8B4B0</code></td><td>기존 ceramic 텍스처 유지 우선, 줄눈보다 위험 경계가 강해야 함.</td></tr><tr><td>벽 바탕 / 낮은 위생 띠</td><td><code>#DCE7E2</code> / <code>#527D73</code></td><td>기존 주방 맥락의 저채도 면 분리; 이동 안내를 안전 보장처럼 쓰지 않음.</td></tr><tr><td>금속 상판 / 패널</td><td><code>#F2F5F7</code> / <code>#D7DDE1</code></td><td>기존 S05와 같은 HEX를 제안 유지값으로 사용; 재질 시스템 교체 없음.</td></tr><tr><td>금속 프레임 / 암부</td><td><code>#A9AFB3</code> / <code>#34383B</code></td><td>기존 4톤 분리 유지 제안; 실시간 반사·굴절 추가 금지.</td></tr><tr><td>캐릭터·가구 외곽</td><td><code>#050209</code></td><td>기존 선택 외곽선 유지 제안; 장면 전체 후처리 outline 신설 제외.</td></tr><tr><td>비공격 길찾기 표식</td><td><code>#5C8E88</code></td><td>가는 직선/모서리 형태, 공격 원형·부채꼴과 형태 분리.</td></tr><tr><td>공격 예고 / 발동 핵심</td><td><code>#F2B544</code> / <code>#D9533F</code></td><td>예고는 테두리·해칭, 발동은 짧은 중심 변화; 색만으로 판단하지 않음.</td></tr><tr><td>국물 투사체 / 밝은 심</td><td><code>#D88936</code> / <code>#FFE1A3</code></td><td>가마솥·B04 음식 계열 통일, 보상 코인처럼 지속 회전시키지 않음.</td></tr><tr><td>P1 배식원 앞치마 / 피부</td><td><code>#355F68</code> / <code>#86A66C</code></td><td>넓고 어두운 몸통과 수평 은색 트레이를 기본 식별자로 사용.</td></tr><tr><td>P2 식판 운반원 / 국자 투척수</td><td><code>#8C603E</code> / <code>#6C668A</code></td><td>장비 형상 차이가 주 식별자, 색은 보조.</td></tr><tr><td>P2 청소원 장갑 / 바닥 잔여물</td><td><code>#C8A544</code> / <code>#6F8C7A</code></td><td>잔여물은 가장자리 얼룩에 한정, 무해한 얼룩에 공격색 금지.</td></tr></tbody></table></div>
+<ul><li>[재질 제안] 기존 toon material·공유 geometry/material cache를 우선한다. stainless라는 이름을 PBR metalness·반사 캡처 도입 승인으로 해석하지 않는다.</li><li>[재질 제안] 금속은 상판·패널·다리 명도 차이로, 천은 넓은 단색 면으로 읽힌다. 미세 노멀·투명 유리·천 물리는 추가하지 않는다.</li><li>[보존] 이 표는 사용자 Studio 입력을 덮어쓸 기본 프리셋이 아니다. 명시된 사용자 색·크기·위치·회전·외곽선 값은 불변이다.</li></ul>
+<h4 id="graphics-h-89">3.2 바닥·동선·장애물</h4>
+<ul><li>[제안] 기존 tile_stage04_white_ceramic.webp와 0.8-unit 정사각 반복을 유지한다. 타일은 0.2 blocks이며 블록 좌표 한 칸과 혼동하지 않는다[S11].</li><li>[제안] 중앙 가마솥 외곽 회피 공간→동서 우회→북쪽 주방 설비의 읽기 순서를 만든다. 새 미로·식탁 군집·맵 크기 변경은 하지 않는다.</li><li>[제안] 길찾기 색은 벽쪽 낮은 띠·코너 표식에 제한한다. 가마솥 폭발 반경 안에 영구 ‘안전’ 표시를 두지 않는다.</li><li>[제안] 조리대·수납 가구는 하단 접지 음영/기존 어두운 프레임으로 solid임을 알린다. 빈 트레이·봉지·냄비는 낮고 비강조로 통과 가능성을 전달한다.</li><li>[제안] 냉장고 열린 문은 현행 몸통 collider 제외 규칙을 바꾸지 않는다. 문짝 외형을 새 충돌벽처럼 강조하지 않는다[S04].</li><li>[제안] 쿡라인 후드·싱크 수전은 높이 장식이며 하부 collider와 구별한다. 위로 튀어나온 장식을 지상 공격의 차폐물로 단정하지 않는다.</li><li>[제안] 회전 프랍은 기존 OBB 소비를 기준으로 검토한다. 시각 크기 확대만으로 보이지 않는 AABB 모서리 안전지대/끼임을 만들지 않는다.</li><li>[수용 제안] 남쪽 시작점·학생 퀘스트 표적·자판기 접근·가마솥 양측 우회는 서로 다른 경로로 확인한다. 현재 통행 검증 PASS로 표기하지 않는다.</li><li>[수용 제안] 장식물이 공격 경고를 가리면 우선 장식의 위치/강조를 재검토한다. 모든 적을 벽 너머 표시하거나 카메라를 전면 교체하는 해법은 제외한다.</li></ul>
+<h4 id="graphics-h-100">3.3 중앙 압력 가마솥과 B04 공격 시각</h4>
+<ul><li>[고정] 가마솥은 15s 주기·3s 예고·반경 3.2 units/0.8 blocks 폭발을 유지한다. 시각 개선을 이유로 판정·주기·원점을 바꾸지 않는다[S07].</li><li>[제안] 예고 동안 바닥 반경 경계+압력계 방향 변화+뚜껑 진동을 함께 사용한다. 기존 끓음·흔들림 경로를 재사용하고 새 대형 연기벽은 만들지 않는다.</li><li>[제안] 경계는 판정의 월드 반경에 정렬한다. base scale 0.4·Studio transform 때문에 링을 재차 축소/확대하는 위험을 별도로 점검한다[S06].</li><li>[제안] 발동은 짧은 저층 링/국물 파편으로 읽고 증기는 위로 분산한다. 파편 비행 거리 전체가 피해 거리라는 인상을 주지 않는다.</li><li>[고정] B04는 기존 chef이며 HP 50% 이하 전환·1000ms 페이즈 상수를 유지한다. 새 모자·거대 솥 갑옷·다른 얼굴로 교체하지 않는다[S08-S10].</li><li>[주의] 실제 Stage4 Enemy는 별도 국물 대폭발을 먼저 소비하고 done에서 phase2로 진입한다. ‘50% 뒤 정확히 1000ms만에 돌진’이라고 총연출 시간을 단정하지 않는다[S09].</li><li>[제안] 국물 대폭발의 세 원 후보/1.1 units/0.275 blocks 반경·1200ms 예고·250ms 발동은 기존 별도 공격으로 보존한다[S10].</li><li>[제안] 가마솥 원은 동심 압력 눈금, B04 국물 원은 분절된 그릇 테두리로 구별한다. 동일 노랑/주황 계열이어도 출처를 형상으로 식별한다.</li><li>[제안] B04 포격은 팔/상체 준비→투사체→착탄, 격노는 모자/몸통 포즈→진행 방향으로 읽히게 한다. 피해 flash와 분노 예고를 같은 지속 흰색으로 쓰지 않는다.</li><li>[제안] 격노 전환·가마솥 마지막 예고가 겹치면 신규 적 예고 시작을 유예한다. 기존 보스/가마솥 피해 창 자체를 지연·삭제하지 않는다.</li><li>[수용 제안] 경고의 시작·최대 범위·발동·종료를 프레임 단위로 대조하고 일시정지/사망/런 전환 뒤 잔존 VFX가 없어야 한다. 이번에는 실행하지 않았다.</li></ul>
+<h4 id="graphics-h-113">3.4 모바일 판독·가림·비용</h4>
+<ul><li>[제안] 모바일 검토 화면은 360×640 및 가로 전환을 포함한다. 이는 검수 조건 제안이며 현재 지원 해상도 실측 주장이 아니다.</li><li>[제안] 적의 머리 장비·손 장비·상체 폭 중 두 가지로 식별하게 하고, 미세 글자·표정 텍스처만으로 역할을 전달하지 않는다.</li><li>[제안] 기본·예고·공격·회복을 무음/회색조에서도 구별한다. 점멸 대신 자세 고정·외곽 형태·방향 지시를 우선한다.</li><li>[제안] 실제 카메라와 모델 중심을 잇는 광선 기준으로 냉장고 뒤·남벽·가마솥 뒤 시야를 확인한다. 월드 +Z 정면만 보고 합격시키지 않는다.</li><li>[제안] 최소 기기에서 기존 baseline 대비 CPU/GPU frame time·draw call·texture memory를 측정한 뒤 예산을 승인한다. 미측정 FPS나 절대 성능 PASS를 쓰지 않는다.</li><li>[제안] 품질 저하는 미세 병/음식·파편 수→장식 음영 순서로 줄이고, 적 실루엣·공격 방향·피해 경계는 마지막까지 유지한다.</li><li>[제안] 신규 실시간 그림자·화면 전체 outline·bloom·굴절·새 전역 조명을 기본 범위에서 제외한다. 기존 가구당 선택 외곽선 제한을 유지한다[S05].</li></ul>
+<h3 id="graphics-h-122">4. 신규 좀비 범위와 공통 구현 계약</h3>
+<ul><li>[권장 P1] 급식 배식원 1종만 우선 추천한다. 기존 일반 근접 적 계열을 바탕으로 실루엣/짧은 공격 준비를 읽히게 하는 최소 slice다.</li><li>[선택 P2] 식판 운반원·국자 투척수·청소 당번 3종은 독립 선택지다. 셋 동시 투입이나 P1 필수 종속 조건이 아니다.</li><li>[미등록] <code>C4_SERVE</code>, <code>C4_TRAY</code>, <code>C4_LADLE</code>, <code>C4_MOP</code>는 문서용 가칭이다. 이미 등록된 enemy ID·DB 키·Studio item ID라고 주장하지 않는다.</li><li>[범위] HP·공격력·속도·경험치·전역 배율은 여기서 새 숫자로 정하지 않는다. 기존 스탯/실효값 확인 후 levelmini·balanceqa가 승인할 후속 항목이다.</li><li>[편성 제안] 신규 개체는 기존 일반 요청 일부를 대체한다. 전역 150 상한·큐·보충·보스 예약을 늘리는 추가 물량 해법은 금지한다[S12,S14].</li><li>[공통 제안] spawn reveal→approach→windup→attack→recovery→approach, 어느 상태에서든 death/cancel→cleanup의 단방향 종료를 가진다.</li><li>[공통 제안] 경고 중 사망·런 종료·일시정지는 타이머/피해/표식을 함께 정리한다. 적 시계와 벽시계를 혼용해 화면 밖 예고를 소모하지 않는다.</li><li>[공통 제안] generation 포함 슬롯 손잡이를 사용하고 재사용 때 방향 잠금·피해 소비·표식 소유자·attack timer를 모두 초기화한다[S12].</li><li>[공통 제안] 신규 일반 적을 Enemy.jsx 개별 React/Rapier body로 우회 증설하지 않는다. 일반 pool·instance 경로에서 가능한 범위를 먼저 검토한다.</li><li>[공통 제안] E01/E04/E05의 전역 외형·공격을 바꾸지 않는다. Stage4 가칭 variant와 전용 등록이 필요하면 기존 숫자 코드 충돌·확장 타입 충돌부터 검토한다.</li><li>[주의] ENEMY_STATS 또는 ZombieMesh 분기만 추가하는 것은 불충분하다. 타입 표·simulation·instance 부품·Studio 연결·스폰·정리까지 한 slice여야 한다[S12-S14].</li></ul>
+<h4 id="graphics-h-135">4.1 P1 권장 — 급식 배식원 <code>C4_SERVE</code></h4>
+<ul><li>[목적 제안] 중앙 회피를 방해하는 탱커 대신 ‘준비 동작을 보고 옆으로 빠지는’ 저복잡도 근접 역할로 급식실 전용 인상을 만든다.</li><li>[실루엣 제안] 낮은 위생모, 어두운 넓은 앞치마, 양손의 가로 식판, 신발 두 덩어리. B04의 높은 요리사 모자·붉은 스카프는 사용하지 않는다.</li><li>[부품 제안] 기존 일반형 head/body/armL/armR/legL/legR 유지 기반에 위생모·앞치마·식판을 별도 부품 후보로 설계한다. 기존 E01 child 순서를 건드리지 않는다.</li><li>[크기 제안] 최종 높이 1.2 units/0.3 blocks, 최대 폭 0.9/0.225, 깊이 0.7/0.175. 식판 포함 envelope이며 현재 모델 실측값이 아니다.</li><li>[충돌 제안] 몸통 수평 반경 후보 0.3 units/0.075 blocks; 식판 끝은 피격 몸통을 늘리지 않고 별도 공격 envelope로 정의한다.</li><li>[재사용 제안] 일반 좀비 리그·toon palette 구조, KitchenProps의 CafeteriaFoodTray 형태를 참조한다. 비공개 helper를 무리하게 import하지 않고 공유 여부는 후속 검토한다.</li><li>[상태 제안] reveal 후 다리를 짧게 번갈아 이동→사거리 진입 시 정지→식판을 가슴 앞에 당김→앞으로 밀기→팔을 내리고 빈틈 노출→재추적.</li><li>[시간 제안] windup 700ms, attack 180ms, recovery 900ms. 예고 시작 때 방향을 잠그고 발동 직전 플레이어 쪽으로 순간 회전하지 않는다.</li><li>[판정 제안] 전방 1.1 units/0.275 blocks 이내의 짧은 부채꼴; windup/recovery에는 새 공격 피해를 주지 않는다. 접촉 피해 중복 정책은 별도 승인한다.</li><li>[대응 제안] 옆으로 이동하거나 가구 뒤로 빠진다. 막힌 경로에서 식판이 가구를 관통해 피해를 주지 않고 회복 상태로 돌아가야 한다.</li><li>[편성 제안] 보스 전 소개 구간 30~90초 후보에서 기존 근접 요청 하나를 대체, 동시 최대 2체 후보. 실제 spawn clock과 reveal 안전조건은 levelmini가 확정한다.</li><li>[중첩 제안] 가마솥 3초 예고 중 새 windup 시작 금지, B04 국물/격노 전환 중 신규 생성 보류. 기존 enemy total/큐를 우회하지 않는다.</li><li>[pool 제안] 일반 melee 슬롯을 이용하되 타이머·전방 잠금·공격 1회 소비 상태를 명시한다. 준비/회복 기능 미지원이면 단순 외형 variant부터 승인받는다.</li><li>[구현 후보] <code>src/lib/enemyEntityPool.js</code>, <code>src/lib/enemySimulation.js</code>, <code>src/components/ZombieInstanceLayer.jsx</code>, <code>src/components/PooledEnemyVisuals.js</code>의 전용 variant 경로.</li><li>[연결 후보] <code>src/components/Enemies.jsx</code>, <code>src/lib/burstEvents.js</code>, <code>src/lib/graphicsStudioConfig.js</code>; 스탯 정의가 필요하면 <code>src/components/Enemy.jsx</code>와 pool 정의의 정합성만 함께 검토한다.</li><li>[개별 수용 제안] 회색조·후면에서도 낮은 모자+가로 식판으로 식별, 바닥과 앞치마 분리, 경고 방향 고정, 가구 차폐, 취소 후 무피해·무표식·무보상 중복을 확인한다.</li><li>[P1 보류 기준] 전역 E01 변경·새 개별 물리 body·전역 스탯 상승이 필요해지면 확대하지 않고 slice를 재설계한다. 사용자 원화 승인 전 실제 모델 제작은 시작하지 않는다.</li></ul>
+<h4 id="graphics-h-154">4.2 P2 선택 — 식판 운반원 <code>C4_TRAY</code></h4>
+<ul><li>[목적 제안] 느린 몸통 방패가 아니라 식판을 묶어 들고 짧게 직진하는 방향형 적이다. 보스의 긴 돌진보다 짧고 명확한 빈틈을 가진다.</li><li>[실루엣 제안] 한쪽 어깨 위 비대칭 식판 묶음, 낮은 사각 머리, 갈색 앞치마, 넓은 발. 이동 카트 전체를 장착하지 않아 가구와 구별한다.</li><li>[부품 제안] 일반 리그·트레이 묶음·한쪽 어깨 받침·두꺼운 장갑. 기존 rolling tray rack 전체를 적 collider로 복제하지 않는다.</li><li>[크기 제안] 높이 1.35 units/0.3375 blocks, 폭 0.8/0.2, 깊이 0.65/0.1625; 수평 몸통 반경 후보 0.32/0.08.</li><li>[애니메이션 제안] approach의 흔들리는 식판→한 발 뒤로 디딤→windup 동안 식판 수평 고정→짧은 직진→상체 숙여 균형 회복→approach.</li><li>[시간 제안] windup 900ms, attack 최대 600ms, recovery 1200ms. 돌진 도중 방향 재조준·추가 회전은 없다.</li><li>[공격 제안] 이동 길이 상한 2.4 units/0.6 blocks의 짧은 직선; 기존 charge 충돌·정지 소비 경로를 재사용 가능한지 먼저 확인한다.</li><li>[대응 제안] 옆으로 회피하거나 solid 뒤로 유도한다. 충돌 즉시 회복, 벽을 밀며 접촉 피해를 연속 적립하지 않는다.</li><li>[편성 제안] 90~140초 후보에서 기존 charger 요청 하나를 대체, 동시 최대 1체 후보; P1과 더해 개체 수를 증가시키지 않는다.</li><li>[호환 제안] B04 phase2 중 생성 제외를 기본 후보로 둔다. 기존 생존 개체를 갑자기 삭제하지 않으며 적힌 시간은 실제 웨이브가 아니다.</li><li>[pool 제안] E05 계열 state 소비를 참조하되 E05 전역 warn/charge 상수를 바꾸지 않는다. 슬롯별 거리 상한·벽 충돌·취소 상태가 없으면 P2 보류한다.</li><li>[구현 후보] <code>src/lib/enemySimulation.js</code>, <code>src/components/ZombieInstanceLayer.jsx</code>, <code>src/components/PooledEnemyVisuals.js</code>, <code>src/lib/enemyEntityPool.js</code>, <code>src/lib/burstEvents.js</code>.</li><li>[개별 수용 제안] 선회 끝과 방향 표식 일치, solid 충돌 시 중지, 식판 장식과 몸통 피격 구분, generation 재사용 뒤 이전 돌진 소멸을 확인한다.</li><li>[신규 자산 제안] 기존 트레이 형태를 재사용한 어깨 묶음과 장갑만 추가 후보다. 방패 면역·전면 피해 감소·추가 장비 파괴 시스템은 제외한다.</li></ul>
+<h4 id="graphics-h-170">4.3 P2 선택 — 국자 투척수 <code>C4_LADLE</code></h4>
+<ul><li>[목적 제안] E04 원거리 역할의 급식실 해석이다. 무한 장판을 까는 신종이 아니라 눈에 보이는 단발 음식 투사체로 제한한다.</li><li>[실루엣 제안] 한 손의 긴 국자, 반대 손의 작은 통, 낮은 두건·보라회색 앞치마. B04보다 작은 머리 장비로 계층을 보존한다.</li><li>[부품 제안] 일반 리그·국자 손잡이/볼·작은 통·두건. KitchenClutter 냄비와 기존 음식 투사체 외형을 우선 참조한다.</li><li>[크기 제안] 높이 1.1 units/0.275 blocks, 장비 포함 폭 0.75/0.1875, 깊이 0.6/0.15; 몸통 반경 후보 0.28/0.07.</li><li>[애니메이션 제안] 거리 유지→투사 방향 고정→국자를 어깨 위로 올림→한 번 내리며 발사→빈 국자를 낮추고 회복→거리 유지.</li><li>[시간 제안] windup 1000ms, attack 150ms, recovery 1100ms. 발사 취소 때 투사체 생성 이벤트도 함께 취소한다.</li><li>[공격 제안] 사거리 상한 후보 4 units/1 block의 단발; 폭발·지속 바닥 피해·느려짐은 없음. 수치상 피해/속도는 기존 실효값 확인 후 별도 승인한다.</li><li>[대응 제안] 예고 때 측면 이동 또는 solid 뒤로 이동한다. LOS가 막히면 발사하지 않고 기존 회피/재탐색 규칙을 따른다.</li><li>[편성 제안] 60~140초 후보의 기존 E04 요청 하나를 대체, 동시 최대 1체; P1과 독립적으로 선택 가능하다.</li><li>[중첩 제안] B04 국물 예고·가마솥 마지막 3초 동안 새 발사 예고를 시작하지 않는다. 이미 발사된 투사체를 무통보 삭제하는 방식은 피한다.</li><li>[pool 제안] E04 simulation·projectile pool·원거리 상한을 공유해야 한다. 새 투사체 pool로 기존 총량 제한을 우회하거나 무제한 타이머를 만들지 않는다.</li><li>[구현 후보] <code>src/lib/enemySimulation.js</code>, <code>src/components/Enemies.jsx</code>, <code>src/components/ZombieInstanceLayer.jsx</code>, <code>src/lib/enemyEntityPool.js</code>, <code>src/lib/burstEvents.js</code>.</li><li>[개별 수용 제안] 투사체 출발점과 국자 끝이 정렬되고, 벽/가구 차폐·비공격 clutter 통과·발사 1회·사망 취소·가마솥 경고 우선순위를 확인한다.</li><li>[신규 자산 제안] 국자/작은 통만 추가 후보; B04 얼굴·모자·전용 국물 대폭발을 복제하거나 보스 전용 연출을 일반 적에게 배포하지 않는다.</li></ul>
+<h4 id="graphics-h-186">4.4 P2 선택 — 청소 당번 <code>C4_MOP</code></h4>
+<ul><li>[목적 제안] 바닥을 영구 변경하는 장판형이 아니라, 긴 걸레로 짧은 정면 쓸기를 수행하는 중거리 근접 역할이다.</li><li>[실루엣 제안] 얇은 세로 몸통·비스듬한 긴 걸레·노란 고무장갑·작은 허리 양동이. 냉장고/선반 같은 직사각형 대형 실루엣을 피한다.</li><li>[부품 제안] 일반 리그·걸레 봉/끝·양동이·장갑; 기존 통/잡동사니 형태와 toon 공유 재질을 우선 재사용한다.</li><li>[크기 제안] 높이 1.2 units/0.3 blocks, 걸레 포함 폭 0.9/0.225, 깊이 0.7/0.175; 몸통 반경 후보 0.28/0.07.</li><li>[애니메이션 제안] 끌고 걷기→두 손으로 봉을 가로 잡음→정면 낮은 쓸기→걸레를 회수하며 고개 숙임→걷기; 전 구간 장비 pivot을 명시한다.</li><li>[시간 제안] windup 900ms, attack 250ms, recovery 1100ms; 예고 이후 회전 잠금으로 추적형 즉발 광역화를 막는다.</li><li>[공격 제안] 전방 1.6 units/0.4 blocks 이내 낮은 부채꼴, 1회 피해 소비. 잔여 얼룩은 무해한 장식이며 둔화·미끄러짐·추가 collider 없음.</li><li>[대응 제안] 뒤/옆으로 빠지거나 solid로 공격선을 끊는다. 걸레가 벽 너머로 보이더라도 반대편 플레이어를 맞히지 않는다.</li><li>[편성 제안] 90~140초 후보에서 기존 근접 요청 하나를 대체, 동시 최대 1체; 다른 P2와 동시 채택은 별도 검토다.</li><li>[중첩 제안] 가마솥 3초 경고·B04 격노/국물 경고에는 새 windup을 보류한다. 안전 통로를 걸레 장판으로 봉쇄하는 후속 확장은 제외한다.</li><li>[pool 제안] 짧은 melee envelope를 공통화할 수 있을 때만 도입하며 개체별 임의 physics sensor·매 프레임 React state를 추가하지 않는다.</li><li>[구현 후보] <code>src/lib/enemySimulation.js</code>, <code>src/components/PooledEnemyVisuals.js</code>, <code>src/components/ZombieInstanceLayer.jsx</code>, <code>src/lib/enemyEntityPool.js</code>, <code>src/lib/burstEvents.js</code>.</li><li>[개별 수용 제안] 긴 봉 장식 때문에 몸통 피격이 커지지 않고, 경고 envelope·실제 쓸기·피해 영역이 일치하며, 얼룩이 경고 링과 혼동되지 않아야 한다.</li><li>[신규 자산 제안] 걸레 끝·봉·장갑만 신규 후보다. 물 시뮬레이션·동적 바닥 shader·전역 이동 제어·새 상태이상은 추가하지 않는다.</li></ul>
+<h3 id="graphics-h-202">5. Studio 연결과 사용자 명시값 불변</h3>
+<ul><li>[선독 완료] 기준 문서는 루트 <code>ZOMBIE_E01_STUDIO_TRANSFORM_CONNECTION_CODE.md</code> 전체다. 연구 폴더 사본만 보고 다른 변형 방식을 제안하지 않는다.</li><li>[기존 계약] E01 item ID는 zombie-e01, 저장 키는 <code>zombie-e01::part::&lt;숫자 경로&gt;</code>이며 기존 E01에 studioPartId를 새로 주입하지 않는다[S15].</li><li>[기존 계약] 기존 child index·part/group 키·리그 pivot·fill/outline 계층을 보존한다. P1 부품을 기존 E01 트리에 끼워 저장 경로를 이동시키지 않는다.</li><li>[기존 계약] position/rotation은 최초 base에 offset을 더하고 scale은 base에 multiplier를 곱한다. 0/1/0 재입력은 base 복귀이며 새 절대 transform 경로로 대체하지 않는다[S15,S16].</li><li>[보존] 애니메이션과 사용자 튜닝을 함께 소비하는 기존 계약을 따른다. idle 복귀·hit flash·outline 조정 때문에 사용자 위치/회전/크기를 재설정하지 않는다.</li><li>[현행 우선] E01 연결 원문의 과거 localStorage 저장 예시는 구조 참고용이다. 현재 영속화는 Firebase-only이며 storage adapter는 오류로 거절된다[S16].</li><li>[금지] localStorage·파일 프리셋·별도 DB를 Studio 영속화 대안으로 제안하지 않는다. 메모리 runtime dataset을 새 영구 저장소라고 표현하지 않는다.</li><li>[사용자 불변] 명시된 수치·색·배치·얼굴·데칼을 ‘자동 최적화’하거나 현재 DB 미조회 상태에서 보정·마이그레이션·seed하지 않는다.</li><li>[신규 연결 제안] 새 타입 채택 시 item ID·부품 트리·선택 경로를 먼저 문서 승인하고, 기존 transform 연결을 그대로 소비하는 preview/instance 대응만 검토한다.</li><li>[수용 제안] 같은 Firebase revision에서 game·Studio·title의 해당 사용 화면을 비교한다. 새 적이 title 대상이 아니면 억지 노출하지 말고 기존 title 무회귀로 검증한다.</li><li>[접근 금지] Three_Mini는 GraphicsStudio.jsx를 수정·포맷·복원·우회 위임하지 않는다. 필요성이 생기면 담당자에게 보고하고 해당 구현을 중단한다.</li></ul>
+<h3 id="graphics-h-215">6. 기존 자산·신규 필요물·승인 게이트</h3>
+<h4 id="graphics-h-216">6.1 자산 체크리스트</h4>
+<ul><li>[x] 기존 바닥: <code>src/assets/background_floor/tile_stage04_white_ceramic.webp</code> 연결 확인[S11]; 원본 후보 <code>Graphic_designer/graphic_asset/background_floor/4stage/stage_4_tile.png</code> 존재 확인.</li><li>[x] 기존 프랍 원화: <code>Graphic_designer/graphic_asset/background_floor/4stage/stage4_prop.png</code> 존재 확인; 이번 작업에서 새 원화 생성·이미지 내용 판독은 하지 않음.</li><li>[x] 기존 8종 가구·잡동사니·가마솥·StudioTunedGroup 래퍼는 실제 JSX로 확인[S03-S06]. 별도 새 주방 모델 패키지 요구 없음.</li><li>[x] 기존 B04는 <code>src/components/ZombieMesh.jsx</code>의 chef 모델 및 <code>src/assets/faces/b04_chef_boss_face.webp</code> import 경로[S08]; <code>Enemy/B04</code>라는 가상 신규 파일을 만들어 설명하지 않음.</li><li>[x] 기존 일반 pool·instance·charge cue·음식 투사체 소비 경로를 참조했다. 기존 helper 참조가 곧 재사용 가능한 공개 API라는 뜻은 아니다.</li><li>[ ] P1 신규 필요 후보: 승인된 배식원 정/측/후면 원화, 위생모·앞치마·식판 조합 도식, state별 key pose·방향 envelope, 부품 연결 명세.</li><li>[ ] P2 운반원 후보: 어깨 식판 묶음·장갑·경고 방향 도식. 기존 tray rack 전체 재제작은 불필요하다.</li><li>[ ] P2 투척수 후보: 국자·작은 통·발사 key pose; 청소 당번 후보: 걸레·장갑·쓸기 envelope. 채택되지 않은 적의 모델은 만들지 않는다.</li><li>[ ] 공통 신규 후보: 기존 경고 재료로 표현 불가할 때만 소형 위험 패턴 1세트. 새 고해상도 atlas·전체 바닥 교체·보스 리모델링은 제외한다.</li></ul>
+<h4 id="graphics-h-227">6.2 단계별 인수 조건 — 실행 결과 아닌 후속 검수 명세</h4>
+<ul><li>G0 문서 승인: levelmini가 시간·기존 요청 대체·보스 구간 중첩을 확정하고 사용자가 P1/개별 P2 채택·원화를 승인해야 다음 단계로 간다.</li><li>G1 자산 재사용: 기존 모델/팔레트/프랍 중 재사용·추가·미사용을 분리하고 폐기 파셋 구현을 복구하지 않는다[S17].</li><li>G2 실루엣: 배식원=수평 식판, 운반원=어깨 묶음, 투척수=높이 든 국자, 청소원=비스듬한 긴 봉이 회색조·작은 화면·후면에서도 구별되어야 한다.</li><li>G3 충돌: 8종 solid+가마솥의 회전/배치, clutter 비차폐, 열린 문·상부 장식 규칙, 이동/무기/적/투사체 차폐의 일관성을 각각 검증한다.</li><li>G4 가림: 냉장고·후드·랙·가마솥 뒤에서도 공격 예고와 회피 방향이 판독되어야 한다. 점검 카메라·위치·시야 광선·동일 revision 캡처를 남긴다.</li><li>G5 상태: 각 적의 windup/attack/recovery·pause·death·despawn·gameKey 전환·slot generation 재사용을 검증하고 취소된 공격/표식/보상이 재발하지 않아야 한다.</li><li>G6 편성: 신규 적은 기존 요청 대체만 사용하고 150 상한·보스/투사체 예산·큐 안전성·스폰 위치 실패 skip을 유지한다. 새 타입으로 보충/오버타임을 무단 확대하지 않는다.</li><li>G7 Studio: 기존 item/숫자 경로·base 상대 변형·사용자 명시값·Firebase-only를 지키고, 같은 revision의 preview/runtime 결과와 필요한 title 무회귀를 확인한다.</li><li>G8 모바일: 승인한 실제 기기에서 baseline 대비 비용과 판독성을 측정한다. 장식 축소 뒤에도 가마솥 3초 경고·B04 국물/격노·신규 예고를 구분해야 한다.</li><li>G9 진행: Stage3 보스 사망만으로 Stage4, B04 사망만으로 Stage5가 즉시 영구 해금되는지 별도 계정에서 확인한다. 그래픽 성공을 해금 성공으로 대체하지 않는다.</li><li>G10 완료 선언: 모델·런타임·DB 반영·실플레이 PASS는 후속 승인/증거가 있을 때만 선언한다. 현재 완료 범위는 이 상세 기획 문서와 정적 문서 검사뿐이다.</li></ul><details class="raw"><summary>원문 Markdown 대조 보기 · 그래픽 · 신규 좀비</summary><p class="meta">아래 텍스트는 서식 기호·원래 인용 경로까지 보존한 원문입니다. 본문 링크는 이 열람본에 맞게 변환했으며, 아래 원문 경로는 문자 그대로 제시합니다.</p><pre id="raw-graphics"># Escape! zombie school — Stage4 급식실 그래픽 고도화·추가 좀비 상세 기획
+
+- 작성: 2026-10-22 / Three_Mini(threemini) / Kanban `t_7aea070f`.
+- 산출물 성격: DOCUMENT ONLY. 아래 신규 색·크기·시간·편성·구현 후보는 모두 승인 전 제안이며 실제 적용값이 아니다.
+- 기존 등록 전문가를 재사용했다. 신규 작업자·새 타이틀·다른 게임의 미술 체계는 만들지 않는다.
+- 주 기획은 levelmini 소유 `Planner/stage4_advancement_plan_20261022.md`로 연결하되 이 작업에서는 수정하지 않는다.
+- 이 문서와 `Developer/agent_room/stage4_threemini_20261022_receipt.md`만 작성한다. 런타임·DB·테스트·배포·스테이징은 범위 밖이다.
+
+## 1. 사실·요구·제안의 경계와 근거 판본
+- [현행 확인] 기준 작업 디렉터리는 `F:/From_SSD_D_20261005/JungSil/2.Minigame_project/school_survivor-integration`이며 다른 작업자의 dirty 변경이 공존한다.
+- [스냅샷] `Planner/stage1_10_balance_implementation_20261019/stage04.md:1-24,286-288`은 a9 고정판의 설명이지 최신 실행 검증서가 아니다.
+- [스냅샷] a9는 `a9f84bf8e7f22d2b1b1c191f7b23ee2e0e908ff8`; 조회 당시 작업 HEAD는 `6f416d836e355d22a4e348516cca45e194bcc56c`다.
+- [원격 참조] 로컬 보유 `origin/zombie_only`는 `ef9b701ed30a45144937686a5fe1c1eef1ed105c`; fetch 없이 `git show`와 `git diff`로만 읽었다.
+- [한계] 이는 원격 서버의 최신 상태 보증이 아니다. checkout·merge·복원·commit·push를 하지 않았으며 동시 편집 뒤에는 행과 해시를 재확인해야 한다.
+- [현행 확인] 이하 `src/` 표기는 모두 `Developer/r3f_prototype/src/`의 축약이다. 행 번호는 조회한 작업본의 1-based 행이다.
+- [원문 우선] 근거 충돌 시 사용자 명시 요구를 보존하고, 소스 기본값·과거 주석·실효 Firebase 값·후속 제안을 분리한다.
+- [미확인] 이번 작업은 화면 캡처·브라우저·실기기·Firebase 조회를 하지 않았다. 시각 문제는 전부 소스 기반 위험 가설이다.
+
+### 1.1 파일·행 단위 출처
+| 표식 | 실제 파일·행 | 확인한 내용과 한계 |
+|---|---|---|
+| S01 | `Planner/stage1_10_balance_implementation_20261019/stage04.md:13-21,28-35,138-140` | a9 해금·맵 치수·B04 설명; 운영 DB 실효값은 미조회. |
+| S02 | `src/lib/stageConfig.js:96-124,189-203` | 작업본 Stage4 설정과 clear 기반 Stage4/5 판정; 사용자 최신 요구와 불일치. |
+| S03 | `src/components/StageObjects/stageObjectPlacements.js:460-751,754-788,937-950` | 벽면 급식실 배치, 중앙 가마솥 강제 정본, Studio override 소비 경로. |
+| S04 | `src/components/StageObjects/stageObjectColliders.js:24-35,137-183,415-423,466-482` | 가구 8종+가마솥, 물리 충돌·시야 OBB 분리, clutter 제외. |
+| S05 | `src/components/StageObjects/KitchenProps.jsx:1-15,29-50,520-607,709-759` | 4톤 금속·제한 외곽선·트레이/카트/잡동사니 기존 모델. |
+| S06 | `src/components/StageObjects/PressureCauldron.jsx:24-43,94-157` | base scale 0.4, 끓음·흔들림·파편 시각 경로; 피해 반경과 구분 필요. |
+| S07 | `src/lib/stage4PressureCauldronHazard.js:1-8,24-35` | 15초 주기·3초 예고·250ms 폭발 표시·반경 3.2 units. |
+| S08 | `src/components/ZombieMesh.jsx:115-153,569-649,1075-1079` | B04 요리사 팔레트·모자·스카프·앞치마·얼굴·리그; 실제 모델은 이 JSX 분기. |
+| S09 | `src/components/Enemy.jsx:350-354,384-391,1068-1086,1295-1350` | E04/E05 기본 블록, B04 통계/사망/국물 폭발/페이즈 호출. |
+| S10 | `src/lib/chefBossPhase.js:5-23,35-40`; `src/lib/b04SoupBlast.js:1-4,22-25,44-68` | 50%·1000ms 순수 페이즈와 별도의 국물 대폭발 상태. |
+| S11 | `src/components/ClassroomFloor.jsx:7,17-33,52-58` | 백색 세라믹 소스와 정사각 0.8-unit 타일 계약. |
+| S12 | `src/lib/enemyEntityPool.js:3-33,38-48,70-95` | 150 슬롯·타입 코드·generation·typed array; 임의 신규 ID만으로 동작하지 않음. |
+| S13 | `src/components/ZombieInstanceLayer.jsx:26-32,70-78,194-210` | 타입별 instance 부품/가시성/Studio root; ZombieMesh만 수정해서는 일반 적에 반영 불가. |
+| S14 | `src/lib/enemySimulation.js:13-24,301-309`; `src/components/Enemies.jsx:1146-1151,1934-1937` | 일반 적 시뮬레이션·기존 특수 분리 및 보충 경로의 판본 차이. |
+| S15 | `ZOMBIE_E01_STUDIO_TRANSFORM_CONNECTION_CODE.md:9-15,127-173,200-213,363-412,415-492` | 저장 키·숫자 child path·base 상대 변형 연결 원문. |
+| S16 | `src/lib/graphicsStudioConfig.js:890-903`; `src/components/StudioTunedGroup.jsx:257-271,318-332` | 현행 Firebase runtime dataset과 base 합성 계약; 저장 어댑터 거절. |
+| S17 | `Developer/lowpoly_player_b01_b04_faceted_geometry_implementation_2026-08-23.md:10-13,22-44` | 폐기 파셋 복구 금지, 기존 경로 보존, 새 원화·동일 revision 검증 전 적용 금지. |
+
+### 1.2 a9·dirty canonical·origin/zombie_only 대조
+- [확인] Stage4 설정·KitchenProps·배치·콜라이더·ZombieMesh·가마솥 hazard·chefBossPhase·b04SoupBlast는 a9와 현재 작업본이 줄바꿈 정규화 후 같다.
+- [확인] 위 항목 중 stageConfig를 제외한 동일 파일들은 조회한 origin/zombie_only와도 줄바꿈 정규화 후 같다. 바이트 동일성과는 구분한다.
+- [확인] 파일이 a9와 같아도 현재 HEAD 대비 dirty일 수 있다. 이를 ‘변경 없음’ 또는 다른 작업자의 수정이 없다는 뜻으로 쓰지 않는다.
+- [차이] `src/lib/stageConfig.js:192,200-201` 작업본은 stage4Clears/stage3Clears를 사용한다. a9도 같은 판정이다.
+- [차이] origin/zombie_only의 동일 파일 `:190-198`은 이전 stage의 `BossDefeats` 정수 기록을 확인한다. 클리어 이력을 보스 이력으로 역산하지 않는다.
+- [차이] origin/zombie_only `src/components/Enemy.jsx:1088`은 `recordBossDefeat(type)`, 작업본 `:1086`은 인자 없는 호출이다. 데이터 전달 차이를 숨기지 않는다.
+- [차이] 원격 참조 `src/store/useGameStore.js:107,1399-1410`에는 BossDefeats 체크포인트·보스 타입 가드가 있다. DB 영구 반영 성공을 입증한 것은 아니다.
+- [차이] 작업본 `src/components/Enemies.jsx:1936`의 expansion 제외 보충 가드가 a9/원격과 다르다. Stage4를 확장 스테이지로 취급하는 새 설계는 제안하지 않는다.
+- [차이] 작업본 Enemy에는 a9/원격의 마틸다 대시 횟수 가속 경로가 빠져 있다. Stage4 적의 현재 속도·난도를 a9 표 그대로 단정하지 않는다.
+- [현행 한계] stage04.md의 HP·시간·요청 수는 a9 출처다. 이 문서는 실효 HP를 재선언하거나 보충·큐 포함 실제 화면 마릿수를 계산하지 않는다.
+
+## 2. 변경 불가 경험과 기존 시각 정체성
+- [사용자 고정] Stage4 접근은 Stage3 보스 사망만으로 즉시 영구 해금한다. 탈출·퀘스트·시간 경과를 추가 조건으로 붙이지 않는다.
+- [사용자 고정] Stage5 접근은 Stage4 B04 사망만으로 즉시 영구 해금한다. 포탈 진입·런 종료·정산까지 미루지 않는다.
+- [경계] 보스 사망 해금은 탈출 클리어·점수 확정·생존 기록과 별개다. 기존 clear 기록을 보스 처치 증거로 소급 변환하지 않는다.
+- [후속 검증 제안] 이전 보스만 처치→탈출 전 로비→재접속, 포탈만 탈출, 시간만 경과, 퀘스트만 완료를 각각 분리한다. 이번 실행 결과는 아니다.
+- [기존 정체성] 백색/냉회색 세라믹 바닥, 4단 스테인리스 가구, 식재료의 작은 원색, 블록형 툰과 어두운 선택 외곽선이 급식실 기반이다[S05,S11].
+- [기존 정체성] 북쪽 쿡라인·후드, 냉장고, 싱크대와 벽면 배식/수납 소품, 중앙 압력 가마솥이 주방의 장소성을 만든다[S03].
+- [기존 정체성] B04는 높은 흰 요리사 모자·녹색 얼굴·붉은 목수건·앞치마·체크 바지의 주방장이다. 새 보스로 교체하지 않는다[S08].
+- [기존 모델] 조리대, 쿡라인, 싱크대, 냉장고, 트레이랙, 선반카트, 쓰레기통, 상자더미의 solid 8종을 유지한다[S04].
+- [별도 모델] 중앙 pressureCauldron은 가구 8종 밖의 추가 고정 랜드마크다. kitchenClutter는 통과 가능 소품이며 solid로 승격하지 않는다.
+- [배치 고정] 중앙 가마솥은 `[0,0,0]` 한 기이며 과거 중앙 조리대 ID 제거·주입 로직을 보존한다. 새 가구로 순환 회피 공간을 채우지 않는다[S03].
+- [치수 경계] 기본 맵은 가로 18.72 units/4.68 blocks, 세로 32 units/8 blocks다[S01]. 실제 override 배치는 미확인이다.
+- [단위 계약] 이 문서의 크기는 최종 월드 치수이며 1 block=4 world units다. 모델 로컬 값·ENEMY_SIZE_MULTIPLIER·Studio scale로 중복 확대하지 않는다.
+- [위험 가설] 흰 가운·흰 바닥·은색 트레이의 명도 중첩으로 적/가구 경계가 약해질 수 있다. 현재 스크린샷에서 관찰했다는 주장이 아니다.
+- [위험 가설] 냉장고·후드·트레이랙의 높은 실루엣이 사선 카메라에서 적의 예고 동작을 가릴 수 있다. 실제 카메라 광선으로 확인해야 한다.
+- [위험 가설] 잡동사니 색/윤곽을 증폭하면 바닥 공격 표식과 경쟁하고 이동 불가 장애물처럼 오인될 수 있다. 배경 디테일 추가보다 의미 구분을 우선한다.
+- [문서 충돌] placements `:461`의 ‘전부 시각 전용’ 주석은 현행 collider 집합·중앙 blocking=true와 모순된다. 주석만 따라 전체 비충돌로 기획하지 않는다.
+
+## 3. 그래픽 개선 명세 — 모두 승인 전 제안
+### 3.1 팔레트·재질 제안표
+| 역할 | 제안 HEX | 사용 규칙 |
+|---|---|---|
+| 바닥 밝은 면 / 줄눈 | `#E8ECEA` / `#A8B4B0` | 기존 ceramic 텍스처 유지 우선, 줄눈보다 위험 경계가 강해야 함. |
+| 벽 바탕 / 낮은 위생 띠 | `#DCE7E2` / `#527D73` | 기존 주방 맥락의 저채도 면 분리; 이동 안내를 안전 보장처럼 쓰지 않음. |
+| 금속 상판 / 패널 | `#F2F5F7` / `#D7DDE1` | 기존 S05와 같은 HEX를 제안 유지값으로 사용; 재질 시스템 교체 없음. |
+| 금속 프레임 / 암부 | `#A9AFB3` / `#34383B` | 기존 4톤 분리 유지 제안; 실시간 반사·굴절 추가 금지. |
+| 캐릭터·가구 외곽 | `#050209` | 기존 선택 외곽선 유지 제안; 장면 전체 후처리 outline 신설 제외. |
+| 비공격 길찾기 표식 | `#5C8E88` | 가는 직선/모서리 형태, 공격 원형·부채꼴과 형태 분리. |
+| 공격 예고 / 발동 핵심 | `#F2B544` / `#D9533F` | 예고는 테두리·해칭, 발동은 짧은 중심 변화; 색만으로 판단하지 않음. |
+| 국물 투사체 / 밝은 심 | `#D88936` / `#FFE1A3` | 가마솥·B04 음식 계열 통일, 보상 코인처럼 지속 회전시키지 않음. |
+| P1 배식원 앞치마 / 피부 | `#355F68` / `#86A66C` | 넓고 어두운 몸통과 수평 은색 트레이를 기본 식별자로 사용. |
+| P2 식판 운반원 / 국자 투척수 | `#8C603E` / `#6C668A` | 장비 형상 차이가 주 식별자, 색은 보조. |
+| P2 청소원 장갑 / 바닥 잔여물 | `#C8A544` / `#6F8C7A` | 잔여물은 가장자리 얼룩에 한정, 무해한 얼룩에 공격색 금지. |
+- [재질 제안] 기존 toon material·공유 geometry/material cache를 우선한다. stainless라는 이름을 PBR metalness·반사 캡처 도입 승인으로 해석하지 않는다.
+- [재질 제안] 금속은 상판·패널·다리 명도 차이로, 천은 넓은 단색 면으로 읽힌다. 미세 노멀·투명 유리·천 물리는 추가하지 않는다.
+- [보존] 이 표는 사용자 Studio 입력을 덮어쓸 기본 프리셋이 아니다. 명시된 사용자 색·크기·위치·회전·외곽선 값은 불변이다.
+
+### 3.2 바닥·동선·장애물
+- [제안] 기존 tile_stage04_white_ceramic.webp와 0.8-unit 정사각 반복을 유지한다. 타일은 0.2 blocks이며 블록 좌표 한 칸과 혼동하지 않는다[S11].
+- [제안] 중앙 가마솥 외곽 회피 공간→동서 우회→북쪽 주방 설비의 읽기 순서를 만든다. 새 미로·식탁 군집·맵 크기 변경은 하지 않는다.
+- [제안] 길찾기 색은 벽쪽 낮은 띠·코너 표식에 제한한다. 가마솥 폭발 반경 안에 영구 ‘안전’ 표시를 두지 않는다.
+- [제안] 조리대·수납 가구는 하단 접지 음영/기존 어두운 프레임으로 solid임을 알린다. 빈 트레이·봉지·냄비는 낮고 비강조로 통과 가능성을 전달한다.
+- [제안] 냉장고 열린 문은 현행 몸통 collider 제외 규칙을 바꾸지 않는다. 문짝 외형을 새 충돌벽처럼 강조하지 않는다[S04].
+- [제안] 쿡라인 후드·싱크 수전은 높이 장식이며 하부 collider와 구별한다. 위로 튀어나온 장식을 지상 공격의 차폐물로 단정하지 않는다.
+- [제안] 회전 프랍은 기존 OBB 소비를 기준으로 검토한다. 시각 크기 확대만으로 보이지 않는 AABB 모서리 안전지대/끼임을 만들지 않는다.
+- [수용 제안] 남쪽 시작점·학생 퀘스트 표적·자판기 접근·가마솥 양측 우회는 서로 다른 경로로 확인한다. 현재 통행 검증 PASS로 표기하지 않는다.
+- [수용 제안] 장식물이 공격 경고를 가리면 우선 장식의 위치/강조를 재검토한다. 모든 적을 벽 너머 표시하거나 카메라를 전면 교체하는 해법은 제외한다.
+
+### 3.3 중앙 압력 가마솥과 B04 공격 시각
+- [고정] 가마솥은 15s 주기·3s 예고·반경 3.2 units/0.8 blocks 폭발을 유지한다. 시각 개선을 이유로 판정·주기·원점을 바꾸지 않는다[S07].
+- [제안] 예고 동안 바닥 반경 경계+압력계 방향 변화+뚜껑 진동을 함께 사용한다. 기존 끓음·흔들림 경로를 재사용하고 새 대형 연기벽은 만들지 않는다.
+- [제안] 경계는 판정의 월드 반경에 정렬한다. base scale 0.4·Studio transform 때문에 링을 재차 축소/확대하는 위험을 별도로 점검한다[S06].
+- [제안] 발동은 짧은 저층 링/국물 파편으로 읽고 증기는 위로 분산한다. 파편 비행 거리 전체가 피해 거리라는 인상을 주지 않는다.
+- [고정] B04는 기존 chef이며 HP 50% 이하 전환·1000ms 페이즈 상수를 유지한다. 새 모자·거대 솥 갑옷·다른 얼굴로 교체하지 않는다[S08-S10].
+- [주의] 실제 Stage4 Enemy는 별도 국물 대폭발을 먼저 소비하고 done에서 phase2로 진입한다. ‘50% 뒤 정확히 1000ms만에 돌진’이라고 총연출 시간을 단정하지 않는다[S09].
+- [제안] 국물 대폭발의 세 원 후보/1.1 units/0.275 blocks 반경·1200ms 예고·250ms 발동은 기존 별도 공격으로 보존한다[S10].
+- [제안] 가마솥 원은 동심 압력 눈금, B04 국물 원은 분절된 그릇 테두리로 구별한다. 동일 노랑/주황 계열이어도 출처를 형상으로 식별한다.
+- [제안] B04 포격은 팔/상체 준비→투사체→착탄, 격노는 모자/몸통 포즈→진행 방향으로 읽히게 한다. 피해 flash와 분노 예고를 같은 지속 흰색으로 쓰지 않는다.
+- [제안] 격노 전환·가마솥 마지막 예고가 겹치면 신규 적 예고 시작을 유예한다. 기존 보스/가마솥 피해 창 자체를 지연·삭제하지 않는다.
+- [수용 제안] 경고의 시작·최대 범위·발동·종료를 프레임 단위로 대조하고 일시정지/사망/런 전환 뒤 잔존 VFX가 없어야 한다. 이번에는 실행하지 않았다.
+
+### 3.4 모바일 판독·가림·비용
+- [제안] 모바일 검토 화면은 360×640 및 가로 전환을 포함한다. 이는 검수 조건 제안이며 현재 지원 해상도 실측 주장이 아니다.
+- [제안] 적의 머리 장비·손 장비·상체 폭 중 두 가지로 식별하게 하고, 미세 글자·표정 텍스처만으로 역할을 전달하지 않는다.
+- [제안] 기본·예고·공격·회복을 무음/회색조에서도 구별한다. 점멸 대신 자세 고정·외곽 형태·방향 지시를 우선한다.
+- [제안] 실제 카메라와 모델 중심을 잇는 광선 기준으로 냉장고 뒤·남벽·가마솥 뒤 시야를 확인한다. 월드 +Z 정면만 보고 합격시키지 않는다.
+- [제안] 최소 기기에서 기존 baseline 대비 CPU/GPU frame time·draw call·texture memory를 측정한 뒤 예산을 승인한다. 미측정 FPS나 절대 성능 PASS를 쓰지 않는다.
+- [제안] 품질 저하는 미세 병/음식·파편 수→장식 음영 순서로 줄이고, 적 실루엣·공격 방향·피해 경계는 마지막까지 유지한다.
+- [제안] 신규 실시간 그림자·화면 전체 outline·bloom·굴절·새 전역 조명을 기본 범위에서 제외한다. 기존 가구당 선택 외곽선 제한을 유지한다[S05].
+
+## 4. 신규 좀비 범위와 공통 구현 계약
+- [권장 P1] 급식 배식원 1종만 우선 추천한다. 기존 일반 근접 적 계열을 바탕으로 실루엣/짧은 공격 준비를 읽히게 하는 최소 slice다.
+- [선택 P2] 식판 운반원·국자 투척수·청소 당번 3종은 독립 선택지다. 셋 동시 투입이나 P1 필수 종속 조건이 아니다.
+- [미등록] `C4_SERVE`, `C4_TRAY`, `C4_LADLE`, `C4_MOP`는 문서용 가칭이다. 이미 등록된 enemy ID·DB 키·Studio item ID라고 주장하지 않는다.
+- [범위] HP·공격력·속도·경험치·전역 배율은 여기서 새 숫자로 정하지 않는다. 기존 스탯/실효값 확인 후 levelmini·balanceqa가 승인할 후속 항목이다.
+- [편성 제안] 신규 개체는 기존 일반 요청 일부를 대체한다. 전역 150 상한·큐·보충·보스 예약을 늘리는 추가 물량 해법은 금지한다[S12,S14].
+- [공통 제안] spawn reveal→approach→windup→attack→recovery→approach, 어느 상태에서든 death/cancel→cleanup의 단방향 종료를 가진다.
+- [공통 제안] 경고 중 사망·런 종료·일시정지는 타이머/피해/표식을 함께 정리한다. 적 시계와 벽시계를 혼용해 화면 밖 예고를 소모하지 않는다.
+- [공통 제안] generation 포함 슬롯 손잡이를 사용하고 재사용 때 방향 잠금·피해 소비·표식 소유자·attack timer를 모두 초기화한다[S12].
+- [공통 제안] 신규 일반 적을 Enemy.jsx 개별 React/Rapier body로 우회 증설하지 않는다. 일반 pool·instance 경로에서 가능한 범위를 먼저 검토한다.
+- [공통 제안] E01/E04/E05의 전역 외형·공격을 바꾸지 않는다. Stage4 가칭 variant와 전용 등록이 필요하면 기존 숫자 코드 충돌·확장 타입 충돌부터 검토한다.
+- [주의] ENEMY_STATS 또는 ZombieMesh 분기만 추가하는 것은 불충분하다. 타입 표·simulation·instance 부품·Studio 연결·스폰·정리까지 한 slice여야 한다[S12-S14].
+
+### 4.1 P1 권장 — 급식 배식원 `C4_SERVE`
+- [목적 제안] 중앙 회피를 방해하는 탱커 대신 ‘준비 동작을 보고 옆으로 빠지는’ 저복잡도 근접 역할로 급식실 전용 인상을 만든다.
+- [실루엣 제안] 낮은 위생모, 어두운 넓은 앞치마, 양손의 가로 식판, 신발 두 덩어리. B04의 높은 요리사 모자·붉은 스카프는 사용하지 않는다.
+- [부품 제안] 기존 일반형 head/body/armL/armR/legL/legR 유지 기반에 위생모·앞치마·식판을 별도 부품 후보로 설계한다. 기존 E01 child 순서를 건드리지 않는다.
+- [크기 제안] 최종 높이 1.2 units/0.3 blocks, 최대 폭 0.9/0.225, 깊이 0.7/0.175. 식판 포함 envelope이며 현재 모델 실측값이 아니다.
+- [충돌 제안] 몸통 수평 반경 후보 0.3 units/0.075 blocks; 식판 끝은 피격 몸통을 늘리지 않고 별도 공격 envelope로 정의한다.
+- [재사용 제안] 일반 좀비 리그·toon palette 구조, KitchenProps의 CafeteriaFoodTray 형태를 참조한다. 비공개 helper를 무리하게 import하지 않고 공유 여부는 후속 검토한다.
+- [상태 제안] reveal 후 다리를 짧게 번갈아 이동→사거리 진입 시 정지→식판을 가슴 앞에 당김→앞으로 밀기→팔을 내리고 빈틈 노출→재추적.
+- [시간 제안] windup 700ms, attack 180ms, recovery 900ms. 예고 시작 때 방향을 잠그고 발동 직전 플레이어 쪽으로 순간 회전하지 않는다.
+- [판정 제안] 전방 1.1 units/0.275 blocks 이내의 짧은 부채꼴; windup/recovery에는 새 공격 피해를 주지 않는다. 접촉 피해 중복 정책은 별도 승인한다.
+- [대응 제안] 옆으로 이동하거나 가구 뒤로 빠진다. 막힌 경로에서 식판이 가구를 관통해 피해를 주지 않고 회복 상태로 돌아가야 한다.
+- [편성 제안] 보스 전 소개 구간 30~90초 후보에서 기존 근접 요청 하나를 대체, 동시 최대 2체 후보. 실제 spawn clock과 reveal 안전조건은 levelmini가 확정한다.
+- [중첩 제안] 가마솥 3초 예고 중 새 windup 시작 금지, B04 국물/격노 전환 중 신규 생성 보류. 기존 enemy total/큐를 우회하지 않는다.
+- [pool 제안] 일반 melee 슬롯을 이용하되 타이머·전방 잠금·공격 1회 소비 상태를 명시한다. 준비/회복 기능 미지원이면 단순 외형 variant부터 승인받는다.
+- [구현 후보] `src/lib/enemyEntityPool.js`, `src/lib/enemySimulation.js`, `src/components/ZombieInstanceLayer.jsx`, `src/components/PooledEnemyVisuals.js`의 전용 variant 경로.
+- [연결 후보] `src/components/Enemies.jsx`, `src/lib/burstEvents.js`, `src/lib/graphicsStudioConfig.js`; 스탯 정의가 필요하면 `src/components/Enemy.jsx`와 pool 정의의 정합성만 함께 검토한다.
+- [개별 수용 제안] 회색조·후면에서도 낮은 모자+가로 식판으로 식별, 바닥과 앞치마 분리, 경고 방향 고정, 가구 차폐, 취소 후 무피해·무표식·무보상 중복을 확인한다.
+- [P1 보류 기준] 전역 E01 변경·새 개별 물리 body·전역 스탯 상승이 필요해지면 확대하지 않고 slice를 재설계한다. 사용자 원화 승인 전 실제 모델 제작은 시작하지 않는다.
+
+### 4.2 P2 선택 — 식판 운반원 `C4_TRAY`
+- [목적 제안] 느린 몸통 방패가 아니라 식판을 묶어 들고 짧게 직진하는 방향형 적이다. 보스의 긴 돌진보다 짧고 명확한 빈틈을 가진다.
+- [실루엣 제안] 한쪽 어깨 위 비대칭 식판 묶음, 낮은 사각 머리, 갈색 앞치마, 넓은 발. 이동 카트 전체를 장착하지 않아 가구와 구별한다.
+- [부품 제안] 일반 리그·트레이 묶음·한쪽 어깨 받침·두꺼운 장갑. 기존 rolling tray rack 전체를 적 collider로 복제하지 않는다.
+- [크기 제안] 높이 1.35 units/0.3375 blocks, 폭 0.8/0.2, 깊이 0.65/0.1625; 수평 몸통 반경 후보 0.32/0.08.
+- [애니메이션 제안] approach의 흔들리는 식판→한 발 뒤로 디딤→windup 동안 식판 수평 고정→짧은 직진→상체 숙여 균형 회복→approach.
+- [시간 제안] windup 900ms, attack 최대 600ms, recovery 1200ms. 돌진 도중 방향 재조준·추가 회전은 없다.
+- [공격 제안] 이동 길이 상한 2.4 units/0.6 blocks의 짧은 직선; 기존 charge 충돌·정지 소비 경로를 재사용 가능한지 먼저 확인한다.
+- [대응 제안] 옆으로 회피하거나 solid 뒤로 유도한다. 충돌 즉시 회복, 벽을 밀며 접촉 피해를 연속 적립하지 않는다.
+- [편성 제안] 90~140초 후보에서 기존 charger 요청 하나를 대체, 동시 최대 1체 후보; P1과 더해 개체 수를 증가시키지 않는다.
+- [호환 제안] B04 phase2 중 생성 제외를 기본 후보로 둔다. 기존 생존 개체를 갑자기 삭제하지 않으며 적힌 시간은 실제 웨이브가 아니다.
+- [pool 제안] E05 계열 state 소비를 참조하되 E05 전역 warn/charge 상수를 바꾸지 않는다. 슬롯별 거리 상한·벽 충돌·취소 상태가 없으면 P2 보류한다.
+- [구현 후보] `src/lib/enemySimulation.js`, `src/components/ZombieInstanceLayer.jsx`, `src/components/PooledEnemyVisuals.js`, `src/lib/enemyEntityPool.js`, `src/lib/burstEvents.js`.
+- [개별 수용 제안] 선회 끝과 방향 표식 일치, solid 충돌 시 중지, 식판 장식과 몸통 피격 구분, generation 재사용 뒤 이전 돌진 소멸을 확인한다.
+- [신규 자산 제안] 기존 트레이 형태를 재사용한 어깨 묶음과 장갑만 추가 후보다. 방패 면역·전면 피해 감소·추가 장비 파괴 시스템은 제외한다.
+
+### 4.3 P2 선택 — 국자 투척수 `C4_LADLE`
+- [목적 제안] E04 원거리 역할의 급식실 해석이다. 무한 장판을 까는 신종이 아니라 눈에 보이는 단발 음식 투사체로 제한한다.
+- [실루엣 제안] 한 손의 긴 국자, 반대 손의 작은 통, 낮은 두건·보라회색 앞치마. B04보다 작은 머리 장비로 계층을 보존한다.
+- [부품 제안] 일반 리그·국자 손잡이/볼·작은 통·두건. KitchenClutter 냄비와 기존 음식 투사체 외형을 우선 참조한다.
+- [크기 제안] 높이 1.1 units/0.275 blocks, 장비 포함 폭 0.75/0.1875, 깊이 0.6/0.15; 몸통 반경 후보 0.28/0.07.
+- [애니메이션 제안] 거리 유지→투사 방향 고정→국자를 어깨 위로 올림→한 번 내리며 발사→빈 국자를 낮추고 회복→거리 유지.
+- [시간 제안] windup 1000ms, attack 150ms, recovery 1100ms. 발사 취소 때 투사체 생성 이벤트도 함께 취소한다.
+- [공격 제안] 사거리 상한 후보 4 units/1 block의 단발; 폭발·지속 바닥 피해·느려짐은 없음. 수치상 피해/속도는 기존 실효값 확인 후 별도 승인한다.
+- [대응 제안] 예고 때 측면 이동 또는 solid 뒤로 이동한다. LOS가 막히면 발사하지 않고 기존 회피/재탐색 규칙을 따른다.
+- [편성 제안] 60~140초 후보의 기존 E04 요청 하나를 대체, 동시 최대 1체; P1과 독립적으로 선택 가능하다.
+- [중첩 제안] B04 국물 예고·가마솥 마지막 3초 동안 새 발사 예고를 시작하지 않는다. 이미 발사된 투사체를 무통보 삭제하는 방식은 피한다.
+- [pool 제안] E04 simulation·projectile pool·원거리 상한을 공유해야 한다. 새 투사체 pool로 기존 총량 제한을 우회하거나 무제한 타이머를 만들지 않는다.
+- [구현 후보] `src/lib/enemySimulation.js`, `src/components/Enemies.jsx`, `src/components/ZombieInstanceLayer.jsx`, `src/lib/enemyEntityPool.js`, `src/lib/burstEvents.js`.
+- [개별 수용 제안] 투사체 출발점과 국자 끝이 정렬되고, 벽/가구 차폐·비공격 clutter 통과·발사 1회·사망 취소·가마솥 경고 우선순위를 확인한다.
+- [신규 자산 제안] 국자/작은 통만 추가 후보; B04 얼굴·모자·전용 국물 대폭발을 복제하거나 보스 전용 연출을 일반 적에게 배포하지 않는다.
+
+### 4.4 P2 선택 — 청소 당번 `C4_MOP`
+- [목적 제안] 바닥을 영구 변경하는 장판형이 아니라, 긴 걸레로 짧은 정면 쓸기를 수행하는 중거리 근접 역할이다.
+- [실루엣 제안] 얇은 세로 몸통·비스듬한 긴 걸레·노란 고무장갑·작은 허리 양동이. 냉장고/선반 같은 직사각형 대형 실루엣을 피한다.
+- [부품 제안] 일반 리그·걸레 봉/끝·양동이·장갑; 기존 통/잡동사니 형태와 toon 공유 재질을 우선 재사용한다.
+- [크기 제안] 높이 1.2 units/0.3 blocks, 걸레 포함 폭 0.9/0.225, 깊이 0.7/0.175; 몸통 반경 후보 0.28/0.07.
+- [애니메이션 제안] 끌고 걷기→두 손으로 봉을 가로 잡음→정면 낮은 쓸기→걸레를 회수하며 고개 숙임→걷기; 전 구간 장비 pivot을 명시한다.
+- [시간 제안] windup 900ms, attack 250ms, recovery 1100ms; 예고 이후 회전 잠금으로 추적형 즉발 광역화를 막는다.
+- [공격 제안] 전방 1.6 units/0.4 blocks 이내 낮은 부채꼴, 1회 피해 소비. 잔여 얼룩은 무해한 장식이며 둔화·미끄러짐·추가 collider 없음.
+- [대응 제안] 뒤/옆으로 빠지거나 solid로 공격선을 끊는다. 걸레가 벽 너머로 보이더라도 반대편 플레이어를 맞히지 않는다.
+- [편성 제안] 90~140초 후보에서 기존 근접 요청 하나를 대체, 동시 최대 1체; 다른 P2와 동시 채택은 별도 검토다.
+- [중첩 제안] 가마솥 3초 경고·B04 격노/국물 경고에는 새 windup을 보류한다. 안전 통로를 걸레 장판으로 봉쇄하는 후속 확장은 제외한다.
+- [pool 제안] 짧은 melee envelope를 공통화할 수 있을 때만 도입하며 개체별 임의 physics sensor·매 프레임 React state를 추가하지 않는다.
+- [구현 후보] `src/lib/enemySimulation.js`, `src/components/PooledEnemyVisuals.js`, `src/components/ZombieInstanceLayer.jsx`, `src/lib/enemyEntityPool.js`, `src/lib/burstEvents.js`.
+- [개별 수용 제안] 긴 봉 장식 때문에 몸통 피격이 커지지 않고, 경고 envelope·실제 쓸기·피해 영역이 일치하며, 얼룩이 경고 링과 혼동되지 않아야 한다.
+- [신규 자산 제안] 걸레 끝·봉·장갑만 신규 후보다. 물 시뮬레이션·동적 바닥 shader·전역 이동 제어·새 상태이상은 추가하지 않는다.
+
+## 5. Studio 연결과 사용자 명시값 불변
+- [선독 완료] 기준 문서는 루트 `ZOMBIE_E01_STUDIO_TRANSFORM_CONNECTION_CODE.md` 전체다. 연구 폴더 사본만 보고 다른 변형 방식을 제안하지 않는다.
+- [기존 계약] E01 item ID는 zombie-e01, 저장 키는 `zombie-e01::part::&lt;숫자 경로&gt;`이며 기존 E01에 studioPartId를 새로 주입하지 않는다[S15].
+- [기존 계약] 기존 child index·part/group 키·리그 pivot·fill/outline 계층을 보존한다. P1 부품을 기존 E01 트리에 끼워 저장 경로를 이동시키지 않는다.
+- [기존 계약] position/rotation은 최초 base에 offset을 더하고 scale은 base에 multiplier를 곱한다. 0/1/0 재입력은 base 복귀이며 새 절대 transform 경로로 대체하지 않는다[S15,S16].
+- [보존] 애니메이션과 사용자 튜닝을 함께 소비하는 기존 계약을 따른다. idle 복귀·hit flash·outline 조정 때문에 사용자 위치/회전/크기를 재설정하지 않는다.
+- [현행 우선] E01 연결 원문의 과거 localStorage 저장 예시는 구조 참고용이다. 현재 영속화는 Firebase-only이며 storage adapter는 오류로 거절된다[S16].
+- [금지] localStorage·파일 프리셋·별도 DB를 Studio 영속화 대안으로 제안하지 않는다. 메모리 runtime dataset을 새 영구 저장소라고 표현하지 않는다.
+- [사용자 불변] 명시된 수치·색·배치·얼굴·데칼을 ‘자동 최적화’하거나 현재 DB 미조회 상태에서 보정·마이그레이션·seed하지 않는다.
+- [신규 연결 제안] 새 타입 채택 시 item ID·부품 트리·선택 경로를 먼저 문서 승인하고, 기존 transform 연결을 그대로 소비하는 preview/instance 대응만 검토한다.
+- [수용 제안] 같은 Firebase revision에서 game·Studio·title의 해당 사용 화면을 비교한다. 새 적이 title 대상이 아니면 억지 노출하지 말고 기존 title 무회귀로 검증한다.
+- [접근 금지] Three_Mini는 GraphicsStudio.jsx를 수정·포맷·복원·우회 위임하지 않는다. 필요성이 생기면 담당자에게 보고하고 해당 구현을 중단한다.
+
+## 6. 기존 자산·신규 필요물·승인 게이트
+### 6.1 자산 체크리스트
+- [x] 기존 바닥: `src/assets/background_floor/tile_stage04_white_ceramic.webp` 연결 확인[S11]; 원본 후보 `Graphic_designer/graphic_asset/background_floor/4stage/stage_4_tile.png` 존재 확인.
+- [x] 기존 프랍 원화: `Graphic_designer/graphic_asset/background_floor/4stage/stage4_prop.png` 존재 확인; 이번 작업에서 새 원화 생성·이미지 내용 판독은 하지 않음.
+- [x] 기존 8종 가구·잡동사니·가마솥·StudioTunedGroup 래퍼는 실제 JSX로 확인[S03-S06]. 별도 새 주방 모델 패키지 요구 없음.
+- [x] 기존 B04는 `src/components/ZombieMesh.jsx`의 chef 모델 및 `src/assets/faces/b04_chef_boss_face.webp` import 경로[S08]; `Enemy/B04`라는 가상 신규 파일을 만들어 설명하지 않음.
+- [x] 기존 일반 pool·instance·charge cue·음식 투사체 소비 경로를 참조했다. 기존 helper 참조가 곧 재사용 가능한 공개 API라는 뜻은 아니다.
+- [ ] P1 신규 필요 후보: 승인된 배식원 정/측/후면 원화, 위생모·앞치마·식판 조합 도식, state별 key pose·방향 envelope, 부품 연결 명세.
+- [ ] P2 운반원 후보: 어깨 식판 묶음·장갑·경고 방향 도식. 기존 tray rack 전체 재제작은 불필요하다.
+- [ ] P2 투척수 후보: 국자·작은 통·발사 key pose; 청소 당번 후보: 걸레·장갑·쓸기 envelope. 채택되지 않은 적의 모델은 만들지 않는다.
+- [ ] 공통 신규 후보: 기존 경고 재료로 표현 불가할 때만 소형 위험 패턴 1세트. 새 고해상도 atlas·전체 바닥 교체·보스 리모델링은 제외한다.
+
+### 6.2 단계별 인수 조건 — 실행 결과 아닌 후속 검수 명세
+- G0 문서 승인: levelmini가 시간·기존 요청 대체·보스 구간 중첩을 확정하고 사용자가 P1/개별 P2 채택·원화를 승인해야 다음 단계로 간다.
+- G1 자산 재사용: 기존 모델/팔레트/프랍 중 재사용·추가·미사용을 분리하고 폐기 파셋 구현을 복구하지 않는다[S17].
+- G2 실루엣: 배식원=수평 식판, 운반원=어깨 묶음, 투척수=높이 든 국자, 청소원=비스듬한 긴 봉이 회색조·작은 화면·후면에서도 구별되어야 한다.
+- G3 충돌: 8종 solid+가마솥의 회전/배치, clutter 비차폐, 열린 문·상부 장식 규칙, 이동/무기/적/투사체 차폐의 일관성을 각각 검증한다.
+- G4 가림: 냉장고·후드·랙·가마솥 뒤에서도 공격 예고와 회피 방향이 판독되어야 한다. 점검 카메라·위치·시야 광선·동일 revision 캡처를 남긴다.
+- G5 상태: 각 적의 windup/attack/recovery·pause·death·despawn·gameKey 전환·slot generation 재사용을 검증하고 취소된 공격/표식/보상이 재발하지 않아야 한다.
+- G6 편성: 신규 적은 기존 요청 대체만 사용하고 150 상한·보스/투사체 예산·큐 안전성·스폰 위치 실패 skip을 유지한다. 새 타입으로 보충/오버타임을 무단 확대하지 않는다.
+- G7 Studio: 기존 item/숫자 경로·base 상대 변형·사용자 명시값·Firebase-only를 지키고, 같은 revision의 preview/runtime 결과와 필요한 title 무회귀를 확인한다.
+- G8 모바일: 승인한 실제 기기에서 baseline 대비 비용과 판독성을 측정한다. 장식 축소 뒤에도 가마솥 3초 경고·B04 국물/격노·신규 예고를 구분해야 한다.
+- G9 진행: Stage3 보스 사망만으로 Stage4, B04 사망만으로 Stage5가 즉시 영구 해금되는지 별도 계정에서 확인한다. 그래픽 성공을 해금 성공으로 대체하지 않는다.
+- G10 완료 선언: 모델·런타임·DB 반영·실플레이 PASS는 후속 승인/증거가 있을 때만 선언한다. 현재 완료 범위는 이 상세 기획 문서와 정적 문서 검사뿐이다.
+</pre></details></section><section class="doc" id="audio"><header class="doc-head"><p class="eyebrow">FULL DOCUMENT</p><h2>오디오 · 피드백 · 전체 원문</h2><p class="meta">출처: <a href="#audio">Planner/stage4_audio_feedback_plan_20261022.md</a><br>입력 SHA-256: <code>f2a4ba3078c802067f2052cdb1ad121f00b84d5b651f861b035e12ac9a01f9b0</code></p></header><h2 id="audio-h-1">Stage 4 급식실 — 오디오·피드백 고도화 제안</h2>
+<p>작성일: 2026-10-22 · 담당: soundmini · Kanban: <code>t_c2fa04cc</code></p>
+<p>상태: DOCUMENT ONLY. 현재 구현의 정적 관찰과 미승인 <code>PROPOSAL</code>을 구분한 완성 기획서이며 구현 지시·승인서가 아니다.</p>
+<p>상위 종합 기획은 levelmini 소유 <a href="#plan"><code>Planner/stage4_advancement_plan_20261022.md</code></a>이며 이 작업에서 편집하지 않았다.</p>
+<h3 id="audio-h-7">1. 범위와 진행 조건</h3>
+<ul><li>사용자 확정: Stage 4 입장은 Stage 3 보스 사망만으로 즉시 영구 해금한다.</li><li>사용자 확정: Stage 5 입장은 Stage 4 보스 사망만으로 즉시 영구 해금한다.</li><li>탈출·경과 시간·퀘스트·징글 재생 성공은 추가 해금 조건이 아니다. 보스 처치와 포탈 클리어는 별개 사건이다.</li><li>PROPOSAL: 해금 피드백은 확정된 보스 사망/진행 이벤트를 관찰할 뿐, 오디오 완료 콜백으로 저장·진행을 제어하지 않는다.</li><li>이번 변경은 본 문서와 전용 receipt뿐이다. 런타임·DB·브라우저·테스트·배포·에셋 생성·타이틀 변경은 하지 않는다.</li><li>타이틀 BGM <code>Developer/r3f_prototype/src/assets/audio/title_bgm.m4a</code>와 그 재생 경로·설정은 전면 보존한다.</li><li>아래 새 큐·신규 적·음량·반복 제어는 모두 PROPOSAL이며 오너의 기존 확정값을 대체하지 않는다.</li></ul>
+<h3 id="audio-h-16">2. 근거 시점과 읽는 법</h3>
+<ul><li>저장소 정본 작업 경로: <code>F:/From_SSD_D_20261005/JungSil/2.Minigame_project/school_survivor-integration</code>.</li><li>아래 <code>SRC/</code>는 <code>Developer/r3f_prototype/src/</code>, <code>SFX/</code>는 <code>Developer/r3f_prototype/public/sfx/</code>의 정확한 접두어다.</li><li>a9 스냅샷: <code>Planner/stage1_10_balance_implementation_20261019/stage04.md:3</code>의 <code>a9f84bf8e7f22d2b1b1c191f7b23ee2e0e908ff8</code>.</li><li>이 스냅샷은 별도 release 경로의 고정 추출 설명이다. 현재 dirty 작업본이나 운영 배포 상태와 동일하다고 보지 않는다.</li><li>조사 시 HEAD는 <code>6f416d836e355d22a4e348516cca45e194bcc56c</code>, 로컬 추적 origin은 <code>ef9b701ed30a45144937686a5fe1c1eef1ed105c</code>다.</li><li><code>origin/zombie_only</code>는 이미 보유한 로컬 참조만 <code>git show</code>/<code>git diff</code>로 읽었다. fetch하지 않아 서버 최신 여부는 미확인이다.</li><li>작업본은 여러 작업자의 변경이 섞여 있다. 아래 줄 번호는 조사 시점 기준이며 타인의 변경을 복원·정리하지 않는다.</li></ul>
+<div class="table-wrap" tabindex="0" role="region" aria-label="가로 스크롤 가능한 원문 표"><table><thead><tr><th scope="col">근거</th><th scope="col">정확한 위치</th><th scope="col">관찰·해석</th></tr></thead><tbody><tr><td>a9 기본 진행</td><td><code>Planner/stage1_10_balance_implementation_20261019/stage04.md:9-24,267-288</code></td><td>clear 기반 구현과 보스 사망 해금 요구를 이미 분리함</td></tr><tr><td>a9 보스·버스트</td><td>같은 문서 <code>:45-80,106-142</code></td><td>B04 명시 등장 150초, HP 절반에서 국물 대폭발 설명</td></tr><tr><td>현행 Stage 4</td><td><code>SRC/lib/stageConfig.js:96-126,189-203</code></td><td>급식실 경계·시각 필드 유지, 입장은 여전히 stage3Clears 참조</td></tr><tr><td>현행 Stage 5</td><td><code>SRC/lib/stageConfig.js:189-202</code></td><td>stage4Clears 참조이므로 사용자 확정 진행 조건과 불일치</td></tr><tr><td>origin 해금</td><td><code>origin/zombie_only:SRC/lib/stageConfig.js:190-198</code></td><td>실제 경로는 SRC 접두어 확장; 이전 stage BossDefeats만 허용</td></tr><tr><td>origin 처치</td><td><code>origin/zombie_only:SRC/store/useGameStore.js:1399-1411</code></td><td>bossType 검증·checkpointRun·징글 경로가 작업본과 다름</td></tr><tr><td>작업본 처치</td><td><code>SRC/components/Enemy.jsx:1080-1086</code>, <code>SRC/store/useGameStore.js:1380-1393</code></td><td>사망음 후 처치 기록·징글; 해당 recordBossDefeat에는 checkpointRun 없음</td></tr><tr><td>등장 음향</td><td><code>SRC/components/Enemy.jsx:254-266</code></td><td>B04도 공통 bossSpawn, 호출 volume 0.78; 기존 관찰값</td></tr><tr><td>편대 경고</td><td><code>SRC/lib/burstEvents.js:235-254</code>, <code>SRC/components/HUD.jsx:1078-1117</code></td><td>형태 버스트 예고와 bossWarning 발행 존재</td></tr><tr><td>레지스트리</td><td><code>SRC/lib/sfxRegistry.js:14-129</code></td><td>공통 적·보스·UI·이벤트 ID; Stage4/B04/가마솥 전용 ID 없음</td></tr><tr><td>보스 국물</td><td><code>SRC/components/Enemy.jsx:1295-1325</code>, <code>SRC/lib/b04SoupBlast.js:1-4,24-25,44-86</code></td><td>국물 경고·폭발·페이즈 전환 분기에 전용 emitSfx 없음</td></tr><tr><td>보스 공격</td><td><code>SRC/components/Enemy.jsx:1367-1404,1496-1514</code></td><td>B04 투사체 발사·돌진 예고/시작 분기에 전용 emitSfx 없음</td></tr><tr><td>가마솥</td><td><code>SRC/lib/stage4PressureCauldronHazard.js:1-35</code>, <code>SRC/components/Game.jsx:82-95</code></td><td>주기·피해 처리 존재, 해당 폭발 처리에 emitSfx 없음</td></tr><tr><td>가마솥 시각</td><td><code>SRC/components/StageObjects/PressureCauldron.jsx:94-114,159-162</code></td><td>끓음·폭발 상태를 읽는 시각 경로, 오디오 연결 근거는 아님</td></tr><tr><td>사망음</td><td><code>SRC/lib/enemyDeathSfx.js:20-25,49-52</code>, <code>SRC/components/Enemies.jsx:1560</code></td><td>일반 적은 공용 무작위 풀, 보스는 bossDeath</td></tr><tr><td>재생 정책</td><td><code>SRC/lib/sfxRegistry.js:145-165,188-212,233-299,354-423</code></td><td>combat 상한·보호 큐·쿨다운·실패 재시도 구조</td></tr><tr><td>전달 경로</td><td><code>SRC/lib/sfxEvents.js:8-15</code>, <code>SRC/components/SfxLayer.jsx:10-16</code></td><td>이벤트 구독 후 Howler 재생; 완성된 mute 정책의 증명은 아님</td></tr><tr><td>포탈</td><td><code>SRC/components/Game.jsx:99-100</code></td><td>활성화 시 portalAppear 발행, 보스 처치 해금음으로 오용 금지</td></tr></tbody></table></div>
+<ul><li>비교 결과: 작업본 sfxRegistry 전체는 로컬 origin과 동일하지만 HEAD 대비 dirty다. “dirty=미반영 신기능”으로 해석하지 않는다.</li><li>가마솥 hazard 모듈·PressureCauldron 컴포넌트는 HEAD 및 로컬 origin 대비 차이가 없었다.</li><li>Enemy/Game/stageConfig/store는 origin 대비 차이가 있다. origin의 보스 기록 경로를 작업본에 이미 구현됐다고 주장하지 않는다.</li><li>제한: Firebase 실효 튜닝·계정 영구 저장·실기기 청감·동시 재생 실측은 수행하지 않았다. 다음 절의 구현 판정은 소스 연결 기준이다.</li></ul>
+<h3 id="audio-h-51">3. 기존 자산 우선 재사용 결정</h3>
+<div class="table-wrap" tabindex="0" role="region" aria-label="가로 스크롤 가능한 원문 표"><table><thead><tr><th scope="col">기존 ID / 실제 파일 쌍</th><th scope="col">확인된 상태</th><th scope="col">Stage 4 선택</th></tr></thead><tbody><tr><td>bossSpawn / <code>SFX/events/bossSpawn.ogg</code>, <code>.mp3</code></td><td>등장 매핑·발행 확인</td><td>PROPOSAL: 기존 연결 유지, 중복 등장음 추가하지 않음</td></tr><tr><td>bossWarning / <code>SFX/events/bossWarning.ogg</code>, <code>.mp3</code></td><td>HUD 보스·편대 경고 발행 확인</td><td>PROPOSAL: 기존 의미 유지; 가마솥 전용 경고로 상시 차용하지 않음</td></tr><tr><td>bossDeath / <code>SFX/enemies/bossDeath.ogg</code>, <code>.mp3</code></td><td>보스 사망 디스패치 확인</td><td>PROPOSAL: B04도 그대로 사용</td></tr><tr><td>bossClearJingle / <code>SFX/events/bossClearJingle.ogg</code>, <code>.mp3</code></td><td>마지막 생존 보스 처치 시 발행</td><td>PROPOSAL: 해금과 연계하되 별도 stageClear 중첩 금지</td></tr><tr><td>bossRoar / <code>SFX/enemies/bossRoar.ogg</code>, <code>.mp3</code></td><td>등록·파일 목록 확인, B04 전환 호출은 없음</td><td>PROPOSAL: 국물 폭발 후 격노 진입 후보</td></tr><tr><td>zombieRangedShoot / <code>SFX/enemies/zombieRangedShoot.ogg</code>, <code>.mp3</code></td><td>등록됨; B04 발사 분기 호출 없음</td><td>PROPOSAL: B04 실제 투사체 생성 성공 시 재사용 후보</td></tr><tr><td>zombieChargeRoar / <code>SFX/enemies/zombieChargeRoar.ogg</code>, <code>.mp3</code></td><td>등록됨; B04 돌진 분기 호출 없음</td><td>PROPOSAL: 돌진 예고 시작 후보, 시작음까지 복제하지 않음</td></tr><tr><td>flaskHit / <code>SFX/weapons/flaskHit.ogg</code>, <code>.mp3</code></td><td>등록·파일 목록 확인</td><td>PROPOSAL: 국물 폭발 임시 청취 후보만; 무기 명중음 혼동 시 채택하지 않음</td></tr><tr><td>playerHit / <code>SFX/player/playerHit.ogg</code>, <code>.mp3</code></td><td>공용 등록</td><td>PROPOSAL: 기존 실제 피격 전달을 먼저 확인; hazard가 별도로 중복 발행하지 않음</td></tr><tr><td>portalAppear·escapePortalClear / <code>SFX/events/</code>의 동명 <code>.ogg</code>, <code>.mp3</code></td><td>공용 등록, portalAppear 발행 확인</td><td>PROPOSAL: 포탈 사건 전용으로 보존</td></tr></tbody></table></div>
+<ul><li>이 목록은 현재 등록·경로 조사이며 디코드·청감·라이선스 검증을 대신하지 않는다. audition 디렉터리의 후보 WAV를 출시 정본으로 바꾸지 않는다.</li><li>출처 기록: <code>Developer/agent_room/audio_asset_provenance_manifest_2026-07-30.json:586-604,1066-1084,1246-1264,1526-1564,1666-1684</code>에 관련 ID 항목이 있다.</li><li>해당 장부의 생성 방식 기록만 근거로 삼고 모든 파일의 CC0·퍼블릭 도메인·권리 확보를 선언하지 않는다. 신규 외부 음원·의존성은 제안하지 않는다.</li></ul>
+<h3 id="audio-h-69">4. 급식실 사건별 청각·시각 계약 — 전부 PROPOSAL</h3>
+<div class="table-wrap" tabindex="0" role="region" aria-label="가로 스크롤 가능한 원문 표"><table><thead><tr><th scope="col">사건</th><th scope="col">제안 큐와 발행점</th><th scope="col">무음에서도 남을 피드백</th></tr></thead><tbody><tr><td>진입·초반 학습</td><td>기존 게임플레이 음향 유지; 급식실 진입 징글 신설 보류</td><td>중앙 가마솥·외곽 조리대·탈출 방향의 구역 구분</td></tr><tr><td>원거리 압박</td><td>생성 성공 시 zombieRangedShoot 후보; 재료 종류별 음색 증식 금지</td><td>발사 자세·투사체 궤적, 식칼도 같은 공격군으로 인지</td></tr><tr><td>편대 포위</td><td>기존 HUD bossWarning 재사용, 편대 개체마다 울리지 않음</td><td>기존 예고 문구·편대 방향 표식 보존</td></tr><tr><td>가마솥 끓음 시작</td><td>전용 압력 경고 필요성 우선; bossWarning 무차별 차용 보류</td><td>솥 흔들림·증기·위험 영역 경계와 짧은 안내 문구</td></tr><tr><td>가마솥 폭발</td><td>실제 주기 전환에 짧은 압력 파열 후보; flaskHit은 임시 비교용</td><td>솥 중심 폭발·잔류 위험 종료 구분, 피격 여부는 HP로 표시</td></tr><tr><td>B04 국물 예고</td><td>원들 전체를 묶은 사건 경고; 원마다 중첩 재생 금지</td><td>현행 원형 표식에 패턴·명도·위험 아이콘 구분 후보</td></tr><tr><td>B04 국물 폭발</td><td>실제 explode 진입에 묶음 충격 후보; 피해 성공 여부와 별개</td><td>실제 생성된 원만 폭발, 안전 구역을 연기로 가리지 않음</td></tr><tr><td>B04 격노</td><td>soup done→phase2 확정 전이에 bossRoar 후보</td><td>보스 자세·단계 라벨 후보, 색만으로 단계 구분하지 않음</td></tr><tr><td>B04 돌진</td><td>warn 진입에 zombieChargeRoar 후보; 지속 프레임 발행 금지</td><td>기존 예고 자세·진행 방향·회피 공간 보존</td></tr><tr><td>B04 경직</td><td>신규 큰 충격음 보류, 공격 가능한 틈은 시각 우선</td><td>경직 자세와 회복 시작 구분</td></tr><tr><td>B04 사망·Stage 5 해금</td><td>기존 bossDeath→bossClearJingle 경로 유지, 별도 승리곡 보류</td><td>보스 사망·Stage 5 영구 해금 문구; 현재 런은 계속 가능</td></tr><tr><td>마틸다·포탈 중첩</td><td>기존 경고·등장·포탈 신호 유지, 급식실 장식음 억제</td><td>각 사건의 기존 HUD와 포탈 표시를 소리와 독립 유지</td></tr></tbody></table></div>
+<ul><li>오너값/소스 관찰 보존: 가마솥 주기 15,000ms, 끓음 선행 3,000ms, 폭발 250ms, 최대 HP의 0.20 피해, 반경 3.2 units / 0.8 blocks다.</li><li>오너값/소스 관찰 보존: B04 국물 HP 임계 0.5, 예고 1,200ms, 폭발 250ms, 피해 16, 반경 1.1 units / 0.275 blocks, 원 최대 3개다.</li><li>소스 판독 주의: chefBossPhase의 1,000ms 전환 상수와 실제 Stage4 soup done→phase2 경로를 합산해 새 공격 지연으로 만들지 않는다.</li><li>기존 관찰값: B04 발사 간격 2,600ms, 돌진 예고 800ms, 경직 1,200ms, 돌진 2,200ms (<code>SRC/components/Enemy.jsx:388-391</code>). 변경 제안이 아니다.</li><li>PROPOSAL: 큐는 실제 공격 상태에 동기화하며 위 타이밍·판정·스폰 시각을 음원 길이에 맞춰 늘리거나 줄이지 않는다.</li></ul>
+<h3 id="audio-h-91">5. 추가 좀비와 그래픽 협업 — 미등록 콘셉트 PROPOSAL</h3>
+<ul><li>다음 가칭은 확정 로스터·ID·스폰·모델이 아니다. levelmini/threemini의 최종 역할·외형과 합의 전 새 SOUND_MAP 키를 만들지 않는다.</li><li>PROPOSAL: 그래픽 상세안의 P1 급식 배식원은 식판을 당기는 준비 자세에 짧은 금속 떨림 후보를 붙인다. 방패 면역·장비 파괴 기능을 뜻하지 않으며 이동·피격마다 반복하지 않는다.</li><li>PROPOSAL: P2 식판 운반원은 직진 전 식판을 고정하는 사건에만 금속 긴장음을 검토한다. 고정 진로·회복 자세로 무음 대응하며 카트 모델·바퀴 루프는 추가하지 않는다.</li><li>PROPOSAL: P2 국자 투척수는 국자를 들어 올리는 준비와 실제 단발 발사를 구분한다. 가마솥 압력 경고와 다른 질감 후보를 사용하고 지속 장판·쏟음 위험을 새로 가정하지 않는다.</li><li>PROPOSAL: P2 청소 당번은 걸레 준비와 실제 정면 쓸기를 짧은 마찰음 후보로 구분한다. 무해한 잔여 얼룩에 위험 경고음을 붙이거나 미끄러짐 기능을 암시하지 않는다.</li><li>콘셉트 기준: <a href="#graphics">그래픽·신규 좀비 상세안</a>의 네 종류를 참조한다. P2는 선택 후보이며 동시 제작·편성을 뜻하지 않는다.</li><li>PROPOSAL: 일반 적의 사망 발성은 현행 무작위 공용 풀 유지. 종별 고정 사망음으로 회귀하지 않는다.</li><li>PROPOSAL: 추가 생물 발성·대사·pseudo-voice는 이번 안에서 보류하며 의미 전달을 음성 전용으로 만들지 않는다.</li></ul>
+<h3 id="audio-h-101">6. 우선순위·반복 억제·모바일 예산</h3>
+<ul><li>현재 구현 관찰: combat 상한 6, 사망 발성 예약 2, master 0.5다. 이 값은 이번 문서에서 변경하지 않는다.</li><li>현재 구현 관찰: playerHit 쿨다운 80ms, zombieSpawn 110ms, flaskHit 100ms이며 bossWarning·bossRoar의 개별 쿨다운 항목은 없다.</li><li>보호 큐는 combat 상한 밖이다. 따라서 “게임 전체 동시음이 6개 이하”라고 설명하면 틀리며 위험 큐 증식도 모바일 비용이다.</li><li>현재 criticalHit·tumblerHit은 논리 사건당 Howler 재생을 중복 호출한다. 사건 개수와 실제 보이스 개수를 따로 세어야 한다.</li><li>PROPOSAL 우선순위: 즉시 회피 경고·플레이어 피격/사망 &gt; 보스 단계·해금/포탈 &gt; 일반 공격·사망 &gt; 수집·장식.</li><li>PROPOSAL: 보호 큐끼리 겹치면 가마솥/국물/돌진 위험 의미를 보존하고 장식·반복음을 먼저 포기한다. 전역 cap 상향은 보류한다.</li><li>PROPOSAL: 신규 사건은 run 식별자·개체 식별자·상태 전환·주기 식별자로 중복 제거하고 render/useFrame 반복에서 직접 발행하지 않는다.</li><li>PROPOSAL: 가마솥 경고와 폭발은 주기마다 각각 한 사건만 발행하고, 재개 시 지나간 주기 음향을 몰아서 따라잡지 않는다.</li><li>PROPOSAL: 같은 프레임의 국물 원들은 묶고, 서로 다른 hazard를 ID 쿨다운만으로 지워버리지 않도록 사건별 의미를 유지한다.</li><li>PROPOSAL 믹스 후보: 신규 경고 호출 volume 0.55–0.70, 신규 폭발 0.45–0.60을 비교 청취 시작점으로만 사용한다.</li><li>PROPOSAL 반복 후보: 신규 압력 경고 ID 최소 간격 250ms, 폭발 ID 200ms; 실제 공격 주기를 바꾸는 값이 아니다.</li><li>PROPOSAL 폴리포니 후보: 신규 hazard 계열 동시 보이스 최대 2, 동일 신규 ID 최대 1; 기존 보호 큐·오너 믹스는 자동 변경하지 않는다.</li><li>PROPOSAL: 위험 구간에는 신규 실내 ambience·지속 끓음 루프를 넣지 않는다. BGM 추가·교체·ducking, 특히 타이틀 영향은 범위 밖이다.</li></ul>
+<h3 id="audio-h-116">7. 무음·실패·접근성 계약</h3>
+<ul><li>PROPOSAL: SFX 음소거·기기 무음·autoplay 차단·디코드 실패에도 경고·피격·해금·포탈 상태는 정상 표시하고 게임을 계속 진행한다.</li><li>PROPOSAL: 기존 설정의 실제 mute 전달과 재개 동작부터 확인하며, 별도 로컬 저장소나 타이틀 설정 변경으로 해결하지 않는다.</li><li>PROPOSAL: 화면 밖 위험은 방향과 종류를 HUD로 보완하고 stereo 위치나 저음 진동만으로 안전 방향을 전달하지 않는다.</li><li>PROPOSAL: 붉음/주황만의 구분 대신 윤곽·패턴·아이콘·문구를 병행하고, 플래시/화면 흔들림을 필수 정보로 삼지 않는다.</li><li>현재 registry는 실패 backoff 후 다음 사건 재시도를 지원한다. PROPOSAL: 신규 큐 실패는 진행과 독립시키고 성공할 때까지 경고음을 큐에 쌓지 않는다.</li></ul>
+<h3 id="audio-h-123">8. 승인 후 제작 후보 체크리스트와 수용 기준</h3>
+<ul><li>[ ] PROPOSAL/기획: levelmini가 신규 적 역할·스폰·경고 의미를 확정하고 threemini가 시각 짝을 확정한다. 본 문서는 통합본을 덮어쓰지 않는다.</li><li>[ ] PROPOSAL/발행 후보: <code>SRC/components/Enemy.jsx</code>, <code>SRC/components/Game.jsx</code>, <code>SRC/components/HUD.jsx</code>; 동일 사건의 단일 발행 책임자를 정한다.</li><li>[ ] PROPOSAL/상태 참조 후보: <code>SRC/lib/b04SoupBlast.js</code>, <code>SRC/lib/stage4PressureCauldronHazard.js</code>; 판정 모듈에 음향 의존성을 주입하지 않고 전이만 관찰한다.</li><li>[ ] PROPOSAL/재생 후보: <code>SRC/lib/sfxRegistry.js</code>, <code>SRC/lib/sfxEvents.js</code>, <code>SRC/components/SfxLayer.jsx</code>; 공유 경로 변경은 타이틀 영향 없이 분리 가능한지 선행 검토한다.</li><li>[ ] PROPOSAL/그래픽 후보: <code>SRC/components/StageObjects/PressureCauldron.jsx</code>, <code>SRC/components/Enemy.jsx</code>의 국물 표식; 기존 정본 모델·Studio 값을 바꾸지 않는다.</li><li>[ ] PROPOSAL/자산 후보: 기존 <code>SFX/enemies/</code>, <code>SFX/events/</code>, <code>SFX/weapons/</code> 우선. 새 압력음이 승인될 때만 별도 제작·출처 기록 작업을 연다.</li><li>[ ] PROPOSAL/출처: 기존 provenance manifest의 해당 항목과 생성 스크립트 기록을 담당자가 대조한다. 새 의존성·외부 샘플 도입은 기본 경로가 아니다.</li><li>[ ] PROPOSAL/향후 검증 후보: <code>SRC/lib/sfxRegistry.test.js</code>, <code>SRC/components/SfxLayer.test.jsx</code>, <code>SRC/components/Game.stage4PressureCauldron.test.js</code>, <code>SRC/components/EnemyVisual.test.js</code>; 이번에 수정·실행하지 않았다.</li><li>[ ] 수용 예정: B04 등장·국물 예고·폭발·격노·돌진·사망을 실제 상태와 맞춰 구별하고 취소/사망/재시작 뒤 지연음이 남지 않는다.</li><li>[ ] 수용 예정: 보스·가마솥·편대·마틸다·포탈이 겹쳐도 회피 경고가 묻히지 않고 불필요한 중복·클리핑·재개 폭주가 없다.</li><li>[ ] 수용 예정: muted/첫 gesture 전/오디오 실패에서도 시각 경고와 Stage 4·5 보스 사망 해금이 유지되며 재접속 영구성은 별도 검증한다.</li><li>[ ] 수용 예정: 모바일 스피커·이어폰·백그라운드 복귀에서 실제 보이스 수·CPU·청감을 기록하고 PROPOSAL 수치는 승인 전 확정하지 않는다.</li><li>[ ] 수용 예정: 타이틀 BGM·재생 경로·오너 확정 수치·기존 공용 사망 풀은 그대로이며 신규 적 미승인 상태를 구현 완료로 보고하지 않는다.</li></ul>
+<p>문서 검증 범위는 줄 수·근거 경로/줄·제안 표기·소유 경계의 정적 확인이다. 위 수용 체크는 후속 승인 작업의 기준이며 이번 실행의 테스트 통과 결과가 아니다.</p><details class="raw"><summary>원문 Markdown 대조 보기 · 오디오 · 피드백</summary><p class="meta">아래 텍스트는 서식 기호·원래 인용 경로까지 보존한 원문입니다. 본문 링크는 이 열람본에 맞게 변환했으며, 아래 원문 경로는 문자 그대로 제시합니다.</p><pre id="raw-audio"># Stage 4 급식실 — 오디오·피드백 고도화 제안
+
+작성일: 2026-10-22 · 담당: soundmini · Kanban: `t_c2fa04cc`
+상태: DOCUMENT ONLY. 현재 구현의 정적 관찰과 미승인 `PROPOSAL`을 구분한 완성 기획서이며 구현 지시·승인서가 아니다.
+상위 종합 기획은 levelmini 소유 `Planner/stage4_advancement_plan_20261022.md`이며 이 작업에서 편집하지 않았다.
+
+## 1. 범위와 진행 조건
+- 사용자 확정: Stage 4 입장은 Stage 3 보스 사망만으로 즉시 영구 해금한다.
+- 사용자 확정: Stage 5 입장은 Stage 4 보스 사망만으로 즉시 영구 해금한다.
+- 탈출·경과 시간·퀘스트·징글 재생 성공은 추가 해금 조건이 아니다. 보스 처치와 포탈 클리어는 별개 사건이다.
+- PROPOSAL: 해금 피드백은 확정된 보스 사망/진행 이벤트를 관찰할 뿐, 오디오 완료 콜백으로 저장·진행을 제어하지 않는다.
+- 이번 변경은 본 문서와 전용 receipt뿐이다. 런타임·DB·브라우저·테스트·배포·에셋 생성·타이틀 변경은 하지 않는다.
+- 타이틀 BGM `Developer/r3f_prototype/src/assets/audio/title_bgm.m4a`와 그 재생 경로·설정은 전면 보존한다.
+- 아래 새 큐·신규 적·음량·반복 제어는 모두 PROPOSAL이며 오너의 기존 확정값을 대체하지 않는다.
+
+## 2. 근거 시점과 읽는 법
+- 저장소 정본 작업 경로: `F:/From_SSD_D_20261005/JungSil/2.Minigame_project/school_survivor-integration`.
+- 아래 `SRC/`는 `Developer/r3f_prototype/src/`, `SFX/`는 `Developer/r3f_prototype/public/sfx/`의 정확한 접두어다.
+- a9 스냅샷: `Planner/stage1_10_balance_implementation_20261019/stage04.md:3`의 `a9f84bf8e7f22d2b1b1c191f7b23ee2e0e908ff8`.
+- 이 스냅샷은 별도 release 경로의 고정 추출 설명이다. 현재 dirty 작업본이나 운영 배포 상태와 동일하다고 보지 않는다.
+- 조사 시 HEAD는 `6f416d836e355d22a4e348516cca45e194bcc56c`, 로컬 추적 origin은 `ef9b701ed30a45144937686a5fe1c1eef1ed105c`다.
+- `origin/zombie_only`는 이미 보유한 로컬 참조만 `git show`/`git diff`로 읽었다. fetch하지 않아 서버 최신 여부는 미확인이다.
+- 작업본은 여러 작업자의 변경이 섞여 있다. 아래 줄 번호는 조사 시점 기준이며 타인의 변경을 복원·정리하지 않는다.
+
+| 근거 | 정확한 위치 | 관찰·해석 |
+|---|---|---|
+| a9 기본 진행 | `Planner/stage1_10_balance_implementation_20261019/stage04.md:9-24,267-288` | clear 기반 구현과 보스 사망 해금 요구를 이미 분리함 |
+| a9 보스·버스트 | 같은 문서 `:45-80,106-142` | B04 명시 등장 150초, HP 절반에서 국물 대폭발 설명 |
+| 현행 Stage 4 | `SRC/lib/stageConfig.js:96-126,189-203` | 급식실 경계·시각 필드 유지, 입장은 여전히 stage3Clears 참조 |
+| 현행 Stage 5 | `SRC/lib/stageConfig.js:189-202` | stage4Clears 참조이므로 사용자 확정 진행 조건과 불일치 |
+| origin 해금 | `origin/zombie_only:SRC/lib/stageConfig.js:190-198` | 실제 경로는 SRC 접두어 확장; 이전 stage BossDefeats만 허용 |
+| origin 처치 | `origin/zombie_only:SRC/store/useGameStore.js:1399-1411` | bossType 검증·checkpointRun·징글 경로가 작업본과 다름 |
+| 작업본 처치 | `SRC/components/Enemy.jsx:1080-1086`, `SRC/store/useGameStore.js:1380-1393` | 사망음 후 처치 기록·징글; 해당 recordBossDefeat에는 checkpointRun 없음 |
+| 등장 음향 | `SRC/components/Enemy.jsx:254-266` | B04도 공통 bossSpawn, 호출 volume 0.78; 기존 관찰값 |
+| 편대 경고 | `SRC/lib/burstEvents.js:235-254`, `SRC/components/HUD.jsx:1078-1117` | 형태 버스트 예고와 bossWarning 발행 존재 |
+| 레지스트리 | `SRC/lib/sfxRegistry.js:14-129` | 공통 적·보스·UI·이벤트 ID; Stage4/B04/가마솥 전용 ID 없음 |
+| 보스 국물 | `SRC/components/Enemy.jsx:1295-1325`, `SRC/lib/b04SoupBlast.js:1-4,24-25,44-86` | 국물 경고·폭발·페이즈 전환 분기에 전용 emitSfx 없음 |
+| 보스 공격 | `SRC/components/Enemy.jsx:1367-1404,1496-1514` | B04 투사체 발사·돌진 예고/시작 분기에 전용 emitSfx 없음 |
+| 가마솥 | `SRC/lib/stage4PressureCauldronHazard.js:1-35`, `SRC/components/Game.jsx:82-95` | 주기·피해 처리 존재, 해당 폭발 처리에 emitSfx 없음 |
+| 가마솥 시각 | `SRC/components/StageObjects/PressureCauldron.jsx:94-114,159-162` | 끓음·폭발 상태를 읽는 시각 경로, 오디오 연결 근거는 아님 |
+| 사망음 | `SRC/lib/enemyDeathSfx.js:20-25,49-52`, `SRC/components/Enemies.jsx:1560` | 일반 적은 공용 무작위 풀, 보스는 bossDeath |
+| 재생 정책 | `SRC/lib/sfxRegistry.js:145-165,188-212,233-299,354-423` | combat 상한·보호 큐·쿨다운·실패 재시도 구조 |
+| 전달 경로 | `SRC/lib/sfxEvents.js:8-15`, `SRC/components/SfxLayer.jsx:10-16` | 이벤트 구독 후 Howler 재생; 완성된 mute 정책의 증명은 아님 |
+| 포탈 | `SRC/components/Game.jsx:99-100` | 활성화 시 portalAppear 발행, 보스 처치 해금음으로 오용 금지 |
+
+- 비교 결과: 작업본 sfxRegistry 전체는 로컬 origin과 동일하지만 HEAD 대비 dirty다. “dirty=미반영 신기능”으로 해석하지 않는다.
+- 가마솥 hazard 모듈·PressureCauldron 컴포넌트는 HEAD 및 로컬 origin 대비 차이가 없었다.
+- Enemy/Game/stageConfig/store는 origin 대비 차이가 있다. origin의 보스 기록 경로를 작업본에 이미 구현됐다고 주장하지 않는다.
+- 제한: Firebase 실효 튜닝·계정 영구 저장·실기기 청감·동시 재생 실측은 수행하지 않았다. 다음 절의 구현 판정은 소스 연결 기준이다.
+
+## 3. 기존 자산 우선 재사용 결정
+| 기존 ID / 실제 파일 쌍 | 확인된 상태 | Stage 4 선택 |
+|---|---|---|
+| bossSpawn / `SFX/events/bossSpawn.ogg`, `.mp3` | 등장 매핑·발행 확인 | PROPOSAL: 기존 연결 유지, 중복 등장음 추가하지 않음 |
+| bossWarning / `SFX/events/bossWarning.ogg`, `.mp3` | HUD 보스·편대 경고 발행 확인 | PROPOSAL: 기존 의미 유지; 가마솥 전용 경고로 상시 차용하지 않음 |
+| bossDeath / `SFX/enemies/bossDeath.ogg`, `.mp3` | 보스 사망 디스패치 확인 | PROPOSAL: B04도 그대로 사용 |
+| bossClearJingle / `SFX/events/bossClearJingle.ogg`, `.mp3` | 마지막 생존 보스 처치 시 발행 | PROPOSAL: 해금과 연계하되 별도 stageClear 중첩 금지 |
+| bossRoar / `SFX/enemies/bossRoar.ogg`, `.mp3` | 등록·파일 목록 확인, B04 전환 호출은 없음 | PROPOSAL: 국물 폭발 후 격노 진입 후보 |
+| zombieRangedShoot / `SFX/enemies/zombieRangedShoot.ogg`, `.mp3` | 등록됨; B04 발사 분기 호출 없음 | PROPOSAL: B04 실제 투사체 생성 성공 시 재사용 후보 |
+| zombieChargeRoar / `SFX/enemies/zombieChargeRoar.ogg`, `.mp3` | 등록됨; B04 돌진 분기 호출 없음 | PROPOSAL: 돌진 예고 시작 후보, 시작음까지 복제하지 않음 |
+| flaskHit / `SFX/weapons/flaskHit.ogg`, `.mp3` | 등록·파일 목록 확인 | PROPOSAL: 국물 폭발 임시 청취 후보만; 무기 명중음 혼동 시 채택하지 않음 |
+| playerHit / `SFX/player/playerHit.ogg`, `.mp3` | 공용 등록 | PROPOSAL: 기존 실제 피격 전달을 먼저 확인; hazard가 별도로 중복 발행하지 않음 |
+| portalAppear·escapePortalClear / `SFX/events/`의 동명 `.ogg`, `.mp3` | 공용 등록, portalAppear 발행 확인 | PROPOSAL: 포탈 사건 전용으로 보존 |
+
+- 이 목록은 현재 등록·경로 조사이며 디코드·청감·라이선스 검증을 대신하지 않는다. audition 디렉터리의 후보 WAV를 출시 정본으로 바꾸지 않는다.
+- 출처 기록: `Developer/agent_room/audio_asset_provenance_manifest_2026-07-30.json:586-604,1066-1084,1246-1264,1526-1564,1666-1684`에 관련 ID 항목이 있다.
+- 해당 장부의 생성 방식 기록만 근거로 삼고 모든 파일의 CC0·퍼블릭 도메인·권리 확보를 선언하지 않는다. 신규 외부 음원·의존성은 제안하지 않는다.
+
+## 4. 급식실 사건별 청각·시각 계약 — 전부 PROPOSAL
+| 사건 | 제안 큐와 발행점 | 무음에서도 남을 피드백 |
+|---|---|---|
+| 진입·초반 학습 | 기존 게임플레이 음향 유지; 급식실 진입 징글 신설 보류 | 중앙 가마솥·외곽 조리대·탈출 방향의 구역 구분 |
+| 원거리 압박 | 생성 성공 시 zombieRangedShoot 후보; 재료 종류별 음색 증식 금지 | 발사 자세·투사체 궤적, 식칼도 같은 공격군으로 인지 |
+| 편대 포위 | 기존 HUD bossWarning 재사용, 편대 개체마다 울리지 않음 | 기존 예고 문구·편대 방향 표식 보존 |
+| 가마솥 끓음 시작 | 전용 압력 경고 필요성 우선; bossWarning 무차별 차용 보류 | 솥 흔들림·증기·위험 영역 경계와 짧은 안내 문구 |
+| 가마솥 폭발 | 실제 주기 전환에 짧은 압력 파열 후보; flaskHit은 임시 비교용 | 솥 중심 폭발·잔류 위험 종료 구분, 피격 여부는 HP로 표시 |
+| B04 국물 예고 | 원들 전체를 묶은 사건 경고; 원마다 중첩 재생 금지 | 현행 원형 표식에 패턴·명도·위험 아이콘 구분 후보 |
+| B04 국물 폭발 | 실제 explode 진입에 묶음 충격 후보; 피해 성공 여부와 별개 | 실제 생성된 원만 폭발, 안전 구역을 연기로 가리지 않음 |
+| B04 격노 | soup done→phase2 확정 전이에 bossRoar 후보 | 보스 자세·단계 라벨 후보, 색만으로 단계 구분하지 않음 |
+| B04 돌진 | warn 진입에 zombieChargeRoar 후보; 지속 프레임 발행 금지 | 기존 예고 자세·진행 방향·회피 공간 보존 |
+| B04 경직 | 신규 큰 충격음 보류, 공격 가능한 틈은 시각 우선 | 경직 자세와 회복 시작 구분 |
+| B04 사망·Stage 5 해금 | 기존 bossDeath→bossClearJingle 경로 유지, 별도 승리곡 보류 | 보스 사망·Stage 5 영구 해금 문구; 현재 런은 계속 가능 |
+| 마틸다·포탈 중첩 | 기존 경고·등장·포탈 신호 유지, 급식실 장식음 억제 | 각 사건의 기존 HUD와 포탈 표시를 소리와 독립 유지 |
+
+- 오너값/소스 관찰 보존: 가마솥 주기 15,000ms, 끓음 선행 3,000ms, 폭발 250ms, 최대 HP의 0.20 피해, 반경 3.2 units / 0.8 blocks다.
+- 오너값/소스 관찰 보존: B04 국물 HP 임계 0.5, 예고 1,200ms, 폭발 250ms, 피해 16, 반경 1.1 units / 0.275 blocks, 원 최대 3개다.
+- 소스 판독 주의: chefBossPhase의 1,000ms 전환 상수와 실제 Stage4 soup done→phase2 경로를 합산해 새 공격 지연으로 만들지 않는다.
+- 기존 관찰값: B04 발사 간격 2,600ms, 돌진 예고 800ms, 경직 1,200ms, 돌진 2,200ms (`SRC/components/Enemy.jsx:388-391`). 변경 제안이 아니다.
+- PROPOSAL: 큐는 실제 공격 상태에 동기화하며 위 타이밍·판정·스폰 시각을 음원 길이에 맞춰 늘리거나 줄이지 않는다.
+
+## 5. 추가 좀비와 그래픽 협업 — 미등록 콘셉트 PROPOSAL
+- 다음 가칭은 확정 로스터·ID·스폰·모델이 아니다. levelmini/threemini의 최종 역할·외형과 합의 전 새 SOUND_MAP 키를 만들지 않는다.
+- PROPOSAL: 그래픽 상세안의 P1 급식 배식원은 식판을 당기는 준비 자세에 짧은 금속 떨림 후보를 붙인다. 방패 면역·장비 파괴 기능을 뜻하지 않으며 이동·피격마다 반복하지 않는다.
+- PROPOSAL: P2 식판 운반원은 직진 전 식판을 고정하는 사건에만 금속 긴장음을 검토한다. 고정 진로·회복 자세로 무음 대응하며 카트 모델·바퀴 루프는 추가하지 않는다.
+- PROPOSAL: P2 국자 투척수는 국자를 들어 올리는 준비와 실제 단발 발사를 구분한다. 가마솥 압력 경고와 다른 질감 후보를 사용하고 지속 장판·쏟음 위험을 새로 가정하지 않는다.
+- PROPOSAL: P2 청소 당번은 걸레 준비와 실제 정면 쓸기를 짧은 마찰음 후보로 구분한다. 무해한 잔여 얼룩에 위험 경고음을 붙이거나 미끄러짐 기능을 암시하지 않는다.
+- 콘셉트 기준: [그래픽·신규 좀비 상세안](../Graphic_designer/stage4_graphics_and_zombies_20261022.md)의 네 종류를 참조한다. P2는 선택 후보이며 동시 제작·편성을 뜻하지 않는다.
+- PROPOSAL: 일반 적의 사망 발성은 현행 무작위 공용 풀 유지. 종별 고정 사망음으로 회귀하지 않는다.
+- PROPOSAL: 추가 생물 발성·대사·pseudo-voice는 이번 안에서 보류하며 의미 전달을 음성 전용으로 만들지 않는다.
+
+## 6. 우선순위·반복 억제·모바일 예산
+- 현재 구현 관찰: combat 상한 6, 사망 발성 예약 2, master 0.5다. 이 값은 이번 문서에서 변경하지 않는다.
+- 현재 구현 관찰: playerHit 쿨다운 80ms, zombieSpawn 110ms, flaskHit 100ms이며 bossWarning·bossRoar의 개별 쿨다운 항목은 없다.
+- 보호 큐는 combat 상한 밖이다. 따라서 “게임 전체 동시음이 6개 이하”라고 설명하면 틀리며 위험 큐 증식도 모바일 비용이다.
+- 현재 criticalHit·tumblerHit은 논리 사건당 Howler 재생을 중복 호출한다. 사건 개수와 실제 보이스 개수를 따로 세어야 한다.
+- PROPOSAL 우선순위: 즉시 회피 경고·플레이어 피격/사망 &gt; 보스 단계·해금/포탈 &gt; 일반 공격·사망 &gt; 수집·장식.
+- PROPOSAL: 보호 큐끼리 겹치면 가마솥/국물/돌진 위험 의미를 보존하고 장식·반복음을 먼저 포기한다. 전역 cap 상향은 보류한다.
+- PROPOSAL: 신규 사건은 run 식별자·개체 식별자·상태 전환·주기 식별자로 중복 제거하고 render/useFrame 반복에서 직접 발행하지 않는다.
+- PROPOSAL: 가마솥 경고와 폭발은 주기마다 각각 한 사건만 발행하고, 재개 시 지나간 주기 음향을 몰아서 따라잡지 않는다.
+- PROPOSAL: 같은 프레임의 국물 원들은 묶고, 서로 다른 hazard를 ID 쿨다운만으로 지워버리지 않도록 사건별 의미를 유지한다.
+- PROPOSAL 믹스 후보: 신규 경고 호출 volume 0.55–0.70, 신규 폭발 0.45–0.60을 비교 청취 시작점으로만 사용한다.
+- PROPOSAL 반복 후보: 신규 압력 경고 ID 최소 간격 250ms, 폭발 ID 200ms; 실제 공격 주기를 바꾸는 값이 아니다.
+- PROPOSAL 폴리포니 후보: 신규 hazard 계열 동시 보이스 최대 2, 동일 신규 ID 최대 1; 기존 보호 큐·오너 믹스는 자동 변경하지 않는다.
+- PROPOSAL: 위험 구간에는 신규 실내 ambience·지속 끓음 루프를 넣지 않는다. BGM 추가·교체·ducking, 특히 타이틀 영향은 범위 밖이다.
+
+## 7. 무음·실패·접근성 계약
+- PROPOSAL: SFX 음소거·기기 무음·autoplay 차단·디코드 실패에도 경고·피격·해금·포탈 상태는 정상 표시하고 게임을 계속 진행한다.
+- PROPOSAL: 기존 설정의 실제 mute 전달과 재개 동작부터 확인하며, 별도 로컬 저장소나 타이틀 설정 변경으로 해결하지 않는다.
+- PROPOSAL: 화면 밖 위험은 방향과 종류를 HUD로 보완하고 stereo 위치나 저음 진동만으로 안전 방향을 전달하지 않는다.
+- PROPOSAL: 붉음/주황만의 구분 대신 윤곽·패턴·아이콘·문구를 병행하고, 플래시/화면 흔들림을 필수 정보로 삼지 않는다.
+- 현재 registry는 실패 backoff 후 다음 사건 재시도를 지원한다. PROPOSAL: 신규 큐 실패는 진행과 독립시키고 성공할 때까지 경고음을 큐에 쌓지 않는다.
+
+## 8. 승인 후 제작 후보 체크리스트와 수용 기준
+- [ ] PROPOSAL/기획: levelmini가 신규 적 역할·스폰·경고 의미를 확정하고 threemini가 시각 짝을 확정한다. 본 문서는 통합본을 덮어쓰지 않는다.
+- [ ] PROPOSAL/발행 후보: `SRC/components/Enemy.jsx`, `SRC/components/Game.jsx`, `SRC/components/HUD.jsx`; 동일 사건의 단일 발행 책임자를 정한다.
+- [ ] PROPOSAL/상태 참조 후보: `SRC/lib/b04SoupBlast.js`, `SRC/lib/stage4PressureCauldronHazard.js`; 판정 모듈에 음향 의존성을 주입하지 않고 전이만 관찰한다.
+- [ ] PROPOSAL/재생 후보: `SRC/lib/sfxRegistry.js`, `SRC/lib/sfxEvents.js`, `SRC/components/SfxLayer.jsx`; 공유 경로 변경은 타이틀 영향 없이 분리 가능한지 선행 검토한다.
+- [ ] PROPOSAL/그래픽 후보: `SRC/components/StageObjects/PressureCauldron.jsx`, `SRC/components/Enemy.jsx`의 국물 표식; 기존 정본 모델·Studio 값을 바꾸지 않는다.
+- [ ] PROPOSAL/자산 후보: 기존 `SFX/enemies/`, `SFX/events/`, `SFX/weapons/` 우선. 새 압력음이 승인될 때만 별도 제작·출처 기록 작업을 연다.
+- [ ] PROPOSAL/출처: 기존 provenance manifest의 해당 항목과 생성 스크립트 기록을 담당자가 대조한다. 새 의존성·외부 샘플 도입은 기본 경로가 아니다.
+- [ ] PROPOSAL/향후 검증 후보: `SRC/lib/sfxRegistry.test.js`, `SRC/components/SfxLayer.test.jsx`, `SRC/components/Game.stage4PressureCauldron.test.js`, `SRC/components/EnemyVisual.test.js`; 이번에 수정·실행하지 않았다.
+- [ ] 수용 예정: B04 등장·국물 예고·폭발·격노·돌진·사망을 실제 상태와 맞춰 구별하고 취소/사망/재시작 뒤 지연음이 남지 않는다.
+- [ ] 수용 예정: 보스·가마솥·편대·마틸다·포탈이 겹쳐도 회피 경고가 묻히지 않고 불필요한 중복·클리핑·재개 폭주가 없다.
+- [ ] 수용 예정: muted/첫 gesture 전/오디오 실패에서도 시각 경고와 Stage 4·5 보스 사망 해금이 유지되며 재접속 영구성은 별도 검증한다.
+- [ ] 수용 예정: 모바일 스피커·이어폰·백그라운드 복귀에서 실제 보이스 수·CPU·청감을 기록하고 PROPOSAL 수치는 승인 전 확정하지 않는다.
+- [ ] 수용 예정: 타이틀 BGM·재생 경로·오너 확정 수치·기존 공용 사망 풀은 그대로이며 신규 적 미승인 상태를 구현 완료로 보고하지 않는다.
+
+문서 검증 범위는 줄 수·근거 경로/줄·제안 표기·소유 경계의 정적 확인이다. 위 수용 체크는 후속 승인 작업의 기준이며 이번 실행의 테스트 통과 결과가 아니다.
+</pre></details></section><footer><p>편집일 2026-10-23 · 기존 완성 문서만 수록 · 문서 패키징 madangsue</p><p>본문의 문서 간 링크는 이 페이지 내부로 연결합니다. 소스 파일 인용은 Planner 기준 상대 경로로 연결하며, 원문 줄 번호는 인용 라벨로만 보존합니다. 로컬 파일 열기는 브라우저/운영체제 정책에 따라 제한될 수 있습니다. 원격 추적 참조의 줄 인용은 원문의 조사 기록이지 현재 작업본의 동일성 보증이 아닙니다.</p><a href="#overview">처음으로 ↑</a></footer></main></div></body></html>
