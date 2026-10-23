@@ -1,0 +1,210 @@
+{
+  "task": "t_e2815ba8",
+  "owner": "launchmini",
+  "status": "SCOPED_COMPLETED_HANDOFF_SOURCE_NORMAL_PUSH_VERIFIED",
+  "scope": "GIT_ONLY; finite serial continuation; blocked/do-not-global-dispatch unchanged",
+  "authority": "Latest owner explicitly requested normal commit/push, no QA, no AAB or Play/Hosting work",
+  "canonicalOriginalSha": "8e5da265dc3463fac8050ca1f8888a6b9eb56e9a",
+  "remoteOriginalSha": "1fcfc8481afdc666c0455f2d30dc464d90f4aaaf",
+  "laneOriginalSha": "1fcfc8481afdc666c0455f2d30dc464d90f4aaaf",
+  "sourceCommit": "e970e21fda885ac2b7e81e34cf49597e062e6590",
+  "verifiedSourceRemoteSha": "e970e21fda885ac2b7e81e34cf49597e062e6590",
+  "finalGitShaReceipt": "Developer/agent_room/git_consolidation_20261023/final-push-receipt.json (canonical local verification after report push; avoids self-referential commit hash)",
+  "origin": "https://github.com/JungGit-zard/school_survivor.git",
+  "branch": "zombie_only",
+  "integrationLane": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\releases\\stage13-source-t_c90e5882-20261023",
+  "includedSourcePathCount": 21,
+  "sourceCommitPathCount": 22,
+  "includedPaths": [
+    "marketing/x_daily_zombie_school_posting/WindowsXPosting.ps1",
+    "marketing/x_daily_zombie_school_posting/Test-WindowsXNavigationSafety.ps1",
+    "marketing/x_daily_zombie_school_posting/Test-XPublishOutcome.ps1",
+    "marketing/facebook_daily_zombie_school_posting/FacebookNative.ps1",
+    "marketing/facebook_daily_zombie_school_posting/Invoke-FacebookDailyZombieSchoolPosting.ps1",
+    "marketing/facebook_daily_zombie_school_posting/Test-FacebookPrePublishSafety.ps1",
+    "포스팅/Invoke-ZombieSchoolFiveSlotPosting.ps1",
+    "포스팅/Test-ZombieSchoolFixedSchedule.ps1",
+    "포스팅/Invoke-ZombieSchoolSocialPostingBacklog.ps1",
+    "marketing/x_daily_zombie_school_posting/posting_config.json",
+    ".agents/skills/escape-zombie-school-social-posting/SKILL.md",
+    ".agents/skills/escape-zombie-school-social-posting/references/proven-method.md",
+    "Developer/agent_room/stage_zombie_concepts_20261023/dispatch-blocker.md",
+    "Graphic_designer/stage_zombie_concepts_20261023/README.md",
+    "Graphic_designer/stage_zombie_concepts_20261023/stage1_classroom.png",
+    "Graphic_designer/stage_zombie_concepts_20261023/stage2_corridor.png",
+    "Graphic_designer/stage_zombie_concepts_20261023/stage3_gym.png",
+    "Graphic_designer/stage_zombie_concepts_20261023/stage4_cafeteria.png",
+    "Graphic_designer/stage_zombie_visual_method_20261023.md",
+    "Planner/stage_zombie_concept_plan_20261023.md",
+    "Quaility_Assurance/stage_zombie_concepts_review_20261023.md",
+    "Developer/agent_room/git_consolidation_20261023/source-manifest.json"
+  ],
+  "reportPaths": [
+    "Developer/agent_room/git_consolidation_20261023/result.json",
+    "Developer/agent_room/git_consolidation_20261023/report.md"
+  ],
+  "provenance": "source-manifest.json lists each exact included path, source commit or owner baseline, PRE/POST SHA-256 and integration mode",
+  "handoffs": [
+    "Developer/agent_room/git_consolidation_20261019/social_posting_recovery_20261022-handoff.md",
+    "Developer/agent_room/git_consolidation_20261019/x_noncomic_pool_20261023-handoff.md",
+    "Developer/agent_room/git_consolidation_20261019/fb_independent_slot_20261023-handoff.md",
+    "Developer/agent_room/shared_agent_integration_20261021/contract.md",
+    "Developer/agent_room/shared_agent_integration_20261021/ledger.md"
+  ],
+  "includedGroups": [
+    {
+      "scope": "completed 2026-10-22/23 X/Facebook source and existing test files",
+      "paths": 12,
+      "method": "Exact owner-baseline task hunks when unique; individually read latest-origin file diffs for navigation/action/new test/skill prerequisites. No raw evidence or live actions."
+    },
+    {
+      "scope": "8e5da265 concept plan / visual-method / original four PNG sheets / existing self-review and dispatch-blocker note",
+      "paths": 9,
+      "method": "Selected new docs/art only, no historical runtime merge. Three date lines lose two Markdown trailing spaces to pass unchanged git whitespace gate. No new concepts or QA sign-off invented."
+    }
+  ],
+  "checks": {
+    "normalSourcePush": true,
+    "sourceHeadFetchedRemoteLsRemoteEqual": true,
+    "exactStagedPathSet": true,
+    "gitWhitespaceCheck": {
+      "initialExit": 2,
+      "finalExit": 0,
+      "repair": "Only three new imported Markdown date lines, no historical excluded artifact touched"
+    },
+    "secretScan": {
+      "patterns": [
+        "private-key",
+        "github-token",
+        "google-oauth-refresh",
+        "bearer-jwt",
+        "aws-key",
+        "secret-literal"
+      ],
+      "textFiles": 17,
+      "findings": []
+    },
+    "protectedObjects": {
+      "Developer/r3f_prototype": {
+        "baseObject": "e3993c3dd3a5e4cc654c3de57e4371f3e001e5ff",
+        "sourceObject": "e3993c3dd3a5e4cc654c3de57e4371f3e001e5ff",
+        "identical": true
+      },
+      "AGENTS.md": {
+        "baseObject": "9c07cb221b9471dc46121c0c22650d287d3a309c",
+        "sourceObject": "9c07cb221b9471dc46121c0c22650d287d3a309c",
+        "identical": true
+      },
+      "CLAUDE.md": {
+        "baseObject": "defea5010ef8d7ea6104e0d1bdda89828ea7ce58",
+        "sourceObject": "defea5010ef8d7ea6104e0d1bdda89828ea7ce58",
+        "identical": true
+      },
+      "project_develop_policy.md": {
+        "baseObject": "a0c1c5494b2508860cf0adce60f7f21b2e3d0e74",
+        "sourceObject": "a0c1c5494b2508860cf0adce60f7f21b2e3d0e74",
+        "identical": true
+      }
+    },
+    "canonicalTrackedDirtyPathsUnchanged": 195,
+    "canonicalHeadUnchanged": true,
+    "canonicalIndexSha256Unchanged": true,
+    "untrackedOwnerFiles": "Not edited or staged; not exhaustively content-hashed",
+    "sourceWorkingTreeClean": true,
+    "configuredXPoolPaths": {
+      "total": 130,
+      "missing": [],
+      "scope": "configured paths resolved relative to X runner directory only; no selectors/network/browser/posting; source-owner CTA/public-card blocker retained"
+    }
+  },
+  "currentLimits": {
+    "additionalQAReviewersTestCampaigns": false,
+    "testsBuildsBrowserDeviceRun": "NOT_RUN as explicitly requested; prior owner test results are not fresh verification",
+    "conceptPackage": "Planning/reference-art delivery only; independent review not completed, no runtime/model production approval",
+    "xPublishing": "Source selection completed but owner CTA/no-repeat/public-card blocker remains. Source path existence does not establish publish readiness. No posts attempted.",
+    "AABPlayHosting": "Not requested, not performed; no deploy workaround",
+    "historicalDenials": "Binding, not retried or recast under alternate tools/syntax"
+  },
+  "branchDispositions": [
+    {
+      "branch": "feature/comic-gallery-20261016",
+      "originalSha": "a80435641741e1e9f9ffd1e1a95cd327676b9b83",
+      "ancestorOfPublishedSource": true,
+      "disposition": "Already in published ancestry; no duplicate merge"
+    },
+    {
+      "branch": "fix/boss-only-unlock-20261019",
+      "originalSha": "a9f84bf8e7f22d2b1b1c191f7b23ee2e0e908ff8",
+      "ancestorOfPublishedSource": true,
+      "disposition": "Already in published ancestry; no duplicate merge"
+    },
+    {
+      "branch": "launchmini/t_25c9cb8a-owned-weapon-push",
+      "originalSha": "709be06a90dc8c8bedbed111d8d8793a6b2ade7a",
+      "ancestorOfPublishedSource": true,
+      "disposition": "Already in published ancestry; no duplicate merge"
+    },
+    {
+      "branch": "sync/posting-20261015",
+      "originalSha": "a80435641741e1e9f9ffd1e1a95cd327676b9b83",
+      "ancestorOfPublishedSource": true,
+      "disposition": "Already in published ancestry; no duplicate merge"
+    },
+    {
+      "branch": "sync/zombie_only_20261013",
+      "originalSha": "08862d23366c6c31255bc7ab84c4a05686ec05c9",
+      "ancestorOfPublishedSource": false,
+      "disposition": "Divergent historical ref retained; no blanket merge. New concept package selected from 8e5da265; earlier file-scoped dispositions remain historical references, not current all-work completion."
+    },
+    {
+      "branch": "zombie_only",
+      "originalSha": "8e5da265dc3463fac8050ca1f8888a6b9eb56e9a",
+      "ancestorOfPublishedSource": false,
+      "disposition": "Divergent historical ref retained; no blanket merge. New concept package selected from 8e5da265; earlier file-scoped dispositions remain historical references, not current all-work completion."
+    }
+  ],
+  "remainingExclusions": [
+    {
+      "scope": "canonical divergent histories / sync/zombie_only_20261013 / ed334eee2453d5f4cf14e5e6f52c2057cd133b48",
+      "reason": "Mixed history is not one completed handoff; contains obsolete runtime, private/raw observations, caches and broad captures. No whole-branch merge or old runtime restoration."
+    },
+    {
+      "scope": "Developer/agent_room/shared_agent_integration_20261021/ledger.md pending worktrees; old stage-list-five-20261021",
+      "reason": "Ledger is historical, not a current all-work verdict. Older stage1-5 visibility must not override current stage1-4 visible/hide5-10 and natural account locks. Active/uncertain dirty changes left with owners."
+    },
+    {
+      "scope": "Graphic_designer/developer_intro_short_20261018/ and Quaility_Assurance/developer_intro_short_20261018.md",
+      "reason": "Last handoff described active portrait/subtitle work; no new frozen completed exact-path handoff supplied. No automatic capture."
+    },
+    {
+      "scope": "Developer/agent_room/ranking_layout_audit_20261022/",
+      "reason": "Read-only finding/partial delivery; no completed UI repair handoff. No implementation invented and no QA started."
+    },
+    {
+      "scope": "Developer/agent_room/lobby_return_boss12_20261023/ and old release source patches",
+      "reason": "Newer a8ddfe0c and 1fcfc848 published game tree retained in full; not recopied from stale candidate. Release/QA acceptance is not implied by Git preservation."
+    },
+    {
+      "scope": "Developer/agent_room/git_consolidation_20261019/android-reviewed.patch and Developer/android_firebase_analytics_module_t_023cea87_2026-10-11.md",
+      "reason": "Prior raw historical whitespace exclusions retained; no repeat of that rejected historical operation. Only fresh concept documentation date-line spaces were removed in this new lane."
+    },
+    {
+      "scope": "raw posting/account observation receipts, native trees, one-time manual-recovery scripts and live attempt ledgers",
+      "reason": "Operational evidence is not source. Nothing replayed/copied into this commit, no account/posting evidence published."
+    },
+    {
+      "scope": "credentials, .env, signing stores, browser profiles, node_modules, caches, dist/build, AAB/APK and deployment helper/configuration changes",
+      "reason": "Out of Git source handoff scope; no private transfer, build, deployment or protected-operation equivalent attempted."
+    },
+    {
+      "scope": "broken historical D-drive-alternate workspaces / missing worktree registrations",
+      "reason": "Previously recorded unreadability retained; no repair, alternate-path recovery, reset/clean/stash/prune or fabricated completion."
+    },
+    {
+      "scope": "global profile/approval/safety-hook/configuration and global skill copies",
+      "reason": "Untouched. Only repository-local social skill documentation explicitly named in owner handoffs was included."
+    }
+  ],
+  "completionMeaning": "All 21 selected completed source/art/doc paths plus manifest normal-pushed. No assertion that every historical branch, dirty artifact or pending worktree is integrated. Historical allWorkIntegrated fields were not reused as current state.",
+  "at": "2026-10-23T13:42:53.918780+00:00"
+}
