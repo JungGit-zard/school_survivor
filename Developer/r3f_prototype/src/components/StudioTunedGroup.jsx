@@ -94,7 +94,10 @@ function isolateStudioObjectMaterials(object, currentMaterials) {
 
   let changed = false
   const materials = currentMaterials.map((material) => {
-    if (material.userData?.studioMaterialOwner === object.uuid) return material
+    // StrictMode replays setup after cleanup on the same Three objects. A
+    // disposed owner clone must be recreated, never retained as a live material.
+    if (material.userData?.studioMaterialOwner === object.uuid
+      && !material.userData.studioMaterialDisposed) return material
     const isolated = material.clone()
     const dispose = isolated.dispose.bind(isolated)
     const sourceBaseColor = material.userData?.studioBaseColor
@@ -519,7 +522,9 @@ function StudioTunedRuntimeGroup({ itemId, children, materialTuning = true, snap
     captureStudioPartBaseTransforms(groupRef.current)
   })
 
-  useEffect(() => {
+  // Setup must also replay on Suspense reveal, which replays layout effects
+  // but not passive effects after hiding an already mounted model subtree.
+  useLayoutEffect(() => {
     if (!groupRef.current) return
     if (materialTuning) applyStudioTuning(groupRef.current, tuning)
     applySavedStudioPartTunings(groupRef.current, itemId, tunings, { materialTuning })
@@ -527,7 +532,9 @@ function StudioTunedRuntimeGroup({ itemId, children, materialTuning = true, snap
     invalidate()
   }, [itemId, materialTuning, tuning, tunings, decals, transformPositionMultiplier])
 
-  useEffect(() => {
+  // Release while the owned subtree is still attached. Passive unmount cleanup
+  // runs after R3F has removed its children and cannot find the owned materials.
+  useLayoutEffect(() => {
     const group = groupRef.current
     return () => {
       disposeTextureDecals(group)

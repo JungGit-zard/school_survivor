@@ -25,7 +25,7 @@ import {
 } from '../lib/playerRecords.js'
 import { evaluateUnlocks, isStarter, WEAPON_CATALOG } from '../lib/weaponCatalog.js'
 import { getAllUnlocked, setUnlocked as setWeaponUnlocked } from '../lib/weaponUnlocks.js'
-import { DEFAULT_STAGE_ID, getNextStageId, getStageConfig, isStageUnlocked } from '../lib/stageConfig.js'
+import { DEFAULT_STAGE_ID, getNextStageId, getStageConfig, isStageUnlocked, isStageVisible } from '../lib/stageConfig.js'
 import { getBossSpawnSec } from '../lib/burstEvents.js'
 import { getAdminBalanceConfig } from '../lib/adminConfig.js'
 import { vibrateFeedback } from '../lib/titleSettings.js'
@@ -1438,6 +1438,8 @@ export const useGameStore = create(
 
     // 게임 리셋. gameKey를 올려 Physics 트리를 새로 마운트한다.
     resetGame: (stageId = DEFAULT_STAGE_ID, { preserveQuestJourney = false, preserveContinuousScore = false } = {}) => {
+      // Reject before resolving fallback config, resetting refs, or creating/checkpointing a run.
+      if (!isStageVisible(stageId)) return false
       const nextStageId = getStageConfig(stageId).id
       if (!isStageUnlocked(nextStageId, isFirebaseProgressHydrated() ? loadPlayerRecords() : {})) return false
       resetRuntimeRefs(getPlayerStartPosition(nextStageId))

@@ -4,6 +4,7 @@ import { loadGameCanvas } from './gameCanvasLoader.js'
 import { useGameStore } from '../store/useGameStore.js'
 import { t } from '../lib/i18n.js'
 import { subscribeWholeScreenCriticalShake } from '../lib/criticalScreenShake.js'
+import Stage1Bgm from './Stage1Bgm.jsx'
 
 const GameCanvas = lazy(loadGameCanvas)
 const HUD = lazy(() => import('./HUD.jsx'))
@@ -24,6 +25,7 @@ export default function GameplayScreen({
   const criticalShakeAnimationRef = useRef(null)
   const gameKey = useGameStore((state) => state.gameKey)
   const phase = useGameStore((state) => state.phase)
+  const currentStageId = useGameStore((state) => state.currentStageId)
 
   useEffect(() => {
     const pauseIfPlaying = () => {
@@ -65,6 +67,7 @@ export default function GameplayScreen({
 
   return (
     <>
+      {isActive && <Stage1Bgm stageId={currentStageId} phase={phase} gameKey={gameKey} />}
       <Suspense fallback={<div style={styles.loading}>{t('loading.game')}</div>}>
         <GameCanvas gameKey={gameKey} phase={isActive ? phase : 'paused'} />
         {isActive && <HUD

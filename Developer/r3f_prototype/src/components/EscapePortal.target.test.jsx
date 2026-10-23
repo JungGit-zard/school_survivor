@@ -11,6 +11,30 @@ import EscapePortal from './EscapePortal.jsx'
 import { useFrame } from '@react-three/fiber'
 import { clearPortalTarget, portalTarget, playerPos } from '../lib/refs.js'
 import { useGameStore } from '../store/useGameStore.js'
+import { clampPlayerPosition } from '../lib/playerMovementBounds.js'
+
+it.each(['stage1', 'stage2', 'stage3'])('north-edge portal must be activatable by a legal player: %s', (stageId) => {
+  useGameStore.getState().resetGame(stageId)
+  playerPos.set(0, 0.32, 0)
+  let index = 0
+  const random = vi.spyOn(Math, 'random').mockImplementation(() => [0.5, 0][index++ % 2])
+  const root = createRoot(document.createElement('div'))
+  try {
+    act(() => root.render(<EscapePortal stageId={stageId} />))
+    const closest = clampPlayerPosition(stageId, portalTarget)
+    expect(Math.hypot(closest.x - portalTarget.x, closest.z - portalTarget.z)).toBeLessThan(0.6)
+    playerPos.set(closest.x, 0.32, closest.z)
+    const frame = useFrame.mock.calls.at(-1)[0]
+    act(() => {
+      frame({}, 1 / 60)
+      for (let i = 0; i < 65; i++) frame({}, 1 / 60)
+    })
+    expect(useGameStore.getState().phase).toBe('cleared')
+  } finally {
+    act(() => root.unmount())
+    random.mockRestore()
+  }
+})
 
 afterEach(() => {
   clearPortalTarget()

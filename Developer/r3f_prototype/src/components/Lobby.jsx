@@ -7,7 +7,7 @@
 //   onOpenRanking(stageId?) — 랭킹 상세 화면 진입(stageId 있으면 해당 스테이지 보드, 없으면 글로벌)
 // (설정/닉네임/무기 모달은 로비 내부에서 자체 처리 — App 배선 불필요)
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { STAGE_CONFIGS, getStageConfig, isStageUnlocked } from '../lib/stageConfig.js'
+import { VISIBLE_STAGE_IDS, getStageConfig, isStageUnlocked } from '../lib/stageConfig.js'
 import { load as loadPlayerRecords } from '../lib/playerRecords.js'
 import { isFirebaseProgressHydrated } from '../lib/firebaseProgress.js'
 import { formatSurvivalTime } from '../lib/userRanking.js'
@@ -108,7 +108,7 @@ export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onO
   const feedbackTimerRef = useRef(null)
   const feedbackButtonRef = useRef(null)
 
-  const stageIds = useMemo(() => Object.keys(STAGE_CONFIGS), [])
+  const stageIds = VISIBLE_STAGE_IDS
   const season = useMemo(() => getActiveSeason(), [])
 
   useEffect(() => {

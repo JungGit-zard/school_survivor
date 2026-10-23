@@ -4,8 +4,7 @@ import * as THREE from 'three'
 import { clearPortalTarget, playerPos, publishPortalTarget } from '../lib/refs.js'
 import { useGameStore } from '../store/useGameStore.js'
 import { emitSfx } from '../lib/sfxEvents.js'
-import { getStageBounds } from '../lib/stageConfig.js'
-import { STAGE_OBJECT_PLACEMENTS } from './StageObjects/stageObjectPlacements.js'
+import { pickPortalPosition } from '../lib/portalPlacement.js'
 import { clampGameplayFrameDelta } from '../lib/gameplayFrameTime.js'
 import {
   PORTAL_SUCTION_DURATION,
@@ -22,35 +21,12 @@ import StudioTunedGroup, {
 const PORTAL_RADIUS = 1.5
 // 작동(흡입) 히트박스 — 시각 링(PORTAL_RADIUS)과 분리해 중앙 좁은 원으로 제한.
 const PORTAL_TRIGGER_RADIUS = 0.6
-const MIN_DIST_FROM_PLAYER = 5
-const MIN_DIST_FROM_OBSTACLE = 2
-const MAP_INSET = 3             // stay this far from map edge
-
-function pickPortalPosition(stageId) {
-  const bounds = getStageBounds(stageId)
-  const obstacles = (STAGE_OBJECT_PLACEMENTS[stageId] ?? []).map((o) => o.position)
-
-  for (let attempt = 0; attempt < 40; attempt++) {
-    const x = (Math.random() * 2 - 1) * (bounds.halfX - MAP_INSET)
-    const z = (Math.random() * 2 - 1) * (bounds.halfZ - MAP_INSET)
-
-    const distFromPlayer = Math.hypot(x - playerPos.x, z - playerPos.z)
-    if (distFromPlayer < MIN_DIST_FROM_PLAYER) continue
-
-    const tooClose = obstacles.some(([ox, , oz]) => Math.hypot(x - ox, z - oz) < MIN_DIST_FROM_OBSTACLE)
-    if (tooClose) continue
-
-    return [x, 0.05, z]
-  }
-  // fallback: centre-ish if all attempts fail
-  return [0, 0.05, 0]
-}
 
 export default function EscapePortal({ stageId }) {
   const clearStage = useGameStore((s) => s.clearStage)
   const phase       = useGameStore((s) => s.phase)
 
-  const pos      = useMemo(() => pickPortalPosition(stageId), [stageId])
+  const pos      = useMemo(() => pickPortalPosition(stageId, playerPos), [stageId])
   const ringRef  = useRef()
   const glowRef  = useRef()
   const ringMaterialRef = useRef()

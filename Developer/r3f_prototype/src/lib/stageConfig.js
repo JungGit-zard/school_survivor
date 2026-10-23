@@ -4,6 +4,12 @@ import { EXPANSION_STAGES, getExpansionStageConfig } from './expansionContent.js
 
 export const DEFAULT_STAGE_ID = 'stage1'
 
+// Release entry boundary only; all content definitions and saved boss evidence remain intact.
+export const VISIBLE_STAGE_IDS = Object.freeze(['stage1', 'stage2', 'stage3'])
+export function isStageVisible(stageId) {
+  return VISIBLE_STAGE_IDS.includes(stageId)
+}
+
 export const STAGE_DURATION_SEC = 240
 export const BOSS_SPAWN_CENTER_SEC = 150
 export const BOSS_SPAWN_JITTER_SEC = 0
@@ -161,7 +167,9 @@ export function getStageConfig(stageId = DEFAULT_STAGE_ID) {
 }
 
 export function getNextStageId(stageId = DEFAULT_STAGE_ID) {
+  if (!isStageVisible(stageId)) return null
   const next = NEXT_STAGE_BY_STAGE[stageId] ?? null
+  if (!isStageVisible(next)) return null
   // 비플레이어블 스테이지로는 클리어→다음 경로도 진입 금지(로비 카드 게이트와 동일 규칙).
   if (next && STAGE_CONFIGS[next]?.playable === false) return null
   return next
@@ -190,7 +198,8 @@ export function getStageBounds(stageId = DEFAULT_STAGE_ID) {
 export function isStageUnlocked(stageId, records = {}) {
   if (stageId === 'stage1') return true
   if (!Object.hasOwn(STAGE_CONFIGS, stageId)) return false
-  const previousId = Object.keys(STAGE_CONFIGS).find(id => getNextStageId(id) === stageId)
+  // Historical unlock evidence must not be rewritten by the release entry boundary.
+  const previousId = Object.keys(STAGE_CONFIGS).find(id => NEXT_STAGE_BY_STAGE[id] === stageId)
   if (!previousId) return false
   // Escape clears (including historical ones) are not per-stage boss evidence.
   // Missing evidence stays locked; never fabricate or backfill boss history.
