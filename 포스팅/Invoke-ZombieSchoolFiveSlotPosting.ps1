@@ -281,41 +281,10 @@ function Invoke-ZombieSchoolFiveSlotPosting {
 function Invoke-SerializedPublishOnlyCycle {
   param([Parameter(Mandatory)][string]$RunId,[Parameter(Mandatory)][string]$ReceiptRoot,[Parameter(Mandatory)][string]$FacebookActionRunnerPath,[Parameter(Mandatory)][string]$XRunnerPath,[string]$StopAtKst='',[scriptblock]$NowKst={ [DateTimeOffset]::UtcNow.ToOffset([TimeSpan]::FromHours(9)) })
   $cutoffReached={ -not [string]::IsNullOrWhiteSpace($StopAtKst) -and (& $NowKst) -ge [DateTimeOffset]::Parse($StopAtKst,[Globalization.CultureInfo]::InvariantCulture) }
-  $languages=@('ja','en','vi','ko');$submitted=@();$unresolved=@();$verified=@();$skipped=@();$errors=@()
+  $languages=@('ja','en','vi','ko');$submitted=@();$unresolved=@();$verified=@();$skipped=@();$errors=@();$facebookMayContinue=$true;$publishClicks=@();$draftCleanups=@()
   $fbRoot=Join-Path $ReceiptRoot 'facebook_posting_receipts';$xRoot=Join-Path $ReceiptRoot 'x_posting_receipts'
   [IO.Directory]::CreateDirectory($fbRoot)|Out-Null;[IO.Directory]::CreateDirectory($xRoot)|Out-Null
-  $xReceiptPath=Join-Path $xRoot ($RunId+'.json')
-  $xReceipt=if(Test-Path -LiteralPath $xReceiptPath){Get-Content -LiteralPath $xReceiptPath -Raw -Encoding UTF8|ConvertFrom-Json}else{$null}
-  $xPending=$null -eq $xReceipt -or @($languages|Where-Object{$null -eq $xReceipt.entries.$_ -or $xReceipt.entries.$_.state -in @('selected','prepared')}).Count -gt 0
-  # User priority: complete the X cycle before opening or changing Facebook.
-  if(-not $xPending){ foreach($language in $languages){
-    if(& $cutoffReached){return [pscustomobject]@{exitCode=0;status='stopped_cutoff';reason='KST midnight reached before starting the next language'} }
-    $receiptPath=Join-Path $fbRoot ($RunId+'.json')
-    $entry=if(Test-Path -LiteralPath $receiptPath){(Get-Content -LiteralPath $receiptPath -Raw -Encoding UTF8|ConvertFrom-Json).entries.$language}else{$null}
-    if($null -ne $entry -and $entry.state -eq 'verified'){$verified += "facebook/$language";continue}
-    if($null -ne $entry -and $entry.state -eq 'publish_intent'){$unresolved += "facebook/$language";continue}
-    if($null -ne $entry -and $entry.state -notin @('selected','prepared')){$errors += "UNSAFE Facebook $language has unsupported receipt state '$($entry.state)'";continue}
-    $base=@('-RunId',$RunId,'-Language',$language,'-ReceiptDirectory',$fbRoot)
-    try {
-      if($null -eq $entry){$null=Invoke-JsonRunner -ScriptPath $FacebookActionRunnerPath -Arguments (@('-Action','SelectSourcePair')+$base) -Name "Facebook $language frozen pair";$entry=(Get-Content -LiteralPath $receiptPath -Raw -Encoding UTF8|ConvertFrom-Json).entries.$language}
-      $window=Invoke-JsonRunner -ScriptPath $FacebookActionRunnerPath -Arguments (@('-Action','DiscoverWindow')+$base) -Name "Facebook $language window discovery"
-      if($null -eq $window.windowId -or [long]$window.windowId -le 0){throw "UNSAFE Facebook $language did not resolve one window"}
-      $windowArgs=$base+@('-WindowId',[string][long]$window.windowId)
-      if(-not [string]::IsNullOrWhiteSpace($StopAtKst)){$windowArgs+=@('-StopAtKst',$StopAtKst)}
-      $null=Invoke-JsonRunner -ScriptPath $FacebookActionRunnerPath -Arguments (@('-Action','OpenProfile')+$windowArgs) -Name "Facebook $language profile"
-      if($entry.state -eq 'selected'){
-        foreach($action in @('OpenComposer','TypeText','AttachImage','VerifyDraft')){$null=Invoke-JsonRunner -ScriptPath $FacebookActionRunnerPath -Arguments (@('-Action',$action)+$windowArgs) -Name "Facebook $language $action"}
-      } else {
-        $null=Invoke-JsonRunner -ScriptPath $FacebookActionRunnerPath -Arguments (@('-Action','ResumeOwnDraft')+$windowArgs) -Name "Facebook $language resume draft"
-        $null=Invoke-JsonRunner -ScriptPath $FacebookActionRunnerPath -Arguments (@('-Action','VerifyDraft')+$windowArgs) -Name "Facebook $language verify resumed draft"
-      }
-      if(& $cutoffReached){return [pscustomobject]@{exitCode=0;status='stopped_cutoff';reason="KST midnight reached before Facebook $language PublishOnce"} }
-      $null=Invoke-JsonRunner -ScriptPath $FacebookActionRunnerPath -Arguments (@('-Action','PublishOnce')+$windowArgs+@('-AuthorizePublish')) -Name "Facebook $language PublishOnce"
-      $after=(Get-Content -LiteralPath $receiptPath -Raw -Encoding UTF8|ConvertFrom-Json).entries.$language
-      if($null -eq $after -or $after.state -ne 'publish_intent'){throw "UNSAFE Facebook $language PublishOnce returned without a persisted publish_intent"}
-      $submitted += "facebook/$language"
-    } catch {$message=$_.Exception.Message;if($message -match 'SCHEDULE_CUTOFF'){return [pscustomobject]@{exitCode=0;status='stopped_cutoff';reason=$message}}elseif(Test-TodayOnlyUnsafeFailure $message){return [pscustomobject]@{exitCode=1;status='stopped_unsafe';output=$message}}else{$errors += $message}}
-  } }
+  # Attempt every pending X locale first. Only known pre-click content blockers may yield to Facebook.
   foreach($language in $languages){
     if(& $cutoffReached){return [pscustomobject]@{exitCode=0;status='stopped_cutoff';reason='KST midnight reached before starting the next language'} }
     $receiptPath=Join-Path $xRoot ($RunId+'.json')
@@ -333,16 +302,49 @@ function Invoke-SerializedPublishOnlyCycle {
       if($null -eq $after -or $after.state -ne 'publish_intent'){throw "UNSAFE X $language PublishOnly returned without a persisted publish_intent"}
       if($result.status -notin @('published_unverified','partial_verified','complete')){throw "X $language PublishOnly returned unexpected status '$($result.status)'"}
       $submitted += "x/$language"
-    } catch {$message=$_.Exception.Message;if($message -match 'SCHEDULE_CUTOFF'){return [pscustomobject]@{exitCode=0;status='stopped_cutoff';reason=$message}}elseif(Test-TodayOnlyUnsafeFailure $message){return [pscustomobject]@{exitCode=1;status='stopped_unsafe';output=$message}}else{$errors += $message}}
+    } catch {$message=$_.Exception.Message;if($message -match 'SCHEDULE_CUTOFF'){return [pscustomobject]@{exitCode=0;status='stopped_cutoff';reason=$message}}elseif(Test-TodayOnlyUnsafeFailure $message){return [pscustomobject]@{exitCode=1;status='stopped_unsafe';output=$message}}else{$errors += $message;if($message -notmatch 'IMAGE_POOL_EXHAUSTED:|No confirmed localized game-start CTA images are eligible for X/|Image is not confirmed to contain the exact localized game-start CTA for X/|X website card is not publicly reachable:|X website card returned |X website card is not ready:'){$facebookMayContinue=$false}}}
   }
-  if($xPending -and $errors.Count -eq 0){
-    # A new slot reaches X first.  Once its four immutable intents have been
-    # recorded, continue immediately with Facebook in the same scheduled run.
-    return Invoke-SerializedPublishOnlyCycle -RunId $RunId -ReceiptRoot $ReceiptRoot -FacebookActionRunnerPath $FacebookActionRunnerPath -XRunnerPath $XRunnerPath -StopAtKst $StopAtKst -NowKst $NowKst
-  }
-  if($errors.Count -gt 0){return [pscustomobject]@{exitCode=1;status='partial_failed';output=($errors -join ' | ')}}
+  if($facebookMayContinue){foreach($language in $languages){
+    if(& $cutoffReached){return [pscustomobject]@{exitCode=0;status='stopped_cutoff';reason='KST midnight reached before starting the next language'} }
+    $receiptPath=Join-Path $fbRoot ($RunId+'.json')
+    $entry=if(Test-Path -LiteralPath $receiptPath){(Get-Content -LiteralPath $receiptPath -Raw -Encoding UTF8|ConvertFrom-Json).entries.$language}else{$null}
+    if($null -ne $entry -and $entry.state -eq 'verified'){$verified += "facebook/$language";continue}
+    if($null -ne $entry -and $entry.state -eq 'publish_intent'){$unresolved += "facebook/$language";continue}
+    if($null -ne $entry -and $entry.state -notin @('selected','prepared')){$errors += "UNSAFE Facebook $language has unsupported receipt state '$($entry.state)'";continue}
+    $base=@('-RunId',$RunId,'-Language',$language,'-ReceiptDirectory',$fbRoot)
+    $draftOpened=$false;$windowArgs=$null
+    try {
+      if($null -eq $entry){$null=Invoke-JsonRunner -ScriptPath $FacebookActionRunnerPath -Arguments (@('-Action','SelectSourcePair')+$base) -Name "Facebook $language frozen pair";$entry=(Get-Content -LiteralPath $receiptPath -Raw -Encoding UTF8|ConvertFrom-Json).entries.$language}
+      $window=Invoke-JsonRunner -ScriptPath $FacebookActionRunnerPath -Arguments (@('-Action','DiscoverWindow')+$base) -Name "Facebook $language window discovery"
+      if($null -eq $window.windowId -or [long]$window.windowId -le 0){throw "UNSAFE Facebook $language did not resolve one window"}
+      $windowArgs=$base+@('-WindowId',[string][long]$window.windowId)
+      if(-not [string]::IsNullOrWhiteSpace($StopAtKst)){$windowArgs+=@('-StopAtKst',$StopAtKst)}
+      $null=Invoke-JsonRunner -ScriptPath $FacebookActionRunnerPath -Arguments (@('-Action','OpenProfile')+$windowArgs) -Name "Facebook $language profile"
+      if($entry.state -eq 'selected'){
+        foreach($action in @('OpenComposer','TypeText','AttachImage','VerifyDraft')){$null=Invoke-JsonRunner -ScriptPath $FacebookActionRunnerPath -Arguments (@('-Action',$action)+$windowArgs) -Name "Facebook $language $action";if($action -ceq 'OpenComposer'){$draftOpened=$true}}
+      } else {
+        $null=Invoke-JsonRunner -ScriptPath $FacebookActionRunnerPath -Arguments (@('-Action','ResumeOwnDraft')+$windowArgs) -Name "Facebook $language resume draft"
+        $null=Invoke-JsonRunner -ScriptPath $FacebookActionRunnerPath -Arguments (@('-Action','VerifyDraft')+$windowArgs) -Name "Facebook $language verify resumed draft"
+      }
+      if(& $cutoffReached){return [pscustomobject]@{exitCode=0;status='stopped_cutoff';reason="KST midnight reached before Facebook $language PublishOnce"} }
+      $publish=Invoke-JsonRunner -ScriptPath $FacebookActionRunnerPath -Arguments (@('-Action','PublishOnce')+$windowArgs+@('-AuthorizePublish')) -Name "Facebook $language PublishOnce"
+      $after=(Get-Content -LiteralPath $receiptPath -Raw -Encoding UTF8|ConvertFrom-Json).entries.$language
+      if($null -eq $after -or $after.state -ne 'publish_intent'){throw "UNSAFE Facebook $language PublishOnce returned without a persisted publish_intent"}
+      $submitted += "facebook/$language";if($null -ne $publish.PSObject.Properties['publishClick']){$publishClicks += [pscustomobject]@{platform='facebook';language=$language;publishClick=$publish.publishClick}}
+    } catch {$message=$_.Exception.Message;if($message -match 'SCHEDULE_CUTOFF'){return [pscustomobject]@{exitCode=0;status='stopped_cutoff';reason=$message}}elseif(Test-TodayOnlyUnsafeFailure $message){return [pscustomobject]@{exitCode=1;status='stopped_unsafe';output=$message}}else{
+      $errors += $message
+      if($draftOpened -and $null -ne $windowArgs){try{
+        $failedEntry=(Get-Content -LiteralPath $receiptPath -Raw -Encoding UTF8|ConvertFrom-Json).entries.$language
+        if($null -ne $failedEntry -and $failedEntry.state -ceq 'selected'){
+          $cleanup=Invoke-JsonRunner -ScriptPath $FacebookActionRunnerPath -Arguments (@('-Action','CancelOwnDraft','-SelectedTextOnly')+$windowArgs) -Name "Facebook $language selected text-only cleanup"
+          $draftCleanups += [pscustomobject]@{platform='facebook';language=$language;preClickCleanup=$cleanup}
+        }
+      }catch{$errors += "Facebook $language selected text-only cleanup preserved draft: $($_.Exception.Message)"}}
+    }}
+  }}
+  if($errors.Count -gt 0){return [pscustomobject]@{exitCode=1;status='partial_failed';output=([pscustomobject]@{status='partial_failed';runId=$RunId;errors=$errors;submitted=$submitted;priorPublishIntentNotReplayed=$unresolved;publishClicks=$publishClicks;draftCleanups=$draftCleanups;verification='intentionally_deferred_to_user'}|ConvertTo-Json -Compress -Depth 10)}}
   $status=if($unresolved.Count -gt 0){'submitted_with_unresolved_intents'}else{'submitted'}
-  return [pscustomobject]@{exitCode=0;status=$status;output=([pscustomobject]@{status=$status;runId=$RunId;submitted=$submitted;priorPublishIntentNotReplayed=$unresolved;verifiedSkipped=$verified;duplicateSkipped=$skipped;verification='intentionally_deferred_to_user'}|ConvertTo-Json -Compress -Depth 6)}
+  return [pscustomobject]@{exitCode=0;status=$status;output=([pscustomobject]@{status=$status;runId=$RunId;submitted=$submitted;priorPublishIntentNotReplayed=$unresolved;verifiedSkipped=$verified;duplicateSkipped=$skipped;publishClicks=$publishClicks;draftCleanups=$draftCleanups;verification='intentionally_deferred_to_user'}|ConvertTo-Json -Compress -Depth 6)}
 }
 
 function Invoke-FiveSlotPersistentScheduledRun {

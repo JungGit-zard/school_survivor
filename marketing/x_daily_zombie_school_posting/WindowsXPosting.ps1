@@ -302,18 +302,27 @@ function Assert-XNavigationSafe {
     throw 'X navigation blocked: unsaved composer preserved; no address-bar input sent'
   }
 }
-function Close-XDuplicateDraft([string]$Text) {
-  # Only the draft prepared in this process may be discarded, and only after
-  # the server explicitly rejected its sole publish click as a duplicate.
+function Close-XOwnedDraft([string]$Text, [switch]$BeforePublish) {
+  # Discard only this process's exact draft: a failed pre-click preview or a server-rejected duplicate.
   $owned = $script:XOwnedDraft
   if ($null -eq $owned -or (Normalize-PostText $owned.text) -cne (Normalize-PostText $Text)) { throw 'Duplicate draft ownership is unknown; preserving it' }
   $editor = Find-XControl 'Post text' 'Edit'
+  if ($BeforePublish) {
+    if ($owned.phase -cne 'pre_publish_card') { throw 'Not a pre-click owned card draft; preserving it' }
+    $window = Get-XWindowElement
+    Assert-XForeground
+    if ($window.Current.NativeWindowHandle -ne $owned.windowId -or $window.Current.ProcessId -ne $owned.processId -or
+        $window.Current.Name -cne $owned.accountTitle -or $window.Current.Name -notmatch '\(@jungsilx\) / X' -or
+        $script:XExpectedCardUrl -cne $Text -or ($editor.GetRuntimeId() -join ',') -cne $owned.editorId) {
+      throw 'Pre-click window/account/editor/URL ownership changed; preserving it'
+    }
+  }
   if ((Get-XValue $editor) -cne $owned.text -or (Get-XAttachmentCount) -ne $owned.attachments -or (Get-XCardPreviewRemoveCount) -ne $owned.cards) {
     throw 'Duplicate draft changed since preparation; preserving it'
   }
   Click-XElement (Find-XControl 'Close' 'Button')
   Wait-XCondition {
-    $dialog = Find-XControl 'Save post?'
+    $dialog = Find-XControl 'Save post?' 'Window'
     $discard = Find-XControl 'Discard' 'Button' $dialog
     Click-XElement $discard
     return $true
@@ -480,7 +489,15 @@ function Prepare-XPost([string]$Text, [string]$ImagePath, [switch]$WebsiteCardOn
     Send-XKeys '^a'
     Send-XKeys '^v'
     Wait-XCondition { (Normalize-PostText (Get-XValue (Find-XControl 'Post text' 'Edit'))) -ceq $CardUrl } 'pasted exact standalone card URL'
-    Wait-XCondition { $script:XPreparedCardProof = Get-XWebsiteCardProof $CardUrl; return ($null -ne $script:XPreparedCardProof) } 'exact website card URL and visible card image' 30
+    $window = Get-XWindowElement
+    $script:XOwnedDraft = [pscustomobject]@{ text=$CardUrl; attachments=0; cards=0; phase='pre_publish_card'; windowId=$window.Current.NativeWindowHandle; processId=$window.Current.ProcessId; accountTitle=$window.Current.Name; editorId=($editor.GetRuntimeId() -join ',') }
+    try {
+      Wait-XCondition { $script:XPreparedCardProof = Get-XWebsiteCardProof $CardUrl; return ($null -ne $script:XPreparedCardProof) } 'exact website card URL and visible card image' 30
+    } catch {
+      $preparationError = $_
+      try { Close-XOwnedDraft $CardUrl -BeforePublish } catch { [Console]::Error.WriteLine('X_PRECLICK_DRAFT_PRESERVED: ' + $_.Exception.Message) }
+      throw $preparationError
+    }
     $editor = Find-XControl 'Post text' 'Edit'
     Click-XElement $editor
     Set-XClipboardText $Text
@@ -520,7 +537,7 @@ function Publish-XPost([string]$Text, [switch]$WebsiteCardOnly, [string]$CardUrl
     if ($duplicate.Count -gt 0) {
       # The server rejected this exact submission as a duplicate.  Do not click
       # again and let the caller close this language as intentionally skipped.
-      Close-XDuplicateDraft $Text
+      Close-XOwnedDraft $Text
       return [pscustomobject]@{ outcome='duplicate_skipped'; message=$duplicate[0].Current.Name }
     }
     $errors = @($visible | Where-Object { $_.Current.Name -match '^(Something went wrong|Whoops|Your post could not be sent|You are over the daily limit|You have exceeded)' })

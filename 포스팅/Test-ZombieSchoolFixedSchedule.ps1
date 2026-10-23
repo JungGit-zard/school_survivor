@@ -22,7 +22,7 @@ try{
   $normal=Invoke-ZombieSchoolFiveSlotPosting -RunId '2026-10-18-0300' -ReceiptRoot $temp -FacebookRunnerPath $fbStub -XRunnerPath $xStub -TestBypassSlotCheck
   Assert-True (($normal.order -join ',') -ceq 'x,facebook' -and (Get-Content -LiteralPath $xLog -Raw).Trim() -ceq "x`r`nfacebook") 'platform runner executes X before Facebook'
 
-  $script:serializedSteps=@();$script:serializedRoot=Join-Path $temp 'serialized';$script:serializedRun='2026-10-18-0300'
+  $script:xFixtureError='';$script:fbFixtureError='';$script:fbFailureAction='PublishOnce';$script:cleanupFixtureError='';$script:serializedSteps=@();$script:serializedRoot=Join-Path $temp 'serialized';$script:serializedRun='2026-10-18-0300'
   function Invoke-JsonRunner {
     param([string]$ScriptPath,[object[]]$Arguments,[string]$Name)
     $isX=$Name -like 'X *';$platform=if($isX){'x'}else{'facebook'};$script:serializedSteps += "$platform/$Name"
@@ -31,20 +31,64 @@ try{
     $receiptRoot=Join-Path $script:serializedRoot ($platform+'_posting_receipts');[IO.Directory]::CreateDirectory($receiptRoot)|Out-Null;$path=Join-Path $receiptRoot ($runId+'.json')
     $langs=@('ja','en','vi','ko');$receipt=if(Test-Path -LiteralPath $path){Get-Content -LiteralPath $path -Raw|ConvertFrom-Json}else{[pscustomobject]@{entries=[pscustomobject]@{ja=$null;en=$null;vi=$null;ko=$null}}}
     if($platform -eq 'x'){
+      if($script:xFixtureError){throw $script:xFixtureError}
       $receipt.entries.$language=[pscustomobject]@{state='publish_intent';intent=[pscustomobject]@{language=$language}}
       $receipt|ConvertTo-Json -Depth 6|Set-Content -LiteralPath $path -Encoding UTF8
       return [pscustomobject]@{status='published_unverified'}
     }
+    if($argMap['-Action'] -eq 'CancelOwnDraft' -and $script:cleanupFixtureError){throw $script:cleanupFixtureError}
+    if($argMap['-Action'] -eq $script:fbFailureAction -and $script:fbFixtureError){throw $script:fbFixtureError}
     $action=[string]$argMap['-Action'];if($action -eq 'DiscoverWindow'){return [pscustomobject]@{windowId=901}}
     if($action -eq 'SelectSourcePair'){$receipt.entries.$language=[pscustomobject]@{state='selected';intent=[pscustomobject]@{language=$language}}}
     if($action -eq 'VerifyDraft'){$receipt.entries.$language.state='prepared'}
     if($action -eq 'PublishOnce'){$receipt.entries.$language.state='publish_intent'}
     if($action -in @('SelectSourcePair','VerifyDraft','PublishOnce')){$receipt|ConvertTo-Json -Depth 6|Set-Content -LiteralPath $path -Encoding UTF8}
-    return [pscustomobject]@{status='ok';windowId=901}
+    return [pscustomobject]@{status='ok';windowId=901;publishClick=[pscustomobject]@{clickedUtc='fixture-click'}}
   }
   $serialized=Invoke-SerializedPublishOnlyCycle -RunId $script:serializedRun -ReceiptRoot $script:serializedRoot -FacebookActionRunnerPath $fbStub -XRunnerPath $xStub
   $firstFacebook=[array]::IndexOf([string[]]$script:serializedSteps,(@($script:serializedSteps|Where-Object{$_ -like 'facebook/*'})[0]))
-  Assert-True ($serialized.status -eq 'submitted_with_unresolved_intents' -and $firstFacebook -ge 4 -and @($script:serializedSteps|Where-Object{$_ -like 'x/* PublishOnly'}).Count -eq 4) 'scheduled publish-only cycle finishes all four X actions before opening Facebook'
+  Assert-True ($serialized.status -eq 'submitted' -and $firstFacebook -ge 4 -and @($script:serializedSteps|Where-Object{$_ -like 'x/* PublishOnly'}).Count -eq 4) 'scheduled publish-only cycle finishes all four X actions before opening Facebook'
+
+  $script:serializedRoot=Join-Path $temp 'x-content-blocked';$script:serializedSteps=@();$script:xFixtureError='IMAGE_POOL_EXHAUSTED: all unique SHA256 images are already used for X/en.'
+  $blocked=Invoke-SerializedPublishOnlyCycle -RunId $script:serializedRun -ReceiptRoot $script:serializedRoot -FacebookActionRunnerPath $fbStub -XRunnerPath $xStub
+  $blockedOutput=$blocked.output|ConvertFrom-Json
+  Assert-True (($script:serializedSteps[0..3] -join ',') -ceq 'x/X ja PublishOnly,x/X en PublishOnly,x/X vi PublishOnly,x/X ko PublishOnly' -and @($script:serializedSteps|Where-Object {$_ -like 'facebook/* PublishOnce'}).Count -eq 4) 'safe X content blockers still attempt X4 before Facebook4'
+  Assert-True ($blocked.status -eq 'partial_failed' -and $blockedOutput.errors.Count -eq 4 -and $blockedOutput.submitted.Count -eq 4 -and $blockedOutput.publishClicks.Count -eq 4) 'aggregate failure retains X errors and Facebook native click results in existing attempt output'
+  $path=Join-Path $script:serializedRoot ('x_posting_receipts/'+$script:serializedRun+'.json')
+  [pscustomobject]@{entries=[pscustomobject]@{ja=[pscustomobject]@{state='publish_intent'};en=$null;vi=$null;ko=$null}}|ConvertTo-Json -Depth 6|Set-Content -LiteralPath $path -Encoding UTF8
+  $script:serializedSteps=@();$retry=Invoke-SerializedPublishOnlyCycle -RunId $script:serializedRun -ReceiptRoot $script:serializedRoot -FacebookActionRunnerPath $fbStub -XRunnerPath $xStub
+  Assert-True (-not ($script:serializedSteps -contains 'x/X ja PublishOnly') -and @($script:serializedSteps|Where-Object {$_ -like 'facebook/*'}).Count -eq 0) 'existing X and Facebook intents are never replayed on retries'
+  $script:serializedRoot=Join-Path $temp 'facebook-failure';$script:serializedSteps=@();$script:fbFixtureError='fixture Facebook attachment not ready'
+  $fbFailed=Invoke-SerializedPublishOnlyCycle -RunId $script:serializedRun -ReceiptRoot $script:serializedRoot -FacebookActionRunnerPath $fbStub -XRunnerPath $xStub
+  Assert-True ($fbFailed.status -eq 'partial_failed' -and $fbFailed.output -match 'fixture Facebook attachment not ready') 'Facebook failures remain visible alongside blocked X errors'
+  Assert-True (@($script:serializedSteps|Where-Object {$_ -like '*text-only cleanup'}).Count -eq 0) 'prepared drafts never enter selected text-only cleanup'
+  $script:fbFailureAction='AttachImage';$script:cleanupFixtureError='fixture cleanup refusal';$script:serializedRoot=Join-Path $temp 'cleanup-refused';$script:serializedSteps=@()
+  $cleanupRefused=Invoke-SerializedPublishOnlyCycle -RunId $script:serializedRun -ReceiptRoot $script:serializedRoot -FacebookActionRunnerPath $fbStub -XRunnerPath $xStub
+  Assert-True ($cleanupRefused.output -match 'fixture Facebook attachment not ready' -and $cleanupRefused.output -match 'fixture cleanup refusal' -and @($script:serializedSteps|Where-Object {$_ -like '*text-only cleanup'}).Count -eq 4) 'cleanup refusal preserves original failure and only follows this attempt owned composer'
+  $script:fbFailureAction='OpenComposer';$script:serializedRoot=Join-Path $temp 'composer-not-owned';$script:serializedSteps=@()
+  $notOwned=Invoke-SerializedPublishOnlyCycle -RunId $script:serializedRun -ReceiptRoot $script:serializedRoot -FacebookActionRunnerPath $fbStub -XRunnerPath $xStub
+  Assert-True (@($script:serializedSteps|Where-Object {$_ -like '*text-only cleanup'}).Count -eq 0) 'failed OpenComposer never authorizes cleanup of an unknown draft'
+  $script:fbFailureAction='PublishOnce';$script:cleanupFixtureError=''
+  $script:fbFixtureError='';$script:xFixtureError='X website card is not ready: twitter:card must be summary_large_image.';$script:serializedRoot=Join-Path $temp 'public-card-blocked';$script:serializedSteps=@()
+  $cardBlocked=Invoke-SerializedPublishOnlyCycle -RunId $script:serializedRun -ReceiptRoot $script:serializedRoot -FacebookActionRunnerPath $fbStub -XRunnerPath $xStub
+  Assert-True ($cardBlocked.status -eq 'partial_failed' -and $cardBlocked.output -match 'X website card is not ready:' -and @($script:serializedSteps|Where-Object {$_ -like 'facebook/* PublishOnce'}).Count -eq 4) 'known pre-UI public card readiness failure retains X errors and allows Facebook4'
+  $script:fbFixtureError='';$script:xFixtureError='fixture native editor ownership unknown';$script:serializedRoot=Join-Path $temp 'unknown-x';$script:serializedSteps=@()
+  $unknownX=Invoke-SerializedPublishOnlyCycle -RunId $script:serializedRun -ReceiptRoot $script:serializedRoot -FacebookActionRunnerPath $fbStub -XRunnerPath $xStub
+  Assert-True ($unknownX.status -eq 'partial_failed' -and @($script:serializedSteps|Where-Object {$_ -like 'facebook/*'}).Count -eq 0) 'unknown native failures do not authorize Facebook UI continuation'
+  $script:xFixtureError='UNCERTAIN publish_intent';$script:serializedRoot=Join-Path $temp 'unsafe-x';$script:serializedSteps=@()
+  $unsafeX=Invoke-SerializedPublishOnlyCycle -RunId $script:serializedRun -ReceiptRoot $script:serializedRoot -FacebookActionRunnerPath $fbStub -XRunnerPath $xStub
+  Assert-True ($unsafeX.status -eq 'stopped_unsafe' -and $script:serializedSteps.Count -eq 1) 'unsafe X failures still stop immediately before any Facebook action'
+  $script:xFixtureError='';$script:serializedRoot=Join-Path $temp 'expired';$script:serializedSteps=@()
+  $expired=Invoke-SerializedPublishOnlyCycle -RunId $script:serializedRun -ReceiptRoot $script:serializedRoot -FacebookActionRunnerPath $fbStub -XRunnerPath $xStub -StopAtKst '2026-10-18T03:30:00+09:00' -NowKst {[DateTimeOffset]::Parse('2026-10-18T03:31:00+09:00')}
+  Assert-True ($expired.status -eq 'stopped_cutoff' -and $script:serializedSteps.Count -eq 0) 'expired slots perform no X or Facebook action'
+
+  $script:evidenceClock=[DateTimeOffset]::Parse('2026-10-18T21:20:00+09:00');$evidenceState=Join-Path $temp 'attempt-evidence.json'
+  $evidenceResult=Invoke-FiveSlotPersistentScheduledRun -RunId '2026-10-18-2100' -StatePath $evidenceState -StopAtKst '2026-10-18T21:30:00+09:00' -NowKst {$script:evidenceClock} -RunCycle {
+    param($id,$attempt)
+    [pscustomobject]@{exitCode=1;status='partial_failed';output=([pscustomobject]@{errors=@('X original content blocker');publishClicks=@(if($attempt -eq 1){[pscustomobject]@{clickedUtc='first-attempt-click'}})}|ConvertTo-Json -Compress)}
+  } -Sleep {param($seconds);$script:evidenceClock=$script:evidenceClock.AddSeconds($seconds)}
+  $evidenceSaved=Get-Content -LiteralPath $evidenceState -Raw -Encoding UTF8|ConvertFrom-Json
+  Assert-True ($evidenceResult.status -eq 'stopped_cutoff' -and $evidenceSaved.entries[0].attemptResults.Count -eq 2 -and $evidenceSaved.entries[0].attemptResults[0].output -match 'first-attempt-click' -and $evidenceSaved.entries[0].attemptResults[1].output -match 'X original content blocker') 'later retries and cutoff retain original errors and earlier Facebook click evidence in the existing ledger'
 
   $queuePath=Join-Path $temp 'social_posting_scheduled_queue.json'
   $now=[DateTimeOffset]::Parse('2026-10-18T12:10:00+09:00')
@@ -81,5 +125,5 @@ try{
   $retryPath=Join-Path $retryDir '2026-10-18-1200.json';$retryState|ConvertTo-Json -Depth 8|Set-Content -LiteralPath $retryPath -Encoding UTF8
   $retryCancelled=Cancel-SocialPostingRetryStatesByUser $retryDir;$retrySaved=Get-Content -LiteralPath $retryPath -Raw -Encoding UTF8|ConvertFrom-Json
   Assert-True ($retryCancelled.cancelled.Count -eq 1 -and $retrySaved.entries[0].status -eq 'canceled_by_user' -and $retrySaved.entries[1].status -eq 'submitted_with_unresolved_intents' -and $retrySaved.entries[0].lastError -eq 'original worker error') 'retry-state cancellation preserves errors and terminal submission evidence'
-}finally{Remove-Item -LiteralPath $temp -Recurse -Force}
+}finally{Write-Output "Fixture evidence retained: $temp"}
 'FIXED_SOCIAL_SCHEDULE_TEST_OK'

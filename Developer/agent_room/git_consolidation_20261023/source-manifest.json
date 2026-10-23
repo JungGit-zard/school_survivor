@@ -1,0 +1,244 @@
+{
+  "task": "t_e2815ba8",
+  "scope": "GIT_ONLY",
+  "base": "1fcfc8481afdc666c0455f2d30dc464d90f4aaaf",
+  "canonicalOriginalHead": "8e5da265dc3463fac8050ca1f8888a6b9eb56e9a",
+  "origin": "https://github.com/JungGit-zard/school_survivor.git",
+  "lane": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\releases\\stage13-source-t_c90e5882-20261023",
+  "entries": [
+    {
+      "path": "marketing/x_daily_zombie_school_posting/WindowsXPosting.ps1",
+      "group": "x-preclick",
+      "source": "canonical owner handoffs 20261022/20261023",
+      "sourceWorkingSha256": "e0dc68ecfefe22d92212f66b7535b557e6ea3dd43379eec6de7b54409345bc6c",
+      "baseline": "x_preclick_cleanup_20261022/WindowsXPosting.before.ps1",
+      "beforeSha256": "590a3a255513172b1b20f347cf2e6a1c7892221a96f4329edd0e0cc921f8b563",
+      "afterSha256": "26229b1b97ca634818000b66acfbf02192e95138ce112715d78a431be1aace9b",
+      "integrationMode": "exact owner-baseline task hunks applied uniquely to latest origin"
+    },
+    {
+      "path": "marketing/x_daily_zombie_school_posting/Test-WindowsXNavigationSafety.ps1",
+      "group": "x-navigation",
+      "source": "canonical owner handoffs 20261022/20261023",
+      "sourceWorkingSha256": "f347076491fdde4940e21312d7405ba9071394ab75a05d58438cb9795db01968",
+      "baseline": "x_preclick_cleanup_20261022/Test-WindowsXNavigationSafety.ps1.before",
+      "beforeSha256": "534a036c4f64a8e3592d8f6fc523cb0136628dfa04025e3152c6bd5194806fc1",
+      "afterSha256": "37a28ee140fb43b1a29f825d3c21053f06f53d6098c53d7df1d5801025a5e810",
+      "integrationMode": "read-reviewed exact-file diff against latest origin; no unrelated tree import"
+    },
+    {
+      "path": "marketing/x_daily_zombie_school_posting/Test-XPublishOutcome.ps1",
+      "group": "x-outcome",
+      "source": "canonical owner handoffs 20261022/20261023",
+      "sourceWorkingSha256": "5ee038b9bad4ffba8a84d298c1519cd35b321f5a5b8c34b1ef38a41e0dcb3b2e",
+      "baseline": "x_preclick_cleanup_20261022/Test-XPublishOutcome.ps1.before",
+      "beforeSha256": "7b0a1daaf704a75cd96d05da1b4544c82a54ab166af0f71b570f79044bf49005",
+      "afterSha256": "e1acbec7abf9026854c955c69938f2123a53d1ca7a71ccf7a0d91aaf61c332f1",
+      "integrationMode": "exact owner-baseline task hunks applied uniquely to latest origin"
+    },
+    {
+      "path": "marketing/facebook_daily_zombie_school_posting/FacebookNative.ps1",
+      "group": "fb-native",
+      "source": "canonical owner handoffs 20261022/20261023",
+      "sourceWorkingSha256": "3925d415bd27830c4ee1ccffb99ce1b1376f85e912bf5860247cec1f642490be",
+      "baseline": "x_preclick_cleanup_20261022/FacebookNative.before.ps1",
+      "beforeSha256": "bf28a9ad48b46b5d87300813fffb5d56c6b2044773e1d1e44364605061117dba",
+      "afterSha256": "3925d415bd27830c4ee1ccffb99ce1b1376f85e912bf5860247cec1f642490be",
+      "integrationMode": "exact owner-baseline task hunks applied uniquely to latest origin"
+    },
+    {
+      "path": "marketing/facebook_daily_zombie_school_posting/Invoke-FacebookDailyZombieSchoolPosting.ps1",
+      "group": "fb-action",
+      "source": "canonical owner handoffs 20261022/20261023",
+      "sourceWorkingSha256": "d205289ec5431840983ed396d0f97199d94f4020f65d08d530570206777c2c74",
+      "baseline": "x_preclick_cleanup_20261022/FacebookAction.before.ps1",
+      "beforeSha256": "c2bd7d16753ec16ba4f371625f302725face9bdaa8958610381003ef657b8d3e",
+      "afterSha256": "d205289ec5431840983ed396d0f97199d94f4020f65d08d530570206777c2c74",
+      "integrationMode": "read-reviewed exact-file diff against latest origin; no unrelated tree import"
+    },
+    {
+      "path": "marketing/facebook_daily_zombie_school_posting/Test-FacebookPrePublishSafety.ps1",
+      "group": "fb-safety",
+      "source": "canonical owner handoffs 20261022/20261023",
+      "sourceWorkingSha256": "c9620cf56081b2b1e3b803dce1b06bd91509a72d20d3b1fb493353101f0d4ff5",
+      "baseline": "fb_independent_slot_20261023/Test-FacebookPrePublishSafety.ps1.before-textonly",
+      "beforeSha256": null,
+      "afterSha256": "f745e544125e92ee83964fa4f77e3eef93b4ed24b305418c5a31bb20b5de068b",
+      "integrationMode": "read-reviewed exact-file diff against latest origin; no unrelated tree import"
+    },
+    {
+      "path": "포스팅/Invoke-ZombieSchoolFiveSlotPosting.ps1",
+      "group": "fb-schedule",
+      "source": "canonical owner handoffs 20261022/20261023",
+      "sourceWorkingSha256": "c2743d565e435e41b80b98344ba906118b951ab946569886bf85d90f22362cb8",
+      "baseline": "fb_independent_slot_20261023/Invoke-ZombieSchoolFiveSlotPosting.ps1.before",
+      "beforeSha256": "fce13498923d7f48c708acfb5650c31fc46dc7adfd3ddf82da116f78291a2507",
+      "afterSha256": "c2743d565e435e41b80b98344ba906118b951ab946569886bf85d90f22362cb8",
+      "integrationMode": "exact owner-baseline task hunks applied uniquely to latest origin"
+    },
+    {
+      "path": "포스팅/Test-ZombieSchoolFixedSchedule.ps1",
+      "group": "fb-schedule-test",
+      "source": "canonical owner handoffs 20261022/20261023",
+      "sourceWorkingSha256": "d46611461f6dd908df234e74d93bd701d0ffb1aa5b4eeb56609adc64521b9bf6",
+      "baseline": "fb_independent_slot_20261023/Test-ZombieSchoolFixedSchedule.ps1.before",
+      "beforeSha256": "6aa03d44327fea7d9aaebafd6f415d36aaa3635965f2c7d80837f0da866d4993",
+      "afterSha256": "d46611461f6dd908df234e74d93bd701d0ffb1aa5b4eeb56609adc64521b9bf6",
+      "integrationMode": "exact owner-baseline task hunks applied uniquely to latest origin"
+    },
+    {
+      "path": "포스팅/Invoke-ZombieSchoolSocialPostingBacklog.ps1",
+      "group": "fb-attempt-history",
+      "source": "canonical owner handoffs 20261022/20261023",
+      "sourceWorkingSha256": "9ca685304e8453c9952805a08c9e91712d9152f11a09859105a593ceb52146cf",
+      "baseline": "fb_independent_slot_20261023/Invoke-ZombieSchoolSocialPostingBacklog.ps1.before",
+      "beforeSha256": "7740838362d0bb5e9db24979ec4dd835429a4494278ef7f780710aa0de7a52c3",
+      "afterSha256": "9ca685304e8453c9952805a08c9e91712d9152f11a09859105a593ceb52146cf",
+      "integrationMode": "exact owner-baseline task hunks applied uniquely to latest origin"
+    },
+    {
+      "path": "marketing/x_daily_zombie_school_posting/posting_config.json",
+      "group": "x-pool",
+      "source": "canonical owner handoffs 20261022/20261023",
+      "sourceWorkingSha256": "d51cf2cdb33a6415258306ac0255034eb131f5103db9a005c13f49e47bad673d",
+      "baseline": "x_noncomic_pool_20261023/posting_config.before.json",
+      "beforeSha256": "edec5dd9eb16301c0256ca52fa89693c76abbc51493243dc7bcf3e6c8d3e381a",
+      "afterSha256": "d51cf2cdb33a6415258306ac0255034eb131f5103db9a005c13f49e47bad673d",
+      "integrationMode": "exact owner-baseline task hunks applied uniquely to latest origin"
+    },
+    {
+      "path": ".agents/skills/escape-zombie-school-social-posting/SKILL.md",
+      "group": "posting-skill",
+      "source": "canonical owner handoffs 20261022/20261023",
+      "sourceWorkingSha256": "793f76dfb968b35d327b3df55e09f9e7fbe9e5f1d4adbb3df8d4503a4b7cf61f",
+      "baseline": "x_noncomic_pool_20261023/0-SKILL.md.before",
+      "beforeSha256": "045fd9ba7e2e2ed33151bb2582e65187e69aa01af153419300625c1b7e485c62",
+      "afterSha256": "d30289d15bede5a58cefacafc2ed0396145dc0c333acc01e6cd09666ab4f4a35",
+      "integrationMode": "read-reviewed exact-file diff against latest origin; no unrelated tree import"
+    },
+    {
+      "path": ".agents/skills/escape-zombie-school-social-posting/references/proven-method.md",
+      "group": "posting-method",
+      "source": "canonical owner handoffs 20261022/20261023",
+      "sourceWorkingSha256": "d5266b7ff56bcd866e2419a043103246ede95d45bd22d28bc051068514fdbae3",
+      "baseline": "x_noncomic_pool_20261023/1-proven-method.md.before",
+      "beforeSha256": "39fc899e1117e4133806f0e1407458622db398cb6374823effffcef34ddde445",
+      "afterSha256": "be0ff4029e9035bd0908c47b69762fe041adf031bec43f4cf38e218ab3c9f471",
+      "integrationMode": "exact owner-baseline task hunks applied uniquely to latest origin"
+    },
+    {
+      "path": "Developer/agent_room/stage_zombie_concepts_20261023/dispatch-blocker.md",
+      "group": "stage-zombie-concept-documentation",
+      "sourceCommit": "8e5da265dc3463fac8050ca1f8888a6b9eb56e9a",
+      "sourceBlob": "4623f0d18c431931c1a3083f10ebc982827da32d",
+      "beforeSha256": null,
+      "afterSha256": "dc56d5c0994d23ffbf0a927bd96b01d9dc027c940ee2910d2666bee7bd9671a5",
+      "integrationMode": "exact completed commit blob at new documentation/art path; not runtime approval"
+    },
+    {
+      "path": "Graphic_designer/stage_zombie_concepts_20261023/README.md",
+      "group": "stage-zombie-concept-documentation",
+      "sourceCommit": "8e5da265dc3463fac8050ca1f8888a6b9eb56e9a",
+      "sourceBlob": "3c60c4f01d8f43af5aa65205f59954d56047fd72",
+      "beforeSha256": null,
+      "afterSha256": "141a0209dfabec5eb65d921e34ccaedd765e22a42b9e805f65c772208a6ce5dd",
+      "integrationMode": "exact completed commit blob at new documentation/art path; not runtime approval"
+    },
+    {
+      "path": "Graphic_designer/stage_zombie_concepts_20261023/stage1_classroom.png",
+      "group": "stage-zombie-concept-documentation",
+      "sourceCommit": "8e5da265dc3463fac8050ca1f8888a6b9eb56e9a",
+      "sourceBlob": "a1a5e1d0fb65fdd5423057c301a338c7603fddbc",
+      "beforeSha256": null,
+      "afterSha256": "bfc991fe4f682041147f5ec49d679c7a9beb143dd2ecd9e12628ea94e1e5172b",
+      "integrationMode": "exact completed commit blob at new documentation/art path; not runtime approval"
+    },
+    {
+      "path": "Graphic_designer/stage_zombie_concepts_20261023/stage2_corridor.png",
+      "group": "stage-zombie-concept-documentation",
+      "sourceCommit": "8e5da265dc3463fac8050ca1f8888a6b9eb56e9a",
+      "sourceBlob": "601e471de64f5fca7dea5902e72afb7b3a068fb3",
+      "beforeSha256": null,
+      "afterSha256": "34091be9ee3778ca252d32937b511974f6e5640c3413ebe9e8cd5f65beeb9f94",
+      "integrationMode": "exact completed commit blob at new documentation/art path; not runtime approval"
+    },
+    {
+      "path": "Graphic_designer/stage_zombie_concepts_20261023/stage3_gym.png",
+      "group": "stage-zombie-concept-documentation",
+      "sourceCommit": "8e5da265dc3463fac8050ca1f8888a6b9eb56e9a",
+      "sourceBlob": "fb9b7169d1f7274d15d3c69b4be60881220f0101",
+      "beforeSha256": null,
+      "afterSha256": "c18ea80a7fbea9cc7767a4aede29c8d8eeeb7d812a9875238b2c57f77ca0f37d",
+      "integrationMode": "exact completed commit blob at new documentation/art path; not runtime approval"
+    },
+    {
+      "path": "Graphic_designer/stage_zombie_concepts_20261023/stage4_cafeteria.png",
+      "group": "stage-zombie-concept-documentation",
+      "sourceCommit": "8e5da265dc3463fac8050ca1f8888a6b9eb56e9a",
+      "sourceBlob": "f2aeb8be0733225f6eb3869d8908b7a7f4589588",
+      "beforeSha256": null,
+      "afterSha256": "632ecb3cefe6f5d4bb34d987096ce8f227607ea9d6ee141957cac8fccc5627e6",
+      "integrationMode": "exact completed commit blob at new documentation/art path; not runtime approval"
+    },
+    {
+      "path": "Graphic_designer/stage_zombie_visual_method_20261023.md",
+      "group": "stage-zombie-concept-documentation",
+      "sourceCommit": "8e5da265dc3463fac8050ca1f8888a6b9eb56e9a",
+      "sourceBlob": "a8637987fd202ab0f59dd38dc0711f6e95f7822e",
+      "beforeSha256": null,
+      "afterSha256": "cf6949c55496b52201ac7bcea1a2c3659c552a60b2be0b1a8cf72ad1f5ee7570",
+      "integrationMode": "exact completed commit blob at new documentation/art path; not runtime approval",
+      "originalImportedSha256": "646f8a9b23b6f6f08ce82b3831a4cd8460cae2a0f9f8cad8b740d0690a694bbe",
+      "formattingOnly": "Remove two Markdown line-ending spaces on date line for normal git diff --check; original canonical/commit blob preserved"
+    },
+    {
+      "path": "Planner/stage_zombie_concept_plan_20261023.md",
+      "group": "stage-zombie-concept-documentation",
+      "sourceCommit": "8e5da265dc3463fac8050ca1f8888a6b9eb56e9a",
+      "sourceBlob": "bd5f0354cd49d20cb8b2e19c8a07094c56bc8aa7",
+      "beforeSha256": null,
+      "afterSha256": "9485b1877935c15d1d355bc886b42b9ac6f89b478b09cb711e9563b18fb2429e",
+      "integrationMode": "exact completed commit blob at new documentation/art path; not runtime approval",
+      "originalImportedSha256": "fa53d2ece8fe93aa8e10dcb037df6b648e64e409f97a49c1592695162c6f7e21",
+      "formattingOnly": "Remove two Markdown line-ending spaces on date line for normal git diff --check; original canonical/commit blob preserved"
+    },
+    {
+      "path": "Quaility_Assurance/stage_zombie_concepts_review_20261023.md",
+      "group": "stage-zombie-concept-documentation",
+      "sourceCommit": "8e5da265dc3463fac8050ca1f8888a6b9eb56e9a",
+      "sourceBlob": "75f9480f5c7a91af95eb1abe58e6d4aab407e102",
+      "beforeSha256": null,
+      "afterSha256": "9f108e35b50c21e8c949fc3fc0bddbd66fe566c38b6325fbb14a700e4ccc1fcc",
+      "integrationMode": "exact completed commit blob at new documentation/art path; not runtime approval",
+      "originalImportedSha256": "cb660db4cdce421645b3f39da3075a5c899c06950138fc864be71ecfa930cd72",
+      "formattingOnly": "Remove two Markdown line-ending spaces on date line for normal git diff --check; original canonical/commit blob preserved"
+    }
+  ],
+  "checks": {
+    "patternSecretScan": {
+      "patterns": [
+        "private-key",
+        "github-token",
+        "google-oauth-refresh",
+        "bearer-jwt",
+        "aws-key",
+        "secret-literal"
+      ],
+      "textFiles": 17,
+      "findings": []
+    },
+    "gameAndroidRuntimeUnchangedFromBase": true,
+    "canonicalHeadIndexDirtyUnchanged": true,
+    "newQAWorkersTestsBuildBrowserDeploy": false,
+    "mandatoryReceipt": "6eec73783684c3548789f6678e612d1398e7f522b64cc3dcbd0113d5f505a241",
+    "whitespaceRepair": {
+      "scope": [
+        "Graphic_designer/stage_zombie_visual_method_20261023.md",
+        "Planner/stage_zombie_concept_plan_20261023.md",
+        "Quaility_Assurance/stage_zombie_concepts_review_20261023.md"
+      ],
+      "initialExit": 2,
+      "historicalArtifactsTouched": false
+    }
+  }
+}

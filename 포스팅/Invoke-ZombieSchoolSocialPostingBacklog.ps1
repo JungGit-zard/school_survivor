@@ -76,6 +76,10 @@ function Invoke-SocialPostingBacklog {
       catch { $response = [pscustomobject]@{ exitCode=1; output=$_.Exception.Message } }
       $output = if($null -ne $response.PSObject.Properties['output']){[string]$response.output}else{''}
       $status = if ($null -ne $response.PSObject.Properties['status']) { [string]$response.status } else { '' }
+      if($status -ne 'stopped_cutoff'){
+        $priorResults=@(if($null -ne $entry.PSObject.Properties['attemptResults']){$entry.attemptResults})
+        $entry|Add-Member -Force -NotePropertyName attemptResults -NotePropertyValue @($priorResults+@([pscustomobject]@{attempt=[int]$entry.attempts;recordedUtc=[DateTimeOffset]::UtcNow.ToString('o');status=$status;output=$output}))
+      }
       if($response.exitCode -eq 0 -and $status -eq 'stopped_cutoff'){$entry.status='stopped_cutoff';$entry.lastError=[string]$response.reason;$entry.nextRetryUtc=$null;$state.status='stopped_cutoff';Save-SocialBacklogState $state $StatePath;return [pscustomobject]@{status='stopped_cutoff';cycleId=$id;attempts=$entry.attempts;reason=$entry.lastError;statePath=$StatePath}}
       $complete = ($response.exitCode -eq 0 -and ($status -in @('complete','submitted','submitted_with_unresolved_intents') -or $output -match '"status"\s*:\s*"(?:complete|submitted|submitted_with_unresolved_intents)"'))
       if ($complete) { $entry.status=$status;if([string]::IsNullOrWhiteSpace($entry.status)){$entry.status='complete'};$entry.lastError=if($entry.status -eq 'submitted_with_unresolved_intents'){$output}else{$null};$entry.nextRetryUtc=$null;Save-SocialBacklogState $state $StatePath;break }

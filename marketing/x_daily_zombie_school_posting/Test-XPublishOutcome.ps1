@@ -1,8 +1,9 @@
-﻿Set-StrictMode -Version Latest
+﻿param([string]$NativeSourcePath = (Join-Path $PSScriptRoot 'WindowsXPosting.ps1'))
+Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName UIAutomationClient, UIAutomationTypes
 
-$sourcePath = Join-Path $PSScriptRoot 'WindowsXPosting.ps1'
+$sourcePath = $NativeSourcePath
 $tokens = $null
 $parseErrors = $null
 $ast = [System.Management.Automation.Language.Parser]::ParseFile($sourcePath, [ref]$tokens, [ref]$parseErrors)
@@ -27,7 +28,7 @@ function Get-XElements {
 }
 function Get-XAttachmentCount { return $script:AttachmentCount }
 function Get-XValue($Element) { return [string]$Element.value }
-function Close-XDuplicateDraft([string]$Text) { $script:ClosedDraftCount++ }
+function Close-XOwnedDraft([string]$Text) { $script:ClosedDraftCount++ }
 function New-UiFixture([string]$Name,[string]$Type='Text',[string]$Value='') {
   $controlType = if ($Type -eq 'Edit') { [Windows.Automation.ControlType]::Edit } else { [Windows.Automation.ControlType]::Text }
   [pscustomobject]@{ Current = [pscustomobject]@{ IsOffscreen=$false; Name=$Name; ControlType=$controlType }; value=$Value }
