@@ -5,7 +5,7 @@ import { EXPANSION_STAGES, getExpansionStageConfig } from './expansionContent.js
 export const DEFAULT_STAGE_ID = 'stage1'
 
 // Release entry boundary only; all content definitions and saved boss evidence remain intact.
-export const VISIBLE_STAGE_IDS = Object.freeze(['stage1', 'stage2', 'stage3'])
+export const VISIBLE_STAGE_IDS = Object.freeze(['stage1', 'stage2', 'stage3', 'stage4'])
 export function isStageVisible(stageId) {
   return VISIBLE_STAGE_IDS.includes(stageId)
 }

@@ -30,8 +30,8 @@ afterEach(() => {
   globalThis.IS_REACT_ACT_ENVIRONMENT = previousAct
 })
 
-describe('actual Lobby Stage1–3 release list', () => {
-  it.each([false, true])('lists exactly 1,2,3 with developer unlock=%s', async (devAllStagesUnlocked) => {
+describe('actual Lobby Stage1–4 release list', () => {
+  it.each([false, true])('lists exactly 1,2,3,4 without bypassing account locks with developer unlock=%s', async (devAllStagesUnlocked) => {
     globalThis.IS_REACT_ACT_ENVIRONMENT = true
     vi.useFakeTimers()
     host = document.createElement('div')
@@ -40,8 +40,11 @@ describe('actual Lobby Stage1–3 release list', () => {
     const onStartStage = vi.fn()
     await act(async () => root.render(<Lobby devAllStagesUnlocked={devAllStagesUnlocked} onStartStage={onStartStage} />))
     const cards = [...host.querySelectorAll('section[aria-label^="Stage "]')]
-    expect(cards.map(card => card.getAttribute('aria-label').match(/^Stage (\d+) /)?.[1])).toEqual(['1', '2', '3'])
-    for (let i = 4; i <= 10; i++) expect(host.querySelector(`section[aria-label^="Stage ${i} "]`)).toBeNull()
+    expect(cards.map(card => card.getAttribute('aria-label').match(/^Stage (\d+) /)?.[1])).toEqual(['1', '2', '3', '4'])
+    for (const card of cards.slice(1)) {
+      expect([...card.querySelectorAll('button')].every(button => button.disabled)).toBe(true)
+    }
+    for (let i = 5; i <= 10; i++) expect(host.querySelector(`section[aria-label^="Stage ${i} "]`)).toBeNull()
     expect(onStartStage).not.toHaveBeenCalled()
   })
 })
