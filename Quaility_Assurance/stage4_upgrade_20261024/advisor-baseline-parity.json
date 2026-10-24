@@ -1,0 +1,12 @@
+{
+  "checkedAt": "2026-10-24T06:02:20.173+00:00",
+  "baseCommit": "0bcf4bff123f58c28a12598bbf9f4d68e5aada5b",
+  "cleanBaseline": "../releases/stage4-upgrade-baseline-20261024",
+  "stageTestsSummary": [
+    "Tests  12 failed | 26 passed (38)"
+  ],
+  "storeTestsSummary": [
+    "Tests  11 failed | 24 passed (35)"
+  ],
+  "conclusion": "Unchanged stageConfig/bossOnlyUnlock failures (12) and store failures (11) reproduce on clean baseline. No runtime changes to those systems in Stage4 scope. EnemyVisual changed-marker assertion requires scoped owner repair."
+}

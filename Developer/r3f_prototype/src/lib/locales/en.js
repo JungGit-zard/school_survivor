@@ -5,6 +5,14 @@ const CONTACT_EMAIL = 'zard5388@gmail.com'
 const EFFECTIVE_DATE = 'July 29, 2026'
 
 export default {
+  'stage4Guide.orientation': 'North: cooking / sink',
+  'stage4Guide.orientationSouth': 'Center: pot · South: serving / students',
+  'stage4Guide.markers': 'Fixed solid pot ring · Blasts every 15s',
+  'stage4Guide.soupMarkers': 'Chef soup: scattered segmented rings',
+  'stage4Guide.warning': 'Pot boiling! Leave the solid ring.',
+  'stage4Guide.burst': 'Pot blast! Leave the solid ring.',
+  'stage4Guide.bossDefeated': 'Unlock earned · Exit still closed.',
+  'stage4Guide.escape': 'Unlock is not escape · Use open exit.',
   'persistence.saveFailed': 'Could not save progress to the server. Check your connection and try again.',
   'persistence.retry': 'Retry save',
   'persistence.saving': 'Saving · waiting for server confirmation.',

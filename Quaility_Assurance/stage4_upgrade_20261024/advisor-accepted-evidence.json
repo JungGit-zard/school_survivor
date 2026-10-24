@@ -1,0 +1,78 @@
+{
+  "startedAt": "2026-10-24T06:07:33.076Z",
+  "status": "FINAL_EVIDENCE_COLLECTED",
+  "canonicalBefore": {
+    "startedAt": "2026-10-24T06:07:34.190Z",
+    "completedAt": "2026-10-24T06:07:34.597Z",
+    "http": 200,
+    "schemaVersion": 1,
+    "revision": 1952,
+    "rawBytes": 21966,
+    "rawSHA256": "20483fa0019c26f93e94e1d5a2d157da43ae1c33d51b7959a1ec24191cb1c4b6",
+    "datasetCount": 6,
+    "allDatasetsExact": true,
+    "ready": true
+  },
+  "canonicalAfter": {
+    "checkedAt": "2026-10-24T06:15:06.338Z",
+    "http": 200,
+    "revision": 1952,
+    "rawSHA256": "20483fa0019c26f93e94e1d5a2d157da43ae1c33d51b7959a1ec24191cb1c4b6",
+    "fullKeysTypesStructureValuesEqual": true,
+    "rawHashEqual": true,
+    "runtimeSixDatasetsExact": true,
+    "runtimeRevisionEqual": true,
+    "storageCalls": 1,
+    "cloudUserNull": true
+  },
+  "sourceFreezeEqual": true,
+  "freezeSourceCount": 632,
+  "freezeMismatches": [],
+  "finalState": {
+    "phase": "paused",
+    "elapsedMs": 0,
+    "gameKey": 3,
+    "currentStageId": "stage4",
+    "playerHp": 100000,
+    "bossSpawned": false,
+    "bossAliveCount": 0,
+    "enemyIds": [],
+    "cloudUserNull": true,
+    "storageCalls": [
+      "setItem"
+    ]
+  },
+  "writesAllowed": 0,
+  "studioInputsStored": false,
+  "rootReviewedAt": "2026-10-24T06:16:01.560+00:00",
+  "advisorFocused": {
+    "files": 13,
+    "passed": 135,
+    "exit": 0
+  },
+  "independentFocused": {
+    "files": 10,
+    "passed": 98,
+    "exit": 0
+  },
+  "productionBuildExit": 0,
+  "baselineFailures": {
+    "stageConfigAndBossOnlyUnlock": 12,
+    "useGameStore": 11,
+    "cleanBaseReproduced": true
+  },
+  "limitations": [
+    "One blocked Storage.setItem probe; no successful storage writes; call stack not captured. No zero-call assertion.",
+    "Blocked identitytoolkit/auth requests; actual Google OAuth or cloud progress persistence not tested.",
+    "Vite HMR WebSocket intentionally blocked.",
+    "New zombie models pending separate owner.",
+    "No production hosting or AAB release."
+  ],
+  "preview": {
+    "url": "http://localhost:5184/stage4-review",
+    "readOnlyStudio": true,
+    "noProgressSaved": true,
+    "developerHpFixture": 100000,
+    "serverKeptAlive": true
+  }
+}

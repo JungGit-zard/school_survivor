@@ -46,6 +46,7 @@ import { getMissionStatus } from '../lib/missionProgress.js'
 import { MISSION_BY_ID } from '../lib/missionCatalog.js'
 import MissionTracker from './MissionTracker.jsx'
 import StageVendingPrompt from './StageVendingPrompt.jsx'
+import Stage4HazardGuide from './Stage4HazardGuide.jsx'
 import { milestoneLabel, t as translate, useT, weaponLabel } from '../lib/i18n.js'
 import { dispatchStarlinkCheatCrash } from './Weapons/Starlink.jsx'
 import pencilIconSrc from '../assets/weapon_icon/01_wea_pencil.png.webp'
@@ -770,10 +771,10 @@ export default function HUD({
   const wasQuestInventoryOpenRef = useRef(false)
   const {
     player, weapons, phase, pauseSource,
-    elapsed, currentStageId, bossSpawned, bossSpawnSec,
+    elapsed, currentStageId, gameKey, bossSpawned, bossSpawnSec,
     goldSession, goldTotal, recentMilestone,
     newlyUnlockedWeaponIds, levelUpChoiceSerial, levelUpAcquireExposureKeys, levelUpWeaponCycleIds, levelUpOwnedWeaponCycleIds, pendingGuaranteedUpgradeChoiceKeys, pendingWeaponReplacement,
-    escapePortalActive, matildaSpawned, deathCause, bossBonus,
+    escapePortalActive, matildaSpawned, deathCause, bossBonus, bossDefeated,
     studentDialogue, introDialogue,
     questProgress, questToast, newQuestItemIds, bossPassiveUnlocks,
     clearMilestone, applyUpgrade, recordLevelupAcquireExposure, recordLevelupWeaponCycle, recordLevelupOwnedWeaponCycle, consumeGuaranteedUpgradeChoices, discardUnavailableGuaranteedUpgradeChoices,
@@ -791,6 +792,7 @@ export default function HUD({
     pauseSource:          s.pauseSource,
     elapsed:              s.elapsedMs,
     currentStageId:       s.currentStageId,
+    gameKey:              s.gameKey,
     bossSpawned:          s.bossSpawned,
     bossSpawnSec:         s.bossSpawnSec,
     goldSession:          s.goldSession,
@@ -807,6 +809,7 @@ export default function HUD({
     matildaSpawned:       s.matildaSpawned,
     deathCause:           s.deathCause,
     bossBonus:            s.bossBonus,
+    bossDefeated:         s.bossDefeated,
     studentDialogue:      s.studentDialogue,
     introDialogue:        s.introDialogue,
     questProgress:        s.questProgress,
@@ -1523,6 +1526,18 @@ export default function HUD({
         </>
       )}
 
+      <Stage4HazardGuide
+        stageId={currentStageId}
+        phase={phase}
+        gameKey={gameKey}
+        bossDefeated={bossDefeated}
+        escapePortalActive={escapePortalActive}
+        hidden={!Number.isFinite(player.hp) || player.hp <= 0
+          || !!studentDialogue || !!introDialogue || !!questToast || questInventoryOpen
+          || bossWarning != null || e04IntroWarning != null || matildaWarning != null || formationWarning != null
+          || showMatildaDialogue || portalFlash || !!recentMilestone
+          || isTitleReturnConfirmOpen || (devToolsVisible && weaponCheatOpen)}
+      />
       <StageVendingPrompt />
       <MissionTracker
         missionProgress={missionProgress}

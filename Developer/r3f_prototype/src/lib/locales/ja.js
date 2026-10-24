@@ -5,6 +5,14 @@ const CONTACT_EMAIL = 'zard5388@gmail.com'
 const EFFECTIVE_DATE = '2026年7月29日'
 
 export default {
+  'stage4Guide.orientation': '北は調理台・シンク',
+  'stage4Guide.orientationSouth': '中央は釜 / 南は配膳台・生徒',
+  'stage4Guide.markers': '釜は固定の連続円 · 15秒ごとに爆発',
+  'stage4Guide.soupMarkers': '料理長のスープは散らばった分割円',
+  'stage4Guide.warning': '釜が沸騰！連続円の外へ',
+  'stage4Guide.burst': '釜が爆発中！連続円の外へ',
+  'stage4Guide.bossDefeated': '解放条件達成 / 脱出口は閉鎖中',
+  'stage4Guide.escape': '解放と脱出は別 / 開いた脱出口へ',
   'persistence.saveFailed': '進行状況をサーバーに保存できませんでした。接続を確認して再試行してください。',
   'persistence.retry': '保存を再試行',
   'persistence.saving': '保存中 · サーバーの確認を待っています。',

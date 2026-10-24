@@ -8,6 +8,7 @@ import {
   B02_CORRIDOR_BLOCKADE_VISUALS,
   B03_SHUTTLE_RUN_VISUALS,
   B04_SOUP_BLAST_VISUALS,
+  B04SoupBlastVisual,
   ENEMY_SIZE_MULTIPLIER,
   EnemyVisual,
   ENEMY_SPAWN_REVEAL_DELAY_MS,
@@ -139,7 +140,47 @@ describe('B04 soup blast visual states', () => {
     expect(source).toContain('userData={{ soupBlastState: visualState }}')
     expect(source).toContain('name="B04 국물 대폭발 원형 표식"')
     expect(source).not.toContain('name="B04 급식 국자 원형 표식"')
-    expect(source).toContain('circle.radius + 0.18')
+    // The accepted marker stays inside each supplied damage radius; the old
+    // radius + 0.18 cylinder was replaced by eight separated rim arcs.
+    const circles = [{ x: -2, z: 1, radius: 1.1 }, { x: 0, z: -3, radius: 1.1 }, { x: 4, z: 2, radius: 1.1 }]
+    const children = (node) => [node.props.children].flat(Infinity).filter(Boolean)
+    for (const phase of ['telegraph', 'explode']) {
+      const marker = B04SoupBlastVisual({ phase, circles })
+      expect(marker.props.userData.soupBlastState).toBe(phase)
+      const marks = children(marker)
+      expect(marks).toHaveLength(3)
+      marks.forEach((mark, index) => {
+        const circle = circles[index]
+        expect(mark.props.position).toEqual([circle.x, 0, circle.z])
+        const meshes = children(mark)
+        const segments = meshes.filter((mesh) => mesh.props.name === 'b04-soup-segment')
+        expect(segments).toHaveLength(8)
+        segments.forEach((segment, segmentIndex) => {
+          const [geometry, material] = children(segment)
+          expect(geometry.type).toBe('ringGeometry')
+          const [inner, outer, , , start, sweep] = geometry.props.args
+          expect(inner).toBeCloseTo(circle.radius - 0.18)
+          expect(outer).toBe(circle.radius)
+          expect(start).toBeCloseTo(segmentIndex * Math.PI / 4)
+          expect(sweep).toBeGreaterThan(0)
+          expect(sweep).toBeLessThan(Math.PI / 4)
+          expect(material.props.color).toBe(B04_SOUP_BLAST_VISUALS[phase].outline)
+        })
+        const fill = meshes.find((mesh) => children(mesh)[0]?.type === 'cylinderGeometry')
+        const [geometry, material] = children(fill)
+        expect(geometry.props.args.slice(0, 2)).toEqual([circle.radius - 0.22, circle.radius - 0.22])
+        expect(material.props.color).toBe(B04_SOUP_BLAST_VISUALS[phase].surface)
+        expect(material.props.opacity).toBe(B04_SOUP_BLAST_VISUALS[phase].surfaceOpacity)
+        // Bowl and three steam strokes distinguish soup from the solid cauldron rim.
+        const bowl = meshes.find((mesh) => mesh.props.name !== 'b04-soup-segment' && children(mesh)[0]?.type === 'ringGeometry')
+        expect(children(bowl)[0].props.args).toEqual([0.32, 0.42, 16, 1, Math.PI, Math.PI])
+        const steam = meshes.filter((mesh) => children(mesh)[0]?.type === 'boxGeometry')
+        expect(steam).toHaveLength(3)
+        steam.forEach((mesh) => expect(children(mesh)[0].props.args[2]).toBe(phase === 'explode' ? 0.48 : 0.24))
+      })
+    }
+    expect(B04SoupBlastVisual({ phase: 'idle', circles })).toBeNull()
+    expect(B04SoupBlastVisual({ phase: 'telegraph', circles: [] })).toBeNull()
     expect(source).toContain('<B04SoupBlastVisual')
   })
 })

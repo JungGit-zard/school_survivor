@@ -2,6 +2,14 @@
 // 게임 데이터(무기 카탈로그·퀘스트·조사 대사·법적 문서·스테이지 프롭)의 한국어는
 // 각 데이터 파일에 그대로 남아 있고 i18n의 fallback으로 들어온다. 여기 중복 기재하지 않는다.
 export default {
+  'stage4Guide.orientation': '북쪽 조리대·싱크',
+  'stage4Guide.orientationSouth': '중앙 솥 / 남쪽 배식대·학생',
+  'stage4Guide.markers': '고정 연속 원은 솥 · 15초마다 폭발',
+  'stage4Guide.soupMarkers': '주방장 국물은 흩어진 분절 원',
+  'stage4Guide.warning': '솥이 끓어요! 연속 원 밖으로',
+  'stage4Guide.burst': '솥 폭발 중! 연속 원 밖으로',
+  'stage4Guide.bossDefeated': '해금 조건 달성 / 탈출구는 닫혔어요',
+  'stage4Guide.escape': '해금과 탈출은 별개 / 열린 탈출구로',
   'persistence.saveFailed': '진행도를 서버에 저장하지 못했습니다. 연결을 확인하고 다시 시도해 주세요.',
   'persistence.retry': '저장 다시 시도',
   'persistence.saving': '저장 중 · 서버 확인을 기다리고 있습니다.',

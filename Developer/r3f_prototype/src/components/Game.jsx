@@ -14,6 +14,7 @@ import EscapePortal from './EscapePortal.jsx'
 import StudentDialogueTrigger from './StudentDialogueTrigger.jsx'
 import QuestWorldLayer from './QuestWorldLayer.jsx'
 import { emitSfx } from '../lib/sfxEvents.js'
+import { getStage4CauldronFeedback } from '../lib/stage4CauldronFeedback.js'
 import { createCriticalScreenShakeFrame, sampleCriticalScreenShake } from '../lib/criticalScreenShake.js'
 import { PUBLISH_INTERVAL_MS, advanceRuntimeTime, getRuntimeElapsedMs } from '../lib/gameRuntimeTime.js'
 import { clampGameplayFrameDelta, createGameplayFixedStepClock, runGameplayFixedSteps } from '../lib/gameplayFrameTime.js'
@@ -21,6 +22,7 @@ import { PLAYER_MESH_WORLD_HALF_WIDTH, PLAYER_MESH_WORLD_HEIGHT } from '../lib/c
 import { GAME_CAMERA_BACK, GAME_CAMERA_EDGE_INSET_FRACTION, GAME_CAMERA_HEIGHT, clampGameplayCameraFocus, getGameplayGroundReach, keepPlayerInsideCameraX } from '../lib/gameCameraFraming.js'
 import {
   PRESSURE_CAULDRON_DAMAGE_RATIO,
+  PRESSURE_CAULDRON_EXPLOSION_INTERVAL_MS,
   getPressureCauldronExplosionTimes,
   isInsidePressureCauldronBlastRadius,
 } from '../lib/stage4PressureCauldronHazard.js'
@@ -52,6 +54,14 @@ export default function Game() {
   const checkSurvivalMilestone = useGameStore((s) => s.checkSurvivalMilestone)
   const publishRuntimeElapsedMs = useGameStore((s) => s.publishRuntimeElapsedMs)
   const gameKey = useGameStore((s) => s.gameKey)
+  const cauldronAudioRef = useRef({ gameKey, stageId: currentStageId, warningCycle: -1, burstCycle: -1 })
+  // Keep consumed cycles through pause/resume, but not across run/stage changes.
+  const cauldronAudio = cauldronAudioRef.current
+  if (cauldronAudio.gameKey !== gameKey || cauldronAudio.stageId !== currentStageId) {
+    cauldronAudio.gameKey = gameKey
+    cauldronAudio.stageId = currentStageId
+    cauldronAudio.warningCycle = cauldronAudio.burstCycle = -1
+  }
   useEffect(() => { clearExpansionAttacks(); return clearExpansionAttacks }, [gameKey,currentStageId])
   useEffect(() => { if(phase==='gameover'||phase==='cleared')clearExpansionAttacks() }, [phase])
 
@@ -79,6 +89,23 @@ export default function Game() {
         checkSurvivalMilestone(elapsedMs)
         // getState()로 최신 값 읽기 — React 클로저 stale 방지
         const gs = useGameStore.getState()
+        const feedbackId = getStage4CauldronFeedback(previousElapsedMs, elapsedMs, gs.currentStageId, gs.phase)
+        if (feedbackId) {
+          const audio = cauldronAudioRef.current
+          if (audio.gameKey !== gs.gameKey || audio.stageId !== gs.currentStageId) {
+            audio.gameKey = gs.gameKey
+            audio.stageId = gs.currentStageId
+            audio.warningCycle = audio.burstCycle = -1
+          }
+          const cycle = Math.floor(elapsedMs / PRESSURE_CAULDRON_EXPLOSION_INTERVAL_MS)
+          const edge = feedbackId === 'flaskHit' ? 'burstCycle' : 'warningCycle'
+          if (cycle > audio[edge]) {
+            audio[edge] = cycle
+            // Audio is optional: a synchronous bus listener must never interrupt
+            // hazard damage, portal activation or progression. Do not retry it.
+            try { emitSfx({ id: feedbackId }) } catch { /* gameplay continues */ }
+          }
+        }
         const cauldronExplosions = getPressureCauldronExplosionTimes(
           previousElapsedMs,
           elapsedMs,

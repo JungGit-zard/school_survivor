@@ -1,0 +1,23 @@
+{
+  "checkedAt": "2026-10-24T06:02:50.392+00:00",
+  "base": "0bcf4bff123f58c28a12598bbf9f4d68e5aada5b",
+  "filesRawIdenticalToBase": {
+    "Developer/r3f_prototype/src/App.jsx": "bed51f86956df6a8ffa97986a0b0c5f2b1aee587576e0812b39dcb710459168e",
+    "Developer/r3f_prototype/src/components/TitleScreen.jsx": "c4b15b4bcf40e6a27588d3275a1990f3a7e990d7eeb037987a3985445fb3eca5",
+    "Developer/r3f_prototype/src/components/RosariRoom.jsx": "ed29926fabffa8ef69af3f7964b0ea2698e41fd9f4595cf4675ec21e6e73de6a",
+    "Developer/r3f_prototype/src/components/ZombieMesh.jsx": "69d36f4bf665266e0aebb9b506e974e21dd5ca7a2c884551763b37accddace61",
+    "Developer/r3f_prototype/src/components/ZombieInstanceLayer.jsx": "13edd31aefb10f303a402378c89a9e1e03eaf329882ef534e90f8dd9502987bb",
+    "Developer/r3f_prototype/src/lib/stageConfig.js": "852d75c686fccf5c7874a3d0f9569a5a043d23813cafee8060d25be345be4521",
+    "Developer/r3f_prototype/src/lib/burstEvents.js": "96fbdaf694fa714cc6100bf21e6db174a7e3cd5a50caa26283e2c3c6ca8481cc",
+    "Developer/r3f_prototype/src/lib/stage4PressureCauldronHazard.js": "0842d2600a4a00529e4bd151ed25e05a9065e240eeaf7935724e8808352c1588",
+    "Developer/r3f_prototype/src/lib/b04SoupBlast.js": "f6d234b9180ef69458cb30931fda29ba47a04f05439e96e48f14b35af37cd91e",
+    "Developer/r3f_prototype/src/lib/chefBossPhase.js": "02a3cb90fb704aacc15ad89e12aa15042a2434881d9df2efaf81ea87edf82ef2",
+    "Developer/r3f_prototype/src/lib/firebaseAuth.js": "aa7457845f5a96f9951694ce5dc2ee21ea18a0a7242b847a90cc9438e8b51afa",
+    "Developer/r3f_prototype/src/lib/firebaseProgress.js": "ac061815e516e9734faf3dfb1093cf67e3c0575f7a6013f312db12ec80d82eac",
+    "Developer/r3f_prototype/src/store/useAuthStore.js": "bf9a8b20ba95f98f2f73baa5b111686944d9b75ab08cf7b5c181abf590647e41",
+    "Developer/r3f_prototype/src/store/useGameStore.js": "44a3da37bf5384aaca6e48fc8bfc0fa24d85eb308d86b6248eb12a1a7971683d",
+    "Developer/r3f_prototype/src/lib/sfxRegistry.js": "d1fcbfa197af5d68cb9fa6855a18e0d5863da46588c21c620359768346a2b76b",
+    "Developer/r3f_prototype/src/lib/quests.js": "7fb644a197626f090c249ca574a5c4e3a400c85571575a57d33a9e37e703012d",
+    "Developer/r3f_prototype/src/assets/audio/title_bgm.m4a": "991bf9871fe70b55852920390b3b1434892cfc50da79d3e8fd900062b191cffe"
+  }
+}

@@ -13,17 +13,17 @@ import { getRuntimeElapsedMs } from '../../lib/gameRuntimeTime.js'
 import {
   PRESSURE_CAULDRON_BOIL_LEAD_MS,
   PRESSURE_CAULDRON_BURST_DURATION_MS,
-  PRESSURE_CAULDRON_DAMAGE_RADIUS,
   PRESSURE_CAULDRON_EXPLOSION_INTERVAL_MS,
   getPressureCauldronHazardVisual,
 } from '../../lib/stage4PressureCauldronHazard.js'
 import { useGameStore } from '../../store/useGameStore.js'
 import { SpawnSmokeEffect } from '../Enemy.jsx'
 import StudioTunedGroup from '../StudioTunedGroup.jsx'
+import Stage4CauldronGroundWarning from './Stage4CauldronGroundWarning.jsx'
 
 const OUTLINE_SCALE = 1.035
 export const PRESSURE_CAULDRON_BASE_SCALE = 0.4
-const BURST_RING_RAW_RADIUS = PRESSURE_CAULDRON_DAMAGE_RADIUS / PRESSURE_CAULDRON_BASE_SCALE
+
 const BOILING_SMOKE_PUFFS = [
   [0, 4.10, 0],
   [-0.70, 3.95, 0.36],
@@ -91,7 +91,7 @@ function Latch({ position, dark, yellow, rotation = [0, 0, 0] }) {
   )
 }
 
-function PressureCauldronHazardVisual({ basePosition = [0, 0, 0], cauldronRootRef, steam, warning, flash, dark }) {
+function PressureCauldronHazardVisual({ basePosition = [0, 0, 0], cauldronRootRef, steam, warning, dark }) {
   const bubblesRef = useRef(null)
   const burstRef = useRef(null)
   const smokeRefs = useRef([])
@@ -108,7 +108,7 @@ function PressureCauldronHazardVisual({ basePosition = [0, 0, 0], cauldronRootRe
       state.currentStageId,
       state.phase,
     )
-    if (cauldronRootRef.current) {
+    if (cauldronRootRef?.current) {
       // Root position is world-space, so keep the visible shiver at ±0.04.
       const shiver = visual.boiling ? Math.sin(elapsedMs * 0.052) * 0.04 : 0
       cauldronRootRef.current.position.set(basePosition[0] + shiver, basePosition[1], basePosition[2] - shiver * 0.45)
@@ -165,18 +165,6 @@ function PressureCauldronHazardVisual({ basePosition = [0, 0, 0], cauldronRootRe
         ))}
       </group>
       <group ref={burstRef} visible={false} name="pressure-cauldron-burst-ring">
-        {Array.from({ length: 8 }, (_, index) => {
-          const angle = (Math.PI * 2 * index) / 8
-          return (
-            <Box
-              key={index}
-              position={[Math.sin(angle) * BURST_RING_RAW_RADIUS, 0.42, Math.cos(angle) * BURST_RING_RAW_RADIUS]}
-              rotation={[0, -angle, 0]}
-              scale={[1.65, 0.10, 0.16]}
-              material={index % 2 === 0 ? flash : warning}
-            />
-          )
-        })}
         <group name="pressure-cauldron-burst-debris">
           {BURST_DEBRIS.map((debris, index) => (
             <group ref={(node) => { debrisRefs.current[index] = node }} key={index}>
@@ -304,5 +292,5 @@ export function PressureCauldronModel({ scale, position = [0, 0, 0], cauldronRoo
 
 export default function PressureCauldron(props) {
   const cauldronRootRef = useRef(null)
-  return <PressureCauldronModel {...props} cauldronRootRef={cauldronRootRef} />
+  return <><PressureCauldronModel {...props} cauldronRootRef={cauldronRootRef} /><Stage4CauldronGroundWarning /></>
 }

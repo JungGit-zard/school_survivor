@@ -623,6 +623,14 @@ export function getB04SoupBlastVisualState(phase) {
   return phase === 'explode' ? 'explode' : 'telegraph'
 }
 
+// Direct transition-only cues: no timer, playback dependency or duplicate death/clear.
+// Existing per-enemy soup/chef/charge refs own deduplication and reset on spawn.
+function emitStage4B04Cue(type, id) {
+  const state = useGameStore.getState()
+  if (type !== 'B04' || state.currentStageId !== 'stage4' || state.phase !== 'playing') return
+  try { emitSfx({ id }) } catch { /* Audio listeners must not interrupt combat. */ }
+}
+
 export function B04SoupBlastVisual({ phase, circles }) {
   if ((phase !== 'telegraph' && phase !== 'explode') || circles.length === 0) return null
   const visualState = getB04SoupBlastVisualState(phase)
@@ -631,14 +639,27 @@ export function B04SoupBlastVisual({ phase, circles }) {
     <group name="B04 국물 대폭발 원형 표식" userData={{ soupBlastState: visualState }}>
       {circles.map((circle, index) => (
         <group key={`${index}:${circle.x}:${circle.z}`} position={[circle.x, 0, circle.z]}>
-          <mesh position={[0, 0.022, 0]}>
-            <cylinderGeometry args={[circle.radius + 0.18, circle.radius + 0.18, 0.028, 32]} />
-            <meshBasicMaterial color={visual.outline} transparent opacity={visual.outlineOpacity} depthWrite={false} toneMapped={false} />
-          </mesh>
+          {Array.from({ length: 8 }, (_, segment) => (
+            <mesh key={segment} name="b04-soup-segment" position={[0, 0.06, 0]} rotation={[-Math.PI / 2, 0, 0]} renderOrder={9}>
+              <ringGeometry args={[circle.radius - 0.18, circle.radius, 48, 1, segment * Math.PI / 4, Math.PI / 4 - 0.13]} />
+              <meshBasicMaterial color={visual.outline} depthWrite={false} toneMapped={false} />
+            </mesh>
+          ))}
           <mesh position={[0, 0.047, 0]}>
-            <cylinderGeometry args={[circle.radius, circle.radius, 0.024, 32]} />
+            <cylinderGeometry args={[circle.radius - 0.22, circle.radius - 0.22, 0.024, 32]} />
             <meshBasicMaterial color={visual.surface} transparent opacity={visual.surfaceOpacity} depthWrite={false} toneMapped={false} />
           </mesh>
+          {/* Bowl + rising steam identifies soup without relying on its color. */}
+          <mesh position={[0, 0.075, 0]} rotation={[-Math.PI / 2, 0, 0]} renderOrder={10}>
+            <ringGeometry args={[0.32, 0.42, 16, 1, Math.PI, Math.PI]} />
+            <meshBasicMaterial color="#fff4d4" depthWrite={false} toneMapped={false} />
+          </mesh>
+          {[-0.18, 0, 0.18].map((x) => (
+            <mesh key={x} position={[x, 0.075, -0.19]} rotation={[0, 0.25, 0]} renderOrder={10}>
+              <boxGeometry args={[0.06, 0.02, visualState === 'explode' ? 0.48 : 0.24]} />
+              <meshBasicMaterial color="#fff4d4" depthWrite={false} toneMapped={false} />
+            </mesh>
+          ))}
         </group>
       ))}
     </group>
@@ -1304,6 +1325,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
         if (hit.damage > 0) damagePlayer(hit.damage)
         b04SoupBlastRef.current = next
         syncB04SoupBlastVisual(next)
+        if (soup.phase === 'telegraph' && next.phase === 'explode' && next.circles.length > 0) emitStage4B04Cue(type, 'flaskHit')
         _vel.x = 0; _vel.y = 0; _vel.z = 0
         rb.current.setLinvel(_vel, true)
         queueVisualState('animPhase', 'warn')
@@ -1315,6 +1337,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
           logPlaytestEvent('b04-soup-blast-start', { circles: circles.length, hpRatio: hpRef.current / stats.hp, elapsedSec: Math.round(elapsedMs / 100) / 10 })
           b04SoupBlastRef.current = startB04SoupBlast(soup, circles)
           syncB04SoupBlastVisual(b04SoupBlastRef.current)
+          if (b04SoupBlastRef.current.phase === 'telegraph' && circles.length > 0) emitStage4B04Cue(type, 'zombieChargeRoar')
           _vel.x = 0; _vel.y = 0; _vel.z = 0
           rb.current.setLinvel(_vel, true)
           queueVisualState('animPhase', 'warn')
@@ -1322,9 +1345,11 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
         }
       }
       if (soup.phase === 'done') {
+        const enteringPhase2 = chefPhaseRef.current !== CHEF_PHASE2
         chefPhaseRef.current = CHEF_PHASE2
         setIsChefPhase2(true)
         queueVisualState('animPhase', 'normal')
+        if (enteringPhase2) emitStage4B04Cue(type, 'bossRoar')
       }
     }
 
