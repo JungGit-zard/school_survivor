@@ -1,0 +1,54 @@
+{
+  "startedAt": "2026-10-24T06:26:06.614Z",
+  "canonicalBefore": {
+    "startedAt": "2026-10-24T06:26:07.815Z",
+    "completedAt": "2026-10-24T06:26:08.431Z",
+    "http": 200,
+    "schemaVersion": 1,
+    "revision": 1952,
+    "rawBytes": 21966,
+    "rawSHA256": "20483fa0019c26f93e94e1d5a2d157da43ae1c33d51b7959a1ec24191cb1c4b6",
+    "datasetCount": 6,
+    "allDatasetsExact": true,
+    "ready": true
+  },
+  "canonicalAfter": {
+    "checkedAt": "2026-10-24T06:26:28.598Z",
+    "http": 200,
+    "revision": 1952,
+    "rawSHA256": "20483fa0019c26f93e94e1d5a2d157da43ae1c33d51b7959a1ec24191cb1c4b6",
+    "fullKeysTypesStructureValuesEqual": true,
+    "rawHashEqual": true,
+    "runtimeSixDatasetsExact": true,
+    "runtimeRevisionEqual": true,
+    "storageCalls": 1,
+    "cloudUserNull": true
+  },
+  "sourceFreezeEqual": true,
+  "pageErrors": [],
+  "finalState": {
+    "phase": "paused",
+    "elapsedMs": 0,
+    "gameKey": 1,
+    "currentStageId": "stage4",
+    "playerHp": 100000,
+    "bossSpawned": false,
+    "bossAliveCount": 0,
+    "enemyIds": [],
+    "cloudUserNull": true,
+    "storageCalls": [
+      "setItem"
+    ]
+  },
+  "freezeSourceCount": 633,
+  "writesAllowed": 0,
+  "lifecycleCyclesPassed": 3,
+  "repairCard": "t_d9356a4d",
+  "focusedTests": {
+    "files": 3,
+    "passed": 7
+  },
+  "buildExit": 0,
+  "storageProbeBlocked": 1,
+  "readOnlyFixture": true
+}

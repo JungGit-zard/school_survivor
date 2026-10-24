@@ -1,0 +1,44 @@
+{
+  "task_id": "t_d9356a4d",
+  "profile": "threemini",
+  "candidate": "F:/From_SSD_D_20261005/JungSil/2.Minigame_project/releases/stage4-upgrade-20261024",
+  "candidate_base": "96c51947fc870b22f086b1f25bb160f335affbc6",
+  "status": "SCOPED_REPAIR_FOCUSED_TESTS_PASS_ROOT_BROWSER_PENDING",
+  "routing": "Existing advisor-managed blocked card referenced only; no card mutation or dispatch. Reuse decision: threemini for Three/R3F resource ownership.",
+  "mandatory_checker": {
+    "exit_code": 0,
+    "receipt": "7af286119cd893177be0493b2533acd37b6678472376deb9cb9c0bb13c69e64c",
+    "gstack": "GSTACK_OK"
+  },
+  "root_cause": "Actual Three r164 InstancedMesh + R3F applyProps(mesh,{dispose:null}) sets mesh.dispose=null; actual component unmount reproduces TypeError at expansionInstances.js:126.",
+  "repair": "Remove dispose={null} from primitive only. Parent group dispose={null} retained. Required explicit cleanup unchanged; no optional chaining.",
+  "source_hashes_sha256": {
+    "ExpansionZombieInstanceLayer.jsx": "251332c4111a2d5fc0301dd634b10b042bd4f5f2ce56091b8b81be1e336d2420",
+    "ExpansionCleanup.test.jsx": "857b4c17686c3626afeed888848709e43f9a7557349f6c0e13f1493a9907e8ca"
+  },
+  "red": {
+    "command": "npm test -- src/components/expansion/ExpansionCleanup.test.jsx",
+    "exit_code": 1,
+    "passed": 1,
+    "failed": 1,
+    "failure": "TypeError: mesh.dispose is not a function at expansionInstances.js:126:83 during actual R3F unmount",
+    "warning": "RED emitted Multiple instances of Three.js being imported; GREEN emitted no Three warning."
+  },
+  "green": {
+    "command": "npm test -- src/components/expansion/ExpansionInstances.test.js src/components/expansion/ExpansionRuntimeRetention.test.js src/components/expansion/ExpansionCleanup.test.jsx",
+    "exit_code": 0,
+    "files_passed": 3,
+    "tests_passed": 7,
+    "normal_pretest_guards": "passed",
+    "evidence": "Actual component mounted/unmounted twice via real R3F reconciler; four direct InstancedMesh methods retain prototype identity; mesh/geometry/material dispose events exactly once per cycle. Existing borrowed-cache and runtime-retention tests pass."
+  },
+  "limits": [
+    "GPU driver is mocked; no actual browser/visual acceptance claimed.",
+    "No build, deploy, direct Git command, env access/modification, remote Firebase access or dispatch. Normal mandated npm pretest runs its existing branch-check script.",
+    "No model/tuning/graphics/stats/default changes; only component prop removed and one regression test added.",
+    "Root/advisor remains responsible for build and actual browser QA."
+  ],
+  "reviewer": "Three_Mini technical self-review; root/advisor independent review pending",
+  "redaction_result": "PASS: only task/source paths, source hashes, aggregate test outcomes; no credentials/env/account data",
+  "negative_lesson": "Do not pass dispose=null onto an owned InstancedMesh primitive: it overwrites its required method. Optional chaining would conceal loss of required cleanup rather than repair ownership."
+}

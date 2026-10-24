@@ -1,0 +1,2950 @@
+{
+  "taskId": "t_69d2baf0",
+  "generatedAt": "2026-10-24T06:20:05.611729+00:00",
+  "scope": "Stage4 visuals only; no product-source changes in finalization",
+  "visualVerdict": "PASS_WITH_LIMITATIONS",
+  "overallRuntimeCleanApproval": false,
+  "canonicalInvariant": {
+    "passed": true,
+    "sameOriginalBaselineNoRebaseline": true,
+    "before": {
+      "startedAt": "2026-10-24T06:07:34.190Z",
+      "completedAt": "2026-10-24T06:07:34.597Z",
+      "http": 200,
+      "schemaVersion": 1,
+      "revision": 1952,
+      "rawBytes": 21966,
+      "rawSHA256": "20483fa0019c26f93e94e1d5a2d157da43ae1c33d51b7959a1ec24191cb1c4b6",
+      "datasetCount": 6,
+      "allDatasetsExact": true,
+      "ready": true
+    },
+    "after": {
+      "checkedAt": "2026-10-24T06:15:06.338Z",
+      "http": 200,
+      "revision": 1952,
+      "rawSHA256": "20483fa0019c26f93e94e1d5a2d157da43ae1c33d51b7959a1ec24191cb1c4b6",
+      "fullKeysTypesStructureValuesEqual": true,
+      "rawHashEqual": true,
+      "runtimeSixDatasetsExact": true,
+      "runtimeRevisionEqual": true,
+      "storageCalls": 1,
+      "cloudUserNull": true
+    },
+    "comparison": "recursive full key sets/types/array shape/structure/values + revision + raw SHA256; original kept only in page RAM"
+  },
+  "sourceFreeze": {
+    "passed": true,
+    "beforeCount": 632,
+    "afterCount": 632,
+    "freezeMismatches": [],
+    "exactHashesEvidence": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\Quaility_Assurance\\stage4_upgrade_20261024\\visual-result.json fields sourceHashesBefore/sourceHashesAfter"
+  },
+  "bossChain": {
+    "originalGameKey": 3,
+    "allEventCount": 375,
+    "allCueIds": [
+      "bossWarning",
+      "milestoneGold",
+      "flaskHit",
+      "bossSpawn",
+      "zombieChargeRoar",
+      "pencilFire",
+      "pencilHit",
+      "bossRoar",
+      "playerHit",
+      "buttonClick",
+      "zombieGiantThud",
+      "criticalHit",
+      "zombieDeathGrunt",
+      "dogeEscape",
+      "zombieDeathShriek",
+      "zombieDeathHeavy",
+      "textbookLand",
+      "zombieDeathBellow",
+      "coinCollect",
+      "matildaWarningTick",
+      "zombieDeathGurgle",
+      "matildaCountdownEnd",
+      "portalAppear",
+      "portalSuction",
+      "matildaSpawn",
+      "matildaLaugh",
+      "escapePortalClear",
+      "stageClear"
+    ],
+    "cueCounts": {
+      "bossWarning": 3,
+      "milestoneGold": 2,
+      "flaskHit": 6,
+      "bossSpawn": 1,
+      "zombieChargeRoar": 1,
+      "pencilFire": 113,
+      "pencilHit": 112,
+      "bossRoar": 1,
+      "playerHit": 103,
+      "buttonClick": 1,
+      "zombieGiantThud": 4,
+      "criticalHit": 6,
+      "zombieDeathGrunt": 1,
+      "dogeEscape": 1,
+      "zombieDeathShriek": 2,
+      "zombieDeathHeavy": 2,
+      "textbookLand": 2,
+      "zombieDeathBellow": 1,
+      "coinCollect": 1,
+      "matildaWarningTick": 4,
+      "zombieDeathGurgle": 1,
+      "matildaCountdownEnd": 1,
+      "portalAppear": 1,
+      "portalSuction": 1,
+      "matildaSpawn": 1,
+      "matildaLaugh": 1,
+      "escapePortalClear": 1,
+      "stageClear": 1
+    },
+    "allEvents": [
+      {
+        "id": "bossWarning",
+        "eventId": 47,
+        "gameMs": 149900,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "milestoneGold",
+        "eventId": 48,
+        "gameMs": 149916.66666666666,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "flaskHit",
+        "eventId": 49,
+        "gameMs": 150016.6666666666,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "bossSpawn",
+        "eventId": 50,
+        "gameMs": 150083.33333333323,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "zombieChargeRoar",
+        "eventId": 51,
+        "gameMs": 150833.3333333328,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "flaskHit",
+        "eventId": 52,
+        "gameMs": 152049.99999999875,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 53,
+        "gameMs": 152116.66666666538,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 54,
+        "gameMs": 152283.33333333195,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "bossRoar",
+        "eventId": 55,
+        "gameMs": 152316.66666666526,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 56,
+        "gameMs": 152649.9999999984,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 57,
+        "gameMs": 152766.666666665,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 58,
+        "gameMs": 153166.66666666477,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 59,
+        "gameMs": 153233.3333333314,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 60,
+        "gameMs": 153683.33333333113,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 61,
+        "gameMs": 153716.66666666445,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 62,
+        "gameMs": 153749.99999999776,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 63,
+        "gameMs": 154216.66666666415,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 64,
+        "gameMs": 154283.33333333078,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 65,
+        "gameMs": 154333.33333333075,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 66,
+        "gameMs": 154733.33333333052,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 67,
+        "gameMs": 154799.99999999715,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 68,
+        "gameMs": 154899.9999999971,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 69,
+        "gameMs": 155266.66666666354,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 70,
+        "gameMs": 155333.33333333017,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 71,
+        "gameMs": 155433.3333333301,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 72,
+        "gameMs": 155816.66666666322,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 73,
+        "gameMs": 155866.6666666632,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 74,
+        "gameMs": 155983.3333333298,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 75,
+        "gameMs": 156349.99999999625,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 76,
+        "gameMs": 156416.66666666287,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 77,
+        "gameMs": 156499.99999999616,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 78,
+        "gameMs": 156866.6666666626,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 79,
+        "gameMs": 156933.33333332924,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 80,
+        "gameMs": 157116.66666666247,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 81,
+        "gameMs": 157399.99999999563,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 82,
+        "gameMs": 157466.66666666226,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 83,
+        "gameMs": 157633.33333332883,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 84,
+        "gameMs": 157916.666666662,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 85,
+        "gameMs": 157983.33333332863,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 86,
+        "gameMs": 158283.33333332845,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "buttonClick",
+        "eventId": 87,
+        "gameMs": 158433.33333332837,
+        "phase": "paused",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 88,
+        "gameMs": 158433.33333332837,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 89,
+        "gameMs": 158533.3333333283,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 90,
+        "gameMs": 158833.33333332813,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 91,
+        "gameMs": 158966.6666666614,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 92,
+        "gameMs": 159033.33333332802,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 93,
+        "gameMs": 159399.99999999447,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 94,
+        "gameMs": 159483.33333332776,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 95,
+        "gameMs": 159549.99999999438,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 96,
+        "gameMs": 160016.66666666078,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 97,
+        "gameMs": 160066.66666666075,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 98,
+        "gameMs": 160066.66666666075,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 99,
+        "gameMs": 160549.9999999938,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 100,
+        "gameMs": 160616.66666666043,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 101,
+        "gameMs": 160633.3333333271,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 102,
+        "gameMs": 161066.66666666017,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 103,
+        "gameMs": 161133.3333333268,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 104,
+        "gameMs": 161149.99999999345,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 105,
+        "gameMs": 161616.66666665985,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 106,
+        "gameMs": 161666.66666665982,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 107,
+        "gameMs": 161683.33333332647,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "zombieGiantThud",
+        "eventId": 108,
+        "gameMs": 162016.6666666596,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 109,
+        "gameMs": 162133.3333333262,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 110,
+        "gameMs": 162199.99999999284,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 111,
+        "gameMs": 162249.9999999928,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 112,
+        "gameMs": 162649.99999999258,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 113,
+        "gameMs": 162716.6666666592,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 114,
+        "gameMs": 162766.66666665918,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 115,
+        "gameMs": 163183.3333333256,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 116,
+        "gameMs": 163249.99999999223,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 117,
+        "gameMs": 163349.99999999217,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 118,
+        "gameMs": 163716.66666665862,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 119,
+        "gameMs": 163783.33333332525,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 120,
+        "gameMs": 164066.66666665842,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 121,
+        "gameMs": 164249.99999999165,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 122,
+        "gameMs": 164299.99999999162,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 123,
+        "gameMs": 164716.66666665804,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 124,
+        "gameMs": 164766.666666658,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 125,
+        "gameMs": 164816.66666665798,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "flaskHit",
+        "eventId": 126,
+        "gameMs": 165016.66666665787,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 127,
+        "gameMs": 165016.66666665787,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 128,
+        "gameMs": 165299.99999999104,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 129,
+        "gameMs": 165349.999999991,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 130,
+        "gameMs": 165366.66666665766,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 131,
+        "gameMs": 165449.99999999095,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 132,
+        "gameMs": 165516.66666665758,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "bossWarning",
+        "eventId": 133,
+        "gameMs": 165583.3333333242,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 134,
+        "gameMs": 165916.66666665734,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 135,
+        "gameMs": 165983.33333332397,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 136,
+        "gameMs": 166049.9999999906,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 137,
+        "gameMs": 166516.666666657,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "criticalHit",
+        "eventId": 138,
+        "gameMs": 166583.33333332362,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 139,
+        "gameMs": 166583.33333332362,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 140,
+        "gameMs": 166633.3333333236,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 141,
+        "gameMs": 167049.99999999002,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "criticalHit",
+        "eventId": 142,
+        "gameMs": 167116.66666665665,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 143,
+        "gameMs": 167116.66666665665,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 144,
+        "gameMs": 167199.99999998993,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 145,
+        "gameMs": 167583.33333332304,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 146,
+        "gameMs": 167649.99999998967,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 147,
+        "gameMs": 167733.33333332295,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 148,
+        "gameMs": 168116.66666665606,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 149,
+        "gameMs": 168183.3333333227,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 150,
+        "gameMs": 168299.9999999893,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 151,
+        "gameMs": 168649.9999999891,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 152,
+        "gameMs": 168716.6666666557,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 153,
+        "gameMs": 168849.99999998897,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 154,
+        "gameMs": 169166.66666665545,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 155,
+        "gameMs": 169233.33333332208,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 156,
+        "gameMs": 169366.66666665534,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 157,
+        "gameMs": 169699.99999998847,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 158,
+        "gameMs": 169766.6666666551,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 159,
+        "gameMs": 169999.9999999883,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 160,
+        "gameMs": 170233.3333333215,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 161,
+        "gameMs": 170299.99999998813,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 162,
+        "gameMs": 170516.66666665467,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 163,
+        "gameMs": 170766.66666665452,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 164,
+        "gameMs": 170816.6666666545,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 165,
+        "gameMs": 171166.6666666543,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 166,
+        "gameMs": 171299.99999998754,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "criticalHit",
+        "eventId": 167,
+        "gameMs": 171366.66666665417,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "zombieDeathGrunt",
+        "eventId": 168,
+        "gameMs": 171366.66666665417,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 169,
+        "gameMs": 171366.66666665417,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 170,
+        "gameMs": 171733.33333332062,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 171,
+        "gameMs": 171833.33333332057,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 172,
+        "gameMs": 171899.9999999872,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 173,
+        "gameMs": 172366.6666666536,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 174,
+        "gameMs": 172399.9999999869,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 175,
+        "gameMs": 172433.33333332022,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 176,
+        "gameMs": 172916.66666665327,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 177,
+        "gameMs": 172949.99999998658,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 178,
+        "gameMs": 172983.3333333199,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 179,
+        "gameMs": 173466.66666665295,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 180,
+        "gameMs": 173516.66666665292,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 181,
+        "gameMs": 173533.33333331958,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 182,
+        "gameMs": 173999.99999998597,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 183,
+        "gameMs": 174066.6666666526,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 184,
+        "gameMs": 174133.33333331923,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 185,
+        "gameMs": 174516.66666665234,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 186,
+        "gameMs": 174583.33333331897,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 187,
+        "gameMs": 174683.3333333189,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 188,
+        "gameMs": 175049.99999998536,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 189,
+        "gameMs": 175116.666666652,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 190,
+        "gameMs": 175266.6666666519,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 191,
+        "gameMs": 175583.33333331838,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 192,
+        "gameMs": 175649.999999985,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 193,
+        "gameMs": 175799.99999998492,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 194,
+        "gameMs": 176116.6666666514,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 195,
+        "gameMs": 176166.66666665138,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 196,
+        "gameMs": 176366.66666665126,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 197,
+        "gameMs": 176649.99999998443,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "dogeEscape",
+        "eventId": 198,
+        "gameMs": 176716.66666665106,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 199,
+        "gameMs": 176716.66666665106,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "zombieGiantThud",
+        "eventId": 200,
+        "gameMs": 177016.66666665088,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 201,
+        "gameMs": 177016.66666665088,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 202,
+        "gameMs": 177166.6666666508,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 203,
+        "gameMs": 177233.33333331742,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 204,
+        "gameMs": 177566.66666665056,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 205,
+        "gameMs": 177683.33333331716,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 206,
+        "gameMs": 177733.33333331713,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 207,
+        "gameMs": 178099.99999998359,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 208,
+        "gameMs": 178216.66666665018,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "zombieDeathShriek",
+        "eventId": 209,
+        "gameMs": 178283.3333333168,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 210,
+        "gameMs": 178283.3333333168,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 211,
+        "gameMs": 178666.66666664992,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 212,
+        "gameMs": 178749.9999999832,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 213,
+        "gameMs": 178816.66666664983,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 214,
+        "gameMs": 179283.33333331623,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 215,
+        "gameMs": 179283.33333331623,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 216,
+        "gameMs": 179349.99999998286,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 217,
+        "gameMs": 179799.9999999826,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 218,
+        "gameMs": 179816.66666664925,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 219,
+        "gameMs": 179883.33333331588,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "flaskHit",
+        "eventId": 220,
+        "gameMs": 180016.66666664914,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 221,
+        "gameMs": 180016.66666664914,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 222,
+        "gameMs": 180333.33333331562,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 223,
+        "gameMs": 180349.99999998228,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 224,
+        "gameMs": 180416.6666666489,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 225,
+        "gameMs": 180883.3333333153,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "zombieDeathHeavy",
+        "eventId": 226,
+        "gameMs": 180949.99999998193,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 227,
+        "gameMs": 180949.99999998193,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 228,
+        "gameMs": 180983.33333331524,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 229,
+        "gameMs": 181416.66666664832,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "textbookLand",
+        "eventId": 230,
+        "gameMs": 181433.33333331498,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 231,
+        "gameMs": 181483.33333331495,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "bossWarning",
+        "eventId": 232,
+        "gameMs": 181516.66666664826,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 233,
+        "gameMs": 181766.66666664812,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 234,
+        "gameMs": 181933.3333333147,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 235,
+        "gameMs": 181999.99999998132,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 236,
+        "gameMs": 182399.99999998108,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 237,
+        "gameMs": 182466.6666666477,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 238,
+        "gameMs": 182533.33333331434,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 239,
+        "gameMs": 182949.99999998076,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 240,
+        "gameMs": 183016.6666666474,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 241,
+        "gameMs": 183066.66666664736,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 242,
+        "gameMs": 183499.99999998044,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 243,
+        "gameMs": 183549.9999999804,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 244,
+        "gameMs": 183599.99999998038,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 245,
+        "gameMs": 184033.33333331347,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 246,
+        "gameMs": 184083.33333331344,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 247,
+        "gameMs": 184133.3333333134,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 248,
+        "gameMs": 184566.6666666465,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 249,
+        "gameMs": 184633.33333331312,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 250,
+        "gameMs": 184683.3333333131,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 251,
+        "gameMs": 185099.9999999795,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 252,
+        "gameMs": 185133.33333331282,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "zombieDeathHeavy",
+        "eventId": 253,
+        "gameMs": 185199.99999997945,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 254,
+        "gameMs": 185199.99999997945,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 255,
+        "gameMs": 185633.33333331253,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 256,
+        "gameMs": 185666.66666664585,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "textbookLand",
+        "eventId": 257,
+        "gameMs": 185683.3333333125,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 258,
+        "gameMs": 185716.66666664582,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 259,
+        "gameMs": 186166.66666664556,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 260,
+        "gameMs": 186199.99999997887,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 261,
+        "gameMs": 186249.99999997884,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 262,
+        "gameMs": 186716.66666664524,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "criticalHit",
+        "eventId": 263,
+        "gameMs": 186783.33333331186,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 264,
+        "gameMs": 186783.33333331186,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 265,
+        "gameMs": 186816.66666664518,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 266,
+        "gameMs": 187249.99999997826,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 267,
+        "gameMs": 187316.6666666449,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 268,
+        "gameMs": 187349.9999999782,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 269,
+        "gameMs": 187783.33333331128,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 270,
+        "gameMs": 187849.9999999779,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 271,
+        "gameMs": 187883.33333331122,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 272,
+        "gameMs": 188316.6666666443,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 273,
+        "gameMs": 188383.33333331093,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 274,
+        "gameMs": 188483.33333331087,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 275,
+        "gameMs": 188833.33333331067,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 276,
+        "gameMs": 188899.9999999773,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 277,
+        "gameMs": 189133.3333333105,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 278,
+        "gameMs": 189349.99999997704,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "criticalHit",
+        "eventId": 279,
+        "gameMs": 189416.66666664366,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 280,
+        "gameMs": 189416.66666664366,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 281,
+        "gameMs": 189649.99999997686,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 282,
+        "gameMs": 189883.33333331006,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 283,
+        "gameMs": 189949.9999999767,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 284,
+        "gameMs": 190266.66666664317,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 285,
+        "gameMs": 190416.66666664308,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 286,
+        "gameMs": 190466.66666664305,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 287,
+        "gameMs": 190849.99999997616,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 288,
+        "gameMs": 190933.33333330945,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 289,
+        "gameMs": 190999.99999997608,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 290,
+        "gameMs": 191433.33333330916,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 291,
+        "gameMs": 191466.66666664247,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 292,
+        "gameMs": 191533.3333333091,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 293,
+        "gameMs": 191999.9999999755,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "milestoneGold",
+        "eventId": 294,
+        "gameMs": 192016.66666664215,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "zombieGiantThud",
+        "eventId": 295,
+        "gameMs": 192016.66666664215,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 296,
+        "gameMs": 192016.66666664215,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 297,
+        "gameMs": 192049.99999997547,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 298,
+        "gameMs": 192516.66666664186,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 299,
+        "gameMs": 192566.66666664183,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 300,
+        "gameMs": 192566.66666664183,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 301,
+        "gameMs": 193049.99999997488,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 302,
+        "gameMs": 193099.99999997485,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 303,
+        "gameMs": 193116.6666666415,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 304,
+        "gameMs": 193599.99999997456,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 305,
+        "gameMs": 193649.99999997453,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 306,
+        "gameMs": 193649.99999997453,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 307,
+        "gameMs": 194116.66666664093,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 308,
+        "gameMs": 194166.6666666409,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 309,
+        "gameMs": 194183.33333330756,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 310,
+        "gameMs": 194649.99999997395,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 311,
+        "gameMs": 194699.99999997392,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 312,
+        "gameMs": 194833.33333330718,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "flaskHit",
+        "eventId": 313,
+        "gameMs": 195016.6666666404,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 314,
+        "gameMs": 195016.6666666404,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 315,
+        "gameMs": 195166.66666664032,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 316,
+        "gameMs": 195216.6666666403,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 317,
+        "gameMs": 195499.99999997346,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 318,
+        "gameMs": 195699.99999997334,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 319,
+        "gameMs": 195749.9999999733,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 320,
+        "gameMs": 196233.33333330636,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 321,
+        "gameMs": 196233.33333330636,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 322,
+        "gameMs": 196283.33333330633,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 323,
+        "gameMs": 196783.33333330604,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 324,
+        "gameMs": 196799.9999999727,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 325,
+        "gameMs": 196833.333333306,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 326,
+        "gameMs": 197316.66666663907,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 327,
+        "gameMs": 197366.66666663904,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 328,
+        "gameMs": 197416.666666639,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 329,
+        "gameMs": 197849.9999999721,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 330,
+        "gameMs": 197899.99999997206,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 331,
+        "gameMs": 198033.33333330532,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 332,
+        "gameMs": 198366.66666663846,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "zombieDeathBellow",
+        "eventId": 333,
+        "gameMs": 198416.66666663843,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 334,
+        "gameMs": 198416.66666663843,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 335,
+        "gameMs": 198599.99999997165,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "coinCollect",
+        "eventId": 336,
+        "gameMs": 198749.99999997157,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 337,
+        "gameMs": 198883.33333330482,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 338,
+        "gameMs": 198949.99999997145,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 339,
+        "gameMs": 199133.33333330468,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 340,
+        "gameMs": 199416.66666663784,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 341,
+        "gameMs": 199483.33333330447,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 342,
+        "gameMs": 199849.99999997093,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 343,
+        "gameMs": 199933.3333333042,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 344,
+        "gameMs": 199999.99999997084,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 345,
+        "gameMs": 200399.9999999706,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 346,
+        "gameMs": 200466.66666663723,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 347,
+        "gameMs": 200533.33333330386,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 348,
+        "gameMs": 200999.99999997026,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 349,
+        "gameMs": 200999.99999997026,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "zombieDeathShriek",
+        "eventId": 350,
+        "gameMs": 201066.66666663688,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 351,
+        "gameMs": 201066.66666663688,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 352,
+        "gameMs": 201516.66666663662,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 353,
+        "gameMs": 201516.66666663662,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 354,
+        "gameMs": 201583.33333330325,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 355,
+        "gameMs": 202049.99999996964,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 356,
+        "gameMs": 202099.99999996962,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 357,
+        "gameMs": 202116.66666663627,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 358,
+        "gameMs": 202583.33333330267,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 359,
+        "gameMs": 202616.66666663598,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 360,
+        "gameMs": 202649.9999999693,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 361,
+        "gameMs": 203116.6666666357,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 362,
+        "gameMs": 203166.66666663566,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 363,
+        "gameMs": 203166.66666663566,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 364,
+        "gameMs": 203649.9999999687,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 365,
+        "gameMs": 203716.66666663534,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 366,
+        "gameMs": 203766.6666666353,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 367,
+        "gameMs": 204183.33333330174,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "criticalHit",
+        "eventId": 368,
+        "gameMs": 204249.99999996836,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 369,
+        "gameMs": 204249.99999996836,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 370,
+        "gameMs": 204499.99999996822,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 371,
+        "gameMs": 204699.9999999681,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 372,
+        "gameMs": 204766.66666663473,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 373,
+        "gameMs": 205016.66666663458,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "matildaWarningTick",
+        "eventId": 374,
+        "gameMs": 205083.3333333012,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 375,
+        "gameMs": 205233.33333330113,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 376,
+        "gameMs": 205299.99999996775,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 377,
+        "gameMs": 205583.33333330092,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 378,
+        "gameMs": 205749.9999999675,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 379,
+        "gameMs": 205799.99999996746,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "matildaWarningTick",
+        "eventId": 380,
+        "gameMs": 206116.66666663394,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 381,
+        "gameMs": 206166.66666663392,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 382,
+        "gameMs": 206283.3333333005,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 383,
+        "gameMs": 206333.33333330048,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 384,
+        "gameMs": 206699.99999996694,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 385,
+        "gameMs": 206816.66666663354,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 386,
+        "gameMs": 206883.33333330016,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "zombieGiantThud",
+        "eventId": 387,
+        "gameMs": 207016.66666663342,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "matildaWarningTick",
+        "eventId": 388,
+        "gameMs": 207066.6666666334,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 389,
+        "gameMs": 207333.3333332999,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 390,
+        "gameMs": 207349.99999996656,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 391,
+        "gameMs": 207399.99999996653,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 392,
+        "gameMs": 207883.33333329958,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 393,
+        "gameMs": 207899.99999996624,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 394,
+        "gameMs": 207916.6666666329,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "matildaWarningTick",
+        "eventId": 395,
+        "gameMs": 208183.3333332994,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 396,
+        "gameMs": 208399.99999996595,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "zombieDeathGurgle",
+        "eventId": 397,
+        "gameMs": 208466.66666663258,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 398,
+        "gameMs": 208466.66666663258,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 399,
+        "gameMs": 208633.33333329915,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 400,
+        "gameMs": 208933.33333329897,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 401,
+        "gameMs": 208983.33333329894,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "matildaCountdownEnd",
+        "eventId": 402,
+        "gameMs": 209033.3333332989,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 403,
+        "gameMs": 209316.66666663208,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 404,
+        "gameMs": 209466.666666632,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 405,
+        "gameMs": 209516.66666663197,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 406,
+        "gameMs": 209866.66666663176,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 407,
+        "gameMs": 209983.33333329836,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "flaskHit",
+        "eventId": 408,
+        "gameMs": 210016.66666663167,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 409,
+        "gameMs": 210016.66666663167,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "portalAppear",
+        "eventId": 410,
+        "gameMs": 210016.66666663167,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "portalSuction",
+        "eventId": 411,
+        "gameMs": 210066.66666663165,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 412,
+        "gameMs": 210066.66666663165,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 413,
+        "gameMs": 210416.66666663144,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "matildaSpawn",
+        "eventId": 414,
+        "gameMs": 210416.66666663144,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 415,
+        "gameMs": 210483.33333329807,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilHit",
+        "eventId": 416,
+        "gameMs": 210599.99999996467,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "matildaLaugh",
+        "eventId": 417,
+        "gameMs": 210783.3333332979,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "playerHit",
+        "eventId": 418,
+        "gameMs": 210966.66666663112,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "pencilFire",
+        "eventId": 419,
+        "gameMs": 211066.66666663106,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "escapePortalClear",
+        "eventId": 420,
+        "gameMs": 211083.33333329772,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "stageClear",
+        "eventId": 421,
+        "gameMs": 211083.33333329772,
+        "phase": "cleared",
+        "gameKey": 3
+      }
+    ],
+    "selectedCues": [
+      {
+        "id": "bossSpawn",
+        "eventId": 50,
+        "gameMs": 150083.33333333323,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "zombieChargeRoar",
+        "eventId": 51,
+        "gameMs": 150833.3333333328,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "flaskHit",
+        "eventId": 52,
+        "gameMs": 152049.99999999875,
+        "phase": "playing",
+        "gameKey": 3
+      },
+      {
+        "id": "bossRoar",
+        "eventId": 55,
+        "gameMs": 152316.66666666526,
+        "phase": "playing",
+        "gameKey": 3
+      }
+    ],
+    "telegraphObserved": {
+      "circles": 3,
+      "segmentsPerCircle": [
+        8,
+        8,
+        8
+      ],
+      "evidenceCommandIds": [
+        "78983c99853743ddba74f5fdd0e537ac",
+        "d85ad298156145ab978908a897980310"
+      ]
+    },
+    "P2Evidence": "bossRoar eventId55 at152316.66666666526ms after real bossSpawn50; scene HUD II observed. No unexposed model-name claim.",
+    "soupCueAbsent": true,
+    "soupCueAbsenceMeaning": "No soup-named cue ID observed; flaskHit event52 is actual shared burst cue. Absence alone is not a missing-audio defect."
+  },
+  "restart": {
+    "passed": true,
+    "after": {
+      "state": {
+        "phase": "paused",
+        "elapsedMs": 0,
+        "gameKey": 3,
+        "currentStageId": "stage4",
+        "playerHp": 100000,
+        "bossSpawned": false,
+        "bossAliveCount": 0,
+        "enemyIds": [],
+        "cloudUserNull": true,
+        "storageCalls": [
+          "setItem"
+        ]
+      },
+      "inspect": {
+        "sceneFound": true,
+        "warning": {
+          "visible": false,
+          "progress": 0,
+          "state": "idle",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "boundary": {
+          "radius": 3.2,
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            2.220446049250313e-16,
+            -1,
+            0,
+            0,
+            1,
+            2.220446049250313e-16,
+            0,
+            0,
+            0.035,
+            0,
+            1
+          ]
+        },
+        "soup": null
+      },
+      "url": "http://localhost:5184/stage4-review"
+    }
+  },
+  "mobileVision": {
+    "viewport": [
+      360,
+      800
+    ],
+    "initialScreenshotGameSeconds": 0.6,
+    "warningScreenshotGameSeconds": 12.4,
+    "initial": "Stage4 00:00, north cooking/sink guide readable; scene/player/HP visible.",
+    "warning": "Stage4 00:12; 솥이 끓어요! 연속 원 밖으로 readable; yellow warning circle centered around real cauldron visible.",
+    "harnessOnlyAdjustment": "RAM QA toolbar auto-height + ResizeObserver offsets mount; no product CSS/source changes.",
+    "limits": [
+      "Viewport resizing is not a physical touch-device test.",
+      "QA highHP100000 makes right-edge mobile HP numeric text clip; normalHP layout not separately proven.",
+      "Cauldron progress segmentation is not individually resolved from this mobile screenshot; runtime samples/desktop evidence retained."
+    ]
+  },
+  "screenshots": {
+    "mobile-orientation-360x800.png": {
+      "path": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\Quaility_Assurance\\stage4_upgrade_20261024\\mobile-orientation-360x800.png",
+      "sha256": "e5e2c2ebcdcf6d2ec801f0ee60e92edcd29f8f14699c264e9aa5aafbab2e2924"
+    },
+    "mobile-warning-360x800.png": {
+      "path": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\Quaility_Assurance\\stage4_upgrade_20261024\\mobile-warning-360x800.png",
+      "sha256": "b6c89ce63e366ef31b12e66e673a4c0b0ccd98ce2a9eb7fb3b21eff7fda8ee64"
+    },
+    "desktop-final-paused-zero.png": {
+      "path": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\Quaility_Assurance\\stage4_upgrade_20261024\\desktop-final-paused-zero.png",
+      "sha256": "3cd27a0f4dac434c4aba366693aac42a08637e4db0929f7a4ac9a008e46642ff"
+    },
+    "desktop-b04-soup-paused.png": {
+      "path": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\Quaility_Assurance\\stage4_upgrade_20261024\\desktop-b04-soup-paused.png",
+      "sha256": "9cc9cefdd93c4d3835c3d86fafb1980f824460c246fc240dbffc97f8d9e36185"
+    }
+  },
+  "storage": {
+    "attemptedSetItem": 1,
+    "blockedProbe": 1,
+    "persistedWrites": 0,
+    "zeroCallsClaim": false,
+    "attribution": "existing bootstrap/harness limitation; no stack-attribution claim and no auth/Firebase SDK fix"
+  },
+  "network": {
+    "writesAllowed": 0,
+    "realDatabaseWritesObserved": 0,
+    "attemptedCallsZeroClaim": false,
+    "blockedGroups": {
+      "POST identitytoolkit.googleapis.com/v1/accounts:signUp": 117
+    },
+    "failedGroups": {
+      "identitytoolkit.googleapis.com/v1/accounts:signUp": 117
+    },
+    "authAnalyticsPolicy": "blocked; actual failures recorded above; no real OAuth/cloud persistence tested",
+    "viteWebsocket": "disabled; expected HMR connection/send errors logged"
+  },
+  "runtimeErrors": [
+    "TypeError: mesh.dispose is not a function",
+    "TypeError: mesh.dispose is not a function"
+  ],
+  "consoleGroups": {
+    "[vite] failed to connect to websocket.": 1,
+    "Failed to send error to Vite server: TypeError: Cannot read properties of undefined (reading 'send')": 4,
+    "Failed to load resource: net::ERR_BLOCKED_BY_CLIENT.Inspector": 117,
+    "The above error occurred in the <ExpansionZombieInstanceLayer> component:": 1
+  },
+  "blockers": [
+    {
+      "id": "QA-RUNTIME-CLEANUP-01",
+      "message": "mesh.dispose is not a function (2 page errors), ExpansionZombieInstanceLayer component error recorded",
+      "status": "UNRESOLVED; not automatically classified pre-existing",
+      "repro": "Use real-scene QA harness, exercise Stage4/B04 and scene exit/restart sequence; inspect console/pageErrors. Exact single trigger/root cause not isolated. Final new restart renders successfully.",
+      "ownerHandoff": "Root/implementation owner disposition; QA did not modify frozen source."
+    }
+  ],
+  "gates": {
+    "qaNormalBuild": "existing build-process.json exitCode0; not rerun",
+    "qaFocused": "existing final-focused-process.json exitCode0 (10 files/98 tests per prior evidence); not rerun",
+    "rootRelated": "135 tests / 13 files PASS as root/user supplied; not independently rerun in finalization",
+    "earlierRelated": "existing related-process.json exitCode1; preexisting parity record advisor-baseline-parity.json retained, no broad fix"
+  },
+  "preview": {
+    "url": "http://localhost:5184/stage4-review",
+    "browserRootPid": 33072,
+    "browserHelperPid": 35160,
+    "serverListenerPid": 36892,
+    "bind": "localhost/::1:5184 strictPort",
+    "serverOriginalProcessRecord": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\Quaility_Assurance\\stage4_upgrade_20261024\\server-process.json",
+    "serverListenerChanged": "Original PID10940/25476 no longer present; current listener36892 observed. No claim it is original server process.",
+    "browserStartedAt": "2026-10-24T06:07:32.449+00:00",
+    "browserLog": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\Quaility_Assurance\\stage4_upgrade_20261024\\browser.log",
+    "serverLog": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\Quaility_Assurance\\stage4_upgrade_20261024\\server.log",
+    "oldOwnBlankBrowserClosed": [
+      22752,
+      23348
+    ],
+    "gracefulBrowserControl": "Get-Process -Id33072 | ForEach-Object { $_.CloseMainWindow() } (do not run until user done)",
+    "finalState": "desktop1180x820, actual scene visible, paused0 after fresh restart; Start/Resume available"
+  },
+  "notTested": [
+    "real OAuth",
+    "permanent cloud save",
+    "physical mobile touch",
+    "performance improvement",
+    "full runtime error-free release",
+    "new zombie modeling",
+    "production deployment"
+  ],
+  "evidence": {
+    "live": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\Quaility_Assurance\\stage4_upgrade_20261024\\visual-result.json",
+    "commands": "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\Quaility_Assurance\\stage4_upgrade_20261024\\runtime-observations.ndjson",
+    "frozenSourceNotEdited": true
+  }
+}

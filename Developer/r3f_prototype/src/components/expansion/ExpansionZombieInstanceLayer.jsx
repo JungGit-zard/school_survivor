@@ -30,5 +30,5 @@ export default function ExpansionZombieInstanceLayer({resetKey}) {
    reducedMotion:document.documentElement?.hasAttribute('data-reduced-effects'),
    isVisible:(x,z)=>!screenBounds||(x>=screenBounds.minX-2&&x<=screenBounds.maxX+2&&z>=screenBounds.minZ-2&&z<=screenBounds.maxZ+2),
  }))
- return <group name="expansion-normal-instance-layer" dispose={null}>{meshes.map((mesh,i)=><primitive key={i} object={mesh} dispose={null}/>)}</group>
+ return <group name="expansion-normal-instance-layer" dispose={null}>{meshes.map((mesh,i)=><primitive key={i} object={mesh}/>)}</group>
 }
