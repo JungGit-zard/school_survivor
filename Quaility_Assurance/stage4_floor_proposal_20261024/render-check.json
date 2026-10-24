@@ -1,0 +1,22 @@
+{
+  "scope": "Static final HTML only; no game/Firebase operations",
+  "checkedAt": "2026-10-24T11:29:52.301Z",
+  "htmlSHA256": "e15414712c9bc3599cb3aab7013e640d9491c56af56feee3cbc6180854daa268",
+  "views": [
+    {
+      "width": 1200,
+      "scrollWidth": 1200,
+      "samples": 3,
+      "scripts": 0
+    },
+    {
+      "width": 360,
+      "scrollWidth": 360,
+      "samples": 3,
+      "scripts": 0
+    }
+  ],
+  "errors": [],
+  "externalRequests": [],
+  "passed": true
+}
