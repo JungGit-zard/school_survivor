@@ -41,6 +41,8 @@ const GAME_REQUIRED = [
   join('.well-known', 'assetlinks.json'),
   '_headers',
   '_redirects',
+  '_worker.js', // /__/auth/*, /__/firebase/* Firebase auth helper proxy (backendmini)
+  '_routes.json', // Worker runs ONLY for /__/*
   'privacy.html',
   'terms.html',
   'delete-account.html',
@@ -71,7 +73,7 @@ function stageGame() {
       return !GAME_FORBIDDEN.some((f) => rel === f || rel.startsWith(f + sep))
     },
   })
-  for (const f of ['_headers', '_redirects']) cpSync(join(ROOT, 'public', f), join(stage, f))
+  for (const f of ['_headers', '_redirects', '_worker.js', '_routes.json']) cpSync(join(ROOT, 'public', f), join(stage, f))
   for (const f of LEGAL) {
     const fromDist = join(dist, f)
     const fromHosting = join(ROOT, 'hosting', f)
