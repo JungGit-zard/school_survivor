@@ -88,11 +88,14 @@ describe('Stage 4 B04 lateral-boundary regression', () => {
     const hitStart = enemySource.indexOf('rb.current._enemyHit =')
     const hitEnd = enemySource.indexOf('hpRef.current -= finalDamage', hitStart)
     const hitCallback = enemySource.slice(hitStart, hitEnd)
-    const knockbackFrameStart = enemySource.indexOf('if (now < knockbackUntilRef.current)')
+    // 넉백은 벽시계 기한(knockbackUntilRef)에서 pause 안전한 잔량(knockbackRemainingRef)으로
+    // 바뀌었다. 이 검사의 의도는 이름이 아니라 "히트 콜백은 큐에 넣기만 하고 직접
+    // setLinvel하지 않는다 / 프레임 경로는 경계 보정을 거친다"는 것이라 그대로 유지한다.
+    const knockbackFrameStart = enemySource.indexOf('if (knockbackRemainingRef.current > 0)')
     const knockbackFrameEnd = enemySource.indexOf('const elapsedMs', knockbackFrameStart)
     const knockbackFrame = enemySource.slice(knockbackFrameStart, knockbackFrameEnd)
 
-    expect(hitCallback).toContain('knockbackUntilRef.current')
+    expect(hitCallback).toContain('knockbackRemainingRef.current')
     expect(hitCallback).not.toContain('setLinvel')
     expect(knockbackFrame).toContain('applySpecialEnemyVelocity()')
   })

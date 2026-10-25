@@ -132,6 +132,25 @@ const weaponVisuals = [
 
 const questVisualKinds = ['book', 'red-book', 'attendance-sheet', 'bandage', 'key', 'whistle', 'fuse', 'list', 'valve']
 
+// 신규 일반 좀비 12종(E34-E45). 라벨만 이 파일에 둔다 — ZombieMesh.jsx가 이 모듈의
+// getStudioZombieItemId를 import하므로 반대 방향 import는 순환이 된다.
+// 아이템 id는 getStudioZombieItemId의 기본 규칙(`zombie-e34` …)을 그대로 쓴다.
+const POSED_ZOMBIE_STUDIO_LABELS = Object.freeze({
+  E34: 'Zombie E34 · 박자접기형',
+  E35: 'Zombie E35 · 모서리비껴형',
+  E36: 'Zombie E36 · 반걸음되짚기형',
+  E37: 'Zombie E37 · 빗금엇갈림형',
+  E38: 'Zombie E38 · 빈칸반응형',
+  E39: 'Zombie E39 · 선끝접기형',
+  E40: 'Zombie E40 · 중심축비틀기형',
+  E41: 'Zombie E41 · 쌍박자교대형',
+  E42: 'Zombie E42 · 반원발맞춤형',
+  E43: 'Zombie E43 · 엇높이교차형',
+  E44: 'Zombie E44 · 발맞춤후퇴형',
+  E45: 'Zombie E45 · 무게중심넘김형',
+})
+export const POSED_ZOMBIE_STUDIO_TYPES = Object.freeze(Object.keys(POSED_ZOMBIE_STUDIO_LABELS))
+
 export const GRAPHICS_STUDIO_CATALOG = Object.freeze([
   {
     id: 'player',
@@ -155,16 +174,18 @@ export const GRAPHICS_STUDIO_CATALOG = Object.freeze([
   },
   // RZL/RZC(스테이지3 런좀비 크루)는 ZombieMesh.jsx에서 이미 StudioTunedGroup으로 감싸여
   // 게임 런타임 배선이 E01과 동일하다. 이 배열에서 빠져 있어 스튜디오에서 선택만 불가능했다.
-  ...['E01', 'E02', 'E03', 'E04', 'E05', 'E06', 'RZL', 'RZC', 'RZT', 'RZG', 'B01', 'B02', 'B03', 'B04'].map((type) => ({
+  ...['E01', 'E02', 'E03', 'E04', 'E05', 'E06', 'RZL', 'RZC', 'RZT', 'RZG', 'B01', 'B02', 'B03', 'B04', ...POSED_ZOMBIE_STUDIO_TYPES].map((type) => ({
     id: getStudioZombieItemId(type),
     category: 'enemy',
-    label: type === 'B02' ? 'Stage 2 Boss' : type === 'B03' ? 'Boss B03 · 몸짱 체육교사' : type === 'B04' ? 'Boss B04 · 주방장 좀비' : type === 'RZL' ? 'Run Zombie · 리더' : type === 'RZC' ? 'Run Zombie · 크루' : type === 'RZT' ? 'Stage 2 Chase · 바바리맨' : type === 'RZG' ? 'Stage 2 Chase · 경비원' : `Zombie ${type}`,
+    label: POSED_ZOMBIE_STUDIO_LABELS[type] ?? (type === 'B02' ? 'Stage 2 Boss' : type === 'B03' ? 'Boss B03 · 몸짱 체육교사' : type === 'B04' ? 'Boss B04 · 주방장 좀비' : type === 'RZL' ? 'Run Zombie · 리더' : type === 'RZC' ? 'Run Zombie · 크루' : type === 'RZT' ? 'Stage 2 Chase · 바바리맨' : type === 'RZG' ? 'Stage 2 Chase · 경비원' : `Zombie ${type}`),
     source: 'components/ZombieMesh.jsx',
     previewKind: 'zombie',
     runtimePreviewSource: 'components/Enemy.jsx',
     runtimePreviewComponent: 'EnemyVisual',
     zombieType: type,
-    applyTargets: ['components/ZombieMesh.jsx', 'components/Enemy.jsx', 'lib/toon.js'],
+    applyTargets: POSED_ZOMBIE_STUDIO_LABELS[type]
+      ? ['components/ZombieMesh.jsx', 'components/ZombieInstanceLayer.jsx', 'components/Enemy.jsx', 'lib/toon.js']
+      : ['components/ZombieMesh.jsx', 'components/Enemy.jsx', 'lib/toon.js'],
   })),
   {
     id: 'zombie-procedural-face-test',

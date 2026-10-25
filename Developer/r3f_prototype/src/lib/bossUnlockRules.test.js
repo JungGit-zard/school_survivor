@@ -17,8 +17,11 @@ const snapshot = value => ({
 const evaluate = (expression, next, old) => new Function('newData','data',`return (${expression})`)(snapshot(next),snapshot(old))
 
 describe('existing ledger wire contract and baseline Firebase Rules', () => {
-  it('restores exact a9 Rules bytes: no rollout or Rules deployment required', () => {
-    expect(createHash('sha256').update(bytes).digest('hex')).toBe('d7aa0a2d335ecff33e9527f9bf6d684421faa8b8a71802bd1a07b513e1b2a581')
+  // a9 바이트(d7aa0a2d…)에서 encounteredZombieTypes 화이트리스트에 E34~E45만 더한 바이트다(25066a57).
+  // 클라이언트가 E34~E45 조우를 저장하므로 이 Rules를 클라이언트보다 먼저 배포해야 한다 —
+  // 아니면 해당 조우가 들어간 progress 쓰기 전체가 .validate에서 거부된다.
+  it('pins the reviewed Rules bytes: a9 plus the E34-E45 encounter whitelist (deploy Rules before the client)', () => {
+    expect(createHash('sha256').update(bytes).digest('hex')).toBe('ea07b0e2b501ad9d3a1662eb54f84f5d8e8f568923aa63faeeaf90e9121b6b43')
   })
   it.each([1,2,3,4,5,6,7,8,9,10])('stage %i virtual key uses existing numeric run-row validator, not progress schema additions', n => {
     const key=`stage${n}BossDefeats`

@@ -24,7 +24,7 @@ describe('final minimal backend and Stage5 compatibility',()=>{
   const expression=rules.users.$uid.progress.encounteredZombieTypes.$zombieType['.validate']
   const accept=(type,value=1)=>Function('$zombieType','newData',`return (${expression})`)(type,{val:()=>value})
   for(const e of [...Object.values(EXPANSION_ENEMIES),...Object.values(EXPANSION_BOSSES)])expect(accept(e.id),e.id).toBe(true)
-  for(const type of ['E34','B10','unknown'])expect(accept(type)).toBe(false)
+  for(const type of ['E46','B10','unknown'])expect(accept(type)).toBe(false)
   expect(accept('E19',2)).toBe(false)
  })
  it('retains the accepted Stage5 east-wall vending position inside its stage bounds',()=>{

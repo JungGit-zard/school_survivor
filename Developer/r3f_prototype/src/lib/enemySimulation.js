@@ -1,4 +1,4 @@
-import { MAX_ENEMIES } from './enemyEntityPool.js'
+import { MAX_ENEMIES, getNovelCyclePhaseOffsetMs} from './enemyEntityPool.js'
 import {
   STAGE2_E04_FIRST_FIRE_DELAY_MS,
   STAGE2_E04_INTRO_SEC,
@@ -61,18 +61,56 @@ export const ENEMY_STUCK_MOVE_EPSILON_SQ = 1e-6
 // 프로브가 경비추격 탱커 리더를 1/5 체력으로 계산해 "고쳤는데 프로브는 옛 값으로 합격"이 나던 자리다.
 import { EXPANSION_ENEMIES } from './expansionContent.js'
 import { stepExpansionPooledAttack, cleanupExpansionPoolAttacks, resetExpansionPoolAttacks } from './expansionAttackRuntime.js'
+import {
+  ENEMY_STATE_NOVEL_RECOVER,
+  ENEMY_STATE_NOVEL_RECOVER_ALT,
+  NOVEL_TYPE_MIN,
+  NOVEL_TYPE_MAX,
+  isNovelZombieType,
+  isNovelAttackState,
+  ENEMY_STATE_NOVEL_APPROACH,
+  createNovelBehaviorResult,
+  stepNovelZombieBehavior,
+} from './novelZombieBehavior.js'
 const expansionRows = Object.values(EXPANSION_ENEMIES)
-const extendRuntime = (values, key) => new Float32Array([...values, ...expansionRows.map(e => e[key])])
 
-export const ENEMY_RUNTIME_HP = extendRuntime([0, 8, 70, 10, 32, 70, 320, 90, 28, 0, 0, 0, 0, 140, 48, 16, 12], 'hp')
+// Track B 신규 12종(E34~E45 = typeCode 37~48)의 런타임 수치. Enemy.jsx의 NOVEL_ZOMBIE_STATS와
+// 같은 수치의 복사본 두 벌이며 enemySimulation.parity.test.js가 일치를 강제한다.
+// 순서 = typeCode 37,38,…,48. 배열 순서를 바꾸면 전부 어긋난다.
+const NOVEL_RUNTIME_ROWS = [
+  /* 37 E34 */ { hp: 8,  speed: 0.55, damage: 9,  scale: 0.95, xp: 4,  contactDist: 0.26 },
+  /* 38 E35 */ { hp: 10, speed: 0.72, damage: 7,  scale: 0.92, xp: 5,  contactDist: 0.24 },
+  /* 39 E36 */ { hp: 8,  speed: 0.50, damage: 10, scale: 1.00, xp: 4,  contactDist: 0.26 },
+  /* 40 E37 */ { hp: 8,  speed: 0.62, damage: 9,  scale: 0.98, xp: 4,  contactDist: 0.24 },
+  /* 41 E38 */ { hp: 10, speed: 0.70, damage: 8,  scale: 0.90, xp: 5,  contactDist: 0.24 },
+  /* 42 E39 */ { hp: 16, speed: 0.52, damage: 12, scale: 1.10, xp: 8,  contactDist: 0.30 },
+  /* 43 E40 */ { hp: 70, speed: 0.46, damage: 15, scale: 1.30, xp: 15, contactDist: 0.34 },
+  /* 44 E41 */ { hp: 10, speed: 0.66, damage: 9,  scale: 1.02, xp: 5,  contactDist: 0.26 },
+  /* 45 E42 */ { hp: 70, speed: 0.58, damage: 14, scale: 1.25, xp: 15, contactDist: 0.32 },
+  /* 46 E43 */ { hp: 70, speed: 0.44, damage: 16, scale: 1.35, xp: 15, contactDist: 0.36 },
+  /* 47 E44 */ { hp: 16, speed: 0.64, damage: 11, scale: 1.05, xp: 8,  contactDist: 0.26 },
+  /* 48 E45 */ { hp: 10, speed: 0.60, damage: 10, scale: 1.00, xp: 5,  contactDist: 0.26 },
+]
+
+// 32~36은 확장 보스(B05~B09) 슬롯이다. 기존처럼 0으로 비워 두고 37부터 Track B를 채운다 —
+// 단순 concat으로는 신규 12종이 32~43에 잘못 내려앉는다.
+const extendRuntime = (values, key, novelKey) => {
+  const table = new Float32Array(NOVEL_TYPE_MAX + 1)
+  const head = [...values, ...expansionRows.map(e => e[key])]
+  table.set(head, 0)
+  for (let i = 0; i < NOVEL_RUNTIME_ROWS.length; i += 1) table[NOVEL_TYPE_MIN + i] = NOVEL_RUNTIME_ROWS[i][novelKey]
+  return table
+}
+
+export const ENEMY_RUNTIME_HP = extendRuntime([0, 8, 70, 10, 32, 70, 320, 90, 28, 0, 0, 0, 0, 140, 48, 16, 12], 'hp', 'hp')
 // speed 전 슬롯 ×1.1 (2026-08-13). ENEMY_STATS와 한 벌이라 한쪽만 고치면 게임과 프로브가 갈라진다.
-export const ENEMY_RUNTIME_SPEED = extendRuntime([0, 0.5225, 0.4235, 1.21, 0.495, 0.55, 0.66, 2.695, 2.398, 0, 0, 0, 0, 1.4025, 1.3475, 1.045, 0.88], 'speedUnitsPerSec')
-export const ENEMY_RUNTIME_DAMAGE = extendRuntime([0, 8, 14, 6, 8, 16, 20, 14, 7, 0, 0, 0, 0, 6, 9, 16, 0], 'contactDamage')
+export const ENEMY_RUNTIME_SPEED = extendRuntime([0, 0.5225, 0.4235, 1.21, 0.495, 0.55, 0.66, 2.695, 2.398, 0, 0, 0, 0, 1.4025, 1.3475, 1.045, 0.88], 'speedUnitsPerSec', 'speed')
+export const ENEMY_RUNTIME_DAMAGE = extendRuntime([0, 8, 14, 6, 8, 16, 20, 14, 7, 0, 0, 0, 0, 6, 9, 16, 0], 'contactDamage', 'damage')
 // RZT(코드 13) scale 0.88→1.76 — 위 hp와 같은 커밋에서 두 배가 됐다. 이 값은 히트박스 반경
 // (enemyContactRadius)까지 좌우해서, 어긋난 채로 두면 프로브가 절반 크기 판정으로 돌아간다.
-export const ENEMY_RUNTIME_SCALE = extendRuntime([0, 1, 1.4, 0.75, 0.9, 1.15, 1.6, 1.08, 0.78, 0, 0, 0, 0, 1.76, 0.92, 1, 0.92], 'scale')
-export const ENEMY_RUNTIME_XP = extendRuntime([0, 4, 15, 5, 10, 15, 56, 12, 5, 0, 0, 0, 0, 5, 6, 8, 6], 'xpPerTextbook')
-export const ENEMY_RUNTIME_CONTACT_DIST = extendRuntime([0, 0.28, 0.36, 0.22, 0.26, 0.32, 0.42, 0.28, 0.22, 0, 0, 0, 0, 0.22, 0.24, 0.28, 0.26], 'contactDistUnits')
+export const ENEMY_RUNTIME_SCALE = extendRuntime([0, 1, 1.4, 0.75, 0.9, 1.15, 1.6, 1.08, 0.78, 0, 0, 0, 0, 1.76, 0.92, 1, 0.92], 'scale', 'scale')
+export const ENEMY_RUNTIME_XP = extendRuntime([0, 4, 15, 5, 10, 15, 56, 12, 5, 0, 0, 0, 0, 5, 6, 8, 6], 'xpPerTextbook', 'xp')
+export const ENEMY_RUNTIME_CONTACT_DIST = extendRuntime([0, 0.28, 0.36, 0.22, 0.26, 0.32, 0.42, 0.28, 0.22, 0, 0, 0, 0, 0.22, 0.24, 0.28, 0.26], 'contactDistUnits', 'contactDist')
 
 function isFiniteNumber(value) {
   return Number.isFinite(value)
@@ -108,6 +146,9 @@ function ignoresObstacles(type) {
   return type === 13 || type === 14
 }
 
+// Track B 신규 12종(37~48)은 여기서 빠진다. 전부 근접이지만 접촉만으로 상시 피해를 주지 않고
+// 자기 ATTACK 단계 안에서만 1회 판정하므로(novelZombieBehavior.js), 공통 접촉 피해 경로를 타면
+// "예고 중 피해 없음" 불변식이 깨진다. 접근 중 접촉에서 멈추는 처리도 각 루프가 직접 한다.
 function isMelee(type) {
   return type >= 17 && type <= 31 || type === 1 || type === 2 || type === 3 || type === 5 || type === 6 || type === 7 || type === 8 || type === 13 || type === 14 || type === 15
 }
@@ -587,6 +628,13 @@ export class EnemySimulationRuntime {
     this.events = new EnemyEventQueue()
     this._velocityScratch = { x: 0, z: 0 }
     this._positionScratch = { x: 0, z: 0, blocked: 0 }
+    // Track B 신규 12종 중 E38 빈칸반응형이 "플레이어의 직전 이동 방향"을 읽는다.
+    // 풀에는 플레이어 입력이 없으므로 런타임이 직전 프레임 좌표만 기억해 단위벡터로 환산한다.
+    // reset()에서 지워야 일시정지·재시작·사망 뒤 옛 방향이 남지 않는다.
+    this._prevPlayerX = NaN
+    this._prevPlayerZ = NaN
+    this._playerMoveX = 0
+    this._playerMoveZ = 0
   }
 
   _emit(type, pool, index, x, y, z, value, callback) {
@@ -598,6 +646,10 @@ export class EnemySimulationRuntime {
   reset() {
     this.grid.reset()
     this.events.reset()
+    this._prevPlayerX = NaN
+    this._prevPlayerZ = NaN
+    this._playerMoveX = 0
+    this._playerMoveZ = 0
     if(this._pool) resetExpansionPoolAttacks(this._pool)
   }
 
@@ -636,6 +688,18 @@ export class EnemySimulationRuntime {
     if (delta < 0) return this._isolateAll(pool)
     cleanupExpansionPoolAttacks(pool)
     const deltaMs = delta * 1000
+    // 플레이어 이동 단위벡터(E38 전용). 정지 프레임은 0으로 두어 "방향을 못 읽었다"가 되게 한다.
+    if (Number.isFinite(this._prevPlayerX) && Number.isFinite(this._prevPlayerZ)) {
+      const moveX = playerX - this._prevPlayerX
+      const moveZ = playerZ - this._prevPlayerZ
+      const moveLen = Math.hypot(moveX, moveZ)
+      if (moveLen > 1e-4) {
+        this._playerMoveX = moveX / moveLen
+        this._playerMoveZ = moveZ / moveLen
+      }
+    }
+    this._prevPlayerX = playerX
+    this._prevPlayerZ = playerZ
     const obstacles = context.obstacles
     const obstacleCount = obstacles && Number.isInteger(context.obstacleCount) ? Math.max(0, context.obstacleCount) : 0
     const sightBlocked = context.sightBlocked
@@ -655,8 +719,11 @@ export class EnemySimulationRuntime {
 
     for (let index = 0; index <= pool.highestActive; index += 1) {
       if (!pool.active[index]) continue
-      // 유효 타입 = 1~8(E01~E06/RZL/RZC), 13~15(RZT/RZG/E07). 9~12는 보스라 이 런타임을 타지 않는다.
-      if (pool.type[index] < 1 || pool.type[index] > 8 && pool.type[index] < 13 || pool.type[index] > 31 || !hasFiniteSlot(pool, index)) {
+      // 유효 타입 = 1~8(E01~E06/RZL/RZC), 13~16(RZT/RZG/E07/E08), 17~31(확장 E19~E33),
+      // 37~48(Track B E34~E45). 9~12와 32~36은 보스라 이 런타임을 타지 않는다.
+      if (pool.type[index] < 1 || pool.type[index] > 8 && pool.type[index] < 13
+        || pool.type[index] > 31 && pool.type[index] < NOVEL_TYPE_MIN || pool.type[index] > NOVEL_TYPE_MAX
+        || !hasFiniteSlot(pool, index)) {
         this._despawn(pool, index, ENEMY_EVENT_ERROR, 0, null)
         continue
       }
@@ -744,6 +811,44 @@ export class EnemySimulationRuntime {
             if (context.onRangedFire) context.onRangedFire(index, generation, posX, pool.posY[index], posZ, nx, nz)
           }
         }
+      } else if (isNovelZombieType(type)) {
+        // Track B 신규 12종. 예고 → 공격 → 회복 상태기계는 novelZombieBehavior.js가 소유한다.
+        const args = this._novelArgs ??= {
+          playerX: 0, playerZ: 0, posX: 0, posZ: 0, distance: 0, nx: 0, nz: 0,
+          speed: 0, contactDist: 0, damage: 0, playerMoveX: 0, playerMoveZ: 0, hitReady: false,
+        }
+        args.playerX = playerX; args.playerZ = playerZ; args.posX = posX; args.posZ = posZ
+        args.distance = distance; args.nx = nx; args.nz = nz
+        args.speed = ENEMY_RUNTIME_SPEED[type]
+        args.contactDist = contactDistance(type)
+        args.damage = ENEMY_RUNTIME_DAMAGE[type]
+        args.playerMoveX = this._playerMoveX
+        args.playerMoveZ = this._playerMoveZ
+        args.hitReady = pool.hitCooldown[index] <= 0
+        // 주기마다 슬롯별 위상 오프셋을 다시 얹는다. novelZombieBehavior는 공격->회복
+        // 전이에서 attackCooldown을 p.cooldownMs로 **덮어쓰므로**, 스폰 때 심은 위상이
+        // 한 주기 만에 지워져 링 편대가 다시 완전 동기화됐다(측정: 12종 중 7종이 복귀).
+        // 다음 주기의 시작 시각만 늦춘다 - 예고 길이(telegraphMs)·trigger·각도는 불변이라
+        // '예고 >= 18프레임' 가독성 계약과 불변식 5가 그대로 유지된다.
+        const novelPrevState = pool.state[index]
+        const novel = stepNovelZombieBehavior(pool, index, args, this._novelResult ??= createNovelBehaviorResult())
+        if (novelPrevState !== ENEMY_STATE_NOVEL_RECOVER && novelPrevState !== ENEMY_STATE_NOVEL_RECOVER_ALT
+          && (pool.state[index] === ENEMY_STATE_NOVEL_RECOVER || pool.state[index] === ENEMY_STATE_NOVEL_RECOVER_ALT)) {
+          pool.attackCooldown[index] += getNovelCyclePhaseOffsetMs(index)
+        }
+        velocityX = novel.velocityX
+        velocityZ = novel.velocityZ
+        moving = novel.moving
+        // 예고·공격·회복 중에는 시야차단 우회와 장애물 디투어가 확정 방향을 덮어쓰지 못하게 한다.
+        // 접근 중(APPROACH)에는 기존 잡몹과 똑같이 우회·디투어를 받는다.
+        preserveFacing = novel.state !== ENEMY_STATE_NOVEL_APPROACH
+        if (novel.hasYaw) pool.yaw[index] = novel.yaw
+        if (novel.damage > 0) {
+          pool.hitCooldown[index] = ENEMY_CONTACT_COOLDOWN_MS
+          pool.lastContactX[index] = playerX
+          pool.lastContactZ[index] = playerZ
+          this._emit(ENEMY_EVENT_CONTACT, pool, index, playerX, 0, playerZ, novel.damage, context.onContact)
+        }
       } else if (type === 16) {
         resolveCoinMonsterVelocityInto(this._velocityScratch, pool, index, posX, posZ, playerX, playerZ, distance, nx, nz, halfX, halfZ, elapsedSec)
         velocityX = this._velocityScratch.x
@@ -792,7 +897,7 @@ export class EnemySimulationRuntime {
         }
       }
 
-      if (type >= 17 && pool.knockbackTimer[index] <= 0) {
+      if (type >= 17 && type <= 31 && pool.knockbackTimer[index] <= 0) {
         const a = this._expansionArgs ??= { deltaMs:0, playing:true, alive:true,gameKey:0,x:0,z:0,playerX:0,playerZ:0,hpRatio:1,blocked:false }
         a.deltaMs=deltaMs; a.playerX=playerX; a.playerZ=playerZ; a.blocked=!!sightBlocked?.[index]
         expansionAttack = stepExpansionPooledAttack(pool,index,a)

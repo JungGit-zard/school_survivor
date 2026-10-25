@@ -35,8 +35,13 @@ const allStageBurstTables = [
 ]
 
 const STAGE1_FIRST_WAVE_SEC = 5
-const ORDINARY_ZOMBIE_TYPE_RE = /^E0[1-7]$/
-const STAGE2_BASE_HP = { E01: 8, E02: 70, E03: 10, E04: 32, E05: 70, E06: 320, E07: 16, RZT: 140, RZG: 48 }
+// Track B 신규 12종(E34~E45, 2026-10-25)은 기존 E01/E03/E07/E02/E05 슬롯을 "대체"한 잡몹이라
+// 일반 좀비 앵커 집합에 함께 들어가야 한다. 빠지면 전량 교체된 앵커(스1 72초)가 사라진 것처럼 보인다.
+const ORDINARY_ZOMBIE_TYPE_RE = /^E(?:0[1-7]|3[4-9]|4[0-5])$/
+// 신규 12종의 base hp는 대체 대상(host)과 같은 값으로 못박혀 있다(Enemy.jsx NOVEL_ZOMBIE_STATS).
+// 그래서 아래 모든 총 HP 단언의 기대값이 교체 전후로 변하지 않는다.
+const NOVEL_BASE_HP = { E34: 8, E35: 10, E36: 8, E37: 8, E38: 10, E39: 16, E40: 70, E41: 10, E42: 70, E43: 70, E44: 16, E45: 10 }
+const STAGE2_BASE_HP = { E01: 8, E02: 70, E03: 10, E04: 32, E05: 70, E06: 320, E07: 16, RZT: 140, RZG: 48, ...NOVEL_BASE_HP }
 const STAGE2_HP_MULTIPLIER = 1.2
 
 const ordinaryZombieEvents = (events) => events.filter((event) => ORDINARY_ZOMBIE_TYPE_RE.test(event.type))
@@ -91,10 +96,13 @@ describe('Stage 1 첫 웨이브 5초 게이트', () => {
 
     expect(schedule).toEqual([
       { sec: 5, type: 'E01', count: 10 },
-      { sec: 24, type: 'E01', count: 9 },
+      // 2026-10-25 Track B: 24초 E01×9 → E01×5 + E34×4, 60초 E01×6 → E01×3 + E36×3,
+      // 72초 E03×2 → E35×2. 전부 hp 동일 교체라 마릿수 92와 총 HP 3,710이 그대로다.
+      { sec: 24, type: 'E01', count: 5 }, { sec: 24, type: 'E34', count: 4 },
       { sec: 40, type: 'E01', count: 6 }, { sec: 40, type: 'E07', count: 3 },
-      { sec: 60, type: 'E01', count: 6 }, { sec: 60, type: 'E07', count: 6 }, { sec: 60, type: 'E02', count: 2 },
-      { sec: 72, type: 'E03', count: 2 },
+      { sec: 60, type: 'E01', count: 3 }, { sec: 60, type: 'E36', count: 3 },
+      { sec: 60, type: 'E07', count: 6 }, { sec: 60, type: 'E02', count: 2 },
+      { sec: 72, type: 'E35', count: 2 },
       { sec: 108, type: 'E01', count: 6 }, { sec: 108, type: 'E02', count: 3 },
       { sec: 110, type: 'E07', count: 3 }, { sec: 110, type: 'E02', count: 3 },
       { sec: 120, type: 'E05', count: 3 }, { sec: 144, type: 'E05', count: 3 },
@@ -118,11 +126,16 @@ describe('Stage 2 좀비 시간표 Stage 1 앵커 재배열', () => {
     const ordinary = stageZombieEvents(STAGE2_BURST_EVENTS)
 
     expect(ordinary.map(payloadWithoutSec)).toEqual([
-      { type: 'E01', count: 12 },
-      { type: 'E03', count: 6 },
+      // 2026-10-25 Track B: 5초 E01×12 → E01×7 + E37×5, 24초 E03×6 → E03×3 + E38×3,
+      // 108초 E07×6 → E07×3 + E39×3. hp 동일 교체라 마릿수 95와 적용 HP 3,458이 불변이다.
+      { type: 'E01', count: 7 },
+      { type: 'E37', count: 5 },
+      { type: 'E03', count: 3 },
+      { type: 'E38', count: 3 },
       { type: 'E07', count: 5 },
       { type: 'E04', count: 2 },
-      { type: 'E07', count: 6 },
+      { type: 'E07', count: 3 },
+      { type: 'E39', count: 3 },
       { type: 'E05', count: 3 },
       { type: 'E06', count: 1 },
       { type: 'E05', count: 3 },
@@ -138,7 +151,7 @@ describe('Stage 2 좀비 시간표 Stage 1 앵커 재배열', () => {
       { type: 'E01', count: 10, mixedTypes: ['E01', 'E03'], reinforcement: 'stage2MixedReinforcement' },
     ])
     expect(ordinary.reduce((sum, event) => sum + (event.count ?? 1), 0)).toBe(95)
-    expect(declaredCountByType(ordinary)).toEqual({ E01: 38, E02: 5, E03: 12, E04: 2, E05: 9, E06: 1, E07: 14, RZT: 14 })
+    expect(declaredCountByType(ordinary)).toEqual({ E01: 33, E37: 5, E02: 5, E03: 9, E38: 3, E04: 2, E05: 9, E06: 1, E07: 11, E39: 3, RZT: 14 })
     expect(stage2HpMultipliedBurstHp(ordinary)).toBe(3458)
   })
 
@@ -164,7 +177,9 @@ describe('전 스테이지 1:50 웃는좀비·탱커 보강', () => {
 
   it('Stage 2 웃는좀비 버스트는 사다리 예산에 맞춰 60초 5마리·108초 6마리로 재편성된다', () => {
     expect(STAGE2_BURST_EVENTS).toContainEqual({ sec: 60, type: 'E07', count: 5 })
-    expect(STAGE2_BURST_EVENTS).toContainEqual({ sec: 108, type: 'E07', count: 6 })
+    // 2026-10-25 Track B: 108초 6마리 중 3마리를 E39(선끝접기형)가 대체한다. 합은 여전히 6마리다.
+    expect(STAGE2_BURST_EVENTS).toContainEqual({ sec: 108, type: 'E07', count: 3 })
+    expect(STAGE2_BURST_EVENTS).toContainEqual({ sec: 108, type: 'E39', count: 3 })
   })
 })
 
@@ -344,15 +359,23 @@ describe('stage3 체육교사 B03 단일 보스 + 형태 버스트 런타임 복
     const ordinary = singleShotEvents(STAGE3_BURST_EVENTS).filter((event) => !isBossType(event.type))
     expect(uniqueSeconds(ordinary)).toEqual([5, 24, 40, 60, 72, 110, 120, 150, 184, 216])
     expect(ordinary.map(payloadWithoutSec)).toEqual([
-      { type: 'E01', count: 10 }, { type: 'E03', count: 4 }, { type: 'E04', count: 1 }, { type: 'E05', count: 1 },
-      { type: 'E05', count: 3 },
+      // 2026-10-25 Track B: 24초 E03×4 → E03×2 + E41×2, 216초 E05×3 → E05×1 + E40×2,
+      // 120초 포위 E05×3 → E42×3(타입 전량 교체). hp 동일 교체라 마릿수 52와 실제 HP 3,220이 불변이다.
+      { type: 'E01', count: 10 }, { type: 'E03', count: 2 }, { type: 'E41', count: 2 },
+      { type: 'E04', count: 1 }, { type: 'E05', count: 1 },
+      { type: 'E05', count: 1 }, { type: 'E40', count: 2 },
       { type: 'RZL', count: 13, formation: RUN_ZOMBIE_CREW_FORMATION },
       { type: 'E07', count: 3 }, { type: 'E02', count: 3 },
-      { type: 'E03', count: 6, formation: 'ring' }, { type: 'E05', count: 3, formation: 'ring' },
-      { type: 'E02', count: 3, formation: 'pincer' }, { type: 'E06', count: 2, formation: 'pincer' },
+      { type: 'E03', count: 6, formation: 'ring' }, { type: 'E42', count: 3, formation: 'ring' },
+      { type: 'E02', count: 3, formation: 'pincer' },
+      { type: 'E06', count: 2, formation: 'pincer' },
     ])
     expect(ordinary.reduce((sum, event) => sum + event.count, 0)).toBe(52)
-    const nonCrewHp = ordinary.reduce((sum, event) => sum + ({ E01: 12, E02: 101, E03: 14, E04: 46, E05: 101, E06: 461, E07: 23 }[event.type] ?? 0) * event.count, 0)
+    const nonCrewHp = ordinary.reduce((sum, event) => sum + ({
+      E01: 12, E02: 101, E03: 14, E04: 46, E05: 101, E06: 461, E07: 23,
+      // host와 같은 stage3 실효 HP: E41←E03(14), E40←E05(101), E42←E02(101).
+      E40: 101, E41: 14, E42: 101,
+    }[event.type] ?? 0) * event.count, 0)
     expect(nonCrewHp + Math.round(90 * 1.44) + 12 * Math.round(28 * 1.44)).toBe(3220)
     // 거대는 184초 앞뒤 벽 한 곳으로 모았다 — pincer는 ×2라야 성립하므로 ×1짜리 110초 건을 뺐다.
     expect(ordinary.filter((event) => event.type === 'E06').map(payloadWithoutSec))
@@ -421,16 +444,24 @@ describe('stage4 급식실 대탈출 버스트', () => {
     const ordinary = STAGE4_BURST_EVENTS.filter((event) => !isBossType(event.type))
     expect(uniqueSeconds(ordinary)).toEqual([5, 24, 40, 60, 72, 108, 110, 120, 144, 150, 168, 184, 216])
     expect(ordinary.map(payloadWithoutSec)).toEqual([
+      // 2026-10-25 Track B: 144초 E02×2 → E02×1 + E43×1, 150초 E03×6 → E03×3 + E45×3,
+      // 168초 E07×4 → E07×2 + E44×2. hp 동일 교체라 마릿수 68과 적용 HP 5,577이 불변이다.
       { type: 'E01', count: 10 }, { type: 'E04', count: 4 }, { type: 'E05', count: 2 }, { type: 'E06', count: 1 },
-      { type: 'E07', count: 2 }, { type: 'E04', count: 4 }, { type: 'E02', count: 2 }, { type: 'E05', count: 3 },
-      { type: 'E03', count: 6 }, { type: 'E07', count: 4 }, { type: 'E05', count: 4 },
+      { type: 'E07', count: 2 }, { type: 'E04', count: 4 },
+      { type: 'E02', count: 1 }, { type: 'E43', count: 1 }, { type: 'E05', count: 3 },
+      { type: 'E03', count: 3 }, { type: 'E45', count: 3 },
+      { type: 'E07', count: 2 }, { type: 'E44', count: 2 }, { type: 'E05', count: 4 },
       { type: 'E07', count: 3 }, { type: 'E02', count: 3 },
       { type: 'E03', count: 6, formation: 'ring' }, { type: 'E02', count: 4, formation: 'pincer' },
       { type: 'E05', count: 4, formation: 'ring' }, { type: 'E04', count: 4, formation: 'ring' },
       { type: 'E06', count: 2, formation: 'pincer' },
     ])
     expect(ordinary.reduce((sum, event) => sum + event.count, 0)).toBe(68)
-    const appliedHp = ordinary.reduce((sum, event) => sum + ({ E01: 14, E02: 121, E03: 17, E04: 55, E05: 121, E06: 553, E07: 28 }[event.type] ?? 0) * event.count, 0)
+    const appliedHp = ordinary.reduce((sum, event) => sum + ({
+      E01: 14, E02: 121, E03: 17, E04: 55, E05: 121, E06: 553, E07: 28,
+      // host와 같은 stage4 실효 HP: E43←E02(121), E44←E07(28), E45←E03(17).
+      E43: 121, E44: 28, E45: 17,
+    }[event.type] ?? 0) * event.count, 0)
     expect(appliedHp).toBe(5577)
   })
 
@@ -485,6 +516,9 @@ describe('스테이지 총체력 1.3배 사다리 (스1 앵커 고정)', () => {
   const BASE_HP = {
     E01: 8, E02: 70, E03: 10, E04: 32, E05: 70, E06: 320, E07: 16,
     RZL: 90, RZC: 28, RZT: 140, RZG: 48,
+    // Track B 신규 12종 — host와 동일 base hp. appliedHp가 base에 round를 적용한 뒤 count를 곱하므로
+    // 'E01×6' → 'E01×3 + E36×3' 같은 교체는 총합이 정확히 보존된다.
+    ...NOVEL_BASE_HP,
     // B03만 1246 — 2026-08-24 사용자 지시("스3 보스 = 스2 보스 × 1.3")를 stage3 배수 1.44로
     // 역산한 base다. 실효 HP는 round(1246 × 1.44) = 1,794 = round(1150 × 1.2) × 1.3.
     B01: 1150, B02: 1150, B03: 1246, B04: 1500,

@@ -44,6 +44,7 @@ import {
   shouldReverseMatildaChargeOnObstacle,
   shouldRenderB02CorridorBlockadeVisual,
 } from './Enemy.jsx'
+import { B04_SOUP_BLAST_RADIUS } from '../lib/b04SoupBlast.js'
 
 describe('B02 corridor blockade visual states', () => {
   it('uses cyan surfaces and dark outlines, and lights every boss-ring line at once', () => {
@@ -182,6 +183,37 @@ describe('B04 soup blast visual states', () => {
     expect(B04SoupBlastVisual({ phase: 'idle', circles })).toBeNull()
     expect(B04SoupBlastVisual({ phase: 'telegraph', circles: [] })).toBeNull()
     expect(source).toContain('<B04SoupBlastVisual')
+  })
+})
+
+describe('B04 soup blast boundary radius contract', () => {
+  // 계약 §3 (25066a57): 반경 1.1 units / 0.275 blocks. 실제 판정은 hypot < circle.radius이므로
+  // 바깥 테두리가 그보다 넓으면 안전한 바닥이 치명적으로 읽힌다.
+  it('draws every ring at the real 1.1 unit / 0.275 block blast radius, never wider', () => {
+    expect(B04_SOUP_BLAST_RADIUS).toBe(1.1)
+    expect(B04_SOUP_BLAST_RADIUS / 4).toBeCloseTo(0.275, 12)
+
+    const circles = [{ x: 4, z: -4, radius: B04_SOUP_BLAST_RADIUS }]
+    for (const phase of ['telegraph', 'explode']) {
+      const root = B04SoupBlastVisual({ phase, circles })
+      const geometries = []
+      const walk = (node) => {
+        if (!node || typeof node !== 'object') return
+        const children = node.props?.children
+        const list = Array.isArray(children) ? children : children ? [children] : []
+        list.flat(Infinity).forEach((child) => {
+          if (!child || typeof child !== 'object') return
+          if (child.type === 'ringGeometry' || child.type === 'circleGeometry' || child.type === 'cylinderGeometry') geometries.push(child)
+          walk(child)
+        })
+      }
+      walk(root)
+      expect(geometries.length).toBeGreaterThan(0)
+      const outerOf = (geometry) => (geometry.type === 'ringGeometry' ? geometry.props.args[1] : geometry.props.args[0])
+      geometries.forEach((geometry) => expect(outerOf(geometry)).toBeLessThanOrEqual(B04_SOUP_BLAST_RADIUS))
+      // 가장 바깥 테두리는 정확히 피해 반경이어야 한다 — 더 좁아도 틀린 읽기다.
+      expect(Math.max(...geometries.map(outerOf))).toBe(B04_SOUP_BLAST_RADIUS)
+    }
   })
 })
 

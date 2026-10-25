@@ -22,6 +22,8 @@ describe('expansion persistence contract', () => {
     const records = { totalRuns: 8, bestSurvivalSeconds: 766, stage1Clears: 3, stage2Clears: 2, stage2BestSurvivalSec: 366, stage3Clears: 1, stage3BestSurvivalSec: 321, stage4Clears: 1, stage4BestSurvivalSec: 481, stage5Clears: 1, stage5BestSurvivalSec: 300 }
     for (const stage of contract.stages) Object.assign(records, { [stage.clearRecordKey]: 2, [stage.bestRecordKey]: 600 })
     applyCloudProgressSnapshot(snapshot({ records }), user)
+    // 원격 노드 = 하이드레이트 직후 상태. 저장은 origin의 트랜잭션 계약으로 이 노드 위에 병합된다.
+    let remote = structuredClone(buildCloudProgressSnapshot())
     for (const stage of contract.stages) {
       expect(load()[stage.clearRecordKey]).toBe(2)
       incrementRecord(stage.clearRecordKey)
@@ -29,7 +31,16 @@ describe('expansion persistence contract', () => {
       setBestIfHigher(stage.bestRecordKey, 200)
     }
     let saved
-    _setFirebaseProgressClientForTests({ save: async (_path, payload) => { saved = structuredClone(payload) } })
+    _setFirebaseProgressClientForTests({
+      load: async () => structuredClone(remote),
+      transaction: async (_path, mutate) => {
+        const next = mutate(structuredClone(remote))
+        if (next === undefined) return { committed: false, snapshot: { val: () => structuredClone(remote) } }
+        remote = structuredClone(next)
+        saved = structuredClone(next)
+        return { committed: true, snapshot: { val: () => structuredClone(remote) } }
+      },
+    })
     for (const [key, value] of Object.entries({ VITE_FIREBASE_API_KEY: 'fixture', VITE_FIREBASE_AUTH_DOMAIN: 'fixture.invalid', VITE_FIREBASE_DATABASE_URL: 'https://fixture.invalid', VITE_FIREBASE_PROJECT_ID: 'fixture', VITE_FIREBASE_APP_ID: 'fixture' })) vi.stubEnv(key, value)
     expect(await requestCloudProgressSave(user)).toBe(true)
     expect(saved.schemaVersion).toBe(1)
@@ -65,11 +76,11 @@ describe('expansion persistence contract', () => {
   })
 
   it('keeps unknown encounter IDs and malformed values out of both normalizers', () => {
-    const invalid = { E18: 1, E34: 1, B10: 1, E19: '1', E20: 2, B05: false }
+    const invalid = { E18: 1, E46: 1, B10: 1, E19: '1', E20: 2, B05: false }
     expect(normalizeZombieEncounterMap(invalid)).toEqual({})
     applyCloudProgressSnapshot(snapshot({ encounteredZombieTypes: invalid }), user)
     expect(buildCloudProgressSnapshot().progress.encounteredZombieTypes).toEqual({})
-    expect(recordZombieEncounter('E34')).toBe(false)
+    expect(recordZombieEncounter('E46')).toBe(false)
   })
 
   it.each(Array.from({ length: 10 }, (_, i) => i + 1))('keeps stage%s client/server bonus, priority and score parity', (order) => {

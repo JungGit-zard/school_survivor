@@ -85,9 +85,34 @@ def has_broad_root_target(text: str) -> bool:
     return any(re.search(pattern, text) for pattern in patterns)
 
 
+# Narrow allowlist: one stale Git lock file (.git/**/*.lock) left behind when a git
+# write is interrupted. Git documents removing it as the remedy, and a 0-byte lock
+# holds no data. Denying it did not make anything safer - it only pushed agents to
+# delete the file through another API that this guard never inspects. Recursion,
+# wildcards, command chaining and broad root targets stay denied below.
+GIT_LOCK_CLEANUP_RE = re.compile(
+    r"^(?:rm|del|erase|remove-item|ri)"
+    r"(?:\s+(?:-f|-force|--force|/f|/q))*"
+    r"\s+[\"']?(?P<path>[^\s;&|\"'*?]*\.git[\\/][^\s;&|\"'*?]*\.lock)[\"']?$"
+)
+
+
+def is_git_lock_cleanup(text: str) -> bool:
+    """Allow exactly one non-recursive delete of a single .git/**/*.lock path."""
+    match = GIT_LOCK_CLEANUP_RE.match(text)
+    if not match:
+        return False
+    if ".." in match.group("path"):
+        return False
+    return not has_broad_root_target(text)
+
+
 def classify_command(command: str) -> Decision:
     text = normalize_command(command)
     if not text:
+        return Decision(False)
+
+    if is_git_lock_cleanup(text):
         return Decision(False)
 
     # Git clean can delete untracked work and must never run from agents without the
@@ -216,7 +241,57 @@ def launch_human_review(payload: dict[str, Any]) -> bool:
         return False
 
 
+def _selftest() -> int:
+    """Smallest check that fails if the git-lock allowlist ever widens."""
+    allowed = [
+        "rm .git/index.lock",
+        "rm -f .git/index.lock",
+        "rm -f F:/repo/.git/index.lock",
+        'rm -f "F:/repo/.git/index.lock"',
+        "del /q .git\\index.lock",
+        "Remove-Item -Force .git/modules/sub/index.lock",
+    ]
+    denied = [
+        "rm -rf .git/index.lock",            # recursive
+        "rm -f .git/*.lock",                 # wildcard
+        "rm -f .git/index.lock; rm -rf src", # chained
+        "rm -f .git/index",                  # not a .lock
+        "rm -f .git",                        # the whole repo metadata
+        "rm -f src/index.lock",              # .lock outside .git
+        "rm -f .git/../index.lock",          # traversal
+        "rm -rf /",
+        "rm -rf D:/",
+        "git clean -fd",
+    ]
+    for command in allowed:
+        decision = classify_command(command)
+        assert not decision.blocked, f"should be allowed: {command!r} -> {decision.reason}"
+    for command in denied:
+        decision = classify_command(command)
+        assert decision.blocked, f"should be denied: {command!r}"
+
+    # End-to-end through the hook payload path, so the allowlist cannot pass
+    # classify_command yet still be denied (or vice versa) by evaluate_payload.
+    def payload(command: str) -> dict[str, Any]:
+        return {
+            "hook_event_name": "PreToolUse",
+            "tool_name": "Bash",
+            "tool_input": {"command": command},
+        }
+
+    assert evaluate_payload(payload(allowed[1])) == {}, "allowed command must emit no deny"
+    denial = evaluate_payload(payload(denied[0]))
+    assert denial.get("permissionDecision") == "deny", "denied command must emit deny"
+    assert evaluate_payload(payload("")).get("permissionDecision") == "deny", "empty must fail closed"
+
+    print(f"selftest ok: {len(allowed)} allowed, {len(denied)} denied, payload path verified")
+    return 0
+
+
 def main() -> int:
+    if "--selftest" in sys.argv[1:]:
+        return _selftest()
+
     try:
         payload = json.load(sys.stdin)
     except Exception:

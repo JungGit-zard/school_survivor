@@ -5,6 +5,8 @@ import {
   BOSS_SPAWN_CENTER_SEC,
   BOSS_SPAWN_JITTER_SEC,
   STAGE_CONFIGS,
+  LOBBY_STAGE_IDS,
+  VISIBLE_STAGE_IDS,
   getNextStageId,
   getStageBossType,
   getStageBounds,
@@ -114,10 +116,42 @@ describe('stage configuration registry', () => {
     expect(getStageBossType('stage4')).toBe('B04')
   })
 
-  it('unlocks Stage 4 only after one Stage 3 clear', () => {
+  // 계약 2026-10-24 §3: Stage3 대표 보스(B03) 사망 기록만 Stage4를, Stage4 보스(B04) 사망 기록만
+  // Stage5를 해금한다. 기록 키는 upstream의 이전 스테이지 보스 증거(`stage{N}BossDefeats`)다.
+  it('unlocks Stage 4 only with the Stage 3 boss defeat record', () => {
+    expect(getStageBossType('stage3')).toBe('B03')
     expect(isStageUnlocked('stage4', {})).toBe(false)
     expect(isStageUnlocked('stage4', { stage2Clears: 5 })).toBe(false)
     expect(isStageUnlocked('stage4', { stage3BossDefeats: 1 })).toBe(true)
+    expect(isStageUnlocked('stage4', { stage3BossDefeats: 3 })).toBe(true)
+  })
+
+  it('refuses every non-boss-defeat evidence for Stage 4', () => {
+    // clear(포탈 탈출)·누적 생존 시간·퀘스트·총 보스 처치수는 대체 증거가 아니다.
+    expect(isStageUnlocked('stage4', { stage3Clears: 1 })).toBe(false)
+    expect(isStageUnlocked('stage4', { stage3Clears: 99, stage2Clears: 5 })).toBe(false)
+    expect(isStageUnlocked('stage4', { stage3BestSurvivalSec: 240 })).toBe(false)
+    expect(isStageUnlocked('stage4', { totalSurvivalSeconds: 99_999 })).toBe(false)
+    expect(isStageUnlocked('stage4', { bossKills: 50 })).toBe(false)
+    expect(isStageUnlocked('stage4', { stage4BossDefeats: 1 })).toBe(false)
+  })
+
+  it('unlocks Stage 5 only with the Stage 4 (B04) boss defeat record, never with a Stage 4 clear', () => {
+    expect(getStageBossType('stage4')).toBe('B04')
+    expect(isStageUnlocked('stage5', {})).toBe(false)
+    expect(isStageUnlocked('stage5', { stage4Clears: 1 })).toBe(false)
+    expect(isStageUnlocked('stage5', { stage4Clears: 9, stage4BestSurvivalSec: 240, bossKills: 9 })).toBe(false)
+    expect(isStageUnlocked('stage5', { stage3BossDefeats: 1 })).toBe(false)
+    expect(isStageUnlocked('stage5', { stage4BossDefeats: 1 })).toBe(true)
+  })
+
+  it('keeps the lobby list at Stage 1-4 while unlock records stay separate', () => {
+    expect(isStageUnlocked('stage1', {})).toBe(true)
+    expect(Object.keys(STAGE_CONFIGS)).toEqual(Array.from({ length: 10 }, (_, i) => `stage${i + 1}`))
+    expect(LOBBY_STAGE_IDS).toBe(VISIBLE_STAGE_IDS)
+    expect(LOBBY_STAGE_IDS).toEqual(['stage1', 'stage2', 'stage3', 'stage4'])
+    expect(isStageUnlocked('stage5', { stage4BossDefeats: 1 })).toBe(true)
+    expect(LOBBY_STAGE_IDS).not.toContain('stage5')
   })
 
   it('maps portal progression stage 1 -> stage 2 -> stage 3 -> stage 4, then ends', () => {
@@ -125,10 +159,12 @@ describe('stage configuration registry', () => {
     expect(getNextStageId('stage2')).toBe('stage3')
     // stage4가 playable로 해제되어 stage3 클리어→stage4 경로가 열렸다.
     expect(getNextStageId('stage3')).toBe('stage4')
-    // Stage5 existing terminal remains independent from expansion lobby entry.
-    expect(getNextStageId('stage4')).toBe('stage5')
-    expect(getNextStageId('stage5')).toBe('stage6')
+    // 계약 §3 + 릴리스 경계: Stage4가 종착이다. 포탈은 목록에 없는 Stage5로 보내지 않는다.
+    // 해금 기록(stage4BossDefeats)은 그대로 남고, 진입만 닫혀 있다.
+    expect(getNextStageId('stage4')).toBeNull()
+    expect(getNextStageId('stage5')).toBeNull()
     expect(getNextStageId('stage10')).toBeNull()
+    expect(isStageUnlocked('stage5', { stage4BossDefeats: 1 })).toBe(true)
   })
 
   it('wires Stage 4 cafeteria timing, bounds, and cafeteria-themed milestones', () => {

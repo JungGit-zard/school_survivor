@@ -56,7 +56,7 @@ const BOSS_RECORD_KEYS = Array.from({ length: 10 }, (_, i) => `stage${i + 1}Boss
 const RECORD_KEY_SET = new Set(RECORD_KEYS)
 
 const SUPPORTED_LANGUAGES = new Set(['ko', 'en', 'ja'])
-const ZOMBIE_ENCOUNTER_TYPES = new Set(['E01', 'E02', 'E03', 'E04', 'E05', 'E06', 'RZL', 'RZC', 'B01', 'B02', 'B03', 'B04', 'RZT', 'RZG', 'E07', 'E08', 'E19', 'E20', 'E21', 'E22', 'E23', 'E24', 'E25', 'E26', 'E27', 'E28', 'E29', 'E30', 'E31', 'E32', 'E33', 'B05', 'B06', 'B07', 'B08', 'B09'])
+const ZOMBIE_ENCOUNTER_TYPES = new Set(['E01', 'E02', 'E03', 'E04', 'E05', 'E06', 'RZL', 'RZC', 'B01', 'B02', 'B03', 'B04', 'RZT', 'RZG', 'E07', 'E08', 'E19', 'E20', 'E21', 'E22', 'E23', 'E24', 'E25', 'E26', 'E27', 'E28', 'E29', 'E30', 'E31', 'E32', 'E33', 'B05', 'B06', 'B07', 'B08', 'B09', 'E34', 'E35', 'E36', 'E37', 'E38', 'E39', 'E40', 'E41', 'E42', 'E43', 'E44', 'E45'])
 const MISSION_PROGRESS_SCHEMA_VERSION = 1
 const DEFAULT_MISSION_CATALOG_VERSION = 'missions_2026_08_15_v1'
 const MISSION_ID_PATTERN = /^[a-z0-9_]{1,64}$/

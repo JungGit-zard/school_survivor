@@ -24,6 +24,7 @@ import { getAdminWaveControlConfig } from '../lib/adminConfig.js'
 import { enemyTypeToCode, enemyTypeFromCode, createEnemyEntityPool, MAX_ENEMIES } from '../lib/enemyEntityPool.js'
 import { ENEMY_EVENT_CONTACT, ENEMY_EVENT_RANGED_FIRE, ENEMY_EVENT_DEATH, ENEMY_EVENT_DESPAWN, ENEMY_EVENT_ERROR, collidesEnemyObstacle, createEnemySimulationRuntime } from '../lib/enemySimulation.js'
 import { createEnemyProjectilePool, MAX_ENEMY_PROJECTILES } from '../lib/enemyProjectilePool.js'
+import { isNovelZombieType } from '../lib/novelZombieBehavior.js'
 import { emitVfx } from '../lib/vfxEvents.js'
 import { emitDamageNumber, DAMAGE_NUMBER_COLORS } from '../lib/damageNumbers.js'
 import { resolveCriticalHitInto } from '../lib/criticalHits.js'
@@ -819,7 +820,14 @@ export function bossEscortSize() {
 // E07은 E01의 정확히 2배(hp/damage/speed)로 고정된 잡몹이다(Enemy.jsx:303). 여기서 빠져 있으면
 // E07만 보스·런크루용 STAGE_HP_MULTIPLIER를 타서 E01과 반대 방향으로 움직이고 2배 불변식이 깨진다
 // — 실제로 stage2에서 E01 5 / E07 18(2배가 아니라 3.6배)이 됐다.
-const JARMOB_HP_TYPES = new Set(['E01', 'E02', 'E03', 'E04', 'E05', 'E06', 'E07'])
+// Track B 신규 12종(E34~E45)도 잡몹이다. 빠져 있으면 이 12종만 보스·런크루용 STAGE_HP_MULTIPLIER를
+// 타게 되고(E07이 겪은 것과 같은 함정), 버스트에서 대체한 host와 총 HP가 갈라져 밀도 파생값이 움직인다.
+// hp가 host와 같게 못박혀 있으므로(Enemy.jsx NOVEL_ZOMBIE_STATS) 이 집합에 넣기만 하면
+// stageExpectedBaseJarmobHp / stageBurstJarmobBaseHp / stageJarmobLoadWindows가 비트 단위로 보존된다.
+const JARMOB_HP_TYPES = new Set([
+  'E01', 'E02', 'E03', 'E04', 'E05', 'E06', 'E07',
+  'E34', 'E35', 'E36', 'E37', 'E38', 'E39', 'E40', 'E41', 'E42', 'E43', 'E44', 'E45',
+])
 
 // 사용자 정본(2026-08-16): 모든 정적 좀비 타입은 Stage 1 기준 누적 1.2배 HP 곡선을 쓴다.
 // 정수 HP 런타임은 기존과 같은 Math.round를 사용하므로, 예를 들어 E07 16 × 1.2 = 19.2는 19 HP다.
@@ -1147,7 +1155,10 @@ export function isPooledEnemyType(type) {
   const code = enemyTypeToCode(type)
   // Boss meshes (including the current stage2-boss-v2 B02) are rendered by
   // Enemy/ZombieMesh. ZombieInstanceLayer intentionally has no boss body mesh.
-  return (code >= 1 && code <= STANDARD_POOL_TYPE_MAX || isExpansionEnemy(type)) && !isBossType(type)
+  // Track B 신규 12종(37~48)도 풀 경로다 — 특수 적 경로는 동시 3마리가 상한이라
+  // 여기서 빠지면 네 번째부터 조용히 스폰이 버려진다.
+  return (code >= 1 && code <= STANDARD_POOL_TYPE_MAX || isExpansionEnemy(type) || isNovelZombieType(code))
+    && !isBossType(type)
 }
 
 export function shouldScheduleBurst(fired, elapsedSec, eventSec) {

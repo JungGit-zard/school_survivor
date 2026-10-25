@@ -273,7 +273,7 @@ export const STAGE2_SPAWN_TELEGRAPHS = []
 // 배열 순서까지 STAGE3_BURST_EVENTS의 formation 항목 순서와 일치해야 한다(waveTimelines.test.js).
 export const STAGE3_SPAWN_TELEGRAPHS = [
   { sec:  60, leadSec: 2.5, label: '사방에서 포위된다' },      // ring   E03×6
-  { sec: 120, leadSec: 2.5, label: '돌진 무리가 에워싼다' },   // ring   E05×3 (RZL@144 직전 예열)
+  { sec: 120, leadSec: 2.5, label: '곡선 발맞춤이 에워싼다' }, // ring   E42×3 (Track B 대체)
   { sec: 150, leadSec: 2.5, label: '양쪽에서 조여온다' },      // pincer E02×3 (보스 구간)
   { sec: 184, leadSec: 2.5, label: '거대들이 앞뒤를 막는다' }, // pincer E06×2
 ]

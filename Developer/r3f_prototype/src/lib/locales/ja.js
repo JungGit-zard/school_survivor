@@ -361,6 +361,15 @@ export default {
   'hud.portalAppeared': '脱出口が現れた！',
   'hud.portalDistance': '脱出口 {arrow} {distance}zm',
   'hud.portalMoveAria': '脱出口へ移動',
+  // Stage4 の状況連動ガイド。実際の状態が真のときだけ1行表示し、操作を奪わない。
+  'stage4Guide.cauldronCycle': '中央の釜は{seconds}秒ごとに爆発 — 円の外へ',
+  'stage4Guide.cauldronBoil': '釜が沸いている！ まもなく爆発 — 中央の円の外へ',
+  'stage4Guide.cauldronBurst': '釜が爆発！ 中央の円の中はダメージ',
+  'stage4Guide.bossUnlockRule': '次のステージは料理長を倒して解放される',
+  'stage4Guide.bossSoup': '料理長のHP半分でスープ爆発 — 散らばった小さな円',
+  'stage4Guide.bossUnlocked': '次のステージ解放！ 脱出口からの脱出は別',
+  'stage4Guide.escapeAfterUnlock': '解放は済み — 開いた脱出口から出ればクリア',
+  'stage4Guide.portalNotUnlock': '脱出口はクリア用 — 解放は料理長の撃破で',
   'hud.milestoneGold': '+{gold} ゴールド',
   'hud.pauseAria': 'ゲームを一時停止',
   'hud.resumeAria': 'ゲームを再開',
@@ -950,4 +959,20 @@ export default {
   'ranking.allTimeFirst': '歴代1位',
   'ranking.allTimeWindow': '期限なしの連続プレイ最高得点',
   'ranking.allTimeBoardAria': '{stage} 無期限累積ランキング',
+
+  // ─── ゾンビ図鑑の表示名（Track B 新規12種）───
+  // 音訳ではなく挙動を表す短い名前。韓国語の正本は
+  // Planner/stage_zombie_original_concepts_20261025.md。
+  'zombie.E34': '拍子折り型',
+  'zombie.E35': '角すり抜け型',
+  'zombie.E36': '半歩戻り型',
+  'zombie.E37': '斜め交差型',
+  'zombie.E38': '動き読み型',
+  'zombie.E39': '片腕折り型',
+  'zombie.E40': '軸ひねり型',
+  'zombie.E41': '二拍交互型',
+  'zombie.E42': '半円歩み型',
+  'zombie.E43': '高低交差型',
+  'zombie.E44': '足並み後退型',
+  'zombie.E45': '重心移し型',
 }

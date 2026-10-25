@@ -107,12 +107,18 @@ export const STAGE2_MIXED_REINFORCEMENT_EVENTS = [
 // 4분 타임라인. 5분 기준 sec ×0.8.
 export const BURST_EVENTS = [
   { sec:   5, type: 'E01', count: 10 },  // Stage 1 정상 첫 웨이브(5초, 기존 0초 E01×18 대체 아님)
-  { sec:  24, type: 'E01', count:  9 },  // 첫 phase target(24)을 burst만으로 초과하지 않게 완화
+  // Track B 대체(2026-10-25): E01×9 → E01×5 + E34×4. hp(E34)=hp(E01)=8이라 count×hp 합이 그대로다.
+  // 마릿수도 9 그대로이고 150 동시 상한도 건드리지 않는다 — 추가가 아니라 자리 교체다.
+  { sec:  24, type: 'E01', count:  5 },  // 첫 phase target(24)을 burst만으로 초과하지 않게 완화
+  { sec:  24, type: 'E34', count:  4 },  // 박자접기형 첫 등장 (Stage 1 좁힘 예고 학습 슬롯)
   ...STAGE1_40SEC_GREEN_SMILING_REINFORCEMENT_EVENTS,
-  { sec:  60, type: 'E01', count:  6 },  // 60초 녹색좀비 추가 고정 스폰
+  { sec:  60, type: 'E01', count:  3 },  // 60초 녹색좀비 추가 고정 스폰 — 절반을 E36으로 교체
+  { sec:  60, type: 'E36', count:  3 },  // 반걸음되짚기형 첫 등장. hp 8 = E01이라 총 HP 불변
   { sec:  60, type: 'E07', count:  6 },  // 60초 웃는좀비 추가 고정 스폰
   { sec:  60, type: 'E02', count:  2 },  // 탱커 첫 등장 신호 — 60초 총 2마리로 조정
-  { sec:  72, type: 'E03', count:  2 },  // 러너 압박 — 6→2 (E03 전 구간 ×1/3, 2026-07-04)
+  // 러너 슬롯(E03×2, hp 10)을 모서리비껴형으로 전량 교체한다. hp(E35)=10이라 총 HP 불변.
+  // Stage 1에 원거리는 여전히 0이다 — E35는 선회 접촉만 한다.
+  { sec:  72, type: 'E35', count:  2 },  // 모서리비껴형 첫 등장 (옛 E03×2 자리)
   { sec: 108, type: 'E01', count:  6, mixedTypes: LIGHT_MOB_MIX },  // 90–108초 완화 구간 이후 잡몹 러시 — 경량대 랜덤 구성
   { sec: 108, type: 'E02', count:  3 },
   ...ALL_STAGES_110SEC_SMILING_TANKER_REINFORCEMENT_EVENTS,
@@ -136,11 +142,14 @@ export const BURST_EVENTS = [
 //   (b) 4×17 혼합 보강은 경량 2회로 축소(위 STAGE2_MIXED_REINFORCEMENT_EVENTS 주석 참조).
 //   (c) 대신 마릿수는 95마리로 스1(92)과 나란히 두어 "복도가 텅 빈다"는 체감을 막았다.
 export const STAGE2_BURST_EVENTS = [
-  { sec:   5, type: 'E01', count: 12 },                       // 오프닝 밀도
-  { sec:  24, type: 'E03', count:  6 },                       // 러너 첫 등장 — 이동 압박 시작
+  { sec:   5, type: 'E01', count:  7 },                       // 오프닝 밀도 — 5마리를 E37로 교체
+  { sec:   5, type: 'E37', count:  5 },                       // 빗금엇갈림형(복도 축 교차). hp 8 = E01
+  { sec:  24, type: 'E03', count:  3 },                       // 러너 첫 등장 — 이동 압박 시작
+  { sec:  24, type: 'E38', count:  3 },                       // 빈칸반응형(플레이어 이동 읽기). hp 10 = E03
   { sec:  60, type: 'E07', count:  5 },                       // 웃는좀비(E01 2배 스탯) 합류
   { sec:  72, type: 'E04', count:  2 },                       // 원거리 첫 등장 — 발사 게이트(e04IntroSec 72)와 동시
-  { sec: 108, type: 'E07', count:  6 },                       // 웃는좀비 러시
+  { sec: 108, type: 'E07', count:  3 },                       // 웃는좀비 러시 — 절반을 E39로 교체
+  { sec: 108, type: 'E39', count:  3 },                       // 선끝접기형(열린 쪽 신호). hp 16 = E07
   { sec: 120, type: 'E05', count:  3 },                       // 차저 첫 등장 (보스 등장과 동시각)
   { sec: 168, type: 'E06', count:  1 },                       // 거대 첫 등장
   { sec: 184, type: 'E05', count:  3 },                       // 보스 처치 후 차저 재압박
@@ -187,10 +196,12 @@ export const STAGE3_BURST_EVENTS = [
   ...STAGE3_25_SECOND_GREEN_SMILING_REINFORCEMENT_EVENTS,
   ...STAGE3_BOSS_PHASE_GREEN_SMILING_REINFORCEMENT_EVENTS,
   { sec:   5, type: 'E01', count: 10 },                         // 온보딩 초기 밀도
-  { sec:  24, type: 'E03', count:  4 },                         // 러너 조기 압박
+  { sec:  24, type: 'E03', count:  2 },                         // 러너 조기 압박 — 절반을 E41로 교체
+  { sec:  24, type: 'E41', count:  2 },                         // 쌍박자교대형(낮은 팔/높은 팔). hp 10 = E03
   { sec:  40, type: 'E04', count:  1 },                         // 원거리 조기 등장 신호(e04IntroSec 34 이후)
   { sec:  72, type: 'E05', count:  1 },                         // 차저 첫 등장 신호(2026-08-19: 2→1, 25초 반복 상쇄)
-  { sec: 216, type: 'E05', count:  3 },                         // 마틸다 직전 차저 러시
+  { sec: 216, type: 'E05', count:  1 },                         // 마틸다 직전 차저 러시 — 2기를 E40로 교체
+  { sec: 216, type: 'E40', count:  2 },                         // 중심축비틀기형(제자리 비틀림-해제). hp 70 = E05
   // ── 런좀비 크루: 리더 1 + 러닝크루 12, 대각선 화면 횡단. 이전 단일 대형 크루 리듬으로 복원.
   { sec:  72, type: 'RZL', count: 13, formation: RUN_ZOMBIE_CREW_FORMATION },
   ...ALL_STAGES_110SEC_SMILING_TANKER_REINFORCEMENT_EVENTS,
@@ -198,7 +209,12 @@ export const STAGE3_BURST_EVENTS = [
   { sec: 150, type: 'B03', count:  1 },
   // ── 형태(formation) 버스트 — 배열 순서 = STAGE3_SPAWN_TELEGRAPHS 순서(60 → 120 → 150 → 184).
   { sec:  60, type: 'E03', count:  6, formation: 'ring' },      // 첫 완전 포위
-  { sec: 120, type: 'E05', count:  3, formation: 'ring' },      // 차저 포위(RZL@144 예열)
+  // Track B 대체(2026-10-25): 120초 포위를 차저(E05×3)에서 반원발맞춤형(E42×3)으로 통째로 바꾼다.
+  // hp(E42) = hp(E05) = 70, count 3, sec·formation 그대로라 총 HP·마릿수·예고 1:1 정렬이 전부 보존된다.
+  // 이벤트를 쪼개 150초에 두 번째 pincer를 더하는 안은 폐기했다 — 같은 초에 예고 배너가 두 번 떠서
+  // waveTimelines의 "예고 ↔ formation 버스트 1:1" 계약을 깬다.
+  // 포위 자체도 곡선 발맞춤 쪽이 더 맞는다: 차저 돌진은 72초 단발로 이미 도입돼 있다.
+  { sec: 120, type: 'E42', count:  3, formation: 'ring' },      // 반원발맞춤형 포위
   { sec: 150, type: 'E02', count:  3, formation: 'pincer' },    // 탱커 앞뒤 협공(보스 구간) — 110초에서 이동
   { sec: 184, type: 'E06', count:  2, formation: 'pincer' },    // 보스 구간 거대 앞뒤 벽
 ]
@@ -239,10 +255,13 @@ export const STAGE4_BURST_EVENTS = [
   { sec:  72, type: 'E06', count:  1 },                        // 거대 조기 등장 보장
   { sec: 108, type: 'E07', count:  2 },                        // 탱커 협공 옆 경량 속공 — 2026-08-19 E04 회수분
   { sec: 144, type: 'E04', count:  4 },                        // 보스 구간 원거리 벽 1 — 포화점 4기
-  { sec: 144, type: 'E02', count:  2 },                        // 원거리 벽 아래 탱커 몸통 — 2026-08-19 E04 회수분
+  { sec: 144, type: 'E02', count:  1 },                        // 원거리 벽 아래 탱커 몸통 — 2026-08-19 E04 회수분
+  { sec: 144, type: 'E43', count:  1 },                        // 엇높이교차형(낮은/높은 분리 스윕). hp 70 = E02
   { sec: 150, type: 'E05', count:  3 },                        // 보스 등장 동시 차저 — 2026-08-19 옛 E04×6 자리
-  { sec: 150, type: 'E03', count:  6 },                        // 러너로 카이팅 차단(원거리 사선 유지용 몰이)
-  { sec: 168, type: 'E07', count:  4 },                        // 원거리 포위 안쪽을 메우는 속공 — 2026-08-19 E04 회수분
+  { sec: 150, type: 'E03', count:  3 },                        // 러너로 카이팅 차단(원거리 사선 유지용 몰이)
+  { sec: 150, type: 'E45', count:  3 },                        // 무게중심넘김형(발 옮기고 넘김). hp 10 = E03
+  { sec: 168, type: 'E07', count:  2 },                        // 원거리 포위 안쪽을 메우는 속공 — 2026-08-19 E04 회수분
+  { sec: 168, type: 'E44', count:  2 },                        // 발맞춤후퇴형(옆 재배치 후 사선 복귀). hp 16 = E07
   { sec: 216, type: 'E05', count:  4 },                        // 마틸다 직전 차저 러시 — 옛 빈 앵커
   { sec: 150, type: 'B04', count:  1 },                        // 주방장 보스 등장(2:30) — 보스 구간 파생 기준
   ...ALL_STAGES_110SEC_SMILING_TANKER_REINFORCEMENT_EVENTS,

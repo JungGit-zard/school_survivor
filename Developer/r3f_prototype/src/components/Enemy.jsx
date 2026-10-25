@@ -63,6 +63,7 @@ import {
   getB04SoupBlastTrigger,
   startB04SoupBlast,
 } from '../lib/b04SoupBlast.js'
+import { getGameplayFrameDeltaMs } from '../lib/pausableStateTimer.js'
 import { getStageObjectSightObstacles, isStageObjectEnemyTrackingBlocked } from './StageObjects/stageObjectColliders.js'
 import { isPlayerWeaponSightBlocked } from '../lib/weaponTargeting.js'
 import ZombieMesh from './ZombieMesh.jsx'
@@ -339,6 +340,46 @@ export function isMatildaBodyContact({ enemyX, enemyZ, yaw = 0, playerX, playerZ
 // 반올림 규칙: 곱한 뒤 반올림하지 않는다 — 기존 값이 전부 소수 3자리 이하라 ×1.1이 소수 4자리에서
 // 딱 떨어진다(예: 0.475→0.5225, 2.18→2.398). 임의 반올림은 E07=E01×2 불변식을 깨므로 금지.
 // 돌진(chargeSpeed)·투사체(rangedSpeed)는 이동속도가 아니라 별도 스킬 파라미터라 대상이 아니다.
+// Track B 신규 12종(E34~E45, typeCode 37~48). 2026-10-25 승인.
+// 행동 루프는 lib/novelZombieBehavior.js가 소유하고, 여기에는 수치만 둔다.
+//
+// hp는 임의값이 아니라 "대체 대상(host)과 같은 값"으로 못박았다. 12종은 기존 스폰 요청을
+// 대체하므로(총량 불변), 밀도 정규화(STAGE_DENSITY_MULTIPLIER)와 구간 부하 곡선이 비트 단위로
+// 그대로 유지되려면 버스트 이벤트의 count×hp 합이 변하지 않아야 한다. hp를 host와 다르게 두면
+// 그 합이 바뀌어 전 스테이지 밀도 파생값이 움직인다.
+//   E34/E36/E37 ← E01(8) · E35/E38/E41/E45 ← E03(10) · E39/E44 ← E07(16) · E40/E42/E43 ← E02·E05(70)
+// xp도 같은 host 값을 쓴다(보상 페이싱 불변).
+//
+// damage는 host보다 높게 잡아도 체감 DPS는 낮다 — 이 12종은 접촉만으로 지속 피해를 주지 않고
+// ATTACK 단계의 짧은 창에서만 1회 판정하기 때문이다(예: E34는 2.4초 주기 중 220ms).
+//
+// 2026-10-25 정정: "DPS가 낮으니 Stage 1이 더 어려워지지 않는다"는 근거는 틀렸다 — 플레이어
+// 피격 무적프레임 520ms를 빼먹었다(useGameStore.js:393,413). 무적 때문에 밀집 구간의 중복 접촉은
+// 대부분 버려지므로 실효 지표는 DPS가 아니라 1타 피해량이고, 그 기준으로는 E34 9 / E36 10이
+// 대체 대상 E01 8보다 1~2 높다. Stage 1이 더 어려워지지 않는 진짜 이유는 "닿는 빈도"다:
+// 무적 520ms는 초당 유효 타수를 약 1.92타로 묶고, E01은 접촉만으로 그 상한을 거의 포화시키는
+// 반면 12종은 한 주기당 1회(E34는 2.4초 주기 중 220ms)만 판정해 포화를 만들지 못한다.
+// 무적을 적용한 실측(적 ring 배치 / 플레이어 정지 / 60초 / 초당 실 HP 손실):
+//   24초 E01×9 13.20 → E01×5+E34×4 12.80 · 60초 E01×6 12.53 → E01×3+E36×3 12.50
+//   · 72초 E03×2 7.60 → E35×2 6.07 — 세 구간 모두 대체 후가 더 낮다.
+//
+// ⚠ 이 표를 바꾸면 enemySimulation.js의 NOVEL_RUNTIME_ROWS도 같이 바꿔야 한다
+//   (enemySimulation.parity.test.js가 강제한다).
+const NOVEL_ZOMBIE_STATS = {
+  E34: { hp: 8,  speed: 0.55, damage: 9,  scale: 0.95, xp: 4,  contactDist: 0.26, novel: true },
+  E35: { hp: 10, speed: 0.72, damage: 7,  scale: 0.92, xp: 5,  contactDist: 0.24, novel: true },
+  E36: { hp: 8,  speed: 0.50, damage: 10, scale: 1.00, xp: 4,  contactDist: 0.26, novel: true },
+  E37: { hp: 8,  speed: 0.62, damage: 9,  scale: 0.98, xp: 4,  contactDist: 0.24, novel: true },
+  E38: { hp: 10, speed: 0.70, damage: 8,  scale: 0.90, xp: 5,  contactDist: 0.24, novel: true },
+  E39: { hp: 16, speed: 0.52, damage: 12, scale: 1.10, xp: 8,  contactDist: 0.30, novel: true },
+  E40: { hp: 70, speed: 0.46, damage: 15, scale: 1.30, xp: 15, contactDist: 0.34, novel: true },
+  E41: { hp: 10, speed: 0.66, damage: 9,  scale: 1.02, xp: 5,  contactDist: 0.26, novel: true },
+  E42: { hp: 70, speed: 0.58, damage: 14, scale: 1.25, xp: 15, contactDist: 0.32, novel: true },
+  E43: { hp: 70, speed: 0.44, damage: 16, scale: 1.35, xp: 15, contactDist: 0.36, novel: true },
+  E44: { hp: 16, speed: 0.64, damage: 11, scale: 1.05, xp: 8,  contactDist: 0.26, novel: true },
+  E45: { hp: 10, speed: 0.60, damage: 10, scale: 1.00, xp: 5,  contactDist: 0.26, novel: true },
+}
+
 export const ENEMY_STATS = {
   // E01 xp 6 → 4 (2026-08-08): E01(hp 8)이 더 강한 E03(hp 14, speed 1.1, xp 5)보다
   // 보상이 높은 역전 상태였다. 최약체가 최고 효율이면 강적을 잡을 이유가 없다.
@@ -391,6 +432,7 @@ export const ENEMY_STATS = {
          chefPhase1: { ranged: true, rangedCooldown: 2600, rangedDmg: 14, rangedSpeed: 1.6, preferDist: 5.0, minDist: 3.0 },
          chefPhase2: { charger: true, chargeSpeed: 1.4, warnDist: 6.0, warnDuration: 800, stunDuration: 1200, chargeDuration: 2200 } },
   ...EXPANSION_STATS,
+  ...NOVEL_ZOMBIE_STATS,
 }
 
 // 肄쒕씪?대뜑 湲곕낯 諛섑겕湲?(scale=1 湲곗?)
@@ -921,11 +963,19 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
   const expansionAttackRef = useRef(null)
   const expansionArgsRef = useRef({deltaMs:0,playing:true,alive:true,gameKey:0,x:0,z:0,playerX:0,playerZ:0,hpRatio:1})
   useEffect(() => () => cancelExpansionAttack(expansionAttackRef.current), [])
-  const knockbackUntilRef     = useRef(0)
+  // 벽시계 기한(performance.now() + 기간)이 아니라 남은 ms다. pause 동안 useFrame이
+  // 일찍 return하는데 벽시계는 계속 흘러, 재개 첫 프레임에 넉백 구간이 통째로 소진됐다.
+  const knockbackRemainingRef = useRef(0)
   const knockbackDir          = useRef(new THREE.Vector3())
   const knockbackSpeedRef     = useRef(3.8)
-  const lastContactDmgRef     = useRef(0)
-  const spawnedAtRef          = useRef(performance.now())
+  // 접촉 피해 쿨다운 **잔량** ms. 예전에는 마지막 피해의 벽시계 타임스탬프였는데,
+  // pause 동안에도 벽시계가 흘러 재개 첫 프레임에 500ms가 이미 지난 것으로 계산됐고
+  // 접촉 피해가 즉시 들어갔다. 500ms 값은 그대로, 측정만 게임시간 차감으로 바꾼다.
+  // 확장 보스 경로(state.ageMs 기준)와 일반 경로(벽시계)가 서로 다른 시간축을
+  // 같은 ref에 쓰던 문제도 이걸로 하나로 합쳐진다.
+  const contactDamageCooldownRef = useRef(0)
+  // 스폰 공개 이후의 **게임시간** 누적 ms. E04/B04 발사 게이트가 쓰는 시계다.
+  const enemyAgeMsRef         = useRef(0)
   const spawnRevealElapsedRef = useRef(0)
   // 프레임마다 재사용하는 스크래치 객체 — 마틸다 박스 접촉 판정 입력용(RULE-0.2: 매 프레임 객체 생성 금지)
   const matildaContactArgsRef = useRef({ enemyX: 0, enemyZ: 0, yaw: 0, playerX: 0, playerZ: 0, halfX: 0, halfZ: 0 })
@@ -933,7 +983,14 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
 
   // E05 / B01 ?뚯쭊 ?곹깭 癒몄떊
   const chargeState  = useRef(isMatilda ? 'matildaAim' : 'chase')
-  const stateTimer   = useRef(0)
+  // 현재 돌진 상태에 머문 **게임시간** 누적 ms. matildaLaughRemainingRef / advanceB04SoupBlast와
+  // 같은 방식이다. 예전의 벽시계 타임스탬프(performance.now())는 pause 중에도 흘러서
+  // 재개 첫 프레임에 warn 800ms가 전부 지난 것으로 계산됐고, 예고 없이 돌진이 터졌다.
+  // 측정 방법만 바뀐다 — warn 800 / charge 2200 / stun 1200 수치는 그대로다.
+  // 직전 프레임이 playing이었는지. false→true로 바뀐 프레임의 delta는 정지 길이가
+  // 그대로 들어오므로 믿지 않고 고정 스텝 한 칸으로 치환한다(pause 보호).
+  const wasPlayingRef = useRef(false)
+  const chargeStateElapsedRef = useRef(0)
   const b02BlockadeRef = useRef(createB02CorridorBlockadeState())
   const b03ShuttleRef = useRef(createB03ShuttleRunState())
   const b04SoupBlastRef = useRef(createB04SoupBlastState())
@@ -946,7 +1003,8 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
 
   // B04 주방장 2페이즈 상태
   const chefPhaseRef = useRef(CHEF_PHASE1)
-  const chefTelegraphStartRef = useRef(0)
+  // 격노 윈드업에 머문 **게임시간** 누적 ms(벽시계 시작 타임스탬프 아님).
+  const chefTelegraphElapsedRef = useRef(0)
 
   // E04/B04 projectile state is the shared fixed projectile pool; no React array is mounted.
   const lastFireRef = useRef(0)
@@ -1004,8 +1062,16 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
     spawnRevealedRef.current = false
     queueVisualState('spawnRevealed', false)
     spawnRevealElapsedRef.current = 0
-    spawnedAtRef.current = performance.now()
+    enemyAgeMsRef.current = 0
     chargeState.current = isMatilda ? 'matildaLaugh' : 'chase'
+    // 슬롯 재사용 시 이전 좀비의 상태 경과/넉백 잔량이 넘어오면 안 된다.
+    // 잔량형 전환에서 가장 위험한 지점이다 — 하나라도 빠지면 이전 좀비의 쿨다운이
+    // 새 좀비를 묶거나(발사 봉쇄) 풀어준다(접촉 피해 즉시 발생).
+    wasPlayingRef.current = false
+    chargeStateElapsedRef.current = 0
+    knockbackRemainingRef.current = 0
+    contactDamageCooldownRef.current = 0
+    lastFireRef.current = 0
     matildaLaughRemainingRef.current = isMatilda ? MATILDA_LAUGH_DURATION_MS : 0
     matildaLaughCuePendingRef.current = isMatilda
     matildaChargeStallMsRef.current = 0
@@ -1015,7 +1081,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
     matildaPreviousChargePosRef.current.z = spawnPos[2]
     chefPhaseRef.current = CHEF_PHASE1
     setIsChefPhase2(false)
-    chefTelegraphStartRef.current = 0
+    chefTelegraphElapsedRef.current = 0
     chefProjectileKindRef.current = 0
     sightBlockedRef.current = false
     nextSightCheckRef.current = getRuntimeElapsedMs(useGameStore.getState().elapsedMs) + (stableEnemyHash(id) % 90)
@@ -1085,7 +1151,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
         const len = Math.hypot(dx, dz) || 1
         knockbackDir.current.set(dx / len, 0, dz / len)
         knockbackSpeedRef.current = knockback.speed
-        knockbackUntilRef.current = performance.now() + knockback.durationMs
+        knockbackRemainingRef.current = knockback.durationMs
       }
       hpRef.current -= finalDamage
       queueVisualState('hp', hpRef.current)
@@ -1141,12 +1207,16 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
     if (!spawnRevealedRef.current) {
       spawnRevealElapsedRef.current = advanceEnemySpawnTimer(spawnRevealElapsedRef.current, delta, phase)
       if (spawnRevealElapsedRef.current >= ENEMY_SPAWN_REVEAL_DELAY_MS) {
-        spawnedAtRef.current = performance.now()
+        enemyAgeMsRef.current = 0
         queueVisualState('spawnRevealed', true)
       }
       return
     }
-    if (!rb.current || dead.current || phase !== 'playing') return
+    if (!rb.current || dead.current || phase !== 'playing') {
+      // 다음에 playing으로 돌아오는 프레임을 '재개 프레임'으로 식별하기 위한 표시.
+      if (phase !== 'playing') wasPlayingRef.current = false
+      return
+    }
 
     const t = rb.current.translation()
     if (currentStageId === 'stage4' || isExpansionStage(currentStageId)) {
@@ -1172,8 +1242,16 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
     _dir.y = 0
     const dist = _dir.length()
 
-    // Update visual registry immediately — before any early return (knockback/ranged/charger)
-    const now = performance.now()
+    // 이 프레임 루프에는 벽시계(performance.now())가 더 이상 없다. 모든 게이트가
+    // 게임시간 기준이라 pause가 어떤 구간도 건너뛰지 않는다. 다시 들이지 마라.
+    // 재개 첫 프레임만 고정 스텝 한 칸으로 치환하고, 그 외에는 레포 계약 상한(0.5s)까지
+    // 실제 delta를 쓴다 — 30fps 미만에서도 공칭 지속(800/2200/1200ms)이 늘어나지 않는다.
+    const resumedFrame = !wasPlayingRef.current
+    wasPlayingRef.current = true
+    const frameDeltaMs = getGameplayFrameDeltaMs(delta, resumedFrame)
+    // 나이와 접촉 쿨다운은 어느 분기로 빠지든 똑같이 흘러야 하므로 모든 early return 앞에서 민다.
+    enemyAgeMsRef.current += frameDeltaMs
+    if (contactDamageCooldownRef.current > 0) contactDamageCooldownRef.current -= frameDeltaMs
 
     if (isExpansionBoss(type)) {
       const store=useGameStore.getState()
@@ -1188,10 +1266,11 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
       applySpecialEnemyVelocity()
       if(dist>0.001) _applyRotation(groupRef,_dir.x/dist,_dir.z/dist,.22)
       queueVisualState('animPhase',state.enrageRemainingMs>0?'stun':state.snapshot?.phase==='windup'?'warn':'normal')
-      if(dist<=stats.contactDist*ENEMY_SIZE_MULTIPLIER && state.ageMs-lastContactDmgRef.current>=500){damagePlayer(stats.damage);lastContactDmgRef.current=state.ageMs}
+      if(dist<=stats.contactDist*ENEMY_SIZE_MULTIPLIER && contactDamageCooldownRef.current<=0){damagePlayer(stats.damage);contactDamageCooldownRef.current=500}
       return
     }
-    if (now < knockbackUntilRef.current) {
+    if (knockbackRemainingRef.current > 0) {
+      knockbackRemainingRef.current -= frameDeltaMs
       _vel.x = knockbackDir.current.x * knockbackSpeedRef.current
       _vel.y = 0
       _vel.z = knockbackDir.current.z * knockbackSpeedRef.current
@@ -1362,11 +1441,13 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
       const prevState = chefPhaseRef.current
       const chefArgs = chefPhaseArgsRef.current
       chefArgs.hpRatio = hpRatio
-      chefArgs.telegraphElapsedMs = now - chefTelegraphStartRef.current
+      // 격노 윈드업 1000ms도 벽시계였다 — 윈드업 도중 멈추면 재개 즉시 격노로 넘어갔다.
+      if (prevState === CHEF_TELEGRAPH) chefTelegraphElapsedRef.current += frameDeltaMs
+      chefArgs.telegraphElapsedMs = chefTelegraphElapsedRef.current
       const nextState = advanceChefBossPhase(prevState, chefArgs)
       if (prevState !== CHEF_TELEGRAPH && nextState === CHEF_TELEGRAPH) {
         // 격노 전환 진입: 텔레그래프 타이머 시작 + 차저 상태 초기화 + 붉은 격노 신호 점등
-        chefTelegraphStartRef.current = now
+        chefTelegraphElapsedRef.current = 0
         chargeState.current = 'chase'
         queueVisualState('animPhase', 'warn')
         if (!hitFlashRef.current) { queueVisualState('hitFlash', true); hitFlashRef.current = true }
@@ -1393,7 +1474,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
 
     // ?? E04: ?먭굅由?媛먯뿼泥??????????????????????????????????????????????????
     if (active.ranged) {
-      const now = performance.now()
+      // 발사 게이트는 벽시계 대신 게임시간 나이(enemyAgeMsRef)를 단일 시계로 쓴다.
       // ?먰븯??嫄곕━ ?좎?: ?덈Т 媛源뚯슦硫??꾪눜, ?덈Т 硫硫??꾩쭊
       _vel.y = 0
       writeRangedEnemyVelocity(_vel, _dir.x, _dir.z, dist, active.minDist, active.preferDist, active.speed, Number(id) % 2 === 0 ? 1 : -1)
@@ -1407,11 +1488,11 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
       // 스2/스3의 보스 구간 발사 차단은 그대로.
       const fireArgs = e04FireArgsRef.current
       fireArgs.elapsedSec = e04GateSec
-      fireArgs.ageMs = now - spawnedAtRef.current
+      fireArgs.ageMs = enemyAgeMsRef.current
       fireArgs.activeProjectileCount = enemyProjectilePool.activeCount
       fireArgs.distanceToPlayer = dist
       fireArgs.lastFireElapsedMs = lastFireRef.current
-      fireArgs.nowMs = now
+      fireArgs.nowMs = enemyAgeMsRef.current
       fireArgs.cooldownMs = active.rangedCooldown
       fireArgs.introSec = stageCombatConfig.e04IntroSec
       fireArgs.bossPressure = currentStageId === 'stage4' ? false : (elapsedSec >= stageCombatConfig.bossPressureStartSec && elapsedSec < stageCombatConfig.bossPressureEndSec)
@@ -1419,7 +1500,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
 
       // ?ъ궗泥?諛쒖궗
       if (canFire) {
-        lastFireRef.current = now
+        lastFireRef.current = enemyAgeMsRef.current
         _fireDir.copy(_dir).normalize()
         // B04도 E04와 같은 fixed pool을 사용한다. 속도만 실효 스탯으로 전달한다.
         // kind는 비주얼 채널이다. B04만 당근·양파·감자·식칼을 순환시키고,
@@ -1435,7 +1516,9 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
 
     // ?? E05 / B01 ?뚯쭊 ?곹깭 癒몄떊 ???????????????????????????????????????????
     if (active.charger) {
-      const now = performance.now()
+      // 상태 경과는 게임시간으로만 쌓는다. pause 중에는 위 `phase !== 'playing'`에서
+      // return하므로 한 ms도 누적되지 않고, 재개 뒤 남은 예고가 그대로 이어진다.
+      chargeStateElapsedRef.current += frameDeltaMs
 
       _vel.y = 0
       if (isMatilda) {
@@ -1508,7 +1591,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
             matildaLaughCuePendingRef.current = false
             emitSfx(MATILDA_LAUGH_SFX)
           }
-          matildaLaughRemainingRef.current -= delta * 1000
+          matildaLaughRemainingRef.current -= frameDeltaMs
           if (matildaLaughRemainingRef.current <= 0) {
             chargeState.current = 'matildaAim'
           }
@@ -1525,7 +1608,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
 
         if (dist < active.warnDist) {
           chargeState.current = 'warn'
-          stateTimer.current = now
+          chargeStateElapsedRef.current = 0
           chargeDir.current.copy(_dir)
           _applyRotation(groupRef, chargeDir.current.x, chargeDir.current.z, 0.75)
           queueVisualState('animPhase', 'warn')
@@ -1535,9 +1618,9 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
 
       } else if (chargeState.current === 'warn') {
         _applyRotation(groupRef, chargeDir.current.x, chargeDir.current.z, 0.45)
-        if (now - stateTimer.current >= active.warnDuration) {
+        if (chargeStateElapsedRef.current >= active.warnDuration) {
           chargeState.current = 'charge'
-          stateTimer.current = now
+          chargeStateElapsedRef.current = 0
           queueVisualState('animPhase', 'charge')
           chargeDir.current.normalize()
           _applyRotation(groupRef, chargeDir.current.x, chargeDir.current.z, 1)
@@ -1565,11 +1648,11 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
         } else {
           hitPlayer = dist < getChargeHitDistance(stats, false)
         }
-        const chargeExpired = now - stateTimer.current > (active.chargeDuration ?? 1200)
+        const chargeExpired = chargeStateElapsedRef.current > (active.chargeDuration ?? 1200)
         if (hitPlayer || chargeExpired) {
           if (hitPlayer) damagePlayer(stats.damage)
           chargeState.current = stats.mathTeacherSpecial ? 'mathSwingWindup' : 'stun'
-          stateTimer.current = now
+          chargeStateElapsedRef.current = 0
           queueVisualState('animPhase', stats.mathTeacherSpecial ? 'special' : 'stun')
           if (stats.mathTeacherSpecial) {
             const log = mathStartLogRef.current
@@ -1587,7 +1670,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
         // 돌진했던 전방(chargeDir)을 그대로 바라본 채 휘두른다. 플레이어 재조준 금지 —
         // 등 뒤로 돌아 들어온 플레이어를 따라 돌면 부채꼴 안전지대가 사라진다.
         _applyRotation(groupRef, chargeDir.current.x, chargeDir.current.z, 1)
-        if (now - stateTimer.current >= MATH_TEACHER_SWING_WINDUP_MS) {
+        if (chargeStateElapsedRef.current >= MATH_TEACHER_SWING_WINDUP_MS) {
           // 히트박스는 실제 렌더 yaw를 쓴다(비주얼과 어긋나면 안 된다). 그룹이 아직 없으면 돌진 방향으로 폴백.
           const swingYaw = groupRef.current
             ? groupRef.current.rotation.y
@@ -1619,15 +1702,15 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
           log.playerHpAfter = useGameStore.getState().player.hp
           logPlaytestEvent('b01-math-special-impact', log)
           chargeState.current = 'mathSwingRecover'
-          stateTimer.current = now
+          chargeStateElapsedRef.current = 0
         }
 
       } else if (chargeState.current === 'mathSwingRecover') {
         _vel.x = 0; _vel.z = 0
         rb.current.setLinvel(_vel, true)
-        if (now - stateTimer.current >= MATH_TEACHER_SWING_RECOVERY_MS) {
+        if (chargeStateElapsedRef.current >= MATH_TEACHER_SWING_RECOVERY_MS) {
           chargeState.current = 'stun'
-          stateTimer.current = now
+          chargeStateElapsedRef.current = 0
           queueVisualState('animPhase', 'stun')
           const log = mathEndLogRef.current
           log.bossId = id
@@ -1638,7 +1721,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
         _vel.x = 0; _vel.z = 0
         rb.current.setLinvel(_vel, true)
         if (dist > 0.0001) _applyRotation(groupRef, _dir.x / dist, _dir.z / dist, 0.22)
-        if (now - stateTimer.current >= active.stunDuration) {
+        if (chargeStateElapsedRef.current >= active.stunDuration) {
           chargeState.current = 'chase'
           queueVisualState('animPhase', 'normal')
         }
@@ -1649,9 +1732,8 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
     // ?? 湲곕낯 異붽꺽 (E01, E02, E03, E06) ????????????????????????????????????
     _vel.y = 0
     if (dist < stats.contactDist * ENEMY_SIZE_MULTIPLIER) {
-      const now = performance.now()
-      if (now - lastContactDmgRef.current >= 500) {
-        lastContactDmgRef.current = now
+      if (contactDamageCooldownRef.current <= 0) {
+        contactDamageCooldownRef.current = 500
         damagePlayer(stats.damage)
       }
       _vel.x = 0; _vel.z = 0

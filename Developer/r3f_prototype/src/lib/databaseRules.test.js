@@ -10,6 +10,29 @@ const FIREBASE_RC_PATH = fileURLToPath(new URL('../../.firebaserc', import.meta.
 const rules = JSON.parse(readFileSync(RULES_PATH, 'utf-8')).rules
 
 describe('Realtime Database rules', () => {
+  // 영구(all-time) 보드는 업스트림 와일드카드 경로 $seasonId='all-time'/$window='allTime'/$periodKey='all-time'에 산다.
+  // 같은 이름의 정적 'all-time' 노드를 두면 와일드카드 규칙(lastPlayedAt 검증 포함)을 가려 쓰기가 거부된다.
+  it('keeps permanent zero entrants self-owned, monotonic, and deletable independently of season', () => {
+    const publicRules = rules.rankingService.v1.public
+    expect(publicRules.alltime).toBeUndefined()
+    expect(publicRules['all-time']).toBeUndefined()
+    const stageEntries = publicRules.$seasonId.stage.$stageId.$window.$periodKey.entries
+    const globalEntries = publicRules.$seasonId.global.$window.$periodKey.entries
+    const permanent = { $seasonId: 'all-time', $window: 'allTime', $periodKey: 'all-time' }
+    expect(evalRule(globalEntries['.read'], permanent)).toBe(true)
+    for (let order = 1; order <= 10; order++) expect(evalRule(stageEntries['.read'], { ...permanent, $stageId: `stage${order}` })).toBe(true)
+    // allTime 창은 영구 시즌/기간 키 밖에서는 열리지 않는다.
+    expect(evalRule(globalEntries['.read'], { ...permanent, $seasonId: 's1' })).toBe(false)
+    expect(evalRule(stageEntries['.read'], { ...permanent, $periodKey: '2026-10-25', $stageId: 'stage1' })).toBe(false)
+    for (const entries of [globalEntries, stageEntries]) {
+      expect(entries.$uid['.write']).toContain('$uid === auth.uid')
+      expect(entries.$uid['.write']).toContain('!newData.exists()')
+      expect(entries.$uid['.write']).toContain("newData.child('score').val() >= data.child('score').val()")
+      expect(entries.$uid.score['.validate']).toContain('newData.val() >= 0')
+      expect(entries.$uid.uid['.validate']).toContain('newData.val() === $uid')
+    }
+  })
+
   it('denies access by default and keeps user progress private to its owner', () => {
     expect(rules['.read']).toBe(false)
     expect(rules['.write']).toBe(false)
@@ -155,18 +178,20 @@ function ruleData(value) {
   }
 }
 
-function evalRule(expr, { newData, data, auth = null, $uid, $window, $stageId }) {
+function evalRule(expr, { newData, data, auth = null, $uid, $window, $stageId, $seasonId, $periodKey }) {
   // eslint-disable-next-line no-new-func
-  const fn = new Function('newData', 'data', 'auth', '$uid', '$window', '$stageId', `return (${expr})`)
-  return fn(newData, data, auth, $uid, $window, $stageId)
+  const fn = new Function('newData', 'data', 'auth', '$uid', '$window', '$stageId', '$seasonId', '$periodKey', `return (${expr})`)
+  return fn(newData, data, auth, $uid, $window, $stageId, $seasonId, $periodKey)
 }
 
 // 엔트리 전체가 accept되려면 .write + 엔트리 .validate + 모든 자식 .validate가 전부 true여야 한다.
-function fullyAccepts(entryRule, { entry, existing, auth, $uid, $window, $stageId }) {
+function fullyAccepts(entryRule, { entry, existing, auth, $uid, $window, $stageId, $seasonId, $periodKey }) {
   const newData = ruleData(entry)
   const data = ruleData(existing)
-  const ctx = { newData, data, auth, $uid, $window, $stageId }
+  const ctx = { newData, data, auth, $uid, $window, $stageId, $seasonId, $periodKey }
   if (!evalRule(entryRule['.write'], ctx)) return false
+  // RTDB는 삭제(newData가 없음)에는 .validate를 실행하지 않는다.
+  if (!newData.exists()) return true
   if (!evalRule(entryRule['.validate'], ctx)) return false
   for (const [child, rule] of Object.entries(entryRule)) {
     if (child.startsWith('.') || child === '$other') continue
@@ -174,7 +199,7 @@ function fullyAccepts(entryRule, { entry, existing, auth, $uid, $window, $stageI
     // RTDB skips child validation for absent/deleted optional fields, and data
     // at a child rule is that child's old snapshot, not the whole entry.
     if (entry[child] === undefined || entry[child] === null) continue
-    if (!evalRule(rule['.validate'], { newData: ruleData(entry[child]), data: ruleData(existing?.[child]), auth, $uid, $window, $stageId })) return false
+    if (!evalRule(rule['.validate'], { newData: ruleData(entry[child]), data: ruleData(existing?.[child]), auth, $uid, $window, $stageId, $seasonId, $periodKey })) return false
   }
   return true
 }
@@ -190,10 +215,49 @@ describe('ranking entry write rules (evaluated against the real rule strings)', 
   const stageRule = rules.rankingService.v1.public.$seasonId.stage.$stageId.$window.$periodKey.entries.$uid
   const globalRule = rules.rankingService.v1.public.$seasonId.global.$window.$periodKey.entries.$uid
 
-  const base = { auth: { uid: 'me' }, $uid: 'me', $window: 'daily', $stageId: 'stage2' }
+  const base = { auth: { uid: 'me' }, $uid: 'me', $window: 'daily', $stageId: 'stage2', $seasonId: 's1', $periodKey: '2026-10-25' }
+  const permanentPath = { $window: 'allTime', $seasonId: 'all-time', $periodKey: 'all-time' }
+
+  describe.each([
+    ['alltime', stageRule, 'allTime'],
+    ['daily', stageRule, 'daily'],
+    ['weekly', stageRule, 'weekly'],
+  ])('%s stage deletion and write regression', (_name, entryRule, window) => {
+    const path = window === 'allTime' ? permanentPath : { $window: window }
+    const context = { ...base, ...path, existing: honestEntry(), entry: null }
+
+    it('allows the authenticated owner to delete an existing entry without stageId payload', () => {
+      expect(fullyAccepts(entryRule, context)).toBe(true)
+    })
+
+    it('denies another user or signed-out deletion', () => {
+      expect(fullyAccepts(entryRule, { ...context, auth: { uid: 'other' } })).toBe(false)
+      expect(fullyAccepts(entryRule, { ...context, auth: null })).toBe(false)
+    })
+
+    it('denies a mismatched stage on both creation and update', () => {
+      const entry = honestEntry({ stageId: 'stage1' })
+      expect(fullyAccepts(entryRule, { ...context, entry, existing: null })).toBe(false)
+      expect(fullyAccepts(entryRule, { ...context, entry, existing: { score: 0 } })).toBe(false)
+    })
+
+    it('denies lower scores but allows equal or higher scores and a zero first entry', () => {
+      const entry = honestEntry()
+      expect(fullyAccepts(entryRule, { ...context, entry, existing: { score: entry.score + 1 } })).toBe(false)
+      expect(fullyAccepts(entryRule, { ...context, entry, existing: { score: entry.score } })).toBe(true)
+      expect(fullyAccepts(entryRule, { ...context, entry, existing: { score: entry.score - 1 } })).toBe(true)
+      expect(fullyAccepts(entryRule, { ...context, entry: { ...entry, score: 0, timeMs: 0, cleared: false }, existing: null })).toBe(true)
+    })
+
+    it('keeps path stage and period whitelists outside the deletion exception', () => {
+      expect(fullyAccepts(entryRule, { ...context, $stageId: 'stage11' })).toBe(false)
+      expect(fullyAccepts(entryRule, { ...context, $window: 'monthly' })).toBe(false)
+      if (window === 'allTime') expect(fullyAccepts(entryRule, { ...context, $seasonId: 's1' })).toBe(false)
+    })
+  })
 
   it('accepts an honest run for every stage in both stage and global buckets', () => {
-    for (const stageId of ['stage1', 'stage2', 'stage3', 'stage4']) {
+    for (const stageId of Array.from({ length: 10 }, (_, i) => `stage${i + 1}`)) {
       for (const cleared of [true, false]) {
         const entry = honestEntry({ stageId, cleared })
         const ctx = { entry, auth: { uid: 'me' }, $uid: 'me', $window: 'weekly', $stageId: stageId }
@@ -240,7 +304,7 @@ describe('ranking entry write rules (evaluated against the real rule strings)', 
 
     expect(fullyAccepts(stageRule, { ...base, entry: { ...honestEntry(), score: '100' } })).toBe(false)
     expect(fullyAccepts(stageRule, { ...base, entry: { ...honestEntry(), cleared: 'yes' } })).toBe(false)
-    expect(fullyAccepts(stageRule, { ...base, entry: { ...honestEntry(), stageId: 'stage9' } })).toBe(false)
+    expect(fullyAccepts(stageRule, { ...base, entry: { ...honestEntry(), stageId: 'stage11' } })).toBe(false)
     expect(fullyAccepts(stageRule, { ...base, entry: { ...honestEntry(), displayName: 'x'.repeat(41) } })).toBe(false)
     expect(fullyAccepts(stageRule, { ...base, entry: { ...honestEntry(), uid: 'someone-else' } })).toBe(false)
   })
@@ -261,6 +325,41 @@ describe('ranking entry write rules (evaluated against the real rule strings)', 
   it('rejects a stage-bucket write whose stageId does not match the bucket path', () => {
     const entry = honestEntry({ stageId: 'stage1', timeMs: 60000, cleared: false })
     expect(fullyAccepts(stageRule, { ...base, $stageId: 'stage4', entry })).toBe(false)
+  })
+
+  it('enforces every ranking family for Stage5-10, including owner deletion and malformed rejection', () => {
+    const families = [
+      [rules.rankingService.v1.public.$seasonId.stage.$stageId.$window.$periodKey.entries, 'allTime', true],
+      [rules.rankingService.v1.public.$seasonId.global.$window.$periodKey.entries, 'allTime', false],
+      [rules.rankingService.v1.public.$seasonId.stage.$stageId.$window.$periodKey.entries, 'daily', true],
+      [rules.rankingService.v1.public.$seasonId.stage.$stageId.$window.$periodKey.entries, 'weekly', true],
+      [rules.rankingService.v1.public.$seasonId.global.$window.$periodKey.entries, 'daily', false],
+      [rules.rankingService.v1.public.$seasonId.global.$window.$periodKey.entries, 'weekly', false],
+    ]
+    for (let order = 5; order <= 10; order++) {
+      const stageId = `stage${order}`
+      for (const [entries, window, scoped] of families) {
+        const entry = honestEntry({ stageId, timeMs: 360000000 })
+        const ctx = { ...base, $stageId: stageId, ...(window === 'allTime' ? permanentPath : { $window: window }), entry }
+        expect(evalRule(entries['.read'], ctx)).toBe(true)
+        const rule = entries.$uid
+        expect(fullyAccepts(rule, ctx)).toBe(true)
+        expect(fullyAccepts(rule, { ...ctx, existing: { score: entry.score + 1 } })).toBe(false)
+        expect(fullyAccepts(rule, { ...ctx, existing: { score: entry.score } })).toBe(true)
+        expect(fullyAccepts(rule, { ...ctx, auth: null })).toBe(false)
+        expect(fullyAccepts(rule, { ...ctx, auth: { uid: 'other' } })).toBe(false)
+        expect(fullyAccepts(rule, { ...ctx, entry: null, existing: entry })).toBe(true)
+        expect(fullyAccepts(rule, { ...ctx, entry: null, auth: null })).toBe(false)
+        for (const malformed of [{ ...entry, score: '1' }, { ...entry, timeMs: -1 }, { ...entry, cleared: 'yes' }, { ...entry, uid: 'other' }, { ...entry, stageId: 'stage11' }]) {
+          expect(fullyAccepts(rule, { ...ctx, entry: malformed })).toBe(false)
+        }
+        if (scoped) {
+          expect(fullyAccepts(rule, { ...ctx, entry: { ...entry, stageId: 'stage1' } })).toBe(false)
+          expect(fullyAccepts(rule, { ...ctx, entry: null, $stageId: 'stage11' })).toBe(false)
+          expect(evalRule(entries['.read'], { ...ctx, $stageId: 'stage11' })).toBe(false)
+        }
+      }
+    }
   })
 
   it('rejects unknown extra children via $other', () => {

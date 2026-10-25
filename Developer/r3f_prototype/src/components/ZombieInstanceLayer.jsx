@@ -11,7 +11,7 @@ import { getFirebaseStudioRuntimeState } from '../lib/studioRuntimeState.js'
 import { GRAPHICS_STUDIO_TUNING_EVENT, getStudioZombieItemId, loadStudioTunings } from '../lib/graphicsStudioConfig.js'
 import { composeStudioPartMultiplier, composeStudioPartOffset, composeStudioPartTransformCache, getStudioTransformProps } from './StudioTunedGroup.jsx'
 import { getCachedChamferedBoxGeo, getToonGradient } from '../lib/toon.js'
-import { ZOMBIE_PALETTE } from './ZombieMesh.jsx'
+import { POSED_ZOMBIE_ANIM_BASE_ROTATION, POSED_ZOMBIE_BASE, POSED_ZOMBIE_FIRST_TYPE_CODE, POSED_ZOMBIE_MARK_SLOT, POSED_ZOMBIE_PART_KEYS, POSED_ZOMBIE_PART_OUTLINES, POSED_ZOMBIE_PART_ROLES, POSED_ZOMBIE_TYPES, ZOMBIE_PALETTE, buildPosedZombieParts, buildPosedZombieStatePose } from './ZombieMesh.jsx'
 import { ENEMY_RENDER_FAR, POOLED_CHARGE_CUE_PARTS, POOLED_ENEMY_CAPACITY, SPAWN_REVEAL_MS, SPAWN_SMOKE_MS, applyPooledZombieStudioPartTunings, fillEnemyHealthBarLayout, fillVisibleChargeCueSlots, getPooledChargeCueY, getPooledEnemyAnimationTime, getPooledEnemyRenderTier, getSpawnSmokeOpacity, setSlotOpacity, shouldRenderPooledEnemyPart, updateHealthVisualState } from './PooledEnemyVisuals.js'
 
 const ZERO = new THREE.Matrix4().makeScale(0, 0, 0)
@@ -23,7 +23,12 @@ const OUTLINE = 1
 const RUN_TYPES = new Set([7, 8])
 const COIN_JINGLE_TYPE = 16
 const SCREEN_RUNNER_TYPES = new Set([7, 8, 13, 14])
+// typeCode 17-36은 확장팩 전용 레이어(ExpansionZombieInstanceLayer)가 그리므로 이 표에서는
+// 빈칸으로 둔다. 신규 일반 좀비 12종은 그 위 37-48에 고정 배정됐다.
+const EXPANSION_TYPE_SLOT_COUNT = 20
 const TYPE_NAMES = ['', 'E01', 'E02', 'E03', 'E04', 'E05', 'E06', 'RZL', 'RZC', '', '', '', '', 'RZT', 'RZG', 'E07', 'E08']
+  .concat(new Array(EXPANSION_TYPE_SLOT_COUNT).fill(''))
+  .concat(POSED_ZOMBIE_TYPES)
 // E07(type 15, 웃는얼굴 좀비)의 몸통은 셰이더 얼굴이라 이 박스 인스턴스 파이프라인에
 // 들어오지 않는다 — ProceduralFaceZombieLayer가 그린다. 여기서는 파트를 0개만 찍어
 // 다른 잡몹과 동일한 그림자·체력바·스폰 연기만 붙인다.
@@ -64,10 +69,46 @@ const COIN_JINGLE = [
   ['armL','body',[.20,.50,.20],[-.40,.52,0],[0,-.25,0],1.05,'chamfer2'], ['handCoinL','coin',[.16,.035,.16],[-.40,.52,0],[0,-.58,.08],1.03,'chamfer2'], ['armR','body',[.20,.50,.20],[.40,.52,0],[0,-.25,0],1.05,'chamfer2'], ['handCoinR','coin',[.16,.035,.16],[.40,.52,0],[0,-.58,.08],1.03,'chamfer2'],
   ['legL','body',[.22,.52,.26],[-.15,0,0],[0,-.26,0],1.06,'chamfer2'], ['footL','foot',[.24,.12,.34],[-.15,0,0],[0,-.57,.05],1.03,'chamfer2'], ['legR','body',[.22,.52,.26],[.15,0,0],[0,-.26,0],1.06,'chamfer2'], ['footR','foot',[.24,.12,.34],[.15,0,0],[0,-.57,.05],1.03,'chamfer2'],
 ]
+// 신규 일반 좀비 12종(E34-E45)이 공유하는 단 하나의 파트 슬롯 세트.
+// 12개 전용 테이블 대신 13슬롯 한 세트만 늘린다: 베이스 박스 크기가 STANDARD과 같아
+// 지오메트리 캐시를 그대로 재사용하고, 타입별 비례는 인스턴스 행렬 끝의 비균등
+// 스케일로만 표현하기 때문이다. 13번째 슬롯이 스펙이 허용한 표식 박스 하나다.
+const POSED_BASE_SIZES = [
+  POSED_ZOMBIE_BASE.head, POSED_ZOMBIE_BASE.eye, POSED_ZOMBIE_BASE.eye, POSED_ZOMBIE_BASE.body,
+  POSED_ZOMBIE_BASE.arm, POSED_ZOMBIE_BASE.hand, POSED_ZOMBIE_BASE.arm, POSED_ZOMBIE_BASE.hand,
+  POSED_ZOMBIE_BASE.leg, POSED_ZOMBIE_BASE.foot, POSED_ZOMBIE_BASE.leg, POSED_ZOMBIE_BASE.foot,
+  POSED_ZOMBIE_BASE.mark,
+]
+// part[0]은 애니메이션 키(= 부모 피벗)이고, part[3]/part[4]의 피벗·오프셋은 타입별
+// 리그 표(POSED_PIVOT/POSED_OFFSET)가 대신하므로 자리값이다.
+const POSED = POSED_ZOMBIE_PART_KEYS.map((key, i) => [key, POSED_ZOMBIE_PART_ROLES[i], POSED_BASE_SIZES[i], [0, 0, 0], [0, 0, 0], POSED_ZOMBIE_PART_OUTLINES[i], 'posed'])
 const RZT_OFFSET = STANDARD.length + RUN.length
 const RZG_OFFSET = RZT_OFFSET + RZT.length
 const COIN_JINGLE_OFFSET = RZG_OFFSET + RZG.length
-const ALL_PARTS = STANDARD.concat(RUN, RZT, RZG, COIN_JINGLE)
+const POSED_SLOT_BASE = COIN_JINGLE_OFFSET + COIN_JINGLE.length
+const ALL_PARTS = STANDARD.concat(RUN, RZT, RZG, COIN_JINGLE, POSED)
+
+// 타입별 파트 행. 12종이 같은 슬롯(= 같은 InstancedMesh)을 쓰면서 피벗·오프셋·포즈·비례만
+// 다르게 들고 간다. ZombieMesh의 buildPosedZombieParts 한 표에서 만들어지므로 공유 박스
+// 트리(스튜디오·프리뷰)와 고정풀 인스턴스 경로가 같은 수치를 쓴다.
+// 행 구조는 기존 테이블과 같고 part[7]=포즈 회전 델타, part[8]=박스 비례만 더 있다.
+const POSED_BY_TYPE = POSED_ZOMBIE_TYPES.map((type) => buildPosedZombieParts(type).map((part, i) => [
+  part.key, part.role, POSED_BASE_SIZES[i], part.pivot, part.offset, part.outline, 'posed',
+  // 공유 보행 애니메이션이 주는 절대 기준 회전에서의 델타만 싣는다.
+  part.rot.map((value, axis) => value - POSED_ZOMBIE_ANIM_BASE_ROTATION[part.key][axis]),
+  part.box,
+]))
+// 상태별(예고/타격/회복) 포즈 회전 델타. 타입×상태×13슬롯을 마운트 시 한 번만 만든다.
+// 파트 슬롯·카탈로그·스튜디오 입력은 건드리지 않는다 — 회전 델타만 더한다.
+const POSED_STATE_POSE_BY_TYPE = POSED_ZOMBIE_TYPES.map((type) => ({
+  warn: buildPosedZombieStatePose(type, 'warn'),
+  charge: buildPosedZombieStatePose(type, 'charge'),
+  stun: buildPosedZombieStatePose(type, 'stun'),
+}))
+// 1-based. 0이면 포즈형이 아니다.
+const POSED_TYPE_INDEX = new Int16Array(TYPE_NAMES.length)
+POSED_ZOMBIE_TYPES.forEach((type, typeIndex) => { POSED_TYPE_INDEX[POSED_ZOMBIE_FIRST_TYPE_CODE + typeIndex] = typeIndex + 1 })
+const STUDIO_TUNED_TYPE_CODES = [1, 2, 3, 4, 5, 6, 7, 8, 13, 14].concat(POSED_ZOMBIE_TYPES.map((_, i) => POSED_ZOMBIE_FIRST_TYPE_CODE + i))
 const PART_STRIDE = 9
 const PART_COUNT = ALL_PARTS.length
 const partSlotScratch = new Int16Array(12)
@@ -87,8 +128,19 @@ function createDefaultStudioPartTransforms() {
 // pool bounds its draw cost even when every E05 enters warning together.
 const CUE = POOLED_CHARGE_CUE_PARTS
 
-function phase(pool, i) { return pool.state[i] === 2 ? 'warn' : pool.state[i] === 3 ? 'charge' : pool.state[i] === 4 ? 'stun' : 'normal' }
-function setPartRotation(dst, key, time, type, state) {
+// 상태 코드 정본: 1 CHASE / 2 WARN / 3 CHARGE / 4 STUN / 5 COIN_LURE / 6 COIN_FLEE
+// 신규 12종(novelZombieBehavior.js): 7 APPROACH / 8 TELEGRAPH / 9 ATTACK / 10 RECOVER
+//                                   11 TELEGRAPH_ALT / 12 ATTACK_ALT / 13 RECOVER_ALT
+// 7~13을 빼먹으면 12종의 예고·타격·회복 전 구간이 평시 보행으로 렌더된다(실측: E34가
+// 1800프레임 중 702프레임을 예고로 보내는데 전부 평시 포즈였다).
+export function phase(pool, i) {
+  const state = pool.state[i]
+  if (state === 2 || state === 8 || state === 11) return 'warn'
+  if (state === 3 || state === 9 || state === 12) return 'charge'
+  if (state === 4 || state === 10 || state === 13) return 'stun'
+  return 'normal'
+}
+function setPartRotation(dst, key, time, type, state, posed = 0) {
   if (SCREEN_RUNNER_TYPES.has(type)) {
     const stride = Math.sin(time * 13.5); const pump = Math.sin(time * 13.5 + Math.PI)
     const chase = type === 13 || type === 14
@@ -101,12 +153,15 @@ function setPartRotation(dst, key, time, type, state) {
     const torso = key === 'jersey' || key === 'body'
     return dst.set(key === 'head' ? -.08 : torso ? .36 : 0, 0, torso ? Math.sin(time * 7.2) * .055 : 0)
   }
-  const walk = state === 'stun' ? 0 : Math.sin(time * (type === 2 ? 9 : type === 3 ? 5 : 7)) * (state === 'charge' ? .55 : .38)
+  // 포즈형 12종은 예고/회복에서 제자리에 선다(telegraphMove 'hold'/'plant'). 보행 사인을
+  // 같이 멈춰야 '제자리 걷기'로 보이지 않는다. 기존 타입(E05/B01)의 warn 거동은 불변.
+  const planted = state === 'stun' || (posed > 0 && state === 'warn')
+  const walk = planted ? 0 : Math.sin(time * (type === 2 ? 9 : type === 3 ? 5 : 7)) * (state === 'charge' ? .55 : .38)
   if (key === 'legL' || key === 'footL') return dst.set(walk, 0, 0)
   if (key === 'legR' || key === 'footR') return dst.set(-walk, 0, 0)
-  if (key === 'armL' || key === 'handL') return dst.set(-1.15 + Math.sin(time * 2.8) * .06, 0, .12)
-  if (key === 'armR' || key === 'handR') return dst.set(-1.15 + Math.sin(time * 2.8 + Math.PI) * .06, 0, -.12)
-  if (key === 'head') return dst.set(0, 0, Math.sin(time * 1.6) * .07)
+  if (key === 'armL' || key === 'handL') return dst.set(-1.15 + (planted ? 0 : Math.sin(time * 2.8) * .06), 0, .12)
+  if (key === 'armR' || key === 'handR') return dst.set(-1.15 + (planted ? 0 : Math.sin(time * 2.8 + Math.PI) * .06), 0, -.12)
+  if (key === 'head') return dst.set(0, 0, planted ? 0 : Math.sin(time * 1.6) * .07)
   return dst.set(state === 'charge' ? .45 : 0, 0, 0)
 }
 function makeMat(eye = false) { const x = new THREE.MeshToonMaterial({ color: 0xffffff, gradientMap: getToonGradient(), emissive: 0, emissiveIntensity: eye ? .9 : .12 }); x.stencilWrite = true; x.stencilRef = OUTLINE; x.stencilFunc = THREE.AlwaysStencilFunc; x.stencilZPass = THREE.ReplaceStencilOp; return x }
@@ -123,6 +178,34 @@ export function markInstancedMeshFullUpdate(x, options = {}) { x.visible = x.cou
 function markResetMeshes(meshes, options) { for (let i=0;i<meshes.length;i++) markInstancedMeshFullUpdate(meshes[i], options) }
 function markFrameMeshes(meshes, counts, options) { for (let i=0;i<meshes.length;i++) markInstancedMeshPrefixUpdate(meshes[i], counts[i], options) }
 function markFrameMeshesUniform(meshes, count, options) { for (let i=0;i<meshes.length;i++) markInstancedMeshPrefixUpdate(meshes[i], count, options) }
+
+export { PART_COUNT, POSED_SLOT_BASE }
+
+// 풀 렌더러가 타입코드마다 고르는 팔레트·파트 세트·슬롯 구간을 한 곳에서 드러낸다.
+// 프레임 루프와 같은 선택식을 쓰므로 E01 팔레트 폴백이 조용히 숨지 못한다.
+export function resolvePooledZombieVisual(typeCode) {
+  const name = TYPE_NAMES[typeCode] || ''
+  const posed = POSED_TYPE_INDEX[typeCode] || 0
+  const parts = typeCode === 13 ? RZT : typeCode === 14 ? RZG : RUN_TYPES.has(typeCode) ? RUN : STANDARD
+  const renderParts = typeCode === COIN_JINGLE_TYPE ? COIN_JINGLE : posed ? POSED_BY_TYPE[posed - 1] : parts
+  const slotBase = typeCode === 13 ? RZT_OFFSET
+    : typeCode === 14 ? RZG_OFFSET
+      : typeCode === COIN_JINGLE_TYPE ? COIN_JINGLE_OFFSET
+        : posed ? POSED_SLOT_BASE
+          : RUN_TYPES.has(typeCode) ? STANDARD.length : 0
+  return {
+    name,
+    posedIndex: posed,
+    itemId: TYPE_ITEM_IDS[typeCode] || '',
+    palette: TYPE_PALETTES[typeCode],
+    paletteIsE01Fallback: !ZOMBIE_PALETTE[name],
+    partCount: typeCode === 15 ? NO_INSTANCED_PART_COUNT : renderParts.length,
+    partRoles: renderParts.map((part) => part[1]),
+    slotBase,
+    markKey: posed ? renderParts[POSED_ZOMBIE_MARK_SLOT][0] : null,
+    studioTuned: STUDIO_TUNED_TYPE_CODES.indexOf(typeCode) >= 0,
+  }
+}
 
 export default function ZombieInstanceLayer({ resetKey }) {
   const { camera } = useThree(); const smokeTexture = useLoader(THREE.TextureLoader, spawnSmokeUrl)
@@ -184,7 +267,7 @@ export default function ZombieInstanceLayer({ resetKey }) {
     all.smoke.count = 0
     markResetMeshes(all.body, { matrix: true, color: true }); markResetMeshes(all.out, { matrix: true }); markResetMeshes(all.bars, { matrix: true, alpha: true }); markResetMeshes(all.cue, { matrix: true, color: true }); markInstancedMeshFullUpdate(all.shadow, { matrix: true, alpha: true }); markInstancedMeshFullUpdate(all.smoke, { matrix: true, alpha: true })
   }, [all, resetKey])
-  useEffect(() => { const refresh=()=>{ const state=getFirebaseStudioRuntimeState(); if (!state?.datasets || !Number.isInteger(state.revision)) return; const tunings=loadStudioTunings(); const rootMatrices=[]; const rootScaleX=new Float32Array(15);const rootScaleZ=new Float32Array(15); const supported=new Uint8Array(15); const partTransforms=new Float32Array(15 * PART_COUNT * PART_STRIDE); for(const t of [1,2,3,4,5,6,7,8,13,14]){const id=TYPE_ITEM_IDS[t];const transform=getStudioTransformProps(tunings[id]);const root=new THREE.Matrix4();p.set(transform.position[0],transform.position[1],transform.position[2]);e.set(transform.rotation[0],transform.rotation[1],transform.rotation[2]);q.setFromEuler(e);s.set(transform.scale[0],transform.scale[1],transform.scale[2]);root.compose(p,q,s);rootMatrices[t]=root;rootScaleX[t]=transform.scale[0];rootScaleZ[t]=transform.scale[2];supported[t]=1;const base=t*PART_COUNT*PART_STRIDE;for(let part=0;part<PART_COUNT;part+=1){partTransforms[base+part*PART_STRIDE+6]=1;partTransforms[base+part*PART_STRIDE+7]=1;partTransforms[base+part*PART_STRIDE+8]=1}applyPooledZombieStudioPartTunings(partTransforms,t,PART_COUNT,id,tunings,getStudioTransformProps,composeStudioPartTransformCache,partSlotScratch)}
+  useEffect(() => { const refresh=()=>{ const state=getFirebaseStudioRuntimeState(); if (!state?.datasets || !Number.isInteger(state.revision)) return; const tunings=loadStudioTunings(); const rootMatrices=[]; const rootScaleX=new Float32Array(TYPE_NAMES.length);const rootScaleZ=new Float32Array(TYPE_NAMES.length); const supported=new Uint8Array(TYPE_NAMES.length); const partTransforms=new Float32Array(TYPE_NAMES.length * PART_COUNT * PART_STRIDE); for(const t of STUDIO_TUNED_TYPE_CODES){const id=TYPE_ITEM_IDS[t];const transform=getStudioTransformProps(tunings[id]);const root=new THREE.Matrix4();p.set(transform.position[0],transform.position[1],transform.position[2]);e.set(transform.rotation[0],transform.rotation[1],transform.rotation[2]);q.setFromEuler(e);s.set(transform.scale[0],transform.scale[1],transform.scale[2]);root.compose(p,q,s);rootMatrices[t]=root;rootScaleX[t]=transform.scale[0];rootScaleZ[t]=transform.scale[2];supported[t]=1;const base=t*PART_COUNT*PART_STRIDE;for(let part=0;part<PART_COUNT;part+=1){partTransforms[base+part*PART_STRIDE+6]=1;partTransforms[base+part*PART_STRIDE+7]=1;partTransforms[base+part*PART_STRIDE+8]=1}applyPooledZombieStudioPartTunings(partTransforms,t,PART_COUNT,id,tunings,getStudioTransformProps,composeStudioPartTransformCache,partSlotScratch)}
     studio.current={revision:state.revision,rootMatrices,rootScaleX,rootScaleZ,supported,partTransforms} }; refresh(); window.addEventListener(GRAPHICS_STUDIO_TUNING_EVENT,refresh); return()=>window.removeEventListener(GRAPHICS_STUDIO_TUNING_EVENT,refresh) },[])
   useFrame((_,delta) => {
     const pool=enemyPool; if (!pool) return; const max=Math.min(199,Number.isInteger(pool.highestActive)?pool.highestActive:199); const tiers=renderTiers.current;const counts=partCounts.current;counts.fill(0)
@@ -193,11 +276,11 @@ export default function ZombieInstanceLayer({ resetKey }) {
       const active=i<=max&&pool.active[i]===1; if(!active){tiers[i]=0;continue}
       const timer=pool.spawnTimer[i]; const type=pool.type[i]; if(isExpansionNormalCode(type))continue; const tier=getPooledEnemyRenderTier(screenBounds,pool.posX[i],pool.posZ[i],playerPos.x,playerPos.z,tiers[i]); tiers[i]=tier
       if(!tier)continue
-      const bodyVisible=timer>=SPAWN_REVEAL_MS&&((type>=1&&type<=8)||type===13||type===14||type===15||type===COIN_JINGLE_TYPE); const smokeVisible=timer>=0&&timer<SPAWN_SMOKE_MS
-      if(bodyVisible){const renderSlot=bodyCount++;const rootMatrix=studio.current.rootMatrices[type]||IDENTITY;const scale=(pool.visualScale[i]||1)*.333;const state=phase(pool,i);const time=getPooledEnemyAnimationTime(timer,tier);const pal=TYPE_PALETTES[type];const parts=type===13?RZT:type===14?RZG:RUN_TYPES.has(type)?RUN:STANDARD;const renderParts=type===COIN_JINGLE_TYPE?COIN_JINGLE:parts;const offset=type===13?RZT_OFFSET:type===14?RZG_OFFSET:type===COIN_JINGLE_TYPE?COIN_JINGLE_OFFSET:RUN_TYPES.has(type)?STANDARD.length:0;const partCount=type===15?NO_INSTANCED_PART_COUNT:renderParts.length
+      const bodyVisible=timer>=SPAWN_REVEAL_MS&&((type>=1&&type<=8)||type===13||type===14||type===15||type===COIN_JINGLE_TYPE||POSED_TYPE_INDEX[type]>0); const smokeVisible=timer>=0&&timer<SPAWN_SMOKE_MS
+      if(bodyVisible){const renderSlot=bodyCount++;const rootMatrix=studio.current.rootMatrices[type]||IDENTITY;const scale=(pool.visualScale[i]||1)*.333;const state=phase(pool,i);const time=getPooledEnemyAnimationTime(timer,tier);const pal=TYPE_PALETTES[type];const posed=POSED_TYPE_INDEX[type]||0;const parts=type===13?RZT:type===14?RZG:RUN_TYPES.has(type)?RUN:STANDARD;const renderParts=type===COIN_JINGLE_TYPE?COIN_JINGLE:posed?POSED_BY_TYPE[posed-1]:parts;const offset=type===13?RZT_OFFSET:type===14?RZG_OFFSET:type===COIN_JINGLE_TYPE?COIN_JINGLE_OFFSET:posed?POSED_SLOT_BASE:RUN_TYPES.has(type)?STANDARD.length:0;const partCount=type===15?NO_INSTANCED_PART_COUNT:renderParts.length;const statePose=posed&&state!=='normal'?POSED_STATE_POSE_BY_TYPE[posed-1][state]:null
         const screenRunnerLift=type===13||type===14?scale*.45:0;p.set(pool.posX[i],pool.posY[i]+screenRunnerLift,pool.posZ[i]);e.set(0,pool.yaw[i],0);q.setFromEuler(e);s.set(scale,scale,scale);m.compose(p,q,s);m.multiply(rootMatrix)
         p.set(pool.posX[i],.018,pool.posZ[i]);s.set(Math.max(.05,scale*(studio.current.rootScaleX[type]||1)*.62),Math.max(.05,scale*(studio.current.rootScaleZ[type]||1)*.34),1);q.setFromEuler(shadowRotation);a.compose(p,q,s);all.shadow.setMatrixAt(renderSlot,a)
-        for(let j=0;j<partCount;j++){const part=renderParts[j];const slot=offset+j;if(!shouldRenderPooledEnemyPart(type,slot,tier)||(part[6]==='leader'&&type!==7))continue;const partRenderSlot=counts[slot]++;const partBase=type*PART_COUNT*PART_STRIDE+slot*PART_STRIDE;a.copy(m);translate.makeTranslation(composeStudioPartOffset(part[3][0],studio.current.partTransforms[partBase]),composeStudioPartOffset(part[3][1],studio.current.partTransforms[partBase+1]),composeStudioPartOffset(part[3][2],studio.current.partTransforms[partBase+2]));a.multiply(translate);setPartRotation(e,part[0],time,type,state);e.set(composeStudioPartOffset(e.x,studio.current.partTransforms[partBase+3]),composeStudioPartOffset(e.y,studio.current.partTransforms[partBase+4]),composeStudioPartOffset(e.z,studio.current.partTransforms[partBase+5]));rotate.makeRotationFromEuler(e);a.multiply(rotate);inflate.makeScale(composeStudioPartMultiplier(1,studio.current.partTransforms[partBase+6]),composeStudioPartMultiplier(1,studio.current.partTransforms[partBase+7]),composeStudioPartMultiplier(1,studio.current.partTransforms[partBase+8]));a.multiply(inflate);translate.makeTranslation(part[4][0],part[4][1],part[4][2]);a.multiply(translate);all.body[slot].setMatrixAt(partRenderSlot,a);const role=part[1];const run=type===7;const fugitive=type===13;const guard=type===14;const hex=pool.hitFlashTimer[i]>0?0xffffff:role==='skin'?pal.skin:role==='eye'?pal.eye:role==='foot'?0x1a1a1a:role==='hair'?0x35251c:role==='coat'?0xb48755:role==='scarf'?0xd8b057:role==='coatShadow'?0x76502d:role==='cap'?0x102c4a:role==='uniform'?0x173a5e:role==='vest'?0xe3bf3f:role==='badge'?0xf3d46b:role==='pants'?(fugitive?0x382d29:0x13263b):role==='trim'?(run?0x7d3fc6:0x1880bd):role==='stripe'?0xffffff:role==='jersey'?(run?0x5a2484:0xf0eee4):role==='shorts'?(run?0x22152f:0x1974aa):role==='shoe'?(fugitive?0x171717:guard?0x111317:run?0x6e35b8:0x1771a6):role==='sole'?0xf5f1e8:role==='bib'?0xb48755:role==='digit'?0x151515:role==='mouth'?(fugitive?0x381510:guard?0x35100f:0x151515):role==='medal'?0xf0b62d:pal.body;color.setHex(hex);all.body[slot].setColorAt(partRenderSlot,color);const outlineScale=1+(part[5]-1)*2;inflate.makeScale(outlineScale,outlineScale,outlineScale);a.multiply(inflate);all.out[slot].setMatrixAt(partRenderSlot,a)}
+        for(let j=0;j<partCount;j++){const part=renderParts[j];const slot=offset+j;if(!shouldRenderPooledEnemyPart(type,posed?j:slot,tier)||(part[6]==='leader'&&type!==7))continue;const partRenderSlot=counts[slot]++;const partBase=type*PART_COUNT*PART_STRIDE+slot*PART_STRIDE;const pose=part[7];a.copy(m);translate.makeTranslation(composeStudioPartOffset(part[3][0],studio.current.partTransforms[partBase]),composeStudioPartOffset(part[3][1],studio.current.partTransforms[partBase+1]),composeStudioPartOffset(part[3][2],studio.current.partTransforms[partBase+2]));a.multiply(translate);setPartRotation(e,part[0],time,type,state,posed);e.set(composeStudioPartOffset(e.x,studio.current.partTransforms[partBase+3],(pose?pose[0]:0)+(statePose?statePose[j][0]:0)),composeStudioPartOffset(e.y,studio.current.partTransforms[partBase+4],(pose?pose[1]:0)+(statePose?statePose[j][1]:0)),composeStudioPartOffset(e.z,studio.current.partTransforms[partBase+5],(pose?pose[2]:0)+(statePose?statePose[j][2]:0)));rotate.makeRotationFromEuler(e);a.multiply(rotate);inflate.makeScale(composeStudioPartMultiplier(1,studio.current.partTransforms[partBase+6]),composeStudioPartMultiplier(1,studio.current.partTransforms[partBase+7]),composeStudioPartMultiplier(1,studio.current.partTransforms[partBase+8]));a.multiply(inflate);translate.makeTranslation(part[4][0],part[4][1],part[4][2]);a.multiply(translate);const box=part[8];if(box){inflate.makeScale(box[0],box[1],box[2]);a.multiply(inflate)}all.body[slot].setMatrixAt(partRenderSlot,a);const role=part[1];const run=type===7;const fugitive=type===13;const guard=type===14;const hex=pool.hitFlashTimer[i]>0?0xffffff:role==='mark'?pal.mark:role==='skin'?pal.skin:role==='eye'?pal.eye:role==='foot'?0x1a1a1a:role==='hair'?0x35251c:role==='coat'?0xb48755:role==='scarf'?0xd8b057:role==='coatShadow'?0x76502d:role==='cap'?0x102c4a:role==='uniform'?0x173a5e:role==='vest'?0xe3bf3f:role==='badge'?0xf3d46b:role==='pants'?(fugitive?0x382d29:0x13263b):role==='trim'?(run?0x7d3fc6:0x1880bd):role==='stripe'?0xffffff:role==='jersey'?(run?0x5a2484:0xf0eee4):role==='shorts'?(run?0x22152f:0x1974aa):role==='shoe'?(fugitive?0x171717:guard?0x111317:run?0x6e35b8:0x1771a6):role==='sole'?0xf5f1e8:role==='bib'?0xb48755:role==='digit'?0x151515:role==='mouth'?(fugitive?0x381510:guard?0x35100f:0x151515):role==='medal'?0xf0b62d:pal.body;color.setHex(hex);all.body[slot].setColorAt(partRenderSlot,color);const outlineScale=1+(part[5]-1)*2;inflate.makeScale(outlineScale,outlineScale,outlineScale);a.multiply(inflate);all.out[slot].setMatrixAt(partRenderSlot,a)}
         if(tier!==ENEMY_RENDER_FAR){const healthSlot=healthCount++;const ratio=(pool.maxHp[i]>0?pool.hp[i]/pool.maxHp[i]:1);updateHealthVisualState(health.current,i,pool.generation[i],ratio,delta);const visibleTrailRatio=health.current.visibleTrailRatio[i];const currentRatio=health.current.ratio[i];const flash=health.current.flash[i];const layout=fillEnemyHealthBarLayout(healthBarLayout.current,pool.visualScale[i]);const w=layout[0];const h=layout[1];p.set(pool.posX[i],pool.posY[i]+layout[2],pool.posZ[i]);q.copy(camera.quaternion);s.set(w+.008,h+.008,1);a.compose(p,q,s);all.bars[0].setMatrixAt(healthSlot,a);s.set(w,h,1);a.compose(p,q,s);all.bars[1].setMatrixAt(healthSlot,a);s.set(w*visibleTrailRatio,h,1);p.x=pool.posX[i]-w*(1-visibleTrailRatio)/2;a.compose(p,q,s);all.bars[2].setMatrixAt(healthSlot,a);s.set(w*currentRatio,h,1);p.x=pool.posX[i]-w*(1-currentRatio)/2;a.compose(p,q,s);all.bars[3].setMatrixAt(healthSlot,a);setSlotOpacity(all.bars[2].userData.instanceAlpha,healthSlot,visibleTrailRatio-currentRatio>.006?.18+flash*.82:0)}
       }
       if(smokeVisible){const smokeSlot=smokeCount++;const t=timer/SPAWN_SMOKE_MS;const size=(pool.visualScale[i]||1)*.333*(1.7+(1-(1-t)*(1-t))*(3.1-1.7));p.set(pool.posX[i],pool.posY[i]+(pool.visualScale[i]||1)*.333*(1+t*.32),pool.posZ[i]);q.copy(camera.quaternion);s.set(size,size,1);a.compose(p,q,s);all.smoke.setMatrixAt(smokeSlot,a);setSlotOpacity(all.smoke.userData.instanceAlpha,smokeSlot,getSpawnSmokeOpacity(timer))}

@@ -2,6 +2,7 @@
 // Encounter persistence lives only in Firebase users/{uid}.progress.encounteredZombieTypes.
 import { ENEMY_TYPE_NAMES } from './enemyEntityPool.js'
 import { isFirebaseProgressHydrated, readFirebasePlayerProgress, requestCloudProgressSave, updateFirebasePlayerProgress } from './firebaseProgress.js'
+import { t } from './i18n.js'
 
 export const ZOMBIE_ENCOUNTER_STORAGE_KEY = 'school_survivor:zombieEncounters'
 
@@ -42,6 +43,21 @@ const ZOMBIE_TYPE_LABELS = Object.freeze({
   B07: '온실관리장',
   B08: '가면지휘자',
   B09: '폭풍교장',
+  // Track B 신규 일반 좀비 12종(typeCode 37~48). 한국어 정본은
+  // Planner/stage_zombie_original_concepts_20261025.md의 개념명이다.
+  // en/ja 표시명은 locales/{en,ja}.js의 zombie.<ID> 키가 덮어쓴다.
+  E34: '박자접기형',
+  E35: '모서리비껴형',
+  E36: '반걸음되짚기형',
+  E37: '빗금엇갈림형',
+  E38: '빈칸반응형',
+  E39: '선끝접기형',
+  E40: '중심축비틀기형',
+  E41: '쌍박자교대형',
+  E42: '반원발맞춤형',
+  E43: '엇높이교차형',
+  E44: '발맞춤후퇴형',
+  E45: '무게중심넘김형',
 })
 
 export const ZOMBIE_ENCYCLOPEDIA_TYPES = Object.freeze(
@@ -56,8 +72,11 @@ export function isKnownZombieType(type) {
   return ZOMBIE_TYPE_SET.has(type)
 }
 
+// 한국어 정본은 위 표, en/ja는 로케일 사전의 zombie.<ID> 키. 번역이 없으면 한국어로 폴백한다.
 export function getZombieTypeLabel(type) {
-  return ZOMBIE_TYPE_LABELS[type] ?? type
+  const korean = ZOMBIE_TYPE_LABELS[type]
+  if (korean === undefined) return type
+  return t(`zombie.${type}`, null, korean)
 }
 
 export function normalizeZombieEncounterMap(value) {

@@ -352,6 +352,15 @@ export default {
   'hud.portalAppeared': '탈출구가 나타났다!',
   'hud.portalDistance': '탈출구 {arrow} {distance}zm',
   'hud.portalMoveAria': '탈출구로 이동',
+  // Stage4 맥락형 안내. 실제 상태가 참일 때만 한 줄로 뜨고 조작을 잠그지 않는다.
+  'stage4Guide.cauldronCycle': '중앙 솥은 {seconds}초마다 폭발 — 원 밖으로',
+  'stage4Guide.cauldronBoil': '솥이 끓어요! 곧 폭발 — 중앙 원 밖으로',
+  'stage4Guide.cauldronBurst': '솥 폭발! 중앙 원 안은 피해',
+  'stage4Guide.bossUnlockRule': '주방장을 처치해야 다음 스테이지가 해금돼요',
+  'stage4Guide.bossSoup': '주방장 체력 절반에 국물 폭발 — 흩어진 작은 원',
+  'stage4Guide.bossUnlocked': '다음 스테이지 해금 완료! 탈출구 탈출은 별개',
+  'stage4Guide.escapeAfterUnlock': '해금은 이미 완료 — 탈출구로 나가면 이번 런 클리어',
+  'stage4Guide.portalNotUnlock': '탈출구는 클리어용 — 해금은 주방장 처치로',
   'hud.milestoneGold': '+{gold} 골드',
   'hud.pauseAria': '게임 일시정지',
   'hud.resumeAria': '게임 재개',
@@ -443,4 +452,20 @@ export default {
   'ranking.allTimeFirst': '역대 1위',
   'ranking.allTimeWindow': '기간 제한 없는 연속 플레이 최고점',
   'ranking.allTimeBoardAria': '{stage} 무제한 누적 랭킹',
+
+  // ─── 좀비 도감 표시명 (Track B 신규 12종) ───
+  // 정본: Planner/stage_zombie_original_concepts_20261025.md의 개념명.
+  // lib/zombieEncyclopedia.js의 ZOMBIE_TYPE_LABELS와 같은 값이어야 한다(zombieEncyclopedia.test.js가 못 박는다).
+  'zombie.E34': '박자접기형',
+  'zombie.E35': '모서리비껴형',
+  'zombie.E36': '반걸음되짚기형',
+  'zombie.E37': '빗금엇갈림형',
+  'zombie.E38': '빈칸반응형',
+  'zombie.E39': '선끝접기형',
+  'zombie.E40': '중심축비틀기형',
+  'zombie.E41': '쌍박자교대형',
+  'zombie.E42': '반원발맞춤형',
+  'zombie.E43': '엇높이교차형',
+  'zombie.E44': '발맞춤후퇴형',
+  'zombie.E45': '무게중심넘김형',
 }

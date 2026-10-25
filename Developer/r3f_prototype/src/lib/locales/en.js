@@ -361,6 +361,15 @@ export default {
   'hud.portalAppeared': 'The exit has appeared!',
   'hud.portalDistance': 'Exit {arrow} {distance}zm',
   'hud.portalMoveAria': 'Move to the exit',
+  // Stage4 contextual guidance. One line, only while the state is actually true.
+  'stage4Guide.cauldronCycle': 'Center cauldron bursts every {seconds}s — stay outside the ring',
+  'stage4Guide.cauldronBoil': 'Cauldron is boiling! Bursting soon — leave the center ring',
+  'stage4Guide.cauldronBurst': 'Cauldron burst! Inside the center ring hurts',
+  'stage4Guide.bossUnlockRule': 'Only defeating the chef unlocks the next stage',
+  'stage4Guide.bossSoup': 'At half the chef HP, soup bursts — scattered small rings',
+  'stage4Guide.bossUnlocked': 'Next stage unlocked! Escaping the exit is separate',
+  'stage4Guide.escapeAfterUnlock': 'Unlock already done — take the open exit to clear this run',
+  'stage4Guide.portalNotUnlock': 'The exit clears this run — unlocking needs the chef down',
   'hud.milestoneGold': '+{gold} gold',
   'hud.pauseAria': 'Pause game',
   'hud.resumeAria': 'Resume game',
@@ -951,4 +960,20 @@ Effective date: ${EFFECTIVE_DATE}`,
   'ranking.allTimeFirst': 'All-time leader',
   'ranking.allTimeWindow': 'Best continuous run · no expiry',
   'ranking.allTimeBoardAria': '{stage} all-time ranking',
+
+  // ─── Zombie encyclopedia names (Track B, 12 new types) ───
+  // Behaviour-descriptive names, not transliterations. Korean source of truth:
+  // Planner/stage_zombie_original_concepts_20261025.md.
+  'zombie.E34': 'Edge-On Shover',
+  'zombie.E35': 'Swerve Clipper',
+  'zombie.E36': 'Half-Step Feinter',
+  'zombie.E37': 'Diagonal Rusher',
+  'zombie.E38': 'Gap Reader',
+  'zombie.E39': 'Folded-Arm Lunger',
+  'zombie.E40': 'Axis Twister',
+  'zombie.E41': 'Two-Beat Striker',
+  'zombie.E42': 'Arc Stepper',
+  'zombie.E43': 'High-Low Crosser',
+  'zombie.E44': 'Sidestep Flanker',
+  'zombie.E45': 'Weight Shifter',
 }

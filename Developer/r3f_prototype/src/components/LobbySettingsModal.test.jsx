@@ -4,7 +4,7 @@ import { act } from 'react'
 import { createRoot } from 'react-dom/client'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import LobbySettingsModal from './LobbySettingsModal.jsx'
-import { _seedHydratedFirebaseProgressForTests, applyCloudProgressSnapshot, buildCloudProgressSnapshot, requestCloudProgressSave } from '../lib/firebaseProgress.js'
+import { _resetFirebaseProgressForTests, _seedHydratedFirebaseProgressForTests, applyCloudProgressSnapshot, buildCloudProgressSnapshot, requestCloudProgressSave } from '../lib/firebaseProgress.js'
 import { useAuthStore } from '../store/useAuthStore.js'
 import { TERMS_TEXT, TERMS_TITLE, PRIVACY_TEXT, PRIVACY_TITLE } from '../lib/legalDocuments.js'
 import { loadTitleSettings, saveTitleSettings } from '../lib/titleSettings.js'
@@ -306,6 +306,50 @@ describe('LobbySettingsModal', () => {
     expect(view.container.querySelector('[data-panel-state="disabled"]')).not.toBeNull()
 
     view.unmount()
+  })
+
+  // 회귀: 구 트리에서 설정을 열면 loadTitleSettings → ensureHydrated가 FirebaseProgressError를 던졌다.
+  // 게스트·하이드레이트 전·store만 ready인 경합·하이드레이트 후 어느 상태에서도 열기와 토글이 던지면 안 된다.
+  it.each([
+    ['guest without login', null, 'idle', false],
+    ['signed in before the snapshot hydrates', { uid: 'pending-user' }, 'loading', false],
+    ['signed in with ready status but no applied snapshot', { uid: 'pending-user' }, 'ready', false],
+    ['signed in after the snapshot hydrates', { uid: 'pending-user' }, 'ready', true],
+  ])('opens settings and toggles every switch without throwing: %s', async (_name, user, progressStatus, hydrated) => {
+    _resetFirebaseProgressForTests()
+    if (hydrated) _seedHydratedFirebaseProgressForTests(user)
+    useAuthStore.setState({ status: user ? 'signedIn' : 'signedOut', user, progressStatus, signOutOfGoogle: vi.fn(async () => {}) })
+    const errors = vi.spyOn(console, 'error').mockImplementation(() => {})
+    // act 환경 경고는 무관하다. 렌더/이벤트 중 던져진 진행도 오류만 잡는다.
+    const progressErrors = () => errors.mock.calls.filter((args) => args.some((arg) => (
+      arg instanceof Error || /progress is unavailable|progress-not-hydrated/.test(String(arg))
+    )))
+    try {
+      const view = renderSettings()
+      const toggles = () => Array.from(view.container.querySelectorAll('button[aria-label]'))
+        .filter((button) => /(끄기|켜기)$/.test(button.getAttribute('aria-label')))
+      expect(toggles()).toHaveLength(4)
+      for (let index = 0; index < 4; index += 1) {
+        await act(async () => { toggles()[index].dispatchEvent(new MouseEvent('click', { bubbles: true })) })
+      }
+      expect(progressErrors()).toEqual([])
+      if (hydrated) expect(loadTitleSettings().vibration).toBe(false)
+
+      if (user && progressStatus === 'loading') {
+        // 스냅샷이 늦게 도착해도 원격 값으로 다시 읽고, 그 뒤 토글은 저장된다.
+        await act(async () => {
+          _seedHydratedFirebaseProgressForTests(user)
+          useAuthStore.setState({ progressStatus: 'ready' })
+        })
+        expect(loadTitleSettings().vibration).toBe(true)
+        await clickButtonByLabel(view.container, '진동 끄기')
+        expect(loadTitleSettings().vibration).toBe(false)
+        expect(progressErrors()).toEqual([])
+      }
+      view.unmount()
+    } finally {
+      errors.mockRestore()
+    }
   })
 
   it('closes from the close control', async () => {

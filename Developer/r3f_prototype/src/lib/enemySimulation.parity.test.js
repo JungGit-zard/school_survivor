@@ -16,6 +16,9 @@ import { ENEMY_STATS } from '../components/Enemy.jsx'
 // 보스(B01~B04)는 런타임 테이블에서 의도적으로 0으로 비워둔 슬롯이라 제외한다.
 const RUNTIME_TABLE_TYPES = ['E01', 'E02', 'E03', 'E04', 'E05', 'E06', 'RZL', 'RZC', 'RZT', 'RZG', 'E07', 'E08']
 
+// Track B 신규 12종(2026-10-25). typeCode 37~48. 위 12종과 같은 함정을 공유하므로 같은 가드를 받는다.
+const NOVEL_TABLE_TYPES = ['E34', 'E35', 'E36', 'E37', 'E38', 'E39', 'E40', 'E41', 'E42', 'E43', 'E44', 'E45']
+
 const FIELDS = [
   ['hp', ENEMY_RUNTIME_HP],
   ['speed', ENEMY_RUNTIME_SPEED],
@@ -36,6 +39,28 @@ describe('ENEMY_STATS ↔ ENEMY_RUNTIME_* 수치 패리티', () => {
       }
     })
   }
+
+  for (const [field, table] of FIELDS) {
+    it(`Track B 12종 ${field}가 두 테이블에서 일치한다`, () => {
+      for (const type of NOVEL_TABLE_TYPES) {
+        const code = ENEMY_TYPE_CODES[type]
+        expect(code, `${type} 타입 코드`).toBeGreaterThanOrEqual(37)
+        expect(code, `${type} 타입 코드`).toBeLessThanOrEqual(48)
+        expect(table.length, `${field} 테이블 길이`).toBeGreaterThan(code)
+        expect(table[code], `${type}.${field}`).toBe(Math.fround(ENEMY_STATS[type][field]))
+      }
+    })
+  }
+
+  // 신규 12종이 확장 보스 슬롯(32~36)으로 밀려 들어가면 조용히 다른 적의 수치를 읽는다.
+  it('Track B 12종은 37~48에 연속으로 앉고 32~36 보스 슬롯은 비어 있다', () => {
+    NOVEL_TABLE_TYPES.forEach((type, i) => expect(ENEMY_TYPE_CODES[type]).toBe(37 + i))
+    for (let code = 32; code <= 36; code += 1) {
+      expect(ENEMY_RUNTIME_HP[code], `code ${code}`).toBe(0)
+      expect(ENEMY_RUNTIME_SPEED[code], `code ${code}`).toBe(0)
+    }
+    expect(ENEMY_RUNTIME_HP.length).toBe(49)
+  })
 
   // 이번 작업의 본래 목적. 약한 적이 강한 적보다 보상이 높으면 강적을 잡을 이유가 없다.
   it('E01은 더 강한 E03보다 XP 보상이 높지 않다', () => {

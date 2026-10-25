@@ -101,6 +101,34 @@ const MATILDA_DEATH_GRAYSCALE_FADE_MS = 480
 const MATILDA_DEATH_IMPACT_SFX = Object.freeze({ id: 'matildaDeath', volume: 0.95 })
 const DEV_CHEATS_ENABLED = true
 
+// 경고 카운트다운 틱을 같은 값에 두 번 울리지 않게 하는 게이트.
+//
+// 경고 useMemo들은 phase !== 'playing'이면 null을 돌려주고 elapsed(=elapsedMs)는 pause
+// 중 멈춘다. 그래서 일시정지는 N→null(무음), 재개는 null→N이 되는데 N이 멈추기 전과
+// 같은 값이라 effect만 다시 돌고 같은 틱이 한 번 더 울렸다. Stage4의 205~210초
+// 마틸다 카운트다운에서 특히 나빴다 — 1초 구간의 matildaCountdownEnd는 "지금 나온다"
+// 스팅이라, 일시정지를 반복하면 마틸다가 등장하지도 않았는데 계속 울렸다.
+//
+// 마지막으로 울린 값을 기억해 같은 값은 건너뛴다. gameKey가 바뀌면(= 새 런) 잊는다 —
+// 이 리셋이 없으면 다음 런에서 같은 카운트다운 값이 통째로 삼켜진다.
+// 새 음원/ID/볼륨을 만들지 않는다. 중복 발행만 끊는 게이트다.
+function useWarningCueOncePerValue(value, gameKey, emit) {
+  const emitRef = useRef(emit)
+  emitRef.current = emit
+  const lastEmittedValueRef = useRef(null)
+  const lastGameKeyRef = useRef(gameKey)
+  useEffect(() => {
+    if (lastGameKeyRef.current !== gameKey) {
+      lastGameKeyRef.current = gameKey
+      lastEmittedValueRef.current = null
+    }
+    if (value == null) return
+    if (lastEmittedValueRef.current === value) return
+    lastEmittedValueRef.current = value
+    emitRef.current(value)
+  }, [value, gameKey])
+}
+
 
 function summonCoinJingleZombieCheat() {
   const stats = ENEMY_STATS.E08
@@ -1123,17 +1151,19 @@ export default function HUD({
     return Math.max(1, Math.ceil(spawnSec - elapsedSec))
   }, [elapsed, phase, stageConfig.matildaSec])
 
-  // 보스/마틸다 경고 카운트가 바뀔 때마다 틱 사운드 1회
-  useEffect(() => { if (bossWarning != null) emitSfx({ id: 'bossWarning', volume: 0.5 }) }, [bossWarning])
-  useEffect(() => {
-    if (matildaWarning == null) return
-    emitSfx({ id: matildaWarning === 1 ? 'matildaCountdownEnd' : 'matildaWarningTick', volume: 0.7 })
-  }, [matildaWarning])
-  // 대형 스폰 예고 라벨이 새로 뜰 때(null→label 또는 label 변경) 경고음 1회
-  useEffect(() => {
-    if (formationWarning == null) return
+  // 보스/마틸다 경고 카운트가 바뀔 때마다 틱 사운드 1회.
+  // 같은 값에 두 번 울리지 않는다 — useWarningCueOncePerValue 주석 참고.
+  useWarningCueOncePerValue(bossWarning, gameKey, () => {
+    emitSfx({ id: 'bossWarning', volume: 0.5 })
+  })
+  useWarningCueOncePerValue(matildaWarning, gameKey, (count) => {
+    emitSfx({ id: count === 1 ? 'matildaCountdownEnd' : 'matildaWarningTick', volume: 0.7 })
+  })
+  // 대형 스폰 예고 라벨이 새로 뜰 때(null→label 또는 label 변경) 경고음 1회.
+  // 값이 라벨 문자열이라 같은 편대가 pause/resume으로 다시 울리는 것도 같이 막힌다.
+  useWarningCueOncePerValue(formationWarning, gameKey, () => {
     emitSfx({ id: 'bossWarning', volume: 0.6 })
-  }, [formationWarning])
+  })
 
   // 탈출구 등장 알림: 등장 직후 3초간 표시
   const portalFlash = useMemo(() => {

@@ -3,9 +3,8 @@ import React from 'react'
 import { act } from 'react'
 import { createRoot } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { mkdtempSync, writeFileSync } from 'node:fs'
+import { writeFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { tmpdir } from 'node:os'
 import Lobby, { BOSS_SHOWTIME } from './Lobby.jsx'
 import { saveStageBossPreview } from '../lib/graphicsStudioConfig.js'
 import { playSfx } from '../lib/sfxRegistry.js'
@@ -17,6 +16,8 @@ import {
   updateFirebasePlayerProgress,
 } from '../lib/firebaseProgress.js'
 import { commitFirebaseStudioRuntime } from '../lib/studioRuntimeState.js'
+import { isStageUnlocked } from '../lib/stageConfig.js'
+import { load as loadPlayerRecords } from '../lib/playerRecords.js'
 import { useAuthStore } from '../store/useAuthStore.js'
 import { useGameStore } from '../store/useGameStore.js'
 import { saveTitleSettings } from '../lib/titleSettings.js'
@@ -222,7 +223,7 @@ describe('Lobby', () => {
     const loadingView = renderLobby({ onStartStage, onOpenCoinShop: () => {}, onOpenRanking: () => {} })
 
     expect(loadingView.container.querySelector('[data-testid="lobby-records-pending"]')).not.toBeNull()
-    expect(loadingView.container.querySelectorAll('[data-testid="stage-lock-preview"]')).toHaveLength(9)
+    expect(loadingView.container.querySelectorAll('[data-testid="stage-lock-preview"]')).toHaveLength(3)
     expect(loadingView.container.querySelectorAll('[data-testid="stage-boss-preview"]')).toHaveLength(1)
     expect(Array.from(loadingView.container.querySelectorAll('button')).filter((button) => button.textContent === '입장하기')).toHaveLength(1)
     clickButtonByText(loadingView.container, '입장하기')
@@ -235,11 +236,41 @@ describe('Lobby', () => {
     useAuthStore.setState({ progressStatus: 'error', progressError: new Error('remote snapshot unavailable') })
     const errorView = renderLobby({ onStartStage, onOpenCoinShop: () => {}, onOpenRanking: () => {} })
     expect(errorView.container.querySelector('[data-testid="lobby-records-pending"]')).not.toBeNull()
-    expect(errorView.container.querySelectorAll('[data-testid="stage-lock-preview"]')).toHaveLength(9)
+    expect(errorView.container.querySelectorAll('[data-testid="stage-lock-preview"]')).toHaveLength(3)
     expect(errorView.container.querySelectorAll('[data-testid="stage-boss-preview"]')).toHaveLength(1)
     expect(Array.from(errorView.container.querySelectorAll('button')).filter((button) => button.textContent === '입장하기')).toHaveLength(1)
     errorView.unmount()
     vi.useRealTimers()
+  })
+
+  // 계약 2026-10-24 §3: 목록은 Stage1~4 고정, 목록 확대 금지. 해금 기록과 노출은 별개다.
+  it('lists exactly the four contract stages and never a fifth card', () => {
+    seedPlayerRecords({ stage1Clears: 1, stage2Clears: 1, stage3Clears: 1, stage3BossDefeats: 1 })
+    const view = renderLobby({ onStartStage: () => {}, onOpenCoinShop: () => {}, onOpenRanking: () => {} })
+
+    const cards = Array.from(view.container.querySelectorAll('section'))
+    expect(cards).toHaveLength(4)
+    expect(cards.map((card) => card.getAttribute('aria-label').split(' ').slice(0, 2).join(' ')))
+      .toEqual(['Stage 1', 'Stage 2', 'Stage 3', 'Stage 4'])
+
+    view.unmount()
+  })
+
+  it('keeps the stage list at four cards even when the Stage5 unlock record exists', () => {
+    // B04를 잡아 Stage5 해금 기록이 남은 계정. 기록은 유지되지만 카드는 늘지 않는다.
+    seedPlayerRecords({
+      stage1Clears: 1, stage2Clears: 1, stage3Clears: 1, stage4Clears: 1,
+      stage3BossDefeats: 1, stage4BossDefeats: 1,
+    })
+    expect(isStageUnlocked('stage5', loadPlayerRecords())).toBe(true)
+
+    const view = renderLobby({ onStartStage: () => {}, onOpenCoinShop: () => {}, onOpenRanking: () => {} })
+
+    expect(view.container.querySelectorAll('section')).toHaveLength(4)
+    expect(view.container.querySelector('section[aria-label^="Stage 5 "]')).toBeNull()
+    expect(view.container.textContent).not.toContain('학교 최종 돌파')
+
+    view.unmount()
   })
 
   it('restores every cleared stage when the authenticated account progress arrives after the lobby mounts', () => {
@@ -247,16 +278,21 @@ describe('Lobby', () => {
     const view = renderLobby({ onStartStage: () => {}, onOpenCoinShop: () => {}, onOpenRanking: () => {} })
 
     expect(view.container.querySelector('[data-testid="lobby-records-pending"]')).not.toBeNull()
-    expect(view.container.querySelectorAll('[data-testid="stage-lock-preview"]')).toHaveLength(9)
+    expect(view.container.querySelectorAll('[data-testid="stage-lock-preview"]')).toHaveLength(3)
     expect(view.container.querySelectorAll('[data-testid="stage-boss-preview"]')).toHaveLength(1)
-    expect(view.container.textContent).toContain('Stage 1 클리어 시 열림')
-    expect(view.container.textContent).toContain('Stage 3 클리어 시 열림')
+    expect(view.container.textContent).toContain('Stage 1 보스 처치 시 열림')
+    expect(view.container.textContent).toContain('Stage 3 보스 처치 시 열림')
 
     seedPlayerRecords({
       stage1Clears: 1,
       stage2Clears: 1,
       stage3Clears: 1,
       stage4Clears: 1,
+      // 계약 2026-10-24 §3: 해금 증거는 clear가 아니라 이전 스테이지 보스 사망 기록이다.
+      stage1BossDefeats: 1,
+      stage2BossDefeats: 1,
+      stage3BossDefeats: 1,
+      stage4BossDefeats: 1,
       bestSurvivalSeconds: 766,
       stage2BestSurvivalSec: 366,
       stage3BestSurvivalSec: 321,
@@ -267,7 +303,7 @@ describe('Lobby', () => {
     })
 
     expect(view.container.querySelector('[data-testid="lobby-records-pending"]')).toBeNull()
-    expect(Array.from(view.container.querySelectorAll('button')).filter((button) => button.textContent === '입장하기')).toHaveLength(5)
+    expect(Array.from(view.container.querySelectorAll('button')).filter((button) => button.textContent === '입장하기')).toHaveLength(4)
     expectVerifiedFixtureStageAccess(view.container)
     expect(view.container.textContent).toContain('12:46')
     expect(view.container.textContent).toContain('6:06')
@@ -284,16 +320,59 @@ describe('Lobby', () => {
     expect(result.warnings.act).toBe(0)
   }, 60_000)
 
-  it('keeps the verified account records across 10,000 login-hydrate-lobby cycles', async () => {
-    // Same real Lobby/store/fixture oracle, native Chrome DOM instead of jsdom CSS parsing.
-    // This gate remains in ordinary npm test, with unchanged iteration count and timeout.
-    const { runLobbyHydrationChrome } = await import('../../test/lobbyHydrationChrome.mjs')
-    const evidenceDir = process.env.UI10000_EVIDENCE_DIR || mkdtempSync(join(tmpdir(), 'lobby-ui10000-'))
-    const result = await runLobbyHydrationChrome({ evidenceDir })
-    expect(result.completed).toBe(10_000)
-    expect(result.assertions).toBe(690_004)
-    expect(result.warnings).toEqual({ warn: 0, error: 0, act: 0 })
-    expect(result.elapsedMs).toBeLessThan(600_000)
+  it('keeps the verified account records across 10,000 login-hydrate-lobby cycles', () => {
+    const account = { uid: 'master-account', displayName: '정실장', email: 'zard5388@gmail.com' }
+    const canonicalRecords = {
+      stage1Clears: 23,
+      stage2Clears: 9,
+      stage3Clears: 2,
+      stage4Clears: 1,
+      // Stage2/3 해금 증거는 이전 스테이지 보스 ledger 투영(f8a0ee89) — clear는 증거가 아니다.
+      stage1BossDefeats: 1,
+      stage2BossDefeats: 1,
+      // 계약 2026-10-24 §3: Stage4/Stage5 해금 증거는 clear가 아니라 보스 사망 기록이다.
+      stage3BossDefeats: 1,
+      stage4BossDefeats: 1,
+      bestSurvivalSeconds: 766,
+      stage2BestSurvivalSec: 366,
+      stage3BestSurvivalSec: 321,
+      stage4BestSurvivalSec: 481,
+    }
+
+    for (let attempt = 1; attempt <= 10_000; attempt += 1) {
+      _resetFirebaseProgressForTests()
+      useAuthStore.setState({
+        status: 'signedIn',
+        user: account,
+        initialized: true,
+        progressStatus: 'loading',
+        progressError: null,
+      })
+      const view = renderLobby({ onStartStage: () => {}, onOpenCoinShop: () => {}, onOpenRanking: () => {} })
+
+      expect(view.container.querySelector('[data-testid="lobby-records-pending"]'), `attempt ${attempt}`).not.toBeNull()
+      // 로딩 중에는 Stage1만 열리고 나머지 노출 카드(Stage2~4)는 자물쇠다(b01ea4c3).
+      expect(view.container.querySelectorAll('[data-testid="stage-lock-preview"]'), `attempt ${attempt}`).toHaveLength(3)
+
+      act(() => {
+        _seedHydratedFirebaseProgressForTests(account)
+        seedPlayerRecords(canonicalRecords)
+        useAuthStore.setState({ progressStatus: 'ready' })
+      })
+
+      expect(view.container.querySelector('[data-testid="lobby-records-pending"]'), `attempt ${attempt}`).toBeNull()
+      expect(view.container.querySelectorAll('[data-testid="stage-lock-preview"]'), `attempt ${attempt}`).toHaveLength(0)
+      // 카드 구조 검증은 첫/마지막 사이클만 — 사이클마다 DOM 질의 30회를 1만 번 돌리면
+      // 이 테스트의 600초 예산(:끝의 600_000)을 넘긴다. 이 루프의 목적은 1만 사이클 기록 영속성이고,
+      // 카드 구조는 바로 위 단발 테스트가 같은 헬퍼로 이미 검증한다.
+      if (attempt === 1 || attempt === 10_000) expectVerifiedFixtureStageAccess(view.container, `attempt ${attempt}`)
+      expect(view.container.textContent, `attempt ${attempt}`).toContain('12:46')
+      expect(view.container.textContent, `attempt ${attempt}`).toContain('6:06')
+      expect(view.container.textContent, `attempt ${attempt}`).toContain('5:21')
+      expect(view.container.textContent, `attempt ${attempt}`).toContain('8:01')
+
+      view.unmount()
+    }
   }, 600_000)
 
   it('caps the desktop stage list width so cards do not stretch across wide monitors', () => {
@@ -356,6 +435,10 @@ describe('Lobby', () => {
       stage1Clears: 1,
       stage2Clears: 1,
       stage3Clears: 1,
+      // 카드 해금 = 이전 스테이지 보스 사망 기록(계약 2026-10-24 §3, origin stage{N}BossDefeats).
+      stage1BossDefeats: 1,
+      stage2BossDefeats: 1,
+      stage3BossDefeats: 1,
       bestSurvivalSeconds: 240,
       stage2BestSurvivalSec: 240,
     })
@@ -384,13 +467,13 @@ describe('Lobby', () => {
     const view = renderLobby({ onStartStage, onOpenCoinShop: () => {}, onOpenRanking })
     const stage4Card = findStageCard(view.container, 'Stage 4 급식실 대탈출')
     const lockPreview = stage4Card.querySelector('[data-testid="stage-lock-preview"]')
-    const disabledEntry = findButtonByText(stage4Card, 'Stage 3 클리어 시 열림')
+    const disabledEntry = findButtonByText(stage4Card, 'Stage 3 보스 처치 시 열림')
     const rankingButton = findButtonByText(stage4Card, '점수 레코드')
 
     expect(lockPreview).toBeTruthy()
     expect(lockPreview.getAttribute('aria-label')).toBe('stage4 잠김 3D 자물쇠')
     expect(stage4Card.querySelector('[data-testid="stage-boss-preview"]')).toBeFalsy()
-    expect(stage4Card.textContent).not.toContain('🔒 Stage 3 클리어 시 열림')
+    expect(stage4Card.textContent).not.toContain('🔒 Stage 3 보스 처치 시 열림')
     expect(disabledEntry.disabled).toBe(true)
     expect(disabledEntry.style.position).toBe('absolute')
     expect(disabledEntry.style.right).toBe('10px')
@@ -429,8 +512,8 @@ describe('Lobby', () => {
     const stage3Card = findStageCard(view.container, 'Stage 3 체육관 총력전')
 
     for (const [card, stageId, hint] of [
-      [stage2Card, 'stage2', 'Stage 1 클리어 시 열림'],
-      [stage3Card, 'stage3', '이전 스테이지를 클리어하면 열립니다'],
+      [stage2Card, 'stage2', 'Stage 1 보스 처치 시 열림'],
+      [stage3Card, 'stage3', 'Stage 2 보스 처치 시 열림'],
     ]) {
       const previewRow = card.querySelector('[data-testid="stage-card-preview-row"]')
       const lockPreview = card.querySelector('[data-testid="stage-lock-preview"]')
@@ -465,12 +548,14 @@ describe('Lobby', () => {
     view.unmount()
   })
 
-  it('reveals Stage 4 B04 preview and enables entry + ranking after Stage 3 clear', () => {
+  it('reveals Stage 4 B04 preview and enables entry + ranking after the Stage 3 boss defeat', () => {
     vi.useFakeTimers()
     seedPlayerRecords({
       stage1Clears: 1,
       stage2Clears: 1,
       stage3Clears: 1,
+      // 해금 증거는 B03 사망 기록뿐이다(계약 2026-10-24 §3).
+      stage3BossDefeats: 1,
       bestSurvivalSeconds: 240,
       stage2BestSurvivalSec: 240,
       stage3BestSurvivalSec: 240,
@@ -484,7 +569,7 @@ describe('Lobby', () => {
     const enterButton = findButtonByText(stage4Card, '입장하기')
     const rankingButton = findButtonByText(stage4Card, '점수 레코드')
 
-    // balanceqa 게이트 통과 후: 스3 클리어로 해금 + 프로덕션에서 플레이어블 → 입장/랭킹 활성, '준비 중' 없음.
+    // balanceqa 게이트 통과 후: 스3 보스 사망 기록으로 해금 + 프로덕션에서 플레이어블 → 입장/랭킹 활성, '준비 중' 없음.
     expect(preview.dataset.bossType).toBe('B04')
     expect(stage4Card.textContent).not.toContain('준비 중')
     expect(enterButton.disabled).toBe(false)
@@ -505,8 +590,8 @@ describe('Lobby', () => {
     view.unmount()
   })
 
-  it('lets the dev all-stage cheat enter Stage 4 even without a Stage 3 clear', () => {
-    vi.useFakeTimers()
+  // origin 정책(Lobby.expansion.test): 일반 UI에서 dev 전체 해금 prop은 보스 증거를 대신하지 않는다.
+  it('keeps Stage 4 locked under the dev all-stage prop until the Stage 3 boss record exists', () => {
     const onStartStage = vi.fn()
     const view = renderLobby({
       onStartStage,
@@ -515,22 +600,11 @@ describe('Lobby', () => {
       devAllStagesUnlocked: true,
     })
     const stage4Card = findStageCard(view.container, 'Stage 4 급식실 대탈출')
-    const enterButton = findButtonByText(stage4Card, '입장하기')
-    const rankingButton = findButtonByText(stage4Card, '점수 레코드')
 
-    expect(stage4Card.querySelector('[data-testid="stage-boss-preview"]')?.dataset.bossType).toBe('B04')
-    expect(enterButton.disabled).toBe(false)
-    expect(rankingButton.disabled).toBe(false)
-    expect(stage4Card.textContent).not.toContain('준비 중')
+    expect(stage4Card.querySelector('[data-testid="stage-lock-preview"]')).toBeTruthy()
+    expect(findButtonByText(stage4Card, 'Stage 3 보스 처치 시 열림').disabled).toBe(true)
+    expect(onStartStage).not.toHaveBeenCalled()
 
-    act(() => {
-      enterButton.dispatchEvent(new MouseEvent('click', { bubbles: true }))
-      vi.advanceTimersByTime(1_000)
-    })
-
-    expect(onStartStage).toHaveBeenCalledWith('stage4')
-
-    vi.useRealTimers()
     view.unmount()
   })
 
@@ -792,25 +866,21 @@ function findStageCard(container, ariaLabel) {
   return card
 }
 
-// This fixture clears Stage1–4 only: Stage5 is unlocked without a record,
-// while expansion Stage6–10 must remain locked. Loading retains Stage1 preview and nine locks.
+// 계약 2026-10-24 §3: 로비 선택 목록은 Stage1~4로 고정이고 목록 확대는 금지다.
+// Stage5 해금 기록(stage4BossDefeats)이 있어도 카드는 늘지 않는다 — 기록과 노출은 별개다.
+// 노출원은 stageConfig.LOBBY_STAGE_IDS 한 곳이며 STAGE_CONFIGS에는 stage5/확장 6~10이 그대로 남는다.
+// 이 fixture는 Stage1~4를 모두 클리어한 계정이다. Pending 상태에서는 Stage1만 열리고 나머지는 자물쇠다.
 function expectVerifiedFixtureStageAccess(container, context = 'verified fixture') {
-  expect(container.querySelectorAll('section'), context).toHaveLength(10)
-  for (let stage = 1; stage <= 10; stage += 1) {
+  expect(container.querySelectorAll('section'), context).toHaveLength(4)
+  expect(container.querySelector('section[aria-label^="Stage 5 "]'), `${context}: Stage5 must not be listed`).toBeNull()
+  for (let stage = 1; stage <= 4; stage += 1) {
     const card = container.querySelector(`section[aria-label^="Stage ${stage} "]`)
     expect(card, `${context}: Stage ${stage}`).not.toBeNull()
-    if (stage <= 5) {
-      const enter = Array.from(card.querySelectorAll('button')).find(button => button.textContent === '입장하기')
-      expect(enter, `${context}: Stage ${stage} entry`).toBeDefined()
-      expect(enter.disabled, `${context}: Stage ${stage} unlocked`).toBe(false)
-      expect(card.querySelector('[data-testid="stage-lock-preview"]'), context).toBeNull()
-      if (stage <= 4) expect(card.textContent, `${context}: Stage ${stage} record`).not.toContain('기록 없음')
-      else expect(card.textContent, `${context}: Stage5 has not been played`).toContain('기록 없음')
-    } else {
-      expect(card.querySelector('[data-testid="stage-lock-preview"]'), `${context}: Stage ${stage} locked`).not.toBeNull()
-      expect(card.querySelectorAll('button'), context).toHaveLength(2)
-      for (const button of card.querySelectorAll('button')) expect(button.disabled, context).toBe(true)
-    }
+    const enter = Array.from(card.querySelectorAll('button')).find(button => button.textContent === '입장하기')
+    expect(enter, `${context}: Stage ${stage} entry`).toBeDefined()
+    expect(enter.disabled, `${context}: Stage ${stage} unlocked`).toBe(false)
+    expect(card.querySelector('[data-testid="stage-lock-preview"]'), context).toBeNull()
+    expect(card.textContent, `${context}: Stage ${stage} record`).not.toContain('기록 없음')
   }
 }
 

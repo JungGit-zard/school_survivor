@@ -33,7 +33,28 @@ export const ZOMBIE_PALETTE = {
   RZT: { body: 0xa87843, skin: 0x8fa85e, eye: 0xffd45c },
   RZG: { body: 0x173a5e, skin: 0x88a75f, eye: 0xff573d },
   E08: { body: 0x5a3b16, skin: 0x9bb66a, eye: 0xffd23a, coin: 0xf6c844, coinDark: 0xb97316, coinBag: 0x8a5a24 },
+  // E07/B04는 전용 메시 분기(ProceduralFaceTestZombie / B04ChefBossMesh)를 쓰지만
+  // EnemyDeathCollapse가 ZOMBIE_PALETTE[type]을 직접 조회한다. 항목이 없어 E01 녹색으로
+  // 폴백되던 사망 파편 색을 각 메시의 실제 색으로 맞춘다.
+  E07: { body: 0x486d9b, skin: 0x568a55, eye: 0xffedae },
+  B04: { body: 0xf2efe2, skin: 0x7fa65a, eye: 0x101010 },
+  // 신규 일반 좀비 12종. 제한된 평면 색만 쓰고 mark는 표식 박스 하나의 색이다.
+  E34: { body: 0x4f5a22, skin: 0x8a9452, eye: 0xff2020, mark: 0xd8dca0 },
+  E35: { body: 0x1d3a38, skin: 0x5c7b72, eye: 0xff2020, mark: 0x9fc4b4 },
+  E36: { body: 0x9a7a3c, skin: 0xc2a86a, eye: 0xff2020, mark: 0xe8d9a8 },
+  E37: { body: 0x44607a, skin: 0x7e99ad, eye: 0xffb02a, mark: 0xd4e2ea },
+  E38: { body: 0x1f3356, skin: 0x6fa8a0, eye: 0xffb02a, mark: 0xbfe3dc },
+  E39: { body: 0x173430, skin: 0x4e716a, eye: 0xffb02a, mark: 0xf0e6c6 },
+  E40: { body: 0x5b3a86, skin: 0x9a7ec0, eye: 0xff6a2a, mark: 0xe8812e },
+  E41: { body: 0x1c6a6a, skin: 0x62a3a0, eye: 0xff6a2a, mark: 0xcfe8e4 },
+  E42: { body: 0x6b2a4a, skin: 0xa06b86, eye: 0xff6a2a, mark: 0xe0b8cc },
+  E43: { body: 0xd8cfa8, skin: 0xb6ad86, eye: 0x2a2418, mark: 0x2f8f8a },
+  E44: { body: 0x322a62, skin: 0x6d659c, eye: 0xffe3a0, mark: 0xcdc7e6 },
+  E45: { body: 0x1b3d44, skin: 0x567f85, eye: 0xffe3a0, mark: 0xf2e8cc },
 }
+
+// 공용 박스 좀비의 신발 색. 공유 박스 트리와 신규 포즈형이 같은 상수를 쓴다.
+export const ZOMBIE_SHOE_COLOR = 0x1a1a1a
 
 export const B01_BOSS_VISUAL_PALETTE = {
   skin: 0x9fb87a,
@@ -207,6 +228,366 @@ export const STAGE2_GUARD_CHASE_VISUAL = {
   parts: ['longTanTrenchCoat', 'panicScarf', 'navySecurityCap', 'yellowSecurityVest', 'badge', 'fullClothing'],
 }
 
+// ── 신규 일반 좀비 12종 (E34-E45) 박스 실루엣 정본 ────────────────────────────
+// 출처: Planner/stage_zombie_original_concepts_20261025.md 각 항목의 "박스 실루엣"·"구별점".
+// 규칙: 전원이 E01과 같은 박스 가족(머리·눈2·몸통·팔2·손2·다리2·발2)만 쓴다. 정체성은
+//   (1) 파츠 비례 = 베이스 박스에 곱하는 비균등 스케일
+//   (2) 포즈 = 파츠 피벗과 회전
+//   (3) 실루엣에 통합된 작은 표식 박스 하나(표식은 부모 파츠에 붙어 함께 움직인다)
+// 로만 만든다. 복잡한 옷·소품·무기·갑옷·질감·추가 장식 파츠는 만들지 않는다.
+// 베이스 박스 크기는 E01(STANDARD)과 동일하므로 지오메트리 캐시가 그대로 재사용되고,
+// 12종이 인스턴스 파트 슬롯 한 세트를 공유한다.
+export const POSED_ZOMBIE_BASE = Object.freeze({
+  head: Object.freeze([0.52, 0.48, 0.46]),
+  eye: Object.freeze([0.10, 0.09, 0.06]),
+  eyeOffset: Object.freeze([0.12, 0.04, 0.24]),
+  body: Object.freeze([0.56, 0.58, 0.40]),
+  arm: Object.freeze([0.20, 0.50, 0.20]),
+  armOffsetY: -0.25,
+  hand: Object.freeze([0.18, 0.16, 0.18]),
+  handOffsetY: -0.55,
+  leg: Object.freeze([0.22, 0.52, 0.26]),
+  legOffsetY: -0.26,
+  foot: Object.freeze([0.24, 0.12, 0.34]),
+  footOffset: Object.freeze([0, -0.57, 0.05]),
+  mark: Object.freeze([0.12, 0.10, 0.06]),
+})
+
+// 공유 박스 트리의 보행 애니메이션이 각 파츠에 부여하는 절대 기준 회전.
+// 포즈 회전은 이 기준에서의 델타로 고정풀 인스턴스 경로에 더해진다.
+export const POSED_ZOMBIE_ANIM_BASE_ROTATION = Object.freeze({
+  head: Object.freeze([0, 0, 0]),
+  body: Object.freeze([0, 0, 0]),
+  armL: Object.freeze([-1.15, 0, 0.12]),
+  armR: Object.freeze([-1.15, 0, -0.12]),
+  legL: Object.freeze([0, 0, 0]),
+  legR: Object.freeze([0, 0, 0]),
+})
+
+// 13개 파트 슬롯의 애니메이션 키(= 부모 피벗)와 색 역할. 표식 슬롯의 키는 타입별이다.
+export const POSED_ZOMBIE_PART_KEYS = Object.freeze([
+  'head', 'head', 'head', 'body', 'armL', 'armL', 'armR', 'armR', 'legL', 'legL', 'legR', 'legR', 'mark',
+])
+export const POSED_ZOMBIE_PART_ROLES = Object.freeze([
+  'skin', 'eye', 'eye', 'body', 'body', 'skin', 'body', 'skin', 'body', 'foot', 'body', 'foot', 'mark',
+])
+export const POSED_ZOMBIE_PART_OUTLINES = Object.freeze([
+  1.08, 1, 1, 1.09, 1.05, 1.03, 1.05, 1.03, 1.06, 1.03, 1.06, 1.03, 1,
+])
+// E01 공유 박스 트리와 동일한 파츠별 emissive. 표식만 약간 밝게 둬 평면 색으로 읽힌다.
+export const POSED_ZOMBIE_PART_EMISSIVE = Object.freeze([
+  0.08, 0.9, 0.9, 0.14, 0.10, 0.07, 0.10, 0.07, 0.10, 0.05, 0.10, 0.05, 0.16,
+])
+export const POSED_ZOMBIE_MARK_SLOT = 12
+export const POSED_ZOMBIE_PART_COUNT = 13
+
+export const POSED_ZOMBIE_RIGS = Object.freeze({
+  // 1. 박자접기형 — 작은 머리, 긴 몸통, 팔꿈치를 앞에서 겹친 가느다란 옆모습.
+  // 기존 차저의 직선 예고·장거리 돌진이 아니라 폭이 줄어드는 준비 포즈로 읽힌다.
+  E34: {
+    stage: 1, label: '박자접기형',
+    head: { scale: [0.82, 0.86, 0.82], pivot: [0, 0.80, 0], rot: [0, 0, 0] },
+    body: { scale: [0.78, 1.26, 0.86], pivot: [0, 0.34, 0], rot: [0, 0, 0] },
+    armL: { scale: [0.95, 1.00, 0.95], pivot: [-0.22, 0.56, 0], rot: [-1.22, 0, 0.78] },
+    armR: { scale: [0.95, 1.00, 0.95], pivot: [0.22, 0.56, 0], rot: [-1.22, 0, -0.78] },
+    legL: { scale: [0.90, 1.00, 0.90], pivot: [-0.11, 0, 0], rot: [0, 0, 0] },
+    legR: { scale: [0.90, 1.00, 0.90], pivot: [0.11, 0, 0], rot: [0, 0, 0] },
+    mark: { parent: 'body', scale: [1.00, 0.90, 0.70], offset: [-0.15, 0.25, 0.20] },
+  },
+  // 2. 모서리비껴형 — 짧고 넓은 몸통, 한 팔은 몸 옆에 붙고 다른 팔은 낮게 비껴 있다.
+  // 정면을 유지하지 않는 선회 접촉이므로 머리를 축에서 돌려 둔다.
+  E35: {
+    stage: 1, label: '모서리비껴형',
+    head: { scale: [1.00, 0.92, 1.00], pivot: [0, 0.78, 0], rot: [0, 0.42, 0] },
+    body: { scale: [1.30, 0.74, 1.00], pivot: [0, 0.24, 0], rot: [0, 0.18, 0] },
+    armL: { scale: [1.00, 1.00, 1.00], pivot: [-0.33, 0.50, 0], rot: [-0.12, 0, 0.04] },
+    armR: { scale: [1.00, 1.00, 1.00], pivot: [0.38, 0.44, 0], rot: [-0.40, 0, -0.62] },
+    legL: { scale: [1.00, 0.92, 1.00], pivot: [-0.17, 0, 0], rot: [0, 0, 0] },
+    legR: { scale: [1.00, 0.92, 1.00], pivot: [0.17, 0, 0], rot: [0, 0, 0] },
+    mark: { parent: 'head', scale: [0.50, 1.00, 1.20], offset: [0.27, 0, 0.04] },
+  },
+  // 3. 반걸음되짚기형 — 상체는 반듯하고 한쪽 다리만 뒤로 길게 접힌 비대칭 정지 포즈,
+  // 팔은 아래로 수직. 12종 중 유일하게 두 팔이 모두 수직으로 내려와 있다.
+  E36: {
+    stage: 1, label: '반걸음되짚기형',
+    head: { scale: [1.00, 1.00, 1.00], pivot: [0, 0.84, 0], rot: [0, 0, 0] },
+    body: { scale: [0.96, 1.04, 0.96], pivot: [0, 0.30, 0], rot: [-0.06, 0, 0] },
+    armL: { scale: [1.00, 1.00, 1.00], pivot: [-0.36, 0.52, 0], rot: [-0.06, 0, 0.02] },
+    armR: { scale: [1.00, 1.00, 1.00], pivot: [0.36, 0.52, 0], rot: [-0.06, 0, -0.02] },
+    legL: { scale: [1.00, 1.00, 1.00], pivot: [-0.15, 0, 0.06], rot: [0.10, 0, 0] },
+    legR: { scale: [1.00, 1.12, 1.00], pivot: [0.16, 0.02, -0.16], rot: [-0.72, 0, 0] },
+    mark: { parent: 'body', scale: [1.40, 0.70, 0.70], offset: [0, -0.21, 0.20] },
+  },
+  // 4. 빗금엇갈림형 — 길고 가는 몸통, 머리는 한쪽으로 치우치고 팔은 서로 다른 높이로 교차.
+  // 머리와 흉곽이 서로 다른 방향을 보는 '꼬인 축'이 예고다.
+  E37: {
+    stage: 2, label: '빗금엇갈림형',
+    head: { scale: [0.90, 0.90, 0.90], pivot: [-0.14, 0.84, 0], rot: [0, -0.26, 0.16] },
+    body: { scale: [0.74, 1.22, 0.80], pivot: [0, 0.33, 0], rot: [0, 0.30, 0.10] },
+    armL: { scale: [0.95, 1.00, 0.95], pivot: [-0.26, 0.64, 0.04], rot: [-1.30, 0, 0.72] },
+    armR: { scale: [0.95, 1.00, 0.95], pivot: [0.26, 0.42, 0.04], rot: [-1.05, 0, -0.98] },
+    legL: { scale: [0.90, 1.08, 0.90], pivot: [-0.12, 0, 0], rot: [0, 0, 0] },
+    legR: { scale: [0.90, 1.08, 0.90], pivot: [0.12, 0, 0], rot: [0, 0, 0] },
+    mark: { parent: 'body', scale: [1.70, 0.42, 0.70], offset: [0.07, 0.12, 0.19] },
+  },
+  // 5. 빈칸반응형 — 폭이 좁은 몸통, 머리가 한쪽 어깨선에 붙은 비대칭 실루엣,
+  // 반대편 팔은 낮고 길게 늘어진다. 12종 중 머리가 가장 낮다.
+  E38: {
+    stage: 2, label: '빈칸반응형',
+    head: { scale: [0.96, 0.90, 0.96], pivot: [0.17, 0.72, 0], rot: [0, 0.16, -0.34] },
+    body: { scale: [0.72, 1.00, 0.88], pivot: [0, 0.28, 0], rot: [0, 0, -0.06] },
+    armL: { scale: [0.92, 1.40, 0.92], pivot: [-0.34, 0.48, 0], rot: [-0.22, 0, 0.16] },
+    armR: { scale: [1.00, 0.78, 1.00], pivot: [0.34, 0.54, 0], rot: [-0.95, 0, -0.20] },
+    legL: { scale: [1.00, 1.00, 1.00], pivot: [-0.13, 0, 0], rot: [0, 0, 0] },
+    legR: { scale: [1.00, 1.00, 1.00], pivot: [0.13, 0, 0], rot: [0, 0, 0] },
+    mark: { parent: 'head', scale: [0.85, 0.70, 0.60], offset: [0, 0.17, 0.21] },
+  },
+  // 6. 선끝접기형 — 매우 낮고 긴 몸통, 머리는 몸통 중앙보다 뒤, 한 팔만 몸 아래로 접힘.
+  // 12종 중 유일하게 몸통이 앞으로 눕고 앞뒤로 가장 길다.
+  E39: {
+    stage: 2, label: '선끝접기형',
+    head: { scale: [0.94, 0.86, 0.94], pivot: [0, 0.58, -0.22], rot: [0.18, 0, 0] },
+    body: { scale: [1.10, 0.62, 1.42], pivot: [0, 0.26, 0], rot: [0.52, 0, 0] },
+    armL: { scale: [1.00, 1.00, 1.00], pivot: [-0.30, 0.40, 0], rot: [-2.35, 0, 0.30] },
+    armR: { scale: [1.00, 1.00, 1.00], pivot: [0.34, 0.46, 0], rot: [-1.35, 0, -0.08] },
+    legL: { scale: [1.00, 0.80, 1.00], pivot: [-0.19, 0, 0], rot: [0, 0, 0.12] },
+    legR: { scale: [1.00, 0.80, 1.00], pivot: [0.19, 0, 0], rot: [0, 0, -0.12] },
+    mark: { parent: 'armL', scale: [0.90, 0.65, 0.90], offset: [0, -0.74, 0] },
+  },
+  // 7. 중심축비틀기형 — 좁은 허리, 한쪽으로 과장된 어깨, 반대 방향 높이로 벌어진 두 팔.
+  // 골반(다리)은 정면인 채 몸통만 축에서 돌아 있는 상태가 핵심 예고다.
+  E40: {
+    stage: 3, label: '중심축비틀기형',
+    head: { scale: [1.00, 1.00, 1.00], pivot: [0, 0.82, 0], rot: [0, -0.30, 0] },
+    body: { scale: [1.16, 0.96, 0.86], pivot: [0, 0.30, 0], rot: [0, 0.46, 0] },
+    armL: { scale: [1.25, 1.00, 1.25], pivot: [-0.52, 0.62, 0], rot: [-1.30, 0, 0.55] },
+    armR: { scale: [1.00, 1.00, 1.00], pivot: [0.34, 0.40, 0], rot: [-0.55, 0, -0.70] },
+    legL: { scale: [1.00, 1.00, 1.00], pivot: [-0.17, 0, 0], rot: [0, 0, 0] },
+    legR: { scale: [1.00, 1.00, 1.00], pivot: [0.17, 0, 0], rot: [0, 0, 0] },
+    mark: { parent: 'body', scale: [0.80, 1.30, 0.70], offset: [-0.31, 0.24, 0.08] },
+  },
+  // 8. 쌍박자교대형 — 길쭉한 몸통, 한쪽씩 높이가 다른 사각 팔, 한쪽 다리가 뒤로 물러난 체형.
+  // 낮은 팔과 높은 팔이 앞으로 뻗는 높이 차가 두 단계 타격 순서를 읽히게 한다.
+  E41: {
+    stage: 3, label: '쌍박자교대형',
+    head: { scale: [0.88, 0.94, 0.88], pivot: [0, 0.82, 0], rot: [0, 0, 0] },
+    body: { scale: [0.86, 1.18, 0.86], pivot: [0, 0.32, 0], rot: [0, 0, 0] },
+    armL: { scale: [1.12, 1.00, 1.12], pivot: [-0.38, 0.42, 0], rot: [-1.72, 0, 0.10] },
+    armR: { scale: [1.12, 1.00, 1.12], pivot: [0.38, 0.62, 0], rot: [-0.78, 0, -0.10] },
+    legL: { scale: [1.00, 1.00, 1.00], pivot: [-0.15, 0, 0.08], rot: [0.06, 0, 0] },
+    legR: { scale: [1.00, 1.00, 1.00], pivot: [0.16, 0, -0.14], rot: [-0.34, 0, 0] },
+    mark: { parent: 'body', scale: [1.80, 0.45, 0.70], offset: [0, -0.09, 0.20] },
+  },
+  // 9. 반원발맞춤형 — 네모를 유지한 머리, 긴 몸통, 양발을 나란히 모으고 두 팔을 곡선
+  // 양끝처럼 벌린 자세. 12종 중 유일하게 좌우 대칭 넓은 팔 + 모은 발이다.
+  E42: {
+    stage: 3, label: '반원발맞춤형',
+    head: { scale: [1.06, 1.00, 1.06], pivot: [0, 0.83, 0], rot: [0, 0, 0] },
+    body: { scale: [0.90, 1.14, 0.90], pivot: [0, 0.31, 0], rot: [0, 0, 0] },
+    armL: { scale: [1.00, 1.00, 1.00], pivot: [-0.44, 0.56, 0], rot: [-0.70, 0, 1.05] },
+    armR: { scale: [1.00, 1.00, 1.00], pivot: [0.44, 0.56, 0], rot: [-0.70, 0, -1.05] },
+    legL: { scale: [0.94, 1.00, 0.94], pivot: [-0.06, 0, 0], rot: [0, 0, 0], footShift: [-0.02, 0, 0] },
+    legR: { scale: [0.94, 1.00, 0.94], pivot: [0.06, 0, 0], rot: [0, 0, 0], footShift: [0.02, 0, 0] },
+    mark: { parent: 'body', scale: [0.80, 0.90, 0.80], offset: [0.26, -0.02, 0.05] },
+  },
+  // 10. 엇높이교차형 — 짧고 넓은 몸통, 한 팔은 허리 높이, 다른 팔은 어깨 높이로 벌어진다.
+  // E42의 같은 높이 대칭 벌림과 달리 두 팔 피벗 높이가 계단처럼 다르다.
+  E43: {
+    stage: 4, label: '엇높이교차형',
+    head: { scale: [1.00, 0.90, 1.00], pivot: [0, 0.78, 0], rot: [0, 0, 0] },
+    body: { scale: [1.26, 0.80, 1.04], pivot: [0, 0.26, 0], rot: [0, 0, 0] },
+    armL: { scale: [1.00, 1.00, 1.00], pivot: [-0.46, 0.34, 0], rot: [-1.10, 0, 0.84] },
+    armR: { scale: [1.00, 1.00, 1.00], pivot: [0.46, 0.62, 0], rot: [-1.10, 0, -0.84] },
+    legL: { scale: [1.00, 0.86, 1.00], pivot: [-0.18, 0, 0], rot: [0, 0, 0] },
+    legR: { scale: [1.00, 0.86, 1.00], pivot: [0.18, 0, 0], rot: [0, 0, 0] },
+    mark: { parent: 'armL', scale: [0.85, 0.70, 0.85], offset: [0, -0.72, 0] },
+  },
+  // 11. 발맞춤후퇴형 — 좁은 어깨와 길게 늘어진 몸통, 발은 평행하게 놓이고 팔은 서로 다른
+  // 쪽으로 접힌다. 12종 중 몸통 폭이 가장 좁고, 두 다리가 모두 한쪽으로 치우쳐 선다.
+  E44: {
+    stage: 4, label: '발맞춤후퇴형',
+    head: { scale: [0.92, 1.00, 0.92], pivot: [0, 0.80, 0], rot: [0, 0.22, 0] },
+    body: { scale: [0.66, 1.10, 0.78], pivot: [0, 0.30, 0], rot: [0, 0.26, 0] },
+    armL: { scale: [1.00, 1.00, 1.00], pivot: [-0.28, 0.52, 0], rot: [-1.95, 0, 0.95] },
+    armR: { scale: [1.00, 1.00, 1.00], pivot: [0.28, 0.52, 0], rot: [-0.45, 0, -1.25] },
+    legL: { scale: [1.00, 1.00, 1.00], pivot: [-0.03, 0, 0], rot: [0, 0.30, 0] },
+    legR: { scale: [1.00, 1.00, 1.00], pivot: [0.25, 0, 0], rot: [0, 0.30, 0] },
+    mark: { parent: 'body', scale: [1.30, 0.50, 0.70], offset: [-0.24, 0.23, 0.02] },
+  },
+  // 12. 무게중심넘김형 — 어깨가 비스듬히 내려가고 골반은 반대편으로 기운 사다리꼴 인상,
+  // 한쪽 무릎만 접힌 다리. 12종 중 유일하게 몸통과 다리가 반대로 기운다.
+  E45: {
+    stage: 4, label: '무게중심넘김형',
+    head: { scale: [1.00, 0.96, 1.00], pivot: [0, 0.80, 0], rot: [0, 0, 0.26] },
+    body: { scale: [1.18, 0.88, 0.92], pivot: [0, 0.27, 0], rot: [0, 0, -0.34] },
+    armL: { scale: [1.00, 1.00, 1.00], pivot: [-0.42, 0.42, 0], rot: [-0.95, 0, 0.42] },
+    armR: { scale: [1.00, 1.00, 1.00], pivot: [0.40, 0.62, 0], rot: [-1.25, 0, 0.10] },
+    legL: { scale: [1.00, 1.00, 1.00], pivot: [-0.19, 0, 0], rot: [0.08, 0, 0.26] },
+    legR: { scale: [1.00, 0.82, 1.00], pivot: [0.13, -0.02, 0], rot: [-0.52, 0, 0.26] },
+    mark: { parent: 'body', scale: [0.80, 0.85, 0.70], offset: [0.27, -0.18, 0.05] },
+  },
+})
+
+// 상태별 포즈 델타(라디안). 위 고정 포즈 rot 위에 **더해지는** 값이고 파트 슬롯은
+// 13개 그대로다 — 소품·의상·무기·질감을 하나도 추가하지 않고 회전만 쓴다.
+//
+// 왜 필요한가: 12종은 상태 코드 7~13(novelZombieBehavior.js)으로 움직이는데
+// ZombieInstanceLayer의 phase()가 2/3/4만 보고 있어서 예고·타격·회복 전 구간이
+// 평시 보행으로 렌더됐다. 고정 포즈는 타입별로만 다르고 상태별 분기가 없었으므로,
+// 'hold'/'plant'로 멈춰 서는 10종은 팔다리 보행 사인만 계속 돌아 "제자리 걷기"로 보였다.
+//
+// 회색조 판독: balanceqa의 24×32 정면 투영 IoU 최악 쌍(E35↔E36 0.755, E35↔E43,
+// E34↔E44, E40↔E42)은 **예고 포즈에서 서로 반대 방향으로** 벌린다.
+//   · E35 예고 = 두 팔을 한쪽으로 모아 낮게 쓸고 측면으로 깊게 기움(낮고 넓은 한쪽 쏠림)
+//   · E36 예고 = 두 팔을 머리 위로 수직, 다리는 모음(높고 좁은 기둥)
+//   · E43 예고 = 깊게 웅크리고 두 팔을 뒤아래로, 다리는 넓은 스플릿
+//   · E34 예고 = 두 팔을 가슴 앞에서 교차, 다리 모음(가장 좁음)
+//   · E44 예고 = 두 팔을 넓게 벌리고 한쪽 다리를 뒤로 높이 듦
+//   · E40 예고 = 한 팔은 매우 높이, 다른 팔은 아래로(수직 비대칭)
+//   · E42 예고 = 두 팔을 대칭으로 내리고 다리를 넓은 V로(E40과 정반대)
+export const POSED_ZOMBIE_STATE_POSE_DELTAS = Object.freeze({
+  E34: {
+    telegraph: { head: [0.40, 0, 0], body: [0.50, 0, 0], armL: [-0.30, 0, -0.95], armR: [-0.30, 0, 0.95], legL: [0.55, 0, 0.10], legR: [0.55, 0, -0.10] },
+    attack: { head: [-0.30, 0, 0], body: [-0.34, 0, 0], armL: [-0.10, 0, -0.70], armR: [-0.10, 0, 0.70], legL: [-0.42, 0, 0], legR: [0.42, 0, 0] },
+  },
+  E35: {
+    telegraph: { head: [0, 0.38, 0], body: [0, 0.34, 0.42], armL: [-0.18, 0, 0.88], armR: [-0.18, 0, 1.00], legL: [0, 0, 0.30], legR: [0, 0, 0.18] },
+    attack: { head: [0, -0.46, 0], body: [0, -0.40, -0.48], armL: [0.30, 0, -0.55], armR: [0.30, 0, -0.30], legL: [0, 0, -0.25], legR: [0, 0, -0.12] },
+  },
+  E36: {
+    telegraph: { head: [-0.18, 0, 0], body: [-0.22, 0, 0], armL: [-1.45, 0, -0.10], armR: [-1.45, 0, 0.10], legL: [0, 0, 0.10], legR: [0.50, 0, -0.10] },
+    attack: { head: [0.42, 0, 0], body: [0.56, 0, 0], armL: [0.95, 0, 0.20], armR: [0.95, 0, -0.20], legL: [-0.30, 0, 0], legR: [0.25, 0, 0] },
+  },
+  E37: {
+    telegraph: { head: [0, -0.40, 0.24], body: [0, 0.46, 0.18], armL: [-0.62, 0, -0.48], armR: [0.55, 0, -0.42], legL: [0, 0, 0.12], legR: [0, 0, -0.12] },
+    attack: { head: [0, 0.52, -0.28], body: [0, -0.58, -0.22], armL: [0.48, 0, 0.62], armR: [-0.70, 0, 0.55], legL: [-0.20, 0, 0], legR: [0.20, 0, 0] },
+  },
+  E38: {
+    telegraph: { head: [0, 0.24, -0.42], body: [0.20, 0, -0.26], armL: [0.22, 0, 0.95], armR: [-0.80, 0, -0.28], legL: [0, 0, 0.22], legR: [0, 0, -0.08] },
+    attack: { head: [-0.26, 0, 0.30], body: [-0.30, 0, 0.22], armL: [-1.30, 0, -0.55], armR: [0.40, 0, 0.25], legL: [-0.48, 0, 0], legR: [0.30, 0, 0] },
+  },
+  E39: {
+    telegraph: { head: [0.30, 0, 0], body: [0.34, 0, 0], armL: [0.55, 0, -0.22], armR: [-0.70, 0, 0.30], legL: [0, 0, 0.18], legR: [0, 0, -0.18] },
+    attack: { head: [-0.52, 0, 0], body: [-0.70, 0, 0], armL: [-0.85, 0, 0.70], armR: [-1.15, 0, -0.80], legL: [0.30, 0, 0], legR: [-0.30, 0, 0] },
+  },
+  E40: {
+    telegraph: { head: [0, -0.50, 0], body: [0, 0.52, 0], armL: [-1.05, 0, 0.25], armR: [0.60, 0, 0.30], legL: [0, 0, 0], legR: [0, 0, 0] },
+    attack: { head: [0, 0.56, 0], body: [0, -0.62, 0], armL: [0.70, 0, -0.70], armR: [-0.60, 0, -0.65], legL: [-0.18, 0, 0], legR: [0.18, 0, 0] },
+  },
+  E41: {
+    telegraph: { head: [0.32, 0, 0], body: [0.44, 0, 0], armL: [0.58, 0, 0.28], armR: [-0.28, 0, -0.28], legL: [0.34, 0, 0], legR: [-0.68, 0, 0] },
+    attack: { head: [0.18, 0, 0], body: [0.26, 0, 0], armL: [0.85, 0, -0.20], armR: [-0.45, 0, 0.20], legL: [-0.40, 0, 0], legR: [0.38, 0, 0] },
+  },
+  E42: {
+    telegraph: { head: [0.16, 0, 0], body: [0.22, 0, 0], armL: [0.55, 0, -0.95], armR: [0.55, 0, 0.95], legL: [0, 0, 0.62], legR: [0, 0, -0.62] },
+    attack: { head: [-0.22, 0, 0], body: [-0.26, 0, 0], armL: [-0.80, 0, 0.45], armR: [-0.80, 0, -0.45], legL: [0, 0, -0.30], legR: [0, 0, 0.30] },
+  },
+  E43: {
+    telegraph: { head: [0, 0, 0], body: [0, 0, 0], armL: [1.10, 0, 0.73], armR: [1.10, 0, -0.73], legL: [0, 0, -0.22], legR: [0, 0, 0.22] },
+    attack: { head: [-0.40, 0, 0], body: [-0.62, 0, 0], armL: [-0.95, 0, -0.40], armR: [-0.95, 0, 0.40], legL: [-0.35, 0, 0], legR: [0.35, 0, 0] },
+  },
+  E44: {
+    telegraph: { head: [0, 0.34, 0.30], body: [0, 0.30, 0.38], armL: [1.40, 0, -0.95], armR: [0.10, 0, 1.05], legL: [0.10, 0, 0.20], legR: [-1.00, 0, 0.20] },
+    attack: { head: [0, -0.34, 0], body: [0, -0.30, 0], armL: [-0.55, 0, -0.80], armR: [-0.20, 0, 0.95], legL: [-0.35, 0, 0], legR: [0.60, 0, 0] },
+  },
+  E45: {
+    telegraph: { head: [0, 0, 0.34], body: [0, 0, -0.42], armL: [-0.30, 0, 0.62], armR: [0.35, 0, 0.70], legL: [0.20, 0, 0.22], legR: [-0.30, 0, 0.22] },
+    attack: { head: [0, 0, -0.44], body: [0, 0, 0.52], armL: [0.45, 0, -0.70], armR: [-0.85, 0, -0.55], legL: [-0.40, 0, -0.26], legR: [0.42, 0, -0.26] },
+  },
+})
+
+// 회복(RECOVER/RECOVER_ALT)은 타격 포즈에서 돌아오는 중이라 같은 델타를 감쇠해 쓴다.
+// 별도 1세트를 더 authoring하지 않고도 예고·타격·회복이 세 가지로 구분된다.
+export const POSED_ZOMBIE_RECOVER_DAMPING = 0.34
+const POSED_ZOMBIE_NO_POSE_DELTA = Object.freeze([0, 0, 0])
+
+// 13개 파트 슬롯에 대한 상태 포즈 델타. state는 ZombieInstanceLayer의 phase() 값이다
+// ('warn' = 예고, 'charge' = 타격, 'stun' = 회복). 파트 슬롯 수는 바뀌지 않는다.
+export function buildPosedZombieStatePose(type, state) {
+  const rig = POSED_ZOMBIE_RIGS[type]
+  const deltas = POSED_ZOMBIE_STATE_POSE_DELTAS[type]
+  if (!rig || !deltas) return null
+  const source = state === 'warn' ? deltas.telegraph : deltas.attack
+  const damping = state === 'stun' ? POSED_ZOMBIE_RECOVER_DAMPING : 1
+  return Array.from({ length: POSED_ZOMBIE_PART_COUNT }, (_, index) => {
+    const key = index === POSED_ZOMBIE_MARK_SLOT ? rig.mark.parent : POSED_ZOMBIE_PART_KEYS[index]
+    const delta = source[key] ?? POSED_ZOMBIE_NO_POSE_DELTA
+    return [delta[0] * damping, delta[1] * damping, delta[2] * damping]
+  })
+}
+
+// 런타임 ID 고정 배정(2026-10-25). typeCode 37-48은 확장팩(17-36) 위의 빈 구간이다.
+export const POSED_ZOMBIE_TYPES = Object.freeze(['E34', 'E35', 'E36', 'E37', 'E38', 'E39', 'E40', 'E41', 'E42', 'E43', 'E44', 'E45'])
+export const POSED_ZOMBIE_FIRST_TYPE_CODE = 37
+
+export function isPosedZombieType(type) {
+  return Object.prototype.hasOwnProperty.call(POSED_ZOMBIE_RIGS, type)
+}
+
+function scaled3(base, scale) {
+  return [base[0] * scale[0], base[1] * scale[1], base[2] * scale[2]]
+}
+
+// 13개 파트 슬롯의 최종 수치를 한 곳에서 계산한다. 공유 박스 트리(ZombieMesh)와
+// 고정풀 인스턴스 경로(ZombieInstanceLayer)가 이 한 표만 소비해 동일 포즈를 그린다.
+export function buildPosedZombieParts(type) {
+  const rig = POSED_ZOMBIE_RIGS[type]
+  if (!rig) return null
+  const base = POSED_ZOMBIE_BASE
+  const head = rig.head
+  const markParent = rig[rig.mark.parent]
+  const upperArm = (bone) => ({
+    pivot: bone.pivot, offset: [0, base.armOffsetY * bone.scale[1], 0], rot: bone.rot, box: bone.scale, size: base.arm,
+  })
+  const hand = (bone) => ({
+    pivot: bone.pivot,
+    offset: [0, base.handOffsetY * bone.scale[1], 0],
+    rot: bone.rot,
+    box: [bone.scale[0], 1, bone.scale[2]],
+    size: base.hand,
+  })
+  const foot = (bone) => {
+    const shift = bone.footShift ?? [0, 0, 0]
+    return {
+      pivot: bone.pivot,
+      offset: [base.footOffset[0] + shift[0], base.footOffset[1] * bone.scale[1] + shift[1], base.footOffset[2] + shift[2]],
+      rot: bone.rot,
+      box: [bone.scale[0], 1, bone.scale[2]],
+      size: base.foot,
+    }
+  }
+  const eye = (sign) => ({
+    pivot: head.pivot,
+    offset: [sign * base.eyeOffset[0] * head.scale[0], base.eyeOffset[1] * head.scale[1], base.eyeOffset[2] * head.scale[2]],
+    rot: head.rot,
+    box: [1, 1, 1],
+    size: base.eye,
+  })
+  const parts = [
+    { pivot: head.pivot, offset: [0, 0, 0], rot: head.rot, box: head.scale, size: base.head },
+    eye(-1),
+    eye(1),
+    { pivot: rig.body.pivot, offset: [0, 0, 0], rot: rig.body.rot, box: rig.body.scale, size: base.body },
+    upperArm(rig.armL), hand(rig.armL),
+    upperArm(rig.armR), hand(rig.armR),
+    { pivot: rig.legL.pivot, offset: [0, base.legOffsetY * rig.legL.scale[1], 0], rot: rig.legL.rot, box: rig.legL.scale, size: base.leg },
+    foot(rig.legL),
+    { pivot: rig.legR.pivot, offset: [0, base.legOffsetY * rig.legR.scale[1], 0], rot: rig.legR.rot, box: rig.legR.scale, size: base.leg },
+    foot(rig.legR),
+    // 표식은 부모 파츠의 피벗·회전을 그대로 타고 오프셋만 갖는다. 자체 기울기를 두지
+    // 않는 이유: 공유 박스 트리는 부모 회전과 기울기를 행렬 곱으로, 인스턴스 경로는
+    // 오일러 합으로 합성하므로 기울기가 있으면 두 경로가 미세하게 어긋난다.
+    { pivot: markParent.pivot, offset: rig.mark.offset, rot: markParent.rot, box: rig.mark.scale, size: base.mark },
+  ]
+  return parts.map((part, index) => ({
+    ...part,
+    key: index === POSED_ZOMBIE_MARK_SLOT ? rig.mark.parent : POSED_ZOMBIE_PART_KEYS[index],
+    role: POSED_ZOMBIE_PART_ROLES[index],
+    outline: POSED_ZOMBIE_PART_OUTLINES[index],
+    worldSize: scaled3(part.size, part.box),
+  }))
+}
+
 function BibDigits({ text, y = 0.03 }) {
   const digitColor = 0x151515
   return (
@@ -353,15 +734,21 @@ export const B02_STAGE2_BOSS_FACE = {
   offset: [0, 0],
 }
 
-function ZBlock({ name, studioPartId, size, position, rotation, color, emissive = 0.12, outlineScale = 1.08, flash = false, chamferSteps = ZOMBIE_CHARACTER_CHAMFER_STEPS, groupRef = null, children = null }) {
+// boxScale은 베이스 지오메트리에만 곱하는 비균등 비례다. 새 그룹을 만들지 않으므로
+// 기존 파츠의 Studio 숫자 자식 경로가 바뀌지 않고, 고정풀 인스턴스 경로가 인스턴스
+// 행렬 끝에 곱하는 스케일과 같은 순서(피벗→회전→오프셋→박스스케일)로 합성된다.
+function ZBlock({ name, studioPartId, size, position, rotation, color, emissive = 0.12, outlineScale = 1.08, flash = false, chamferSteps = ZOMBIE_CHARACTER_CHAMFER_STEPS, groupRef = null, boxScale = null, children = null }) {
   const geo    = chamferSteps > 0 ? getCachedChamferedBoxGeo(...size, chamferSteps) : getCachedBoxGeo(...size)
   const outMat = getSharedOutlineMat()
   const mat    = flash ? getFlashMat() : getCachedToonMat(color, emissive)
   const os     = inflateScale(outlineScale)
+  const bx     = boxScale ? boxScale[0] : 1
+  const by     = boxScale ? boxScale[1] : 1
+  const bz     = boxScale ? boxScale[2] : 1
   return (
     <group ref={groupRef} name={studioPartId ?? name} userData={studioPartId ? { studioPartId } : undefined} position={position} rotation={rotation}>
-      <mesh renderOrder={1} geometry={geo} material={outMat} scale={[os, os, os]} userData={{ studioRenderOutline: true }} raycast={disableRaycast} />
-      <mesh renderOrder={2} geometry={geo} material={mat} />
+      <mesh renderOrder={1} geometry={geo} material={outMat} scale={[os * bx, os * by, os * bz]} userData={{ studioRenderOutline: true }} raycast={disableRaycast} />
+      <mesh renderOrder={2} geometry={geo} material={mat} scale={[bx, by, bz]} />
       {children}
     </group>
   )
@@ -744,6 +1131,45 @@ function CoinJingleZombieMesh({ hitFlash, reg }) {
   )
 }
 
+// 신규 일반 좀비 12종 전부가 쓰는 단 하나의 포즈형 박스 컴포넌트.
+// 타입별 차이는 POSED_ZOMBIE_RIGS 데이터(비례·포즈·표식 하나)만으로 만든다.
+const POSED_ZOMBIE_GROUP_KEYS = ['head', 'body', 'armL', 'armR', 'legL', 'legR']
+
+function PosedBoxZombieMesh({ type, hitFlash, reg }) {
+  const rig = POSED_ZOMBIE_RIGS[type]
+  const pal = ZOMBIE_PALETTE[type] ?? ZOMBIE_PALETTE.E01
+  const parts = buildPosedZombieParts(type)
+  const colorOf = (role) => (
+    role === 'eye' ? pal.eye
+      : role === 'skin' ? pal.skin
+        : role === 'foot' ? ZOMBIE_SHOE_COLOR
+          : role === 'mark' ? (pal.mark ?? pal.skin)
+            : pal.body
+  )
+
+  return (
+    <group name={`posedBoxZombie${type}`}>
+      {POSED_ZOMBIE_GROUP_KEYS.map((key) => (
+        <group key={key} ref={reg(key)} position={rig[key].pivot} rotation={rig[key].rot}>
+          {parts.map((part, index) => part.key !== key ? null : (
+            <ZBlock
+              key={index}
+              name={`${type}-part-${index}`}
+              size={part.size}
+              boxScale={part.box}
+              position={part.offset}
+              color={colorOf(part.role)}
+              emissive={POSED_ZOMBIE_PART_EMISSIVE[index]}
+              outlineScale={part.outline}
+              flash={hitFlash}
+            />
+          ))}
+        </group>
+      ))}
+    </group>
+  )
+}
+
 function OutlineBlock({ size, position, rotation, scale = 1.08 }) {
   const geo = getCachedChamferedBoxGeo(...size, ZOMBIE_CHARACTER_CHAMFER_STEPS)
   const mat = getSharedOutlineMat()
@@ -789,6 +1215,9 @@ function setZombieScale(object, multiplier) {
 export default function ZombieMesh({ type = 'E01', animPhase = 'normal', hitFlash = false, isMatilda = false, staticPose = false, titleRunPose = false, bossFaceRecipe }) {
   const p    = useRef({})
   const pal  = ZOMBIE_PALETTE[type] ?? ZOMBIE_PALETTE.E01
+  // 포즈형 12종은 공유 보행 애니메이션을 그대로 쓰되, 각 파츠의 휴지 포즈를 0이 아니라
+  // 리그 값으로 수렴시킨다. 그렇지 않으면 정체성인 포즈가 매 프레임 0으로 지워진다.
+  const posedRig = POSED_ZOMBIE_RIGS[type] ?? null
   const specialAgeRef = useRef(0)
   // 누적(+=,*=) 애니메이션의 순수 오프셋만 담는다. THREE 오브젝트의 rotation을 직접
   // 읽어 누적하면 거기 이미 섞여 들어간 스튜디오 오프셋까지 감쇠·수렴 대상이 되어
@@ -836,7 +1265,14 @@ export default function ZombieMesh({ type = 'E01', animPhase = 'normal', hitFlas
     const t = state.clock.elapsedTime
     specialAgeRef.current = specialActive ? specialAgeRef.current + delta : 0
     const a = anim.current
-    const bodyTiltX = animPhase === 'charge' ? 0.45 : 0
+    const restHeadX = posedRig ? posedRig.head.rot[0] : 0
+    const restHeadZ = posedRig ? posedRig.head.rot[2] : 0
+    const restBodyZ = posedRig ? posedRig.body.rot[2] : 0
+    const restArmLZ = posedRig ? posedRig.armL.rot[2] : 0
+    const restArmRZ = posedRig ? posedRig.armR.rot[2] : 0
+    const restLegLX = posedRig ? posedRig.legL.rot[0] : 0
+    const restLegRX = posedRig ? posedRig.legR.rot[0] : 0
+    const bodyTiltX = (animPhase === 'charge' ? 0.45 : 0) + (posedRig ? posedRig.body.rot[0] : 0)
     const titleB03Charge = titleRunPose && type === 'B03' && animPhase === 'charge'
     const b03ChargeTorsoLift = titleB03Charge
       ? Math.sin(bodyTiltX) * 0.23
@@ -940,20 +1376,20 @@ export default function ZombieMesh({ type = 'E01', animPhase = 'normal', hitFlas
     if (pt.body) {
       a.bodyRotX += (bodyTiltX - a.bodyRotX) * Math.min(1, delta * 12)
       pt.body.rotation.x = composeZombieRotation(pt.body, 'x', a.bodyRotX)
-      a.bodyRotZ += (0 - a.bodyRotZ) * Math.min(1, delta * 8)
+      a.bodyRotZ += (restBodyZ - a.bodyRotZ) * Math.min(1, delta * 8)
       pt.body.rotation.z = composeZombieRotation(pt.body, 'z', a.bodyRotZ)
     }
     if (pt.head) {
-      a.headRotX += (0 - a.headRotX) * Math.min(1, delta * 8)
+      a.headRotX += (restHeadX - a.headRotX) * Math.min(1, delta * 8)
       pt.head.rotation.x = composeZombieRotation(pt.head, 'x', a.headRotX)
     }
     a.armLRotY += (0 - a.armLRotY) * Math.min(1, delta * 6)
     pt.armL.rotation.y = composeZombieRotation(pt.armL, 'y', a.armLRotY)
     a.armRRotY += (0 - a.armRRotY) * Math.min(1, delta * 6)
     pt.armR.rotation.y = composeZombieRotation(pt.armR, 'y', a.armRRotY)
-    a.armLRotZ += (0 - a.armLRotZ) * Math.min(1, delta * 6)
+    a.armLRotZ += (restArmLZ - a.armLRotZ) * Math.min(1, delta * 6)
     pt.armL.rotation.z = composeZombieRotation(pt.armL, 'z', a.armLRotZ)
-    a.armRRotZ += (0 - a.armRRotZ) * Math.min(1, delta * 6)
+    a.armRRotZ += (restArmRZ - a.armRRotZ) * Math.min(1, delta * 6)
     pt.armR.rotation.z = composeZombieRotation(pt.armR, 'z', a.armRRotZ)
 
     // stun: 멈춤
@@ -999,19 +1435,21 @@ export default function ZombieMesh({ type = 'E01', animPhase = 'normal', hitFlas
       ? (animPhase === 'charge' ? 0.46 : 0.30)
       : (titleRunPose && type === 'B03' && animPhase === 'charge' ? 0.30 : (animPhase === 'charge' ? 0.55 : 0.38))
     const sw   = Math.sin(t * freq) * amp
-    a.legLRotX = sw
+    a.legLRotX = restLegLX + sw
     pt.legL.rotation.x = composeZombieRotation(pt.legL, 'x', a.legLRotX)
-    a.legRRotX = -sw
+    a.legRRotX = restLegRX - sw
     pt.legR.rotation.x = composeZombieRotation(pt.legR, 'x', a.legRRotX)
 
     // 좀비 팔: 항상 앞으로 뻗은 상태에서 소폭 흔들림
     const armBase = type === 'B02' ? -1.05 : -1.15
     const armAmp = type === 'B02' ? 0.045 : 0.06
-    pt.armL.rotation.x = composeZombieRotation(pt.armL, 'x', armBase + Math.sin(t * 2.8) * armAmp)
-    pt.armR.rotation.x = composeZombieRotation(pt.armR, 'x', armBase + Math.sin(t * 2.8 + Math.PI) * armAmp)
+    const armBaseL = posedRig ? posedRig.armL.rot[0] : armBase
+    const armBaseR = posedRig ? posedRig.armR.rot[0] : armBase
+    pt.armL.rotation.x = composeZombieRotation(pt.armL, 'x', armBaseL + Math.sin(t * 2.8) * armAmp)
+    pt.armR.rotation.x = composeZombieRotation(pt.armR, 'x', armBaseR + Math.sin(t * 2.8 + Math.PI) * armAmp)
 
     // 머리 흔들림
-    if (pt.head) pt.head.rotation.z = composeZombieRotation(pt.head, 'z', Math.sin(t * 1.6) * (type === 'B02' ? 0.045 : 0.07))
+    if (pt.head) pt.head.rotation.z = composeZombieRotation(pt.head, 'z', restHeadZ + Math.sin(t * 1.6) * (type === 'B02' ? 0.045 : 0.07))
   })
 
   if (!isMatilda && getExpansionVisual(type)) {
@@ -1088,6 +1526,16 @@ export default function ZombieMesh({ type = 'E01', animPhase = 'normal', hitFlas
     )
   }
 
+  // 신규 일반 좀비 12종(E34-E45). 전용 컴포넌트 12개가 아니라 리그 데이터로 구동되는
+  // 포즈형 박스 가족 하나를 공유한다.
+  if (posedRig) {
+    return (
+      <StudioTunedGroup itemId={getStudioZombieItemId(type)}>
+        <PosedBoxZombieMesh type={type} hitFlash={hitFlash} reg={reg} />
+      </StudioTunedGroup>
+    )
+  }
+
   return (
     <StudioTunedGroup itemId={getStudioZombieItemId(type)}>
       <group>
@@ -1119,13 +1567,13 @@ export default function ZombieMesh({ type = 'E01', animPhase = 'normal', hitFlas
       {/* ── 왼다리 (힙 pivot, 신발 포함) ── */}
       <group ref={reg('legL')} position={[-0.15, 0.00, 0]}>
         <ZBlock size={[0.22, 0.52, 0.26]} position={[0, -0.26, 0]}   color={pal.body} emissive={0.10} outlineScale={1.06} flash={hitFlash} />
-        <ZBlock size={[0.24, 0.12, 0.34]} position={[0, -0.57, 0.05]} color={0x1a1a1a} emissive={0.05} outlineScale={1.03} flash={hitFlash} />
+        <ZBlock size={[0.24, 0.12, 0.34]} position={[0, -0.57, 0.05]} color={ZOMBIE_SHOE_COLOR} emissive={0.05} outlineScale={1.03} flash={hitFlash} />
       </group>
 
       {/* ── 오른다리 (힙 pivot, 신발 포함) ── */}
       <group ref={reg('legR')} position={[ 0.15, 0.00, 0]}>
         <ZBlock size={[0.22, 0.52, 0.26]} position={[0, -0.26, 0]}   color={pal.body} emissive={0.10} outlineScale={1.06} flash={hitFlash} />
-        <ZBlock size={[0.24, 0.12, 0.34]} position={[0, -0.57, 0.05]} color={0x1a1a1a} emissive={0.05} outlineScale={1.03} flash={hitFlash} />
+        <ZBlock size={[0.24, 0.12, 0.34]} position={[0, -0.57, 0.05]} color={ZOMBIE_SHOE_COLOR} emissive={0.05} outlineScale={1.03} flash={hitFlash} />
       </group>
       </group>
     </StudioTunedGroup>

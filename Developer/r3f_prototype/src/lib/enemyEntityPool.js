@@ -25,12 +25,35 @@ export const ENEMY_TYPE_CODES = Object.freeze({
   E07: 15,
   // E08 "동전 짤랑 좀비" — 아직 스폰 스케줄에는 넣지 않고 치트 소환/시각 검수 전용으로 등록한다.
   E08: 16,
+  // 17~36 = 확장 콘텐츠(E19~E33 = 17~31, B05~B09 = 32~36). expansionContent.js가 소유한다.
   ...Object.fromEntries(expansionRows.map(e => [e.id, e.typeCode])),
+  // 37~48 = Track B 신규 일반 좀비 12종(2026-10-25 승인).
+  // 설계 정본: Planner/stage_zombie_original_concepts_20261025.md, 행동 런타임: lib/novelZombieBehavior.js.
+  // 이 할당은 메시/팔레트 담당(ZombieMesh/ZombieInstanceLayer)과 사전 합의된 고정 번호다 — 재배열 금지.
+  E34: 37,  // 박자접기형   (Stage 1)
+  E35: 38,  // 모서리비껴형 (Stage 1)
+  E36: 39,  // 반걸음되짚기형 (Stage 1)
+  E37: 40,  // 빗금엇갈림형 (Stage 2)
+  E38: 41,  // 빈칸반응형   (Stage 2)
+  E39: 42,  // 선끝접기형   (Stage 2)
+  E40: 43,  // 중심축비틀기형 (Stage 3)
+  E41: 44,  // 쌍박자교대형 (Stage 3)
+  E42: 45,  // 반원발맞춤형 (Stage 3)
+  E43: 46,  // 엇높이교차형 (Stage 4)
+  E44: 47,  // 발맞춤후퇴형 (Stage 4)
+  E45: 48,  // 무게중심넘김형 (Stage 4)
 })
+
+// 인덱스 = typeCode. 리터럴 17개(0~16) + 확장 20개(17~36) + Track B 12개(37~48).
+// ⚠ 순서를 바꾸면 모든 typeCode가 밀린다. 새 타입은 반드시 배열 끝에만 붙인다.
+export const NOVEL_ZOMBIE_TYPE_IDS = Object.freeze([
+  'E34', 'E35', 'E36', 'E37', 'E38', 'E39', 'E40', 'E41', 'E42', 'E43', 'E44', 'E45',
+])
 
 export const ENEMY_TYPE_NAMES = Object.freeze([
   '', 'E01', 'E02', 'E03', 'E04', 'E05', 'E06', 'RZL', 'RZC', 'B01', 'B02', 'B03', 'B04', 'RZT', 'RZG', 'E07', 'E08',
   ...expansionRows.map(e => e.id),
+  ...NOVEL_ZOMBIE_TYPE_IDS,
 ])
 
 const MAX_GENERATION = MAX_ENEMY_GENERATION
@@ -69,6 +92,52 @@ function readFinite(source, key, fallback) {
 /**
  * 고정 크기 적 엔티티 풀이다. `spawnInto`와 `getHandleInto`는 프레임 루프용 무할당 API다.
  */
+// ── 동일 종 N기 위상 동기화 해제 ─────────────────────────────────────────────
+// 결함: 같은 종을 여러 기 스폰하면 전부 같은 프레임에 같은 상태로 움직여, 마릿수가
+// 늘어도 압력이 늘지 않았다(levelmini 실측: E40/E42/E43은 1기와 4기의 dps가 동일,
+// E39x3 = E39x1). `formation: 'ring'`은 거리까지 균등해 동기가 절대 깨지지 않는다.
+//
+// 해결: 스폰 시 슬롯별 **결정론적 위상 오프셋**을 attackCooldown에 심는다.
+// 신규 12종의 APPROACH->TELEGRAPH 진입 조건이 `attackCooldown <= 0`이므로, 이 값은
+// "첫 예고에 들어가는 시각"만 어긋나게 하고 **예고 길이(telegraphMs)는 건드리지 않는다**.
+// 따라서 "예고 >= 18프레임" 가독성 계약과 novelZombieBehavior의 불변식 5
+// (trigger * sin(theta) <= contactDist + reach)는 그대로 유지된다.
+//
+// 신규 12종에만 적용하는 이유: 기존 타입은 이 주기 구조가 없거나(E01~E03/E07 단순 추적),
+// 있어도(E05 warn/charge/stun) 스테이지 1~4 스폰 예산이 HEAD와 비트 단위로 고정돼 있어
+// 흩트리면 기존 밸런스가 바뀐다. 가장 보수적인 선택이다.
+//
+// Math.random()을 쓰지 않는다 — stageMultiHzParity 등 시뮬레이션 패리티가 깨진다.
+const NOVEL_PHASE_TYPE_MIN = 37
+const NOVEL_PHASE_TYPE_MAX = 48
+// 대략 한 주기(예고+공격+회복+쿨다운, 12종 평균 약 1.2초)에 걸쳐 고르게 흩는다.
+export const NOVEL_SPAWN_PHASE_SPREAD_MS = 1200
+// 황금비 저불일치 수열. 슬롯이 연속으로 배정돼도 위상이 뭉치지 않는다.
+const GOLDEN_RATIO_CONJUGATE = 0.6180339887498949
+
+export function isNovelPhaseTypeCode(typeCode) {
+  return typeCode >= NOVEL_PHASE_TYPE_MIN && typeCode <= NOVEL_PHASE_TYPE_MAX
+}
+
+// 주기마다 다시 얹는 소폭 오프셋. 스폰 스프레드보다 훨씬 작게 둔다 -- 크면 그 슬롯의
+// 주기 자체가 길어져 개체 dps가 깎인다. 슬롯 0은 항상 0이라 1기 dps는 불변이다.
+export const NOVEL_CYCLE_PHASE_SPREAD_MS = 420
+export function getNovelCyclePhaseOffsetMs(index) {
+  return novelPhaseFraction(index) * NOVEL_CYCLE_PHASE_SPREAD_MS
+}
+
+// 슬롯 index만 쓴다(generation 미사용). 슬롯 0은 항상 오프셋 0이므로 1기 측정이
+// 수정 전과 비트 단위로 같고, 슬롯 재사용에도 같은 슬롯은 같은 위상을 유지한다.
+export function novelPhaseFraction(index) {
+  if (!Number.isFinite(index) || index < 0) return 0
+  return ((Math.floor(index) >>> 0) * GOLDEN_RATIO_CONJUGATE) % 1
+}
+
+export function getNovelSpawnPhaseOffsetMs(index) {
+  return novelPhaseFraction(index) * NOVEL_SPAWN_PHASE_SPREAD_MS
+}
+
+
 export class EnemyEntityPool {
   constructor() {
     this.active = new Uint8Array(MAX_ENEMIES)
@@ -221,6 +290,7 @@ export class EnemyEntityPool {
     const spawnTimer = readFinite(source, 'spawnTimer', 0)
     const stateTimer = readFinite(source, 'stateTimer', 0)
     const attackCooldown = readFinite(source, 'attackCooldown', 0)
+    const hasExplicitAttackCooldown = Number.isFinite(source.attackCooldown)
     const hitCooldown = readFinite(source, 'hitCooldown', 0)
     const lifetime = readFinite(source, 'lifetime', 0)
     const knockbackX = readFinite(source, 'knockbackX', 0)
@@ -272,7 +342,10 @@ export class EnemyEntityPool {
     this.state[index] = state
     this.spawnTimer[index] = spawnTimer
     this.stateTimer[index] = stateTimer
-    this.attackCooldown[index] = attackCooldown
+    // 호출자가 명시하지 않은 신규 12종만 위상 오프셋을 받는다(명시값은 그대로 보존).
+    this.attackCooldown[index] = !hasExplicitAttackCooldown && isNovelPhaseTypeCode(typeCode)
+      ? getNovelSpawnPhaseOffsetMs(index)
+      : attackCooldown
     this.hitCooldown[index] = hitCooldown
     this.lifetime[index] = lifetime
     this.knockbackX[index] = knockbackX

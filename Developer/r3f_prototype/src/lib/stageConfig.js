@@ -6,6 +6,8 @@ export const DEFAULT_STAGE_ID = 'stage1'
 
 // Release entry boundary only; all content definitions and saved boss evidence remain intact.
 export const VISIBLE_STAGE_IDS = Object.freeze(['stage1', 'stage2', 'stage3', 'stage4'])
+// Lobby-list alias (contract 2026-10-24 §3: Stage1-4 exposure stays fixed; unlock records are separate).
+export const LOBBY_STAGE_IDS = VISIBLE_STAGE_IDS
 export function isStageVisible(stageId) {
   return VISIBLE_STAGE_IDS.includes(stageId)
 }
