@@ -299,21 +299,50 @@ describe('App virtual joystick mounting', () => {
     }
   })
 
-  it('preserves the restored portrait frame on narrow iPhone SE screens', async () => {
+  it('uses the full viewport on portrait phone screens so narrow iPhone SE is not pillarboxed', async () => {
     setInputEnvironment({
       maxTouchPoints: 5,
       userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) Mobile/15E148',
       coarse: true,
     })
+    const previousSize = [window.innerWidth, window.innerHeight]
+    Object.defineProperty(window, 'innerWidth', { configurable: true, value: 375 })
+    Object.defineProperty(window, 'innerHeight', { configurable: true, value: 667 })
+    try {
+      const view = await renderAppAndStart()
+      const viewport = view.container.querySelector('[data-viewport-mode]')
+      const phoneFrame = Array.from(viewport.children).find((el) => el.style.position === 'relative')
+      expect(viewport.dataset.viewportMode).toBe('full')
+      expect(phoneFrame.style.width).toBe('100vw')
+      expect(phoneFrame.style.aspectRatio).toBe('auto')
+      expect(viewport.style.backgroundImage).toBe('')
+      view.unmount()
+    } finally {
+      Object.defineProperty(window, 'innerWidth', { configurable: true, value: previousSize[0] })
+      Object.defineProperty(window, 'innerHeight', { configurable: true, value: previousSize[1] })
+    }
+  })
 
-    const view = await renderAppAndStart()
-    const phoneFrame = view.container.querySelector('[data-testid="virtual-joystick-mounted"]').parentElement
-
-    // jsdom does not parse min() with dvh; the browser QA checks computed width.
-    expect(ReadyGameAppSource).toContain("width: 'min(100vw, 720px, 56.25dvh)'")
-    expect(phoneFrame.style.height).toBe('auto')
-    expect(phoneFrame.style.aspectRatio).toBe('9 / 16')
-    view.unmount()
+  it('keeps the restored 9:16 portrait frame and side gutter on wide desktop web screens', async () => {
+    setInputEnvironment({ maxTouchPoints: 0, userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)', coarse: false })
+    const previousSize = [window.innerWidth, window.innerHeight]
+    Object.defineProperty(window, 'innerWidth', { configurable: true, value: 1440 })
+    Object.defineProperty(window, 'innerHeight', { configurable: true, value: 900 })
+    try {
+      const view = await renderAppAndStart()
+      const viewport = view.container.querySelector('[data-viewport-mode]')
+      const phoneFrame = Array.from(viewport.children).find((el) => el.style.position === 'relative')
+      expect(viewport.dataset.viewportMode).toBe('framed')
+      // jsdom does not parse min() with dvh; the browser QA checks computed width.
+      expect(ReadyGameAppSource).toContain("width: 'min(100vw, 720px, 56.25dvh)'")
+      expect(phoneFrame.style.height).toBe('auto')
+      expect(phoneFrame.style.aspectRatio).toBe('9 / 16')
+      expect(viewport.style.backgroundImage).toContain('.webp')
+      view.unmount()
+    } finally {
+      Object.defineProperty(window, 'innerWidth', { configurable: true, value: previousSize[0] })
+      Object.defineProperty(window, 'innerHeight', { configurable: true, value: previousSize[1] })
+    }
   })
 
   it('does not mount the virtual joystick on desktop web environments', async () => {

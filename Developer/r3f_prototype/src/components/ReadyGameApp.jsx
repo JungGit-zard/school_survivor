@@ -112,6 +112,18 @@ export default function ReadyGameApp({
     if (settings) applyLanguage(settings.language)
   }, [authUser?.uid, progressStatus])
 
+  const [fullBleedViewport, setFullBleedViewport] = useState(isPortraitViewport)
+
+  useEffect(() => {
+    const update = () => setFullBleedViewport(isPortraitViewport())
+    window.addEventListener('resize', update)
+    window.addEventListener('orientationchange', update)
+    return () => {
+      window.removeEventListener('resize', update)
+      window.removeEventListener('orientationchange', update)
+    }
+  }, [])
+
   useEffect(() => {
     function updateMobileInputMode() {
       setMobileJoystickEnabled(isMobileJoystickEnvironment())
@@ -185,18 +197,23 @@ export default function ReadyGameApp({
     if (await useGameStore.getState().flushProgressBeforeTransition()) setScreen(destination)
   }
 
+  // 넓은 웹 화면: 좌우 배경(사이드 거터) + 중앙 9:16 세로 프레임(6a72e281 복원 구조).
+  // 세로로 긴 화면(실제 휴대폰·TWA)은 프레임 없이 전체화면 그대로 쓴다.
   const viewportStyle = {
     ...styles.viewport,
-    ...getSelectedWebBackgroundStyle(),
+    ...(fullBleedViewport ? null : getSelectedWebBackgroundStyle()),
   }
+  const phoneFrameStyle = fullBleedViewport
+    ? { ...styles.phoneFrame, ...styles.phoneFrameFullBleed }
+    : styles.phoneFrame
 
   return (
-    <div style={viewportStyle}>
+    <div style={viewportStyle} data-viewport-mode={fullBleedViewport ? 'full' : 'framed'}>
       <ErrorBoundary fallback={null}>
         <TapFeedbackBurst />
         <Suspense fallback={null}><SfxLayer /></Suspense>
       </ErrorBoundary>
-      <div ref={phoneFrameRef} style={styles.phoneFrame}>
+      <div ref={phoneFrameRef} style={phoneFrameStyle}>
         {screen === 'auth-return' && <ScreenLoading label={t('loading.game')} />}
         {screen === 'title' && (
           <ErrorBoundary fallback={({ error, retry, reload }) => <ScreenFailure label={t('loading.game')} error={error} retry={retry} reload={reload} />}>
@@ -369,4 +386,19 @@ const styles = {
     overflow: 'hidden',
     background: '#16121d',
   },
+  phoneFrameFullBleed: {
+    width: '100vw',
+    height: '100dvh',
+    aspectRatio: 'auto',
+    maxHeight: 'none',
+  },
+}
+
+// 가로:세로가 3:4 이하(세로로 긴 화면)면 휴대폰/TWA로 보고 전체화면으로 쓴다.
+function isPortraitViewport() {
+  if (typeof window === 'undefined') return true
+  const w = window.innerWidth || 0
+  const h = window.innerHeight || 0
+  if (!w || !h) return true
+  return w / h <= 0.75
 }

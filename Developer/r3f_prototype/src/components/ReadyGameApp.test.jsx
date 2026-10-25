@@ -164,19 +164,19 @@ describe('ReadyGameApp stage bypass hydration', () => {
     expect(mocks.gameStore.submitRunToRanking).toHaveBeenLastCalledWith({ uid: 'google' }, expect.objectContaining({ score: 0 }))
     view.unmount()
   })
-  it('applies one external side-gutter background from the /game title screen onward and preserves the phoneFrame contract', async () => {
+  it('applies one build-internal side-gutter background from the /game title screen onward and preserves the phoneFrame contract', async () => {
     const view = await renderReadyWithoutEntering(
       { authUser: { uid: 'first' }, progressStatus: 'ready' },
     )
     const viewport = view.container.firstElementChild
 
-    expect(WEB_BACKGROUND_URLS).toHaveLength(4)
-    expect(WEB_BACKGROUND_URLS).toEqual([
-      'https://escape-zombie-school-assets.web.app/web-side-gutters/v2/web_game_side_gutters_01.png',
-      'https://escape-zombie-school-assets.web.app/web-side-gutters/v1/web_game_side_gutters_02.png',
-      'https://escape-zombie-school-assets.web.app/web-side-gutters/v1/web_game_side_gutters_03.png',
-      'https://escape-zombie-school-assets.web.app/web-side-gutters/v1/web_game_side_gutters_04.png',
-    ])
+    // 외부 assets.web.app(509) 대신 게임 빌드 내부 WebP 거터를 쓴다(2026-10-25).
+    expect(WEB_BACKGROUND_URLS.length).toBeGreaterThan(0)
+    WEB_BACKGROUND_URLS.forEach((url) => {
+      expect(url).toMatch(/\.webp$/)
+      expect(url).not.toMatch(/^https?:/)
+    })
+    expect(viewport.dataset.viewportMode).toBe('framed')
     expect(WEB_BACKGROUND_URLS).toContain(selectedWebBackgroundUrl)
     expect(ReadyGameAppSource).not.toContain('../assets/backgrounds/web_game_side_gutters_16x9.png')
     expect(ReadyGameAppSource).not.toContain('localStorage')
