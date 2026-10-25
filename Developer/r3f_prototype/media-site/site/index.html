@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>연필 구조대의 학교 일지 · 탈출! 좀비학교 4컷 만화</title>
+  <meta name="description" content="탈출! 좀비학교 공식 4컷 만화 — 연필 구조대의 학교 일지 (한국어 · English · 日本語 · Tiếng Việt)" />
+  <meta name="theme-color" content="#2563EB" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%237C3AED'/%3E%3Ctext x='16' y='24' font-size='22' font-family='sans-serif' font-weight='900' text-anchor='middle' fill='%23fff'%3E!%3C/text%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="styles.css" />
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#comic-list">본문으로 건너뛰기</a>
+  <header class="site-header">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">!</span>
+      <div>
+        <p class="eyebrow" data-ui="label">4-CUT COMICS</p>
+        <h1 data-ui="title">연필 구조대의 학교 일지</h1>
+      </div>
+    </div>
+    <label class="language">
+      <span class="visually-hidden" data-ui="languageLabel">언어 선택</span>
+      <select id="language-select" aria-label="언어 선택"></select>
+    </label>
+  </header>
+
+  <main id="main">
+    <p class="intro" data-ui="intro"></p>
+    <ul id="comic-list" class="comic-list" aria-label="4컷 만화 목록"></ul>
+    <noscript><p class="intro">만화 목록을 보려면 JavaScript를 켜 주세요.</p></noscript>
+  </main>
+
+  <footer class="site-footer">
+    <span>ESCAPE! ZOMBIE SCHOOL</span>
+    <a class="game-link" href="https://escapezombie.com/" rel="noopener" data-ui="playGame">게임 시작</a>
+  </footer>
+
+  <dialog id="viewer" class="viewer" aria-labelledby="viewer-title">
+    <div class="viewer-header">
+      <h2 id="viewer-title"></h2>
+      <button type="button" class="viewer-close" data-action="close">닫기</button>
+    </div>
+    <div class="viewer-body">
+      <img id="viewer-image" alt="" decoding="async" />
+    </div>
+    <div class="viewer-controls">
+      <button type="button" data-action="prev">이전 편</button>
+      <span id="viewer-count" aria-live="polite"></span>
+      <button type="button" data-action="next">다음 편</button>
+    </div>
+  </dialog>
+</body>
+</html>

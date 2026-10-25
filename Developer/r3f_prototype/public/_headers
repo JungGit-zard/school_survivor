@@ -1,0 +1,28 @@
+# Cloudflare Pages headers — game project A (escapezombie.com)
+# Mirrors firebase.json hosting.headers (commit 68cf2e59). Owner: backendmini.
+
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+
+/
+  Cache-Control: no-cache, must-revalidate
+
+/index.html
+  Cache-Control: no-cache, must-revalidate
+
+/game
+  Cache-Control: no-cache
+
+/game/*
+  Cache-Control: no-cache
+
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/sfx/*
+  Cache-Control: public, max-age=86400
+
+/.well-known/assetlinks.json
+  Content-Type: application/json
+  Cache-Control: public, max-age=3600

@@ -1,6 +1,6 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import { appendFile, mkdir, writeFile } from 'node:fs/promises'
+import { appendFile, cp, mkdir, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import { spawn } from 'node:child_process'
 import { firebaseDatabaseMemoryStoragePlugin } from './scripts/firebase-database-memory-storage.mjs'
@@ -160,8 +160,45 @@ function runtimePlaytestLogPlugin() {
   }
 }
 
+// 게임 dist(escapezombie.com)에는 만화·마케팅·오디션/QA 파일을 한 장도 넣지 않는다.
+// 만화는 별도 미디어 사이트(media-site/site)에서만 제공한다. public/ 원본은 보관용으로 그대로 둔다(dev 서버는 계속 서빙).
+export const GAME_DIST_PUBLIC_EXCLUDES = Object.freeze([
+  'comics',
+  'share',
+  'blog',
+  'web-comics',
+  'sfx/audition-20261016',
+  'sfx-audition-20261016.html',
+  '__inucon_preview.html',
+])
+
+export function isExcludedFromGameDist(relativePath) {
+  const normalized = relativePath.split(path.sep).join('/')
+  return GAME_DIST_PUBLIC_EXCLUDES.some((entry) => normalized === entry || normalized.startsWith(`${entry}/`))
+}
+
+function copyPublicWithoutMediaPlugin() {
+  let publicDir = ''
+  let outDir = ''
+  return {
+    name: 'copy-public-without-media',
+    apply: 'build',
+    configResolved(config) {
+      publicDir = config.publicDir
+      outDir = path.resolve(config.root, config.build.outDir)
+    },
+    async closeBundle() {
+      if (!publicDir) return
+      await cp(publicDir, outDir, {
+        recursive: true,
+        filter: (source) => !isExcludedFromGameDist(path.relative(publicDir, source)),
+      })
+    },
+  }
+}
+
 export default defineConfig({
-  plugins: [firebaseDatabaseMemoryStoragePlugin(), forbiddenProjectHostPlugin(), react(), runtimePlaytestLogPlugin()],
+  plugins: [firebaseDatabaseMemoryStoragePlugin(), forbiddenProjectHostPlugin(), react(), runtimePlaytestLogPlugin(), copyPublicWithoutMediaPlugin()],
   optimizeDeps: {
     rolldownOptions: {
       plugins: [firebaseDatabaseMemoryStoragePlugin()],
@@ -174,6 +211,8 @@ export default defineConfig({
     allowedHosts: true,
   },
   build: {
+    // public/ 복사는 copyPublicWithoutMediaPlugin이 제외 목록을 적용해 대신 수행한다.
+    copyPublicDir: false,
     modulePreload: {
       // Title/Game 3D는 lazy chunk 뒤에서만 필요하다. HTML preload에서 제외해 첫 화면 네트워크를 줄인다.
       resolveDependencies(_, deps) {

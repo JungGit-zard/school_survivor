@@ -4,9 +4,10 @@ import { createRoot } from 'react-dom/client'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import WebLandingPage, { LANDING_FEATURE_VIDEO_URL, LANDING_HERO_VIDEO_URL } from './WebLandingPage.jsx'
 import { LANDING_COPY, LANDING_LANGUAGES } from './webLandingCopy.js'
-import { dailyWebComics } from './dailyWebComics.js'
 import webLandingSource from './WebLandingPage.jsx?raw'
-import { WEB_BACKGROUND_URLS, WEB_LANDING_ART_URLS, WEB_LANDING_COMIC_URLS, getWebBacklogComicUrl, selectedWebBackgroundUrl } from '../lib/webBackgroundAssets.js'
+import { WEB_BACKGROUND_THUMB_URLS, WEB_BACKGROUND_URLS, WEB_LANDING_ART_URLS, selectedWebBackgroundUrl } from '../lib/webBackgroundAssets.js'
+import webBackgroundAssetsSource from '../lib/webBackgroundAssets.js?raw'
+import { MEDIA_SITE_URL, getMediaSiteComicsUrl } from '../lib/mediaSite.js'
 
 vi.mock('./TitleSceneCanvas.jsx', () => ({ default: ({ style }) => <div data-testid="title-scene-canvas" style={style} /> }))
 vi.mock('../lib/firebaseBoard.js', () => ({ subscribeBoardPosts: (onData) => { onData([]); return () => {} } }))
@@ -29,61 +30,6 @@ function renderLanding() {
 afterEach(() => { vi.restoreAllMocks(); vi.unstubAllGlobals(); document.body.innerHTML = '' })
 
 describe('WebLandingPage', () => {
-  it('selects localized artwork for all five legacy comics in all six homepage languages', () => {
-    const view = renderLanding()
-    act(() => view.container.querySelector('.web-landing__media-controls button').click())
-    const languageSelect = view.container.querySelector('#web-landing-language')
-    const originals = Object.values(WEB_LANDING_COMIC_URLS)
-    for (const { code } of LANDING_LANGUAGES) {
-      act(() => {
-        languageSelect.value = code
-        languageSelect.dispatchEvent(new Event('change', { bubbles: true }))
-      })
-      const cards = view.container.querySelectorAll('#comics .web-landing__comic-feature')
-      originals.forEach((original, index) => {
-        const expected = code === 'ko' ? original : original.replace('/web-comics/v3/', `/web-comics/localized-v3/${code}/`)
-        expect(cards[index].getAttribute('href')).toBe(expected)
-        expect(cards[index].querySelector('img').getAttribute('src')).toBe(expected)
-        expect(cards[index].querySelector('h3').textContent).toBe(LANDING_COPY[code].comics[index].title)
-        act(() => cards[index].dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true })))
-        expect(document.body.querySelector('.web-landing__comic-viewer-body img').getAttribute('src')).toBe(expected)
-        expect(document.body.querySelector('#comic-viewer-title').textContent).toBe(LANDING_COPY[code].comics[index].title)
-        act(() => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' })))
-      })
-    }
-    view.unmount()
-  })
-
-  it('selects matching daily artwork and copy in all six languages and navigates the expanded catalog', () => {
-    const view = renderLanding()
-    act(() => view.container.querySelector('.web-landing__media-controls button').click())
-    const languageSelect = view.container.querySelector('#web-landing-language')
-    const daily = dailyWebComics.at(-1)
-    const lastIndex = 4 + dailyWebComics.length
-    for (const { code } of LANDING_LANGUAGES) {
-      act(() => {
-        languageSelect.value = code
-        languageSelect.dispatchEvent(new Event('change', { bubbles: true }))
-      })
-      const card = view.container.querySelectorAll('#comics .web-landing__comic-feature')[lastIndex]
-      expect(card.querySelector('h3').textContent).toBe(daily.copy[code].title)
-      expect(card.querySelector('p').textContent).toBe(daily.copy[code].summary)
-      expect(card.querySelector('img').getAttribute('src')).toBe(daily.images[code])
-      act(() => card.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true })))
-      expect(document.body.querySelector('#comic-viewer-title').textContent).toBe(daily.copy[code].title)
-      expect(document.body.querySelector('.web-landing__comic-viewer-body img').getAttribute('src')).toBe(daily.images[code])
-      const controls = document.body.querySelector('.web-landing__comic-viewer-controls')
-      expect(controls.querySelector('span').textContent).toBe(`${lastIndex + 1} / ${5 + dailyWebComics.length + 10}`)
-      act(() => controls.querySelectorAll('button')[1].click())
-      const backlogImageLanguage = ['ko', 'en', 'ja', 'vi'].includes(code) ? code : 'ko'
-      expect(document.body.querySelector('.web-landing__comic-viewer-body img').getAttribute('src')).toBe(getWebBacklogComicUrl(backlogImageLanguage, 1))
-      act(() => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft' })))
-      expect(document.body.querySelector('.web-landing__comic-viewer-body img').getAttribute('src')).toBe(daily.images[code])
-      act(() => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' })))
-    }
-    view.unmount()
-  })
-
   it('shows the sticky game link only after passing the hero actions and hides it when returning', () => {
     let onVisibility
     const disconnect = vi.fn()
@@ -101,11 +47,6 @@ describe('WebLandingPage', () => {
     expect(sticky()).toBeNull()
     act(() => onVisibility([{ isIntersecting: false, boundingClientRect: { bottom: -1 } }]))
     expect(sticky()?.getAttribute('href')).toBe('/game')
-    act(() => view.container.querySelector('.web-landing__media-controls button').click())
-    act(() => view.container.querySelector('#comics .web-landing__comic-feature').dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true })))
-    expect(sticky()).toBeNull()
-    act(() => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' })))
-    expect(sticky()).not.toBeNull()
     act(() => onVisibility([{ isIntersecting: true, boundingClientRect: { bottom: 200 } }]))
     expect(sticky()).toBeNull()
     view.unmount()
@@ -257,12 +198,9 @@ describe('WebLandingPage', () => {
       expect(view.container.textContent).toContain(copy.headline)
       expect(view.container.textContent).toContain(copy.playWeb)
       act(() => view.container.querySelectorAll('.web-landing__media-controls button')[0].click())
-      expect(view.container.textContent).toContain(copy.comicsTitle)
-      expect(view.container.textContent).toContain(copy.comics[0].title)
-      act(() => view.container.querySelectorAll('.web-landing__media-controls button')[1].click())
       expect(view.container.textContent).toContain(copy.musicTitle)
       expect(view.container.textContent).toContain(copy.musicIdle)
-      act(() => view.container.querySelectorAll('.web-landing__media-controls button')[2].click())
+      act(() => view.container.querySelectorAll('.web-landing__media-controls button')[1].click())
       expect(view.container.textContent).toContain(copy.noVideo)
       expect(view.container.textContent).toContain(copy.videos[0])
     })
@@ -276,20 +214,21 @@ describe('WebLandingPage', () => {
     expect(view.container.querySelector('.web-landing__hero-video')).toBe(null)
     expect(view.container.querySelector('.web-landing__feature-video')).toBe(null)
     const controls = view.container.querySelectorAll('.web-landing__media-controls button')
-    expect(controls).toHaveLength(3)
-    expect(Array.from(controls, (button) => button.textContent)).toEqual(['만화 보기', '음악 듣기', '동영상 보기'])
+    expect(controls).toHaveLength(2)
+    expect(Array.from(controls, (button) => button.textContent)).toEqual(['음악 듣기', '동영상 보기'])
+    expect(view.container.querySelector('.web-landing__media-controls a.web-landing__media-link')?.textContent).toContain('만화 보기')
     expect(webLandingSource).toContain('grid-template-columns: repeat(3, minmax(0, 1fr))')
     expect(view.container.querySelector('#comics')).toBe(null)
     expect(view.container.querySelector('#music')).toBe(null)
     expect(view.container.querySelector('#videos')).toBe(null)
-    expect(Array.from(controls, (button) => button.getAttribute('aria-pressed'))).toEqual(['false', 'false', 'false'])
-    act(() => controls[2].click())
+    expect(Array.from(controls, (button) => button.getAttribute('aria-pressed'))).toEqual(['false', 'false'])
+    act(() => controls[1].click())
     expect(view.container.querySelector('#videos')).not.toBe(null)
-    expect(view.container.querySelector('#comics')).toBe(null)
     expect(view.container.querySelector('#music')).toBe(null)
     expect(view.container.textContent).toContain('승인된 영상 URL 없음')
-    expect(view.container.querySelectorAll('.web-landing__gallery-item')).toHaveLength(WEB_BACKGROUND_URLS.length)
-    WEB_BACKGROUND_URLS.forEach((url) => expect(view.container.innerHTML).toContain(url))
+    expect(view.container.querySelectorAll('.web-landing__video-card img[loading="lazy"]')).toHaveLength(3)
+    expect(view.container.querySelectorAll('img.web-landing__gallery-item[loading="lazy"][decoding="async"]')).toHaveLength(WEB_BACKGROUND_THUMB_URLS.length)
+    WEB_BACKGROUND_THUMB_URLS.forEach((url) => expect(view.container.innerHTML).toContain(url))
     Object.values(WEB_LANDING_ART_URLS).forEach((url) => expect(view.container.innerHTML).toContain(url))
     expect(view.container.querySelectorAll('.web-landing__info-card img[loading="lazy"][decoding="async"]')).toHaveLength(3)
     expect(webLandingSource).toContain('web-landing__mobile-sticky-cta')
@@ -301,70 +240,56 @@ describe('WebLandingPage', () => {
     view.unmount()
   })
 
-  it('renders legacy and daily full-width comic bars that open the approved full comics', () => {
+  it('serves no comic images in the game app and only links out to the separate media site', () => {
     const view = renderLanding()
-    expect(view.container.querySelector('a[href="#comics"]').textContent).toContain('4컷 만화 보기')
-    act(() => view.container.querySelector('.web-landing__media-controls button').click())
-    expect(view.container.querySelector('#comics')).not.toBe(null)
-    const comics = view.container.querySelectorAll('#comics .web-landing__comic-feature')
-    expect(comics).toHaveLength(5 + dailyWebComics.length + 10)
-    expect(view.container.textContent).toContain('출석은 그르르!')
-    expect(view.container.querySelectorAll('#comics img')).toHaveLength(5 + dailyWebComics.length + 10)
-    Object.values(WEB_LANDING_COMIC_URLS).forEach((url) => expect(view.container.innerHTML).toContain(url))
-    for (let episode = 1; episode <= 10; episode += 1) {
-      expect(view.container.innerHTML).toContain(getWebBacklogComicUrl('ko', episode))
-    }
-    comics.forEach((comic) => {
-      expect(comic.tagName).toBe('A')
-      expect(comic.getAttribute('target')).toBe('_blank')
-      expect(comic.querySelector('.web-landing__comic-thumbnail')).not.toBe(null)
-      expect(comic.querySelector('.web-landing__comic-action')?.textContent).toContain('전체 만화 보기')
+    const comicLinks = Array.from(view.container.querySelectorAll(`a[href="${getMediaSiteComicsUrl('ko')}"]`))
+    expect(comicLinks).toHaveLength(3)
+    comicLinks.forEach((link) => {
+      expect(link.getAttribute('target')).toBe('_blank')
+      expect(link.getAttribute('rel')).toBe('noopener')
+      expect(link.querySelector('img')).toBe(null)
     })
-    act(() => comics[0].dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true })))
-    expect(document.body.querySelector('[role="dialog"]')).not.toBe(null)
-    expect(document.body.querySelector('[role="dialog"] img')?.getAttribute('src')).toBe(WEB_LANDING_COMIC_URLS.attendance)
-    expect(document.body.querySelector('.web-landing__comic-viewer-body img')?.getAttribute('src')).toBe(WEB_LANDING_COMIC_URLS.attendance)
-    expect(webLandingSource).toContain('--comic-viewer-art-scale: 5')
-    expect(webLandingSource).toContain('--comic-viewer-old-slot-height: calc(min(92dvh, 980px) - 136px)')
-    expect(webLandingSource).toContain('--comic-viewer-source-ratio: 0.2546511628')
-    expect(webLandingSource).toContain('width: calc(var(--comic-viewer-old-artwork-width) * var(--comic-viewer-art-scale))')
-    expect(webLandingSource).toContain('overflow: auto')
-    expect(webLandingSource).not.toContain('.web-landing__comic-viewer img {\n  display: block;\n  width: 100%;\n  max-height: calc(min(92dvh, 980px) - 136px);')
-    expect(view.container.querySelector('.web-landing__mobile-sticky-cta')).toBe(null)
-    act(() => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' })))
-    expect(document.body.querySelector('[role="dialog"]')).toBe(null)
-    expect(view.container.querySelector('.web-landing__mobile-sticky-cta')).toBe(null)
-    expect(webLandingSource).toContain('grid-template-columns: minmax(180px, 0.36fr) minmax(0, 1fr)')
-    expect(webLandingSource).toContain('grid-template-columns: 132px minmax(0, 1fr)')
-    expect(webLandingSource).toContain('height: 136px')
-    expect(webLandingSource).toContain('height: 96px')
-    expect(webLandingSource).toContain('object-position: top')
-    expect(webLandingSource).toContain('@media (max-width: 600px)')
-    expect(webLandingSource).toContain('grid-template-columns: 96px minmax(0, 1fr)')
-    expect(webLandingSource).toContain('.web-landing__comic-copy p {\n    display: none;')
-    expect(webLandingSource).toContain('white-space: nowrap')
-    expect(webLandingSource).toContain('#16A34A')
+    expect(view.container.querySelector('.web-landing__nav-links a[href^="https://"]')?.textContent).toBe('4컷 만화 보기')
+    expect(getMediaSiteComicsUrl('ko').startsWith(MEDIA_SITE_URL)).toBe(true)
+    expect(new URL(MEDIA_SITE_URL).hostname).not.toBe('escapezombie.com')
+    act(() => comicLinks[0].dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true })))
+    expect(view.container.querySelector('[role="dialog"]')).toBe(null)
+    expect(view.container.querySelector('a[href="#comics"]')).toBe(null)
+    expect(webLandingSource).toContain('web-landing__mobile-sticky-cta')
+    const imageSources = Array.from(view.container.querySelectorAll('img'), (image) => image.getAttribute('src'))
+    imageSources.forEach((src) => expect(src).not.toMatch(/comic/i))
+    for (const source of [webLandingSource, webBackgroundAssetsSource]) {
+      expect(source).not.toMatch(/web-comics|\/comics\/|backlog-20261015|COMIC_EPISODES|comic-viewer/)
+      expect(source).not.toContain('assets.web.app')
+      expect(source).not.toMatch(/\.png['"]/)
+    }
     view.unmount()
   })
 
-  it('shows each backlog comic in its available image language and keeps every website locale', () => {
+  it('points the comic link at the media site in the selected language', () => {
     const view = renderLanding()
-    act(() => view.container.querySelector('.web-landing__media-controls button').click())
     const languageSelect = view.container.querySelector('#web-landing-language')
-    for (const { code } of LANDING_LANGUAGES) {
+    for (const language of ['ko', 'en', 'ja', 'vi']) {
       act(() => {
-        languageSelect.value = code
+        languageSelect.value = language
         languageSelect.dispatchEvent(new Event('change', { bubbles: true }))
       })
-      const comics = Array.from(view.container.querySelectorAll('#comics .web-landing__comic-feature'))
-      expect(comics).toHaveLength(5 + dailyWebComics.length + 10)
-      for (let episode = 1; episode <= 10; episode += 1) {
-        const backlogComic = comics[5 + dailyWebComics.length + episode - 1]
-        const availableImageLanguage = ['ko', 'en', 'ja', 'vi'].includes(code) ? code : 'ko'
-        expect(backlogComic.querySelector('img')?.getAttribute('src')).toBe(getWebBacklogComicUrl(availableImageLanguage, episode))
-        expect(backlogComic.querySelector('h3')?.textContent).not.toBe('')
-      }
+      expect(view.container.querySelector('.web-landing__media-link').getAttribute('href')).toBe(getMediaSiteComicsUrl(language))
+      expect(view.container.querySelector('.web-landing__nav-link[target="_blank"]').getAttribute('href')).toBe(`${MEDIA_SITE_URL}?lang=${language}`)
     }
+    view.unmount()
+  })
+
+  it('bundles local WebP landing art and loads every content image lazily', () => {
+    const view = renderLanding()
+    ;[...WEB_BACKGROUND_URLS, ...WEB_BACKGROUND_THUMB_URLS, ...Object.values(WEB_LANDING_ART_URLS)].forEach((url) => {
+      expect(url).toMatch(/\.webp$/)
+      expect(url).not.toMatch(/^https?:/)
+    })
+    expect(WEB_BACKGROUND_URLS).toContain(selectedWebBackgroundUrl)
+    const eagerImages = Array.from(view.container.querySelectorAll('img')).filter((image) => image.getAttribute('loading') !== 'lazy')
+    expect(eagerImages).toHaveLength(0)
+    expect(view.container.querySelectorAll('[style*="background-image"]')).toHaveLength(1)
     view.unmount()
   })
 
@@ -381,7 +306,7 @@ describe('WebLandingPage', () => {
 
   it('adds an accessible manual music player using only the existing locked title BGM source', () => {
     const view = renderLanding()
-    act(() => view.container.querySelectorAll('.web-landing__media-controls button')[1].click())
+    act(() => view.container.querySelectorAll('.web-landing__media-controls button')[0].click())
     const player = view.container.querySelector('audio')
     const musicButton = view.container.querySelector('.web-landing__music-button')
     expect(view.container.querySelector('#music')).not.toBe(null)
@@ -401,16 +326,14 @@ describe('WebLandingPage', () => {
     view.unmount()
   })
 
-  it('opens the matching collapsed panel from the existing comic, music, and video links', () => {
+  it('opens the matching collapsed panel from the existing music and video links', () => {
     const pause = vi.spyOn(HTMLMediaElement.prototype, 'pause').mockImplementation(() => {})
     const view = renderLanding()
-    const links = view.container.querySelectorAll('.web-landing__nav-links a[href="#comics"], .web-landing__nav-links a[href="#music"], .web-landing__nav-links a[href="#videos"]')
+    const links = view.container.querySelectorAll('.web-landing__nav-links a[href="#music"], .web-landing__nav-links a[href="#videos"]')
+    expect(links).toHaveLength(2)
     act(() => links[0].click())
-    expect(view.container.querySelector('#comics')).not.toBe(null)
-    act(() => links[1].click())
     expect(view.container.querySelector('#music')).not.toBe(null)
-    expect(view.container.querySelector('#comics')).toBe(null)
-    act(() => links[2].click())
+    act(() => links[1].click())
     expect(view.container.querySelector('#videos')).not.toBe(null)
     expect(view.container.querySelector('#music')).toBe(null)
     expect(pause).toHaveBeenCalled()

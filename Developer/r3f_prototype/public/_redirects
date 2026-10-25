@@ -1,0 +1,14 @@
+# Cloudflare Pages redirects — game project A (escapezombie.com)
+# Comics / X cards / marketing images live ONLY on media project B.
+# Old URLs already posted on X keep working through these 301s.
+/share/*                      https://media.escapezombie.com/share/:splat 301
+/comics/*                     https://media.escapezombie.com/comics/:splat 301
+/web-comics/*                 https://media.escapezombie.com/web-comics/:splat 301
+/blog/*                       https://media.escapezombie.com/blog/:splat 301
+/x-website-cards-manifest.json https://media.escapezombie.com/x-website-cards-manifest.json 301
+# QA-only pages are never served from the game site.
+/sfx-audition-20261016        / 302
+/sfx-audition-20261016.html   / 302
+/__inucon_preview             / 302
+/__inucon_preview.html        / 302
+# SPA fallback: Pages serves /index.html for unknown routes automatically (no 404.html in dist).

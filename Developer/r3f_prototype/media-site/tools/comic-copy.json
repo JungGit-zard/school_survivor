@@ -1,0 +1,334 @@
+{
+  "languages": [
+    {
+      "code": "ko",
+      "label": "한국어"
+    },
+    {
+      "code": "en",
+      "label": "English"
+    },
+    {
+      "code": "ja",
+      "label": "日本語"
+    },
+    {
+      "code": "vi",
+      "label": "Tiếng Việt"
+    }
+  ],
+  "copy": {
+    "ko": {
+      "label": "4-CUT COMICS",
+      "title": "연필 구조대의 학교 일지",
+      "intro": "연필 구조대가 학교 곳곳에서 좀비 친구들을 안전하게 되돌려 보내는 4컷 만화 15편입니다.",
+      "list": "4컷 만화 15편 목록",
+      "episodeSuffix": "화",
+      "openComic": "전체 만화 보기",
+      "close": "닫기",
+      "closeViewer": "만화 뷰어 닫기",
+      "previous": "이전 편",
+      "next": "다음 편",
+      "comicNavigation": "만화 편 이동",
+      "languageLabel": "언어 선택",
+      "playGame": "게임 시작",
+      "brand": "탈출! 좀비학교",
+      "comics": [
+        {
+          "title": "출석부를 찾아라!",
+          "summary": "출석부를 찾던 좀비들, 연필 한 번에 모범생 모드!"
+        },
+        {
+          "title": "급식 줄은 한 줄로",
+          "summary": "급식 줄도 연필처럼 반듯하게! 오늘의 메뉴는 질서 한 스푼."
+        },
+        {
+          "title": "바람아, 숙제는 이쪽!",
+          "summary": "날아간 숙제도 걱정 끝. 연필이 가리키는 곳이 제출함!"
+        },
+        {
+          "title": "체육관의 슈퍼 바운드",
+          "summary": "체육 시간도 안전 제일! 연필 지우개는 의외로 공 받기 명수."
+        },
+        {
+          "title": "도서관의 쉿! 작전",
+          "summary": "도서관에서는 조용히. 좀비도 연필 신호엔 독서 모드!"
+        },
+        {
+          "title": "지구본 카트와 피구공 함정",
+          "summary": "지구본 카트로 좀비들을 유인해 피구공 더미에 가둬요!"
+        },
+        {
+          "title": "과학실 전자석 소동",
+          "summary": "전자석에 붙은 식판과 장식 때문에 좀비들이 사물함 앞에 멈춰요."
+        },
+        {
+          "title": "도서관 책수레 미끼",
+          "summary": "책수레를 따라온 좀비들 위로 책이 쏟아져 책더미에 묻혀요."
+        },
+        {
+          "title": "음악실 드럼 소동",
+          "summary": "신나는 드럼 소리에 좀비들의 발걸음도 리듬을 타요."
+        },
+        {
+          "title": "미술실 종이 말이",
+          "summary": "커다란 종이와 마분지가 데굴데굴 굴러 좀비들을 감싸요."
+        },
+        {
+          "title": "급식실 젤리 미끄럼",
+          "summary": "말랑한 디저트가 바닥에 통통! 좀비들이 미끄러져 멈춰요."
+        },
+        {
+          "title": "과학실 거품 대소동",
+          "summary": "실험에서 몽글몽글 거품이 솟아나 좀비들을 부드럽게 감싸요."
+        },
+        {
+          "title": "강당 무대 뒤의 비밀",
+          "summary": "무대 커튼과 소품 사이에서 좀비들이 출구를 찾아 헤매요."
+        },
+        {
+          "title": "원예부 스프링클러 작전",
+          "summary": "호스와 스프링클러가 돌아가자 좀비들이 시원한 물줄기를 따라가요."
+        },
+        {
+          "title": "허들 릴레이 탈출 코스",
+          "summary": "허들과 장애물 코스가 좀비들의 릴레이 길을 바꿔 놓아요."
+        }
+      ]
+    },
+    "en": {
+      "label": "4-PANEL COMICS",
+      "title": "The Pencil Rescue Squad’s School Diary",
+      "intro": "Fifteen four-panel comics where the Pencil Rescue Squad safely guides zombie friends around the school.",
+      "list": "List of 15 four-panel comics",
+      "episodeSuffix": "Episode",
+      "openComic": "Read Full Comic",
+      "close": "Close",
+      "closeViewer": "Close comic viewer",
+      "previous": "Previous",
+      "next": "Next",
+      "comicNavigation": "Comic episode navigation",
+      "languageLabel": "Select language",
+      "playGame": "Start Game",
+      "brand": "Escape! Zombie School",
+      "comics": [
+        {
+          "title": "Find the Attendance Book!",
+          "summary": "The zombies hunt for the roll book—one pencil brings out their model-student side!"
+        },
+        {
+          "title": "One Line for Lunch",
+          "summary": "As straight as a pencil! Today’s menu has a spoonful of order."
+        },
+        {
+          "title": "Wind, Homework Goes This Way!",
+          "summary": "No worries about flying homework. Follow the pencil to the hand-in box!"
+        },
+        {
+          "title": "The Gym’s Super Bounce",
+          "summary": "Safety first in PE! A pencil eraser turns out to be great at catching balls."
+        },
+        {
+          "title": "Operation Shh! at the Library",
+          "summary": "Keep it quiet in the library. Even zombies switch to reading mode at the pencil signal!"
+        },
+        {
+          "title": "Globe Cart and Dodgeball Trap",
+          "summary": "The globe cart lures the zombies into a pile of dodgeballs!"
+        },
+        {
+          "title": "The Science Lab Electromagnet Mix-Up",
+          "summary": "A magnet pulls lunch trays and belt charms to lockers, stopping the zombies in their tracks."
+        },
+        {
+          "title": "The Library Book Cart Bait",
+          "summary": "Zombies chase the book cart until a cascade of books buries them in a pile."
+        },
+        {
+          "title": "Drum Trouble in the Music Room",
+          "summary": "A lively drumbeat gets the zombies stepping to the rhythm."
+        },
+        {
+          "title": "The Art Room Paper Roll",
+          "summary": "Big sheets and cardboard rolls tumble around and wrap up the zombies."
+        },
+        {
+          "title": "Jelly Slip in the Cafeteria",
+          "summary": "The bouncy dessert goes plop! The zombies slip and come to a stop."
+        },
+        {
+          "title": "The Science Lab Foam Surprise",
+          "summary": "Bubbly foam rises from an experiment and gently surrounds the zombies."
+        },
+        {
+          "title": "A Secret Behind the Auditorium Curtain",
+          "summary": "The zombies search for an exit among stage curtains and props."
+        },
+        {
+          "title": "The Gardening Club Sprinkler Plan",
+          "summary": "The hose and sprinklers turn on, and the zombies follow the cool spray."
+        },
+        {
+          "title": "Hurdle Relay Escape Course",
+          "summary": "Hurdles and obstacles send the zombies down a very different relay route."
+        }
+      ]
+    },
+    "ja": {
+      "label": "4コマ漫画",
+      "title": "鉛筆救助隊の学校日誌",
+      "intro": "鉛筆救助隊が学校のあちこちでゾンビの仲間たちを安全に送り返す、楽しい4コマ漫画15話です。",
+      "list": "4コマ漫画15話の一覧",
+      "episodeSuffix": "話",
+      "openComic": "漫画を全編見る",
+      "close": "閉じる",
+      "closeViewer": "漫画ビューアーを閉じる",
+      "previous": "前の話",
+      "next": "次の話",
+      "comicNavigation": "漫画の話を切り替える",
+      "languageLabel": "言語を選択",
+      "playGame": "ゲーム開始",
+      "brand": "脱出！ゾンビ学校",
+      "comics": [
+        {
+          "title": "出席簿を探せ！",
+          "summary": "出席簿を探すゾンビたちが、鉛筆ひと振りで優等生モードに！"
+        },
+        {
+          "title": "給食の列は一列に",
+          "summary": "給食の列も鉛筆のようにまっすぐ！今日の献立には秩序をひとさじ。"
+        },
+        {
+          "title": "風よ、宿題はこっち！",
+          "summary": "飛んでいった宿題も心配無用。鉛筆が指す先が提出箱！"
+        },
+        {
+          "title": "体育館のスーパーバウンド",
+          "summary": "体育の時間も安全第一！鉛筆の消しゴムが意外なボールキャッチの名手。"
+        },
+        {
+          "title": "図書館の「しーっ」作戦",
+          "summary": "図書館では静かに。ゾンビも鉛筆の合図で読書モード！"
+        },
+        {
+          "title": "地球儀カートとドッジボールの罠",
+          "summary": "地球儀カートでゾンビを誘い、ドッジボールの山に閉じ込めよう！"
+        },
+        {
+          "title": "理科室の電磁石大騒動",
+          "summary": "電磁石に給食トレーやベルト飾りがくっつき、ゾンビがロッカー前でストップ。"
+        },
+        {
+          "title": "図書室のブックカートのおとり",
+          "summary": "本のカートを追うゾンビに本が降り注ぎ、本の山に埋もれてしまう！"
+        },
+        {
+          "title": "音楽室のドラム騒動",
+          "summary": "楽しいドラムの音に、ゾンビの足取りまでリズムに乗る！"
+        },
+        {
+          "title": "美術室の紙ロール作戦",
+          "summary": "大きな紙と段ボールが転がって、ゾンビたちをくるり！"
+        },
+        {
+          "title": "食堂のゼリーでつるん！",
+          "summary": "ぷるぷるデザートがぽん！ゾンビたちは滑ってストップ。"
+        },
+        {
+          "title": "理科室の泡もこ実験",
+          "summary": "実験からふわふわの泡があふれて、ゾンビたちをやさしく包む。"
+        },
+        {
+          "title": "講堂の幕の裏のひみつ",
+          "summary": "舞台のカーテンや小道具の間で、ゾンビたちは出口を探して大迷子。"
+        },
+        {
+          "title": "園芸部のスプリンクラー作戦",
+          "summary": "ホースとスプリンクラーが動き出し、ゾンビたちは涼しい水しぶきを追いかける。"
+        },
+        {
+          "title": "ハードルリレー脱出コース",
+          "summary": "ハードルと障害物で、ゾンビたちのリレーコースが大変身！"
+        }
+      ]
+    },
+    "vi": {
+      "label": "TRUYỆN TRANH 4 KHUNG",
+      "title": "Nhật ký trường học của Đội cứu hộ Bút Chì",
+      "intro": "15 truyện tranh 4 khung vui nhộn, nơi Đội cứu hộ Bút Chì giúp những người bạn zombie trở về an toàn ở khắp trường.",
+      "list": "Danh sách 15 tập truyện tranh 4 khung",
+      "episodeSuffix": "Tập",
+      "openComic": "Xem toàn bộ truyện",
+      "close": "Đóng",
+      "closeViewer": "Đóng trình xem truyện",
+      "previous": "Tập trước",
+      "next": "Tập sau",
+      "comicNavigation": "Chuyển tập truyện",
+      "languageLabel": "Chọn ngôn ngữ",
+      "playGame": "Bắt đầu chơi",
+      "brand": "Thoát khỏi Trường Zombie!",
+      "comics": [
+        {
+          "title": "Tìm sổ điểm danh!",
+          "summary": "Lũ zombie tìm sổ điểm danh, nhưng một cái vung bút chì biến chúng thành học sinh gương mẫu!"
+        },
+        {
+          "title": "Xếp một hàng lấy cơm",
+          "summary": "Hàng lấy cơm thẳng như bút chì! Món hôm nay có thêm một thìa trật tự."
+        },
+        {
+          "title": "Gió ơi, bài tập ở đây!",
+          "summary": "Bài tập bay mất ư? Đừng lo. Bút chì chỉ đúng hộp nộp bài!"
+        },
+        {
+          "title": "Cú nảy siêu đỉnh trong nhà thể chất",
+          "summary": "An toàn là trên hết trong giờ thể dục! Cục tẩy bút chì hóa ra bắt bóng rất giỏi."
+        },
+        {
+          "title": "Chiến dịch “Suỵt!” ở thư viện",
+          "summary": "Giữ yên lặng trong thư viện. Ngay cả zombie cũng chuyển sang chế độ đọc sách theo hiệu lệnh bút chì!"
+        },
+        {
+          "title": "Xe quả địa cầu và bẫy bóng né",
+          "summary": "Dùng xe quả địa cầu dụ zombie vào đống bóng né!"
+        },
+        {
+          "title": "Rắc rối nam châm điện trong phòng khoa học",
+          "summary": "Nam châm hút khay ăn và đồ trang trí thắt lưng vào tủ, khiến zombie phải dừng lại."
+        },
+        {
+          "title": "Mồi nhử bằng xe đẩy sách",
+          "summary": "Zombie đuổi theo xe sách thì sách đổ xuống, vùi chúng trong một đống lớn."
+        },
+        {
+          "title": "Trống dồn dập ở phòng âm nhạc",
+          "summary": "Tiếng trống vui nhộn khiến bước chân zombie cũng nhún nhảy theo nhịp."
+        },
+        {
+          "title": "Cuộn giấy trong phòng mỹ thuật",
+          "summary": "Những tờ giấy lớn và cuộn bìa lăn tròn, quấn lấy đám zombie."
+        },
+        {
+          "title": "Trượt thạch ở nhà ăn",
+          "summary": "Món tráng miệng dẻo bật lên! Zombie trượt chân rồi dừng lại."
+        },
+        {
+          "title": "Bất ngờ bọt xốp ở phòng khoa học",
+          "summary": "Thí nghiệm phun lên lớp bọt mềm, nhẹ nhàng bao quanh zombie."
+        },
+        {
+          "title": "Bí mật sau tấm màn hội trường",
+          "summary": "Zombie tìm lối ra giữa rèm sân khấu và các đạo cụ."
+        },
+        {
+          "title": "Kế hoạch vòi phun nước của câu lạc bộ làm vườn",
+          "summary": "Vòi nước và hệ thống phun bật lên, zombie chạy theo làn nước mát."
+        },
+        {
+          "title": "Đường chạy tiếp sức vượt rào",
+          "summary": "Rào chắn và chướng ngại vật khiến đường chạy của zombie đổi hướng!"
+        }
+      ]
+    }
+  }
+}

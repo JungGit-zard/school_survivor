@@ -1,0 +1,44 @@
+# Cloudflare Pages headers — media project B (media.escapezombie.com)
+# Owner: backendmini. Game project A never references these paths.
+
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+
+/
+  Cache-Control: no-cache, must-revalidate
+
+/index.html
+  Cache-Control: no-cache, must-revalidate
+
+/app.js
+  Cache-Control: public, max-age=3600
+
+/styles.css
+  Cache-Control: public, max-age=3600
+
+/comics/episodes.json
+  Cache-Control: public, max-age=3600
+
+/comics/full/*
+  Cache-Control: public, max-age=604800
+
+/comics/thumbs/*
+  Cache-Control: public, max-age=604800
+
+/comics/backlog-20261015/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/comics/backlog-dialogue-20261018/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/web-comics/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/blog/*
+  Cache-Control: public, max-age=604800
+
+# X card PNG names are the first 16 hex chars of the image sha256 -> immutable.
+/share/x/*
+  Cache-Control: public, max-age=86400
+  Access-Control-Allow-Origin: *

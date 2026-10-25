@@ -1,26 +1,23 @@
 import { describe, expect, it } from 'vitest'
-import { readFileSync } from 'node:fs'
-import { getWebBacklogComicUrl, WEB_LANDING_COMIC_URLS } from './webBackgroundAssets.js'
+import * as webBackgroundAssets from './webBackgroundAssets.js'
+import webBackgroundAssetsSource from './webBackgroundAssets.js?raw'
 
-describe('homepage dialogue-complete backlog assets', () => {
-  for (const language of ['ko', 'en', 'ja', 'vi']) {
-    it(`uses same-origin versioned assets for all ten ${language} episodes`, () => {
-      for (let episode = 1; episode <= 10; episode += 1) {
-        expect(getWebBacklogComicUrl(language, episode)).toBe(
-          `/comics/backlog-dialogue-20261018/${language}/${String(episode).padStart(2, '0')}.png`,
-        )
-      }
+// 2026-10-25: 만화(레거시·데일리·백로그)는 미디어 사이트(media.escapezombie.com)로 분리됐다.
+// 게임 사이트 번들은 만화 URL을 갖지 않고, 웹 배경(사이드 거터)은 빌드 내부 WebP만 쓴다.
+describe('web background assets after the comics/media split', () => {
+  it('exports no comic URLs from the game bundle', () => {
+    expect(webBackgroundAssets.WEB_LANDING_COMIC_URLS).toBeUndefined()
+    expect(webBackgroundAssets.getWebBacklogComicUrl).toBeUndefined()
+    expect(webBackgroundAssetsSource).not.toMatch(/web-comics|\/comics\//)
+  })
+
+  it('uses build-internal WebP side-gutter backgrounds with no external asset host', () => {
+    expect(webBackgroundAssets.WEB_BACKGROUND_URLS.length).toBeGreaterThan(0)
+    webBackgroundAssets.WEB_BACKGROUND_URLS.forEach((url) => {
+      expect(url).toMatch(/\.webp$/)
+      expect(url).not.toMatch(/^https?:/)
     })
-    it(`ships ten valid PNG files for ${language}`, () => {
-      for (let episode = 1; episode <= 10; episode += 1) {
-        const url = getWebBacklogComicUrl(language, episode)
-        const bytes = readFileSync(new URL(`../../public${url}`, import.meta.url))
-        expect([...bytes.subarray(0, 8)]).toEqual([137, 80, 78, 71, 13, 10, 26, 10])
-      }
-    })
-  }
-  it('retains official v3 bindings', () => {
-    expect(Object.values(WEB_LANDING_COMIC_URLS)).toHaveLength(5)
-    expect(Object.values(WEB_LANDING_COMIC_URLS).every(url => url.startsWith('/web-comics/v3/'))).toBe(true)
+    expect(webBackgroundAssetsSource).not.toContain('assets.web.app')
+    expect(webBackgroundAssets.WEB_BACKGROUND_URLS).toContain(webBackgroundAssets.selectedWebBackgroundUrl)
   })
 })

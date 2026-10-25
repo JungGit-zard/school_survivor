@@ -1,10 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
-import { createPortal } from 'react-dom'
 import TitleSceneCanvas from './TitleSceneCanvas.jsx'
 import '../assets/fonts/nanumMyeongjo.css'
-import { WEB_BACKGROUND_URLS, WEB_LANDING_ART_URLS, WEB_LANDING_COMIC_URLS, getSelectedWebBackgroundStyle, getWebBacklogComicUrl } from '../lib/webBackgroundAssets.js'
-import { BACKLOG_COMIC_COPY, LANDING_COPY, LANDING_LANGUAGES } from './webLandingCopy.js'
-import { dailyWebComics } from './dailyWebComics.js'
+import { WEB_BACKGROUND_THUMB_URLS, WEB_LANDING_ART_URLS, getSelectedWebBackgroundStyle } from '../lib/webBackgroundAssets.js'
+import { getMediaSiteComicsUrl } from '../lib/mediaSite.js'
+import { LANDING_COPY, LANDING_LANGUAGES } from './webLandingCopy.js'
 import ZombieBoard from './ZombieBoard.jsx'
 import ZombieBoardPreview from './ZombieBoardPreview.jsx'
 import { ZOMBIE_BOARD_COPY } from './zombieBoardCopy.js'
@@ -14,52 +13,8 @@ export const LANDING_FEATURE_VIDEO_URL = ''
 
 const TITLE_BGM_URL = new URL('../assets/audio/title_bgm.m4a', import.meta.url).href
 
-const COMIC_EPISODES = [
-  {
-    id: 'attendance',
-    image: WEB_LANDING_COMIC_URLS.attendance,
-    accent: '#16A34A',
-  },
-  {
-    id: 'lunch-line',
-    image: WEB_LANDING_COMIC_URLS.lunchLine,
-    accent: '#2563EB',
-  },
-  {
-    id: 'homework-wind',
-    image: WEB_LANDING_COMIC_URLS.homeworkWind,
-    accent: '#7C3AED',
-  },
-  {
-    id: 'gym-bounce',
-    image: WEB_LANDING_COMIC_URLS.gymBounce,
-    accent: '#16A34A',
-  },
-  {
-    id: 'library-quiet',
-    image: WEB_LANDING_COMIC_URLS.libraryQuiet,
-    accent: '#2563EB',
-  },
-].map((comic) => ({
-  ...comic,
-  images: Object.fromEntries(LANDING_LANGUAGES.map(({ code }) => [
-    code,
-    code === 'ko' ? comic.image : comic.image.replace('/web-comics/v3/', `/web-comics/localized-v3/${code}/`),
-  ])),
-})).concat(dailyWebComics, Array.from({ length: 10 }, (_, index) => {
-  const episodeNumber = index + 1
-  return {
-    id: `backlog-${String(episodeNumber).padStart(2, '0')}`,
-    backlogEpisode: episodeNumber,
-    images: Object.fromEntries(LANDING_LANGUAGES.map(({ code }) => [
-      code,
-      getWebBacklogComicUrl(['ko', 'en', 'ja', 'vi'].includes(code) ? code : 'ko', episodeNumber),
-    ])),
-    accent: index % 2 === 0 ? '#16A34A' : '#2563EB',
-  }
-}))
-
-const VIDEO_PLACEHOLDERS = WEB_BACKGROUND_URLS.slice(0, 3)
+// 만화는 게임 사이트(escapezombie.com)에 싣지 않는다. 미디어 사이트 링크만 둔다(2026-10-25 분리).
+const VIDEO_PLACEHOLDERS = WEB_BACKGROUND_THUMB_URLS.slice(0, 3)
 const GAMEPLAY_IMAGES = [WEB_LANDING_ART_URLS.classroomSurvival, WEB_LANDING_ART_URLS.schoolSupplies, WEB_LANDING_ART_URLS.sunsetEscape]
 
 export default function WebLandingPage() {
@@ -69,23 +24,12 @@ export default function WebLandingPage() {
   const [mediaScrollRequest, setMediaScrollRequest] = useState(0)
   const [isMusicPlaying, setIsMusicPlaying] = useState(false)
   const [musicStatus, setMusicStatus] = useState('musicIdle')
-  const [selectedComicIndex, setSelectedComicIndex] = useState(null)
   const [isBoardOpen, setIsBoardOpen] = useState(false)
   const [boardInitialPostId, setBoardInitialPostId] = useState('')
   const audioRef = useRef(null)
   const heroActionsRef = useRef(null)
   const [heroActionsPassed, setHeroActionsPassed] = useState(false)
-  const comics = COMIC_EPISODES.map((comic, index) => ({
-    ...comic,
-    ...(comic.backlogEpisode
-      ? BACKLOG_COMIC_COPY[language][comic.backlogEpisode - 1]
-      : comic.copy?.[language] ?? copy.comics[index]),
-    image: comic.images?.[language] ?? comic.image,
-  }))
-  const selectedComic = selectedComicIndex === null ? null : comics[selectedComicIndex]
-  const formatEpisodeLabel = (index) => (language === 'ko' || language === 'ja' || language === 'zh-CN'
-    ? `${index + 1}${copy.episodeSuffix}`
-    : `${copy.episodeSuffix} ${index + 1}`)
+  const comicsUrl = getMediaSiteComicsUrl(language)
 
   useEffect(() => {
     const previousLanguage = document.documentElement.lang
@@ -129,17 +73,6 @@ export default function WebLandingPage() {
     if (mediaScrollRequest) document.getElementById('media')?.scrollIntoView?.({ block: 'start' })
   }, [mediaScrollRequest])
 
-  useEffect(() => {
-    if (!selectedComic) return undefined
-
-    const onKeyDown = (event) => {
-      if (event.key === 'Escape') setSelectedComicIndex(null)
-      if (event.key === 'ArrowLeft') setSelectedComicIndex((index) => (index + COMIC_EPISODES.length - 1) % COMIC_EPISODES.length)
-      if (event.key === 'ArrowRight') setSelectedComicIndex((index) => (index + 1) % COMIC_EPISODES.length)
-    }
-    window.addEventListener('keydown', onKeyDown)
-    return () => window.removeEventListener('keydown', onKeyDown)
-  }, [selectedComic])
 
   const toggleMusic = async () => {
     const audio = audioRef.current
@@ -183,7 +116,7 @@ export default function WebLandingPage() {
             <div className="web-landing__nav-links">
               <a href="#game-intro" className="web-landing__nav-link web-landing__link">{copy.intro}</a>
               <a href="#section-start" className="web-landing__nav-link web-landing__link">{copy.howTo}</a>
-              <a href="#comics" className="web-landing__nav-link web-landing__link" onClick={openMediaLink('comics')}>{copy.comicNav}</a>
+              <a href={comicsUrl} className="web-landing__nav-link web-landing__link" target="_blank" rel="noopener">{copy.comicNav}</a>
               <a href="#music" className="web-landing__nav-link web-landing__link" onClick={openMediaLink('music')}>{copy.musicNav}</a>
               <a href="#videos" className="web-landing__nav-link web-landing__link" onClick={openMediaLink('videos')}>{copy.videoNav}</a>
               <a href="#news" className="web-landing__nav-link web-landing__link">{copy.news}</a>
@@ -215,7 +148,7 @@ export default function WebLandingPage() {
                 <p className="web-landing__support">{copy.support}</p>
                 <div ref={heroActionsRef} className="web-landing__hero-actions" aria-label={copy.mainActions}>
                   <a href="/game" className="web-landing__cta web-landing__link">{copy.playWeb}</a>
-                  <a href="#comics" className="web-landing__cta web-landing__link" onClick={openMediaLink('comics')}>{copy.comicNav}</a>
+                  <a href={comicsUrl} className="web-landing__cta web-landing__link" target="_blank" rel="noopener">{copy.comicNav}</a>
                   <a href="#music" className="web-landing__cta web-landing__link" onClick={openMediaLink('music')}>{copy.musicNav}</a>
                   <a href="#videos" className="web-landing__cta web-landing__link" onClick={openMediaLink('videos')}>{copy.videoNav}</a>
                   <a href="#zombie-board" className="web-landing__cta web-landing__link" onClick={openBoard}>{ZOMBIE_BOARD_COPY[language]?.action || ZOMBIE_BOARD_COPY.ko.action}</a>
@@ -283,54 +216,10 @@ export default function WebLandingPage() {
               <h2 id="section-media-controls-title">{copy.mediaTitle}</h2>
             </div>
             <div className="web-landing__media-controls" aria-label={copy.mediaControls}>
-              <button type="button" aria-pressed={activeMedia === 'comics'} onClick={() => selectMedia('comics')}>{copy.comicButton}</button>
+              <a href={comicsUrl} className="web-landing__media-link web-landing__link" target="_blank" rel="noopener">{copy.comicButton} <span aria-hidden="true">↗</span></a>
               <button type="button" aria-pressed={activeMedia === 'music'} onClick={() => selectMedia('music')}>{copy.musicButton}</button>
               <button type="button" aria-pressed={activeMedia === 'videos'} onClick={() => selectMedia('videos')}>{copy.videoButton}</button>
             </div>
-
-            {activeMedia === 'comics' ? (
-              <section id="comics" aria-labelledby="section-comics-title" className="web-landing__media-panel">
-                <div className="web-landing__section-heading">
-                  <p>{copy.comicsLabel}</p>
-                  <h2 id="section-comics-title">{copy.comicsTitle}</h2>
-                </div>
-                <p className="web-landing__media-intro">{copy.comicsIntro}</p>
-                <div className="web-landing__comic-grid" aria-label={copy.comicsList}>
-                  {comics.map((comic, index) => (
-                    <a key={comic.id} className="web-landing__comic-feature" style={{ '--comic-accent': comic.accent }} href={comic.image} target="_blank" rel="noreferrer" aria-label={`${comic.title} ${copy.openComicAria}`} onClick={(event) => { event.preventDefault(); setSelectedComicIndex(index) }}>
-                      <div className="web-landing__comic-thumbnail"><img src={comic.image} loading="lazy" decoding="async" alt={`${comic.title} ${copy.thumbnail}`} /><span>{formatEpisodeLabel(index)}</span></div>
-                      <div className="web-landing__comic-copy"><h3>{comic.title}</h3><p>{comic.summary}</p><span className="web-landing__comic-action">{copy.openComic} <span aria-hidden="true">→</span></span></div>
-                    </a>
-                  ))}
-                </div>
-              </section>
-            ) : null}
-
-          {selectedComic && typeof document !== 'undefined' ? createPortal(
-            <div className="web-landing__comic-viewer-backdrop" role="presentation" onMouseDown={() => setSelectedComicIndex(null)}>
-              <section
-                className="web-landing__comic-viewer"
-                role="dialog"
-                aria-modal="true"
-                aria-labelledby="comic-viewer-title"
-                onMouseDown={(event) => event.stopPropagation()}
-              >
-                <div className="web-landing__comic-viewer-header">
-                  <h2 id="comic-viewer-title">{selectedComic.title}</h2>
-                  <button type="button" onClick={() => setSelectedComicIndex(null)} aria-label={copy.closeViewer}>{copy.close}</button>
-                </div>
-                <div className="web-landing__comic-viewer-body">
-                  <img src={selectedComic.image} alt={`${selectedComic.title} ${copy.fullComic}`} />
-                </div>
-                <div className="web-landing__comic-viewer-controls" aria-label={copy.comicNavigation}>
-                  <button type="button" onClick={() => setSelectedComicIndex((index) => (index + COMIC_EPISODES.length - 1) % COMIC_EPISODES.length)}>{copy.previous}</button>
-                  <span>{selectedComicIndex + 1} / {COMIC_EPISODES.length}</span>
-                  <button type="button" onClick={() => setSelectedComicIndex((index) => (index + 1) % COMIC_EPISODES.length)}>{copy.next}</button>
-                </div>
-              </section>
-            </div>,
-            document.body,
-          ) : null}
 
           {activeMedia === 'music' ? (
           <section id="music" aria-labelledby="section-music-title" className="web-landing__media-panel">
@@ -380,7 +269,7 @@ export default function WebLandingPage() {
             <div className="web-landing__video-grid">
               {VIDEO_PLACEHOLDERS.map((image, index) => (
                 <article key={image} className="web-landing__video-card">
-                  <div style={{ backgroundImage: `url(${image})` }} aria-hidden="true" />
+                  <img src={image} loading="lazy" decoding="async" alt="" width="480" height="270" />
                   <h3>{copy.videos[index]}</h3>
                   <p>{copy.videoFuture}</p>
                 </article>
@@ -397,13 +286,8 @@ export default function WebLandingPage() {
               <h2 id="section-media-title">{copy.galleryTitle}</h2>
             </div>
             <div className="web-landing__gallery" aria-label={copy.galleryAria}>
-              {WEB_BACKGROUND_URLS.map((url) => (
-                <div
-                  key={url}
-                  className="web-landing__gallery-item"
-                  style={{ backgroundImage: `url(${url})` }}
-                  aria-hidden="true"
-                />
+              {WEB_BACKGROUND_THUMB_URLS.map((url) => (
+                <img key={url} className="web-landing__gallery-item" src={url} loading="lazy" decoding="async" alt="" width="480" height="270" />
               ))}
             </div>
             <a href="/game" className="web-landing__bottom-cta web-landing__link">{copy.galleryCta}</a>
@@ -436,7 +320,7 @@ export default function WebLandingPage() {
           </footer>
         </div>
       </section>
-      {heroActionsPassed && !selectedComic && !isBoardOpen ? <a href="/game" className="web-landing__mobile-sticky-cta web-landing__link">{copy.startGame}</a> : null}
+      {heroActionsPassed && !isBoardOpen ? <a href="/game" className="web-landing__mobile-sticky-cta web-landing__link">{copy.startGame}</a> : null}
       {isBoardOpen ? <ZombieBoard
         open={isBoardOpen}
         initialPostId={boardInitialPostId}
@@ -938,7 +822,8 @@ const landingCss = `
   scroll-margin-top: 76px;
 }
 
-.web-landing__media-controls button {
+.web-landing__media-controls button,
+.web-landing__media-link {
   min-width: 0;
   min-height: 48px;
   padding: 10px 8px;
@@ -949,6 +834,17 @@ const landingCss = `
   font: inherit;
   font-weight: 900;
   cursor: pointer;
+}
+
+.web-landing__media-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border-color: #16A34A;
+  color: #16A34A;
+  text-align: center;
+  text-decoration: none;
 }
 
 .web-landing__media-controls button[aria-pressed="true"] {
@@ -1088,83 +984,14 @@ const landingCss = `
   transform: translateX(4px);
 }
 
-.web-landing__comic-viewer-backdrop {
-  position: fixed;
-  z-index: 30;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  padding: clamp(16px, 3vw, 40px);
-  background: rgba(5, 7, 11, 0.78);
-}
 
-.web-landing__comic-viewer {
-  --comic-viewer-art-scale: 5;
-  --comic-viewer-source-ratio: 0.2546511628;
-  --comic-viewer-old-slot-height: calc(min(92dvh, 980px) - 136px);
-  --comic-viewer-old-artwork-width: min(100%, calc(var(--comic-viewer-old-slot-height) * var(--comic-viewer-source-ratio)));
-  display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto;
-  width: min(100%, 920px);
-  height: min(92dvh, 980px);
-  overflow: hidden;
-  border: 3px solid #FFFFFF;
-  border-radius: 20px;
-  background: #F6F8FF;
-  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.38);
-}
 
-.web-landing__comic-viewer-header,
-.web-landing__comic-viewer-controls {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 14px 18px;
-}
 
-.web-landing__comic-viewer-header {
-  border-bottom: 1px solid rgba(37, 99, 235, 0.2);
-}
 
-.web-landing__comic-viewer-header h2,
-.web-landing__comic-viewer-controls span {
-  margin: 0;
-  color: #172033;
-  font-size: clamp(16px, 2vw, 24px);
-  font-weight: 950;
-}
 
-.web-landing__comic-viewer-body {
-  overflow: auto;
-  background: #FFFFFF;
-  overscroll-behavior: contain;
-}
 
-.web-landing__comic-viewer-body img {
-  display: block;
-  width: calc(var(--comic-viewer-old-artwork-width) * var(--comic-viewer-art-scale));
-  max-width: none;
-  height: auto;
-  object-fit: contain;
-  background: #FFFFFF;
-}
 
-.web-landing__comic-viewer-controls {
-  border-top: 1px solid rgba(37, 99, 235, 0.2);
-}
 
-.web-landing__comic-viewer button {
-  min-height: 42px;
-  padding: 9px 14px;
-  border: 2px solid #2563EB;
-  border-radius: 999px;
-  background: #FFFFFF;
-  color: #172033;
-  font: inherit;
-  font-weight: 900;
-  cursor: pointer;
-}
 
 .web-landing__music-card {
   display: grid;
@@ -1206,11 +1033,14 @@ const landingCss = `
   background: #FFFFFF;
 }
 
-.web-landing__video-card div {
+.web-landing__video-card img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
   min-height: 160px;
+  object-fit: cover;
   border-radius: 14px;
-  background-size: cover;
-  background-position: center;
   border: 1px solid rgba(124, 58, 237, 0.18);
 }
 
@@ -1254,10 +1084,13 @@ const landingCss = `
 }
 
 .web-landing__gallery-item {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
   min-height: 170px;
+  object-fit: cover;
   border-radius: 16px;
-  background-size: cover;
-  background-position: center;
   border: 1px solid rgba(37, 99, 235, 0.24);
 }
 
@@ -1576,18 +1409,8 @@ const landingCss = `
     height: 96px;
   }
 
-  .web-landing__comic-viewer-backdrop {
-    padding: 10px;
-  }
 
-  .web-landing__comic-viewer-header,
-  .web-landing__comic-viewer-controls {
-    padding: 10px 12px;
-  }
 
-  .web-landing__comic-viewer-controls button {
-    padding: 8px 10px;
-  }
 }
 
 @media (max-width: 360px) {
