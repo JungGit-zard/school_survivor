@@ -5,9 +5,12 @@ import * as THREE from 'three'
 import {
   capRosariFrameDelta,
   isRosariNearWardrobe,
+  isRosariTextEntryTarget,
   moveRosariRoomPosition,
-  normalizeRosariMoveVector,
+  resolveRosariMoveVector,
 } from '../lib/rosariRoom.js'
+import { joystickDir } from '../lib/refs.js'
+import VirtualJoystick from './VirtualJoystick.jsx'
 
 const ROSARI_GLB_URL = '/assets/rosari-room/PLAYER_wholebody_refined_t_efe49b7c.glb'
 const rosariLoadErrors = new WeakSet()
@@ -26,6 +29,7 @@ export default function RosariRoom({ onBack }) {
   const mobileKeysRef = useRef({ ...EMPTY_KEYS })
   const keyboardKeysRef = useRef({ ...EMPTY_KEYS })
   const rootRef = useRef(null)
+  const stageRef = useRef(null)
   const wardrobeButtonRef = useRef(null)
   const heldKeyboard = useRef(new Map())
   const wasWardrobeOpen = useRef(false)
@@ -64,6 +68,8 @@ export default function RosariRoom({ onBack }) {
       const key = keyToDirection(event.key)
       if (!key) return
       if (wardrobeOpen) return
+      // Typing in a text field must never walk Rosari (keyup still releases a held key).
+      if (pressed && isRosariTextEntryTarget(event.target)) return
       const physicalKey = event.code || event.key.toLowerCase()
       if (pressed) heldKeyboard.current.set(physicalKey, key)
       else heldKeyboard.current.delete(physicalKey)
@@ -161,7 +167,7 @@ export default function RosariRoom({ onBack }) {
           <p hidden={layout.compact} style={styles.subtitle}>방을 둘러보고 옷장을 열어 현재 복장을 확인해요.</p>
         </div>
       </div>
-      <section style={styles.stage} aria-label="로자리 방 3D 장면">
+      <section ref={stageRef} style={styles.stage} aria-label="로자리 방 3D 장면">
         <RoomErrorBoundary>
         <Canvas
           dpr={[1, 1.5]}
@@ -181,6 +187,8 @@ export default function RosariRoom({ onBack }) {
           </Suspense>
         </Canvas>
         </RoomErrorBoundary>
+        {/* Same floating joystick as gameplay: touch the 3D scene anywhere and drag. */}
+        <VirtualJoystick enabled={!wardrobeOpen} phase="playing" playAreaRef={stageRef} />
         <button type="button" aria-pressed={overview} style={styles.cameraButton} onClick={() => setOverview((value) => !value)}>{overview ? '캐릭터 따라보기' : '방 전체 보기'}</button>
         {wardrobeOpen && (
           <section role="dialog" aria-modal="false" aria-label="로자리 옷장" style={styles.wardrobePanel} onKeyDown={(event) => { if (event.key !== 'Escape') event.stopPropagation() }}>
@@ -290,6 +298,7 @@ function RoomScene({ keyboardKeysRef, mobileKeysRef, wardrobeOpen, overview, onN
   const limbRefs = useRef({})
   const lastNearWardrobeRef = useRef(false)
   const canToggleWardrobeRef = useRef(false)
+  const moveVectorRef = useRef({ x: 0, z: 0 })
   const { camera, size } = useThree()
 
   useEffect(() => {
@@ -302,8 +311,15 @@ function RoomScene({ keyboardKeysRef, mobileKeysRef, wardrobeOpen, overview, onN
 
   useFrame((_, rawDelta) => {
     const delta = capRosariFrameDelta(rawDelta)
-    const keys = mergeKeys(keyboardKeysRef.current, mobileKeysRef.current)
-    const vector = normalizeRosariMoveVector(wardrobeOpen ? EMPTY_KEYS : keys)
+    const keyboard = keyboardKeysRef.current
+    const pad = mobileKeysRef.current
+    const vector = wardrobeOpen
+      ? resolveRosariMoveVector(EMPTY_KEYS, null, moveVectorRef.current)
+      : resolveRosariMoveVector(
+        mergeKeysInto(MERGED_KEYS, keyboard, pad),
+        joystickDir,
+        moveVectorRef.current,
+      )
     const moving = vector.x !== 0 || vector.z !== 0
     if (moving) {
       positionRef.current = moveRosariRoomPosition(positionRef.current, {
@@ -547,13 +563,14 @@ function keyToDirection(key) {
   return null
 }
 
-function mergeKeys(a, b) {
-  return {
-    up: a.up || b.up,
-    down: a.down || b.down,
-    left: a.left || b.left,
-    right: a.right || b.right,
-  }
+// Module-level scratch: useFrame merges keys without allocating each frame.
+const MERGED_KEYS = { up: false, down: false, left: false, right: false }
+function mergeKeysInto(out, a, b) {
+  out.up = a.up || b.up
+  out.down = a.down || b.down
+  out.left = a.left || b.left
+  out.right = a.right || b.right
+  return out
 }
 
 const ARCHIVE_TOON_GRADIENT = (() => {

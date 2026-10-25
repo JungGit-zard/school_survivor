@@ -71,3 +71,28 @@ export function getRosariWardrobeProximity(position) {
 export function isRosariNearWardrobe(position) {
   return getRosariWardrobeProximity(position) <= WARDROBE_INTERACT_MARGIN
 }
+
+// Floating-joystick (analog, magnitude 0..1) wins over keys while a finger is down.
+// Writes into `out` so the per-frame caller does not allocate.
+export function resolveRosariMoveVector(keys, joystick, out = { x: 0, z: 0 }) {
+  if (joystick?.active && (joystick.x !== 0 || joystick.z !== 0)) {
+    const length = Math.hypot(joystick.x, joystick.z)
+    const scale = length > 1 ? 1 / length : 1
+    out.x = joystick.x * scale
+    out.z = joystick.z * scale
+    return out
+  }
+  const x = ((keys.right ? 1 : 0) - (keys.left ? 1 : 0))
+  const z = ((keys.down ? 1 : 0) - (keys.up ? 1 : 0))
+  const length = Math.hypot(x, z)
+  out.x = length > 0 ? x / length : 0
+  out.z = length > 0 ? z / length : 0
+  return out
+}
+
+export function isRosariTextEntryTarget(target) {
+  if (!target || typeof target !== 'object') return false
+  if (target.isContentEditable) return true
+  const tag = typeof target.tagName === 'string' ? target.tagName.toLowerCase() : ''
+  return tag === 'input' || tag === 'textarea' || tag === 'select'
+}
