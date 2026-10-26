@@ -46,7 +46,7 @@ describe('ProceduralFaceTestZombie contracts', () => {
 
   it('shares the Zombie E01 canonical numeric child-path contract with a fixed pivot-to-visual part order', () => {
     expect(source).not.toContain('studioPartId')
-    expect(source).toContain('<group name={name} position={position} rotation={rotation}>')
+    expect(source).toContain('<group ref={partRef} name={name} position={position} rotation={rotation}>')
     expect(source).toContain('<group name={`${name}-visual`}>')
 
     const partMarkers = [
@@ -64,7 +64,7 @@ describe('ProceduralFaceTestZombie contracts', () => {
   })
 
   it('keeps the numeric-path fill mesh as the parent of its outline and face children', () => {
-    const zombiePartSource = source.match(/function ZombiePart[\s\S]*?\r?\n}\r?\n\r?\nfunction ProceduralFace/)
+    const zombiePartSource = source.match(/function ZombiePart[\s\S]*?\r?\n}\r?\n\r?\nexport function getProceduralFaceZombieWalkPose/)
     const fillMeshHierarchy = zombiePartSource?.[0].match(/<mesh[^>]*renderOrder=\{2\}[\s\S]*?<\/mesh>/)
 
     expect(fillMeshHierarchy).not.toBeNull()

@@ -1,6 +1,7 @@
 import { useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { getCachedBoxGeo, getCachedToonMat, getSharedOutlineMat, inflateScale } from '../lib/toon.js'
+import { composeStudioPartPosition, composeStudioPartRotation } from './StudioTunedGroup.jsx'
 
 const disableRaycast = () => null
 
@@ -66,14 +67,14 @@ const FACE_FRAGMENT_SHADER = `
   }
 `
 
-function ZombiePart({ name, size, position, rotation = [0, 0, 0], color, emissive = 0.1, outlineScale = 1.07, children = null }) {
+function ZombiePart({ name, partRef = null, size, position, rotation = [0, 0, 0], color, emissive = 0.1, outlineScale = 1.07, children = null }) {
   const geometry = getCachedBoxGeo(...size)
   const outlineMaterial = getSharedOutlineMat()
   const material = getCachedToonMat(color, emissive)
   const outline = inflateScale(outlineScale)
 
   return (
-    <group name={name} position={position} rotation={rotation}>
+    <group ref={partRef} name={name} position={position} rotation={rotation}>
       <group name={`${name}-visual`}>
         <mesh renderOrder={2} geometry={geometry} material={material}>
           <mesh renderOrder={1} geometry={geometry} material={outlineMaterial} scale={[outline, outline, outline]} userData={{ studioRenderOutline: true }} raycast={disableRaycast} />
@@ -82,6 +83,36 @@ function ZombiePart({ name, size, position, rotation = [0, 0, 0], color, emissiv
       </group>
     </group>
   )
+}
+
+export function getProceduralFaceZombieWalkPose(timeSeconds) {
+  const t = Number.isFinite(timeSeconds) ? timeSeconds : 0
+  const stride = Math.sin(t * 7.0)
+  const arm = Math.sin(t * 2.8)
+  const head = Math.sin(t * 1.6)
+  const bob = Math.abs(stride)
+  return {
+    bodyY: 0.3 + bob * 0.028,
+    bodyRotZ: stride * 0.018,
+    headY: 0.86 + bob * 0.018,
+    headRotZ: head * 0.07,
+    armLRotX: -1.15 + arm * 0.06,
+    armRRotX: -1.15 - arm * 0.06,
+    legLRotX: stride * 0.38,
+    legRRotX: -stride * 0.38,
+  }
+}
+
+function setComposedRotationX(object, target) {
+  if (!object) return
+  const base = object.userData?.studioPartBaseRotation?.x ?? 0
+  object.rotation.x = composeStudioPartRotation(object, 'x', 0, target - base)
+}
+
+function setComposedRotationZ(object, target) {
+  if (!object) return
+  const base = object.userData?.studioPartBaseRotation?.z ?? 0
+  object.rotation.z = composeStudioPartRotation(object, 'z', 0, target - base)
 }
 
 function ProceduralFace() {
@@ -114,16 +145,39 @@ function ProceduralFace() {
 }
 
 export default function ProceduralFaceTestZombie() {
+  const partsRef = useRef({})
+  const reg = (key) => (node) => {
+    if (node) partsRef.current[key] = node
+  }
+
+  useFrame(({ clock }) => {
+    const parts = partsRef.current
+    if (!parts.legL || !parts.legR) return
+    const pose = getProceduralFaceZombieWalkPose(clock.getElapsedTime())
+    if (parts.body) {
+      parts.body.position.y = composeStudioPartPosition(parts.body, 'y', 0.3, pose.bodyY - 0.3)
+      setComposedRotationZ(parts.body, pose.bodyRotZ)
+    }
+    if (parts.head) {
+      parts.head.position.y = composeStudioPartPosition(parts.head, 'y', 0.86, pose.headY - 0.86)
+      setComposedRotationZ(parts.head, pose.headRotZ)
+    }
+    setComposedRotationX(parts.armL, pose.armLRotX)
+    setComposedRotationX(parts.armR, pose.armRRotX)
+    setComposedRotationX(parts.legL, pose.legLRotX)
+    setComposedRotationX(parts.legR, pose.legRRotX)
+  })
+
   return (
     <group name="procedural-face-test-zombie">
-      <ZombiePart name="procedural-face-head" size={[0.56, 0.5, 0.48]} position={[0, 0.86, 0]} color={0x568a55} emissive={0.11}>
+      <ZombiePart partRef={reg('head')} name="procedural-face-head" size={[0.56, 0.5, 0.48]} position={[0, 0.86, 0]} color={0x568a55} emissive={0.11}>
         <ProceduralFace />
       </ZombiePart>
-      <ZombiePart name="procedural-face-body" size={[0.6, 0.62, 0.42]} position={[0, 0.3, 0]} color={0x486d9b} emissive={0.12} outlineScale={1.09} />
-      <ZombiePart name="procedural-face-arm-left" size={[0.2, 0.52, 0.2]} position={[-0.42, 0.52, 0]} rotation={[-0.9, 0, 0.14]} color={0x486d9b} />
-      <ZombiePart name="procedural-face-arm-right" size={[0.2, 0.52, 0.2]} position={[0.42, 0.52, 0]} rotation={[-0.9, 0, -0.14]} color={0x486d9b} />
-      <ZombiePart name="procedural-face-leg-left" size={[0.23, 0.54, 0.27]} position={[-0.16, -0.28, 0]} color={0x313d5c} />
-      <ZombiePart name="procedural-face-leg-right" size={[0.23, 0.54, 0.27]} position={[0.16, -0.28, 0]} color={0x313d5c} />
+      <ZombiePart partRef={reg('body')} name="procedural-face-body" size={[0.6, 0.62, 0.42]} position={[0, 0.3, 0]} color={0x486d9b} emissive={0.12} outlineScale={1.09} />
+      <ZombiePart partRef={reg('armL')} name="procedural-face-arm-left" size={[0.2, 0.52, 0.2]} position={[-0.42, 0.52, 0]} rotation={[-1.15, 0, 0.14]} color={0x486d9b} />
+      <ZombiePart partRef={reg('armR')} name="procedural-face-arm-right" size={[0.2, 0.52, 0.2]} position={[0.42, 0.52, 0]} rotation={[-1.15, 0, -0.14]} color={0x486d9b} />
+      <ZombiePart partRef={reg('legL')} name="procedural-face-leg-left" size={[0.23, 0.54, 0.27]} position={[-0.16, -0.28, 0]} color={0x313d5c} />
+      <ZombiePart partRef={reg('legR')} name="procedural-face-leg-right" size={[0.23, 0.54, 0.27]} position={[0.16, -0.28, 0]} color={0x313d5c} />
     </group>
   )
 }
