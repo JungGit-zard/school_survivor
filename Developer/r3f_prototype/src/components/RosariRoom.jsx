@@ -9,6 +9,7 @@ import {
   moveRosariRoomPosition,
   resolveRosariMoveVector,
 } from '../lib/rosariRoom.js'
+import { DEFAULT_ROSARI_OUTFIT_ID, ROSARI_OUTFITS, applyRosariOutfit, resolveRosariOutfit } from '../lib/rosariOutfits.js'
 import { joystickDir } from '../lib/refs.js'
 import VirtualJoystick from './VirtualJoystick.jsx'
 
@@ -23,6 +24,9 @@ const DIRECTION_LABELS = Object.freeze({ up: '위', down: '아래', left: '왼�
 
 export default function RosariRoom({ onBack }) {
   const [wardrobeOpen, setWardrobeOpen] = useState(false)
+  // Session-only room choice; never persisted and never applied to the Studio/game/title player.
+  const [outfitId, setOutfitId] = useState(DEFAULT_ROSARI_OUTFIT_ID)
+  const currentOutfit = resolveRosariOutfit(outfitId)
   const [nearWardrobe, setNearWardrobe] = useState(false)
   const [overview, setOverview] = useState(false)
   const [pressedKeys, setPressedKeys] = useState(EMPTY_KEYS)
@@ -164,7 +168,7 @@ export default function RosariRoom({ onBack }) {
         <button type="button" style={styles.backButton} onClick={onBack}>← 타이틀</button>
         <div style={styles.titleBlock}>
           <h1 style={{ ...styles.title, ...(layout.compact ? { fontSize: 16 } : {}) }}>로자리의 방</h1>
-          <p hidden={layout.compact} style={styles.subtitle}>방을 둘러보고 옷장을 열어 현재 복장을 확인해요.</p>
+          <p hidden={layout.compact} style={styles.subtitle}>방을 둘러보고 옷장을 열어 복장을 골라 입어요.</p>
         </div>
       </div>
       <section ref={stageRef} style={styles.stage} aria-label="로자리 방 3D 장면">
@@ -181,6 +185,7 @@ export default function RosariRoom({ onBack }) {
               keyboardKeysRef={keyboardKeysRef}
               mobileKeysRef={mobileKeysRef}
               wardrobeOpen={wardrobeOpen}
+              outfitId={currentOutfit.id}
               onNearWardrobeChange={setNearWardrobe}
               onWardrobeToggle={() => setWardrobeOpen((open) => !open)}
             />
@@ -197,8 +202,21 @@ export default function RosariRoom({ onBack }) {
               <button autoFocus type="button" aria-label="옷장 닫기" style={styles.wardrobeCloseButton} onClick={() => setWardrobeOpen(false)}>×</button>
             </div>
             <div data-wardrobe-scroll style={styles.wardrobeBody}>
-              <div style={styles.currentOutfit}>현재 착용: 학교 교복</div>
-              <p style={styles.emptyOutfit}>추가 의상은 준비 중이에요.</p>
+              <div style={styles.currentOutfit}>현재 착용: {currentOutfit.label}</div>
+              <div role="group" aria-label="의상 선택" style={styles.outfitList}>
+                {ROSARI_OUTFITS.map((outfit) => (
+                  <button
+                    key={outfit.id}
+                    type="button"
+                    aria-pressed={outfit.id === currentOutfit.id}
+                    style={outfit.id === currentOutfit.id ? styles.outfitButtonActive : styles.outfitButton}
+                    onClick={() => setOutfitId(outfit.id)}
+                  >
+                    {outfit.label}
+                  </button>
+                ))}
+              </div>
+              <p style={styles.emptyOutfit}>{currentOutfit.note}</p>
             </div>
           </section>
         )}
@@ -291,7 +309,7 @@ export function getRosariCameraLayout(size, { overview = true, position = { x: 0
   return { position: target.clone().addScaledVector(backward, distance).toArray(), target: target.toArray(), fov }
 }
 
-function RoomScene({ keyboardKeysRef, mobileKeysRef, wardrobeOpen, overview, onNearWardrobeChange, onWardrobeToggle }) {
+function RoomScene({ keyboardKeysRef, mobileKeysRef, wardrobeOpen, overview, outfitId, onNearWardrobeChange, onWardrobeToggle }) {
   const characterRef = useRef(null)
   const positionRef = useRef({ x: 0, z: 0.65 })
   const walkTimeRef = useRef(0)
@@ -355,12 +373,12 @@ function RoomScene({ keyboardKeysRef, mobileKeysRef, wardrobeOpen, overview, onN
       <directionalLight position={[-2.5, 5.5, 3.5]} intensity={2.1} />
       <pointLight position={[1.9, 2.3, 1.6]} color="#ffd6a6" intensity={2.5} distance={6} />
       <RosariBedroom wardrobeOpen={wardrobeOpen} canToggleWardrobeRef={canToggleWardrobeRef} onWardrobeToggle={onWardrobeToggle} />
-      <RosariModel refObject={characterRef} limbRefs={limbRefs} />
+      <RosariModel refObject={characterRef} limbRefs={limbRefs} outfitId={outfitId} />
     </>
   )
 }
 
-export function RosariModel({ refObject, limbRefs }) {
+export function RosariModel({ refObject, limbRefs, outfitId = DEFAULT_ROSARI_OUTFIT_ID }) {
   let gltf
   try { gltf = useGLTF(ROSARI_GLB_URL) }
   catch (error) {
@@ -372,11 +390,11 @@ export function RosariModel({ refObject, limbRefs }) {
   // Each committed setup owns a fresh clone, including R3F StrictMode replay.
   // The resource-free primitive boundary keeps R3F from dismantling the clone
   // before passive cleanup can release its materials/hulls on true unmount.
-  useEffect(() => mountRosariModel(container, gltf.scene, limbRefs.current, gl), [container, gltf.scene, limbRefs, gl])
+  useEffect(() => mountRosariModel(container, gltf.scene, limbRefs.current, gl, outfitId), [container, gltf.scene, limbRefs, gl, outfitId])
   return <group ref={refObject} position={[0, 0, 0.65]}><primitive object={container} /></group>
 }
 
-export function mountRosariModel(parent, source, limbs, gl) {
+export function mountRosariModel(parent, source, limbs, gl, outfitId = DEFAULT_ROSARI_OUTFIT_ID) {
   const cloned = source.clone(true)
   cloned.traverse((node) => {
     if (!node.isMesh) return
@@ -387,6 +405,12 @@ export function mountRosariModel(parent, source, limbs, gl) {
       : makeArchiveToonMaterial(node.material)
     markSurfaceMaterial(node)
   })
+  // Outfit recolors only this clone's fresh materials; accessories are room-owned meshes
+  // that go through the same stencil/outline/dispose path as the GLB surfaces.
+  for (const accessory of applyRosariOutfit(cloned, outfitId, makeOutfitAccessoryMaterial)) {
+    accessory.castShadow = true
+    markSurfaceMaterial(accessory)
+  }
   applyPixelOutlines(cloned, () => gl.getSize(new THREE.Vector2()))
   collectLimbRefs(cloned, limbs)
   const bounds = new THREE.Box3().setFromObject(cloned)
@@ -414,7 +438,7 @@ export function disposeRosariModel(root) {
     for (const material of Array.isArray(node.material) ? node.material : [node.material]) {
       if (material) materials.add(material)
     }
-    if (node.userData?.isOutline && node.geometry) outlineGeometries.add(node.geometry)
+    if ((node.userData?.isOutline || node.userData?.ownedGeometry) && node.geometry) outlineGeometries.add(node.geometry)
   })
   for (const geometry of outlineGeometries) geometry.dispose()
   for (const material of materials) material.dispose()
@@ -654,6 +678,10 @@ function makeArchiveToonMaterial(source) {
   return material
 }
 
+function makeOutfitAccessoryMaterial(color) {
+  return new THREE.MeshToonMaterial({ name: 'outfit_accessory', color, gradientMap: ARCHIVE_TOON_GRADIENT() })
+}
+
 function markSurfaceMaterial(mesh) {
   const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material]
   for (const material of materials) {
@@ -869,5 +897,8 @@ const styles = {
   wardrobeTitle: { margin: 0, fontSize: 24, lineHeight: 1, fontWeight: 1000 },
   wardrobeCloseButton: { minWidth: 44, minHeight: 44, flexShrink: 0, border: '3px solid #7c416e', borderRadius: 999, background: '#fff3cd', color: '#4e2449', fontSize: 24, fontWeight: 1000, cursor: 'pointer', touchAction: 'manipulation', userSelect: 'none' },
   currentOutfit: { padding: 10, border: '2px solid #8a4a73', borderRadius: 12, background: '#fff3fa', fontWeight: 1000 },
+  outfitList: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(96px, 1fr))', gap: 6, marginTop: 8 },
+  outfitButton: { minHeight: 44, padding: '6px 8px', border: '2px solid #b991ab', borderRadius: 12, background: '#fff7fb', color: '#5f2d58', fontWeight: 900, cursor: 'pointer', touchAction: 'manipulation', userSelect: 'none' },
+  outfitButtonActive: { minHeight: 44, padding: '6px 8px', border: '3px solid #7c416e', borderRadius: 12, background: '#ffacd0', color: '#4e2449', fontWeight: 1000, cursor: 'pointer', touchAction: 'manipulation', userSelect: 'none' },
   emptyOutfit: { margin: '10px 0 0', fontSize: 13, lineHeight: 1.45, fontWeight: 800 },
 }
