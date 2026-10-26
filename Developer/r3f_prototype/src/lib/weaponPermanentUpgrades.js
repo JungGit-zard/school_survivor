@@ -1,6 +1,6 @@
 import { WEAPON_CATALOG, getAllWeaponIds, isValidWeaponId } from './weaponCatalog.js'
 import { isUnlocked } from './weaponUnlocks.js'
-import { _seedHydratedFirebaseProgressForTests, readFirebasePlayerProgress, updateFirebasePlayerProgress } from './firebaseProgress.js'
+import { _seedHydratedFirebaseProgressForTests, isFirebaseProgressHydrated, readFirebasePlayerProgressOrDefault, updateFirebasePlayerProgress } from './firebaseProgress.js'
 
 export const STORAGE_KEY = 'school_survivor:weaponPermanentUpgrades'
 export const MAX_WEAPON_PERMANENT_LEVEL = 10
@@ -74,7 +74,7 @@ export const WEAPON_PERMANENT_UPGRADE_PLANS = {
 }
 
 function readRaw() {
-  return readFirebasePlayerProgress().weaponPermanentUpgrades ?? {}
+  return readFirebasePlayerProgressOrDefault().weaponPermanentUpgrades ?? {}
 }
 
 function writeRaw(value) {
@@ -123,6 +123,7 @@ function persist(id, nextLevel) {
 export function purchaseWeaponPermanentUpgrade(id, currentGold) {
   if (!isValidWeaponId(id)) return { ok: false, reason: 'unknownId' }
   if (!isUnlocked(id)) return { ok: false, reason: 'locked' }
+  if (!isFirebaseProgressHydrated()) return { ok: false, reason: 'progressUnavailable' }
   const currentLevel = getWeaponPermanentUpgradeLevel(id)
   const nextLevel = currentLevel + 1
   if (nextLevel > MAX_WEAPON_PERMANENT_LEVEL) return { ok: false, reason: 'maxLevel' }

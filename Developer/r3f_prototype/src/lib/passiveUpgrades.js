@@ -1,12 +1,12 @@
 // Firebase runtime memory passive upgrade layer.
 // Durable player persistence is users/{uid} in Firebase only.
 import { PASSIVE_CATALOG, getPriceFor, isValidPassiveId } from './passiveCatalog.js'
-import { _seedHydratedFirebaseProgressForTests, readFirebasePlayerProgress, updateFirebasePlayerProgress } from './firebaseProgress.js'
+import { _seedHydratedFirebaseProgressForTests, isFirebaseProgressHydrated, readFirebasePlayerProgressOrDefault, updateFirebasePlayerProgress } from './firebaseProgress.js'
 
 export const STORAGE_KEY = 'school_survivor:passiveUpgrades'
 
 function readRaw() {
-  return readFirebasePlayerProgress().passiveUpgrades ?? {}
+  return readFirebasePlayerProgressOrDefault().passiveUpgrades ?? {}
 }
 
 function updateRaw(mutator) {
@@ -45,6 +45,8 @@ export function purchase(id, currentGold) {
   if (!isValidPassiveId(id)) return { ok: false, reason: 'unknownId' }
   const entry = PASSIVE_CATALOG[id]
   if (!entry.enabled) return { ok: false, reason: 'disabled' }
+  // Guests/pre-hydration read level 0 defaults; never persist those over remote data.
+  if (!isFirebaseProgressHydrated()) return { ok: false, reason: 'progressUnavailable' }
   const currentLevel = getLevel(id)
   const nextLevel = currentLevel + 1
   if (nextLevel > entry.maxLevel) return { ok: false, reason: 'maxLevel' }

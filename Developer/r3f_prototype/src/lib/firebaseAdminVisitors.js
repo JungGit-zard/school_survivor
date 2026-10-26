@@ -7,12 +7,18 @@ let testClient = null
 let clientPromise = null
 const deletingUids = new Set()
 const inflightVisits = new Map()
+// Per-uid tail of the visit queue. Concurrent RTDB transactions on one path are
+// applied locally in sequence, so a second one sees the first's unresolved
+// serverTimestamp placeholder for firstVisitedAt, re-stamps it, and the rules
+// (firstVisitedAt is immutable once written) reject it with permission_denied.
+const visitChains = new Map()
 export function resumeAdminVisitorRecording(user) { if (user?.uid) deletingUids.delete(user.uid) }
 let recordedGuestClient = null
 
 export function _setFirebaseAdminVisitorsClientForTests(client) {
   deletingUids.clear()
   inflightVisits.clear()
+  visitChains.clear()
   testClient = client
   clientPromise = null
   recordedGuestClient = null
@@ -36,7 +42,12 @@ export async function recordAdminVisitor(user = null, options = {}) {
   if (deletingUids.has(user?.uid)) return { uid: user.uid, recorded: false, deleting: true }
   const identity = await getRankingUser(user)
   if (deletingUids.has(identity?.uid)) return { uid: identity.uid, recorded: false, deleting: true }
-  const operation = recordIdentityVisit(identity, options)
+  const uid = identity?.uid
+  const operation = (visitChains.get(uid) ?? Promise.resolve()).catch(() => {}).then(() => (
+    deletingUids.has(uid) ? { uid, recorded: false, deleting: true } : recordIdentityVisit(identity, options)
+  ))
+  visitChains.set(uid, operation)
+  void operation.catch(() => {}).finally(() => { if (visitChains.get(uid) === operation) visitChains.delete(uid) })
   const pending = inflightVisits.get(identity?.uid) ?? new Set()
   pending.add(operation)
   inflightVisits.set(identity?.uid, pending)

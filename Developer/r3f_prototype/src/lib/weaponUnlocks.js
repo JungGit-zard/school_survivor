@@ -1,7 +1,7 @@
 // Firebase runtime memory weapon unlock layer.
 // Starter 무기는 저장하지 않는다 — weaponCatalog.evaluateUnlocks가 항상 unlock으로 반환.
 import { isAccountUnlockable, isValidWeaponId, isStarter } from './weaponCatalog.js'
-import { _seedHydratedFirebaseProgressForTests, isFirebaseProgressHydrated, readFirebasePlayerProgress, updateFirebasePlayerProgress } from './firebaseProgress.js'
+import { _seedHydratedFirebaseProgressForTests, isFirebaseProgressHydrated, readFirebasePlayerProgressOrDefault, updateFirebasePlayerProgress } from './firebaseProgress.js'
 export {
   LEGACY_ACCOUNT_ENTITLEMENT_IDS,
   WEAPON_UNLOCK_SCHEMA_VERSION,
@@ -12,7 +12,7 @@ export {
 export const STORAGE_KEY = 'school_survivor:weaponUnlocks'
 
 function readRaw() {
-  return readFirebasePlayerProgress().weaponUnlocks ?? {}
+  return readFirebasePlayerProgressOrDefault().weaponUnlocks ?? {}
 }
 
 function updateRaw(mutator) {

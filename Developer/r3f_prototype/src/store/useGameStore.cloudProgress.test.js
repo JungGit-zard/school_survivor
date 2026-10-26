@@ -28,6 +28,7 @@ vi.mock('../lib/firebaseProgress.js', () => ({
   claimFirebaseMissionReward: vi.fn(async () => ({ ok: false, committed: false, reason: 'transaction-unavailable' })),
   consumeFirebaseProgressSaveWarning: vi.fn(() => null),
   readFirebasePlayerProgress: vi.fn(() => mockProgress),
+  readFirebasePlayerProgressOrDefault: vi.fn(() => mockProgress),
   updateFirebasePlayerProgress: vi.fn((mutator) => {
     const next = structuredClone(mockProgress)
     const result = mutator(next)

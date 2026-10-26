@@ -131,3 +131,20 @@ it('blocks an identity resolution that finishes after deletion', async () => {
   expect(mod.runTransaction).not.toHaveBeenCalled()
   expect(rows[user.uid]).toBeUndefined()
 })
+it('serializes concurrent visits for one uid so a queued transaction never re-stamps firstVisitedAt', async () => {
+  // Live RTDB rejects overlapping transactions here: the 2nd sees the 1st's
+  // unresolved serverTimestamp placeholder and the immutable firstVisitedAt rule denies it.
+  let active = 0
+  let maxActive = 0
+  const original = mod.runTransaction.getMockImplementation()
+  mod.runTransaction.mockImplementation(async (...args) => {
+    active += 1
+    maxActive = Math.max(maxActive, active)
+    await new Promise(resolve => setTimeout(resolve, 5))
+    try { return await original(...args) } finally { active -= 1 }
+  })
+  const results = await Promise.all([recordAdminVisitor(null), recordAdminVisitor(null), recordAdminVisitor(null)])
+  expect(results.every(result => result.recorded === true)).toBe(true)
+  expect(mod.runTransaction).toHaveBeenCalledTimes(3)
+  expect(maxActive).toBe(1)
+})

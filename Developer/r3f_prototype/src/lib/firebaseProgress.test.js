@@ -35,6 +35,7 @@ import {
   isFirebaseProgressConfigured,
   isFirebaseProgressHydrated,
   readFirebasePlayerProgress,
+  readFirebasePlayerProgressOrDefault,
   recordPlayActivity,
   requestCloudProgressSave,
   setCloudProgressUser,
@@ -345,6 +346,8 @@ describe('firebase-only player progress runtime', () => {
       progress: null,
     })
     expect(() => readFirebasePlayerProgress()).toThrow(/unavailable until the authenticated remote snapshot/i)
+    expect(readFirebasePlayerProgressOrDefault()).toMatchObject({ goldTotal: 0, passiveUpgrades: {}, weaponUnlocks: {} })
+    expect(getFirebaseProgressRuntimeSnapshot().progress).toBeNull()
     expect(() => updateFirebasePlayerProgress((progress) => progress)).toThrow(/unavailable until the authenticated remote snapshot/i)
     await expect(requestCloudProgressSave(USER)).resolves.toBe(false)
   })

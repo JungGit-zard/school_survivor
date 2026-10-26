@@ -83,7 +83,9 @@ describe('WeaponModal encyclopedia', () => {
     }
   })
 
-  it('does not mask signed-in account progress that has not hydrated yet', () => {
+  // 2026-10-26 QA: render-time reads return read-only zero defaults before hydration
+  // (readFirebasePlayerProgressOrDefault). Writes stay strict, so nothing is masked remotely.
+  it('renders read-only defaults for signed-in account progress that has not hydrated yet', () => {
     const container = document.createElement('div')
     const root = createRoot(container)
 
@@ -94,7 +96,7 @@ describe('WeaponModal encyclopedia', () => {
         act(() => {
           root.render(<WeaponModal onClose={() => {}} />)
         })
-      }).toThrow(/Firebase player progress is unavailable/)
+      }).not.toThrow()
     } finally {
       act(() => root.unmount())
     }

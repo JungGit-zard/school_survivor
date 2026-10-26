@@ -5,7 +5,7 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { createRoot } from 'react-dom/client'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import CoinShop from './CoinShop.jsx'
-import { _seedHydratedFirebaseProgressForTests } from '../lib/firebaseProgress.js'
+import { _resetFirebaseProgressForTests, _seedHydratedFirebaseProgressForTests } from '../lib/firebaseProgress.js'
 import { resetAllLevels } from '../lib/passiveUpgrades.js'
 import { resetWeaponPermanentUpgradeLevels } from '../lib/weaponPermanentUpgrades.js'
 import { _resetForTests as resetWeaponUnlocks, setUnlocked } from '../lib/weaponUnlocks.js'
@@ -35,6 +35,27 @@ describe('CoinShop', () => {
     expect(html).toContain('공격력 아이콘')
     expect(html).toContain('학습력 아이콘')
     expect(html).toContain('타이틀로 돌아가기')
+  })
+
+  it('renders both shop tabs for a guest without hydrated Firebase progress and refuses purchases', () => {
+    _resetFirebaseProgressForTests()
+    useGameStore.setState({ goldTotal: 0, passiveVersion: 0 })
+    const container = document.createElement('div')
+    document.body.appendChild(container)
+    const root = createRoot(container)
+
+    expect(() => act(() => { root.render(<CoinShop onBack={() => {}} />) })).not.toThrow()
+    expect(container.textContent).toContain('Lv.0')
+    act(() => {
+      Array.from(container.querySelectorAll('button'))
+        .find((button) => button.textContent.includes('무기 강화'))
+        .click()
+    })
+    expect(container.textContent).toContain('무기 기본능력 영구 강화')
+    expect(useGameStore.getState().purchasePassive('magnet')).toEqual({ ok: false, reason: 'progressUnavailable' })
+
+    act(() => root.unmount())
+    container.remove()
   })
 
 

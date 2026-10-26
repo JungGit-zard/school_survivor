@@ -319,6 +319,15 @@ export function updateFirebasePlayerProfile(mutator) {
   return { ...runtime.profile }
 }
 
+// Render-time read boundary. Guests and pre-hydration screens (shop, encyclopedia,
+// results) get a zero-value progress copy instead of a throw. It is a detached clone:
+// writes still go through updateFirebasePlayerProgress, which stays strict so
+// un-hydrated defaults can never overwrite the remote snapshot.
+export function readFirebasePlayerProgressOrDefault() {
+  if (!isRuntimeHydrated()) return createEmptyProgress()
+  return readFirebasePlayerProgress()
+}
+
 export function readFirebasePlayerProgress() {
   ensureHydrated()
   const progress = cloneProgress(runtime.progress)
@@ -834,8 +843,12 @@ function serializeProgress(value) {
   return progress
 }
 
+function isRuntimeHydrated() {
+  return !!(runtime.hydrated && runtime.remoteHydrated && runtime.uid && runtime.progress)
+}
+
 function ensureHydrated() {
-  if (runtime.hydrated && runtime.remoteHydrated && runtime.uid && runtime.progress) return
+  if (isRuntimeHydrated()) return
   throw new FirebaseProgressError(
     'Firebase player progress is unavailable until the authenticated remote snapshot is applied.',
     'progress-not-hydrated',

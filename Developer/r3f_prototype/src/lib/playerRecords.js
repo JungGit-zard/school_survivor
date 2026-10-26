@@ -1,6 +1,6 @@
 // Firebase runtime memory player record layer.
 // Durable storage is users/{uid} in Firebase only; browser storage access is forbidden.
-import { _seedHydratedFirebaseProgressForTests, readFirebasePlayerProgress, updateFirebasePlayerProgress } from './firebaseProgress.js'
+import { _seedHydratedFirebaseProgressForTests, readFirebasePlayerProgressOrDefault, updateFirebasePlayerProgress } from './firebaseProgress.js'
 
 export const STORAGE_KEY = 'school_survivor:playerRecords'
 
@@ -35,7 +35,7 @@ export const RECORD_KEYS = [
 const RECORD_KEY_SET = new Set(RECORD_KEYS)
 
 function readRaw() {
-  return readFirebasePlayerProgress().records ?? {}
+  return readFirebasePlayerProgressOrDefault().records ?? {}
 }
 
 function updateRaw(mutator) {

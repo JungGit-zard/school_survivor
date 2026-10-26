@@ -24,8 +24,8 @@ export const EFFECTIVE_DATE = '2026년 7월 29일'
 
 // 공개 호스팅 주소(Google Play 데이터 안전 섹션에 등록하는 URL의 정본).
 // scripts/build-legal-pages.mjs 가 이 파일을 읽어 hosting/*.html 을 생성한다.
-export const PRIVACY_URL = 'https://escape-zombie-school.web.app/privacy'
-export const ACCOUNT_DELETION_URL = 'https://escape-zombie-school.web.app/delete-account'
+export const PRIVACY_URL = 'https://escapezombie.com/privacy'
+export const ACCOUNT_DELETION_URL = 'https://escapezombie.com/delete-account'
 
 export const TERMS_TITLE = '이용약관'
 export const PRIVACY_TITLE = '개인정보처리방침'
