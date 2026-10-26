@@ -18,6 +18,14 @@ describe('Firebase encounter save contract', () => {
         .toBe(value === 'v9' || value === 'legacy' || value === 'rosari')
     }
   })
+  it('allows only the two wardrobe outfit values for playerOutfit', () => {
+    const rule = rules.rules.users.$uid.progress.titleSettings.playerOutfit['.validate']
+    const validate = new Function('newData', `return (${rule})`)
+    for (const value of ['default', 'winter', 'summer', 'v9', '', 1, true, null]) {
+      expect(validate({ val: () => value, isString: () => typeof value === 'string' }))
+        .toBe(value === 'default' || value === 'winter')
+    }
+  })
   // 2026-10-26: a full-file `firebase deploy --only database` from a stale tree
   // dropped these branches and broke the homepage board, admin visitors and every
   // checkpoint save. Any rules file that lacks them must not be deployable.

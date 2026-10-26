@@ -138,6 +138,7 @@
           },
           "titleSettings": {
             "playerAppearance": { ".validate": "newData.isString() && (newData.val() === 'v9' || newData.val() === 'legacy' || newData.val() === 'rosari')" },
+            "playerOutfit": { ".validate": "newData.isString() && (newData.val() === 'default' || newData.val() === 'winter')" },
             ".validate": "newData.hasChildren(['vibration', 'reducedEffects', 'unlockAllWeaponsCheat', 'unlockAllStagesCheat'])",
             "language": { ".validate": "newData.val() == null || (newData.isString() && (newData.val() === 'ko' || newData.val() === 'en' || newData.val() === 'ja'))" },
             "vibration": { ".validate": "newData.isBoolean()" },

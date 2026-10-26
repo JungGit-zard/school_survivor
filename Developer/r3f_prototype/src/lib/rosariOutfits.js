@@ -3,7 +3,8 @@
 // Scope: ONLY the isolated Rosari room clone of
 // /assets/rosari-room/PLAYER_wholebody_refined_t_efe49b7c.glb. This never touches the
 // Graphics Studio / game / title player (PlayerMesh, StudioTunedGroup, Firebase tuning).
-// The selection is session-only React state; nothing is persisted (no localStorage).
+// The selected id is persisted as titleSettings.playerOutfit (see titleSettings.js
+// loadPlayerOutfit/savePlayerOutfit); ids here must match PLAYER_OUTFIT_IDS and the RTDB rule.
 //
 // An outfit is data: per-garment color overrides on the room clone's fresh toon materials,
 // plus a few low-poly accessory meshes attached to the torso so the silhouette budget

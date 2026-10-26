@@ -10,6 +10,7 @@ import {
   resolveRosariMoveVector,
 } from '../lib/rosariRoom.js'
 import { DEFAULT_ROSARI_OUTFIT_ID, ROSARI_OUTFITS, applyRosariOutfit, resolveRosariOutfit } from '../lib/rosariOutfits.js'
+import { loadPlayerOutfit, savePlayerOutfit } from '../lib/titleSettings.js'
 import { joystickDir } from '../lib/refs.js'
 import VirtualJoystick from './VirtualJoystick.jsx'
 
@@ -24,9 +25,24 @@ const DIRECTION_LABELS = Object.freeze({ up: '위', down: '아래', left: '왼�
 
 export default function RosariRoom({ onBack }) {
   const [wardrobeOpen, setWardrobeOpen] = useState(false)
-  // Session-only room choice; never persisted and never applied to the Studio/game/title player.
-  const [outfitId, setOutfitId] = useState(DEFAULT_ROSARI_OUTFIT_ID)
+  // Wardrobe choice is titleSettings.playerOutfit: account cloud save when signed in and hydrated,
+  // this tab's guest session memory otherwise. Separate axis from playerAppearance.
+  const [outfitId, setOutfitId] = useState(() => loadPlayerOutfit())
+  const [outfitSaveFailed, setOutfitSaveFailed] = useState(false)
+  const outfitSaveSeq = useRef(0)
   const currentOutfit = resolveRosariOutfit(outfitId)
+  const selectOutfit = (nextId) => {
+    if (nextId === currentOutfit.id) return
+    const previous = currentOutfit.id
+    const seq = ++outfitSaveSeq.current
+    setOutfitId(nextId)
+    setOutfitSaveFailed(false)
+    void savePlayerOutfit(nextId).then((saved) => {
+      if (saved || seq !== outfitSaveSeq.current) return
+      setOutfitId(previous)
+      setOutfitSaveFailed(true)
+    })
+  }
   const [nearWardrobe, setNearWardrobe] = useState(false)
   const [overview, setOverview] = useState(false)
   const [pressedKeys, setPressedKeys] = useState(EMPTY_KEYS)
@@ -210,13 +226,14 @@ export default function RosariRoom({ onBack }) {
                     type="button"
                     aria-pressed={outfit.id === currentOutfit.id}
                     style={outfit.id === currentOutfit.id ? styles.outfitButtonActive : styles.outfitButton}
-                    onClick={() => setOutfitId(outfit.id)}
+                    onClick={() => selectOutfit(outfit.id)}
                   >
                     {outfit.label}
                   </button>
                 ))}
               </div>
               <p style={styles.emptyOutfit}>{currentOutfit.note}</p>
+              {outfitSaveFailed && <p role="alert" style={styles.emptyOutfit}>옷을 저장하지 못했어요. 잠시 후 다시 골라 주세요.</p>}
             </div>
           </section>
         )}

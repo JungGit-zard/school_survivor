@@ -1,6 +1,6 @@
 // Player title/settings runtime layer.
 // Durable player settings live only in Firebase users/{uid}. Admin/dev config remains separate.
-import { getFirebaseProgressRuntimeSnapshot, isFirebaseProgressHydrated, readFirebasePlayerProgressOrDefault, updateFirebasePlayerProgress } from './firebaseProgress.js'
+import { getFirebaseProgressRuntimeSnapshot, isFirebaseProgressHydrated, readFirebasePlayerProgressOrDefault, requestCloudProgressSave, updateFirebasePlayerProgress } from './firebaseProgress.js'
 import { detectInitialLocale, isSupportedLocale, setLocale } from './i18n.js'
 import { setScientificNotation } from './numberFormat.js'
 
@@ -40,6 +40,9 @@ export function loadTitleSettings() {
   return {
     ...(settings.playerAppearance === 'v9' || settings.playerAppearance === 'legacy'
       ? { playerAppearance: settings.playerAppearance } : {}),
+    // Rosari wardrobe outfit: separate axis from playerAppearance. Unknown values are dropped (=> 'default').
+    ...(settings.playerOutfit === 'default' || settings.playerOutfit === 'winter'
+      ? { playerOutfit: settings.playerOutfit } : {}),
     language: isSupportedLocale(settings.language) ? settings.language : DEFAULT_SETTINGS.language,
     vibration: typeof settings.vibration === 'boolean' ? settings.vibration : DEFAULT_SETTINGS.vibration,
     reducedEffects: typeof settings.reducedEffects === 'boolean' ? settings.reducedEffects : DEFAULT_SETTINGS.reducedEffects,
@@ -61,6 +64,51 @@ export function saveTitleSettings(settings) {
     }
     return progress
   })
+}
+
+// Rosari wardrobe outfit (titleSettings.playerOutfit). Separate axis from playerAppearance.
+// Ids mirror src/lib/rosariOutfits.js; absent or unknown => 'default'.
+export const PLAYER_OUTFIT_IDS = Object.freeze(['default', 'winter'])
+export const DEFAULT_PLAYER_OUTFIT = 'default'
+const isPlayerOutfit = (value) => PLAYER_OUTFIT_IDS.includes(value)
+
+// Same source rule as Player.jsx appearance: hydrated account => account setting,
+// guest => this tab's session memory, signed-in but not yet hydrated => default.
+export function loadPlayerOutfit() {
+  if (isFirebaseProgressHydrated()) {
+    const outfit = loadTitleSettings().playerOutfit
+    return isPlayerOutfit(outfit) ? outfit : DEFAULT_PLAYER_OUTFIT
+  }
+  if (getFirebaseProgressRuntimeSnapshot().uid) return DEFAULT_PLAYER_OUTFIT
+  const outfit = loadGuestSessionSettings().playerOutfit
+  return isPlayerOutfit(outfit) ? outfit : DEFAULT_PLAYER_OUTFIT
+}
+
+// Resolves true when the choice is stored where it belongs (account cloud save or guest
+// session memory), false when it could not be stored (unknown id, account not hydrated,
+// cloud save rejected/failed).
+export async function savePlayerOutfit(playerOutfit) {
+  if (!isPlayerOutfit(playerOutfit)) return false
+  if (isFirebaseProgressHydrated()) {
+    const uid = getFirebaseProgressRuntimeSnapshot().uid
+    const previous = readFirebasePlayerProgressOrDefault().titleSettings?.playerOutfit
+    saveTitleSettings({ playerOutfit })
+    let saved = false
+    try { saved = (await requestCloudProgressSave()) === true } catch { saved = false }
+    // A rejected/failed save must not leave the unsaved value in the runtime: every later
+    // whole-progress save would carry it again (and be rejected again if Rules refuse it).
+    if (!saved && isFirebaseProgressHydrated() && getFirebaseProgressRuntimeSnapshot().uid === uid) {
+      updateFirebasePlayerProgress((progress) => {
+        const { playerOutfit: _unsaved, ...rest } = progress.titleSettings ?? {}
+        progress.titleSettings = isPlayerOutfit(previous) ? { ...rest, playerOutfit: previous } : rest
+        return progress
+      })
+    }
+    return saved
+  }
+  if (getFirebaseProgressRuntimeSnapshot().uid) return false
+  saveGuestSessionSettings({ playerOutfit })
+  return true
 }
 
 // 계정에 저장된 언어를 런타임에 적용한다. 저장값이 없으면 브라우저 언어로 되돌린다.

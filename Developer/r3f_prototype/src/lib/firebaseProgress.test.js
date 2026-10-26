@@ -101,6 +101,18 @@ describe('firebase-only player progress runtime', () => {
     expect(buildCloudProgressSnapshot().progress.titleSettings.playerAppearance).toBe(playerAppearance)
   })
 
+  it.each(['default', 'winter'])('preserves %s wardrobe outfit through cloud snapshot normalization', (playerOutfit) => {
+    applyCloudProgressSnapshot(remoteSnapshot({ progress: { titleSettings: { playerOutfit } } }), USER)
+    expect(buildCloudProgressSnapshot().progress.titleSettings.playerOutfit).toBe(playerOutfit)
+  })
+
+  it('drops missing or unknown wardrobe outfits instead of persisting them', () => {
+    for (const playerOutfit of [undefined, 'summer', 'v9', 1]) {
+      applyCloudProgressSnapshot(remoteSnapshot({ progress: { titleSettings: { playerOutfit } } }), USER)
+      expect(buildCloudProgressSnapshot().progress.titleSettings).not.toHaveProperty('playerOutfit')
+    }
+  })
+
   it('does not introduce an appearance key for old accounts or invalid input', () => {
     for (const playerAppearance of [undefined, 'invalid']) {
       applyCloudProgressSnapshot(remoteSnapshot({ progress: { titleSettings: { playerAppearance } } }), USER)

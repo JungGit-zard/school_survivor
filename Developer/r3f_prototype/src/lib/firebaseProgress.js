@@ -1110,6 +1110,9 @@ function normalizeTitleSettings(value) {
   return {
     ...(value.playerAppearance === 'v9' || value.playerAppearance === 'legacy'
       ? { playerAppearance: value.playerAppearance } : {}),
+    // Rosari wardrobe outfit: separate axis from playerAppearance. Unknown values are dropped (=> 'default').
+    ...(value.playerOutfit === 'default' || value.playerOutfit === 'winter'
+      ? { playerOutfit: value.playerOutfit } : {}),
     language: SUPPORTED_LANGUAGES.has(value.language) ? value.language : DEFAULT_TITLE_SETTINGS.language,
     vibration: typeof value.vibration === 'boolean' ? value.vibration : DEFAULT_TITLE_SETTINGS.vibration,
     reducedEffects: typeof value.reducedEffects === 'boolean' ? value.reducedEffects : DEFAULT_TITLE_SETTINGS.reducedEffects,

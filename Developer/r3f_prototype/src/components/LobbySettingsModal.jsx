@@ -69,8 +69,11 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
   useEffect(() => {
     // Appearance has its own confirmed cloud-save/rollback path.
     const { playerAppearance: _appearance, ...otherSettings } = settings
-    if (remoteSettingsReady && remoteSettingsLoadedRef.current) saveTitleSettings(otherSettings)
-    else if (guestSession) saveGuestSessionSettings(settings)
+    // playerOutfit is owned by the Rosari room wardrobe; never write back this modal's possibly stale copy.
+    const { playerOutfit: _outfit, ...settingsWithoutOutfit } = otherSettings
+    const { playerOutfit: _guestOutfit, ...guestSettings } = settings
+    if (remoteSettingsReady && remoteSettingsLoadedRef.current) saveTitleSettings(settingsWithoutOutfit)
+    else if (guestSession) saveGuestSessionSettings(guestSettings)
     applyReducedEffects(settings.reducedEffects)
     applyHitCameraShake(settings.hitCameraShake)
     applyScientificNotation(settings.scientificNotation)
