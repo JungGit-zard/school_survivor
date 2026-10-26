@@ -12,6 +12,15 @@ import { clearPendingStartAfterLogin, hasPendingStartAfterLogin } from '../lib/l
 import LobbyBgm from './LobbyBgm.jsx'
 
 const LOBBY_MUSIC_SUB_SCREENS = new Set(['coinShop', 'ranking', 'missionCenter'])
+// 런 종료 후 로비 이동은 클라우드 저장을 기다리되, 저장이 실패·지연(오프라인)돼도 막지 않는다.
+// 진행도는 checkpointRun으로 로컬에 남고 5초 재시도 루프가 이어서 올린다.
+const LEAVE_GAMEPLAY_SAVE_WAIT_MS = 4000
+const GAME_HISTORY_KEY = 'ezsGame'
+
+function pushGameHistoryEntry() {
+  if (typeof window === 'undefined' || window.history.state?.[GAME_HISTORY_KEY]) return
+  window.history.pushState({ ...(window.history.state || {}), [GAME_HISTORY_KEY]: true }, '')
+}
 
 const RosariRoom = lazy(() => import('./RosariRoom.jsx'))
 const TitleScreen = lazy(() => import('./TitleScreen.jsx'))
@@ -197,10 +206,67 @@ export default function ReadyGameApp({
     setScreen(nextScreen)
   }
 
-  const leaveGameplay = async (destination) => {
-    const { useGameStore } = await import('../store/useGameStore.js')
-    if (await useGameStore.getState().flushProgressBeforeTransition()) setScreen(destination)
+  // 모든 런 종료 출구(결과창·탈출 성공·일시정지 로비 복귀·뒤로가기)는 무조건 로비로 간다.
+  // 저장 실패(false)·예외·무응답 어느 것도 이동을 막지 않는다. 실패 경고는 store가 이미 띄운다.
+  const leavingGameplayRef = useRef(false)
+  const leaveGameplay = async () => {
+    if (leavingGameplayRef.current) return
+    leavingGameplayRef.current = true
+    let timer = null
+    try {
+      const { useGameStore } = await import('../store/useGameStore.js')
+      await Promise.race([
+        Promise.resolve(useGameStore.getState().flushProgressBeforeTransition?.()),
+        new Promise((resolve) => { timer = window.setTimeout(resolve, LEAVE_GAMEPLAY_SAVE_WAIT_MS) }),
+      ])
+    } catch {
+      // 저장 실패는 로비 이동을 막지 않는다.
+    } finally {
+      if (timer) window.clearTimeout(timer)
+      leavingGameplayRef.current = false
+      setScreen('lobby')
+    }
   }
+
+  // 브라우저/안드로이드 뒤로가기: 게임 진입 시 history 항목을 하나 쌓아 앱 밖(빈 화면·이전 사이트)으로
+  // 나가지 않게 한다. 플레이 중이면 먼저 일시정지, 그 외(일시정지·레벨업·결과창)는 런을 끝내고 로비로.
+  const screenRef = useRef(screen)
+  const prevScreenRef = useRef(prevScreen)
+  screenRef.current = screen
+  prevScreenRef.current = prevScreen
+  const leaveGameplayRef = useRef(leaveGameplay)
+  leaveGameplayRef.current = leaveGameplay
+
+  useEffect(() => {
+    if (screen === 'game') pushGameHistoryEntry()
+  }, [screen])
+
+  useEffect(() => {
+    const onPopState = () => {
+      const current = screenRef.current
+      const inRunSubScreen = prevScreenRef.current === 'game' && LOBBY_MUSIC_SUB_SCREENS.has(current)
+      if (current !== 'game' && !inRunSubScreen) return
+      if (inRunSubScreen) {
+        setImmediateGameoverResultForGameReturn('game')
+        setScreen('game')
+        pushGameHistoryEntry()
+        return
+      }
+      void import('../store/useGameStore.js').then(({ useGameStore }) => {
+        const store = useGameStore.getState()
+        if (store.phase === 'playing') {
+          store.pauseGame?.('manual')
+          pushGameHistoryEntry()
+          return
+        }
+        if (store.phase === 'levelup') useGameStore.setState({ phase: 'paused', pauseSource: 'manual' })
+        if (useGameStore.getState().phase === 'paused') useGameStore.getState().quitPausedRun?.()
+        return leaveGameplayRef.current()
+      }).catch(() => setScreen('lobby'))
+    }
+    window.addEventListener('popstate', onPopState)
+    return () => window.removeEventListener('popstate', onPopState)
+  }, [])
 
   // 넓은 웹 화면: 좌우 배경(사이드 거터) + 중앙 9:16 세로 프레임(6a72e281 복원 구조).
   // 세로로 긴 화면(실제 휴대폰·TWA)은 프레임 없이 전체화면 그대로 쓴다.
@@ -302,8 +368,8 @@ export default function ReadyGameApp({
                 mobileJoystickEnabled={mobileJoystickEnabled}
                 phoneFrameRef={phoneFrameRef}
                 onOpenCoinShop={() => openCoinShopFrom('game')}
-                onGoToTitle={() => leaveGameplay('title')}
-                onGoToLobby={() => leaveGameplay('lobby')}
+                onGoToTitle={leaveGameplay}
+                onGoToLobby={leaveGameplay}
                 onGoToRanking={() => openRankingFrom('game')}
                 onOpenMissionCenter={() => openMissionCenterFrom('game')}
                 onOpenWeaponEncyclopedia={openWeaponEncyclopedia}

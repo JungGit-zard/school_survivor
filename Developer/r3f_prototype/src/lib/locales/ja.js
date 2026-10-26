@@ -398,6 +398,7 @@ export default {
   'hud.restart': 'リトライ',
   'hud.restartSpaced': 'リトライ',
   'hud.toTitle': 'タイトルへ',
+  'hud.toLobby': 'ロビーへ',
   'hud.coinShop': 'コインショップ',
   'hud.ranking': 'ランキング',
   'hud.rankingTrophy': '🏆 ランキング',

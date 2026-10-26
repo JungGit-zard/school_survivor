@@ -389,6 +389,7 @@ export default {
   'hud.restart': '다시시작',
   'hud.restartSpaced': '다시 시작',
   'hud.toTitle': '타이틀로',
+  'hud.toLobby': '로비로',
   'hud.coinShop': '코인상점',
   'hud.ranking': '랭킹',
   'hud.rankingTrophy': '🏆 랭킹',

@@ -356,7 +356,7 @@ export default function TitleScreen({
       <div style={styles.tint} />
       <div style={styles.vignette} />
       <GoogleAccountPanel />
-      <a href="/landing#zombie-board-preview" className="title-main-action" style={{
+      <a href={`/landing?lang=${encodeURIComponent(locale || 'ko')}#inquiry`} className="title-main-action" style={{
         ...styles.contactLink,
         ...(cheatMenuButtonVisible ? { top: 'max(66px, calc(env(safe-area-inset-top, 0px) + 60px))' } : {}),
       }}>{(ZOMBIE_BOARD_COPY[locale] || ZOMBIE_BOARD_COPY.ko).contact}</a>

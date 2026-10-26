@@ -1702,7 +1702,7 @@ export default function HUD({
             )}
             <div data-testid="result-primary-actions" style={styles.resultButtons}>
               <button style={{ ...styles.restartBtn, ...styles.resultActionBtn }} onClick={() => resetGame(currentStageId)}>{t('hud.restart')}</button>
-              <button style={{ ...styles.titleBtn, ...styles.resultActionBtn }} onClick={onGoToTitle}>{t('hud.toTitle')}</button>
+              <button style={{ ...styles.titleBtn, ...styles.resultActionBtn }} onClick={onGoToLobby ?? onGoToTitle}>{t('hud.toLobby')}</button>
               <button style={{ ...styles.shopBtn, ...styles.resultActionBtn }} onClick={onOpenCoinShop}>{t('hud.coinShop')}</button>
               {onGoToRanking && <button style={{ ...styles.rankingBtn, ...styles.resultActionBtn }} onClick={onGoToRanking}>{t('hud.ranking')}</button>}
             </div>

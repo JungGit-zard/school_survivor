@@ -398,6 +398,7 @@ export default {
   'hud.restart': 'Retry',
   'hud.restartSpaced': 'Retry',
   'hud.toTitle': 'Title',
+  'hud.toLobby': 'Lobby',
   'hud.coinShop': 'Coin shop',
   'hud.ranking': 'Ranking',
   'hud.rankingTrophy': '🏆 Ranking',

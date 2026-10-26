@@ -1393,7 +1393,7 @@ describe('result action layout', () => {
       const primaryActions = container.querySelector('[data-testid="result-primary-actions"]')
       const modal = container.querySelector('[data-testid="gameover-result-overlay"] > div')
 
-      expect(labels).toEqual(['다시시작', '타이틀로', '코인상점', '랭킹'])
+      expect(labels).toEqual(['다시시작', '로비로', '코인상점', '랭킹'])
       expect(container.textContent).not.toContain('다음에 만날 무기')
       expect(primaryActions.style.flexDirection).toBe('column')
       expect(modal.style.maxWidth).toBe('220px')

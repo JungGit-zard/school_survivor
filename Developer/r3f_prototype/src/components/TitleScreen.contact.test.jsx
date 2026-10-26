@@ -23,7 +23,8 @@ it('adds a six-language safe-area top-right 44px contact link without changing o
   for (const [locale, copy] of Object.entries(ZOMBIE_BOARD_COPY)) {
     state.locale = locale
     act(() => root.render(<TitleScreen />))
-    const contact = container.querySelector('a[href="/landing#zombie-board-preview"]')
+    // 문의하기는 홈페이지 문의(글쓰기) 입력란 포커스 진입점으로 간다 — 게임 언어를 그대로 넘긴다.
+    const contact = container.querySelector(`a[href="/landing?lang=${locale}#inquiry"]`)
     expect(contact?.textContent).toBe(copy.contact)
     expect(contact.style.position).toBe('absolute')
     expect(contact.style.minHeight).toBe('44px')

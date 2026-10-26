@@ -16,7 +16,7 @@ export default function ZombieBoard(props) {
   return <BoardSession key={sessionKey} {...props} />
 }
 
-function BoardSession({ open, onClose, language = 'ko', copy, api = null, initialPostId = '' }) {
+function BoardSession({ open, onClose, language = 'ko', copy, api = null, initialPostId = '', initialMode = '' }) {
   const boardCopy = copy || ZOMBIE_BOARD_COPY[language] || ZOMBIE_BOARD_COPY.ko
   const authUser = useAuthStore((state) => state.user)
   const authSigningIn = useAuthStore((state) => state.signingIn)
@@ -40,7 +40,7 @@ function BoardSession({ open, onClose, language = 'ko', copy, api = null, initia
   const [posts, setPosts] = useState([])
   const [comments, setComments] = useState([])
   const [selectedPostId, setSelectedPostId] = useState(initialPostId)
-  const [mode, setMode] = useState(initialPostId ? BOARD_MODES.detail : BOARD_MODES.list)
+  const [mode, setMode] = useState(initialPostId ? BOARD_MODES.detail : initialMode === BOARD_MODES.write ? BOARD_MODES.write : BOARD_MODES.list)
   const [postCursorStack, setPostCursorStack] = useState([])
   const [commentCursorStack, setCommentCursorStack] = useState([])
   const [loading, setLoading] = useState(false)
@@ -106,7 +106,15 @@ function BoardSession({ open, onClose, language = 'ko', copy, api = null, initia
     openerRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null
     const previousOverflow = document.body.style.overflow
     document.body.style.overflow = 'hidden'
-    requestAnimationFrame(() => dialogRef.current?.focus())
+    // 게임의 "문의하기"로 들어오면(initialMode=write) 대화상자 대신 제목 입력란에 바로 포커스한다.
+    // 모바일에서는 이 포커스로 키보드가 올라오는 것이 의도된 동작이다.
+    requestAnimationFrame(() => {
+      const inquiryField = initialMode === BOARD_MODES.write
+        ? dialogRef.current?.querySelector('input[name="postTitle"]')
+        : null
+      if (inquiryField) inquiryField.focus()
+      else dialogRef.current?.focus()
+    })
     return () => {
       document.body.style.overflow = previousOverflow
       openerRef.current?.focus?.()

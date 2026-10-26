@@ -21,8 +21,21 @@ export const LANDING_TITLE_BGM_URL = TITLE_BGM_URL
 const VIDEO_PLACEHOLDERS = WEB_BACKGROUND_THUMB_URLS.slice(0, 3)
 const GAMEPLAY_IMAGES = [WEB_LANDING_ART_URLS.classroomSurvival, WEB_LANDING_ART_URLS.schoolSupplies, WEB_LANDING_ART_URLS.sunsetEscape]
 
+// 게임의 "문의하기" 진입점: /landing?lang=<locale>#inquiry (또는 ?focus=inquiry).
+function isInquiryRequest() {
+  if (typeof window === 'undefined') return false
+  return window.location.hash === '#inquiry'
+    || new URLSearchParams(window.location.search).get('focus') === 'inquiry'
+}
+
+function getRequestedLanguage() {
+  if (typeof window === 'undefined') return 'ko'
+  const requested = new URLSearchParams(window.location.search).get('lang')
+  return requested && LANDING_COPY[requested] ? requested : 'ko'
+}
+
 export default function WebLandingPage() {
-  const [language, setLanguage] = useState('ko')
+  const [language, setLanguage] = useState(getRequestedLanguage)
   const copy = LANDING_COPY[language]
   const [activeMedia, setActiveMedia] = useState(null)
   const [mediaScrollRequest, setMediaScrollRequest] = useState(0)
@@ -30,6 +43,8 @@ export default function WebLandingPage() {
   const [musicStatus, setMusicStatus] = useState('musicIdle')
   const [isBoardOpen, setIsBoardOpen] = useState(false)
   const [boardInitialPostId, setBoardInitialPostId] = useState('')
+  const [boardInitialMode, setBoardInitialMode] = useState('')
+  const [boardSessionKey, setBoardSessionKey] = useState(0)
   const audioRef = useRef(null)
   const stallRecoveryRef = useRef(null)
   const heroActionsRef = useRef(null)
@@ -71,8 +86,23 @@ export default function WebLandingPage() {
   const openBoard = (event) => {
     event.preventDefault()
     setBoardInitialPostId('')
+    setBoardInitialMode('')
     setIsBoardOpen(true)
   }
+
+  useEffect(() => {
+    const openInquiry = () => {
+      if (!isInquiryRequest()) return
+      setBoardInitialPostId('')
+      setBoardInitialMode('write')
+      // 이미 열린 게시판에서도 글쓰기 + 포커스가 다시 적용되도록 세션을 새로 마운트한다.
+      setBoardSessionKey((key) => key + 1)
+      setIsBoardOpen(true)
+    }
+    openInquiry()
+    window.addEventListener('hashchange', openInquiry)
+    return () => window.removeEventListener('hashchange', openInquiry)
+  }, [])
 
   useEffect(() => {
     if (mediaScrollRequest) document.getElementById('media')?.scrollIntoView?.({ block: 'start' })
@@ -179,7 +209,7 @@ export default function WebLandingPage() {
                   <a href="#videos" className="web-landing__cta web-landing__link" onClick={openMediaLink('videos')}>{copy.videoNav}</a>
                   <a href="#zombie-board" className="web-landing__cta web-landing__link" onClick={openBoard}>{ZOMBIE_BOARD_COPY[language]?.action || ZOMBIE_BOARD_COPY.ko.action}</a>
                 </div>
-                <ZombieBoardPreview language={language} onOpenPost={(postId) => { setBoardInitialPostId(postId); setIsBoardOpen(true) }} />
+                <ZombieBoardPreview language={language} onOpenPost={(postId) => { setBoardInitialPostId(postId); setBoardInitialMode(''); setIsBoardOpen(true) }} />
               </div>
 
               <aside className="web-landing__notice" aria-label={copy.officialNotice}>
@@ -355,8 +385,10 @@ export default function WebLandingPage() {
       </section>
       {heroActionsPassed && !isBoardOpen ? <a href="/game" className="web-landing__mobile-sticky-cta web-landing__link">{copy.startGame}</a> : null}
       {isBoardOpen ? <ZombieBoard
+        key={boardSessionKey}
         open={isBoardOpen}
         initialPostId={boardInitialPostId}
+        initialMode={boardInitialMode}
         onClose={() => setIsBoardOpen(false)}
         language={language}
         copy={ZOMBIE_BOARD_COPY[language] || ZOMBIE_BOARD_COPY.ko}
