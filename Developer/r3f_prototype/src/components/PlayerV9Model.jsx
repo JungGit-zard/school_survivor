@@ -4,6 +4,7 @@ import { useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
 import { toonMat } from '../lib/toon.js'
 import { addPlayerV9Outlines } from '../lib/playerV9Outline.js'
+import { applyPlayerV9Outfit } from '../lib/playerV9Outfits.js'
 import { bagSwingState, playerArmActionState } from '../lib/refs.js'
 import { getActivePlayerArmAction, getPlayerArmPose } from '../lib/playerArmAction.js'
 import StudioTunedGroup, {
@@ -58,7 +59,7 @@ function cloneMaterial(material) {
   return cloned
 }
 
-function clonePlayerV9Scene(scene, gameplay) {
+export function clonePlayerV9Scene(scene, gameplay, outfit = 'default') {
   const cloned = scene.clone(true)
   cloned.traverse((object) => {
     if (!object.isMesh) return
@@ -70,6 +71,8 @@ function clonePlayerV9Scene(scene, gameplay) {
       ? object.material.map(cloneMaterial)
       : cloneMaterial(object.material)
   })
+  // Per-clone materials only; the default outfit is a no-op.
+  applyPlayerV9Outfit(cloned, outfit)
   addPlayerV9Outlines(cloned, gameplay ? 1.08 : 1.04)
   return cloned
 }
@@ -152,11 +155,11 @@ function PlayerV9LanternModel() {
   )
 }
 
-export default function PlayerV9Model({ groupRef, movingRef, hitFlashToken = 0, previewArmAction = null, gameplay = false }) {
+export default function PlayerV9Model({ groupRef, movingRef, hitFlashToken = 0, previewArmAction = null, gameplay = false, outfit = 'default' }) {
   const modelScale = PLAYER_V9_SCALE * (gameplay ? 0.9 : 1)
   const floorY = -0.32 - PLAYER_V9_RAW_MIN_Y * modelScale
   const gltf = useGLTF(PLAYER_V9_MODEL_URL)
-  const scene = useMemo(() => clonePlayerV9Scene(gltf.scene, gameplay), [gltf.scene, gameplay])
+  const scene = useMemo(() => clonePlayerV9Scene(gltf.scene, gameplay, outfit), [gltf.scene, gameplay, outfit])
   const modelRef = useRef(null)
   const lanternRef = useRef(null)
   const parts = useRef({})

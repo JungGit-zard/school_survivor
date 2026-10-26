@@ -12,6 +12,7 @@ import { emitSfx } from '../lib/sfxEvents.js'
 import { isFirebaseProgressHydrated } from '../lib/firebaseProgress.js'
 import { loadGuestSessionSettings, loadTitleSettings } from '../lib/titleSettings.js'
 import { useAuthStore } from '../store/useAuthStore.js'
+import { resolvePlayerOutfitId } from '../lib/playerV9Outfits.js'
 import PlayerV9Model from './PlayerV9Model.jsx'
 import PlayerMesh from './PlayerMesh.jsx'
 import MiniHealthBar from './MiniHealthBar.jsx'
@@ -154,14 +155,14 @@ function PlayerHealEffect({ token = 0 }) {
   )
 }
 
-export function PlayerVisual({ meshGroup, movingRef, hp, maxHp, hitFlashToken = 0, healFlashToken = 0, showHealthBar = true, previewArmAction = null, visualPose = PLAYER_UPRIGHT_POSE, comparisonModel = null, gameplay = false }) {
+export function PlayerVisual({ meshGroup, movingRef, hp, maxHp, hitFlashToken = 0, healFlashToken = 0, showHealthBar = true, previewArmAction = null, visualPose = PLAYER_UPRIGHT_POSE, comparisonModel = null, gameplay = false, outfit = 'default' }) {
   return (
     <>
       <group position={visualPose.position} rotation={visualPose.rotation}>
         <group ref={meshGroup}>
           {comparisonModel === 'legacy'
             ? <PlayerMesh movingRef={movingRef} hitFlashToken={hitFlashToken} previewArmAction={previewArmAction} />
-            : <PlayerV9Model movingRef={movingRef} hitFlashToken={hitFlashToken} previewArmAction={previewArmAction} gameplay={gameplay} />}
+            : <PlayerV9Model movingRef={movingRef} hitFlashToken={hitFlashToken} previewArmAction={previewArmAction} gameplay={gameplay} outfit={outfit} />}
         </group>
       </group>
       <PlayerHealEffect token={healFlashToken} />
@@ -180,6 +181,10 @@ export default function Player() {
   const savedAppearance = isFirebaseProgressHydrated()
     ? (loadTitleSettings().playerAppearance ?? 'v9')
     : (useAuthStore.getState().user?.uid ? 'v9' : (loadGuestSessionSettings().playerAppearance ?? 'v9'))
+  // 동복 등 의상 선택(titleSettings.playerOutfit). 없으면 'default'. 현재 v9 모델만 의상을 입는다.
+  const savedOutfit = resolvePlayerOutfitId(isFirebaseProgressHydrated()
+    ? loadTitleSettings().playerOutfit
+    : (useAuthStore.getState().user?.uid ? undefined : loadGuestSessionSettings().playerOutfit))
   const invTimer  = useRef(0)
   const lastVisibleHitFlashToken = useRef(0)
   const hitFlashVisibleFrames = useRef(0)
@@ -328,7 +333,7 @@ export default function Player() {
       colliders={false}
     >
       <CuboidCollider args={[0.136, 0.32, 0.136]} />
-      <PlayerVisual meshGroup={meshGroup} movingRef={movingRef} hp={hp} maxHp={maxHp} hitFlashToken={hitFlashToken} healFlashToken={healFlashToken} visualPose={visualPose} comparisonModel={comparisonModel ?? savedAppearance} gameplay />
+      <PlayerVisual meshGroup={meshGroup} movingRef={movingRef} hp={hp} maxHp={maxHp} hitFlashToken={hitFlashToken} healFlashToken={healFlashToken} visualPose={visualPose} comparisonModel={comparisonModel ?? savedAppearance} outfit={savedOutfit} gameplay />
       {import.meta.env.DEV && comparisonModel && (
         <Html position={[0, 1.12, 0]} center style={{ pointerEvents: 'none', whiteSpace: 'nowrap', fontSize: 12, color: '#fff', background: '#111c', padding: '3px 6px', borderRadius: 4 }}>
           F8 · {comparisonModel === 'legacy' ? '이전 모델' : '이번 V9'}
