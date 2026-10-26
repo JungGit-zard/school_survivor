@@ -58,7 +58,7 @@ import { submitRun, describeSubmission, prepareRankingSubmission, retryPendingRa
 import { getRankingUser } from '../lib/guestRankingIdentity.js'
 import { isProjectMaster } from '../lib/projectAdmin.js'
 import { useAuthStore } from './useAuthStore.js'
-import { getStageVendingItem, getStageVendingPlacement, isWithinStageVendingRange } from '../lib/stageVending.js'
+import { getStageVendingItem, getStageVendingPlacement, getStageVendingRemainingPurchases, isWithinStageVendingRange } from '../lib/stageVending.js'
 import { getBossClearBonus, getRankingScore, getRankingScorePolicy } from '../lib/rankingScorePolicy.js'
 import { logDamageTaken } from '../lib/playtestLogger.js'
 import { emitSfx } from '../lib/sfxEvents.js'
@@ -676,7 +676,7 @@ export const useGameStore = create(
       if (Object.keys(rewardAllowlist).length === 0) {
         return { ok: false, committed: false, reason: 'reward-not-approved' }
       }
-      const result = await claimFirebaseMissionReward({ user, missionId, rewardAllowlist })
+      const result = await claimFirebaseMissionReward({ user, missionId, rewardAllowlist, completion: MISSION_BY_ID[missionId]?.completion })
       if (result.missions) set({ missionProgress: reconcileMissionProgress(result.missions) })
       set({ missionSyncState: result.ok ? 'claimed' : result.reason })
       return result
@@ -899,7 +899,7 @@ export const useGameStore = create(
         if (!placement) return reject('no-placement')
         if (machineId !== null && machineId !== placement.id) return reject('stale-machine')
         if (!isWithinStageVendingRange(playerPos, placement)) return reject('out-of-range')
-        if (s.stageVendingPurchasedItemIds.includes(item.id)) return reject('already-purchased')
+        if (getStageVendingRemainingPurchases(item, s.stageVendingPurchasedItemIds) <= 0) return reject('already-purchased')
         if (item.effectType !== 'heal') return reject('unsupported-effect')
         const maxHp = s.player.maxHp
         if (!Number.isFinite(maxHp) || maxHp <= s.player.hp) return reject('full-health')

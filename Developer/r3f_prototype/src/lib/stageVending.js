@@ -17,6 +17,8 @@ export const STAGE_VENDING_ITEMS = Object.freeze({
     priceGold: 5,
     effectType: 'heal',
     healHp: 35,
+    // 승인된 기존 규칙(level-result 2026-10-19): 동일 아이템 스테이지당 1회, 퇴장·재시도·다음 스테이지 초기화.
+    purchaseLimitPerStage: 1,
     balanceStatus: 'provisional-not-owner-approved',
   }),
 })
@@ -76,6 +78,13 @@ export const STAGE_VENDING_PLACEMENTS = Object.freeze({
 export function getStageVendingItem(itemId) {
   if (!Object.prototype.hasOwnProperty.call(STAGE_VENDING_ITEMS, itemId)) return null
   return STAGE_VENDING_ITEMS[itemId]
+}
+
+// 이번 런(스테이지)에서 해당 아이템을 더 살 수 있는 횟수. 구매 기록은 런 메모리에만 있다.
+export function getStageVendingRemainingPurchases(item, purchasedItemIds = []) {
+  const limit = Math.max(0, Math.floor(Number(item?.purchaseLimitPerStage ?? 1)) || 0)
+  const used = Array.isArray(purchasedItemIds) ? purchasedItemIds.filter((id) => id === item?.id).length : 0
+  return Math.max(0, limit - used)
 }
 
 export function getStageVendingPlacement(stageId) {

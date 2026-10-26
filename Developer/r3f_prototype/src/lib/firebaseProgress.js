@@ -381,6 +381,7 @@ export async function claimFirebaseMissionReward({
   missionId,
   catalogVersion,
   rewardAllowlist,
+  completion,
 } = {}) {
   const uid = readUserId(user)
   const safeMissionId = normalizeMissionId(missionId)
@@ -415,19 +416,25 @@ export async function claimFirebaseMissionReward({
       const completedEntry = missions.completed[safeMissionId]
       const claimedEntry = missions.claimed[safeMissionId]
       const ledgerEntry = missions.claimLedger[claimId]
-      const completedAt = readNullableIsoString(activeEntry?.completedAt) || readNullableIsoString(completedEntry?.completedAt)
+      const now = new Date().toISOString()
+      // 완료의 정본은 서버 카운터다. 런 체크포인트는 카운터만 올리고 completedAt은 런 종료
+      // saveMissionProgress가 성공할 때만 올라가므로, 카운터 충족만으로도 claim을 허용한다.
+      const counterStatus = readMissionCounterCompletion(missions.counters, completion)
+      const completedAt = readNullableIsoString(activeEntry?.completedAt)
+        || readNullableIsoString(completedEntry?.completedAt)
+        || (counterStatus?.complete ? now : null)
 
       if (ledgerEntry || activeEntry?.claimedAt || claimedEntry?.claimedAt) {
         blockedReason = 'already-claimed'
         return undefined
       }
-      if (!activeEntry || !completedAt) {
+      if (!completedAt) {
         blockedReason = 'not-completed'
         return undefined
       }
 
-      const now = new Date().toISOString()
       const nextActiveEntry = normalizeMissionEntry({
+        ...(counterStatus ? { counter: counterStatus.counter, target: counterStatus.target } : null),
         ...activeEntry,
         completedAt,
         claimedAt: now,
@@ -1238,6 +1245,15 @@ function normalizeMissionReward(value) {
   const amount = readPositiveInt(value.amount, 0)
   if (amount <= 0 || amount > 1000000) return null
   return { type: 'gold', amount }
+}
+
+// completion: missionCatalog의 { type: 'counter', counterKey, target } | { type: 'any-counter', counterKeys, target }.
+function readMissionCounterCompletion(counters, completion) {
+  const target = readPositiveInt(completion?.target, 0)
+  const keys = completion?.type === 'any-counter' ? completion.counterKeys : [completion?.counterKey]
+  if (!target || !Array.isArray(keys) || keys.length === 0) return null
+  const counter = Math.max(0, ...keys.map((key) => (typeof key === 'string' ? readNonNegativeInt(counters?.[key]) : 0)))
+  return { counter: Math.min(counter, target), target, complete: counter >= target }
 }
 
 function readAllowedMissionReward(rewardAllowlist, missionId) {
