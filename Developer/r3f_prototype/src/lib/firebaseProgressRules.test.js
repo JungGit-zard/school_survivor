@@ -10,14 +10,30 @@ const encounterRule = rules.rules.users.$uid.progress.encounteredZombieTypes.$zo
 const validateEncounter = new Function('$zombieType', 'newData', `return (${encounterRule})`)
 
 describe('Firebase encounter save contract', () => {
-  it('allows only the two player appearance values', () => {
+  it('allows only the three player appearance values', () => {
     const rule = rules.rules.users.$uid.progress.titleSettings.playerAppearance['.validate']
     const validate = new Function('newData', `return (${rule})`)
-    for (const value of ['v9', 'legacy', 'old', '', 1, true, null]) {
+    for (const value of ['v9', 'legacy', 'rosari', 'old', '', 1, true, null]) {
       expect(validate({ val: () => value, isString: () => typeof value === 'string' }))
-        .toBe(value === 'v9' || value === 'legacy')
+        .toBe(value === 'v9' || value === 'legacy' || value === 'rosari')
     }
   })
+  // 2026-10-26: a full-file `firebase deploy --only database` from a stale tree
+  // dropped these branches and broke the homepage board, admin visitors and every
+  // checkpoint save. Any rules file that lacks them must not be deployable.
+  it('keeps the board, admin visitor and checkpoint ledger branches', () => {
+    const r = rules.rules
+    for (const key of ['posts', 'comments', 'privatePosts', 'privateComments']) {
+      expect(r.zombieBoard?.v1?.[key], `zombieBoard/v1/${key}`).toBeTruthy()
+    }
+    expect(r.zombieBoard.v1.posts['.read']).toContain("query.orderByChild === 'createdAt'")
+    expect(r.adminVisitors?.$uid?.['.write']).toBeTruthy()
+    expect(r.users.$uid.runLedger).toBeTruthy()
+    expect(r.users.$uid.checkpointLedger).toBeTruthy()
+    expect(r.users.$uid.progress.checkpointRevision).toBeTruthy()
+    expect(r.rankingService.v1.guestProfiles).toBeTruthy()
+  })
+
   it('accepts every encyclopedia type, including the coin monster', () => {
     expect(ZOMBIE_ENCYCLOPEDIA_TYPES).toContain('E08')
     const ruleTypes = [...encounterRule.matchAll(/\$zombieType === '([^']+)'/g)].map((match) => match[1])

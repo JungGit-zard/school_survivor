@@ -20,8 +20,9 @@ describe('existing ledger wire contract and baseline Firebase Rules', () => {
   // a9 바이트(d7aa0a2d…)에서 encounteredZombieTypes 화이트리스트에 E34~E45만 더한 바이트다(25066a57).
   // 클라이언트가 E34~E45 조우를 저장하므로 이 Rules를 클라이언트보다 먼저 배포해야 한다 —
   // 아니면 해당 조우가 들어간 progress 쓰기 전체가 .validate에서 거부된다.
-  it('pins the reviewed Rules bytes: a9 plus the E34-E45 encounter whitelist (deploy Rules before the client)', () => {
-    expect(createHash('sha256').update(bytes).digest('hex')).toBe('ea07b0e2b501ad9d3a1662eb54f84f5d8e8f568923aa63faeeaf90e9121b6b43')
+  // 2026-10-26: titleSettings.playerAppearance에 'rosari'만 추가(9dcadbc7…). 스테일 트리 전량 배포 복구용 상위집합.
+  it('pins the reviewed Rules bytes: a9 plus the E34-E45 encounter whitelist and the rosari appearance (deploy Rules before the client)', () => {
+    expect(createHash('sha256').update(bytes).digest('hex')).toBe('9dcadbc70161f541a9199d6e996cce7ca46c12a44fc24d20ad354936ba3d10af')
   })
   it.each([1,2,3,4,5,6,7,8,9,10])('stage %i virtual key uses existing numeric run-row validator, not progress schema additions', n => {
     const key=`stage${n}BossDefeats`
