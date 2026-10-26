@@ -14,6 +14,14 @@ const DATABASE_URL_KEY = 'VITE_FIREBASE_DATABASE_URL'
 const DEFAULT_SEASON_ID = 'season-001'
 const DEFAULT_SEASON_NAME = '상시 시즌'
 const defaultSeasonName = () => t('ranking.defaultSeason', null, DEFAULT_SEASON_NAME)
+// adminConfig 기본 시즌명. 운영자가 이름을 바꾸지 않았으면 현재 로케일 문구로 보여 준다.
+const BUILT_IN_SEASON_NAME = '첫 생존 시즌'
+
+export function displaySeasonName(name) {
+  const trimmed = typeof name === 'string' ? name.trim() : ''
+  if (trimmed === BUILT_IN_SEASON_NAME) return t('lobby.firstSeason', null, BUILT_IN_SEASON_NAME)
+  return trimmed || defaultSeasonName()
+}
 const DAY_MS = 24 * 60 * 60 * 1000
 const RANKING_ROOT = 'rankingService/v1/public'
 const MAX_DISPLAY_NAME = 40
@@ -80,7 +88,7 @@ async function createClient() {
 // 반환: { seasonId, name, endsAt(ms|null), active }
 export function getActiveSeason(nowMs = Date.now(), config = getAdminRankingSeasonConfig()) {
   const seasonId = readSeasonId(config?.seasonId) || DEFAULT_SEASON_ID
-  const name = (typeof config?.seasonName === 'string' && config.seasonName.trim()) || defaultSeasonName()
+  const name = displaySeasonName(config?.seasonName)
   const startMs = kstDateStartMs(config?.startsAt) // null = 하한 없음
   const endMs = kstDateEndMs(config?.endsAt) // null = 상한 없음
   const afterStart = startMs == null || nowMs >= startMs

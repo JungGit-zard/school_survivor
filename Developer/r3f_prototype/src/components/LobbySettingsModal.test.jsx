@@ -4,10 +4,10 @@ import { act } from 'react'
 import { createRoot } from 'react-dom/client'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import LobbySettingsModal from './LobbySettingsModal.jsx'
-import { _resetFirebaseProgressForTests, _seedHydratedFirebaseProgressForTests, applyCloudProgressSnapshot, buildCloudProgressSnapshot, requestCloudProgressSave } from '../lib/firebaseProgress.js'
+import { _resetFirebaseProgressForTests, _seedHydratedFirebaseProgressForTests, applyCloudProgressSnapshot, buildCloudProgressSnapshot, getFirebaseProgressRuntimeSnapshot, requestCloudProgressSave } from '../lib/firebaseProgress.js'
 import { useAuthStore } from '../store/useAuthStore.js'
 import { TERMS_TEXT, TERMS_TITLE, PRIVACY_TEXT, PRIVACY_TITLE } from '../lib/legalDocuments.js'
-import { loadTitleSettings, saveTitleSettings } from '../lib/titleSettings.js'
+import { _resetGuestSessionSettingsForTests, loadGuestSessionSettings, loadTitleSettings, saveTitleSettings } from '../lib/titleSettings.js'
 import { saveGuestRankingNickname } from '../lib/guestRankingIdentity.js'
 
 vi.mock('../lib/guestRankingIdentity.js', () => ({
@@ -60,6 +60,7 @@ describe('LobbySettingsModal', () => {
     view.unmount()
   })
   beforeEach(() => {
+    _resetGuestSessionSettingsForTests()
     _seedHydratedFirebaseProgressForTests()
     useAuthStore.setState({ status: 'signedIn', user: { uid: 'test-user' }, progressStatus: 'ready' })
     vi.clearAllMocks()
@@ -363,6 +364,56 @@ describe('LobbySettingsModal', () => {
     await clickButtonByLabel(view.container, '닫기')
     expect(onClose).toHaveBeenCalledTimes(1)
 
+    view.unmount()
+  })
+
+  it('closes on Escape, but first steps back out of the delete confirmation', async () => {
+    useAuthStore.setState({ status: 'signedIn', user: { uid: 'test-user' }, signOutOfGoogle: vi.fn(async () => {}) })
+    const onClose = vi.fn()
+    const view = renderSettings({ onClose })
+    const pressEscape = () => act(() => {
+      window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
+    })
+
+    await clickButtonByText(view.container, '계정 삭제')
+    expect(view.container.textContent).toContain('영구')
+    pressEscape()
+    expect(onClose).not.toHaveBeenCalled()
+    expect(getButtonByText(view.container, '로그아웃')).toBeTruthy()
+    pressEscape()
+    expect(onClose).toHaveBeenCalledTimes(1)
+
+    view.unmount()
+    pressEscape()
+    expect(onClose).toHaveBeenCalledTimes(1)
+  })
+
+  it('keeps guest choices for this session only, explains why, and greys out account-only actions', async () => {
+    _resetFirebaseProgressForTests()
+    useAuthStore.setState({ user: null, status: 'signedOut', progressStatus: 'idle' })
+    const before = getFirebaseProgressRuntimeSnapshot()
+    let view = renderSettings()
+    await flushAsyncWork()
+
+    expect(view.container.querySelector('[data-testid="settings-guest-session-note"]')?.textContent).toContain('로그인하면 설정이 저장')
+    await clickButtonByText(view.container, '구')
+    expect(view.container.querySelector('[role="alert"]')).toBeNull()
+    expect(getButtonByText(view.container, '구').getAttribute('aria-pressed')).toBe('true')
+    await clickButtonByLabel(view.container, '진동 끄기')
+    expect(requestCloudProgressSave).not.toHaveBeenCalled()
+    for (const label of ['로그아웃', '계정 삭제']) {
+      const button = getButtonByText(view.container, label)
+      expect(button.disabled).toBe(true)
+      expect(Number(button.style.opacity)).toBeLessThan(0.5)
+      expect(button.style.cursor).toBe('not-allowed')
+    }
+    view.unmount()
+
+    view = renderSettings()
+    expect(getButtonByText(view.container, '구').getAttribute('aria-pressed')).toBe('true')
+    expect(view.container.querySelector('[aria-label="진동 켜기"]')).not.toBeNull()
+    expect(loadGuestSessionSettings()).toMatchObject({ playerAppearance: 'legacy', vibration: false })
+    expect(getFirebaseProgressRuntimeSnapshot()).toEqual(before)
     view.unmount()
   })
 

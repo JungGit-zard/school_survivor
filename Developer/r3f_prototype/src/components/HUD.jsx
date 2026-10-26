@@ -47,7 +47,7 @@ import { MISSION_BY_ID } from '../lib/missionCatalog.js'
 import MissionTracker from './MissionTracker.jsx'
 import StageVendingPrompt from './StageVendingPrompt.jsx'
 import Stage4HazardGuide from './Stage4HazardGuide.jsx'
-import { milestoneLabel, t as translate, useT, weaponLabel } from '../lib/i18n.js'
+import { milestoneLabel, missionTitle, t as translate, useT, weaponLabel } from '../lib/i18n.js'
 import { dispatchStarlinkCheatCrash } from './Weapons/Starlink.jsx'
 import pencilIconSrc from '../assets/weapon_icon/01_wea_pencil.png.webp'
 import rulerIconSrc from '../assets/weapon_icon/02_wea_30ruller.png.webp'
@@ -72,7 +72,7 @@ import lanternIconSrc from '../assets/weapon_icon/16_wea_lantern.webp'
 
 import laidManPortraitSrc from '../assets/character/laid_man.webp'
 import matildaConversationPortraitSrc from '../assets/character/matilda_conversation.webp'
-import escapeSuccessSrc from '../assets/escape_success.png'
+import escapeSuccessSrc from '../assets/escape_success.webp'
 
 const GAMEOVER_TRANSITION_MS = 1000
 const QUEST_TRANSIENT_BASE_MS = 2000
@@ -1966,7 +1966,16 @@ export default function HUD({
               }}
               role="dialog"
               aria-label={t('hud.investigateAria', { name: studentDialogue.subjectName ?? t('hud.defaultSubject') })}
+              // 패널 안 pointerdown은 바깥 캐처로 올리지 않는다 — 긴 대사를 스크롤하려고 손을 대자마자
+              // 닫히면 안 된다. 대신 스크롤 없이 끝난 탭(click)은 "화면을 탭하면 계속"대로 닫는다.
+              // 안쪽 버튼은 자기 onClick이 처리한다. 조이스틱은 캔버스에서 시작한 터치만 받으므로 새지 않는다.
               onPointerDown={(event) => event.stopPropagation()}
+              onClick={(event) => {
+                if (event.target?.closest?.('button, a, input, select, textarea')) return
+                emitSfx({ id: 'buttonClick' })
+                clearQuestToast()
+                closeStudentDialogue()
+              }}
             >
               <img
                 data-testid="quest-dialogue-giver-profile"
@@ -2038,14 +2047,15 @@ export default function HUD({
 }
 
 function MissionResultSummary({ summary, onOpenMissionCenter }) {
+  const t = useT()
   const representative = summary.completed[0] ?? summary.progressed[0]
   if (!representative && !onOpenMissionCenter) return null
   return (
-    <section style={styles.missionResultSummary} aria-label="미션 진행 요약">
-      <strong>미션 진행</strong>
-      <span>{representative ? `${representative.mission.title} ${representative.counter}/${representative.target}` : '미션 센터에서 30개 목표를 확인하세요.'}</span>
-      {summary.completed.length > 0 && <span>완료 {summary.completed.length}개 · 보상 확정 대기</span>}
-      {onOpenMissionCenter && <button type="button" style={styles.missionCenterBtn} onClick={onOpenMissionCenter}>미션 센터</button>}
+    <section style={styles.missionResultSummary} aria-label={t('missions.summaryAria')}>
+      <strong>{t('missions.summaryTitle')}</strong>
+      <span>{representative ? `${missionTitle(representative.mission)} ${representative.counter}/${representative.target}` : t('missions.summaryEmpty', { count: Object.keys(MISSION_BY_ID).length })}</span>
+      {summary.completed.length > 0 && <span>{t('missions.summaryCompleted', { count: summary.completed.length })}</span>}
+      {onOpenMissionCenter && <button type="button" style={styles.missionCenterBtn} onClick={onOpenMissionCenter}>{t('missions.title')}</button>}
     </section>
   )
 }

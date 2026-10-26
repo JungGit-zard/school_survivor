@@ -3,15 +3,18 @@ import { useShallow } from 'zustand/react/shallow'
 import { MISSION_CATALOG } from '../lib/missionCatalog.js'
 import { getMissionStatus } from '../lib/missionProgress.js'
 import { schoolButton, schoolPanel, uiBorders, uiPalette, uiShadows, uiType } from '../lib/uiStyle.js'
+import { missionObjective, missionTitle, useT } from '../lib/i18n.js'
 import { useAuthStore } from '../store/useAuthStore.js'
 import { useGameStore } from '../store/useGameStore.js'
 
-const FILTERS = [
-  { id: 'recommended', label: '추천' },
-  { id: 'progress', label: '진행' },
-  { id: 'completed', label: '완료' },
-  { id: 'all', label: '전체' },
-]
+const FILTERS = ['recommended', 'progress', 'completed', 'all']
+
+const CLAIM_ERROR_KEYS = {
+  unauthenticated: 'missions.claimError.unauthenticated',
+  'not-completed': 'missions.claimError.notCompleted',
+  'already-claimed': 'missions.claimError.alreadyClaimed',
+  'progress-not-hydrated': 'missions.claimError.notHydrated',
+}
 
 const panelTone = {
   navy: '#18372f',
@@ -22,6 +25,7 @@ const panelTone = {
 }
 
 export default function MissionCenter({ onBack }) {
+  const t = useT()
   const user = useAuthStore((state) => state.user)
   const { missionProgress, missionSyncState, togglePinnedMission, saveMissionProgress, claimMissionReward } = useGameStore(useShallow((state) => ({
     missionProgress: state.missionProgress,
@@ -47,11 +51,11 @@ export default function MissionCenter({ onBack }) {
   const handlePin = async (missionId) => {
     setNotice('')
     if (!togglePinnedMission(missionId)) {
-      setNotice('고정 미션은 최대 2개까지 선택할 수 있어요.')
+      setNotice(t('missions.pinLimit'))
       return
     }
     const saved = await saveMissionProgress()
-    if (!saved.ok) setNotice('고정 상태를 저장하지 못했어요. 게임은 계속할 수 있어요.')
+    if (!saved.ok) setNotice(t('missions.pinSaveFailed'))
   }
 
   const handleClaim = async (missionId) => {
@@ -61,61 +65,56 @@ export default function MissionCenter({ onBack }) {
     const result = await claimMissionReward(missionId)
     setClaimingMissionId('')
     if (result.ok) return
-    const messages = {
-      unauthenticated: '로그인이 필요해요.',
-      'not-completed': '완료한 미션만 받을 수 있어요.',
-      'already-claimed': '이미 받은 보상이에요.',
-      'progress-not-hydrated': '미션 데이터를 불러오는 중이에요. 잠시 후 다시 시도해요.',
-    }
-    setNotice(messages[result.reason] ?? '보상을 저장하지 못했어요. 게임은 계속할 수 있어요.')
+    setNotice(t(CLAIM_ERROR_KEYS[result.reason] ?? 'missions.claimError.saveFailed'))
   }
 
   const syncMessage = !user?.uid
-    ? '로그인하면 미션 진행이 Firebase에 저장됩니다. 지금도 게임은 할 수 있어요.'
+    ? t('missions.sync.guest')
     : missionSyncState === 'hydrated' || missionSyncState === 'saved'
-      ? '이 계정의 미션 진행은 Firebase에 저장됩니다.'
-      : '미션 진행을 Firebase에 저장하는 중이에요. 게임은 계속할 수 있어요.'
+      ? t('missions.sync.saved')
+      : t('missions.sync.saving')
 
   return (
-    <main style={styles.root} aria-label="미션 센터">
+    <main style={styles.root} aria-label={t('missions.title')}>
       <section style={styles.panel}>
         <header style={styles.header}>
-          <div><h1 style={styles.title}>미션 센터</h1><p style={styles.subTitle}>30개의 목표를 확인하고 원하는 미션을 고정하세요.</p></div>
-          <button type="button" aria-label="미션 센터 닫기" style={styles.closeButton} onClick={onBack}>×</button>
+          <div><h1 style={styles.title}>{t('missions.title')}</h1><p style={styles.subTitle}>{t('missions.subtitle', { count: MISSION_CATALOG.length })}</p></div>
+          <button type="button" aria-label={t('missions.close')} style={styles.closeButton} onClick={onBack}>×</button>
         </header>
         <p style={styles.sync}>{syncMessage}</p>
-        <nav aria-label="미션 필터" style={styles.tabs}>
-          {FILTERS.map((item) => {
-            const active = filter === item.id
-            return <button key={item.id} type="button" aria-pressed={active} data-panel-state={active ? 'selected' : 'idle'} style={{ ...styles.tab, ...(active ? styles.tabActive : null) }} onClick={() => setFilter(item.id)}><span aria-hidden="true">{active ? '● ' : '○ '}</span>{item.label}</button>
+        <nav aria-label={t('missions.filterAria')} style={styles.tabs}>
+          {FILTERS.map((id) => {
+            const active = filter === id
+            return <button key={id} type="button" aria-pressed={active} data-panel-state={active ? 'selected' : 'idle'} style={{ ...styles.tab, ...(active ? styles.tabActive : null) }} onClick={() => setFilter(id)}><span aria-hidden="true">{active ? '● ' : '○ '}</span>{t(`missions.filter.${id}`)}</button>
           })}
         </nav>
         {notice && <p role="status" style={styles.notice}>{notice}</p>}
         <div style={styles.list}>
-          {missions.map((entry) => <MissionCard key={entry.mission.id} entry={entry} pinned={missionProgress.pinnedMissionIds.includes(entry.mission.id)} onPin={handlePin} onClaim={handleClaim} claiming={claimingMissionId === entry.mission.id} />)}
-          {missions.length === 0 && <p style={styles.empty}>이 필터에 맞는 미션이 아직 없어요. 전체 탭에서 30개 목표를 확인해 보세요.</p>}
+          {missions.map((entry) => <MissionCard key={entry.mission.id} entry={entry} pinned={missionProgress.pinnedMissionIds.includes(entry.mission.id)} onPin={handlePin} onClaim={handleClaim} claiming={claimingMissionId === entry.mission.id} t={t} />)}
+          {missions.length === 0 && <p style={styles.empty}>{t('missions.empty', { count: MISSION_CATALOG.length })}</p>}
         </div>
       </section>
     </main>
   )
 }
 
-function MissionCard({ entry, pinned, onPin, onClaim, claiming }) {
+function MissionCard({ entry, pinned, onPin, onClaim, claiming, t }) {
   const { mission, state, counter, target } = entry
-  const status = state === 'claimed' ? '받음' : state === 'completed_unclaimed' ? '완료' : '진행'
+  const status = t(state === 'claimed' ? 'missions.status.claimed' : state === 'completed_unclaimed' ? 'missions.status.completed' : 'missions.status.active')
+  const title = missionTitle(mission)
   const progress = Math.min(100, Math.round((counter / Math.max(target, 1)) * 100))
   return (
     <article style={{ ...styles.card, ...(state === 'completed_unclaimed' ? styles.cardComplete : null), ...(state === 'claimed' ? styles.cardClaimed : null) }}>
       <div style={styles.cardHead}>
         <span data-panel-state={state} style={{ ...styles.status, ...styles.statusByState(state) }}>{state === 'claimed' ? '✓ ' : state === 'completed_unclaimed' ? '★ ' : '… '}{status}</span>
-        <strong style={styles.cardTitle}>{mission.sourceNumber}. {mission.title}</strong>
-        <button type="button" style={styles.pinButton} aria-pressed={pinned} aria-label={`${mission.title} ${pinned ? '고정 해제' : '고정'}`} onClick={() => onPin(mission.id)}>{pinned ? '고정됨' : '고정'}</button>
+        <strong style={styles.cardTitle}>{mission.sourceNumber}. {title}</strong>
+        <button type="button" style={styles.pinButton} aria-pressed={pinned} aria-label={t(pinned ? 'missions.unpinAria' : 'missions.pinAria', { title })} onClick={() => onPin(mission.id)}>{pinned ? t('missions.pinned') : t('missions.pin')}</button>
       </div>
-      <p style={styles.objective}>{mission.objective}</p>
+      <p style={styles.objective}>{missionObjective(mission)}</p>
       <div style={styles.progressRow}><div style={styles.progressTrack}><div style={{ ...styles.progressFill, width: `${progress}%` }} /></div><span>{counter}/{target}</span></div>
       <div style={styles.rewardRow}>
-        <span style={styles.rewardChip}>보상 {mission.rewardProposal.amount}골드</span>
-        {state === 'completed_unclaimed' && <button type="button" disabled={claiming} style={{ ...styles.claimButton, ...(claiming ? styles.pendingButton : null) }} onClick={() => onClaim(mission.id)}>{claiming ? '받는 중…' : '받기'}</button>}
+        <span style={styles.rewardChip}>{t('missions.reward', { amount: mission.rewardProposal.amount })}</span>
+        {state === 'completed_unclaimed' && <button type="button" disabled={claiming} style={{ ...styles.claimButton, ...(claiming ? styles.pendingButton : null) }} onClick={() => onClaim(mission.id)}>{claiming ? t('missions.claiming') : t('missions.claim')}</button>}
       </div>
     </article>
   )

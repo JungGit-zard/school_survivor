@@ -294,6 +294,15 @@ describe('UserRanking 랭킹 제출 안내', () => {
     expect(text).toContain('기록 없음')
   })
 
+  it('앱 진입 때의 0점 참가 등록은 "이번 판 반영" 안내를 띄우지 않는다 — 아직 한 판도 안 했다', () => {
+    for (const status of ['pending', 'recorded', 'notBest']) {
+      const { text } = textOf({ status, entrant: true, stageId: 'stage1', score: 0 })
+      expect(text).not.toContain('이번 판')
+      expect(text).not.toContain('랭킹에 반영')
+    }
+    expect(textOf({ status: 'recorded', stageId: 'stage1', score: 415 }).text).toContain('이번 판 최고기록이 랭킹에 반영됐습니다.')
+  })
+
   it('제출이 왕복 중이면 보드가 비어 있어도 "올리는 중"이라고 말한다', () => {
     const { text, alert } = textOf({ status: 'pending', stageId: 'stage1', score: 415 })
     expect(text).toContain('이번 판 기록을 랭킹에 올리는 중')

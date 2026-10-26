@@ -9,7 +9,7 @@ vi.mock('../store/useAuthStore.js', async () => {
 })
 vi.mock('../store/useGameStore.js', () => ({ useGameStore: selector => selector({ rankingSubmission: null }) }))
 vi.mock('../lib/firebaseProgress.js', () => ({ isFirebaseProgressHydrated: () => false }))
-vi.mock('../lib/userNickname.js', () => ({ getSavedNickname: () => '' }))
+vi.mock('../lib/userNickname.js', () => ({ getSavedNickname: () => '', displayNickname: (value) => value }))
 vi.mock('../lib/playerRecords.js', () => ({ load: () => ({}) }))
 vi.mock('../lib/adminConfig.js', () => ({ getAdminBalanceConfig: () => ({}), getAdminRankingSeasonConfig: () => ({ rewardTiers: [], seasonName: 'Synthetic' }) }))
 vi.mock('../lib/firebaseRanking.js', () => ({

@@ -7,6 +7,7 @@ import MissionCenter from './MissionCenter.jsx'
 import { createMissionProgressState, reconcileMissionProgress } from '../lib/missionProgress.js'
 import { useAuthStore } from '../store/useAuthStore.js'
 import { useGameStore } from '../store/useGameStore.js'
+import { setLocale } from '../lib/i18n.js'
 
 describe('MissionCenter colorful panel contracts', () => {
   beforeEach(() => {
@@ -58,6 +59,24 @@ describe('MissionCenter colorful panel contracts', () => {
       expect(minHeight).toBeGreaterThanOrEqual(44)
     }
     view.unmount()
+  })
+
+  it.each(['en', 'ja'])('renders no Korean text in %s', (locale) => {
+    setLocale(locale)
+    try {
+      const view = renderMissionCenter()
+      const hangul = /[가-힣]/
+      const texts = [view.container.textContent]
+      for (const filter of Array.from(view.container.querySelectorAll('nav button'))) {
+        act(() => { filter.dispatchEvent(new MouseEvent('click', { bubbles: true })) })
+        texts.push(view.container.textContent)
+      }
+      for (const el of view.container.querySelectorAll('[aria-label]')) texts.push(el.getAttribute('aria-label'))
+      expect(texts.filter((text) => hangul.test(text))).toEqual([])
+      view.unmount()
+    } finally {
+      setLocale('ko')
+    }
   })
 })
 

@@ -10,7 +10,8 @@ import {
   buildLocalPlayerRankingEntry,
   RANKING_LIMIT,
 } from '../lib/userRanking.js'
-import { isFirebaseRankingConfigured, subscribeGlobalRanking } from '../lib/firebaseRanking.js'
+import { displaySeasonName, isFirebaseRankingConfigured, subscribeGlobalRanking } from '../lib/firebaseRanking.js'
+import { displayNickname } from '../lib/userNickname.js'
 import { getAdminRankingSeasonConfig } from '../lib/adminConfig.js'
 import { load as loadPlayerRecords } from '../lib/playerRecords.js'
 import { isFirebaseProgressHydrated } from '../lib/firebaseProgress.js'
@@ -136,7 +137,7 @@ export default function UserRanking({ onBack, entries }) {
 
       {activeWindow !== 'allTime' && <section data-panel-state="special" style={styles.seasonPanel}>
         <span style={styles.seasonLabel}>{t('lobby.season')}</span>
-        <strong style={styles.seasonName}>{season.seasonName}</strong>
+        <strong style={styles.seasonName}>{displaySeasonName(season.seasonName)}</strong>
         <span style={styles.seasonReward}>{rewardSummary}</span>
       </section>}
 
@@ -165,6 +166,9 @@ const NOT_SUBMITTED_KEYS = {
 
 // 제출 상태 → 배너 한 줄. "보드가 비었다"와 "내 기록이 안 올라갔다"를 가르는 유일한 지점이다.
 export function buildSubmitNotice(submission) {
+  // 앱 진입 때 보내는 0점 참가 등록은 플레이 기록이 아니다. "이번 판 최고기록 반영" 같은
+  // 안내는 실제로 방금 끝난 판을 제출했을 때만 보인다.
+  if (submission?.entrant) return null
   const status = submission?.status
   if (status === 'pending') return { key: 'ranking.submit.pending', tone: 'neutral', canRetry: false }
   if (status === 'recorded') return { key: 'ranking.submit.recorded', tone: 'good', canRetry: false }
@@ -189,7 +193,7 @@ function RankingRow({ row }) {
     <li style={styles.row(row.empty, row.local)}>
       <span style={styles.rank}>{translate('ranking.rankSuffix', { rank: row.rank })}</span>
       <span style={styles.name}>
-        {row.empty ? translate('ranking.noRecord') : row.displayName}
+        {row.empty ? translate('ranking.noRecord') : displayNickname(row.displayName)}
         {!row.empty && row.local && <span data-panel-state="local" style={styles.localBadge}>ME</span>}
       </span>
       <span style={styles.score}>{row.empty ? '-' : formatRankScore(row.score)}</span>

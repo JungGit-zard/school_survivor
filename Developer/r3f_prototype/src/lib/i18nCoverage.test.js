@@ -19,6 +19,8 @@ import { getAllWeaponIds } from './weaponCatalog.js'
 import { PASSIVE_CATALOG, getMvpPassiveIds } from './passiveCatalog.js'
 import { STAGE_CONFIGS } from './stageConfig.js'
 import { QUEST_DEFINITIONS } from './quests.js'
+import { MISSION_CATALOG } from './missionCatalog.js'
+import ko from './locales/ko.js'
 import { STAGE_PROP_PALETTE } from './stagePropEditorGeometry.js'
 import { WEAPON_PERMANENT_UPGRADE_PLANS } from './weaponPermanentUpgrades.js'
 import { permanentSummary, setLocale } from './i18n.js'
@@ -68,6 +70,13 @@ describe('로케일 사전이 게임 데이터를 전부 덮는가', () => {
       for (const milestone of stage.survivalMilestones) keys.push(`milestone.${milestone.label}`)
     }
     expect(missingKeys(keys)).toEqual([])
+  })
+
+  it('미션 센터 문구와 미션 30종 제목·목표가 en·ja에 있다', () => {
+    const uiKeys = Object.keys(ko).filter((key) => key.startsWith('missions.'))
+    const dataKeys = MISSION_CATALOG.flatMap((mission) => [`mission.${mission.id}.title`, `mission.${mission.id}.objective`])
+    expect(uiKeys.length).toBeGreaterThan(0)
+    expect(missingKeys([...uiKeys, ...dataKeys])).toEqual([])
   })
 
   it('퀘스트 정적 필드가 en·ja에 있다', () => {

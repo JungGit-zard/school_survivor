@@ -9,6 +9,7 @@ import { getAdminOperationsConfig } from '../lib/adminConfig.js'
 import {
   applyHitCameraShake,
   applyReducedEffects,
+  loadGuestSessionSettings,
   loadTitleSettings,
   unlockAllStagesForDevCheat,
 } from '../lib/titleSettings.js'
@@ -141,7 +142,7 @@ export default function TitleScreen({
   const signInWithGoogle = useAuthStore((s) => s.signInWithGoogle)
   const [authFailureOpen, setAuthFailureOpen] = useState(false)
   const [settings] = useState(() => (
-    isFirebaseProgressHydrated(authUser) ? loadTitleSettings() : {
+    isFirebaseProgressHydrated(authUser) ? loadTitleSettings() : !authUser?.uid ? loadGuestSessionSettings() : {
       vibration: true,
       reducedEffects: false,
       hitCameraShake: true,

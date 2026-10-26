@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { getFirebaseProgressRuntimeSnapshot, isFirebaseProgressHydrated, requestCloudProgressSave, updateFirebasePlayerProfile } from '../lib/firebaseProgress.js'
 import { getGuestRankingNickname, getRankingUser, saveGuestRankingNickname } from '../lib/guestRankingIdentity.js'
 import { getSavedNickname, saveNicknameForUser, validateNickname } from '../lib/userNickname.js'
-import { DEFAULT_SETTINGS, applyHitCameraShake, applyLanguage, applyReducedEffects, applyScientificNotation, loadTitleSettings, saveTitleSettings } from '../lib/titleSettings.js'
+import { DEFAULT_SETTINGS, applyHitCameraShake, applyLanguage, applyReducedEffects, applyScientificNotation, loadGuestSessionSettings, loadTitleSettings, saveGuestSessionSettings, saveTitleSettings } from '../lib/titleSettings.js'
 import { schoolPanel, schoolButton, uiBorders, uiPalette, uiShadows, uiType } from '../lib/uiStyle.js'
 import { LOCALE_OPTIONS, useLocale, useT } from '../lib/i18n.js'
 import { useAuthStore } from '../store/useAuthStore.js'
@@ -35,7 +35,11 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
   const signOutOfGoogle = useAuthStore((s) => s.signOutOfGoogle)
   const [settingsOwnerUid] = useState(() => authUser?.uid ?? null)
   const remoteSettingsReady = isRemoteSettingsReady(authUser, settingsOwnerUid, progressStatus)
-  const [settings, setSettings] = useState(() => remoteSettingsReady ? loadTitleSettings() : { ...DEFAULT_SETTINGS })
+  // 게스트는 영구 저장소가 없다. 이번 접속 메모리에만 두어 모달을 다시 열거나 게임 중에도 되돌아가지 않게 한다.
+  const guestSession = !settingsOwnerUid && !authUser?.uid
+  const [settings, setSettings] = useState(() => (
+    remoteSettingsReady ? loadTitleSettings() : guestSession ? loadGuestSessionSettings() : { ...DEFAULT_SETTINGS }
+  ))
   const remoteSettingsLoadedRef = useRef(remoteSettingsReady)
   const [controlsOpen, setControlsOpen] = useState(false)
   const [nicknameOpen, setNicknameOpen] = useState(false)
@@ -66,11 +70,12 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
     // Appearance has its own confirmed cloud-save/rollback path.
     const { playerAppearance: _appearance, ...otherSettings } = settings
     if (remoteSettingsReady && remoteSettingsLoadedRef.current) saveTitleSettings(otherSettings)
+    else if (guestSession) saveGuestSessionSettings(settings)
     applyReducedEffects(settings.reducedEffects)
     applyHitCameraShake(settings.hitCameraShake)
     applyScientificNotation(settings.scientificNotation)
     applyLanguage(settings.language)
-  }, [remoteSettingsReady, settings])
+  }, [guestSession, remoteSettingsReady, settings])
 
   useEffect(() => {
     if (!remoteSettingsReady) {
@@ -95,6 +100,12 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
   const selectAppearance = async (playerAppearance) => {
     if (appearanceBusy || playerAppearance === (settings.playerAppearance ?? 'v9')) return
     if (!remoteSettingsReady) {
+      // 게스트는 저장 실패가 아니라 저장소가 없는 것이다. 이번 접속 동안만 바꿔 주고 안내 문구로 알린다.
+      if (guestSession) {
+        setAppearanceError(false)
+        setSettings((current) => ({ ...current, playerAppearance }))
+        return
+      }
       setAppearanceError(true)
       return
     }
@@ -175,6 +186,24 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
     }
     onLogoutToTitle?.()
   }
+
+  const modalBusy = appearanceBusy || nicknameBusy || deleteStage === 'deleting' || reauthBusy
+  const escapeStateRef = useRef(null)
+  escapeStateRef.current = { modalBusy, nicknameOpen, deleteStage, onClose }
+  useEffect(() => {
+    const onKeyDown = (event) => {
+      if (event.key !== 'Escape') return
+      const state = escapeStateRef.current
+      event.preventDefault()
+      if (state.modalBusy) return
+      // 한 단계씩 물러난다: 닉네임 편집·삭제 확인 → 설정 목록 → 모달 닫기.
+      if (state.nicknameOpen) { setNicknameOpen(false); return }
+      if (state.deleteStage !== 'idle') { setDeleteStage('idle'); setDeleteError(null); return }
+      state.onClose?.()
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [])
 
   const toggleLegal = (id) => {
     setLegalOpenId((current) => (current === id ? null : id))
@@ -313,6 +342,7 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
             </button>
 
             <div style={styles.sectionLabel}>{t('settings.gameEnv')}</div>
+            {guestSession && <p data-testid="settings-guest-session-note" style={styles.guestNote}>{t('settings.guestSessionOnly')}</p>}
             <div style={styles.languageRow}>
               <strong style={styles.rowTitle}>{t('settings.playerAppearance')}</strong>
               <div style={styles.languageChoices} role="group" aria-label={t('settings.playerAppearance')} aria-busy={appearanceBusy}>
@@ -460,11 +490,11 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
             )}
 
             <div style={styles.sectionLabel}>{t('settings.account')}</div>
-            <button type="button" style={styles.logoutButton} onClick={handleLogout} disabled={!authUser?.uid || appearanceBusy || nicknameBusy}>
+            <button type="button" style={accountActionStyle(styles.logoutButton, !authUser?.uid || appearanceBusy || nicknameBusy)} onClick={handleLogout} disabled={!authUser?.uid || appearanceBusy || nicknameBusy}>
               {t('settings.logout')}
             </button>
             {logoutError && <p role="alert" style={styles.deleteErrorText}>{t('settings.logoutSaveFailed')}</p>}
-            <button type="button" style={styles.deleteAccountButton} onClick={openDeleteConfirm} disabled={!authUser?.uid || appearanceBusy || nicknameBusy}>
+            <button type="button" style={accountActionStyle(styles.deleteAccountButton, !authUser?.uid || appearanceBusy || nicknameBusy)} onClick={openDeleteConfirm} disabled={!authUser?.uid || appearanceBusy || nicknameBusy}>
               {t('settings.deleteAccount')}
             </button>
           </>
@@ -472,6 +502,13 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
       </section>
     </div>
   )
+}
+
+// 비활성 계정 버튼이 활성 빨간 버튼과 똑같이 보이면 게스트가 눌러도 반응 없는 버튼으로 느낀다.
+function accountActionStyle(base, disabled) {
+  return disabled
+    ? { ...base, opacity: 0.42, filter: 'grayscale(0.85)', boxShadow: 'none', cursor: 'not-allowed' }
+    : base
 }
 
 function isRemoteSettingsReady(authUser, settingsOwnerUid, progressStatus) {
@@ -625,6 +662,16 @@ const styles = {
     fontSize: 10.5,
     lineHeight: 1.45,
     fontWeight: 600,
+  },
+  guestNote: {
+    margin: '0 0 7px',
+    padding: '6px 9px',
+    border: `1px dashed ${panelTone.amber}`,
+    borderRadius: 8,
+    color: uiPalette.paperLight,
+    fontSize: 11,
+    lineHeight: 1.35,
+    fontWeight: 800,
   },
   deletePanel: { display: 'flex', flexDirection: 'column', gap: 8 },
   deleteHeading: {

@@ -51,7 +51,7 @@ describe('escape success choices', () => {
     ])
     expect(container.querySelector('#escape-success-title').textContent).toBe('탈출 성공')
     expect(container.querySelector('[data-testid="escape-total-score"]').textContent).toContain(String(score))
-    expect(container.querySelector('[data-testid="escape-success-screen"] img').getAttribute('src')).toContain('escape_success.png')
+    expect(container.querySelector('[data-testid="escape-success-screen"] img').getAttribute('src')).toContain('escape_success.webp')
     expect(useGameStore.getState()).toMatchObject({ phase: 'cleared', currentStageId: 'stage1' })
     expect(actions.querySelector('button').disabled).toBe(true)
     await act(async () => actions.querySelector('button').click())

@@ -11,13 +11,13 @@ import { VISIBLE_STAGE_IDS, getStageConfig, isStageUnlocked } from '../lib/stage
 import { load as loadPlayerRecords } from '../lib/playerRecords.js'
 import { isFirebaseProgressHydrated } from '../lib/firebaseProgress.js'
 import { formatSurvivalTime } from '../lib/userRanking.js'
-import { getSavedNickname } from '../lib/userNickname.js'
+import { displayNickname, getSavedNickname } from '../lib/userNickname.js'
 import { getGuestRankingNickname, getRankingUser } from '../lib/guestRankingIdentity.js'
 import { getActiveSeason } from '../lib/firebaseRanking.js'
 import { loadStageBossPreview, STAGE_BOSS_PREVIEW_EVENT } from '../lib/graphicsStudioConfig.js'
 import { playSfx } from '../lib/sfxRegistry.js'
 import { schoolButton, schoolPanel, uiBorders, uiPalette, uiShadows, uiType } from '../lib/uiStyle.js'
-import { stageTitle, t as translate, useT } from '../lib/i18n.js'
+import { stageTitle, t as translate, useLocale, useT } from '../lib/i18n.js'
 import { useAuthStore } from '../store/useAuthStore.js'
 import { useGameStore } from '../store/useGameStore.js'
 import LobbyBgm from './LobbyBgm.jsx'
@@ -109,7 +109,9 @@ export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onO
   const feedbackButtonRef = useRef(null)
 
   const stageIds = VISIBLE_STAGE_IDS
-  const season = useMemo(() => getActiveSeason(), [])
+  const locale = useLocale()
+  // 시즌명은 로케일 문구일 수 있어 언어가 바뀌면 다시 계산한다.
+  const season = useMemo(() => getActiveSeason(), [locale])
 
   useEffect(() => {
     const update = (event) => setStageBossPreview(event.detail ?? loadStageBossPreview())
@@ -272,7 +274,7 @@ export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onO
         <div style={styles.profileRow}>
           <div style={styles.profileBlock}>
             <span style={styles.profileEyebrow}>{t('lobby.player')}</span>
-            <strong style={styles.profileName}>{nickname || authUser?.displayName?.trim() || authUser?.email?.trim() || ''}</strong>
+            <strong style={styles.profileName}>{displayNickname(nickname) || authUser?.displayName?.trim() || authUser?.email?.trim() || ''}</strong>
           </div>
           <div style={styles.coinBadge}>
             <span style={styles.coinDot} />
@@ -331,7 +333,7 @@ export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onO
         </button>
         <button type="button" className="lobby-press" style={styles.bottomNavButtonAccent} onClick={() => !showtimeStageId && onOpenRanking?.()}>{t('lobby.ranking')}</button>
         <button type="button" className="lobby-press" style={styles.bottomNavButtonReward} onClick={() => !showtimeStageId && onOpenCoinShop?.()}>{t('lobby.shop')}</button>
-        <button type="button" className="lobby-press" style={styles.bottomNavButton} onClick={() => !showtimeStageId && onOpenMissionCenter?.()}>미션</button>
+        <button type="button" className="lobby-press" style={styles.bottomNavButton} onClick={() => !showtimeStageId && onOpenMissionCenter?.()}>{t('lobby.missions')}</button>
       </nav>
 
       {modal === 'weapon' && <WeaponModal onClose={closeWeaponModal} initialWeaponId={weaponModalInitialId} newlyUnlockedWeaponIds={newlyUnlockedWeaponIds} playerRecords={records} recordsStatus={progressStatus} onRetryRecords={() => { void useAuthStore.getState().retryCloudProgress?.() }} />}

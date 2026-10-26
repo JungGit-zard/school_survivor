@@ -20,7 +20,7 @@ import { isStageUnlocked } from '../lib/stageConfig.js'
 import { load as loadPlayerRecords } from '../lib/playerRecords.js'
 import { useAuthStore } from '../store/useAuthStore.js'
 import { useGameStore } from '../store/useGameStore.js'
-import { saveTitleSettings } from '../lib/titleSettings.js'
+import { _resetGuestSessionSettingsForTests, saveTitleSettings } from '../lib/titleSettings.js'
 import { runLobbyHydrationCycles } from '../../test/lobbyHydrationCycles.jsx'
 
 const stageBossPreviewRenderState = vi.hoisted(() => ({ count: 0 }))
@@ -160,8 +160,12 @@ describe('Lobby', () => {
     const oldAppearance = Array.from(view.container.querySelectorAll('button'))
       .find((button) => button.textContent === '구')
     act(() => oldAppearance.click())
-    expect(view.container.querySelector('[role="alert"]')?.textContent).toContain('저장')
+    // 게스트는 저장 실패(연결 오류)가 아니다. 이번 접속 동안만 바꾸고 로그인하면 저장된다고 안내한다.
+    expect(view.container.querySelector('[role="alert"]')).toBeNull()
+    expect(oldAppearance.getAttribute('aria-pressed')).toBe('true')
+    expect(view.container.querySelector('[data-testid="settings-guest-session-note"]')?.textContent).toContain('로그인하면 설정이 저장')
     expect(getFirebaseProgressRuntimeSnapshot()).toEqual(before)
+    _resetGuestSessionSettingsForTests()
 
     const user = { uid: 'newly-signed-in-user' }
     _seedHydratedFirebaseProgressForTests(user)

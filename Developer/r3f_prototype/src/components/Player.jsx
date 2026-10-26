@@ -10,7 +10,8 @@ import { getPlayerStartPosition } from '../lib/playerStartPosition.js'
 import { createGameplayFixedStepClock, runGameplayFixedSteps } from '../lib/gameplayFrameTime.js'
 import { emitSfx } from '../lib/sfxEvents.js'
 import { isFirebaseProgressHydrated } from '../lib/firebaseProgress.js'
-import { loadTitleSettings } from '../lib/titleSettings.js'
+import { loadGuestSessionSettings, loadTitleSettings } from '../lib/titleSettings.js'
+import { useAuthStore } from '../store/useAuthStore.js'
 import PlayerV9Model from './PlayerV9Model.jsx'
 import PlayerMesh from './PlayerMesh.jsx'
 import MiniHealthBar from './MiniHealthBar.jsx'
@@ -175,7 +176,10 @@ export default function Player() {
   const meshGroup = useRef()
   const movingRef = useRef(false)
   const [comparisonModel, setComparisonModel] = useState(null)
-  const savedAppearance = isFirebaseProgressHydrated() ? (loadTitleSettings().playerAppearance ?? 'v9') : 'v9'
+  // 게스트는 이번 접속 메모리의 선택을 쓴다. 로그인했지만 아직 계정 진행도가 오기 전이면 기본값.
+  const savedAppearance = isFirebaseProgressHydrated()
+    ? (loadTitleSettings().playerAppearance ?? 'v9')
+    : (useAuthStore.getState().user?.uid ? 'v9' : (loadGuestSessionSettings().playerAppearance ?? 'v9'))
   const invTimer  = useRef(0)
   const lastVisibleHitFlashToken = useRef(0)
   const hitFlashVisibleFrames = useRef(0)

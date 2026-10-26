@@ -35,3 +35,24 @@ describe('user nickname storage', () => {
     expect(getFirebaseProgressRuntimeSnapshot().profile.nickname).toBe('교실 생존자')
   })
 })
+
+describe('displayNickname', () => {
+  it('localizes only the automatic guest nickname prefix for display', async () => {
+    const { displayNickname } = await import('./userNickname.js')
+    const { setLocale } = await import('./i18n.js')
+    setLocale('en')
+    try {
+      expect(displayNickname('생존자-a1B2c3')).toBe('Survivor-a1B2c3')
+      expect(displayNickname('생존자왕')).toBe('생존자왕')
+      expect(displayNickname('생존자-a1B2c3x')).toBe('생존자-a1B2c3x')
+      expect(displayNickname('')).toBe('')
+      expect(displayNickname(undefined)).toBeUndefined()
+      setLocale('ja')
+      expect(displayNickname('생존자-a1B2c3')).toBe('サバイバー-a1B2c3')
+      setLocale('ko')
+      expect(displayNickname('생존자-a1B2c3')).toBe('생존자-a1B2c3')
+    } finally {
+      setLocale('ko')
+    }
+  })
+})

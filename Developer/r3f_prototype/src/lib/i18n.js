@@ -108,6 +108,9 @@ export const passiveLabel = (id, fallback) => t(`passive.${id}`, null, fallback)
 export const propLabel = (type, fallback) => t(`prop.${type}`, null, fallback)
 export const stageTitle = (id, fallback) => t(`stage.${id}.title`, null, fallback)
 export const milestoneLabel = (korean) => t(`milestone.${korean}`, null, korean)
+// 미션 제목/목표의 한국어 정본은 missionCatalog.js에 있다.
+export const missionTitle = (mission) => t(`mission.${mission.id}.title`, null, mission.title)
+export const missionObjective = (mission) => t(`mission.${mission.id}.objective`, null, mission.objective)
 
 // 영구 강화 summary는 makePlan이 "<지표> <수치>"로 조립한다(수치는 언어 중립).
 // 알려진 지표 문구를 긴 것부터 치환해 번역한다.

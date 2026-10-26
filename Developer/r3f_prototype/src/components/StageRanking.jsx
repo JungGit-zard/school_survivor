@@ -4,6 +4,7 @@ import { getStageConfig } from '../lib/stageConfig.js'
 import { formatRankScore, formatSurvivalTime, formatLastPlayedAt } from '../lib/userRanking.js'
 import { stageTitle, t as translate, useT } from '../lib/i18n.js'
 import RankingWindowTabs from './RankingWindowTabs.jsx'
+import { displayNickname } from '../lib/userNickname.js'
 
 const panelTone = {
   navy: '#18372f',
@@ -26,7 +27,7 @@ const WINDOW_COPY = {
 export default function StageRanking({ stageId = 'stage1', onBack }) {
   const t = useT()
   const stage = useMemo(() => getStageConfig(stageId), [stageId])
-  const season = useMemo(() => getActiveSeason(), [])
+  const season = getActiveSeason()
   const [activeWindow, setActiveWindow] = useState('allTime')
   const [rows, setRows] = useState([])
   const [readError, setReadError] = useState(false)
@@ -83,7 +84,7 @@ function TopWinner({ label, entry }) {
   return (
     <div data-panel-state={entry ? 'winner' : 'empty'} style={styles.winnerCard}>
       <span style={styles.winnerLabel}>{label}</span>
-      <strong style={styles.winnerName}>{entry?.displayName || translate('ranking.waiting')}</strong>
+      <strong style={styles.winnerName}>{displayNickname(entry?.displayName) || translate('ranking.waiting')}</strong>
       <span style={styles.winnerScore}>{entry ? formatRankScore(entry.score) : '-'}</span>
     </div>
   )
@@ -94,7 +95,7 @@ function StageRankingRow({ entry, rank }) {
   return (
     <li data-panel-state={rank <= 3 ? 'top-rank' : 'rank'} style={rank <= 3 ? { ...styles.row, ...styles.topRow } : styles.row}>
       <span style={styles.rank}>{translate('ranking.rankSuffix', { rank })}</span>
-      <span style={styles.name}>{entry.displayName || translate('ranking.anonymous')}</span>
+      <span style={styles.name}>{displayNickname(entry.displayName) || translate('ranking.anonymous')}</span>
       <span style={styles.score}>{formatRankScore(entry.score)}</span>
       <span style={styles.meta}>{seconds > 0 ? formatSurvivalTime(seconds) : ''}{entry.cleared ? translate('ranking.clearedSuffix') : ''}</span>
       <span style={styles.lastPlayed}>{translate('ranking.lastPlayed')} · {formatLastPlayedAt(entry.lastPlayedAt ?? entry.lastStartedAt)}</span>

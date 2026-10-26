@@ -518,3 +518,20 @@ describe('permanent ranking rules ownership and fixed namespace', () => {
     expect(profile.$other['.validate']).toBe(false)
   })
 })
+
+describe('displaySeasonName', () => {
+  it('shows the built-in default season in the current language but keeps operator-set names', async () => {
+    const { displaySeasonName } = await import('./firebaseRanking.js')
+    const { setLocale } = await import('./i18n.js')
+    setLocale('en')
+    try {
+      expect(displaySeasonName('첫 생존 시즌')).toBe('First Survival Season')
+      expect(displaySeasonName('여름 방학 시즌')).toBe('여름 방학 시즌')
+      expect(displaySeasonName('  ')).toBe('Always-on Season')
+      setLocale('ja')
+      expect(displaySeasonName('첫 생존 시즌')).toBe('最初のサバイバルシーズン')
+    } finally {
+      setLocale('ko')
+    }
+  })
+})

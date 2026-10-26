@@ -3,6 +3,15 @@ import { t } from './i18n.js'
 
 export const STORAGE_KEY = 'school_survivor:userNicknames'
 
+// 게스트 자동 닉네임('생존자-abc123')은 저장값을 바꾸지 않고 표시할 때만 현재 언어로 바꾼다.
+const GUEST_AUTO_NICKNAME = /^생존자-([A-Za-z0-9]{6})$/
+
+export function displayNickname(value) {
+  if (typeof value !== 'string') return value
+  const match = GUEST_AUTO_NICKNAME.exec(value)
+  return match ? `${t('guest.nicknamePrefix', null, '생존자')}-${match[1]}` : value
+}
+
 const MIN_NICKNAME_LENGTH = 2
 const MAX_NICKNAME_LENGTH = 12
 

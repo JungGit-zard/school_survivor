@@ -66,6 +66,8 @@ export default function ReadyGameApp({
     void import('../store/useGameStore.js').then(({ useGameStore }) => (
       useGameStore.getState().submitRunToRanking(authUser ?? null, {
         stageId: 'stage1', score: 0, stageScore: 0, timeMs: 0, globalTimeMs: 0, cleared: false,
+        // 참가 등록일 뿐 플레이 기록이 아니다 — 랭킹 화면의 '이번 판 반영' 안내를 막는다.
+        entrant: true,
       })
     )).catch(() => {})
   }, [authUser?.uid])
@@ -254,28 +256,36 @@ export default function ReadyGameApp({
           </ErrorBoundary>
         )}
 
+        {/* 상점·랭킹·미션도 화면 단위 경계로 감싼다. 경계가 없으면 이 화면의 오류가 앱 전체를
+            빈 화면으로 만들고, 게임에서 왔을 때는 결과 화면까지 잃는다. 이전 화면으로 돌아갈 길을 둔다. */}
         {screen === 'coinShop' && (
-          <Suspense fallback={<ScreenLoading label={t('loading.shop')} />}>
-            <CoinShop
-              onBack={returnToPreviousScreen}
-              backLabel={prevScreen === 'game' ? t('back.toResult') : prevScreen === 'lobby' ? t('back.toLobby') : t('back.toTitle')}
-              onOpenWeaponDetails={openWeaponEncyclopedia}
-            />
-          </Suspense>
+          <ErrorBoundary fallback={({ error, retry, reload }) => <ScreenFailure label={t('lobby.shop')} error={error} retry={retry} reload={reload} onBack={returnToPreviousScreen} />}>
+            <Suspense fallback={<ScreenLoading label={t('loading.shop')} />}>
+              <CoinShop
+                onBack={returnToPreviousScreen}
+                backLabel={prevScreen === 'game' ? t('back.toResult') : prevScreen === 'lobby' ? t('back.toLobby') : t('back.toTitle')}
+                onOpenWeaponDetails={openWeaponEncyclopedia}
+              />
+            </Suspense>
+          </ErrorBoundary>
         )}
 
         {screen === 'ranking' && (
-          <Suspense fallback={<ScreenLoading label={t('loading.ranking')} />}>
-            {rankingStageId
-              ? <StageRanking stageId={rankingStageId} onBack={returnToPreviousScreen} />
-              : <UserRanking onBack={returnToPreviousScreen} />}
-          </Suspense>
+          <ErrorBoundary fallback={({ error, retry, reload }) => <ScreenFailure label={t('lobby.ranking')} error={error} retry={retry} reload={reload} onBack={returnToPreviousScreen} />}>
+            <Suspense fallback={<ScreenLoading label={t('loading.ranking')} />}>
+              {rankingStageId
+                ? <StageRanking stageId={rankingStageId} onBack={returnToPreviousScreen} />
+                : <UserRanking onBack={returnToPreviousScreen} />}
+            </Suspense>
+          </ErrorBoundary>
         )}
 
         {screen === 'missionCenter' && (
-          <Suspense fallback={<ScreenLoading label="미션" />}>
-            <MissionCenter onBack={returnToPreviousScreen} />
-          </Suspense>
+          <ErrorBoundary fallback={({ error, retry, reload }) => <ScreenFailure label={t('lobby.missions')} error={error} retry={retry} reload={reload} onBack={returnToPreviousScreen} />}>
+            <Suspense fallback={<ScreenLoading label={t('loading.missions')} />}>
+              <MissionCenter onBack={returnToPreviousScreen} />
+            </Suspense>
+          </ErrorBoundary>
         )}
 
         {(screen === 'game' || (screen === 'ranking' && prevScreen === 'game')) && (

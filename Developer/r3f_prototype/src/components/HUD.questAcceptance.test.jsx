@@ -53,4 +53,11 @@ describe('quest acceptance layout regression', () => {
     expect(useGameStore.getState().studentDialogue).toBeNull()
     expect(useGameStore.getState().questToast).toBeNull()
   })
+  it('continues when the panel body itself is tapped, as the "tap to continue" hint promises', () => {
+    render(true)
+    const popup=container.querySelector('[data-testid="quest-dialogue-popup"]')
+    act(()=>popup.querySelector('[aria-live]').click())
+    expect(useGameStore.getState().studentDialogue).toBeNull()
+    expect(useGameStore.getState().questToast).toBeNull()
+  })
 })

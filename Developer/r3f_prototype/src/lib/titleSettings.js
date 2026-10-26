@@ -1,6 +1,6 @@
 // Player title/settings runtime layer.
 // Durable player settings live only in Firebase users/{uid}. Admin/dev config remains separate.
-import { getFirebaseProgressRuntimeSnapshot, isFirebaseProgressHydrated, readFirebasePlayerProgress, updateFirebasePlayerProgress } from './firebaseProgress.js'
+import { getFirebaseProgressRuntimeSnapshot, isFirebaseProgressHydrated, readFirebasePlayerProgressOrDefault, updateFirebasePlayerProgress } from './firebaseProgress.js'
 import { detectInitialLocale, isSupportedLocale, setLocale } from './i18n.js'
 import { setScientificNotation } from './numberFormat.js'
 
@@ -18,8 +18,25 @@ export const DEFAULT_SETTINGS = {
   unlockAllStagesCheat: false,
 }
 
+// 게스트 설정은 이번 접속(탭) 메모리에만 둔다. 영구 저장은 Firebase users/{uid}뿐이라
+// localStorage에는 쓰지 않는다. 새로고침하면 사라지는 것이 정책이다.
+let guestSessionSettings = {}
+
+export function loadGuestSessionSettings() {
+  return { ...DEFAULT_SETTINGS, ...guestSessionSettings }
+}
+
+export function saveGuestSessionSettings(patch) {
+  if (!patch || typeof patch !== 'object') return
+  guestSessionSettings = { ...guestSessionSettings, ...patch }
+}
+
+export function _resetGuestSessionSettingsForTests() {
+  guestSessionSettings = {}
+}
+
 export function loadTitleSettings() {
-  const settings = readFirebasePlayerProgress().titleSettings ?? DEFAULT_SETTINGS
+  const settings = readFirebasePlayerProgressOrDefault().titleSettings ?? DEFAULT_SETTINGS
   return {
     ...(settings.playerAppearance === 'v9' || settings.playerAppearance === 'legacy'
       ? { playerAppearance: settings.playerAppearance } : {}),

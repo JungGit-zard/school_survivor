@@ -9,6 +9,7 @@ const mocks = vi.hoisted(() => ({
   visitor: vi.fn(async () => ({ recorded: true })),
   hydrated: false,
   titleCheat: false,
+  shopThrows: false,
   gameStore: {
     gameKey: 0,
     phase: 'idle',
@@ -45,7 +46,10 @@ vi.mock('./GameplayScreen.jsx', () => ({
   ),
 }))
 vi.mock('./CoinShop.jsx', () => ({
-  default: ({ onBack }) => <button type="button" data-testid="coin-shop-back" onClick={onBack}>back</button>,
+  default: ({ onBack }) => {
+    if (mocks.shopThrows) throw new Error('shop exploded')
+    return <button type="button" data-testid="coin-shop-back" onClick={onBack}>back</button>
+  },
 }))
 vi.mock('./UserRanking.jsx', () => ({
   default: ({ onBack }) => <button type="button" data-testid="ranking-back" onClick={onBack}>back</button>,
@@ -155,7 +159,7 @@ describe('ReadyGameApp stage bypass hydration', () => {
     const props = { authStatus: 'checking', authUser: null, progressStatus: 'loading' }
     const view = await renderReadyWithoutEntering(props)
     expect(mocks.gameStore.submitRunToRanking).toHaveBeenCalledWith(null, {
-      stageId: 'stage1', score: 0, stageScore: 0, timeMs: 0, globalTimeMs: 0, cleared: false,
+      stageId: 'stage1', score: 0, stageScore: 0, timeMs: 0, globalTimeMs: 0, cleared: false, entrant: true,
     })
     await view.render({ ...props, authStatus: 'signedOut' })
     expect(mocks.gameStore.submitRunToRanking).toHaveBeenCalledTimes(1)
@@ -287,6 +291,37 @@ describe('ReadyGameApp stage bypass hydration', () => {
 
     expect(view.container.querySelector('[data-testid="instant-result-prop"]').textContent).toBe('true')
     view.unmount()
+  })
+
+  it('contains a crashing result coin shop in its own screen and returns to the game result', async () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
+    mocks.shopThrows = true
+    try {
+      const view = await renderReady({ authUser: { uid: 'first' }, progressStatus: 'ready' })
+      await act(async () => {
+        view.container.querySelector('[data-testid="start-stage"]').click()
+        await vi.dynamicImportSettled()
+      })
+      mocks.gameStore.phase = 'gameover'
+      await act(async () => {
+        view.container.querySelector('[data-testid="open-result-shop"]').click()
+        await vi.dynamicImportSettled()
+      })
+      const failure = view.container.querySelector('[data-testid="deferred-screen-failure"]')
+      expect(failure).not.toBeNull()
+      expect(failure.textContent).toContain('shop exploded')
+      const back = Array.from(failure.querySelectorAll('button')).find((button) => button.textContent === '이전 화면')
+      expect(back).toBeTruthy()
+      await act(async () => {
+        back.click()
+        await vi.dynamicImportSettled()
+      })
+      expect(view.container.querySelector('[data-testid="instant-result-prop"]').textContent).toBe('true')
+      view.unmount()
+    } finally {
+      mocks.shopThrows = false
+      consoleError.mockRestore()
+    }
   })
 
   it('marks the next game render for immediate result popup after returning from game-over ranking', async () => {
