@@ -44,3 +44,7 @@ Stage sheets were generated separately with these existing references:
 - Fixed standard instance parts and palette lookup: `Developer/r3f_prototype/src/components/ZombieInstanceLayer.jsx:22-37`.
 - Current sizes and role flags: `Developer/r3f_prototype/src/components/Enemy.jsx:341-368`.
 - Stage names and active themes: `Developer/r3f_prototype/src/lib/stageConfig.js:22-106`.
+
+## Known issue
+
+- `stage4_cafeteria_blockout.png` is byte-identical to `stage2_corridor_blockout.png` (blob `bd18cb2f`). The Stage 4 cafeteria sheet was never generated; treat it as missing and regenerate before using it as a reference.
