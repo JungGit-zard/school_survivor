@@ -249,6 +249,7 @@ export default {
   'ranking.myRuns': '내 누적플레이',
   'ranking.myRunsUnit': '판',
   'ranking.myBest': '내 개인최고점',
+  'ranking.myRow': '내 기록',
   'ranking.tabsAria': '통합 랭킹 탭',
   'ranking.colRank': '순위',
   'ranking.colUser': '유저',

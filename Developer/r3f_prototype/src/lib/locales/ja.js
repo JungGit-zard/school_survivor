@@ -258,6 +258,7 @@ export default {
   'ranking.myRuns': '自分の累計プレイ',
   'ranking.myRunsUnit': '回',
   'ranking.myBest': '自分の自己ベスト',
+  'ranking.myRow': '自分の記録',
   'ranking.tabsAria': '総合ランキングタブ',
   'ranking.colRank': '順位',
   'ranking.colUser': 'ユーザー',

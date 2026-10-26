@@ -10,7 +10,8 @@ import {
   buildLocalPlayerRankingEntry,
   RANKING_LIMIT,
 } from '../lib/userRanking.js'
-import { displaySeasonName, isFirebaseRankingConfigured, subscribeGlobalRanking } from '../lib/firebaseRanking.js'
+import { displaySeasonName, fetchMyRankingEntry, isFirebaseRankingConfigured, subscribeGlobalRanking } from '../lib/firebaseRanking.js'
+import { getRankingUser } from '../lib/guestRankingIdentity.js'
 import { displayNickname } from '../lib/userNickname.js'
 import { getAdminRankingSeasonConfig } from '../lib/adminConfig.js'
 import { load as loadPlayerRecords } from '../lib/playerRecords.js'
@@ -83,6 +84,28 @@ export default function UserRanking({ onBack, entries }) {
   const suppliedRows = Array.isArray(entries) || Array.isArray(entries?.[activeWindow])
   const reading = !suppliedRows && isFirebaseRankingConfigured() && cloudBoards[activeWindow] === null && !readErrors[activeWindow]
   const rows = useMemo(() => createRankingRows(rankingEntries), [rankingEntries])
+
+  // 보드는 상위 30개만 그린다. 0점(입장 등록)이 대부분이라 본인 엔트리가 잘려도 "내 기록" 줄로 보인다.
+  const [myEntry, setMyEntry] = useState(null)
+  useEffect(() => {
+    if (suppliedRows) return undefined
+    let active = true
+    setMyEntry(null)
+    void (async () => {
+      try {
+        const rankingUser = user?.uid ? user : await getRankingUser(null)
+        const entry = await fetchMyRankingEntry(rankingUser, activeWindow, null)
+        if (active) setMyEntry(entry ?? null)
+      } catch {
+        // 내 기록 읽기 실패는 보드 표시를 막지 않는다.
+      }
+    })()
+    return () => { active = false }
+  }, [suppliedRows, activeWindow, user?.uid, submission])
+  const myRow = useMemo(() => {
+    if (!myEntry || rows.some((row) => !row.empty && row.uid === myEntry.uid)) return null
+    return { ...createRankingRows([{ ...myEntry, local: true }], 1)[0], rankLabel: t('ranking.myRow') }
+  }, [myEntry, rows, t])
   const notice = useMemo(() => submission?.uid && (user?.uid ? submission.uid !== user.uid : !submission.anonymous) ? null : buildSubmitNotice(submission), [submission, user?.uid])
   const season = useMemo(() => getAdminRankingSeasonConfig(), [])
   const activeCopy = RANKING_WINDOWS.find((window) => window.id === activeWindow) ?? RANKING_WINDOWS[0]
@@ -147,6 +170,9 @@ export default function UserRanking({ onBack, entries }) {
           <RankingRow key={row.rank} row={row} />
         ))}
       </ol>}
+      {!reading && !readErrors[activeWindow] && myRow && <ol style={styles.list} aria-label={t('ranking.myRow')}>
+        <RankingRow row={myRow} testId="ranking-my-row" />
+      </ol>}
 
       <button type="button" style={styles.backButton} onClick={onBack}>
         {t('ranking.goBack')}
@@ -188,10 +214,10 @@ export function buildSubmitNotice(submission) {
   return null
 }
 
-function RankingRow({ row }) {
+function RankingRow({ row, testId }) {
   return (
-    <li style={styles.row(row.empty, row.local)}>
-      <span style={styles.rank}>{translate('ranking.rankSuffix', { rank: row.rank })}</span>
+    <li data-testid={testId} style={styles.row(row.empty, row.local)}>
+      <span style={styles.rank}>{row.rankLabel ?? translate('ranking.rankSuffix', { rank: row.rank })}</span>
       <span style={styles.name}>
         {row.empty ? translate('ranking.noRecord') : displayNickname(row.displayName)}
         {!row.empty && row.local && <span data-panel-state="local" style={styles.localBadge}>ME</span>}

@@ -258,6 +258,7 @@ export default {
   'ranking.myRuns': 'My runs',
   'ranking.myRunsUnit': '',
   'ranking.myBest': 'My personal best',
+  'ranking.myRow': 'My record',
   'ranking.tabsAria': 'Global ranking tabs',
   'ranking.colRank': 'Rank',
   'ranking.colUser': 'Player',

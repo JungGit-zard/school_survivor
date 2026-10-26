@@ -14,6 +14,7 @@ vi.mock('../lib/playerRecords.js', () => ({ load: () => ({}) }))
 vi.mock('../lib/adminConfig.js', () => ({ getAdminBalanceConfig: () => ({}), getAdminRankingSeasonConfig: () => ({ rewardTiers: [], seasonName: 'Synthetic' }) }))
 vi.mock('../lib/firebaseRanking.js', () => ({
   isFirebaseRankingConfigured: () => true,
+  fetchMyRankingEntry: async () => null,
   subscribeGlobalRanking: vi.fn((window, rows, options) => {
     const sub = { window, rows, error: options.onError, stop: vi.fn() }
     state.subscriptions.push(sub)

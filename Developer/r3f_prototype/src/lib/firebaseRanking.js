@@ -42,9 +42,13 @@ let _testClient = null
 let guestClientPromise = null
 const pendingBuckets = new Map()
 const deletingRankingUids = new Set()
+// 이 세션에서 본인이 제출한 엔트리의 로컬 사본(fullPath → 병합 엔트리). 서버 쓰기가 아직 끝나지
+// 않았거나 확인(readback) 전이라도 로비 "내 최고기록"이 방금 끝낸 판을 보여주게 한다.
+const ownSubmittedEntries = new Map()
 export function resumeRankingSubmissions(user) { if (user?.uid) deletingRankingUids.delete(user.uid) }
 export function completeRankingAccountDeletion(user) {
   for (const [path, request] of pendingBuckets) if (request.user.uid === user?.uid) pendingBuckets.delete(path)
+  for (const [path, entry] of ownSubmittedEntries) if (entry.uid === user?.uid) ownSubmittedEntries.delete(path)
 }
 const guestWriteQueues = new Map()
 function enqueueGuestWrite(user, operation) {
@@ -69,6 +73,7 @@ async function getClient(user) {
 export function _setFirebaseRankingClientForTests(client) {
   guestClientPromise = null
   pendingBuckets.clear()
+  ownSubmittedEntries.clear()
   deletingRankingUids.clear()
   _testClient = client
   _clientPromise = null
@@ -225,6 +230,8 @@ async function submitRunNow(user, { stageId, score, stageScore = score, timeMs, 
   const requests = paths.map(path => {
     const incoming = path.includes('/stage/') ? { ...entry, score: readScore(stageScore) } : { ...entry, timeMs: readNonNegInt(globalTimeMs) }
     const fullPath = `${path}/${uid}`
+    const own = ownSubmittedEntries.get(fullPath)
+    ownSubmittedEntries.set(fullPath, mergeRankingPlay(own, incoming) ?? own)
     const existing = pendingBuckets.get(fullPath)
     if (existing) existing.entry = mergeRankingPlay(existing.entry, incoming) ?? existing.entry
     else pendingBuckets.set(fullPath, { path: fullPath, user, entry: incoming, promise: null })
@@ -324,6 +331,7 @@ function knownRankingEntryPaths(uid) {
 export async function deleteRankingEntriesForUser(user) {
   if (!user?.uid || !isFirebaseRankingConfigured()) return { attempted: 0, deleted: [], failed: [] }
   deletingRankingUids.add(user.uid)
+  for (const [path, entry] of ownSubmittedEntries) if (entry.uid === user.uid) ownSubmittedEntries.delete(path)
   await Promise.allSettled([...pendingBuckets.values()].filter(request => request.user.uid === user.uid && request.promise).map(request => request.promise))
   const paths = [...new Set([...knownRankingEntryPaths(user.uid), ...[...pendingBuckets.values()].filter(request => request.user.uid === user.uid).map(request => request.path)])]
 
@@ -419,6 +427,43 @@ export function subscribeStageRanking(stageId, window, onEntries, { limit = 100,
     limit,
     onError,
   )
+}
+
+// 본인 엔트리 1개를 정확한 버킷 경로로 읽는다(게스트·로그인 공통). 보드는 상위 N개만 그리므로
+// 0점·저점 엔트리는 저장돼 있어도 보드에 안 보인다 — "내 기록" 줄과 로비 최고기록은 이걸 쓴다.
+// stageId가 없으면 글로벌 버킷. 서버 값과 이 세션의 본인 제출분(쓰기 진행 중 포함) 중 더 좋은 쪽.
+export async function fetchMyRankingEntry(user, window = 'allTime', stageId = null) {
+  const uid = typeof user?.uid === 'string' ? user.uid : ''
+  if (!uid || !isFirebaseRankingConfigured()) return null
+  const now = Date.now()
+  const win = normalizeWindow(window)
+  const season = getActiveSeason(now)
+  if (!season.active && win !== 'allTime') return null
+  const seasonId = win === 'allTime' ? 'all-time' : season.seasonId
+  const key = periodKey(win, now)
+  const bucket = stageId ? entriesPath(seasonId, readStageId(stageId), win, key) : globalEntriesPath(seasonId, win, key)
+  const fullPath = `${bucket}/${uid}`
+  let server = null
+  try {
+    const { db, mod } = await getClient()
+    const snap = await mod.get(mod.ref(db, fullPath))
+    server = snap.exists() ? snap.val() : null
+  } catch { server = null }
+  const candidates = [server, ownSubmittedEntries.get(fullPath)].filter((entry) => entry && entry.uid === uid)
+  if (candidates.length === 0) return null
+  return { ...candidates.sort(compareRankingWindowEntries)[0] }
+}
+
+// 로비 "내 최고기록" 단일 출처: 본인 all-time 스테이지 엔트리. 게스트는 users/{uid} 진행도가 없어
+// playerRecords로는 기록을 볼 수 없다. 0점 엔트리도 기록이다(정책: 0점이라도 등록, 입장이력은 모두 등록).
+// 반환: { [stageId]: { score, timeMs, cleared } } — 엔트리가 없는 스테이지는 키가 없다.
+export async function fetchMyStageBests(user, stageIds = []) {
+  const bests = {}
+  await Promise.all(stageIds.map(async (stageId) => {
+    const entry = await fetchMyRankingEntry(user, 'allTime', stageId)
+    if (entry) bests[readStageId(stageId)] = { score: readScore(entry.score), timeMs: readNonNegInt(entry.timeMs), cleared: entry.cleared === true }
+  }))
+  return bests
 }
 
 // 글로벌: 제출 시 함께 기록된 유저별 최고점(max) 통합 엔트리를 읽는다.

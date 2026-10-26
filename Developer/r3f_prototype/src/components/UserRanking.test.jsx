@@ -19,6 +19,7 @@ vi.mock('../lib/firebaseRanking.js', async (importOriginal) => ({
   ...(await importOriginal()),
   isFirebaseRankingConfigured: vi.fn(() => false),
   subscribeGlobalRanking: vi.fn(() => vi.fn()),
+  fetchMyRankingEntry: vi.fn(() => Promise.resolve(null)),
 }))
 
 describe('UserRanking', () => {

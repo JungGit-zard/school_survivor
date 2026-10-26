@@ -1,5 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
-import { getActiveSeason, subscribeStageRanking } from '../lib/firebaseRanking.js'
+import { fetchMyRankingEntry, getActiveSeason, subscribeStageRanking } from '../lib/firebaseRanking.js'
+import { getRankingUser } from '../lib/guestRankingIdentity.js'
+import { useAuthStore } from '../store/useAuthStore.js'
+import { useGameStore } from '../store/useGameStore.js'
 import { getStageConfig } from '../lib/stageConfig.js'
 import { formatRankScore, formatSurvivalTime, formatLastPlayedAt } from '../lib/userRanking.js'
 import { stageTitle, t as translate, useT } from '../lib/i18n.js'
@@ -34,6 +37,27 @@ export default function StageRanking({ stageId = 'stage1', onBack }) {
   const [reading, setReading] = useState(true)
   const [readRevision, setReadRevision] = useState(0)
   const copy = WINDOW_COPY[activeWindow] ?? WINDOW_COPY.daily
+  const authUser = useAuthStore((s) => s.user)
+  const rankingSubmission = useGameStore((s) => s.rankingSubmission)
+  const [myEntry, setMyEntry] = useState(null)
+
+  // 보드는 상위 30개만 그린다. 0점(입장 등록)이 대부분인 보드에서 본인 엔트리가 잘려 나가도
+  // "내 기록" 줄로 항상 보이게 정확한 경로를 따로 읽는다(게스트·로그인 공통).
+  useEffect(() => {
+    let active = true
+    setMyEntry(null)
+    void (async () => {
+      try {
+        const rankingUser = authUser?.uid ? authUser : await getRankingUser(null)
+        const entry = await fetchMyRankingEntry(rankingUser, activeWindow, stageId)
+        if (active) setMyEntry(entry ?? null)
+      } catch {
+        // 내 기록 읽기 실패는 보드 표시를 막지 않는다.
+      }
+    })()
+    return () => { active = false }
+  }, [stageId, activeWindow, authUser?.uid, rankingSubmission])
+  const showMyRow = myEntry != null && !rows.some((row) => row.uid === myEntry.uid)
 
   useEffect(() => {
     // activeWindow가 의존성에 있어야 창을 바꿀 때 이전 구독이 해지된다.
@@ -76,6 +100,9 @@ export default function StageRanking({ stageId = 'stage1', onBack }) {
           <li data-panel-state="empty" style={styles.empty}>{t('ranking.waiting')}</li>
         )}
       </ol>}
+      {!reading && !readError && showMyRow && <ol style={styles.list} aria-label={t('ranking.myRow')}>
+        <StageRankingRow entry={myEntry} rankLabel={t('ranking.myRow')} testId="ranking-my-row" />
+      </ol>}
     </div>
   )
 }
@@ -90,11 +117,12 @@ function TopWinner({ label, entry }) {
   )
 }
 
-function StageRankingRow({ entry, rank }) {
+function StageRankingRow({ entry, rank, rankLabel, testId }) {
   const seconds = Math.floor((entry.timeMs ?? 0) / 1000)
+  const top = rank != null && rank <= 3
   return (
-    <li data-panel-state={rank <= 3 ? 'top-rank' : 'rank'} style={rank <= 3 ? { ...styles.row, ...styles.topRow } : styles.row}>
-      <span style={styles.rank}>{translate('ranking.rankSuffix', { rank })}</span>
+    <li data-testid={testId} data-panel-state={top ? 'top-rank' : 'rank'} style={top ? { ...styles.row, ...styles.topRow } : styles.row}>
+      <span style={styles.rank}>{rankLabel ?? translate('ranking.rankSuffix', { rank })}</span>
       <span style={styles.name}>{displayNickname(entry.displayName) || translate('ranking.anonymous')}</span>
       <span style={styles.score}>{formatRankScore(entry.score)}</span>
       <span style={styles.meta}>{seconds > 0 ? formatSurvivalTime(seconds) : ''}{entry.cleared ? translate('ranking.clearedSuffix') : ''}</span>

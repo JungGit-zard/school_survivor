@@ -12,6 +12,7 @@ vi.mock('../lib/firebaseRanking.js', async () => {
   return {
     ...actual,
     getActiveSeason: () => ({ seasonId: 'season-001', name: '첫 생존 시즌', active: true, endsAt: null }),
+    fetchMyRankingEntry: vi.fn(() => Promise.resolve(null)),
     fetchStageRanking: vi.fn((stageId, window) => Promise.resolve([
       {
         uid: `${stageId}-${window}-1`,

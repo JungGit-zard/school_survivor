@@ -19,7 +19,7 @@ vi.mock('./LobbySettingsModal.jsx', () => ({ default: () => null }))
 vi.mock('../lib/sfxRegistry.js', () => ({ playSfx: vi.fn() }))
 vi.mock('./gameCanvasLoader.js', () => ({ preloadGameCanvasChunk: vi.fn(() => Promise.resolve()) }))
 vi.mock('../lib/stageEntryPreload.js', () => ({ preloadStageEntryAssets: vi.fn() }))
-vi.mock('../lib/firebaseRanking.js', () => ({ getActiveSeason: () => ({ active: false }) }))
+vi.mock('../lib/firebaseRanking.js', () => ({ getActiveSeason: () => ({ active: false }), fetchMyStageBests: async () => ({}) }))
 vi.mock('./StageLock.jsx', () => ({ StageLockPreview: ({ style }) => <div data-testid="locked-preview" style={style} /> }))
 vi.mock('./StageBossPreview.jsx', () => ({ default: ({ bossType, style }) => <div data-testid="boss-preview" data-boss-type={bossType} style={style} /> }))
 

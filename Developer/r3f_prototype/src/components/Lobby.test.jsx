@@ -88,6 +88,7 @@ vi.mock('../lib/firebaseRanking.js', async () => {
   return {
     ...actual,
     fetchStageRanking: vi.fn(() => Promise.resolve([])),
+    fetchMyStageBests: vi.fn(() => Promise.resolve({})),
   }
 })
 

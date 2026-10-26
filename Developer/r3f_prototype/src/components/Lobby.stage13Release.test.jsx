@@ -15,7 +15,7 @@ vi.mock('../lib/stageEntryPreload.js', () => ({ preloadStageEntryAssets: vi.fn()
 vi.mock('../lib/sfxRegistry.js', () => ({ playSfx: vi.fn() }))
 vi.mock('../lib/graphicsStudioConfig.js', () => ({ loadStageBossPreview: () => ({}), STAGE_BOSS_PREVIEW_EVENT: 'preview-test' }))
 vi.mock('../lib/guestRankingIdentity.js', () => ({ getGuestRankingNickname: () => 'Guest', getRankingUser: vi.fn(async () => ({ uid: 'guest' })) }))
-vi.mock('../lib/firebaseRanking.js', () => ({ getActiveSeason: () => ({ active: false }) }))
+vi.mock('../lib/firebaseRanking.js', () => ({ getActiveSeason: () => ({ active: false }), fetchMyStageBests: async () => ({}) }))
 vi.mock('../store/useAuthStore.js', () => ({ useAuthStore: selector => selector({ user: null, progressStatus: 'idle' }) }))
 vi.mock('../store/useGameStore.js', () => ({ useGameStore: selector => selector({ goldTotal: 0, newlyUnlockedWeaponIds: [], acknowledgeNewWeaponUnlocks: () => {} }) }))
 

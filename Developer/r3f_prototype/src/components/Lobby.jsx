@@ -13,7 +13,7 @@ import { isFirebaseProgressHydrated } from '../lib/firebaseProgress.js'
 import { formatSurvivalTime } from '../lib/userRanking.js'
 import { displayNickname, getSavedNickname } from '../lib/userNickname.js'
 import { getGuestRankingNickname, getRankingUser } from '../lib/guestRankingIdentity.js'
-import { getActiveSeason } from '../lib/firebaseRanking.js'
+import { fetchMyStageBests, getActiveSeason } from '../lib/firebaseRanking.js'
 import { loadStageBossPreview, STAGE_BOSS_PREVIEW_EVENT } from '../lib/graphicsStudioConfig.js'
 import { playSfx } from '../lib/sfxRegistry.js'
 import { schoolButton, schoolPanel, uiBorders, uiPalette, uiShadows, uiType } from '../lib/uiStyle.js'
@@ -131,6 +131,28 @@ export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onO
     if (progressStatus !== 'ready' || !isFirebaseProgressHydrated(authUser)) return null
     return loadPlayerRecords()
   }, [authUser?.uid, progressStatus, recordsRefreshVersion])
+
+  // "내 최고기록"은 본인 all-time 스테이지 랭킹 엔트리가 단일 출처다. 게스트는 users/{uid} 진행도가
+  // 없어 위 records가 항상 비어 있으므로, 이 엔트리 없이는 방금 끝낸 판도 '기록 없음'으로 보였다.
+  // 런 제출 상태가 바뀔 때마다 다시 읽어 로비 진입 직후 아직 쓰는 중이던 기록도 반영한다.
+  const rankingSubmission = useGameStore((s) => s.rankingSubmission)
+  const bestsOwner = authUser?.uid ?? 'guest'
+  const [myStageBestsState, setMyStageBestsState] = useState({ owner: bestsOwner, bests: {} })
+  // 계정이 바뀌면 이전 계정의 기록을 절대 보여주지 않는다.
+  const myStageBests = myStageBestsState.owner === bestsOwner ? myStageBestsState.bests : {}
+  useEffect(() => {
+    let active = true
+    void (async () => {
+      try {
+        const rankingUser = authUser?.uid ? authUser : await getRankingUser(null)
+        const bests = await fetchMyStageBests(rankingUser, stageIds)
+        if (active) setMyStageBestsState({ owner: bestsOwner, bests: bests ?? {} })
+      } catch {
+        // 랭킹 읽기 실패는 로비를 막지 않는다. 로컬 기록만으로 표시한다.
+      }
+    })()
+    return () => { active = false }
+  }, [authUser?.uid, rankingSubmission])
 
   // 배경 빛덩이는 터치/포인터 지점으로 서서히 따라간다(CSS transform transition으로 이징).
   // ref로 transform만 직접 갱신 → 리렌더 없음. transform은 GPU 컴포지터 처리라 무부하.
@@ -302,7 +324,11 @@ export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onO
           const stage = getStageConfig(stageId)
           const recordsReady = records != null
           const unlocked = recordsReady ? isStageUnlocked(stageId, records) : stageId === 'stage1'
-          const bestSurvivalSec = recordsReady ? (records[stage.bestRecordKey] ?? 0) : null
+          const localBestSec = recordsReady ? (records[stage.bestRecordKey] ?? 0) : 0
+          const rankingBest = myStageBests[stageId]
+          const rankingBestSec = rankingBest ? Math.floor(rankingBest.timeMs / 1000) : 0
+          const hasBestRecord = rankingBest != null || localBestSec > 0
+          const bestSurvivalSec = recordsReady || hasBestRecord ? Math.max(localBestSec, rankingBestSec) : null
           const cleared = recordsReady ? (records[stage.clearRecordKey] ?? 0) > 0 : false
           return (
             <StageCard
@@ -313,6 +339,7 @@ export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onO
               unlocked={unlocked}
               cleared={cleared}
               bestSurvivalSec={bestSurvivalSec}
+              hasBestRecord={hasBestRecord}
               recordsPending={!recordsReady}
               stageBossPreview={stageBossPreview}
               showtimeStageId={showtimeStageId}
@@ -349,7 +376,7 @@ function showtimeLabel(translateFn, bossType) {
   return translateFn(entry.labelKey, null, entry.label)
 }
 
-function StageCard({ index = 0, stageId, stage, unlocked, cleared, bestSurvivalSec, recordsPending = false, stageBossPreview, showtimeStageId, devAllStagesUnlocked = false, onBeginShowtime, onFinishShowtime, onStart, onRanking }) {
+function StageCard({ index = 0, stageId, stage, unlocked, cleared, bestSurvivalSec, hasBestRecord = bestSurvivalSec > 0, recordsPending = false, stageBossPreview, showtimeStageId, devAllStagesUnlocked = false, onBeginShowtime, onFinishShowtime, onStart, onRanking }) {
   const t = useT()
   const localizedStageTitle = stageTitle(stageId, stage.title)
   const isExpansionStage = ['stage6', 'stage7', 'stage8', 'stage9', 'stage10'].includes(stageId)
@@ -369,7 +396,7 @@ function StageCard({ index = 0, stageId, stage, unlocked, cleared, bestSurvivalS
   const canStart = unlocked && playable && !unlockUnknown
   const bestRecordValue = bestSurvivalSec == null
     ? t('loading.game')
-    : (bestSurvivalSec > 0 ? formatSurvivalTime(bestSurvivalSec) : t('lobby.noRecord'))
+    : (hasBestRecord ? formatSurvivalTime(bestSurvivalSec) : t('lobby.noRecord'))
 
   useEffect(() => {
     return () => {
