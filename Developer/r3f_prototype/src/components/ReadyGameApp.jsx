@@ -9,6 +9,9 @@ import { applyLanguage, loadTitleSettings } from '../lib/titleSettings.js'
 import { t } from '../lib/i18n.js'
 import { getSelectedWebBackgroundStyle } from '../lib/webBackgroundAssets.js'
 import { clearPendingStartAfterLogin, hasPendingStartAfterLogin } from '../lib/loginContinuation.js'
+import LobbyBgm from './LobbyBgm.jsx'
+
+const LOBBY_MUSIC_SUB_SCREENS = new Set(['coinShop', 'ranking', 'missionCenter'])
 
 const RosariRoom = lazy(() => import('./RosariRoom.jsx'))
 const TitleScreen = lazy(() => import('./TitleScreen.jsx'))
@@ -214,6 +217,8 @@ export default function ReadyGameApp({
       <ErrorBoundary fallback={null}>
         <TapFeedbackBurst />
         <Suspense fallback={null}><SfxLayer /></Suspense>
+        {/* Lobby music keeps playing on lobby-side sub screens; LobbyBgm shares one stream by URL. */}
+        {LOBBY_MUSIC_SUB_SCREENS.has(screen) && prevScreen === 'lobby' && <LobbyBgm />}
       </ErrorBoundary>
       <div ref={phoneFrameRef} style={phoneFrameStyle}>
         {screen === 'auth-return' && <ScreenLoading label={t('loading.game')} />}

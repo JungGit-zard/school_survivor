@@ -12,7 +12,10 @@ export const LANDING_HERO_VIDEO_URL = ''
 export const LANDING_FEATURE_VIDEO_URL = ''
 
 // 음악은 번들에 넣지 않고 R2 음악 CDN(zombie-music 버킷)에서 받는다(2026-10-26).
-export const LANDING_TITLE_BGM_URL = 'https://music.escapezombie.com/title_bgm.m4a'
+// Same track as the in-game title screen (src/lib/titleBgm.js), streamed from the music CDN.
+import { TITLE_BGM_URL } from '../lib/titleBgm.js'
+
+export const LANDING_TITLE_BGM_URL = TITLE_BGM_URL
 
 // 만화는 게임 사이트(escapezombie.com)에 싣지 않는다. 미디어 사이트 링크만 둔다(2026-10-25 분리).
 const VIDEO_PLACEHOLDERS = WEB_BACKGROUND_THUMB_URLS.slice(0, 3)
@@ -28,6 +31,7 @@ export default function WebLandingPage() {
   const [isBoardOpen, setIsBoardOpen] = useState(false)
   const [boardInitialPostId, setBoardInitialPostId] = useState('')
   const audioRef = useRef(null)
+  const stallRecoveryRef = useRef(null)
   const heroActionsRef = useRef(null)
   const [heroActionsPassed, setHeroActionsPassed] = useState(false)
   const comicsUrl = getMediaSiteComicsUrl(language)
@@ -74,6 +78,27 @@ export default function WebLandingPage() {
     if (mediaScrollRequest) document.getElementById('media')?.scrollIntoView?.({ block: 'start' })
   }, [mediaScrollRequest])
 
+
+  // A stalled or failed CDN stream reloads and resumes at the same position,
+  // but only while the visitor has the music playing.
+  const recoverMusicStream = () => {
+    const audio = audioRef.current
+    if (!audio || !isMusicPlaying || stallRecoveryRef.current) return
+    stallRecoveryRef.current = setTimeout(() => {
+      stallRecoveryRef.current = null
+      if (!audio.paused && audio.readyState >= 3) return
+      const resumeAt = audio.currentTime || 0
+      const onMeta = () => {
+        audio.removeEventListener('loadedmetadata', onMeta)
+        try { audio.currentTime = resumeAt } catch { /* start over */ }
+        audio.play?.()?.catch?.(() => setMusicStatus('musicBlocked'))
+      }
+      audio.addEventListener('loadedmetadata', onMeta)
+      try { audio.load() } catch { /* leave paused */ }
+    }, 4000)
+  }
+
+  useEffect(() => () => clearTimeout(stallRecoveryRef.current), [])
 
   const toggleMusic = async () => {
     const audio = audioRef.current
@@ -246,14 +271,21 @@ export default function WebLandingPage() {
                 ref={audioRef}
                 src={LANDING_TITLE_BGM_URL}
                 preload="metadata"
+                loop
                 aria-label={copy.musicPlayer}
                 onPause={() => setIsMusicPlaying(false)}
+                onPlay={() => {
+                  setIsMusicPlaying(true)
+                  setMusicStatus('musicPlaying')
+                }}
                 onEnded={() => {
                   setIsMusicPlaying(false)
                   setMusicStatus('musicEnded')
                 }}
+                onError={recoverMusicStream}
+                onStalled={recoverMusicStream}
               >
-                <source src={LANDING_TITLE_BGM_URL} type="audio/mp4" />
+                <source src={LANDING_TITLE_BGM_URL} type="audio/mpeg" />
               </audio>
               <p id="music-status" className="web-landing__music-status" aria-live="polite">{copy[musicStatus]}</p>
             </div>

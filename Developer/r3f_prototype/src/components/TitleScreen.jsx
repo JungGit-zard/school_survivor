@@ -21,7 +21,7 @@ import {
   consumePendingStartAfterLogin,
   markPendingStartAfterLogin,
 } from '../lib/loginContinuation.js'
-import { Howl } from 'howler'
+import { acquireStreamingBgm } from '../lib/streamingBgm.js'
 import { TITLE_BGM_URL as titleBgmUrl } from '../lib/titleBgm.js'
 
 const REVEAL_CHEATS_CODE = ['arrowup', 'arrowdown', 'arrowup', 'arrowdown', 'a', 's', 'd']
@@ -171,108 +171,22 @@ export default function TitleScreen({
     }
   }, [settings.hitCameraShake, settings.reducedEffects])
 
-  // 타이틀 BGM: 타이틀 DOM 커밋 직후(첫 페인트 전) 루프 재생을 시도하고,
-  // 언마운트(게임 시작/로비 이동) 시 정지·정리한다.
-  // 새로고침 시 자동재생을 브라우저 정책 한도 내 최대로 시도한다:
-  //  1) useLayoutEffect에서 즉시 play() + 실패 시 300ms/1500ms 지연 재시도(Chrome MEI가 높을 때 첫 시도 레이스 커버)
-  //  2) 그래도 거부되면 첫 pointerdown/touchstart/keydown 제스처에서 재시도(모바일 사파리 포함)
-  //  3) 탭이 visible로 복귀할 때도 재시도
-  // 성공하면 리스너·타이머를 모두 정리하고, 언마운트 시에도 누수 없이 정리한다. 에러는 조용히 무시.
-  // 로그인 시작 시에는 BGM을 즉시 멈추며, 같은 타이틀 마운트 안에서 로그인이 취소되어도
-  // 자동 재시도하지 않는다. 인증 전환 중 예기치 않은 재생/중복 재생보다 정지를 우선한다.
+  // 타이틀 BGM: 타이틀 DOM 커밋 직후(첫 페인트 전) 루프 재생을 시도한다.
+  // 공유 스트리밍 플레이어(streamingBgm)가 네이티브 <audio loop>로 끊김 없이 반복하고,
+  // 자동재생 거부 시 첫 제스처·탭 복귀·bfcache 복귀에서 재시도하며, 스트림 정지/오류 시 이어서 재로드한다.
+  // 300ms/1500ms 지연 재시도는 Chrome MEI 첫 시도 레이스를 커버한다.
   useLayoutEffect(() => {
-    let audio
+    let handle
     try {
-      audio = new Howl({
-        src: [titleBgmUrl],
-        loop: true,
-        // Stream CDN audio without Web Audio's cross-origin fetch requirement.
-        format: ['mp3'],
-        html5: true,
-        preload: false,
-        volume: 0.5,
-        onplay: () => handleSuccess(),
-        onplayerror: () => {
-          playing = false
-          bindRetry()
-        },
-      })
+      handle = acquireStreamingBgm(titleBgmUrl, { volume: 0.5 })
     } catch {
       return undefined
     }
-    try {
-      audio.load?.()
-    } catch {
-      // load() 실패는 이후 play() 재시도 경로에 맡긴다.
-    }
-    if (typeof window !== 'undefined') window.__titleBgm = audio
-
-    let disposed = false
-    let playing = false
-    let retryBound = false
-    const timers = []
-
-    const clearTimers = () => {
-      while (timers.length) clearTimeout(timers.pop())
-    }
-    const unbindRetry = () => {
-      if (!retryBound) return
-      retryBound = false
-      window.removeEventListener('pointerdown', tryPlay)
-      window.removeEventListener('touchstart', tryPlay)
-      window.removeEventListener('keydown', tryPlay)
-      document.removeEventListener('visibilitychange', handleVisibility)
-    }
-    const bindRetry = () => {
-      if (disposed || playing || retryBound) return
-      retryBound = true
-      window.addEventListener('pointerdown', tryPlay)
-      window.addEventListener('touchstart', tryPlay)
-      window.addEventListener('keydown', tryPlay)
-      document.addEventListener('visibilitychange', handleVisibility)
-    }
-    const handleSuccess = () => {
-      if (disposed) return
-      playing = true
-      clearTimers()
-      unbindRetry()
-    }
-    function handleVisibility() {
-      if (document.visibilityState === 'visible') tryPlay()
-    }
-    function tryPlay() {
-      if (disposed || playing) return
-      let result
-      try {
-        result = audio.play()
-      } catch {
-        bindRetry()
-        return
-      }
-      if (result && typeof result.then === 'function') {
-        result.then(handleSuccess).catch(bindRetry)
-      } else {
-        handleSuccess()
-      }
-    }
-
-    tryPlay()
-    // 첫 시도가 autoplay 판정 레이스로 실패한 경우를 커버하는 지연 재시도.
-    for (const delay of [300, 1500]) {
-      timers.push(setTimeout(tryPlay, delay))
-    }
-
-          // 브라우저 Audio 정지 실패는 재생 재시도 없이 무시한다.
+    if (typeof window !== 'undefined') window.__titleBgm = handle.audio
+    const timers = [300, 1500].map((delay) => setTimeout(() => handle.setActive(true), delay))
     return () => {
-      disposed = true
-      clearTimers()
-      unbindRetry()
-      try {
-        audio.pause()
-        audio.unload?.()
-      } catch {
-        // 정리 실패는 무시
-      }
+      timers.forEach(clearTimeout)
+      handle.release()
     }
   }, [])
 
