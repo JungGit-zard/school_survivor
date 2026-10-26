@@ -11,7 +11,8 @@ import { ZOMBIE_BOARD_COPY } from './zombieBoardCopy.js'
 export const LANDING_HERO_VIDEO_URL = ''
 export const LANDING_FEATURE_VIDEO_URL = ''
 
-const TITLE_BGM_URL = new URL('../assets/audio/title_bgm.m4a', import.meta.url).href
+// 음악은 번들에 넣지 않고 R2 음악 CDN(zombie-music 버킷)에서 받는다(2026-10-26).
+export const LANDING_TITLE_BGM_URL = 'https://music.escapezombie.com/title_bgm.m4a'
 
 // 만화는 게임 사이트(escapezombie.com)에 싣지 않는다. 미디어 사이트 링크만 둔다(2026-10-25 분리).
 const VIDEO_PLACEHOLDERS = WEB_BACKGROUND_THUMB_URLS.slice(0, 3)
@@ -243,7 +244,7 @@ export default function WebLandingPage() {
               </button>
               <audio
                 ref={audioRef}
-                src={TITLE_BGM_URL}
+                src={LANDING_TITLE_BGM_URL}
                 preload="metadata"
                 aria-label={copy.musicPlayer}
                 onPause={() => setIsMusicPlaying(false)}
@@ -252,7 +253,7 @@ export default function WebLandingPage() {
                   setMusicStatus('musicEnded')
                 }}
               >
-                <source src={TITLE_BGM_URL} type="audio/mp4" />
+                <source src={LANDING_TITLE_BGM_URL} type="audio/mp4" />
               </audio>
               <p id="music-status" className="web-landing__music-status" aria-live="polite">{copy[musicStatus]}</p>
             </div>
