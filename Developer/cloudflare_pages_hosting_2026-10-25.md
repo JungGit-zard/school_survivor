@@ -20,12 +20,16 @@ Terry 승인: "무료 CDN으로 전환하고 재개한다", "필요 절감법 �
 | 헤더/리다이렉트 | `public/_headers`, `public/_redirects` (빌드 시 dist로 복사) | `media-site/site/_headers` |
 | 내용 | 게임, 랜딩, legal, `.well-known/assetlinks.json`(TWA) | 만화 뷰어, X 카드(`share/x`), 옛 만화 PNG, `web-comics`, 블로그 이미지 |
 
-- A의 `/share/*`, `/comics/*`, `/web-comics/*`, `/blog/*`, `/x-website-cards-manifest.json`은 B로 **301**.
-  이미 X에 게시된 `escapezombie.com/share/x/...` 링크가 이 경로로 보존된다.
+- A의 `/comics/*`, `/web-comics/*`, `/blog/*`, `/x-website-cards-manifest.json`은 B로 **301**.
+- **2026-10-27 개정:** X 카드 `/share/x/<locale>/<16hex>`(+`.png`)는 A(`escapezombie.com`)에서 **리다이렉트 없이 200**으로 직접 서빙한다.
+  `/share/*` → B 301 때문에 X 작성창 카드가 "From escapezombie.com"으로 나오지 않아 X 러너가 타임아웃했다.
+  A의 카드 `og:url`/`og:image`/`twitter:image`는 `escapezombie.com/share/x/...`, 클릭 시 `escapezombie.com/`으로 이동.
+  배포 스크립트가 `Build-XWebsiteCards.mjs`로 카드를 생성해 스테이징에 넣는다(`--x-cards-repo-root <전체 image_pool이 있는 트리>`).
+  기본값(이 체크아웃)은 git 추적 풀만 쓰므로 미추적 신규 카드가 빠질 수 있다 — 배포 로그의 `X cards: N`을 확인한다.
 - B의 카드 HTML은 `og:image`/`og:url`을 `media.escapezombie.com`으로 가리키고, 클릭 시 `escapezombie.com/`으로 이동한다.
 - 게임 번들에서 B를 가리키는 것은 `src/lib/mediaSite.js`의 텍스트 링크 상수 하나뿐(첫 로드 요청 0건).
 - `scripts/deploy-cloudflare.mjs game`은 금지 항목(comics/share/blog/web-comics/web-landing/web-side-gutters/QA 페이지)이
-  스테이징에 있으면 배포를 거부한다.
+  스테이징에 있으면 배포를 거부한다. 단 `share/x`는 허용·필수(그 외 `share/*`는 거부). 25MiB 검사는 전체 파일 재귀.
 
 ## 캐시
 

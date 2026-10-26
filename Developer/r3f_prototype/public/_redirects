@@ -1,7 +1,7 @@
 # Cloudflare Pages redirects — game project A (escapezombie.com)
-# Comics / X cards / marketing images live ONLY on media project B.
-# Old URLs already posted on X keep working through these 301s.
-/share/*                      https://media.escapezombie.com/share/:splat 301
+# Comics / marketing images live ONLY on media project B; old URLs keep working through these 301s.
+# X website cards (/share/x/<locale>/<16hex> + .png) are served HERE as direct 200s (2026-10-27): X's composer
+# only shows "From escapezombie.com" when the card URL answers without a cross-host redirect. No /share/* rule.
 /comics/*                     https://media.escapezombie.com/comics/:splat 301
 /web-comics/*                 https://media.escapezombie.com/web-comics/:splat 301
 /blog/*                       https://media.escapezombie.com/blog/:splat 301
