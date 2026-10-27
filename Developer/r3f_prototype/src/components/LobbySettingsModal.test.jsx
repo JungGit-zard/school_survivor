@@ -9,6 +9,7 @@ import { useAuthStore } from '../store/useAuthStore.js'
 import { TERMS_TEXT, TERMS_TITLE, PRIVACY_TEXT, PRIVACY_TITLE } from '../lib/legalDocuments.js'
 import { _resetGuestSessionSettingsForTests, loadGuestSessionSettings, loadTitleSettings, saveTitleSettings } from '../lib/titleSettings.js'
 import { saveGuestRankingNickname } from '../lib/guestRankingIdentity.js'
+import { PLAYER_APPEARANCE_VALUES } from '../lib/playerAppearance.js'
 
 vi.mock('../lib/guestRankingIdentity.js', () => ({
   getGuestRankingNickname: () => '자동생존자',
@@ -73,40 +74,76 @@ describe('LobbySettingsModal', () => {
     reauthenticateForDeletion.mockImplementation(async () => mockReauthResult)
   })
 
-  it('selects both appearances, reopens with the selection and round-trips Firebase data', async () => {
-    let view = renderSettings()
-    expect(buildCloudProgressSnapshot().progress.titleSettings).not.toHaveProperty('playerAppearance')
-    expect(getButtonByText(view.container, '신').getAttribute('aria-pressed')).toBe('true')
-    await clickButtonByText(view.container, '구')
-    expect(requestCloudProgressSave).toHaveBeenCalledTimes(1)
-    expect(loadTitleSettings().playerAppearance).toBe('legacy')
-    const saved = buildCloudProgressSnapshot()
-    view.unmount()
-    _seedHydratedFirebaseProgressForTests()
-    applyCloudProgressSnapshot(saved, { uid: 'test-user' })
-    view = renderSettings()
-    expect(getButtonByText(view.container, '구').getAttribute('aria-pressed')).toBe('true')
-    await clickButtonByText(view.container, '신')
-    expect(loadTitleSettings().playerAppearance).toBe('v9')
+  it('offers one option per savable appearance, in detail order, with exactly one selected', () => {
+    const view = renderSettings()
+    // 저장 가능한 값이 늘었는데 버튼이 안 늘면 그 외형은 영영 고를 수 없다.
+    expect([...Object.keys(APPEARANCE_LABEL_BY_VALUE)].sort()).toEqual([...PLAYER_APPEARANCE_VALUES].sort())
+    expect(appearanceButtons(view.container).map((button) => button.textContent)).toEqual(APPEARANCE_LABELS)
+    expect(pressedAppearance(view.container)).toBe('표준')
+    // 개발 용어(버전명/내부 값)가 라벨로 새어 나오면 안 된다.
+    expect(APPEARANCE_LABELS.join(' ')).not.toMatch(/v9|legacy|rosari/i)
+    expect(appearanceButtons(view.container).map((b) => b.textContent).join(' ')).not.toMatch(/v9|legacy|rosari/i)
     view.unmount()
   })
 
-  it.each([undefined, 'v9', 'legacy'])('restores previous appearance %s after save failure', async (previous) => {
+  it('selects any of the three appearances, reopens with the selection and round-trips Firebase data', async () => {
+    let view = renderSettings()
+    expect(buildCloudProgressSnapshot().progress.titleSettings).not.toHaveProperty('playerAppearance')
+    // 이미 눌려 있는 선택지는 중복 저장이 차단되므로 그 값만 마지막에 돈다.
+    const alreadyPressed = pressedAppearance(view.container)
+    const order = [
+      ...PLAYER_APPEARANCE_VALUES.filter((v) => APPEARANCE_LABEL_BY_VALUE[v] !== alreadyPressed),
+      ...PLAYER_APPEARANCE_VALUES.filter((v) => APPEARANCE_LABEL_BY_VALUE[v] === alreadyPressed),
+    ]
+    for (const value of order) {
+      await clickButtonByText(view.container, APPEARANCE_LABEL_BY_VALUE[value])
+      expect(loadTitleSettings().playerAppearance).toBe(value)
+      // 저장된 선택은 모달을 닫고 Firebase 스냅샷으로 되살아나야 한다.
+      const saved = buildCloudProgressSnapshot()
+      view.unmount()
+      _seedHydratedFirebaseProgressForTests()
+      applyCloudProgressSnapshot(saved, { uid: 'test-user' })
+      view = renderSettings()
+      expect(pressedAppearance(view.container)).toBe(APPEARANCE_LABEL_BY_VALUE[value])
+    }
+    expect(requestCloudProgressSave).toHaveBeenCalledTimes(PLAYER_APPEARANCE_VALUES.length)
+    view.unmount()
+  })
+
+  it('selects the third appearance and keeps exactly one option pressed', async () => {
+    const view = renderSettings()
+    await clickButtonByText(view.container, '정밀')
+    expect(requestCloudProgressSave).toHaveBeenCalledTimes(1)
+    expect(pressedAppearance(view.container)).toBe('정밀')
+    expect(view.container.querySelector('[role="alert"]')).toBeNull()
+    // 이미 선택된 선택지를 다시 눌러도 중복 저장하지 않는다.
+    await clickButtonByText(view.container, '정밀')
+    expect(requestCloudProgressSave).toHaveBeenCalledTimes(1)
+    view.unmount()
+  })
+
+  it.each([undefined, 'v9', 'legacy', 'rosari'])('restores previous appearance %s after save failure', async (previous) => {
     if (previous) saveTitleSettings({ playerAppearance: previous })
+    // 저장 계층(titleSettings/firebaseProgress 화이트리스트)이 아직 받아주지 않는 값은 시드
+    // 직후 사라진다. 롤백은 "클릭 직전에 실제로 저장돼 있던 상태로 정확히 되돌리는가"로
+    // 판정해야 화이트리스트 상태와 무관하게 성립한다.
+    const seeded = loadTitleSettings().playerAppearance
+    if (previous) expect(seeded).toBe(previous)
     let completeSave
     requestCloudProgressSave.mockImplementationOnce(() => new Promise((resolve) => { completeSave = resolve }))
     const view = renderSettings()
-    await clickButtonByText(view.container, previous === 'legacy' ? '신' : '구')
-    expect(getButtonByText(view.container, '신').disabled).toBe(true)
+    await clickButtonByText(view.container, seeded === 'legacy' ? '표준' : '단순')
+    for (const button of appearanceButtons(view.container)) expect(button.disabled).toBe(true)
     expect(view.container.querySelector('button[aria-label="닫기"]').disabled).toBe(true)
     expect(getButtonByText(view.container, '로그아웃').disabled).toBe(true)
     // Another setting remains editable while the cloud appearance save is pending.
     await clickButtonByLabel(view.container, '진동 끄기')
     await act(async () => completeSave(false))
-    expect(loadTitleSettings().playerAppearance).toBe(previous)
+    expect(loadTitleSettings().playerAppearance).toBe(seeded)
+    expect(pressedAppearance(view.container)).toBe(APPEARANCE_LABEL_BY_VALUE[seeded ?? 'v9'])
     expect(loadTitleSettings().vibration).toBe(false)
     expect(view.container.querySelector('[role="alert"]').textContent).toContain('저장할 수 없습니다')
-    if (!previous) expect(buildCloudProgressSnapshot().progress.titleSettings).not.toHaveProperty('playerAppearance')
+    if (!seeded) expect(buildCloudProgressSnapshot().progress.titleSettings).not.toHaveProperty('playerAppearance')
     view.unmount()
   })
 
@@ -114,7 +151,7 @@ describe('LobbySettingsModal', () => {
     let completeSave
     requestCloudProgressSave.mockImplementationOnce(() => new Promise((resolve) => { completeSave = resolve }))
     const view = renderSettings()
-    await clickButtonByText(view.container, '구')
+    await clickButtonByText(view.container, '단순')
     _seedHydratedFirebaseProgressForTests({ uid: 'different-user' })
     saveTitleSettings({ vibration: false, playerAppearance: 'v9' })
     const before = buildCloudProgressSnapshot().progress
@@ -126,9 +163,9 @@ describe('LobbySettingsModal', () => {
   it('handles a rejected save and restores the previous preference', async () => {
     requestCloudProgressSave.mockRejectedValueOnce(new Error('offline'))
     const view = renderSettings()
-    await clickButtonByText(view.container, '구')
+    await clickButtonByText(view.container, '단순')
     expect(loadTitleSettings()).not.toHaveProperty('playerAppearance')
-    expect(getButtonByText(view.container, '신').disabled).toBe(false)
+    expect(getButtonByText(view.container, '표준').disabled).toBe(false)
     expect(view.container.querySelector('[role="alert"]')).not.toBeNull()
     view.unmount()
   })
@@ -396,9 +433,9 @@ describe('LobbySettingsModal', () => {
     await flushAsyncWork()
 
     expect(view.container.querySelector('[data-testid="settings-guest-session-note"]')?.textContent).toContain('로그인하면 설정이 저장')
-    await clickButtonByText(view.container, '구')
+    await clickButtonByText(view.container, APPEARANCE_LABEL_BY_VALUE.legacy)
     expect(view.container.querySelector('[role="alert"]')).toBeNull()
-    expect(getButtonByText(view.container, '구').getAttribute('aria-pressed')).toBe('true')
+    expect(getButtonByText(view.container, APPEARANCE_LABEL_BY_VALUE.legacy).getAttribute('aria-pressed')).toBe('true')
     await clickButtonByLabel(view.container, '진동 끄기')
     expect(requestCloudProgressSave).not.toHaveBeenCalled()
     for (const label of ['로그아웃', '계정 삭제']) {
@@ -410,7 +447,7 @@ describe('LobbySettingsModal', () => {
     view.unmount()
 
     view = renderSettings()
-    expect(getButtonByText(view.container, '구').getAttribute('aria-pressed')).toBe('true')
+    expect(getButtonByText(view.container, APPEARANCE_LABEL_BY_VALUE.legacy).getAttribute('aria-pressed')).toBe('true')
     expect(view.container.querySelector('[aria-label="진동 켜기"]')).not.toBeNull()
     expect(loadGuestSessionSettings()).toMatchObject({ playerAppearance: 'legacy', vibration: false })
     expect(getFirebaseProgressRuntimeSnapshot()).toEqual(before)
@@ -464,6 +501,22 @@ async function clickButtonByText(container, text) {
   await act(async () => {
     button.dispatchEvent(new MouseEvent('click', { bubbles: true }))
   })
+}
+
+// 외형 라벨은 모델 정밀도가 낮은 쪽에서 높은 쪽 순서다. 버전명/개발 용어를 쓰지 않는다.
+const APPEARANCE_LABEL_BY_VALUE = { legacy: '단순', v9: '표준', rosari: '정밀' }
+const APPEARANCE_LABELS = Object.values(APPEARANCE_LABEL_BY_VALUE)
+
+function appearanceButtons(container) {
+  const group = container.querySelector('[role="group"][aria-label="주인공 외형"]')
+  if (!group) throw new Error('Missing appearance group')
+  return Array.from(group.querySelectorAll('button'))
+}
+
+function pressedAppearance(container) {
+  const pressed = appearanceButtons(container).filter((button) => button.getAttribute('aria-pressed') === 'true')
+  expect(pressed.map((button) => button.textContent)).toHaveLength(1)
+  return pressed[0].textContent
 }
 
 function getButtonByText(container, text) {

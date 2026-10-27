@@ -8,6 +8,7 @@ import { DEFAULT_SETTINGS, applyHitCameraShake, applyLanguage, applyReducedEffec
 import { schoolPanel, schoolButton, uiBorders, uiPalette, uiShadows, uiType } from '../lib/uiStyle.js'
 import { LOCALE_OPTIONS, useLocale, useT } from '../lib/i18n.js'
 import { useAuthStore } from '../store/useAuthStore.js'
+import { DEFAULT_PLAYER_APPEARANCE as DEFAULT_APPEARANCE } from '../lib/playerAppearance.js'
 import { deleteAccountAndData, reauthenticateForDeletion } from '../lib/accountDeletion.js'
 import { TERMS_TITLE, TERMS_TEXT, PRIVACY_TITLE, PRIVACY_TEXT } from '../lib/legalDocuments.js'
 
@@ -18,6 +19,11 @@ const panelTone = {
   green: uiPalette.infection,
   violet: '#b996ff',
 }
+
+// 주인공 외형 선택지. 값은 Firebase titleSettings.playerAppearance 정본이고, 나열 순서는
+// 모델 정밀도가 낮은 쪽에서 높은 쪽이다(단순 → 표준 → 정밀). 라벨은 버전명이 아니라
+// 'settings.playerAppearance.<값>' 키로 꺼낸다 — 네 번째 모델이 와도 배열에만 추가하면 된다.
+const APPEARANCE_OPTIONS = ['legacy', 'v9', 'rosari']
 
 const DELETE_ERROR_KEYS = new Set([
   'reauthRequired', 'unauthenticated', 'network', 'progressDeleteFailed', 'unknown',
@@ -101,7 +107,7 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
   }
 
   const selectAppearance = async (playerAppearance) => {
-    if (appearanceBusy || playerAppearance === (settings.playerAppearance ?? 'v9')) return
+    if (appearanceBusy || playerAppearance === (settings.playerAppearance ?? DEFAULT_APPEARANCE)) return
     if (!remoteSettingsReady) {
       // 게스트는 저장 실패가 아니라 저장소가 없는 것이다. 이번 접속 동안만 바꿔 주고 안내 문구로 알린다.
       if (guestSession) {
@@ -349,15 +355,18 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
             <div style={styles.languageRow}>
               <strong style={styles.rowTitle}>{t('settings.playerAppearance')}</strong>
               <div style={styles.languageChoices} role="group" aria-label={t('settings.playerAppearance')} aria-busy={appearanceBusy}>
-                {['v9', 'legacy'].map((appearance) => (
-                  <button key={appearance} type="button"
-                    aria-pressed={(settings.playerAppearance ?? 'v9') === appearance}
-                    style={styles.languageButton((settings.playerAppearance ?? 'v9') === appearance)}
-                    disabled={appearanceBusy || nicknameBusy}
-                    onClick={() => selectAppearance(appearance)}>
-                    {t(appearance === 'v9' ? 'settings.playerAppearanceNew' : 'settings.playerAppearanceOld')}
-                  </button>
-                ))}
+                {APPEARANCE_OPTIONS.map((appearance) => {
+                  const selected = (settings.playerAppearance ?? DEFAULT_APPEARANCE) === appearance
+                  return (
+                    <button key={appearance} type="button"
+                      aria-pressed={selected}
+                      style={styles.languageButton(selected)}
+                      disabled={appearanceBusy || nicknameBusy}
+                      onClick={() => selectAppearance(appearance)}>
+                      {t(`settings.playerAppearance.${appearance}`)}
+                    </button>
+                  )
+                })}
               </div>
             </div>
             {appearanceError && <p role="alert" style={styles.deleteErrorText}>{t('settings.playerAppearanceSaveFailed')}</p>}

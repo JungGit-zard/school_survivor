@@ -1,6 +1,7 @@
 // @vitest-environment node
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
+import { PLAYER_APPEARANCE_VALUES } from './playerAppearance.js'
 import { ZOMBIE_ENCYCLOPEDIA_TYPES } from './zombieEncyclopedia.js'
 
 const rules = JSON.parse(readFileSync(new URL('../../database.rules.json', import.meta.url), 'utf8'))
@@ -10,12 +11,21 @@ const encounterRule = rules.rules.users.$uid.progress.encounteredZombieTypes.$zo
 const validateEncounter = new Function('$zombieType', 'newData', `return (${encounterRule})`)
 
 describe('Firebase encounter save contract', () => {
-  it('allows only the three player appearance values', () => {
+  it('allows exactly the canonical player appearance values and nothing else', () => {
     const rule = rules.rules.users.$uid.progress.titleSettings.playerAppearance['.validate']
+    // Rules are JSON and cannot import the JS constant, so pin the rule to it here.
+    // Match against this one `.validate` string, never the whole rules file: the file has 37
+    // other `newData.val() === '...'` comparisons (purchaseReceipts status, language, stageN)
+    // that would pollute the set.
+    const ruleValues = [...rule.matchAll(/newData\.val\(\) === '([^']*)'/g)].map((match) => match[1])
+    expect(ruleValues.sort()).toEqual([...PLAYER_APPEARANCE_VALUES].sort())
+    expect(PLAYER_APPEARANCE_VALUES).toContain('rosari')
     const validate = new Function('newData', `return (${rule})`)
-    for (const value of ['v9', 'legacy', 'rosari', 'old', '', 1, true, null]) {
-      expect(validate({ val: () => value, isString: () => typeof value === 'string' }))
-        .toBe(value === 'v9' || value === 'legacy' || value === 'rosari')
+    // The loop reads the constant so a fourth value needs no edit here; the set equality and
+    // the `toContain('rosari')` above are what keep that from being a tautology.
+    for (const value of [...PLAYER_APPEARANCE_VALUES, 'old', 'v8', '', 1, 0, true, false, null]) {
+      expect(validate({ val: () => value, isString: () => typeof value === 'string' }), String(value))
+        .toBe(PLAYER_APPEARANCE_VALUES.includes(value))
     }
   })
   it('allows only the two wardrobe outfit values for playerOutfit', () => {

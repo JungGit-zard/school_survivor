@@ -128,8 +128,11 @@ export default {
   'settings.languageDesc': 'Display language for all in-game text',
   'settings.languageAria': 'Select language',
   'settings.playerAppearance': 'Hero appearance',
-  'settings.playerAppearanceNew': 'New',
-  'settings.playerAppearanceOld': 'Old',
+  // TODO(englishgradmini): placeholder wording awaiting sign-off. Budget: 8 characters or
+  // fewer per label so three buttons still fit a 360px-wide settings row.
+  'settings.playerAppearance.legacy': 'Simple',
+  'settings.playerAppearance.v9': 'Standard',
+  'settings.playerAppearance.rosari': 'Detailed',
   'settings.playerAppearanceSaveFailed': 'Unable to save appearance. Check your connection and try again.',
   'settings.guestSessionOnly': 'Sign in to save your settings. For now they apply to this session only.',
   'settings.vibration': 'Vibration',

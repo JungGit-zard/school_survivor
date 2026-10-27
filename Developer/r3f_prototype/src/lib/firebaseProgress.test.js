@@ -41,6 +41,7 @@ import {
   setCloudProgressUser,
   updateFirebasePlayerProgress,
 } from './firebaseProgress.js'
+import { PLAYER_APPEARANCE_VALUES } from './playerAppearance.js'
 import { RECORD_KEYS } from './playerRecords.js'
 import { setUnlocked } from './weaponUnlocks.js'
 import { purchase as purchasePassive } from './passiveUpgrades.js'
@@ -96,7 +97,7 @@ function remoteSnapshot(overrides = {}) {
 }
 
 describe('firebase-only player progress runtime', () => {
-  it.each(['v9', 'legacy'])('preserves %s appearance through cloud snapshot normalization', (playerAppearance) => {
+  it.each([...PLAYER_APPEARANCE_VALUES])('preserves %s appearance through cloud snapshot normalization', (playerAppearance) => {
     applyCloudProgressSnapshot(remoteSnapshot({ progress: { titleSettings: { playerAppearance } } }), USER)
     expect(buildCloudProgressSnapshot().progress.titleSettings.playerAppearance).toBe(playerAppearance)
   })

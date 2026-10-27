@@ -125,8 +125,10 @@ export default {
   'settings.languageDesc': '게임 내 모든 문구의 표시 언어',
   'settings.languageAria': '언어 선택',
   'settings.playerAppearance': '주인공 외형',
-  'settings.playerAppearanceNew': '신',
-  'settings.playerAppearanceOld': '구',
+  // 모델 정밀도 단계. "신/구"는 모델이 3종이 되면서 성립하지 않아 폐기했다.
+  'settings.playerAppearance.legacy': '단순',
+  'settings.playerAppearance.v9': '표준',
+  'settings.playerAppearance.rosari': '정밀',
   'settings.playerAppearanceSaveFailed': '외형을 저장할 수 없습니다. 연결을 확인한 뒤 다시 선택해 주세요.',
   'settings.guestSessionOnly': '로그인하면 설정이 저장됩니다. 지금은 이번 접속 동안만 적용돼요.',
   'settings.vibration': '진동',

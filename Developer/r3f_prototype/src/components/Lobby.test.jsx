@@ -21,6 +21,7 @@ import { load as loadPlayerRecords } from '../lib/playerRecords.js'
 import { useAuthStore } from '../store/useAuthStore.js'
 import { useGameStore } from '../store/useGameStore.js'
 import { _resetGuestSessionSettingsForTests, saveTitleSettings } from '../lib/titleSettings.js'
+import ko from '../lib/locales/ko.js'
 import { runLobbyHydrationCycles } from '../../test/lobbyHydrationCycles.jsx'
 
 const stageBossPreviewRenderState = vi.hoisted(() => ({ count: 0 }))
@@ -159,7 +160,8 @@ describe('Lobby', () => {
 
     expect(view.container.querySelector('[role="dialog"]')).not.toBeNull()
     const oldAppearance = Array.from(view.container.querySelectorAll('button'))
-      .find((button) => button.textContent === '구')
+      // 라벨은 로케일에서 읽는다. 리터럴로 박아 뒀더니 '구' → '단순' 개명에 이 테스트가 깨졌다.
+      .find((button) => button.textContent === ko['settings.playerAppearance.legacy'])
     act(() => oldAppearance.click())
     // 게스트는 저장 실패(연결 오류)가 아니다. 이번 접속 동안만 바꾸고 로그인하면 저장된다고 안내한다.
     expect(view.container.querySelector('[role="alert"]')).toBeNull()

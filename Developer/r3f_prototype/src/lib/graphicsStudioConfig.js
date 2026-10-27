@@ -172,6 +172,16 @@ export const GRAPHICS_STUDIO_CATALOG = Object.freeze([
     runtimePreviewComponent: 'PlayerVisual',
     applyTargets: ['components/PlayerV9Model.jsx', 'components/Player.jsx'],
   },
+  {
+    id: 'player-rosari',
+    category: 'actor',
+    label: 'Player Rosari',
+    source: 'components/PlayerRosariModel.jsx',
+    previewKind: 'player',
+    runtimePreviewSource: 'components/Player.jsx',
+    runtimePreviewComponent: 'PlayerVisual',
+    applyTargets: ['components/PlayerRosariModel.jsx', 'components/Player.jsx'],
+  },
   // RZL/RZC(스테이지3 런좀비 크루)는 ZombieMesh.jsx에서 이미 StudioTunedGroup으로 감싸여
   // 게임 런타임 배선이 E01과 동일하다. 이 배열에서 빠져 있어 스튜디오에서 선택만 불가능했다.
   ...['E01', 'E02', 'E03', 'E04', 'E05', 'E06', 'RZL', 'RZC', 'RZT', 'RZG', 'B01', 'B02', 'B03', 'B04', ...POSED_ZOMBIE_STUDIO_TYPES].map((type) => ({

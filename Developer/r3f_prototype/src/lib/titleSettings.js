@@ -2,6 +2,7 @@
 // Durable player settings live only in Firebase users/{uid}. Admin/dev config remains separate.
 import { getFirebaseProgressRuntimeSnapshot, isFirebaseProgressHydrated, readFirebasePlayerProgressOrDefault, requestCloudProgressSave, updateFirebasePlayerProgress } from './firebaseProgress.js'
 import { detectInitialLocale, isSupportedLocale, setLocale } from './i18n.js'
+import { isPlayerAppearance } from './playerAppearance.js'
 import { setScientificNotation } from './numberFormat.js'
 
 export const SETTINGS_STORAGE_KEY = 'school_survivor:titleSettings'
@@ -38,7 +39,7 @@ export function _resetGuestSessionSettingsForTests() {
 export function loadTitleSettings() {
   const settings = readFirebasePlayerProgressOrDefault().titleSettings ?? DEFAULT_SETTINGS
   return {
-    ...(settings.playerAppearance === 'v9' || settings.playerAppearance === 'legacy'
+    ...(isPlayerAppearance(settings.playerAppearance)
       ? { playerAppearance: settings.playerAppearance } : {}),
     // Rosari wardrobe outfit: separate axis from playerAppearance. Unknown values are dropped (=> 'default').
     ...(settings.playerOutfit === 'default' || settings.playerOutfit === 'winter'

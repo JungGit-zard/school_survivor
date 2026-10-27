@@ -128,8 +128,11 @@ export default {
   'settings.languageDesc': 'ゲーム内すべての文言の表示言語',
   'settings.languageAria': '言語を選択',
   'settings.playerAppearance': '主人公の外見',
-  'settings.playerAppearanceNew': '新',
-  'settings.playerAppearanceOld': '旧',
+  // TODO(englishgradmini): 文言は確定待ちの仮置き。ラベルは3ボタンが幅360pxの行に収まるよう
+  // 4文字以内に収める。
+  'settings.playerAppearance.legacy': '簡易',
+  'settings.playerAppearance.v9': '標準',
+  'settings.playerAppearance.rosari': '精細',
   'settings.playerAppearanceSaveFailed': '外見を保存できません。接続を確認して、もう一度選んでください。',
   'settings.guestSessionOnly': 'ログインすると設定が保存されます。今は今回の接続中だけ適用されます。',
   'settings.vibration': 'バイブレーション',

@@ -13,9 +13,35 @@ import { isFirebaseProgressHydrated } from '../lib/firebaseProgress.js'
 import { loadGuestSessionSettings, loadTitleSettings } from '../lib/titleSettings.js'
 import { useAuthStore } from '../store/useAuthStore.js'
 import { resolvePlayerOutfitId } from '../lib/playerV9Outfits.js'
+import { DEFAULT_PLAYER_APPEARANCE, isPlayerAppearance } from '../lib/playerAppearance.js'
 import PlayerV9Model from './PlayerV9Model.jsx'
+import PlayerRosariModel from './PlayerRosariModel.jsx'
 import PlayerMesh from './PlayerMesh.jsx'
 import MiniHealthBar from './MiniHealthBar.jsx'
+
+// 저장 가능한 외형 값과 기본값의 정본은 lib/playerAppearance.js다 — 여기서 다시 적지 않는다.
+// 이 파일이 더하는 것은 F8 비교 토글의 순환 순서와 DEV 배지 라벨뿐이다.
+export const PLAYER_APPEARANCE_CYCLE = Object.freeze(['legacy', 'v9', 'rosari'])
+export const PLAYER_APPEARANCE_LABELS = Object.freeze({
+  legacy: '이전 모델',
+  v9: '이번 V9',
+  rosari: '로자리',
+})
+
+// 모르는 값을 조용히 V9로 떨어뜨리면 "Studio에서 조정했는데 게임이 안 바뀐다"가 된다.
+// 렌더는 계속하되(그래픽을 숨기지 않는다) DEV에서 원인을 바로 알 수 있게 경고한다.
+export function resolvePlayerAppearance(value) {
+  if (isPlayerAppearance(value)) return value
+  if (import.meta.env.DEV && value != null) {
+    console.warn(`[Player] 알 수 없는 주인공 외형 "${value}" — ${DEFAULT_PLAYER_APPEARANCE}로 렌더한다. lib/playerAppearance.js의 PLAYER_APPEARANCE_VALUES에 없는 값이다.`)
+  }
+  return DEFAULT_PLAYER_APPEARANCE
+}
+
+export function nextPlayerAppearance(current) {
+  const index = PLAYER_APPEARANCE_CYCLE.indexOf(resolvePlayerAppearance(current))
+  return PLAYER_APPEARANCE_CYCLE[(index + 1) % PLAYER_APPEARANCE_CYCLE.length]
+}
 
 const _v = { x: 0, y: 0, z: 0 }
 const INV_DURATION = 520
@@ -156,13 +182,16 @@ function PlayerHealEffect({ token = 0 }) {
 }
 
 export function PlayerVisual({ meshGroup, movingRef, hp, maxHp, hitFlashToken = 0, healFlashToken = 0, showHealthBar = true, previewArmAction = null, visualPose = PLAYER_UPRIGHT_POSE, comparisonModel = null, gameplay = false, outfit = 'default' }) {
+  const appearance = resolvePlayerAppearance(comparisonModel ?? DEFAULT_PLAYER_APPEARANCE)
   return (
     <>
       <group position={visualPose.position} rotation={visualPose.rotation}>
         <group ref={meshGroup}>
-          {comparisonModel === 'legacy'
+          {appearance === 'legacy'
             ? <PlayerMesh movingRef={movingRef} hitFlashToken={hitFlashToken} previewArmAction={previewArmAction} />
-            : <PlayerV9Model movingRef={movingRef} hitFlashToken={hitFlashToken} previewArmAction={previewArmAction} gameplay={gameplay} outfit={outfit} />}
+            : appearance === 'rosari'
+              ? <PlayerRosariModel movingRef={movingRef} hitFlashToken={hitFlashToken} previewArmAction={previewArmAction} gameplay={gameplay} />
+              : <PlayerV9Model movingRef={movingRef} hitFlashToken={hitFlashToken} previewArmAction={previewArmAction} gameplay={gameplay} outfit={outfit} />}
         </group>
       </group>
       <PlayerHealEffect token={healFlashToken} />
@@ -179,8 +208,10 @@ export default function Player() {
   const [comparisonModel, setComparisonModel] = useState(null)
   // 게스트는 이번 접속 메모리의 선택을 쓴다. 로그인했지만 아직 계정 진행도가 오기 전이면 기본값.
   const savedAppearance = isFirebaseProgressHydrated()
-    ? (loadTitleSettings().playerAppearance ?? 'v9')
-    : (useAuthStore.getState().user?.uid ? 'v9' : (loadGuestSessionSettings().playerAppearance ?? 'v9'))
+    ? (loadTitleSettings().playerAppearance ?? DEFAULT_PLAYER_APPEARANCE)
+    : (useAuthStore.getState().user?.uid
+        ? DEFAULT_PLAYER_APPEARANCE
+        : (loadGuestSessionSettings().playerAppearance ?? DEFAULT_PLAYER_APPEARANCE))
   // 동복 등 의상 선택(titleSettings.playerOutfit). 없으면 'default'. 현재 v9 모델만 의상을 입는다.
   const savedOutfit = resolvePlayerOutfitId(isFirebaseProgressHydrated()
     ? loadTitleSettings().playerOutfit
@@ -211,7 +242,7 @@ export default function Player() {
       if (event.code !== 'F8' || event.repeat || event.ctrlKey || event.altKey || event.metaKey) return
       if (event.target?.closest?.('input, textarea, select, [contenteditable="true"]')) return
       event.preventDefault()
-      setComparisonModel((current) => (current ?? savedAppearance) === 'legacy' ? 'v9' : 'legacy')
+      setComparisonModel((current) => nextPlayerAppearance(current ?? savedAppearance))
     }
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
@@ -336,7 +367,7 @@ export default function Player() {
       <PlayerVisual meshGroup={meshGroup} movingRef={movingRef} hp={hp} maxHp={maxHp} hitFlashToken={hitFlashToken} healFlashToken={healFlashToken} visualPose={visualPose} comparisonModel={comparisonModel ?? savedAppearance} outfit={savedOutfit} gameplay />
       {import.meta.env.DEV && comparisonModel && (
         <Html position={[0, 1.12, 0]} center style={{ pointerEvents: 'none', whiteSpace: 'nowrap', fontSize: 12, color: '#fff', background: '#111c', padding: '3px 6px', borderRadius: 4 }}>
-          F8 · {comparisonModel === 'legacy' ? '이전 모델' : '이번 V9'}
+          F8 · {PLAYER_APPEARANCE_LABELS[resolvePlayerAppearance(comparisonModel)]}
         </Html>
       )}
     </RigidBody>

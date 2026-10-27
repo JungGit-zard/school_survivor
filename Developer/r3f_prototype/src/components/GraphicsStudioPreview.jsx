@@ -80,6 +80,11 @@ const PLAYER_STUDIO_ARM_ACTIONS = {
   lantern: 'lanternAim',
   lanternFlashlight: 'lanternFlashlight',
 }
+// Studio 플레이어 아이템 → Player.jsx의 외형 값. `player`는 PlayerMesh 직접 렌더라 여기 없다.
+const STUDIO_PLAYER_APPEARANCES = {
+  'player-v9': 'v9',
+  'player-rosari': 'rosari',
+}
 const PART_GROUP_OUTLINE_COLOR = 0x7cff00
 const STABLE_PART_KEY_PREFIX = 'id:'
 
@@ -527,7 +532,10 @@ function RenderPreviewItem({ item }) {
 
   if (item.previewKind === 'player') {
     if (item.id === 'player') return <PlayerMesh groupRef={playerRef} movingRef={movingRef} previewArmAction={PLAYER_STUDIO_ARM_ACTIONS[item.animation] ?? null} />
-    return <PlayerVisual meshGroup={playerRef} movingRef={movingRef} hp={100} maxHp={100} previewArmAction={PLAYER_STUDIO_ARM_ACTIONS[item.animation] ?? null} />
+    // 외형을 명시로 넘긴다. 예전에는 여기서 아무것도 넘기지 않아 player 이외의 모든
+    // 플레이어 아이템이 V9로 떨어졌다 — Studio에서 다른 외형을 고르고 V9를 조정하는 상태다.
+    // 미등록 itemId는 resolvePlayerAppearance의 DEV 경고로 드러난다.
+    return <PlayerVisual meshGroup={playerRef} movingRef={movingRef} hp={100} maxHp={100} previewArmAction={PLAYER_STUDIO_ARM_ACTIONS[item.animation] ?? null} comparisonModel={STUDIO_PLAYER_APPEARANCES[item.id] ?? item.id} />
   }
   if (item.previewKind === 'zombie') {
     return <EnemyVisual type={item.zombieType} animPhase={item.animation ?? 'normal'} hp={ENEMY_STATS[item.zombieType]?.hp} forceMesh bossFaceRecipe={item.bossFaceRecipe} />

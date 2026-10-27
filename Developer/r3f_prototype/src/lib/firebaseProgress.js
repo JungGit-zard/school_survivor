@@ -1,6 +1,7 @@
 import { getFirebaseConfig, isFirebaseAuthConfigured } from './firebaseAuth.js'
 import { normalizeBossPassiveUnlocks } from './bossPassiveItems.js'
 import { reconcileMissionProgress } from './missionProgress.js'
+import { isPlayerAppearance } from './playerAppearance.js'
 import {
   WEAPON_UNLOCK_SCHEMA_VERSION,
   mergeLegacyAccountEntitlements,
@@ -1108,7 +1109,7 @@ function normalizeZombieEncounterMap(value) {
 function normalizeTitleSettings(value) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return { ...DEFAULT_TITLE_SETTINGS }
   return {
-    ...(value.playerAppearance === 'v9' || value.playerAppearance === 'legacy'
+    ...(isPlayerAppearance(value.playerAppearance)
       ? { playerAppearance: value.playerAppearance } : {}),
     // Rosari wardrobe outfit: separate axis from playerAppearance. Unknown values are dropped (=> 'default').
     ...(value.playerOutfit === 'default' || value.playerOutfit === 'winter'
