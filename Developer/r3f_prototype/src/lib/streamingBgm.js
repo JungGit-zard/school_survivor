@@ -16,11 +16,22 @@
 // actually starts sounding ('playing'), so a lazy screen chunk or a slow CDN
 // stream never leaves a silent gap. BRIDGE_MAX_MS caps a bridge into a screen
 // that has no music of its own.
+//
+// Self-heal (2026-10-28, phone report "music always stops in dialogue"): the OS
+// may pause the element from outside (iOS audio-session interruption when WebAudio
+// starts, a call, another app). While the track is still wanted and the tab is
+// visible we put it back: on the 'pause' event, on a slow watchdog (covers engines
+// that pause without an event or refuse play() for a moment), when the shared
+// AudioContext comes back to 'running', and on the next user gesture if autoplay
+// is refused. A hidden tab is never fought: wanted() is false there.
+
+import { configureAudioSession, onSharedAudioResume } from './sharedAudioContext.js'
 
 const GESTURE_EVENTS = ['pointerdown', 'touchstart', 'keydown']
 export const STALL_RECOVERY_MS = 6000
 const MAX_ERROR_RETRY_MS = 30000
 export const BRIDGE_MAX_MS = 15000
+export const BGM_WATCHDOG_MS = 2000
 
 const players = new Map()
 
@@ -29,6 +40,7 @@ function isHidden() {
 }
 
 function createPlayer(url, volume) {
+  configureAudioSession()
   const audio = new Audio()
   audio.preload = 'auto'
   audio.loop = true
@@ -122,9 +134,11 @@ function createPlayer(url, volume) {
   window.addEventListener('pageshow', onVisibility)
   window.addEventListener('focus', onVisibility)
   for (const event of GESTURE_EVENTS) window.addEventListener(event, onGesture)
+  const watchdog = setInterval(() => { if (wanted() && audio.paused) tryPlay() }, BGM_WATCHDOG_MS)
 
   const dispose = () => {
     disposed = true
+    clearInterval(watchdog)
     clearStall()
     clearBridge()
     if (errorTimer) clearTimeout(errorTimer)
@@ -197,6 +211,13 @@ export function acquireStreamingBgm(url, { volume = 0.5, active = true } = {}) {
     },
   }
 }
+
+// Re-assert every wanted track now (e.g. right after another audio source started).
+// Never starts an unwanted or hidden-tab track.
+export function resumeStreamingBgm() {
+  for (const player of [...players.values()]) player.sync()
+}
+onSharedAudioResume(resumeStreamingBgm)
 
 export function _streamingBgmPlayersForTests() {
   return players

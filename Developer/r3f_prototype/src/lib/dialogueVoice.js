@@ -3,10 +3,16 @@
 // This intentionally does not copy or sample Animal Crossing / Nintendo audio.
 // It uses short original WebAudio oscillator bleeps scheduled per Korean grapheme,
 // following soundmini's handoff: protagonist = lower/tense, Matilda = high/mocking.
+//
+// Audio focus (2026-10-28): the voice runs on the app's ONE shared AudioContext
+// (Howler's) instead of creating its own. A second context resuming on iOS
+// paused the streaming stage BGM in every dialogue. After each utterance starts,
+// the BGM is re-asserted in case the OS paused it anyway.
+import { getSharedAudioContext } from './sharedAudioContext.js'
+import { resumeStreamingBgm } from './streamingBgm.js'
 
 const ACTIVE_TIMERS = new Set()
 const ACTIVE_NODES = new Set()
-let audioContext = null
 let utteranceGeneration = 0
 
 export const DIALOGUE_VOICE_PROFILES = Object.freeze({
@@ -95,7 +101,7 @@ export function getDialogueVoiceProfile(profileName, text = '') {
 export function playDialogueVoice(text, profileName = 'protagonistIntro', options = {}) {
   stopDialogueVoice()
   const profile = getDialogueVoiceProfile(profileName, text)
-  const context = getAudioContext()
+  const context = getSharedAudioContext()
   if (!context) return () => {}
   const generation = utteranceGeneration
   const cancel = () => {
@@ -103,6 +109,7 @@ export function playDialogueVoice(text, profileName = 'protagonistIntro', option
   }
   const schedule = () => {
     if (generation !== utteranceGeneration || context.state !== 'running') return
+    resumeStreamingBgm()
     const glyphs = segmentDialogueText(text)
     const volume = clamp(Number(options.volume ?? 1), 0, 1.5)
     let cursorMs = Math.max(0, Number(options.delayMs ?? 0))
@@ -140,15 +147,6 @@ export function stopDialogueVoice() {
     try { node.disconnect?.() } catch {}
   })
   ACTIVE_NODES.clear()
-}
-
-function getAudioContext() {
-  if (audioContext && audioContext.state !== 'closed') return audioContext
-  if (typeof window === 'undefined') return null
-  const AudioContextCtor = window.AudioContext ?? window.webkitAudioContext
-  if (!AudioContextCtor) return null
-  try { audioContext = new AudioContextCtor() } catch { return null }
-  return audioContext
 }
 
 function playGlyphBleep(context, profile, glyph, index, volume) {
