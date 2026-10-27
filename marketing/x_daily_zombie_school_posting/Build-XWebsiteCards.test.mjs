@@ -108,3 +108,14 @@ test('buildCards rejects active X images without one matching X catalog entry', 
 
   await assert.rejects(buildCards({ repoRoot, output: path.join(repoRoot, 'out') }), /Expected one X catalog row/)
 })
+
+test('readPngSize reads IHDR dimensions and ignores non-PNG bytes', async () => {
+  const { readPngSize } = await import('./Build-XWebsiteCards.mjs')
+  const png = Buffer.alloc(24)
+  Buffer.from('89504e470d0a1a0a', 'hex').copy(png, 0)
+  png.write('IHDR', 12, 'latin1')
+  png.writeUInt32BE(1254, 16)
+  png.writeUInt32BE(1254, 20)
+  assert.deepEqual(readPngSize(png), { width: 1254, height: 1254 })
+  assert.equal(readPngSize(Buffer.from('original bytes')), null)
+})

@@ -56,6 +56,15 @@ function resolveImagePath(poolRoot, configuredPath) {
   return { relative, absolute }
 }
 
+// X skips its own dimension probe when og:image:width/height are declared; read them from the PNG IHDR.
+export function readPngSize(buffer) {
+  const signature = '89504e470d0a1a0a'
+  if (buffer.length < 24 || buffer.subarray(0, 8).toString('hex') !== signature || buffer.subarray(12, 16).toString('latin1') !== 'IHDR') {
+    return null
+  }
+  return { width: buffer.readUInt32BE(16), height: buffer.readUInt32BE(20) }
+}
+
 function localeImageCandidates(config, locale) {
   const paths = []
   paths.push(...(config.image_pool?.[locale]?.images ?? []))
@@ -98,6 +107,10 @@ export async function buildCards({ repoRoot, output }) {
       const image = await readFile(absolute)
       const sha256 = createHash('sha256').update(image).digest('hex')
       const slug = `/share/x/${locale}/${sha256.slice(0, 16)}`
+      const size = readPngSize(image)
+      const sizeMeta = size ? `
+  <meta property="og:image:width" content="${size.width}">
+  <meta property="og:image:height" content="${size.height}">` : ''
       const imageUrl = `${CARD_ORIGIN}${slug}.png`
       const page = `<!doctype html>
 <html lang="${escapeHtml(locale)}">
@@ -111,11 +124,14 @@ export async function buildCards({ repoRoot, output }) {
   <meta property="og:title" content="${escapeHtml(TITLES[locale])}">
   <meta property="og:description" content="${escapeHtml(description)}">
   <meta property="og:image" content="${imageUrl}">
+  <meta property="og:image:type" content="image/png">${sizeMeta}
+  <meta property="og:image:alt" content="${escapeHtml(TITLES[locale])}">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:site" content="@jungsilx">
   <meta name="twitter:title" content="${escapeHtml(TITLES[locale])}">
   <meta name="twitter:description" content="${escapeHtml(description)}">
   <meta name="twitter:image" content="${imageUrl}">
+  <meta name="twitter:image:alt" content="${escapeHtml(TITLES[locale])}">
   <script>window.location.replace(${JSON.stringify(`${CARD_ORIGIN}/`)})</script>
 </head>
 <body>
