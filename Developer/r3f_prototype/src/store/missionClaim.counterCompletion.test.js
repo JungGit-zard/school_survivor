@@ -20,6 +20,12 @@ function seed(counters) {
   useGameStore.getState().hydrateMissionProgress()
 }
 beforeEach(() => {
+  // isFirebaseProgressConfigured는 Auth 필수 키 4개 + DATABASE_URL을 모두 요구한다. 로컬 .env에
+  // 기대면 .env가 없거나 키가 비어 있는 환경(CI·다른 작업 트리)에서 'unconfigured'로 깨진다.
+  vi.stubEnv('VITE_FIREBASE_API_KEY', 'qa-key')
+  vi.stubEnv('VITE_FIREBASE_AUTH_DOMAIN', 'qa.invalid')
+  vi.stubEnv('VITE_FIREBASE_PROJECT_ID', 'qa-project')
+  vi.stubEnv('VITE_FIREBASE_APP_ID', '1:0:web:qa')
   vi.stubEnv('VITE_FIREBASE_DATABASE_URL', 'https://qa.invalid')
   // RTDB처럼 첫 호출은 빈 로컬 캐시(null), 이후 서버 값으로 다시 돈다.
   _setFirebaseProgressClientForTests({ load: async () => structuredClone(remote), transaction: async (path, mutate) => {
