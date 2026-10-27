@@ -5,6 +5,7 @@ import { createRoot } from 'react-dom/client'
 import TitleScreen from './TitleScreen.jsx'
 import { _resetAuthStoreForTests, useAuthStore } from '../store/useAuthStore.js'
 import { installFakeAudio, setVisibility } from '../lib/fakeStreamingAudio.testUtil.js'
+import { acquireStreamingBgm, _resetStreamingBgmForTests } from '../lib/streamingBgm.js'
 
 vi.mock('@react-three/fiber', () => ({ Canvas: ({ children }) => <div>{children}</div> }))
 vi.mock('./TitleScene3D.jsx', () => ({ default: () => null }))
@@ -28,6 +29,7 @@ describe('TitleScreen BGM', () => {
     root = null
     container.remove()
     await tick()
+    _resetStreamingBgmForTests()
     _resetAuthStoreForTests()
     vi.unstubAllGlobals()
   })
@@ -37,7 +39,7 @@ describe('TitleScreen BGM', () => {
     return fake.instances[0]
   }
 
-  it('starts the looping title song on mount and releases it when leaving', async () => {
+  it('starts the looping title song on mount and hands it off when leaving', async () => {
     const audio = await mount()
     expect(fake.instances).toHaveLength(1)
     expect(audio).toMatchObject({ src: 'https://music.escapezombie.com/zombie_openning.mp3', loop: true, volume: 0.5 })
@@ -48,7 +50,11 @@ describe('TitleScreen BGM', () => {
     act(() => root.unmount())
     root = null
     await tick()
+    // No silent gap: the title song bridges until the next screen's track sounds.
+    expect(audio.pause).not.toHaveBeenCalled()
+    const lobby = acquireStreamingBgm('https://music.escapezombie.com/zombie_soft1.mp3')
     expect(audio.pause).toHaveBeenCalledOnce()
+    lobby.release()
   })
 
   it('falls back to the first user gesture when autoplay is rejected', async () => {

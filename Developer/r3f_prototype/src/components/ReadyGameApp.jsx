@@ -10,6 +10,7 @@ import { t } from '../lib/i18n.js'
 import { getSelectedWebBackgroundStyle } from '../lib/webBackgroundAssets.js'
 import { clearPendingStartAfterLogin, hasPendingStartAfterLogin } from '../lib/loginContinuation.js'
 import LobbyBgm from './LobbyBgm.jsx'
+import TitleBgm from './TitleBgm.jsx'
 
 const LOBBY_MUSIC_SUB_SCREENS = new Set(['coinShop', 'ranking', 'missionCenter'])
 // 런 종료 후 로비 이동은 클라우드 저장을 기다리되, 저장이 실패·지연(오프라인)돼도 막지 않는다.
@@ -283,8 +284,12 @@ export default function ReadyGameApp({
       <ErrorBoundary fallback={null}>
         <TapFeedbackBurst />
         <Suspense fallback={null}><SfxLayer /></Suspense>
-        {/* Lobby music keeps playing on lobby-side sub screens; LobbyBgm shares one stream by URL. */}
-        {LOBBY_MUSIC_SUB_SCREENS.has(screen) && prevScreen === 'lobby' && <LobbyBgm />}
+        {/* Lobby music keeps playing on lobby-side sub screens; LobbyBgm shares one stream by URL.
+            Sub screens opened from a run (results/pause -> shop, ranking, missions) play it too,
+            so music never goes silent mid-session (owner rule 2026-10-27). */}
+        {LOBBY_MUSIC_SUB_SCREENS.has(screen) && <LobbyBgm />}
+        {/* Rosari's room is entered from the title: it keeps the title song playing. */}
+        {screen === 'rosariRoom' && <TitleBgm />}
       </ErrorBoundary>
       <div ref={phoneFrameRef} style={phoneFrameStyle}>
         {screen === 'auth-return' && <ScreenLoading label={t('loading.game')} />}

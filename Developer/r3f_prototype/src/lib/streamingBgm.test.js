@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { acquireStreamingBgm, STALL_RECOVERY_MS, _streamingBgmPlayersForTests } from './streamingBgm.js'
+import { acquireStreamingBgm, BRIDGE_MAX_MS, STALL_RECOVERY_MS, _streamingBgmPlayersForTests } from './streamingBgm.js'
 import { installFakeAudio, setVisibility } from './fakeStreamingAudio.testUtil.js'
 
 const URL_A = 'https://music.escapezombie.com/a.mp3'
@@ -44,14 +44,53 @@ describe('streamingBgm', () => {
     expect(audio.currentTime).toBe(42)
   })
 
-  it('frees the stream a tick after the last holder leaves', () => {
-    acquireStreamingBgm(URL_A).release()
+  it('frees a silent stream a tick after the last holder leaves', () => {
+    const handle = acquireStreamingBgm(URL_A)
     const audio = fake.instances[0]
-    expect(audio.pause).not.toHaveBeenCalled()
-    vi.runOnlyPendingTimers()
-    expect(audio.pause).toHaveBeenCalledOnce()
+    handle.setActive(false)
+    handle.release()
+    vi.advanceTimersByTime(0)
     expect(audio.removeAttribute).toHaveBeenCalledWith('src')
     expect(_streamingBgmPlayersForTests().size).toBe(0)
+  })
+
+  it('bridges an audible track until the next track actually sounds', () => {
+    fake.setDeferPlaying(true)
+    const lobby = acquireStreamingBgm(URL_A)
+    const oldAudio = fake.instances[0]
+    oldAudio.dispatchEvent(new Event('playing'))
+    lobby.release()
+    acquireStreamingBgm(URL_B) // next screen: stream still buffering
+    const newAudio = fake.instances[1]
+    vi.advanceTimersByTime(BRIDGE_MAX_MS - 1)
+    expect(oldAudio.pause).not.toHaveBeenCalled()
+    newAudio.dispatchEvent(new Event('playing'))
+    expect(oldAudio.paused).toBe(true)
+    expect(_streamingBgmPlayersForTests().has(URL_A)).toBe(false)
+    expect(newAudio.paused).toBe(false)
+  })
+
+  it('caps a bridge into a screen without music', () => {
+    acquireStreamingBgm(URL_A).release()
+    const audio = fake.instances[0]
+    vi.advanceTimersByTime(BRIDGE_MAX_MS - 1)
+    expect(audio.paused).toBe(false)
+    vi.advanceTimersByTime(1)
+    expect(audio.paused).toBe(true)
+    expect(audio.removeAttribute).toHaveBeenCalledWith('src')
+    expect(_streamingBgmPlayersForTests().size).toBe(0)
+  })
+
+  it('a same-URL holder picks a bridged track back up without restarting it', () => {
+    acquireStreamingBgm(URL_A).release()
+    const audio = fake.instances[0]
+    audio.currentTime = 30
+    vi.advanceTimersByTime(1000)
+    acquireStreamingBgm(URL_A)
+    vi.advanceTimersByTime(BRIDGE_MAX_MS * 2)
+    expect(fake.instances).toHaveLength(1)
+    expect(audio.pause).not.toHaveBeenCalled()
+    expect(audio.currentTime).toBe(30)
   })
 
   it('switching tracks stops the old one and starts the new one', () => {

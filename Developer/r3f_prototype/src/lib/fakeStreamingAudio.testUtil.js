@@ -4,6 +4,9 @@ import { vi } from 'vitest'
 export function installFakeAudio() {
   const instances = []
   let rejectPlay = false
+  // deferPlaying: play() starts but 'playing' (audio actually sounding) waits for
+  // the test to dispatch it, like a CDN stream that is still buffering.
+  let deferPlaying = false
   class FakeAudio extends EventTarget {
     constructor() {
       super()
@@ -18,7 +21,7 @@ export function installFakeAudio() {
       this.play = vi.fn(() => {
         if (rejectPlay) return Promise.reject(new Error('NotAllowedError'))
         this.paused = false
-        this.dispatchEvent(new Event('playing'))
+        if (!deferPlaying) this.dispatchEvent(new Event('playing'))
         return Promise.resolve()
       })
       this.pause = vi.fn(() => {
@@ -35,6 +38,7 @@ export function installFakeAudio() {
   return {
     instances,
     setRejectPlay(value) { rejectPlay = value },
+    setDeferPlaying(value) { deferPlaying = value },
   }
 }
 

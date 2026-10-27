@@ -69,6 +69,6 @@ describe('LobbyBgm', () => {
     expect(lobby).toContain('<LobbyBgm />')
     const app = readFileSync(new NodeURL('./ReadyGameApp.jsx', import.meta.url), 'utf8')
     expect(app).toContain("new Set(['coinShop', 'ranking', 'missionCenter'])")
-    expect(app).toContain("prevScreen === 'lobby' && <LobbyBgm />")
+    expect(app).toContain('{LOBBY_MUSIC_SUB_SCREENS.has(screen) && <LobbyBgm />}')
   })
 })

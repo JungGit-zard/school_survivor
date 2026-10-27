@@ -9,10 +9,18 @@
 // One player per URL is shared by every holder. Release is deferred by a tick,
 // so when one screen unmounts and the next mounts in the same React commit with
 // the same track (lobby -> coin shop, StrictMode remount), the music continues.
+//
+// Owner rule (2026-10-27): music never goes silent mid-session. When the last
+// holder of an audible track leaves (lobby -> stage, title -> lobby, stage ->
+// results -> lobby), that track keeps playing as a "bridge" until the next track
+// actually starts sounding ('playing'), so a lazy screen chunk or a slow CDN
+// stream never leaves a silent gap. BRIDGE_MAX_MS caps a bridge into a screen
+// that has no music of its own.
 
 const GESTURE_EVENTS = ['pointerdown', 'touchstart', 'keydown']
 export const STALL_RECOVERY_MS = 6000
 const MAX_ERROR_RETRY_MS = 30000
+export const BRIDGE_MAX_MS = 15000
 
 const players = new Map()
 
@@ -34,8 +42,11 @@ function createPlayer(url, volume) {
   let errorDelay = 1000
   let lastTime = 0
   let disposed = false
+  let bridgeTimer = null
 
-  const wanted = () => !disposed && !isHidden() && [...holders].some((h) => h.active)
+  const wanted = () => !disposed && !isHidden() && (Boolean(bridgeTimer) || [...holders].some((h) => h.active))
+
+  const clearBridge = () => { if (bridgeTimer) { clearTimeout(bridgeTimer); bridgeTimer = null } }
 
   const clearStall = () => { if (stallTimer) { clearTimeout(stallTimer); stallTimer = null } }
 
@@ -82,7 +93,12 @@ function createPlayer(url, volume) {
   }
 
   const handlers = {
-    playing: () => { clearStall(); errorDelay = 1000 },
+    playing: () => {
+      clearStall()
+      errorDelay = 1000
+      // The next track is audible now: end every bridge still covering the gap.
+      if (holders.size) for (const other of [...players.values()]) if (other !== player) other.endBridge()
+    },
     timeupdate: () => { lastTime = audio.currentTime; clearStall() },
     waiting: armStallWatch,
     stalled: armStallWatch,
@@ -110,6 +126,7 @@ function createPlayer(url, volume) {
   const dispose = () => {
     disposed = true
     clearStall()
+    clearBridge()
     if (errorTimer) clearTimeout(errorTimer)
     document.removeEventListener('visibilitychange', onVisibility)
     window.removeEventListener('pageshow', onVisibility)
@@ -125,13 +142,25 @@ function createPlayer(url, volume) {
     audio,
     holders,
     sync,
+    dispose,
     hold(handle) {
       if (releaseTimer) { clearTimeout(releaseTimer); releaseTimer = null }
+      clearBridge()
       holders.add(handle)
+    },
+    endBridge() {
+      if (!bridgeTimer) return
+      clearBridge()
+      if (!holders.size) dispose()
     },
     drop(handle) {
       holders.delete(handle)
       if (holders.size) { sync(); return }
+      // Audible and nobody left: bridge until the next track sounds (or the cap).
+      if (!audio.paused && !isHidden() && !bridgeTimer) {
+        bridgeTimer = setTimeout(() => { bridgeTimer = null; if (!holders.size) dispose() }, BRIDGE_MAX_MS)
+        return
+      }
       // Defer so a same-track holder mounting in this commit keeps the music going.
       if (!releaseTimer) releaseTimer = setTimeout(() => { releaseTimer = null; if (!holders.size) dispose() }, 0)
     },
@@ -171,4 +200,9 @@ export function acquireStreamingBgm(url, { volume = 0.5, active = true } = {}) {
 
 export function _streamingBgmPlayersForTests() {
   return players
+}
+
+// Tests only: drop every player at once (bridges included).
+export function _resetStreamingBgmForTests() {
+  for (const player of [...players.values()]) { player.holders.clear(); player.dispose() }
 }
