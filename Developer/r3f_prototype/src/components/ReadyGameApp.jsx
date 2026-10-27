@@ -1,7 +1,7 @@
 import { Suspense, lazy, useEffect, useRef, useState } from 'react'
 import ErrorBoundary from './ErrorBoundary.jsx'
 import TapFeedbackBurst from './TapFeedbackBurst.jsx'
-import { isFirebaseProgressHydrated } from '../lib/firebaseProgress.js'
+import { getFirebaseProgressRuntimeSnapshot, isFirebaseProgressHydrated } from '../lib/firebaseProgress.js'
 import { initPlaytestLogger } from '../lib/playtestLogger.js'
 import { isMobileJoystickEnvironment } from '../lib/mobileInput.js'
 import { initKeyboardInput } from '../lib/keyboardInput.js'
@@ -35,6 +35,21 @@ const MissionCenter = lazy(() => import('./MissionCenter.jsx'))
 
 let runtimeUtilitiesInitialized = false
 
+// 스테이지1 스토리 컷은 처음 한 번만 보여준다. 새 저장 키 없이 이미 저장되는 데이터로 판단한다:
+// 계정 진행도에 플레이 기록(activity.lastStageId — 스테이지 입장 시 기록)이나 런 기록(totalRuns·
+// stage1Clears)이 있으면 이미 본 것이다. 게스트·하이드레이션 전에는 기록이 없으니 이 세션 안에서만
+// 한 번 본 것으로 기억한다(새로고침하면 새 게스트라 다시 본다).
+function hasPersistedStageEntry(authUser) {
+  try {
+    if (!authUser?.uid || !isFirebaseProgressHydrated(authUser)) return false
+    const { activity, progress } = getFirebaseProgressRuntimeSnapshot()
+    const records = progress?.records ?? {}
+    return !!activity?.lastStageId || (records.totalRuns ?? 0) > 0 || (records.stage1Clears ?? 0) > 0
+  } catch {
+    return false
+  }
+}
+
 function initializeRuntimeUtilities() {
   if (runtimeUtilitiesInitialized) return
   runtimeUtilitiesInitialized = true
@@ -56,6 +71,7 @@ export default function ReadyGameApp({
   const [showGameoverResultImmediately, setShowGameoverResultImmediately] = useState(false)
   const [weaponEncyclopediaRequest, setWeaponEncyclopediaRequest] = useState(null)
   const phoneFrameRef = useRef(null)
+  const stage1IntroSeenRef = useRef(new Set())
 
   useEffect(() => {
     let stopped = false
@@ -71,7 +87,7 @@ export default function ReadyGameApp({
     return () => { stopped = true; window.clearInterval(timer); window.removeEventListener('online',retry) }
   },[authUser?.uid])
 
-  // 0점 랭킹 등록은 실제 스테이지 입장(useGameStore.resetGame)에서 한 번만 한다. 타이틀·로사리 방만
+  // 랭킹은 런이 끝날 때 한 번만 쓴다(0점 런 포함, useGameStore.finishRankingRun). 타이틀·로사리 방만
   // 보고 나간 방문은 학교에 들어간 게 아니라 랭킹에 쓰지 않는다(2026-10-27 쓰기 폭주 정리).
 
   useEffect(() => {
@@ -148,8 +164,14 @@ export default function ReadyGameApp({
     // Guest or failed-cloud sessions run on in-memory default progress; cloud save is optional.
     try {
       const { useGameStore } = await import('../store/useGameStore.js')
+      // resetGame이 activity를 이번 입장으로 갱신하므로 "이미 봤는지"는 그 전에 읽는다.
+      const introOwner = authUser?.uid ?? 'guest'
+      const introAlreadySeen = stage1IntroSeenRef.current.has(introOwner) || hasPersistedStageEntry(authUser)
       if (useGameStore.getState().resetGame(stageId) === false) return
-      if (stageId === 'stage1') useGameStore.getState().startStage1Intro()
+      if (stageId === 'stage1' && !introAlreadySeen) {
+        stage1IntroSeenRef.current.add(introOwner)
+        useGameStore.getState().startStage1Intro()
+      }
       setShowGameoverResultImmediately(false)
       setScreen('game')
     } catch {
@@ -205,6 +227,8 @@ export default function ReadyGameApp({
     let timer = null
     try {
       const { useGameStore } = await import('../store/useGameStore.js')
+      // Leaving to the lobby ends the run (e.g. a clear the player did not continue): its one ranking write.
+      useGameStore.getState().finishRankingRun?.('end')
       await Promise.race([
         Promise.resolve(useGameStore.getState().flushProgressBeforeTransition?.()),
         new Promise((resolve) => { timer = window.setTimeout(resolve, LEAVE_GAMEPLAY_SAVE_WAIT_MS) }),

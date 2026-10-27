@@ -48,3 +48,22 @@ it('serializes overlapping signed-in submissions and atomically retains best plu
   ])
   for (const entry of rows.values()) expect(entry).toMatchObject({ score: 9, timeMs: 9000, lastPlayedAt: 3000 })
 })
+
+it('a multi-stage run goes out as ONE update: each stage board gets its own entry, the global board keeps the run total', async () => {
+  const { rows, mod } = client()
+  const user = { uid: 'multi' }
+  const result = await submitRun(user, [
+    { stageId: 'stage1', score: 300, stageScore: 300, timeMs: 240000, globalTimeMs: 240000, cleared: true, lastPlayedAt: 1000 },
+    { stageId: 'stage2', score: 420, stageScore: 120, timeMs: 60000, globalTimeMs: 300000, cleared: false, lastPlayedAt: 1000 },
+  ])
+  expect(mod.update).toHaveBeenCalledTimes(1)
+  expect(result.failed).toHaveLength(0)
+  const stage1 = [...rows].filter(([path]) => path.includes('/stage/stage1/'))
+  const stage2 = [...rows].filter(([path]) => path.includes('/stage/stage2/'))
+  const global = [...rows].filter(([path]) => !path.includes('/stage/'))
+  expect(stage1.length).toBeGreaterThan(0)
+  expect(stage2.length).toBe(stage1.length)
+  for (const [, entry] of stage1) expect(entry).toMatchObject({ stageId: 'stage1', score: 300, cleared: true })
+  for (const [, entry] of stage2) expect(entry).toMatchObject({ stageId: 'stage2', score: 120, cleared: false })
+  for (const [, entry] of global) expect(entry).toMatchObject({ score: 420, timeMs: 300000 })
+})

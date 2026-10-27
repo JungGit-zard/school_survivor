@@ -518,52 +518,34 @@ describe('랭킹 제출 결과가 스토어 상태로 남는다', () => {
     useAuthStore.setState({ user: null })
   })
 
-  it('첫 처치가 나는 즉시 1점짜리 라이브 체크포인트를 랭킹에 올린다', async () => {
+  it('플레이 중 처치·생존 점수로는 랭킹을 쓰지 않고, 런이 끝날 때 한 번만 쓴다', () => {
     ranking.submitRun.mockResolvedValue({ written: ['daily'], skipped: [], failed: [] })
     _seedHydratedFirebaseProgressForTests()
     useAuthStore.setState({ user: { uid: 'me' } })
     useGameStore.getState().resetGame('stage1')
+    // resetGame may close a run an earlier test left open; only this run is counted.
     ranking.submitRun.mockClear()
 
     useGameStore.getState().recordKill()
-
-    expect(ranking.submitRun).toHaveBeenCalledTimes(1)
-    expect(ranking.submitRun).toHaveBeenLastCalledWith({ uid: 'me' }, {
-      stageId: 'stage1',
-      score: 1,
-      timeMs: 0,
-      stageScore: 1,
-      globalTimeMs: 0,
-      cleared: false,
-    })
-    await Promise.resolve()
-    await Promise.resolve()
-    useAuthStore.setState({ user: null })
-  })
-
-  it('생존 점수가 1점 이상이면 게임오버 전에도 주기 체크포인트를 랭킹에 올린다', () => {
-    ranking.submitRun.mockResolvedValue({ written: ['daily'], skipped: [], failed: [] })
-    _seedHydratedFirebaseProgressForTests()
-    useAuthStore.setState({ user: { uid: 'me' } })
-    useGameStore.getState().resetGame('stage1')
-    ranking.submitRun.mockClear()
-
     advanceRuntimeTime(1_000)
     expect(useGameStore.getState().publishRuntimeElapsedMs()).toBe(true)
+    expect(ranking.submitRun).not.toHaveBeenCalled()
 
+    useGameStore.getState().pauseGame('manual')
+    expect(useGameStore.getState().quitPausedRun()).toBe(true)
     expect(ranking.submitRun).toHaveBeenCalledTimes(1)
-    expect(ranking.submitRun).toHaveBeenLastCalledWith({ uid: 'me' }, {
+    expect(ranking.submitRun).toHaveBeenLastCalledWith({ uid: 'me' }, expect.objectContaining({
       stageId: 'stage1',
       score: 1,
       timeMs: 1_000,
       stageScore: 1,
       globalTimeMs: 1_000,
       cleared: false,
-    })
+    }))
     useAuthStore.setState({ user: null })
   })
 
-  it('pagehide/앱 종료용 lifecycle 체크포인트는 30초 스로틀을 우회한다(점수가 오른 경우만)', () => {
+  it('pagehide 쓰기 뒤 이어진 런은 점수가 오른 경우에만 런 끝에 다시 쓴다', () => {
     ranking.submitRun.mockResolvedValue({ written: ['daily'], skipped: [], failed: [] })
     _seedHydratedFirebaseProgressForTests()
     useAuthStore.setState({ user: { uid: 'me' } })
@@ -571,17 +553,16 @@ describe('랭킹 제출 결과가 스토어 상태로 남는다', () => {
     ranking.submitRun.mockClear()
     advanceRuntimeTime(1_000)
     useGameStore.getState().publishRuntimeElapsedMs()
+    expect(useGameStore.getState().finishRankingRun('pagehide')).toBe(true)
     expect(ranking.submitRun).toHaveBeenCalledTimes(1)
-    // 같은 점수면 lifecycle이라도 다시 쓸 게 없다.
-    expect(useGameStore.getState().flushRankingCheckpoint('lifecycle')).toBe(false)
+    // 같은 점수면 다시 쓸 게 없다.
+    expect(useGameStore.getState().finishRankingRun('pagehide')).toBe(false)
+    expect(ranking.submitRun).toHaveBeenCalledTimes(1)
+
     advanceRuntimeTime(5_000)
-
-    expect(useGameStore.getState().flushRankingCheckpoint('interval')).toBe(false)
-    expect(ranking.submitRun).toHaveBeenCalledTimes(1)
-
-    expect(useGameStore.getState().flushRankingCheckpoint('lifecycle')).toBe(true)
+    useGameStore.getState().publishRuntimeElapsedMs()
+    useGameStore.getState()._onRunEnd('gameover')
     expect(ranking.submitRun).toHaveBeenCalledTimes(2)
-    expect(ranking.submitRun).toHaveBeenLastCalledWith({ uid: 'me' }, expect.objectContaining({ cleared: false }))
     expect(ranking.submitRun.mock.calls[1][1].score).toBeGreaterThan(ranking.submitRun.mock.calls[0][1].score)
     useAuthStore.setState({ user: null })
   })

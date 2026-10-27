@@ -29,14 +29,17 @@ export default function GameplayScreen({
 
   useEffect(() => {
     const pauseIfPlaying = () => {
-      // Leaving the tab/app may be a force-close: save the run's latest best once, unthrottled.
-      // Mid-run checkpoints are otherwise at most one per 30 s (useGameStore.flushRankingCheckpoint).
-      useGameStore.getState().flushRankingCheckpoint?.('lifecycle')
       const { phase: currentPhase, pauseGame } = useGameStore.getState()
       if (currentPhase === 'playing') pauseGame('auto')
     }
+    // Hidden is not gone: the player may come back, so a hidden tab only pauses and never writes.
     const handleVisibility = () => {
       if (document.hidden || document.visibilityState === 'hidden') pauseIfPlaying()
+    }
+    // The page is actually being unloaded before the run ended: this is the run's one ranking write.
+    const handlePageHide = () => {
+      useGameStore.getState().finishRankingRun?.('pagehide')
+      pauseIfPlaying()
     }
 
     // window blur로는 절대 멈추지 않는다. blur는 "탭이 안 보인다"가 아니라 "창이 포커스를
@@ -45,10 +48,10 @@ export default function GameplayScreen({
     // 실제로 플레이어가 자리를 비운 경우는 visibilitychange(탭 숨김·최소화)와
     // pagehide(이탈)가 전부 잡는다.
     document.addEventListener('visibilitychange', handleVisibility)
-    window.addEventListener('pagehide', pauseIfPlaying)
+    window.addEventListener('pagehide', handlePageHide)
     return () => {
       document.removeEventListener('visibilitychange', handleVisibility)
-      window.removeEventListener('pagehide', pauseIfPlaying)
+      window.removeEventListener('pagehide', handlePageHide)
     }
   }, [])
 

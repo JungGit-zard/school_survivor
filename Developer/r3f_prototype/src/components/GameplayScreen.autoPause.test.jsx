@@ -17,7 +17,14 @@ describe('GameplayScreen 자동 일시정지', () => {
 
   it('탭 숨김(visibilitychange)과 이탈(pagehide)로는 여전히 일시정지한다', () => {
     expect(source).toContain("document.addEventListener('visibilitychange', handleVisibility)")
-    expect(source).toContain("window.addEventListener('pagehide', pauseIfPlaying)")
+    expect(source).toContain("window.addEventListener('pagehide', handlePageHide)")
+    expect(source).toMatch(/const handlePageHide = \(\) => \{[^}]*pauseIfPlaying\(\)/)
+  })
+
+  it('랭킹은 실제 이탈(pagehide)에서만 쓰고, 탭 숨김(visibilitychange)으로는 쓰지 않는다', () => {
+    expect(source).toMatch(/const handlePageHide = \(\) => \{[^}]*finishRankingRun\?\.\('pagehide'\)/)
+    expect(source).not.toMatch(/const handleVisibility = \(\) => \{[^}]*finishRankingRun/)
+    expect(source).not.toMatch(/const pauseIfPlaying = \(\) => \{[^}]*finishRankingRun/)
   })
 
   it('등록한 리스너를 전부 해제한다 — 등록/해제 짝이 맞아야 한다', () => {

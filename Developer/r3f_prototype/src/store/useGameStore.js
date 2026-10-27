@@ -80,11 +80,11 @@ const FOLLOWUP_GUARANTEED_UPGRADE_BY_PREREQUISITE = Object.freeze({
 })
 
 const MAX_MISSION_KILL_KEYS = 512
-// Mid-run ranking checkpoints are crash insurance, not a live feed. The survival score rises every
-// second, so the old "write whenever the score improved" rule wrote all 6 boards about once a second
-// (QA 2026-10-27: 77 transactions per path in ~4 minutes). Now: the run's first point goes up at once,
-// then at most one checkpoint per interval and only when the score improved since the last one.
-export const RANKING_CHECKPOINT_INTERVAL_MS = 30_000
+// Ranking policy (Terry 2026-10-28): the score accumulates locally while the run is played and the
+// ranking is written ONCE per run, when the run ends (death, final clear, quit/leave to lobby, or a
+// new run replacing an unfinished one). Continuing to the next stage is the same run; every stage it
+// passed through keeps its own stage-board entry, but all of them go out in one batched update.
+// The only other write is a real page unload (pagehide) before the run ended.
 const pendingRuns = new Map()
 
 function checkpointRun(state, phaseName = state.phase) {
@@ -379,9 +379,9 @@ export const useGameStore = create(
     // resetGame에서 지우지 않는다: advanceStage가 _onRunEnd 직후 resetGame을 부르므로
     // 지우면 클리어 런의 제출 결과가 화면에 뜨기도 전에 증발한다.
     rankingSubmission: null,
-    // Best-effort live ranking checkpoint. This is how a 1+ score run survives browser/app close:
-    // the score is already written while the game is running, not only after Game Over.
-    rankingCheckpoint: null,
+    // The run being played, for the one ranking write at its end.
+    // { id, stages: [cleared stage runs], written: null | 'pagehide' | 'ended', writtenScore }
+    rankingRun: null,
     // Runs started in this page session (a stage continuation is the same run). Guests have no
     // persisted records, so the ranking header's run count reads this instead of a fixed 0.
     sessionRunCount: 0,
@@ -427,7 +427,6 @@ export const useGameStore = create(
       const elapsedMs = getRuntimeElapsedMs(storeElapsedMs)
       markRuntimeTimePublished(elapsedMs)
       set({ elapsedMs })
-      get().flushRankingCheckpoint?.('interval')
       return true
     },
 
@@ -539,7 +538,6 @@ export const useGameStore = create(
     // 본 런 처치 카운터 +1. 인자 없는 단순 signature — per-type 카운터가 필요해지면 그때 분기 추가.
     recordKill: () => {
       set((s) => ({ runKills: s.runKills + 1 }))
-      get().flushRankingCheckpoint?.('kill')
     },
 
     // 보스 처치는 mid-run에 즉시 cumulative에 누적한다. B01/B02 패시브는 Firebase 준비 전에도
@@ -748,7 +746,7 @@ export const useGameStore = create(
         set({
           newlyUnlockedWeaponIds: Object.freeze(diff),
         })
-        void get().submitRunToRanking(useAuthStore.getState().user, run)
+        get()._recordRankingRunEnd(phaseName, run)
         void get().saveMissionProgress()
         return
       }
@@ -768,52 +766,67 @@ export const useGameStore = create(
       void get().saveMissionProgress()
 
       // 게스트도 랭킹을 제출한다. 실패해도 게임 진행에는 영향이 없다.
-      const user = useAuthStore.getState().user
-      // 같은 런의 종료가 2회 발화해도 안전하다: 랭킹은 최고점(best-only) 모델이라 두 번째
-      // 제출은 "기존 점수 >= 새 점수"로 스킵된다(합산이 아니다).
-      // 여기서 만들던 runId는 미배포 Cloud Function 전용이었고 submitRun은 인자로 받지도
-      // 않는다 — 존재하지 않는 서버 dedup을 약속하던 주석이라 함께 걷어냈다.
-      void get().submitRunToRanking(user, run)
+      get()._recordRankingRunEnd(phaseName, run)
+    },
+
+    // 스테이지 종료를 런 기록에 반영한다. 클리어 후 다음 스테이지가 있으면 이어 갈 수 있으므로
+    // 아직 쓰지 않는다(그 스테이지 기록만 쌓아 둔다). 죽음·포기·마지막 스테이지 클리어는 런 끝이다.
+    // 같은 런의 종료가 두 번 발화해도 한 번만 쓴다(rankingRun.written === 'ended').
+    _recordRankingRunEnd: (phaseName, run) => {
+      if (phaseName !== 'cleared') return get().finishRankingRun('end', run)
+      const s = get()
+      const rankingRun = s.rankingRun ?? { id: s.progressRunId, stages: [], written: null, writtenScore: 0 }
+      set({ rankingRun: { ...rankingRun, stages: [...rankingRun.stages.filter(stage => stage.stageId !== run.stageId), run] } })
+      if (!getNextStageId(run.stageId)) return get().finishRankingRun('end')
+      return false
+    },
+
+    // 런의 단 한 번의 랭킹 쓰기. 지나온 스테이지 기록(+ 진행 중이던 스테이지)을 한 배치로 보낸다.
+    // reason 'pagehide': 런이 끝나기 전에 페이지가 실제로 내려간다 — 그 순간을 런의 쓰기로 쓴다.
+    // pagehide 뒤에도 런이 이어지면(bfcache 복원) 이후 쓰기는 점수가 오른 경우에만 허용한다.
+    // 0점 런도 등록한다 — 점수 하한 필터를 두지 않는다.
+    finishRankingRun: (reason = 'end', endRun = null) => {
+      const s = get()
+      const rankingRun = s.rankingRun
+      if (!rankingRun || rankingRun.written === 'ended') return false
+      const live = endRun ?? (['playing', 'paused', 'levelup'].includes(s.phase)
+        ? buildRankingRunSnapshot(s, getRuntimeElapsedMs(s.elapsedMs), s.phase).run
+        : null)
+      const runs = live ? [...rankingRun.stages.filter(stage => stage.stageId !== live.stageId), live] : rankingRun.stages
+      if (runs.length === 0) return false
+      const score = Math.max(...runs.map(stage => stage.score))
+      const written = reason === 'pagehide' ? 'pagehide' : 'ended'
+      if (rankingRun.written === 'pagehide' && score <= rankingRun.writtenScore) {
+        set({ rankingRun: { ...rankingRun, written } })
+        return false
+      }
+      set({ rankingRun: { ...rankingRun, written, writtenScore: score } })
+      void get().submitRunToRanking(useAuthStore.getState().user, runs.length === 1 ? runs[0] : runs)
+      return true
     },
 
     // 제출을 상태로 만든다. 결과를 버리면 실패가 console.warn에서 끝나 플레이어에게 안 보인다.
     // 게임 흐름은 절대 막지 않는다 — 이 함수는 await되지 않고 던지지도 않는다.
+    // run은 한 스테이지 기록, 또는 이어 간 런의 스테이지 기록 배열이다(한 번의 배치 쓰기).
+    // 화면에는 마지막(최종) 스테이지 기록을 보인다. 결과 반영은 "이 제출이 아직 최신인가"와 계정
+    // 일치로만 거른다 — 새 런을 시작해도 끝난 런의 제출 결과가 pending에 묶이지 않게 gameKey로는
+    // 거르지 않는다.
     submitRunToRanking: async (user, run) => {
-      const gameKey = get().gameKey
-      run = prepareRankingSubmission(run)
-      const pending = { ...run, uid: user?.uid ?? null, status: 'pending' }
+      const eventAt = Date.now()
+      run = Array.isArray(run) ? run.map(stageRun => prepareRankingSubmission(stageRun, eventAt)) : prepareRankingSubmission(run, eventAt)
+      const shown = Array.isArray(run) ? run.at(-1) : run
+      const pending = { ...shown, uid: user?.uid ?? null, status: 'pending' }
       set({ rankingSubmission: pending })
+      const isCurrent = () => get().rankingSubmission === pending && (user?.uid ? useAuthStore.getState().user?.uid === user.uid : !useAuthStore.getState().user?.uid)
       try {
         const rankingUser = user ?? await getRankingUser(user)
         pending.uid = rankingUser?.uid
         pending.anonymous = rankingUser?.isAnonymous === true
         const outcome = await submitRun(rankingUser, run)
-        if (get().gameKey === gameKey && get().rankingSubmission === pending && (user?.uid ? useAuthStore.getState().user?.uid === user.uid : !useAuthStore.getState().user?.uid)) set({ rankingSubmission: { ...run, uid: rankingUser.uid, anonymous: rankingUser.isAnonymous === true, ...describeSubmission(outcome) } })
+        if (isCurrent()) set({ rankingSubmission: { ...shown, uid: rankingUser.uid, anonymous: rankingUser.isAnonymous === true, ...describeSubmission(outcome) } })
       } catch {
-        if (get().gameKey === gameKey && get().rankingSubmission === pending && (user?.uid ? useAuthStore.getState().user?.uid === user.uid : !useAuthStore.getState().user?.uid)) set({ rankingSubmission: { ...pending, status: 'failed', reason: 'network' } })
+        if (isCurrent()) set({ rankingSubmission: { ...pending, status: 'failed', reason: 'network' } })
       }
-    },
-
-    // 살아 있는 런도 주기적으로 최고점 체크포인트를 랭킹에 올린다.
-    // pagehide/beforeunload 시점의 비동기 저장은 브라우저/모바일 OS가 끊을 수 있으므로,
-    // 전통적인 게임 서버 방식처럼 “플레이 중 이미 기록”해 강제종료 유실을 줄인다.
-    flushRankingCheckpoint: (reason = 'interval') => {
-      const s = get()
-      if (!['playing', 'paused', 'levelup'].includes(s.phase)) return false
-      const elapsedMs = getRuntimeElapsedMs(s.elapsedMs)
-      const { run } = buildRankingRunSnapshot(s, elapsedMs, 'checkpoint')
-      if (run.score < 1) return false
-
-      const previous = s.rankingCheckpoint?.gameKey === s.gameKey ? s.rankingCheckpoint : null
-      // Nothing new to save: the last checkpoint of this run already holds this score.
-      if (previous && previous.score >= run.score) return false
-      // pagehide/hidden ('lifecycle') skips the throttle so a force-closed run keeps its latest score.
-      if (previous && reason !== 'lifecycle' && elapsedMs - previous.elapsedMs < RANKING_CHECKPOINT_INTERVAL_MS) return false
-
-      set({ rankingCheckpoint: { gameKey: s.gameKey, score: run.score, elapsedMs, reason } })
-      const user = useAuthStore.getState().user
-      void get().submitRunToRanking(user, run)
-      return true
     },
 
     // 실패한 제출만 다시 시도한다. 성공/스킵을 다시 쏘면 서버 왕복만 늘고 얻는 게 없다.
@@ -1448,6 +1461,9 @@ export const useGameStore = create(
       if (!isStageVisible(stageId)) return false
       const nextStageId = getStageConfig(stageId).id
       if (!isStageUnlocked(nextStageId, isFirebaseProgressHydrated() ? loadPlayerRecords() : {})) return false
+      // A new run replaces the current one: an unfinished run (restart mid-play, or a clear the player
+      // did not continue) still gets its one ranking write now. A stage continuation is the same run.
+      if (!preserveContinuousScore) get().finishRankingRun('end')
       resetRuntimeRefs(getPlayerStartPosition(nextStageId))
       const progressReady = isFirebaseProgressHydrated()
       const progressRunId = globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`
@@ -1488,7 +1504,7 @@ export const useGameStore = create(
         runBossKills: 0,
         runLevelUps: 0,
         newlyUnlockedWeaponIds: [],
-        rankingCheckpoint: null,
+        rankingRun: preserveContinuousScore && s.rankingRun ? s.rankingRun : { id: progressRunId, stages: [], written: null, writtenScore: 0 },
         sessionRunCount: preserveContinuousScore ? s.sessionRunCount : s.sessionRunCount + 1,
         survivalMilestonesHit: [],
         recentMilestone: null,
@@ -1515,9 +1531,6 @@ export const useGameStore = create(
       recordRuntimePlayActivity(nextStageId)
       checkpointRun(get())
       saveRuntimeProgress()
-      void get().submitRunToRanking(useAuthStore.getState().user, {
-        stageId: nextStageId, score: 0, stageScore: 0, timeMs: 0, globalTimeMs: 0, cleared: false, lastPlayedAt: Date.now(),
-      })
       return true
     },
   }))

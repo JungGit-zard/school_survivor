@@ -148,9 +148,15 @@ export function prepareRankingSubmission(run = {}, eventAt = Date.now()) {
       dailyKey: kstDailyKey(submittedAt), weeklyKey: kstWeeklyKey(submittedAt) } }
 }
 
+// 한 런 = 한 번의 쓰기. 스테이지를 이어 간 런은 run 배열로 넘긴다 — 스테이지마다 자기 보드에
+// 엔트리를 남기되(stageScore), 전부 같은 멀티패스 update() 한 번으로 나간다. 글로벌 보드는 같은
+// 경로라 pendingBuckets에서 최고점으로 병합된다.
 export async function submitRun(user, run = {}) {
   if (!user?.uid) return notSubmitted('signedOut')
-  const captured = prepareRankingSubmission(run)
+  const runs = Array.isArray(run) ? run : [run]
+  if (runs.length === 0) return notSubmitted('empty')
+  const eventAt = Date.now()
+  const captured = runs.map(stageRun => prepareRankingSubmission(stageRun, eventAt))
   if (deletingRankingUids.has(user.uid)) return notSubmitted('accountDeleting')
   if (user.isAnonymous) {
     await guestWriteQueues.get(user.uid)?.catch(() => {})
@@ -158,7 +164,21 @@ export async function submitRun(user, run = {}) {
     user = { ...user, displayName: getGuestRankingNicknameForUid(user.uid) || user.displayName }
   }
   if (deletingRankingUids.has(user.uid)) return notSubmitted('accountDeleting')
-  return submitRunNow(user, captured)
+  if (!isFirebaseRankingConfigured()) return notSubmitted('unconfigured')
+  const requests = captured.flatMap(stageRun => enqueueRunBuckets(user, stageRun))
+  await flushPendingBuckets(user)
+  const paths = [...new Set(requests.map(request => request.path))]
+  // skipped(기존 최고점이 더 높음)와 failed(권한 거부·규칙 불일치·네트워크)는 전혀 다른 사건이다.
+  // 예전에는 둘 다 같은 빈 catch로 삼켜서, 배포된 규칙이 클라 점수식보다 낡아 제출이 통째로
+  // 거부돼도 아무도 몰랐다. failed는 "최고점이 유실됐다"는 뜻이므로 반드시 드러나야 한다.
+  const outcome = summarize(paths.map(bucketOutcome))
+  if (outcome.failed.length > 0 && typeof console !== 'undefined') {
+    console.warn('[ranking] submission has unacknowledged buckets', {
+      stages: captured.map(stageRun => ({ stageId: stageRun.stageId, score: stageRun.score, timeMs: stageRun.timeMs, cleared: stageRun.cleared === true })),
+      failed: outcome.failed,
+    })
+  }
+  return outcome
 }
 
 export async function retryPendingRankings(user = null) {
@@ -224,9 +244,8 @@ async function flushPendingBucketsNow(user) {
   } catch (error) { fail(error) }
 }
 
-async function submitRunNow(user, { stageId, score, stageScore = score, timeMs, globalTimeMs = timeMs, cleared, lastPlayedAt, submittedAt, rankingPeriod } = {}) {
-  if (!user?.uid) return notSubmitted('signedOut')
-  if (!isFirebaseRankingConfigured()) return notSubmitted('unconfigured')
+// 한 스테이지 기록을 그 보드들의 대기 버킷에 병합만 한다. 네트워크는 submitRun의 flush 한 번이 탄다.
+function enqueueRunBuckets(user, { stageId, score, stageScore = score, timeMs, globalTimeMs = timeMs, cleared, lastPlayedAt, submittedAt, rankingPeriod } = {}) {
   // E2E 우회 유저 점수는 실랭킹에 오염되지 않게 차단
   const now = submittedAt
   const season = rankingPeriod
@@ -264,7 +283,7 @@ async function submitRunNow(user, { stageId, score, stageScore = score, timeMs, 
   // 최고보다 낮아도 새 일일 버킷에는 최고일 수 있다. 그래서 버킷마다 서버 값과 병합해 "바뀐 버킷만"
   // 멀티패스 update에 넣는다. 기존 최고가 더 높은 버킷은 최고 엔트리를 그대로(lastPlayedAt만 갱신)
   // 다시 쓰므로 규칙의 score 단조 검사를 통과하고, 한 버킷 때문에 배치 전체가 롤백되지 않는다.
-  const requests = paths.map(path => {
+  return paths.map(path => {
     const incoming = path.includes('/stage/') ? { ...entry, score: readScore(stageScore) } : { ...entry, timeMs: readNonNegInt(globalTimeMs) }
     const fullPath = `${path}/${uid}`
     const own = ownSubmittedEntries.get(fullPath)
@@ -274,19 +293,6 @@ async function submitRunNow(user, { stageId, score, stageScore = score, timeMs, 
     else pendingBuckets.set(fullPath, { path: fullPath, user, entry: incoming })
     return pendingBuckets.get(fullPath)
   })
-  await flushPendingBuckets(user)
-  const results = requests.map(request => bucketOutcome(request.path))
-
-  // skipped(기존 최고점이 더 높음)와 failed(권한 거부·규칙 불일치·네트워크)는 전혀 다른 사건이다.
-  // 예전에는 둘 다 같은 빈 catch로 삼켜서, 배포된 규칙이 클라 점수식보다 낡아 제출이 통째로
-  // 거부돼도 아무도 몰랐다. failed는 "최고점이 유실됐다"는 뜻이므로 반드시 드러나야 한다.
-  const outcome = summarize(results)
-  if (outcome.failed.length > 0 && typeof console !== 'undefined') {
-    console.warn('[ranking] submission has unacknowledged buckets', {
-      stageId: sid, score: entry.score, timeMs: entry.timeMs, cleared: entry.cleared, failed: outcome.failed,
-    })
-  }
-  return outcome
 }
 
 function mergeRankingPlay(current, incoming) {
