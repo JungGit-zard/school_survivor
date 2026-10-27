@@ -154,18 +154,15 @@ async function renderReadyWithoutEntering(props) {
 }
 
 describe('ReadyGameApp stage bypass hydration', () => {
-  it('registers zero immediately before pressing start, once per guest/account identity', async () => {
+  // The 0-point registration belongs to an actual stage entry (useGameStore.resetGame). Merely
+  // opening the title or Rosari's room must not write all six ranking boards (QA 2026-10-27).
+  it('does not write a ranking entry for a title-only visit, for guests or signed-in players', async () => {
     mocks.gameStore.submitRunToRanking.mockClear()
     const props = { authStatus: 'checking', authUser: null, progressStatus: 'loading' }
     const view = await renderReadyWithoutEntering(props)
-    expect(mocks.gameStore.submitRunToRanking).toHaveBeenCalledWith(null, {
-      stageId: 'stage1', score: 0, stageScore: 0, timeMs: 0, globalTimeMs: 0, cleared: false, entrant: true,
-    })
     await view.render({ ...props, authStatus: 'signedOut' })
-    expect(mocks.gameStore.submitRunToRanking).toHaveBeenCalledTimes(1)
     await view.render({ ...props, authUser: { uid: 'google' }, authStatus: 'signedIn' })
-    expect(mocks.gameStore.submitRunToRanking).toHaveBeenCalledTimes(2)
-    expect(mocks.gameStore.submitRunToRanking).toHaveBeenLastCalledWith({ uid: 'google' }, expect.objectContaining({ score: 0 }))
+    expect(mocks.gameStore.submitRunToRanking).not.toHaveBeenCalled()
     view.unmount()
   })
   it('applies one build-internal side-gutter background from the /game title screen onward and preserves the phoneFrame contract', async () => {

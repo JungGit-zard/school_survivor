@@ -31,6 +31,19 @@ function makeFakeClient({ existingScore = null } = {}) {
       return { exists: () => !!row, val: () => structuredClone(row), child: key => ({ val: () => row?.[key] }) }
     }),
     set: vi.fn(async (ref, value) => { writes[ref.path] = value }),
+    // Root multi-path update (the bucket flush) is atomic like RTDB: any rejected path rolls back
+    // the whole batch. Each bucket goes through mod.set so tests can count/reject per path.
+    update: vi.fn(async (ref, patch) => {
+      if (ref.path) { writes[ref.path] = { ...writes[ref.path], ...patch }; return }
+      const before = { ...writes }
+      try {
+        for (const [path, value] of Object.entries(patch)) await mod.set({ path }, value)
+      } catch (error) {
+        for (const key of Object.keys(writes)) delete writes[key]
+        Object.assign(writes, before)
+        throw error
+      }
+    }),
   }
   return { client: { db: {}, mod }, mod, writes }
 }
@@ -54,7 +67,8 @@ describe('firebaseRanking submitRun — direct RTDB write (Spark, no Cloud Funct
 
     await submitRun({ uid: 'me', displayName: 'Neo' }, { stageId: 'stage2', score: 100, timeMs: 50000, cleared: true })
 
-    // 각 버킷을 독립 set — atomic 멀티패스 update 아님.
+    // 6버킷이 루트 멀티패스 update 한 번으로 나간다(트랜잭션·readback 없음).
+    expect(mod.update).toHaveBeenCalledTimes(1)
     expect(mod.set).toHaveBeenCalledTimes(6)
     const keys = Object.keys(writes)
     expect(keys).toHaveLength(6)
@@ -179,7 +193,10 @@ describe('firebaseRanking submitRun — direct RTDB write (Spark, no Cloud Funct
     const mod = { ref: (_db, path) => ({ path }),
       get: vi.fn(async ({ path }) => ({ exists: () => records.has(path), val: () => structuredClone(records.get(path)), child: (key) => ({ val: () => records.get(path)?.[key] }) })),
       set: vi.fn(async ({ path }, entry) => { if (delay) { signalFirstWrite(); await writesReleased } records.set(path, entry) }),
-      update: vi.fn(async ({ path }, patch) => { records.set(path, { ...records.get(path), ...patch }) }) }
+      update: vi.fn(async ({ path }, patch) => {
+        if (path) { records.set(path, { ...records.get(path), ...patch }); return }
+        for (const [bucket, entry] of Object.entries(patch)) await mod.set({ path: bucket }, entry)
+      }) }
     _setFirebaseRankingClientForTests({ db: {}, mod })
     const staleUser = { uid: 'guest-race', isAnonymous: true, displayName: '옛이름' }
     guest.nickname = '옛이름'
@@ -187,7 +204,7 @@ describe('firebaseRanking submitRun — direct RTDB write (Spark, no Cloud Funct
     await firstWrite
     guest.nickname = '새이름'
     const rename = renameRankingEntriesForUser(staleUser, '새이름')
-    expect(mod.update).not.toHaveBeenCalled()
+    expect(mod.update.mock.calls.filter(([ref]) => ref.path)).toHaveLength(0)
     delay = false
     releaseWrites()
     await pending
@@ -245,21 +262,62 @@ describe('firebaseRanking submitRun — direct RTDB write (Spark, no Cloud Funct
     expect(outcome.written).toHaveLength(0)
   })
 
-  it('keeps the buckets that succeeded when another bucket is rejected', async () => {
-    const { client, mod } = makeFakeClient()
+  it('a rejected bucket fails the atomic batch, then the retry re-reads the server and recovers every bucket', async () => {
+    const { client, mod, writes } = makeFakeClient()
     const original = mod.set
+    let rejectWeekly = true
     mod.set = vi.fn(async (ref, value) => {
-      if (ref.path.includes('/weekly/')) throw new Error('PERMISSION_DENIED')
+      if (rejectWeekly && ref.path.includes('/weekly/')) throw new Error('PERMISSION_DENIED')
       return original(ref, value)
     })
     _setFirebaseRankingClientForTests(client)
     vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const user = { uid: 'me' }
 
-    const outcome = await submitRun({ uid: 'me' }, { stageId: 'stage3', score: 400, timeMs: 280000, cleared: false })
+    const outcome = await submitRun(user, { stageId: 'stage3', score: 400, timeMs: 280000, cleared: false })
+    expect(outcome.failed).toHaveLength(6)
+    expect(outcome.written).toHaveLength(0)
+    expect(Object.keys(writes)).toHaveLength(0)
 
-    expect(outcome.written).toHaveLength(4)
-    expect(outcome.written.every((path) => !path.includes('/weekly/'))).toBe(true)
-    expect(outcome.failed).toHaveLength(2)
+    rejectWeekly = false
+    const getsBefore = mod.get.mock.calls.length
+    const { retryPendingRankings } = await import('./firebaseRanking.js')
+    const retried = await retryPendingRankings(user)
+    expect(retried.written).toHaveLength(6)
+    expect(retried.failed).toHaveLength(0)
+    // The failed batch dropped the cached server values, so the retry reads each bucket again.
+    expect(mod.get.mock.calls.length - getsBefore).toBe(6)
+    expect(Object.values(writes).every((entry) => entry.score === 400)).toBe(true)
+  })
+
+  it('reads each bucket once per session and coalesces later submissions into one update each', async () => {
+    const { client, mod, writes } = makeFakeClient()
+    _setFirebaseRankingClientForTests(client)
+    const user = { uid: 'me' }
+    await submitRun(user, { stageId: 'stage1', score: 0, timeMs: 0 })
+    await submitRun(user, { stageId: 'stage1', score: 30, timeMs: 30000 })
+    await submitRun(user, { stageId: 'stage1', score: 60, timeMs: 60000 })
+    expect(mod.get).toHaveBeenCalledTimes(6)
+    expect(mod.update).toHaveBeenCalledTimes(3)
+    expect(Object.values(writes).every((entry) => entry.score === 60)).toBe(true)
+  })
+
+  it('merges submissions that arrive while a flush is in flight into a single follow-up update', async () => {
+    const { client, mod, writes } = makeFakeClient()
+    const original = mod.update.getMockImplementation()
+    let release
+    const gate = new Promise((resolve) => { release = resolve })
+    mod.update.mockImplementationOnce(async (ref, patch) => { await gate; return original(ref, patch) })
+    _setFirebaseRankingClientForTests(client)
+    const user = { uid: 'me' }
+    const first = submitRun(user, { stageId: 'stage1', score: 0, timeMs: 0 })
+    await vi.waitFor(() => expect(mod.update).toHaveBeenCalledTimes(1))
+    const burst = Array.from({ length: 10 }, (_, i) => submitRun(user, { stageId: 'stage1', score: i + 1, timeMs: (i + 1) * 1000 }))
+    release()
+    const outcomes = await Promise.all([first, ...burst])
+    expect(mod.update).toHaveBeenCalledTimes(2)
+    expect(outcomes.every((outcome) => outcome.failed.length === 0)).toBe(true)
+    expect(Object.values(writes).every((entry) => entry.score === 10)).toBe(true)
   })
 
   it('skips submission without a signed-in uid', async () => {
@@ -302,9 +360,9 @@ describe('firebaseRanking client contract', () => {
     expect(source).not.toContain("'submitRankingRun'")
   })
 
-  it('writes directly to RTDB via independent per-bucket set keyed by uid (not atomic multi-path)', () => {
-    expect(source).toContain('mod.set(')
-    expect(source.slice(source.indexOf('export async function submitRun('), source.indexOf('function summarize('))).not.toContain('mod.update(')
+  it('writes directly to RTDB with one root multi-path update keyed by uid — no transactions', () => {
+    expect(source).toContain('mod.update(mod.ref(db), updates)')
+    expect(source).not.toContain('mod.runTransaction(')
     expect(source).toContain('${path}/${uid}')
   })
 

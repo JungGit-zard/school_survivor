@@ -45,10 +45,21 @@ const deletingRankingUids = new Set()
 // 이 세션에서 본인이 제출한 엔트리의 로컬 사본(fullPath → 병합 엔트리). 서버 쓰기가 아직 끝나지
 // 않았거나 확인(readback) 전이라도 로비 "내 최고기록"이 방금 끝낸 판을 보여주게 한다.
 const ownSubmittedEntries = new Map()
+// fullPath → 이 세션이 마지막으로 확인한 서버 값(null = 서버에 없음, 키 없음 = 아직 모름).
+// 버킷마다 한 번만 읽고 이후 병합은 이 캐시로 계산한다. 예전 runTransaction은 클라가 그 경로를
+// 구독하지 않아 첫 시도가 항상 빈 로컬 해시로 나가 datastale → 재시도가 됐다(2026-10-27 QA:
+// 4분에 경로당 77트랜잭션, datastale 233회). 쓰기는 본인 uid만 하므로 캐시가 틀어지는 건
+// 같은 계정의 다른 기기/탭뿐이고, 그때는 규칙(score 단조)이 거부 → 캐시를 버리고 재시도에서 다시 읽는다.
+const serverEntries = new Map()
+// fullPath → 그 버킷의 마지막 flush 결과({ path, status, error? }). 큐 뒤쪽 호출자가 결과를 읽는다.
+const lastBucketOutcome = new Map()
+// uid → 진행 중/대기 중 flush 체인. 한 uid의 버킷 쓰기는 한 번에 하나만, 나머지는 병합돼 뒤따른다.
+const flushQueues = new Map()
 export function resumeRankingSubmissions(user) { if (user?.uid) deletingRankingUids.delete(user.uid) }
 export function completeRankingAccountDeletion(user) {
   for (const [path, request] of pendingBuckets) if (request.user.uid === user?.uid) pendingBuckets.delete(path)
   for (const [path, entry] of ownSubmittedEntries) if (entry.uid === user?.uid) ownSubmittedEntries.delete(path)
+  for (const path of serverEntries.keys()) if (path.endsWith(`/${user?.uid}`)) serverEntries.delete(path)
 }
 const guestWriteQueues = new Map()
 function enqueueGuestWrite(user, operation) {
@@ -74,6 +85,9 @@ export function _setFirebaseRankingClientForTests(client) {
   guestClientPromise = null
   pendingBuckets.clear()
   ownSubmittedEntries.clear()
+  serverEntries.clear()
+  lastBucketOutcome.clear()
+  flushQueues.clear()
   deletingRankingUids.clear()
   _testClient = client
   _clientPromise = null
@@ -150,40 +164,64 @@ export async function submitRun(user, run = {}) {
 export async function retryPendingRankings(user = null) {
   user ??= [...pendingBuckets.values()].find(request => request.user.isAnonymous && !deletingRankingUids.has(request.user.uid))?.user
   if (!user?.uid || deletingRankingUids.has(user.uid)) return notSubmitted('signedOut')
-  const requests = [...pendingBuckets.values()].filter(request => request.user.uid === user.uid)
-  return { ...summarize(await Promise.all(requests.map(writePendingBucket))), uid: user.uid, anonymous: user.isAnonymous === true }
+  const paths = [...pendingBuckets.values()].filter(request => request.user.uid === user.uid).map(request => request.path)
+  if (paths.length > 0) await flushPendingBuckets(user)
+  return { ...summarize(paths.map(bucketOutcome)), uid: user.uid, anonymous: user.isAnonymous === true }
 }
 
-async function writePendingBucket(request) {
-  if (request.promise) return request.promise
-  request.promise = (async () => {
-    while (!deletingRankingUids.has(request.user.uid)) {
-      const incoming = request.entry
-      try {
-        const { db, mod } = await getClient(request.user)
-        if (deletingRankingUids.has(request.user.uid)) break
-        const entryRef = mod.ref(db, request.path)
-        let written = false
-        if (mod.runTransaction) {
-          const result = await mod.runTransaction(entryRef, current => mergeRankingPlay(current, incoming), { applyLocally: false })
-          written = result.committed === true
-        } else {
-          const snapshot = await mod.get(entryRef)
-          const current = snapshot.exists() ? snapshot.val() : null
-          const merged = mergeRankingPlay(current, incoming)
-          if (merged) { await mod.set(entryRef, merged); written = true }
-        }
-        const snapshot = await mod.get(entryRef)
-        const saved = snapshot.exists() ? snapshot.val() : null
-        if (!saved || saved.uid !== incoming.uid || saved.score < incoming.score || (saved.lastPlayedAt ?? 0) < (incoming.lastPlayedAt ?? 0)) throw new Error('Ranking server readback did not acknowledge this event')
-        if (request.entry !== incoming) continue
-        pendingBuckets.delete(request.path)
-        return { path: request.path, status: written ? 'written' : 'skipped' }
-      } catch (error) { return { path: request.path, status: 'failed', error } }
+function bucketOutcome(path) {
+  return lastBucketOutcome.get(path) ?? { path, status: 'failed', error: new Error('Ranking bucket was not flushed') }
+}
+
+function waitForRankingWrites(uid) {
+  return flushQueues.get(uid)?.catch(() => {}) ?? Promise.resolve()
+}
+
+// 한 uid의 대기 버킷을 직렬로 flush한다. 앞 flush가 도는 동안 들어온 제출은 pendingBuckets에서
+// 병합돼 다음 flush 한 번으로 나간다(체크포인트가 몰려도 왕복은 늘지 않는다).
+function flushPendingBuckets(user) {
+  const uid = user.uid
+  const previous = flushQueues.get(uid) ?? Promise.resolve()
+  const queued = previous.catch(() => {}).then(() => flushPendingBucketsNow(user))
+  flushQueues.set(uid, queued)
+  const cleanup = () => { if (flushQueues.get(uid) === queued) flushQueues.delete(uid) }
+  queued.then(cleanup, cleanup)
+  return queued
+}
+
+// 버킷당 서버 값은 세션에서 처음 한 번만 읽고(serverEntries), 바뀐 버킷만 모아 루트 기준
+// 멀티패스 update() 한 번으로 쓴다. 트랜잭션·쓰기 후 readback을 쓰지 않는다 — update 프라미스의
+// resolve가 곧 서버 커밋 ACK다. 버킷별 best-only는 여기서 버킷마다 병합해 지키고, 규칙의 score 단조
+// 검사가 최종 방어선이다. 캐시가 낡아 규칙이 거부하면 배치 전체가 실패하므로(atomic) 캐시를 버리고
+// failed로 남겨 retryPendingRankings가 다시 읽고 쓰게 한다.
+async function flushPendingBucketsNow(user) {
+  const uid = user.uid
+  const requests = [...pendingBuckets.values()].filter(request => request.user.uid === uid)
+  if (requests.length === 0) return
+  const fail = (error) => {
+    for (const request of requests) {
+      serverEntries.delete(request.path)
+      lastBucketOutcome.set(request.path, { path: request.path, status: 'failed', error })
     }
-    return { path: request.path, status: 'failed', error: new Error('Account deletion in progress') }
-  })().finally(() => { request.promise = null })
-  return request.promise
+  }
+  if (deletingRankingUids.has(uid)) return fail(new Error('Account deletion in progress'))
+  try {
+    const { db, mod } = await getClient(user)
+    await Promise.all(requests.filter(request => !serverEntries.has(request.path)).map(async (request) => {
+      const snapshot = await mod.get(mod.ref(db, request.path))
+      serverEntries.set(request.path, snapshot.exists() ? snapshot.val() : null)
+    }))
+    if (deletingRankingUids.has(uid)) return fail(new Error('Account deletion in progress'))
+    const batch = requests.map(request => ({ request, incoming: request.entry, merged: mergeRankingPlay(serverEntries.get(request.path), request.entry) }))
+    const updates = {}
+    for (const { request, merged } of batch) if (merged) updates[request.path] = merged
+    if (Object.keys(updates).length > 0) await mod.update(mod.ref(db), updates)
+    for (const { request, incoming, merged } of batch) {
+      if (merged) serverEntries.set(request.path, merged)
+      lastBucketOutcome.set(request.path, { path: request.path, status: merged ? 'written' : 'skipped' })
+      if (request.entry === incoming) pendingBuckets.delete(request.path)
+    }
+  } catch (error) { fail(error) }
 }
 
 async function submitRunNow(user, { stageId, score, stageScore = score, timeMs, globalTimeMs = timeMs, cleared, lastPlayedAt, submittedAt, rankingPeriod } = {}) {
@@ -222,11 +260,10 @@ async function submitRunNow(user, { stageId, score, stageScore = score, timeMs, 
     globalEntriesPath('all-time', 'allTime', 'all-time'),
   ]
 
-  // 각 버킷을 독립적으로 기록한다. 멀티패스 atomic update는 쓰면 안 된다 —
-  // 최고점(best-only) 규칙은 버킷마다 독립이라(daily/weekly는 리셋 주기가 다름),
-  // 이번 점수가 주간 최고보다 낮아도 새 일일 버킷에는 최고일 수 있다. atomic이면
-  // 주간 경로의 best-only 거부가 전체 쓰기를 롤백해 일일 기록까지 유실된다.
-  // 버킷별로 기존 최고점을 읽어 더 높을 때만 쓰고, 규칙이 best-only의 최종 방어선이다.
+  // 최고점(best-only)은 버킷마다 독립이다(daily/weekly는 리셋 주기가 다름) — 이번 점수가 주간
+  // 최고보다 낮아도 새 일일 버킷에는 최고일 수 있다. 그래서 버킷마다 서버 값과 병합해 "바뀐 버킷만"
+  // 멀티패스 update에 넣는다. 기존 최고가 더 높은 버킷은 최고 엔트리를 그대로(lastPlayedAt만 갱신)
+  // 다시 쓰므로 규칙의 score 단조 검사를 통과하고, 한 버킷 때문에 배치 전체가 롤백되지 않는다.
   const requests = paths.map(path => {
     const incoming = path.includes('/stage/') ? { ...entry, score: readScore(stageScore) } : { ...entry, timeMs: readNonNegInt(globalTimeMs) }
     const fullPath = `${path}/${uid}`
@@ -234,10 +271,11 @@ async function submitRunNow(user, { stageId, score, stageScore = score, timeMs, 
     ownSubmittedEntries.set(fullPath, mergeRankingPlay(own, incoming) ?? own)
     const existing = pendingBuckets.get(fullPath)
     if (existing) existing.entry = mergeRankingPlay(existing.entry, incoming) ?? existing.entry
-    else pendingBuckets.set(fullPath, { path: fullPath, user, entry: incoming, promise: null })
+    else pendingBuckets.set(fullPath, { path: fullPath, user, entry: incoming })
     return pendingBuckets.get(fullPath)
   })
-  const results = await Promise.all(requests.map(writePendingBucket))
+  await flushPendingBuckets(user)
+  const results = requests.map(request => bucketOutcome(request.path))
 
   // skipped(기존 최고점이 더 높음)와 failed(권한 거부·규칙 불일치·네트워크)는 전혀 다른 사건이다.
   // 예전에는 둘 다 같은 빈 catch로 삼켜서, 배포된 규칙이 클라 점수식보다 낡아 제출이 통째로
@@ -332,7 +370,7 @@ export async function deleteRankingEntriesForUser(user) {
   if (!user?.uid || !isFirebaseRankingConfigured()) return { attempted: 0, deleted: [], failed: [] }
   deletingRankingUids.add(user.uid)
   for (const [path, entry] of ownSubmittedEntries) if (entry.uid === user.uid) ownSubmittedEntries.delete(path)
-  await Promise.allSettled([...pendingBuckets.values()].filter(request => request.user.uid === user.uid && request.promise).map(request => request.promise))
+  await waitForRankingWrites(user.uid)
   const paths = [...new Set([...knownRankingEntryPaths(user.uid), ...[...pendingBuckets.values()].filter(request => request.user.uid === user.uid).map(request => request.path)])]
 
   let client = null
@@ -347,15 +385,15 @@ export async function deleteRankingEntriesForUser(user) {
   const deleted = []
   const failed = []
   results.forEach((result, index) => {
-    if (result.status === 'fulfilled') deleted.push(paths[index])
-    else failed.push(paths[index])
+    if (result.status === 'fulfilled') { deleted.push(paths[index]); serverEntries.set(paths[index], null) }
+    else { failed.push(paths[index]); serverEntries.delete(paths[index]) }
   })
   return { attempted: paths.length, deleted, failed }
 }
 
 export async function renameRankingEntriesForUser(user, nickname) {
   if (user?.isAnonymous) return enqueueGuestWrite(user, async () => {
-    await Promise.allSettled([...pendingBuckets.values()].filter(request => request.user.uid === user.uid && request.promise).map(request => request.promise))
+    await waitForRankingWrites(user.uid)
     return renameRankingEntriesNow(user, nickname)
   })
   return renameRankingEntriesNow(user, nickname)
@@ -381,6 +419,7 @@ async function renameRankingEntriesNow(user, nickname) {
       const snapshot = await mod.get(entryRef)
       if (!snapshot.exists()) return { path, status: 'missing' }
       await mod.update(entryRef, { displayName: nickname })
+      serverEntries.delete(path)
       return { path, status: 'updated' }
     } catch {
       return { path, status: 'failed' }

@@ -9,10 +9,9 @@ function client() {
   const rows = new Map()
   const mod = { ref: (_, path) => path,
     get: vi.fn(async path => ({exists:()=>rows.has(path),val:()=>structuredClone(rows.get(path))})),
-    runTransaction: vi.fn(async (path, updater) => {
-      const value = updater(rows.get(path) ?? null)
-      if (value) rows.set(path, structuredClone(value))
-      return { committed: value !== undefined }
+    update: vi.fn(async (root, patch) => {
+      expect(root).toBeUndefined()
+      for (const [path, value] of Object.entries(patch)) rows.set(path, structuredClone(value))
     }) }
   _setFirebaseRankingClientForTests({ db: {}, mod })
   return { rows, mod }
@@ -36,7 +35,9 @@ it('retries idempotently and never replaces a newer event timestamp with an old 
   expect(result.skipped).toHaveLength(6)
   await submitRun(user, { ...run, lastPlayedAt: 1000 })
   expect(JSON.stringify([...rows])).toBe(initial)
-  expect(mod.runTransaction).toHaveBeenCalledTimes(18)
+  // One read per bucket for the session, one coalesced write; the unchanged repeats send nothing.
+  expect(mod.get).toHaveBeenCalledTimes(6)
+  expect(mod.update).toHaveBeenCalledTimes(1)
 })
 
 it('serializes overlapping signed-in submissions and atomically retains best plus latest play', async () => {

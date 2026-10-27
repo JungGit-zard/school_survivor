@@ -16,11 +16,9 @@ function client({ holdWrites = false } = {}) {
   const mod = {
     ref: (_, path) => path,
     get: vi.fn(async (path) => ({ exists: () => rows.has(path), val: () => structuredClone(rows.get(path)) })),
-    runTransaction: vi.fn(async (path, updater) => {
+    update: vi.fn(async (_root, patch) => {
       if (holdWrites) await new Promise((resolve) => held.push(resolve))
-      const value = updater(rows.get(path) ?? null)
-      if (value) rows.set(path, structuredClone(value))
-      return { committed: value !== undefined }
+      for (const [path, value] of Object.entries(patch)) rows.set(path, structuredClone(value))
     }),
   }
   _setFirebaseRankingClientForTests({ db: {}, mod })
@@ -49,7 +47,7 @@ it('keeps a 0-point run as a real record instead of dropping it', async () => {
 it('includes an own submission still in flight when the lobby reads right after returning', async () => {
   const { mod, release } = client({ holdWrites: true })
   const submitting = submitRun({ uid: 'racer' }, { stageId: 'stage1', score: 21, timeMs: 21050, lastPlayedAt: 1000 })
-  await vi.waitFor(() => expect(mod.runTransaction).toHaveBeenCalledTimes(6))
+  await vi.waitFor(() => expect(mod.update).toHaveBeenCalledTimes(1))
 
   const bests = await fetchMyStageBests({ uid: 'racer' }, ['stage1'])
 

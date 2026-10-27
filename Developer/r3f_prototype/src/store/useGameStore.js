@@ -80,7 +80,11 @@ const FOLLOWUP_GUARANTEED_UPGRADE_BY_PREREQUISITE = Object.freeze({
 })
 
 const MAX_MISSION_KILL_KEYS = 512
-const RANKING_CHECKPOINT_INTERVAL_MS = 10_000
+// Mid-run ranking checkpoints are crash insurance, not a live feed. The survival score rises every
+// second, so the old "write whenever the score improved" rule wrote all 6 boards about once a second
+// (QA 2026-10-27: 77 transactions per path in ~4 minutes). Now: the run's first point goes up at once,
+// then at most one checkpoint per interval and only when the score improved since the last one.
+export const RANKING_CHECKPOINT_INTERVAL_MS = 30_000
 const pendingRuns = new Map()
 
 function checkpointRun(state, phaseName = state.phase) {
@@ -378,6 +382,9 @@ export const useGameStore = create(
     // Best-effort live ranking checkpoint. This is how a 1+ score run survives browser/app close:
     // the score is already written while the game is running, not only after Game Over.
     rankingCheckpoint: null,
+    // Runs started in this page session (a stage continuation is the same run). Guests have no
+    // persisted records, so the ranking header's run count reads this instead of a fixed 0.
+    sessionRunCount: 0,
     survivalMilestonesHit: [],
     recentMilestone: null,
     pendingLevelUps: 0,
@@ -797,12 +804,11 @@ export const useGameStore = create(
       const { run } = buildRankingRunSnapshot(s, elapsedMs, 'checkpoint')
       if (run.score < 1) return false
 
-      const previous = s.rankingCheckpoint
-      const forced = reason === 'lifecycle'
-      if (!forced
-        && previous?.gameKey === s.gameKey
-        && previous.score >= run.score
-        && elapsedMs - previous.elapsedMs < RANKING_CHECKPOINT_INTERVAL_MS) return false
+      const previous = s.rankingCheckpoint?.gameKey === s.gameKey ? s.rankingCheckpoint : null
+      // Nothing new to save: the last checkpoint of this run already holds this score.
+      if (previous && previous.score >= run.score) return false
+      // pagehide/hidden ('lifecycle') skips the throttle so a force-closed run keeps its latest score.
+      if (previous && reason !== 'lifecycle' && elapsedMs - previous.elapsedMs < RANKING_CHECKPOINT_INTERVAL_MS) return false
 
       set({ rankingCheckpoint: { gameKey: s.gameKey, score: run.score, elapsedMs, reason } })
       const user = useAuthStore.getState().user
@@ -1483,6 +1489,7 @@ export const useGameStore = create(
         runLevelUps: 0,
         newlyUnlockedWeaponIds: [],
         rankingCheckpoint: null,
+        sessionRunCount: preserveContinuousScore ? s.sessionRunCount : s.sessionRunCount + 1,
         survivalMilestonesHit: [],
         recentMilestone: null,
         pendingLevelUps: 0,

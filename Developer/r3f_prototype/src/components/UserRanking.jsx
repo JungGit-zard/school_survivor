@@ -19,6 +19,8 @@ import { isFirebaseProgressHydrated } from '../lib/firebaseProgress.js'
 import { t as translate, useT } from '../lib/i18n.js'
 import RankingWindowTabs, { RANKING_WINDOWS } from './RankingWindowTabs.jsx'
 
+const ROW_COLUMNS = '56px minmax(0, 1fr) auto'
+
 const panelTone = {
   navy: '#18372f',
   sky: '#59c7ff',
@@ -44,7 +46,10 @@ export default function UserRanking({ onBack, entries }) {
   const localRecords = useMemo(() => isFirebaseProgressHydrated() ? loadPlayerRecords() : {}, [user, progressStatus])
 
   const localEntry = useMemo(() => buildLocalPlayerRankingEntry(localRecords, user ?? {}), [localRecords, user])
-  const totalRuns = localRecords.totalRuns ?? 0
+  // Guests have no hydrated account records (localRecords is {}), so they always saw "0판" however
+  // many runs they played. Fall back to this session's run count; hydrated accounts keep their total.
+  const sessionRunCount = useGameStore((s) => s.sessionRunCount ?? 0)
+  const totalRuns = localRecords.totalRuns ?? sessionRunCount
   const bestScore = localEntry?.score ?? 0
   const progressKnown = !user || (progressStatus === 'ready' && isFirebaseProgressHydrated(user))
   const unknownProgress = t(progressStatus === 'error' ? 'ranking.progressFailed' : 'ranking.progressLoading')
@@ -155,7 +160,7 @@ export default function UserRanking({ onBack, entries }) {
       <div style={styles.tableHeader} aria-hidden="true">
         <span>{t('ranking.colRank')}</span>
         <span>{t('ranking.colUser')}</span>
-        <span>{t('ranking.colScore')}</span>
+        <span style={styles.tableHeaderScore}>{t('ranking.colScore')}</span>
       </div>
 
       {activeWindow !== 'allTime' && <section data-panel-state="special" style={styles.seasonPanel}>
@@ -170,7 +175,7 @@ export default function UserRanking({ onBack, entries }) {
           <RankingRow key={row.rank} row={row} />
         ))}
       </ol>}
-      {!reading && !readErrors[activeWindow] && myRow && <ol style={styles.list} aria-label={t('ranking.myRow')}>
+      {!reading && !readErrors[activeWindow] && myRow && <ol style={styles.myList} aria-label={t('ranking.myRow')}>
         <RankingRow row={myRow} testId="ranking-my-row" />
       </ol>}
 
@@ -219,7 +224,7 @@ function RankingRow({ row, testId }) {
     <li data-testid={testId} style={styles.row(row.empty, row.local)}>
       <span style={styles.rank}>{row.rankLabel ?? translate('ranking.rankSuffix', { rank: row.rank })}</span>
       <span style={styles.name}>
-        {row.empty ? translate('ranking.noRecord') : displayNickname(row.displayName)}
+        <span style={styles.nameText}>{row.empty ? translate('ranking.noRecord') : displayNickname(row.displayName)}</span>
         {!row.empty && row.local && <span data-panel-state="local" style={styles.localBadge}>ME</span>}
       </span>
       <span style={styles.score}>{row.empty ? '-' : formatRankScore(row.score)}</span>
@@ -285,16 +290,22 @@ const styles = {
     fontWeight: 900,
     textAlign: 'center',
   },
+  // 열 머리는 행 카드와 같은 격자를 쓴다. 왼쪽 여백 14 = 목록 패딩 2 + 카드 테두리 2 + 카드 패딩 10.
+  // 스크롤바 자리도 목록과 똑같이 예약해야 데스크톱에서 '점수'가 점수 열 끝에 맞는다.
   tableHeader: {
+    flex: '0 0 auto',
     display: 'grid',
-    gridTemplateColumns: '52px minmax(0, 1fr) 72px',
-    gap: 8,
-    padding: '0 10px',
+    gridTemplateColumns: ROW_COLUMNS,
+    columnGap: 8,
+    padding: '0 14px',
+    overflow: 'hidden',
+    scrollbarGutter: 'stable',
     color: '#c8c1d7',
     fontSize: 11,
     lineHeight: 1,
     fontWeight: 900,
   },
+  tableHeaderScore: { justifySelf: 'end' },
   windowNote: {
     margin: 0,
     color: '#c8c1d7',
@@ -322,7 +333,7 @@ const styles = {
   },
   submitRetryButton: {
     flex: '0 0 auto',
-    minHeight: 32,
+    minHeight: 44,
     padding: '0 10px',
     border: '2px solid #050209',
     borderRadius: 8,
@@ -371,8 +382,9 @@ const styles = {
     whiteSpace: 'nowrap',
     textOverflow: 'ellipsis',
   },
+  // 목록이 남는 높이를 전부 차지하고, 내 기록 줄은 그 바로 아래에 붙는다.
   list: {
-    flex: 1,
+    flex: '1 1 0',
     minHeight: 0,
     display: 'flex',
     flexDirection: 'column',
@@ -380,16 +392,28 @@ const styles = {
     margin: 0,
     padding: '2px 2px 4px',
     overflowY: 'auto',
+    scrollbarGutter: 'stable',
     listStyle: 'none',
   },
+  myList: {
+    flex: '0 0 auto',
+    margin: 0,
+    padding: '0 2px',
+    overflow: 'hidden',
+    scrollbarGutter: 'stable',
+    listStyle: 'none',
+  },
+  // 순위 | 이름·기록·마지막 플레이 | 점수. 순위와 점수는 세 줄 전체에 걸쳐 세로 가운데에 놓인다.
+  // flexShrink 0이 없으면 목록이 좁아질 때 카드가 48px로 눌려 이름과 기록 줄이 겹친다.
   row: (empty, local) => ({
+    flex: '0 0 auto',
     minHeight: 48,
     display: 'grid',
-    gridTemplateColumns: '52px minmax(0, 1fr) 72px',
-    gridTemplateRows: '1fr auto',
+    gridTemplateColumns: ROW_COLUMNS,
     alignItems: 'center',
     columnGap: 8,
-    padding: '7px 8px',
+    rowGap: 3,
+    padding: '8px 10px',
     border: '2px solid #050209',
     borderRadius: 8,
     background: empty ? 'rgba(248,247,242,0.12)' : local ? '#f7d17e' : 'rgba(248,247,242,0.92)',
@@ -398,23 +422,29 @@ const styles = {
     boxSizing: 'border-box',
   }),
   rank: {
-    gridRow: '1 / span 2',
+    gridColumn: 1,
+    gridRow: '1 / span 3',
+    minWidth: 0,
     fontSize: 15,
-    lineHeight: 1,
+    lineHeight: 1.1,
     fontWeight: 1000,
+    wordBreak: 'keep-all',
+    overflowWrap: 'anywhere',
   },
   name: {
-    // rank/score가 gridRow를 명시해 먼저 배치되므로, name도 칸을 못박지 않으면
-    // 자동배치가 남은 3번 칸(72px)으로 밀어 이름이 잘리고 점수와 자리가 뒤바뀐다.
     gridColumn: 2,
+    gridRow: 1,
     minWidth: 0,
-    overflow: 'hidden',
     display: 'flex',
     alignItems: 'center',
     gap: 6,
     fontSize: 14,
-    lineHeight: 1.1,
+    lineHeight: 1.25,
     fontWeight: 1000,
+  },
+  nameText: {
+    minWidth: 0,
+    overflow: 'hidden',
     whiteSpace: 'nowrap',
     textOverflow: 'ellipsis',
   },
@@ -430,20 +460,22 @@ const styles = {
     fontWeight: 1000,
   },
   score: {
-    gridRow: '1 / span 2',
     gridColumn: 3,
+    gridRow: '1 / span 3',
     justifySelf: 'end',
     fontSize: 15,
     lineHeight: 1,
     fontWeight: 1000,
+    whiteSpace: 'nowrap',
   },
   stage: {
     gridColumn: 2,
-    marginTop: 3,
+    gridRow: 2,
+    minWidth: 0,
     overflow: 'hidden',
     color: 'rgba(5,2,9,0.66)',
     fontSize: 10,
-    lineHeight: 1,
+    lineHeight: 1.3,
     fontWeight: 900,
     whiteSpace: 'nowrap',
     textOverflow: 'ellipsis',
@@ -461,5 +493,5 @@ const styles = {
     cursor: 'pointer',
     boxShadow: '0 4px 0 #050209',
   },
-  lastPlayed: { gridColumn: '1 / -1', marginTop: 6, fontSize: 10, lineHeight: 1.4, overflowWrap: 'anywhere', color: '#51495a' },
+  lastPlayed: { gridColumn: 2, gridRow: 3, minWidth: 0, fontSize: 10, lineHeight: 1.3, overflowWrap: 'anywhere', color: '#51495a' },
 }

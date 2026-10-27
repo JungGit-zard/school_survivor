@@ -29,6 +29,9 @@ export default function GameplayScreen({
 
   useEffect(() => {
     const pauseIfPlaying = () => {
+      // Leaving the tab/app may be a force-close: save the run's latest best once, unthrottled.
+      // Mid-run checkpoints are otherwise at most one per 30 s (useGameStore.flushRankingCheckpoint).
+      useGameStore.getState().flushRankingCheckpoint?.('lifecycle')
       const { phase: currentPhase, pauseGame } = useGameStore.getState()
       if (currentPhase === 'playing') pauseGame('auto')
     }

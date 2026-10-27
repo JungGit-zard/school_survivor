@@ -56,7 +56,6 @@ export default function ReadyGameApp({
   const [showGameoverResultImmediately, setShowGameoverResultImmediately] = useState(false)
   const [weaponEncyclopediaRequest, setWeaponEncyclopediaRequest] = useState(null)
   const phoneFrameRef = useRef(null)
-  const rankingEntrantsRef = useRef(new Set())
 
   useEffect(() => {
     let stopped = false
@@ -72,18 +71,8 @@ export default function ReadyGameApp({
     return () => { stopped = true; window.clearInterval(timer); window.removeEventListener('online',retry) }
   },[authUser?.uid])
 
-  useEffect(() => {
-    const identity = authUser?.uid ?? 'guest'
-    if (rankingEntrantsRef.current.has(identity)) return
-    rankingEntrantsRef.current.add(identity)
-    void import('../store/useGameStore.js').then(({ useGameStore }) => (
-      useGameStore.getState().submitRunToRanking(authUser ?? null, {
-        stageId: 'stage1', score: 0, stageScore: 0, timeMs: 0, globalTimeMs: 0, cleared: false,
-        // 참가 등록일 뿐 플레이 기록이 아니다 — 랭킹 화면의 '이번 판 반영' 안내를 막는다.
-        entrant: true,
-      })
-    )).catch(() => {})
-  }, [authUser?.uid])
+  // 0점 랭킹 등록은 실제 스테이지 입장(useGameStore.resetGame)에서 한 번만 한다. 타이틀·로사리 방만
+  // 보고 나간 방문은 학교에 들어간 게 아니라 랭킹에 쓰지 않는다(2026-10-27 쓰기 폭주 정리).
 
   useEffect(() => {
     let stopped = false

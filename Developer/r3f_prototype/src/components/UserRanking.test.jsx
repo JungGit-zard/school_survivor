@@ -118,6 +118,21 @@ describe('UserRanking', () => {
     expect(html).not.toContain('내 시즌최고점')
   })
 
+  // QA 2026-10-27: a guest saw "내 누적플레이 0판" after 2-3 runs because guests have no account records.
+  it('shows a guest the runs played this session instead of a fixed 0', () => {
+    _resetFirebaseProgressForTests()
+    useGameStore.setState({ sessionRunCount: 3 })
+    const container = document.createElement('div')
+    const root = createRoot(container)
+    try {
+      act(() => root.render(<UserRanking onBack={() => {}} entries={[]} />))
+      expect(container.querySelector('header').textContent).toMatch(/내 누적플레이\s*3\s*판/)
+    } finally {
+      act(() => root.unmount())
+      useGameStore.setState({ sessionRunCount: 0 })
+    }
+  })
+
   it('keeps the bottom back button above mobile system UI safe areas', () => {
     const html = renderToStaticMarkup(<UserRanking onBack={() => {}} entries={[]} />)
 
