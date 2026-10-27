@@ -100,7 +100,7 @@ export default function StageRanking({ stageId = 'stage1', onBack }) {
           <li data-panel-state="empty" style={styles.empty}>{t('ranking.waiting')}</li>
         )}
       </ol>}
-      {!reading && !readError && showMyRow && <ol style={styles.list} aria-label={t('ranking.myRow')}>
+      {!reading && !readError && showMyRow && <ol style={styles.myList} aria-label={t('ranking.myRow')}>
         <StageRankingRow entry={myEntry} rankLabel={t('ranking.myRow')} testId="ranking-my-row" />
       </ol>}
     </div>
@@ -123,7 +123,7 @@ function StageRankingRow({ entry, rank, rankLabel, testId }) {
   return (
     <li data-testid={testId} data-panel-state={top ? 'top-rank' : 'rank'} style={top ? { ...styles.row, ...styles.topRow } : styles.row}>
       <span style={styles.rank}>{rankLabel ?? translate('ranking.rankSuffix', { rank })}</span>
-      <span style={styles.name}>{displayNickname(entry.displayName) || translate('ranking.anonymous')}</span>
+      <span style={styles.name}><span style={styles.nameText}>{displayNickname(entry.displayName) || translate('ranking.anonymous')}</span></span>
       <span style={styles.score}>{formatRankScore(entry.score)}</span>
       <span style={styles.meta}>{seconds > 0 ? formatSurvivalTime(seconds) : ''}{entry.cleared ? translate('ranking.clearedSuffix') : ''}</span>
       <span style={styles.lastPlayed}>{translate('ranking.lastPlayed')} · {formatLastPlayedAt(entry.lastPlayedAt ?? entry.lastStartedAt)}</span>
@@ -138,7 +138,7 @@ const styles = {
     display: 'flex',
     flexDirection: 'column',
     gap: 10,
-    padding: '18px 14px 14px',
+    padding: '18px 14px calc(14px + env(safe-area-inset-bottom, 0px))',
     boxSizing: 'border-box',
     background: `linear-gradient(180deg, ${panelTone.navy} 0%, #211c2b 54%, #131018 100%)`,
     color: '#f8f7f2',
@@ -174,7 +174,7 @@ const styles = {
   backTop: {
     flex: '0 0 auto',
     minWidth: 62,
-    minHeight: 38,
+    minHeight: 44,
     border: '2px solid #050209',
     borderRadius: 8,
     background: '#f6ead0',
@@ -206,8 +206,9 @@ const styles = {
   },
   winnerScore: { display: 'block', marginTop: 4, fontSize: 12, lineHeight: 1, fontWeight: 900 },
   seasonLine: { color: '#c8c1d7', fontSize: 11, lineHeight: 1.25, fontWeight: 900 },
+  // 목록이 남는 높이를 전부 차지하고, 내 기록 줄은 그 바로 아래에 붙는다.
   list: {
-    flex: 1,
+    flex: '1 1 0',
     minHeight: 0,
     display: 'flex',
     flexDirection: 'column',
@@ -215,16 +216,28 @@ const styles = {
     margin: 0,
     padding: '2px 2px 4px',
     overflowY: 'auto',
+    scrollbarGutter: 'stable',
     listStyle: 'none',
   },
+  myList: {
+    flex: '0 0 auto',
+    margin: 0,
+    padding: '0 2px',
+    overflow: 'hidden',
+    scrollbarGutter: 'stable',
+    listStyle: 'none',
+  },
+  // 순위 | 이름·기록·마지막 플레이 | 점수. 순위와 점수는 세 줄 전체에 걸쳐 세로 가운데에 놓인다.
+  // flexShrink 0이 없으면 목록이 좁아질 때 카드가 48px로 눌려 이름과 기록 줄이 겹친다.
   row: {
+    flex: '0 0 auto',
     minHeight: 48,
     display: 'grid',
-    gridTemplateColumns: '48px minmax(0, 1fr) 72px',
-    gridTemplateRows: '1fr auto',
+    gridTemplateColumns: '56px minmax(0, 1fr) auto',
     alignItems: 'center',
     columnGap: 8,
-    padding: '7px 8px',
+    rowGap: 3,
+    padding: '8px 10px',
     border: '2px solid #050209',
     borderRadius: 8,
     background: 'rgba(248,247,242,0.92)',
@@ -232,31 +245,26 @@ const styles = {
     boxShadow: '0 3px 0 #050209',
     boxSizing: 'border-box',
   },
-  topRow: { borderLeft: `6px solid ${panelTone.amber}`, background: panelTone.paper },
-  lastPlayed: { gridColumn: '1 / -1', marginTop: 6, fontSize: 10, lineHeight: 1.4, overflowWrap: 'anywhere', color: '#51495a' },
-  rank: { gridRow: '1 / span 2', fontSize: 14, lineHeight: 1, fontWeight: 1000 },
-  name: {
-    // rank/score가 gridRow를 명시해 먼저 배치되므로, name도 칸을 못박지 않으면
-    // 자동배치가 남은 3번 칸(72px)으로 밀어 이름이 잘리고 점수와 자리가 뒤바뀐다.
+  topRow: { borderLeft: `6px solid ${panelTone.amber}`, paddingLeft: 6, background: panelTone.paper },
+  lastPlayed: { gridColumn: 2, gridRow: 3, minWidth: 0, fontSize: 10, lineHeight: 1.3, overflowWrap: 'anywhere', color: '#51495a' },
+  rank: { gridColumn: 1, gridRow: '1 / span 3', minWidth: 0, fontSize: 15, lineHeight: 1.1, fontWeight: 1000, wordBreak: 'keep-all', overflowWrap: 'anywhere' },
+  name: { gridColumn: 2, gridRow: 1, minWidth: 0, display: 'flex', fontSize: 14, lineHeight: 1.25, fontWeight: 1000 },
+  nameText: { minWidth: 0, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' },
+  score: { gridColumn: 3, gridRow: '1 / span 3', justifySelf: 'end', fontSize: 15, lineHeight: 1, fontWeight: 1000, whiteSpace: 'nowrap' },
+  meta: {
     gridColumn: 2,
+    gridRow: 2,
     minWidth: 0,
     overflow: 'hidden',
-    fontSize: 14,
-    lineHeight: 1.1,
-    fontWeight: 1000,
+    color: 'rgba(5,2,9,0.66)',
+    fontSize: 10,
+    lineHeight: 1.3,
+    fontWeight: 900,
     whiteSpace: 'nowrap',
     textOverflow: 'ellipsis',
   },
-  score: { gridRow: '1 / span 2', gridColumn: 3, justifySelf: 'end', fontSize: 14, lineHeight: 1, fontWeight: 1000 },
-  meta: {
-    gridColumn: 2,
-    marginTop: 3,
-    color: 'rgba(5,2,9,0.66)',
-    fontSize: 10,
-    lineHeight: 1,
-    fontWeight: 900,
-  },
   empty: {
+    flex: '0 0 auto',
     padding: 18,
     border: '2px solid #050209',
     borderRadius: 8,

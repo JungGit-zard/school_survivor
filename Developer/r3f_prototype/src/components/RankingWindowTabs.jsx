@@ -40,6 +40,8 @@ const tabBase = {
   minHeight: 44,
   minWidth: 0,
   padding: 6,
+  // keep-all: 좁은 폭에서 '무제한 누적'이 '무제한 누 / 적'처럼 낱자로 갈리지 않고 띄어쓰기에서 줄을 바꾼다.
+  wordBreak: 'keep-all',
   overflowWrap: 'anywhere',
   display: 'flex',
   alignItems: 'center',
