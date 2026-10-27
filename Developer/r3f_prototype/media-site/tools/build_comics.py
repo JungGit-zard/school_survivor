@@ -2,8 +2,12 @@
 
 실행 (r3f_prototype 폴더에서):  python media-site/tools/build_comics.py
 - 원본 PNG는 그대로 둔다(보관용). 배포 폴더 media-site/site/ 에는 WebP만 생성된다.
-- 1~5화: media-site/originals/web-comics-v2/*.png (한국어 대사판, 모든 언어 공용)
+- 1~5화: Graphic_designer/promo_video_package_20261005/references/comics/*_v2.png (한국어 대사판, 모든 언어 공용)
 - 6~15화: public/comics/backlog-20261015/{ko,en,ja,vi}/NN.png (언어별)
+- 16~20화: 페이스북 로테이션 풀의 '좀비 잡기' 세로 4컷 (marketing/.../image_pool/facebook/{lang}/vertical_comic_20261018)
+- 21화: 2026-10-13 데일리 만화 public/web-comics/daily/2026-10-13/{lang}.png
+원본은 모두 git에 추적되므로 origin 기반 워크트리에서 그대로 다시 만들 수 있다.
+게시(페이스북 등)한 만화는 전부 이 뷰어에 들어가야 한다 — 새 만화를 게시하면 여기에 편을 추가한다.
 """
 from __future__ import annotations
 
@@ -22,6 +26,8 @@ FULL_QUALITY = 82
 THUMB_SIZE = (400, 300)  # 첫 컷 상단 4:3 크롭
 THUMB_QUALITY = 72
 
+REPO = PROTOTYPE.parent.parent
+V2_DIR = REPO / 'Graphic_designer' / 'promo_video_package_20261005' / 'references' / 'comics'
 V2_FILES = [
     'comic_ep01_attendance_vertical_1x4_ko_dialogue_v2.png',
     'comic_ep02_lunch_line_vertical_1x4_ko_dialogue_v2.png',
@@ -30,6 +36,15 @@ V2_FILES = [
     'comic_ep05_library_quiet_vertical_1x4_ko_dialogue_v2.png',
 ]
 BACKLOG_DIR = PROTOTYPE / 'public' / 'comics' / 'backlog-20261015'
+FACEBOOK_VERTICAL = REPO / 'marketing' / 'x_daily_zombie_school_posting' / 'image_pool' / 'facebook'
+# 좀비 잡기 1~5 (교실, 사물함, 급식실, 체육관, 도서관) — 언어마다 파일 이름이 다르다.
+ZOMBIE_CATCH_FILES = {
+    'ko': [f'comic_{n}.png' for n in range(16, 21)],
+    'en': [f'zombie_catch_comic_words_20261015_{n:02d}_vertical.png' for n in range(1, 6)],
+    'ja': [f'zombie_catch_comic_words_20261015_{n:02d}.png' for n in range(1, 6)],
+    'vi': [f'facebook_zombiecatch_{n:02d}.png' for n in range(1, 6)],
+}
+DAILY_DIR = PROTOTYPE / 'public' / 'web-comics' / 'daily' / '2026-10-13'
 
 
 def save_full(src: pathlib.Path, dest: pathlib.Path) -> tuple[int, int]:
@@ -57,7 +72,7 @@ def main() -> None:
     episodes = []
     for index, name in enumerate(V2_FILES, start=1):
         number = f'{index:02d}'
-        src = MEDIA / 'originals' / 'web-comics-v2' / name
+        src = V2_DIR / name
         width, height = save_full(src, COMICS_OUT / 'full' / 'shared' / f'{number}.webp')
         save_thumb(src, COMICS_OUT / 'thumbs' / 'shared' / f'{number}.webp')
         path = {lang: f'shared/{number}.webp' for lang in LANGS}
@@ -71,6 +86,20 @@ def main() -> None:
             save_thumb(src, COMICS_OUT / 'thumbs' / lang / f'{number}.webp')
             path[lang] = f'{lang}/{number}.webp'
         episodes.append({'number': episode + 5, 'image': path, 'thumb': path, 'width': width, 'height': height})
+    per_language = [
+        {lang: FACEBOOK_VERTICAL / lang / 'vertical_comic_20261018' / ZOMBIE_CATCH_FILES[lang][index] for lang in LANGS}
+        for index in range(5)
+    ]
+    per_language.append({lang: DAILY_DIR / f'{lang}.png' for lang in LANGS})
+    for offset, sources in enumerate(per_language):
+        episode_number = 16 + offset
+        number = f'{episode_number:02d}'
+        path = {}
+        for lang in LANGS:
+            width, height = save_full(sources[lang], COMICS_OUT / 'full' / lang / f'{number}.webp')
+            save_thumb(sources[lang], COMICS_OUT / 'thumbs' / lang / f'{number}.webp')
+            path[lang] = f'{lang}/{number}.webp'
+        episodes.append({'number': episode_number, 'image': path, 'thumb': path, 'width': width, 'height': height})
 
     for item in episodes:
         item['title'] = {lang: copy['copy'][lang]['comics'][item['number'] - 1]['title'] for lang in LANGS}

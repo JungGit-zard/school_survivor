@@ -23,10 +23,15 @@ site/
 ```
 
 - 1~5화(`shared/`)는 한국어 대사 v2 원본 한 벌을 모든 언어가 공유한다(기존 랜딩 동작과 동일).
-- 6~15화는 언어별(ko/en/ja/vi) 원본.
+- 6~15화, 16~21화는 언어별(ko/en/ja/vi) 원본.
+- **규칙: 페이스북 등에 게시한 만화는 전부 이 뷰어에서 볼 수 있어야 한다.** 새 만화를 게시 풀에 넣으면
+  `build_comics.py`에 편을 추가하고 `comic-copy.json`에 4개 언어 제목/요약을 넣는다.
+- **규칙: 만화는 게임(escapezombie.com) 빌드로 호스팅하지 않는다.** 게임 랜딩은 이 사이트로 가는 링크만 가진다.
 - 뷰어(index.html/app.js)는 `comics/full`·`comics/thumbs`의 WebP만 사용한다. PNG 원본은 보관용:
-  - 1~5화: `media-site/originals/web-comics-v2/*.png` (배포 금지 폴더)
+  - 1~5화: `Graphic_designer/promo_video_package_20261005/references/comics/*_v2.png`
   - 6~15화: `public/comics/backlog-20261015/{lang}/NN.png` (게임 빌드에서 제외됨 — `vite.config.js` `GAME_DIST_PUBLIC_EXCLUDES`)
+  - 16~20화 (좀비 잡기): `marketing/x_daily_zombie_school_posting/image_pool/facebook/{lang}/vertical_comic_20261018/` (페이스북 로테이션 풀과 같은 파일)
+  - 21화 (청소): `public/web-comics/daily/2026-10-13/{lang}.png` (게임 빌드에서 제외됨)
 
 - `comics/backlog-*/`, `web-comics/`, `share/x/`, `x-website-cards-manifest.json`, `_headers` 는 backendmini가
   옛 링크(이미 X에 올라간 escapezombie.com/comics/... 등 → 게임 사이트 `_redirects` 301) 호환을 위해 배치한 것이다.

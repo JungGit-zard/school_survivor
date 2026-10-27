@@ -21,8 +21,8 @@
     "ko": {
       "label": "4-CUT COMICS",
       "title": "연필 구조대의 학교 일지",
-      "intro": "연필 구조대가 학교 곳곳에서 좀비 친구들을 안전하게 되돌려 보내는 4컷 만화 15편입니다.",
-      "list": "4컷 만화 15편 목록",
+      "intro": "연필 구조대가 학교 곳곳에서 좀비 친구들을 안전하게 되돌려 보내는 4컷 만화 21편입니다.",
+      "list": "4컷 만화 21편 목록",
       "episodeSuffix": "화",
       "openComic": "전체 만화 보기",
       "close": "닫기",
@@ -93,14 +93,38 @@
         {
           "title": "허들 릴레이 탈출 코스",
           "summary": "허들과 장애물 코스가 좀비들의 릴레이 길을 바꿔 놓아요."
+        },
+        {
+          "title": "교실 책상 쿵! 대탈출",
+          "summary": "책상 뒤로 쏙 숨었더니 좀비들이 책상에 쿵 부딪혀요!"
+        },
+        {
+          "title": "사물함 숨바꼭질",
+          "summary": "사물함 문을 쾅쾅 닫아 좀비들을 사물함 속에 쏙 넣어요!"
+        },
+        {
+          "title": "급식실 쟁반 성벽",
+          "summary": "높이 쌓은 쟁반 더미가 와르르, 좀비들을 폭 담아요!"
+        },
+        {
+          "title": "체육관 공 굴리기",
+          "summary": "커다란 공을 굴려 좀비들을 공 바구니에 골인!"
+        },
+        {
+          "title": "도서관 책수레 쿵쾅",
+          "summary": "쉿! 살짝 민 책수레가 좀비들을 책 더미로 데려가요!"
+        },
+        {
+          "title": "청소 끝? 아니, 숨기기!",
+          "summary": "먼지를 모으랬더니 매트 아래에 숨겼다!"
         }
       ]
     },
     "en": {
       "label": "4-PANEL COMICS",
       "title": "The Pencil Rescue Squad’s School Diary",
-      "intro": "Fifteen four-panel comics where the Pencil Rescue Squad safely guides zombie friends around the school.",
-      "list": "List of 15 four-panel comics",
+      "intro": "Twenty-one four-panel comics where the Pencil Rescue Squad safely guides zombie friends around the school.",
+      "list": "List of 21 four-panel comics",
       "episodeSuffix": "Episode",
       "openComic": "Read Full Comic",
       "close": "Close",
@@ -171,14 +195,38 @@
         {
           "title": "Hurdle Relay Escape Course",
           "summary": "Hurdles and obstacles send the zombies down a very different relay route."
+        },
+        {
+          "title": "Classroom Desk Dodge",
+          "summary": "She ducks behind the desks and the zombies bump right into them!"
+        },
+        {
+          "title": "Locker Hide-and-Seek",
+          "summary": "Slam, slam! The lockers swing shut with the zombies tucked inside!"
+        },
+        {
+          "title": "Cafeteria Tray Wall",
+          "summary": "A tower of lunch trays topples and scoops up the zombies!"
+        },
+        {
+          "title": "Gym Ball Roll",
+          "summary": "One big roll of the gym ball sends the zombies into the ball cart!"
+        },
+        {
+          "title": "Library Cart Crash",
+          "summary": "Shh! A gentle push of the book cart lands the zombies in a pile of books!"
+        },
+        {
+          "title": "All Clean? Just Hidden!",
+          "summary": "Asked to sweep up the dust, they hid it under the mat!"
         }
       ]
     },
     "ja": {
       "label": "4コマ漫画",
       "title": "鉛筆救助隊の学校日誌",
-      "intro": "鉛筆救助隊が学校のあちこちでゾンビの仲間たちを安全に送り返す、楽しい4コマ漫画15話です。",
-      "list": "4コマ漫画15話の一覧",
+      "intro": "鉛筆救助隊が学校のあちこちでゾンビの仲間たちを安全に送り返す、楽しい4コマ漫画21話です。",
+      "list": "4コマ漫画21話の一覧",
       "episodeSuffix": "話",
       "openComic": "漫画を全編見る",
       "close": "閉じる",
@@ -249,14 +297,38 @@
         {
           "title": "ハードルリレー脱出コース",
           "summary": "ハードルと障害物で、ゾンビたちのリレーコースが大変身！"
+        },
+        {
+          "title": "教室の机でドン！",
+          "summary": "机の陰に隠れたら、ゾンビたちが机にドンとぶつかった！"
+        },
+        {
+          "title": "ロッカーでかくれんぼ",
+          "summary": "ロッカーをバタンと閉めて、ゾンビたちを中にしまっちゃおう！"
+        },
+        {
+          "title": "給食トレーの城壁",
+          "summary": "高く積んだトレーがくずれて、ゾンビたちをすっぽり！"
+        },
+        {
+          "title": "体育館のボール転がし",
+          "summary": "大きなボールを転がして、ゾンビたちをボールかごにゴール！"
+        },
+        {
+          "title": "図書室のブックカート",
+          "summary": "しーっ！そっと押したカートで、ゾンビたちを本の山へ！"
+        },
+        {
+          "title": "掃除完了？隠しただけ！",
+          "summary": "ほこりを集めてと言ったら、マットの下に隠しちゃった！"
         }
       ]
     },
     "vi": {
       "label": "TRUYỆN TRANH 4 KHUNG",
       "title": "Nhật ký trường học của Đội cứu hộ Bút Chì",
-      "intro": "15 truyện tranh 4 khung vui nhộn, nơi Đội cứu hộ Bút Chì giúp những người bạn zombie trở về an toàn ở khắp trường.",
-      "list": "Danh sách 15 tập truyện tranh 4 khung",
+      "intro": "21 truyện tranh 4 khung vui nhộn, nơi Đội cứu hộ Bút Chì giúp những người bạn zombie trở về an toàn ở khắp trường.",
+      "list": "Danh sách 21 tập truyện tranh 4 khung",
       "episodeSuffix": "Tập",
       "openComic": "Xem toàn bộ truyện",
       "close": "Đóng",
@@ -327,6 +399,30 @@
         {
           "title": "Đường chạy tiếp sức vượt rào",
           "summary": "Rào chắn và chướng ngại vật khiến đường chạy của zombie đổi hướng!"
+        },
+        {
+          "title": "Né bàn trong lớp học",
+          "summary": "Trốn sau bàn học, lũ zombie đâm sầm vào bàn!"
+        },
+        {
+          "title": "Trốn tìm ở tủ đồ",
+          "summary": "Đóng sập dãy tủ đồ, nhốt gọn lũ zombie vào bên trong!"
+        },
+        {
+          "title": "Bức tường khay cơm",
+          "summary": "Chồng khay cơm cao ngất đổ xuống, gom gọn lũ zombie!"
+        },
+        {
+          "title": "Lăn bóng nhà thể chất",
+          "summary": "Lăn quả bóng lớn, đưa lũ zombie vào xe đựng bóng!"
+        },
+        {
+          "title": "Xe đẩy sách thư viện",
+          "summary": "Suỵt! Đẩy nhẹ xe sách, lũ zombie ngã vào đống sách!"
+        },
+        {
+          "title": "Dọn xong rồi? Chỉ giấu thôi!",
+          "summary": "Bảo gom bụi lại, ai ngờ giấu hết dưới tấm thảm!"
         }
       ]
     }
