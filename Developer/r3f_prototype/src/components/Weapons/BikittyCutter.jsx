@@ -15,6 +15,7 @@ import {
   nextBikittySegment,
 } from '../../lib/bikittyCutter.js'
 import { applyEnemyHit } from '../../lib/weaponCollision.js'
+import { applyWeaponLifesteal, createLifestealState } from '../../lib/weaponLifesteal.js'
 import { startPlayerArmAction, computeBoxCutterActionPhases, BOX_CUTTER_ACTION_MS } from '../../lib/playerArmAction.js'
 import { useGameStore } from '../../store/useGameStore.js'
 
@@ -237,6 +238,8 @@ export function BikittyCutterWeapon() {
   // reloadMs(1200)가 cooldown(2400)보다 짧아서 둘을 겹쳐 흘리면 재장전이 실효 시간을
   // 전혀 깎지 못한다. 기획 사이클(8×2.4s + 1.2s = 20.4s)을 그대로 재현하려면 가산해야 한다.
   const nextReadyAtRef = useRef(-Infinity)
+  const lifestealRef = useRef(null)
+  if (lifestealRef.current === null) lifestealRef.current = createLifestealState()
 
   usePlayingFrame(({ clock }) => {
     const w = weapons.bikittyCutter
@@ -280,6 +283,7 @@ export function BikittyCutterWeapon() {
     if (targets.length === 0) return
 
     const damage = bikittySegmentDamage(w, segment)
+    let landedHit = false
     targets.forEach(({ rb, generation }) => {
       const hit = applyEnemyHit(rb, generation, damage, {
         source: { x: playerPos.x, z: playerPos.z },
@@ -289,9 +293,13 @@ export function BikittyCutterWeapon() {
         critMultiplier: w.critMultiplier,
       })
       if (!hit) return
+      landedHit = true
       // 타격음은 커터칼 계열 공용 음원을 그대로 쓴다(soundmini가 전용 음원으로 교체 가능).
       emitSfx({ id: 'boxCutterHit', volume: 0.52, rate: 1.00 + Math.random() * 0.10 })
     })
+
+    // 흡혈: 맞힌 베기 1회당 1번(타격 수·부러짐 부채꼴과 무관), 이펙트는 4초 스로틀.
+    if (landedHit) applyWeaponLifesteal(useGameStore.getState(), w, now, lifestealRef.current)
 
     const snapped = isBikittySnapSegment(w, segment)
     if (snapped) {

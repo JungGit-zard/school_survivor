@@ -25,7 +25,7 @@ import {
 } from '../lib/playerRecords.js'
 import { evaluateUnlocks, isStarter, WEAPON_CATALOG } from '../lib/weaponCatalog.js'
 import { getAllUnlocked, setUnlocked as setWeaponUnlocked } from '../lib/weaponUnlocks.js'
-import { DEFAULT_STAGE_ID, getNextStageId, getStageConfig, isStageUnlocked, isStageVisible } from '../lib/stageConfig.js'
+import { DEFAULT_STAGE_ID, getClearContinuationStageId, getNextStageId, getStageConfig, isStageUnlocked, isStageVisible } from '../lib/stageConfig.js'
 import { getBossSpawnSec } from '../lib/burstEvents.js'
 import { getAdminBalanceConfig } from '../lib/adminConfig.js'
 import { vibrateFeedback } from '../lib/titleSettings.js'
@@ -501,11 +501,13 @@ export const useGameStore = create(
       const hp = Math.min(s.player.maxHp, s.player.hp + amount)
       const healed = hp > s.player.hp
       if (healed && options.silent !== true) emitSfx({ id: 'playerHeal', volume: 0.34 })
+      // flash:false — HP만 올리고 회복 이펙트는 켜지 않는다(근접 흡혈 스로틀, lib/weaponLifesteal.js).
+      const flash = healed && options.flash !== false
       return {
         player: {
           ...s.player,
           hp,
-          healFlashToken: healed ? (s.player.healFlashToken ?? 0) + 1 : (s.player.healFlashToken ?? 0),
+          healFlashToken: flash ? (s.player.healFlashToken ?? 0) + 1 : (s.player.healFlashToken ?? 0),
         },
       }
     }),
@@ -777,7 +779,9 @@ export const useGameStore = create(
       const s = get()
       const rankingRun = s.rankingRun ?? { id: s.progressRunId, stages: [], written: null, writtenScore: 0 }
       set({ rankingRun: { ...rankingRun, stages: [...rankingRun.stages.filter(stage => stage.stageId !== run.stageId), run] } })
-      if (!getNextStageId(run.stageId)) return get().finishRankingRun('end')
+      // 이어 갈 수 없는 클리어(마지막 스테이지, 또는 보스 미처치 탈출구 탈출)는 여기서 런이 끝난다.
+      // finishRankingRun은 written==='ended' 가드로 로비 복귀 시 재호출돼도 한 번만 쓴다.
+      if (!getClearContinuationStageId(run.stageId, { bossDefeated: s.bossDefeated })) return get().finishRankingRun('end')
       return false
     },
 
@@ -910,7 +914,9 @@ export const useGameStore = create(
       let result = { ok: false, reason: 'not-applied', itemId }
       set((s) => {
         const reject = (reason) => { result = { ok: false, reason, itemId }; return s }
-        if (s.phase !== 'playing') return reject('not-playing')
+        // 자판기 팝업은 NPC 대화처럼 게임을 멈춘(pauseSource='vending') 상태에서 열린다.
+        const vendingPaused = s.phase === 'paused' && s.pauseSource === 'vending'
+        if (s.phase !== 'playing' && !vendingPaused) return reject('not-playing')
         if (stageId !== null && stageId !== s.currentStageId) return reject('stale-stage')
         if (gameKey !== null && gameKey !== s.gameKey) return reject('stale-run')
         if (!Number.isFinite(s.player.hp) || s.player.hp <= 0) return reject('not-alive')
@@ -931,7 +937,9 @@ export const useGameStore = create(
         result = { ok: true, itemId: item.id, machineId: placement.id,
           goldSpent: item.priceGold, hpRestored: nextHp - s.player.hp, nextGold }
         return { player: { ...s.player, hp: nextHp }, goldTotal: nextGold,
-          stageVendingPurchasedItemIds: [...s.stageVendingPurchasedItemIds, item.id] }
+          stageVendingPurchasedItemIds: [...s.stageVendingPurchasedItemIds, item.id],
+          // 구매 직후 팝업을 즉시 닫고 진행을 재개한다(Terry 2026-10-28).
+          ...(vendingPaused ? { phase: 'playing', pauseSource: null } : {}) }
       })
       if (result.ok && isFirebaseProgressHydrated({ uid: progressUid })) {
         // Reconcile the latest visible wallet, not the pre-notification value.
@@ -1122,6 +1130,16 @@ export const useGameStore = create(
       if (s.phase !== 'paused') return {}
       return { phase: 'playing', pauseSource: null }
     }),
+
+    // 자판기 팝업: NPC 대화와 같은 방식으로 playing일 때만 일시정지(pauseSource='vending')한다.
+    // BGM은 phase와 무관하게 계속 재생된다(streamingBgm/Stage1Bgm은 phase를 보지 않는다).
+    openStageVending: () => set((s) => (
+      s.phase === 'playing' ? { phase: 'paused', pauseSource: 'vending' } : {}
+    )),
+
+    closeStageVending: () => set((s) => (
+      s.phase === 'paused' && s.pauseSource === 'vending' ? { phase: 'playing', pauseSource: null } : {}
+    )),
 
     // 쓰러진 학생 대화: playing일 때만 대화용으로 일시정지(pauseSource='dialogue')한다.
     // 일반 일시정지 메뉴와 구분하기 위해 pauseSource로 분기 — HUD가 이 값으로 오버레이를 나눈다.
@@ -1446,21 +1464,27 @@ export const useGameStore = create(
     continueToNextStage: async () => {
       const s = get()
       if (s.phase !== 'cleared' || !s.escapeResult) return false
-      const nextStageId = getNextStageId(s.currentStageId)
-      if (!nextStageId || !isStageUnlocked(nextStageId, isFirebaseProgressHydrated() ? loadPlayerRecords() : {})) return false
+      // 보스 미처치(탈출구 탈출)면 다음 스테이지 조건 미달 — 결과창도 버튼을 숨긴다.
+      const nextStageId = getClearContinuationStageId(s.currentStageId, { bossDefeated: s.bossDefeated })
+      if (!nextStageId) return false
       if (!await get().flushProgressBeforeTransition()) return false
       if (get().progressRunId !== s.progressRunId || get().phase !== 'cleared') return false
-      return get().resetGame(nextStageId, { preserveQuestJourney: true, preserveContinuousScore: true })
+      return get().resetGame(nextStageId, { preserveQuestJourney: true, preserveContinuousScore: true, unlockedByRunBossDefeat: true })
     },
 
     clearStageAndStartNext: () => get().continueToNextStage(),
 
     // 게임 리셋. gameKey를 올려 Physics 트리를 새로 마운트한다.
-    resetGame: (stageId = DEFAULT_STAGE_ID, { preserveQuestJourney = false, preserveContinuousScore = false } = {}) => {
+    resetGame: (stageId = DEFAULT_STAGE_ID, { preserveQuestJourney = false, preserveContinuousScore = false, unlockedByRunBossDefeat = false } = {}) => {
       // Reject before resolving fallback config, resetting refs, or creating/checkpointing a run.
       if (!isStageVisible(stageId)) return false
       const nextStageId = getStageConfig(stageId).id
-      if (!isStageUnlocked(nextStageId, isFirebaseProgressHydrated() ? loadPlayerRecords() : {})) return false
+      // 이어 가기(continueToNextStage)는 이번 런의 보스 처치가 해금 증거다. 저장 기록만 보면
+      // 게스트·진행도 미수화 계정은 records가 {}라 보스를 잡고도 다음 스테이지가 막혔다.
+      const unlockedThisRun = unlockedByRunBossDefeat === true && preserveContinuousScore === true
+        && get().phase === 'cleared' && get().bossDefeated === true
+        && getClearContinuationStageId(get().currentStageId, { bossDefeated: true }) === nextStageId
+      if (!unlockedThisRun && !isStageUnlocked(nextStageId, isFirebaseProgressHydrated() ? loadPlayerRecords() : {})) return false
       // A new run replaces the current one: an unfinished run (restart mid-play, or a clear the player
       // did not continue) still gets its one ranking write now. A stage continuation is the same run.
       if (!preserveContinuousScore) get().finishRankingRun('end')

@@ -1618,17 +1618,49 @@ describe('pause lobby return', () => {
       })
     }
   })
+
+  it('opens the shared settings (music/SFX volume) from the pause screen and stays paused', () => {
+    useGameStore.getState().resetGame('stage1')
+    useGameStore.setState({ phase: 'paused', pauseSource: 'manual' })
+    const container = document.createElement('div')
+    const root = createRoot(container)
+
+    try {
+      act(() => {
+        root.render(<HUD onOpenCoinShop={() => {}} onGoToTitle={() => {}} onGoToLobby={() => {}} />)
+      })
+
+      clickButtonByText(container, '설정')
+
+      expect(container.querySelector('#settings-music-volume')).not.toBeNull()
+      expect(container.querySelector('#settings-sfx-volume')).not.toBeNull()
+      expect(container.textContent).not.toContain('계정 삭제')
+      // Escape closes the settings only; the run stays paused.
+      act(() => {
+        window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
+      })
+      expect(container.querySelector('#settings-music-volume')).toBeNull()
+      expect(useGameStore.getState().phase).toBe('paused')
+      expect(container.textContent).toContain('로비로 돌아가기')
+    } finally {
+      act(() => {
+        root.unmount()
+      })
+    }
+  })
 })
 
 describe('stage clear presentation', () => {
-  it('uses 다음 스테이지 계속 as the primary Stage 1 escape action', async () => {
+  it('uses 다음 스테이지 계속 as the primary Stage 1 escape action after a boss clear', async () => {
     seedStageEntryForTests('stage2')
     useGameStore.getState().resetGame('stage1')
+    // 2026-10-28 Terry: 이어 가기의 최소 조건은 이번 런의 보스 처치다.
     useGameStore.setState({
       phase: 'playing',
       elapsedMs: 240_000,
       goldSession: 12,
       goldTotal: 40,
+      bossDefeated: true,
     })
     useGameStore.getState().clearStage()
     const container = document.createElement('div')

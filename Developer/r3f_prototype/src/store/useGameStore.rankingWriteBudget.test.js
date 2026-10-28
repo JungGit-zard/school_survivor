@@ -211,6 +211,19 @@ describe('multi-stage run: every stage keeps its entry, all in one batched write
     expect(runs[1].score).toBeGreaterThan(runs[0].score)
   })
 
+  it('a no-boss exit escape cannot continue, so the clear itself ends the run with exactly one write', async () => {
+    // 2026-10-28 Terry: 보스 미처치 탈출구 탈출은 로비만 허용 — 이어 갈 수 없으니 그 클리어가 런의 끝이다.
+    useGameStore.setState({ elapsedMs: 240_000, bossDefeated: false })
+    expect(useGameStore.getState().clearStage()).toBe(true)
+    await vi.waitFor(() => expect(ranking.submitRun).toHaveBeenCalledTimes(1))
+    expect(submittedRuns(ranking.submitRun.mock.calls[0])).toEqual([expect.objectContaining({ stageId: 'stage1', cleared: true })])
+    expect(await useGameStore.getState().continueToNextStage()).toBe(false)
+    // 로비 복귀(leaveGameplay)가 다시 finishRankingRun('end')를 불러도 추가 쓰기는 없다.
+    expect(useGameStore.getState().finishRankingRun('end')).toBe(false)
+    await settle()
+    expect(ranking.submitRun).toHaveBeenCalledTimes(1)
+  })
+
   it('clear then leaving to the lobby (no continuation) writes the cleared stage once', async () => {
     clearAt(240_000)
     expect(useGameStore.getState().finishRankingRun('end')).toBe(true)

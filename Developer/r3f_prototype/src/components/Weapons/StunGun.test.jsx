@@ -112,3 +112,27 @@ describe('StunGun chain arc live endpoints', () => {
     expect(chainArcSource).not.toContain('mats.forEach')
   })
 })
+
+describe('StunGun mobile readability (2026-10-28: nearly invisible on Stage 2)', () => {
+  const source = readFileSync(new URL('./StunGun.jsx', import.meta.url), 'utf8')
+
+  it('uses a thicker, longer-lived arc and a larger bolt than the old hairline values', async () => {
+    const mod = await import('./StunGun.jsx')
+    expect(mod.STUN_ARC_DURATION_SECS).toBeGreaterThanOrEqual(0.2)
+    expect(mod.STUN_ARC_CORE_WIDTH).toBeGreaterThanOrEqual(0.04)
+    expect(mod.STUN_ARC_EDGE_WIDTH).toBeGreaterThan(mod.STUN_ARC_CORE_WIDTH)
+    expect(mod.STUN_BOLT_VISUAL_SCALE).toBeGreaterThanOrEqual(0.19)
+  })
+
+  it('renders the electric effect unlit with a dark edge so it reads on the light Stage 2 floor', () => {
+    expect(source).toContain('new THREE.MeshBasicMaterial({ color: STUN_ELECTRIC_EDGE')
+    expect(source).toContain('createStunEffectMaterial(STUN_ELECTRIC_YELLOW)')
+    expect(source).not.toContain('toonMat(0xffe840')
+  })
+
+  it('shares arc geometry at module level and disposes per-arc materials', () => {
+    expect(source).toContain('const STUN_ARC_UNIT_BOX = new THREE.BoxGeometry(1, 1, 1)')
+    expect(source).toContain('mats.edge.dispose()')
+    expect(source).not.toContain('<boxGeometry')
+  })
+})

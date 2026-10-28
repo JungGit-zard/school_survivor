@@ -12,8 +12,7 @@ import { isUnlocked as isWeaponUnlocked } from '../lib/weaponUnlocks.js'
 import { buildPlaytestSummary, sendPlaytestSummaryToAssistant } from '../lib/playtestLogger.js'
 import { emitSfx } from '../lib/sfxEvents.js'
 import { playDialogueVoice, stopDialogueVoice } from '../lib/dialogueVoice.js'
-import { readFirebasePlayerProgress, isFirebaseProgressHydrated } from '../lib/firebaseProgress.js'
-import { getNextStageId, getStageConfig, isStageUnlocked } from '../lib/stageConfig.js'
+import { getClearContinuationStageId, getNextStageId, getStageConfig } from '../lib/stageConfig.js'
 import { STAGE2_SPAWN_TELEGRAPHS, STAGE3_SPAWN_TELEGRAPHS, STAGE4_SPAWN_TELEGRAPHS } from '../lib/waveTimelines.js'
 import { getAdminOperationsConfig } from '../lib/adminConfig.js'
 import { getRankingScore } from '../lib/rankingScorePolicy.js'
@@ -47,6 +46,7 @@ import { MISSION_BY_ID } from '../lib/missionCatalog.js'
 import MissionTracker from './MissionTracker.jsx'
 import StageVendingPrompt from './StageVendingPrompt.jsx'
 import Stage4HazardGuide from './Stage4HazardGuide.jsx'
+import LobbySettingsModal from './LobbySettingsModal.jsx'
 import { milestoneLabel, missionTitle, t as translate, useT, weaponLabel } from '../lib/i18n.js'
 import { dispatchStarlinkCheatCrash } from './Weapons/Starlink.jsx'
 import pencilIconSrc from '../assets/weapon_icon/01_wea_pencil.png.webp'
@@ -885,6 +885,8 @@ export default function HUD({
   })
   const stageConfig = getStageConfig(currentStageId)
   const nextStageId = getNextStageId(currentStageId)
+  // 탈출 결과창의 이어 가기는 이번 런 보스 처치가 최소 조건이다. 탈출구로만 나왔으면 로비만 보인다.
+  const continuationStageId = getClearContinuationStageId(currentStageId, { bossDefeated })
   const stageClearScore = escapeResult?.stageScore ?? getRankingScore({
     stageId: currentStageId,
     survivalSeconds: Math.floor(elapsed / 1000),
@@ -1053,6 +1055,8 @@ export default function HUD({
   const immediateGameoverConsumedRef = useRef(false)
   const immediateGameoverMountRef = useRef(showGameoverResultImmediately && isGameover)
   const [isTitleReturnConfirmOpen, setIsTitleReturnConfirmOpen] = useState(false)
+  // Pause-screen settings (music/SFX volume etc.). Reuses the lobby settings modal.
+  const [isPauseSettingsOpen, setIsPauseSettingsOpen] = useState(false)
   const [weaponCheatOpen, setWeaponCheatOpen] = useState(false)
   const [matildaDialogueVisible, setMatildaDialogueVisible] = useState(false)
   // 'idle' → 'impact'(충돌 프레임 노출) → 'shake'(효과음+흔들림) → 'grayscale'(흑백)
@@ -1244,7 +1248,10 @@ export default function HUD({
   }, [isMatildaGameover, showGameoverResultImmediately])
 
   useEffect(() => {
-    if (phase !== 'paused') setIsTitleReturnConfirmOpen(false)
+    if (phase !== 'paused') {
+      setIsTitleReturnConfirmOpen(false)
+      setIsPauseSettingsOpen(false)
+    }
   }, [phase])
 
   useEffect(() => {
@@ -1385,12 +1392,14 @@ export default function HUD({
         closeQuestInventory()
         return
       }
+      // The settings modal owns Escape (closes itself); P must not resume under it.
+      if (isPauseSettingsOpen) return
       if ((event.code !== 'KeyP' && event.key !== 'Escape') || event.repeat) return
       togglePause()
     }
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
-  }, [closeQuestInventory, questInventoryOpen, togglePause])
+  }, [closeQuestInventory, isPauseSettingsOpen, questInventoryOpen, togglePause])
 
   return (
     <div style={styles.root}>
@@ -1513,7 +1522,7 @@ export default function HUD({
         <span data-testid="gold-amount" style={styles.goldNum}>{goldSession}</span>
       </div>
 
-      {(phase === 'playing' || (phase === 'paused' && pauseSource !== 'dialogue' && pauseSource !== 'intro')) && (
+      {(phase === 'playing' || (phase === 'paused' && pauseSource !== 'dialogue' && pauseSource !== 'intro' && pauseSource !== 'vending')) && (
         <>
           <div data-testid="top-left-controls" style={styles.topLeftControls}>
             {phase === 'playing' && showMasterRoleBadge && <span style={styles.masterRoleBadge}>{t('account.master')}</span>}
@@ -1829,8 +1838,11 @@ export default function HUD({
         </aside>
       )}
 
-      {phase === 'paused' && pauseSource !== 'dialogue' && pauseSource !== 'intro' && pauseSource !== 'quest' && (
+      {phase === 'paused' && pauseSource !== 'dialogue' && pauseSource !== 'intro' && pauseSource !== 'quest' && pauseSource !== 'vending' && (
         <div style={styles.overlay}>
+          {isPauseSettingsOpen ? (
+            <LobbySettingsModal inGame onClose={() => setIsPauseSettingsOpen(false)} />
+          ) : (
           <div
             style={styles.pausePanel}
             role="dialog"
@@ -1862,6 +1874,9 @@ export default function HUD({
                   <button style={styles.restartBtn} onClick={resumeGame}>
                     {pauseSource === 'auto' ? t('hud.resumeAway') : t('hud.resume')}
                   </button>
+                  <button type="button" style={styles.titleBtn} onClick={() => setIsPauseSettingsOpen(true)}>
+                    {t('hud.settings')}
+                  </button>
                   {onGoToRanking && <button type="button" style={styles.titleBtn} onClick={onGoToRanking}>{t('hud.ranking')}</button>}
                   <button style={styles.titleBtn} onClick={() => setIsTitleReturnConfirmOpen(true)}>
                     {t('hud.backToLobby')}
@@ -1870,6 +1885,7 @@ export default function HUD({
               </>
             )}
           </div>
+          )}
         </div>
       )}
 
@@ -1881,10 +1897,10 @@ export default function HUD({
               <h2 id="escape-success-title" style={styles.escapeTitle}>{t('hud.escapeSuccess')}</h2>
               <p data-testid="escape-total-score" style={styles.escapeScore}>{t('hud.continuousScore', { score: gameNumber(clearTotalScore) })}</p>
               <p style={styles.escapeStageScore}>{t('hud.stageScore', { score: gameNumber(stageClearScore) })}</p>
-              <p style={styles.escapeHint}>{t(nextStageId ? 'hud.continueScoreHint' : 'hud.continuousRunComplete')}</p>
+              <p data-testid="escape-continue-hint" style={styles.escapeHint}>{t(continuationStageId ? 'hud.continueScoreHint' : nextStageId ? 'hud.bossRequiredForNextStage' : 'hud.continuousRunComplete')}</p>
               <div data-testid="result-primary-actions" style={styles.escapeActions}>
-                {nextStageId && (
-                  <button type="button" style={styles.escapeContinueBtn} disabled={!isStageUnlocked(nextStageId, isFirebaseProgressHydrated() ? readFirebasePlayerProgress().records : {})} onClick={continueToNextStage}>
+                {continuationStageId && (
+                  <button type="button" data-testid="escape-continue-next-stage" style={styles.escapeContinueBtn} onClick={continueToNextStage}>
                     {t('hud.continueNextStage')}
                   </button>
                 )}

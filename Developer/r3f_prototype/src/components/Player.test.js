@@ -2,6 +2,9 @@ import { describe, expect, it } from 'vitest'
 import { readFileSync } from 'node:fs'
 import {
   HEAL_EFFECT_CORE_SCALE,
+  HEAL_EFFECT_DURATION_MS,
+  HEAL_EFFECT_MAX_OPACITY,
+  HEAL_EFFECT_MIN_INTERVAL_MS,
   HEAL_EFFECT_RING_RADIUS,
   HEAL_EFFECT_RING_TUBE_RADIUS,
   HEAL_EFFECT_SPARK_RADIUS,
@@ -10,6 +13,7 @@ import {
   getPlayerVisualPoseTransform,
   advancePlayerStep,
   resolvePlayerHitKnockback,
+  shouldStartHealEffect,
 } from './Player.jsx'
 
 describe('player hit knockback', () => {
@@ -27,17 +31,36 @@ describe('player hit knockback', () => {
     expect(source).toContain('invTimer.current += dt * 1000')
   })
 
-  it('renders a token-driven unmistakable green heal pulse above the player visual', () => {
+  it('renders a token-driven, restrained green heal pulse above the player visual', () => {
     const source = readFileSync(new URL('./Player.jsx', import.meta.url), 'utf8')
     expect(source).toContain('function PlayerHealEffect')
     expect(source).toContain('<PlayerHealEffect token={healFlashToken} />')
-    expect(HEAL_EFFECT_RING_RADIUS).toBeGreaterThanOrEqual(0.58)
-    expect(HEAL_EFFECT_RING_TUBE_RADIUS).toBeGreaterThanOrEqual(0.035)
-    expect(HEAL_EFFECT_SPARK_RADIUS).toBeGreaterThanOrEqual(0.075)
-    expect(HEAL_EFFECT_CORE_SCALE).toBeGreaterThanOrEqual(1.22)
+    // 2026-10-28 Terry: "회복 시각효과가 지나치다" — still visible, but small, short and translucent.
+    expect(HEAL_EFFECT_RING_RADIUS).toBeGreaterThanOrEqual(0.25)
+    expect(HEAL_EFFECT_RING_RADIUS).toBeLessThanOrEqual(0.4)
+    expect(HEAL_EFFECT_RING_TUBE_RADIUS).toBeGreaterThanOrEqual(0.015)
+    expect(HEAL_EFFECT_RING_TUBE_RADIUS).toBeLessThan(0.038)
+    expect(HEAL_EFFECT_SPARK_RADIUS).toBeLessThan(0.08)
+    expect(HEAL_EFFECT_CORE_SCALE).toBeLessThan(1.24)
+    expect(HEAL_EFFECT_DURATION_MS).toBeGreaterThanOrEqual(300)
+    expect(HEAL_EFFECT_DURATION_MS).toBeLessThan(760)
+    expect(HEAL_EFFECT_MAX_OPACITY).toBeGreaterThanOrEqual(0.4)
+    expect(HEAL_EFFECT_MAX_OPACITY).toBeLessThanOrEqual(0.7)
     expect(source).toContain('color="#bdffcf"')
     expect(source).toContain('color="#ffffff"')
   })
+
+  it('does not restart the heal pulse for frequent heals (one effect at a time, minimum interval)', () => {
+    expect(shouldStartHealEffect(0, -Infinity)).toBe(true)
+    const gap = Math.max(HEAL_EFFECT_DURATION_MS, HEAL_EFFECT_MIN_INTERVAL_MS)
+    expect(HEAL_EFFECT_MIN_INTERVAL_MS).toBeGreaterThanOrEqual(HEAL_EFFECT_DURATION_MS)
+    expect(shouldStartHealEffect(1000 + 150, 1000)).toBe(false)
+    expect(shouldStartHealEffect(1000 + gap - 1, 1000)).toBe(false)
+    expect(shouldStartHealEffect(1000 + gap, 1000)).toBe(true)
+    const source = readFileSync(new URL('./Player.jsx', import.meta.url), 'utf8')
+    expect(source).toContain('if (shouldStartHealEffect(nowMs, lastStartMsRef.current))')
+  })
+
   it('uses a Matilda-only fainted floor pose after gameover while keeping ordinary play upright', () => {
     expect(getPlayerVisualPoseTransform({ phase: 'playing', deathCause: null })).toEqual({
       rotation: [0, 0, 0],

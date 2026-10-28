@@ -5,6 +5,7 @@ import { emitSfx } from '../../lib/sfxEvents.js'
 import { playerPos, playerFacing, playerArmActionState } from '../../lib/refs.js'
 import { useGameStore } from '../../store/useGameStore.js'
 import { applyForwardConeDamage } from '../../lib/weaponTargeting.js'
+import { LIFESTEAL_HEAL_FLASH_INTERVAL_MS } from '../../lib/weaponLifesteal.js'
 import { startPlayerArmAction } from '../../lib/playerArmAction.js'
 import { PLAYER_MESH_SCALE } from '../../lib/characterVisualScale.js'
 import StudioTunedGroup from '../StudioTunedGroup.jsx'
@@ -137,6 +138,8 @@ export function StudentLanternWeapon() {
   const litAgeRef = useRef(0)       // 점등 후 경과(초)
   const tickTimerRef = useRef(0)    // 다음 타격까지 누적(ms). 점등 즉시 1타를 위해 interval로 초기화.
   const lastFireRef = useRef(0)
+  // 랜턴은 ~150ms마다 소량 회복한다. HP는 매 틱 올리되 회복 이펙트는 근접 흡혈과 같은 간격으로만 켠다.
+  const lastHealFlashMsRef = useRef(-Infinity)
   const groupRef = useRef(null)
   const beamRef = useRef(null)
   const coreRef = useRef(null)
@@ -208,7 +211,10 @@ export function StudentLanternWeapon() {
         const healPercent = Number.isFinite(w.healPercentOnHit) ? w.healPercentOnHit : 0.0008
         const healAmount = Math.max(0, store.player.maxHp * healPercent)
         if (healAmount > 0 && store.player.hp < store.player.maxHp) {
-          store.healPlayer(healAmount, { silent: true })
+          const nowMs = clock.elapsedTime * 1000
+          const flash = nowMs - lastHealFlashMsRef.current >= LIFESTEAL_HEAL_FLASH_INTERVAL_MS
+          if (flash) lastHealFlashMsRef.current = nowMs
+          store.healPlayer(healAmount, { silent: true, flash })
         }
         emitSfx({
           id: 'lanternTick',

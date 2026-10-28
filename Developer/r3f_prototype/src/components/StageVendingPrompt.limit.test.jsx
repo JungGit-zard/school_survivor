@@ -44,8 +44,11 @@ it('shows the remaining purchases before and after buying, and restores it on re
   expect(meta()).toBe('이번 스테이지 남은 구매 1/1')
   click()
   expect(live().goldTotal).toBe(15)
-  expect(meta()).toBe('이번 스테이지 남은 구매 0/1')
-  click()
+  // 구매 직후 팝업은 닫히고, 남은 구매 0이면 같은 스테이지에서 다시 띄우지 않는다.
+  expect(meta()).toBeUndefined()
+  expect(getStageVendingRemainingPurchases(getStageVendingItem('recoveryDrink'), live().stageVendingPurchasedItemIds)).toBe(0)
+  act(() => vi.advanceTimersByTime(500))
+  expect(meta()).toBeUndefined()
   expect(live().goldTotal).toBe(15)
   act(() => {
     live().resetGame('stage1')

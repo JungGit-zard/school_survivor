@@ -370,7 +370,11 @@ export const STAGE_OBJECT_PLACEMENTS = {
     {
       id: 'stage3-balls-ne-scattered',
       type: 'basketballCluster',
-      position: [5.0, 0, -12.1],
+      // 2026-10-28: x 5.0 → 3.55. 예전 위치는 공 2·3이 플레이어 이동 클램프선(x=5.5)을
+      // 걸쳐서, 자판기(x 6.25) 앞 북동 구석에서 클램프(서쪽 밀기)와 Rapier 밀어내기
+      // (동쪽 밀기)가 맞붙어 플레이어가 끼었다. 이제 공 무리 maxX ≈ 4.63 → 클램프선까지
+      // 0.87 units(≈0.22블록) 통로로, 좀비 최소 직경 0.747+0.1도 통과하는 개방 통로다.
+      position: [3.55, 0, -12.1],
       rotation: [0, -0.28, 0],
       scale: 1.15,
       props: { count: 6 },
@@ -394,7 +398,9 @@ export const STAGE_OBJECT_PLACEMENTS = {
     {
       id: 'stage3-cones-mid-left-zigzag',
       type: 'gymTrainingCones',
-      position: [-5.0, 0, 6.8],
+      // 2026-10-28: x -5.0 → -5.3. 콘 2·3과 플레이어 클램프선(x=-5.5) 사이 0.52~0.56
+      // 틈이 플레이어 전용 띠였다. 0.3 서쪽으로 붙여 틈 <0.272(밀폐)로 닫는다.
+      position: [-5.3, 0, 6.8],
       rotation: [0, -0.58, 0],
       scale: 1.1,
       blocking: false,
@@ -416,7 +422,9 @@ export const STAGE_OBJECT_PLACEMENTS = {
     {
       id: 'stage3-banner-south-wall',
       type: 'gymBanner',
-      position: [4.7, 0, 17.6],
+      // 2026-10-28: z 17.6 → 18.0. 배너와 플레이어 클램프선(z=18.4) 사이 0.63 틈이
+      // 플레이어 전용 띠였다. 남벽 쪽으로 0.4 붙여 틈 ≈0.23(밀폐), 벽까지는 ≈1.03(개방).
+      position: [4.7, 0, 18.0],
       rotation: [0, Math.PI + 0.08, 0],
       scale: 1.05,
       blocking: false,

@@ -5,6 +5,7 @@ import { emitSfx } from '../../lib/sfxEvents.js'
 import { playerArmActionState, playerFacing, playerPos } from '../../lib/refs.js'
 import { pickBoxCutterTargets, normalizePlanarFacing, resolveBoxCutterSlashCount } from '../../lib/boxCutter.js'
 import { applyEnemyHit } from '../../lib/weaponCollision.js'
+import { applyWeaponLifesteal, createLifestealState } from '../../lib/weaponLifesteal.js'
 import { startPlayerArmAction, computeBoxCutterActionPhases, BOX_CUTTER_ACTION_MS } from '../../lib/playerArmAction.js'
 import { useGameStore } from '../../store/useGameStore.js'
 import { outlineMat, toonMat, inflateScale } from '../../lib/toon.js'
@@ -181,6 +182,8 @@ export function BoxCutterWeapon() {
   const [strike, setStrike] = useState(null)
   const visualRef = useRef(null)
   const lastFireRef = useRef(-Infinity)
+  const lifestealRef = useRef(null)
+  if (lifestealRef.current === null) lifestealRef.current = createLifestealState()
 
   usePlayingFrame(({ clock }) => {
     const w = weapons.boxCutter
@@ -229,6 +232,7 @@ export function BoxCutterWeapon() {
     startPlayerArmAction(playerArmActionState, 'boxCutter', now, duration)
     // 영구 강화 Lv10이면 확률적으로 한 번 더 벤다(같은 대상 목록에 재적용).
     const slashCount = resolveBoxCutterSlashCount(w)
+    let landedHit = false
     for (let slash = 0; slash < slashCount; slash += 1) {
       targets.forEach(({ rb, generation }) => {
         const hit = applyEnemyHit(rb, generation, w.damage, {
@@ -239,6 +243,7 @@ export function BoxCutterWeapon() {
           critMultiplier: w.critMultiplier,
         })
         if (!hit) return
+        landedHit = true
         emitSfx({
           id: 'boxCutterHit',
           volume: 0.52,
@@ -246,6 +251,8 @@ export function BoxCutterWeapon() {
         })
       })
     }
+    // 흡혈: 맞힌 베기 1회당 1번(타격 수·이중 베기와 무관), 이펙트는 스로틀.
+    if (landedHit) applyWeaponLifesteal(useGameStore.getState(), w, now, lifestealRef.current)
     setStrike({ startMs: now, facing, range: w.range ?? 1.275, width: w.width ?? 0.22 })
   })
 

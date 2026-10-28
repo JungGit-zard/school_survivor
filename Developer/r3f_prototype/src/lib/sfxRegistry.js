@@ -3,6 +3,7 @@
 // 에셋 준비 전에도 코드는 정상 동작한다.
 
 import { Howl, Howler } from 'howler'
+import { getSfxVolumeScale, onAudioVolumesChange } from './audioSettings.js'
 import {
   getFirebaseStudioRuntimeDataset,
   setFirebaseStudioRuntimeDataset,
@@ -187,9 +188,19 @@ export function isProtectedSfx(id) {
 // 이 값은 그 위의 전역 게인이다. 곱해질 뿐 이중 적용이 아니다.
 export const SFX_MASTER_VOLUME = 0.5
 
+// 플레이어 효과음 볼륨(설정 슬라이더, 0~100)은 이 헤드룸 위에 곱한다.
+// 0이면 Howler 마스터 게인이 0이 되어 무기·좀비·UI 효과음이 전부 무음이다.
+// BGM은 Howler를 거치지 않는 <audio> 요소라 이 게인과 무관하다(streamingBgm.js).
+let sfxMasterHeadroom = SFX_MASTER_VOLUME
+
 export function applySfxMasterVolume(volume = SFX_MASTER_VOLUME) {
-  Howler.volume(clamp(Number.isFinite(volume) ? volume : SFX_MASTER_VOLUME, 0, 1))
+  sfxMasterHeadroom = clamp(Number.isFinite(volume) ? volume : SFX_MASTER_VOLUME, 0, 1)
+  try {
+    Howler.volume(clamp(sfxMasterHeadroom * getSfxVolumeScale(), 0, 1))
+  } catch { /* audio must never throw into gameplay */ }
 }
+
+onAudioVolumesChange(() => applySfxMasterVolume(sfxMasterHeadroom))
 
 // ── 사망 발성 예약 슬롯 ──────────────────────────────────────────────────────
 // 사망 발성은 /enemies/ 경로라 'combat' 클래스다 = 캡이 차면 조용히 버려진다.

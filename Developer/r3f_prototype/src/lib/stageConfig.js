@@ -177,6 +177,15 @@ export function getNextStageId(stageId = DEFAULT_STAGE_ID) {
   return next
 }
 
+// 탈출 성공 화면에서 "다음 스테이지 계속"을 허용할 스테이지. 다음 스테이지의 최소 조건은
+// 이전 스테이지 보스 처치(isStageUnlocked의 BossDefeats)이므로, 이번 런에서 보스를 잡지 않고
+// 시간 포탈(탈출구)로만 나왔다면 null — 로비 복귀만 허용한다(2026-10-28 Terry).
+// 보스를 이번 런에서 잡았다면 그 자체가 해금 증거라 저장소 기록 수화 여부와 무관하게 이어 간다.
+export function getClearContinuationStageId(stageId, { bossDefeated = false } = {}) {
+  const next = getNextStageId(stageId)
+  return next && bossDefeated === true ? next : null
+}
+
 export function getStageDurationSec(stageId = DEFAULT_STAGE_ID) {
   return getStageConfig(stageId).durationSec
 }

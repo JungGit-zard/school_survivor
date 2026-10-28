@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import './StageVendingPrompt.css'
 import { useGameStore } from '../store/useGameStore.js'
 import { playerPos } from '../lib/refs.js'
@@ -79,8 +79,9 @@ function fill(text, params) {
   return text.replace(/\{(\w+)\}/g, (match, name) => String(params[name] ?? match))
 }
 
-export function getStageVendingUiState({ phase, player, goldTotal, purchasedItemIds, inRange, item }) {
-  if (phase !== 'playing' || !Number.isFinite(player?.hp) || player.hp <= 0) return 'notPlaying'
+export function getStageVendingUiState({ phase, pauseSource = null, player, goldTotal, purchasedItemIds, inRange, item }) {
+  const active = phase === 'playing' || (phase === 'paused' && pauseSource === 'vending')
+  if (!active || !Number.isFinite(player?.hp) || player.hp <= 0) return 'notPlaying'
   if (!inRange) return 'outOfRange'
   if (getStageVendingRemainingPurchases(item, purchasedItemIds) <= 0) return 'purchased'
   if ((player?.hp ?? 0) >= (player?.maxHp ?? 0)) return 'full'
@@ -94,26 +95,37 @@ export default function StageVendingPrompt() {
   const STATUS_COPY = COPY[locale] ?? COPY.ko
   const {
     phase,
+    pauseSource,
     player,
     currentStageId,
     gameKey,
     goldTotal,
     purchasedItemIds,
     purchaseStageVendingItem,
+    openStageVending,
+    closeStageVending,
   } = useGameStore((state) => ({
     phase: state.phase,
+    pauseSource: state.pauseSource,
     player: state.player,
     currentStageId: state.currentStageId,
     gameKey: state.gameKey,
     goldTotal: state.goldTotal,
     purchasedItemIds: state.stageVendingPurchasedItemIds,
     purchaseStageVendingItem: state.purchaseStageVendingItem,
+    openStageVending: state.openStageVending,
+    closeStageVending: state.closeStageVending,
   }))
   const placement = useMemo(() => getStageVendingPlacement(currentStageId), [currentStageId])
   const [inRange, setInRange] = useState(() => isWithinStageVendingRange(playerPos, placement))
   const [feedback, setFeedback] = useState(null)
 
-  useEffect(() => { setFeedback(null) }, [currentStageId, gameKey])
+  // 닫은 팝업은 자판기 범위를 벗어났다가 다시 들어올 때까지 다시 열지 않는다.
+  const [dismissed, setDismissed] = useState(false)
+  const isOpen = phase === 'paused' && pauseSource === 'vending'
+  const wasOpenRef = useRef(false)
+
+  useEffect(() => { if (!inRange) setDismissed(false) }, [inRange])
 
   useEffect(() => {
     const update = () => setInRange(isWithinStageVendingRange(playerPos, placement))
@@ -131,13 +143,30 @@ export default function StageVendingPrompt() {
 
   const state = getStageVendingUiState({
     phase,
+    pauseSource,
     player,
     goldTotal,
     purchasedItemIds,
     inRange,
     item,
   })
-  const visible = state !== 'outOfRange' && state !== 'notPlaying'
+  // 이번 스테이지 구매를 마쳤으면 다시 띄워 진행을 멈추지 않는다(스테이지당 1회 유지).
+  const shouldOpen = phase === 'playing' && !dismissed && !!placement && !!item
+    && state !== 'outOfRange' && state !== 'notPlaying' && state !== 'purchased'
+  useEffect(() => {
+    // 구매·바깥 탭·ESC/P 등 어떤 경로로 vending 일시정지가 풀려도 닫힘으로 기억하고 바로 다시 열지 않는다.
+    if (wasOpenRef.current && !isOpen) {
+      wasOpenRef.current = false
+      setDismissed(true)
+      setFeedback(null)
+      return
+    }
+    wasOpenRef.current = isOpen
+    if (shouldOpen) openStageVending()
+  }, [isOpen, shouldOpen, openStageVending])
+  // 새 런/스테이지는 닫힘 기억을 초기화한다(위 효과보다 뒤에 두어 같은 커밋에서 이긴다).
+  useEffect(() => { setFeedback(null); setDismissed(false) }, [currentStageId, gameKey])
+  const visible = isOpen && state !== 'outOfRange' && state !== 'notPlaying'
   const disabled = state !== 'available'
   const statusText = feedback?.message ?? STATUS_COPY[state]
 
@@ -151,7 +180,8 @@ export default function StageVendingPrompt() {
       gameKey,
     })
     if (result.ok) {
-      setFeedback({ type: 'success', message: STATUS_COPY.success })
+      // 스토어가 구매와 함께 vending 일시정지를 풀어 팝업이 즉시 닫힌다.
+      setDismissed(true)
       return
     }
     const reasonCopy = {
@@ -166,9 +196,28 @@ export default function StageVendingPrompt() {
     setFeedback({ type: 'blocked', message: reasonCopy[result.reason] ?? STATUS_COPY.blocked })
   }, [STATUS_COPY, currentStageId, gameKey, item.id, placement, purchaseStageVendingItem])
 
+  const onBackdropClick = useCallback((event) => {
+    event.preventDefault()
+    event.stopPropagation()
+    setDismissed(true)
+    closeStageVending()
+  }, [closeStageVending])
+
   if (!visible || !placement || !item) return null
 
+  // 바깥 탭 백드롭: 같은 탭이 조이스틱(캔버스 대상 touchstart)이나 아래 HUD 버튼으로 새지 않도록
+  // pointerdown/touchstart 전파를 막고, 손을 뗀 뒤의 click에서 닫는다(고스트 클릭 방지).
   return (
+    <>
+    <div
+      data-testid="stage-vending-backdrop"
+      aria-hidden="true"
+      style={styles.backdrop}
+      onPointerDown={(event) => event.stopPropagation()}
+      onPointerMove={(event) => event.stopPropagation()}
+      onTouchStart={(event) => event.stopPropagation()}
+      onClick={onBackdropClick}
+    />
     <div
       data-testid="stage-vending-prompt"
       className="stage-vending-prompt"
@@ -205,10 +254,19 @@ export default function StageVendingPrompt() {
         </button>
       </div>
     </div>
+    </>
   )
 }
 
 const styles = {
+  backdrop: {
+    position: 'absolute',
+    inset: 0,
+    zIndex: 23,
+    pointerEvents: 'auto',
+    touchAction: 'none',
+    background: 'rgba(8, 12, 20, 0.28)',
+  },
   root: {
     position: 'absolute',
     left: 'max(14px, env(safe-area-inset-left, 0px))',

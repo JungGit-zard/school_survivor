@@ -31,7 +31,10 @@ export const WEAPON_CATALOG = {
   schoolBag: {
     id: 'schoolBag',
     label: '30cm 자',
-    base: { damage: 12, cooldown: 1300, range: 0.633, triggerRange: 1.0, swingMs: 260, critChance: 0.20, critMultiplier: 1.5 },
+    // healPercentOnHit: 흡혈(2026-10-28). 적을 맞힌 휘두름 1회당 최대 HP의 0.4%(HP 100 → 0.4).
+    // 쿨다운 1.3초 기준 연속 교전 시 최대 ≈0.31 HP/s — 랜턴 평균(≈0.2 HP/s)보다 조금 높고
+    // 좀비 접촉 1회 피해를 메우려면 수십 초가 걸리는 '버팀' 수준. lib/weaponLifesteal.js.
+    base: { damage: 12, cooldown: 1300, range: 0.633, triggerRange: 1.0, swingMs: 260, critChance: 0.20, critMultiplier: 1.5, healPercentOnHit: 0.004 },
     unlockConditions: STARTER,
     minLevelToAppear: 2,
   },
@@ -39,7 +42,9 @@ export const WEAPON_CATALOG = {
     id: 'boxCutter',
     label: '커터칼',
     // 2026-09-12 과도한 피해 재조정: 변경 전 72의 10%인 7.2. cooldown 1625ms와 사거리/치명타 정체성은 유지한다.
-    base: { damage: 7.2, cooldown: 1625, range: 1.4, width: 0.18, knockback: 1.8, critChance: 0.33, critMultiplier: 1.5 },
+    // healPercentOnHit: 흡혈(2026-10-28). 적을 맞힌 베기 1회당 최대 HP의 0.4%(이중 베기여도 1회).
+    // 쿨다운 1.625초 기준 최대 ≈0.25 HP/s. lib/weaponLifesteal.js.
+    base: { damage: 7.2, cooldown: 1625, range: 1.4, width: 0.18, knockback: 1.8, critChance: 0.33, critMultiplier: 1.5, healPercentOnHit: 0.004 },
     unlockConditions: STARTER,
     minLevelToAppear: 2,
   },
@@ -244,6 +249,10 @@ export const WEAPON_CATALOG = {
       snapArcDeg: 90,          // 전방 부채꼴 각도
       snapRange: 3.2,
       reloadMs: 1200,          // 부러진 뒤 추가 무장해제 시간(쿨다운 위에 가산)
+      // 흡혈(2026-10-29 Terry 승인): 커터칼과 같은 0.4%/맞힌 베기 1회. 평균 베기 주기
+      // (7×1.2초 + 부러짐 1×2.4초)/8 = 1.35초로 30cm 자(1.3)·커터칼(1.625) 사이라 같은 값이
+      // 맞다 — 최대 ≈0.30 HP/s. 부러짐 부채꼴 피해는 같은 베기라 추가 회복 없음. lib/weaponLifesteal.js.
+      healPercentOnHit: 0.004,
     },
     unlockConditions: null,
     minLevelToAppear: 6,

@@ -41,22 +41,37 @@ function renderSuccess(props = {}) {
 }
 
 describe('escape success choices', () => {
-  it('keeps no-boss guest continuation disabled without guest progress writes', async () => {
+  it('offers only the lobby after a no-boss exit escape, without guest progress writes', async () => {
     const remoteBefore = getFirebaseProgressRuntimeSnapshot()
     renderSuccess()
     const score = getRankingScore({ stageId: 'stage1', survivalSeconds: 240, cleared: true })
     const actions = container.querySelector('[data-testid="result-primary-actions"]')
+    // 2026-10-28 Terry: 보스 미처치 탈출구 탈출은 깨진 "다음 스테이지" 버튼 대신 로비만 보인다.
     expect([...actions.querySelectorAll('button')].map((button) => button.textContent)).toEqual([
-      '다음 스테이지 계속', '다른 스테이지 선택', '로비에서 쉬기',
+      '다른 스테이지 선택', '로비에서 쉬기',
     ])
+    expect(container.querySelector('[data-testid="escape-continue-next-stage"]')).toBeNull()
+    expect(container.querySelector('[data-testid="escape-continue-hint"]').textContent).toBe('보스를 쓰러뜨려야 다음 스테이지로 이어 갈 수 있어요. 로비로 돌아가세요.')
     expect(container.querySelector('#escape-success-title').textContent).toBe('탈출 성공')
     expect(container.querySelector('[data-testid="escape-total-score"]').textContent).toContain(String(score))
     expect(container.querySelector('[data-testid="escape-success-screen"] img').getAttribute('src')).toContain('escape_success.webp')
     expect(useGameStore.getState()).toMatchObject({ phase: 'cleared', currentStageId: 'stage1' })
-    expect(actions.querySelector('button').disabled).toBe(true)
-    await act(async () => actions.querySelector('button').click())
+    expect(await useGameStore.getState().continueToNextStage()).toBe(false)
     expect(useGameStore.getState()).toMatchObject({ phase: 'cleared', currentStageId: 'stage1' })
     expect(getFirebaseProgressRuntimeSnapshot()).toEqual(remoteBefore)
+  })
+
+  it.each(['stage1', 'stage2', 'stage3'])('continues a guest %s run into the next stage after this run boss defeat', async (stageId) => {
+    // 게스트는 계정 records가 {}라 예전에는 보스를 잡아도 버튼이 비활성(=진행 불가)이었다.
+    useGameStore.setState({ currentStageId: stageId, phase: 'playing', elapsedMs: 240_000, bossDefeated: true, continuousScoreBase: 0 })
+    renderSuccess()
+    const next = container.querySelector('[data-testid="escape-continue-next-stage"]')
+    expect(next).not.toBeNull()
+    expect(next.disabled).toBe(false)
+    expect(container.querySelector('[data-testid="escape-continue-hint"]').textContent).toBe('계속하면 지금 점수가 다음 스테이지까지 누적됩니다.')
+    await act(async () => next.click())
+    const expectedNext = { stage1: 'stage2', stage2: 'stage3', stage3: 'stage4' }[stageId]
+    expect(useGameStore.getState()).toMatchObject({ phase: 'playing', currentStageId: expectedNext, bossDefeated: false })
   })
 
   it.each(['다른 스테이지 선택', '로비에서 쉬기'])('returns through the existing lobby callback for %s', (label) => {

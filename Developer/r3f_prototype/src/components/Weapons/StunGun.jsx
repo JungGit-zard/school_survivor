@@ -1,11 +1,10 @@
-import { useRef, useState, useCallback, useMemo } from 'react'
+import { useRef, useState, useCallback, useMemo, useEffect } from 'react'
 import { usePlayingFrame } from '../../lib/usePlayingFrame.js'
 import { emitSfx } from '../../lib/sfxEvents.js'
 import * as THREE from 'three'
 import { playerPos } from '../../lib/refs.js'
 import { useGameStore } from '../../store/useGameStore.js'
 import { scaleEffectVisual } from '../../lib/effectVisualScale.js'
-import { toonMat } from '../../lib/toon.js'
 import { applyEnemyHit, isEnemyHitLive } from '../../lib/weaponCollision.js'
 import { findClosestEnemy } from '../../lib/weaponTargeting.js'
 import { STUN_GUN_TARGET_RANGE, createStunGunHitSet, markStunGunHit, pickStunGunChainTarget } from '../../lib/stunGun.js'
@@ -17,6 +16,25 @@ let _chainArcId  = 0
 const BOLT_SPEED  = 16
 const CHAIN_RANGE = 4.5
 const CHAIN_ARC_SEGMENT_INDICES = Object.freeze([0, 1, 2, 3, 4])
+
+// 2026-10-28 Terry 모바일 피드백: "전기충격기 효과가 모바일에서 거의 안 보임, 특히 2스테이지".
+// 2스테이지 복도 바닥은 밝은 회색이라 옅은 노랑·조명 받는(toon) 재질의 머리카락 굵기 호가 묻혔다.
+// → 조명 무관(MeshBasic) 고채도 노랑 + 어두운 테두리 층으로 밝은/어두운 바닥 모두에서 대비를 확보하고,
+//    호 굵기·지속시간·볼트 크기를 키우며, 명중 지점에 짧은 스파크 링을 남긴다.
+//    지오메트리는 모듈 공유(단위 박스/링)이고 재질은 호 1개당 3개로 고정이라 체인 수가 늘어도 비용이 작다.
+export const STUN_ARC_DURATION_SECS = 0.26
+export const STUN_ARC_CORE_WIDTH = scaleEffectVisual(0.09)
+export const STUN_ARC_EDGE_WIDTH = scaleEffectVisual(0.17)
+export const STUN_BOLT_VISUAL_SCALE = scaleEffectVisual(0.42)
+const STUN_ARC_JITTER = scaleEffectVisual(0.30)
+const STUN_ELECTRIC_YELLOW = 0xffe600
+const STUN_ELECTRIC_EDGE = 0x1a1440
+const STUN_ARC_UNIT_BOX = new THREE.BoxGeometry(1, 1, 1)
+const STUN_SPARK_RING = new THREE.RingGeometry(0.55, 1, 20)
+
+function createStunEffectMaterial(color) {
+  return new THREE.MeshBasicMaterial({ color, transparent: true, depthWrite: false, toneMapped: false })
+}
 const stunBoltVisualPose = { x: Math.PI / 2, y: 0, z: 0, order: 'YXZ' }
 
 // LightningBoltModel의 장축은 local +Y다. YXZ에서 X축으로 눕힌 뒤 yaw를 적용하면
@@ -52,8 +70,15 @@ export function resolveStunArcEndpoint(out, endpoint) {
 }
 
 export function LightningBoltModel() {
-  const boltMat = useMemo(() => toonMat(0xffe840, 0.55), [])
-  const coreMat = useMemo(() => toonMat(0xffffff, 0.9),  [])
+  // 조명 무관 고채도 노랑 + 흰 심지, 아래에 한 겹 크게 깐 남색 테두리(카툰 외곽선 역할).
+  const boltMat = useMemo(() => new THREE.MeshBasicMaterial({ color: STUN_ELECTRIC_YELLOW, toneMapped: false }), [])
+  const coreMat = useMemo(() => new THREE.MeshBasicMaterial({ color: 0xffffff, toneMapped: false }), [])
+  const edgeMat = useMemo(() => new THREE.MeshBasicMaterial({ color: STUN_ELECTRIC_EDGE, toneMapped: false }), [])
+  useEffect(() => () => {
+    boltMat.dispose()
+    coreMat.dispose()
+    edgeMat.dispose()
+  }, [boltMat, coreMat, edgeMat])
 
   const geo = useMemo(() => {
     const shape = new THREE.Shape()
@@ -68,12 +93,15 @@ export function LightningBoltModel() {
     shape.closePath()
     return new THREE.ExtrudeGeometry(shape, { depth: 0.12, bevelEnabled: false })
   }, [])
+  useEffect(() => () => geo.dispose(), [geo])
 
   return (
     <StudioTunedGroup itemId="weapon-stun-gun">
-      <group scale={[scaleEffectVisual(0.19), scaleEffectVisual(0.19), scaleEffectVisual(0.19)]}>
+      <group scale={[STUN_BOLT_VISUAL_SCALE, STUN_BOLT_VISUAL_SCALE, STUN_BOLT_VISUAL_SCALE]}>
+      {/* 비행 자세(X축 +90°)에서 local +Z는 월드 아래쪽이다: 테두리는 +Z(아래)로, 흰 심지는 -Z(위)로 둔다. */}
+      <mesh renderOrder={1} geometry={geo} material={edgeMat} scale={[1.32, 1.18, 0.8]} position={[0, 0, 0.06]} />
       <mesh renderOrder={2} geometry={geo} material={boltMat} />
-      <mesh renderOrder={3} geometry={geo} material={coreMat} scale={[0.52, 0.52, 0.52]} position={[0, 0, 0.03]} />
+      <mesh renderOrder={3} geometry={geo} material={coreMat} scale={[0.52, 0.52, 0.52]} position={[0, 0, -0.03]} />
       </group>
     </StudioTunedGroup>
   )
@@ -81,18 +109,24 @@ export function LightningBoltModel() {
 
 function ChainArcVisual({ id, from, to, startMs, onDone }) {
   const SEG_N       = 5
-  const ARC_SECS    = 0.11
+  const ARC_SECS    = STUN_ARC_DURATION_SECS
   const fromPointRef = useRef({ x: from?.fallbackX ?? 0, z: from?.fallbackZ ?? 0 })
   const toPointRef = useRef({ x: to?.fallbackX ?? 0, z: to?.fallbackZ ?? 0 })
   const segmentRefs = useRef([])
+  const sparkRef = useRef(null)
   const doneRef = useRef(false)
 
-  const mats = useMemo(() => Array.from({ length: SEG_N }, () => {
-    const m = toonMat(0xffe840, 0.35)
-    m.transparent = true
-    m.depthWrite  = false
-    return m
+  // 호 1개당 재질 3개(테두리·심지·스파크)만 만들고 세그먼트끼리 공유한다.
+  const mats = useMemo(() => ({
+    edge: createStunEffectMaterial(STUN_ELECTRIC_EDGE),
+    core: createStunEffectMaterial(STUN_ELECTRIC_YELLOW),
+    spark: createStunEffectMaterial(0xfff6a0),
   }), [])
+  useEffect(() => () => {
+    mats.edge.dispose()
+    mats.core.dispose()
+    mats.spark.dispose()
+  }, [mats])
 
   usePlayingFrame(() => {
     const t = Math.min((performance.now() - startMs) / 1000 / ARC_SECS, 1)
@@ -102,8 +136,11 @@ function ChainArcVisual({ id, from, to, startMs, onDone }) {
       onDone(id)
       return
     }
-    const opacity = 1 - t * t
-    for (let i = 0; i < SEG_N; i += 1) mats[i].opacity = opacity
+    // 앞 절반은 완전 불투명으로 유지하고 뒤에서 빠르게 사라진다(짧은 화면에서도 한 프레임 이상 확실히 보이게).
+    const opacity = t < 0.5 ? 1 : 1 - ((t - 0.5) / 0.5) ** 2
+    mats.edge.opacity = opacity * 0.85
+    mats.core.opacity = opacity
+    mats.spark.opacity = opacity * 0.9
 
     const fromPoint = resolveStunArcEndpoint(fromPointRef.current, from)
     const toPoint = resolveStunArcEndpoint(toPointRef.current, to)
@@ -116,8 +153,8 @@ function ChainArcVisual({ id, from, to, startMs, onDone }) {
       const next = i + 1
       const aT = i / SEG_N
       const bT = next / SEG_N
-      const aJitter = i > 0 ? Math.sin(i * 7.3 + (fromPoint.x + fromPoint.z) * 5.1) * scaleEffectVisual(0.20) : 0
-      const bJitter = next < SEG_N ? Math.sin(next * 7.3 + (fromPoint.x + fromPoint.z) * 5.1) * scaleEffectVisual(0.20) : 0
+      const aJitter = i > 0 ? Math.sin(i * 7.3 + (fromPoint.x + fromPoint.z) * 5.1) * STUN_ARC_JITTER : 0
+      const bJitter = next < SEG_N ? Math.sin(next * 7.3 + (fromPoint.x + fromPoint.z) * 5.1) * STUN_ARC_JITTER : 0
       const ax = fromPoint.x + dx * aT + px * aJitter
       const az = fromPoint.z + dz * aT + pz * aJitter
       const bx = fromPoint.x + dx * bT + px * bJitter
@@ -129,17 +166,22 @@ function ChainArcVisual({ id, from, to, startMs, onDone }) {
       segmentRefs.current[i].scale.z = segmentLength
       segmentRefs.current[i].visible = true
     }
+    if (sparkRef.current) {
+      sparkRef.current.position.set(toPoint.x, 0.56, toPoint.z)
+      sparkRef.current.scale.setScalar(0.14 + t * 0.26)
+      sparkRef.current.visible = true
+    }
   })
 
   return (
     <>
       {CHAIN_ARC_SEGMENT_INDICES.map((i) => (
         <group key={i} ref={(node) => { segmentRefs.current[i] = node }} visible={false}>
-          <mesh renderOrder={2} material={mats[i]}>
-            <boxGeometry args={[scaleEffectVisual(0.025), scaleEffectVisual(0.025), 1]} />
-          </mesh>
+          <mesh renderOrder={2} geometry={STUN_ARC_UNIT_BOX} material={mats.edge} scale={[STUN_ARC_EDGE_WIDTH, STUN_ARC_EDGE_WIDTH * 0.5, 1.04]} position={[0, -0.02, 0]} />
+          <mesh renderOrder={3} geometry={STUN_ARC_UNIT_BOX} material={mats.core} scale={[STUN_ARC_CORE_WIDTH, STUN_ARC_CORE_WIDTH, 1]} />
         </group>
       ))}
+      <mesh ref={sparkRef} visible={false} renderOrder={4} geometry={STUN_SPARK_RING} material={mats.spark} rotation={[-Math.PI / 2, 0, 0]} />
     </>
   )
 }

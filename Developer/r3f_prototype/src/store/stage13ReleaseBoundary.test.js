@@ -72,16 +72,23 @@ describe('Stage1–4 release entry boundary', () => {
     expect(buildCloudProgressSnapshot()).toEqual(progress)
   })
 
-  it.each([false, true])('Stage3 next reaches Stage4 only with natural boss evidence=%s', async (eligible) => {
-    account.records = { stage3BossDefeats: eligible ? 1 : 0, stage3Clears: 7 }
+  // 2026-10-28 Terry: 다음 스테이지 최소 조건은 보스 처치다. 이어 가기는 이번 런의 보스 처치만
+  // 증거로 쓴다 — 계정에 과거 처치 기록이 있어도 탈출구(시간 포탈)로만 나오면 로비만 허용.
+  it.each([
+    [false, false],
+    [false, true],
+    [true, false],
+    [true, true],
+  ])('Stage3 next reaches Stage4 only after this run boss defeat (bossDefeated=%s, historical evidence=%s)', async (bossDefeated, historical) => {
+    account.records = { stage3BossDefeats: historical ? 1 : 0, stage3Clears: 7 }
     const flush = vi.fn(async () => true)
     const reset = vi.fn(() => true)
-    useGameStore.setState({ currentStageId: 'stage3', phase: 'cleared', progressRunId: null,
+    useGameStore.setState({ currentStageId: 'stage3', phase: 'cleared', progressRunId: null, bossDefeated,
       escapeResult: { stageId: 'stage3', totalScore: 123 }, flushProgressBeforeTransition: flush, resetGame: reset })
     const before = useGameStore.getState()
-    expect(await before.continueToNextStage()).toBe(eligible)
-    expect(flush).toHaveBeenCalledTimes(eligible ? 1 : 0)
-    if (eligible) expect(reset).toHaveBeenCalledWith('stage4', { preserveQuestJourney: true, preserveContinuousScore: true })
+    expect(await before.continueToNextStage()).toBe(bossDefeated)
+    expect(flush).toHaveBeenCalledTimes(bossDefeated ? 1 : 0)
+    if (bossDefeated) expect(reset).toHaveBeenCalledWith('stage4', { preserveQuestJourney: true, preserveContinuousScore: true, unlockedByRunBossDefeat: true })
     else expect(reset).not.toHaveBeenCalled()
     expect(useGameStore.getState()).toBe(before)
   })

@@ -24,8 +24,16 @@
 // that pause without an event or refuse play() for a moment), when the shared
 // AudioContext comes back to 'running', and on the next user gesture if autoplay
 // is refused. A hidden tab is never fought: wanted() is false there.
+//
+// Player music volume (2026-10-28): the settings slider only rewrites `volume` and
+// `muted` on the element. It never pauses, reloads or seeks, so the track keeps its
+// playhead. At 0 the element stays playing but muted: wanted() is unchanged, so the
+// watchdog/pause self-heal keeps the track running silently instead of fighting a
+// pause, and raising the slider again is instant with no restart. `muted` matters on
+// iOS Safari, where HTMLMediaElement.volume is read-only (always 1).
 
 import { configureAudioSession, onSharedAudioResume } from './sharedAudioContext.js'
+import { getMusicVolumeScale, onAudioVolumesChange } from './audioSettings.js'
 
 const GESTURE_EVENTS = ['pointerdown', 'touchstart', 'keydown']
 export const STALL_RECOVERY_MS = 6000
@@ -39,12 +47,24 @@ function isHidden() {
   return typeof document !== 'undefined' && document.visibilityState === 'hidden'
 }
 
+function clampUnit(value) {
+  const number = Number(value)
+  return Number.isFinite(number) ? Math.min(1, Math.max(0, number)) : 0.5
+}
+
+function applyMusicVolume(audio, baseVolume) {
+  const scale = getMusicVolumeScale()
+  try { audio.volume = clampUnit(baseVolume * scale) } catch { /* read-only volume (iOS) */ }
+  try { audio.muted = scale <= 0 } catch { /* ignore */ }
+}
+
 function createPlayer(url, volume) {
   configureAudioSession()
   const audio = new Audio()
+  const baseVolume = clampUnit(volume)
   audio.preload = 'auto'
   audio.loop = true
-  audio.volume = volume
+  applyMusicVolume(audio, baseVolume)
   audio.src = url
 
   const holders = new Set()
@@ -157,6 +177,7 @@ function createPlayer(url, volume) {
     holders,
     sync,
     dispose,
+    applyVolume() { if (!disposed) applyMusicVolume(audio, baseVolume) },
     hold(handle) {
       if (releaseTimer) { clearTimeout(releaseTimer); releaseTimer = null }
       clearBridge()
@@ -218,6 +239,13 @@ export function resumeStreamingBgm() {
   for (const player of [...players.values()]) player.sync()
 }
 onSharedAudioResume(resumeStreamingBgm)
+
+// Music slider: volume/muted only. Never sync()/play()/pause() here, so the track is
+// neither restarted nor cut.
+export function applyStreamingBgmVolume() {
+  for (const player of [...players.values()]) player.applyVolume()
+}
+onAudioVolumesChange(applyStreamingBgmVolume)
 
 export function _streamingBgmPlayersForTests() {
   return players

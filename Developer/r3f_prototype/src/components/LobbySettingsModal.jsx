@@ -11,6 +11,7 @@ import { useAuthStore } from '../store/useAuthStore.js'
 import { DEFAULT_PLAYER_APPEARANCE as DEFAULT_APPEARANCE } from '../lib/playerAppearance.js'
 import { deleteAccountAndData, reauthenticateForDeletion } from '../lib/accountDeletion.js'
 import { TERMS_TITLE, TERMS_TEXT, PRIVACY_TITLE, PRIVACY_TEXT } from '../lib/legalDocuments.js'
+import { getAudioVolumes, onAudioVolumesChange, setMusicVolume, setSfxVolume } from '../lib/audioSettings.js'
 
 const panelTone = {
   navy: '#18372f',
@@ -33,7 +34,9 @@ const deleteErrorText = (reason) => (
   `settings.err.${DELETE_ERROR_KEYS.has(reason) ? reason : 'unknown'}`
 )
 
-export default function LobbySettingsModal({ onClose, onNicknameChange, onLogoutToTitle }) {
+// inGame: opened from the in-run pause screen. Profile, appearance and account actions
+// (logout/delete) are hidden there; a run must not be torn down from a settings row.
+export default function LobbySettingsModal({ onClose, onNicknameChange, onLogoutToTitle, inGame = false }) {
   const t = useT()
   const locale = useLocale()
   const authUser = useAuthStore((s) => s.user)
@@ -62,6 +65,10 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
   const [reauthBusy, setReauthBusy] = useState(false)
   const [appearanceBusy, setAppearanceBusy] = useState(false)
   const [appearanceError, setAppearanceError] = useState(false)
+  // Music / SFX volumes live in lib/audioSettings.js (tab memory), never in titleSettings:
+  // the account Rules reject unknown titleSettings keys, which would fail every cloud save.
+  const [audioVolumes, setAudioVolumes] = useState(getAudioVolumes)
+  useEffect(() => onAudioVolumesChange(setAudioVolumes), [])
 
   useEffect(() => {
     if (authUser) return
@@ -341,6 +348,26 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
           </div>
         ) : (
           <>
+            <div style={styles.sectionLabel}>{t('settings.sound')}</div>
+            {!guestSession && <p data-testid="settings-audio-session-note" style={styles.guestNote}>{t('settings.audioSessionOnly')}</p>}
+            <VolumeRow
+              id="settings-music-volume"
+              label={t('settings.music')}
+              description={t('settings.musicDesc')}
+              value={audioVolumes.musicVolume}
+              offLabel={t('settings.volumeOff')}
+              onChange={setMusicVolume}
+            />
+            <VolumeRow
+              id="settings-sfx-volume"
+              label={t('settings.sfx')}
+              description={t('settings.sfxDesc')}
+              value={audioVolumes.sfxVolume}
+              offLabel={t('settings.volumeOff')}
+              onChange={setSfxVolume}
+            />
+
+            {!inGame && <>
             <div style={styles.sectionLabel}>{t('settings.profile')}</div>
             <button type="button" style={styles.settingRow} onClick={openNicknameEditor} disabled={!!authUser && !remoteSettingsReady}>
               <span style={styles.rowText}>
@@ -349,9 +376,11 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
               </span>
               <span style={styles.arrow}>›</span>
             </button>
+            </>}
 
             <div style={styles.sectionLabel}>{t('settings.gameEnv')}</div>
             {guestSession && <p data-testid="settings-guest-session-note" style={styles.guestNote}>{t('settings.guestSessionOnly')}</p>}
+            {!inGame && <>
             <div style={styles.languageRow}>
               <strong style={styles.rowTitle}>{t('settings.playerAppearance')}</strong>
               <div style={styles.languageChoices} role="group" aria-label={t('settings.playerAppearance')} aria-busy={appearanceBusy}>
@@ -370,6 +399,7 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
               </div>
             </div>
             {appearanceError && <p role="alert" style={styles.deleteErrorText}>{t('settings.playerAppearanceSaveFailed')}</p>}
+            </>}
             <div style={styles.languageRow}>
               <span style={styles.rowText}>
                 <strong style={styles.rowTitle}>{t('settings.language')}</strong>
@@ -501,6 +531,7 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
               </div>
             )}
 
+            {!inGame && <>
             <div style={styles.sectionLabel}>{t('settings.account')}</div>
             <button type="button" style={accountActionStyle(styles.logoutButton, !authUser?.uid || appearanceBusy || nicknameBusy)} onClick={handleLogout} disabled={!authUser?.uid || appearanceBusy || nicknameBusy}>
               {t('settings.logout')}
@@ -509,9 +540,36 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
             <button type="button" style={accountActionStyle(styles.deleteAccountButton, !authUser?.uid || appearanceBusy || nicknameBusy)} onClick={openDeleteConfirm} disabled={!authUser?.uid || appearanceBusy || nicknameBusy}>
               {t('settings.deleteAccount')}
             </button>
+            </>}
           </>
         )}
       </section>
+    </div>
+  )
+}
+
+function VolumeRow({ id, label, description, value, offLabel, onChange }) {
+  const off = value <= 0
+  return (
+    <div style={styles.volumeRow}>
+      <span style={styles.rowText}>
+        <label htmlFor={id} style={styles.rowTitle}>{label}</label>
+        <span style={styles.rowDescription}>{description}</span>
+      </span>
+      <div style={styles.volumeControl}>
+        <input
+          id={id}
+          type="range"
+          min={0}
+          max={100}
+          step={5}
+          value={value}
+          aria-valuetext={off ? offLabel : `${value}%`}
+          style={styles.volumeSlider}
+          onChange={(event) => onChange(Number(event.target.value))}
+        />
+        <span data-testid={`${id}-value`} style={styles.volumeValue(off)}>{off ? offLabel : `${value}%`}</span>
+      </div>
     </div>
   )
 }
@@ -675,6 +733,32 @@ const styles = {
     lineHeight: 1.45,
     fontWeight: 600,
   },
+  volumeRow: {
+    width: '100%',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'stretch',
+    gap: 6,
+    padding: '8px 10px',
+    marginBottom: 7,
+    border: uiBorders.strong,
+    borderRadius: 8,
+    background: uiPalette.chalkboard,
+    color: uiPalette.paperLight,
+    boxSizing: 'border-box',
+    boxShadow: uiShadows.pressSmall,
+  },
+  volumeControl: { display: 'flex', alignItems: 'center', gap: 10, minHeight: 36 },
+  // 모바일 손가락 기준: 트랙 영역 높이 36px, 가로는 남은 폭 전부.
+  volumeSlider: { flex: '1 1 auto', minWidth: 0, height: 36, margin: 0, accentColor: panelTone.sky, cursor: 'pointer' },
+  volumeValue: (off) => ({
+    flex: '0 0 auto',
+    minWidth: 40,
+    textAlign: 'right',
+    fontSize: 12,
+    fontWeight: uiType.weightStrong,
+    color: off ? uiPalette.mutedChalk : uiPalette.paperLight,
+  }),
   guestNote: {
     margin: '0 0 7px',
     padding: '6px 9px',

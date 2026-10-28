@@ -72,13 +72,11 @@ const BASKETBALL_CART_COLLIDER_PARTS = [
   { key: 'ball-cart-wheel-right', position: [0.58, 0.12, -0.34], size: [0.24, 0.24, 0.18] },
 ]
 
+// 2026-10-28 Terry 모바일 플테: 공 6개를 각각 0.36 박스로 두면 공 사이 틈(0.27~0.85)이
+// 플레이어(전폭 0.272)만 들어가는 비대칭 포켓이 되고, 회전된 박스들의 V자 틈에 끼어
+// 움직이지 못했다. 공 무리 전체를 감싸는 단일 밀폐 박스 하나로 바꾼다(로컬 공 중심 ±0.18).
 const BASKETBALL_CLUSTER_COLLIDER_PARTS = [
-  { key: 'basketball-0', position: [-0.62, 0.19, -0.22], size: [0.36, 0.36, 0.36] },
-  { key: 'basketball-1', position: [-0.18, 0.19, 0.24], size: [0.36, 0.36, 0.36] },
-  { key: 'basketball-2', position: [0.26, 0.19, -0.18], size: [0.36, 0.36, 0.36] },
-  { key: 'basketball-3', position: [0.68, 0.19, 0.18], size: [0.36, 0.36, 0.36] },
-  { key: 'basketball-4', position: [0.05, 0.19, 0.66], size: [0.36, 0.36, 0.36] },
-  { key: 'basketball-5', position: [-0.74, 0.19, 0.52], size: [0.36, 0.36, 0.36] },
+  { key: 'basketball-cluster-footprint', position: [-0.03, 0.19, 0.22], size: [1.78, 0.38, 1.24] },
 ]
 
 const GYM_BENCH_COLLIDER_PARTS = [

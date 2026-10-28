@@ -10,6 +10,7 @@
 // the BGM is re-asserted in case the OS paused it anyway.
 import { getSharedAudioContext } from './sharedAudioContext.js'
 import { resumeStreamingBgm } from './streamingBgm.js'
+import { getSfxVolumeScale } from './audioSettings.js'
 
 const ACTIVE_TIMERS = new Set()
 const ACTIVE_NODES = new Set()
@@ -121,6 +122,7 @@ export function playDialogueVoice(text, profileName = 'protagonistIntro', option
         const timer = setTimeout(() => {
           ACTIVE_TIMERS.delete(timer)
           if (generation !== utteranceGeneration || context.state !== 'running') return
+          if (getSfxVolumeScale() <= 0) return
           try { playGlyphBleep(context, profile, glyph, index, volume) } catch { cancel() }
         }, cursorMs)
         ACTIVE_TIMERS.add(timer)
@@ -161,7 +163,9 @@ function playGlyphBleep(context, profile, glyph, index, volume) {
   const duration = (profile.durationMs ?? 48) / 1000
   const attack = (profile.attackMs ?? 3) / 1000
   const release = (profile.releaseMs ?? 24) / 1000
-  const gainAmount = (profile.gain ?? 0.04) * volume
+  // Bleeps connect straight to context.destination, past Howler's master gain, so the
+  // player's SFX slider (voices count as SFX) is applied here.
+  const gainAmount = (profile.gain ?? 0.04) * volume * getSfxVolumeScale()
 
   const master = context.createGain()
   const filter = context.createBiquadFilter()

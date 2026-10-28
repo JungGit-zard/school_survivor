@@ -6,6 +6,7 @@ import { bagSwingState, playerFacing, playerPos } from '../../lib/refs.js'
 import { useGameStore } from '../../store/useGameStore.js'
 import { outlineMat, toonMat, inflateScale } from '../../lib/toon.js'
 import { applyEnemyHit, isEnemyHitLive } from '../../lib/weaponCollision.js'
+import { applyWeaponLifesteal, createLifestealState } from '../../lib/weaponLifesteal.js'
 import { createWeaponTargetScratch, resolveWeaponTarget, scanOrientedBoxEnemiesInto, scanRadiusEnemiesInto } from '../../lib/weaponTargeting.js'
 import StudioTunedGroup from '../StudioTunedGroup.jsx'
 
@@ -50,7 +51,7 @@ export function ThirtyCmRulerModel() {
 
 export function SchoolBagSwing() {
   const weapons = useGameStore((s) => s.weapons)
-  const swingRef = useRef({ active: false, startMs: 0, facing: 0 })
+  const swingRef = useRef({ active: false, startMs: 0, facing: 0, healed: false })
   const lastSwingRef = useRef(0)
   const visualRef = useRef(null)
   const bagArcRef = useRef(null)
@@ -59,6 +60,8 @@ export function SchoolBagSwing() {
   const nearbyScratchRef = useRef(createWeaponTargetScratch(1))
   const swingScratchRef = useRef(createWeaponTargetScratch())
   const impactRef = useRef({ source: { x: 0, z: 0 }, knockback: 3.8, knockbackMs: 120, critChance: 0, critMultiplier: 1, weaponKey: 'schoolBag' })
+  const lifestealRef = useRef(null)
+  if (lifestealRef.current === null) lifestealRef.current = createLifestealState()
 
   usePlayingFrame(({ clock }) => {
     const w = weapons.schoolBag
@@ -79,6 +82,7 @@ export function SchoolBagSwing() {
       bagSwingState.progress = 0
       swing.active = true
       swing.startMs = now
+      swing.healed = false
       swing.facing = Math.atan2(playerFacing.x, playerFacing.z)
       return
     }
@@ -161,6 +165,11 @@ export function SchoolBagSwing() {
         }
       } else hitTargetsRef.current.generations[index] = generation
       emitSfx({ id: 'rulerHit', volume: 0.58 })
+      // 흡혈: 한 휘두름에서 첫 타격 때 1번만(lib/weaponLifesteal.js, 이펙트 스로틀).
+      if (!swing.healed) {
+        swing.healed = true
+        applyWeaponLifesteal(useGameStore.getState(), w, now, lifestealRef.current)
+      }
     }
   })
 

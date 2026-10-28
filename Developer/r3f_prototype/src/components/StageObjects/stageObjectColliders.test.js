@@ -10,6 +10,7 @@ import {
 } from './stageObjectColliders.js'
 import { getStageObjectPlacements, STAGE_OBJECT_PLACEMENTS } from './stageObjectPlacements.js'
 import { getStageBounds } from '../../lib/stageConfig.js'
+import { getPlayerMovementBounds } from '../../lib/playerMovementBounds.js'
 import { commitFirebaseStudioRuntime } from '../../lib/studioRuntimeState.js'
 
 const ENEMY_MIN_TOP_Y = 0.34
@@ -165,7 +166,8 @@ describe('stage object blocking colliders', () => {
     expect(getStageObjectColliders('stage3')).toHaveLength(gymProps.length)
     expect(gymProps.every((placement) => getStageObjectColliderParts(placement).length > 0)).toBe(true)
     expect(getStageObjectColliderParts(gymProps.find(({ type }) => type === 'basketballHoop')).length).toBeGreaterThanOrEqual(6)
-    expect(getStageObjectColliderParts(gymProps.find(({ type }) => type === 'basketballCluster')).length).toBe(6)
+    // 공 무리는 공 사이 플레이어 전용 틈을 없애려고 단일 밀폐 박스 1개다(2026-10-28).
+    expect(getStageObjectColliderParts(gymProps.find(({ type }) => type === 'basketballCluster')).length).toBe(1)
     expect(getStageObjectColliderParts(gymProps.find(({ type }) => type === 'gymTrainingCones')).length).toBe(4)
     expect(getStageObjectColliderParts(gymProps.find(({ type }) => type === 'gymEquipmentSpill')).length).toBeGreaterThanOrEqual(4)
   })
@@ -366,6 +368,48 @@ describe('stage object blocking colliders', () => {
     })
 
     expect(violations.join('\n')).toBe('')
+  })
+
+  // 2026-10-28 Terry 모바일 플테: stage3 북동 농구공 무리와 자판기 사이에 끼어 못 움직임.
+  // 원인은 맵 벽이 아니라 Player.jsx의 이동 클램프선(x=±5.5 등)이다. 자판기(x 6.25)는
+  // 콜라이더가 없고 클램프선 밖이라 시각적 벽 역할만 한다. 공 하나하나(파트)와 클램프선
+  // 사이 0.4~0.5 틈이 플레이어만 들어가는 포켓이 되어 그 안에 끼었다.
+  // 루트 AABB로는 이 틈이 안 보이므로(루트는 클램프선을 걸침) 파트 단위로 검사한다.
+  // 걸침 자체는 Rapier가 막아 주므로 허용, 0.272~0.85 틈만 금지(밀폐 또는 개방).
+  function getWorldPartAabbs(collider) {
+    return collider.parts.map((part) => ({ key: part.key, ...getWorldAabb({ ...collider, parts: [part] }) }))
+  }
+
+  it.each(['stage3'])('leaves no trap pocket between %s prop parts and the player movement clamp', (stageId) => {
+    const bounds = getPlayerMovementBounds(stageId)
+    const violations = []
+
+    getStageObjectColliders(stageId).forEach((collider) => {
+      getWorldPartAabbs(collider).forEach(({ key, minX, maxX, minZ, maxZ }) => {
+        // 클램프 영역 밖 파트(벽 쪽 장식)는 플레이어가 닿지 못한다.
+        if (maxX <= bounds.minX || minX >= bounds.maxX || maxZ <= bounds.minZ || minZ >= bounds.maxZ) return
+        const gaps = {
+          '-X': minX - bounds.minX,
+          '+X': bounds.maxX - maxX,
+          '-Z': minZ - bounds.minZ,
+          '+Z': bounds.maxZ - maxZ,
+        }
+        Object.entries(gaps).forEach(([direction, gap]) => {
+          if (isAsymmetricPocket(gap)) violations.push(`${collider.id}/${key} ${direction} clamp gap=${gap.toFixed(3)}`)
+        })
+      })
+    })
+
+    expect(violations.join('\n')).toBe('')
+  })
+
+  it('keeps the Stage 3 NE basketball cluster clear of the vending corner clamp line', () => {
+    const cluster = getStageObjectColliders('stage3').find(({ id }) => id === 'stage3-balls-ne-scattered-collider')
+    const { maxX } = getWorldAabb(cluster)
+    const { maxX: clampMaxX } = getPlayerMovementBounds('stage3')
+    // 플레이어 전폭 0.272 ×2 + 여유보다 넓고, 최소 좀비 직경 + 0.1(0.85)까지 열린 통로.
+    expect(clampMaxX - maxX).toBeGreaterThanOrEqual(OPEN_GAP_MIN)
+    expect(cluster.parts).toHaveLength(1)
   })
 
   it.each(POCKET_CHECKED_STAGE_IDS)('leaves no player-only pocket between neighbouring %s props', (stageId) => {

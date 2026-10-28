@@ -10,6 +10,7 @@ import { TERMS_TEXT, TERMS_TITLE, PRIVACY_TEXT, PRIVACY_TITLE } from '../lib/leg
 import { _resetGuestSessionSettingsForTests, loadGuestSessionSettings, loadTitleSettings, saveTitleSettings } from '../lib/titleSettings.js'
 import { saveGuestRankingNickname } from '../lib/guestRankingIdentity.js'
 import { PLAYER_APPEARANCE_VALUES } from '../lib/playerAppearance.js'
+import { _resetAudioSettingsForTests, getAudioVolumes, setMusicVolume } from '../lib/audioSettings.js'
 
 vi.mock('../lib/guestRankingIdentity.js', () => ({
   getGuestRankingNickname: () => '자동생존자',
@@ -470,7 +471,61 @@ describe('LobbySettingsModal', () => {
 
     view.unmount()
   })
+
+  it('has separate music and SFX volume sliders that drive the audio layer', async () => {
+    _resetAudioSettingsForTests()
+    useAuthStore.setState({ user: null, status: 'signedOut', progressStatus: 'idle' })
+    const view = renderSettings()
+    const music = view.container.querySelector('#settings-music-volume')
+    const sfx = view.container.querySelector('#settings-sfx-volume')
+    expect(music.type).toBe('range')
+    expect(sfx.type).toBe('range')
+    expect(music.value).toBe('100')
+    await setRange(sfx, '0')
+    expect(getAudioVolumes()).toEqual({ musicVolume: 100, sfxVolume: 0 })
+    expect(view.container.querySelector('[data-testid="settings-sfx-volume-value"]').textContent).toBe('끔')
+    await setRange(music, '40')
+    expect(getAudioVolumes()).toEqual({ musicVolume: 40, sfxVolume: 0 })
+    // External change (e.g. the other settings surface) is reflected live.
+    act(() => setMusicVolume(65))
+    expect(music.value).toBe('65')
+    // Volumes never ride along into guest titleSettings either.
+    expect(loadGuestSessionSettings()).not.toHaveProperty('musicVolume')
+    view.unmount()
+    _resetAudioSettingsForTests()
+  })
+
+  it('keeps volumes out of account titleSettings (Rules reject unknown keys)', async () => {
+    _resetAudioSettingsForTests()
+    const uid = 'audio-account-user'
+    _seedHydratedFirebaseProgressForTests({ uid })
+    useAuthStore.setState({ status: 'signedIn', user: { uid }, progressStatus: 'ready' })
+    const view = renderSettings()
+    await setRange(view.container.querySelector('#settings-music-volume'), '20')
+    expect(view.container.querySelector('[data-testid="settings-audio-session-note"]')).not.toBeNull()
+    expect(loadTitleSettings()).not.toHaveProperty('musicVolume')
+    expect(getAudioVolumes().musicVolume).toBe(20)
+    view.unmount()
+    _resetAudioSettingsForTests()
+  })
+
+  it('in-game variant hides profile, appearance and account actions', async () => {
+    useAuthStore.setState({ status: 'signedIn', user: { uid: 'in-game-user' }, signOutOfGoogle: vi.fn(async () => {}) })
+    const view = renderSettings({ inGame: true })
+    expect(view.container.querySelector('#settings-music-volume')).not.toBeNull()
+    expect(view.container.textContent).not.toContain('계정 삭제')
+    expect(view.container.textContent).not.toContain('닉네임')
+    expect(view.container.querySelector('[role="group"][aria-label="주인공 외형"]')).toBeNull()
+    view.unmount()
+  })
 })
+
+async function setRange(input, value) {
+  await act(async () => {
+    Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(input, value)
+    input.dispatchEvent(new Event('input', { bubbles: true }))
+  })
+}
 
 async function flushAsyncWork() {
   await act(async () => {
