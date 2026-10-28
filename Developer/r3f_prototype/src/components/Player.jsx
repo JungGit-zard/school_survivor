@@ -188,7 +188,7 @@ export function PlayerVisual({ meshGroup, movingRef, hp, maxHp, hitFlashToken = 
       <group position={visualPose.position} rotation={visualPose.rotation}>
         <group ref={meshGroup}>
           {appearance === 'legacy'
-            ? <PlayerMesh movingRef={movingRef} hitFlashToken={hitFlashToken} previewArmAction={previewArmAction} />
+            ? <PlayerMesh movingRef={movingRef} hitFlashToken={hitFlashToken} previewArmAction={previewArmAction} outfit={outfit} />
             : appearance === 'rosari'
               ? <PlayerRosariModel movingRef={movingRef} hitFlashToken={hitFlashToken} previewArmAction={previewArmAction} gameplay={gameplay} />
               : <PlayerV9Model movingRef={movingRef} hitFlashToken={hitFlashToken} previewArmAction={previewArmAction} gameplay={gameplay} outfit={outfit} />}
@@ -212,7 +212,7 @@ export default function Player() {
     : (useAuthStore.getState().user?.uid
         ? DEFAULT_PLAYER_APPEARANCE
         : (loadGuestSessionSettings().playerAppearance ?? DEFAULT_PLAYER_APPEARANCE))
-  // 동복 등 의상 선택(titleSettings.playerOutfit). 없으면 'default'. 현재 v9 모델만 의상을 입는다.
+  // 동복 등 의상 선택(titleSettings.playerOutfit). 없으면 'default'. v9와 단순(PlayerMesh) 모델이 의상을 입는다.
   const savedOutfit = resolvePlayerOutfitId(isFirebaseProgressHydrated()
     ? loadTitleSettings().playerOutfit
     : (useAuthStore.getState().user?.uid ? undefined : loadGuestSessionSettings().playerOutfit))

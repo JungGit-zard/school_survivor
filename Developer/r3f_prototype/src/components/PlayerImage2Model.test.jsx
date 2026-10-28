@@ -24,7 +24,7 @@ describe('Player graphics rollback with comparison-only Image2 GLB', () => {
     expect(playerMesh).not.toContain('PLAYER_IMAGE2_GLB_PARTS')
     expect(playerMesh).not.toContain('PlayerImage2Mesh')
     expect(playerMesh).not.toContain('modelVariant')
-    expect(playerMesh).toContain('export default function PlayerMesh({ groupRef, movingRef, hitFlashToken = 0, previewArmAction = null })')
+    expect(playerMesh).toContain("export default function PlayerMesh({ groupRef, movingRef, hitFlashToken = 0, previewArmAction = null, outfit = 'default' })")
     expect(playerMesh).toContain('<StudioTunedGroup itemId="player">')
     expect(playerMesh).toContain('getCachedChamferedBoxGeo(...size, PLAYER_CHARACTER_CHAMFER_STEPS)')
   })
@@ -33,7 +33,7 @@ describe('Player graphics rollback with comparison-only Image2 GLB', () => {
     const title = read('./TitleScene3D.jsx')
     const titlePlayer = title.match(/function TitlePlayer[\s\S]*?<\/group>\s*\)/)?.[0] ?? ''
 
-    expect(titlePlayer).toContain('<PlayerMesh groupRef={meshGroup} movingRef={movingRef} />')
+    expect(titlePlayer).toContain('<PlayerMesh groupRef={meshGroup} movingRef={movingRef} outfit={outfit} />')
     expect(titlePlayer).not.toContain('modelVariant="image2"')
   })
 })

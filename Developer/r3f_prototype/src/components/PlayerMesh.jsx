@@ -5,6 +5,7 @@ import { bagSwingState, playerArmActionState } from '../lib/refs.js'
 import { getActivePlayerArmAction, getPlayerArmPose } from '../lib/playerArmAction.js'
 import { outlineMat, toonMat, inflateScale, getCachedChamferedBoxGeo } from '../lib/toon.js'
 import { PLAYER_MESH_SCALE } from '../lib/characterVisualScale.js'
+import { resolvePlayerMeshGarmentColor } from '../lib/playerMeshOutfits.js'
 import StudioTunedGroup, {
   captureStudioPartBaseTransform,
   composeStudioPartPosition,
@@ -175,7 +176,9 @@ function setPlayerBodyFlash(root, flashMat, active) {
   })
 }
 
-export default function PlayerMesh({ groupRef, movingRef, hitFlashToken = 0, previewArmAction = null }) {
+export default function PlayerMesh({ groupRef, movingRef, hitFlashToken = 0, previewArmAction = null, outfit = 'default' }) {
+  // 동복 등 의상(titleSettings.playerOutfit)은 옷 블록의 기본색만 바꾼다. default는 원래 색 그대로.
+  const garment = (slot, baseColor) => resolvePlayerMeshGarmentColor(slot, baseColor, outfit)
   const rootRef = useRef()
   const p = useRef({})
   const blend = useRef(0)
@@ -297,11 +300,11 @@ export default function PlayerMesh({ groupRef, movingRef, hitFlashToken = 0, pre
 
       <PlayerOuterOutline />
 
-      <Block size={PLAYER_MESH_LAYOUT.body.size} position={PLAYER_MESH_LAYOUT.body.position} color={0xd42020} emissive={0.2} />
-      <Block size={[0.38, 0.18, 0.12]} position={[0, 0.82, 0.32]} color={0xf4f4f4} emissive={0.08} />
+      <Block size={PLAYER_MESH_LAYOUT.body.size} position={PLAYER_MESH_LAYOUT.body.position} color={garment('blazer', 0xd42020)} emissive={0.2} />
+      <Block size={[0.38, 0.18, 0.12]} position={[0, 0.82, 0.32]} color={garment('shirt', 0xf4f4f4)} emissive={0.08} />
       <Block size={[0.8, 0.13, 0.5]} position={[0, 0.1, 0]} color={0xffd100} emissive={0.26} />
 
-      <Block size={[0.94, 0.36, 0.56]} position={[0, -0.16, 0]} color={0x2d8cff} emissive={0.2} />
+      <Block size={[0.94, 0.36, 0.56]} position={[0, -0.16, 0]} color={garment('skirt', 0x2d8cff)} emissive={0.2} />
 
       <group ref={reg('head')} position={[0, PLAYER_MESH_LAYOUT.head.baseY, 0]}>
         <Block size={PLAYER_MESH_LAYOUT.head.size} position={[0, 0, 0]} color={0xffc39b} emissive={0.1} />
@@ -341,12 +344,12 @@ export default function PlayerMesh({ groupRef, movingRef, hitFlashToken = 0, pre
       <Block size={[0.1, 0.62, 0.1]} position={[0.22, 0.46, 0.3]} color={0x005cff} emissive={0.18} />
 
       <group ref={reg('slvL')} position={[-0.6, 0.72, 0]}>
-        <Block size={[0.36, 0.66, 0.36]} position={[0, -0.33, 0]} color={0xd42020} emissive={0.2} />
+        <Block size={[0.36, 0.66, 0.36]} position={[0, -0.33, 0]} color={garment('blazer', 0xd42020)} emissive={0.2} />
         <Block size={[0.26, 0.26, 0.26]} position={[0, -0.76, 0]} color={0xffc39b} emissive={0.1} />
       </group>
 
       <group ref={reg('slvR')} position={[0.6, 0.72, 0]}>
-        <Block size={[0.36, 0.66, 0.36]} position={[0, -0.33, 0]} color={0xd42020} emissive={0.2} />
+        <Block size={[0.36, 0.66, 0.36]} position={[0, -0.33, 0]} color={garment('blazer', 0xd42020)} emissive={0.2} />
         <Block size={[0.26, 0.26, 0.26]} position={[0, -0.76, 0]} color={0xffc39b} emissive={0.1} />
         <group ref={reg('lantern')} position={PLAYER_MESH_LAYOUT.lantern.position} visible={false}>
           <PlayerLanternModel />
@@ -355,7 +358,7 @@ export default function PlayerMesh({ groupRef, movingRef, hitFlashToken = 0, pre
 
       <group ref={reg('legL')} position={[-0.22, -0.34, 0]}>
         <OutlineBlock size={[0.26, 0.7, 0.3]} position={[0, -0.35, 0]} scale={1.16} />
-        <Block size={[0.26, 0.7, 0.3]} position={[0, -0.35, 0]} color={0xebebf2} emissive={0.06} />
+        <Block size={[0.26, 0.7, 0.3]} position={[0, -0.35, 0]} color={garment('legwear', 0xebebf2)} emissive={0.06} />
         <group position={[0, -0.76, 0.06]}>
           <OutlineBlock size={[0.38, 0.2, 0.44]} position={[0, 0, 0]} scale={1.14} />
           <Block size={[0.38, 0.2, 0.44]} position={[0, 0, 0]} color={0x8090a8} emissive={0.12} />
@@ -366,7 +369,7 @@ export default function PlayerMesh({ groupRef, movingRef, hitFlashToken = 0, pre
 
       <group ref={reg('legR')} position={[0.22, -0.34, 0]}>
         <OutlineBlock size={[0.26, 0.7, 0.3]} position={[0, -0.35, 0]} scale={1.16} />
-        <Block size={[0.26, 0.7, 0.3]} position={[0, -0.35, 0]} color={0xebebf2} emissive={0.06} />
+        <Block size={[0.26, 0.7, 0.3]} position={[0, -0.35, 0]} color={garment('legwear', 0xebebf2)} emissive={0.06} />
         <group position={[0, -0.76, 0.06]}>
           <OutlineBlock size={[0.38, 0.2, 0.44]} position={[0, 0, 0]} scale={1.14} />
           <Block size={[0.38, 0.2, 0.44]} position={[0, 0, 0]} color={0x8090a8} emissive={0.12} />

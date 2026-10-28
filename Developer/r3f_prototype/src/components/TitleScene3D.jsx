@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import { GRAPHICS_STUDIO_TUNING_EVENT } from '../lib/graphicsStudioConfig.js'
@@ -20,6 +20,7 @@ import { ChibikoModel } from './Weapons/Chibiko.jsx'
 import { StarlinkSatelliteModel, ZomlonbiskModel } from './Weapons/StarlinkSatellite.jsx'
 import PlayerMesh from './PlayerMesh.jsx'
 import { FROZEN_STUDIO_SNAPSHOT } from '../title/frozenStudio.js'
+import { loadPlayerOutfit } from '../lib/titleSettings.js'
 
 const TITLE_CHASE_TARGET = [0.48, 0.08]
 export const TITLE_PLAYER_RUN_BASE_POSITION = [0.48, 0.88, 0.38]
@@ -225,7 +226,7 @@ export function applyTitlePlayerRunFrame(node, elapsedTime, reducedEffects = fal
   node.rotation.z = TITLE_PLAYER_RUN_BASE_ROTATION[2] + lean * 0.07
 }
 
-function TitlePlayer({ reducedEffects }) {
+function TitlePlayer({ reducedEffects, outfit = 'default' }) {
   const runnerRef = useRef(null)
   const meshGroup = useRef(null)
   const movingRef = useRef(!reducedEffects)
@@ -239,7 +240,7 @@ function TitlePlayer({ reducedEffects }) {
 
   return (
     <group ref={runnerRef} position={TITLE_PLAYER_RUN_BASE_POSITION} rotation={TITLE_PLAYER_RUN_BASE_ROTATION} scale={2}>
-      <PlayerMesh groupRef={meshGroup} movingRef={movingRef} />
+      <PlayerMesh groupRef={meshGroup} movingRef={movingRef} outfit={outfit} />
     </group>
   )
 }
@@ -613,6 +614,9 @@ export default function TitleScene3D({
   const floorMat = useMemo(() => toonMat(0x4a4054, 0.05), [])
   const doorMat = useMemo(() => toonMat(0x805947, 0.05), [])
   const studioMode = studioTuning != null
+  // 로자리 옷장에서 고른 의상(동복 등)을 게임과 같은 플레이어 모델에 입힌다. 표시 조건이 아니라 색만 고른다.
+  // 타이틀은 로자리의 방에서 돌아올 때 다시 마운트되므로 마운트 시점 값이면 충분하다.
+  const [playerOutfit] = useState(loadPlayerOutfit)
   const studioTransform = studioMode ? getStudioTransformProps(studioTuning) : getStudioTransformProps()
   const titleSceneRootPosition = getTitleSceneRootPosition(studioTransform)
 
@@ -685,7 +689,7 @@ export default function TitleScene3D({
             {sceneRoot}
           </StudioTunedGroup>
           <group rotation={[0, -0.09, 0]} position={[0, -1.15, 0]}>
-            <TitlePlayer reducedEffects={reducedEffects} />
+            <TitlePlayer reducedEffects={reducedEffects} outfit={playerOutfit} />
           </group>
         </StudioTuningSnapshotProvider>
       )}

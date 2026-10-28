@@ -295,10 +295,10 @@ describe('TitleScene3D direction', () => {
     expect(source).toContain('StudioTuningSnapshotProvider')
     expect(source).toContain('StudioTuningPreviewProvider')
     expect(source).not.toContain("from './Player.jsx'")
-    expect(source).toContain('function TitlePlayer({ reducedEffects })')
+    expect(source).toContain("function TitlePlayer({ reducedEffects, outfit = 'default' })")
     expect(source).toContain('useFrame((state) => {')
     expect(source).toContain('applyTitlePlayerRunFrame(runnerRef.current, state.clock.elapsedTime, reducedEffects)')
-    expect(source).toContain('<PlayerMesh groupRef={meshGroup} movingRef={movingRef} />')
+    expect(source).toContain('<PlayerMesh groupRef={meshGroup} movingRef={movingRef} outfit={outfit} />')
     expect(source).toContain('movingRef.current = !reducedEffects')
     expect(source).not.toContain('function TitlePlayerRunner')
     expect(source).not.toContain('graphicsStudioPlayerSource')
@@ -323,10 +323,10 @@ describe('TitleScene3D direction', () => {
     const snapshotEnd = source.indexOf('</StudioTuningSnapshotProvider>', snapshotStart)
     const playerBlock = source.slice(snapshotStart, snapshotEnd)
     expect(playerBlock).toContain('<StudioTunedGroup itemId="title-scene">')
-    expect(playerBlock).toContain('<TitlePlayer reducedEffects={reducedEffects} />')
+    expect(playerBlock).toContain('<TitlePlayer reducedEffects={reducedEffects} outfit={playerOutfit} />')
     expect(playerBlock).not.toContain('StudioTuningRuntimeProvider')
     // 스냅샷 런타임 분기에는 플레이어 인스턴스가 정확히 1개다.
-    expect(playerBlock.match(/<TitlePlayer reducedEffects=\{reducedEffects\} \/>/g)).toHaveLength(1)
+    expect(playerBlock.match(/<TitlePlayer reducedEffects=\{reducedEffects\} outfit=\{playerOutfit\} \/>/g)).toHaveLength(1)
   })
 
   it('applies a fleeing up-down hop frame to the existing title player and freezes it in reduced-effects mode', () => {
