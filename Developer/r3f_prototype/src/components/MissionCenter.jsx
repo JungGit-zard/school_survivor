@@ -6,6 +6,7 @@ import { schoolButton, schoolPanel, uiBorders, uiPalette, uiShadows, uiType } fr
 import { missionObjective, missionTitle, useT } from '../lib/i18n.js'
 import { useAuthStore } from '../store/useAuthStore.js'
 import { useGameStore } from '../store/useGameStore.js'
+import { useGameNumber } from '../lib/numberFormat.js'
 
 const FILTERS = ['recommended', 'progress', 'completed', 'all']
 
@@ -100,6 +101,7 @@ export default function MissionCenter({ onBack }) {
 
 function MissionCard({ entry, pinned, onPin, onClaim, claiming, t }) {
   const { mission, state, counter, target } = entry
+  const formatNumber = useGameNumber()
   const status = t(state === 'claimed' ? 'missions.status.claimed' : state === 'completed_unclaimed' ? 'missions.status.completed' : 'missions.status.active')
   const title = missionTitle(mission)
   const progress = Math.min(100, Math.round((counter / Math.max(target, 1)) * 100))
@@ -111,9 +113,9 @@ function MissionCard({ entry, pinned, onPin, onClaim, claiming, t }) {
         <button type="button" style={styles.pinButton} aria-pressed={pinned} aria-label={t(pinned ? 'missions.unpinAria' : 'missions.pinAria', { title })} onClick={() => onPin(mission.id)}>{pinned ? t('missions.pinned') : t('missions.pin')}</button>
       </div>
       <p style={styles.objective}>{missionObjective(mission)}</p>
-      <div style={styles.progressRow}><div style={styles.progressTrack}><div style={{ ...styles.progressFill, width: `${progress}%` }} /></div><span>{counter}/{target}</span></div>
+      <div style={styles.progressRow}><div style={styles.progressTrack}><div style={{ ...styles.progressFill, width: `${progress}%` }} /></div><span>{formatNumber(counter)}/{formatNumber(target)}</span></div>
       <div style={styles.rewardRow}>
-        <span style={styles.rewardChip}>{t('missions.reward', { amount: mission.rewardProposal.amount })}</span>
+        <span style={styles.rewardChip}>{t('missions.reward', { amount: formatNumber(mission.rewardProposal.amount) })}</span>
         {state === 'completed_unclaimed' && <button type="button" disabled={claiming} style={{ ...styles.claimButton, ...(claiming ? styles.pendingButton : null) }} onClick={() => onClaim(mission.id)}>{claiming ? t('missions.claiming') : t('missions.claim')}</button>}
       </div>
     </article>

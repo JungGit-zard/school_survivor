@@ -397,7 +397,10 @@ it('shows a read error and retry without empty placeholders until a fresh subscr
  expect(container.querySelector('[role="alert"]')).not.toBeNull()
  expect(container.querySelector('ol')).toBeNull()
  const before=subscribeGlobalRanking.mock.calls.length
- act(()=>[...container.querySelectorAll('button')].find(button=>button.textContent==='\uB2E4\uC2DC \uC2DC\uB3C4').click())
+ const retryButton=[...container.querySelectorAll('button')].find(button=>button.textContent==='\uB2E4\uC2DC \uC2DC\uB3C4')
+ expect(retryButton.style.minHeight).toBe('44px')
+ expect(retryButton.style.borderRadius).toBe('8px')
+ act(()=>retryButton.click())
  expect(subscribeGlobalRanking.mock.calls.length).toBe(before+3)
  act(()=>subscribeGlobalRanking.mock.calls.filter(call=>call[0]==='allTime').at(-1)[1]([]))
  expect(container.querySelector('[role="alert"]')).toBeNull()

@@ -140,7 +140,7 @@ export default function UserRanking({ onBack, entries }) {
 
       <p style={styles.windowNote}>{t(activeCopy.noteKey)}</p>
 
-      {readErrors[activeWindow] && <div role="alert">{t('ranking.readFailed')} <button type="button" onClick={() => setReadRevision(value => value + 1)}>{t('common.retry')}</button></div>}
+      {readErrors[activeWindow] && <div role="alert">{t('ranking.readFailed')} <button type="button" style={styles.submitRetryButton} onClick={() => setReadRevision(value => value + 1)}>{t('common.retry')}</button></div>}
 
       {notice && (
         <div

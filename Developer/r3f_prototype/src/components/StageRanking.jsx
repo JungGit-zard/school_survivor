@@ -88,9 +88,9 @@ export default function StageRanking({ stageId = 'stage1', onBack }) {
         <TopWinner label={t(copy.topKey)} entry={rows[0]} />
       </section>}
 
-      <div style={styles.seasonLine}>{activeWindow !== 'allTime' && `${season.name} · `}{t(copy.windowKey)}</div>
+      <div style={styles.seasonLine} title={`${activeWindow !== 'allTime' ? `${season.name} · ` : ''}${t(copy.windowKey)}`}>{activeWindow !== 'allTime' && `${season.name} · `}{t(copy.windowKey)}</div>
 
-      {readError && <div role="alert">{t('ranking.readFailed')} <button type="button" onClick={() => setReadRevision(value => value + 1)}>{t('common.retry')}</button></div>}
+      {readError && <div role="alert">{t('ranking.readFailed')} <button type="button" style={styles.backTop} onClick={() => setReadRevision(value => value + 1)}>{t('common.retry')}</button></div>}
 
       {reading && <div role="status">{t('loading.ranking')}</div>}
       {!reading && !readError && <ol style={styles.list} aria-label={t(copy.ariaKey, { stage: stage.label })}>
@@ -205,7 +205,9 @@ const styles = {
     textOverflow: 'ellipsis',
   },
   winnerScore: { display: 'block', marginTop: 4, fontSize: 12, lineHeight: 1, fontWeight: 900 },
-  seasonLine: { color: '#c8c1d7', fontSize: 11, lineHeight: 1.25, fontWeight: 900 },
+  // 360px(Z Flip 6)에서 KST 기간 문구가 두 줄로 갈리지 않게 한 줄 고정 + 좁은 폭에서 9px까지 축소.
+  // 그래도 넘치는 긴 시즌명/주간 문구는 말줄임하고 전체 문구는 title로 남긴다.
+  seasonLine: { minWidth: 0, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis', color: '#c8c1d7', fontSize: 'clamp(9px, 2.5vw, 11px)', lineHeight: 1.25, fontWeight: 900 },
   // 목록이 남는 높이를 전부 차지하고, 내 기록 줄은 그 바로 아래에 붙는다.
   list: {
     flex: '1 1 0',

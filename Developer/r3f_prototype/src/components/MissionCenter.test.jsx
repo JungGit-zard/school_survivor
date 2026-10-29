@@ -8,6 +8,7 @@ import { createMissionProgressState, reconcileMissionProgress } from '../lib/mis
 import { useAuthStore } from '../store/useAuthStore.js'
 import { useGameStore } from '../store/useGameStore.js'
 import { setLocale } from '../lib/i18n.js'
+import { setScientificNotation } from '../lib/numberFormat.js'
 
 describe('MissionCenter colorful panel contracts', () => {
   beforeEach(() => {
@@ -59,6 +60,18 @@ describe('MissionCenter colorful panel contracts', () => {
       expect(minHeight).toBeGreaterThanOrEqual(44)
     }
     view.unmount()
+  })
+
+  it('formats the mission reward through the scientific-notation setting', () => {
+    setScientificNotation(true)
+    try {
+      const view = renderMissionCenter()
+      expect(view.container.textContent).toContain('보상 5e0골드')
+      expect(view.container.textContent).not.toContain('보상 5골드')
+      view.unmount()
+    } finally {
+      setScientificNotation(false)
+    }
   })
 
   it.each(['en', 'ja'])('renders no Korean text in %s', (locale) => {

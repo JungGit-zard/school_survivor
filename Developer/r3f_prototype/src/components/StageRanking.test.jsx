@@ -101,6 +101,10 @@ describe('StageRanking', () => {
     expect(view.container.textContent).toContain('한국시간 월요일 00:00:01 - 일요일 23:59:59')
     // 리셋 주기를 못 읽으면 플레이어는 기록이 사라졌다고 오해한다.
     expect(view.container.textContent).toContain('매주 월요일 초기화')
+    // 360px 폭에서 KST 문구가 두 줄로 갈리지 않게 한 줄 고정.
+    const seasonLine = [...view.container.querySelectorAll('div')].find((el) => el.textContent.includes('매주 월요일 초기화') && el.children.length === 0)
+    expect(seasonLine.style.whiteSpace).toBe('nowrap')
+    expect(seasonLine.style.textOverflow).toBe('ellipsis')
     expect(view.container.querySelector('ol').getAttribute('aria-label')).toContain('주간랭킹')
 
     await view.clickTab('일일랭킹')
@@ -204,7 +208,10 @@ it('separates loading and read failure from an acknowledged empty board and retr
  expect(view.container.querySelector('[role="alert"]')).not.toBeNull()
  expect(view.container.querySelector('ol')).toBeNull()
  const before=subscribeStageRanking.mock.calls.length
- await act(async()=>[...view.container.querySelectorAll('button')].find(button=>button.textContent==='\uB2E4\uC2DC \uC2DC\uB3C4').click())
+ const retryButton=[...view.container.querySelectorAll('button')].find(button=>button.textContent==='\uB2E4\uC2DC \uC2DC\uB3C4')
+ expect(retryButton.style.minHeight).toBe('44px')
+ expect(retryButton.style.borderRadius).toBe('8px')
+ await act(async()=>retryButton.click())
  expect(subscribeStageRanking.mock.calls.length).toBe(before+1)
  await act(async()=>subscribeStageRanking.mock.calls.at(-1)[2]([]))
  expect(view.container.querySelector('[role="alert"]')).toBeNull()
