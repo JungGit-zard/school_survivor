@@ -17,7 +17,7 @@ import {
   applyCloudProgressSnapshot, buildCloudProgressSnapshot, hydrateCloudProgress,
   readFirebasePlayerProgress, setCloudProgressUser, updateFirebasePlayerProgress,
 } from '../lib/firebaseProgress.js'
-import { isStageUnlocked } from '../lib/stageConfig.js'
+import { isStageUnlocked, isStageVisible } from '../lib/stageConfig.js'
 import { useGameStore } from './useGameStore.js'
 import { useAuthStore, _resetAuthStoreForTests } from './useAuthStore.js'
 
@@ -173,7 +173,8 @@ it('does not sign out a different user who replaces the user waiting for a save'
 })
 
 
-it.each([1,2,3,4,5,6,7,8,9])('boss-only stage %i failed save retries, survives title/logout and synthetic reload', async n => {
+// Release entry boundary (a8ddfe0c, 1fcfc848): only visible stages can be entered through resetGame.
+it.each([1,2,3,4,5,6,7,8,9].filter(n => isStageVisible(`stage${n}`)))('boss-only stage %i failed save retries, survives title/logout and synthetic reload', async n => {
   let offline = true
   let writes = 0
   _setFirebaseProgressClientForTests({

@@ -56,7 +56,9 @@ describe('Google user progress persistence snapshot', () => {
       nickname: 'Rookie',
     })
     expect(snapshot.progress.goldTotal).toBe(12)
-    expect(Object.keys(snapshot.progress.records).sort()).toEqual([...RECORD_KEYS].sort())
+    // f8a0ee89: stageNBossDefeats are a read-only projection of the run ledger and never go on the wire
+    // in progress.records (unless genuine >=1 proof already exists there).
+    expect(Object.keys(snapshot.progress.records).sort()).toEqual(RECORD_KEYS.filter(key => !/^stage\d+BossDefeats$/.test(key)).sort())
   })
 
   it('keeps picked-up and milestone coins in Firebase runtime progress before run end', () => {

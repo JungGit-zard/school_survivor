@@ -36,6 +36,8 @@ vi.mock('../lib/firebaseProgress.js', () => ({
     return mockProgress
   }),
   recordPlayActivity: vi.fn(),
+  // 1b39a533: shop purchases are journaled as idempotent purchase operations.
+  recordFirebaseProgressPurchase: vi.fn(),
   requestCloudProgressSave: vi.fn(async () => true),
 }))
 
@@ -125,7 +127,8 @@ describe('useGameStore cloud progress integration', () => {
     useGameStore.getState().gainGold(3)
     await Promise.resolve()
 
-    expect(useGameStore.getState().goldTotal).toBe(3)
+    // 1b39a533: a failed save resyncs the visible wallet to the durable progress wallet.
+    expect(useGameStore.getState().goldTotal).toBe(mockProgress.goldTotal)
     expect(useGameStore.getState().progressSaveWarning).toBe('save-failed')
     useGameStore.getState().dismissProgressSaveWarning()
     expect(useGameStore.getState().progressSaveWarning).toBeNull()
@@ -149,7 +152,8 @@ describe('useGameStore cloud progress integration', () => {
     await Promise.resolve()
     await Promise.resolve()
 
-    expect(useGameStore.getState().goldTotal).toBe(3)
+    // 1b39a533: a failed save resyncs the visible wallet to the durable progress wallet.
+    expect(useGameStore.getState().goldTotal).toBe(mockProgress.goldTotal)
     expect(useGameStore.getState().progressSaveWarning).toBe('save-failed')
   })
 

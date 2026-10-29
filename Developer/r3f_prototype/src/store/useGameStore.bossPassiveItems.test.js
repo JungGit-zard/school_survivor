@@ -102,8 +102,11 @@ describe('B01 삼각자 보스 패시브 런타임', () => {
 
     useGameStore.getState().applyUpgrade(upgradeKey)
 
+    // 1d445298: cutter damage cards scale current damage (damageMultiplier) instead of adding dmg.
+    // The base already carries the boss passive, so the increase keeps the 5% proportionally.
+    const effect = UPGRADE_EFFECTS[upgradeKey]
     expect(useGameStore.getState().weapons[weaponId].damage)
-      .toBeCloseTo(before + UPGRADE_EFFECTS[upgradeKey].dmg * 1.05, 12)
+      .toBeCloseTo(Number.isFinite(effect.damageMultiplier) ? before * effect.damageMultiplier : before + effect.dmg * 1.05, 12)
   })
 
   it('B01 damage 카드 증가분은 치비코 보정과 함께 적용된다', () => {
@@ -114,8 +117,9 @@ describe('B01 삼각자 보스 패시브 런타임', () => {
 
     useGameStore.getState().applyUpgrade('boxCutterDamage')
 
+    // 1d445298: ratio cards scale the chibiko-boosted current damage directly (applyUpgradeWithChibikoBoost).
     expect(useGameStore.getState().weapons.boxCutter.damage)
-      .toBeCloseTo(before + UPGRADE_EFFECTS.boxCutterDamage.dmg * 1.05 * 1.1, 12)
+      .toBeCloseTo(before * UPGRADE_EFFECTS.boxCutterDamage.damageMultiplier, 12)
     expect(useGameStore.getState().weapons.boxCutter.chibikoBoostApplied).toBe(true)
   })
 

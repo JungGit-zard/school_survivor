@@ -4,7 +4,11 @@ vi.mock('../lib/firebaseRanking.js', () => ({ prepareRankingSubmission: r => r, 
 import { _setFirebaseProgressClientForTests, buildCloudProgressSnapshot, _resetFirebaseProgressForTests, applyCloudProgressSnapshot, readFirebasePlayerProgress, updateFirebasePlayerProgress } from '../lib/firebaseProgress.js'
 import { useAuthStore } from './useAuthStore.js'
 import { useGameStore } from './useGameStore.js'
-import { getNextStageId, isStageUnlocked } from '../lib/stageConfig.js'
+import { getNextStageId, isStageUnlocked, isStageVisible, VISIBLE_STAGE_IDS } from '../lib/stageConfig.js'
+// Release entry boundary (a8ddfe0c, 1fcfc848): only VISIBLE_STAGE_IDS can be entered through the store.
+// Boss evidence for the next stage (incl. hidden ones) is still recorded, so iterate the enterable stages.
+const ENTERABLE = [1,2,3,4,5,6,7,8,9].filter(n => isStageVisible(`stage${n}`))
+const FINAL = Number(VISIBLE_STAGE_IDS.at(-1).slice(5))
 let user
 let sequence = 0
 const records = () => readFirebasePlayerProgress().records
@@ -29,7 +33,7 @@ beforeEach(() => {
   useAuthStore.setState({user,status:'signedIn'})
   useGameStore.getState().resetGame('stage1')
 })
-it.each([1,2,3,4,5,6,7,8,9])('stage %i last boss immediately unlocks next without clearing and survives death', n => {
+it.each(ENTERABLE)('stage %i last boss immediately unlocks next without clearing and survives death', n => {
   enter(n)
   const next=`stage${n+1}`
   expect(isStageUnlocked(next,records())).toBe(false)
@@ -46,7 +50,7 @@ it.each([1,2,3,4,5,6,7,8,9])('stage %i last boss immediately unlocks next withou
   expect(isStageUnlocked(next,records())).toBe(true)
   expect(records()[`stage${n}BossDefeats`]).toBe(1)
 })
-it.each([1,2,3,4,5,6,7,8,9])('stage %i no-boss escape/time does not unlock', n => {
+it.each(ENTERABLE)('stage %i no-boss escape/time does not unlock', n => {
   enter(n)
   useGameStore.setState({elapsedMs:240000})
   useGameStore.getState().damagePlayer(99999)
@@ -73,12 +77,13 @@ it('enforces entry and next-stage gates at the store boundary', async () => {
   useGameStore.getState().clearStage()
   expect(await useGameStore.getState().continueToNextStage()).toBe(false)
 })
-it('stage10 is terminal and duplicate defeat cannot add evidence', () => {
-  enter(10)
+it('the final released stage is terminal and duplicate defeat cannot add evidence', () => {
+  enter(FINAL)
   useGameStore.getState().spawnBoss()
   useGameStore.getState().recordBossDefeat()
-  expect(records().stage10BossDefeats).toBe(1)
+  expect(records()[`stage${FINAL}BossDefeats`]).toBe(1)
   expect(useGameStore.getState().recordBossDefeat()).toBe(false)
+  expect(getNextStageId(`stage${FINAL}`)).toBe(null)
   expect(getNextStageId('stage10')).toBe(null)
 })
 

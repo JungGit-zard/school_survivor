@@ -2,6 +2,7 @@ import { installProgressTransactionTestClient } from '../../test/progressTransac
 import { beforeEach, describe, expect, it } from 'vitest'
 import { useGameStore } from './useGameStore.js'
 import { getBossClearBonus, getRankingScore } from '../lib/rankingScorePolicy.js'
+import { VISIBLE_STAGE_IDS } from '../lib/stageConfig.js'
 
 function clearAt(stageId, elapsedMs) {
   useGameStore.setState({ elapsedMs, bossDefeated: true })
@@ -43,9 +44,11 @@ describe('escape success and continuous score', () => {
 
   it('final stage clear has no next stage and preserves the result', async () => {
     const {updateFirebasePlayerProgress}=await import('../lib/firebaseProgress.js')
-    updateFirebasePlayerProgress(p => {p.records.stage9BossDefeats=1})
-    useGameStore.getState().resetGame('stage10')
-    const score = clearAt('stage10', 240000)
+    // The final stage is the last released one (release boundary a8ddfe0c/1fcfc848), not stage10.
+    const finalStageId = VISIBLE_STAGE_IDS.at(-1)
+    updateFirebasePlayerProgress(p => {p.records[`stage${Number(finalStageId.slice(5)) - 1}BossDefeats`]=1})
+    expect(useGameStore.getState().resetGame(finalStageId)).toBe(true)
+    const score = clearAt(finalStageId, 240000)
     expect(await useGameStore.getState().continueToNextStage()).toBe(false)
     expect(useGameStore.getState()).toMatchObject({ phase: 'cleared', escapeResult: { totalScore: score } })
   })

@@ -4,6 +4,7 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import { useGameStore } from './useGameStore.js'
 import { load as loadPlayerRecords, _resetForTests as _resetRecords } from '../lib/playerRecords.js'
 import { getAllUnlocked, _resetForTests as _resetUnlocks } from '../lib/weaponUnlocks.js'
+import { VISIBLE_STAGE_IDS } from '../lib/stageConfig.js'
 import { _seedHydratedFirebaseProgressForTests, _setFirebaseProgressClientForTests, updateFirebasePlayerProgress } from '../lib/firebaseProgress.js'
 
 describe('useGameStore run-end unlock evaluator', () => {
@@ -106,10 +107,12 @@ describe('useGameStore run-end unlock evaluator', () => {
   })
 
   it('portal clear on final stage stays on the cleared result', async () => {
-    // Stage10 is terminal; all earlier approved stages have a next stage.
-    updateFirebasePlayerProgress(p => {p.records.stage9BossDefeats=1})
-    useGameStore.getState().resetGame('stage10')
-    useGameStore.setState({ elapsedMs: 240_000 })
+    // The last released stage is terminal (release boundary a8ddfe0c/1fcfc848); even a boss kill
+    // this run cannot continue past it.
+    const finalStageId = VISIBLE_STAGE_IDS.at(-1)
+    updateFirebasePlayerProgress(p => {p.records[`stage${Number(finalStageId.slice(5)) - 1}BossDefeats`]=1})
+    expect(useGameStore.getState().resetGame(finalStageId)).toBe(true)
+    useGameStore.setState({ elapsedMs: 240_000, bossDefeated: true })
     const beforeKey = useGameStore.getState().gameKey
 
     expect(useGameStore.getState().clearStage()).toBe(true)
@@ -117,13 +120,13 @@ describe('useGameStore run-end unlock evaluator', () => {
 
     const s = useGameStore.getState()
     expect(s).toMatchObject({
-      currentStageId: 'stage10',
+      currentStageId: finalStageId,
       phase: 'cleared',
       elapsedMs: 240_000,
     })
     expect(s.gameKey).toBe(beforeKey)
     const records = loadPlayerRecords()
-    expect(records.stage10Clears).toBe(1)
+    expect(records[`${finalStageId}Clears`]).toBe(1)
   })
 
   it('Stage 1 run at or after 180 seconds counts toward Stage 2 unlock progress', () => {

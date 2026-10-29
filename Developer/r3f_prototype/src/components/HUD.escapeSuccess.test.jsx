@@ -9,6 +9,10 @@ import { _resetFirebaseProgressForTests, _seedHydratedFirebaseProgressForTests, 
 import { seedStageEntryForTests, installProgressTransactionTestClient } from '../../test/progressTransactionClient.js'
 import { getRankingScore } from '../lib/rankingScorePolicy.js'
 import { getLocale, setLocale } from '../lib/i18n.js'
+import { isStageVisible, VISIBLE_STAGE_IDS } from '../lib/stageConfig.js'
+
+// Release entry boundary (a8ddfe0c, 1fcfc848): the last visible stage is the final escape until more ship.
+const itWhenStage5Released = isStageVisible('stage5') ? it : it.skip
 
 let root, container, originalState, originalLocale
 beforeEach(() => {
@@ -84,13 +88,14 @@ describe('escape success choices', () => {
     expect(useGameStore.getState().continuousScoreBase).toBe(0)
   })
 
-  it('continues Stage4 into the explicitly approved Stage5 and preserves cumulative score', async () => {
+  itWhenStage5Released('continues Stage4 into the explicitly approved Stage5 and preserves cumulative score', async () => {
     _seedHydratedFirebaseProgressForTests({uid:crypto.randomUUID()})
     seedStageEntryForTests('stage4')
     seedStageEntryForTests('stage5')
     installProgressTransactionTestClient()
     useGameStore.getState().resetGame('stage4')
-    useGameStore.setState({ phase: 'playing', elapsedMs: 100_000, continuousScoreBase: 500 })
+    // b3fada83: the continue button needs this run's boss defeat.
+    useGameStore.setState({ phase: 'playing', elapsedMs: 100_000, continuousScoreBase: 500, bossDefeated: true })
     renderSuccess()
     const score = 500 + getRankingScore({ stageId: 'stage4', survivalSeconds: 100, cleared: true })
     const next = [...container.querySelector('[data-testid="result-primary-actions"]').querySelectorAll('button')].find((button) => button.textContent === '다음 스테이지 계속')
@@ -100,7 +105,7 @@ describe('escape success choices', () => {
     expect(useGameStore.getState()).toMatchObject({ phase: 'playing', currentStageId: 'stage5', continuousScoreBase: score })
   })
 
-  it.each(['stage10'])('shows the cumulative final escape at %s without a nonexistent next stage', (stageId) => {
+  it.each([VISIBLE_STAGE_IDS.at(-1)])('shows the cumulative final escape at %s without a nonexistent next stage', (stageId) => {
     _seedHydratedFirebaseProgressForTests({uid:crypto.randomUUID()})
     seedStageEntryForTests(stageId)
     installProgressTransactionTestClient()

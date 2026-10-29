@@ -3,7 +3,7 @@ import React, { act } from 'react'
 import { createRoot } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import Lobby from './Lobby.jsx'
-import { STAGE_CONFIGS } from '../lib/stageConfig.js'
+import { STAGE_CONFIGS, VISIBLE_STAGE_IDS, isStageVisible } from '../lib/stageConfig.js'
 import { setLocale, t } from '../lib/i18n.js'
 import ko from '../lib/locales/ko.js'
 import en from '../lib/locales/en.js'
@@ -25,6 +25,11 @@ vi.mock('./StageBossPreview.jsx', () => ({ default: ({ bossType, style }) => <di
 
 const ids = ['stage6', 'stage7', 'stage8', 'stage9', 'stage10']
 const bosses = ['B05', 'B06', 'B07', 'B08', 'B09']
+// Release entry boundary (a8ddfe0c, 1fcfc848): the lobby lists only VISIBLE_STAGE_IDS. Expansion copy stays
+// complete; card-level checks cover released stages and the per-card flow re-enables once 6-10 ship.
+const visibleIds = ids.filter(isStageVisible)
+const LAST = Number(VISIBLE_STAGE_IDS.at(-1).slice(5))
+const itWhenExpansionReleased = visibleIds.length === ids.length ? it : it.skip
 let container, root
 beforeEach(() => {
   globalThis.IS_REACT_ACT_ENVIRONMENT = true
@@ -56,7 +61,8 @@ describe('expansion lobby UI', () => {
     }
     setLocale(locale)
     render()
-    for (const id of ids) {
+    for (const id of ids.filter(id => !isStageVisible(id))) expect(card(id)).toBeUndefined()
+    for (const id of visibleIds) {
       expect(card(id).textContent).toContain(dict[`stage.${id}.title`])
       const desc = card(id).querySelector(`#${id}-description`)
       expect(desc?.textContent).toBe(dict[`stage.${id}.description`])
@@ -65,19 +71,19 @@ describe('expansion lobby UI', () => {
     }
   })
 
-  it('keeps all ten cards in a bounded keyboard-accessible scroll region without card compression', () => {
+  it('keeps all released cards in a bounded keyboard-accessible scroll region without card compression', () => {
     render()
-    const list = container.querySelector('[aria-label="스테이지 선택"]') ?? card('stage10').parentElement
-    expect(list.querySelectorAll('section')).toHaveLength(10)
+    const list = container.querySelector('[aria-label="스테이지 선택"]') ?? card(VISIBLE_STAGE_IDS.at(-1)).parentElement
+    expect(list.querySelectorAll('section')).toHaveLength(VISIBLE_STAGE_IDS.length)
     expect(list.style.overflowY).toBe('auto')
     expect(parseFloat(list.style.minHeight)).toBe(0)
     expect(list.tabIndex).toBe(0)
     for (const el of list.querySelectorAll('section')) expect(el.style.flexShrink).toBe('0')
-    expect(list.lastElementChild).toBe(card('stage10'))
-    for (let n = 1; n <= 5; n++) expect(card(`stage${n}`).querySelector('[id$="-description"]')).toBeNull()
+    expect(list.lastElementChild).toBe(card(VISIBLE_STAGE_IDS.at(-1)))
+    for (let n = 1; n <= Math.min(5, LAST); n++) expect(card(`stage${n}`).querySelector('[id$="-description"]')).toBeNull()
   })
 
-  it.each(ids.map((id, i) => [id, i]))('%s stays locked until the previous stage is cleared; opens only its own stage after showtime', (id, i) => {
+  itWhenExpansionReleased.each(ids.map((id, i) => [id, i]))('%s stays locked until the previous stage is cleared; opens only its own stage after showtime', (id, i) => {
     vi.useFakeTimers()
     const onStartStage = vi.fn()
     render({ onStartStage })
@@ -104,9 +110,9 @@ describe('expansion lobby UI', () => {
     _resetFirebaseProgressForTests()
     useAuthStore.setState({ progressStatus: 'loading' })
     render()
-    expect(container.querySelectorAll('section')).toHaveLength(10)
+    expect(container.querySelectorAll('section')).toHaveLength(VISIBLE_STAGE_IDS.length)
     expect(container.querySelector('[data-testid="lobby-records-pending"]')).not.toBeNull()
-    for (const id of ids) {
+    for (const id of VISIBLE_STAGE_IDS.slice(1)) {
       expect(card(id).querySelector('[data-testid="boss-preview"]')).toBeNull()
       expect(entry(card(id)).disabled).toBe(true)
     }
@@ -114,15 +120,15 @@ describe('expansion lobby UI', () => {
 })
 
 
-it.each([2,3,4,5,6,7,8,9,10])('normal UI stage %i ignores clear-only history and dev unlock prop, then accepts only its previous boss', n => {
+it.each(Array.from({ length: LAST - 1 }, (_, i) => i + 2))('normal UI stage %i ignores clear-only history and dev unlock prop, then accepts only its previous boss', n => {
   act(() => updateFirebasePlayerProgress(p => {
     for(let i=1;i<=10;i++) {p.records[`stage${i}Clears`]=999;p.records[`stage${i}BossDefeats`]=0}
   }))
   render({devAllStagesUnlocked:true})
-  for(let i=2;i<=10;i++) expect(entry(card(`stage${i}`)).disabled).toBe(true)
+  for(let i=2;i<=LAST;i++) expect(entry(card(`stage${i}`)).disabled).toBe(true)
   expect(entry(card('stage1')).disabled).toBe(false)
   act(() => updateFirebasePlayerProgress(p => {p.records[`stage${n-1}BossDefeats`]=1}))
   act(() => useAuthStore.setState({progressStatus:'loading'}))
   act(() => useAuthStore.setState({progressStatus:'ready'}))
-  for(let i=2;i<=10;i++) expect(entry(card(`stage${i}`)).disabled).toBe(i!==n)
+  for(let i=2;i<=LAST;i++) expect(entry(card(`stage${i}`)).disabled).toBe(i!==n)
 })

@@ -4,7 +4,7 @@ vi.mock('../lib/firebaseRanking.js', async (original) => ({ ...(await original()
 import { useGameStore } from './useGameStore.js'
 import { installProgressTransactionTestClient } from '../../test/progressTransactionClient.js'
 import { _resetFirebaseProgressForTests, _seedHydratedFirebaseProgressForTests, buildCloudProgressSnapshot, readFirebasePlayerProgress } from '../lib/firebaseProgress.js'
-import { getStageConfig, getNextStageId, isStageUnlocked, getStageBounds } from '../lib/stageConfig.js'
+import { getStageConfig, getNextStageId, isStageUnlocked, getStageBounds, isStageVisible } from '../lib/stageConfig.js'
 import { getDefaultWavePhases } from '../lib/waveTimelines.js'
 import { getRuntimeSpawnEventsForStage, getBossSpawnSec } from '../lib/burstEvents.js'
 import { getRankingScore, getBossClearBonus } from '../lib/rankingScorePolicy.js'
@@ -21,15 +21,20 @@ beforeEach(() => {
   useGameStore.getState().reloadPersistentProgress()
 })
 
+// Release entry boundary (a8ddfe0c, 1fcfc848): Stage5 content stays defined, but the store refuses entry
+// until Stage5 is added to VISIBLE_STAGE_IDS. The end-to-end slice re-enables itself at that point.
+const stage5Released = isStageVisible('stage5')
+const itWhenStage5Released = stage5Released ? it : it.skip
+
 describe('Stage5 playable store vertical slice', () => {
   it('selects Stage5 after Stage4, retains independent config/spawn/timeline and terminal progression', () => {
     expect(isStageUnlocked('stage5', {})).toBe(false)
     expect(isStageUnlocked('stage5', { stage4Clears: 1 })).toBe(false)
     expect(isStageUnlocked('stage5', { stage4BossDefeats: 1 })).toBe(true)
-    expect(getNextStageId('stage4')).toBe('stage5')
-    expect(getNextStageId('stage5')).toBe('stage6')
-    useGameStore.getState().resetGame('stage5')
-    expect(useGameStore.getState()).toMatchObject({ currentStageId: 'stage5', phase: 'playing', bossSpawnSec: 150 })
+    expect(getNextStageId('stage4')).toBe(stage5Released ? 'stage5' : null)
+    expect(getNextStageId('stage5')).toBe(stage5Released && isStageVisible('stage6') ? 'stage6' : null)
+    expect(useGameStore.getState().resetGame('stage5')).toBe(stage5Released)
+    if (stage5Released) expect(useGameStore.getState()).toMatchObject({ currentStageId: 'stage5', phase: 'playing', bossSpawnSec: 150 })
     expect(getStageConfig('stage5')).toMatchObject({ id: 'stage5', bossType: 'B03', durationSec: 240, escapePortalSec: 210 })
     expect(getStageBounds('stage5')).toEqual({ halfX: 7.5, halfZ: 19.2 })
     expect(getDefaultWavePhases('stage5')[0].weights).toEqual({ E01: 1 })
@@ -38,10 +43,11 @@ describe('Stage5 playable store vertical slice', () => {
     expect(getRuntimeSpawnEventsForStage('stage5').filter(e => e.type === 'B03')).toEqual([{ sec: 150, type: 'B03', count: 1 }])
   })
 
-  it('runs Stage4 portal→Stage5 purchase/milestones/boss→terminal portal→durable clear/best payload; retry resets', async () => {
+  itWhenStage5Released('runs Stage4 portal→Stage5 purchase/milestones/boss→terminal portal→durable clear/best payload; retry resets', async () => {
     const store = () => useGameStore.getState()
     store().resetGame('stage4')
-    useGameStore.setState({ elapsedMs: 210_000 })
+    // b3fada83: continuing to the next stage requires this run's boss defeat.
+    useGameStore.setState({ elapsedMs: 210_000, bossDefeated: true })
     store().activateEscapePortal()
     const oldKey = store().gameKey
     expect(store().clearStage()).toBe(true)

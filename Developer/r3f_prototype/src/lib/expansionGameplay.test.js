@@ -3,7 +3,7 @@ import { EXPANSION_STAGES, EXPANSION_ENEMIES, EXPANSION_BOSSES, getExpansionStat
 import { createExpansionAttackState, stepExpansionAttack, expansionAttackContains, expansionAttackSnapshots, clearExpansionAttacks } from './expansionAttackRuntime.js'
 import { createEnemyEntityPool, enemyTypeToCode } from './enemyEntityPool.js'
 import { createEnemySimulationRuntime, ENEMY_RUNTIME_HP, ENEMY_RUNTIME_SPEED } from './enemySimulation.js'
-import { getNextStageId, isStageUnlocked, getStageConfig } from './stageConfig.js'
+import { getNextStageId, isStageUnlocked, getStageConfig, isStageVisible } from './stageConfig.js'
 import { getRuntimeSpawnEventsForStage } from './burstEvents.js'
 
 describe('expansion live gameplay', () => {
@@ -19,12 +19,17 @@ describe('expansion live gameplay', () => {
   })
   Object.values(EXPANSION_BOSSES).forEach((b,i)=>expect(enemyTypeToCode(b.id)).toBe(32+i))
  })
- it('preserves stage5 final exit while unlocking 6 from lobby and chaining 6-10',()=>{
-  expect(getNextStageId('stage5')).toBe(null)
-  expect(isStageUnlocked('stage6',{})).toBe(false)
-  expect(isStageUnlocked('stage6',{stage5Clears:1})).toBe(true)
-  expect(getNextStageId('stage6')).toBe('stage7')
+ it('chains 5-10 by previous-stage boss proof while the release boundary hides navigation',()=>{
+  const nav=(id,next)=>isStageVisible(id)&&isStageVisible(next)?next:null
+  // Release entry boundary (a8ddfe0c, 1fcfc848) hides next-stage navigation into unreleased stages.
+  expect(getNextStageId('stage5')).toBe(nav('stage5','stage6'))
+  expect(getNextStageId('stage6')).toBe(nav('stage6','stage7'))
   expect(getNextStageId('stage10')).toBe(null)
+  // f8a0ee89: only the previous stage's boss defeat unlocks; escape clears never do.
+  expect(isStageUnlocked('stage6',{})).toBe(false)
+  expect(isStageUnlocked('stage6',{stage5Clears:1})).toBe(false)
+  expect(isStageUnlocked('stage6',{stage5BossDefeats:1})).toBe(true)
+  for(let n=7;n<=10;n++) expect(isStageUnlocked(`stage${n}`,{[`stage${n-1}BossDefeats`]:1})).toBe(true)
   expect(getStageConfig('stage5').bossType).toBe('B03')
   for(const s of Object.values(EXPANSION_STAGES)) {
    expect(getStageConfig(s.id).bossType).toBe(s.bossId)

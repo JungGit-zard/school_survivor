@@ -59,7 +59,8 @@ describe('coin shop entry flow', () => {
 
     const html = renderHud()
 
-    expect(html).toContain('STAGE CLEAR!')
+    // 4c8b052a replaced the STAGE CLEAR! result with the escape-success screen.
+    expect(html).toContain('탈출 성공')
     expect(html).toContain('코인상점')
     expect(html).toContain('획득 골드: 32')
   })

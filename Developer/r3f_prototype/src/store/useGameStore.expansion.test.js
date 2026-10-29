@@ -5,7 +5,7 @@ import { useGameStore } from './useGameStore.js'
 import { installProgressTransactionTestClient } from '../../test/progressTransactionClient.js'
 import { _resetFirebaseProgressForTests,_seedHydratedFirebaseProgressForTests,readFirebasePlayerProgress,buildCloudProgressSnapshot,updateFirebasePlayerProgress } from '../lib/firebaseProgress.js'
 import { load } from '../lib/playerRecords.js'
-import { getStageConfig,isStageUnlocked,getNextStageId } from '../lib/stageConfig.js'
+import { getStageConfig,isStageUnlocked,getNextStageId,isStageVisible } from '../lib/stageConfig.js'
 import { enemyPool,enemySimulationRuntime } from '../lib/refs.js'
 import { EXPANSION_STAGES } from '../lib/expansionContent.js'
 import { expansionAttackSnapshots } from '../lib/expansionAttackRuntime.js'
@@ -17,8 +17,11 @@ beforeEach(()=>{
  ranking.submitRun.mockResolvedValue({written:[],skipped:[],failed:[]});ranking.registerRankingEntry.mockResolvedValue({written:[],skipped:[],failed:[]})
  useGameStore.getState().reloadPersistentProgress()
 })
+// Release entry boundary (a8ddfe0c, 1fcfc848): stages 6-10 stay defined but the store refuses entry until
+// they join VISIBLE_STAGE_IDS. These end-to-end runs re-enable themselves once the stages are released.
+const itWhenReleased=(...ids)=>ids.every(isStageVisible)?it:it.skip
 describe('new stage gameplay progression against offline-only progress fixture',()=>{
- it.each(Object.values(EXPANSION_STAGES))('$id selectable→boss→portal→own persisted keys and next stage (Stage10 terminal)',async stage=>{
+ itWhenReleased('stage5',...Object.keys(EXPANSION_STAGES)).each(Object.values(EXPANSION_STAGES))('$id selectable→boss→portal→own persisted keys and next stage (Stage10 terminal)',async stage=>{
   const store=()=>useGameStore.getState(),next=getNextStageId(stage.id)
   expect(getNextStageId('stage5')).toBe('stage6')
   updateFirebasePlayerProgress(p => {p.records[`stage${stage.order-1}BossDefeats`]=1})
@@ -44,7 +47,7 @@ describe('new stage gameplay progression against offline-only progress fixture',
   expect(getRankingScore({stageId:stage.id,survivalSeconds:210,cleared:true,bossBonus:bonus})).toBe(base+escape+bonus)
   store().resetGame(stage.id);expect(store()).toMatchObject({currentStageId:stage.id,phase:'playing',escapePortalActive:false,bossDefeated:false})
  })
- it('real reset clears pool and warnings, while store pause freezes elapsed gameplay time',()=>{
+ itWhenReleased('stage6','stage7')('real reset clears pool and warnings, while store pause freezes elapsed gameplay time',()=>{
   const store=()=>useGameStore.getState();store().resetGame('stage6')
   expect(enemyPool.spawn({type:'E21',x:0,z:1,hp:44,maxHp:44,spawnTimer:300})).toBeTruthy()
   for(let i=0;i<155;i++)enemySimulationRuntime.step(enemyPool,{delta:1/60,playerX:0,playerZ:0,halfX:7.5,halfZ:19.2,elapsedSec:30})
