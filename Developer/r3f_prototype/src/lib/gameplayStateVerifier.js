@@ -61,19 +61,49 @@ function digestState(hash, state) {
   return hash >>> 0
 }
 
-function createLocalStorageGuard() {
+// The verifier is QA-only (headless Vitest, see runGameplayStateVerifier). It fails a run on any
+// localStorage use, with one exception: the guest-ranking anonymous auth (commit 6ddde154, AGENTS.md
+// exception approved by Terry) persists IndexedDB -> localStorage -> memory, so on a host without
+// IndexedDB Firebase Auth writes exactly these keys. Nothing else is allowed — not the [DEFAULT]
+// (Google) app's authUser key, not Firebase's redirect 'persistence' key, not key()/length/clear().
+const ALLOWED_STORAGE_KEY_PATTERNS = Object.freeze([
+  /^firebase:authUser:[^:]+:guest-ranking$/, // PersistenceUserManager user key for the guest app
+  /^__sak$/, // BrowserPersistenceClass._isAvailable() setItem/removeItem probe
+])
+const ALLOWED_STORAGE_METHODS = new Set(['getItem', 'setItem', 'removeItem'])
+
+export function isAllowedVerifierStorageKey(key) {
+  return typeof key === 'string' && ALLOWED_STORAGE_KEY_PATTERNS.some((pattern) => pattern.test(key))
+}
+
+export function createLocalStorageGuard() {
   let touches = 0
   const target = globalThis
   const hadOwn = Object.prototype.hasOwnProperty.call(target, 'localStorage')
   const previous = Object.getOwnPropertyDescriptor(target, 'localStorage')
+  // Allowlisted keys live only in this guard's memory; nothing reaches a real Storage.
+  const allowedValues = new Map()
+  const methods = {
+    getItem: (key) => (allowedValues.has(key) ? allowedValues.get(key) : null),
+    setItem: (key, value) => { allowedValues.set(key, String(value)) },
+    removeItem: (key) => { allowedValues.delete(key) },
+  }
   const guardedStorage = new Proxy({}, {
-    get() { touches += 1; return () => { touches += 1; return null } },
+    get(_target, prop) {
+      if (!ALLOWED_STORAGE_METHODS.has(prop)) { touches += 1; return () => { touches += 1; return null } }
+      return (key, value) => {
+        if (!isAllowedVerifierStorageKey(key)) { touches += 1; return null }
+        return methods[prop](key, value)
+      }
+    },
     set() { touches += 1; return false },
   })
   try {
     Object.defineProperty(target, 'localStorage', {
       configurable: true,
-      get() { touches += 1; return guardedStorage },
+      // Reading the reference is not a touch (Firebase probes `if (!this.storage)`); every
+      // operation on it is checked against the allowlist above.
+      get() { return guardedStorage },
       set() { touches += 1 },
     })
   } catch {

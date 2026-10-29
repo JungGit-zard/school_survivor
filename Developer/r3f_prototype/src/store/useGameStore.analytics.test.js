@@ -49,13 +49,31 @@ describe('GA4 run events', () => {
     expect(events('run_end')[1]).toMatchObject({ result: 'quit' })
   })
 
-  it('pagehide mid-run counts as the run_end; a later death does not add a second one', () => {
+  it('pagehide mid-run is not a run_end; pagehide -> resume -> death sends exactly one run_end(dead)', () => {
     useGameStore.getState().resetGame('stage1')
     useGameStore.getState().recordKill()
+    useGameStore.getState().pauseGame('auto') // GameplayScreen pauses on hide
     useGameStore.getState().finishRankingRun('pagehide')
+    useGameStore.getState().finishRankingRun('pagehide') // visibilitychange + pagehide both fire
+    expect(events('run_end')).toHaveLength(0)
+    useGameStore.getState().resumeGame()
+    expect(useGameStore.getState().phase).toBe('playing')
     useGameStore.getState().killPlayer('test')
-    expect(events('run_end')).toHaveLength(1)
-    expect(events('run_end')[0]).toMatchObject({ result: 'quit' })
+    useGameStore.getState().finishRankingRun('end') // back to the lobby
+    expect(events('run_end')).toEqual([expect.objectContaining({ stage_id: 'stage1', result: 'dead' })])
+  })
+
+  it('pagehide then a later escape or pause quit still sends its one run_end', () => {
+    useGameStore.getState().resetGame('stage1')
+    useGameStore.getState().finishRankingRun('pagehide')
+    useGameStore.getState().clearStage() // no boss -> run ends as escaped
+    expect(events('run_end')).toEqual([expect.objectContaining({ result: 'escaped' })])
+    useGameStore.getState().resetGame('stage1')
+    useGameStore.getState().finishRankingRun('pagehide')
+    useGameStore.getState().pauseGame('manual')
+    useGameStore.getState().quitPausedRun()
+    expect(events('run_end')).toHaveLength(2)
+    expect(events('run_end')[1]).toMatchObject({ result: 'quit' })
   })
 
   it('stage clear with continuation: stage_clear, no run_end until the continued run ends', () => {
@@ -77,6 +95,32 @@ describe('GA4 run events', () => {
     expect(events('run_end')).toEqual([expect.objectContaining({ result: 'escaped' })])
     useGameStore.getState().finishRankingRun('end')
     expect(events('run_end')).toHaveLength(1)
+  })
+
+  it('lethal damagePlayer: run_end(dead) once, no stage_clear, lobby leave + tab hide add nothing', () => {
+    useGameStore.getState().resetGame('stage1')
+    useGameStore.getState().damagePlayer(9999, { ignoreInvulnerability: true, source: 'test' })
+    expect(useGameStore.getState().phase).toBe('gameover')
+    useGameStore.getState().damagePlayer(9999, { ignoreInvulnerability: true }) // corpse hit: phase guard
+    useGameStore.getState().finishRankingRun('end') // ReadyGameApp.leaveGameplay
+    useGameStore.getState().finishRankingRun('pagehide') // visibility hidden on the result screen
+    expect(events('run_end')).toEqual([expect.objectContaining({ stage_id: 'stage1', result: 'dead' })])
+    expect(events('stage_clear')).toHaveLength(0)
+  })
+
+  it('real boss defeat then portal: stage_clear once; returning to the lobby ends the run as escaped once', () => {
+    useGameStore.getState().resetGame('stage1')
+    useGameStore.getState().spawnBoss()
+    expect(useGameStore.getState().recordBossDefeat()).toBe(true)
+    expect(useGameStore.getState().recordBossDefeat()).toBe(false)
+    expect(events('stage_clear')).toHaveLength(0) // boss defeat alone is not a clear
+    expect(useGameStore.getState().clearStage()).toBe(true)
+    expect(useGameStore.getState().clearStage()).toBe(false) // EscapePortal double-trigger guard
+    expect(events('stage_clear')).toEqual([{ stage_id: 'stage1', boss_defeated: true }])
+    expect(events('run_end')).toHaveLength(0) // continuation still possible
+    useGameStore.getState().finishRankingRun('end') // player leaves to the lobby instead of continuing
+    useGameStore.getState().finishRankingRun('end')
+    expect(events('run_end')).toEqual([expect.objectContaining({ stage_id: 'stage1', result: 'escaped' })])
   })
 
   it('signed-in run reports mode google without any identity param', () => {

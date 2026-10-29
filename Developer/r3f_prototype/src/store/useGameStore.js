@@ -830,7 +830,10 @@ export const useGameStore = create(
         : null)
       const runs = live ? [...rankingRun.stages.filter(stage => stage.stageId !== live.stageId), live] : rankingRun.stages
       if (runs.length === 0) return false
-      trackRunEnd(s, runs, endPhase)
+      // GA4 records only complete runs (Terry 2026-10-29): a visibility/pagehide flush is not an end,
+      // so it neither sends run_end nor closes analyticsRun. The run's real end sends the one run_end;
+      // a page closed for good after pagehide sends none.
+      if (reason !== 'pagehide') trackRunEnd(s, runs, endPhase)
       const score = Math.max(...runs.map(stage => stage.score))
       const written = reason === 'pagehide' ? 'pagehide' : 'ended'
       if (rankingRun.written === 'pagehide' && score <= rankingRun.writtenScore) {
