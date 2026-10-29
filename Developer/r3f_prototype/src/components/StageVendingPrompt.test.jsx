@@ -116,11 +116,20 @@ describe('real prompt + real store', () => {
     act(() => vi.advanceTimersByTime(500))
     expect(live().phase).toBe('playing')
   })
-  it.each([['full', { hp: 100 }, 20], ['insufficient', { hp: 40 }, 4]])('%s cannot consume gold or purchase right', (status, player, gold) => {
+  it.each([['full', { hp: 100 }, 20], ['insufficient', { hp: 40 }, 4]])('%s does not open or pause, and consumes nothing', (status, player, gold) => {
     useGameStore.setState(s => ({ player: { ...s.player, ...player }, goldTotal: gold }))
-    mount(); expect(button().disabled).toBe(true)
-    expect(button().textContent).toBe(status === 'full' ? 'HP 가득' : '골드 부족')
+    mount(); act(() => vi.advanceTimersByTime(500))
+    expect(button()).toBeNull()
+    expect(live().phase).toBe('playing')
+    expect(live().goldTotal).toBe(gold)
     expect(live().stageVendingPurchasedItemIds).toEqual([])
+  })
+  it('opens once it becomes affordable while still in range', () => {
+    useGameStore.setState(s => ({ player: { ...s.player, hp: 40 }, goldTotal: 4 }))
+    mount(); expect(button()).toBeNull()
+    act(() => { useGameStore.setState({ goldTotal: 20 }); vi.advanceTimersByTime(100) })
+    expect(button()).not.toBeNull()
+    expect(live().pauseSource).toBe('vending')
   })
   it('store rechecks actual range even before the 100ms UI poll catches movement', () => {
     mount(); playerPos.set(999, 0, 999); click()

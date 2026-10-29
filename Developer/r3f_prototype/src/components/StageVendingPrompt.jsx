@@ -150,9 +150,8 @@ export default function StageVendingPrompt() {
     inRange,
     item,
   })
-  // 이번 스테이지 구매를 마쳤으면 다시 띄워 진행을 멈추지 않는다(스테이지당 1회 유지).
-  const shouldOpen = phase === 'playing' && !dismissed && !!placement && !!item
-    && state !== 'outOfRange' && state !== 'notPlaying' && state !== 'purchased'
+  // 살 수 있을 때만 띄운다 — 체력 가득·골드 부족·구매 완료면 진행을 멈추지 않는다(Terry 10-29).
+  const shouldOpen = phase === 'playing' && !dismissed && !!placement && !!item && state === 'available'
   useEffect(() => {
     // 구매·바깥 탭·ESC/P 등 어떤 경로로 vending 일시정지가 풀려도 닫힘으로 기억하고 바로 다시 열지 않는다.
     if (wasOpenRef.current && !isOpen) {
