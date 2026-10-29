@@ -93,10 +93,28 @@ let runBaseline = {}
 // once per hydration and each checkpoint adjusts the count for its one row.
 let ledgerBossCounts = null
 let runContribution = { gold: 0, records: {}, missionCounters: {} }
+// users/$uid/ledgerSummary as of hydration or the last committed save; null = none on the server.
+// Boss evidence = summary.bossDefeats + rows, and the two never overlap: a row leaves the ledger
+// in the same atomic write that adds it to the summary.
+let ledgerSummary = null
+// runId -> run start (ms). Page-lived on purpose, like useGameStore's pendingRuns: an account
+// switch replay must re-send a run with the same `at` it was first written with.
+const runStartTimes = new Map()
+
+// Layer 2. Folding rows hides boss evidence from builds that predate ledgerSummary, so this stays
+// false until those builds are gone (see the old-build notes on compactRunLedgerNode).
+export const RUN_LEDGER_COMPACTION_ENABLED = false
+let runLedgerCompactionEnabled = RUN_LEDGER_COMPACTION_ENABLED
+export const RUN_LEDGER_RETENTION_MS = 7 * 24 * 60 * 60 * 1000
+export const RUN_LEDGER_KEEP_NEWEST = 20
+export const RUN_LEDGER_FOLD_MAX = 200
 
 export function recordFirebaseRunCheckpoint(runId, { stageId, records, best, missionCounters = {} }) {
   ensureHydrated()
-  const previous = runCheckpoints.get(runId) ?? runBaseline[runId] ?? { records: {}, gold: 0 }
+  const known = runCheckpoints.get(runId) ?? runBaseline[runId]
+  // Already folded into ledgerSummary: its totals are in progress, so a replay must add nothing.
+  if (!known && isFoldedRun(runId)) return false
+  const previous = known ?? { records: {}, gold: 0 }
   const gold = records.totalGold ?? 0
   const previousCounters = normalizeMissionCounters(previous.missionCounters)
   if (gold === previous.gold
@@ -105,7 +123,11 @@ export function recordFirebaseRunCheckpoint(runId, { stageId, records, best, mis
     && Object.entries(missionCounters).every(([key,value])=>value===(previousCounters[key]??0))) return false
   // Publish the ledger first: even a flag-only checkpoint changes runtime identity
   // below, so an in-flight save sees dirty state and repeats its normal transaction.
-  const row = { stageId, records: { ...records }, best: { ...best }, gold, missionCounters: { ...missionCounters } }
+  // A start time above the known watermark keeps a slow device clock from making a fresh run
+  // look folded.
+  const at = readRunAt(previous) ?? runStartTimes.get(runId) ?? Math.max(Date.now(), (ledgerSummary?.compactedBefore ?? 0) + 1)
+  runStartTimes.set(runId, at)
+  const row = { stageId, records: { ...records }, best: { ...best }, gold, missionCounters: { ...missionCounters }, at }
   if (ledgerBossCounts) {
     const before = ledgerBossDefeatKey(previous), after = ledgerBossDefeatKey(row)
     if (before) ledgerBossCounts[before]--
@@ -137,9 +159,81 @@ export function recordFirebaseRunCheckpoint(runId, { stageId, records, best, mis
 // 'recorded': this hydrated session already holds the run's checkpoint (not yet acknowledged).
 // 'acknowledged': the server ledger holds it (hydrated baseline or a committed save).
 // 'none': this session has never seen it (fresh account switch) and it must be replayed.
+// A run folded into ledgerSummary also counts as 'acknowledged'.
 export function getFirebaseRunCheckpointState(runId) {
   if (runCheckpoints.has(runId)) return 'recorded'
-  return Object.hasOwn(runBaseline, runId) ? 'acknowledged' : 'none'
+  return Object.hasOwn(runBaseline, runId) || isFoldedRun(runId) ? 'acknowledged' : 'none'
+}
+
+function readRunAt(run) {
+  const at = run?.at
+  return typeof at === 'number' && Number.isFinite(at) && at > 0 ? at : null
+}
+
+function isFoldedRun(runId) {
+  const at = runStartTimes.get(runId)
+  return !!ledgerSummary && at !== undefined && at <= ledgerSummary.compactedBefore
+}
+
+function normalizeLedgerSummary(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null
+  const bossDefeats = {}
+  for (const key of BOSS_RECORD_KEYS) {
+    const count = value.bossDefeats?.[key]
+    if (Number.isSafeInteger(count) && count > 0) bossDefeats[key] = count
+  }
+  const compactedBefore = Number(value.compactedBefore)
+  const runs = Number(value.runs)
+  return {
+    compactedBefore: Number.isFinite(compactedBefore) && compactedBefore > 0 ? compactedBefore : 0,
+    runs: Number.isSafeInteger(runs) && runs > 0 ? runs : 0,
+    bossDefeats,
+  }
+}
+
+// Folds old run rows into users/$uid/ledgerSummary. Pure: returns `node` itself when nothing folds.
+// Kept: `keepRunIds` (this save's runs), rows started within RUN_LEDGER_RETENTION_MS, the newest
+// RUN_LEDGER_KEEP_NEWEST rows, and the newest boss-defeat row of each stage (so a build that only
+// counts rows still sees >= 1 proof for every stage it ever unlocked). Rows without `at` (written
+// by builds before ledgerSummary) sort oldest and fold with watermark now - retention.
+// At most RUN_LEDGER_FOLD_MAX rows fold per call; the next save continues.
+// Old-build hazards once rows fold: their boss COUNT reads lower (unlocks survive via the pinned
+// rows), and an old page that re-sends a folded run after a re-hydrate adds its totals twice,
+// because legacy rows carry no `at` for the dedupe guard to compare.
+export function compactRunLedgerNode(node, { keepRunIds = [], now = Date.now() } = {}) {
+  const ledger = node?.runLedger
+  if (!ledger || typeof ledger !== 'object') return node
+  const horizon = now - RUN_LEDGER_RETENTION_MS
+  const newestFirst = Object.entries(ledger).sort(([idA, a], [idB, b]) =>
+    ((readRunAt(b) ?? -Infinity) - (readRunAt(a) ?? -Infinity)) || (idA < idB ? -1 : idA > idB ? 1 : 0))
+  const keep = new Set(keepRunIds)
+  for (const [id] of newestFirst.slice(0, RUN_LEDGER_KEEP_NEWEST)) keep.add(id)
+  const pinnedStages = new Set()
+  for (const [id, row] of newestFirst) {
+    const key = ledgerBossDefeatKey(row)
+    if (key && !pinnedStages.has(key)) { pinnedStages.add(key); keep.add(id) }
+  }
+  const fold = newestFirst
+    .filter(([id, row]) => !keep.has(id) && !((readRunAt(row) ?? -Infinity) > horizon))
+    .reverse()
+    .slice(0, RUN_LEDGER_FOLD_MAX)
+  if (!fold.length) return node
+  const prior = normalizeLedgerSummary(node.ledgerSummary) ?? { compactedBefore: 0, runs: 0, bossDefeats: {} }
+  const summary = { compactedBefore: prior.compactedBefore, runs: prior.runs, bossDefeats: { ...prior.bossDefeats } }
+  const nextLedger = { ...ledger }
+  for (const [id, row] of fold) {
+    const key = ledgerBossDefeatKey(row)
+    if (key) summary.bossDefeats[key] = (summary.bossDefeats[key] ?? 0) + 1
+    summary.runs += 1
+    summary.compactedBefore = Math.max(summary.compactedBefore, readRunAt(row) ?? horizon)
+    delete nextLedger[id]
+  }
+  if (!Object.keys(summary.bossDefeats).length) delete summary.bossDefeats
+  return { ...node, runLedger: nextLedger, ledgerSummary: summary }
+}
+
+export function _setRunLedgerCompactionForTests(enabled) {
+  runLedgerCompactionEnabled = enabled === true
 }
 
 export function recordFirebaseProgressPurchase({ category, id, price, nextLevel }) {
@@ -185,6 +279,7 @@ export function setCloudProgressUser(user) {
     runCheckpoints = new Map()
     runBaseline = {}
     ledgerBossCounts = null
+    ledgerSummary = null
     runContribution = { gold: 0, records: {}, missionCounters: {} }
     runtime = createEmptyRuntime(nextUid)
   }
@@ -214,7 +309,7 @@ export function buildCloudProgressSnapshot(now = Date.now()) {
   ensureHydrated()
   const progress = cloneProgress(runtime.progress)
   progress.records = normalizeNumberMap(progress.records, RECORD_KEYS)
-  return { ...buildRemotePayload(now), progress }
+  return { ...buildRemotePayload(now), progress, ...(ledgerSummary ? { ledgerSummary: structuredClone(ledgerSummary) } : {}) }
 }
 
 export async function hydrateCloudProgress(user = cloudUser) {
@@ -302,6 +397,7 @@ export function applyCloudProgressSnapshot(snapshot, user = cloudUser, { keepClo
   purchaseOperations = new Map()
   runCheckpoints = new Map()
   runBaseline = structuredClone(snapshot?.runLedger ?? {})
+  ledgerSummary = normalizeLedgerSummary(snapshot?.ledgerSummary)
   ledgerBossCounts = null
   runContribution = { gold: 0, records: {}, missionCounters: {} }
   cloudUser = keepCloudUserNull ? null : (user ?? cloudUser)
@@ -360,7 +456,7 @@ export function readFirebasePlayerProgress() {
   ensureHydrated()
   const progress = cloneProgress(runtime.progress)
   if (!ledgerBossCounts) {
-    const counts = Object.fromEntries(BOSS_RECORD_KEYS.map(key => [key, 0]))
+    const counts = Object.fromEntries(BOSS_RECORD_KEYS.map(key => [key, ledgerSummary?.bossDefeats?.[key] ?? 0]))
     // Pending is the latest version of a baseline row, not another completion.
     for (const run of Object.values({ ...runBaseline, ...Object.fromEntries(runCheckpoints) })) {
       const key = ledgerBossDefeatKey(run)
@@ -690,7 +786,11 @@ async function performCloudProgressSave(user) {
         }
       }
       next.runLedger = { ...current.runLedger }
+      const currentSummary = normalizeLedgerSummary(current.ledgerSummary)
       for (const [runId,run] of runsAtSave) {
+        // Folded by another tab since this session read the ledger: its totals are already in
+        // current.progress, and re-adding them from zero would count the run twice.
+        if (!current.runLedger?.[runId] && currentSummary && readRunAt(run) !== null && run.at <= currentSummary.compactedBefore) continue
         const before = current.runLedger?.[runId] ?? { records: {}, gold: 0 }
         for (const [key,value] of Object.entries(run.records)) {
           if (RECORD_KEY_SET.has(key)) next.progress.records[key] += value - (before.records[key] ?? 0)
@@ -709,7 +809,7 @@ async function performCloudProgressSave(user) {
         next.runLedger[runId] = { ...run, missionCounters: wireCounters }
       }
       next.checkpointLedger = { ...current.checkpointLedger, [session]: { ...delta, gold: delta.gold + refund, purchases: effectivePurchases, purchaseReceipts } }
-      return next
+      return runLedgerCompactionEnabled ? compactRunLedgerNode(next, { keepRunIds: runsAtSave.map(([id]) => id) }) : next
     })
     if (!result?.committed) throw new FirebaseProgressError('Progress transaction was not acknowledged.', 'save-not-acknowledged')
     const savedNode = readTransactionSnapshotValue(result.snapshot)
@@ -735,6 +835,7 @@ async function performCloudProgressSave(user) {
         runBaseline[runId] = run
         runCheckpoints.delete(runId)
       }
+      syncLedgerSummaryAfterSave(savedNode, runsAtSave)
     }
     return { saved: !purchaseConflict, shouldWarn: purchaseConflict }
   }).catch(error => {
@@ -746,6 +847,43 @@ async function performCloudProgressSave(user) {
   if (shouldWarn) markProgressSaveWarning(uidAtRequest)
   if(saved && isFirebaseProgressHydrated({uid:uidAtRequest}) && runtime !== runtimeAtSave) return performCloudProgressSave(user)
   return saved
+}
+
+// Adopt the committed summary, drop baseline rows it folded (else they count twice), and undo the
+// local share of any run the transaction skipped as already folded.
+function syncLedgerSummaryAfterSave(savedNode, runsAtSave) {
+  const saved = normalizeLedgerSummary(savedNode?.ledgerSummary)
+  if (!saved) return
+  ledgerSummary = saved
+  ledgerBossCounts = null
+  const savedLedger = savedNode?.runLedger ?? {}
+  for (const [runId] of runsAtSave) {
+    const run = runCheckpoints.get(runId)
+    if (!run || Object.hasOwn(savedLedger, runId) || readRunAt(run) === null || run.at > saved.compactedBefore) continue
+    const previous = runBaseline[runId] ?? { records: {}, gold: 0 }
+    const previousCounters = normalizeMissionCounters(previous.missionCounters)
+    runCheckpoints.delete(runId)
+    updateFirebasePlayerProgress(progress => {
+      for (const [key,value] of Object.entries(run.records)) {
+        if (!RECORD_KEY_SET.has(key)) continue
+        const difference = value - (previous.records[key] ?? 0)
+        progress.records[key] = (progress.records[key] ?? 0) - difference
+        runContribution.records[key] = (runContribution.records[key] ?? 0) - difference
+      }
+      progress.goldTotal -= run.gold - previous.gold
+      runContribution.gold -= run.gold - previous.gold
+      for (const [key,value] of Object.entries(run.missionCounters ?? {})) {
+        if (/bestSurvivalSec|survivedAfterSpawnSec/.test(key)) continue
+        const difference = value - (previousCounters[key] ?? 0)
+        runContribution.missionCounters[key] = (runContribution.missionCounters[key] ?? 0) - difference
+        progress.missions.counters[key] = (progress.missions.counters[key] ?? 0) - difference
+      }
+      progress.missions = reconcileMissionProgress(progress.missions)
+    })
+  }
+  for (const runId of Object.keys(runBaseline)) {
+    if (!Object.hasOwn(savedLedger, runId)) delete runBaseline[runId]
+  }
 }
 
 // Apply only locally changed leaves; a stale tab must retain remote purchases,
@@ -826,6 +964,9 @@ export function _resetFirebaseProgressForTests() {
   runCheckpoints = new Map()
   runBaseline = {}
   ledgerBossCounts = null
+  ledgerSummary = null
+  runStartTimes.clear()
+  runLedgerCompactionEnabled = RUN_LEDGER_COMPACTION_ENABLED
   runContribution = { gold: 0, records: {}, missionCounters: {} }
 }
 

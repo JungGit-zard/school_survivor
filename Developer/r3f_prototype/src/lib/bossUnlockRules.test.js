@@ -23,8 +23,10 @@ describe('existing ledger wire contract and baseline Firebase Rules', () => {
   // 2026-10-26: titleSettings.playerAppearance에 'rosari'만 추가(9dcadbc7…). 스테일 트리 전량 배포 복구용 상위집합.
   // 2026-10-27: 9dcadbc7에서 titleSettings.playerOutfit('default'|'winter') 한 줄만 추가(1bd0e5bd…).
   // 클라이언트가 playerOutfit을 저장하므로 이 Rules를 클라이언트보다 먼저 배포해야 한다.
-  it('pins the reviewed Rules bytes: a9 plus the E34-E45 encounter whitelist, the rosari appearance and the wardrobe playerOutfit (deploy Rules before the client)', () => {
-    expect(createHash('sha256').update(bytes).digest('hex')).toBe('1bd0e5bd1abec1f6e1e3950f8a497f55e40de6d3eebc42285fec7147c0e78942')
+  // 2026-10-29: 1bd0e5bd에서 runLedger/$run/at(선택)와 users/$uid/ledgerSummary(단조 증가)만 추가(9279bf98…).
+  // 클라이언트가 새 run 행에 at을 쓰므로 이 Rules를 클라이언트보다 먼저 배포해야 한다.
+  it('pins the reviewed Rules bytes: a9 plus the E34-E45 encounter whitelist, the rosari appearance, the wardrobe playerOutfit and the run-ledger summary (deploy Rules before the client)', () => {
+    expect(createHash('sha256').update(bytes).digest('hex')).toBe('9279bf98906b2a803027942443f11bfb58317d2d268a37dfad66ee9bca3de497')
   })
   it.each([1,2,3,4,5,6,7,8,9,10])('stage %i virtual key uses existing numeric run-row validator, not progress schema additions', n => {
     const key=`stage${n}BossDefeats`

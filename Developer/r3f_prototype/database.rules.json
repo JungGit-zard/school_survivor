@@ -6,7 +6,7 @@
       "$uid": {
         ".read": "auth != null && (auth.uid === $uid || (auth.token.email === 'zard5388@gmail.com' && auth.token.email_verified === true && auth.token.firebase.sign_in_provider === 'google.com'))",
         ".write": "auth != null && (auth.uid === $uid || (auth.token.email === 'zard5388@gmail.com' && auth.token.email_verified === true && auth.token.firebase.sign_in_provider === 'google.com'))",
-        ".validate": "newData.hasChildren(['schemaVersion', 'updatedAt', 'profile', 'progress']) && (!data.child('checkpointLedger').exists() || newData.child('checkpointLedger').exists()) && (!data.child('runLedger').exists() || newData.child('runLedger').exists())",
+        ".validate": "newData.hasChildren(['schemaVersion', 'updatedAt', 'profile', 'progress']) && (!data.child('checkpointLedger').exists() || newData.child('checkpointLedger').exists()) && (!data.child('runLedger').exists() || newData.child('runLedger').exists() || newData.child('ledgerSummary').exists()) && (!data.child('ledgerSummary').exists() || newData.child('ledgerSummary').exists())",
         "runLedger": {
           "$run": {
             ".validate": "newData.hasChildren(['stageId','records','gold','best'])",
@@ -15,8 +15,18 @@
             "records": { "$key": { ".validate": "newData.isNumber() && newData.val() >= 0" } },
             "best": { "$key": { ".validate": "newData.isNumber() && newData.val() >= 0" } },
             "missionCounters": { "$key": { ".validate": "newData.isNumber() && newData.val() >= 0" } },
+            "at": { ".validate": "newData.isNumber() && newData.val() > 0" },
             "$other": { ".validate": false }
           }
+        },
+        "ledgerSummary": {
+          ".validate": "newData.hasChildren(['compactedBefore', 'runs']) && (!data.child('bossDefeats').child('stage1BossDefeats').exists() || newData.child('bossDefeats').child('stage1BossDefeats').exists()) && (!data.child('bossDefeats').child('stage2BossDefeats').exists() || newData.child('bossDefeats').child('stage2BossDefeats').exists()) && (!data.child('bossDefeats').child('stage3BossDefeats').exists() || newData.child('bossDefeats').child('stage3BossDefeats').exists()) && (!data.child('bossDefeats').child('stage4BossDefeats').exists() || newData.child('bossDefeats').child('stage4BossDefeats').exists()) && (!data.child('bossDefeats').child('stage5BossDefeats').exists() || newData.child('bossDefeats').child('stage5BossDefeats').exists()) && (!data.child('bossDefeats').child('stage6BossDefeats').exists() || newData.child('bossDefeats').child('stage6BossDefeats').exists()) && (!data.child('bossDefeats').child('stage7BossDefeats').exists() || newData.child('bossDefeats').child('stage7BossDefeats').exists()) && (!data.child('bossDefeats').child('stage8BossDefeats').exists() || newData.child('bossDefeats').child('stage8BossDefeats').exists()) && (!data.child('bossDefeats').child('stage9BossDefeats').exists() || newData.child('bossDefeats').child('stage9BossDefeats').exists()) && (!data.child('bossDefeats').child('stage10BossDefeats').exists() || newData.child('bossDefeats').child('stage10BossDefeats').exists())",
+          "compactedBefore": { ".validate": "newData.isNumber() && newData.val() >= 0 && (!data.exists() || newData.val() >= data.val())" },
+          "runs": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && (!data.exists() || newData.val() >= data.val())" },
+          "bossDefeats": {
+            "$key": { ".validate": "$key.matches(/^stage([1-9]|10)BossDefeats$/) && newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && (!data.exists() || newData.val() >= data.val())" }
+          },
+          "$other": { ".validate": false }
         },
         "checkpointLedger": {
           ".validate": "newData.hasChildren()",
