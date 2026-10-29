@@ -155,7 +155,7 @@ function PlayerV9LanternModel() {
   )
 }
 
-export default function PlayerV9Model({ groupRef, movingRef, hitFlashToken = 0, previewArmAction = null, gameplay = false, outfit = 'default' }) {
+export default function PlayerV9Model({ groupRef, movingRef, animateRef = null, hitFlashToken = 0, previewArmAction = null, gameplay = false, outfit = 'default' }) {
   const modelScale = PLAYER_V9_SCALE * (gameplay ? 0.9 : 1)
   const floorY = -0.32 - PLAYER_V9_RAW_MIN_Y * modelScale
   const gltf = useGLTF(PLAYER_V9_MODEL_URL)
@@ -199,6 +199,8 @@ export default function PlayerV9Model({ groupRef, movingRef, hitFlashToken = 0, 
   useFrame(({ clock }, delta) => {
     const p = parts.current
     if (!p.legL || !p.legR || !p.slvL || !p.slvR) return
+    // animateRef(선택): 숨겨진 상주 인스턴스(오니기리 미니 분신)는 비활성 동안 포즈 계산을 건너뛴다.
+    if (animateRef && !animateRef.current) return
 
     if (hitFlashToken !== lastHitFlashToken.current) {
       lastHitFlashToken.current = hitFlashToken

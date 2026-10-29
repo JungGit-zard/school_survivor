@@ -26,7 +26,7 @@ export const ONIGIRI_MINI_PLAYER_SCALE = 0.5
 const ONIGIRI_MINI_PLAYER_FOOT_OFFSET = 0.32 * ONIGIRI_MINI_PLAYER_SCALE
 const ONIGIRI_MINI_HOP_HEIGHT = 0.22
 
-function OnigiriMiniPlayer() {
+function OnigiriMiniPlayer({ animateRef }) {
   const movingRef = useRef(true)
   // 외형·의상은 장착 시점의 저장값으로 고정한다(런 도중 바뀌지 않는다).
   const [look] = useState(() => ({
@@ -38,8 +38,8 @@ function OnigiriMiniPlayer() {
       {look.appearance === 'legacy'
         ? <PlayerMesh movingRef={movingRef} outfit={look.outfit} />
         : look.appearance === 'rosari'
-          ? <PlayerRosariModel movingRef={movingRef} gameplay />
-          : <PlayerV9Model movingRef={movingRef} gameplay outfit={look.outfit} />}
+          ? <PlayerRosariModel movingRef={movingRef} animateRef={animateRef} gameplay />
+          : <PlayerV9Model movingRef={movingRef} animateRef={animateRef} gameplay outfit={look.outfit} />}
     </group>
   )
 }
@@ -243,6 +243,8 @@ export function OnigiiriWeapon() {
   const [bursts, setBursts]           = useState([])
   const projRef      = useRef([])
   const miniPlayerRef = useRef(null)
+  // 발사체가 날아가는 동안만 true — 숨겨진 분신의 포즈 계산을 멈춘다(모바일 CPU 절약).
+  const miniActiveRef = useRef(false)
   const lastFireRef  = useRef(0)
   const burstIdRef   = useRef(0)
   const phase   = useGameStore((s) => s.phase)
@@ -250,6 +252,7 @@ export function OnigiiriWeapon() {
 
   const expire = useCallback((id) => {
     projRef.current = projRef.current.filter((p) => p.id !== id)
+    miniActiveRef.current = projRef.current.length > 0
     setProjectiles([...projRef.current])
   }, [])
 
@@ -284,6 +287,7 @@ export function OnigiiriWeapon() {
       critMultiplier: w.critMultiplier,
     }
     projRef.current = [p]
+    miniActiveRef.current = true
     setProjectiles([p])
   })
 
@@ -292,7 +296,7 @@ export function OnigiiriWeapon() {
   return (
     <>
       <group ref={miniPlayerRef} visible={false}>
-        <OnigiriMiniPlayer />
+        <OnigiriMiniPlayer animateRef={miniActiveRef} />
       </group>
       {projectiles.map((p) => (
         <OnigiiriProjectile key={p.id} {...p} visualRef={miniPlayerRef} onDone={expire} onBurst={addBurst} />

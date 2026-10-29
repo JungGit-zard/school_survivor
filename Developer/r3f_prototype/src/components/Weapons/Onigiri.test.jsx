@@ -19,17 +19,27 @@ describe('Onigiri projectile visual (2026-10-28: the projectile is a mini protag
   it('renders the real player model chosen by the saved appearance and outfit, not the rice ball', () => {
     expect(source).toContain('loadSavedPlayerAppearance()')
     expect(source).toContain('loadPlayerOutfit()')
-    expect(source).toContain('<PlayerV9Model movingRef={movingRef} gameplay outfit={look.outfit} />')
-    expect(source).toContain('<PlayerRosariModel movingRef={movingRef} gameplay />')
+    expect(source).toContain('<PlayerV9Model movingRef={movingRef} animateRef={animateRef} gameplay outfit={look.outfit} />')
+    expect(source).toContain('<PlayerRosariModel movingRef={movingRef} animateRef={animateRef} gameplay />')
     expect(source).toContain('<PlayerMesh movingRef={movingRef} outfit={look.outfit} />')
     const projectileSource = source.slice(source.indexOf('function OnigiiriProjectile'), source.indexOf('export function OnigiiriWeapon'))
     expect(projectileSource).not.toContain('<OnigiiriModel />')
   })
 
   it('keeps one persistent mini player instance per weapon instead of cloning a model per shot', () => {
-    expect(source.match(/<OnigiriMiniPlayer \/>/g)).toHaveLength(1)
+    expect(source.match(/<OnigiriMiniPlayer animateRef=\{miniActiveRef\} \/>/g)).toHaveLength(1)
     expect(source).toContain('visualRef={miniPlayerRef}')
     expect(source).toContain('if (projRef.current.length > 0) return')
+  })
+
+  it('skips the hidden mini player pose work while no projectile is in flight', () => {
+    expect(source).toContain('miniActiveRef.current = true')
+    expect(source).toContain('miniActiveRef.current = projRef.current.length > 0')
+    for (const file of ['../PlayerV9Model.jsx', '../PlayerRosariModel.jsx']) {
+      const model = readFileSync(new URL(file, import.meta.url), 'utf8')
+      expect(model).toContain('animateRef = null')
+      expect(model).toContain('if (animateRef && !animateRef.current) return')
+    }
   })
 
   it('scales the mini player down and keeps the Studio preview rice-ball model exported', async () => {
