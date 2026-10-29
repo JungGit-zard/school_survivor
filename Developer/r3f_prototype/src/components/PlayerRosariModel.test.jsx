@@ -4,12 +4,13 @@ import path from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import * as THREE from 'three'
 
-const runtime = vi.hoisted(() => ({ scene: null, frame: null }))
+const runtime = vi.hoisted(() => ({ scene: null, frame: null, cleanups: [] }))
 vi.mock('react', async (importOriginal) => ({
   ...await importOriginal(),
   useMemo: (factory) => factory(),
   useRef: (current) => ({ current }),
-  useEffect: (effect) => effect(),
+  // 언마운트 정리(의상 액세서리·아웃라인 헐 해제)를 테스트에서 돌릴 수 있게 모아 둔다.
+  useEffect: (effect) => { const cleanup = effect(); if (cleanup) runtime.cleanups.push(cleanup) },
 }))
 vi.mock('@react-three/fiber', () => ({ useFrame: (frame) => { runtime.frame = frame }, useThree: () => ({}) }))
 vi.mock('@react-three/drei', () => ({ useGLTF: Object.assign(() => ({ scene: runtime.scene }), { preload: () => {} }) }))
@@ -20,6 +21,7 @@ import PlayerRosariModel, {
 } from './PlayerRosariModel.jsx'
 import StudioTunedGroup, { applySavedStudioPartTunings, applyStudioTuning, findStudioPartByKey } from './StudioTunedGroup.jsx'
 import { GRAPHICS_STUDIO_CATALOG } from '../lib/graphicsStudioConfig.js'
+import { ROSARI_OUTFIT_TORSO_NODE, getRosariGarmentSlot, resolveRosariOutfit } from '../lib/rosariOutfits.js'
 
 const D = THREE.MathUtils.degToRad
 
@@ -50,10 +52,49 @@ const RIG_ORPHANS = [
   'right_seated_shoulder_cap_underarm_bridge',
 ]
 
-function node(name, { mesh = false } = {}) {
+// 출하 GLB의 (메시 노드, 머티리얼) 쌍 그대로다. 아래 'mirrors the shipped GLB garment
+// surfaces' 테스트가 자산에서 직접 재확인하므로 이 표는 추측이 아니다.
+// 의상 재색 대상(가먼트)과 대상이 아닌 표면(머리카락·목·손·가방·신발)을 함께 둬서,
+// 재색이 번지는 회귀를 같은 픽스처에서 잡는다.
+const FIXTURE_BASE_COLOR = '#1a2b3c'
+const SPINE_SURFACES = [
+  ['left_upper_sleeve_continuous_to_white_cuff', 'jacket'],
+  ['right_upper_sleeve_continuous_to_white_cuff', 'jacket.001'],
+  ['left_white_cuff_band_at_wrist', 'shirt'],
+  ['right_white_cuff_band_at_wrist', 'shirt.001'],
+  ['white_collar_left_triangle', 'collar'],
+  ['white_collar_right_triangle', 'collar.001'],
+  ['yellow_tie_knot', 'tie'],
+  ['yellow_tie_long_drop', 'tie.001'],
+  ['reference_tapered_pleated_skirt_shell', 'skirt'],
+  ['continuous_fitted_reference_bob', 'hair'],
+  ['short_neck_visible_below_complete_skull', 'skin'],
+  ['left_simple_lowpoly_hand_mitten', 'skin.001'],
+  ['rounded_square_blue_backpack_body', 'backpack'],
+]
+const LEG_SURFACES = {
+  left: [
+    ['left_upper_leg_tapered_thigh_to_knee', 'skin.006'],
+    ['left_lower_leg_tapered_knee_to_sock', 'skin.005'],
+    ['left_white_sock_six_ring_column', 'sock'],
+    ['left_rounded_reference_shoe', 'roundedShoe'],
+  ],
+  right: [
+    ['right_upper_leg_tapered_thigh_to_knee', 'skin.008'],
+    ['right_lower_leg_tapered_knee_to_sock', 'skin.007'],
+    ['right_white_sock_six_ring_column', 'sock.001'],
+    ['right_rounded_reference_shoe', 'roundedShoe.001'],
+  ],
+}
+const GARMENT_SURFACES = [...SPINE_SURFACES, ...LEG_SURFACES.left, ...LEG_SURFACES.right]
+
+function node(name, { mesh = false, materialName = '' } = {}) {
   const spec = BAKED[name]
   const object = mesh
-    ? new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.3, 0.3), new THREE.MeshStandardMaterial())
+    ? new THREE.Mesh(
+      new THREE.BoxGeometry(0.3, 0.3, 0.3),
+      new THREE.MeshStandardMaterial({ name: materialName, color: FIXTURE_BASE_COLOR }),
+    )
     : new THREE.Group()
   object.name = name
   if (spec) {
@@ -72,6 +113,11 @@ function buildRosariScene() {
   for (const side of ['left', 'right']) {
     const hip = node(`${side}_hip_pivot`)
     hip.add(node(`${side}_knee_pivot`))
+    // 다리 표면은 무릎 **뒤에** 붙인다 — `${side}_knee_pivot`은 계속 children[0]이라
+    // 저장된 Studio 파츠 인덱스 경로가 밀리지 않는다.
+    for (const [meshName, materialName] of LEG_SURFACES[side]) {
+      hip.add(node(meshName, { mesh: true, materialName }))
+    }
     pelvis.add(hip)
     const shoulder = node(`${side}_shoulder_pivot`)
     shoulder.add(node(`${side}_elbow_pivot`))
@@ -79,13 +125,18 @@ function buildRosariScene() {
   }
   spine.add(node('backpack_pivot'))
   const head = node('head_neck_pivot')
-  head.add(node('coherent_head_skull_UV_image_face', { mesh: true }))
+  head.add(node('coherent_head_skull_UV_image_face', { mesh: true, materialName: 'faceSkin' }))
   spine.add(head)
+  // 몸통 표면도 어깨·가방·머리 다음에 붙어 spine.children[1] === right_shoulder_pivot 가 유지된다.
+  for (const [meshName, materialName] of SPINE_SURFACES) {
+    spine.add(node(meshName, { mesh: true, materialName }))
+  }
   pelvis.add(spine)
   root.add(pelvis)
   scene.add(root)
   for (const name of RIG_ORPHANS) {
-    const orphan = node(name, { mesh: true })
+    // 몸통 외피와 어깨 캡 3개는 실제 GLB에서 같은 `jacket.002` 머티리얼 인덱스를 공유한다.
+    const orphan = node(name, { mesh: true, materialName: 'jacket.002' })
     orphan.position.set(0.11, 1.42, -0.07)
     scene.add(orphan)
   }
@@ -125,6 +176,7 @@ beforeEach(() => {
   vi.stubGlobal('document', { createElement: () => ({ getContext: () => ({ fillRect() {} }) }) })
   vi.spyOn(performance, 'now').mockReturnValue(4321)
   runtime.scene = buildRosariScene()
+  runtime.cleanups = []
 })
 afterEach(() => {
   vi.unstubAllGlobals()
@@ -309,5 +361,157 @@ describe('Player rosari gameplay and Studio runtime model contract', () => {
     expect(preview).toContain("'player-rosari': 'rosari'")
     expect(preview).toContain('comparisonModel={STUDIO_PLAYER_APPEARANCES[item.id] ?? item.id}')
     expect(read('./Player.jsx')).toContain("appearance === 'rosari'")
+  })
+})
+
+// 방 옷장에서 고른 의상이 스테이지에서도 같은 모습으로 나오는지 — 값 존재가 아니라
+// 클론의 머티리얼 색과 실제로 붙은 액세서리 메시를 본다.
+describe('Player rosari gameplay outfit', () => {
+  const WINTER = resolveRosariOutfit('winter').colors
+  const hex = (material) => `#${material.color.getHexString()}`
+  const surfaceByName = (model, name) => model.getObjectByName(name)
+  const accessoriesOf = (model) => model
+    .getObjectByName(ROSARI_OUTFIT_TORSO_NODE)
+    .children
+    .filter((child) => child.name.startsWith('outfit_'))
+
+  it('mirrors the shipped GLB garment surfaces, so the fixture is not a guess', () => {
+    const buffer = readFileSync(path.join(packageRoot, 'src/assets/models/PLAYER_wholebody_refined_t_efe49b7c.glb'))
+    let offset = 12
+    let json = null
+    while (offset < buffer.length && !json) {
+      const length = buffer.readUInt32LE(offset)
+      if (buffer.readUInt32LE(offset + 4) === 0x4e4f534a) json = JSON.parse(buffer.toString('utf8', offset + 8, offset + 8 + length))
+      offset += 8 + length
+    }
+    const shipped = new Map()
+    for (const entry of json.nodes) {
+      if (entry.mesh === undefined) continue
+      shipped.set(entry.name, json.meshes[entry.mesh].primitives.map((primitive) => json.materials[primitive.material]?.name))
+    }
+    for (const [meshName, materialName] of [...GARMENT_SURFACES, ...RIG_ORPHANS.map((name) => [name, 'jacket.002'])]) {
+      expect(shipped.get(meshName), `GLB에 ${meshName} 메시 노드가 없다`).toBeTruthy()
+      expect(shipped.get(meshName), `${meshName} 의 머티리얼 이름이 바뀌었다`).toContain(materialName)
+    }
+  })
+
+  it('recolors every garment slot on the clone and leaves skin, hair, shoes and bag alone', () => {
+    const { model } = renderPlayer({ outfit: 'winter', gameplay: true })
+    const expected = {
+      blazer: WINTER.blazer,
+      shirt: WINTER.shirt,
+      collar: WINTER.collar,
+      tie: WINTER.tie,
+      skirt: WINTER.skirt,
+      legwear: WINTER.legwear,
+    }
+    let recolored = 0
+    for (const [meshName, materialName] of [...GARMENT_SURFACES, ...RIG_ORPHANS.map((name) => [name, 'jacket.002'])]) {
+      const slot = getRosariGarmentSlot(meshName, materialName)
+      const material = surfaceByName(model, meshName).material
+      if (slot) {
+        expect(hex(material), `${meshName} (${slot}) 가 동복 색으로 바뀌지 않았다`).toBe(expected[slot])
+        recolored += 1
+      } else {
+        expect(hex(material), `${meshName} 는 의상 대상이 아닌데 재색됐다`).toBe(FIXTURE_BASE_COLOR)
+      }
+    }
+    // 블레이저 3(몸통 + 어깨캡 2) + 소매 2 + 커프 2 + 칼라 2 + 넥타이 2 + 스커트 1 + 레그웨어 6
+    expect(recolored).toBe(18)
+    expect(hex(surfaceByName(model, 'coherent_head_skull_UV_image_face').material)).toBe(FIXTURE_BASE_COLOR)
+  })
+
+  it('leaves every material at its GLB color for the default outfit and attaches no accessory', () => {
+    const { model } = renderPlayer({ outfit: 'default', gameplay: true })
+    for (const [meshName] of [...GARMENT_SURFACES, ...RIG_ORPHANS.map((name) => [name])]) {
+      expect(hex(surfaceByName(model, meshName).material), `${meshName} 가 기본 의상에서 바뀌었다`).toBe(FIXTURE_BASE_COLOR)
+    }
+    expect(accessoriesOf(model)).toEqual([])
+    // 몸통의 자식으로는 아웃라인 헐만 남는다.
+    const torso = model.getObjectByName(ROSARI_OUTFIT_TORSO_NODE)
+    expect(torso.children.map((child) => child.userData.studioRenderOutline)).toEqual([true])
+  })
+
+  it('falls back to the default outfit for an unknown saved id instead of throwing', () => {
+    const { model } = renderPlayer({ outfit: 'tuxedo', gameplay: true })
+    expect(accessoriesOf(model)).toEqual([])
+    expect(hex(model.getObjectByName(ROSARI_OUTFIT_TORSO_NODE).material)).toBe(FIXTURE_BASE_COLOR)
+  })
+
+  it('attaches the three winter accessories to the torso with game toon materials in the outline pipeline', () => {
+    const { model } = renderPlayer({ outfit: 'winter', gameplay: true })
+    const accessories = accessoriesOf(model)
+    expect(accessories.map((mesh) => mesh.name)).toEqual(['outfit_winter_shirtV', 'outfit_winter_lapels', 'outfit_winter_buttons'])
+    expect(accessories.map((mesh) => hex(mesh.material))).toEqual([WINTER.shirt, '#5e1627', '#e6b04a'])
+    let triangles = 0
+    for (const accessory of accessories) {
+      // 방의 ARCHIVE_TOON_GRADIENT 가 아니라 게임 toonMat 의 램프를 쓰고 stencil 도 표면과 같다.
+      expect(accessory.material).toBeInstanceOf(THREE.MeshToonMaterial)
+      expect(accessory.material.name).toBe('outfit_accessory')
+      expect(accessory.material.gradientMap).toBe(model.getObjectByName('yellow_tie_knot').material.gradientMap)
+      expect(accessory.material.stencilWrite).toBe(true)
+      expect(accessory.material.stencilRef).toBe(3)
+      expect(accessory.material.stencilFunc).toBe(THREE.AlwaysStencilFunc)
+      expect(accessory.renderOrder).toBe(90)
+      // 표면과 똑같이 자기 인버티드 헐을 갖는다 — 몸통 실루엣 안쪽이라 stencil 에 걸려
+      // 아무것도 그리지 않지만, Studio 가 파츠를 키워 밖으로 나오면 외곽선이 생긴다.
+      const hull = accessory.children.find((child) => child.userData.studioRenderOutline)
+      expect(hull, `${accessory.name} 에 아웃라인 헐이 없다`).toBeTruthy()
+      expect(hull.material.side).toBe(THREE.BackSide)
+      expect(hull.material.stencilFunc).toBe(THREE.NotEqualStencilFunc)
+      expect(hull.material.stencilRef).toBe(3)
+      const position = accessory.geometry.attributes.position
+      triangles += (accessory.geometry.index ? accessory.geometry.index.count : position.count) / 3
+    }
+    expect(triangles).toBeLessThanOrEqual(120)
+    // 피격 플래시는 헐만 건너뛴다 — 액세서리는 표면이라 같이 흰색이 돼야 한다.
+    expect(accessories.every((mesh) => !mesh.userData.studioRenderOutline)).toBe(true)
+  })
+
+  it('places the accessories where the room places them, despite the rig orphan reparenting', () => {
+    runtime.scene.updateMatrixWorld(true)
+    const sourceTorsoWorld = runtime.scene.getObjectByName(ROSARI_OUTFIT_TORSO_NODE).matrixWorld.clone()
+    const { model } = renderPlayer({ outfit: 'winter', gameplay: true })
+    const sceneRoot = model.getObjectByName('pose_root_all_parts').parent
+    sceneRoot.updateMatrixWorld(true)
+    const toSceneRoot = new THREE.Matrix4().copy(sceneRoot.matrixWorld).invert()
+    for (const accessory of accessoriesOf(model)) {
+      // 토르소 로컬 좌표로 저작된 지오메트리라 로컬 변환은 항등이어야 한다 — 방과 같은 조건.
+      expect(accessory.position.lengthSq()).toBe(0)
+      expect(accessory.scale.toArray()).toEqual([1, 1, 1])
+      accessory.geometry.computeBoundingBox()
+      const expected = accessory.geometry.boundingBox.clone().applyMatrix4(sourceTorsoWorld)
+      const actual = accessory.geometry.boundingBox.clone()
+        .applyMatrix4(new THREE.Matrix4().multiplyMatrices(toSceneRoot, accessory.matrixWorld))
+      for (const bound of ['min', 'max']) {
+        for (const axis of ['x', 'y', 'z']) {
+          expect(actual[bound][axis], `${accessory.name}.${bound}.${axis} 가 밀렸다`).toBeCloseTo(expected[bound][axis], 12)
+        }
+      }
+    }
+  })
+
+  it('releases the accessory geometry and the material it created on unmount', () => {
+    const { model } = renderPlayer({ outfit: 'winter', gameplay: true })
+    const accessories = accessoriesOf(model)
+    expect(accessories).toHaveLength(3)
+    const spies = accessories.flatMap((accessory) => [
+      vi.spyOn(accessory.geometry, 'dispose'),
+      vi.spyOn(accessory.userData.rosariOutfitMaterial, 'dispose'),
+    ])
+    expect(runtime.cleanups).toHaveLength(1)
+    runtime.cleanups.forEach((cleanup) => cleanup())
+    for (const spy of spies) expect(spy).toHaveBeenCalled()
+  })
+
+  it('applies the outfit once per clone, never from the frame loop', () => {
+    expect(source()).toContain('const scene = useMemo(() => clonePlayerRosariScene(gltf.scene, gameplay, outfit), [gltf.scene, gameplay, outfit])')
+    expect(source().slice(source().indexOf('useFrame((')), 'useFrame 안에서 의상을 적용하면 매 프레임 비용이 된다').not.toContain('applyRosariOutfit')
+    expect((source().match(/applyRosariOutfit\(/g) ?? []).length).toBe(1)
+    // 방과 같은 GLB라서 방의 적용 함수를 그대로 쓴다 — v9의 머티리얼/데칼 리맵은 필요 없다.
+    expect(source()).toContain("from '../lib/rosariOutfits.js'")
+    expect(source(), 'v9 전용 리맵을 import하면 안 된다').not.toMatch(/^import .*playerV9Outfits/m)
+    // 게임플레이 로자리 분기도 의상을 받는다.
+    expect(read('./Player.jsx')).toContain('<PlayerRosariModel movingRef={movingRef} hitFlashToken={hitFlashToken} previewArmAction={previewArmAction} gameplay={gameplay} outfit={outfit} />')
   })
 })

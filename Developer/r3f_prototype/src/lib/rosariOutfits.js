@@ -1,8 +1,17 @@
-// Rosari room wardrobe outfits.
+// Wardrobe outfits: the single palette source for every player model that wears clothes.
 //
-// Scope: ONLY the isolated Rosari room clone of
-// /assets/rosari-room/PLAYER_wholebody_refined_t_efe49b7c.glb. This never touches the
-// Graphics Studio / game / title player (PlayerMesh, StudioTunedGroup, Firebase tuning).
+// Scope: this module is pure data plus one apply function over an already-cloned scene of
+// PLAYER_wholebody_refined_t_efe49b7c.glb. Two call sites use it, both per clone, never per frame:
+//   - RosariRoom.jsx mountRosariModel      -> the room clone (/assets/rosari-room/<glb>)
+//   - PlayerRosariModel.jsx                -> the gameplay/Studio-preview clone of the same
+//                                             bytes (src/assets/models/<glb>), so the stage
+//                                             shows exactly what the room wardrobe shows.
+// playerV9Outfits.js imports this palette and remaps it onto the different v9 GLB.
+//
+// Still out of scope, and still forbidden here: Firebase/Graphics Studio tuning values,
+// PlayerMesh (the procedural box model, which has no garment materials), and any model
+// source other than the GLB whose node/material names are hard-coded below. This module
+// must not read or write Studio state — it only recolors materials a caller already owns.
 // The selected id is persisted as titleSettings.playerOutfit (see titleSettings.js
 // loadPlayerOutfit/savePlayerOutfit); ids here must match PLAYER_OUTFIT_IDS and the RTDB rule.
 //

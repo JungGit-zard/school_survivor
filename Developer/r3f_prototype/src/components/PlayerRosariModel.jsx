@@ -4,6 +4,7 @@ import { useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
 import { toonMat } from '../lib/toon.js'
 import { addPlayerV9Outlines } from '../lib/playerV9Outline.js'
+import { DEFAULT_ROSARI_OUTFIT_ID, applyRosariOutfit } from '../lib/rosariOutfits.js'
 import { bagSwingState, playerArmActionState } from '../lib/refs.js'
 import { getActivePlayerArmAction, getPlayerArmPose } from '../lib/playerArmAction.js'
 import StudioTunedGroup, {
@@ -92,6 +93,21 @@ function cloneMaterial(material) {
   return cloned
 }
 
+// 의상 액세서리 머티리얼. 로자리 방의 makeOutfitAccessoryMaterial을 그대로 쓸 수는 없다 —
+// 그쪽은 방 전용 회색 5단 램프(ARCHIVE_TOON_GRADIENT)이고 stencil을 켜지 않으므로,
+// 바로 옆 블레이저(게임 toonMat의 어두운 보라 램프)와 명암이 다른 단계에서 끊긴다.
+// 그래서 cloneMaterial이 GLB 표면에 쓰는 것과 **같은** toonMat()을 쓴다. emissive는
+// toonMat이 color로 잡고 intensity 0으로 두며, StudioTunedGroup의 applyStudioTuning이
+// 마운트 시 모든 표면의 emissiveIntensity를 같은 값(0.14)으로 정규화한다.
+// stencilRef는 toonMat이 1로 두지만 뒤따르는 addPlayerV9Outlines가 3으로 맞춰 준다.
+function makeRosariOutfitAccessoryMaterial(color) {
+  const material = toonMat(color, 0)
+  material.name = 'outfit_accessory'
+  material.depthTest = true
+  material.depthWrite = true
+  return material
+}
+
 export function reparentRosariRigOrphans(root) {
   const spine = root?.getObjectByName?.('torso_spine_pivot')
   if (!spine) return 0
@@ -106,7 +122,7 @@ export function reparentRosariRigOrphans(root) {
   return moved
 }
 
-function clonePlayerRosariScene(scene, gameplay) {
+function clonePlayerRosariScene(scene, gameplay, outfit = DEFAULT_ROSARI_OUTFIT_ID) {
   const cloned = scene.clone(true)
   reparentRosariRigOrphans(cloned)
   cloned.traverse((object) => {
@@ -119,6 +135,23 @@ function clonePlayerRosariScene(scene, gameplay) {
       ? object.material.map(cloneMaterial)
       : cloneMaterial(object.material)
   })
+  // 방과 같은 GLB이므로 방의 적용 함수를 그대로 쓴다(v9는 다른 GLB라서 playerV9Outfits.js의
+  // 머티리얼/노드 이름 매핑과 데칼 텍셀 리맵이 필요했다 — 여기서는 전부 불필요하다).
+  // 클론당 1회이며 기본 의상은 no-op이다. 액세서리를 아웃라인 **앞에** 붙이는 이유:
+  // 그래야 GLB 표면과 똑같이 stencilRef 3을 쓰고 자기 헐을 갖는다. 액세서리는 몸통 실루엣
+  // 안쪽(x −0.29..0.315 ⊂ 몸통 −0.40..0.43)이라 그 헐은 stencil NotEqual 3에 전부 걸려
+  // 아무것도 그리지 않는다 — 실루엣이 깨질 수 없고, Studio가 파츠를 키워 액세서리가 밖으로
+  // 나오는 경우에만 올바른 외곽선이 생긴다. 방의 스크린스페이스 아웃라인도 같은 stencil
+  // 규칙(ref 3, NotEqual)이라 방에서 보이는 모습과 일치한다.
+  // 액세서리는 몸통 노드의 children 끝에 붙으므로 기존 Studio 파츠 인덱스 경로는 밀리지 않는다.
+  for (const accessory of applyRosariOutfit(cloned, outfit, makeRosariOutfitAccessoryMaterial)) {
+    accessory.castShadow = true
+    accessory.receiveShadow = true
+    accessory.frustumCulled = false
+    // Studio가 머티리얼을 isolate하면 accessory.material이 Studio 소유 clone으로 바뀐다.
+    // 언마운트 때 우리가 만든 원본을 놓아 주려면 그 참조를 들고 있어야 한다.
+    accessory.userData.rosariOutfitMaterial = accessory.material
+  }
   // 게임 아웃라인 정본(인버티드 헐 + studioRenderOutline 마커 + stencilRef 3)만 쓴다.
   // 로자리 방의 스크린스페이스 압출 아웃라인은 userData.isOutline을 쓰기 때문에
   // ① Studio의 outlineThickness가 헐 scale을 키워 12% 확대 흑색 복제본을 만들고
@@ -201,11 +234,11 @@ function PlayerRosariLanternModel() {
   )
 }
 
-export default function PlayerRosariModel({ groupRef, movingRef, hitFlashToken = 0, previewArmAction = null, gameplay = false }) {
+export default function PlayerRosariModel({ groupRef, movingRef, hitFlashToken = 0, previewArmAction = null, gameplay = false, outfit = DEFAULT_ROSARI_OUTFIT_ID }) {
   const modelScale = PLAYER_ROSARI_SCALE * (gameplay ? 0.9 : 1)
   const floorY = -0.32 - PLAYER_ROSARI_RAW_MIN_Y * modelScale
   const gltf = useGLTF(PLAYER_ROSARI_MODEL_URL)
-  const scene = useMemo(() => clonePlayerRosariScene(gltf.scene, gameplay), [gltf.scene, gameplay])
+  const scene = useMemo(() => clonePlayerRosariScene(gltf.scene, gameplay, outfit), [gltf.scene, gameplay, outfit])
   const modelRef = useRef(null)
   const lanternRef = useRef(null)
   const parts = useRef({})
@@ -235,9 +268,17 @@ export default function PlayerRosariModel({ groupRef, movingRef, hitFlashToken =
     parts.current = found
     return () => {
       scene.traverse((object) => {
-        if (!object.userData.studioRenderOutline) return
+        if (object.userData.studioRenderOutline) {
+          object.geometry.dispose()
+          object.material.dispose()
+          return
+        }
+        // GLB 표면의 지오메트리는 useGLTF 캐시 소유라 건드리지 않는다. ownedGeometry가
+        // 붙은 메시는 의상 액세서리뿐이고, 그 지오메트리와 머티리얼은 이 클론이 만든 것이다.
+        if (!object.userData.ownedGeometry) return
         object.geometry.dispose()
-        object.material.dispose()
+        object.userData.rosariOutfitMaterial?.dispose()
+        if (object.material !== object.userData.rosariOutfitMaterial) object.material?.dispose()
       })
     }
   }, [scene])

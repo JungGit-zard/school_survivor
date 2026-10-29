@@ -218,7 +218,7 @@ export function PlayerVisual({ meshGroup, movingRef, hp, maxHp, hitFlashToken = 
           {appearance === 'legacy'
             ? <PlayerMesh movingRef={movingRef} hitFlashToken={hitFlashToken} previewArmAction={previewArmAction} outfit={outfit} />
             : appearance === 'rosari'
-              ? <PlayerRosariModel movingRef={movingRef} hitFlashToken={hitFlashToken} previewArmAction={previewArmAction} gameplay={gameplay} />
+              ? <PlayerRosariModel movingRef={movingRef} hitFlashToken={hitFlashToken} previewArmAction={previewArmAction} gameplay={gameplay} outfit={outfit} />
               : <PlayerV9Model movingRef={movingRef} hitFlashToken={hitFlashToken} previewArmAction={previewArmAction} gameplay={gameplay} outfit={outfit} />}
         </group>
       </group>
@@ -236,7 +236,9 @@ export default function Player() {
   const [comparisonModel, setComparisonModel] = useState(null)
   // 게스트는 이번 접속 메모리의 선택을 쓴다. 로그인했지만 아직 계정 진행도가 오기 전이면 기본값.
   const savedAppearance = loadSavedPlayerAppearance()
-  // 동복 등 의상 선택(titleSettings.playerOutfit). 없으면 'default'. v9와 단순(PlayerMesh) 모델이 의상을 입는다.
+  // 동복 등 의상 선택(titleSettings.playerOutfit). 없으면 'default'.
+  // 세 외형 전부가 의상을 입는다 — 팔레트 정본은 lib/rosariOutfits.js 하나이고,
+  // v9는 playerV9Outfits.js, 단순(PlayerMesh)는 playerMeshOutfits.js가 거기서 리맵한다.
   const savedOutfit = resolvePlayerOutfitId(isFirebaseProgressHydrated()
     ? loadTitleSettings().playerOutfit
     : (useAuthStore.getState().user?.uid ? undefined : loadGuestSessionSettings().playerOutfit))
