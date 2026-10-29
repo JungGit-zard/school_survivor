@@ -124,8 +124,13 @@ describe('StunGun mobile readability (2026-10-28: nearly invisible on Stage 2)',
     expect(mod.STUN_BOLT_VISUAL_SCALE).toBeGreaterThanOrEqual(0.19)
   })
 
-  it('renders the electric effect unlit with a dark edge so it reads on the light Stage 2 floor', () => {
+  it('renders the electric effect unlit with a blue (not black) edge so it reads on the light Stage 2 floor', async () => {
+    const mod = await import('./StunGun.jsx')
+    // 2026-10-29 Terry: 검은 테두리 금지, 푸른색 테두리.
+    expect(mod.STUN_ELECTRIC_EDGE).toBe(0x1e6bff)
+    expect(source).not.toContain('0x1a1440')
     expect(source).toContain('new THREE.MeshBasicMaterial({ color: STUN_ELECTRIC_EDGE')
+    expect(source).toContain('createStunEffectMaterial(STUN_ELECTRIC_EDGE)')
     expect(source).toContain('createStunEffectMaterial(STUN_ELECTRIC_YELLOW)')
     expect(source).not.toContain('toonMat(0xffe840')
   })

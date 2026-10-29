@@ -19,7 +19,7 @@ const CHAIN_ARC_SEGMENT_INDICES = Object.freeze([0, 1, 2, 3, 4])
 
 // 2026-10-28 Terry 모바일 피드백: "전기충격기 효과가 모바일에서 거의 안 보임, 특히 2스테이지".
 // 2스테이지 복도 바닥은 밝은 회색이라 옅은 노랑·조명 받는(toon) 재질의 머리카락 굵기 호가 묻혔다.
-// → 조명 무관(MeshBasic) 고채도 노랑 + 어두운 테두리 층으로 밝은/어두운 바닥 모두에서 대비를 확보하고,
+// → 조명 무관(MeshBasic) 고채도 노랑 + 푸른 테두리 층으로 밝은/어두운 바닥 모두에서 대비를 확보하고,
 //    호 굵기·지속시간·볼트 크기를 키우며, 명중 지점에 짧은 스파크 링을 남긴다.
 //    지오메트리는 모듈 공유(단위 박스/링)이고 재질은 호 1개당 3개로 고정이라 체인 수가 늘어도 비용이 작다.
 export const STUN_ARC_DURATION_SECS = 0.26
@@ -28,7 +28,9 @@ export const STUN_ARC_EDGE_WIDTH = scaleEffectVisual(0.17)
 export const STUN_BOLT_VISUAL_SCALE = scaleEffectVisual(0.42)
 const STUN_ARC_JITTER = scaleEffectVisual(0.30)
 const STUN_ELECTRIC_YELLOW = 0xffe600
-const STUN_ELECTRIC_EDGE = 0x1a1440
+// 2026-10-29 Terry: "효과 그래픽에 검은테두리 넣지말고 푸른색으로" — 남흑색 테두리를 전기 파랑으로 교체.
+// 밝은 2스테이지 바닥 대비를 위해 명도는 낮게, 채도는 높게 유지한다.
+export const STUN_ELECTRIC_EDGE = 0x1e6bff
 const STUN_ARC_UNIT_BOX = new THREE.BoxGeometry(1, 1, 1)
 const STUN_SPARK_RING = new THREE.RingGeometry(0.55, 1, 20)
 
@@ -70,7 +72,7 @@ export function resolveStunArcEndpoint(out, endpoint) {
 }
 
 export function LightningBoltModel() {
-  // 조명 무관 고채도 노랑 + 흰 심지, 아래에 한 겹 크게 깐 남색 테두리(카툰 외곽선 역할).
+  // 조명 무관 고채도 노랑 + 흰 심지, 아래에 한 겹 크게 깐 전기 파랑 테두리(카툰 외곽선 역할).
   const boltMat = useMemo(() => new THREE.MeshBasicMaterial({ color: STUN_ELECTRIC_YELLOW, toneMapped: false }), [])
   const coreMat = useMemo(() => new THREE.MeshBasicMaterial({ color: 0xffffff, toneMapped: false }), [])
   const edgeMat = useMemo(() => new THREE.MeshBasicMaterial({ color: STUN_ELECTRIC_EDGE, toneMapped: false }), [])
