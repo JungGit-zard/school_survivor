@@ -2,7 +2,7 @@
 // lives in the data files (weapon catalog, quests, investigation lines, legal docs).
 const SERVICE_NAME = 'Escape! Zombie School'
 const CONTACT_EMAIL = 'zard5388@gmail.com'
-const EFFECTIVE_DATE = 'July 29, 2026'
+const EFFECTIVE_DATE = 'October 29, 2026'
 
 export default {
   'stage4Guide.orientation': 'North: cooking / sink',
@@ -872,10 +872,11 @@ Article 2 (Effect and Amendment of the Terms)
 3. If material changes are made, the operator may request your consent again. If you do not agree to the amended Terms, you may stop using the Game and delete your account.
 
 Article 3 (Accounts)
-1. The Game is used with a Google account sign-in. During sign-in, the operator receives the account identifier and profile display name provided by Google.
-2. You choose your own in-game nickname. Nicknames that impersonate others or cause offense may be changed or removed without prior notice.
-3. Your account is for your own use only. You may not transfer, lend, or sell your account.
-4. The operator is not liable for damages caused by account misuse resulting from your own failure to manage the account.
+1. You can play the Game by signing in with a Google account, or as a guest without signing in. Progress made as a guest is not stored on the server, so it cannot be continued after you reopen the Game.
+2. When you sign in with Google, the operator receives the account identifier, email address, profile display name, and profile photo URL provided by Google. This information is handled as described in the Privacy Policy.
+3. You choose your own in-game nickname. Nicknames that impersonate others or cause offense may be changed or removed without prior notice.
+4. Your account is for your own use only. You may not transfer, lend, or sell your account.
+5. The operator is not liable for damages caused by account misuse resulting from your own failure to manage the account.
 
 Article 4 (Service Content)
 1. The Game is provided free of charge.
@@ -883,8 +884,9 @@ Article 4 (Service Content)
 3. The operator may adjust difficulty, stats, prices, and rewards for game balance. Such adjustments may change the effect of in-game data you have already obtained.
 
 Article 5 (Storage and Publication of Game Records)
-1. Your progress is linked to your account and stored on the server, so you can continue playing when you sign in with the same account.
-2. Records registered on the ranking are shown to other users together with your nickname (or profile display name). If you do not want to take part in the ranking, you may avoid play sessions that leave such records, or delete your account.
+1. Progress of users signed in with Google is linked to the account and stored on the server, so you can continue playing when you sign in with the same account.
+2. Every run, including runs that score 0 points, is automatically registered on the ranking when it ends, and is shown publicly to anyone together with your nickname (or profile display name). There is no separate setting to turn off ranking registration; registered records can be deleted by deleting your account or by contacting the operator.
+3. Posts and comments on the website board are not linked to your account, and public posts can be seen by anyone.
 
 Article 6 (User Obligations)
 You must not:
@@ -903,8 +905,8 @@ Article 8 (Changes and Suspension of Service)
 3. The service may be temporarily suspended for unavoidable reasons such as maintenance, network failures, or natural disasters.
 
 Article 9 (Termination and Deletion of Accounts)
-1. You may request account deletion at any time from the in-game settings.
-2. Deleting your account deletes your progress and in-game currency, and it cannot be restored. For rankings, your own records visible in the current daily and weekly rankings are deleted; for records from past periods that cannot be checked directly in the app, you may request additional deletion through the contact address.
+1. Users signed in with Google may delete their account at any time from the in-game settings. Deletion of guest records and of board posts and comments can be requested through the contact address in Article 11.
+2. Deleting your account deletes your progress, in-game currency, access log, and your own records in the current daily and weekly rankings and in the all-time ranking, and they cannot be restored. Daily and weekly ranking records from past periods are not deleted automatically by the Game; you may request their deletion through the contact address.
 3. If you sign in again after deletion, you start over with a new account and must agree to these Terms and the Privacy Policy again.
 
 Article 10 (Limitation of Liability)
@@ -916,62 +918,116 @@ Article 11 (Contact)
 For inquiries about the Game, please write to ${CONTACT_EMAIL}.
 
 Effective date: ${EFFECTIVE_DATE}`,
-  'legal.privacy.text': `${SERVICE_NAME} (the "Game") takes your personal information seriously and processes only the minimum information needed to operate the Game.
+  'legal.privacy.text': `${SERVICE_NAME} (the "Game") processes the information below to operate the Game and improve the service. This policy lists every item the Game actually collects and stores.
 
 1. Information processed
-A. Information received through Google sign-in or processed via Firebase Authentication
-   - Account identifier (a unique string issued by Google/Firebase). Email address, profile photo URL, email verification status, and sign-in provider information are used only for on-screen display and sign-in state checks; the email address and profile photo URL themselves are not stored in the game database.
-   - Profile display name
-B. Information you enter directly
-   - In-game nickname
-C. Information generated while playing
-   - Progress records: gold held, permanent upgrade levels, weapon unlock state, stage clear counts and best survival times, last updated time
-   - Ranking records: display name, score, survival time, cleared flag, stage, recorded time
+A. Account information of users signed in with Google (Firebase Authentication)
+   - The account identifier, email address, email verification status, profile display name, profile photo URL, and sign-in method provided by Google
+   - The account creation time and last sign-in time recorded by Firebase Authentication
+B. Game data of users signed in with Google (Firebase Realtime Database)
+   - Account identifier, Google profile display name, in-game nickname
+   - Progress records: gold held, cumulative play statistics (number of runs, kills, gold earned, survival time, clear counts and best survival times per stage, boss kills, etc.), weapon unlock, permanent upgrade and boss reward state, zombie encyclopedia, mission progress
+   - Game settings: language, vibration, reduced effects, screen shake on hit, number format, character appearance and outfit
+   - The last stage started and its start time, last updated time
+   - Settlement records per run and per session used to prevent abuse (gold and record increments, purchase processing history)
+   - The versions of the Terms of Service and Privacy Policy you agreed to and the time of consent
+C. Guest users (not signed in)
+   - A guest account identifier issued by Firebase anonymous authentication. The guest sign-in state (identifier and refresh token) is stored in browser storage (such as IndexedDB), so on the same device and browser you continue as the same guest on later visits, and your ranking records and guest nickname stay linked to that identifier. Clearing the browser's site data issues a new guest identifier.
+   - Guest nickname (initially generated automatically from the Korean word for "survivor" followed by the last 6 characters of the identifier; you can change it)
+   - Guest progress is not stored on the server.
+D. Ranking records (all users)
+   - Registered automatically each time a run ends, including runs that score 0 points.
+   - Account identifier, display name (your nickname; if none, your Google profile display name; for guests, the guest nickname), score, survival time, cleared flag, stage, recorded time, last played time
+E. Access log (all users)
+   - Each time you access the Game, the account identifier, display name (Google profile display name for Google users, guest nickname for guests), sign-in method (Google or guest), first access time, and most recent access time are recorded.
+   - For users signed in with Google, the email address is also recorded.
+   - If the operator migrated past authentication records, the linked Google email address, the migration time, and a past last-played time may be included.
+   - IP addresses and device or browser information are not included in this log.
+F. Board (the zombie board on the website)
+   - The title, body, nickname you enter (shown as the Korean word for "anonymous" if left blank), and posting time of posts and comments
+   - Posting does not require sign-in, and posts are not linked to your account. Please do not include personal information in posts.
+G. Usage statistics (Google Analytics for Firebase)
+   - Web: when you visit the website or the Game at its official (https) address, events collected automatically by Google Analytics (first visit, page view, session start, engagement time) with the page URL, referrer, and page title, and the run start, run end, and stage clear events sent by the Game (stage, score, play time, level, result, and whether you play as a guest or signed in with Google)
+   - Android app: events collected automatically by the Firebase Analytics SDK included in the app, such as first open, session start, and engagement time
+   - Information collected along with them: a randomly generated client (app instance) identifier, device type, operating system, browser, screen size, language, app version, and approximate location (country/city level) estimated by Google from the IP address. Google Analytics uses the IP address to estimate location but does not store the IP address itself.
+   - In the Android app, the advertising ID may be collected if your device settings allow it.
+   - Events sent by the Game do not include names, email addresses, nicknames, or account identifiers.
+H. Connection information processed while providing the service
+   - The website and game files (escapezombie.com) and music files (music.escapezombie.com) are delivered through Cloudflare, which processes connection information such as IP address, requested URL, and browser information (User-Agent) while handling requests.
+   - Google Firebase servers also process connection information such as IP address while handling sign-in and data storage requests.
+I. Information stored on your device
+   - Google sign-in state is kept only in memory and is not left in device storage. You need to sign in again when you reopen the Game.
+   - Guest sign-in state (guest identifier and refresh token) is stored in browser storage.
+   - Game progress data is not stored in device storage.
+   - A temporary marker used to continue starting the Game right after Google sign-in is stored in session storage (sessionStorage).
+   - Google Analytics stores the client identifier in cookies (_ga, _ga_HZ3LTGHV6F), and the Firebase SDK stores information needed for its operation, such as the Firebase installation ID, in browser storage (IndexedDB).
 
-The Game does not collect resident registration numbers, contact details, payment information, precise location, contact lists, photos, or advertising identifiers.
+The Game does not collect resident registration numbers, phone numbers, payment information, precise location, device contact lists, or photos. The Game does not display ads and does not use the collected information for advertising (including personalized advertising).
 
 2. Purposes
    - Account identification and maintaining sign-in
    - Saving and restoring game progress (so you can continue on a different device)
    - Providing rankings
    - Preventing abuse, such as blocking abnormal records
+   - Operations: understanding access status and verifying identity for inquiries and deletion requests
+   - Operating the board
+   - Improving the Game through usage statistics (difficulty and stage tuning, etc.)
+   - Delivering the website, game files, and music files
 
-3. Retention and destruction
-   - The above information is kept while your account exists.
-   - When you request account deletion, progress records are deleted without delay. Your own records visible in the current daily and weekly rankings are also deleted.
-   - For ranking records from past periods, or records the operator must verify separately, deletion is performed after identity confirmation upon request to ${CONTACT_EMAIL}.
+3. Who can see the information
+   - Ranking records can be viewed by anyone, including people who are not signed in. Ranking data includes the account identifier and does not include email addresses.
+   - Posts and comments on the public board can be seen by anyone. Posts written as private, and their comments, can be seen only by the operator.
+   - Progress records, game settings, and consent records can be seen only by you and the operator.
+   - The access log, which includes email addresses, can be seen only by the operator and is not shown to other users.
+   - The operator views usage statistics in Google Analytics.
+
+4. Retention and destruction
+   - The Game has no function that automatically deletes information after a fixed period. Except as stated below, information is kept until the account is deleted or a deletion request is processed.
+   - When a user signed in with Google deletes the account, progress records, game settings, consent records, the access log entry (including the email address), and the Firebase Authentication account are deleted immediately, and the user's own records in the current daily and weekly rankings and in the all-time ranking are deleted.
+   - Daily and weekly ranking records from past periods are not deleted automatically by account deletion. They are deleted after identity confirmation upon request to ${CONTACT_EMAIL}.
+   - Guests have no in-game account deletion, and after site data is cleared the previous guest identifier cannot be reconnected. Guest nicknames, ranking records, and access log entries remain until the operator deletes them; if you tell us your guest nickname and the approximate date and time you played, we will delete them after checking.
+   - Board posts and comments are not linked to accounts and are not removed by account deletion. They remain until the operator deletes them, and are deleted after checking upon request.
+   - Usage statistics are not linked to accounts and are not removed by account deletion. User-level statistics data is deleted by Google after the retention period set in Google Analytics expires; aggregated statistics may remain.
+   - Connection information processed by Cloudflare and Google while providing the service is kept and deleted according to each company's policies.
    - Where retention is required by law, the data is stored separately for that period and then destroyed.
 
-4. Provision to third parties
-The Game does not provide or sell your personal information to third parties. However, display names and records registered on the ranking are shown to other users inside the Game.
+5. Provision to third parties
+The Game does not sell your personal information or provide it to third parties. However, as described in section 3, ranking records and public board posts are shown to other users, and the companies in section 6 process information to provide the service.
 
-5. Processing consignment and overseas transfer
-The Game uses the following services to store and process data.
-   - Processor: Google LLC (Firebase Authentication, Firebase Realtime Database/Firestore)
-   - Consigned work: account authentication, game data storage, ranking data storage
-   - Transferred items: the items in section 1
-   - Storage country: data centers operated by Google (including outside Korea)
-   - Time and method of transfer: transmitted over the network while using the Game
+6. Processing consignment and overseas transfer
+The Game uses the services of the companies below to store and process data. In all cases, data is transferred over the network while you use the Game.
+A. Google LLC
+   - Services: Firebase Authentication, Firebase Realtime Database, Google Analytics for Firebase
+   - Consigned work: account authentication; storage of game data, rankings, access logs, and board posts; usage statistics analysis
+   - Transferred items: the items in section 1 A to G and the connection information in H
+   - Storage country: the game database is in the Singapore (asia-southeast1) region; authentication and usage statistics are in data centers operated by Google outside Korea, including the United States
+B. Cloudflare, Inc.
+   - Services: Cloudflare Pages, Cloudflare R2
+   - Consigned work: hosting and delivery of the website, game files, and music files; relaying sign-in requests
+   - Transferred items: connection information such as IP address, requested URL, and browser information
+   - Storage country: Cloudflare's global network (including outside Korea)
 
-6. Your rights and how to exercise them
-   - You may request access to, correction of, or deletion of your information.
-   - Account deletion can be performed directly from "Delete account" in the in-game settings.
+7. Your rights and how to exercise them
+   - You may request access to, correction of, deletion of, or suspension of processing of your information at ${CONTACT_EMAIL}.
+   - Users signed in with Google can delete their account directly from "Delete account" in the in-game settings.
    - Even without the Game installed, you may request account deletion at ${CONTACT_EMAIL}.
    - Nicknames can be edited directly in the Game.
+   - You can limit usage statistics collection by blocking or clearing cookies and site data in your browser, and on Android devices you can delete or reset the advertising ID in the device settings. The Game itself has no setting to turn off statistics collection.
 
-7. Children's personal information
-When processing the personal information of children under 14, the Game requires the consent of a legal guardian. Users under 14 should obtain that consent before playing.
+8. Children's personal information
+The Game has no procedure for checking users' ages. Users under 14 should obtain the consent of a legal guardian before playing. A legal guardian may request access to or deletion of a child's information at ${CONTACT_EMAIL}, and if we learn that information of a child under 14 was processed without a legal guardian's consent, we will delete it without delay.
 
-8. Security measures
+9. Security measures
    - Data in transit uses encrypted communication (HTTPS).
-   - Server access rights are kept to a minimum, and security rules ensure each user can access only the data linked to their own account.
+   - Database security rules restrict reading of progress records, game settings, and consent records to you and the operator, and reading of the access log to the operator only.
+   - Google sign-in state is kept only in memory and is not left in device storage.
 
-9. Privacy officer and contact
+10. Privacy officer and contact
    - Contact: ${CONTACT_EMAIL}
    - Please use the address above for inquiries, concerns, or remedies regarding the handling of personal information.
 
-10. Changes to this policy
-If this Privacy Policy changes, notice is given inside the Game, and consent is requested again for material changes.
+11. Changes to this policy
+A changed Privacy Policy is posted inside the Game and on the public page, and users signed in with Google are asked to consent again when material changes are made.
 
 Effective date: ${EFFECTIVE_DATE}`,
   'ranking.tab.allTime': 'All-time',
