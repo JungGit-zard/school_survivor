@@ -2,12 +2,14 @@ import { describe, expect, it } from 'vitest'
 import * as THREE from 'three'
 import {
   DEFAULT_ROSARI_OUTFIT_ID,
+  ROSARI_BASE_COLORS,
   ROSARI_OUTFITS,
   ROSARI_OUTFIT_TORSO_NODE,
   applyRosariOutfit,
   getRosariGarmentSlot,
   resolveRosariOutfit,
 } from './rosariOutfits.js'
+import { resolvePlayerMeshGarmentColor } from './playerMeshOutfits.js'
 
 // Mirrors the relevant node/material names of PLAYER_wholebody_refined_t_efe49b7c.glb.
 function rosariFixture() {
@@ -18,21 +20,28 @@ function rosariFixture() {
     parent.add(mesh)
     return mesh
   }
-  const torso = add(root, ROSARI_OUTFIT_TORSO_NODE, 'jacket.002', '#de4a5c')
+  // Colors are the GLB's shipped baseColorFactor values converted to sRGB, so the
+  // fixture also records the washed-out "before" state the base palette replaces.
+  const torso = add(root, ROSARI_OUTFIT_TORSO_NODE, 'jacket.002', '#dc4b5d')
   const meshes = {
     torso,
-    sleeve: add(root, 'left_upper_sleeve_continuous_to_white_cuff', 'jacket.001', '#de4a5c'),
-    cuff: add(root, 'left_white_cuff_band_at_wrist', 'shirt', '#fff0ef'),
-    collar: add(root, 'white_collar_left_triangle', 'collar.001', '#f9dcec'),
-    tie: add(root, 'yellow_tie_long_drop', 'tie.001', '#ffcc33'),
-    skirt: add(root, 'reference_tapered_pleated_skirt_shell', 'skirt', '#2759a0'),
-    lowerLeg: add(root, 'left_lower_leg_tapered_knee_to_sock', 'skin.005', '#ffe0c8'),
-    upperLeg: add(root, 'right_upper_leg_tapered_thigh_to_knee', 'skin.008', '#ffe0c8'),
-    sock: add(root, 'left_white_sock_six_ring_column', 'sock', '#fff6fa'),
-    hand: add(root, 'left_simple_lowpoly_hand_mitten', 'skin.001', '#ffe0c8'),
-    hair: add(root, 'continuous_fitted_reference_bob', 'hair', '#ee9ab8'),
-    shoe: add(root, 'left_rounded_reference_shoe', 'roundedShoe', '#333333'),
-    backpack: add(root, 'rounded_square_blue_backpack_body', 'backpack', '#1b3d8f'),
+    sleeve: add(root, 'left_upper_sleeve_continuous_to_white_cuff', 'jacket.001', '#dc4b5d'),
+    cuff: add(root, 'left_white_cuff_band_at_wrist', 'shirt', '#fff2f1'),
+    collar: add(root, 'white_collar_left_triangle', 'collar.001', '#f9ddea'),
+    tie: add(root, 'yellow_tie_long_drop', 'tie.001', '#ffcc31'),
+    skirt: add(root, 'reference_tapered_pleated_skirt_shell', 'skirt', '#255aa0'),
+    lowerLeg: add(root, 'left_lower_leg_tapered_knee_to_sock', 'skin.005', '#ffe0c9'),
+    upperLeg: add(root, 'right_upper_leg_tapered_thigh_to_knee', 'skin.008', '#ffe0c9'),
+    sock: add(root, 'left_white_sock_six_ring_column', 'sock', '#fff4fb'),
+    hand: add(root, 'left_simple_lowpoly_hand_mitten', 'skin.001', '#ffe0c9'),
+    hair: add(root, 'continuous_fitted_reference_bob', 'hair', '#efafc5'),
+    shoe: add(root, 'left_rounded_reference_shoe', 'roundedShoe', '#ffffff'),
+    backpack: add(root, 'rounded_square_blue_backpack_body', 'backpack', '#1f59aa'),
+    strap: add(root, 'left_fitted_continuous_backpack_strap', 'backpack.001', '#1f59aa'),
+    backpackFlap: add(root, 'blue_backpack_top_flap', 'backpackLight', '#337bd0'),
+    gold: add(root, 'small_gold_backpack_clasp', 'gold', '#ffc231'),
+    face: add(root, 'coherent_head_skull_UV_image_face', 'faceSkin', '#ffffff'),
+    underJaw: add(root, 'coherent_head_skull_UV_image_face', 'faceSkin_under_jaw_clean_solid', '#f7d9c6'),
   }
   return { root, meshes }
 }
@@ -73,17 +82,47 @@ describe('Rosari outfit config', () => {
 })
 
 describe('applyRosariOutfit', () => {
-  it('default outfit changes nothing and adds nothing', () => {
+  it('default outfit still adds nothing, but paints the vivid base palette over the GLB factors', () => {
     const { root, meshes } = rosariFixture()
-    const before = Object.fromEntries(Object.entries(meshes).map(([key, mesh]) => [key, hex(mesh)]))
     expect(applyRosariOutfit(root, 'default', makeMaterial)).toEqual([])
-    expect(Object.fromEntries(Object.entries(meshes).map(([key, mesh]) => [key, hex(mesh)]))).toEqual(before)
     expect(meshes.torso.children).toHaveLength(0)
+    // The reason this task existed: these four masses shipped washed out next to v9.
+    expect(hex(meshes.torso)).toBe('#d42020')
+    expect(hex(meshes.sleeve)).toBe('#d42020')
+    expect(hex(meshes.skirt)).toBe('#2d8cff')
+    expect(hex(meshes.hair)).toBe('#ff8fb0')
+    expect(hex(meshes.shoe)).toBe('#8090a8')
+    // Bag: v9's relation, bright mass + dark narrow trim, resolved by material base name.
+    expect(hex(meshes.backpack)).toBe('#38c8f0')
+    expect(hex(meshes.strap)).toBe('#38c8f0')
+    expect(hex(meshes.backpackFlap)).toBe('#1668a0')
+    expect(hex(meshes.cuff)).toBe('#fff8ed')
+    expect(hex(meshes.collar)).toBe('#fff8ed')
+    expect(hex(meshes.sock)).toBe('#f7e8e6')
   })
 
-  it('winter recolors blazer, sleeves, shirt, tie, skirt and legs into tights; skin, hair, shoes and bag keep their color', () => {
+  it('leaves skin, face, tie and gold on their shipped GLB factors under every outfit', () => {
+    for (const id of ROSARI_OUTFITS.map((outfit) => outfit.id)) {
+      const { root, meshes } = rosariFixture()
+      applyRosariOutfit(root, id, makeMaterial)
+      expect(hex(meshes.hand), id).toBe('#ffe0c9')
+      expect(hex(meshes.gold), id).toBe('#ffc231')
+      expect(hex(meshes.face), id).toBe('#ffffff')
+      expect(hex(meshes.underJaw), id).toBe('#f7d9c6')
+      // The tie is a garment slot, so only 동복 may move it; the base palette never does.
+      expect(hex(meshes.tie), id).toBe(resolveRosariOutfit(id).colors.tie ?? '#ffcc31')
+    }
+  })
+
+  it('every base palette key names a real GLB material base name', () => {
+    const { root } = rosariFixture()
+    const present = new Set()
+    root.traverse((node) => { if (node.isMesh) present.add(node.material.name.replace(/\.\d+$/, '')) })
+    for (const key of Object.keys(ROSARI_BASE_COLORS)) expect(present, key).toContain(key)
+  })
+
+  it('winter recolors blazer, sleeves, shirt, tie, skirt and legs into tights; non-garments keep the base palette', () => {
     const { root, meshes } = rosariFixture()
-    const untouched = ['hand', 'hair', 'shoe', 'backpack'].map((key) => [key, hex(meshes[key])])
     applyRosariOutfit(root, 'winter', makeMaterial)
     const winter = resolveRosariOutfit('winter').colors
     expect(hex(meshes.torso)).toBe(winter.blazer)
@@ -93,7 +132,27 @@ describe('applyRosariOutfit', () => {
     expect(hex(meshes.tie)).toBe(winter.tie)
     expect(hex(meshes.skirt)).toBe(winter.skirt)
     for (const key of ['lowerLeg', 'upperLeg', 'sock']) expect(hex(meshes[key])).toBe(winter.legwear)
-    for (const [key, color] of untouched) expect(hex(meshes[key])).toBe(color)
+    // 동복 names no hair/bag/shoe slot, so those show the base palette, not the GLB factors.
+    expect(hex(meshes.hair)).toBe(ROSARI_BASE_COLORS.hair)
+    expect(hex(meshes.backpack)).toBe(ROSARI_BASE_COLORS.backpack)
+    expect(hex(meshes.strap)).toBe(ROSARI_BASE_COLORS.backpack)
+    expect(hex(meshes.backpackFlap)).toBe(ROSARI_BASE_COLORS.backpackLight)
+    expect(hex(meshes.shoe)).toBe(ROSARI_BASE_COLORS.roundedShoe)
+    expect(hex(meshes.hand)).toBe('#ffe0c9')
+  })
+
+  // Regression guard. resolvePlayerMeshGarmentColor reads resolveRosariOutfit(id).colors[slot]
+  // without short-circuiting on the id, so filling in default.colors would repaint the
+  // gen-1 PlayerMesh blocks — the '단순' appearance and the title-screen player, which the
+  // outfit contract (rosari_model_generations_outfit_contract_2026-10-28.md) keeps out of
+  // scope and the title canon lock forbids touching. The base palette must stay separate.
+  it('keeps default.colors empty so the base palette never reaches PlayerMesh', () => {
+    expect(ROSARI_OUTFITS[0].colors).toEqual({})
+    for (const slot of ['blazer', 'shirt', 'collar', 'tie', 'skirt', 'legwear']) {
+      expect(resolvePlayerMeshGarmentColor(slot, 0x123456, 'default'), slot).toBe(0x123456)
+    }
+    expect(resolvePlayerMeshGarmentColor('blazer', 0x123456, undefined)).toBe(0x123456)
+    expect(resolvePlayerMeshGarmentColor('blazer', 0x123456, 'winter')).toBe(0x8a2639)
   })
 
   it('winter attaches low-poly owned accessories to the torso, inside the torso silhouette and in front of its face', () => {

@@ -21,7 +21,13 @@ import PlayerRosariModel, {
 } from './PlayerRosariModel.jsx'
 import StudioTunedGroup, { applySavedStudioPartTunings, applyStudioTuning, findStudioPartByKey } from './StudioTunedGroup.jsx'
 import { GRAPHICS_STUDIO_CATALOG } from '../lib/graphicsStudioConfig.js'
-import { ROSARI_OUTFIT_TORSO_NODE, getRosariGarmentSlot, resolveRosariOutfit } from '../lib/rosariOutfits.js'
+import {
+  ROSARI_BASE_COLORS,
+  ROSARI_OUTFIT_TORSO_NODE,
+  getRosariGarmentSlot,
+  getRosariMaterialBaseName,
+  resolveRosariOutfit,
+} from '../lib/rosariOutfits.js'
 
 const D = THREE.MathUtils.degToRad
 
@@ -393,39 +399,50 @@ describe('Player rosari gameplay outfit', () => {
       expect(shipped.get(meshName), `GLB에 ${meshName} 메시 노드가 없다`).toBeTruthy()
       expect(shipped.get(meshName), `${meshName} 의 머티리얼 이름이 바뀌었다`).toContain(materialName)
     }
+    // base 팔레트는 머티리얼 이름으로만 붙는다. GLB를 다시 저작하면서 이름이 바뀌면 리컬러가
+    // 조용히 멈추고 그 면만 출고 색으로 되돌아간다 — 그 회귀를 여기서 잡는다.
+    const shippedBaseNames = new Set(json.materials.map((material) => getRosariMaterialBaseName(material.name)))
+    for (const key of Object.keys(ROSARI_BASE_COLORS)) {
+      expect(shippedBaseNames, `GLB에 ${key} 머티리얼이 없다 — base 팔레트가 적용되지 않는다`).toContain(key)
+    }
   })
 
-  it('recolors every garment slot on the clone and leaves skin, hair, shoes and bag alone', () => {
+  // 색은 두 겹이다: 먼저 base 팔레트(ROSARI_BASE_COLORS, 머티리얼 base name 기준), 그 위에
+  // 고른 의상의 가먼트 색. 둘 중 어느 쪽도 이름을 대지 않는 머티리얼(피부·얼굴)만 픽스처 색으로
+  // 남는다. 그래서 "기본 의상은 아무것도 안 건드린다"는 옛 단정은 더 이상 성립하지 않는다.
+  const expectedColor = (meshName, materialName, outfitId) => resolveRosariOutfit(outfitId).colors[getRosariGarmentSlot(meshName, materialName)]
+    ?? ROSARI_BASE_COLORS[getRosariMaterialBaseName(materialName)]
+    ?? FIXTURE_BASE_COLOR
+
+  it('recolors every garment slot on the clone; hair, shoes and bag take the base palette and skin keeps its own', () => {
     const { model } = renderPlayer({ outfit: 'winter', gameplay: true })
-    const expected = {
-      blazer: WINTER.blazer,
-      shirt: WINTER.shirt,
-      collar: WINTER.collar,
-      tie: WINTER.tie,
-      skirt: WINTER.skirt,
-      legwear: WINTER.legwear,
-    }
     let recolored = 0
     for (const [meshName, materialName] of [...GARMENT_SURFACES, ...RIG_ORPHANS.map((name) => [name, 'jacket.002'])]) {
       const slot = getRosariGarmentSlot(meshName, materialName)
       const material = surfaceByName(model, meshName).material
-      if (slot) {
-        expect(hex(material), `${meshName} (${slot}) 가 동복 색으로 바뀌지 않았다`).toBe(expected[slot])
-        recolored += 1
-      } else {
-        expect(hex(material), `${meshName} 는 의상 대상이 아닌데 재색됐다`).toBe(FIXTURE_BASE_COLOR)
-      }
+      expect(hex(material), `${meshName} (${slot ?? 'base'}) 색이 두 겹 계약과 다르다`).toBe(expectedColor(meshName, materialName, 'winter'))
+      if (slot) recolored += 1
     }
     // 블레이저 3(몸통 + 어깨캡 2) + 소매 2 + 커프 2 + 칼라 2 + 넥타이 2 + 스커트 1 + 레그웨어 6
     expect(recolored).toBe(18)
+    expect(hex(surfaceByName(model, 'continuous_fitted_reference_bob').material)).toBe(ROSARI_BASE_COLORS.hair)
+    expect(hex(surfaceByName(model, 'rounded_square_blue_backpack_body').material)).toBe(ROSARI_BASE_COLORS.backpack)
+    expect(hex(surfaceByName(model, 'left_rounded_reference_shoe').material)).toBe(ROSARI_BASE_COLORS.roundedShoe)
+    // 피부와 얼굴 텍스처 머티리얼은 두 겹 중 어느 쪽에도 없다.
+    expect(hex(surfaceByName(model, 'left_simple_lowpoly_hand_mitten').material)).toBe(FIXTURE_BASE_COLOR)
     expect(hex(surfaceByName(model, 'coherent_head_skull_UV_image_face').material)).toBe(FIXTURE_BASE_COLOR)
   })
 
-  it('leaves every material at its GLB color for the default outfit and attaches no accessory', () => {
+  it('paints the vivid base palette for the default outfit and attaches no accessory', () => {
     const { model } = renderPlayer({ outfit: 'default', gameplay: true })
-    for (const [meshName] of [...GARMENT_SURFACES, ...RIG_ORPHANS.map((name) => [name])]) {
-      expect(hex(surfaceByName(model, meshName).material), `${meshName} 가 기본 의상에서 바뀌었다`).toBe(FIXTURE_BASE_COLOR)
+    for (const [meshName, materialName] of [...GARMENT_SURFACES, ...RIG_ORPHANS.map((name) => [name, 'jacket.002'])]) {
+      expect(hex(surfaceByName(model, meshName).material), `${meshName} 가 기본 의상 base 색과 다르다`).toBe(expectedColor(meshName, materialName, 'default'))
     }
+    // 구형 v9 참고로 올린 핵심 네 덩어리가 실제 게임플레이 클론에 실려 있는지.
+    expect(hex(model.getObjectByName(ROSARI_OUTFIT_TORSO_NODE).material)).toBe('#d42020')
+    expect(hex(surfaceByName(model, 'reference_tapered_pleated_skirt_shell').material)).toBe('#2d8cff')
+    expect(hex(surfaceByName(model, 'continuous_fitted_reference_bob').material)).toBe('#ff8fb0')
+    expect(hex(surfaceByName(model, 'right_rounded_reference_shoe').material)).toBe('#8090a8')
     expect(accessoriesOf(model)).toEqual([])
     // 몸통의 자식으로는 아웃라인 헐만 남는다.
     const torso = model.getObjectByName(ROSARI_OUTFIT_TORSO_NODE)
@@ -435,7 +452,7 @@ describe('Player rosari gameplay outfit', () => {
   it('falls back to the default outfit for an unknown saved id instead of throwing', () => {
     const { model } = renderPlayer({ outfit: 'tuxedo', gameplay: true })
     expect(accessoriesOf(model)).toEqual([])
-    expect(hex(model.getObjectByName(ROSARI_OUTFIT_TORSO_NODE).material)).toBe(FIXTURE_BASE_COLOR)
+    expect(hex(model.getObjectByName(ROSARI_OUTFIT_TORSO_NODE).material)).toBe(ROSARI_BASE_COLORS.jacket)
   })
 
   it('attaches the three winter accessories to the torso with game toon materials in the outline pipeline', () => {

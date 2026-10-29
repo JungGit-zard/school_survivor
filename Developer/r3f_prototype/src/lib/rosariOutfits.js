@@ -15,13 +15,65 @@
 // The selected id is persisted as titleSettings.playerOutfit (see titleSettings.js
 // loadPlayerOutfit/savePlayerOutfit); ids here must match PLAYER_OUTFIT_IDS and the RTDB rule.
 //
-// An outfit is data: per-garment color overrides on the room clone's fresh toon materials,
-// plus a few low-poly accessory meshes attached to the torso so the silhouette budget
-// stays inside the playbook (S-tier masses unchanged; details are color + <100 tris).
+// Color arrives in two layers, both applied here, base first:
+//   1. ROSARI_BASE_COLORS — what the model looks like with no outfit on.
+//   2. the selected outfit's `colors` — per-garment overrides on top of that base.
+// An outfit also carries a few low-poly accessory meshes attached to the torso, so the
+// silhouette budget stays inside the playbook (S-tier masses unchanged; details are
+// color + <100 tris).
 import * as THREE from 'three'
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
 
 export const DEFAULT_ROSARI_OUTFIT_ID = 'default'
+
+// Layer 1: the base palette, keyed by GLB material base name (".00N" suffix stripped).
+//
+// Why this exists at all: the GLB's own baseColorFactor values are washed out next to the
+// previous model, PLAYER_v9_final.glb, whose hues read as clearly as intended on a phone
+// screen. Measured side by side (linear factor -> sRGB) the refined GLB ships jacket
+// #dc4b5d against v9 #d42020, skirt #255aa0 against #2d8cff, hair #efafc5 against #ff8fb0,
+// and pure-white #ffffff shoes where v9 had slate #8090a8. Both models render through the
+// same 5-step toon ramp (lib/toon.js getToonGradient) with emissive black, so the
+// comparison is apples to apples and the ramp is NOT the thing to adjust — it is shared
+// with every zombie, boss and prop. The values below are v9's, adopted verbatim.
+//
+// Two layers instead of one GLB edit: the same ~366KB GLB is checked in twice, under
+// src/assets/models/ and public/assets/rosari-room/, so patching baseColorFactor would
+// mean two binary diffs nobody can review. Recoloring at clone time covers both call
+// sites from one reviewable place and leaves the asset bytes untouched.
+//
+// This is deliberately keyed by material name rather than widened into GARMENT_BY_MATERIAL:
+// hair, bag and shoes must stay out of the garment slots, because a slot is also what
+// playerV9Outfits.js and playerMeshOutfits.js remap onto the older models.
+//
+// Untouched on purpose: skin.* (#ffe0c9), tie/tie.001 (#ffcc31) and gold (#ffc231) already
+// match or beat v9, and faceSkin is a textured material whose factor does nothing.
+export const ROSARI_BASE_COLORS = Object.freeze({
+  jacket: '#d42020', // v9 jacket_red
+  skirt: '#2d8cff', // v9 skirt_blue
+  hair: '#ff8fb0', // v9 pink_hair
+  shirt: '#fff8ed', // v9 shirt_white (the wrist cuff bands)
+  // The GLB calls these nodes white_collar_*_triangle but ships them pale pink #f9ddea,
+  // which is the weakest value step on the whole model: relative luminance 0.78 against
+  // the 0.74 of the under-jaw skin right above it, and inner details get no ink line under
+  // the stencil outline, so that 0.04 gap was the only thing separating them. v9 has no
+  // collar material — its white collar is painted into the uniform-front decal — so shirt
+  // white is the matching value. It lifts the collar to 0.95 and the gap to 0.21.
+  collar: '#fff8ed',
+  sock: '#f7e8e6', // v9 socks_white
+  roundedShoe: '#8090a8', // v9 shoes_blue; pure white shoes were a second washed-out mass
+  // v9's bag is bright pack_blue #38c8f0 everywhere (body, side rails, every strap, top lid
+  // band) with dark pack_pocket_blue #1668a0 on the single small front-pocket panel. This
+  // GLB splits the bag the same way by area: `backpack` covers the body
+  // (rounded_square_blue_backpack_body, 28 tris) plus both shoulder straps
+  // (backpack.001/.002, 36 tris each), while `backpackLight` is only the narrow
+  // blue_backpack_top_flap (12 tris). So the mass takes v9's bright value and the narrow
+  // trim takes the dark one, which keeps v9's light/dark relation even though it inverts
+  // this GLB's own (the shipped `backpackLight` #337bd0 was lighter than `backpack`
+  // #1f59aa). The material name stays as authored; only its value changes.
+  backpack: '#38c8f0',
+  backpackLight: '#1668a0',
+})
 
 // Garment slots resolved from the GLB's material base name (".00N" suffix stripped)
 // or, for skin-material legs that become tights, from the mesh node name.
@@ -129,6 +181,13 @@ export const ROSARI_OUTFIT_TORSO_NODE = 'simple_closed_lego_torso_exterior_one_p
 // Recolor the clone's (already room-owned) materials and attach accessories to the torso.
 // `makeMaterial(color)` must return a room-owned toon material so it gets the same stencil,
 // outline and disposal path as the GLB surfaces. Returns the accessory meshes added.
+//
+// The base palette lands first and the outfit's garment colors overwrite it, so 동복 keeps
+// owning blazer/shirt/collar/tie/skirt/legwear while hair, bag and shoes read their vivid
+// base value under every outfit. Both call sites recolor material.color only, which is the
+// whole story for this model: neither path carries emissive (the GLB has no emissiveFactor,
+// so PlayerRosariModel's cloneMaterial copies black over toonMat's emissive, and the room's
+// makeArchiveToonMaterial sets none), and nothing downstream caches the old value.
 export function applyRosariOutfit(root, outfitId, makeMaterial) {
   const outfit = resolveRosariOutfit(outfitId)
   let torso = null
@@ -136,7 +195,10 @@ export function applyRosariOutfit(root, outfitId, makeMaterial) {
     if (node.name === ROSARI_OUTFIT_TORSO_NODE) torso = node
     if (!node.isMesh) return
     for (const material of Array.isArray(node.material) ? node.material : [node.material]) {
-      const slot = material && getRosariGarmentSlot(node.name, material.name)
+      if (!material) continue
+      const base = ROSARI_BASE_COLORS[getRosariMaterialBaseName(material.name)]
+      if (base) material.color.set(base)
+      const slot = getRosariGarmentSlot(node.name, material.name)
       const color = slot && outfit.colors[slot]
       if (color) material.color.set(color)
     }
