@@ -41,11 +41,14 @@ describe('Firebase runtime Graphics Studio config', () => {
     readyRuntime()
   })
 
-  it('fails closed before Firebase hydrate for every authored visual dataset', () => {
+  // 2643f848: Firebase is storage only — reads before hydrate must not hide graphics,
+  // while writes before hydrate still fail closed (save-failure only).
+  it('keeps reads non-throwing before Firebase hydrate but still refuses writes', () => {
     blockFirebaseStudioRuntime()
-    expect(() => loadStudioTunings()).toThrowError(/hydrate is required/i)
-    expect(() => loadStageBossPreview()).toThrowError(/hydrate is required/i)
-    expect(() => loadTextureDecals()).toThrowError(/hydrate is required/i)
+    expect(loadStudioTunings()).toEqual({})
+    expect(loadStageBossPreview()).toEqual(DEFAULT_STAGE_BOSS_PREVIEW)
+    expect(loadTextureDecals()).toEqual({})
+    expect(() => saveStudioTunings({ player: { scale: 1.1 } })).toThrowError(/hydrate is required/i)
   })
 
   it('lists the real game graphic groups and stable zombie IDs', () => {
@@ -116,9 +119,10 @@ describe('Firebase runtime Graphics Studio config', () => {
     expect(loadStageBossPreview()).toEqual({ zoom: 133, panX: 0.35, panY: -0.25 })
   })
 
-  it('rejects an incomplete Firebase stage boss preview instead of rendering a local default', () => {
+  // 2643f848: an incomplete preview payload no longer throws (graphics must keep rendering).
+  it('falls back to the default stage boss framing when the Firebase preview payload is incomplete', () => {
     readyRuntime({ stageBossPreview: {} })
-    expect(() => loadStageBossPreview()).toThrowError(/payload is incomplete/i)
+    expect(loadStageBossPreview()).toEqual(DEFAULT_STAGE_BOSS_PREVIEW)
   })
 
   it('normalizes texture decals and drops invalid layers', () => {

@@ -11,6 +11,7 @@ export default function ExpansionZombieMesh({ type, animPhase='normal', hitFlash
   // R3F reparents this child; the off-scene root retains animation refs only.
   const rig=useMemo(()=>root?.children[0]??null,[root])
   useEffect(()=>()=>disposeExpansionRig(rig),[rig])
+  // Studio part contract: animateExpansionRig (expansionRig.js) composes every part with composeStudioPartPosition / composeStudioPartRotation.
   useFrame(({clock})=>{
     if(!root)return
     const reduced=staticPose||(typeof document!=='undefined'&&document.documentElement?.hasAttribute('data-reduced-effects'))

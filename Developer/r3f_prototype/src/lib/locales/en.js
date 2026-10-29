@@ -802,6 +802,7 @@ export default {
   'prop.kitchenTrashBins': 'Trash bins',
   'prop.kitchenCrateStack': 'Crate stack',
   'prop.kitchenClutter': 'Kitchen clutter',
+  'prop.pressureCauldron': 'Pressure cauldron',
 
   // ─── Quests ───
   'quest.stage1-talk-book.title': 'Learning to Talk from a Book',

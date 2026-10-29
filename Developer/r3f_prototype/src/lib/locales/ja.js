@@ -801,6 +801,7 @@ export default {
   'prop.kitchenTrashBins': 'ゴミ箱',
   'prop.kitchenCrateStack': '箱の山',
   'prop.kitchenClutter': '厨房の雑貨',
+  'prop.pressureCauldron': '圧力釜',
 
   // ─── クエスト ───
   'quest.stage1-talk-book.title': '話し方は本で学ぶ',

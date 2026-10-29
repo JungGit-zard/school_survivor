@@ -29,7 +29,8 @@ describe('persistent visual pool reset safety', () => {
     expect(layer).toContain('all.bars[1].userData.instanceAlpha.array.fill(1)')
     expect(layer).toContain('all.bars[2].userData.instanceAlpha.array.fill(0)')
     expect(layer).toContain('all.bars[3].userData.instanceAlpha.array.fill(1)')
-    expect(layer).toContain('all.shadow.userData.instanceAlpha.array.fill(1)')
+    // 525d7abb dropped the redundant shadow alpha refill: nothing ever writes shadow alpha, so it stays at its install-time 1.
+    expect(layer).not.toMatch(/all\.shadow\.userData\.instanceAlpha\.array\[/)
     expect(layer).toContain('all.smoke.userData.instanceAlpha.array.fill(0)')
     expect(layer).toContain('all.body[i].count = 0')
     expect(layer).toContain('all.out[i].count = 0')

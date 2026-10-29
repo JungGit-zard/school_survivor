@@ -29,9 +29,11 @@ describe('Firebase runtime stage prop placements', () => {
     readyRuntime()
   })
 
-  it('fails closed before Firebase hydrate', () => {
+  // 2643f848: reads before hydrate return the unauthored map; writes still fail closed.
+  it('reads the unauthored map before Firebase hydrate and refuses writes', () => {
     blockFirebaseStudioRuntime()
-    expect(() => loadStagePropPlacements()).toThrowError(/hydrate is required/i)
+    expect(loadStagePropPlacements()).toEqual(normalizeStagePropPlacements({}))
+    expect(() => saveStagePropPlacements({ stage1: [] })).toThrowError(/hydrate is required/i)
   })
 
   it('normalizes every stage to an authored list or null', () => {

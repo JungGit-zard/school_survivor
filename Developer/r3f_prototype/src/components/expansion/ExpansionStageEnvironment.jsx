@@ -9,6 +9,7 @@ export default function ExpansionStageEnvironment({stageId,staticPose=false}) {
  const root=useMemo(()=>createExpansionEnvironment(stageId,{halfX,halfZ}),[stageId,halfX,halfZ])
  const prefersReduced=useMemo(()=>typeof window!=='undefined'&&typeof window.matchMedia==='function'&&window.matchMedia('(prefers-reduced-motion: reduce)').matches,[])
  useEffect(()=>()=>disposeExpansionEnvironment(root),[root])
+ // Studio part contract: animateExpansionEnvironment (expansionEnvironment.js) composes every part with composeStudioPartPosition / composeStudioPartRotation.
  useFrame(({clock})=>{
    const reduced=staticPose||prefersReduced||document.hidden||document.documentElement?.hasAttribute('data-reduced-effects')
    animateExpansionEnvironment(root,clock.elapsedTime,reduced)

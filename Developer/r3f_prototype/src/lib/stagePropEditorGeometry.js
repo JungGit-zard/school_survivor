@@ -33,6 +33,7 @@ export const STAGE_PROP_PALETTE = Object.freeze([
   { type: 'kitchenTrashBins', label: '쓰레기통', defaultScale: 1.05, defaultVariant: 'wheelie', glyph: '🗑' },
   { type: 'kitchenCrateStack', label: '상자더미', defaultScale: 1.05, glyph: '📦', defaultProps: { count: 3 } },
   { type: 'kitchenClutter', label: '주방잡동사니', defaultScale: 1.1, defaultVariant: 'pots', glyph: '🥘' },
+  { type: 'pressureCauldron', label: '압력가마솥', defaultScale: 1, glyph: '♨' },
 ])
 
 // 팔레트 항목에서 신규 배치 시 시드할 기본 props(있으면 객체, 없으면 null).

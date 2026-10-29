@@ -38,7 +38,8 @@ describe('Graphics Studio quest giver props', () => {
 
     try {
       act(() => {
-        root.render(<StagePropPlacementEditor onChange={onChange} />)
+        // eedd5dc7: the editor keeps edits as a draft and reports them via onDraftChange.
+        root.render(<StagePropPlacementEditor onDraftChange={onChange} />)
       })
 
       const talkBookList = container.querySelector(`[data-testid="prop-list-${talkBook.giver.placementId}"]`)
@@ -66,9 +67,10 @@ describe('Graphics Studio quest giver props', () => {
 
       const restoredStage = onChange.mock.calls.at(-1)[0].stage1
       expect(restoredStage.find(({ id }) => id === talkBook.giver.placementId)).toMatchObject({
+        // 6c600ba5: the talk-book giver is the class-president placement.
         id: talkBook.giver.placementId,
-        type: 'unconsciousStudent',
-        position: [-6.2, 0, 0.6],
+        type: 'classPresidentStudent',
+        position: [-4.54, 0, -6.587],
       })
       expect(restore.disabled).toBe(true)
     } finally {

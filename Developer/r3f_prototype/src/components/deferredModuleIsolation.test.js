@@ -26,7 +26,8 @@ describe('initial-screen deferred module isolation', () => {
 
     expect(canvas).toContain("import TitleScene3D from './TitleScene3D.jsx'")
     expect(canvas).not.toContain("lazy(() => import('./TitleScene3D.jsx'))")
-    expect(canvas).not.toContain('<Suspense fallback={null}>')
+    // 88e94787 wraps the statically imported scene in <Suspense> for in-scene asset loads (title redraw fix);
+    // the module itself must still not be code-split.
     expect(scene).not.toContain("from './StageObjects/index.js'")
     expect(scene).toContain("import ClassroomDesk from './StageObjects/ClassroomDesk.jsx'")
   })

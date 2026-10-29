@@ -17,7 +17,9 @@ vi.mock('../StudioTunedGroup.jsx', () => ({
 }))
 vi.mock('../../lib/sfxEvents.js', () => ({ emitSfx: vi.fn(), subscribeSfx: vi.fn(() => () => {}) }))
 // jsdom에는 canvas 2d 컨텍스트가 없어 toon 그라디언트 생성이 터진다. 힐 검증과 무관한 순수 비주얼이다.
-vi.mock('../../lib/toon.js', () => ({
+// Partial mock: Hanako's import graph now also needs other toon.js exports (e.g. getCachedBoxGeo).
+vi.mock('../../lib/toon.js', async (importOriginal) => ({
+  ...(await importOriginal()),
   toonMat: () => ({}),
   outlineMat: () => ({}),
   inflateScale: (v) => v,
@@ -82,6 +84,10 @@ describe('Hanako heal runtime', () => {
     const maxHp = useGameStore.getState().player.maxHp
     const startHp = Math.round(maxHp * 0.4)
     useGameStore.setState((s) => ({ player: { ...s.player, hp: startHp } }))
+    // 1b39a533: with hydrated progress the store re-reads missions from the signed-in run checkpoint,
+    // so assert Hanako's own contract — it emits the companion_heal mission event.
+    const recordMissionEvent = vi.fn(useGameStore.getState().recordMissionEvent)
+    useGameStore.setState({ recordMissionEvent })
 
     mountHanako()
 
@@ -95,7 +101,7 @@ describe('Hanako heal runtime', () => {
     const afterHp = useGameStore.getState().player.hp
     expect(afterHp).toBeCloseTo(startHp + maxHp * HANAKO_HEAL_RATIO, 5)
     expect(vi.mocked(emitSfx).mock.calls.filter(([e]) => e?.id === 'playerHeal')).toHaveLength(1)
-    expect(JSON.stringify(useGameStore.getState().missionProgress)).toContain('companion.hanako.healCount')
+    expect(recordMissionEvent).toHaveBeenCalledWith({ type: 'companion_heal', companionId: 'hanako' })
   })
 
   it('치비코가 없으면 하나코는 힐하지 않는다', () => {

@@ -217,7 +217,8 @@ describe('GraphicsStudioPreview render contracts', () => {
     expect(sourceByFile['./EnemyDeathCollapse.jsx']).toContain('enemy-death-collapse')
     expect(sourceByFile['./EnemyDeathCollapse.jsx']).toContain("enemy-death-${String(index + 1).padStart(2, '0')}")
     expect(sourceByFile['./TitleScene3D.jsx']).toContain('StudioTuningRuntimeProvider')
-    expect(sourceByFile['./TitleScene3D.jsx']).toContain('playerVisualReady ?')
+    // bb0d7e1a removed the playerVisualReady readiness gate: the title player is never hidden.
+    expect(sourceByFile['./TitleScene3D.jsx']).not.toContain('playerVisualReady ?')
   })
 
   it('uses the identical Studio item IDs for every audited runtime object and preview tree', () => {

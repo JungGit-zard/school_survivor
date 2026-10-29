@@ -214,7 +214,8 @@ describe('stage object asset catalog', () => {
       expect(source).not.toContain('toonMat(')
       expect(source).not.toContain('outlineMat(')
       expect(source).toContain('geometry={STAGE_PROP_UNIT_BOX_GEOMETRY}')
-      expect(source).toContain('getStagePropToonMaterial(')
+      // 4e64a02f moved desk/student surfaces to the depth-writing cached toon material.
+      expect(source).toMatch(/getStagePropToonMaterial\(|getStagePropDepthWritingToonMaterial\(/)
       expect(source).toContain('getStagePropOutlineMaterial(')
       expect(source).toContain('STAGE_PROP_SHARED_SURFACE_RENDERING')
       expect(source).toContain('STAGE_PROP_SHARED_OUTLINE_RENDERING')
@@ -446,21 +447,22 @@ describe('stage object asset catalog', () => {
     expect(source).toContain('<cylinderGeometry')
     expect(source).toContain('<icosahedronGeometry')
     expect(source).not.toContain('sphereGeometry')
-    // Playful south hoop is allowed one torus rim for a rounded, phone-readable basketball silhouette.
-    expect(source.match(/torusGeometry/g)?.length).toBe(1)
+    // 886cbe7b's torus hoop rim lives in GymProps.jsx (Stage 3); the kitchen keeps no torus.
+    expect(source).not.toContain('torusGeometry')
     expect(source).not.toContain('castShadow')
     expect(source).not.toContain('receiveShadow')
     expect(source).not.toContain('material={outline}')
   })
 
-  it('keeps all 35 Stage 4 kitchen surfaces in the opaque depth-writing pass while preserving transparent outlines', () => {
+  // 10feb51d replaced the four legacy center prep tables with the pressure cauldron: 37→34 placements, 35→31 kitchen.
+  it('keeps all 31 Stage 4 kitchen surfaces in the opaque depth-writing pass while preserving transparent outlines', () => {
     const source = readFileSync(new URL('./KitchenProps.jsx', import.meta.url), 'utf8')
     const renderingSource = readFileSync(new URL('./propRendering.js', import.meta.url), 'utf8')
     const stage4Placements = STAGE_OBJECT_PLACEMENTS.stage4
     const kitchenPlacements = stage4Placements.filter(({ type }) => type.startsWith('kitchen'))
 
-    expect(stage4Placements).toHaveLength(37)
-    expect(kitchenPlacements).toHaveLength(35)
+    expect(stage4Placements).toHaveLength(34)
+    expect(kitchenPlacements).toHaveLength(31)
     expect(source).toContain('getStagePropDepthWritingToonMaterial(')
     expect(source).not.toContain('getStagePropToonMaterial(')
     expect(renderingSource).toContain('getCachedToonMat(color, emissiveIntensity, STAGE_PROP_SURFACE_SIDE, true)')

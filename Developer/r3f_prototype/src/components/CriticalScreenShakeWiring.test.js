@@ -27,10 +27,12 @@ describe('critical screen shake wiring', () => {
     expect(enemySource).toContain('criticalHit.isCritical')
   })
 
-  it('criticalHitBurst는 작아진 크기 안에서도 초반 흰 번쩍임을 낸다', () => {
-    expect(vfxLayerSource).toContain('criticalFlashMatRef')
-    expect(vfxLayerSource).toContain('Math.max(0, 1 - age / 60)')
-    expect(vfxLayerSource).toContain('color={0xffffff}')
+  // c1f840b8 simplified the burst to a single additive gold star (white flash removed;
+  // star contract lives in VFXLayer.criticalStar.test.js).
+  it('criticalHitBurst는 단일 가산 금색 별로 번쩍인다', () => {
+    expect(vfxLayerSource).not.toContain('criticalFlashMatRef')
+    expect(vfxLayerSource).toContain('starMatRef')
+    expect(vfxLayerSource).toContain('color={VFX_COLORS.criticalGold}')
     expect(vfxLayerSource).toContain('blending={THREE.AdditiveBlending}')
   })
 

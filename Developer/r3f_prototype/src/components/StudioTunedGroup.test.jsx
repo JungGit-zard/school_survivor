@@ -108,12 +108,13 @@ describe('StudioTunedGroup', () => {
     act(() => root.unmount())
   })
 
-  it('keeps provider-free groups fail-closed while Firebase runtime is blocked', () => {
+  // 2643f848: provider-free groups keep rendering while Firebase is blocked (reads return {}).
+  it('keeps provider-free groups rendering while Firebase runtime is blocked', () => {
     blockFirebaseStudioRuntime()
     const source = readFileSync('src/components/StudioTunedGroup.jsx', 'utf8')
 
     expect(source).toContain('snapshot ? loadSnapshotStudioState(itemId, snapshot) : loadStudioState(itemId)')
-    expect(() => loadStudioTunings()).toThrow(/hydrate is required/i)
+    expect(loadStudioTunings()).toEqual({})
   })
 
   it('does not mistake a regular BackSide fill for an outline during Apply', () => {

@@ -4,6 +4,7 @@ import { getStageObjectFootprint } from '../components/StageObjects/stageObjectC
 import { getStageObjectPlacements } from '../components/StageObjects/stageObjectPlacements.js'
 import { playerPos } from './refs.js'
 import { useGameStore } from '../store/useGameStore.js'
+import { _resetFirebaseProgressForTests, _seedHydratedFirebaseProgressForTests } from './firebaseProgress.js'
 
 describe('stage player start positions', () => {
   it('keeps stages 1–3 at their existing origin while Stage 4 starts south of the center cauldron', () => {
@@ -41,7 +42,10 @@ describe('stage player start positions', () => {
   })
 
   it('sets the Stage 4 runtime reference to the safe start when the game resets', () => {
-    useGameStore.getState().resetGame('stage4')
+    // f8a0ee89: resetGame refuses locked stages; Stage 4 entry needs the Stage 3 boss-defeat proof.
+    _resetFirebaseProgressForTests()
+    _seedHydratedFirebaseProgressForTests({ uid: 'player-start-test' }, { progress: { records: { stage3BossDefeats: 1 } } })
+    expect(useGameStore.getState().resetGame('stage4')).not.toBe(false)
     expect(playerPos.toArray()).toEqual([0, 0, 7])
     useGameStore.getState().resetGame('stage1')
     expect(playerPos.toArray()).toEqual([0, 0, 0])

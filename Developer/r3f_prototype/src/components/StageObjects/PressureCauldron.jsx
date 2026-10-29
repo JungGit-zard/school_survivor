@@ -18,7 +18,11 @@ import {
 } from '../../lib/stage4PressureCauldronHazard.js'
 import { useGameStore } from '../../store/useGameStore.js'
 import { SpawnSmokeEffect } from '../Enemy.jsx'
-import StudioTunedGroup from '../StudioTunedGroup.jsx'
+import StudioTunedGroup, {
+  studioPartPositionOffset,
+  studioPartRotationOffset,
+  studioPartScaleMultiplier,
+} from '../StudioTunedGroup.jsx'
 import Stage4CauldronGroundWarning from './Stage4CauldronGroundWarning.jsx'
 
 const OUTLINE_SCALE = 1.035
@@ -123,8 +127,13 @@ function PressureCauldronHazardVisual({ basePosition = [0, 0, 0], cauldronRootRe
         smokeRefs.current.forEach((smoke, index) => {
           if (!smoke) return
           const [, baseY] = BOILING_SMOKE_PUFFS[index]
-          smoke.position.y = baseY + cycleProgress * (0.70 + index * 0.16)
-          smoke.scale.setScalar(0.82 + cycleProgress * 0.62 + Math.min(delta, 1 / 30) * 0.05)
+          smoke.position.y = baseY + cycleProgress * (0.70 + index * 0.16) + studioPartPositionOffset(smoke, 'y')
+          const puff = 0.82 + cycleProgress * 0.62 + Math.min(delta, 1 / 30) * 0.05
+          smoke.scale.set(
+            puff * studioPartScaleMultiplier(smoke, 'x'),
+            puff * studioPartScaleMultiplier(smoke, 'y'),
+            puff * studioPartScaleMultiplier(smoke, 'z'),
+          )
         })
       }
     }
@@ -142,15 +151,16 @@ function PressureCauldronHazardVisual({ basePosition = [0, 0, 0], cauldronRootRe
         if (!debris) return
         const spec = BURST_DEBRIS[index]
         const distance = 0.32 + burstProgress * (3.90 + index * 0.14)
+        // Absolute burst pose + Studio part offset so per-part tuning is not wiped each frame.
         debris.position.set(
-          Math.cos(spec.angle) * distance,
-          3.28 + spec.lift * burstProgress - burstProgress * burstProgress * 0.58,
-          Math.sin(spec.angle) * distance,
+          Math.cos(spec.angle) * distance + studioPartPositionOffset(debris, 'x'),
+          3.28 + spec.lift * burstProgress - burstProgress * burstProgress * 0.58 + studioPartPositionOffset(debris, 'y'),
+          Math.sin(spec.angle) * distance + studioPartPositionOffset(debris, 'z'),
         )
         debris.rotation.set(
-          burstProgress * (3.2 + index * 0.3),
-          spec.angle + burstProgress * (2.4 + index * 0.2),
-          burstProgress * (2.8 + index * 0.25),
+          burstProgress * (3.2 + index * 0.3) + studioPartRotationOffset(debris, 'x'),
+          spec.angle + burstProgress * (2.4 + index * 0.2) + studioPartRotationOffset(debris, 'y'),
+          burstProgress * (2.8 + index * 0.25) + studioPartRotationOffset(debris, 'z'),
         )
       })
     }
