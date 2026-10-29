@@ -21,9 +21,10 @@ describe('GameplayScreen 자동 일시정지', () => {
     expect(source).toMatch(/const handlePageHide = \(\) => \{[^}]*pauseIfPlaying\(\)/)
   })
 
-  it('랭킹은 실제 이탈(pagehide)에서만 쓰고, 탭 숨김(visibilitychange)으로는 쓰지 않는다', () => {
+  // 2026-10-29: 모바일은 백그라운드 탭을 pagehide 없이 죽인다 — 숨김도 pagehide와 같은 1회 flush를 탄다.
+  it('랭킹은 이탈(pagehide)과 탭 숨김(visibilitychange) 모두 같은 pagehide flush로 쓴다', () => {
     expect(source).toMatch(/const handlePageHide = \(\) => \{[^}]*finishRankingRun\?\.\('pagehide'\)/)
-    expect(source).not.toMatch(/const handleVisibility = \(\) => \{[^}]*finishRankingRun/)
+    expect(source).toMatch(/const handleVisibility = \(\) => \{[^}]*finishRankingRun\?\.\('pagehide'\)/)
     expect(source).not.toMatch(/const pauseIfPlaying = \(\) => \{[^}]*finishRankingRun/)
   })
 

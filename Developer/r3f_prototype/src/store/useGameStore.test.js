@@ -1,11 +1,12 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 
 // 랭킹 제출만 가짜로 바꾼다. describeSubmission은 실제 구현을 그대로 써야 스토어가 결과를
 // 올바르게 접는지 검증된다(둘 다 가짜면 매핑이 틀려도 테스트가 통과한다).
-const ranking = vi.hoisted(() => ({ prepareRankingSubmission: run => run, retryPendingRankings: async () => ({written:[],skipped:[],failed:[]}), submitRun: vi.fn() }))
+const ranking = vi.hoisted(() => ({ prepareRankingSubmission: run => run, retryPendingRankings: vi.fn(async () => ({written:[],skipped:[],failed:[]})), submitRun: vi.fn() }))
 vi.mock('../lib/firebaseRanking.js', async (importOriginal) => ({
   ...(await importOriginal()),
   submitRun: ranking.submitRun,
+  retryPendingRankings: ranking.retryPendingRankings,
 }))
 
 vi.mock('../lib/guestRankingIdentity.js', () => ({ getRankingUser: vi.fn(async (user) => user ?? { uid: 'guest', displayName: 'Guest' }) }))
@@ -421,9 +422,17 @@ describe('runtime elapsed time publication', () => {
 // 통째로 버리고 있었기 때문이다(submitRun(...).catch(() => {})). 결과를 상태로 남기지 않으면
 // 실패는 console.warn에서 끝나고 플레이어는 원인을 알 방법이 없다.
 describe('랭킹 제출 결과가 스토어 상태로 남는다', () => {
+  // submitRunToRanking은 제출 계정이 지금 로그인한 계정일 때만 결과를 화면 상태에 반영한다
+  // (4ac100ee isCurrent). 제출자 'me'가 auth store에도 있어야 실제 앱과 같은 전제가 된다.
   beforeEach(() => {
     ranking.submitRun.mockReset()
+    ranking.retryPendingRankings.mockReset()
+    ranking.retryPendingRankings.mockResolvedValue({ written: [], skipped: [], failed: [] })
+    useAuthStore.setState({ user: { uid: 'me' } })
     useGameStore.setState({ rankingSubmission: null })
+  })
+  afterEach(() => {
+    useAuthStore.setState({ user: null })
   })
 
   const run = { stageId: 'stage2', score: 415, timeMs: 295_499, cleared: false }
@@ -489,33 +498,37 @@ describe('랭킹 제출 결과가 스토어 상태로 남는다', () => {
     expect(useGameStore.getState().rankingSubmission).toMatchObject({ status: 'failed', reason: 'network' })
   })
 
+  // 13399c91(2026-10-18)부터 재시도는 submitRun을 다시 부르지 않고, firebaseRanking의 대기 버킷을
+  // retryPendingRankings(현재 계정)로 다시 flush한다. 실패한 버킷만 남아 있으므로 성공/스킵은 다시 쏘지 않는다.
   it('재시도는 실패한 제출에만 동작하고, 성공/스킵은 다시 쏘지 않는다', async () => {
     ranking.submitRun.mockResolvedValue({ written: [], skipped: [], failed: ['a'], failureKind: 'network' })
     await useGameStore.getState().submitRunToRanking({ uid: 'me' }, run)
-    expect(ranking.submitRun).toHaveBeenCalledTimes(1)
-
-    // Google 사용자가 없으면 게스트 식별자로 다시 제출한다.
-    expect(await useGameStore.getState().retryRankingSubmission()).toBe(true)
-    expect(ranking.submitRun).toHaveBeenCalledTimes(2)
     expect(useGameStore.getState().rankingSubmission).toMatchObject({ status: 'failed', reason: 'network' })
 
-    // 성공 상태에서는 재시도 자체가 no-op이다.
-    useGameStore.setState({ rankingSubmission: { ...run, status: 'recorded' } })
+    ranking.retryPendingRankings.mockResolvedValueOnce({ written: [], skipped: [], failed: ['a'], failureKind: 'network', uid: 'me' })
     expect(await useGameStore.getState().retryRankingSubmission()).toBe(false)
-    expect(ranking.submitRun).toHaveBeenCalledTimes(2)
+    expect(ranking.retryPendingRankings).toHaveBeenLastCalledWith({ uid: 'me' })
+    expect(useGameStore.getState().rankingSubmission).toMatchObject({ status: 'failed', reason: 'network' })
+    expect(ranking.submitRun).toHaveBeenCalledTimes(1)
+
+    // 성공 상태에서는 화면 상태를 건드리지 않는다(대기 버킷이 없으면 아무것도 쓰지 않는다).
+    useGameStore.setState({ rankingSubmission: { ...run, uid: 'me', status: 'recorded' } })
+    expect(await useGameStore.getState().retryRankingSubmission()).toBe(false)
+    expect(useGameStore.getState().rankingSubmission).toMatchObject({ status: 'recorded' })
+    expect(ranking.submitRun).toHaveBeenCalledTimes(1)
   })
 
   it('재시도는 원래 런의 점수와 스테이지를 그대로 다시 보낸다', async () => {
     ranking.submitRun.mockResolvedValue({ written: [], skipped: [], failed: ['a'], failureKind: 'network' })
     await useGameStore.getState().submitRunToRanking({ uid: 'me' }, run)
 
-    useAuthStore.setState({ user: { uid: 'me' } })
-    ranking.submitRun.mockResolvedValue({ written: ['a'], skipped: [], failed: [] })
+    ranking.retryPendingRankings.mockResolvedValueOnce({ written: ['a'], skipped: [], failed: [], uid: 'me' })
     expect(await useGameStore.getState().retryRankingSubmission()).toBe(true)
 
-    expect(ranking.submitRun).toHaveBeenLastCalledWith({ uid: 'me' }, run)
-    expect(useGameStore.getState().rankingSubmission.status).toBe('recorded')
-    useAuthStore.setState({ user: null })
+    // 원래 런(firebaseRanking 대기 버킷이 들고 있다)을 그대로 다시 쓰고, 화면도 그 런의 점수·스테이지를 유지한다.
+    expect(ranking.retryPendingRankings).toHaveBeenLastCalledWith({ uid: 'me' })
+    expect(ranking.submitRun).toHaveBeenCalledTimes(1)
+    expect(useGameStore.getState().rankingSubmission).toMatchObject({ ...run, status: 'recorded' })
   })
 
   it('플레이 중 처치·생존 점수로는 랭킹을 쓰지 않고, 런이 끝날 때 한 번만 쓴다', () => {

@@ -108,15 +108,22 @@ describe('ranking write budget: one write per run', () => {
     expect(ranking.submitRun).not.toHaveBeenCalled()
   })
 
-  it('a hidden tab (visibilitychange) makes 0 submits and only pauses; the player may come back', async () => {
+  // 2026-10-29 production: mobile players background the browser and the OS kills it without
+  // pagehide, so runs that never reached game over/lobby were never registered.
+  it('a hidden tab writes the run once (pagehide flush) and pauses; an unchanged end adds none', async () => {
     await mountGameplayScreen()
     useGameStore.getState().resetGame('stage1')
     playFor(10_000)
     setDocumentHidden(true)
     await act(async () => { document.dispatchEvent(new Event('visibilitychange')) })
-    await settle()
+    await vi.waitFor(() => expect(ranking.submitRun).toHaveBeenCalledTimes(1))
+    expect(ranking.submitRun.mock.calls[0][1].score).toBeGreaterThan(0)
     expect(useGameStore.getState().phase).toBe('paused')
-    expect(ranking.submitRun).not.toHaveBeenCalled()
+    await act(async () => { document.dispatchEvent(new Event('visibilitychange')) })
+    setDocumentHidden(false)
+    useGameStore.getState().quitPausedRun()
+    await settle()
+    expect(ranking.submitRun).toHaveBeenCalledTimes(1)
   })
 
   it('pagehide mid-run makes exactly 1 submit; a repeat pagehide or an unchanged end adds none', async () => {
@@ -177,7 +184,16 @@ describe('ranking write budget: one write per run', () => {
 })
 
 describe('multi-stage run: every stage keeps its entry, all in one batched write', () => {
+  afterEach(() => { vi.unstubAllEnvs() })
   beforeEach(async () => {
+    // continueToNextStage는 이어 가기 전에 클라우드 진행도를 flush한다(flushProgressBeforeTransition).
+    // isFirebaseProgressConfigured는 Auth 키 4개 + DATABASE_URL을 요구하므로, 로컬 .env가 없는 작업
+    // 트리에서는 flush가 'unconfigured'로 실패해 이어 가기가 거부됐다. 테스트가 .env에 기대지 않게 고정한다.
+    vi.stubEnv('VITE_FIREBASE_API_KEY', 'qa-key')
+    vi.stubEnv('VITE_FIREBASE_AUTH_DOMAIN', 'qa.invalid')
+    vi.stubEnv('VITE_FIREBASE_PROJECT_ID', 'qa-project')
+    vi.stubEnv('VITE_FIREBASE_APP_ID', '1:0:web:qa')
+    vi.stubEnv('VITE_FIREBASE_DATABASE_URL', 'https://qa.invalid')
     installProgressTransactionTestClient()
     useGameStore.getState().resetGame('stage1')
     useGameStore.getState().finishRankingRun('end')

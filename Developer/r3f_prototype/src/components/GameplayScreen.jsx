@@ -32,9 +32,14 @@ export default function GameplayScreen({
       const { phase: currentPhase, pauseGame } = useGameStore.getState()
       if (currentPhase === 'playing') pauseGame('auto')
     }
-    // Hidden is not gone: the player may come back, so a hidden tab only pauses and never writes.
+    // Mobile browsers kill a backgrounded tab without firing pagehide, and the async guest write
+    // (anonymous sign-in -> reads -> update) cannot finish during unload. Hidden is the last moment
+    // the run's write reliably lands, so it uses the pagehide flush: one write now, and the run-end
+    // write follows only if the score improved after the player came back (finishRankingRun).
     const handleVisibility = () => {
-      if (document.hidden || document.visibilityState === 'hidden') pauseIfPlaying()
+      if (!(document.hidden || document.visibilityState === 'hidden')) return
+      useGameStore.getState().finishRankingRun?.('pagehide')
+      pauseIfPlaying()
     }
     // The page is actually being unloaded before the run ended: this is the run's one ranking write.
     const handlePageHide = () => {
