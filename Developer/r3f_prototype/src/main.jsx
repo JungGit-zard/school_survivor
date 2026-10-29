@@ -16,3 +16,12 @@ function renderEmergencyBootstrapFailure() {
 void import('./lib/rootBootstrap.js')
   .then(({ bootstrapApplication }) => bootstrapApplication())
   .catch(renderEmergencyBootstrapFailure)
+
+// GA4: start after first paint/idle so it never competes with game boot. No-op off production.
+function startAnalyticsWhenIdle() {
+  void import('./lib/analytics.js').then(({ initAnalytics }) => initAnalytics()).catch(() => {})
+}
+if (typeof window !== 'undefined') {
+  if (typeof window.requestIdleCallback === 'function') window.requestIdleCallback(startAnalyticsWhenIdle, { timeout: 5000 })
+  else setTimeout(startAnalyticsWhenIdle, 3000)
+}

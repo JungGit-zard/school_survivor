@@ -58,6 +58,7 @@ import { submitRun, describeSubmission, prepareRankingSubmission, retryPendingRa
 import { getRankingUser } from '../lib/guestRankingIdentity.js'
 import { isProjectMaster } from '../lib/projectAdmin.js'
 import { useAuthStore } from './useAuthStore.js'
+import { trackEvent } from '../lib/analytics.js'
 import { getStageVendingItem, getStageVendingPlacement, getStageVendingRemainingPurchases, isWithinStageVendingRange } from '../lib/stageVending.js'
 import { getBossClearBonus, getRankingScore, getRankingScorePolicy } from '../lib/rankingScorePolicy.js'
 import { logDamageTaken } from '../lib/playtestLogger.js'
@@ -86,6 +87,30 @@ const MAX_MISSION_KILL_KEYS = 512
 // passed through keeps its own stage-board entry, but all of them go out in one batched update.
 // The only other write is a real page unload (pagehide) before the run ended.
 const pendingRuns = new Map()
+
+// GA4 run lifecycle (lib/analytics.js). Same run boundary as the ranking write: run_start when a
+// new run starts (not on a stage continuation), run_end exactly once when that run ends.
+// No PII — never uid/email/displayName.
+let analyticsRun = null
+const ANALYTICS_RESULT_BY_PHASE = { gameover: 'dead', cleared: 'escaped', quit: 'quit' }
+
+function trackRunStart(stageId) {
+  analyticsRun = { ended: false }
+  trackEvent('run_start', { stage_id: stageId, mode: useAuthStore.getState().user?.uid ? 'google' : 'guest' })
+}
+
+function trackRunEnd(state, runs, endPhase) {
+  if (!analyticsRun || analyticsRun.ended || runs.length === 0) return
+  analyticsRun.ended = true
+  const last = runs[runs.length - 1]
+  trackEvent('run_end', {
+    stage_id: last.stageId,
+    result: ANALYTICS_RESULT_BY_PHASE[endPhase ?? state.phase] ?? 'quit',
+    score: Math.max(...runs.map(stage => stage.score)),
+    duration_sec: Math.floor(floorNonNegativeMs(last.globalTimeMs ?? last.timeMs) / 1000),
+    level: state.player?.level ?? 1,
+  })
+}
 
 function checkpointRun(state, phaseName = state.phase) {
   const uid = useAuthStore.getState().user?.uid
@@ -775,13 +800,13 @@ export const useGameStore = create(
     // 아직 쓰지 않는다(그 스테이지 기록만 쌓아 둔다). 죽음·포기·마지막 스테이지 클리어는 런 끝이다.
     // 같은 런의 종료가 두 번 발화해도 한 번만 쓴다(rankingRun.written === 'ended').
     _recordRankingRunEnd: (phaseName, run) => {
-      if (phaseName !== 'cleared') return get().finishRankingRun('end', run)
+      if (phaseName !== 'cleared') return get().finishRankingRun('end', run, phaseName)
       const s = get()
       const rankingRun = s.rankingRun ?? { id: s.progressRunId, stages: [], written: null, writtenScore: 0 }
       set({ rankingRun: { ...rankingRun, stages: [...rankingRun.stages.filter(stage => stage.stageId !== run.stageId), run] } })
       // 이어 갈 수 없는 클리어(마지막 스테이지, 또는 보스 미처치 탈출구 탈출)는 여기서 런이 끝난다.
       // finishRankingRun은 written==='ended' 가드로 로비 복귀 시 재호출돼도 한 번만 쓴다.
-      if (!getClearContinuationStageId(run.stageId, { bossDefeated: s.bossDefeated })) return get().finishRankingRun('end')
+      if (!getClearContinuationStageId(run.stageId, { bossDefeated: s.bossDefeated })) return get().finishRankingRun('end', null, 'cleared')
       return false
     },
 
@@ -789,7 +814,8 @@ export const useGameStore = create(
     // reason 'pagehide': 런이 끝나기 전에 페이지가 실제로 내려간다 — 그 순간을 런의 쓰기로 쓴다.
     // pagehide 뒤에도 런이 이어지면(bfcache 복원) 이후 쓰기는 점수가 오른 경우에만 허용한다.
     // 0점 런도 등록한다 — 점수 하한 필터를 두지 않는다.
-    finishRankingRun: (reason = 'end', endRun = null) => {
+    // endPhase(optional): 'gameover' | 'cleared' | 'quit' — only for the GA4 run_end result.
+    finishRankingRun: (reason = 'end', endRun = null, endPhase = null) => {
       const s = get()
       const rankingRun = s.rankingRun
       if (!rankingRun || rankingRun.written === 'ended') return false
@@ -798,6 +824,7 @@ export const useGameStore = create(
         : null)
       const runs = live ? [...rankingRun.stages.filter(stage => stage.stageId !== live.stageId), live] : rankingRun.stages
       if (runs.length === 0) return false
+      trackRunEnd(s, runs, endPhase)
       const score = Math.max(...runs.map(stage => stage.score))
       const written = reason === 'pagehide' ? 'pagehide' : 'ended'
       if (rankingRun.written === 'pagehide' && score <= rankingRun.writtenScore) {
@@ -1457,6 +1484,7 @@ export const useGameStore = create(
         timeMs: run.timeMs, totalTimeMs: run.globalTimeMs,
       } })
       emitSfx({ id: 'stageClear' })
+      trackEvent('stage_clear', { stage_id: run.stageId, boss_defeated: s.bossDefeated === true })
       get()._onRunEnd('cleared')
       return true
     },
@@ -1552,6 +1580,7 @@ export const useGameStore = create(
         missionSpecialEnemySpawns: [],
       }))
       get().recordMissionEvent({ type: 'stage_started', stageId: nextStageId })
+      if (!preserveContinuousScore) trackRunStart(nextStageId)
       recordRuntimePlayActivity(nextStageId)
       checkpointRun(get())
       saveRuntimeProgress()

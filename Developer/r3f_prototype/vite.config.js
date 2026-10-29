@@ -223,6 +223,8 @@ export default defineConfig({
       output: {
         manualChunks(id) {
           if (!id.includes('node_modules')) return undefined
+          // GA4 (lib/analytics.js) is lazy: keep it out of the preloaded vendor-firebase chunk.
+          if (/[\\/](@firebase[\\/](analytics|installations)|firebase[\\/]analytics)[\\/]/.test(id)) return 'vendor-firebase-analytics'
           if (id.includes('firebase') || id.includes('@firebase')) return 'vendor-firebase'
           if (id.includes('@react-three') || id.includes('three') || id.includes('@dimforge') || id.includes('@react-spring')) return 'vendor-three'
           if (id.includes('react') || id.includes('scheduler') || id.includes('use-sync-external-store')) return 'vendor-react'
