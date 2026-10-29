@@ -1,4 +1,5 @@
-import { Canvas } from '@react-three/fiber'
+import { useEffect } from 'react'
+import { Canvas, useStore } from '@react-three/fiber'
 import { Physics } from '@react-three/rapier'
 import Game from './Game.jsx'
 import DamageNumbersLayer from './DamageNumbersLayer.jsx'
@@ -10,6 +11,17 @@ import ProceduralFaceZombieLayer from './ProceduralFaceZombieLayer.jsx'
 import PooledEnemyProjectileLayer from './PooledEnemyProjectileLayer.jsx'
 import StageEntryRuntimeDiagnostics from './StageEntryRuntimeDiagnostics.jsx'
 import { useGameStore } from '../store/useGameStore.js'
+
+// ponytail: dev-only QA handle. window.gameThree.getState() lets QA read gameplay materials
+// directly instead of inferring colors from tone-mapped pixels. Live store, not a snapshot.
+function DevQaHandle() {
+  const store = useStore()
+  useEffect(() => {
+    window.gameThree = store
+    return () => { delete window.gameThree }
+  }, [store])
+  return null
+}
 
 export default function GameCanvas({ gameKey, phase }) {
   const deathCause = useGameStore((state) => state.deathCause)
@@ -27,6 +39,7 @@ export default function GameCanvas({ gameKey, phase }) {
       frameloop={isMatildaContactDeath ? 'never' : 'always'}
       style={{ width: '100%', height: '100%', background: '#c8c4bc', display: 'block', filter: isMatildaContactDeath ? 'grayscale(1)' : 'none' }}
     >
+      {import.meta.env.DEV && <DevQaHandle />}
       <Physics key={gameKey} gravity={[0, 0, 0]} timeStep={1 / 60} paused={phase !== 'playing'}>
         <Game />
       </Physics>

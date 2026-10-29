@@ -1,5 +1,5 @@
 import { Component, Suspense, useCallback, useEffect, useRef, useState } from 'react'
-import { Canvas, useFrame, useThree } from '@react-three/fiber'
+import { Canvas, useFrame, useStore, useThree } from '@react-three/fiber'
 import { Html, useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
 import {
@@ -335,6 +335,15 @@ function RoomScene({ keyboardKeysRef, mobileKeysRef, wardrobeOpen, overview, out
   const canToggleWardrobeRef = useRef(false)
   const moveVectorRef = useRef({ x: 0, z: 0 })
   const { camera, size } = useThree()
+
+  // ponytail: dev-only QA handle. rosari-room-visual-qa.js calls window.rosariThree.getState();
+  // it needs the live store, not an onCreated RootState snapshot, or its later calls read stale state.
+  const devQaStore = useStore()
+  useEffect(() => {
+    if (!import.meta.env.DEV) return undefined
+    window.rosariThree = devQaStore
+    return () => { delete window.rosariThree }
+  }, [devQaStore])
 
   useEffect(() => {
     const layout = getRosariCameraLayout(size, { overview, position: positionRef.current })
