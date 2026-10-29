@@ -35,7 +35,8 @@ it('adds a six-language safe-area top-right 44px contact link without changing o
     expect(container.querySelector('.google-account-panel')).not.toBeNull()
     expect(container.querySelector('[data-testid="original-title-scene"]')).not.toBeNull()
     expect(container.querySelector('a[href="/landing"]')).not.toBeNull()
-    expect([...container.querySelectorAll('button')].some((b) => b.textContent === '로자리의 방')).toBe(true)
+    // 로자리의 방은 로그인 전용 진입점이다 — 이 테스트의 auth 목은 게스트이므로 없어야 한다.
+    expect([...container.querySelectorAll('button')].some((b) => b.textContent === '로자리의 방')).toBe(false)
   }
   act(() => root.render(<TitleScreen devCheatsVisible />))
   expect(source).toContain("cheatMenuButtonVisible ? { top: 'max(66px, calc(env(safe-area-inset-top, 0px) + 60px))' }")

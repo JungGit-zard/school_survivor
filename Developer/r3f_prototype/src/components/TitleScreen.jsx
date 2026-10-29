@@ -428,14 +428,16 @@ export default function TitleScreen({
           >
             로그인 없이 들어가기
           </button>
-          <button
-            type="button"
-            className="title-main-action"
-            style={{ ...styles.rosariRoomButton, ...styles.mainActionButton }}
-            onClick={() => onOpenRosariRoom?.()}
-          >
-            로자리의 방
-          </button>
+          {authUser?.uid && (
+            <button
+              type="button"
+              className="title-main-action"
+              style={{ ...styles.rosariRoomButton, ...styles.mainActionButton }}
+              onClick={() => onOpenRosariRoom?.()}
+            >
+              로자리의 방
+            </button>
+          )}
           <a href="/landing" className="title-main-action" style={{ ...styles.homepageButton, ...styles.mainActionButton }}>
             {t('title.homepage')}
           </a>
