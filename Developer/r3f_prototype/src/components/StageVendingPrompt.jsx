@@ -34,6 +34,7 @@ const COPY = Object.freeze({
     buttonPurchased: '구매 완료',
     buttonFull: 'HP 가득',
     buttonInsufficient: '골드 부족',
+    noGold: '골드가 없어요!',
   }),
   en: Object.freeze({
     full: 'Your HP is already full',
@@ -53,6 +54,7 @@ const COPY = Object.freeze({
     buttonPurchased: 'Bought',
     buttonFull: 'HP full',
     buttonInsufficient: 'Need gold',
+    noGold: 'No gold!',
   }),
   ja: Object.freeze({
     full: 'HPはすでに満タンです',
@@ -72,6 +74,7 @@ const COPY = Object.freeze({
     buttonPurchased: '購入済み',
     buttonFull: 'HP満タン',
     buttonInsufficient: 'ゴールド不足',
+    noGold: 'ゴールドがありません！',
   }),
 })
 
@@ -166,6 +169,19 @@ export default function StageVendingPrompt() {
   // 새 런/스테이지는 닫힘 기억을 초기화한다(위 효과보다 뒤에 두어 같은 커밋에서 이긴다).
   useEffect(() => { setFeedback(null); setDismissed(false) }, [currentStageId, gameKey])
   const visible = isOpen && state !== 'outOfRange' && state !== 'notPlaying'
+
+  // 골드가 모자라면 팝업 대신 근접할 때마다 짧은 말풍선만 띄운다(진행은 멈추지 않는다, Terry 10-29).
+  const [noGoldToast, setNoGoldToast] = useState(false)
+  const noGoldShownRef = useRef(false)
+  const noGold = phase === 'playing' && !!placement && !!item && state === 'insufficient'
+  useEffect(() => {
+    if (!inRange) { noGoldShownRef.current = false; return undefined }
+    if (!noGold || noGoldShownRef.current) return undefined
+    noGoldShownRef.current = true
+    setNoGoldToast(true)
+    const timer = window.setTimeout(() => setNoGoldToast(false), SUCCESS_FEEDBACK_MS)
+    return () => { window.clearTimeout(timer); setNoGoldToast(false) }
+  }, [inRange, noGold])
   const disabled = state !== 'available'
   const statusText = feedback?.message ?? STATUS_COPY[state]
 
@@ -202,7 +218,9 @@ export default function StageVendingPrompt() {
     closeStageVending()
   }, [closeStageVending])
 
-  if (!visible || !placement || !item) return null
+  if (!visible || !placement || !item) {
+    return noGoldToast ? <div data-testid="stage-vending-nogold" role="status" style={styles.toast}>{STATUS_COPY.noGold}</div> : null
+  }
 
   // 바깥 탭 백드롭: 같은 탭이 조이스틱(캔버스 대상 touchstart)이나 아래 HUD 버튼으로 새지 않도록
   // pointerdown/touchstart 전파를 막고, 손을 뗀 뒤의 click에서 닫는다(고스트 클릭 방지).
@@ -258,6 +276,23 @@ export default function StageVendingPrompt() {
 }
 
 const styles = {
+  toast: {
+    position: 'absolute',
+    left: '50%',
+    bottom: 'var(--stage-vending-bottom, calc(160px + env(safe-area-inset-bottom, 0px)))',
+    transform: 'translateX(-50%)',
+    zIndex: 24,
+    pointerEvents: 'none',
+    padding: '8px 16px',
+    borderRadius: 999,
+    background: 'rgba(17, 24, 39, 0.9)',
+    border: '2px solid #ffe08a',
+    color: '#ffe08a',
+    fontSize: 15,
+    fontWeight: 900,
+    whiteSpace: 'nowrap',
+    fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+  },
   backdrop: {
     position: 'absolute',
     inset: 0,

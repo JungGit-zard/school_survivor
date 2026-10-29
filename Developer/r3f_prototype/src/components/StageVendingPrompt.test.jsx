@@ -124,6 +124,21 @@ describe('real prompt + real store', () => {
     expect(live().goldTotal).toBe(gold)
     expect(live().stageVendingPurchasedItemIds).toEqual([])
   })
+  it('short gold shows a brief "골드가 없어요!" bubble once per approach, without pausing', () => {
+    useGameStore.setState(s => ({ player: { ...s.player, hp: 40 }, goldTotal: 4 }))
+    const toast = () => host.querySelector('[data-testid="stage-vending-nogold"]')
+    mount(); expect(toast().textContent).toBe('골드가 없어요!')
+    expect(live().phase).toBe('playing')
+    act(() => vi.advanceTimersByTime(2000)); expect(toast()).toBeNull()
+    act(() => vi.advanceTimersByTime(2000)); expect(toast()).toBeNull()
+    act(() => { playerPos.set(999, 0, 999); vi.advanceTimersByTime(100) })
+    act(() => { move(); vi.advanceTimersByTime(100) })
+    expect(toast()).not.toBeNull()
+  })
+  it('full HP shows no bubble', () => {
+    useGameStore.setState(s => ({ player: { ...s.player, hp: 100 }, goldTotal: 20 }))
+    mount(); expect(host.querySelector('[data-testid="stage-vending-nogold"]')).toBeNull()
+  })
   it('opens once it becomes affordable while still in range', () => {
     useGameStore.setState(s => ({ player: { ...s.player, hp: 40 }, goldTotal: 4 }))
     mount(); expect(button()).toBeNull()
