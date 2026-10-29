@@ -8,6 +8,14 @@ let guestAuth = null
 const nicknames = new Map()
 const nicknameLoads = new Map()
 
+export function getGuestPersistence(authModule) {
+  return [
+    authModule.indexedDBLocalPersistence,
+    authModule.browserLocalPersistence,
+    authModule.inMemoryPersistence,
+  ].filter(Boolean)
+}
+
 async function createClient() {
   const env = import.meta.env ?? {}
   if (!isFirebaseAuthConfigured(env) || !env.VITE_FIREBASE_DATABASE_URL?.trim()) {
@@ -17,14 +25,22 @@ async function createClient() {
     import('firebase/app'), import('firebase/auth'), import('firebase/database'),
   ])
   const config = getFirebaseConfig(env)
-  if (!authModule.inMemoryPersistence) throw new Error('Firebase Auth memory-only persistence is unavailable.')
+  const persistence = getGuestPersistence(authModule)
+  if (persistence.length === 0) throw new Error('Firebase Auth persistence is unavailable.')
   // Existing default clients assume any initialized app means the default exists.
   // Reserve its app only; never initialize or mutate Google/Studio authentication.
   if (!apps.getApps().some((app) => app.name === '[DEFAULT]')) apps.initializeApp(config)
   const app = apps.getApps().find((candidate) => candidate.name === APP_NAME)
     ?? apps.initializeApp(config, APP_NAME)
-  // Explicit initialization avoids getAuth's browser-persistence defaults.
-  const auth = authModule.initializeAuth(app, { persistence: authModule.inMemoryPersistence })
+  // Same-device guest continuity (Terry 2026-10-29): the anonymous user is persisted on this
+  // named app only, so one device keeps one guest uid/nickname across reloads. Firebase picks
+  // the first available entry (IndexedDB -> localStorage -> memory for private mode/WebView
+  // quirks). The storage key is scoped to the 'guest-ranking' app name, so Google sign-in on
+  // the [DEFAULT] app never reads or overwrites it.
+  const auth = authModule.initializeAuth(app, { persistence })
+  // Restore the persisted guest before anyone checks currentUser; otherwise a fresh
+  // anonymous account would be created on every load.
+  if (typeof auth.authStateReady === 'function') await auth.authStateReady()
   guestAuth = auth
   return { auth, authModule, db: mod.getDatabase(app, config.databaseURL), mod }
 }
