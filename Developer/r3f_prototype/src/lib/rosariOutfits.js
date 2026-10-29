@@ -60,7 +60,6 @@ export const ROSARI_BASE_COLORS = Object.freeze({
   // collar material — its white collar is painted into the uniform-front decal — so shirt
   // white is the matching value. It lifts the collar to 0.95 and the gap to 0.21.
   collar: '#fff8ed',
-  sock: '#f7e8e6', // v9 socks_white
   roundedShoe: '#8090a8', // v9 shoes_blue; pure white shoes were a second washed-out mass
   // v9's bag is bright pack_blue #38c8f0 everywhere (body, side rails, every strap, top lid
   // band) with dark pack_pocket_blue #1668a0 on the single small front-pocket panel. This

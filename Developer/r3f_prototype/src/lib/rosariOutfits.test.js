@@ -98,7 +98,9 @@ describe('applyRosariOutfit', () => {
     expect(hex(meshes.backpackFlap)).toBe('#1668a0')
     expect(hex(meshes.cuff)).toBe('#fff8ed')
     expect(hex(meshes.collar)).toBe('#fff8ed')
-    expect(hex(meshes.sock)).toBe('#f7e8e6')
+    // Socks stay on the shipped GLB factor: v9's socks_white dulled the sock against the
+    // leg above it (value gap 0.141 -> 0.044) and the slate shoe already grounds the leg.
+    expect(hex(meshes.sock)).toBe('#fff4fb')
   })
 
   it('leaves skin, face, tie and gold on their shipped GLB factors under every outfit', () => {
