@@ -5,7 +5,7 @@ import {
   applyRunSubmission,
   buildPublicEntry,
   getKstRankingKeys,
-  maxLegitScore,
+  expectedScore,
   normalizeRun,
 } from '../src/ranking.js'
 
@@ -30,32 +30,29 @@ test('accepts stage3 and stage4 submissions (B1: server whitelist)', () => {
 test('rejects payloads that exceed the server-side ranking limits', () => {
   assert.throws(() => normalizeRun({ runId: 'x', stageId: 'stage2', score: 1 }))
   assert.throws(() => normalizeRun({ runId: 'run_20260712_001', stageId: 'boss', score: 1 }))
-  assert.throws(() => normalizeRun({ runId: 'run_20260712_001', stageId: 'stage2', score: 100001 }))
 })
 
-test('rejects tampered scores above the honest per-run maximum (M5)', () => {
-  // stage2, 95s, cleared: max = (95+60+30) + floor(185*0.15)=27 -> 212. 840 is impossible.
-  assert.throws(
-    () => normalizeRun({ runId: 'run_cheat_0001', stageId: 'stage2', score: 840, timeMs: 95000, cleared: true }),
-    /server revalidation/,
-  )
-  // stage1 non-clear: stageBonus 0, so any score above survival seconds is a cheat.
-  assert.throws(
-    () => normalizeRun({ runId: 'run_cheat_0002', stageId: 'stage1', score: 500, timeMs: 100000, cleared: false }),
-    /server revalidation/,
-  )
-  // score below survival seconds is also rejected.
-  assert.throws(
-    () => normalizeRun({ runId: 'run_cheat_0003', stageId: 'stage1', score: 10, timeMs: 100000, cleared: false }),
-    /server revalidation/,
-  )
-})
-
-test('accepts the exact honest maximum score for each stage (M5 boundary)', () => {
-  assert.equal(maxLegitScore('stage1', 100000, false), 100) // survival only
-  assert.equal(maxLegitScore('stage4', 240000, true), 517)
+// f955342f: 점수·런 길이 상한을 걷어냈다. 무한모드 장기 기록은 그대로 받아야 한다.
+test('accepts arbitrarily long runs and large scores (no ceiling since f955342f)', () => {
+  assert.doesNotThrow(() => normalizeRun({ runId: 'run_20260712_001', stageId: 'stage2', score: 100001 }))
   assert.doesNotThrow(() =>
-    normalizeRun({ runId: 'run_stage1_edge0', stageId: 'stage1', score: 100, timeMs: 100000, cleared: false }),
+    normalizeRun({ runId: 'run_endless_0001', stageId: 'stage1', score: 360000, timeMs: 360000000, cleared: false }),
+  )
+  assert.throws(() => normalizeRun({ runId: 'run_endless_0002', stageId: 'stage1', score: -1 }))
+  assert.throws(() => normalizeRun({ runId: 'run_endless_0003', stageId: 'stage1', score: Number.MAX_SAFE_INTEGER + 2 }))
+})
+
+test('expectedScore mirrors the client score model as a reference, not a gate', () => {
+  // stage1 non-clear 100s: survival only
+  assert.equal(expectedScore('stage1', 100000, false), 100)
+  // stage4 clear 240s: base 240+180=420, +escape floor(420*0.15)=63 -> 483
+  assert.equal(expectedScore('stage4', 240000, true), 483)
+  // boss bonus applies only on clear: (420+63)=483, +floor(483*0.2)=96 -> 579
+  assert.equal(expectedScore('stage4', 240000, true, true), 579)
+  assert.equal(expectedScore('stage4', 240000, false, true), 420)
+  // f955342f removed server revalidation: normalizeRun no longer rejects scores off the model.
+  assert.doesNotThrow(() =>
+    normalizeRun({ runId: 'run_cheat_0001', stageId: 'stage2', score: 840, timeMs: 95000, cleared: true }),
   )
 })
 
