@@ -89,6 +89,9 @@ let persistenceSequence = 0
 let purchaseOperations = new Map()
 let runCheckpoints = new Map()
 let runBaseline = {}
+// Boss counts derived from the run ledger; null = recompute. The walk is O(all runs), so it runs
+// once per hydration and each checkpoint adjusts the count for its one row.
+let ledgerBossCounts = null
 let runContribution = { gold: 0, records: {}, missionCounters: {} }
 
 export function recordFirebaseRunCheckpoint(runId, { stageId, records, best, missionCounters = {} }) {
@@ -102,7 +105,13 @@ export function recordFirebaseRunCheckpoint(runId, { stageId, records, best, mis
     && Object.entries(missionCounters).every(([key,value])=>value===(previousCounters[key]??0))) return false
   // Publish the ledger first: even a flag-only checkpoint changes runtime identity
   // below, so an in-flight save sees dirty state and repeats its normal transaction.
-  runCheckpoints.set(runId, { stageId, records: { ...records }, best: { ...best }, gold, missionCounters: { ...missionCounters } })
+  const row = { stageId, records: { ...records }, best: { ...best }, gold, missionCounters: { ...missionCounters } }
+  if (ledgerBossCounts) {
+    const before = ledgerBossDefeatKey(previous), after = ledgerBossDefeatKey(row)
+    if (before) ledgerBossCounts[before]--
+    if (after) ledgerBossCounts[after]++
+  }
+  runCheckpoints.set(runId, row)
   updateFirebasePlayerProgress(progress => {
     for (const [key,value] of Object.entries(records)) {
       if (!RECORD_KEY_SET.has(key)) continue
@@ -123,6 +132,14 @@ export function recordFirebaseRunCheckpoint(runId, { stageId, records, best, mis
     progress.missions = reconcileMissionProgress(progress.missions)
   })
   return true
+}
+
+// 'recorded': this hydrated session already holds the run's checkpoint (not yet acknowledged).
+// 'acknowledged': the server ledger holds it (hydrated baseline or a committed save).
+// 'none': this session has never seen it (fresh account switch) and it must be replayed.
+export function getFirebaseRunCheckpointState(runId) {
+  if (runCheckpoints.has(runId)) return 'recorded'
+  return Object.hasOwn(runBaseline, runId) ? 'acknowledged' : 'none'
 }
 
 export function recordFirebaseProgressPurchase({ category, id, price, nextLevel }) {
@@ -167,6 +184,7 @@ export function setCloudProgressUser(user) {
     pendingProgressSaveWarning = null
     runCheckpoints = new Map()
     runBaseline = {}
+    ledgerBossCounts = null
     runContribution = { gold: 0, records: {}, missionCounters: {} }
     runtime = createEmptyRuntime(nextUid)
   }
@@ -284,6 +302,7 @@ export function applyCloudProgressSnapshot(snapshot, user = cloudUser, { keepClo
   purchaseOperations = new Map()
   runCheckpoints = new Map()
   runBaseline = structuredClone(snapshot?.runLedger ?? {})
+  ledgerBossCounts = null
   runContribution = { gold: 0, records: {}, missionCounters: {} }
   cloudUser = keepCloudUserNull ? null : (user ?? cloudUser)
     runtime = {
@@ -329,17 +348,27 @@ export function readFirebasePlayerProgressOrDefault() {
   return readFirebasePlayerProgress()
 }
 
+// The boss-defeat record key one ledger row counts toward, or null.
+function ledgerBossDefeatKey(run) {
+  if (typeof run?.stageId !== 'string' || !/^stage([1-9]|10)$/.test(run.stageId)) return null
+  const key = `${run.stageId}BossDefeats`
+  const value = Object.hasOwn(run.records ?? {}, key) ? run.records[key] : run.records?.bossKills
+  return Number.isSafeInteger(value) && value >= 1 ? key : null
+}
+
 export function readFirebasePlayerProgress() {
   ensureHydrated()
   const progress = cloneProgress(runtime.progress)
-  const counts = Object.fromEntries(BOSS_RECORD_KEYS.map(key => [key, 0]))
-  // Pending is the latest version of a baseline row, not another completion.
-  for (const run of Object.values({ ...runBaseline, ...Object.fromEntries(runCheckpoints) })) {
-    if (!/^stage([1-9]|10)$/.test(run?.stageId) || typeof run?.stageId !== 'string') continue
-    const key = `${run.stageId}BossDefeats`
-    const value = Object.hasOwn(run.records ?? {}, key) ? run.records[key] : run.records?.bossKills
-    if (Number.isSafeInteger(value) && value >= 1) counts[key]++
+  if (!ledgerBossCounts) {
+    const counts = Object.fromEntries(BOSS_RECORD_KEYS.map(key => [key, 0]))
+    // Pending is the latest version of a baseline row, not another completion.
+    for (const run of Object.values({ ...runBaseline, ...Object.fromEntries(runCheckpoints) })) {
+      const key = ledgerBossDefeatKey(run)
+      if (key) counts[key]++
+    }
+    ledgerBossCounts = counts
   }
+  const counts = ledgerBossCounts
   for (const key of BOSS_RECORD_KEYS) progress.records[key] = Math.max(progress.records[key] ?? 0, counts[key])
   return progress
 }
@@ -696,6 +725,17 @@ async function performCloudProgressSave(user) {
         runtime = { ...runtime, progress }
       }
     }
+    // The committed ledger now holds these runs: move unchanged ones to the baseline so later
+    // saves stop re-sending every run of the session (the ledger rows themselves stay).
+    if (isFirebaseProgressHydrated({ uid: uidAtRequest }) && persistenceSession === session) {
+      for (const [runId,run] of runsAtSave) {
+        const saved = savedNode?.runLedger?.[runId]
+        if (!saved || saved.gold !== run.gold || !Object.entries(run.records).every(([key,value])=>saved.records?.[key]===value)) continue
+        if (JSON.stringify(runCheckpoints.get(runId)) !== JSON.stringify(run)) continue
+        runBaseline[runId] = run
+        runCheckpoints.delete(runId)
+      }
+    }
     return { saved: !purchaseConflict, shouldWarn: purchaseConflict }
   }).catch(error => {
     console.warn('Firebase progress was not acknowledged.', error?.code ?? error?.message ?? 'save-failed')
@@ -785,6 +825,7 @@ export function _resetFirebaseProgressForTests() {
   persistenceSequence = 0
   runCheckpoints = new Map()
   runBaseline = {}
+  ledgerBossCounts = null
   runContribution = { gold: 0, records: {}, missionCounters: {} }
 }
 

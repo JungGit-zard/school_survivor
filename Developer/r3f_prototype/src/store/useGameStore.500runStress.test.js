@@ -92,5 +92,5 @@ describe('500 internal gameplay stress runs', () => {
     expect(records.totalRuns).toBe(500)
     expect(records.totalGold).toBeGreaterThan(0)
     expect(records.bestSurvivalSeconds).toBeGreaterThanOrEqual(48)
-  })
+  }, 20000) // 500 runs at a flat ~4ms each; parallel suites can push past the 5s default
 })

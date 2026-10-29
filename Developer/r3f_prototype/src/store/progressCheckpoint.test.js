@@ -125,3 +125,21 @@ it('credits milestone, quest, and dialogue gold exactly once through run checkpo
   expect(remote.progress.goldTotal).toBe(16)
   expect(remote.progress.records.totalGold).toBe(6)
 })
+
+it('stops rewriting ended runs once the ledger acknowledged them',async()=>{
+  for(let i=0;i<3;i++){
+    useGameStore.getState().resetGame('stage1');useGameStore.getState().recordKill();useGameStore.getState().damagePlayer(9999)
+    await requestCloudProgressSave()
+  }
+  useGameStore.getState().resetGame('stage1');await requestCloudProgressSave()
+  let rewritten=null
+  _setFirebaseProgressClientForTests({load:async()=>structuredClone(remote),transaction:async(_path,mutate)=>{
+    const current=structuredClone(remote),next=mutate(current)
+    rewritten=Object.keys(next.runLedger).filter(id=>next.runLedger[id]!==current.runLedger?.[id])
+    remote=structuredClone(next);return{committed:true,snapshot:{val:()=>structuredClone(remote)}}
+  }})
+  useGameStore.getState().recordKill();await requestCloudProgressSave()
+  expect(Object.keys(remote.runLedger)).toHaveLength(4)
+  expect(rewritten).toEqual([useGameStore.getState().progressRunId])
+  expect(remote.progress.records).toMatchObject({totalRuns:4,totalKills:4})
+})

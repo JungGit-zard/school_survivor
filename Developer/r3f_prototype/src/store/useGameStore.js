@@ -39,6 +39,7 @@ import {
   recordPlayActivity,
   requestCloudProgressSave,
   recordFirebaseRunCheckpoint,
+  getFirebaseRunCheckpointState,
   recordFirebaseProgressPurchase,
   flushCloudProgressBeforeSignOut,
   hydrateCloudProgress,
@@ -146,7 +147,11 @@ function checkpointRun(state, phaseName = state.phase) {
   const ownedBossUnlocks = { ...readFirebasePlayerProgress().bossPassiveUnlocks }
   for (const [runId,pending] of pendingRuns.entries()) {
     if (pending.uid !== uid || !pending.values) continue
-    recordFirebaseRunCheckpoint(runId, { stageId: pending.stageId, records: pending.values, best: pending.best, missionCounters: pending.missionCounters })
+    // An ended run's values are final. Once this session holds them there is nothing to resend,
+    // and once the server ledger acknowledged them the account-switch replay no longer needs them.
+    const ended = runId !== state.progressRunId
+    if (ended && getFirebaseRunCheckpointState(runId) === 'recorded') continue
+    const changed = recordFirebaseRunCheckpoint(runId, { stageId: pending.stageId, records: pending.values, best: pending.best, missionCounters: pending.missionCounters })
     const newBossUnlocks = Object.fromEntries(Object.entries(pending.bossPassiveUnlocks??{}).filter(([key,value])=>value===true&&ownedBossUnlocks[key]!==true))
     if(Object.keys(newBossUnlocks).length) {
       Object.assign(ownedBossUnlocks,newBossUnlocks)
@@ -154,6 +159,7 @@ function checkpointRun(state, phaseName = state.phase) {
     }
     pending.applied = { ...pending.values }
     pending.walletApplied = pending.values.totalGold
+    if (ended && !changed && getFirebaseRunCheckpointState(runId) === 'acknowledged') pendingRuns.delete(runId)
   }
   saveRuntimeProgress()
   return true
