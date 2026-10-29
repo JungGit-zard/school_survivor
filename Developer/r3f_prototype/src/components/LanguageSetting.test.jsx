@@ -21,11 +21,14 @@ globalThis.IS_REACT_ACT_ENVIRONMENT = true
 
 describe('language setting', () => {
   beforeEach(() => {
-    _seedHydratedFirebaseProgressForTests()
+    // 설정 모달은 같은 uid로 하이드레이트되고 progressStatus가 ready일 때만 계정에 저장한다 (a1f9bbbc).
+    const user = { uid: 'lang-user', displayName: 'Lang Tester' }
+    _seedHydratedFirebaseProgressForTests(user)
     useLocaleStore.setState({ locale: 'ko' })
     useAuthStore.setState({
       status: 'signedIn',
-      user: { uid: 'lang-user', displayName: 'Lang Tester' },
+      progressStatus: 'ready',
+      user,
       signOutOfGoogle: vi.fn(async () => {}),
     })
   })

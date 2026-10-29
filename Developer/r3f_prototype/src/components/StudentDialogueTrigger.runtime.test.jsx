@@ -20,6 +20,7 @@ import { useGameStore } from '../store/useGameStore.js'
 import { findInvestigationTargetInRange, getInvestigationTargets } from '../lib/studentProximity.js'
 import { getStageBounds } from '../lib/stageConfig.js'
 import { STAGE2_PLAYER_INSET_X } from '../lib/playerMovementBounds.js'
+import { _seedHydratedFirebaseProgressForTests } from '../lib/firebaseProgress.js'
 
 const talkBook = getStageQuestDefinitions('stage1').find(({ id }) => id === 'stage1-talk-book')
 const defaultStage1 = computeDefaultStageObjectPlacements('stage1')
@@ -99,7 +100,12 @@ describe('Stage 1 talk-book runtime start chain', () => {
 
 describe('Stage 2 bulletin board runtime investigation chain', () => {
   it('creates a reachable physical-contact target and opens dialogue through the mounted trigger', () => {
-    useGameStore.getState().resetGame('stage2')
+    // Stage 2 entry needs stage1 boss-defeat evidence; without it resetGame('stage2') is refused (f8a0ee89).
+    _seedHydratedFirebaseProgressForTests({ uid: 'dialogue-trigger-stage2' }, {
+      progress: { records: { stage1BossDefeats: 1 } },
+    })
+    expect(useGameStore.getState().resetGame('stage2')).not.toBe(false)
+    expect(useGameStore.getState().currentStageId).toBe('stage2')
     commitFirebaseStudioRuntime({
       propPlacements: { stage2: [canonicalBoard] },
     }, { revision: 3 })

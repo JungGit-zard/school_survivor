@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createRoot } from 'react-dom/client'
 import { act } from 'react-dom/test-utils'
 import TitleScreen from './TitleScreen.jsx'
-import { WEAPON_CATALOG, isStarter } from '../lib/weaponCatalog.js'
+import { WEAPON_CATALOG, isStarter, isAccountUnlockable } from '../lib/weaponCatalog.js'
 import { getAllUnlocked, _resetForTests as resetWeaponUnlocks } from '../lib/weaponUnlocks.js'
 import { purchase as purchasePassiveStorage } from '../lib/passiveUpgrades.js'
 import { getSavedNickname, saveNicknameForUser } from '../lib/userNickname.js'
@@ -86,7 +86,7 @@ describe('TitleScreen lobby entry', () => {
     const { container, cleanup } = renderTitleScreen()
 
     expect(container.querySelector('[data-testid="title-gameplay-guide"]')).toBe(null)
-    expect(container.querySelector('.title-main-action')?.textContent).toBe('게임 시작')
+    expect(container.querySelector('button.title-main-action')?.textContent).toBe('게임 시작')
     expect(container.querySelector('style[data-title-intro-css]')?.textContent).toContain('.title-main-action:focus-visible')
 
     cleanup()
@@ -272,7 +272,7 @@ describe('TitleScreen lobby entry', () => {
     })
     const { container, cleanup } = renderTitleScreen(() => {}, true, () => {})
 
-    const start = container.querySelector('.title-main-action')
+    const start = container.querySelector('button.title-main-action')
     expect(start.textContent).toBe('로그인 중...')
     expect(start.disabled).toBe(true)
     expect(start.getAttribute('aria-busy')).toBe('true')
@@ -399,7 +399,8 @@ describe('TitleScreen lobby entry', () => {
 
     await vi.dynamicImportSettled()
 
-    const nonStarterIds = Object.keys(WEAPON_CATALOG).filter((id) => !isStarter(id))
+    // 런 중 조합 무기(hanako 등)는 계정 해금 대상이 아니다 (d07dbccf).
+    const nonStarterIds = Object.keys(WEAPON_CATALOG).filter((id) => !isStarter(id) && isAccountUnlockable(id))
     await vi.waitFor(() => {
       const unlocks = getAllUnlocked()
       for (const id of nonStarterIds) expect(unlocks.has(id), id).toBe(true)
