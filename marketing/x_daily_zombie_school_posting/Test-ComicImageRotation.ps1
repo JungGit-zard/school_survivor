@@ -87,6 +87,43 @@ try {
   try { $null = Select-PostingLocaleImagePath $config ja '2030-01-02-1200' $tempRoot X $catalog }
   catch { if ($_.Exception.Message -match 'IMAGE_HISTORY_HASH_UNKNOWN') { $unknownHistoryRejected = $true } else { throw } }
   if (-not $unknownHistoryRejected) { throw 'Missing receipt image without a saved SHA256 did not fail closed' }
+
+  # Facebook: unused comics first, then least-recently-used rotation instead of IMAGE_POOL_EXHAUSTED.
+  $fbConfig = Get-Content -LiteralPath (Join-Path $PSScriptRoot 'posting_config.json') -Raw -Encoding UTF8 | ConvertFrom-Json
+  $fbImages = @($fbConfig.facebook_rotation_image_pool.ja.images | Select-Object -First 3)
+  $fbConfig.facebook_rotation_image_pool.ja.images = $fbImages
+  $fb = @($fbImages | ForEach-Object { Resolve-PostingImagePath ([string]$_) -Platform Facebook })
+  $fbHash = @($fb | ForEach-Object { (Get-FileHash -LiteralPath $_ -Algorithm SHA256).Hash.ToLowerInvariant() })
+  if (@($fbHash | Select-Object -Unique).Count -ne 3) { throw 'Expected three distinct Facebook ja comics' }
+  $fbDir = Join-Path $tempRoot 'facebook-history'
+  New-Item -ItemType Directory -Path $fbDir -Force | Out-Null
+  function Get-FbPick([string]$Cycle) { return Select-PostingLocaleImagePath $fbConfig ja $Cycle $fbDir Facebook }
+  if ((Get-FbPick '2030-02-01-0300') -cne $fb[0]) { throw 'Facebook empty history did not pick the first pool comic' }
+  Write-ClickReceipt $fbDir '2030-02-01-0300' $fb[0] 'verified' '2030-02-01T00:00:00Z' $fbHash[0]
+  if ((Get-FbPick '2030-02-01-1200') -cne $fb[1]) { throw 'Facebook did not prefer the next unused comic' }
+  Write-ClickReceipt $fbDir '2030-02-01-1200' $fb[1] 'publish_intent' '2030-02-01T03:00:00Z' $fbHash[1]
+  Write-ClickReceipt $fbDir '2030-02-01-1800' $fb[2] 'verified' '2030-02-01T09:00:00Z' $fbHash[2]
+  $rotated = Get-FbPick '2030-02-01-2100'
+  if ($rotated -cne $fb[0]) { throw "Facebook exhausted pool did not rotate to the least-recently-used comic: $rotated" }
+  Write-ClickReceipt $fbDir '2030-02-01-2100' $fb[0] 'verified' '2030-02-01T12:00:00Z' $fbHash[0]
+  $rotated = Get-FbPick '2030-02-02-0300'
+  if ($rotated -ceq $fb[0]) { throw 'Facebook rotation repeated the most recently posted comic' }
+  if ($rotated -cne $fb[1]) { throw "Facebook rotation did not pick the oldest-used comic: $rotated" }
+  # A prepared (not yet clicked) current-cycle receipt must not move the pinned rotation pick.
+  Write-ClickReceipt $fbDir '2030-02-02-0300' $fb[1] 'prepared' '2030-02-01T18:00:00Z' $fbHash[1]
+  if ((Assert-PostingIntentImageSequence $fbConfig ja '2030-02-02-0300' $fbDir ([pscustomobject]@{imagePath=$fb[1]}) Facebook) -cne $fb[1]) { throw 'Facebook rotation pick was flagged as IMAGE_SEQUENCE_CHANGED' }
+  $fbChanged = $false
+  try { $null = Assert-PostingIntentImageSequence $fbConfig ja '2030-02-02-0300' $fbDir ([pscustomobject]@{imagePath=$fb[2]}) Facebook }
+  catch { if ($_.Exception.Message -match 'IMAGE_SEQUENCE_CHANGED') { $fbChanged = $true } else { throw } }
+  if (-not $fbChanged) { throw 'Facebook publish guard accepted a comic that is not the rotation pick' }
+  # Single-comic pool: rotation reuses the only comic rather than stopping.
+  $fbConfig.facebook_rotation_image_pool.ja.images = @($fbImages[0])
+  if ((Get-FbPick '2030-02-02-0300') -cne $fb[0]) { throw 'Facebook single-comic pool did not rotate' }
+  # X stays no-reuse: the fully used X pool above still throws IMAGE_POOL_EXHAUSTED.
+  $xStillExhausted = $false
+  try { $null = Select-PostingLocaleImagePath $config ja '2030-01-02-0000' $tempRoot X $catalog @($historyA) }
+  catch { if ($_.Exception.Message -match 'IMAGE_POOL_EXHAUSTED') { $xStillExhausted = $true } else { throw } }
+  if (-not $xStillExhausted) { throw 'X pool started reusing images' }
   'COMIC_IMAGE_ROTATION_TEST_OK'
 } finally {
   $tempBase = [IO.Path]::GetFullPath([IO.Path]::GetTempPath()).TrimEnd('\') + '\'

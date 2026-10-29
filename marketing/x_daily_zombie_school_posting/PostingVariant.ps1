@@ -64,6 +64,9 @@ function Test-PostingImageGameStartText([string]$ImagePath, [ValidateSet('ko','e
   if ($rows.Count -ne 1 -or $rows[0].PSObject.Properties.Name -notcontains 'gameStartText') { return $false }
   return ([string]$rows[0].gameStartText -ceq (Get-PostingGameStartText $Language))
 }
+function Test-PostingXWebsiteCardMode($Config) {
+  return ($null -ne $Config -and $Config.PSObject.Properties.Name -contains 'x_link_card' -and $null -ne $Config.x_link_card -and [bool]$Config.x_link_card.enabled)
+}
 function Assert-PostingImageGameStartText([string]$ImagePath, [ValidateSet('ko','en','ja','vi')][string]$Language, [ValidateSet('X','Facebook')][string]$Platform = 'X', $Catalog = $null) {
   if (-not (Test-PostingImageGameStartText $ImagePath $Language $Platform $Catalog)) { throw "Image is not confirmed to contain the exact localized game-start CTA for $Platform/$Language; refusing to continue." }
 }
@@ -160,15 +163,19 @@ function Select-PostingLocaleImagePath($Config, [string]$Language, [string]$Cycl
       $parentsByHash[$key] = @($parentsByHash[$key]) + ([string]$row.derivedFromSha256).ToLowerInvariant()
     }
   }
-  $gatedCandidates = @(Get-PostingLocaleImageCandidates $Config $Language -RequireGameStartText -Platform $Platform -Catalog $Catalog)
+  $gatedCandidates = if ($Platform -eq 'X' -and (Test-PostingXWebsiteCardMode $Config)) {
+    # Website cards carry the game-start CTA in the post text, so any localized promo image in the pool is eligible.
+    @(Get-PostingLocaleImageCandidates $Config $Language -Platform $Platform -Catalog $Catalog)
+  } else { @(Get-PostingLocaleImageCandidates $Config $Language -RequireGameStartText -Platform $Platform -Catalog $Catalog) }
   $pool = if ($Platform -eq 'Facebook' -and $Config.PSObject.Properties.Name -contains 'facebook_rotation_image_pool' -and $Config.facebook_rotation_image_pool.PSObject.Properties.Name -contains $Language) { @($Config.facebook_rotation_image_pool.$Language.images) } elseif ($Platform -eq 'X' -and $Config.PSObject.Properties.Name -contains 'localized_social_image_pool' -and $Config.localized_social_image_pool.PSObject.Properties.Name -contains $Language) { @($Config.localized_social_image_pool.$Language.images) } else { @() }
   $poolPaths = @($pool | ForEach-Object { Resolve-PostingImagePath ([string]$_) -Platform $Platform } | Select-Object -Unique)
-  $candidates = if ($poolPaths.Count -gt 0) { @($poolPaths | Where-Object { $gatedCandidates -ccontains $_ }) } else { $gatedCandidates }
+  $candidates = @(if ($poolPaths.Count -gt 0) { @($poolPaths | Where-Object { $gatedCandidates -ccontains $_ }) } else { $gatedCandidates })
   if ($candidates.Count -eq 0) { throw "No confirmed localized game-start CTA images are eligible for $Platform/$Language." }
   $receiptSearchDirectories = @($ReceiptDirectory)
   if ($null -ne $ReceiptDirectoryOverrides) { $receiptSearchDirectories = @($ReceiptDirectoryOverrides) }
   elseif ($Platform -eq 'X') { $receiptSearchDirectories += @(Get-PostingDefaultReceiptDirectories $Platform) }
   $usedHashes = @{}
+  $lastUsedCycle = @{}
   $candidateHashes = @{}
   $lineageRowsByPath = @{}
   foreach ($row in $Catalog.images) {
@@ -190,7 +197,13 @@ function Select-PostingLocaleImagePath($Config, [string]$Language, [string]$Cycl
       try { $receipt = Get-Content -LiteralPath $file.FullName -Raw -Encoding UTF8 | ConvertFrom-Json } catch { continue }
       if ($null -eq $receipt -or $receipt.PSObject.Properties.Name -notcontains 'entries') { continue }
       $entry = $receipt.entries.$Language
-      if ($null -eq $entry -or $entry.state -notin @('publish_intent','verified') -or $null -eq $entry.intent) { continue }
+      if ($null -eq $entry -or $null -eq $entry.intent) { continue }
+      if ($entry.state -notin @('publish_intent','verified')) {
+        # X caches a failed first crawl of a card URL for days, so any earlier X website-card attempt
+        # (failed or not) consumes its image.  The current cycle's own frozen selection is not history.
+        $crawledCard = $Platform -eq 'X' -and $file.BaseName -cne $CycleId -and $entry.intent.PSObject.Properties.Name -contains 'cardUrl' -and [string]$entry.intent.cardUrl -match '/share/x/(ko|en|ja|vi)/[0-9a-f]{16}$'
+        if (-not $crawledCard) { continue }
+      }
       $historyHash = ''
       foreach ($hashProperty in @('imageSha256','sha256')) {
         if ($entry.intent.PSObject.Properties.Name -contains $hashProperty) {
@@ -214,11 +227,30 @@ function Select-PostingLocaleImagePath($Config, [string]$Language, [string]$Cycl
           $historyHash = (Get-FileHash -LiteralPath $image -Algorithm SHA256).Hash.ToLowerInvariant()
         }
       }
-      $usedHashes[(Resolve-PostingImageIdentityHash $historyHash $parentsByHash)] = $true
+      $identityHash = Resolve-PostingImageIdentityHash $historyHash $parentsByHash
+      $usedHashes[$identityHash] = $true
+      # Receipt names are cycle IDs (yyyy-MM-dd-HHmm[-suffix]) and sort chronologically.
+      if (-not $lastUsedCycle.ContainsKey($identityHash) -or [string]::CompareOrdinal($file.BaseName, [string]$lastUsedCycle[$identityHash]) -gt 0) { $lastUsedCycle[$identityHash] = $file.BaseName }
     }
   }
   foreach ($candidate in $candidates) {
     if (-not $usedHashes.ContainsKey($candidateHashes[$candidate])) { return [string]$candidate }
+  }
+  if ($Platform -eq 'Facebook') {
+    # Facebook only (2026-10-28): once every comic was posted, reuse the pool in
+    # least-recently-used order (ties keep pool order) instead of stopping, and
+    # never repeat the most recently posted comic while another one exists.
+    # X never reuses images because X caches card URLs.
+    $mostRecent = $null
+    foreach ($key in @($lastUsedCycle.Keys)) { if ($null -eq $mostRecent -or [string]::CompareOrdinal([string]$lastUsedCycle[$key], [string]$lastUsedCycle[$mostRecent]) -gt 0) { $mostRecent = $key } }
+    $distinctIdentities = @($candidates | ForEach-Object { $candidateHashes[$_] } | Select-Object -Unique)
+    $rotationPick = $null
+    foreach ($candidate in $candidates) {
+      $identity = $candidateHashes[$candidate]
+      if ($distinctIdentities.Count -gt 1 -and $identity -ceq $mostRecent) { continue }
+      if ($null -eq $rotationPick -or [string]::CompareOrdinal([string]$lastUsedCycle[$identity], [string]$lastUsedCycle[$candidateHashes[$rotationPick]]) -lt 0) { $rotationPick = $candidate }
+    }
+    if ($null -ne $rotationPick) { return [string]$rotationPick }
   }
   throw "IMAGE_POOL_EXHAUSTED: all unique SHA256 images are already used for $Platform/$Language."
 }
@@ -229,7 +261,7 @@ function Assert-PostingIntentImageSequence($Config, [string]$Language, [string]$
     if (-not (Test-Path -LiteralPath $frozenPath -PathType Leaf)) { throw "Frozen image is missing: $frozenPath" }
     $frozenHash = (Get-FileHash -LiteralPath $frozenPath -Algorithm SHA256).Hash
     $nextHash = (Get-FileHash -LiteralPath $nextPath -Algorithm SHA256).Hash
-    if ($frozenHash -cne $nextHash) { throw 'Frozen image SHA256 is no longer the first unused image.' }
+    if ($frozenHash -cne $nextHash) { throw 'Frozen image SHA256 is no longer the next image in the rotation.' }
     return [string]$nextPath
   } catch {
     if ($_.Exception.Message -match 'IMAGE_SEQUENCE_CHANGED') { throw }

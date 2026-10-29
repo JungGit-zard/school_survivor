@@ -281,7 +281,7 @@ function Invoke-ZombieSchoolFiveSlotPosting {
 function Invoke-SerializedPublishOnlyCycle {
   param([Parameter(Mandatory)][string]$RunId,[Parameter(Mandatory)][string]$ReceiptRoot,[Parameter(Mandatory)][string]$FacebookActionRunnerPath,[Parameter(Mandatory)][string]$XRunnerPath,[string]$StopAtKst='',[scriptblock]$NowKst={ [DateTimeOffset]::UtcNow.ToOffset([TimeSpan]::FromHours(9)) })
   $cutoffReached={ -not [string]::IsNullOrWhiteSpace($StopAtKst) -and (& $NowKst) -ge [DateTimeOffset]::Parse($StopAtKst,[Globalization.CultureInfo]::InvariantCulture) }
-  $languages=@('ja','en','vi','ko');$submitted=@();$unresolved=@();$verified=@();$skipped=@();$errors=@();$facebookMayContinue=$true;$publishClicks=@();$draftCleanups=@()
+  $languages=@('ja','en','vi','ko');$submitted=@();$unresolved=@();$verified=@();$skipped=@();$errors=@();$facebookMayContinue=$true;$publishClicks=@();$draftCleanups=@();$xUnsafe=$null
   $fbRoot=Join-Path $ReceiptRoot 'facebook_posting_receipts';$xRoot=Join-Path $ReceiptRoot 'x_posting_receipts'
   [IO.Directory]::CreateDirectory($fbRoot)|Out-Null;[IO.Directory]::CreateDirectory($xRoot)|Out-Null
   # Attempt every pending X locale first. Only known pre-click content blockers may yield to Facebook.
@@ -302,8 +302,9 @@ function Invoke-SerializedPublishOnlyCycle {
       if($null -eq $after -or $after.state -ne 'publish_intent'){throw "UNSAFE X $language PublishOnly returned without a persisted publish_intent"}
       if($result.status -notin @('published_unverified','partial_verified','complete')){throw "X $language PublishOnly returned unexpected status '$($result.status)'"}
       $submitted += "x/$language"
-    } catch {$message=$_.Exception.Message;if($message -match 'SCHEDULE_CUTOFF'){return [pscustomobject]@{exitCode=0;status='stopped_cutoff';reason=$message}}elseif(Test-TodayOnlyUnsafeFailure $message){return [pscustomobject]@{exitCode=1;status='stopped_unsafe';output=$message}}else{$errors += $message;if($message -notmatch 'IMAGE_POOL_EXHAUSTED:|No confirmed localized game-start CTA images are eligible for X/|Image is not confirmed to contain the exact localized game-start CTA for X/|X website card is not publicly reachable:|X website card returned |X website card is not ready:'){$facebookMayContinue=$false}}}
+    } catch {$message=$_.Exception.Message;if($message -match 'SCHEDULE_CUTOFF'){return [pscustomobject]@{exitCode=0;status='stopped_cutoff';reason=$message}}elseif(Test-TodayOnlyUnsafeFailure $message){$xUnsafe=$message;break}else{$errors += $message}}
   }
+  # Facebook runs in its own window, so an X failure no longer blocks it.
   if($facebookMayContinue){foreach($language in $languages){
     if(& $cutoffReached){return [pscustomobject]@{exitCode=0;status='stopped_cutoff';reason='KST midnight reached before starting the next language'} }
     $receiptPath=Join-Path $fbRoot ($RunId+'.json')
@@ -342,6 +343,7 @@ function Invoke-SerializedPublishOnlyCycle {
       }catch{$errors += "Facebook $language selected text-only cleanup preserved draft: $($_.Exception.Message)"}}
     }}
   }}
+  if($xUnsafe){return [pscustomobject]@{exitCode=1;status='stopped_unsafe';output=(@($xUnsafe)+$errors+@("submitted: $($submitted -join ',')")) -join "`n"}}
   if($errors.Count -gt 0){return [pscustomobject]@{exitCode=1;status='partial_failed';output=([pscustomobject]@{status='partial_failed';runId=$RunId;errors=$errors;submitted=$submitted;priorPublishIntentNotReplayed=$unresolved;publishClicks=$publishClicks;draftCleanups=$draftCleanups;verification='intentionally_deferred_to_user'}|ConvertTo-Json -Compress -Depth 10)}}
   $status=if($unresolved.Count -gt 0){'submitted_with_unresolved_intents'}else{'submitted'}
   return [pscustomobject]@{exitCode=0;status=$status;output=([pscustomobject]@{status=$status;runId=$RunId;submitted=$submitted;priorPublishIntentNotReplayed=$unresolved;verifiedSkipped=$verified;duplicateSkipped=$skipped;publishClicks=$publishClicks;draftCleanups=$draftCleanups;verification='intentionally_deferred_to_user'}|ConvertTo-Json -Compress -Depth 6)}

@@ -127,7 +127,8 @@ try {
     }
     foreach ($lang in $languages) {
       $entry = $receipt.entries.$lang
-      if ($null -ne $entry -and $entry.state -in @('selected','prepared')) {
+      # Website cards carry the game-start CTA in the post text, so the image needs no burned-in CTA.
+      if ($null -ne $entry -and $entry.state -in @('selected','prepared') -and -not (Test-PostingXWebsiteCardMode $config)) {
         Assert-PostingImageGameStartText ([string]$entry.intent.imagePath) $lang -Platform X
       }
     }
@@ -196,7 +197,8 @@ try {
         }
         if ($entry.state -eq 'prepared') {
           $storedCardProof = if ($entry.intent.PSObject.Properties.Name -contains 'cardEvidence') { $entry.intent.cardEvidence } else { $null }
-          if ($null -eq $storedCardProof -or $storedCardProof.PSObject.Properties.Name -notcontains 'proofMode' -or $storedCardProof.proofMode -cne 'observed_x_card_group' -or $storedCardProof.cardUrl -cne $cardUrl -or $storedCardProof.boundCardUrl -cne $cardUrl) { throw 'Prepared website-card receipt is missing its exact observed card binding proof.' }
+          # The observed card preview is optional evidence; when present it must still bind to this exact card URL.
+          if ($null -ne $storedCardProof -and $storedCardProof.cardUrl -cne $cardUrl) { throw 'Prepared website-card receipt evidence is bound to a different card URL.' }
           $script:XExpectedCardUrl = $cardUrl
         }
         $composerText = $text.Replace([string]$config.web_url, $cardUrl)

@@ -51,4 +51,29 @@ if ($null -eq $duplicate -or $duplicate.outcome -cne 'duplicate_skipped' -or $sc
 'PASS duplicate notice => duplicate_skipped'
 Assert-Outcome 'composer closed' 'composer_closed' @()
 Assert-Outcome 'composer cleared' 'composer_cleared' @((New-UiFixture 'Post text' 'Edit' ''))
+# Website-card mode submits with Ctrl+Enter in the focused editor, exactly once, never the Post button.
+$script:Submits = @()
+function Submit-XEditorShortcut($Editor) { $script:Submits += $Editor }
+function Invoke-XButton { throw 'FAILED website-card mode must not invoke the Post button' }
+function Find-XControl([string]$Name,[string]$Type='') { [pscustomobject]@{ target = ($Name + '|' + $Type) } }
+$script:Snapshots = ,@((New-UiFixture 'Your post was sent.'))
+$script:SnapshotIndex = 0
+$cardResult = Publish-XPost -Text 'fixture copy' -WebsiteCardOnly -CardUrl 'https://escapezombie.com/share/x/en/0123456789abcdef'
+if ($cardResult.outcome -cne 'sent' -or $script:Submits.Count -ne 1 -or $script:Submits[0].target -cne 'Post text|Edit') { throw 'FAILED website-card publish submits once via the editor shortcut' }
+'PASS website-card publish => one Ctrl+Enter submit from the editor'
+$submitAst = $ast.Find({ param($node) $node -is [System.Management.Automation.Language.FunctionDefinitionAst] -and $node.Name -eq 'Submit-XEditorShortcut' }, $true)
+. ([scriptblock]::Create($submitAst.Extent.Text))
+function Start-Sleep { }
+$script:Keys = @()
+$script:EditorClicks = 0
+function Click-XElement($Element) { $script:EditorClicks++ }
+function Send-XKeys([string]$Keys) { $script:Keys += $Keys }
+Submit-XEditorShortcut ([pscustomobject]@{ Current = [pscustomobject]@{ HasKeyboardFocus = $true } })
+if ($script:EditorClicks -ne 1 -or ($script:Keys -join ',') -cne '^{ENTER}') { throw 'FAILED focused editor gets one click then one Ctrl+Enter' }
+'PASS focused editor => click then one Ctrl+Enter'
+$script:Keys = @()
+$unfocused = $false
+try { Submit-XEditorShortcut ([pscustomobject]@{ Current = [pscustomobject]@{ HasKeyboardFocus = $false } }) } catch { $unfocused = $true }
+if (-not $unfocused -or $script:Keys.Count -ne 0) { throw 'FAILED unfocused editor must send no Ctrl+Enter' }
+'PASS unfocused editor => no Ctrl+Enter'
 'X_PUBLISH_OUTCOME_TEST_OK'

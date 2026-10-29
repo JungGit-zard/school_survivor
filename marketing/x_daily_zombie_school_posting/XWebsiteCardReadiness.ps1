@@ -35,6 +35,8 @@ function Assert-XWebsiteCardPublished([string]$CardUrl) {
   }
 
   if ($meta['twitter:card'] -cne 'summary_large_image') { throw 'X website card is not ready: twitter:card must be summary_large_image.' }
-  if ($meta['twitter:image'] -cne ($uri.AbsoluteUri + '.png')) { throw 'X website card is not ready: twitter:image does not match the exact card image URL.' }
+  # Since the 2026-10-25 Cloudflare split, escapezombie.com/share/* 301s to the media site, whose cards serve the image from media.escapezombie.com.
+  $expectedImages = @(($uri.AbsoluteUri + '.png'), ('https://media.escapezombie.com' + $uri.AbsolutePath + '.png'))
+  if ($expectedImages -cnotcontains $meta['twitter:image']) { throw 'X website card is not ready: twitter:image does not match the exact card image URL.' }
   return [pscustomobject]@{ url=$uri.AbsoluteUri; imageUrl=$meta['twitter:image']; statusCode=200; contentType=$contentType }
 }

@@ -8823,6 +8823,321 @@
       "height": 1774,
       "visuallyChecked": true,
       "emptyBalloons": 0
+    },
+    {
+      "platform": "X",
+      "locale": "ja",
+      "collection": "promo_from_facebook_20261026",
+      "path": "x/ja/promo_from_facebook_20261026/fb_add10_01_classroom.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/marketing_social_20261010_add10/01_classroom.png"
+    },
+    {
+      "platform": "X",
+      "locale": "ja",
+      "collection": "promo_from_facebook_20261026",
+      "path": "x/ja/promo_from_facebook_20261026/fb_add10_02_hallway.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/marketing_social_20261010_add10/02_hallway.png"
+    },
+    {
+      "platform": "X",
+      "locale": "ja",
+      "collection": "promo_from_facebook_20261026",
+      "path": "x/ja/promo_from_facebook_20261026/fb_add10_03_cafeteria.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/marketing_social_20261010_add10/03_cafeteria.png"
+    },
+    {
+      "platform": "X",
+      "locale": "ja",
+      "collection": "promo_from_facebook_20261026",
+      "path": "x/ja/promo_from_facebook_20261026/fb_add10_04_library.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/marketing_social_20261010_add10/04_library.png"
+    },
+    {
+      "platform": "X",
+      "locale": "ja",
+      "collection": "promo_from_facebook_20261026",
+      "path": "x/ja/promo_from_facebook_20261026/fb_add10_05_gym.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/marketing_social_20261010_add10/05_gym.png"
+    },
+    {
+      "platform": "X",
+      "locale": "ja",
+      "collection": "promo_from_facebook_20261026",
+      "path": "x/ja/promo_from_facebook_20261026/fb_add10_06_nurse.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/marketing_social_20261010_add10/06_nurse.png"
+    },
+    {
+      "platform": "X",
+      "locale": "ja",
+      "collection": "promo_from_facebook_20261026",
+      "path": "x/ja/promo_from_facebook_20261026/fb_add10_07_music.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/marketing_social_20261010_add10/07_music.png"
+    },
+    {
+      "platform": "X",
+      "locale": "ja",
+      "collection": "promo_from_facebook_20261026",
+      "path": "x/ja/promo_from_facebook_20261026/fb_add10_08_art.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/marketing_social_20261010_add10/08_art.png"
+    },
+    {
+      "platform": "X",
+      "locale": "ja",
+      "collection": "promo_from_facebook_20261026",
+      "path": "x/ja/promo_from_facebook_20261026/fb_add10_09_field.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/marketing_social_20261010_add10/09_field.png"
+    },
+    {
+      "platform": "X",
+      "locale": "ja",
+      "collection": "promo_from_facebook_20261026",
+      "path": "x/ja/promo_from_facebook_20261026/fb_add10_10_gate.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/marketing_social_20261010_add10/10_gate.png"
+    },
+    {
+      "platform": "X",
+      "locale": "en",
+      "collection": "promo_from_facebook_20261026",
+      "path": "x/en/promo_from_facebook_20261026/fb_add10_01_classroom.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/marketing_social_20261010_add10/01_classroom.png"
+    },
+    {
+      "platform": "X",
+      "locale": "en",
+      "collection": "promo_from_facebook_20261026",
+      "path": "x/en/promo_from_facebook_20261026/fb_add10_02_corridor.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/marketing_social_20261010_add10/02_corridor.png"
+    },
+    {
+      "platform": "X",
+      "locale": "en",
+      "collection": "promo_from_facebook_20261026",
+      "path": "x/en/promo_from_facebook_20261026/fb_add10_03_cafeteria.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/marketing_social_20261010_add10/03_cafeteria.png"
+    },
+    {
+      "platform": "X",
+      "locale": "en",
+      "collection": "promo_from_facebook_20261026",
+      "path": "x/en/promo_from_facebook_20261026/fb_add10_04_library.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/marketing_social_20261010_add10/04_library.png"
+    },
+    {
+      "platform": "X",
+      "locale": "en",
+      "collection": "promo_from_facebook_20261026",
+      "path": "x/en/promo_from_facebook_20261026/fb_add10_05_gym.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/marketing_social_20261010_add10/05_gym.png"
+    },
+    {
+      "platform": "X",
+      "locale": "en",
+      "collection": "promo_from_facebook_20261026",
+      "path": "x/en/promo_from_facebook_20261026/fb_add10_06_infirmary.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/marketing_social_20261010_add10/06_infirmary.png"
+    },
+    {
+      "platform": "X",
+      "locale": "en",
+      "collection": "promo_from_facebook_20261026",
+      "path": "x/en/promo_from_facebook_20261026/fb_add10_07_music_room.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/marketing_social_20261010_add10/07_music_room.png"
+    },
+    {
+      "platform": "X",
+      "locale": "en",
+      "collection": "promo_from_facebook_20261026",
+      "path": "x/en/promo_from_facebook_20261026/fb_add10_08_art_room.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/marketing_social_20261010_add10/08_art_room.png"
+    },
+    {
+      "platform": "X",
+      "locale": "en",
+      "collection": "promo_from_facebook_20261026",
+      "path": "x/en/promo_from_facebook_20261026/fb_add10_09_playground.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/marketing_social_20261010_add10/09_playground.png"
+    },
+    {
+      "platform": "X",
+      "locale": "en",
+      "collection": "promo_from_facebook_20261026",
+      "path": "x/en/promo_from_facebook_20261026/fb_add10_10_school_gate.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/marketing_social_20261010_add10/10_school_gate.png"
+    },
+    {
+      "platform": "X",
+      "locale": "vi",
+      "collection": "promo_from_facebook_20261026",
+      "path": "x/vi/promo_from_facebook_20261026/fb_add10_01_classroom.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/marketing_social_20261010_add10/01_classroom.png"
+    },
+    {
+      "platform": "X",
+      "locale": "vi",
+      "collection": "promo_from_facebook_20261026",
+      "path": "x/vi/promo_from_facebook_20261026/fb_add10_02_corridor.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/marketing_social_20261010_add10/02_corridor.png"
+    },
+    {
+      "platform": "X",
+      "locale": "vi",
+      "collection": "promo_from_facebook_20261026",
+      "path": "x/vi/promo_from_facebook_20261026/fb_add10_03_cafeteria.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/marketing_social_20261010_add10/03_cafeteria.png"
+    },
+    {
+      "platform": "X",
+      "locale": "vi",
+      "collection": "promo_from_facebook_20261026",
+      "path": "x/vi/promo_from_facebook_20261026/fb_add10_04_library.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/marketing_social_20261010_add10/04_library.png"
+    },
+    {
+      "platform": "X",
+      "locale": "vi",
+      "collection": "promo_from_facebook_20261026",
+      "path": "x/vi/promo_from_facebook_20261026/fb_add10_05_gym.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/marketing_social_20261010_add10/05_gym.png"
+    },
+    {
+      "platform": "X",
+      "locale": "vi",
+      "collection": "promo_from_facebook_20261026",
+      "path": "x/vi/promo_from_facebook_20261026/fb_add10_06_infirmary.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/marketing_social_20261010_add10/06_infirmary.png"
+    },
+    {
+      "platform": "X",
+      "locale": "vi",
+      "collection": "promo_from_facebook_20261026",
+      "path": "x/vi/promo_from_facebook_20261026/fb_add10_07_music_room.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/marketing_social_20261010_add10/07_music_room.png"
+    },
+    {
+      "platform": "X",
+      "locale": "vi",
+      "collection": "promo_from_facebook_20261026",
+      "path": "x/vi/promo_from_facebook_20261026/fb_add10_08_art_room.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/marketing_social_20261010_add10/08_art_room.png"
+    },
+    {
+      "platform": "X",
+      "locale": "vi",
+      "collection": "promo_from_facebook_20261026",
+      "path": "x/vi/promo_from_facebook_20261026/fb_add10_09_playground.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/marketing_social_20261010_add10/09_playground.png"
+    },
+    {
+      "platform": "X",
+      "locale": "vi",
+      "collection": "promo_from_facebook_20261026",
+      "path": "x/vi/promo_from_facebook_20261026/fb_add10_10_school_gate.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/marketing_social_20261010_add10/10_school_gate.png"
+    },
+    {
+      "platform": "X",
+      "locale": "ko",
+      "collection": "promo_from_facebook_20261026",
+      "path": "x/ko/promo_from_facebook_20261026/k0_03_cafeteria.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/0.KO_intergration/03_cafeteria.png"
+    },
+    {
+      "platform": "X",
+      "locale": "ko",
+      "collection": "promo_from_facebook_20261026",
+      "path": "x/ko/promo_from_facebook_20261026/k0_04_library.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/0.KO_intergration/04_library.png"
+    },
+    {
+      "platform": "X",
+      "locale": "ko",
+      "collection": "promo_from_facebook_20261026",
+      "path": "x/ko/promo_from_facebook_20261026/k1_09_field.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/1.KO_intergration/09_field.png"
+    },
+    {
+      "platform": "X",
+      "locale": "ko",
+      "collection": "promo_from_facebook_20261026",
+      "path": "x/ko/promo_from_facebook_20261026/k1_10_gate.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/1.KO_intergration/10_gate.png"
+    },
+    {
+      "platform": "X",
+      "locale": "ko",
+      "collection": "promo_from_facebook_20261026",
+      "path": "x/ko/promo_from_facebook_20261026/k2_05_gym.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/2.KO_intergration/05_gym.png"
+    },
+    {
+      "platform": "X",
+      "locale": "ko",
+      "collection": "promo_from_facebook_20261026",
+      "path": "x/ko/promo_from_facebook_20261026/k2_06_nurse.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/2.KO_intergration/06_nurse.png"
+    },
+    {
+      "platform": "X",
+      "locale": "ko",
+      "collection": "promo_from_facebook_20261026",
+      "path": "x/ko/promo_from_facebook_20261026/k2_07_music.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/2.KO_intergration/07_music.png"
+    },
+    {
+      "platform": "X",
+      "locale": "ko",
+      "collection": "promo_from_facebook_20261026",
+      "path": "x/ko/promo_from_facebook_20261026/k2_08_art.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/2.KO_intergration/08_art.png"
+    },
+    {
+      "platform": "X",
+      "locale": "ko",
+      "collection": "promo_from_facebook_20261026",
+      "path": "x/ko/promo_from_facebook_20261026/k3_01_classroom.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/3.KO_intergration/01_classroom.png"
+    },
+    {
+      "platform": "X",
+      "locale": "ko",
+      "collection": "promo_from_facebook_20261026",
+      "path": "x/ko/promo_from_facebook_20261026/k3_02_hallway.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/3.KO_intergration/02_hallway.png"
+    },
+    {
+      "platform": "X",
+      "locale": "ko",
+      "collection": "promo_from_facebook_20261026",
+      "path": "x/ko/promo_from_facebook_20261026/k4_f_01.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/4.KO_intergration/f_01.png"
+    },
+    {
+      "platform": "X",
+      "locale": "ko",
+      "collection": "promo_from_facebook_20261026",
+      "path": "x/ko/promo_from_facebook_20261026/k4_f_02.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/4.KO_intergration/f_02.png"
+    },
+    {
+      "platform": "X",
+      "locale": "ko",
+      "collection": "promo_from_facebook_20261026",
+      "path": "x/ko/promo_from_facebook_20261026/k4_f_03.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/4.KO_intergration/f_03.png"
+    },
+    {
+      "platform": "X",
+      "locale": "ko",
+      "collection": "promo_from_facebook_20261026",
+      "path": "x/ko/promo_from_facebook_20261026/k4_f_04.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/4.KO_intergration/f_04.png"
+    },
+    {
+      "platform": "X",
+      "locale": "ko",
+      "collection": "promo_from_facebook_20261026",
+      "path": "x/ko/promo_from_facebook_20261026/k4_f_05.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/4.KO_intergration/f_05.png"
     }
   ],
   "legacyPaths": {

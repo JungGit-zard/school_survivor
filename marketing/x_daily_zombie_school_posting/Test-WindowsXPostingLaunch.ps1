@@ -45,12 +45,13 @@ Assert-True ($source.Contains('function Get-XWebsiteCardProof') -and $source.Con
 $invokeButtonBody=[regex]::Match($source,'function Invoke-XButton\([\s\S]*?\r?\n}').Value
 $publishPostBody=[regex]::Match($source,'function Publish-XPost\([\s\S]*?\r?\n}').Value
 Assert-True ($invokeButtonBody.Contains('Assert-XForeground') -and $invokeButtonBody.Contains('ControlType]::Button') -and $invokeButtonBody.Contains('IsEnabled') -and $invokeButtonBody.Contains('IsOffscreen') -and $invokeButtonBody.Contains('InvokePattern]::Pattern') -and $invokeButtonBody.Contains('$pattern.Invoke()') -and $invokeButtonBody.Contains('refusing coordinate fallback')) 'website-card publish uses guarded native UI Automation InvokePattern and fails closed when unsupported'
-Assert-True ($publishPostBody.Contains('if ($WebsiteCardOnly) { Invoke-XButton $postButton }') -and $publishPostBody.Contains('else { Click-XElement $postButton }')) 'native button invocation is limited to website-card mode; photo mode keeps its existing click path'
+$submitBody=[regex]::Match($source,'function Submit-XEditorShortcut\([\s\S]*?\r?\n}').Value
+Assert-True ($publishPostBody.Contains("if (`$WebsiteCardOnly) { Submit-XEditorShortcut (Find-XControl 'Post text' 'Edit') }") -and $publishPostBody.Contains('else { Click-XElement $postButton }') -and $submitBody.Contains('HasKeyboardFocus') -and $submitBody.Contains("Send-XKeys '^{ENTER}'")) 'website-card mode submits with Ctrl+Enter from the focused editor; photo mode keeps its existing click path'
 Assert-True ($source.Contains('function Test-XObservedWebsiteCardEvidence') -and $source.Contains('dialogEditors.Count -eq 1') -and $source.Contains('Get-XElements $dialog')) 'observed X card evidence is constrained to the nearest composer ancestor with exactly one editor'
-$standaloneUrlPaste=$source.IndexOf("[Windows.Forms.Clipboard]::SetText(`$CardUrl)",$source.IndexOf('function Prepare-XPost'))
-$cardWait=$source.IndexOf("'exact website card URL and visible card image'",$standaloneUrlPaste)
-$fullTextReplace=$source.IndexOf("[Windows.Forms.Clipboard]::SetText(`$Text)",$cardWait)
-Assert-True ($standaloneUrlPaste -ge 0 -and $cardWait -gt $standaloneUrlPaste -and $fullTextReplace -gt $cardWait -and $source.Contains('(Get-XCardPreviewRemoveCount) -ne 0')) 'card preview is created from the standalone exact URL before full campaign copy is restored; stale preview blocks a new prepare'
+$prepareBody=[regex]::Match($source,'function Prepare-XPost\([\s\S]*?\r?\n}').Value
+$fullTextPaste=$prepareBody.IndexOf('Set-XClipboardText $Text',$prepareBody.IndexOf('if ($WebsiteCardOnly) {'))
+$fixedWait=$prepareBody.IndexOf('Start-Sleep -Seconds 20',$fullTextPaste)
+Assert-True ($fullTextPaste -ge 0 -and $fixedWait -gt $fullTextPaste -and -not $prepareBody.Contains('Set-XClipboardText $CardUrl') -and $source.Contains('(Get-XCardPreviewRemoveCount) -ne 0')) 'website-card prepare pastes the full campaign copy once and waits a fixed 20s; stale preview blocks a new prepare'
 $observedUrl = 'https://escapezombie.com/share/x/ko/b3b795b213eeda0a'
 $observedCopy = 'copy ' + $observedUrl + ' Play URL'
 $observedGroup = 'escapezombie.com ' + (-join @(0xD0C8,0xCD9C,0x21,0x20,0xC880,0xBE44,0xD559,0xAD50 | ForEach-Object { [char]$_ }))

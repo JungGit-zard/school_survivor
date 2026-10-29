@@ -307,17 +307,25 @@ function Close-XOwnedDraft([string]$Text, [switch]$BeforePublish) {
   $owned = $script:XOwnedDraft
   if ($null -eq $owned -or (Normalize-PostText $owned.text) -cne (Normalize-PostText $Text)) { throw 'Duplicate draft ownership is unknown; preserving it' }
   $editor = Find-XControl 'Post text' 'Edit'
+  $allowedCards = @([int]$owned.cards)
   if ($BeforePublish) {
     if ($owned.phase -cne 'pre_publish_card') { throw 'Not a pre-click owned card draft; preserving it' }
     $window = Get-XWindowElement
     Assert-XForeground
     if ($window.Current.NativeWindowHandle -ne $owned.windowId -or $window.Current.ProcessId -ne $owned.processId -or
         $window.Current.Name -cne $owned.accountTitle -or $window.Current.Name -notmatch '\(@jungsilx\) / X' -or
-        $script:XExpectedCardUrl -cne $Text -or ($editor.GetRuntimeId() -join ',') -cne $owned.editorId) {
+        [string]::IsNullOrEmpty([string]$script:XExpectedCardUrl) -or [regex]::Matches($Text, [regex]::Escape([string]$script:XExpectedCardUrl)).Count -ne 1 -or
+        ($editor.GetRuntimeId() -join ',') -cne $owned.editorId) {
       throw 'Pre-click window/account/editor/URL ownership changed; preserving it'
     }
+    # The owned draft is the full campaign copy (carrying the card URL), recorded right after paste, before X unfurls the URL.  X then renders
+    # its own preview of that exact URL (often the small placeholder card on a first crawl),
+    # adding one 'Remove card preview' control.  That card is derived from our verified text,
+    # not user content, so a single preview is still our draft.  Text/attachments stay exact.
+    $allowedCards = @(0, 1)
   }
-  if ((Get-XValue $editor) -cne $owned.text -or (Get-XAttachmentCount) -ne $owned.attachments -or (Get-XCardPreviewRemoveCount) -ne $owned.cards) {
+  # X appends a trailing newline to the editor value; compare normalized text like the paste check does.
+  if ((Normalize-PostText (Get-XValue $editor)) -cne (Normalize-PostText $owned.text) -or (Get-XAttachmentCount) -ne $owned.attachments -or $allowedCards -notcontains (Get-XCardPreviewRemoveCount)) {
     throw 'Duplicate draft changed since preparation; preserving it'
   }
   Click-XElement (Find-XControl 'Close' 'Button')
@@ -397,11 +405,17 @@ function Get-XWebsiteCardGroupName([string]$CardUrl) {
     'vi' { return 'escapezombie.com Thoát Khỏi Trường Zombie' }
   }
 }
+# X caches card metadata for days; cards crawled while /share/* 301'd to the media site (2026-10-25..27) still render as media.escapezombie.com.
+function Get-XWebsiteCardGroupNames([string]$CardUrl) {
+  $name = Get-XWebsiteCardGroupName $CardUrl
+  if ($null -eq $name) { return @() }
+  return @($name, ('media.' + $name))
+}
 function Test-XObservedWebsiteCardEvidence([string]$BoundCardUrl, [string]$CardUrl, [string]$EditorText, [string]$GroupName, [string]$ChildButtonName, [string]$SourceButtonName, [string]$RemoveButtonName, [double]$Width, [double]$Height, [bool]$SameDialog) {
   $urlCount = [regex]::Matches($EditorText, [regex]::Escape($CardUrl)).Count
   return ($SameDialog -and $BoundCardUrl -ceq $CardUrl -and $urlCount -eq 1 -and
-    $GroupName -ceq (Get-XWebsiteCardGroupName $CardUrl) -and $ChildButtonName -ceq $GroupName -and
-    $SourceButtonName -ceq 'From escapezombie.com' -and $RemoveButtonName -ceq 'Remove card preview' -and
+    (Get-XWebsiteCardGroupNames $CardUrl) -ccontains $GroupName -and $ChildButtonName -ceq $GroupName -and
+    $SourceButtonName -cin @('From escapezombie.com', 'From media.escapezombie.com') -and $RemoveButtonName -ceq 'Remove card preview' -and
     $Width -ge 200 -and $Height -ge 100 -and
     $CardUrl -match '^https://escapezombie\.com/share/x/(ko|en|ja|vi)/[0-9a-f]{16}$')
 }
@@ -413,7 +427,7 @@ function Get-XWebsiteCardProof([string]$CardUrl) {
   if ($boundCardUrl -ceq $CardUrl -and [regex]::Matches($editorText, [regex]::Escape($CardUrl)).Count -eq 1) {
     $groups = @($elements | Where-Object {
       -not $_.Current.IsOffscreen -and $_.Current.ControlType -eq [Windows.Automation.ControlType]::Group -and
-      $_.Current.Name -ceq (Get-XWebsiteCardGroupName $CardUrl) -and
+      (Get-XWebsiteCardGroupNames $CardUrl) -ccontains $_.Current.Name -and
       $_.Current.BoundingRectangle.Width -ge 200 -and $_.Current.BoundingRectangle.Height -ge 100
     })
     $observedProofs = @()
@@ -429,7 +443,8 @@ function Get-XWebsiteCardProof([string]$CardUrl) {
       if ($null -eq $dialog -or $dialogEditors.Count -ne 1) { continue }
       $groupChildren = @(Get-XElements $group)
       $childButtons = @($groupChildren | Where-Object { -not $_.Current.IsOffscreen -and $_.Current.ControlType -eq [Windows.Automation.ControlType]::Button -and $_.Current.Name -ceq $group.Current.Name })
-      $fromButtons = @($dialogElements | Where-Object { -not $_.Current.IsOffscreen -and $_.Current.ControlType -eq [Windows.Automation.ControlType]::Button -and $_.Current.Name -ceq 'From escapezombie.com' })
+      # The source label scrolls offscreen once the full campaign copy grows the editor; the named card group above stays visible.
+      $fromButtons = @($dialogElements | Where-Object { $_.Current.ControlType -eq [Windows.Automation.ControlType]::Button -and $_.Current.Name -cin @('From escapezombie.com', 'From media.escapezombie.com') })
       $removeButtons = @($dialogElements | Where-Object { -not $_.Current.IsOffscreen -and $_.Current.ControlType -eq [Windows.Automation.ControlType]::Button -and $_.Current.Name -ceq 'Remove card preview' })
       if ($childButtons.Count -ne 1 -or $fromButtons.Count -ne 1 -or $removeButtons.Count -ne 1) { continue }
       $sameDialog = $true
@@ -466,8 +481,8 @@ function Assert-XComposer([string]$Text, [switch]$WebsiteCardOnly, [string]$Card
   if ((Normalize-PostText (Get-XValue $editor)) -cne (Normalize-PostText $Text)) { throw 'Editor text does not match exact campaign copy' }
   if ($WebsiteCardOnly) {
     if ((Get-XAttachmentCount) -ne 0) { throw 'Website-card mode forbids a native image attachment' }
-    $cardProof = Get-XWebsiteCardProof $CardUrl
-    if ($null -eq $cardProof) { throw 'Website card was not proven by the frozen URL and its visible X card-preview controls' }
+    # The large-card preview is evidence only: X often shows its preview late or not at all in the
+    # composer even when the published post gets the large card (manual post 2026-10-27 23:03).
   } elseif ((Get-XAttachmentCount) -ne 1) { throw 'Expected exactly one attached campaign image' }
   $post = Find-XControl 'Post' 'Button'
   if (-not $post.Current.IsEnabled) { throw 'Post button is disabled (length limit or upload pending)' }
@@ -485,28 +500,26 @@ function Prepare-XPost([string]$Text, [string]$ImagePath, [switch]$WebsiteCardOn
     if ($CardUrl -notmatch ('^https://(escapezombie\.com|escape-zombie-school-assets\.web\.app)/share/x/' + $CardLanguage + '/' + $imageSha256.Substring(0,16) + '$')) { throw 'Card URL does not bind to the frozen locale and image hash' }
     $script:XExpectedCardUrl = $CardUrl
     $script:XPreparedCardProof = $null
-    Set-XClipboardText $CardUrl
-    Send-XKeys '^a'
-    Send-XKeys '^v'
-    Wait-XCondition { (Normalize-PostText (Get-XValue (Find-XControl 'Post text' 'Edit'))) -ceq $CardUrl } 'pasted exact standalone card URL'
-    $window = Get-XWindowElement
-    $script:XOwnedDraft = [pscustomobject]@{ text=$CardUrl; attachments=0; cards=0; phase='pre_publish_card'; windowId=$window.Current.NativeWindowHandle; processId=$window.Current.ProcessId; accountTitle=$window.Current.Name; editorId=($editor.GetRuntimeId() -join ',') }
-    try {
-      Wait-XCondition { $script:XPreparedCardProof = Get-XWebsiteCardProof $CardUrl; return ($null -ne $script:XPreparedCardProof) } 'exact website card URL and visible card image' 30
-    } catch {
-      $preparationError = $_
-      try { Close-XOwnedDraft $CardUrl -BeforePublish } catch { [Console]::Error.WriteLine('X_PRECLICK_DRAFT_PRESERVED: ' + $_.Exception.Message) }
-      throw $preparationError
-    }
-    $editor = Find-XControl 'Post text' 'Edit'
-    Click-XElement $editor
+    # Same mechanical action as the manual post that worked (2026-10-27 23:03): paste the full
+    # campaign copy (it already carries the card URL), give X a fixed wait to unfurl, never block on the card.
     Set-XClipboardText $Text
     Send-XKeys '^a'
     Send-XKeys '^v'
-    Wait-XCondition { (Normalize-PostText (Get-XValue (Find-XControl 'Post text' 'Edit'))) -ceq (Normalize-PostText $Text) } 'replaced standalone card URL with exact campaign copy'
-    Assert-XComposer $Text -WebsiteCardOnly -CardUrl $CardUrl
+    Wait-XCondition { (Normalize-PostText (Get-XValue (Find-XControl 'Post text' 'Edit'))) -ceq (Normalize-PostText $Text) } 'pasted exact campaign copy'
+    $window = Get-XWindowElement
+    $script:XOwnedDraft = [pscustomobject]@{ text=$Text; attachments=0; cards=0; phase='pre_publish_card'; windowId=$window.Current.NativeWindowHandle; processId=$window.Current.ProcessId; accountTitle=$window.Current.Name; editorId=($editor.GetRuntimeId() -join ',') }
+    try {
+      Start-Sleep -Seconds 20
+      Assert-XComposer $Text -WebsiteCardOnly -CardUrl $CardUrl
+    } catch {
+      $preparationError = $_
+      try { Close-XOwnedDraft $Text -BeforePublish } catch { [Console]::Error.WriteLine('X_PRECLICK_DRAFT_PRESERVED: ' + $_.Exception.Message) }
+      throw $preparationError
+    }
+    # Card preview is recorded as evidence when X shows it; its absence does not block the post.
+    try { $script:XPreparedCardProof = Get-XWebsiteCardProof $CardUrl } catch { $script:XPreparedCardProof = $null }
     $script:XOwnedDraft = [pscustomobject]@{ text=(Get-XValue (Find-XControl 'Post text' 'Edit')); attachments=0; cards=(Get-XCardPreviewRemoveCount) }
-    return [pscustomobject]@{ imageSha256=$imageSha256; imagePath=$ImagePath; attachmentCount=0; postFormat='website_card'; cardUrl=$CardUrl; cardEvidence=$script:XPreparedCardProof; preparedUtc=[DateTimeOffset]::UtcNow.ToString('o'); textSha256=(Get-CopyDigest $Text) }
+    return [pscustomobject]@{ imageSha256=$imageSha256; imagePath=$ImagePath; attachmentCount=0; postFormat='website_card'; cardUrl=$CardUrl; cardEvidence=$script:XPreparedCardProof; cardPreviewObserved=($null -ne $script:XPreparedCardProof); preparedUtc=[DateTimeOffset]::UtcNow.ToString('o'); textSha256=(Get-CopyDigest $Text) }
   }
   Set-XClipboardText $Text
   Send-XKeys '^v'
@@ -520,10 +533,19 @@ function Prepare-XPost([string]$Text, [string]$ImagePath, [switch]$WebsiteCardOn
   $script:XOwnedDraft = [pscustomobject]@{ text=(Get-XValue (Find-XControl 'Post text' 'Edit')); attachments=1; cards=(Get-XCardPreviewRemoveCount) }
   return [pscustomobject]@{ imageSha256=(Get-FileHash -LiteralPath $ImagePath -Algorithm SHA256).Hash.ToLowerInvariant(); attachmentCount=1; preparedUtc=[DateTimeOffset]::UtcNow.ToString('o'); textSha256=(Get-CopyDigest $Text); imageEvidence='Canonical file pasted into empty composer; one Remove media control observed' }
 }
+function Submit-XEditorShortcut($Editor) {
+  # Manual post 2026-10-27 23:03: a synthetic click on the Post button did not register with X;
+  # clicking into the editor text and pressing Ctrl+Enter did.  Exactly one Ctrl+Enter is sent.
+  Click-XElement $Editor
+  Start-Sleep -Milliseconds 300
+  Assert-XForeground
+  if (-not $Editor.Current.HasKeyboardFocus) { throw 'Post text editor focus was not proven; Ctrl+Enter not sent' }
+  Send-XKeys '^{ENTER}'
+}
 function Publish-XPost([string]$Text, [switch]$WebsiteCardOnly, [string]$CardUrl = '') {
   Assert-XComposer $Text -WebsiteCardOnly:$WebsiteCardOnly -CardUrl $CardUrl
   $postButton = Find-XControl 'Post' 'Button'
-  if ($WebsiteCardOnly) { Invoke-XButton $postButton }
+  if ($WebsiteCardOnly) { Submit-XEditorShortcut (Find-XControl 'Post text' 'Edit') }
   else { Click-XElement $postButton }
   # Do not navigate away while X is sending: that can abort the request.
   $deadline = [DateTime]::UtcNow.AddSeconds(45)
