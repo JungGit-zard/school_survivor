@@ -37,8 +37,8 @@ afterEach(() => {
   vi.unstubAllGlobals()
 })
 
-describe("TitleBgm (Rosari's room)", () => {
-  it('title -> Rosari room -> title keeps one title stream playing past the bridge cap', () => {
+describe('TitleBgm (title song holder)', () => {
+  it('handing the title song between two holders keeps one stream playing past the bridge cap', () => {
     act(() => root.render(<TitleHolder />))
     const audio = fake.instances[0]
     audio.currentTime = 17
@@ -52,9 +52,12 @@ describe("TitleBgm (Rosari's room)", () => {
     expect(audio.pause).not.toHaveBeenCalled()
   })
 
-  it("is mounted for Rosari's room by the app shell", () => {
+  it('is no longer used by the app shell: the title song is title-only', () => {
+    // 로자리의 방 진입점이 타이틀에서 로비(스테이지 선택) 좌상단으로 옮겨졌다. 방은 이제 로비의
+    // 자식 화면이라 로비 곡을 그대로 유지한다 — 앱 셸은 TitleBgm을 더 이상 마운트하지 않는다.
+    // 방에서 타이틀 곡을 틀면 로비 곡이 끊기고(하드컷) 나올 때 0초부터 재시작한다.
     const app = readFileSync(new NodeURL('./ReadyGameApp.jsx', import.meta.url), 'utf8')
-    expect(app).toContain("import TitleBgm from './TitleBgm.jsx'")
-    expect(app).toContain("{screen === 'rosariRoom' && <TitleBgm />}")
+    expect(app).not.toContain('TitleBgm')
+    expect(app).toContain("{(LOBBY_MUSIC_SUB_SCREENS.has(screen) || screen === 'rosariRoom') && <LobbyBgm />}")
   })
 })

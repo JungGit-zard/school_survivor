@@ -120,10 +120,11 @@ function TitleLetter({ config, total }) {
 
 // 기존 "게임 시작"은 유지하고, 별도 버튼으로 로그인 없이 로비(onEnterLobby)에 진입한다.
 // 스테이지 선택·상점·랭킹·설정은 로비에서 처리한다.
+// 「로자리의 방」 진입점도 로비(스테이지 선택) 좌상단으로 옮겼다 — 타이틀에는 두지 않는다
+// (2026-10-29 Terry: "로그인 - 게임시작 - 스테이지선택 화면 좌상단").
 // 코나미식 치트 시퀀스 + devCheatsVisible 치트 메뉴 노출 경로는 그대로 보존한다.
 export default function TitleScreen({
   onEnterLobby,
-  onOpenRosariRoom,
   devCheatsVisible = false,
   onRevealDevCheats,
   onUnlockAllStages,
@@ -428,16 +429,6 @@ export default function TitleScreen({
           >
             로그인 없이 들어가기
           </button>
-          {authUser?.uid && (
-            <button
-              type="button"
-              className="title-main-action"
-              style={{ ...styles.rosariRoomButton, ...styles.mainActionButton }}
-              onClick={() => onOpenRosariRoom?.()}
-            >
-              로자리의 방
-            </button>
-          )}
           <a href="/landing" className="title-main-action" style={{ ...styles.homepageButton, ...styles.mainActionButton }}>
             {t('title.homepage')}
           </a>
@@ -767,14 +758,6 @@ const styles = {
     boxSizing: 'border-box',
     textDecoration: 'none',
     fontSize: 16,
-  },
-  rosariRoomButton: {
-    ...schoolButton('paper'),
-    minHeight: 44,
-    background: 'linear-gradient(180deg, #ffd4e6 0%, #fff0c9 100%)',
-    color: '#5f2d58',
-    fontSize: 16,
-    letterSpacing: 0,
   },
   cheatButtons: {
     display: 'grid',

@@ -5,6 +5,9 @@
 //   onStartStage(stageId)  — 스테이지 카드 "입장하기" → 게임 시작(App.startGame)
 //   onOpenCoinShop()       — 코인상점 화면 진입
 //   onOpenRanking(stageId?) — 랭킹 상세 화면 진입(stageId 있으면 해당 스테이지 보드, 없으면 글로벌)
+//   onOpenRosariRoom()     — 「로자리의 방」 화면 진입. 상태바 좌상단 버튼이 호출한다.
+//                            로그인 유저에게만 보인다(게스트는 저장이 탭 메모리뿐이라 서버 검증이 없다 —
+//                            rosari_model_generations_outfit_contract_2026-10-28.md §5).
 // (설정/닉네임/무기 모달은 로비 내부에서 자체 처리 — App 배선 불필요)
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { VISIBLE_STAGE_IDS, getStageConfig, isStageUnlocked } from '../lib/stageConfig.js'
@@ -76,7 +79,7 @@ function formatSeasonCountdown(season, nowMs = Date.now()) {
   return translate('lobby.seasonEndsHours', { hours, minutes })
 }
 
-export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onOpenMissionCenter, onLogoutToTitle, devAllStagesUnlocked = false, weaponEncyclopediaRequest = null, onWeaponEncyclopediaRequestHandled }) {
+export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onOpenMissionCenter, onOpenRosariRoom, onLogoutToTitle, devAllStagesUnlocked = false, weaponEncyclopediaRequest = null, onWeaponEncyclopediaRequestHandled }) {
   const t = useT()
   const authUser = useAuthStore((s) => s.user)
   const progressStatus = useAuthStore((s) => s.progressStatus)
@@ -294,6 +297,20 @@ export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onO
       {/* 상단 sticky 상태바 */}
       <header style={styles.statusBar}>
         <div style={styles.profileRow}>
+          {/* 좌상단 「로자리의 방」 진입점. 상태바 흐름의 첫 요소라 스테이지 카드 오버레이
+              (previewClearBadge/rankingButton)와 겹칠 일이 없다. */}
+          {authUser?.uid ? (
+            <button
+              type="button"
+              className="lobby-press"
+              data-testid="lobby-rosari-room"
+              aria-label="로자리의 방"
+              style={styles.rosariRoomButton}
+              onClick={() => !showtimeStageId && onOpenRosariRoom?.()}
+            >
+              로자리의 방
+            </button>
+          ) : null}
           <div style={styles.profileBlock}>
             <span style={styles.profileEyebrow}>{t('lobby.player')}</span>
             <strong style={styles.profileName}>{displayNickname(nickname) || authUser?.displayName?.trim() || authUser?.email?.trim() || ''}</strong>
@@ -605,6 +622,23 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     gap: 10,
+  },
+  // 좌상단 진입점. 상태바의 compact 버튼 언어(rankingButton)를 따르고, 색만 로자리 아이덴티티
+  // (분홍→크림, 잉크빛 자주 글자)를 쓴다. 44px 터치 타깃을 지키려고 2줄 줄바꿈을 허용한다.
+  rosariRoomButton: {
+    ...schoolButton('paper'),
+    flex: '0 0 auto',
+    width: 58,
+    minWidth: 58,
+    minHeight: 44,
+    padding: '0 4px',
+    background: 'linear-gradient(180deg, #ffd4e6 0%, #fff0c9 100%)',
+    color: '#5f2d58',
+    fontSize: 11,
+    lineHeight: 1.1,
+    letterSpacing: 0,
+    whiteSpace: 'normal',
+    wordBreak: 'keep-all',
   },
   profileBlock: {
     flex: 1,

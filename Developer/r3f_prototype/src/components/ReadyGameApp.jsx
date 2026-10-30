@@ -10,7 +10,6 @@ import { t } from '../lib/i18n.js'
 import { getSelectedWebBackgroundStyle } from '../lib/webBackgroundAssets.js'
 import { clearPendingStartAfterLogin, hasPendingStartAfterLogin } from '../lib/loginContinuation.js'
 import LobbyBgm from './LobbyBgm.jsx'
-import TitleBgm from './TitleBgm.jsx'
 
 const LOBBY_MUSIC_SUB_SCREENS = new Set(['coinShop', 'ranking', 'missionCenter'])
 // 런 종료 후 로비 이동은 클라우드 저장을 기다리되, 저장이 실패·지연(오프라인)돼도 막지 않는다.
@@ -300,9 +299,11 @@ export default function ReadyGameApp({
         {/* Lobby music keeps playing on lobby-side sub screens; LobbyBgm shares one stream by URL.
             Sub screens opened from a run (results/pause -> shop, ranking, missions) play it too,
             so music never goes silent mid-session (owner rule 2026-10-27). */}
-        {LOBBY_MUSIC_SUB_SCREENS.has(screen) && <LobbyBgm />}
-        {/* Rosari's room is entered from the title: it keeps the title song playing. */}
-        {screen === 'rosariRoom' && <TitleBgm />}
+        {/* 로자리의 방은 로비 좌상단에서 들어오는 로비의 자식 화면이라 로비 곡을 그대로 유지한다.
+            단, 'rosariRoom'을 LOBBY_MUSIC_SUB_SCREENS에 넣지는 않는다 — 그 Set은 아래 뒤로가기
+            판정(inRunSubScreen = prevScreenRef.current === 'game' && LOBBY_MUSIC_SUB_SCREENS.has(current))과
+            공유되므로, Set에 넣으면 런이 끝난 뒤 방에서 뒤로가기 할 때 이미 끝난 런의 게임 화면으로 튄다. */}
+        {(LOBBY_MUSIC_SUB_SCREENS.has(screen) || screen === 'rosariRoom') && <LobbyBgm />}
       </ErrorBoundary>
       <div ref={phoneFrameRef} style={phoneFrameStyle}>
         {screen === 'auth-return' && <ScreenLoading label={t('loading.game')} />}
@@ -311,7 +312,6 @@ export default function ReadyGameApp({
             <Suspense fallback={<ScreenLoading label={t('loading.game')} />}>
               <TitleScreen
                 onEnterLobby={() => setScreen('lobby')}
-                onOpenRosariRoom={() => setScreen('rosariRoom')}
                 devCheatsVisible={devCheatsVisible}
                 onRevealDevCheats={() => setDevCheatsVisible(true)}
                 onUnlockAllStages={() => setDevAllStagesUnlocked(true)}
@@ -320,10 +320,12 @@ export default function ReadyGameApp({
           </ErrorBoundary>
         )}
 
+        {/* 로자리의 방은 로비(스테이지 선택) 좌상단에서 들어온다 → 나갈 때도 로비로 돌아간다.
+            타이틀로 보내면 스테이지 선택으로 되돌아갈 길이 없어진다(2026-10-29 Terry 지시). */}
         {screen === 'rosariRoom' && (
-          <ErrorBoundary fallback={({ error, retry, reload }) => <ScreenFailure label="로자리의 방" error={error} retry={retry} reload={reload} onBack={() => setScreen('title')} />}>
+          <ErrorBoundary fallback={({ error, retry, reload }) => <ScreenFailure label="로자리의 방" error={error} retry={retry} reload={reload} onBack={() => setScreen('lobby')} />}>
             <Suspense fallback={<ScreenLoading label="로자리의 방" />}>
-              <RosariRoom onBack={() => setScreen('title')} />
+              <RosariRoom onBack={() => setScreen('lobby')} />
             </Suspense>
           </ErrorBoundary>
         )}
@@ -336,6 +338,7 @@ export default function ReadyGameApp({
                 onOpenCoinShop={() => openCoinShopFrom('lobby')}
                 onOpenRanking={(stageId) => openRankingFrom('lobby', stageId)}
                 onOpenMissionCenter={() => openMissionCenterFrom('lobby')}
+                onOpenRosariRoom={() => setScreen('rosariRoom')}
                 onLogoutToTitle={() => setScreen('title')}
                 devAllStagesUnlocked={devAllStagesUnlocked}
                 weaponEncyclopediaRequest={weaponEncyclopediaRequest}
