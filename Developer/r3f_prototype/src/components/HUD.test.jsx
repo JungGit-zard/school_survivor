@@ -505,6 +505,7 @@ describe('weapon upgrade icon assets', () => {
       'bell',
       'stun',
       'onigiri',
+      'miniRosari',
       'missile',
       'starlink',
       'compassBlade',

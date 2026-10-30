@@ -57,6 +57,7 @@ import flaskIconSrc from '../assets/weapon_icon/04_wea_science.png.webp'
 import bellIconSrc from '../assets/weapon_icon/05_wea_bell.png.webp'
 import stunIconSrc from '../assets/weapon_icon/06_wea_stungun.png.webp'
 import onigiriIconSrc from '../assets/weapon_icon/07_wea_onigiri.png.webp'
+import miniRosariIconSrc from '../assets/weapon_icon/20_wea_mini_rosari.svg'
 import missileIconSrc from '../assets/weapon_icon/08_wea_extrabattery.png.webp'
 import starlinkIconSrc from '../assets/weapon_icon/09_wea_starlink.png.webp'
 import compassBladeIconSrc from '../assets/weapon_icon/10_wea_compass.png.webp'
@@ -204,6 +205,11 @@ export const UPGRADES = [
   { key: 'onigiiriDamage', icon: 'onigiri', labelFn: damageLabel('오니기리 피해', 'onigiri', 'onigiiriDamage'), desc: '충돌 피해 증가' },
   { key: 'onigiiriPower', icon: 'onigiri', labelFn: damageLabel('오니기리 위력', 'onigiri', 'onigiiriPower'), desc: '더 단단하게 뭉쳐 충돌 위력 증가' },
   { key: 'onigiiriCrit', icon: 'onigiri', label: '오니기리 치명타 강화', desc: '치명타 확률 +2% (치명타 피해는 150% 고정)' },
+  { key: 'acquireMiniRosari', icon: 'miniRosari', label: '꼬마 로자리 해금', desc: '주인공을 닮은 꼬마 로자리가 깡충깡충 뛰어가 적 사이를 튕기며 들이받는다' },
+  { key: 'miniRosariBounce', icon: 'miniRosari', label: '꼬마 로자리 바운스 +1', desc: '튕겨 가는 횟수 증가' },
+  { key: 'miniRosariDamage', icon: 'miniRosari', labelFn: damageLabel('꼬마 로자리 피해', 'miniRosari', 'miniRosariDamage'), desc: '들이받는 피해 증가' },
+  { key: 'miniRosariPower', icon: 'miniRosari', labelFn: damageLabel('꼬마 로자리 위력', 'miniRosari', 'miniRosariPower'), desc: '더 힘차게 뛰어 들이받는 위력 증가' },
+  { key: 'miniRosariCrit', icon: 'miniRosari', label: '꼬마 로자리 치명타 강화', desc: '치명타 확률 +2% (치명타 피해는 150% 고정)' },
   { key: 'acquireMissile', icon: 'missile', label: '보조배터리 미사일 해금', desc: '먼 적 무리를 호밍 폭발로 처리' },
   { key: 'missileDamage', icon: 'missile', labelFn: damageLabel('미사일 피해', 'guidedMissile', 'missileDamage'), desc: '폭발 피해 증가' },
   { key: 'missilePower', icon: 'missile', labelFn: damageLabel('미사일 위력', 'guidedMissile', 'missilePower'), desc: '충전 용량을 키워 폭발 위력 증가' },
@@ -277,6 +283,7 @@ const WEAPON_UPGRADE_ICON_SRC = {
   bell: bellIconSrc,
   stun: stunIconSrc,
   onigiri: onigiriIconSrc,
+  miniRosari: miniRosariIconSrc,
   missile: missileIconSrc,
   starlink: starlinkIconSrc,
   compassBlade: compassBladeIconSrc,
@@ -300,6 +307,7 @@ const WEAPON_KEY_TO_ICON = {
   bell:          'bell',
   stunGun:       'stun',
   onigiri:       'onigiri',
+  miniRosari:    'miniRosari',
   guidedMissile: 'missile',
   starlink:      'starlink',
   compassBlade:  'compassBlade',

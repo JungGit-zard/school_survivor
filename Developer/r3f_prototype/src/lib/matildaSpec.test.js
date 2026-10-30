@@ -110,6 +110,16 @@ describe('마틸다 S2 체력 = DPS × 1800초', () => {
     expect(estimatePlayerDps({ chibiko })).toBeCloseTo((1.25 * 2 / 1.1) * (1 + 0.05 * 0.5), 10)
   })
 
+  // 꼬마 로자리 바운스는 hitSet 때문에 같은 적을 두 번 때리지 않는다 — 마틸다 HP에 바운스를 곱하지 않는다.
+  it('꼬마 로자리는 damage × 발사율 × 기대 치명타만 마틸다 HP에 기여하고 바운스는 곱하지 않는다', () => {
+    const mini = { ...WEAPON_CATALOG.miniRosari.base, active: true }
+    const expected = (34 / 3) * (1 + 0.12 * 0.5)
+
+    expect(estimatePlayerDps({ miniRosari: mini })).toBeCloseTo(expected, 10)
+    expect(estimatePlayerDps({ miniRosari: { ...mini, bounces: 9 } })).toBeCloseTo(expected, 10)
+    expect(matildaHpFromWeapons({ miniRosari: mini })).toBeCloseTo(expected * 1800, 6)
+  })
+
   it('실제 런 시작 무기 구성에서도 유한한 양수 HP가 나온다', () => {
     _setFirebaseProgressClientForTests({ save: async () => {}, load: async () => null })
     _seedHydratedFirebaseProgressForTests()

@@ -6,6 +6,7 @@ import { applyBossPassiveDamageToBaseWeapon } from './bossPassiveItems.js'
 import { resolveCriticalHit } from './criticalHits.js'
 import { bikittySegmentDamage } from './bikittyCutter.js'
 import { formatDamageAmount } from './damageNumbers.js'
+import { estimateWeaponDps } from './playerDpsEstimate.js'
 
 // 가상 무기 상태 빌더. weapons 객체의 한 항목 형태와 동일.
 const wpn = (overrides = {}) => ({ active: false, level: 0, damage: 5, ...overrides })
@@ -73,7 +74,7 @@ describe('sequential rotating level-up choices', () => {
 
   it('records every displayed account-unlocked weapon before any group repeats', () => {
     const weaponKeys = getAccountUnlockableWeaponIds()
-    expect(weaponKeys).toHaveLength(17)
+    expect(weaponKeys).toHaveLength(18)
     expect(weaponKeys.every((weaponId) => Object.values(UPGRADE_EFFECTS).some((effect) => effect.weapon === weaponId))).toBe(true)
     let weaponCycleIds = []
     const displayed = []
@@ -91,7 +92,7 @@ describe('sequential rotating level-up choices', () => {
     }
 
     expect(displayed).toEqual(weaponKeys)
-    expect(new Set(displayed)).toHaveLength(17)
+    expect(new Set(displayed)).toHaveLength(18)
   })
 
   it('uses displayed groups, excludes locked IDs, and wraps only after the account-unlocked list completes', () => {
@@ -542,6 +543,25 @@ describe('UPGRADE_EFFECTS 테이블 무결성', () => {
     expect(UPGRADE_EFFECTS.onigiiriPower).toMatchObject({ weapon: 'onigiri', kind: 'damage', dmg: 22.25 })
   })
 
+  it('꼬마 로자리 카드는 자기 base 34 기준으로 Lv1→만렙 단일 대상 ≈2.0배를 만든다', () => {
+    expect(UPGRADE_EFFECTS.acquireMiniRosari).toMatchObject({ weapon: 'miniRosari', kind: 'acquire', minLevel: 6 })
+    expect(UPGRADE_EFFECTS.miniRosariDamage).toEqual({ weapon: 'miniRosari', kind: 'damage', dmg: 16.7 })
+    expect(UPGRADE_EFFECTS.miniRosariPower).toEqual({ weapon: 'miniRosari', kind: 'damage', dmg: 16.7 })
+    // cap 9 = 기본 3 + 영구 최대 2 + 인게임 4레벨.
+    expect(UPGRADE_EFFECTS.miniRosariBounce).toEqual({ weapon: 'miniRosari', kind: 'stat', stat: 'bounces', step: 1, cap: 9 })
+    expect(UPGRADE_EFFECTS.miniRosariCrit).toEqual({ weapon: 'miniRosari', kind: 'crit', chanceStep: 0.02, chanceCap: 0.28 })
+
+    const base = WEAPON_CATALOG.miniRosari.base
+    let w = applyUpgradeToWeapon({ ...base, active: false, level: 0 }, UPGRADE_EFFECTS.acquireMiniRosari)
+    const lv1 = estimateWeaponDps(w)
+    for (const key of ['miniRosariDamage', 'miniRosariPower', 'miniRosariBounce', 'miniRosariCrit']) {
+      w = applyUpgradeToWeapon(w, UPGRADE_EFFECTS[key])
+    }
+    expect(w.level).toBe(5)
+    expect(lv1).toBeCloseTo(12.01, 2)
+    expect(estimateWeaponDps(w) / lv1).toBeCloseTo(2.0, 2)
+  })
+
   // 회귀 방어(2026-08-15): 예전에는 19종 전부 데미지 카드가 정확히 1장뿐이라, 레벨업 절반이
   // 단일 대상 기준 체감 0이고 만렙 성장폭이 1.31~1.61배에 그쳤다. 카드가 다시 한 장으로
   // 줄면 그 곡선으로 되돌아간다. 이누콘은 2026-08-21 추가된 생존 보조 동반자라 데미지 카드가 없다.
@@ -570,6 +590,7 @@ describe('GAP-1: 크리 카드 확률 성장과 150% 고정 피해 정책', () =
     { key: 'bellCrit', weapon: 'bell' },
     { key: 'stunCrit', weapon: 'stunGun' },
     { key: 'onigiiriCrit', weapon: 'onigiri' },
+    { key: 'miniRosariCrit', weapon: 'miniRosari' },
     { key: 'starlinkCrit', weapon: 'starlink' },
     { key: 'compassBladeCrit', weapon: 'compassBlade' },
     { key: 'lanternCrit', weapon: 'studentLantern' },

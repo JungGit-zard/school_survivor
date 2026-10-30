@@ -1,8 +1,8 @@
-// 무기 20종의 단일 진실 카탈로그.
+// 무기 21종의 단일 진실 카탈로그.
 //   - 기본 계정 해금 4종: pencilThrow, schoolBag, boxCutter, tumbler.
-//   - 기록 조건 계정 해금 13종.
+//   - 기록 조건 계정 해금 14종.
 //   - 런 중 조합 발견 3종: hanako, bikittyCutter, lineDraw (계정 플래그 대상 아님).
-// 20종 전부 컴포넌트(components/Weapons/index.js)·카드 효과(upgrades.js) wiring이 끝나 있다.
+// 21종 전부 컴포넌트(components/Weapons/index.js)·카드 효과(upgrades.js) wiring이 끝나 있다.
 // base 스탯은 buildInitialWeapons(useGameStore.js)가 그대로 가져다 쓴다 — 여기가 유일한 출처이므로
 // 게임 쪽에 같은 수치를 리터럴로 또 적지 마라(하나코 힐 수치가 그렇게 이중 정본이 됐었다).
 
@@ -103,6 +103,26 @@ export const WEAPON_CATALOG = {
     // 2026-08-23 사용자 요청: 위력을 현재의 2.5배로 조정(21→52.5).
     base: { damage: 52.5, cooldown: 5000, bounces: 6, bounceRange: 4.5, range: 18, critChance: 0.08, critMultiplier: 1.5 },
     unlockConditions: [{ type: 'totalKills', value: 700 }],
+    minLevelToAppear: 6,
+  },
+  miniRosari: {
+    id: 'miniRosari',
+    label: '꼬마 로자리',
+    // 2026-10-30 Terry: 오니기리 발사체였던 "작은 로자리"(주인공 절반 크기 분신)를 독립 무기로 분리.
+    // 2026-10-31 levelmini 정체성 확정 — "적게, 세게, 자주 튀는 근거리 사냥꾼". 오니기리(멀리·많이 튀는
+    // 군중 청소)와 반대 축이다. 단일 대상 DPS는 조금 높고, 군중 처리량은 확 낮다.
+    //   단일 대상 Lv1: 34 / 3.0초 × (1 + 0.12×0.5) = 12.01/s  (오니기리 10.92, 텀블러 12.24)
+    //   군중 1사이클: 34 × 3타 / 3.0초 = 34/s  (오니기리 52.5 × 6타 / 5초 = 63/s의 54%)
+    //   → 보스·엘리트를 잡을 땐 꼬마 로자리, 웨이브를 쓸 땐 오니기리. 둘 다 들 이유가 생긴다.
+    // range 7.5 = 10블록(1블록 0.75), bounceRange 3.0 = 4블록. 오니기리(24블록/6블록)보다 짧다:
+    // 분신 이동속도가 1.375u/s로 느려(MiniRosari.jsx) 멀리 보내면 쿨다운이 아니라 이동 시간이
+    // 사이클을 지배한다. 5.5블록(≈4.1u) 안 표적이면 첫 도달 ≈3초로 cooldown 3000과 맞물린다.
+    // 바운스가 같은 적을 두 번 때리지 않으므로(hitSet) 단일 대상 추정(playerDpsEstimate.js)은
+    // damage × 발사율 × 기대 치명타 그대로 맞다 — 마틸다 HP 산식에 별도 보정이 필요 없다.
+    // 해금: 보스 처치 2회 — 미사일(1회)과 이누콘(3회) 사이 빈칸. "보스를 잡아 본 사람에게 붙는
+    // 보스 사냥꾼"이라 정체성과도 맞고, 오니기리(누적 700킬)와 같은 순간에 같이 열리지 않는다.
+    base: { damage: 34, cooldown: 3000, bounces: 3, bounceRange: 3.0, range: 7.5, critChance: 0.12, critMultiplier: 1.5 },
+    unlockConditions: [{ type: 'bossKills', value: 2 }],
     minLevelToAppear: 6,
   },
   chibiko: {

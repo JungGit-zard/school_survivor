@@ -21,17 +21,17 @@ describe('weaponCatalog', () => {
     })
   })
 
-  it('20종 entry 등록 + 기본군 starter 4종', () => {
+  it('21종 entry 등록 + 기본군 starter 4종', () => {
     const all = getAllWeaponIds()
-    expect(all.length).toBe(20)
+    expect(all.length).toBe(21)
     const starter = getStarterIds()
     expect(starter).toEqual(['pencilThrow', 'schoolBag', 'boxCutter', 'tumbler'])
-    expect(getAccountUnlockableWeaponIds()).toHaveLength(17)
+    expect(getAccountUnlockableWeaponIds()).toHaveLength(18)
     expect(['hanako', 'bikittyCutter', 'lineDraw'].every(isRuntimeCombinationWeapon)).toBe(true)
     expect(['hanako', 'bikittyCutter', 'lineDraw'].every(isAccountUnlockable)).toBe(false)
   })
 
-  it('승인된 20종 해금표가 ID별로 정확히 고정된다', () => {
+  it('승인된 21종 해금표가 ID별로 정확히 고정된다', () => {
     const conditionById = Object.fromEntries(getAllWeaponIds().map((id) => [id, WEAPON_CATALOG[id].unlockConditions]))
     expect(conditionById).toEqual({
       pencilThrow: STARTER,
@@ -42,6 +42,7 @@ describe('weaponCatalog', () => {
       bell: [{ type: 'stage1Clears', value: 1 }],
       stunGun: [{ type: 'stage2Clears', value: 1 }],
       onigiri: [{ type: 'totalKills', value: 700 }],
+      miniRosari: [{ type: 'bossKills', value: 2 }],
       chibiko: [{ type: 'totalRuns', value: 3 }],
       hanako: null,
       inucon: [{ type: 'bossKills', value: 3 }],
@@ -57,7 +58,7 @@ describe('weaponCatalog', () => {
     })
     expect(Object.fromEntries(getAllWeaponIds().map((id) => [id, WEAPON_CATALOG[id].minLevelToAppear ?? null]))).toEqual({
       pencilThrow: 1, schoolBag: 2, boxCutter: 2, tumbler: 2, scienceFlask: 4,
-      bell: 4, stunGun: 6, onigiri: 6, chibiko: 8, hanako: null, inucon: 8,
+      bell: 4, stunGun: 6, onigiri: 6, miniRosari: 6, chibiko: 8, hanako: null, inucon: 8,
       guidedMissile: 4, sharkMissile: 8, starlink: 8, compassBlade: 3,
       umbrellaGuard: 3, eraserBomb: 4, studentLantern: 5, bikittyCutter: 6, lineDraw: 8,
     })
@@ -174,6 +175,42 @@ describe('weaponCatalog', () => {
     // 2.4로 올리면서, 이번 범위가 아닌 플라스크가 전 스테이지에서 함께 오르는 것을 막기 위해서다.
     expect(flask.zoneTickDamage).toBe(1.5)
     expect(flask.zoneTickDamage).not.toBe(WEAPON_CATALOG.pencilThrow.base.damage)
+  })
+
+  // 2026-10-30 Terry: 오니기리에서 분리한 "작은 로자리" 신무기.
+  // 2026-10-31 levelmini: 오니기리 복제값을 벗고 "적게·세게·자주 튀는 근거리 보스 사냥꾼"으로 확정.
+  it('miniRosari(꼬마 로자리)는 오니기리와 다른 정체성·해금으로 등록되고 모든 레지스트리에 배선된다', () => {
+    const entry = WEAPON_CATALOG.miniRosari
+    const oni = WEAPON_CATALOG.onigiri.base
+    expect(entry).toMatchObject({ id: 'miniRosari', label: '꼬마 로자리', minLevelToAppear: 6 })
+    expect(entry.base).toEqual({ damage: 34, cooldown: 3000, bounces: 3, bounceRange: 3.0, range: 7.5, critChance: 0.12, critMultiplier: 1.5 })
+    // 정체성 축: 바운스 수·바운스 거리·사거리·쿨다운은 전부 오니기리보다 작다(적게, 가깝게, 자주).
+    expect(entry.base.bounces).toBeLessThan(oni.bounces)
+    expect(entry.base.bounceRange).toBeLessThan(oni.bounceRange)
+    expect(entry.base.range).toBeLessThan(oni.range)
+    expect(entry.base.cooldown).toBeLessThan(oni.cooldown)
+    // 해금은 오니기리(누적 처치)와 다른 축 — 같은 순간에 쌍둥이가 함께 열리지 않는다.
+    expect(entry.unlockConditions).toEqual([{ type: 'bossKills', value: 2 }])
+    expect(evaluateUnlocks({ totalKills: 700 }).has('onigiri')).toBe(true)
+    expect(evaluateUnlocks({ totalKills: 700 }).has('miniRosari')).toBe(false)
+    expect(evaluateUnlocks({ bossKills: 1 }).has('miniRosari')).toBe(false)
+    expect(evaluateUnlocks({ bossKills: 2 }).has('miniRosari')).toBe(true)
+    expect(evaluateUnlocks({ bossKills: 2 }).has('inucon')).toBe(false)
+    expect(isValidWeaponId('miniRosari')).toBe(true)
+    expect(isAccountUnlockable('miniRosari')).toBe(true)
+    expect(isRuntimeCombinationWeapon('miniRosari')).toBe(false)
+
+    const read = (path) => readFileSync(new URL(path, import.meta.url), 'utf8')
+    expect(read('../components/Weapons/index.js')).toContain("export { MiniRosariWeapon }  from './MiniRosari.jsx'")
+    expect(read('../components/Game.jsx')).toContain('<MiniRosariWeapon />')
+    for (const file of ['../components/HUD.jsx', '../components/WeaponModal.jsx', '../components/WeaponPermanentUpgradeList.jsx']) {
+      expect(read(file), file).toContain("import miniRosariIconSrc from '../assets/weapon_icon/20_wea_mini_rosari.svg'")
+      expect(read(file), file).toContain('miniRosari: miniRosariIconSrc')
+    }
+    const hud = read('../components/HUD.jsx')
+    for (const key of ['acquireMiniRosari', 'miniRosariBounce', 'miniRosariDamage', 'miniRosariPower', 'miniRosariCrit']) {
+      expect(hud).toContain(`{ key: '${key}', icon: 'miniRosari'`)
+    }
   })
 
   it('studentLantern 스펙 (신무기 기획 정본)', () => {

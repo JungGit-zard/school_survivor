@@ -25,7 +25,7 @@ vi.mock('./StudentDialogueTrigger.jsx', () => ({ default: () => null }))
 vi.mock('./QuestWorldLayer.jsx', () => ({ default: () => null }))
 vi.mock('./Weapons/index.js', () => Object.fromEntries([
   'PencilThrow', 'SchoolBagSwing', 'BoxCutterWeapon', 'TumblerOrbit', 'BellShockwave', 'ScienceFlaskSplash',
-  'OnigiiriWeapon', 'StunGunWeapon', 'GuidedMissile', 'StarlinkWeapon', 'CompassBladeWeapon', 'UmbrellaGuardWeapon',
+  'OnigiiriWeapon', 'MiniRosariWeapon', 'StunGunWeapon', 'GuidedMissile', 'StarlinkWeapon', 'CompassBladeWeapon', 'UmbrellaGuardWeapon',
   'EraserBombWeapon', 'ChibikoWeapon', 'HanakoWeapon', 'InuconWeapon', 'SharkMissileWeapon', 'StudentLanternWeapon',
   'BikittyCutterWeapon', 'LineDrawWeapon',
 ].map((name) => [name, () => null])))

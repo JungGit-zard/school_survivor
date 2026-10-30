@@ -27,7 +27,7 @@ describe('weaponPermanentUpgrades storage layer', () => {
 
     expect(levels.pencilThrow).toBe(0)
     expect(levels.studentLantern).toBe(0)
-    expect(Object.keys(levels).length).toBe(20)
+    expect(Object.keys(levels).length).toBe(21)
   })
 
   it('starter 무기는 해금 저장값 없이도 구매되고 코인을 차감한다', () => {
@@ -188,6 +188,8 @@ describe('weaponPermanentUpgrades storage layer', () => {
     expect(upgraded('bell')).toMatchObject({ damage: 10.8, radius: 2.04, critChance: 0.13 })
     expect(upgraded('stunGun')).toMatchObject({ damage: 19.4, cooldown: 3000, chainCount: 3, permanentStunChance: 0.08, critChance: 0.14 })
     expect(upgraded('onigiri')).toMatchObject({ damage: 52.5, bounces: 8, critChance: 0.16 })
+    // 꼬마 로자리는 '투사체 속도'(죽은 스탯) 대신 실제 피해 +8%를 받는다: 34 × 1.08 = 36.7.
+    expect(upgraded('miniRosari')).toMatchObject({ damage: 36.7, bounces: 5, critChance: 0.2 })
     expect(upgraded('chibiko')).toMatchObject({ damage: 1.4, cooldown: 1012, projectileCount: 2, critChance: 0.09 })
     // Lv.10 "일정 확률로 추가 절단 1회" — 라벨만 있고 런타임 효과가 없던 구멍을 막는다.
     expect(upgraded('boxCutter')).toMatchObject({ permanentExtraSlashChance: 0.1 })

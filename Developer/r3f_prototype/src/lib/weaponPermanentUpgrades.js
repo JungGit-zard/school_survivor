@@ -46,6 +46,9 @@ export const WEAPON_PERMANENT_UPGRADE_PLANS = {
   bell: makePlan('bell', '피해', '파동 크기 +10%', '파동 도달거리 +10%', DAMAGE_LEVELS, '치명타 확률', CRIT_CHANCE_LEVELS),
   stunGun: makePlan('stunGun', '피해', '체인 수 +1', '짧은 경직 확률 +8%', DAMAGE_LEVELS, '치명타 확률', CRIT_CHANCE_LEVELS),
   onigiri: makePlan('onigiri', '투사체 속도', '바운스 횟수 +1', '바운스 횟수 추가 +1', ['+3%', '+6%', '+9%', '+12%'], '치명타 확률', CRIT_CHANCE_LEVELS),
+  // 꼬마 로자리: 오니기리의 '투사체 속도'는 분신 이동속도가 컴포넌트 상수라 base에 speed가 없어 효과가
+  // 없다. 대신 정체성(한 방 무게)에 맞게 실제로 적용되는 '피해' +2~8%를 준다(Lv10 34 → 36.7).
+  miniRosari: makePlan('miniRosari', '피해', '바운스 횟수 +1', '바운스 횟수 추가 +1', DAMAGE_LEVELS, '치명타 확률', CRIT_CHANCE_LEVELS),
   chibiko: {
     id: 'chibiko',
     label: WEAPON_CATALOG.chibiko.label,
@@ -245,6 +248,8 @@ export function applyWeaponPermanentUpgradesToBaseWeapon(id, weapon) {
   if (id === 'stunGun' && level >= 10) out.permanentStunChance = 0.08
   if (id === 'onigiri' && level >= 5) out.bounces = (out.bounces ?? 0) + 1
   if (id === 'onigiri' && level >= 10) out.bounces = (out.bounces ?? 0) + 1
+  if (id === 'miniRosari' && level >= 5) out.bounces = (out.bounces ?? 0) + 1
+  if (id === 'miniRosari' && level >= 10) out.bounces = (out.bounces ?? 0) + 1
   if (id === 'chibiko' && level >= 10) out.projectileCount = (out.projectileCount ?? 1) + 1
   if (id === 'boxCutter' && level >= 10) out.permanentExtraSlashChance = 0.1
   if (id === 'guidedMissile' && level >= 5) out.homingStrength = 1.1

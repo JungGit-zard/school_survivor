@@ -116,6 +116,15 @@ export const UPGRADE_EFFECTS = {
   // 스탯 cap이 아니라 MAX_WEAPON_LEVEL이 한계가 되게 해서 바운스 카드가 죽지 않도록 한다.
   onigiiriBounce: { weapon: 'onigiri',       kind: 'stat',   stat: 'bounces',         step: 1,    cap: 12 },
   onigiiriCrit:   { weapon: 'onigiri',       kind: 'crit',   chanceStep: 0.02, chanceCap: 0.24 },
+  // 꼬마 로자리(2026-10-31 levelmini) — 데미지 카드 2장 합 33.4 = base 34의 98.2%.
+  // 치명타 카드 1장(0.12→0.14, 기대배율 1.06→1.07)과 곱해 Lv1→만렙 단일 대상 ≈2.00배(레벨 곡선 정본).
+  // 바운스 cap 9 = 기본 3 + 영구강화 최대 2 + 인게임 4레벨 — 오니기리 cap 12와 같은 산식.
+  // 치명타 cap 0.28 = 기본 0.12 + 영구 최대 0.08 + 카드 0.08(오니기리보다 기본이 높은 만큼 위로 민다).
+  acquireMiniRosari: { weapon: 'miniRosari',  kind: 'acquire', minLevel: 6 },
+  miniRosariDamage:  { weapon: 'miniRosari',  kind: 'damage', dmg: 16.7 },
+  miniRosariPower:   { weapon: 'miniRosari',  kind: 'damage', dmg: 16.7 },
+  miniRosariBounce:  { weapon: 'miniRosari',  kind: 'stat',   stat: 'bounces',         step: 1,    cap: 9 },
+  miniRosariCrit:    { weapon: 'miniRosari',  kind: 'crit',   chanceStep: 0.02, chanceCap: 0.28 },
   acquireMissile:  { weapon: 'guidedMissile', kind: 'acquire', minLevel: 4 },
   missileDamage:  { weapon: 'guidedMissile', kind: 'damage', dmg: 4 },
   missilePower:   { weapon: 'guidedMissile', kind: 'damage', dmg: 4 },

@@ -1,4 +1,4 @@
-import { useRef, useState, useCallback, useMemo, useEffect } from 'react'
+import { useRef, useState, useCallback, useMemo } from 'react'
 import { usePlayingFrame } from '../../lib/usePlayingFrame.js'
 import { emitSfx } from '../../lib/sfxEvents.js'
 import { playerPos } from '../../lib/refs.js'
@@ -8,41 +8,8 @@ import { findClosestEnemy } from '../../lib/weaponTargeting.js'
 import { applyEnemyHit, isEnemyHitLive } from '../../lib/weaponCollision.js'
 import { createOnigiriBurstGrains, pickNextOnigiriTarget } from '../../lib/onigiri.js'
 import StudioTunedGroup from '../StudioTunedGroup.jsx'
-import PlayerMesh from '../PlayerMesh.jsx'
-import PlayerV9Model from '../PlayerV9Model.jsx'
-import PlayerRosariModel from '../PlayerRosariModel.jsx'
-import { loadSavedPlayerAppearance, resolvePlayerAppearance } from '../Player.jsx'
-import { loadPlayerOutfit } from '../../lib/titleSettings.js'
 
 let _onigiiriId  = 0
-
-// 2026-10-28 Terry 모바일 피드백: "오니기리 새로 생성되는 발사체가 주인공 캐릭터이어야 한다".
-// 발사체 외형은 주먹밥이 아니라 주인공(같은 모델·같은 Studio 튜닝·저장된 외형/의상)의 미니 분신이다.
-// 오니기리는 한 번에 발사체 1개만 날리므로(projRef 게이트) 분신도 무기 장착 동안 1개만 상주시키고,
-// 발사할 때마다 GLB를 다시 복제하지 않고 위치·표시만 바꾼다. 주먹밥 모델(OnigiiriModel)은
-// Graphics Studio 미리보기용으로 그대로 둔다.
-export const ONIGIRI_MINI_PLAYER_SCALE = 0.5
-// 주인공 모델 원점은 몸통 중심(발바닥 = -0.32). 분신 발이 바닥에 닿는 높이 = 0.32 × 축척.
-const ONIGIRI_MINI_PLAYER_FOOT_OFFSET = 0.32 * ONIGIRI_MINI_PLAYER_SCALE
-const ONIGIRI_MINI_HOP_HEIGHT = 0.22
-
-function OnigiriMiniPlayer({ animateRef }) {
-  const movingRef = useRef(true)
-  // 외형·의상은 장착 시점의 저장값으로 고정한다(런 도중 바뀌지 않는다).
-  const [look] = useState(() => ({
-    appearance: resolvePlayerAppearance(loadSavedPlayerAppearance()),
-    outfit: loadPlayerOutfit(),
-  }))
-  return (
-    <group scale={[ONIGIRI_MINI_PLAYER_SCALE, ONIGIRI_MINI_PLAYER_SCALE, ONIGIRI_MINI_PLAYER_SCALE]}>
-      {look.appearance === 'legacy'
-        ? <PlayerMesh movingRef={movingRef} outfit={look.outfit} />
-        : look.appearance === 'rosari'
-          ? <PlayerRosariModel movingRef={movingRef} animateRef={animateRef} gameplay />
-          : <PlayerV9Model movingRef={movingRef} animateRef={animateRef} gameplay outfit={look.outfit} />}
-    </group>
-  )
-}
 
 export function OnigiiriModel() {
   const riceMat = useMemo(() => toonMat(0xfcf8f0, 0.06), [])
@@ -152,8 +119,8 @@ function OnigiriBurst({ id, x, z, startMs, onDone }) {
   )
 }
 
-function OnigiiriProjectile({ id, start, initialTarget, maxBounces, damage, bounceRange, critChance, critMultiplier, onDone, onBurst, visualRef }) {
-  const groupRef   = visualRef
+function OnigiiriProjectile({ id, start, initialTarget, maxBounces, damage, bounceRange, critChance, critMultiplier, onDone, onBurst }) {
+  const groupRef   = useRef()
   const posRef     = useRef({ x: start[0], y: start[1] + 0.25, z: start[2] })
   const targetRef  = useRef(initialTarget)
   const bouncesRef = useRef(maxBounces)
@@ -222,29 +189,25 @@ function OnigiiriProjectile({ id, start, initialTarget, maxBounces, damage, boun
 
     p.x += (dx / dist) * SPEED * delta
     p.z += (dz / dist) * SPEED * delta
-    // 분신은 표적을 바라보며 깡충깡충 뛰어간다(기존 주먹밥의 통통 튀는 리듬 유지).
-    const hop = Math.abs(Math.sin(spinRef.current * 0.45)) * ONIGIRI_MINI_HOP_HEIGHT
-    p.y  = start[1] - 0.32 + ONIGIRI_MINI_PLAYER_FOOT_OFFSET + hop
+    p.y  = start[1] + 0.25 + Math.abs(Math.sin(spinRef.current * 0.45)) * 0.22
 
-    groupRef.current.visible = true
     groupRef.current.position.set(p.x, p.y, p.z)
-    groupRef.current.rotation.set(0.18, Math.atan2(dx, dz), 0, 'YXZ')
+    groupRef.current.rotation.y  = spinRef.current
+    groupRef.current.rotation.x  = Math.sin(spinRef.current * 0.8) * 0.35
+    groupRef.current.rotation.z  = Math.cos(spinRef.current * 0.6) * 0.25
   })
 
-  useEffect(() => () => {
-    if (groupRef.current) groupRef.current.visible = false
-  }, [groupRef])
-
-  return null
+  return (
+    <group ref={groupRef} position={[start[0], start[1] + 0.25, start[2]]}>
+      <OnigiiriModel />
+    </group>
+  )
 }
 
 export function OnigiiriWeapon() {
   const [projectiles, setProjectiles] = useState([])
   const [bursts, setBursts]           = useState([])
   const projRef      = useRef([])
-  const miniPlayerRef = useRef(null)
-  // 발사체가 날아가는 동안만 true — 숨겨진 분신의 포즈 계산을 멈춘다(모바일 CPU 절약).
-  const miniActiveRef = useRef(false)
   const lastFireRef  = useRef(0)
   const burstIdRef   = useRef(0)
   const phase   = useGameStore((s) => s.phase)
@@ -252,7 +215,6 @@ export function OnigiiriWeapon() {
 
   const expire = useCallback((id) => {
     projRef.current = projRef.current.filter((p) => p.id !== id)
-    miniActiveRef.current = projRef.current.length > 0
     setProjectiles([...projRef.current])
   }, [])
 
@@ -287,7 +249,6 @@ export function OnigiiriWeapon() {
       critMultiplier: w.critMultiplier,
     }
     projRef.current = [p]
-    miniActiveRef.current = true
     setProjectiles([p])
   })
 
@@ -295,11 +256,8 @@ export function OnigiiriWeapon() {
 
   return (
     <>
-      <group ref={miniPlayerRef} visible={false}>
-        <OnigiriMiniPlayer animateRef={miniActiveRef} />
-      </group>
       {projectiles.map((p) => (
-        <OnigiiriProjectile key={p.id} {...p} visualRef={miniPlayerRef} onDone={expire} onBurst={addBurst} />
+        <OnigiiriProjectile key={p.id} {...p} onDone={expire} onBurst={addBurst} />
       ))}
       {bursts.map((burst) => (
         <OnigiriBurst key={burst.id} {...burst} onDone={removeBurst} />

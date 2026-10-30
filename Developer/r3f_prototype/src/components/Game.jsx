@@ -26,7 +26,7 @@ import {
   getPressureCauldronExplosionTimes,
   isInsidePressureCauldronBlastRadius,
 } from '../lib/stage4PressureCauldronHazard.js'
-import { PencilThrow, SchoolBagSwing, BoxCutterWeapon, TumblerOrbit, BellShockwave, ScienceFlaskSplash, OnigiiriWeapon, StunGunWeapon, GuidedMissile, StarlinkWeapon, CompassBladeWeapon, UmbrellaGuardWeapon, EraserBombWeapon, ChibikoWeapon, HanakoWeapon, InuconWeapon, SharkMissileWeapon, StudentLanternWeapon, BikittyCutterWeapon, LineDrawWeapon } from './Weapons/index.js'
+import { PencilThrow, SchoolBagSwing, BoxCutterWeapon, TumblerOrbit, BellShockwave, ScienceFlaskSplash, OnigiiriWeapon, MiniRosariWeapon, StunGunWeapon, GuidedMissile, StarlinkWeapon, CompassBladeWeapon, UmbrellaGuardWeapon, EraserBombWeapon, ChibikoWeapon, HanakoWeapon, InuconWeapon, SharkMissileWeapon, StudentLanternWeapon, BikittyCutterWeapon, LineDrawWeapon } from './Weapons/index.js'
 
 const _camTarget = new THREE.Vector3()
 const _cameraPlayerVisualLeft = new THREE.Vector3()
@@ -234,6 +234,7 @@ export default function Game() {
       <BellShockwave />
       <ScienceFlaskSplash />
       <OnigiiriWeapon />
+      <MiniRosariWeapon />
       <StunGunWeapon />
       <GuidedMissile />
       <StarlinkWeapon />
