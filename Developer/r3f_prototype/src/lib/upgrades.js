@@ -88,10 +88,11 @@ export const UPGRADE_EFFECTS = {
   acquireTumbler:  { weapon: 'tumbler',       kind: 'acquire', minLevel: 2 },
   // 데미지 카드를 tumblerCount 앞으로 옮겼다. 예전 순서(count 먼저)에서는 첫 레벨업이
   // 단일 대상 기준 완전 무증가였다 — 19종 중 유일하게 "Lv1 → Lv2 +0%"인 무기였다.
-  tumblerDamage:  { weapon: 'tumbler',       kind: 'damage', dmg: 2.7 },
-  tumblerPower:   { weapon: 'tumbler',       kind: 'damage', dmg: 2.7 },
-  tumblerCount:   { weapon: 'tumbler',       kind: 'stat',   stat: 'count',           step: 1,    cap: 3 },
-  tumblerCrit:    { weapon: 'tumbler',       kind: 'crit',   chanceStep: 0.02, chanceCap: 0.2 },
+  // 내구력(2026-10-30): 텀블러 카드는 전부 bonus로 텀블러당 내구력 +10(기본 40 → 만렙 80).
+  tumblerDamage:  { weapon: 'tumbler',       kind: 'damage', dmg: 2.7, bonus: { stat: 'durability', step: 10 } },
+  tumblerPower:   { weapon: 'tumbler',       kind: 'damage', dmg: 2.7, bonus: { stat: 'durability', step: 10 } },
+  tumblerCount:   { weapon: 'tumbler',       kind: 'stat',   stat: 'count',           step: 1,    cap: 3, bonus: { stat: 'durability', step: 10 } },
+  tumblerCrit:    { weapon: 'tumbler',       kind: 'crit',   chanceStep: 0.02, chanceCap: 0.2, bonus: { stat: 'durability', step: 10 } },
   acquireFlask:    { weapon: 'scienceFlask',  kind: 'acquire', minLevel: 4 },
   // 리워크(2026-07-04): 착탄 데미지 능력 절반(dmg 8→4). 모든 플라스크 레벨업은
   // bonus로 웅덩이 존 지속시간 +1초 (기획: 1레벨 5초, 레벨업마다 +1초).

@@ -1,18 +1,21 @@
 import { describe, expect, it } from 'vitest'
 import { readFileSync } from 'node:fs'
-import { getMatildaDashSpeed } from './matildaDashSpeed.js'
+import { MATILDA_DASH_SPEED_STEP, getMatildaDashSpeed } from './matildaDashSpeed.js'
 
 describe('Matilda base-additive speed per actual dash', () => {
-  it('keeps the first dash at base, then adds one percent of base per start', () => {
+  it('keeps the first dash at base, then adds three percent of base per start (2026-10-30 x3)', () => {
+    expect(MATILDA_DASH_SPEED_STEP).toBe(0.03)
     expect(getMatildaDashSpeed(10, 1)).toBe(10)
-    expect(getMatildaDashSpeed(10, 2)).toBeCloseTo(10.1)
-    expect(getMatildaDashSpeed(10, 3)).toBeCloseTo(10.2)
-    expect(getMatildaDashSpeed(10, 101)).toBe(20)
+    expect(getMatildaDashSpeed(10, 2)).toBeCloseTo(10.3)
+    expect(getMatildaDashSpeed(10, 3)).toBeCloseTo(10.6)
+    expect(getMatildaDashSpeed(10, 20)).toBeCloseTo(15.7)
+    expect(getMatildaDashSpeed(10, 50)).toBeCloseTo(24.7)
+    expect(getMatildaDashSpeed(10, 100)).toBeCloseTo(39.7)
   })
   it('does not compound or accumulate by frame reads', () => {
-    for (let frame = 0; frame < 300; frame++) expect(getMatildaDashSpeed(8, 101)).toBe(16)
+    for (let frame = 0; frame < 300; frame++) expect(getMatildaDashSpeed(8, 101)).toBeCloseTo(32)
     expect(getMatildaDashSpeed(8, 1)).toBe(8)
-    expect(getMatildaDashSpeed(20, 2)).toBeCloseTo(20.2)
+    expect(getMatildaDashSpeed(20, 2)).toBeCloseTo(20.6)
   })
   it('leaves the base untouched before the first actual start', () => {
     expect(getMatildaDashSpeed(8, 0)).toBe(8)

@@ -56,7 +56,15 @@ export const WEAPON_CATALOG = {
     // damage 자체는 깎지 않는다 — 첫 타는 100%다. 이 필드는 "오래 버티는 단일 대상에게
     // 실제로 꽂히는 지속 화력"을 DPS 추정기(playerDpsEstimate.js)에 알려주기 위한 것으로,
     // 없으면 마틸다 HP(= 스폰 시점 플레이어 DPS × 1800초)가 텀블러 몫만큼 부당하게 부푼다.
-    base: { damage: 6, radius: 1.0, hitsPerSecond: 2.5, orbitSpeed: 2.8, count: 1, critChance: 0.04, critMultiplier: 1.5, sustainedDamageMultiplier: TUMBLER_SUSTAINED_MULTIPLIER },
+    // durability·rechargeMs: 내구력(2026-10-30 사용자 지시, lib/tumblerDurability.js). 텀블러 1개당 유효타 40회에
+    // 깨지고 2초 뒤 다시 생긴다. 목표는 장기 지속 화력 10~20% 하향 — 가동률 = (40/h)/(40/h + 2):
+    //   밀집 군중(텀블러당 ≈4타/s)  10초 생존 / 12초 주기 = 83.3% → -16.7%
+    //   마틸다 단일 대상(2.5타/s)   16초 생존 / 18초 주기 = 88.9% → -11.1%
+    //   드문드문(1.5타/s)          26.7초 / 28.7초      = 93.0% → -7.0%
+    // 잡몹을 조금 때리는 평상시엔 거의 안 깨지고, 군중에 파묻혀 갈아낼 때만 잠깐 끊긴다.
+    // 레벨업 카드 4종은 전부 bonus로 내구력 +10(upgrades.js) — 만렙 80이면 밀집 기준 90.9%(-9.1%).
+    // 마틸다 HP 추정기는 이 가동률을 곱한다(playerDpsEstimate.js, tumblerSingleTargetUptime).
+    base: { damage: 6, radius: 1.0, hitsPerSecond: 2.5, orbitSpeed: 2.8, count: 1, critChance: 0.04, critMultiplier: 1.5, sustainedDamageMultiplier: TUMBLER_SUSTAINED_MULTIPLIER, durability: 40, rechargeMs: 2000 },
     unlockConditions: STARTER,
     minLevelToAppear: 2,
   },

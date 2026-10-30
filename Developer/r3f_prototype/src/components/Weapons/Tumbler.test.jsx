@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { createWeaponTargetScratch } from '../../lib/weaponTargeting.js'
 import { tumblerHitMultiplier } from '../../lib/tumblerFalloff.js'
+import { consumeTumblerDurability } from '../../lib/tumblerDurability.js'
 import { WEAPON_CATALOG } from '../../lib/weaponCatalog.js'
 
 const source = readFileSync(new URL('./Tumbler.jsx', import.meta.url), 'utf8')
@@ -85,7 +86,7 @@ function createTumblerHarness({ weapon, hitSucceeds = () => true } = {}) {
   let plan = []
   const bodies = new Map()
   const bodyFor = (index) => {
-    if (!bodies.has(index)) bodies.set(index, { id: `enemy-${index}` })
+    if (!bodies.has(index)) bodies.set(index, { id: `enemy-${index}`, translation: () => ({ x: 0, y: 0, z: 1 }) })
     return bodies.get(index)
   }
 
@@ -94,10 +95,17 @@ function createTumblerHarness({ weapon, hitSucceeds = () => true } = {}) {
     frame({ clock: { elapsedTime: elapsedSeconds } })
   }
 
+  const visual = { visible: true, position: { set() {} }, rotation: { set() {} } }
+  const brokenUntilRef = { current: new Float64Array(3) }
   const frame = compileTumblerFrame({
     weapons: { tumbler: { active: true, ...WEAPON_CATALOG.tumbler.base, ...weapon } },
     playerPos: { x: 0, y: 0, z: 0 },
-    visualRefs: { current: [] },
+    visualRefs: { current: [visual] },
+    liveXRef: { current: new Float32Array(3) },
+    liveZRef: { current: new Float32Array(3) },
+    durabilityUsedRef: { current: new Uint16Array(3) },
+    brokenUntilRef,
+    consumeTumblerDurability,
     orbitXRef: { current: new Float32Array(3) },
     orbitZRef: { current: new Float32Array(3) },
     targetScratchRef: { current: createWeaponTargetScratch() },
@@ -132,7 +140,7 @@ function createTumblerHarness({ weapon, hitSucceeds = () => true } = {}) {
     emitSfx: (event) => emitted.push(event),
   })
 
-  return { runFrame, applied, emitted }
+  return { runFrame, applied, emitted, visual, brokenUntilRef }
 }
 
 describe('텀블러 연속 타격 감쇠 (프로덕션 프레임 루프 실행)', () => {
@@ -223,5 +231,56 @@ describe('텀블러 연속 타격 감쇠 (프로덕션 프레임 루프 실행)'
     runFrame(32.0, [A])
 
     expect(applied.map((hit) => hit.damage)).toEqual([DAMAGE * 1.0, DAMAGE * 0.9, DAMAGE * 0.8])
+  })
+})
+
+// ── 내구력(2026-10-30) ───────────────────────────────────────────────────────
+describe('텀블러 내구력 (프로덕션 프레임 루프 실행)', () => {
+  const A = { index: 3, generation: 1 }
+
+  it('카탈로그 기본 내구력 40, 재생 2초다', () => {
+    expect(WEAPON_CATALOG.tumbler.base.durability).toBe(40)
+    expect(WEAPON_CATALOG.tumbler.base.rechargeMs).toBe(2000)
+  })
+
+  it('유효타 durability회에 깨져 사라지고, 재생 동안 못 때리며, rechargeMs 뒤 다시 생겨 내구력이 가득 찬다', () => {
+    const { runFrame, applied, emitted, visual } = createTumblerHarness({
+      weapon: { damage: 10, hitsPerSecond: 2.5, count: 1, durability: 3, rechargeMs: 2000 },
+    })
+    runFrame(1.0, [A])
+    runFrame(1.5, [A])
+    expect(visual.visible).toBe(true)
+    runFrame(2.0, [A]) // 3타째 → 깨짐(2.0s + 2s = 4.0s까지)
+    expect(applied).toHaveLength(3)
+    expect(emitted.at(-1)).toMatchObject({ id: 'tumblerHit', rate: 0.62 })
+
+    runFrame(2.5, [A])
+    runFrame(3.5, [A])
+    expect(applied).toHaveLength(3)
+    expect(visual.visible).toBe(false)
+
+    runFrame(4.0, [A]) // 재생 + 같은 프레임 타격 가능
+    expect(visual.visible).toBe(true)
+    expect(emitted.some((e) => e.id === 'tumblerFire')).toBe(true)
+    expect(applied).toHaveLength(4)
+    runFrame(4.5, [A])
+    expect(applied).toHaveLength(5)
+    expect(visual.visible).toBe(true) // 재생 후 2타 — 아직 3에 못 미침
+  })
+
+  it('applyEnemyHit이 false인 타격은 내구력을 깎지 않는다', () => {
+    let allow = false
+    const { runFrame, visual } = createTumblerHarness({
+      weapon: { damage: 10, hitsPerSecond: 2.5, count: 1, durability: 1, rechargeMs: 2000 },
+      hitSucceeds: () => allow,
+    })
+    runFrame(1.0, [A])
+    runFrame(1.5, [A])
+    runFrame(2.0, [A]) // 렌더 반영은 다음 프레임
+    expect(visual.visible).toBe(true)
+    allow = true
+    runFrame(2.5, [A])
+    runFrame(2.6, [])
+    expect(visual.visible).toBe(false)
   })
 })

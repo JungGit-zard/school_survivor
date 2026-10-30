@@ -31,7 +31,11 @@ describe('텀블러 연속 타격 감쇠 배율', () => {
 describe('마틸다 HP 파생 입력(estimateWeaponDps)에 감쇠가 반영된다', () => {
   // 마틸다 HP = 스폰 시점 플레이어 DPS × 1800초(Enemies.jsx)라, 추정기가 감쇠를 모르면
   // 텀블러 몫이 25% 부풀고 마틸다만 부당하게 단단해진다.
-  const lv1 = () => ({ ...WEAPON_CATALOG.tumbler.base, active: true, level: 1 })
+  // 내구력 가동률(2026-10-30)은 tumblerDurability.test.js가 따로 고정한다. 여기선 감쇠만 본다.
+  const lv1 = () => {
+    const { durability, rechargeMs, ...base } = WEAPON_CATALOG.tumbler.base
+    return { ...base, active: true, level: 1 }
+  }
   // 도달 최대: MAX_WEAPON_LEVEL 5 = acquire 이후 카드 4장(tumblerDamage/Power/Count/Crit)
   // → damage 6+2.7+2.7, count 1→2, critChance 0.04+0.02, critMultiplier 1.5 fixed.
   const lvMax = () => ({ ...lv1(), level: 5, damage: 11.4, count: 2, critChance: 0.06, critMultiplier: 1.5 })

@@ -7,6 +7,7 @@ import { outlineMat, toonMat, inflateScale } from '../../lib/toon.js'
 import { applyEnemyHit, isEnemyHitLive } from '../../lib/weaponCollision.js'
 import { createWeaponTargetScratch, resolveWeaponTarget, scanOrbitEnemiesInto } from '../../lib/weaponTargeting.js'
 import { tumblerHitMultiplier } from '../../lib/tumblerFalloff.js'
+import { consumeTumblerDurability } from '../../lib/tumblerDurability.js'
 import StudioTunedGroup from '../StudioTunedGroup.jsx'
 
 export function TumblerModel() {
@@ -57,6 +58,13 @@ export function TumblerOrbit() {
   const impactRef = useRef({ knockback: 3, knockbackMs: 220, source: { x: 0, z: 0 }, critChance: 0, critMultiplier: 1 })
   const orbitXRef = useRef(new Float32Array(3))
   const orbitZRef = useRef(new Float32Array(3))
+  // 내구력(2026-10-30, lib/tumblerDurability.js). 텀블러별로 "다시 생긴 뒤 쓴 횟수"와 재생 시각을 든다.
+  // 깨진 텀블러는 오리요강처럼 살아 있는 궤도체 배열에서 빼고 스캔한다.
+  const liveXRef = useRef(new Float32Array(3))
+  const liveZRef = useRef(new Float32Array(3))
+  const durabilityUsedRef = useRef(new Uint16Array(3))
+  const brokenUntilRef = useRef(new Float64Array(3))
+  const wasActiveRef = useRef(false)
   const weapons = useGameStore((s) => s.weapons)
 
   usePlayingFrame(({ clock }) => {
@@ -67,30 +75,59 @@ export function TumblerOrbit() {
     const count = Math.max(1, Math.min(3, w.count ?? 1))
     const radius = w.radius
     const y = playerPos.y + 0.16
+    const nowMs = nowSec * 1000
+    const brokenUntil = brokenUntilRef.current
 
+    // 깨진 텀블러도 궤도 좌표는 계속 돈다 — 다시 생길 때 다른 텀블러와 간격이 유지된다.
+    let liveCount = 0
     for (let i = 0; i < count; i += 1) {
       const angle = nowSec * w.orbitSpeed + (Math.PI * 2 * i) / count
       const x = playerPos.x + Math.sin(angle) * radius
       const z = playerPos.z + Math.cos(angle) * radius
       orbitXRef.current[i] = x
       orbitZRef.current[i] = z
+      if (brokenUntil[i] > 0 && brokenUntil[i] <= nowMs) {
+        // 재생 완료: 내구력 가득. 해금 때 쓰는 tumblerFire를 작게 다시 울려 복귀를 알린다.
+        brokenUntil[i] = 0
+        durabilityUsedRef.current[i] = 0
+        emitSfx({ id: 'tumblerFire', volume: 0.55 })
+      }
+      const alive = brokenUntil[i] === 0
+      if (alive) {
+        liveXRef.current[liveCount] = x
+        liveZRef.current[liveCount] = z
+        liveCount += 1
+      }
       if (visualRefs.current[i]) {
+        visualRefs.current[i].visible = alive
         visualRefs.current[i].position.set(x, y, z)
         visualRefs.current[i].rotation.set(0.2, angle, nowSec * 8 + i * 0.8)
       }
     }
+    if (liveCount === 0) return
 
-    const nowMs = nowSec * 1000
     const interval = 1000 / w.hitsPerSecond
     const hitRadius = w.hitRadius ?? 0.46
     const scratch = targetScratchRef.current
-    const targetCount = scanOrbitEnemiesInto(scratch, orbitXRef.current, orbitZRef.current, count, hitRadius)
+    const targetCount = scanOrbitEnemiesInto(scratch, liveXRef.current, liveZRef.current, liveCount, hitRadius)
     for (let targetIndex = 0; targetIndex < targetCount; targetIndex += 1) {
       const special = scratch.special[targetIndex]
       const index = scratch.indices[targetIndex]
       const generation = special ? (scratch.generations[targetIndex] || null) : scratch.generations[targetIndex]
       const rb = special ?? resolveWeaponTarget(index, generation, null)
       if (!isEnemyHitLive(rb, generation)) continue
+      // 이 적을 때린 텀블러 = 가장 가까운 살아 있는 텀블러. 이번 프레임에 깨진 텀블러는 여기서 빠진다.
+      const t = rb.translation()
+      let cup = -1
+      let bestDistSq = Infinity
+      for (let i = 0; i < count; i += 1) {
+        if (brokenUntil[i] > 0) continue
+        const dx = t.x - orbitXRef.current[i]
+        const dz = t.z - orbitZRef.current[i]
+        const distSq = dx * dx + dz * dz
+        if (distSq < bestDistSq) { bestDistSq = distSq; cup = i }
+      }
+      if (cup < 0) break
       let lastHit = 0
       let specialSlot = -1
       if (special) {
@@ -128,11 +165,32 @@ export function TumblerOrbit() {
         volume: 0.70 + Math.random() * 0.20,
         rate: 0.90 + Math.random() * 0.15,
       })
+      const wear = consumeTumblerDurability({
+        used: durabilityUsedRef.current[cup],
+        durability: w.durability,
+        rechargeMs: w.rechargeMs,
+        nowMs,
+      })
+      durabilityUsedRef.current[cup] = wear.used
+      if (wear.broken && wear.brokenUntilMs > nowMs) {
+        // 깨짐: 새 에셋 없이 기존 tumblerHit을 낮은 피치로 한 번 더 — 둔탁하게 "퍽".
+        brokenUntil[cup] = wear.brokenUntilMs
+        emitSfx({ id: 'tumblerHit', volume: 0.95, rate: 0.62 })
+      }
     }
   })
 
   // ponytail: 텀블러는 항상 활성, fire 이벤트 없으므로 활성화 시점에 1회 emit
-  useEffect(() => { if (weapons.tumbler?.active) emitSfx({ id: 'tumblerFire' }) }, [weapons.tumbler?.active])
+  // ref는 런이 바뀌어도 살아남으므로 활성화될 때 내구력 상태를 비운다(오리요강과 같은 이유).
+  useEffect(() => {
+    const active = !!weapons.tumbler?.active
+    if (active && !wasActiveRef.current) {
+      emitSfx({ id: 'tumblerFire' })
+      durabilityUsedRef.current.fill(0)
+      brokenUntilRef.current.fill(0)
+    }
+    wasActiveRef.current = active
+  }, [weapons.tumbler?.active])
 
   if (!weapons.tumbler?.active) return null
   const tumblerCount = Math.max(1, Math.min(3, weapons.tumbler.count ?? 1))

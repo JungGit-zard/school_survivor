@@ -31,6 +31,7 @@
 // 목표 근사치다. 정밀도가 필요하면 실측 프로브로 교체하면 된다.
 
 import { bikittyCycleDps } from './bikittyCutter.js'
+import { tumblerSingleTargetUptime } from './tumblerDurability.js'
 
 // 신 지정: 30분.
 export const MATILDA_ATTACK_SECONDS = 1800
@@ -132,6 +133,14 @@ function sustainedDamageMultiplier(weapon) {
   return Number.isFinite(value) && value > 0 ? value : 1
 }
 
+// 내구력 무기(현재 텀블러)의 장기 가동률(2026-10-30). durability/rechargeMs가 없으면 1.
+// 깨져서 다시 생기는 동안은 피해가 0이라, 감쇠(sustainedDamageMultiplier)와 별개로 곱한다.
+// 마틸다 Lv1 텀블러 12.24 → 10.88(×0.889), 만렙(내구력 80·2개) 23.48 → 22.77(×0.970).
+function durabilityUptimeMultiplier(weapon) {
+  if (!Number.isFinite(weapon?.durability) || !Number.isFinite(weapon?.rechargeMs)) return 1
+  return tumblerSingleTargetUptime(weapon)
+}
+
 // 무기 1종의 단일 대상 기대 DPS. 비활성 무기는 0.
 export function estimateWeaponDps(weapon) {
   if (!weapon?.active) return 0
@@ -143,7 +152,7 @@ export function estimateWeaponDps(weapon) {
   const damage = Number.isFinite(weapon.damage) ? weapon.damage : 0
   const secondary = weaponSecondaryDamagePerSecond(weapon)
   if (damage <= 0 && secondary <= 0) return 0
-  const primary = damage * weaponOnTargetHits(weapon) * weaponHitsPerSecond(weapon) * sustainedDamageMultiplier(weapon)
+  const primary = damage * weaponOnTargetHits(weapon) * weaponHitsPerSecond(weapon) * sustainedDamageMultiplier(weapon) * durabilityUptimeMultiplier(weapon)
   const critMultiplier = expectedCritMultiplier(weapon)
   // Science Flask runtime marks the landing blast as canCrit:false, but forwards
   // critChance/critMultiplier to ChemicalZone ticks. Keep that parity here.

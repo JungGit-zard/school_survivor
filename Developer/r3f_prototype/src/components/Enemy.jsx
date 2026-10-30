@@ -334,6 +334,59 @@ export function isMatildaBodyContact({ enemyX, enemyZ, yaw = 0, playerX, playerZ
     && Math.abs(localZ) <= lethalHalfZ
 }
 
+// 돌진 중 스윕 접촉 판정(2026-10-30). 돌진 속도가 상한 없이 오르므로(lib/matildaDashSpeed.js)
+// 한 프레임 이동량이 치사 박스 폭(~0.67u)을 넘으면 점 판정은 플레이어를 뚫고 지나간다.
+// 지난 프레임 위치(fromX/Z) → 현재 위치(enemyX/Z) 선분을 마틸다 로컬 프레임으로 옮겨
+// isMatildaBodyContact와 같은 치사 박스(반extent + 겹침 임계)와 slab 교차한다.
+export function isMatildaSweptBodyContact({ fromX, fromZ, enemyX, enemyZ, yaw = 0, playerX, playerZ, halfX, halfZ }) {
+  const cosY = Math.cos(yaw)
+  const sinY = Math.sin(yaw)
+  const ax = playerX - fromX
+  const az = playerZ - fromZ
+  const bx = playerX - enemyX
+  const bz = playerZ - enemyZ
+  const x0 = ax * cosY - az * sinY
+  const z0 = ax * sinY + az * cosY
+  const x1 = bx * cosY - bz * sinY
+  const z1 = bx * sinY + bz * cosY
+  const hx = Math.max(0, halfX + MATILDA_CONTACT_PLAYER_OVERLAP_THRESHOLD)
+  const hz = Math.max(0, halfZ + MATILDA_CONTACT_PLAYER_OVERLAP_THRESHOLD)
+  let tMin = 0
+  let tMax = 1
+  const dx = x1 - x0
+  if (Math.abs(dx) < 1e-9) {
+    if (Math.abs(x0) > hx) return false
+  } else {
+    let ta = (-hx - x0) / dx
+    let tb = (hx - x0) / dx
+    if (ta > tb) { const swap = ta; ta = tb; tb = swap }
+    tMin = Math.max(tMin, ta)
+    tMax = Math.min(tMax, tb)
+    if (tMin > tMax) return false
+  }
+  const dz = z1 - z0
+  if (Math.abs(dz) < 1e-9) return Math.abs(z0) <= hz
+  let ta = (-hz - z0) / dz
+  let tb = (hz - z0) / dz
+  if (ta > tb) { const swap = ta; ta = tb; tb = swap }
+  return Math.max(tMin, ta) <= Math.min(tMax, tb)
+}
+
+// 돌진 1프레임 이동이 스테이지 가장자리(bounds - inset)를 넘지 않게 속도를 깎는다.
+// 가장자리에 닿으면 기존 isMatildaChargingOutward가 웃음 상태로 넘긴다. 이미 넘어 있거나
+// 가장자리 쪽으로 가지 않는 축은 제한하지 않는다.
+export function clampMatildaDashSpeedToBounds(position, direction, speed, delta, bounds, inset = MATILDA_EDGE_INSET) {
+  if (!bounds || !(delta > 0) || !(speed > 0)) return speed
+  let maxMove = Infinity
+  const limitX = bounds.halfX - inset
+  const limitZ = bounds.halfZ - inset
+  if (direction.x > 0 && position.x < limitX) maxMove = Math.min(maxMove, (limitX - position.x) / direction.x)
+  if (direction.x < 0 && position.x > -limitX) maxMove = Math.min(maxMove, (-limitX - position.x) / direction.x)
+  if (direction.z > 0 && position.z < limitZ) maxMove = Math.min(maxMove, (limitZ - position.z) / direction.z)
+  if (direction.z < 0 && position.z > -limitZ) maxMove = Math.min(maxMove, (-limitZ - position.z) / direction.z)
+  return Math.min(speed, maxMove / delta)
+}
+
 // XP 媛믪? 援먭낵??30% ?쒕엻瑜좎쓣 蹂댁젙????3.3諛곕줈 梨낆젙 (Planner/B.寃뚯엫湲고쉷,諛몃윴??援ы쁽/B-1 罹먮┃???깆옣,?λ젰移??낃렇?덉씠??援ъ“ 援ы쁽/Rewards_Drops/dual_drop_system_2026-05-08.md 짠7-2).
 // 이동속도 전 타입 ×1.1 (2026-08-13 사용자 지시 "폰에서 템포가 느리다 / 기본 좀비 이속이 너무 느리다"):
 // 잡몹·러너·원거리·차저·런크루·보스까지 예외 없이 chase speed만 정확히 1.1배로 올린다.
@@ -978,7 +1031,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
   const enemyAgeMsRef         = useRef(0)
   const spawnRevealElapsedRef = useRef(0)
   // 프레임마다 재사용하는 스크래치 객체 — 마틸다 박스 접촉 판정 입력용(RULE-0.2: 매 프레임 객체 생성 금지)
-  const matildaContactArgsRef = useRef({ enemyX: 0, enemyZ: 0, yaw: 0, playerX: 0, playerZ: 0, halfX: 0, halfZ: 0 })
+  const matildaContactArgsRef = useRef({ fromX: 0, fromZ: 0, enemyX: 0, enemyZ: 0, yaw: 0, playerX: 0, playerZ: 0, halfX: 0, halfZ: 0 })
   const matildaContactKillCountdownRef = useRef(createMatildaContactKillCountdown())
 
   // E05 / B01 ?뚯쭊 ?곹깭 癒몄떊
@@ -1530,7 +1583,15 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
         contactArgs.playerZ = playerPos.z
         contactArgs.halfX = matildaHalfExtents.halfX
         contactArgs.halfZ = matildaHalfExtents.halfZ
-        const matildaBodyContact = isMatildaBodyContact(contactArgs)
+        // 돌진 중에만 스윕 판정. 그 외 상태는 기존 점 판정 그대로다.
+        let matildaBodyContact
+        if (chargeState.current === 'charge') {
+          contactArgs.fromX = matildaPreviousChargePosRef.current.x
+          contactArgs.fromZ = matildaPreviousChargePosRef.current.z
+          matildaBodyContact = isMatildaSweptBodyContact(contactArgs)
+        } else {
+          matildaBodyContact = isMatildaBodyContact(contactArgs)
+        }
         if (advanceMatildaContactKillCountdown(matildaContactKillCountdownRef.current, matildaBodyContact, delta * 1000)) {
           killPlayer('matilda')
         }
@@ -1553,7 +1614,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
           const cd = chargeDir.current
           const previous = matildaPreviousChargePosRef.current
           const movedAlong = (t.x - previous.x) * cd.x + (t.z - previous.z) * cd.z
-          const dashSpeed = getMatildaDashSpeed(stats.chargeSpeed, matildaDashCountRef.current)
+          const dashSpeed = clampMatildaDashSpeedToBounds(t, cd, getMatildaDashSpeed(stats.chargeSpeed, matildaDashCountRef.current), delta, stageCombatConfig.bounds)
           const expectedMove = dashSpeed * delta
           const hitDistance = getChargeHitDistance(stats, true)
           const blockedFrame = isMatildaChargeBlockedValues(movedAlong, expectedMove, dist, hitDistance)
