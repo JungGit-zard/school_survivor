@@ -3,7 +3,7 @@ import { useFrame } from '@react-three/fiber'
 import { useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
 import { toonMat } from '../lib/toon.js'
-import { addPlayerV9Outlines } from '../lib/playerV9Outline.js'
+import { PLAYER_OUTLINE_THICKNESS, PLAYER_OUTLINE_THICKNESS_PREVIEW, addPlayerV9Outlines } from '../lib/playerV9Outline.js'
 import { applyPlayerV9Outfit } from '../lib/playerV9Outfits.js'
 import { bagSwingState, playerArmActionState } from '../lib/refs.js'
 import { getActivePlayerArmAction, getPlayerArmPose } from '../lib/playerArmAction.js'
@@ -73,7 +73,7 @@ export function clonePlayerV9Scene(scene, gameplay, outfit = 'default') {
   })
   // Per-clone materials only; the default outfit is a no-op.
   applyPlayerV9Outfit(cloned, outfit)
-  addPlayerV9Outlines(cloned, gameplay ? 1.08 : 1.04)
+  addPlayerV9Outlines(cloned, gameplay ? PLAYER_OUTLINE_THICKNESS : PLAYER_OUTLINE_THICKNESS_PREVIEW)
   return cloned
 }
 

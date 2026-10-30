@@ -3,7 +3,7 @@ import { useFrame } from '@react-three/fiber'
 import { useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
 import { toonMat } from '../lib/toon.js'
-import { addPlayerV9Outlines } from '../lib/playerV9Outline.js'
+import { PLAYER_OUTLINE_THICKNESS, PLAYER_OUTLINE_THICKNESS_PREVIEW, addPlayerV9Outlines } from '../lib/playerV9Outline.js'
 import { DEFAULT_ROSARI_OUTFIT_ID, applyRosariOutfit } from '../lib/rosariOutfits.js'
 import { bagSwingState, playerArmActionState } from '../lib/refs.js'
 import { getActivePlayerArmAction, getPlayerArmPose } from '../lib/playerArmAction.js'
@@ -156,7 +156,7 @@ function clonePlayerRosariScene(scene, gameplay, outfit = DEFAULT_ROSARI_OUTFIT_
   // 로자리 방의 스크린스페이스 압출 아웃라인은 userData.isOutline을 쓰기 때문에
   // ① Studio의 outlineThickness가 헐 scale을 키워 12% 확대 흑색 복제본을 만들고
   // ② 피격 플래시가 헐을 흰 머티리얼로 교체해 캐릭터를 흰 덩어리로 바꾼다.
-  addPlayerV9Outlines(cloned, gameplay ? 1.08 : 1.04)
+  addPlayerV9Outlines(cloned, gameplay ? PLAYER_OUTLINE_THICKNESS : PLAYER_OUTLINE_THICKNESS_PREVIEW)
   return cloned
 }
 

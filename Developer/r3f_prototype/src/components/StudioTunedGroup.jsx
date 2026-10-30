@@ -180,6 +180,12 @@ export function applyStudioTuning(root, tuning = DEFAULT_STUDIO_TUNING, { scope 
   const t = normalizeStudioTuning(tuning)
   const customMaterialTuning = hasStudioMaterialTuning(t)
   const outlineColor = new THREE.Color(t.outlineColor)
+  // ponytail: 이 계수는 헐 메시의 scale을 그대로 곱한다. 플레이어 헐(playerV9Outline.js)은
+  // 2026-10-30부터 축별 scale(1 + t/h)을 쓰므로, 슬라이더를 1에서 올리면 "두께가 t만큼 느는"
+  // 것이 아니라 "파츠가 전체적으로 부푼다". 기본값 outlineThickness = 1 에서는 계수가 정확히
+  // 1.0이라 무영향이고, 그래서 이번 범위에서는 메커니즘을 그대로 뒀다(천장 명시).
+  // 업그레이드 경로: scale을 곱하지 말고 t(PLAYER_OUTLINE_THICKNESS)를 구동해 헐을 다시 만들어야
+  // 한다. 그러려면 Studio가 헐 재생성을 트리거할 수 있어야 하므로 별건 설계가 필요하다.
   const outlineScaleFactor = 1 + (t.outlineThickness - 1) * 0.12
 
   root.traverse((object) => {

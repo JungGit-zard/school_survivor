@@ -17,6 +17,7 @@ vi.mock('@react-three/drei', () => ({ useGLTF: Object.assign(() => ({ scene: run
 import PlayerV9Model, { PLAYER_V9_RAW_HEIGHT, PLAYER_V9_RAW_MIN_Y } from './PlayerV9Model.jsx'
 import StudioTunedGroup, { applySavedStudioPartTunings, applyStudioTuning, findStudioPartByKey } from './StudioTunedGroup.jsx'
 import { GRAPHICS_STUDIO_CATALOG } from '../lib/graphicsStudioConfig.js'
+import { PLAYER_OUTLINE_THICKNESS, PLAYER_OUTLINE_THICKNESS_PREVIEW } from '../lib/playerV9Outline.js'
 
 // Mount the component's returned group hierarchy with actual Three objects,
 // then run its registered animation callback. No WebGL or Firebase writes.
@@ -80,8 +81,12 @@ describe('Player v9 gameplay and Studio runtime model contract', () => {
     expect(PLAYER_V9_RAW_HEIGHT * gameplay.scale.y).toBeCloseTo(0.89244 * 0.9, 14)
     expect(gameplay.position.y + PLAYER_V9_RAW_MIN_Y * gameplay.scale.y).toBeCloseTo(-0.32, 14)
     expect(preview.position.y + PLAYER_V9_RAW_MIN_Y * preview.scale.y).toBeCloseTo(-0.32, 14)
-    expect(preview.getObjectByName('Hair_crown_flat_round_skull_outline').scale.x).toBeCloseTo(1.08)
-    expect(gameplay.getObjectByName('Hair_crown_flat_round_skull_outline').scale.x).toBeCloseTo(1.16)
+    // 헐은 균일 배율이 아니라 축별 역산(1 + t / half-extent)이다. 픽스처 박스는 1x1x1이라
+    // half-extent가 0.5이고, 표면 오프셋이 프리뷰 t/2 · 게임플레이 t로 떨어진다.
+    const previewHull = preview.getObjectByName('Hair_crown_flat_round_skull_outline')
+    const gameplayHull = gameplay.getObjectByName('Hair_crown_flat_round_skull_outline')
+    expect((previewHull.scale.x - 1) * 0.5).toBeCloseTo(PLAYER_OUTLINE_THICKNESS_PREVIEW, 6)
+    expect((gameplayHull.scale.x - 1) * 0.5).toBeCloseTo(PLAYER_OUTLINE_THICKNESS, 6)
   })
 
   it('draws hulls only outside the surface stencil and preserves source geometry and face material', () => {
