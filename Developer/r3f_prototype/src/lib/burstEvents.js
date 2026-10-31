@@ -58,6 +58,28 @@ export function repeatingBurstSecAtTick(event, tick) {
   if (!isRepeatingBurstEvent(event) || safeTick < 0 || safeTick >= repeatingBurstTickCount(event)) return null
   return event.sec + safeTick * event.repeatIntervalSec
 }
+// 2026-10-31 Terry 지시: 탈출구가 열린 뒤의 정기 대량 웨이브는 회차마다 기본 마릿수의 10%씩 늘어난다.
+// 설계 의도: 탈출구가 열리면 압박이 끝없이 자라 결국 버티지 못하고 탈출할 수밖에 없게 한다.
+// 선형(복리 아님): n번째(첫 회 n=0) 웨이브 = round(base × (1 + 0.10 × n)). 마릿수 자체에 상한을 두지 않는다 —
+// 동시 개체 천장(MAX_ENEMIES)만 실제 스폰을 자른다.
+export const POST_EXIT_WAVE_GROWTH_RATE = 0.1
+
+export function postExitWaveCount(baseCount, waveIndex) {
+  const base = Math.max(0, Math.floor(baseCount) || 0)
+  const n = Math.floor(waveIndex)
+  if (!Number.isFinite(n) || n <= 0) return base
+  return Math.round(base * (1 + POST_EXIT_WAVE_GROWTH_RATE * n))
+}
+
+// 반복 버스트 tick의 탈출구 개방 후 회차. 개방 전 tick은 -1(기존 마릿수 그대로).
+// 개방 시각 정각에 떨어지는 tick이 첫 회(n=0)다.
+export function postExitRepeatWaveIndex(event, tick, portalSec) {
+  const tickSec = repeatingBurstSecAtTick(event, tick)
+  if (tickSec === null || !Number.isFinite(portalSec) || tickSec < portalSec) return -1
+  const firstPostExitTick = Math.max(0, Math.ceil((portalSec - event.sec) / event.repeatIntervalSec))
+  return Math.floor(tick) - firstPostExitTick
+}
+
 export const ALL_STAGES_110SEC_SMILING_TANKER_REINFORCEMENT_EVENTS = [
   { sec: 110, type: 'E07', count: 3 },
   { sec: 110, type: 'E02', count: 3 },

@@ -35,7 +35,7 @@ import {
 
 const BOSS_PASSIVE_ITEM_ICONS = Object.freeze({
   b01SetSquare: '📐',
-  b02CorridorPass: '🎫',
+  b02CorridorPass: '🚧',
   b03GymWhistle: '📣',
   b04ServingLadle: '🥄',
 })

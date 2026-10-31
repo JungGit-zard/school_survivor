@@ -522,18 +522,19 @@ describe('all-stage overtime mixed ordinary reinforcements', () => {
     expect(clampZombieSpawnRequest(30, { pooledActive: 150, specialActive: 0, pooledQueued: 0 })).toBe(0)
   })
 
-  it('increases overtime spawn pressure by 10 percent after every three zombie spawns from five minutes onward', () => {
+  it('grows each post-exit overtime reinforcement by 10 percent of the base 30 (linear, from the first 240s wave)', () => {
     expect(OVERTIME_REINFORCEMENT_START_SEC).toBe(240)
     expect(OVERTIME_ESCALATION_START_SEC).toBe(300)
     expect(OVERTIME_ESCALATION_SPAWNS_PER_STEP).toBe(3)
     expect(OVERTIME_ESCALATION_RATE).toBe(0.1)
     expect(overtimeReinforcementTick(240, 'stage1')).toBe(0)
     expect(overtimeReinforcementTick(300, 'stage1')).toBe(2)
-    expect(overtimeReinforcementCountForTick(1, 'stage1')).toBe(30)
-    expect(overtimeReinforcementCountForTick(2, 'stage1')).toBe(30)
-    expect(overtimeReinforcementCountForTick(4, 'stage1')).toBe(30)
-    expect(overtimeReinforcementCountForTick(5, 'stage1')).toBe(33)
-    expect(overtimeReinforcementCountForTick(8, 'stage1')).toBe(36)
+    expect(overtimeReinforcementCountForTick(0)).toBe(30)
+    expect(overtimeReinforcementCountForTick(1)).toBe(33)
+    expect(overtimeReinforcementCountForTick(2)).toBe(36)
+    expect(overtimeReinforcementCountForTick(4)).toBe(42)
+    expect(overtimeReinforcementCountForTick(5)).toBe(45)
+    expect(overtimeReinforcementCountForTick(8)).toBe(54)
   })
 
   // 마릿수 램프는 MAX_ENEMIES(150) 천장에서 포화한다. 그 위로 압박을 잇는 축은 개체 HP뿐이다.
@@ -557,14 +558,14 @@ describe('all-stage overtime mixed ordinary reinforcements', () => {
     expect(overtimeHpStatOverride('E06', 'stage1', 2)).toBeUndefined()
   })
 
-  it('steps overtime zombie HP every three reinforcement ticks on the same ladder as the count ramp', () => {
-    // 계단 산출은 단일 소스여야 한다 — 마릿수와 HP가 서로 다른 계단을 밟으면 여기서 깨진다.
+  it('steps overtime zombie HP every three reinforcement ticks while the count grows every tick', () => {
+    // HP만 90초 계단(3틱)을 탄다. 마릿수는 계단과 무관하게 매 tick 기본의 10%씩 선형으로 는다.
     const expectedSteps = { 2: 0, 3: 0, 4: 0, 5: 1, 6: 1, 7: 1, 8: 2, 10: 2, 11: 3, 14: 4, 20: 6, 44: 14 }
     for (const [tick, steps] of Object.entries(expectedSteps)) {
       expect(overtimeEscalationSteps(Number(tick), 'stage1')).toBe(steps)
       expect(overtimeHpMultiplierForTick(Number(tick), 'stage1')).toBeCloseTo(1 + steps * 0.1, 10)
-      expect(overtimeReinforcementCountForTick(Number(tick), 'stage1'))
-        .toBe(Math.max(1, Math.round(30 * (1 + steps * OVERTIME_ESCALATION_RATE))))
+      expect(overtimeReinforcementCountForTick(Number(tick)))
+        .toBe(Math.round(30 * (1 + Number(tick) * OVERTIME_ESCALATION_RATE)))
     }
     // 초 단위 손익분기 지표 — 계단은 300초부터 90초마다 하나씩 오른다.
     const multAtSec = (sec) => overtimeHpMultiplierForTick(overtimeReinforcementTick(sec, 'stage1'), 'stage1')
@@ -626,8 +627,8 @@ describe('all-stage overtime mixed ordinary reinforcements', () => {
     expect(source).toContain('specialActive: countAliveSpecialZombies(enemiesRef.current, runtimeQueueRef.current.specialRemovals, enemyBodies)')
     expect(source).toContain('pooledQueued: runtimeQueueRef.current.spawnDrain.count')
     expect(source).toContain('const overtimeTick = overtimeTickRef.current')
-    expect(source).toContain('const requested = overtimeReinforcementCountForTick(overtimeTick, cache.id)')
-    // 마릿수와 개체 HP는 같은 tick(=같은 계단)을 밟아야 한다. 여기서 갈리면 두 램프가 어긋난다.
+    expect(source).toContain('const requested = overtimeReinforcementCountForTick(overtimeTick)')
+    // 마릿수와 개체 HP는 같은 overtimeTick에서 파생해야 한다(마릿수는 매 tick, HP는 90초 계단).
     expect(source).toContain('statOverride: overtimeHpStatOverride(type, cache.id, overtimeTick)')
     expect(source).toContain('const count = clampZombieSpawnRequest(requested, totalZombieCounts())')
     expect(source).toContain('buildOvertimeMixedReinforcementEntries(cache.id, Math.random, count)')

@@ -17,7 +17,7 @@ import { getE04IntroSec } from '../lib/stage2ProjectileRules.js'
 import { getStageBounds, getStageConfig } from '../lib/stageConfig.js'
 import { dogeEscapeDirection } from '../lib/dogeEscape.js'
 import { getDefaultWavePhases } from '../lib/waveTimelines.js'
-import { RUN_ZOMBIE_CREW_FORMATION, STAGE2_GUARD_CHASE_FORMATION, getBurstEventsForStage, getRuntimeBurstEventsForStage, getRuntimeSpawnEventsForStage, isBossType, isRepeatingBurstEvent, repeatingBurstSecAtTick, repeatingBurstTickAt } from '../lib/burstEvents.js'
+import { RUN_ZOMBIE_CREW_FORMATION, STAGE2_GUARD_CHASE_FORMATION, getBurstEventsForStage, getRuntimeBurstEventsForStage, getRuntimeSpawnEventsForStage, isBossType, isRepeatingBurstEvent, postExitRepeatWaveIndex, postExitWaveCount, repeatingBurstSecAtTick, repeatingBurstTickAt } from '../lib/burstEvents.js'
 import { deathSfxId } from '../lib/enemyDeathSfx.js'
 import { buildWavePhasesFromEntries } from '../lib/waveControl.js'
 import { getAdminWaveControlConfig } from '../lib/adminConfig.js'
@@ -348,7 +348,7 @@ export function shouldScheduleOvertimeReinforcement(lastFiredTick, elapsedSec, s
   return { shouldSchedule: tick !== null && tick > lastFiredTick, tick }
 }
 
-// 오버타임 보강 계단 — 마릿수 램프와 개체 강화가 같은 계단을 밟게 하는 단일 소스.
+// 오버타임 개체 HP 계단 — HP 강화만 이 90초 계단을 쓴다. 마릿수는 30초 회차마다 기본의 10%씩 따로 는다.
 // 계단 s는 OVERTIME_ESCALATION_START_SEC(300초)부터 OVERTIME_ESCALATION_SPAWNS_PER_STEP(3틱)마다
 // 하나씩 올라간다. 보강 간격이 30초이므로 s = floor((t - 300) / 90).
 export function overtimeEscalationSteps(tick, stageId = 'stage1') {
@@ -359,12 +359,11 @@ export function overtimeEscalationSteps(tick, stageId = 'stage1') {
   return Math.floor((safeTick - escalationStartTick) / OVERTIME_ESCALATION_SPAWNS_PER_STEP)
 }
 
-export function overtimeReinforcementCountForTick(tick, stageId = 'stage1', baseCount = OVERTIME_REINFORCEMENT_COUNT) {
-  const safeBase = Math.max(0, Math.floor(baseCount) || 0)
-  if (!Number.isFinite(Math.floor(tick))) return safeBase
-  const steps = overtimeEscalationSteps(tick, stageId)
-  if (steps <= 0) return safeBase
-  return Math.max(1, Math.round(safeBase * (1 + steps * OVERTIME_ESCALATION_RATE)))
+// 오버타임 보강은 탈출구 개방(210초) 이후에만 돈다 — 매 회차 기본 30마리의 10%씩 선형 증가
+// (postExitWaveCount, 2026-10-31 Terry 지시). 탈출구가 열리면 웨이브가 끝없이 불어나 결국 탈출하게 만든다.
+// 개체 HP는 여전히 90초 계단(overtimeEscalationSteps)을 따로 탄다.
+export function overtimeReinforcementCountForTick(tick, baseCount = OVERTIME_REINFORCEMENT_COUNT) {
+  return postExitWaveCount(baseCount, tick)
 }
 
 export function overtimeHpMultiplierForTick(tick, stageId = 'stage1') {
@@ -1123,11 +1122,12 @@ export const OVERTIME_REINFORCEMENT_INTERVAL_SEC = 30
 export const OVERTIME_REINFORCEMENT_COUNT = 30
 export const OVERTIME_ESCALATION_START_SEC = 300
 export const OVERTIME_ESCALATION_SPAWNS_PER_STEP = 3
+// 런타임에서는 더 이상 쓰지 않는다(마릿수는 POST_EXIT_WAVE_GROWTH_RATE로 이전) — 테스트 참조용으로만 남는다.
 export const OVERTIME_ESCALATION_RATE = 0.1
 // 마릿수 램프는 MAX_ENEMIES(150) 천장에서 멈춘다 — clampZombieSpawnRequest가 `150 - alive`로
 // 잘라내므로 요청을 아무리 키워도 필드는 150에서 포화한다. 그런데 플레이어 레벨업에는 상한이
 // 없어서(xpCurve 무한 기하급수) 포화 이후로는 플레이어만 계속 강해지고, "고득점 vs 탈출"의
-// 손익분기가 사라진다. 마릿수 대신 개체 HP를 같은 계단으로 올려 천장 위에서도 압박이 자라게 한다.
+// 손익분기가 사라진다. 그래서 개체 HP를 90초 계단으로 따로 올려 천장 위에서도 압박이 자라게 한다.
 //
 // HP만 올리고 damage/speed는 건드리지 않는다:
 //  - 구조: ENEMY_RUNTIME_DAMAGE/SPEED는 타입 인덱스 lookup(enemySimulation.js)이고 풀에는
@@ -1724,9 +1724,9 @@ export default function Enemies() {
       }
       addEnemies(batch, true, cache.spawnToken)
     } else if (kind === SCHEDULE_OVERTIME) {
-      // 마릿수와 개체 강화가 같은 계단을 밟도록 tick을 한 번만 읽어 둘 다에 쓴다.
+      // tick을 한 번만 읽는다. 마릿수는 매 회차 +10%, 개체 HP는 같은 tick에서 파생한 90초 계단을 탄다.
       const overtimeTick = overtimeTickRef.current
-      const requested = overtimeReinforcementCountForTick(overtimeTick, cache.id)
+      const requested = overtimeReinforcementCountForTick(overtimeTick)
       const count = clampZombieSpawnRequest(requested, totalZombieCounts())
       if (count <= 0) return
       const entries = buildOvertimeMixedReinforcementEntries(cache.id, Math.random, count)
@@ -1797,7 +1797,8 @@ export default function Enemies() {
           const tickTableSec = repeatingBurstSecAtTick(evt, tick)
           if (tickTableSec === null) continue
           const batch = []
-          const count = evt.count ?? 1
+          // 탈출구 개방 후 회차마다 기본 마릿수의 10%씩 선형 증가 — 버티는 압박이 끝없이 자라 탈출을 강요한다.
+          const count = postExitWaveCount(evt.count ?? 1, postExitRepeatWaveIndex(evt, tick, getStageConfig(cache.id).escapePortalSec))
           for (let spawnIndex = 0; spawnIndex < count; spawnIndex += 1) {
             const taken = batch.map((enemy) => enemy.pos)
             const pos = spawnPosForBurstType(evt.type, cache.bounds, taken, Math.random, cache.obstacles)
