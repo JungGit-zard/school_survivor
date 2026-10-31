@@ -13,7 +13,7 @@ $pool = Join-Path $tmp 'video_pool'; $receipts = Join-Path $tmp 'receipts'
 [IO.Directory]::CreateDirectory($pool) | Out-Null; [IO.Directory]::CreateDirectory($receipts) | Out-Null
 try {
   # Slot -> format.
-  Assert-True ((Get-XCyclePostFormat '2026-10-31-2100') -ceq 'video') '21:00 KST slot posts a video'
+  Assert-True ((Get-XCyclePostFormat '2026-10-31-2100') -ceq 'website_card') '21:00 KST slot is a website card while video is off'
   Assert-True ((Get-XCyclePostFormat '2026-11-01-0300') -ceq 'website_card') '03:00 KST slot stays a website card'
   Assert-True ((Get-XCyclePostFormat 'manual-2026-10-31-2100') -ceq 'website_card') 'non-scheduled cycle ids never switch to video'
 

@@ -2,7 +2,8 @@
 # Terry 2026-10-31: one of the two daily X posts per language is a native video (21:00 KST); 03:00 stays a website card.
 function Get-XVideoPoolRoot { return [IO.Path]::GetFullPath((Join-Path $PSScriptRoot 'video_pool')) }
 function Get-XCyclePostFormat([string]$CycleId) {
-  if ($CycleId -match '^\d{4}-\d{2}-\d{2}-2100$') { return 'video' }
+  # Terry 2026-10-31 night: video off after the 21:00 failure; every slot is a website card again.
+  # To resume video: if ($CycleId -match '^\d{4}-\d{2}-\d{2}-2100$') { return 'video' }
   return 'website_card'
 }
 function Get-XVideoClips([string]$Root = (Get-XVideoPoolRoot)) {
