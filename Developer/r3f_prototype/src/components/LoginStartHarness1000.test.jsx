@@ -32,10 +32,9 @@ afterEach(() => {
   vi.unstubAllGlobals()
 })
 
-describe('게임 시작 Google 로그인 강제 하네스', () => {
-  it('1,000회 모두 Google 로그인 후 Studio Firebase 실패와 무관하게 로비에 진입한다', async () => {
-    const googleUser = { uid: 'uid-login-stress', displayName: 'Login Stress', email: 'stress@example.com', photoURL: '' }
-    const signInWithGoogle = vi.fn(async () => googleUser)
+describe('게임 시작 게스트 진입 하네스', () => {
+  it('1,000회 모두 Google 로그인 창 없이 게스트로 로비에 진입한다', async () => {
+    const signInWithGoogle = vi.fn(async () => null)
     useAuthStore.setState({
       status: 'signedOut',
       user: null,
@@ -69,7 +68,7 @@ describe('게임 시작 Google 로그인 강제 하네스', () => {
       })
     }
 
-    expect(signInWithGoogle).toHaveBeenCalledTimes(1000)
+    expect(signInWithGoogle).not.toHaveBeenCalled()
     expect(onEnterLobby).toHaveBeenCalledTimes(1000)
     expect(window.sessionStorage.getItem('eszs:pending-start-after-google-login')).toBeNull()
 

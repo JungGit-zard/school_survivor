@@ -282,9 +282,8 @@ describe('TitleScreen lobby entry', () => {
     cleanup()
   })
 
-  it('requires Google login before entering the lobby when the start button is pressed while signed out', async () => {
-    const googleUser = { uid: 'uid-start-login', displayName: 'Start Login', email: 'start@example.com', photoURL: '' }
-    const signInWithGoogle = vi.fn(async () => googleUser)
+  it('enters the lobby as a guest without opening Google login when the start button is pressed while signed out', async () => {
+    const signInWithGoogle = vi.fn(async () => null)
     useAuthStore.setState({
       status: 'signedOut',
       user: null,
@@ -297,28 +296,24 @@ describe('TitleScreen lobby entry', () => {
     await act(async () => {
       clickButtonByTextRaw(container, '게임 시작')
       await Promise.resolve()
-      await Promise.resolve()
     })
 
-    expect(signInWithGoogle).toHaveBeenCalledTimes(1)
+    expect(signInWithGoogle).not.toHaveBeenCalled()
     expect(onEnterLobby).toHaveBeenCalledTimes(1)
     expect(window.sessionStorage.getItem('eszs:pending-start-after-google-login')).toBeNull()
     expect(container.querySelector('#title-nickname-input')).toBeNull()
-    expect(container.querySelector('[role="dialog"][aria-labelledby="title-auth-failure-heading"]')).toBeNull()
-    expect(container.textContent).not.toContain('닉네임 설정')
-    expect(container.textContent).not.toContain('이용약관·개인정보처리방침 동의')
+    expect(container.querySelector('[role="dialog"]')).toBeNull()
 
     cleanup()
   })
 
-  it('blocks lobby entry and shows the login failure UI when Google login fails from the start button', async () => {
-    const authFailure = '인증이 만료되었습니다. 다시 인증해 주세요.'
+  it('still enters the lobby as a guest when Google auth is in an error state', async () => {
     const signInWithGoogle = vi.fn(async () => null)
     useAuthStore.setState({
       status: 'error',
       user: null,
       initialized: true,
-      error: authFailure,
+      error: '인증이 만료되었습니다. 다시 인증해 주세요.',
       signInWithGoogle,
     })
     const onEnterLobby = vi.fn()
@@ -327,40 +322,40 @@ describe('TitleScreen lobby entry', () => {
     await act(async () => {
       clickButtonByTextRaw(container, '게임 시작')
       await Promise.resolve()
-      await Promise.resolve()
     })
 
-    expect(signInWithGoogle).toHaveBeenCalledTimes(1)
-    expect(onEnterLobby).not.toHaveBeenCalled()
-    expect(window.sessionStorage.getItem('eszs:pending-start-after-google-login')).toBeNull()
-    expect(container.querySelector('[role="dialog"][aria-labelledby="title-auth-failure-heading"]')).not.toBeNull()
-    expect(container.textContent).toContain(authFailure)
+    expect(signInWithGoogle).not.toHaveBeenCalled()
+    expect(onEnterLobby).toHaveBeenCalledTimes(1)
+    expect(container.querySelector('[role="dialog"]')).toBeNull()
 
     cleanup()
   })
 
-  it('continues into the lobby after a pending start-button redirect completes Google login', async () => {
+  it('shows one start button plus the secondary Google login button and no duplicate guest button', () => {
+    useAuthStore.setState({ status: 'signedOut', user: null, initialized: true })
+    const { container, cleanup } = renderTitleScreen(() => {}, true, () => {})
+
+    const labels = Array.from(container.querySelectorAll('button')).map((button) => button.textContent)
+    expect(labels.filter((label) => label === '게임 시작')).toHaveLength(1)
+    expect(labels).toContain('Google 로그인')
+    expect(container.textContent).not.toContain('로그인 없이 들어가기')
+
+    cleanup()
+  })
+
+  it('continues into the lobby when a pending start-after-login redirect completes Google login', async () => {
     const googleUser = { uid: 'uid-redirect', displayName: 'Redirect Tester', email: 'redirect@example.com', photoURL: '' }
-    const signInWithGoogle = vi.fn(async () => null)
+    window.sessionStorage.setItem('eszs:pending-start-after-google-login', '1')
     useAuthStore.setState({
       status: 'signedOut',
       user: null,
       initialized: true,
-      signInWithGoogle,
+      signInWithGoogle: vi.fn(async () => null),
     })
     const onEnterLobby = vi.fn()
-    const { container, cleanup } = renderTitleScreen(onEnterLobby, true, () => {})
+    const { cleanup } = renderTitleScreen(onEnterLobby, true, () => {})
 
-    await act(async () => {
-      clickButtonByTextRaw(container, '게임 시작')
-      await Promise.resolve()
-      await Promise.resolve()
-    })
-
-    expect(signInWithGoogle).toHaveBeenCalledTimes(1)
     expect(onEnterLobby).not.toHaveBeenCalled()
-    expect(window.sessionStorage.getItem('eszs:pending-start-after-google-login')).toBe('1')
-    expect(container.querySelector('[role="dialog"][aria-labelledby="title-auth-failure-heading"]')).toBeNull()
 
     await act(async () => {
       useAuthStore.setState({ status: 'signedIn', user: googleUser })

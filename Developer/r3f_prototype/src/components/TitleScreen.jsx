@@ -19,7 +19,6 @@ import { useAuthStore } from '../store/useAuthStore.js'
 import {
   clearPendingStartAfterLogin,
   consumePendingStartAfterLogin,
-  markPendingStartAfterLogin,
 } from '../lib/loginContinuation.js'
 import { acquireStreamingBgm } from '../lib/streamingBgm.js'
 import { TITLE_BGM_URL as titleBgmUrl } from '../lib/titleBgm.js'
@@ -118,7 +117,9 @@ function TitleLetter({ config, total }) {
   )
 }
 
-// 기존 "게임 시작"은 유지하고, 별도 버튼으로 로그인 없이 로비(onEnterLobby)에 진입한다.
+// "게임 시작"은 로그인 여부와 무관하게 바로 로비(onEnterLobby)로 들어간다 — 미로그인은 게스트 플레이.
+// Google 로그인은 좌상단 GoogleAccountPanel의 "Google 로그인" 버튼(보조 동선)으로만 한다
+// (2026-10-31 첫 20명 확보: 첫 탭이 로그인 창으로 튀지 않게).
 // 스테이지 선택·상점·랭킹·설정은 로비에서 처리한다.
 // 「로자리의 방」 진입점도 로비(스테이지 선택) 좌상단으로 옮겼다 — 타이틀에는 두지 않는다
 // (2026-10-29 Terry: "로그인 - 게임시작 - 스테이지선택 화면 좌상단").
@@ -138,10 +139,7 @@ export default function TitleScreen({
   const [consentOpen, setConsentOpen] = useState(false)
   const [consentUser, setConsentUser] = useState(null)
   const authUser = useAuthStore((s) => s.user)
-  const authError = useAuthStore((s) => s.error)
   const authSigningIn = useAuthStore((s) => s.signingIn)
-  const signInWithGoogle = useAuthStore((s) => s.signInWithGoogle)
-  const [authFailureOpen, setAuthFailureOpen] = useState(false)
   const [settings] = useState(() => (
     isFirebaseProgressHydrated(authUser) ? loadTitleSettings() : !authUser?.uid ? loadGuestSessionSettings() : {
       vibration: true,
@@ -279,40 +277,15 @@ export default function TitleScreen({
     enterLobbyFromStart()
   }, [authUser?.uid])
 
-  // 게임 시작은 반드시 로그인 뒤에만 로비로 들어간다.
-  // 미로그인 상태에서 시작을 누르면 Google 로그인을 먼저 띄우고, 성공한 경우에만 이어서 진입한다.
-  // 로그인 실패/취소는 시작 실패로 간주해 로비 진입과 pending redirect를 모두 막는다.
-  const handleStartClick = async () => {
+  // 게임 시작: 로그인 사용자·게스트 모두 즉시 로비로. Google 로그인은 계정 패널에서만 띄운다.
+  // 패널에서 로그인 진행 중(mainActionBusy)에는 중복 진입을 막는다.
+  const handleStartClick = () => {
     if (mainActionBusy) return
     setCheatOpen(false)
     setNicknameOpen(false)
     setConsentOpen(false)
     setConsentUser(null)
-
-    if (authUser?.uid) {
-      enterLobbyFromStart()
-      return
-    }
-
-    markPendingStartAfterLogin()
-    setAuthFailureOpen(false)
-    try {
-      const signedInUser = await signInWithGoogle()
-      if (signedInUser?.uid) {
-        clearPendingStartAfterLogin()
-        enterLobbyFromStart()
-        return
-      }
-
-      const authState = useAuthStore.getState()
-      if (authState.status === 'error' || authState.status === 'unconfigured' || authState.error) {
-        clearPendingStartAfterLogin()
-        setAuthFailureOpen(true)
-      }
-    } catch {
-      clearPendingStartAfterLogin()
-      setAuthFailureOpen(true)
-    }
+    enterLobbyFromStart()
   }
 
   const handleConsentConfirmed = () => {
@@ -421,14 +394,6 @@ export default function TitleScreen({
           >
             {mainActionBusy ? t('account.signingIn') : t('title.start')}
           </button>
-          <button
-            type="button"
-            className="title-main-action"
-            style={{ ...styles.primaryButton, ...styles.mainActionButton }}
-            onClick={() => onEnterLobby?.()}
-          >
-            로그인 없이 들어가기
-          </button>
           <a href="/landing" className="title-main-action" style={{ ...styles.homepageButton, ...styles.mainActionButton }}>
             {t('title.homepage')}
           </a>
@@ -511,28 +476,6 @@ export default function TitleScreen({
         </div>
       )}
 
-      {authFailureOpen && (
-        <div style={styles.modalLayer}>
-          <button type="button" aria-label={t('app.authFailureCloseAria')} style={styles.modalScrim} onClick={() => setAuthFailureOpen(false)} />
-          <section role="dialog" aria-modal="true" aria-labelledby="title-auth-failure-heading" style={styles.authFailureModal}>
-            <div style={styles.modalHeader}>
-              <h2 id="title-auth-failure-heading" style={styles.modalTitle}>{t('app.authFailureTitle')}</h2>
-              <button type="button" aria-label={t('common.close')} style={styles.closeButton} onClick={() => setAuthFailureOpen(false)}>
-                횞
-              </button>
-            </div>
-            <p style={styles.authFailureMessage}>{authError || t('app.authFailed')}</p>
-            <div style={styles.authFailureActions}>
-              <button type="button" style={styles.authFailureCloseButton} onClick={() => setAuthFailureOpen(false)}>
-                {t('common.close')}
-              </button>
-              <button type="button" style={styles.authFailureRetryButton} onClick={handleStartClick}>
-                {t('common.retry')}
-              </button>
-            </div>
-          </section>
-        </div>
-      )}
     </div>
   )
 }
@@ -812,15 +755,6 @@ const styles = {
     transform: 'translateY(-50%)',
     padding: 14,
   },
-  authFailureModal: {
-    ...schoolPanel('dark'),
-    position: 'absolute',
-    top: '50%',
-    left: 'max(24px, calc(env(safe-area-inset-left, 0px) + 16px))',
-    right: 'max(24px, calc(env(safe-area-inset-right, 0px) + 16px))',
-    transform: 'translateY(-50%)',
-    padding: 14,
-  },
   modalHeader: {
     display: 'flex',
     alignItems: 'center',
@@ -896,28 +830,6 @@ const styles = {
     fontSize: 11,
     lineHeight: 1.35,
     fontWeight: 900,
-  },
-  authFailureMessage: {
-    margin: '0 0 14px',
-    color: uiPalette.chalk,
-    fontSize: 14,
-    lineHeight: 1.45,
-    fontWeight: uiType.weightStrong,
-  },
-  authFailureActions: {
-    display: 'grid',
-    gridTemplateColumns: '1fr 1fr',
-    gap: 8,
-  },
-  authFailureCloseButton: {
-    ...schoolButton('paper'),
-    minHeight: 44,
-    fontSize: 14,
-  },
-  authFailureRetryButton: {
-    ...schoolButton('primary'),
-    minHeight: 44,
-    fontSize: 14,
   },
   nicknameSubmitButton: {
     ...schoolButton('primary'),
