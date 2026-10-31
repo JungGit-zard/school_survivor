@@ -22,12 +22,17 @@ describe('ZombieInstanceLayer pooled visibility', () => {
     expect(frame).not.toContain('return {')
   })
 
-  it('patches alpha after output_fragment so the output include cannot overwrite it', () => {
+  it('patches alpha after the r164 opaque_fragment chunk of the real basic shader', () => {
+    // three r164 renamed output_fragment -> opaque_fragment. Patch the real ShaderLib source so a
+    // future rename fails here instead of silently dropping spawn-smoke / HP-bar fade alpha.
     const geo = new THREE.PlaneGeometry(1, 1); const mat = new THREE.MeshBasicMaterial({ transparent: true })
     installInstanceAlpha(geo, mat, 2)
-    const shader = { vertexShader: '#include <begin_vertex>', fragmentShader: 'void main() {\n#include <output_fragment>\n}' }
+    const shader = { vertexShader: THREE.ShaderLib.basic.vertexShader, fragmentShader: THREE.ShaderLib.basic.fragmentShader }
+    expect(shader.fragmentShader).toContain('#include <opaque_fragment>')
     mat.onBeforeCompile(shader)
-    expect(shader.fragmentShader.indexOf('#include <output_fragment>')).toBeLessThan(shader.fragmentShader.indexOf('gl_FragColor.a *= pooledInstanceAlpha'))
+    expect(shader.vertexShader).toContain('pooledInstanceAlpha = instanceAlpha;')
+    const patched = shader.fragmentShader.indexOf('gl_FragColor.a *= pooledInstanceAlpha')
+    expect(patched).toBeGreaterThan(shader.fragmentShader.indexOf('#include <opaque_fragment>'))
     geo.dispose(); mat.dispose()
   })
 

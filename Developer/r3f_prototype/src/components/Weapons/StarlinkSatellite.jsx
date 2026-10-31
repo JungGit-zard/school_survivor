@@ -4,7 +4,7 @@ import * as THREE from 'three'
 import { usePlayingFrame } from '../../lib/usePlayingFrame.js'
 import { enemyBodies, screenBounds } from '../../lib/refs.js'
 import { emitSfx } from '../../lib/sfxEvents.js'
-import { inflateScale, getCachedBoxGeo, getCachedToonMat, getSharedOutlineMat } from '../../lib/toon.js'
+import { inflateScale, getCachedBoxGeo, getCachedCylinderGeo, getCachedToonMat, getSharedOutlineMat } from '../../lib/toon.js'
 import { scaleEffectVisual } from '../../lib/effectVisualScale.js'
 import {
   CRASH_FALL_MS,
@@ -69,7 +69,7 @@ function SBox({ size, position, rotation, color, emissive = 0.1, outlineScale = 
 }
 
 function SCyl({ args, position, rotation, color, emissive = 0.1, outlineScale = 1.08 }) {
-  const geo = useMemo(() => new THREE.CylinderGeometry(...args), [args.join(',')])
+  const geo = getCachedCylinderGeo(...args)
   const os = inflateScale(outlineScale)
   return (
     <group position={position} rotation={rotation}>

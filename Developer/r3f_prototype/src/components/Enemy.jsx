@@ -542,10 +542,18 @@ function ChargeCueBlock({ size, position, rotation = [0, 0, 0], color, emissive 
   )
 }
 
+// 돌진 예고 점은 돌진마다 마운트된다. 반경별로 한 번만 만든 구 지오메트리를 공유한다.
+const _chargeCueDotGeoCache = new Map()
+function getChargeCueDotGeo(radius) {
+  let geo = _chargeCueDotGeoCache.get(radius)
+  if (!geo) { geo = new THREE.SphereGeometry(radius, 12, 8); _chargeCueDotGeoCache.set(radius, geo) }
+  return geo
+}
+
 function ChargeCueDot({ radius, position, color, emissive = 0.26, outlineScale = 1.18 }) {
   const mat    = getCachedToonMat(color, emissive)
   const outMat = getChargeCueOutlineMat()
-  const geo    = useMemo(() => new THREE.SphereGeometry(radius, 12, 8), [radius])
+  const geo    = getChargeCueDotGeo(radius)
   const os = inflateScale(outlineScale)
 
   return (

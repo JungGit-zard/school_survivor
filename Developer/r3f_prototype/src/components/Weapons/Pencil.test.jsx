@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs'
-import { describe, expect, it } from 'vitest'
-import { PENCIL_MODEL_SCALE } from './Pencil.jsx'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { PENCIL_MODEL_SCALE, PencilModel } from './Pencil.jsx'
 
 describe('PencilModel', () => {
   it('renders the base pencil weapon model at 1.5x the previous size', () => {
@@ -93,5 +93,33 @@ describe('Pencil pierce sweep candidate capacity', () => {
     expect(source).toContain('const sweepCandidateLimit = Math.min(sweepScratch.indices.length, hitsLeftRef.current + hitCountRef.current)')
     expect(scanCall).toContain('sweepCandidateLimit')
     expect(scanCall).not.toContain('hitsLeftRef.current')
+  })
+})
+
+describe('PencilModel GPU resource sharing', () => {
+  // 2026-10-31 poststay stress: every fired pencil allocated 5 geometries that were never
+  // disposed (renderer.info.memory.geometries +~10/s). All pencils must share one set.
+  const collectMeshResources = (node, out = { geometries: [], materials: [] }) => {
+    if (!node || typeof node !== 'object') return out
+    if (Array.isArray(node)) { node.forEach((child) => collectMeshResources(child, out)); return out }
+    if (node.type === 'mesh') { out.geometries.push(node.props.geometry); out.materials.push(node.props.material) }
+    collectMeshResources(node.props?.children, out)
+    return out
+  }
+
+  afterEach(() => vi.unstubAllGlobals())
+
+  it('reuses the same geometries and materials for every pencil instance', () => {
+    // node env: toonMat's gradient texture only needs a 2D canvas stub.
+    vi.stubGlobal('document', { createElement: () => ({ getContext: () => ({ fillRect() {} }) }) })
+    const first = collectMeshResources(PencilModel())
+    const second = collectMeshResources(PencilModel())
+    expect(first.geometries).toHaveLength(8)
+    expect(new Set(first.geometries).size).toBe(5)
+    first.geometries.forEach((geometry, i) => {
+      expect(geometry?.isBufferGeometry).toBe(true)
+      expect(second.geometries[i]).toBe(geometry)
+    })
+    first.materials.forEach((material, i) => expect(second.materials[i]).toBe(material))
   })
 })

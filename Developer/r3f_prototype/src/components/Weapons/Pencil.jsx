@@ -1,4 +1,4 @@
-import { useEffect, useRef, useMemo } from 'react'
+import { useEffect, useRef } from 'react'
 import * as THREE from 'three'
 import { usePlayingFrame } from '../../lib/usePlayingFrame.js'
 import { emitSfx } from '../../lib/sfxEvents.js'
@@ -27,19 +27,36 @@ export function releasePencilHomingTargetAfterHit(target, index, generation, spe
   return true
 }
 
-export function PencilModel() {
-  const pencilOutlineMat = useMemo(() => outlineMat(0.98), [])
-  const woodMat = useMemo(() => toonMat(0xd89646, 0.04), [])
-  const graphiteMat = useMemo(() => toonMat(0x1c1c22, 0), [])
-  const bodyMat = useMemo(() => toonMat(0xffcf24, 0.035), [])
-  const bandMat = useMemo(() => toonMat(0xd9d9e8, 0.025), [])
-  const eraserMat = useMemo(() => toonMat(0xf05a78, 0.035), [])
+// 연필은 발사마다 Projectile이 마운트/언마운트된다. 지오메트리·재질을 인스턴스마다
+// useMemo로 새로 만들면 dispose되지 않고 renderer.info.memory.geometries가 초당 ~10개씩
+// 쌓인다(2026-10-31 poststay 부하 테스트). 모든 연필이 같은 모듈 싱글턴을 공유한다.
+// Studio 튜닝은 applyStudioTuning이 원본 색을 userData에 한 번만 저장하고 같은 값으로
+// 덮어쓰므로 공유해도 결과가 같고, 커스텀 재질 튜닝은 mesh별 clone으로 분리된다.
+let _pencilAssets = null
+export function getPencilModelAssets() {
+  if (!_pencilAssets) {
+    _pencilAssets = {
+      pencilOutlineMat: outlineMat(0.98),
+      woodMat: toonMat(0xd89646, 0.04),
+      graphiteMat: toonMat(0x1c1c22, 0),
+      bodyMat: toonMat(0xffcf24, 0.035),
+      bandMat: toonMat(0xd9d9e8, 0.025),
+      eraserMat: toonMat(0xf05a78, 0.035),
+      bodyGeo: new THREE.CylinderGeometry(0.075, 0.075, 0.58, 6),
+      tipGeo: new THREE.ConeGeometry(0.085, 0.22, 6),
+      leadGeo: new THREE.ConeGeometry(0.042, 0.10, 6),
+      bandGeo: new THREE.CylinderGeometry(0.078, 0.078, 0.08, 6),
+      eraserGeo: new THREE.CylinderGeometry(0.073, 0.073, 0.14, 6),
+    }
+  }
+  return _pencilAssets
+}
 
-  const bodyGeo = useMemo(() => new THREE.CylinderGeometry(0.075, 0.075, 0.58, 6), [])
-  const tipGeo = useMemo(() => new THREE.ConeGeometry(0.085, 0.22, 6), [])
-  const leadGeo = useMemo(() => new THREE.ConeGeometry(0.042, 0.10, 6), [])
-  const bandGeo = useMemo(() => new THREE.CylinderGeometry(0.078, 0.078, 0.08, 6), [])
-  const eraserGeo = useMemo(() => new THREE.CylinderGeometry(0.073, 0.073, 0.14, 6), [])
+export function PencilModel() {
+  const {
+    pencilOutlineMat, woodMat, graphiteMat, bodyMat, bandMat, eraserMat,
+    bodyGeo, tipGeo, leadGeo, bandGeo, eraserGeo,
+  } = getPencilModelAssets()
 
   return (
     <StudioTunedGroup itemId="weapon-pencil">
