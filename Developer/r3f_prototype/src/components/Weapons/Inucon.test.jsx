@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
+import { shouldRunInuconSupport } from '../../lib/inucon.js'
 import {
   INUCON_COMPANION_SCALE,
   INUCON_PUSH_VFX_DURATION_MS,
@@ -41,5 +42,17 @@ describe('Inucon fainted ghost visual', () => {
     expect(selectInuconFainted({ inucon: { fainted: true } })).toBe(true)
     const source = readFileSync(new URL('./Inucon.jsx', import.meta.url), 'utf8')
     expect(source).toMatch(/\{fainted && \([\s\S]*?name="inucon-halo"[\s\S]*?<torusGeometry/)
+  })
+})
+
+describe('Inucon fainted support gate', () => {
+  it('stops push, bite and heal while fainted but keeps following', () => {
+    expect(shouldRunInuconSupport(true)).toBe(false)
+    expect(shouldRunInuconSupport(false)).toBe(true)
+    const source = readFileSync(new URL('./Inucon.jsx', import.meta.url), 'utf8')
+    const gate = source.indexOf('if (!shouldRunInuconSupport(fainted))')
+    expect(gate).toBeGreaterThan(source.indexOf('posRef.current.lerp('))
+    expect(gate).toBeLessThan(source.indexOf('applyRadialDamage({'))
+    expect(gate).toBeLessThan(source.indexOf('healPlayer(healAmount)'))
   })
 })

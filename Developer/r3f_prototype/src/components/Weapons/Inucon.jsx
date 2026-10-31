@@ -7,6 +7,7 @@ import { applyRadialDamage } from '../../lib/weaponTargeting.js'
 import { emitSfx } from '../../lib/sfxEvents.js'
 import { usePlayingFrame } from '../../lib/usePlayingFrame.js'
 import { outlineMat, toonMat, inflateScale } from '../../lib/toon.js'
+import MiniHealthBar from '../MiniHealthBar.jsx'
 import StudioTunedGroup, { composeStudioPartPosition, composeStudioPartRotation } from '../StudioTunedGroup.jsx'
 import {
   INUCON_CONTACT_PULSE_INTERVAL_MS,
@@ -14,7 +15,9 @@ import {
   INUCON_TRAIL_FOLLOW_DISTANCE,
   computeInuconHealAmount,
   createInuconBiteDragConfig,
+  resolveInucon,
   shouldRenderInuconCompanion,
+  shouldRunInuconSupport,
 } from '../../lib/inucon.js'
 
 function Part({ size, position, rotation = [0, 0, 0], material, outlineMaterial, outlineScale = 1.07, geometry = null }) {
@@ -328,6 +331,7 @@ function InuconPushEffect({ token = 0, radius = 0 }) {
 
 export function InuconWeapon() {
   const groupRef = useRef()
+  const yawRef = useRef()
   const posRef = useRef(new THREE.Vector3())
   const targetRef = useRef(new THREE.Vector3())
   const trailRef = useRef(createChibikoTrail())
@@ -338,10 +342,12 @@ export function InuconWeapon() {
   const weapons = useGameStore((s) => s.weapons)
   const healPlayer = useGameStore((s) => s.healPlayer)
   const fainted = useGameStore(selectInuconFainted)
+  const inuconHp = useGameStore((s) => resolveInucon(s)?.hp ?? 0)
+  const inuconMaxHp = useGameStore((s) => resolveInucon(s)?.maxHp ?? 0)
   const active = shouldRenderInuconCompanion(weapons)
 
   usePlayingFrame(({ clock }, delta) => {
-    if (!active || !groupRef.current) return
+    if (!active || !groupRef.current || !yawRef.current) return
     const w = weapons.inucon ?? {}
     const now = clock.elapsedTime * 1000
     if (lastHealAtRef.current === null) lastHealAtRef.current = now
@@ -357,11 +363,18 @@ export function InuconWeapon() {
     posRef.current.lerp(targetRef.current, Math.min(1, delta * 6.4))
     const bob = fainted ? 0 : Math.sin(clock.elapsedTime * 4.4) * 0.025
     groupRef.current.position.set(posRef.current.x, 0.15 + bob, posRef.current.z)
-    const trailYaw = Math.hypot(moveX, moveZ) > 0.001 ? Math.atan2(moveX, moveZ) : groupRef.current.rotation.y
-    let diff = trailYaw - groupRef.current.rotation.y
+    // 회전은 모델 그룹에만 준다. 미니 체력바는 카메라 빌보드라 부모 회전을 받으면 안 된다.
+    const trailYaw = Math.hypot(moveX, moveZ) > 0.001 ? Math.atan2(moveX, moveZ) : yawRef.current.rotation.y
+    let diff = trailYaw - yawRef.current.rotation.y
     while (diff > Math.PI) diff -= Math.PI * 2
     while (diff < -Math.PI) diff += Math.PI * 2
-    groupRef.current.rotation.y += diff * Math.min(1, delta * 9)
+    yawRef.current.rotation.y += diff * Math.min(1, delta * 9)
+
+    // Terry 2026-10-31: 기절(유령) 중엔 따라다니기만 하고 밀어내기·물기·회복은 멈춘다.
+    if (!shouldRunInuconSupport(fainted)) {
+      useGameStore.getState().updateInucon()
+      return
+    }
 
     const biteDrag = createInuconBiteDragConfig(w)
     if (now - lastPushAtRef.current >= biteDrag.pulseIntervalMs) {
@@ -404,7 +417,11 @@ export function InuconWeapon() {
 
   return (
     <>
-      <group ref={groupRef} scale={[INUCON_COMPANION_SCALE, INUCON_COMPANION_SCALE, INUCON_COMPANION_SCALE]}><InuconModel fainted={fainted} /></group>
+      <group ref={groupRef} scale={[INUCON_COMPANION_SCALE, INUCON_COMPANION_SCALE, INUCON_COMPANION_SCALE]}>
+        <group ref={yawRef}><InuconModel fainted={fainted} /></group>
+        {/* 머리(1.64)·유령 고리(1.82) 위. 부모 스케일 0.36 기준이라 월드 폭 ≈0.30u. 기절 중 숨김. */}
+        {!fainted && inuconMaxHp > 0 && <MiniHealthBar current={inuconHp} max={inuconMaxHp} width={0.84} height={0.14} y={2.0} />}
+      </group>
       <InuconPushEffect token={pushVfx.token} radius={pushVfx.radius} />
     </>
   )

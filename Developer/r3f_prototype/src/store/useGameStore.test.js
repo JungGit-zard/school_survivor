@@ -12,6 +12,7 @@ vi.mock('../lib/firebaseRanking.js', async (importOriginal) => ({
 vi.mock('../lib/guestRankingIdentity.js', () => ({ getRankingUser: vi.fn(async (user) => user ?? { uid: 'guest', displayName: 'Guest' }) }))
 
 import { useGameStore } from './useGameStore.js'
+import { resolveInucon } from '../lib/inucon.js'
 import { WEAPON_CATALOG } from '../lib/weaponCatalog.js'
 import { useAuthStore } from './useAuthStore.js'
 import { _resetFirebaseProgressForTests, _seedHydratedFirebaseProgressForTests } from '../lib/firebaseProgress.js'
@@ -594,5 +595,91 @@ describe('랭킹 제출 결과가 스토어 상태로 남는다', () => {
     expect(useGameStore.getState().rankingSubmission.status).toBe('pending')
     useAuthStore.setState({ user: null })
     _seedHydratedFirebaseProgressForTests()
+  })
+})
+
+// Terry 2026-10-31: 이누콘 경호견 — 주인공 maxHp 20% 체력으로 대신 맞고, 0이면 35초 기절.
+describe('이누콘 대신 맞기', () => {
+  const inuconOf = (s) => resolveInucon(s, getRuntimeElapsedMs(s.elapsedMs))
+  let sfx
+  let unsubscribe
+  beforeEach(() => {
+    resetWeaponUnlocksForTests()
+    useGameStore.getState().resetGame()
+    useGameStore.setState({ phase: 'playing' })
+    useGameStore.getState().cheatAcquireWeapon('inucon')
+    sfx = []
+    unsubscribe = subscribeSfx((event) => sfx.push(event.id))
+  })
+  afterEach(() => unsubscribe())
+
+  it('활성 시 hp = maxHp = 주인공 maxHp × 0.2', () => {
+    const s = useGameStore.getState()
+    expect(inuconOf(s)).toMatchObject({ hp: s.player.maxHp * 0.2, maxHp: s.player.maxHp * 0.2, fainted: false })
+  })
+
+  it('maxHealth 카드로 주인공 maxHp가 오르면 현재 체력 비율을 유지한 채 재계산한다', () => {
+    const before = useGameStore.getState().player.maxHp
+    useGameStore.setState({ inucon: { hp: before * 0.1, maxHp: before * 0.2, fainted: false, respawnAtMs: null } })
+    useGameStore.setState((s) => ({ player: { ...s.player, maxHp: before + 7 } }))
+    expect(inuconOf(useGameStore.getState())).toMatchObject({ maxHp: (before + 7) * 0.2, hp: (before + 7) * 0.1 })
+  })
+
+  it('피해를 대신 받고 짖으며, 주인공 hp는 그대로지만 무적은 켜진다', () => {
+    const playerHp = useGameStore.getState().player.hp
+    const max = inuconOf(useGameStore.getState()).maxHp
+    useGameStore.getState().damagePlayer(8)
+    const s = useGameStore.getState()
+    expect(s.inucon.hp).toBeCloseTo(max - 8)
+    expect(s.player.hp).toBe(playerHp)
+    expect(s.player.invulnerable).toBe(true)
+    expect(sfx.filter((id) => id === 'inuconBark')).toHaveLength(1)
+    expect(sfx).not.toContain('playerHit')
+  })
+
+  it('남은 체력보다 큰 피해는 이누콘을 기절시키고 초과분만 주인공에게 간다', () => {
+    useGameStore.setState((s) => ({ inucon: { ...inuconOf(s), hp: 5 } }))
+    const playerHp = useGameStore.getState().player.hp
+    useGameStore.getState().damagePlayer(8)
+    const s = useGameStore.getState()
+    expect(s.inucon).toMatchObject({ hp: 0, fainted: true })
+    expect(s.inucon.respawnAtMs).toBe(getRuntimeElapsedMs(s.elapsedMs) + 35000)
+    expect(s.player.hp).toBe(playerHp - 3)
+  })
+
+  it('기절 중 피해는 전부 주인공에게, 35초(게임 시간) 뒤 만피로 리스폰', () => {
+    useGameStore.setState((s) => ({ inucon: { ...inuconOf(s), hp: 1 } }))
+    useGameStore.getState().damagePlayer(1)
+    useGameStore.getState().endInvulnerable()
+    const playerHp = useGameStore.getState().player.hp
+    useGameStore.getState().damagePlayer(4)
+    expect(useGameStore.getState().player.hp).toBe(playerHp - 4)
+    expect(useGameStore.getState().inucon.fainted).toBe(true)
+
+    useGameStore.getState().tickTime(34_999)
+    useGameStore.getState().updateInucon()
+    expect(useGameStore.getState().inucon.fainted).toBe(true)
+    useGameStore.getState().tickTime(1)
+    useGameStore.getState().updateInucon()
+    const s = useGameStore.getState()
+    expect(s.inucon).toMatchObject({ fainted: false, hp: s.player.maxHp * 0.2 })
+  })
+
+  it('이누콘이 없으면 기존 피해 동작 그대로', () => {
+    useGameStore.getState().resetGame()
+    useGameStore.setState({ phase: 'playing' })
+    const playerHp = useGameStore.getState().player.hp
+    useGameStore.getState().damagePlayer(8)
+    expect(useGameStore.getState().player.hp).toBe(playerHp - 8)
+    expect(useGameStore.getState().inucon).toBeNull()
+    expect(sfx).not.toContain('inuconBark')
+  })
+
+  it('마틸다 즉사(killPlayer)는 이누콘과 무관하게 주인공을 죽인다', () => {
+    useGameStore.getState().killPlayer('matilda')
+    const s = useGameStore.getState()
+    expect(s.player.hp).toBe(0)
+    expect(s.phase).toBe('gameover')
+    expect(s.inucon).toBeNull()
   })
 })

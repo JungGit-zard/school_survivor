@@ -65,6 +65,7 @@ import { getBossClearBonus, getRankingScore, getRankingScorePolicy } from '../li
 import { logDamageTaken } from '../lib/playtestLogger.js'
 import { emitSfx } from '../lib/sfxEvents.js'
 import { emitDamageNumber, DAMAGE_NUMBER_COLORS } from '../lib/damageNumbers.js'
+import { INUCON_RESPAWN_MS, resolveInucon } from '../lib/inucon.js'
 import {
   advanceRuntimeTime,
   getRuntimeElapsedMs,
@@ -376,6 +377,8 @@ export const useGameStore = create(
     player:      buildInitialPlayer(EMPTY_PASSIVE_LEVELS),
     weapons:     buildInitialWeapons(EMPTY_PASSIVE_LEVELS, { applyPermanent: false }),
     bossPassiveUnlocks: {},
+    // 이누콘 경호견 체력(Terry 2026-10-31). null이면 resolveInucon이 활성 시 만피로 계산한다.
+    inucon: null,
     growthMultiplier: buildGrowthMultiplier(EMPTY_PASSIVE_LEVELS),
     passiveVersion: 0,
     phase:       'playing',   // 'playing' | 'paused' | 'levelup' | 'gameover' | 'cleared'
@@ -473,6 +476,22 @@ export const useGameStore = create(
         set({ godMode: false })
       }
       if (player.invulnerable && !ignoreInvulnerability) return
+      // Terry 2026-10-31: 이누콘이 깨어 있으면 자기 체력만큼 대신 맞고 크게 짖는다.
+      // 남은 피해만 주인공에게 간다. 흡수만 했어도 주인공 무적 520ms는 켠다(피격 상한 유지).
+      const inucon = resolveInucon(get(), getRuntimeElapsedMs(get().elapsedMs))
+      if (inucon && !inucon.fainted && inucon.hp > 0) {
+        const absorbed = Math.min(amount, inucon.hp)
+        const inuconHp = inucon.hp - absorbed
+        const fainted = inuconHp <= 0
+        set({ inucon: { ...inucon, hp: Math.max(0, inuconHp), fainted, respawnAtMs: fainted ? getRuntimeElapsedMs(get().elapsedMs) + INUCON_RESPAWN_MS : null } })
+        emitDamageNumber({ x: playerPos.x, y: 1.0, z: playerPos.z, amount: absorbed, colorHex: DAMAGE_NUMBER_COLORS.player })
+        emitSfx({ id: 'inuconBark' })
+        amount -= absorbed
+        if (amount <= 0) {
+          set({ player: { ...player, invulnerable: true } })
+          return
+        }
+      }
       const hp = Math.max(0, player.hp - amount)
       logDamageTaken(amount, hp)
       // 플레이어 머리 위에 빨간 데미지 숫자(실제 피해 적용 시에만 — 무적 리턴은 위에서 이미 처리됨).
@@ -513,6 +532,14 @@ export const useGameStore = create(
       emitSfx({ id: 'playerDeath' })
       vibrateRuntimeFeedback([40, 60, 40])
       get()._onRunEnd('gameover')
+    },
+
+    // Inucon.jsx가 기절 중에만 매 프레임 부른다. 게임 시간 35초가 지나면 만피로 깨운다.
+    updateInucon: () => {
+      const s = get()
+      if (!s.inucon?.fainted) return
+      const next = resolveInucon(s, getRuntimeElapsedMs(s.elapsedMs))
+      if (next && !next.fainted) set({ inucon: next })
     },
 
     endInvulnerable: () => set((s) => ({ player: { ...s.player, invulnerable: false } })),
@@ -1541,6 +1568,7 @@ export const useGameStore = create(
         player:      buildInitialPlayer(levels),
         weapons:     buildInitialWeapons(levels, { applyPermanent: progressReady, bossPassiveUnlocks }),
         bossPassiveUnlocks,
+        inucon: null,
         growthMultiplier: buildGrowthMultiplier(levels),
         phase:       'playing',
         pauseSource: null,
