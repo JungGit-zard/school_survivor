@@ -141,9 +141,9 @@ describe('sequential rotating level-up choices', () => {
 })
 
 describe('applyUpgradeToWeapon', () => {
-  it('커터칼 두 피해 카드는 매번 현재 피해의 정확히 30%를 올린다', () => {
-    expect(UPGRADE_EFFECTS.boxCutterDamage.damageMultiplier).toBe(1.30)
-    expect(UPGRADE_EFFECTS.boxCutterPower.damageMultiplier).toBe(1.30)
+  it('커터칼 두 피해 카드는 매번 현재 피해의 정확히 40%를 올린다', () => {
+    expect(UPGRADE_EFFECTS.boxCutterDamage.damageMultiplier).toBe(1.40)
+    expect(UPGRADE_EFFECTS.boxCutterPower.damageMultiplier).toBe(1.40)
     expect(UPGRADE_EFFECTS.boxCutterDamage.dmg).toBeUndefined()
     expect(UPGRADE_EFFECTS.boxCutterPower.dmg).toBeUndefined()
     expect(UPGRADE_EFFECTS.bikittyCutterDamage.damageMultiplier).toBe(1.15)
@@ -153,7 +153,7 @@ describe('applyUpgradeToWeapon', () => {
 
     const base = wpn({ active: true, level: 1, damage: 72, critChance: 1, critMultiplier: 1.5 })
     const once = applyUpgradeToWeapon(base, UPGRADE_EFFECTS.boxCutterDamage)
-    expect(once.damage).toBeCloseTo(93.6, 10)
+    expect(once.damage).toBeCloseTo(100.8, 10)
     const critical = resolveCriticalHit({ baseDamage: once.damage, critChance: once.critChance, critMultiplier: once.critMultiplier, rng: () => 0 })
     expect(critical.isCritical).toBe(true)
     expect(critical.damage).toBeCloseTo(once.damage * 1.5, 10)
@@ -161,7 +161,7 @@ describe('applyUpgradeToWeapon', () => {
     const twice = applyUpgradeToWeapon(once, UPGRADE_EFFECTS.boxCutterPower)
     const thrice = applyUpgradeToWeapon(twice, UPGRADE_EFFECTS.boxCutterDamage)
     const fourTimes = applyUpgradeToWeapon(thrice, UPGRADE_EFFECTS.boxCutterPower)
-    expect(fourTimes.damage).toBeCloseTo(72 * 1.30 ** 4, 10)
+    expect(fourTimes.damage).toBeCloseTo(72 * 1.40 ** 4, 10)
 
     const bikittyOnce = applyUpgradeToWeapon(wpn({ active: true, level: 1, damage: 54 }), UPGRADE_EFFECTS.bikittyCutterDamage)
     const bikittyTwice = applyUpgradeToWeapon(bikittyOnce, UPGRADE_EFFECTS.bikittyCutterPower)
@@ -184,9 +184,9 @@ describe('applyUpgradeToWeapon', () => {
     const cutter = applyFourDamageCards(WEAPON_CATALOG.boxCutter.base, [
       'boxCutterDamage', 'boxCutterPower', 'boxCutterDamage', 'boxCutterPower',
     ])
-    expect(cutter.damage).toBeCloseTo(7.2 * 1.30 ** 4, 10)
-    expect(criticalDamage(cutter, cutter.damage)).toBeCloseTo(7.2 * 1.30 ** 4 * 1.5, 10)
-    expect(formatDamageAmount(criticalDamage(cutter, cutter.damage))).toBe('31')
+    expect(cutter.damage).toBeCloseTo(7.2 * 1.40 ** 4, 10)
+    expect(criticalDamage(cutter, cutter.damage)).toBeCloseTo(7.2 * 1.40 ** 4 * 1.5, 10)
+    expect(formatDamageAmount(criticalDamage(cutter, cutter.damage))).toBe('41')
 
     const bikitty = applyFourDamageCards(WEAPON_CATALOG.bikittyCutter.base, [
       'bikittyCutterDamage', 'bikittyCutterPower', 'bikittyCutterDamage', 'bikittyCutterPower',
@@ -200,17 +200,17 @@ describe('applyUpgradeToWeapon', () => {
     expect(formatDamageAmount(criticalDamage(bikitty, bikitty.snapDamage))).toBe('14')
   })
 
-  it('치비코와 B01 피해 패시브 뒤에도 커터칼 30%는 현재 피해에 한 번만 적용한다', () => {
+  it('치비코와 B01 피해 패시브 뒤에도 커터칼 40%는 현재 피해에 한 번만 적용한다', () => {
     const bossBoosted = applyBossPassiveDamageToBaseWeapon('boxCutter', wpn({ active: true, level: 1, damage: 72 }), { b01SetSquare: true })
     const chibikoBoosted = applyChibikoAllWeaponBoost(bossBoosted, 0.1)
     let out = chibikoBoosted
     for (const upgradeKey of ['boxCutterDamage', 'boxCutterPower', 'boxCutterDamage', 'boxCutterPower']) {
       const beforeDamage = out.damage
       out = applyUpgradeWithChibikoBoost(out, UPGRADE_EFFECTS[upgradeKey], 0.1)
-      expect(out.damage).toBeCloseTo(beforeDamage * 1.30, 10)
+      expect(out.damage).toBeCloseTo(beforeDamage * 1.40, 10)
     }
 
-    expect(out.damage).toBeCloseTo(72 * 1.05 * 1.1 * 1.30 ** 4, 10)
+    expect(out.damage).toBeCloseTo(72 * 1.05 * 1.1 * 1.40 ** 4, 10)
     expect(out.bossPassiveDamageMultiplier).toBe(1.05)
     expect(out.chibikoBoostPercent).toBe(0.1)
   })

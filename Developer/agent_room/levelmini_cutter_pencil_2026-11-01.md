@@ -44,3 +44,10 @@
 - 4137건 중 4094건 통과, 10건 실패, 33건 스킵.
 - 실패는 전부 연필·커터칼과 무관한 파일에서 났다: i18n hanakoUpgrade, audio audition, App.virtualJoystick, Enemies.lowDensityAllStages ×2, Enemies.stage5, GraphicsStudio.undo ×2, Lobby 10,000회 루프, MiniRosari 스케일.
 - 따로 다시 돌린 7개 파일(63건) 중 실패는 audition과 virtualJoystick 2건이었고, 둘 다 원래 있던 실패로 기록돼 있다. 나머지는 전체를 한꺼번에 돌릴 때 부하로 실패한 것으로 보인다.
+
+## 1.40 follow-up (Terry 2026-11-01 "커터칼 올려")
+
+- 커터칼 피해/위력 카드 배율을 1.30에서 1.40으로 올렸다(`r3f_prototype/src/lib/upgrades.js`). 바이키티 커터칼은 1.15 그대로다.
+- 피해 카드 4장 기준 DPS는 10.29(balanceqa 계산)이고, 성장폭은 1.99배다. 기본 7.2 피해가 4장 뒤 7.2 × 1.40⁴ = 27.66, 치명타 표시는 41이다. B01과 치비코가 붙으면 31.95, 치명타 표시는 48이다.
+- 테스트 기대값을 바꾼 파일은 `src/lib/upgrades.test.js`, `src/store/useGameStore.test.js`, `src/components/HUD.test.jsx`(카드 표시 +30% → +40%)이다. 테스트 이름의 30%도 40%로 바꿨다.
+- 지정 4개 파일은 190건 모두 통과했다. boxCutter 카드를 다루는 테스트 파일 4개(bossPassiveItems 포함)는 201건 모두 통과했다. 실패했던 6건은 이제 통과한다.

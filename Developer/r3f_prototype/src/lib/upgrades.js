@@ -80,9 +80,9 @@ export const UPGRADE_EFFECTS = {
   bagRadius:      { weapon: 'schoolBag',     kind: 'stat',   stat: 'range',           step: 0.08, cap: 1.067 },
   bagCrit:        { weapon: 'schoolBag',     kind: 'crit',   chanceStep: 0.02, chanceCap: 0.30 },
   acquireBoxCutter:{ weapon: 'boxCutter',      kind: 'acquire', minLevel: 2 },
-  // Terry 2026-11-01: 커터칼 피해 상향 (balanceqa 1.15→1.30)
-  boxCutterDamage:{ weapon: 'boxCutter',      kind: 'damage', damageMultiplier: 1.30 },
-  boxCutterPower: { weapon: 'boxCutter',      kind: 'damage', damageMultiplier: 1.30 },
+  // Terry 2026-11-01: 커터칼 피해 상향 1.15→1.30→1.40 (balanceqa: 성장 2.0배 목표)
+  boxCutterDamage:{ weapon: 'boxCutter',      kind: 'damage', damageMultiplier: 1.40 },
+  boxCutterPower: { weapon: 'boxCutter',      kind: 'damage', damageMultiplier: 1.40 },
   boxCutterRange: { weapon: 'boxCutter',      kind: 'stat',   stat: 'range',           step: 0.08, cap: 1.755 },
   boxCutterCrit:  { weapon: 'boxCutter',      kind: 'crit',   chanceStep: 0.04, chanceCap: 0.57 },
   acquireTumbler:  { weapon: 'tumbler',       kind: 'acquire', minLevel: 2 },

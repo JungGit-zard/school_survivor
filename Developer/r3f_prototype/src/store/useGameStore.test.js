@@ -65,7 +65,7 @@ describe('useGameStore XP and reset behavior', () => {
     expect(state.phase).toBe('levelup')
   })
 
-  it('B01과 치비코가 적용된 커터칼도 스토어에서 매 피해 카드마다 현재 피해의 30%를 올린다', () => {
+  it('B01과 치비코가 적용된 커터칼도 스토어에서 매 피해 카드마다 현재 피해의 40%를 올린다', () => {
     useGameStore.getState().recordBossKill('B01')
     useGameStore.setState((state) => ({
       phase: 'levelup',
@@ -82,7 +82,7 @@ describe('useGameStore XP and reset behavior', () => {
       const beforeDamage = useGameStore.getState().weapons.boxCutter.damage
       useGameStore.getState().applyUpgrade(upgradeKey)
       const after = useGameStore.getState().weapons.boxCutter
-      expect(after.damage).toBeCloseTo(beforeDamage * 1.30, 10)
+      expect(after.damage).toBeCloseTo(beforeDamage * 1.40, 10)
       expect(Number.isNaN(after.damage)).toBe(false)
     }
 
@@ -93,9 +93,9 @@ describe('useGameStore XP and reset behavior', () => {
       critMultiplier: upgraded.critMultiplier,
       rng: () => 0,
     }).damage
-    expect(upgraded.damage).toBeCloseTo(7.2 * 1.05 * 1.1 * 1.30 ** 4, 10)
-    expect(displayedCritical).toBeCloseTo(7.2 * 1.05 * 1.1 * 1.30 ** 4 * 1.5, 10)
-    expect(formatDamageAmount(displayedCritical)).toBe('36')
+    expect(upgraded.damage).toBeCloseTo(7.2 * 1.05 * 1.1 * 1.40 ** 4, 10)
+    expect(displayedCritical).toBeCloseTo(7.2 * 1.05 * 1.1 * 1.40 ** 4 * 1.5, 10)
+    expect(formatDamageAmount(displayedCritical)).toBe('48')
   })
 
   it('resetGame은 store와 런타임 refs를 함께 초기화한다', () => {
