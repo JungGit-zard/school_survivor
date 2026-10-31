@@ -64,7 +64,7 @@ test('buildCards emits static localized X cards for canonical, enabled variant, 
   assert.match(html, /<meta name="twitter:site" content="@jungsilx">/)
   assert.match(html, new RegExp(`<meta property="og:image" content="https://escapezombie\\.com${card.cardPath}\\.png">`))
   assert.match(html, /学校から脱出しよう！/)
-  assert.match(html, /window\.location\.replace\("https:\/\/escapezombie\.com\/"\)/)
+  assert.ok(html.includes('window.location.replace("https://escapezombie.com/" + window.location.search)'))
   assert.match(html, /<noscript><a href="https:\/\/escapezombie\.com\/">/)
   assert.doesNotMatch(html, /http-equiv=["']refresh/i)
 

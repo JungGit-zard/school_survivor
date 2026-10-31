@@ -132,7 +132,7 @@ export async function buildCards({ repoRoot, output }) {
   <meta name="twitter:description" content="${escapeHtml(description)}">
   <meta name="twitter:image" content="${imageUrl}">
   <meta name="twitter:image:alt" content="${escapeHtml(TITLES[locale])}">
-  <script>window.location.replace(${JSON.stringify(`${CARD_ORIGIN}/`)})</script>
+  <script>window.location.replace(${JSON.stringify(`${CARD_ORIGIN}/`)} + window.location.search)</script>
 </head>
 <body>
   <noscript><a href="${CARD_ORIGIN}/">${escapeHtml(TITLES[locale])}</a></noscript>
