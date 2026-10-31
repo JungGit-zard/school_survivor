@@ -46,6 +46,24 @@ describe('스테이지1 스토리 인트로 상태 (useGameStore)', () => {
     expect(s.phase).toBe('playing')
   })
 
+  it('skipIntro는 어느 대사에서든 마지막 탭과 같은 상태로 플레이를 시작한다', () => {
+    useGameStore.getState().startStage1Intro()
+    useGameStore.getState().advanceIntro()
+    useGameStore.getState().skipIntro()
+    const s = useGameStore.getState()
+    expect(s.introDialogue).toBeNull()
+    expect(s.phase).toBe('playing')
+    expect(s.pauseSource).toBeNull()
+  })
+
+  it('skipIntro는 introDialogue가 없으면 아무 것도 바꾸지 않는다', () => {
+    useGameStore.setState({ phase: 'paused', pauseSource: 'dialogue' })
+    useGameStore.getState().skipIntro()
+    const s = useGameStore.getState()
+    expect(s.phase).toBe('paused')
+    expect(s.pauseSource).toBe('dialogue')
+  })
+
   it('resetGame은 introDialogue를 초기화한다', () => {
     useGameStore.getState().startStage1Intro()
     useGameStore.getState().resetGame()

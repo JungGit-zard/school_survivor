@@ -465,6 +465,7 @@ export default {
   'hud.tapToContinue': '画面をタップで続ける',
   'hud.tapToStart': '画面をタップで開始',
   'hud.introAria': 'ストーリーイントロ',
+  'hud.skipIntro': 'スキップ',
   'hud.allWeapons': 'すべての武器',
   'hud.weaponCheat': '武器チート',
   'hud.summonMatilda': 'マチルダを召喚',

@@ -358,6 +358,9 @@ function matchesQuestCompletionSource(quest, sourceId) {
     || (quest.stageId === 'stage2' && sourceId.startsWith(`${placementId}-copy-`))
 }
 
+// 인트로 종료 상태 전이 — advanceIntro 마지막 탭과 skipIntro가 공유한다.
+const STAGE1_INTRO_DONE = Object.freeze({ phase: 'playing', pauseSource: null, introDialogue: null })
+
 // 스테이지1 스토리 인트로 내레이션 3줄. 화면 탭마다 다음 줄, 마지막 탭에 플레이 시작.
 export const STAGE1_INTRO_IDS = Object.freeze([
   'intro.stage1.001',
@@ -1232,11 +1235,12 @@ export const useGameStore = create(
     advanceIntro: () => set((s) => {
       if (!s.introDialogue) return {}
       const next = s.introDialogue.index + 1
-      if (next >= STAGE1_INTRO_IDS.length) {
-        return { phase: 'playing', pauseSource: null, introDialogue: null }
-      }
+      if (next >= STAGE1_INTRO_IDS.length) return STAGE1_INTRO_DONE
       return { introDialogue: { index: next } }
     }),
+
+    // 인트로 건너뛰기: 마지막 대사에서 탭한 것과 똑같이 끝낸다(같은 상태 전이 STAGE1_INTRO_DONE).
+    skipIntro: () => set((s) => (s.introDialogue ? STAGE1_INTRO_DONE : {})),
 
     quitPausedRun: () => {
       const s = get()

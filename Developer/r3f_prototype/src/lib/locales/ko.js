@@ -455,6 +455,7 @@ export default {
   'hud.tapToContinue': '화면을 탭하면 계속',
   'hud.tapToStart': '화면을 탭하면 시작',
   'hud.introAria': '스토리 인트로',
+  'hud.skipIntro': '건너뛰기',
   'hud.allWeapons': '모든 무기',
   'hud.weaponCheat': '무기 치트',
   'hud.summonMatilda': '마틸다 소환',

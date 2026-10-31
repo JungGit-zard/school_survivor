@@ -818,7 +818,7 @@ export default function HUD({
     cheatAcquireWeapon, resumeFromLevelup,
     resetGame, continueToNextStage, continuousScoreBase, escapeResult,
     togglePause, resumeGame, quitPausedRun, spawnMatilda,
-    closeStudentDialogue, advanceIntro, toggleQuestInventory, closeQuestInventory,
+    closeStudentDialogue, advanceIntro, skipIntro, toggleQuestInventory, closeQuestInventory,
     clearQuestToast, markQuestInventorySeen,
     missionProgress,
   } = useGameStore(useShallow((s) => ({
@@ -874,6 +874,7 @@ export default function HUD({
     spawnMatilda:         s.spawnMatilda,
     closeStudentDialogue: s.closeStudentDialogue,
     advanceIntro:         s.advanceIntro,
+    skipIntro:            s.skipIntro,
     toggleQuestInventory: s.toggleQuestInventory,
     closeQuestInventory:  s.closeQuestInventory,
     clearQuestToast:      s.clearQuestToast,
@@ -2056,6 +2057,16 @@ export default function HUD({
           style={styles.introCatcher}
           onPointerDown={() => { emitSfx({ id: 'buttonClick' }); advanceIntro() }}
         >
+          {/* 건너뛰기 — 마지막 대사 탭과 같은 종료 전이(skipIntro). pointerdown을 막아 한 장 넘김이 겹치지 않게 한다. */}
+          <button
+            type="button"
+            data-testid="stage-intro-skip"
+            style={styles.introSkipButton}
+            onPointerDown={(event) => event.stopPropagation()}
+            onClick={() => { emitSfx({ id: 'buttonClick' }); skipIntro() }}
+          >
+            {t('hud.skipIntro')}
+          </button>
           <div style={styles.introBox} role="dialog" aria-label={t('hud.introAria')}>
             <div style={styles.dialogueLine} aria-live="polite">
               {introLine(introDialogue.index)}
@@ -3628,6 +3639,22 @@ const styles = {
     pointerEvents: 'auto',
     cursor: 'pointer',
     zIndex: 40,
+  },
+  introSkipButton: {
+    position: 'absolute',
+    top: 'var(--hud-safe-top)', '--hud-safe-top': 'max(14px, env(safe-area-inset-top, 0px))',
+    right: 'var(--hud-safe-right)', '--hud-safe-right': 'max(14px, env(safe-area-inset-right, 0px))',
+    minWidth: 72,
+    minHeight: 44,
+    padding: '0 16px',
+    border: '1px solid #c9b98d',
+    borderRadius: 8,
+    background: '#181d28',
+    color: '#f4e4bd',
+    fontSize: 14,
+    fontWeight: 800,
+    cursor: 'pointer',
+    touchAction: 'manipulation',
   },
   introBox: {
     ...schoolPanel('dark'),

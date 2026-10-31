@@ -465,6 +465,7 @@ export default {
   'hud.tapToContinue': 'Tap the screen to continue',
   'hud.tapToStart': 'Tap the screen to start',
   'hud.introAria': 'Story intro',
+  'hud.skipIntro': 'Skip',
   'hud.allWeapons': 'All weapons',
   'hud.weaponCheat': 'Weapon cheat',
   'hud.summonMatilda': 'Summon Matilda',
