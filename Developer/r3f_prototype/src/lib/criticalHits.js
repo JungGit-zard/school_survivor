@@ -14,10 +14,17 @@ function sanitizeChance(value) {
   return Math.min(1, Math.max(0, chance))
 }
 
+// Terry 2026-10-31: 하나코 치명타 피해 보너스(+10~30%). 치명타 확률은 건드리지 않고,
+// 치명타가 뜬 타격의 최종 피해에만 (1 + bonus)를 곱한다. store가 weapons 변화 때 갱신한다.
+let criticalDamageBonus = 0
+export function setCriticalDamageBonus(bonus) {
+  criticalDamageBonus = Number.isFinite(bonus) && bonus > 0 ? bonus : 0
+}
+
 function fixedCriticalMultiplier() {
   // Terry rule: every critical hit deals exactly 150% of original damage.
   // Weapon/card-provided critMultiplier values are intentionally ignored at hit resolution.
-  return DEFAULT_CRIT_MULTIPLIER
+  return DEFAULT_CRIT_MULTIPLIER * (1 + criticalDamageBonus)
 }
 
 export function canDamageCrit({ canCrit = true, damageType, attackTags } = {}) {

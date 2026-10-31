@@ -68,7 +68,7 @@ export function applyUpgradeWithChibikoBoost(weapon, effect, boost) {
 //   base damage는 건드리지 않는다 — Lv1 시점의 무기 간 균형이 통째로 흔들린다.
 // 선언 순서도 정본이다. 무기마다 데미지 카드가 맨 앞에 오게 해서 첫 레벨업이 반드시
 // 체감되게 했다(예전 텀블러는 첫 카드가 tumblerCount라 Lv1→Lv2가 15.30 → 15.30이었다).
-// hanako(힐 전용)만 데미지 카드가 없고, chibiko는 버프 동반자라 폭을 보수적으로 잡았다(≈1.57배).
+// hanako(힐·치명타 피해 보조)만 데미지 카드가 없고, chibiko는 버프 동반자라 폭을 보수적으로 잡았다(≈1.57배).
 export const UPGRADE_EFFECTS = {
   pencilDamage:   { weapon: 'pencilThrow',   kind: 'damage', dmg: 1.2 },
   pencilPower:    { weapon: 'pencilThrow',   kind: 'damage', dmg: 1.2 },
@@ -159,6 +159,9 @@ export const UPGRADE_EFFECTS = {
   chibikoDamage:        { weapon: 'chibiko',       kind: 'damage', dmg: 0.6 },
   chibikoCrit:          { weapon: 'chibiko',       kind: 'crit',   chanceStep: 0.02, chanceCap: 0.21 },
   acquireHanako:        { weapon: 'hanako',        kind: 'acquire', requiresActiveWeapon: 'chibiko', skipAccountUnlock: true },
+  // Terry 2026-10-31: 카드 1종 × 4장 = Lv5. 회복 %(현재 HP 기준)와 치명타 피해 보너스가 함께 +5%.
+  // 실제 비율은 hanako.js getHanakoRatio(level)가 정본이고 healPercent는 같은 값을 따라간다.
+  hanakoUpgrade:        { weapon: 'hanako',        kind: 'stat',   stat: 'healPercent', step: 0.05, cap: 0.3 },
   acquireInucon:        { weapon: 'inucon',        kind: 'acquire', minLevel: 8 },
   inuconHeal:           { weapon: 'inucon',        kind: 'stat',   stat: 'healPercent', step: 0.004, cap: 0.036 },
   inuconPushRadius:     { weapon: 'inucon',        kind: 'stat',   stat: 'pushRadius',  step: 0.1,  cap: 1.25 },

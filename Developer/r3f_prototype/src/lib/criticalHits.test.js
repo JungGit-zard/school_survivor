@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { resolveCriticalHit, resolveCriticalHitInto, canDamageCrit } from './criticalHits.js'
+import { resolveCriticalHit, resolveCriticalHitInto, canDamageCrit, setCriticalDamageBonus } from './criticalHits.js'
 
 describe('resolveCriticalHit', () => {
   it('reuses caller-owned out object on the hot path', () => {
@@ -74,5 +74,22 @@ describe('resolveCriticalHit', () => {
       damage: 15,
       isCritical: true,
     })
+  })
+})
+
+describe('Hanako critical damage bonus (Terry 2026-10-31)', () => {
+  it('scales only critical damage by (1 + bonus) and leaves non-crits and crit chance alone', () => {
+    try {
+      setCriticalDamageBonus(0.10)
+      expect(resolveCriticalHit({ baseDamage: 10, critChance: 1, rng: () => 0 }).damage).toBeCloseTo(16.5)
+      setCriticalDamageBonus(0.30)
+      expect(resolveCriticalHit({ baseDamage: 10, critChance: 1, rng: () => 0 }).damage).toBeCloseTo(19.5)
+      expect(resolveCriticalHit({ baseDamage: 10, critChance: 0.25, rng: () => 0.25 })).toEqual({ damage: 10, isCritical: false })
+      expect(resolveCriticalHit({ baseDamage: 10, damageType: 'explosive', critChance: 1, rng: () => 0 }).damage).toBe(10)
+      setCriticalDamageBonus(0)
+      expect(resolveCriticalHit({ baseDamage: 10, critChance: 1, rng: () => 0 }).damage).toBe(15)
+    } finally {
+      setCriticalDamageBonus(0)
+    }
   })
 })

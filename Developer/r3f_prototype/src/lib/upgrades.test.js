@@ -391,6 +391,20 @@ describe('isUpgradeAvailable', () => {
     })).toBe(false)
   })
 
+  it('Terry 2026-10-31: hanakoUpgrade 4장으로 Lv5, 5장째는 나오지 않는다', () => {
+    const effect = UPGRADE_EFFECTS.hanakoUpgrade
+    expect(effect).toMatchObject({ weapon: 'hanako', kind: 'stat' })
+    let hanako = applyUpgradeToWeapon({ ...WEAPON_CATALOG.hanako.base }, UPGRADE_EFFECTS.acquireHanako)
+    const weapons = () => ({ chibiko: wpn({ active: true, level: 1 }), hanako })
+    for (let i = 0; i < 4; i += 1) {
+      expect(isUpgradeAvailable(effect, 10, weapons())).toBe(true)
+      hanako = applyUpgradeToWeapon(hanako, effect)
+    }
+    expect(hanako.level).toBe(5)
+    expect(hanako.healPercent).toBeCloseTo(0.30)
+    expect(isUpgradeAvailable(effect, 10, weapons())).toBe(false)
+  })
+
   it('unlock: 이미 active이면 false', () => {
     expect(isUpgradeAvailable(
       { weapon: 'bell', kind: 'acquire' }, 10,

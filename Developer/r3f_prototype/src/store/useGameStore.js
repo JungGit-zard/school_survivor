@@ -16,6 +16,8 @@ import {
   unlockBossPassiveItem,
 } from '../lib/bossPassiveItems.js'
 import { setMagnetMultiplier } from '../lib/pickup.js'
+import { setCriticalDamageBonus } from '../lib/criticalHits.js'
+import { getHanakoCritDamageBonus } from '../lib/hanako.js'
 import {
   incrementRecord as incrementPlayerRecord,
   setBestIfHigher as setBestPlayerRecord,
@@ -1606,4 +1608,11 @@ useGameStore.subscribe(
     const state = useGameStore.getState()
     if (['playing','paused','levelup','cleared','gameover'].includes(state.phase)) checkpointRun(state)
   },
+)
+
+// 하나코 치명타 피해 보너스(Terry 2026-10-31) — 전 무기 공용 치명타 헬퍼에 반영한다.
+useGameStore.subscribe(
+  state => getHanakoCritDamageBonus(state.weapons),
+  setCriticalDamageBonus,
+  { fireImmediately: true },
 )
