@@ -185,6 +185,9 @@ function getErrorMessage(error) {
   if (code === 'auth/network-request-failed') {
     return '네트워크 문제로 로그인하지 못했습니다. 연결을 확인한 뒤 다시 시도해 주세요.'
   }
+  if (code === 'auth/embedded-frame') {
+    return '게임 사이트 안에서는 Google 로그인을 할 수 없어 새 탭에서 escapezombie.com을 열었습니다. 그 탭에서 로그인하거나, 여기서는 로그인 없이 플레이해 주세요.'
+  }
   if (code === 'auth/popup-closed-by-user' || code === 'auth/cancelled-popup-request') {
     return 'Google 로그인이 취소되었습니다. 다시 시도해 주세요.'
   }

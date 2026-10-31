@@ -76,6 +76,17 @@ export function shouldUseWebRedirectGoogleSignIn(
   return globalScope?.location?.protocol === 'https:' && /\bAndroid\b/i.test(userAgent)
 }
 
+// Web-game portals (itch.io, CrazyGames, Newgrounds) run the game inside a cross-origin iframe.
+// There Google refuses to render in a redirected frame and the popup result cannot reach the
+// partitioned auth state, so Google sign-in is moved to a top-level tab instead.
+export function isEmbeddedInFrame(globalScope = getDefaultGlobalScope()) {
+  try {
+    return Boolean(globalScope?.top) && globalScope.top !== (globalScope.self ?? globalScope)
+  } catch {
+    return true
+  }
+}
+
 export function getLocalFirebaseAuthRedirect(location = getDefaultGlobalScope()?.location, isDevelopment = import.meta.env?.DEV === true) {
   if (!isDevelopment || !location?.href) return null
   const url = new URL(location.href)
@@ -174,6 +185,12 @@ export async function createFirebaseAuthClient(env = getDefaultEnv(), globalScop
     signInWithGoogle: async () => {
       if (useNativeGoogle) {
         return signInWithNativeGoogle(authModule, auth)
+      }
+      if (isEmbeddedInFrame(globalScope)) {
+        globalScope.open?.(`${globalScope.location?.origin ?? ''}/`, '_blank', 'noopener')
+        const error = new Error('Google sign-in is unavailable inside an embedded frame.')
+        error.code = 'auth/embedded-frame'
+        throw error
       }
       if (useWebRedirectGoogle) {
         await authModule.signInWithRedirect(auth, provider)

@@ -10,6 +10,7 @@ import {
   shouldUseWebRedirectGoogleSignIn,
   toAuthUser,
   createFirebaseAuthClient,
+  isEmbeddedInFrame,
   isGraphicsStudioLocation,
 } from './firebaseAuth.js'
 
@@ -329,6 +330,30 @@ describe('firebase auth configuration', () => {
     expect(restoredUser).toMatchObject({ uid: 'twa-user', email: 'twa@example.com' })
     expect(firebaseAuthMock.auth.signInWithPopup).not.toHaveBeenCalled()
     expect(firebaseAuthMock.auth.signInWithRedirect).toHaveBeenCalledOnce()
+  })
+
+  it('opens the site in a new tab instead of popup/redirect when embedded in a portal iframe', async () => {
+    firebaseAuthMock.app.getApps.mockReturnValue([])
+    firebaseAuthMock.auth.getRedirectResult.mockReset().mockResolvedValueOnce(null)
+    firebaseAuthMock.auth.signInWithPopup.mockReset()
+    firebaseAuthMock.auth.signInWithRedirect.mockReset()
+    const open = vi.fn()
+    const scope = {
+      location: { pathname: '/', protocol: 'https:', href: 'https://escapezombie.com/', origin: 'https://escapezombie.com' },
+      sessionStorage: {},
+      navigator: { userAgent: 'Mozilla/5.0 (Linux; Android 15) Chrome/140 Mobile Safari/537.36' },
+      top: {},
+      open,
+    }
+    scope.self = scope
+    expect(isEmbeddedInFrame(scope)).toBe(true)
+    expect(isEmbeddedInFrame({ ...scope, top: scope })).toBe(false)
+
+    const client = await createFirebaseAuthClient(COMPLETE_ENV, scope)
+    await expect(client.signInWithGoogle()).rejects.toMatchObject({ code: 'auth/embedded-frame' })
+    expect(open).toHaveBeenCalledWith('https://escapezombie.com/', '_blank', 'noopener')
+    expect(firebaseAuthMock.auth.signInWithPopup).not.toHaveBeenCalled()
+    expect(firebaseAuthMock.auth.signInWithRedirect).not.toHaveBeenCalled()
   })
 
   it('uses only a native Google credential inside Capacitor without web popup or redirect calls', async () => {
