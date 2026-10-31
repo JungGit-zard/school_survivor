@@ -440,15 +440,29 @@ describe('upgrade choice filtering', () => {
       { key: 'maxHealth' },
     ]
 
-    const filtered = limitDuplicateWeaponUpgradeOptions(options, () => 0.8)
+    // 레벨 2 → 그룹의 두 번째 카드(umbrellaRadius, onigiiriBounce)
+    const filtered = limitDuplicateWeaponUpgradeOptions(options, { umbrellaGuard: { level: 2 }, onigiri: { level: 2 } })
     const umbrellaCount = filtered.filter((option) => option.key.startsWith('umbrella')).length
     const onigiriCount = filtered.filter((option) => option.key.startsWith('onigiiri')).length
 
     expect(umbrellaCount).toBe(1)
     expect(onigiriCount).toBe(1)
-    expect(filtered.map((option) => option.key)).toContain('maxHealth')
+    expect(filtered.map((option) => option.key)).toEqual(['umbrellaRadius', 'onigiiriBounce', 'maxHealth'])
   })
 
+
+  it('rotates same-weapon upgrade cards by weapon level instead of always the first card', () => {
+    // 회귀(balanceqa 2026-10-31): 예전엔 기본값 () => 0이라 무기마다 첫 강화 카드만 나왔다(연필은 데미지만).
+    // Math.random을 쓰면 같은 화면에서 weapons가 바뀔 때 카드가 재셔플되므로, 무기 레벨로 결정적으로 돌린다.
+    const options = ['pencilDamage', 'pencilCount', 'pencilPierce', 'pencilCrit'].map((key) => UPGRADES.find((upgrade) => upgrade.key === key))
+    expect(options.every(Boolean)).toBe(true)
+    const pick = (level) => limitDuplicateWeaponUpgradeOptions(options, { pencilThrow: { level } }).map((option) => option.key)
+
+    expect(pick(1)).toEqual(['pencilDamage'])
+    expect(pick(2)).toEqual(['pencilCount'])
+    expect(pick(5)).toEqual(['pencilDamage'])
+    expect(limitDuplicateWeaponUpgradeOptions(options).map((option) => option.key)).toEqual(['pencilDamage'])
+  })
 
   it('guarantees at least one safe level-up choice once eight weapons are owned', () => {
     const weapons = buildWeaponsWithStarterWeaponsOwned()

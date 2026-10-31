@@ -405,7 +405,7 @@ function getUpgradeChoiceGroupKey(option) {
   return `nonWeapon:${option.key}`
 }
 
-export function limitDuplicateWeaponUpgradeOptions(options, random = () => 0) {
+export function limitDuplicateWeaponUpgradeOptions(options, weapons = {}) {
   const groups = new Map()
   for (const option of options) {
     const groupKey = getUpgradeChoiceGroupKey(option)
@@ -420,7 +420,8 @@ export function limitDuplicateWeaponUpgradeOptions(options, random = () => 0) {
       limited.push(group[0])
       continue
     }
-    limited.push(group[Math.floor(random() * group.length)])
+    const weaponId = UPGRADE_EFFECTS[group[0].key]?.weapon
+    limited.push(group[(Math.max(1, weapons[weaponId]?.level ?? 1) - 1) % group.length])
   }
   return limited
 }
@@ -473,11 +474,7 @@ export function enforceSafeLevelupChoice(choiceKeys, availableKeys, weapons = {}
 
 function pickFour(level, weapons, player, pendingGuaranteedUpgradeChoiceKeys = [], exposedAcquireKeys = [], weaponCycleIds = [], ownedWeaponCycleIds = [], rotationWeaponIds = []) {
   const available = UPGRADES.filter((u) => isUpgradeAvailable(UPGRADE_EFFECTS[u.key], level, weapons, player))
-  const limited = limitDuplicateWeaponUpgradeOptions(available)
-  const chibikoKey = (weapons.chibiko?.level ?? 1) % 2 === 0 ? 'chibikoCrit' : 'chibikoDamage'
-  const chibikoOption = available.find((option) => option.key === chibikoKey)
-  const chibikoIndex = limited.findIndex((option) => UPGRADE_EFFECTS[option.key]?.weapon === 'chibiko')
-  if (chibikoOption && chibikoIndex >= 0) limited[chibikoIndex] = chibikoOption
+  const limited = limitDuplicateWeaponUpgradeOptions(available, weapons) // c53e1c57: 난수 없이 무기 레벨로 돌아가며 고른다 — 화면 중 재셔플 없음, 카드 골고루 노출
   const selection = selectSequentialLevelupChoices({
     orderedKeys: UPGRADES.map((upgrade) => upgrade.key),
     availableKeys: limited.map((upgrade) => upgrade.key),
