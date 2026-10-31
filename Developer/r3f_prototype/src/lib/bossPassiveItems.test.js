@@ -2,8 +2,6 @@ import { describe, expect, it } from 'vitest'
 import {
   BOSS_PASSIVE_ITEMS,
   BOSS_PASSIVE_ITEM_UI_CAPACITY,
-  applyBossPassiveMaxHp,
-  applyBossPassiveMovementSpeed,
   applyBossPassiveDamageToBaseWeapon,
   getBossPassiveDamageMultiplier,
   isBossPassiveItemUnlocked,
@@ -42,20 +40,30 @@ describe('B01 boss passive item catalog', () => {
     expect(applyBossPassiveDamageToBaseWeapon('tumbler', { damage: 6 }, unlocks)).toEqual({ damage: 6 })
   })
 
-  it('defines B02 복도 출입증 for pencil, bell, and onigiri only', () => {
-    const unlocks = { b02CorridorPass: true }
-    expect(BOSS_PASSIVE_ITEMS.b02CorridorPass).toMatchObject({
-      id: 'b02CorridorPass',
-      bossId: 'B02',
-      name: '복도 출입증',
-      weaponIds: ['pencilThrow', 'bell', 'onigiri'],
-      damageMultiplier: 1.05,
-    })
-    expect(normalizeBossPassiveUnlocks({ b02CorridorPass: true, futureBossItem: true })).toEqual({ b02CorridorPass: true })
-    expect(getBossPassiveDamageMultiplier('pencilThrow', unlocks)).toBe(1.05)
-    expect(getBossPassiveDamageMultiplier('bell', unlocks)).toBe(1.05)
-    expect(getBossPassiveDamageMultiplier('onigiri', unlocks)).toBe(1.05)
+  it.each([
+    ['b02CorridorPass', 'B02', '복도 통제선', '선긋기·벨·학생용 랜턴 공격력 +5%', ['lineDraw', 'bell', 'studentLantern']],
+    ['b03GymWhistle', 'B03', '체육관 호루라기', '꼬마 로자리·치비코·오니기리 공격력 +5%', ['miniRosari', 'chibiko', 'onigiri']],
+    ['b04ServingLadle', 'B04', '급식 국자', '텀블러·과학 플라스크·지우개 폭탄 공격력 +5%', ['tumbler', 'scienceFlask', 'eraserBomb']],
+  ])('defines %s as a +5%% damage passive for its three weapons only', (id, bossId, name, description, weaponIds) => {
+    const unlocks = { [id]: true }
+    expect(BOSS_PASSIVE_ITEMS[id]).toMatchObject({ id, bossId, name, description, weaponIds, damageMultiplier: 1.05 })
+    expect(normalizeBossPassiveUnlocks({ [id]: true, futureBossItem: true })).toEqual({ [id]: true })
+    for (const weaponId of weaponIds) expect(getBossPassiveDamageMultiplier(weaponId, unlocks)).toBe(1.05)
     expect(getBossPassiveDamageMultiplier('boxCutter', unlocks)).toBe(1)
+    expect(getBossPassiveDamageMultiplier('pencilThrow', unlocks)).toBe(1)
+  })
+
+  it('scales the secondary damage fields of line draw and flask with the same multiplier', () => {
+    expect(applyBossPassiveDamageToBaseWeapon('lineDraw', { damage: 20, lineCrossDamage: 14 }, { b02CorridorPass: true }))
+      .toMatchObject({ damage: 21, lineCrossDamage: 14.7 })
+    expect(applyBossPassiveDamageToBaseWeapon('scienceFlask', { damage: 7.5, zoneTickDamage: 2.4 }, { b04ServingLadle: true }))
+      .toMatchObject({ damage: 7.875, zoneTickDamage: 2.52 })
+  })
+
+  it('keeps the four boss passive weapon sets disjoint', () => {
+    const all = Object.values(BOSS_PASSIVE_ITEMS).flatMap((item) => item.weaponIds)
+    expect(all).toHaveLength(12)
+    expect(new Set(all).size).toBe(all.length)
   })
 
   it('does not multiply the same runtime weapon twice', () => {
@@ -65,25 +73,5 @@ describe('B01 boss passive item catalog', () => {
     expect(once.damage).toBe(12.6)
     expect(twice).toBe(once)
     expect(twice.damage).toBe(12.6)
-  })
-
-  it('applies the B03 whistle speed boost once and preserves the existing cap', () => {
-    const unlocks = { b03GymWhistle: true }
-    const once = applyBossPassiveMovementSpeed({ speed: 3, baseSpeed: 3 }, unlocks)
-    const twice = applyBossPassiveMovementSpeed(once, unlocks)
-    const capped = applyBossPassiveMovementSpeed({ speed: 5.39, baseSpeed: 3 }, unlocks)
-
-    expect(once).toMatchObject({ speed: 3.15, baseSpeed: 3, bossPassiveMovementSpeedMultiplier: 1.05 })
-    expect(twice).toBe(once)
-    expect(twice.speed).toBe(3.15)
-    expect(capped.speed).toBe(5.4)
-  })
-
-  it('applies the B04 ladle max HP boost once while preserving the current HP ratio', () => {
-    const once = applyBossPassiveMaxHp({ hp: 45, maxHp: 90 }, { b04ServingLadle: true })
-    const twice = applyBossPassiveMaxHp(once, { b04ServingLadle: true })
-
-    expect(once).toMatchObject({ maxHp: 94.5, hp: 47.25, bossPassiveMaxHpMultiplier: 1.05 })
-    expect(twice).toBe(once)
   })
 })

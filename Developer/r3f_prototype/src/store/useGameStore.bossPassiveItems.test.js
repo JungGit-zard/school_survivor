@@ -9,7 +9,9 @@ import {
 } from '../lib/firebaseProgress.js'
 
 const TARGET_WEAPON_IDS = ['boxCutter', 'schoolBag', 'bikittyCutter']
-const B02_TARGET_WEAPON_IDS = ['pencilThrow', 'bell', 'onigiri']
+const B02_TARGET_WEAPON_IDS = ['lineDraw', 'bell', 'studentLantern']
+const B03_TARGET_WEAPON_IDS = ['miniRosari', 'chibiko', 'onigiri']
+const B04_TARGET_WEAPON_IDS = ['tumbler', 'scienceFlask', 'eraserBomb']
 
 function damageSnapshot(weapons) {
   return Object.fromEntries(Object.entries(weapons).map(([id, weapon]) => [id, weapon.damage]))
@@ -41,7 +43,7 @@ describe('B01 삼각자 보스 패시브 런타임', () => {
     expect(enemySource).toContain('store.recordBossKill(type)')
   })
 
-  it('B02 첫 처치는 복도 출입증을 해금하고 현재 런과 다음 런의 세 대상 damage만 정확히 1.05배 한다', () => {
+  it('B02 첫 처치는 복도 통제선을 해금하고 현재 런과 다음 런의 세 대상 damage만 정확히 1.05배 한다', () => {
     const before = damageSnapshot(useGameStore.getState().weapons)
 
     useGameStore.getState().recordBossKill('B02')
@@ -63,10 +65,8 @@ describe('B01 삼각자 보스 패시브 런타임', () => {
   })
 
   it('B04를 해금해도 B01/B02 재호출은 damage를 중첩하지 않는다', () => {
-    const before = damageSnapshot(useGameStore.getState().weapons)
     useGameStore.getState().recordBossKill('B04')
     expect(useGameStore.getState().bossPassiveUnlocks).toEqual({ b04ServingLadle: true })
-    expect(damageSnapshot(useGameStore.getState().weapons)).toEqual(before)
 
     useGameStore.getState().recordBossKill('B01')
     const once = damageSnapshot(useGameStore.getState().weapons)
@@ -79,23 +79,47 @@ describe('B01 삼각자 보스 패시브 런타임', () => {
     expect(damageSnapshot(useGameStore.getState().weapons)).toEqual(b02Once)
   })
 
-  it('applies B04 max HP once while preserving the current HP ratio', () => {
-    useGameStore.setState((state) => ({ player: { ...state.player, hp: 45, maxHp: 90 } }))
-    useGameStore.getState().recordBossKill('B04')
-    const once = useGameStore.getState().player
-    expect(once).toMatchObject({ maxHp: 94.5, hp: 47.25, bossPassiveMaxHpMultiplier: 1.05 })
-    useGameStore.getState().recordBossKill('B04')
-    expect(useGameStore.getState().player).toEqual(once)
+  it.each([
+    ['B03', 'b03GymWhistle', 'stage3', B03_TARGET_WEAPON_IDS],
+    ['B04', 'b04ServingLadle', 'stage4', B04_TARGET_WEAPON_IDS],
+  ])('%s 첫 처치는 %s를 해금하고 현재 런과 다음 런의 세 대상 damage만 정확히 1.05배 한다', (bossId, itemId, stageId, targetIds) => {
+    const before = damageSnapshot(useGameStore.getState().weapons)
+    const playerBefore = useGameStore.getState().player
+
+    useGameStore.getState().recordBossKill(bossId)
+
+    let state = useGameStore.getState()
+    expect(state.bossPassiveUnlocks).toEqual({ [itemId]: true })
+    for (const id of targetIds) expect(state.weapons[id].damage).toBeCloseTo(before[id] * 1.05, 12)
+    for (const [id, weapon] of Object.entries(state.weapons)) {
+      if (!targetIds.includes(id)) expect(weapon.damage).toBe(before[id])
+    }
+    expect(state.player.speed).toBe(playerBefore.speed)
+    expect(state.player.maxHp).toBe(playerBefore.maxHp)
+
+    const once = damageSnapshot(state.weapons)
+    useGameStore.getState().recordBossKill(bossId)
+    expect(damageSnapshot(useGameStore.getState().weapons)).toEqual(once)
+
+    useGameStore.getState().resetGame(stageId)
+    state = useGameStore.getState()
+    for (const id of targetIds) expect(state.weapons[id].damage).toBeCloseTo(before[id] * 1.05, 12)
   })
 
   it.each([
     ['B01', 'boxCutter', 'boxCutterDamage'],
     ['B01', 'schoolBag', 'bagDamage'],
     ['B01', 'bikittyCutter', 'bikittyCutterDamage'],
-    ['B02', 'pencilThrow', 'pencilDamage'],
+    ['B02', 'lineDraw', 'lineDrawDamage'],
     ['B02', 'bell', 'bellDamage'],
-    ['B02', 'onigiri', 'onigiiriDamage'],
-  ])('B01/B02 대상 무기 %s의 damage 카드는 최종 증가분에도 5%%를 적용한다', (bossId, weaponId, upgradeKey) => {
+    ['B02', 'studentLantern', 'lanternDamage'],
+    ['B03', 'miniRosari', 'miniRosariDamage'],
+    ['B03', 'chibiko', 'chibikoDamage'],
+    ['B03', 'onigiri', 'onigiiriDamage'],
+    ['B04', 'tumbler', 'tumblerDamage'],
+    ['B04', 'scienceFlask', 'flaskDamage'],
+    ['B04', 'eraserBomb', 'eraserDamage'],
+  ])('보스 %s 대상 무기 %s의 damage 카드는 최종 증가분에도 5%%를 적용한다', (bossId, weaponId, upgradeKey) => {
     useGameStore.getState().recordBossKill(bossId)
     useGameStore.getState().cheatAcquireWeapon(weaponId)
     const before = useGameStore.getState().weapons[weaponId].damage
@@ -123,29 +147,12 @@ describe('B01 삼각자 보스 패시브 런타임', () => {
     expect(useGameStore.getState().weapons.boxCutter.chibikoBoostApplied).toBe(true)
   })
 
-  it('B04 최대 체력 패시브 뒤 maxHealth 카드는 1/3 조정 후 maxHp와 회복량을 7.35 올리고, 미해금이면 7만 올린다', () => {
-    const noPassiveBefore = useGameStore.getState().player
-    useGameStore.getState().applyUpgrade('maxHealth')
-    expect(useGameStore.getState().player.maxHp).toBe(noPassiveBefore.maxHp + 7)
-    expect(useGameStore.getState().player.hp).toBe(noPassiveBefore.hp + 7)
-
-    useGameStore.getState().resetGame('stage4')
+  it('B04 해금 뒤에도 maxHealth 카드는 maxHp와 회복량을 정확히 7 올린다', () => {
     useGameStore.getState().recordBossKill('B04')
-    const passiveBefore = useGameStore.getState().player
+    const before = useGameStore.getState().player
     useGameStore.getState().applyUpgrade('maxHealth')
-    expect(useGameStore.getState().player.maxHp).toBeCloseTo(passiveBefore.maxHp + 7.35, 12)
-    expect(useGameStore.getState().player.hp).toBeCloseTo(passiveBefore.hp + 7.35, 12)
-  })
-
-  it('B03 첫 처치는 현재와 다음 런 이동속도를 5% 올리되 기존 cap을 넘지 않는다', () => {
-    const before = useGameStore.getState().player.speed
-    useGameStore.getState().recordBossKill('B03')
-    expect(useGameStore.getState().bossPassiveUnlocks).toEqual({ b03GymWhistle: true })
-    expect(useGameStore.getState().player.speed).toBeCloseTo(before * 1.05, 12)
-    useGameStore.getState().recordBossKill('B03')
-    expect(useGameStore.getState().player.speed).toBeCloseTo(before * 1.05, 12)
-    useGameStore.getState().resetGame('stage3')
-    expect(useGameStore.getState().player.speed).toBeCloseTo(before * 1.05, 12)
+    expect(useGameStore.getState().player.maxHp).toBe(before.maxHp + 7)
+    expect(useGameStore.getState().player.hp).toBe(before.hp + 7)
   })
 
   it('Firebase 정본에서 새 런과 reloadPersistentProgress로 다시 빌드해도 삼각자를 유지한다', () => {
@@ -176,9 +183,12 @@ describe('B01 삼각자 보스 패시브 런타임', () => {
 
     const state = useGameStore.getState()
     expect(state.bossPassiveUnlocks).toEqual({ b02CorridorPass: true, b03GymWhistle: true, b04ServingLadle: true })
-    for (const id of B02_TARGET_WEAPON_IDS) expect(state.weapons[id].damage).toBeCloseTo(before[id] * 1.05, 12)
-    expect(state.player.speed).toBeCloseTo(3.15, 12)
-    expect(state.player.maxHp).toBeCloseTo(105, 12)
+    for (const id of [...B02_TARGET_WEAPON_IDS, ...B03_TARGET_WEAPON_IDS, ...B04_TARGET_WEAPON_IDS]) {
+      expect(state.weapons[id].damage).toBeCloseTo(before[id] * 1.05, 12)
+    }
+    // reload를 두 번 해도 1.05 × 1.05가 되지 않는다(balanceqa 권고 2026-10-31).
+    expect(useGameStore.getState().reloadPersistentProgress()).toBe(true)
+    expect(useGameStore.getState().weapons.onigiri.damage).toBeCloseTo(before.onigiri * 1.05, 12)
   })
 
   it('미hydrate 상태에서도 B01 처치와 다음 resetGame은 메모리 해금을 유지하고 플레이를 막지 않는다', () => {
