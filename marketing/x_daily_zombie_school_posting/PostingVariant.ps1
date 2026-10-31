@@ -105,7 +105,7 @@ function Get-PostingPreviousImagePath($Config, [string]$Language, [string]$Cycle
   foreach ($previous in $previousReceipts) {
     $prior = Get-Content -LiteralPath $previous.FullName -Raw -Encoding UTF8 | ConvertFrom-Json
     $entry = $prior.entries.$Language
-    if ($null -ne $entry -and $null -ne $entry.intent) {
+    if ($null -ne $entry -and $null -ne $entry.intent -and -not ($entry.intent.PSObject.Properties.Name -contains 'postFormat' -and [string]$entry.intent.postFormat -ceq 'video')) {
       try {
         $priorImage = Resolve-PostingImagePath ([string]$entry.intent.imagePath) -Platform $Platform
       } catch {
@@ -198,6 +198,8 @@ function Select-PostingLocaleImagePath($Config, [string]$Language, [string]$Cycl
       if ($null -eq $receipt -or $receipt.PSObject.Properties.Name -notcontains 'entries') { continue }
       $entry = $receipt.entries.$Language
       if ($null -eq $entry -or $null -eq $entry.intent) { continue }
+      # Video posts consume a clip, not an image or a card URL.
+      if ($entry.intent.PSObject.Properties.Name -contains 'postFormat' -and [string]$entry.intent.postFormat -ceq 'video') { continue }
       if ($entry.state -notin @('publish_intent','verified')) {
         # X caches a failed first crawl of a card URL for days, so any earlier X website-card attempt
         # (failed or not) consumes its image.  The current cycle's own frozen selection is not history.
@@ -316,7 +318,7 @@ function Resolve-PostingIntentVariant($Config, [string]$Language, $Intent) {
   $matchingVariants[0].imagePath = $intentImage
   return $matchingVariants[0]
 }
-function Select-PostingVariant($Config, [string]$Language, [string]$CycleId, [string]$ReceiptDirectory, $ExistingIntent = $null, [ValidateSet('X','Facebook')][string]$Platform = 'X') {
+function Select-PostingVariant($Config, [string]$Language, [string]$CycleId, [string]$ReceiptDirectory, $ExistingIntent = $null, [ValidateSet('X','Facebook')][string]$Platform = 'X', [switch]$NoImage) {
   if ($null -ne $ExistingIntent) { return Resolve-PostingIntentVariant $Config $Language $ExistingIntent }
   $variants = @(Get-PostingVariants $Config $Language)
   $ordinal = 0L
@@ -356,6 +358,7 @@ function Select-PostingVariant($Config, [string]$Language, [string]$CycleId, [st
     if ((([string]$variants[$index].text -split '\r?\n')[0]).Trim() -ceq $previousOpening) { throw "No non-repeating opening copy is available for $Platform/$Language." }
   }
   $selected = $variants[$index]
-  $selected.imagePath = Select-PostingLocaleImagePath $Config $Language $CycleId $ReceiptDirectory $Platform
+  # A video post selects copy only; it must not consume an image from the X rotation.
+  $selected.imagePath = if ($NoImage) { $null } else { Select-PostingLocaleImagePath $Config $Language $CycleId $ReceiptDirectory $Platform }
   return $selected
 }

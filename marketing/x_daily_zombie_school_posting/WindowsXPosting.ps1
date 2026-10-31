@@ -309,12 +309,12 @@ function Close-XOwnedDraft([string]$Text, [switch]$BeforePublish) {
   $editor = Find-XControl 'Post text' 'Edit'
   $allowedCards = @([int]$owned.cards)
   if ($BeforePublish) {
-    if ($owned.phase -cne 'pre_publish_card') { throw 'Not a pre-click owned card draft; preserving it' }
+    if ($owned.phase -cnotin @('pre_publish_card','pre_publish_video')) { throw 'Not a pre-click owned card draft; preserving it' }
     $window = Get-XWindowElement
     Assert-XForeground
     if ($window.Current.NativeWindowHandle -ne $owned.windowId -or $window.Current.ProcessId -ne $owned.processId -or
         $window.Current.Name -cne $owned.accountTitle -or $window.Current.Name -notmatch '\(@jungsilx\) / X' -or
-        [string]::IsNullOrEmpty([string]$script:XExpectedCardUrl) -or [regex]::Matches($Text, [regex]::Escape([string]$script:XExpectedCardUrl)).Count -ne 1 -or
+        ($owned.phase -ceq 'pre_publish_card' -and ([string]::IsNullOrEmpty([string]$script:XExpectedCardUrl) -or [regex]::Matches($Text, [regex]::Escape([string]$script:XExpectedCardUrl)).Count -ne 1)) -or
         ($editor.GetRuntimeId() -join ',') -cne $owned.editorId) {
       throw 'Pre-click window/account/editor/URL ownership changed; preserving it'
     }
@@ -487,7 +487,51 @@ function Assert-XComposer([string]$Text, [switch]$WebsiteCardOnly, [string]$Card
   $post = Find-XControl 'Post' 'Button'
   if (-not $post.Current.IsEnabled) { throw 'Post button is disabled (length limit or upload pending)' }
 }
-function Prepare-XPost([string]$Text, [string]$ImagePath, [switch]$WebsiteCardOnly, [string]$CardUrl = '', [ValidateSet('ko','en','ja','vi')][string]$CardLanguage = 'ja') {
+function Get-XOpenFileDialogs {
+  $chromeProcessId = (Get-XWindowElement).Current.ProcessId
+  $names = @('Open', (-join @(0xC5F4,0xAE30 | ForEach-Object { [char]$_ })))
+  return @((Get-XElements) | Where-Object { $_.Current.ControlType -eq [Windows.Automation.ControlType]::Window -and $_.Current.Name -cin $names -and $_.Current.ProcessId -eq $chromeProcessId })
+}
+function Add-XVideoAttachment([string]$VideoPath) {
+  # A video cannot travel through the clipboard like the photo path; use Chrome's native Open dialog
+  # (same UIA mechanics as the Facebook runner): exact file-name Edit 1148, then the Open button 1.
+  $full = [IO.Path]::GetFullPath($VideoPath)
+  if (-not (Test-Path -LiteralPath $full -PathType Leaf) -or $full -notmatch '\.mp4$') { throw 'Video attachment must be an existing .mp4 file' }
+  if (@(Get-XOpenFileDialogs).Count -ne 0) { throw 'A native file dialog is already open; refusing a second file selection' }
+  Click-XElement (Find-XControl 'Add photos or video' 'Button')
+  $dialog = $null
+  $deadline = [DateTime]::UtcNow.AddSeconds(15)
+  do { $dialogs = @(Get-XOpenFileDialogs); if ($dialogs.Count -eq 1) { $dialog = $dialogs[0]; break }; Start-Sleep -Milliseconds 300 } while ([DateTime]::UtcNow -lt $deadline)
+  if ($null -eq $dialog) { throw 'Timed out: native Open file dialog did not appear' }
+  try {
+    $dialogElements = @(Get-XElements $dialog)
+    $edits = @($dialogElements | Where-Object { $_.Current.AutomationId -eq '1148' -and $_.Current.ControlType -eq [Windows.Automation.ControlType]::Edit })
+    if ($edits.Count -ne 1) { throw "Expected one native file-name Edit 1148; found $($edits.Count)" }
+    $value = $null
+    if (-not $edits[0].TryGetCurrentPattern([Windows.Automation.ValuePattern]::Pattern, [ref]$value)) { throw 'Native file-name Edit has no ValuePattern' }
+    $value.SetValue($full)
+    if ((Get-XValue $edits[0]) -cne $full) { throw 'Native file-name Edit did not confirm the exact video path' }
+    $open = @($dialogElements | Where-Object { $_.Current.AutomationId -eq '1' -and $_.Current.ControlType -eq [Windows.Automation.ControlType]::Button -and -not $_.Current.IsOffscreen })
+    if ($open.Count -ne 1) { throw "Expected one native Open button 1; found $($open.Count)" }
+    $invoke = $null
+    if (-not $open[0].TryGetCurrentPattern([Windows.Automation.InvokePattern]::Pattern, [ref]$invoke)) { throw 'Native Open button has no InvokePattern' }
+    $invoke.Invoke()
+    $deadline = [DateTime]::UtcNow.AddSeconds(15)
+    do { if (@(Get-XOpenFileDialogs).Count -eq 0) { return }; Start-Sleep -Milliseconds 300 } while ([DateTime]::UtcNow -lt $deadline)
+    throw 'Timed out: native Open file dialog stayed open after the video path was submitted'
+  } catch {
+    $attachError = $_
+    try {
+      foreach ($openDialog in @(Get-XOpenFileDialogs)) {
+        $cancel = @((Get-XElements $openDialog) | Where-Object { $_.Current.AutomationId -eq '2' -and $_.Current.ControlType -eq [Windows.Automation.ControlType]::Button })
+        $pattern = $null
+        if ($cancel.Count -eq 1 -and $cancel[0].TryGetCurrentPattern([Windows.Automation.InvokePattern]::Pattern, [ref]$pattern)) { $pattern.Invoke() }
+      }
+    } catch { }
+    throw $attachError
+  }
+}
+function Prepare-XPost([string]$Text, [string]$ImagePath, [switch]$WebsiteCardOnly, [string]$CardUrl = '', [ValidateSet('ko','en','ja','vi')][string]$CardLanguage = 'ja', [string]$VideoPath = '') {
   Navigate-XProfile
   Assert-XNavigationSafe
   Click-XElement (Find-XControl 'Post' 'Hyperlink')
@@ -495,6 +539,28 @@ function Prepare-XPost([string]$Text, [string]$ImagePath, [switch]$WebsiteCardOn
   $editor = Find-XControl 'Post text' 'Edit'
   if (-not [string]::IsNullOrWhiteSpace((Get-XValue $editor)) -or (Get-XAttachmentCount) -ne 0 -or (Get-XCardPreviewRemoveCount) -ne 0) { throw 'Composer has an existing draft; preserving it' }
   Click-XElement $editor
+  if (-not [string]::IsNullOrWhiteSpace($VideoPath)) {
+    $videoSha256 = (Get-FileHash -LiteralPath $VideoPath -Algorithm SHA256).Hash.ToLowerInvariant()
+    Set-XClipboardText $Text
+    Send-XKeys '^a'
+    Send-XKeys '^v'
+    Wait-XCondition { (Normalize-PostText (Get-XValue (Find-XControl 'Post text' 'Edit'))) -ceq (Normalize-PostText $Text) } 'pasted exact campaign copy'
+    $window = Get-XWindowElement
+    $script:XOwnedDraft = [pscustomobject]@{ text=$Text; attachments=0; cards=0; phase='pre_publish_video'; windowId=$window.Current.NativeWindowHandle; processId=$window.Current.ProcessId; accountTitle=$window.Current.Name; editorId=($editor.GetRuntimeId() -join ',') }
+    try {
+      Add-XVideoAttachment $VideoPath
+      Wait-XCondition { (Get-XAttachmentCount) -eq 1 } 'one attached video' 60
+      $script:XOwnedDraft.attachments = 1
+      # X keeps Post disabled while it uploads/processes the clip; never submit before it is enabled.
+      Wait-XCondition { Assert-XComposer $Text; return $true } 'video upload processed and Post enabled' 180
+    } catch {
+      $preparationError = $_
+      try { Close-XOwnedDraft $Text -BeforePublish } catch { [Console]::Error.WriteLine('X_PRECLICK_DRAFT_PRESERVED: ' + $_.Exception.Message) }
+      throw $preparationError
+    }
+    $script:XOwnedDraft = [pscustomobject]@{ text=(Get-XValue (Find-XControl 'Post text' 'Edit')); attachments=1; cards=(Get-XCardPreviewRemoveCount) }
+    return [pscustomobject]@{ videoPath=$VideoPath; videoSha256=$videoSha256; attachmentCount=1; postFormat='video'; preparedUtc=[DateTimeOffset]::UtcNow.ToString('o'); textSha256=(Get-CopyDigest $Text) }
+  }
   if ($WebsiteCardOnly) {
     $imageSha256 = (Get-FileHash -LiteralPath $ImagePath -Algorithm SHA256).Hash.ToLowerInvariant()
     if ($CardUrl -notmatch ('^https://(escapezombie\.com|escape-zombie-school-assets\.web\.app)/share/x/' + $CardLanguage + '/' + $imageSha256.Substring(0,16) + '$')) { throw 'Card URL does not bind to the frozen locale and image hash' }
@@ -542,10 +608,10 @@ function Submit-XEditorShortcut($Editor) {
   if (-not $Editor.Current.HasKeyboardFocus) { throw 'Post text editor focus was not proven; Ctrl+Enter not sent' }
   Send-XKeys '^{ENTER}'
 }
-function Publish-XPost([string]$Text, [switch]$WebsiteCardOnly, [string]$CardUrl = '') {
+function Publish-XPost([string]$Text, [switch]$WebsiteCardOnly, [string]$CardUrl = '', [switch]$Video) {
   Assert-XComposer $Text -WebsiteCardOnly:$WebsiteCardOnly -CardUrl $CardUrl
   $postButton = Find-XControl 'Post' 'Button'
-  if ($WebsiteCardOnly) { Submit-XEditorShortcut (Find-XControl 'Post text' 'Edit') }
+  if ($WebsiteCardOnly -or $Video) { Submit-XEditorShortcut (Find-XControl 'Post text' 'Edit') }
   else { Click-XElement $postButton }
   # Do not navigate away while X is sending: that can abort the request.
   $deadline = [DateTime]::UtcNow.AddSeconds(45)

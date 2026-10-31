@@ -19,6 +19,7 @@ function Assert-XBeforePublishCutoff([string]$Value) {
 . (Join-Path $PSScriptRoot 'PostingReceipt.ps1')
 . (Join-Path $PSScriptRoot 'PostingVariant.ps1')
 . (Join-Path $PSScriptRoot 'XWebsiteCardReadiness.ps1')
+. (Join-Path $PSScriptRoot 'XVideoPosting.ps1')
 $receipt = $null
 $receiptPath = $null
 $activeLanguage = $null
@@ -26,6 +27,13 @@ $mutex = $null
 $locked = $false
 $cardReadinessByLanguage = @{}
 function Resolve-XIntentVariant($Config, [string]$Language, $Intent) {
+  if ($Intent.PSObject.Properties.Name -contains 'postFormat' -and $Intent.postFormat -ceq 'video') {
+    # A video intent freezes copy only; its clip is checked against video_pool, never the image pool.
+    $matching = @(Get-PostingVariants $Config $Language -IncludeDisabled | Where-Object { $_.id -ceq [string]$Intent.variantId -and $_.text -ceq [string]$Intent.sourceText })
+    if ($matching.Count -ne 1) { throw "Receipt config mismatch for $Language" }
+    $matching[0].imagePath = $null
+    return $matching[0]
+  }
   if ($Intent.PSObject.Properties.Name -contains 'postFormat' -and $Intent.postFormat -ceq 'website_card') {
     if ($Intent.PSObject.Properties.Name -notcontains 'sourceText' -or [string]::IsNullOrWhiteSpace([string]$Intent.sourceText)) { throw 'Website-card receipt is missing its canonical source text' }
     $sourceIntent = [pscustomobject]@{ variantId=$Intent.variantId; text=$Intent.sourceText; imagePath=$Intent.imagePath }
@@ -108,10 +116,19 @@ try {
     }
     $languages = @($config.language_order)
     if ($PrepareOnly -or $SinglePost) { $languages = @($Language) }
+    $videoReceiptDirectories = @($ReceiptDirectory) + @(Get-PostingDefaultReceiptDirectories X)
     foreach ($lang in $languages) {
       $entry = $receipt.entries.$lang
       if ($null -eq $entry) {
         if ($WebsiteCardOnly -and -not $PrepareOnly -and (-not $PublishOnly -or -not $SinglePost -or -not $cardConfig.enabled)) { throw '-WebsiteCardOnly publishing requires -PublishOnly -SinglePost and x_link_card.enabled=true for a new intent' }
+        if ($WebsiteCardOnly -and $PublishOnly -and $SinglePost -and (Get-XCyclePostFormat $CycleId) -ceq 'video') {
+          $variant = Select-PostingVariant $config $lang $CycleId $ReceiptDirectory -NoImage
+          $videoPath = Select-XVideoClip $lang $CycleId $videoReceiptDirectories
+          $videoText = Get-XVideoComposerText ([string]$variant.text) ([string]$config.web_url) ([string]$config.play_store_url) $lang
+          $intent = New-XVideoIntent $lang $variant.id $videoText $variant.text $videoPath ((Get-FileHash -LiteralPath $videoPath -Algorithm SHA256).Hash.ToLowerInvariant())
+          $receipt.entries.$lang = [pscustomobject]@{ state='selected'; intent=$intent; evidence=$null }
+          continue
+        }
         $variant = Select-PostingVariant $config $lang $CycleId $ReceiptDirectory
         $intent = [pscustomobject]@{ language=$lang; variantId=$variant.id; text=$variant.text; textSha256=(Get-CopyDigest $variant.text); imagePath=$variant.imagePath; selectedUtc=[DateTimeOffset]::UtcNow.ToString('o') }
         if ($WebsiteCardOnly) {
@@ -128,7 +145,7 @@ try {
     foreach ($lang in $languages) {
       $entry = $receipt.entries.$lang
       # Website cards carry the game-start CTA in the post text, so the image needs no burned-in CTA.
-      if ($null -ne $entry -and $entry.state -in @('selected','prepared') -and -not (Test-PostingXWebsiteCardMode $config)) {
+      if ($null -ne $entry -and $entry.state -in @('selected','prepared') -and -not (Test-PostingXWebsiteCardMode $config) -and -not ($entry.intent.PSObject.Properties.Name -contains 'postFormat' -and $entry.intent.postFormat -ceq 'video')) {
         Assert-PostingImageGameStartText ([string]$entry.intent.imagePath) $lang -Platform X
       }
     }
@@ -177,15 +194,24 @@ try {
       }
       $variant = Resolve-XIntentVariant $config $lang $entry.intent
       $postFormat = if ($entry.intent.PSObject.Properties.Name -contains 'postFormat') { [string]$entry.intent.postFormat } else { 'photo' }
-      if ($postFormat -notin @('photo','website_card')) { throw "Unsupported frozen X post format '$postFormat'" }
+      if ($postFormat -notin @('photo','website_card','video')) { throw "Unsupported frozen X post format '$postFormat'" }
       $websiteCardMode = $postFormat -eq 'website_card'
+      $videoMode = $postFormat -eq 'video'
       if ($websiteCardMode -and -not $PrepareOnly -and (-not $PublishOnly -or -not $SinglePost)) { throw 'Frozen website-card intent requires -PublishOnly -SinglePost; refusing full-cycle post verification' }
       if ($websiteCardMode -and -not $PrepareOnly -and -not $cardConfig.enabled) { throw 'Frozen website-card publishing is disabled by x_link_card.enabled=false' }
-      $text = if ($postFormat -eq 'website_card') { [string]$entry.intent.sourceText } else { [string]$entry.intent.text }
+      if ($videoMode -and ($PrepareOnly -or -not $PublishOnly -or -not $SinglePost -or $entry.state -cne 'selected')) { throw 'Frozen video intent requires a fresh -PublishOnly -SinglePost run; refusing prepare or full-cycle reuse' }
+      $text = if ($postFormat -in @('website_card','video')) { [string]$entry.intent.sourceText } else { [string]$entry.intent.text }
       $imagePath = [string]$variant.imagePath
       $cardUrl = $null
       $composerText = $text
-      $imageSha256 = (Get-FileHash -LiteralPath $imagePath -Algorithm SHA256).Hash.ToLowerInvariant()
+      $imageSha256 = if ($videoMode) { $null } else { (Get-FileHash -LiteralPath $imagePath -Algorithm SHA256).Hash.ToLowerInvariant() }
+      if ($videoMode) {
+        $videoPath = Resolve-XVideoClipPath ([string]$entry.intent.videoPath)
+        $videoSha256 = (Get-FileHash -LiteralPath $videoPath -Algorithm SHA256).Hash.ToLowerInvariant()
+        if ($videoSha256 -cne [string]$entry.intent.videoSha256) { throw 'Frozen video clip bytes no longer match the receipt' }
+        $composerText = Get-XVideoComposerText $text ([string]$config.web_url) ([string]$config.play_store_url) $lang
+        if ($composerText -cne [string]$entry.intent.text) { throw 'Frozen video copy no longer matches the selected variant' }
+      }
       if ($websiteCardMode) {
         $expectedCardUrl = $cardBaseUrl.TrimEnd('/') + '/share/x/' + $lang + '/' + $imageSha256.Substring(0,16)
         if ($entry.intent.PSObject.Properties.Name -contains 'cardUrl') {
@@ -217,7 +243,10 @@ try {
         Navigate-XProfile
         Assert-XAccount
         $baseline = @(Get-XStatusUrls)
-        if ($websiteCardMode) {
+        if ($videoMode) {
+          $proof = Prepare-XPost -Text $composerText -VideoPath $videoPath
+          $intent = New-XVideoIntent $lang $variant.id $composerText $text $videoPath $videoSha256 $baseline $proof.preparedUtc
+        } elseif ($websiteCardMode) {
           $proof = Prepare-XPost -Text $composerText -ImagePath $imagePath -WebsiteCardOnly -CardUrl $cardUrl -CardLanguage $lang
           $intent = [pscustomobject]@{ language=$lang; variantId=$variant.id; text=$composerText; sourceText=$text; textSha256=(Get-CopyDigest $composerText); imagePath=$imagePath; imageSha256=$imageSha256; attachmentCount=0; postFormat='website_card'; cardUrl=$cardUrl; baselineUrls=$baseline; createdUtc=[DateTimeOffset]::UtcNow.ToString('o'); preparedUtc=$proof.preparedUtc; cardEvidence=$proof.cardEvidence }
         } else {
@@ -231,13 +260,15 @@ try {
         [pscustomobject]@{ status='prepared_not_published'; language=$lang; proof=$proof } | ConvertTo-Json -Depth 5
         exit 0
       }
-      Assert-PostingIntentImageSequence $config $lang $CycleId $ReceiptDirectory $intent X | Out-Null
+      if ($videoMode) { if ((Select-XVideoClip $lang $CycleId $videoReceiptDirectories) -ine $videoPath) { throw 'VIDEO_SEQUENCE_CHANGED: frozen clip is no longer the next clip in the rotation.' } }
+      else { Assert-PostingIntentImageSequence $config $lang $CycleId $ReceiptDirectory $intent X | Out-Null }
       $entry = [pscustomobject]@{ state='publish_intent'; intent=$intent; evidence=$null }
       $receipt.entries.$lang = $entry
       Assert-XBeforePublishCutoff $StopAtKst
       Save-CycleReceipt $receipt $receiptPath
       Assert-XBeforePublishCutoff $StopAtKst
-      if ($websiteCardMode) { $publishResult = Publish-XPost -Text $composerText -WebsiteCardOnly -CardUrl $cardUrl }
+      if ($videoMode) { $publishResult = Publish-XPost -Text $composerText -Video }
+      elseif ($websiteCardMode) { $publishResult = Publish-XPost -Text $composerText -WebsiteCardOnly -CardUrl $cardUrl }
       else { $publishResult = Publish-XPost -Text $text }
       if ($publishResult.outcome -eq 'duplicate_skipped') {
         $entry.state = 'skipped_duplicate'
