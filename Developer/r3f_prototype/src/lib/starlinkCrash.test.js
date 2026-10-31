@@ -20,7 +20,9 @@ import {
   pickEscapeDirection,
   getZomlonPosition,
   isEscapeDone,
+  runOverZombiesWithZomlon,
 } from './starlinkCrash.js'
+import { createEnemyEntityPool } from './enemyEntityPool.js'
 
 const BOUNDS = { minX: -10, maxX: 10, minZ: -8, maxZ: 8 }
 
@@ -281,5 +283,24 @@ describe('getZomlonPosition / isEscapeDone', () => {
 
   it('최대 도주 시간을 넘기면 위치와 무관하게 종료된다 (안전 언마운트)', () => {
     expect(isEscapeDone({ x: 0, z: 0 }, BOUNDS, ZOMLON_MAX_ESCAPE_MS)).toBe(true)
+  })
+})
+
+describe('runOverZombiesWithZomlon', () => {
+  it('부딪힌 일반 좀비만 남은 hp만큼 피해로 즉사시키고 보스·먼 좀비·상한 초과분은 건드리지 않는다', () => {
+    const pool = createEnemyEntityPool()
+    const hits = []
+    pool.setGlobalHitDispatcher((index, generation, damage, impact) => hits.push({ index, generation, damage, impact }))
+    const near = pool.spawn({ type: 'E01', x: 0.2, z: 0, hp: 37, maxHp: 40, visualScale: 4 / 3 })
+    pool.spawn({ type: 'E01', x: 0.5, z: 0, hp: 10, maxHp: 10, visualScale: 4 / 3 })  // 0.33u 밖
+    pool.spawn({ type: 'B01', x: 0, z: 0.1, hp: 500, maxHp: 500, visualScale: 2 })     // 보스 제외
+    const second = pool.spawn({ type: 'E02', x: -0.1, z: 0.1, hp: 12, maxHp: 12, visualScale: 4 / 3 })
+
+    expect(runOverZombiesWithZomlon(0, 0, pool, 1)).toBe(1)
+    expect(hits).toEqual([{ index: near.index, generation: near.generation, damage: 37, impact: expect.objectContaining({ ignoreSightBlock: true, canCrit: false }) }])
+
+    hits.length = 0
+    expect(runOverZombiesWithZomlon(0, 0, pool)).toBe(2)
+    expect(hits.map((h) => h.index)).toEqual([near.index, second.index])
   })
 })

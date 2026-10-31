@@ -16,6 +16,7 @@ import {
   pickEscapeDirection,
   getZomlonPosition,
   isEscapeDone,
+  runOverZombiesWithZomlon,
 } from '../../lib/starlinkCrash.js'
 import StudioTunedGroup, { composeStudioPartPosition, composeStudioPartRotation } from '../StudioTunedGroup.jsx'
 
@@ -24,7 +25,7 @@ const SATELLITE_CRASH_PIVOT_Y = 0.34
 
 // 고장난 스타링크 — 추락 연출 전용 비주얼.
 // 30회 발사 후 위성 본체가 지면에 추락·폭발하고, 폭발에서 좀론비스크가 튀어나와
-// 화면 밖으로 도망간다. 전부 순수 연출: 데미지 0, 콜라이더 없음, 무기 로직 무변경.
+// 화면 밖으로 도망간다. 도주 중 부딪힌 일반 좀비는 즉사(보스 제외, runOverZombiesWithZomlon).
 
 // ── 팔레트 ──────────────────────────────────────────────────────────────────
 // 위성: 흰-회색 4단계 + 파랑 2 + 노랑 1 (+ 스파크 블루 액센트)
@@ -356,6 +357,7 @@ export function StarlinkCrashSequence({ x, z, bossId, onImpact, onDone }) {
           onDone()
           return
         }
+        runOverZombiesWithZomlon(pos.x, pos.z)
       }
     }
     force((n) => n + 1)

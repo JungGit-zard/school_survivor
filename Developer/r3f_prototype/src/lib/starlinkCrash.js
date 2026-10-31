@@ -4,6 +4,8 @@
 // 무기는 새 위성이 도착한 것으로 간주하고 정상 발사를 지속한다(카운터만 리셋).
 
 import { isBossType } from './burstEvents.js'
+import { enemyPool as globalEnemyPool } from './refs.js'
+import { enemyTypeFromCode } from './enemyEntityPool.js'
 
 export const STARLINK_CRASH_FIRE_COUNT = 15
 
@@ -130,4 +132,32 @@ export function isEscapeDone(pos, bounds, escapeElapsedMs, margin = ESCAPE_MARGI
     pos.z < bounds.minZ - margin ||
     pos.z > bounds.maxZ + margin
   )
+}
+
+// 도주 중인 좀론비스크에 부딪힌 일반 좀비는 즉사한다(보스 제외).
+// 판정 반경 = 좀론 몸통 반폭(재킷 바깥 0.28 × ZOMLON_ESCAPE_SCALE 0.5 = 0.14u)
+//          + 좀비 콜라이더 반폭(Enemy.jsx BASE_COL[0] 0.14 × pool.visualScale, E01 ≈ 0.19u).
+// E01 기준 합계 ≈ 0.33u. 일반 좀비는 전부 EntityPool에 있고 보스는 풀 밖(enemyBodies)이라
+// 풀만 훑는다. 사망은 기존 hit 디스패처(남은 hp만큼 피해)로 태워 XP 드롭·킬 카운트·퀘스트가
+// 일반 처치와 똑같이 처리된다(착지 폭발도 같은 일반 피해 경로를 쓴다).
+export const ZOMLON_BODY_RADIUS = 0.14
+export const ZOMLON_ENEMY_HALF_EXTENT = 0.14
+// 한 프레임 처치 상한. 넘친 좀비는 다음 프레임에 다시 판정된다(좀론은 프레임당 ~0.05u 이동).
+export const ZOMLON_MAX_KILLS_PER_FRAME = 8
+const ZOMLON_RUN_OVER_IMPACT = Object.freeze({ ignoreSightBlock: true, canCrit: false, knockback: 0, knockbackMs: 0 })
+
+// 프레임당 좀비마다 거리 1회 판정, 할당 없음. 반환값은 이번 프레임 처치 수.
+export function runOverZombiesWithZomlon(x, z, pool = globalEnemyPool, maxKills = ZOMLON_MAX_KILLS_PER_FRAME) {
+  let kills = 0
+  for (let index = 0; index <= pool.highestActive && kills < maxKills; index += 1) {
+    if (!pool.active[index]) continue
+    const reach = ZOMLON_BODY_RADIUS + ZOMLON_ENEMY_HALF_EXTENT * pool.visualScale[index]
+    const dx = pool.posX[index] - x
+    const dz = pool.posZ[index] - z
+    if (dx * dx + dz * dz > reach * reach) continue
+    if (isBossType(enemyTypeFromCode(pool.type[index]))) continue
+    const hit = pool.proxies[index]._enemyHit
+    if (hit && hit(Math.max(pool.hp[index], 1), ZOMLON_RUN_OVER_IMPACT, pool.generation[index])) kills += 1
+  }
+  return kills
 }
