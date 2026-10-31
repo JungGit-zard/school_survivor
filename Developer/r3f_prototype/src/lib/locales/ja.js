@@ -718,6 +718,8 @@ export default {
   'up.inuconPushRadius.desc': '張り付いたゾンビを押しのける判定範囲が増加',
   'up.inuconKnockback.label': 'イヌコン押しのけ強化',
   'up.inuconKnockback.desc': 'ゾンビをより遠く、より長く押しのける',
+  'up.hanakoUpgrade.label': 'ハナコ強化',
+  'up.hanakoUpgrade.desc': '20秒ごとの回復 +1%（失った体力基準）・クリティカルダメージ +5%',
   'up.chibikoCrit.label': 'チビコ会心強化',
   'up.chibikoCrit.desc': 'クリティカル率 +2%（クリティカルダメージは150%固定）',
   'up.acquireSharkMissile.label': 'サメミサイル解禁',

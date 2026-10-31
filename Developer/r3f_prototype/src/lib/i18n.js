@@ -40,7 +40,7 @@ export function detectInitialLocale() {
     if (lower.startsWith('ja')) return 'ja'
     if (lower.startsWith('en')) return 'en'
   }
-  return 'ko'
+  return 'en' // unsupported browser locales default to English (CrazyGames requirement)
 }
 
 export const useLocaleStore = create((set) => ({

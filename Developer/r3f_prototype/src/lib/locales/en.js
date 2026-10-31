@@ -718,6 +718,8 @@ export default {
   'up.inuconPushRadius.desc': 'Increases the contact radius for pushing away attached zombies',
   'up.inuconKnockback.label': 'Inucon shove strength +',
   'up.inuconKnockback.desc': 'Pushes zombies farther and holds the shove longer',
+  'up.hanakoUpgrade.label': 'Hanako upgrade',
+  'up.hanakoUpgrade.desc': '20s heal +1% of lost HP · crit damage +5%',
   'up.chibikoCrit.label': 'Chibiko crit up',
   'up.chibikoCrit.desc': 'Crit chance +2% (critical damage is fixed at 150%)',
   'up.acquireSharkMissile.label': 'Unlock Shark Missile',
