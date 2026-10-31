@@ -7,7 +7,6 @@ import { isMobileJoystickEnvironment } from '../lib/mobileInput.js'
 import { initKeyboardInput } from '../lib/keyboardInput.js'
 import { applyLanguage, loadTitleSettings } from '../lib/titleSettings.js'
 import { t } from '../lib/i18n.js'
-import { getSelectedWebBackgroundStyle } from '../lib/webBackgroundAssets.js'
 import { clearPendingStartAfterLogin, hasPendingStartAfterLogin } from '../lib/loginContinuation.js'
 import LobbyBgm from './LobbyBgm.jsx'
 
@@ -281,11 +280,11 @@ export default function ReadyGameApp({
     return () => window.removeEventListener('popstate', onPopState)
   }, [])
 
-  // 넓은 웹 화면: 좌우 배경(사이드 거터) + 중앙 9:16 세로 프레임(6a72e281 복원 구조).
+  // 넓은 웹 화면: 좌우 흰색 단색 여백 + 중앙 9:16 세로 프레임(6a72e281 복원 구조). 2026-10-31 Terry: 거터 그림 제거.
   // 세로로 긴 화면(실제 휴대폰·TWA)은 프레임 없이 전체화면 그대로 쓴다.
   const viewportStyle = {
     ...styles.viewport,
-    ...(fullBleedViewport ? null : getSelectedWebBackgroundStyle()),
+    ...(fullBleedViewport ? null : { backgroundColor: '#ffffff' }),
   }
   const phoneFrameStyle = fullBleedViewport
     ? { ...styles.phoneFrame, ...styles.phoneFrameFullBleed }
