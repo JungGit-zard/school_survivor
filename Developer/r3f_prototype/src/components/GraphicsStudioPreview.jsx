@@ -71,6 +71,7 @@ import { SharkMissileModel, FlameTrail } from './Weapons/SharkMissile.jsx'
 import { MissileBody } from './Weapons/Missile.jsx'
 import { StudentLanternVisual } from './Weapons/StudentLantern.jsx'
 import { CrashExplosionVisual, StarlinkSatelliteModel, ZomlonbiskModel } from './Weapons/StarlinkSatellite.jsx'
+import SlteraCar, { SLTERA_TELEGRAPH_MS } from './SlteraCar.jsx'
 import { StudioTuningPreviewProvider, applySavedStudioPartTunings, applyStudioTuning, captureStudioPartBaseTransforms, disposeStudioOwnedMaterials, findStudioPartByKey, getStudioTransformProps } from './StudioTunedGroup.jsx'
 import { disposeTextureDecals, syncTextureDecals } from './TextureDecal.jsx'
 import { snapLocalNormalToFaceAxis } from '../lib/textureDecal.js'
@@ -480,6 +481,14 @@ export function getPreviewFrame(item) {
       maxDistance: 10,
     }
   }
+  if (item.previewKind === 'slteraCar') {
+    return {
+      camera: { position: [3.6, 2.6, 4.4], fov: 36, near: 0.05, far: 60 },
+      target: [0, 0.5, 0],
+      minDistance: 1.6,
+      maxDistance: 14,
+    }
+  }
   if (item.previewKind === 'zomlonbisk') {
     return {
       camera: { position: [1.7, 1.7, 3.0], fov: 34, near: 0.01, far: 30 },
@@ -510,6 +519,22 @@ export function getPreviewFrame(item) {
     minDistance: 1.2,
     maxDistance: 14,
   }
+}
+
+// Sltera 미리보기: 평시 1.6초 뒤 예고(1,400ms) 맥동을 반복해 꼬리 라이트바·헤드램프를 보여 준다.
+const SLTERA_PREVIEW_IDLE_MS = 1600
+function SlteraCarPreview() {
+  const telegraphRef = useRef(-1)
+  useFrame((state) => {
+    const t = (state.clock.elapsedTime * 1000) % (SLTERA_PREVIEW_IDLE_MS + SLTERA_TELEGRAPH_MS)
+    telegraphRef.current = t < SLTERA_PREVIEW_IDLE_MS ? -1 : (t - SLTERA_PREVIEW_IDLE_MS) / SLTERA_TELEGRAPH_MS
+  })
+  // 시그니처인 꼬리 라이트바가 기본 카메라 쪽을 보도록 3/4 뒷모습으로 놓는다(궤도 회전으로 앞모습도 볼 수 있다).
+  return (
+    <group rotation={[0, -2.1, 0]}>
+      <SlteraCar telegraphRef={telegraphRef} />
+    </group>
+  )
 }
 
 function RenderPreviewItem({ item }) {
@@ -620,6 +645,9 @@ function RenderPreviewItem({ item }) {
         <StarlinkSatelliteModel />
       </group>
     )
+  }
+  if (item.previewKind === 'slteraCar') {
+    return <SlteraCarPreview />
   }
   if (item.previewKind === 'zomlonbisk') {
     return (

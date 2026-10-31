@@ -409,6 +409,16 @@ export const GRAPHICS_STUDIO_CATALOG = Object.freeze([
     previewKind: 'zomlonbisk',
     applyTargets: ['components/Weapons/StarlinkSatellite.jsx', 'lib/starlinkCrash.js', 'lib/toon.js'],
   },
+  {
+    // 패러디 전기차(멜론마스크 제작). 비주얼 전용 — 돌진 이벤트 게임플레이는 아직 없다.
+    // 미리보기는 평시 1.6초 → 예고 1.4초(꼬리 라이트바·헤드램프 맥동)를 반복한다.
+    id: 'actor-sltera',
+    category: 'actor',
+    label: 'Sltera (멜론마스크)',
+    source: 'components/SlteraCar.jsx',
+    previewKind: 'slteraCar',
+    applyTargets: ['components/SlteraCar.jsx', 'lib/toon.js'],
+  },
   ...weaponVisuals.map(([id, label, weaponType, assetUrl, implementationTarget, previewKind = 'weaponModel', runtimePreviewComponent]) => ({
     id,
     category: 'weapon',
