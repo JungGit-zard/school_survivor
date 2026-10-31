@@ -279,6 +279,17 @@ function Invoke-ZombieSchoolFiveSlotPosting {
   }
 }
 
+function Remove-XPreClickVideoEntry([string]$ReceiptPath,[string]$Language) {
+  # Only a 'selected' video entry is removable: publish_intent is saved before any click, so 'selected' proves nothing was submitted.
+  if(-not (Test-Path -LiteralPath $ReceiptPath)){return $false}
+  $receipt=Get-Content -LiteralPath $ReceiptPath -Raw -Encoding UTF8|ConvertFrom-Json
+  $entry=$receipt.entries.$Language
+  if($null -eq $entry -or $entry.state -cne 'selected' -or -not ($entry.intent.PSObject.Properties.Name -contains 'postFormat') -or $entry.intent.postFormat -cne 'video'){return $false}
+  $receipt.entries.PSObject.Properties.Remove($Language)
+  [IO.File]::WriteAllText($ReceiptPath,($receipt|ConvertTo-Json -Depth 30),(New-Object Text.UTF8Encoding($false)))
+  return $true
+}
+
 function Invoke-SerializedPublishOnlyCycle {
   param([Parameter(Mandatory)][string]$RunId,[Parameter(Mandatory)][string]$ReceiptRoot,[Parameter(Mandatory)][string]$FacebookActionRunnerPath,[Parameter(Mandatory)][string]$XRunnerPath,[string]$StopAtKst='',[scriptblock]$NowKst={ [DateTimeOffset]::UtcNow.ToOffset([TimeSpan]::FromHours(9)) })
   $cutoffReached={ -not [string]::IsNullOrWhiteSpace($StopAtKst) -and (& $NowKst) -ge [DateTimeOffset]::Parse($StopAtKst,[Globalization.CultureInfo]::InvariantCulture) }
@@ -303,7 +314,17 @@ function Invoke-SerializedPublishOnlyCycle {
       if($null -eq $after -or $after.state -ne 'publish_intent'){throw "UNSAFE X $language PublishOnly returned without a persisted publish_intent"}
       if($result.status -notin @('published_unverified','partial_verified','complete')){throw "X $language PublishOnly returned unexpected status '$($result.status)'"}
       $submitted += "x/$language"
-    } catch {$message=$_.Exception.Message;if($message -match 'SCHEDULE_CUTOFF'){return [pscustomobject]@{exitCode=0;status='stopped_cutoff';reason=$message}}elseif(Test-TodayOnlyUnsafeFailure $message){$xUnsafe=$message;break}else{$errors += $message}}
+    } catch {$message=$_.Exception.Message
+      # Never skip a slot: a video that failed before publish_intent (no click happened) falls back once to a website card.
+      if($message -notmatch 'SCHEDULE_CUTOFF' -and (Remove-XPreClickVideoEntry $receiptPath $language)){
+        try {
+          $result=Invoke-JsonRunner -ScriptPath $XRunnerPath -Arguments ($args+@('-NoVideo')) -Name "X $language PublishOnly card fallback"
+          $after=(Get-Content -LiteralPath $receiptPath -Raw -Encoding UTF8|ConvertFrom-Json).entries.$language
+          if($null -eq $after -or $after.state -ne 'publish_intent'){throw "UNSAFE X $language card fallback returned without a persisted publish_intent"}
+          $submitted += "x/$language";continue
+        } catch {$message="X $language video failed ($message); card fallback: "+$_.Exception.Message}
+      }
+      if($message -match 'SCHEDULE_CUTOFF'){return [pscustomobject]@{exitCode=0;status='stopped_cutoff';reason=$message}}elseif(Test-TodayOnlyUnsafeFailure $message){$xUnsafe=$message;break}else{$errors += $message}}
   }
   # Facebook runs in its own window, so an X failure no longer blocks it.
   if($facebookMayContinue){foreach($language in $languages){

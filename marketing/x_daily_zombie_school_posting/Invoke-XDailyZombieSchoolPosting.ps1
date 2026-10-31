@@ -5,7 +5,7 @@ param(
   [long]$WindowId = 0,
   [string]$ReceiptDirectory = (Join-Path $PSScriptRoot 'receipts'),
   [switch]$DryRun, [switch]$ValidateOnly, [switch]$FullCycle, [switch]$Run, [switch]$PrepareOnly, [switch]$SinglePost, [switch]$PublishOnly,
-  [switch]$ReconcileExistingPosts, [switch]$CredentialRecovery, [string]$StopAtKst = '', [switch]$WebsiteCardOnly, [switch]$DirectPhoto
+  [switch]$ReconcileExistingPosts, [switch]$CredentialRecovery, [string]$StopAtKst = '', [switch]$WebsiteCardOnly, [switch]$DirectPhoto, [switch]$NoVideo
 )
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
@@ -121,7 +121,7 @@ try {
       $entry = $receipt.entries.$lang
       if ($null -eq $entry) {
         if ($WebsiteCardOnly -and -not $PrepareOnly -and (-not $PublishOnly -or -not $SinglePost -or -not $cardConfig.enabled)) { throw '-WebsiteCardOnly publishing requires -PublishOnly -SinglePost and x_link_card.enabled=true for a new intent' }
-        if ($WebsiteCardOnly -and $PublishOnly -and $SinglePost -and (Get-XCyclePostFormat $CycleId) -ceq 'video') {
+        if ($WebsiteCardOnly -and $PublishOnly -and $SinglePost -and -not $NoVideo -and (Get-XCyclePostFormat $CycleId) -ceq 'video') {
           $variant = Select-PostingVariant $config $lang $CycleId $ReceiptDirectory -NoImage
           $videoPath = Select-XVideoClip $lang $CycleId $videoReceiptDirectories
           $videoText = Get-XVideoComposerText ([string]$variant.text) ([string]$config.web_url) ([string]$config.play_store_url) $lang
