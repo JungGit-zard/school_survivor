@@ -78,6 +78,33 @@ describe('language setting', () => {
     expect(titleChars(jaView.container)).toBe('脱出！ゾンビ学校')
     jaView.unmount()
   })
+
+  it('switches language from the title screen button and stores it in titleSettings', async () => {
+    const view = render(<TitleScreen onEnterLobby={() => {}} />)
+    expect(view.container.textContent).toContain('게임 시작')
+
+    const toggle = view.container.querySelector('[data-title-language] button[aria-haspopup]')
+    expect(toggle).not.toBeNull()
+    expect(toggle.textContent).toContain('KO')
+    expect(toggle.getAttribute('aria-expanded')).toBe('false')
+
+    await act(async () => { toggle.dispatchEvent(new MouseEvent('click', { bubbles: true })) })
+    expect(toggle.getAttribute('aria-expanded')).toBe('true')
+
+    await clickButtonByText(view.container, 'English')
+    expect(view.container.textContent).toContain('START GAME')
+    expect(titleChars(view.container)).toBe('ESCAPE!ZOMBIE SCHOOL')
+    expect(toggle.textContent).toContain('EN')
+    expect(toggle.getAttribute('aria-expanded')).toBe('false')
+    expect(loadTitleSettings().language).toBe('en')
+
+    await act(async () => { toggle.dispatchEvent(new MouseEvent('click', { bubbles: true })) })
+    await clickButtonByText(view.container, '日本語')
+    expect(view.container.textContent).toContain('ゲーム開始')
+    expect(loadTitleSettings().language).toBe('ja')
+
+    view.unmount()
+  })
 })
 
 function titleChars(container) {

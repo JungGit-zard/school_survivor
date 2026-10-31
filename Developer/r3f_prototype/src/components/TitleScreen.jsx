@@ -8,13 +8,16 @@ import { getSavedNickname, saveNicknameForUser, validateNickname } from '../lib/
 import { getAdminOperationsConfig } from '../lib/adminConfig.js'
 import {
   applyHitCameraShake,
+  applyLanguage,
   applyReducedEffects,
   loadGuestSessionSettings,
   loadTitleSettings,
+  saveGuestSessionSettings,
+  saveTitleSettings,
   unlockAllStagesForDevCheat,
 } from '../lib/titleSettings.js'
 import { schoolButton, schoolPanel, uiBorders, uiPalette, uiShadows, uiType } from '../lib/uiStyle.js'
-import { useLocale, useT } from '../lib/i18n.js'
+import { LOCALE_OPTIONS, useLocale, useT } from '../lib/i18n.js'
 import { useAuthStore } from '../store/useAuthStore.js'
 import {
   clearPendingStartAfterLogin,
@@ -95,7 +98,7 @@ const TITLE_INTRO_CSS = `
   .title-intro-letter { animation: titleLetterSlam 260ms cubic-bezier(.16,.84,.28,1.08) backwards; }
   .title-intro-zombie { animation: titleZombieScurry 450ms ease-out backwards; }
   .title-intro-scene { animation: titleSceneGather 425ms cubic-bezier(.16,.84,.28,1.04) backwards; }
-  .title-main-action:focus-visible { outline:3px solid #fff8e8; outline-offset:3px; }
+  .title-main-action:focus-visible, .title-language-action:focus-visible { outline:3px solid #fff8e8; outline-offset:3px; }
 `
 
 function TitleLetter({ config, total }) {
@@ -138,6 +141,7 @@ export default function TitleScreen({
   const [nicknameError, setNicknameError] = useState('')
   const [consentOpen, setConsentOpen] = useState(false)
   const [consentUser, setConsentUser] = useState(null)
+  const [languageMenuOpen, setLanguageMenuOpen] = useState(false)
   const authUser = useAuthStore((s) => s.user)
   const authSigningIn = useAuthStore((s) => s.signingIn)
   const [settings] = useState(() => (
@@ -319,6 +323,19 @@ export default function TitleScreen({
     setCheatOpen(false)
   }
 
+  // 타이틀 언어 선택: 로비 설정 모달과 같은 저장 경로(titleSettings)를 쓴다.
+  // 계정이 하이드레이트됐으면 계정 설정에, 게스트면 이번 접속 메모리에 둔다. 새 저장소는 없다.
+  const selectLanguage = (language) => {
+    setLanguageMenuOpen(false)
+    if (isFirebaseProgressHydrated(authUser)) {
+      saveTitleSettings({ language })
+      Promise.resolve(requestCloudProgressSave()).catch(() => {})
+    } else if (!authUser?.uid) {
+      saveGuestSessionSettings({ language })
+    }
+    applyLanguage(language)
+  }
+
   return (
     <div style={styles.root}>
       <style data-title-intro-css>{TITLE_INTRO_CSS}</style>
@@ -334,6 +351,53 @@ export default function TitleScreen({
         ...styles.contactLink,
         ...(cheatMenuButtonVisible ? { top: 'max(66px, calc(env(safe-area-inset-top, 0px) + 60px))' } : {}),
       }}>{(ZOMBIE_BOARD_COPY[locale] || ZOMBIE_BOARD_COPY.ko).contact}</a>
+      <div
+        data-title-language
+        onKeyDown={(event) => { if (event.key === 'Escape') setLanguageMenuOpen(false) }}
+        style={{
+          ...styles.languageAnchor,
+          ...(cheatMenuButtonVisible ? { top: 'max(118px, calc(env(safe-area-inset-top, 0px) + 112px))' } : {}),
+        }}
+      >
+        <button
+          type="button"
+          className="title-language-action"
+          aria-label={t('settings.languageAria')}
+          aria-haspopup="true"
+          aria-expanded={languageMenuOpen}
+          style={styles.languageButton}
+          onClick={() => setLanguageMenuOpen((open) => !open)}
+        >
+          <span aria-hidden="true">🌐</span>
+          <span>{(locale || 'ko').toUpperCase()}</span>
+        </button>
+        {languageMenuOpen && (
+          <>
+            <button
+              type="button"
+              aria-label={t('common.close')}
+              tabIndex={-1}
+              style={styles.languageScrim}
+              onClick={() => setLanguageMenuOpen(false)}
+            />
+            <div role="group" aria-label={t('settings.languageAria')} style={styles.languageMenu}>
+              {LOCALE_OPTIONS.map((option) => (
+                <button
+                  key={option.id}
+                  type="button"
+                  lang={option.id}
+                  className="title-language-action"
+                  aria-pressed={locale === option.id}
+                  style={styles.languageOption(locale === option.id)}
+                  onClick={() => selectLanguage(option.id)}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </>
+        )}
+      </div>
       {cheatRevealMessage && (
         <div style={styles.cheatRevealToast}>{t('title.cheatToast')}</div>
       )}
@@ -494,6 +558,63 @@ function normalizeRevealCheatKey(key) {
 }
 
 const styles = {
+  // 문의 링크 바로 아래, 같은 우측 열(72px). 타이틀 글자는 가운데라 겹치지 않는다.
+  languageAnchor: {
+    position: 'absolute',
+    top: 'max(66px, calc(env(safe-area-inset-top, 0px) + 60px))',
+    right: 'max(12px, calc(env(safe-area-inset-right, 0px) + 8px))',
+    zIndex: 4,
+  },
+  languageButton: {
+    ...schoolButton('paper'),
+    position: 'relative',
+    zIndex: 1,
+    width: 72,
+    minHeight: 44,
+    padding: '6px 4px',
+    boxSizing: 'border-box',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+    fontSize: 13,
+    lineHeight: 1,
+    cursor: 'pointer',
+  },
+  languageScrim: {
+    position: 'fixed',
+    inset: 0,
+    border: 0,
+    padding: 0,
+    background: 'transparent',
+    cursor: 'default',
+  },
+  languageMenu: {
+    position: 'absolute',
+    top: 'calc(100% + 6px)',
+    right: 0,
+    zIndex: 1,
+    width: 132,
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 6,
+    padding: 6,
+    boxSizing: 'border-box',
+    border: uiBorders.strong,
+    borderRadius: 10,
+    background: 'rgba(246,234,208,0.96)',
+    boxShadow: uiShadows.panel,
+  },
+  languageOption: (active) => ({
+    ...schoolButton(active ? 'primary' : 'paper'),
+    width: '100%',
+    minHeight: 44,
+    padding: '6px 8px',
+    boxSizing: 'border-box',
+    fontSize: 15,
+    lineHeight: 1.1,
+    cursor: 'pointer',
+  }),
   contactLink: {
     ...schoolButton('paper'),
     position: 'absolute',
