@@ -285,7 +285,8 @@ function Remove-XPreClickVideoEntry([string]$ReceiptPath,[string]$Language) {
   $receipt=Get-Content -LiteralPath $ReceiptPath -Raw -Encoding UTF8|ConvertFrom-Json
   $entry=$receipt.entries.$Language
   if($null -eq $entry -or $entry.state -cne 'selected' -or -not ($entry.intent.PSObject.Properties.Name -contains 'postFormat') -or $entry.intent.postFormat -cne 'video'){return $false}
-  $receipt.entries.PSObject.Properties.Remove($Language)
+  # Null, not removed: the X runner reads entries.<lang> under StrictMode and a missing key throws.
+  $receipt.entries.$Language=$null
   [IO.File]::WriteAllText($ReceiptPath,($receipt|ConvertTo-Json -Depth 30),(New-Object Text.UTF8Encoding($false)))
   return $true
 }
