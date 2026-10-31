@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-// 2026-10-29 Terry 지시: 「로자리의 방」 진입점을 타이틀에서 로비(스테이지 선택) 좌상단으로 옮겼다.
+// 2026-10-29 Terry 지시: 「로자리의 방」 진입점을 타이틀에서 로비(스테이지 선택) 상태바로 옮겼다. 2026-10-31 Terry 지시로 좌상단 → 우상단(메뉴 버튼 왼쪽).
 // 이 파일은 그 진입점 계약을 못박는다 — 구 RosariRoom.titleEntry.test.jsx의 후속이다.
 // (a) 로그인 상태 로비에 버튼 노출 / (b) 게스트 비노출 / (c) 클릭 시 onOpenRosariRoom 호출
 // (d) 방에서 나가면 로비로 복귀(타이틀 아님) / (e) 타이틀에는 진입점이 남아 있지 않다
@@ -97,17 +97,22 @@ describe('Rosari room lobby entry wiring', () => {
     expect(button).not.toBeNull()
     expect(button.textContent).toBe('로자리의 방')
     expect(button.getAttribute('aria-label')).toBe('로자리의 방')
-    // 상태바 첫 요소여야 스테이지 카드 오버레이와 겹치지 않는다.
-    expect(button.parentElement.firstElementChild).toBe(button)
+    // 우상단 묶음: 로자리 버튼 바로 다음이 메뉴 버튼(그 다음이 톱니)이다.
+    expect(button.nextElementSibling.getAttribute('data-testid')).toBe('lobby-menu-button')
     // 모바일 터치 타깃 최소 44px(uimini 상주 규정).
     expect(Number.parseFloat(button.style.minHeight)).toBeGreaterThanOrEqual(44)
+    expect(host.querySelector('[data-testid="lobby-rosari-room-hint"]')).toBeNull()
   })
 
   it('hides the lobby entry button from guests', async () => {
     await renderLobby({ onOpenRosariRoom: () => {} })
 
     expect(rosariButton()).toBeNull()
-    expect(host.textContent).not.toContain('로자리의 방')
+    const hint = host.querySelector('[data-testid="lobby-rosari-room-hint"]')
+    expect(hint).not.toBeNull()
+    expect(hint.tagName).toBe('SPAN')
+    expect(hint.textContent).toContain('로그인')
+    expect(hint.textContent).toContain('로자리의 방')
   })
 
   it('calls onOpenRosariRoom when the lobby entry button is pressed', async () => {
@@ -148,5 +153,29 @@ describe('Rosari room lobby entry wiring', () => {
     expect(titleCode).not.toContain('로자리의 방')
     expect(titleCode).not.toContain('onOpenRosariRoom')
     expect(titleCode).not.toContain('rosariRoomButton')
+  })
+})
+
+describe('Lobby menu button', () => {
+  it('sits right before the gear button and toggles an empty dropdown', async () => {
+    await renderLobby()
+    const button = host.querySelector('[data-testid="lobby-menu-button"]')
+    const panel = () => host.querySelector('[data-testid="lobby-menu-panel"]')
+
+    expect(button).not.toBeNull()
+    expect(button.getAttribute('aria-label')).toBe('메뉴')
+    expect(button.nextElementSibling.textContent.trim()).toBe('⚙')
+    expect(Number.parseFloat(button.style.height)).toBeGreaterThanOrEqual(44)
+    expect(button.getAttribute('aria-expanded')).toBe('false')
+    expect(panel()).toBeNull()
+
+    await act(async () => button.click())
+    expect(panel()).not.toBeNull()
+    expect(panel().getAttribute('role')).toBe('menu')
+    expect(button.getAttribute('aria-expanded')).toBe('true')
+
+    await act(async () => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' })))
+    expect(panel()).toBeNull()
+    expect(button.getAttribute('aria-expanded')).toBe('false')
   })
 })

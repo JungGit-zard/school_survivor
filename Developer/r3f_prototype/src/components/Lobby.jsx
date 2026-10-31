@@ -5,7 +5,7 @@
 //   onStartStage(stageId)  — 스테이지 카드 "입장하기" → 게임 시작(App.startGame)
 //   onOpenCoinShop()       — 코인상점 화면 진입
 //   onOpenRanking(stageId?) — 랭킹 상세 화면 진입(stageId 있으면 해당 스테이지 보드, 없으면 글로벌)
-//   onOpenRosariRoom()     — 「로자리의 방」 화면 진입. 상태바 좌상단 버튼이 호출한다.
+//   onOpenRosariRoom()     — 「로자리의 방」 화면 진입. 상태바 우상단 버튼이 호출한다.
 //                            로그인 유저에게만 보인다(게스트는 저장이 탭 메모리뿐이라 서버 검증이 없다 —
 //                            rosari_model_generations_outfit_contract_2026-10-28.md §5).
 // (설정/닉네임/무기 모달은 로비 내부에서 자체 처리 — App 배선 불필요)
@@ -103,6 +103,14 @@ export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onO
   const acknowledgeNewWeaponUnlocks = useGameStore((s) => s.acknowledgeNewWeaponUnlocks)
   const [stageBossPreview, setStageBossPreview] = useState(() => loadStageBossPreview())
   const [showtimeStageId, setShowtimeStageId] = useState(null)
+  const [menuOpen, setMenuOpen] = useState(false)
+  // 바깥 클릭 닫기는 생략(YAGNI) — 버튼 재클릭·Escape로 닫는다.
+  useEffect(() => {
+    if (!menuOpen) return undefined
+    const onKey = (e) => { if (e.key === 'Escape') setMenuOpen(false) }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [menuOpen])
   const showtimeStageRef = useRef(null)
   const ambientDriftRef = useRef(null)
   const touchAmbientRef = useRef(null)
@@ -297,8 +305,16 @@ export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onO
       {/* 상단 sticky 상태바 */}
       <header style={styles.statusBar}>
         <div style={styles.profileRow}>
-          {/* 좌상단 「로자리의 방」 진입점. 상태바 흐름의 첫 요소라 스테이지 카드 오버레이
-              (previewClearBadge/rankingButton)와 겹칠 일이 없다. */}
+          <div style={styles.profileBlock}>
+            <span style={styles.profileEyebrow}>{t('lobby.player')}</span>
+            <strong style={styles.profileName}>{displayNickname(nickname) || authUser?.displayName?.trim() || authUser?.email?.trim() || ''}</strong>
+          </div>
+          <div style={styles.coinBadge}>
+            <span style={styles.coinDot} />
+            <strong style={styles.coinValue}>{goldTotal}</strong>
+          </div>
+          {/* 우상단 「로자리의 방」 진입점(메뉴와 별개의 독립 버튼). 상태바 flex 흐름 안에 있어
+              스테이지 카드 오버레이(previewClearBadge/rankingButton, 카드 좌측·z3)와 겹치지 않는다. */}
           {authUser?.uid ? (
             <button
               type="button"
@@ -310,19 +326,34 @@ export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onO
             >
               로자리의 방
             </button>
-          ) : null}
-          <div style={styles.profileBlock}>
-            <span style={styles.profileEyebrow}>{t('lobby.player')}</span>
-            <strong style={styles.profileName}>{displayNickname(nickname) || authUser?.displayName?.trim() || authUser?.email?.trim() || ''}</strong>
-          </div>
-          <div style={styles.coinBadge}>
-            <span style={styles.coinDot} />
-            <strong style={styles.coinValue}>{goldTotal}</strong>
-          </div>
+          ) : (
+            // 게스트에게는 버튼 대신 왜 없는지 알려주는 비인터랙티브 안내만 둔다.
+            <span data-testid="lobby-rosari-room-hint" style={styles.rosariRoomHint}>
+              로그인하면 로자리의 방이 열립니다
+            </span>
+          )}
+          <button
+            type="button"
+            className="lobby-press"
+            data-testid="lobby-menu-button"
+            aria-label="메뉴"
+            aria-expanded={menuOpen}
+            aria-controls="lobby-menu-panel"
+            style={styles.gearButton}
+            onClick={() => !showtimeStageId && setMenuOpen((open) => !open)}
+          >
+            ≡
+          </button>
           <button type="button" aria-label={t('lobby.openSettings')} style={styles.gearButton} onClick={() => !showtimeStageId && setModal('settings')}>
             ⚙
           </button>
         </div>
+        {menuOpen ? (
+          <div id="lobby-menu-panel" data-testid="lobby-menu-panel" role="menu" style={styles.menuPanel}>
+            {/* ponytail: 메뉴 항목(role="menuitem")은 Terry 지정 후 여기에 추가한다. */}
+            <span style={styles.menuPlaceholder}>메뉴 항목 준비 중</span>
+          </div>
+        ) : null}
 
         <div style={styles.seasonStrip}>
           <div style={styles.seasonMainRow}>
@@ -623,7 +654,7 @@ const styles = {
     alignItems: 'center',
     gap: 10,
   },
-  // 좌상단 진입점. 상태바의 compact 버튼 언어(rankingButton)를 따르고, 색만 로자리 아이덴티티
+  // 우상단 진입점. 상태바의 compact 버튼 언어(rankingButton)를 따르고, 색만 로자리 아이덴티티
   // (분홍→크림, 잉크빛 자주 글자)를 쓴다. 44px 터치 타깃을 지키려고 2줄 줄바꿈을 허용한다.
   rosariRoomButton: {
     ...schoolButton('paper'),
@@ -638,6 +669,20 @@ const styles = {
     lineHeight: 1.1,
     letterSpacing: 0,
     whiteSpace: 'normal',
+    wordBreak: 'keep-all',
+  },
+  // 게스트용 안내 캡슐. 우측 묶음(코인+메뉴+톱니)과 360px 한 줄에 들어가도록 폭을 좁혀
+  // 3줄(10px×1.15×3+8 ≈ 43px)로 접는다 — 44px 행 높이를 키우지 않는다.
+  rosariRoomHint: {
+    flex: '0 1 auto',
+    maxWidth: 78,
+    padding: '4px 6px',
+    borderRadius: 10,
+    background: 'rgba(255,212,230,0.88)',
+    color: '#5f2d58',
+    fontSize: 10,
+    fontWeight: 700,
+    lineHeight: 1.15,
     wordBreak: 'keep-all',
   },
   profileBlock: {
@@ -688,6 +733,25 @@ const styles = {
     fontSize: 16,
     lineHeight: 1,
     fontWeight: uiType.weightHeavy,
+  },
+  // 상태바(sticky=positioned) 기준 우측 정렬 드롭다운. 스테이지 카드 오버레이(z≤4) 위.
+  menuPanel: {
+    position: 'absolute',
+    top: '100%',
+    right: 12,
+    zIndex: 6,
+    minWidth: 160,
+    marginTop: 4,
+    padding: '12px 14px',
+    border: uiBorders.strong,
+    borderRadius: 8,
+    background: uiPalette.paperLight,
+    boxShadow: uiShadows.pressSmall,
+  },
+  menuPlaceholder: {
+    color: uiPalette.ink,
+    fontSize: 13,
+    opacity: 0.7,
   },
   gearButton: {
     flex: '0 0 auto',
