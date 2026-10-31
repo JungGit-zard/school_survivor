@@ -14,9 +14,9 @@ import {
 } from './weaponCatalog.js'
 
 describe('weaponCatalog', () => {
-  it('고장난 스타링크는 보수적으로 넓힌 재사용 간격과 연속 낙뢰 간격을 가진다', () => {
+  it('고장난 스타링크는 5000ms 재사용 간격(balanceqa 2026-10-31)과 연속 낙뢰 간격을 가진다', () => {
     expect(WEAPON_CATALOG.starlink.base).toMatchObject({
-      cooldown: 6500,
+      cooldown: 5000,
       strikeSpacingMs: 450,
     })
   })
@@ -135,7 +135,7 @@ describe('weaponCatalog', () => {
     expect(WEAPON_CATALOG.guidedMissile.base.range).toBe(7.34)
     expect(WEAPON_CATALOG.guidedMissile.base.radius).toBe(1.6)
     expect(WEAPON_CATALOG.starlink.base.damage).toBe(28)
-    expect(WEAPON_CATALOG.starlink.base.cooldown).toBe(6500)
+    expect(WEAPON_CATALOG.starlink.base.cooldown).toBe(5000)
     expect(WEAPON_CATALOG.starlink.base.strikeCenter).toBe(5)
     expect(WEAPON_CATALOG.starlink.base.strikeRadius).toBe(1.2)
   })

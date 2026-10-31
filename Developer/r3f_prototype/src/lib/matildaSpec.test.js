@@ -120,6 +120,19 @@ describe('마틸다 S2 체력 = DPS × 1800초', () => {
     expect(matildaHpFromWeapons({ miniRosari: mini })).toBeCloseTo(expected * 1800, 6)
   })
 
+  // balanceqa 2026-10-31 ③: 오리요강은 3타 → 폭발 30(치명타 없음) → 리스폰 3초 사이클(4.5초)로 센다.
+  it('오리요강은 (3×d×치명 + 30) / 4.5 사이클 DPS로 마틸다 HP에 기여한다', () => {
+    const lv1 = { ...WEAPON_CATALOG.compassBlade.base, active: true }
+    expect(estimatePlayerDps({ compassBlade: lv1 })).toBeCloseTo((3 * 5 * 1.025 + 30) / 4.5, 10)
+    expect(estimatePlayerDps({ compassBlade: lv1 })).toBeCloseTo(10.08, 2)
+
+    // 카드 4장(Damage·Power +3.1씩, Count, Crit +2%p) → 추정 23.18이던 값이 실 사이클 14.39로.
+    const lv5 = { ...lv1, damage: 11.2, count: 2, critChance: 0.07 }
+    expect(estimatePlayerDps({ compassBlade: lv5 })).toBeCloseTo((3 * 11.2 * 1.035 + 30) / 4.5, 10)
+    expect(estimatePlayerDps({ compassBlade: lv5 })).toBeCloseTo(14.39, 2)
+    expect(matildaHpFromWeapons({ compassBlade: lv5 })).toBeCloseTo(((3 * 11.2 * 1.035 + 30) / 4.5) * 1800, 6)
+  })
+
   it('실제 런 시작 무기 구성에서도 유한한 양수 HP가 나온다', () => {
     _setFirebaseProgressClientForTests({ save: async () => {}, load: async () => null })
     _seedHydratedFirebaseProgressForTests()

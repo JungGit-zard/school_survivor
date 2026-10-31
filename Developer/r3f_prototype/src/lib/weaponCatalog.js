@@ -183,7 +183,8 @@ export const WEAPON_CATALOG = {
   starlink: {
     id: 'starlink',
     label: '고장난 스타링크',
-    base: { damage: 28, cooldown: 6500, lastFired: 0, strikeCenter: 5, strikeRadius: 1.2, strikeCount: 1, strikeSpacingMs: 450, critChance: 0.07, critMultiplier: 1.5 },
+    // balanceqa 2026-10-31: 카드 회전 수정 뒤 8.36 DPS → 5000으로 중앙값 근처
+    base: { damage: 28, cooldown: 5000, lastFired: 0, strikeCenter: 5, strikeRadius: 1.2, strikeCount: 1, strikeSpacingMs: 450, critChance: 0.07, critMultiplier: 1.5 },
     unlockConditions: [{ type: 'totalKills', value: 2500 }],
     minLevelToAppear: 8,
   },

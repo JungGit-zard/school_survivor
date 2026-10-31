@@ -32,6 +32,11 @@
 
 import { bikittyCycleDps } from './bikittyCutter.js'
 import { tumblerSingleTargetUptime } from './tumblerDurability.js'
+import {
+  COMPASS_BLADE_EXPLOSION_DAMAGE,
+  COMPASS_BLADE_RESPAWN_MS,
+  COMPASS_BLADE_STACKS_TO_EXPLODE,
+} from './compassBlade.js'
 
 // 신 지정: 30분.
 export const MATILDA_ATTACK_SECONDS = 1800
@@ -141,9 +146,24 @@ function durabilityUptimeMultiplier(weapon) {
   return tumblerSingleTargetUptime(weapon)
 }
 
+// 오리요강(compassBlade) 사이클 DPS(balanceqa 2026-10-31 권고 ③). 3스택 타격 뒤 폭발 30(치명타 없음)이
+// 터지고 요강이 3초 사라진다. damage × hitsPerSecond로 보면 공백과 고정 폭발을 몰라 만렙에서
+// 23.18(실 14.39, 1.61배)로 과대계상해 마틸다 HP가 부풀었다.
+// 사이클 = 3타 / hitsPerSecond + 리스폰 3초 = 4.5초 → (3×d×치명 + 30) / 4.5.
+function compassBladeCycleDps(weapon) {
+  const damage = Number.isFinite(weapon.damage) ? Math.max(0, weapon.damage) : 0
+  const hitsPerSecond = positiveNumber(weapon.hitsPerSecond, 0)
+  if (hitsPerSecond <= 0) return 0
+  const cycleSec = COMPASS_BLADE_STACKS_TO_EXPLODE / hitsPerSecond + COMPASS_BLADE_RESPAWN_MS / 1000
+  const hitDamage = COMPASS_BLADE_STACKS_TO_EXPLODE * damage * expectedCritMultiplier(weapon)
+  return (hitDamage + COMPASS_BLADE_EXPLOSION_DAMAGE) / cycleSec
+}
+
 // 무기 1종의 단일 대상 기대 DPS. 비활성 무기는 0.
-export function estimateWeaponDps(weapon) {
+// weaponId는 런타임 무기 객체에 id가 없을 때를 위한 맵 키(estimatePlayerDps가 넘긴다).
+export function estimateWeaponDps(weapon, weaponId = weapon?.id) {
   if (!weapon?.active) return 0
+  if (weaponId === 'compassBlade') return compassBladeCycleDps(weapon)
   // 바이키티 커터칼은 "8단 성장 + 부러짐 산탄"이 한 사이클을 이뤄 damage×발사율로 못 뽑는다.
   // 정본 사이클 계산(lib/bikittyCutter.js)이 이미 있으므로 그걸 그대로 쓴다(추정 8.44 → 실측 11.49).
   if (Number.isFinite(weapon.segments) && Number.isFinite(weapon.snapDamage)) {
@@ -164,8 +184,8 @@ export function estimateWeaponDps(weapon) {
 export function estimatePlayerDps(weapons) {
   if (!weapons || typeof weapons !== 'object') return 0
   let total = 0
-  for (const weapon of Object.values(weapons)) {
-    total += estimateWeaponDps(weapon)
+  for (const [weaponId, weapon] of Object.entries(weapons)) {
+    total += estimateWeaponDps(weapon, weaponId)
   }
   return total
 }
