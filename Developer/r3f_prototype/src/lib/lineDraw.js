@@ -40,18 +40,19 @@ export function createLineDrawRuntime() {
   }
 }
 
-// 절단선은 플레이어 발밑에서 전방으로 range만큼 뻗은 선분이다.
+// 절단선은 플레이어(origin)를 정중앙에 두고 facing 양방향으로 range/2씩, 전체 range 길이로 뻗은 선분이다.
+// (Terry 2026-10-31: 진행방향 90° 회전 직선, 플레이어가 항상 중앙. facing은 호출부가 90° 회전해 넘긴다.)
 export function buildCutLine({ origin, facing, range = BASE.range, nowMs = 0, durationMs = BASE.lineDurationMs, id = 0 }) {
   const dir = normalizePlanarFacing(facing)
-  const len = num(range, BASE.range)
-  const ax = num(origin?.x, 0)
-  const az = num(origin?.z, 0)
+  const half = num(range, BASE.range) / 2
+  const cx = num(origin?.x, 0)
+  const cz = num(origin?.z, 0)
   return {
     id,
-    ax,
-    az,
-    bx: ax + dir.x * len,
-    bz: az + dir.z * len,
+    ax: cx - dir.x * half,
+    az: cz - dir.z * half,
+    bx: cx + dir.x * half,
+    bz: cz + dir.z * half,
     dirX: dir.x,
     dirZ: dir.z,
     startMs: nowMs,
@@ -130,11 +131,16 @@ export function applyLineDrawStrike({
   sightBlocker = isPlayerWeaponSightBlocked,
   onHit,
 }) {
+  // 커터칼 판정 상자는 origin에서 전방 0.12~range만 본다. 선이 origin 중심이므로
+  // 상자 시작점을 선의 한쪽 끝에서 0.12만큼 더 뒤로 물려 선분 전체(a~b)를 정확히 덮는다.
+  const dir = normalizePlanarFacing(facing)
+  const len = num(range, BASE.range)
+  const back = len / 2 + 0.12
   const targets = pickBoxCutterTargets({
     enemies,
-    origin,
-    facing: normalizePlanarFacing(facing),
-    range: num(range, BASE.range),
+    origin: { x: num(origin?.x, 0) - dir.x * back, z: num(origin?.z, 0) - dir.z * back },
+    facing: dir,
+    range: len + 0.12,
     width: num(width, BASE.width),
     sightBlocker,
   })

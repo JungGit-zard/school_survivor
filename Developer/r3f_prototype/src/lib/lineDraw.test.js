@@ -35,7 +35,7 @@ function moveTo(handle, x, z) {
   enemyPool.posZ[handle.index] = z
 }
 
-// +x 방향으로 (0,0) → (6,0) 절단선 하나만 깔린 런타임.
+// +x 방향으로 (-3,0) → (3,0) 절단선(중심 = origin (0,0)) 하나만 깔린 런타임.
 function runtimeWithLine({ nowMs = 0, durationMs = 2000 } = {}) {
   const runtime = createLineDrawRuntime()
   spawnCutLine(runtime, {
@@ -90,18 +90,21 @@ describe('절단선 선분 구성과 수명', () => {
     expect(rotateLineDrawFacing90({ x: 1, z: 0 })).toEqual({ x: 0, z: -1 })
 
     const line = buildCutLine({ origin: { x: 2, z: 1 }, facing: rotateLineDrawFacing90({ x: 0, z: 3 }), range: 6, nowMs: 100, durationMs: 2000 })
-    expect(line.ax).toBe(2)
-    expect(line.az).toBe(1)
-    expect(line.bx).toBeCloseTo(8, 10)
+    expect(line.ax).toBeCloseTo(-1, 10)
+    expect(line.az).toBeCloseTo(1, 10)
+    expect(line.bx).toBeCloseTo(5, 10)
     expect(line.bz).toBeCloseTo(1, 10)
   })
 
-  it('플레이어 발밑에서 전방으로 range만큼 뻗는다', () => {
-    const line = buildCutLine({ origin: { x: 2, z: 1 }, facing: { x: 0, z: 3 }, range: 6, nowMs: 100, durationMs: 2000 })
-    expect(line.ax).toBe(2)
-    expect(line.az).toBe(1)
+  it('3시 방향(facing 1,0)으로 걸으면 선은 12시·6시 양방향으로 뻗고 플레이어가 정중앙이다', () => {
+    const L = 6
+    const line = buildCutLine({ origin: { x: 2, z: 1 }, facing: rotateLineDrawFacing90({ x: 1, z: 0 }), range: L, nowMs: 100, durationMs: 2000 })
+    expect(line.ax).toBeCloseTo(2, 10)
     expect(line.bx).toBeCloseTo(2, 10)
-    expect(line.bz).toBeCloseTo(7, 10) // facing이 정규화되므로 길이는 정확히 range
+    expect([line.az, line.bz].sort((p, q) => p - q)).toEqual([1 - L / 2, 1 + L / 2])
+    expect((line.ax + line.bx) / 2).toBeCloseTo(2, 10)
+    expect((line.az + line.bz) / 2).toBeCloseTo(1, 10)
+    expect(Math.hypot(line.bx - line.ax, line.bz - line.az)).toBeCloseTo(L, 10) // 전체 길이 = range
     expect(line.expiresMs).toBe(2100)
   })
 
@@ -255,11 +258,12 @@ describe('lineCrossCooldownMs — 같은 적 재절단 간격', () => {
 })
 
 describe('긋는 순간의 직격 (통과 절단과 별개 판정)', () => {
-  it('선상의 적 전원이 관통 제한 없이 damage를 즉시 받는다', () => {
-    const a = spawnPooled(1, 0)
-    const b = spawnPooled(3, 0)
-    const c = spawnPooled(5, 0)
+  it('선상의 적 전원이 관통 제한 없이 damage를 즉시 받는다 — 플레이어 양쪽 모두', () => {
+    const a = spawnPooled(-2.5, 0)
+    const b = spawnPooled(0.05, 0) // 플레이어 바로 옆도 맞는다
+    const c = spawnPooled(2.5, 0)
     const off = spawnPooled(3, 3) // 선 밖
+    const beyond = spawnPooled(4, 0) // 반길이 3 밖
 
     const hits = applyLineDrawStrike({
       origin: { x: 0, z: 0 },
@@ -278,6 +282,7 @@ describe('긋는 순간의 직격 (통과 절단과 별개 판정)', () => {
       expect(e.hit.mock.calls[0][1]).toMatchObject({ knockback: 0 })
     }
     expect(off.hit).not.toHaveBeenCalled()
+    expect(beyond.hit).not.toHaveBeenCalled()
   })
 
   it('직격은 이동 여부와 무관하다 — 선 위에 가만히 서 있어도 맞는다', () => {
