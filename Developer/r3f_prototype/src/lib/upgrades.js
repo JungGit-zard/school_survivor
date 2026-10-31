@@ -71,18 +71,18 @@ export function applyUpgradeWithChibikoBoost(weapon, effect, boost) {
 // hanako(힐·치명타 피해 보조)만 데미지 카드가 없고, chibiko는 버프 동반자라 폭을 보수적으로 잡았다(≈1.57배).
 export const UPGRADE_EFFECTS = {
   pencilDamage:   { weapon: 'pencilThrow',   kind: 'damage', dmg: 1.2 },
-  pencilPower:    { weapon: 'pencilThrow',   kind: 'damage', dmg: 1.2 },
   pencilCount:    { weapon: 'pencilThrow',   kind: 'stat',   stat: 'projectileCount', step: 1,    cap: 4 },
+  pencilPower:    { weapon: 'pencilThrow',   kind: 'damage', dmg: 1.2 },
   pencilPierce:   { weapon: 'pencilThrow',   kind: 'stat',   stat: 'pierce',          step: 1,    cap: 3 },
-  pencilCrit:     { weapon: 'pencilThrow',   kind: 'crit',   chanceStep: 0.02, chanceCap: 0.24 },
   acquireBag:      { weapon: 'schoolBag',     kind: 'acquire', minLevel: 2 },
   bagDamage:      { weapon: 'schoolBag',     kind: 'damage', dmg: 5.2 },
   bagPower:       { weapon: 'schoolBag',     kind: 'damage', dmg: 5.2 },
   bagRadius:      { weapon: 'schoolBag',     kind: 'stat',   stat: 'range',           step: 0.08, cap: 1.067 },
   bagCrit:        { weapon: 'schoolBag',     kind: 'crit',   chanceStep: 0.02, chanceCap: 0.30 },
   acquireBoxCutter:{ weapon: 'boxCutter',      kind: 'acquire', minLevel: 2 },
-  boxCutterDamage:{ weapon: 'boxCutter',      kind: 'damage', damageMultiplier: 1.15 },
-  boxCutterPower: { weapon: 'boxCutter',      kind: 'damage', damageMultiplier: 1.15 },
+  // Terry 2026-11-01: 커터칼 피해 상향 (balanceqa 1.15→1.30)
+  boxCutterDamage:{ weapon: 'boxCutter',      kind: 'damage', damageMultiplier: 1.30 },
+  boxCutterPower: { weapon: 'boxCutter',      kind: 'damage', damageMultiplier: 1.30 },
   boxCutterRange: { weapon: 'boxCutter',      kind: 'stat',   stat: 'range',           step: 0.08, cap: 1.755 },
   boxCutterCrit:  { weapon: 'boxCutter',      kind: 'crit',   chanceStep: 0.04, chanceCap: 0.57 },
   acquireTumbler:  { weapon: 'tumbler',       kind: 'acquire', minLevel: 2 },

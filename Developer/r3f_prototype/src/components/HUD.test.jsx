@@ -360,15 +360,15 @@ describe('active weapon HUD icons', () => {
 })
 
 describe('upgrade choice filtering', () => {
-  it('커터칼 피해 카드는 고정 수치 대신 현재 피해의 15% 증가로 표시한다', () => {
+  it('커터칼 피해 카드는 고정 수치 대신 현재 피해의 30% 증가로 표시한다', () => {
     const weapons = { boxCutter: { level: 1, damage: 72 } }
     const damageCard = UPGRADES.find((option) => option.key === 'boxCutterDamage')
     const powerCard = UPGRADES.find((option) => option.key === 'boxCutterPower')
     const bikittyDamageCard = UPGRADES.find((option) => option.key === 'bikittyCutterDamage')
     const bikittyPowerCard = UPGRADES.find((option) => option.key === 'bikittyCutterPower')
 
-    expect(getUpgradeChoiceLabel(damageCard, weapons)).toBe('커터칼 피해 +15% (Lv2)')
-    expect(getUpgradeChoiceLabel(powerCard, weapons)).toBe('커터칼 위력 +15% (Lv2)')
+    expect(getUpgradeChoiceLabel(damageCard, weapons)).toBe('커터칼 피해 +30% (Lv2)')
+    expect(getUpgradeChoiceLabel(powerCard, weapons)).toBe('커터칼 위력 +30% (Lv2)')
     expect(getUpgradeChoiceLabel(bikittyDamageCard, { bikittyCutter: { level: 1, damage: 54 } })).toBe('바이키티 피해 +15% (Lv2)')
     expect(getUpgradeChoiceLabel(bikittyPowerCard, { bikittyCutter: { level: 1, damage: 54 } })).toBe('바이키티 위력 +15% (Lv2)')
   })
@@ -418,7 +418,6 @@ describe('upgrade choice filtering', () => {
       { key: 'pencilDamage' },
       { key: 'pencilCount' },
       { key: 'pencilPierce' },
-      { key: 'pencilCrit' },
       { key: 'acquireBag' },
       { key: 'maxHealth' },
     ]
@@ -454,7 +453,7 @@ describe('upgrade choice filtering', () => {
   it('rotates same-weapon upgrade cards by weapon level instead of always the first card', () => {
     // 회귀(balanceqa 2026-10-31): 예전엔 기본값 () => 0이라 무기마다 첫 강화 카드만 나왔다(연필은 데미지만).
     // Math.random을 쓰면 같은 화면에서 weapons가 바뀔 때 카드가 재셔플되므로, 무기 레벨로 결정적으로 돌린다.
-    const options = ['pencilDamage', 'pencilCount', 'pencilPierce', 'pencilCrit'].map((key) => UPGRADES.find((upgrade) => upgrade.key === key))
+    const options = ['pencilDamage', 'pencilCount', 'pencilPower', 'pencilPierce'].map((key) => UPGRADES.find((upgrade) => upgrade.key === key))
     expect(options.every(Boolean)).toBe(true)
     const pick = (level) => limitDuplicateWeaponUpgradeOptions(options, { pencilThrow: { level } }).map((option) => option.key)
 
@@ -889,7 +888,7 @@ describe('level-up upgrade layout', () => {
 
       const secondLabels = [...container.querySelectorAll('[data-testid="levelup-upgrade-choice"]')]
         .map((button) => button.getAttribute('aria-label').split(':')[0])
-      expect(secondLabels).toEqual(['커터칼 피해 +15% (Lv2)', '바이키티 커터칼 획득', '과학 플라스크 획득', '벨 획득'])
+      expect(secondLabels).toEqual(['커터칼 피해 +30% (Lv2)', '바이키티 커터칼 획득', '과학 플라스크 획득', '벨 획득'])
       expect(secondLabels).toEqual(expect.not.arrayContaining(firstLabels))
       expect(useGameStore.getState().levelUpAcquireExposureKeys).toEqual([
         'acquireBikittyCutter', 'acquireFlask', 'acquireBell',

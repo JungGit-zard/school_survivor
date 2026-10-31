@@ -610,8 +610,6 @@ export default {
   'up.pencilCount.desc': 'More pencils thrown at once (max 4)',
   'up.pencilPierce.label': 'Pencil pierce +1',
   'up.pencilPierce.desc': 'Pencils pierce enemies (max 3)',
-  'up.pencilCrit.label': 'Pencil crit up',
-  'up.pencilCrit.desc': 'Crit chance +2% (critical damage is fixed at 150%)',
   'up.acquireBag.label': 'Unlock 30cm Ruler',
   'up.acquireBag.desc': 'Defends by swinging the ruler at nearby enemies',
   'up.bagDamage.label': '30cm Ruler damage +{amount} (Lv{level})',

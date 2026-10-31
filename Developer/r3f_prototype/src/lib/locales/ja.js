@@ -610,8 +610,6 @@ export default {
   'up.pencilCount.desc': '同時に飛ばす鉛筆が増加（最大4）',
   'up.pencilPierce.label': '鉛筆の貫通 +1',
   'up.pencilPierce.desc': '鉛筆が敵を貫通（最大3回）',
-  'up.pencilCrit.label': '鉛筆 クリティカル強化',
-  'up.pencilCrit.desc': 'クリティカル率 +2%（クリティカルダメージは150%固定）',
   'up.acquireBag.label': '30cm定規 解禁',
   'up.acquireBag.desc': '近くの敵を定規の振りで防ぐ',
   'up.bagDamage.label': '30cm定規 被害 +{amount} (Lv{level})',

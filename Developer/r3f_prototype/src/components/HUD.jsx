@@ -172,10 +172,10 @@ export const UPGRADES = [
   { key: 'boxCutterRange', icon: 'boxCutter', label: '커터칼 사거리 +', desc: '전방 찌르기 사거리 증가' },
   { key: 'boxCutterCrit', icon: 'boxCutter', label: '커터칼 치명타 강화', desc: '치명타 확률 +4% (치명타 피해는 150% 고정)' },
   { key: 'pencilDamage', icon: 'pencil', labelFn: damageLabel('연필 데미지', 'pencilThrow', 'pencilDamage'), desc: '투척 연필의 공격력 증가' },
-  { key: 'pencilPower', icon: 'pencil', labelFn: damageLabel('연필 위력', 'pencilThrow', 'pencilPower'), desc: '심을 뾰족하게 깎아 위력 증가' },
+  // Terry 2026-11-01: 연필 카드 Damage→Count→Power→Pierce (S1 초반 군중 대응), 미도달 pencilCrit 삭제
   { key: 'pencilCount', icon: 'pencil', label: '연필 발사 수 +1', desc: '동시에 날리는 연필 수 증가 (최대 4)' },
+  { key: 'pencilPower', icon: 'pencil', labelFn: damageLabel('연필 위력', 'pencilThrow', 'pencilPower'), desc: '심을 뾰족하게 깎아 위력 증가' },
   { key: 'pencilPierce', icon: 'pencil', label: '연필 관통 +1', desc: '연필이 적을 관통 (최대 3회)' },
-  { key: 'pencilCrit', icon: 'pencil', label: '연필 치명타 강화', desc: '치명타 확률 +2% (치명타 피해는 150% 고정)' },
   { key: 'acquireBag', icon: 'ruler', label: '30cm 자 해금', desc: '가까운 적을 자 휘두르기로 방어' },
   { key: 'bagDamage', icon: 'ruler', labelFn: damageLabel('30cm 자 피해', 'schoolBag', 'bagDamage'), desc: '자 휘두르기 타격 피해 증가' },
   { key: 'bagPower', icon: 'ruler', labelFn: damageLabel('30cm 자 위력', 'schoolBag', 'bagPower'), desc: '더 세게 휘둘러 타격 위력 증가' },
@@ -273,7 +273,7 @@ for (const upgrade of UPGRADES) {
   if (UMBRELLA_UPGRADE_COPY[upgrade.key]) Object.assign(upgrade, UMBRELLA_UPGRADE_COPY[upgrade.key])
 }
 
-const PENCIL_UPGRADE_KEYS = new Set(['pencilDamage', 'pencilCount', 'pencilPierce', 'pencilCrit'])
+const PENCIL_UPGRADE_KEYS = new Set(['pencilDamage', 'pencilCount', 'pencilPierce'])
 
 const WEAPON_UPGRADE_ICON_SRC = {
   pencil: pencilIconSrc,
