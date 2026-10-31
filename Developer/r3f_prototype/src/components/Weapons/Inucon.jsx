@@ -150,17 +150,70 @@ function InuconProceduralFace() {
   )
 }
 
-export function InuconModel() {
+// 기절(영혼) 비주얼 사양. 순수 값이라 jsdom 테스트가 R3F 렌더 없이 검증한다.
+export const INUCON_GHOST_OPACITY = 0.45
+export const INUCON_GHOST_FLOAT_AMPLITUDE = 0.06
+export const INUCON_HALO_RADIUS = 0.22
+export const INUCON_HALO_TUBE = 0.03
+// 머리 블롭 윗면(y≈1.57)에서 약 0.25u 위.
+export const INUCON_HALO_Y = 1.82
+
+export function getInuconVisualState(fainted) {
+  const ghost = fainted === true
+  return {
+    fainted: ghost,
+    opacity: ghost ? INUCON_GHOST_OPACITY : 1,
+    transparent: ghost,
+    depthWrite: !ghost,
+    halo: ghost,
+  }
+}
+
+// levelmini가 store에 넣을 런타임 상태 경로: useGameStore.getState().inucon.fainted (boolean).
+export const selectInuconFainted = (s) => s.inucon?.fainted === true
+
+function ghostToonMat() {
+  const { opacity, transparent, depthWrite } = getInuconVisualState(true)
+  const m = toonMat(0xffffff, 0.35)
+  m.transparent = transparent
+  m.opacity = opacity
+  m.depthWrite = depthWrite
+  return m
+}
+
+export function InuconModel({ fainted: faintedProp } = {}) {
   const parts = useRef({})
-  const outline = useMemo(() => outlineMat(0.97), [])
-  const dogMat = useMemo(() => toonMat(0xf0a542, 0.055), [])
-  const dogShadeMat = useMemo(() => toonMat(0xd4872e, 0.045), [])
-  const scarfMat = useMemo(() => toonMat(0xc58cff, 0.08), [])
+  const storeFainted = useGameStore(selectInuconFainted)
+  const fainted = typeof faintedProp === 'boolean' ? faintedProp : storeFainted
+  // 두 세트를 한 번만 만들고 fainted 전환 시 참조만 바꾼다(매 프레임 생성 금지).
+  const normalMats = useMemo(() => ({
+    outline: outlineMat(0.97),
+    dog: toonMat(0xf0a542, 0.055),
+    dogShade: toonMat(0xd4872e, 0.045),
+    scarf: toonMat(0xc58cff, 0.08),
+  }), [])
+  const ghostMats = useMemo(() => {
+    const body = ghostToonMat()
+    return { outline: outlineMat(0.22, 0xb8c4e8), dog: body, dogShade: body, scarf: body }
+  }, [])
+  const { outline, dog: dogMat, dogShade: dogShadeMat, scarf: scarfMat } = fainted ? ghostMats : normalMats
 
   const reg = (key) => (el) => { if (el) parts.current[key] = el }
 
   usePlayingFrame(({ clock }) => {
     const t = clock.elapsedTime
+    if (fainted) {
+      // 걷기 bob·꼬리 wag·손 흔들기 정지, 전체가 천천히 둥실.
+      if (parts.current.root) {
+        parts.current.root.position.y = composeStudioPartPosition(parts.current.root, 'y', 0, Math.sin(t * 1.6) * INUCON_GHOST_FLOAT_AMPLITUDE)
+        parts.current.root.rotation.z = composeStudioPartRotation(parts.current.root, 'z', 0, 0)
+      }
+      if (parts.current.tail) parts.current.tail.rotation.z = composeStudioPartRotation(parts.current.tail, 'z', 0, -0.3)
+      if (parts.current.armR) parts.current.armR.rotation.z = composeStudioPartRotation(parts.current.armR, 'z', 0, 0)
+      if (parts.current.armL) parts.current.armL.rotation.z = composeStudioPartRotation(parts.current.armL, 'z', 0, 0)
+      if (parts.current.halo) parts.current.halo.position.y = INUCON_HALO_Y + Math.sin(t * 2.4) * 0.03
+      return
+    }
     const bob = Math.sin(t * 4.4) * 0.035
     const wag = Math.sin(t * 8.5) * 0.34
     const wave = Math.sin(t * 4.8) * 0.055
@@ -169,8 +222,8 @@ export function InuconModel() {
       parts.current.root.rotation.z = composeStudioPartRotation(parts.current.root, 'z', 0, Math.sin(t * 3.1) * 0.045)
     }
     if (parts.current.tail) parts.current.tail.rotation.z = composeStudioPartRotation(parts.current.tail, 'z', 0, -0.3 + wag)
-    if (parts.current.armR) parts.current.armR.rotation.z = composeStudioPartRotation(parts.current.armR, 'z', 0, -0.55 + wave)
-    if (parts.current.armL) parts.current.armL.rotation.z = composeStudioPartRotation(parts.current.armL, 'z', 0, 0.18 - wave * 0.5)
+    if (parts.current.armR) parts.current.armR.rotation.z = composeStudioPartRotation(parts.current.armR, 'z', 0, wave * 0.5)
+    if (parts.current.armL) parts.current.armL.rotation.z = composeStudioPartRotation(parts.current.armL, 'z', 0, -wave * 0.25)
   })
 
   return (
@@ -184,10 +237,10 @@ export function InuconModel() {
         <BlobPart size={[0.42, 1.5, 0.36]} position={[-0.02, 0.43, 0]} material={dogMat} outlineMaterial={outline} outlineScale={1.095} />
         <CapsulePart radius={0.075} length={0.92} position={[-0.33, 0.77, 0.02]} rotation={[0, 0, -0.02]} scale={[1, 1, 0.82]} material={dogShadeMat} outlineMaterial={outline} outlineScale={1.065} />
         <CapsulePart radius={0.06} length={0.4} position={[-0.1, 0.94, -0.01]} rotation={[0, 0, Math.PI / 2]} scale={[1, 1.05, 1.7]} material={scarfMat} outlineMaterial={outline} outlineScale={1.035} />
-        <group ref={reg('armR')} position={[0.24, 0.88, 0.04]} rotation={[0, 0, -0.42]}>
+        <group ref={reg('armR')} position={[0.24, 0.88, 0.04]} rotation={[0, 0, -2.64]}>
           <CapsulePart radius={0.065} length={0.34} position={[0.1, 0.1, 0]} rotation={[0, 0, -0.08]} scale={[1, 1, 0.82]} material={dogMat} outlineMaterial={outline} outlineScale={1.06} />
         </group>
-        <group ref={reg('armL')} position={[-0.28, 0.78, 0.04]} rotation={[0, 0, 0.18]}>
+        <group ref={reg('armL')} position={[-0.28, 0.78, 0.04]} rotation={[0, 0, -0.46]}>
           <CapsulePart radius={0.055} length={0.28} position={[-0.06, -0.03, 0]} rotation={[0, 0, 0.04]} scale={[1, 1, 0.82]} material={dogShadeMat} outlineMaterial={outline} outlineScale={1.055} />
         </group>
         <CapsulePart radius={0.06} length={0.22} position={[-0.14, -0.34, 0]} rotation={[0, 0, -0.12]} scale={[1, 1, 0.82]} material={dogShadeMat} outlineMaterial={outline} outlineScale={1.055} />
@@ -195,6 +248,13 @@ export function InuconModel() {
         <group ref={reg('tail')} position={[-0.23, 0.96, -0.04]}>
           <CapsulePart radius={0.055} length={0.26} position={[-0.24, 0.02, 0]} rotation={[0, 0, 0.45 + Math.PI / 2]} scale={[1, 1, 0.86]} material={dogMat} outlineMaterial={outline} outlineScale={1.055} />
         </group>
+        {/* 기절 시 천사 고리. root의 마지막 자식이라 Studio 숫자 파츠 경로를 밀지 않는다. */}
+        {fainted && (
+          <mesh ref={reg('halo')} name="inucon-halo" position={[0, INUCON_HALO_Y, 0]} rotation={[-Math.PI / 2, 0, 0]} renderOrder={5} userData={{ studioNonFocusable: true, studioNonTunable: true }}>
+            <torusGeometry args={[INUCON_HALO_RADIUS, INUCON_HALO_TUBE, 10, 40]} />
+            <meshBasicMaterial color="#fff6c4" transparent opacity={0.8} depthWrite={false} toneMapped={false} />
+          </mesh>
+        )}
       </group>
     </StudioTunedGroup>
   )
@@ -277,6 +337,7 @@ export function InuconWeapon() {
   const [pushVfx, setPushVfx] = useState({ token: 0, radius: 0 })
   const weapons = useGameStore((s) => s.weapons)
   const healPlayer = useGameStore((s) => s.healPlayer)
+  const fainted = useGameStore(selectInuconFainted)
   const active = shouldRenderInuconCompanion(weapons)
 
   usePlayingFrame(({ clock }, delta) => {
@@ -294,7 +355,7 @@ export function InuconWeapon() {
     const moveX = targetRef.current.x - posRef.current.x
     const moveZ = targetRef.current.z - posRef.current.z
     posRef.current.lerp(targetRef.current, Math.min(1, delta * 6.4))
-    const bob = Math.sin(clock.elapsedTime * 4.4) * 0.025
+    const bob = fainted ? 0 : Math.sin(clock.elapsedTime * 4.4) * 0.025
     groupRef.current.position.set(posRef.current.x, 0.15 + bob, posRef.current.z)
     const trailYaw = Math.hypot(moveX, moveZ) > 0.001 ? Math.atan2(moveX, moveZ) : groupRef.current.rotation.y
     let diff = trailYaw - groupRef.current.rotation.y
@@ -343,7 +404,7 @@ export function InuconWeapon() {
 
   return (
     <>
-      <group ref={groupRef} scale={[INUCON_COMPANION_SCALE, INUCON_COMPANION_SCALE, INUCON_COMPANION_SCALE]}><InuconModel /></group>
+      <group ref={groupRef} scale={[INUCON_COMPANION_SCALE, INUCON_COMPANION_SCALE, INUCON_COMPANION_SCALE]}><InuconModel fainted={fainted} /></group>
       <InuconPushEffect token={pushVfx.token} radius={pushVfx.radius} />
     </>
   )
