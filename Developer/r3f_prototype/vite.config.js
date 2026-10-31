@@ -197,6 +197,17 @@ function copyPublicWithoutMediaPlugin() {
   }
 }
 
+function vendorChunkName(id) {
+  if (!id.includes('node_modules')) return null
+  // GA4 (lib/analytics.js) is lazy: keep it out of the preloaded vendor-firebase chunk.
+  if (/[\\/](@firebase[\\/](analytics|installations)|firebase[\\/]analytics)[\\/]/.test(id)) return 'vendor-firebase-analytics'
+  if (id.includes('firebase') || id.includes('@firebase')) return 'vendor-firebase'
+  if (/[\\/]@dimforge[\\/]|[\\/]@react-three[\\/]rapier[\\/]/.test(id)) return null
+  if (id.includes('@react-three') || id.includes('three') || id.includes('@react-spring')) return 'vendor-three'
+  if (id.includes('react') || id.includes('scheduler') || id.includes('use-sync-external-store')) return 'vendor-react'
+  return 'vendor'
+}
+
 export default defineConfig({
   plugins: [firebaseDatabaseMemoryStoragePlugin(), forbiddenProjectHostPlugin(), react(), runtimePlaytestLogPlugin(), copyPublicWithoutMediaPlugin()],
   optimizeDeps: {
@@ -221,14 +232,14 @@ export default defineConfig({
     },
     rollupOptions: {
       output: {
-        manualChunks(id) {
-          if (!id.includes('node_modules')) return undefined
-          // GA4 (lib/analytics.js) is lazy: keep it out of the preloaded vendor-firebase chunk.
-          if (/[\\/](@firebase[\\/](analytics|installations)|firebase[\\/]analytics)[\\/]/.test(id)) return 'vendor-firebase-analytics'
-          if (id.includes('firebase') || id.includes('@firebase')) return 'vendor-firebase'
-          if (id.includes('@react-three') || id.includes('three') || id.includes('@dimforge') || id.includes('@react-spring')) return 'vendor-three'
-          if (id.includes('react') || id.includes('scheduler') || id.includes('use-sync-external-store')) return 'vendor-react'
-          return 'vendor'
+        // Rapier WASM(gzip ~736kB)은 게임플레이 전용: 별도 청크로 떼어 타이틀이 받지 않게 한다.
+        // rolldown은 manualChunks를 의존성까지 끌어오는 단일 그룹으로 처리해 three까지 rapier 청크로 끌려가므로,
+        // 기존 vendor 분류 그룹을 더 높은 priority로 먼저 잡고 rapier 그룹은 남은 rapier 모듈만 가져간다.
+        codeSplitting: {
+          groups: [
+            { name: vendorChunkName, priority: 1 },
+            { name: 'vendor-rapier', test: /[\\/]@dimforge[\\/]|[\\/]@react-three[\\/]rapier[\\/]/ },
+          ],
         },
       },
     },
