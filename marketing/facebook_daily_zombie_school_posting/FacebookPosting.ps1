@@ -56,11 +56,14 @@ function Resolve-FacebookPlatformImagePath([string]$Path, [ValidateSet('ja','en'
   if (-not (Test-Path -LiteralPath $facebookImage -PathType Leaf)) { throw "Missing Facebook platform image for $Language" }
   return $facebookImage
 }
+function Add-FacebookCampaignUtm([string]$Text, [string]$Language) {
+  [regex]::Replace($Text, 'https://escapezombie\.com(?=\s)', ('https://escapezombie.com/?utm_source=fb&utm_medium=social&utm_campaign=daily_' + $Language))
+}
 function Get-FacebookPair($Config, [ValidateSet('ja','en','vi','ko')][string]$Language, [string]$VariantId = 'escape', [string]$CandidateImagePath = '') {
   . (Join-Path $PSScriptRoot '..\x_daily_zombie_school_posting\PostingVariant.ps1')
   $variant = @((Get-PostingVariants $Config $Language -IncludeDisabled) | Where-Object { $_.id -ceq $VariantId })
   if ($variant.Count -ne 1) { throw "Unknown or ambiguous campaign config variant '$VariantId' for $Language" }
-  $text = [string]$variant[0].text
+  $text = Add-FacebookCampaignUtm ([string]$variant[0].text) $Language
   $selectedImagePath=if([string]::IsNullOrWhiteSpace($CandidateImagePath)){[string]$variant[0].imagePath}else{$CandidateImagePath}
   $imagePath = Resolve-FacebookPlatformImagePath $selectedImagePath $Language
   if ([string]::IsNullOrWhiteSpace($text) -or [string]::IsNullOrWhiteSpace($imagePath)) { throw "Missing canonical Facebook pair for $Language" }
@@ -96,7 +99,7 @@ function Assert-FacebookFrozenIntent($Config,[string]$Language,$Intent) {
   $pairMatch=$false
   try{$pair=Get-FacebookPair $Config $Language ([string]$Intent.variantId);$pairMatch=($pair.text -ceq $Intent.text -and $pair.imagePath -ceq $intentPath)}catch{}
   if($pairMatch){return}
-  $selectedVariant=@((Get-PostingVariants $Config $Language -IncludeDisabled)|Where-Object{$_.id -ceq [string]$Intent.variantId -and $_.text -ceq [string]$Intent.text})
+  $selectedVariant=@((Get-PostingVariants $Config $Language -IncludeDisabled)|Where-Object{$_.id -ceq [string]$Intent.variantId -and ($_.text -ceq [string]$Intent.text -or (Add-FacebookCampaignUtm $_.text $Language) -ceq [string]$Intent.text)})
   if($selectedVariant.Count -eq 1){
     foreach($candidate in @(Get-PostingLocaleImageCandidates $Config $Language -Platform Facebook)){
       try{$mappedFacebookPath=Resolve-PostingImagePath ([string]$candidate) -Platform Facebook;if($mappedFacebookPath -ceq $intentPath){return}}catch{}

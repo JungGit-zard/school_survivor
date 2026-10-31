@@ -69,7 +69,7 @@ try {
       if ($null -eq $savedIntent -and $WebsiteCardOnly) {
         $imageHash=(Get-FileHash -LiteralPath $variant.imagePath -Algorithm SHA256).Hash.ToLowerInvariant()
         $cardUrl=$cardBaseUrl.TrimEnd('/')+'/share/x/'+$lang+'/'+$imageHash.Substring(0,16)
-        $selectedText=$variant.text.Replace([string]$config.web_url,$cardUrl)
+        $selectedText=$variant.text.Replace([string]$config.web_url,$cardUrl+'?utm_source=x&utm_medium=social&utm_campaign=daily_'+$lang)
         $savedFormat='website_card'
       }
       [pscustomobject]@{ language=$lang; variantId=$variant.id; text=$selectedText; imagePath=$variant.imagePath; postFormat=$savedFormat; cardUrl=$cardUrl; weightedLength=(Get-XWeightedLength $selectedText); persisted=($null -ne $savedIntent) }
@@ -201,7 +201,8 @@ try {
           if ($null -ne $storedCardProof -and $storedCardProof.cardUrl -cne $cardUrl) { throw 'Prepared website-card receipt evidence is bound to a different card URL.' }
           $script:XExpectedCardUrl = $cardUrl
         }
-        $composerText = $text.Replace([string]$config.web_url, $cardUrl)
+        # The card URL stays bare (receipts, crawl-reuse checks); only the posted link carries UTM.
+        $composerText = $text.Replace([string]$config.web_url, $cardUrl + '?utm_source=x&utm_medium=social&utm_campaign=daily_' + $lang)
         if ([regex]::Matches($composerText, [regex]::Escape($cardUrl)).Count -ne 1 -or [regex]::Matches($composerText, [regex]::Escape([string]$config.play_store_url)).Count -ne 1) { throw 'Website-card copy must contain its exact card URL and retain the Play URL once' }
         if ((Get-XWeightedLength $composerText) -gt 280) { throw 'Website-card copy exceeds the X weighted character limit' }
       }

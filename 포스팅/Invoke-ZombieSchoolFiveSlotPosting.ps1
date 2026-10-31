@@ -26,7 +26,8 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 $script:FiveSlotTimes = @('03:00','12:00','18:00','21:00')
-$script:Languages = @('ja','en','vi','ko')
+# ja/vi paused 2026-10-31 (marketing plan: en+ko only). Re-add them here to resume.
+$script:Languages = @('en','ko')
 
 function Get-FiveSlotRunId {
   param([DateTimeOffset]$NowKst)
@@ -281,7 +282,7 @@ function Invoke-ZombieSchoolFiveSlotPosting {
 function Invoke-SerializedPublishOnlyCycle {
   param([Parameter(Mandatory)][string]$RunId,[Parameter(Mandatory)][string]$ReceiptRoot,[Parameter(Mandatory)][string]$FacebookActionRunnerPath,[Parameter(Mandatory)][string]$XRunnerPath,[string]$StopAtKst='',[scriptblock]$NowKst={ [DateTimeOffset]::UtcNow.ToOffset([TimeSpan]::FromHours(9)) })
   $cutoffReached={ -not [string]::IsNullOrWhiteSpace($StopAtKst) -and (& $NowKst) -ge [DateTimeOffset]::Parse($StopAtKst,[Globalization.CultureInfo]::InvariantCulture) }
-  $languages=@('ja','en','vi','ko');$submitted=@();$unresolved=@();$verified=@();$skipped=@();$errors=@();$facebookMayContinue=$true;$publishClicks=@();$draftCleanups=@();$xUnsafe=$null
+  $languages=@($script:Languages);$submitted=@();$unresolved=@();$verified=@();$skipped=@();$errors=@();$facebookMayContinue=$true;$publishClicks=@();$draftCleanups=@();$xUnsafe=$null
   $fbRoot=Join-Path $ReceiptRoot 'facebook_posting_receipts';$xRoot=Join-Path $ReceiptRoot 'x_posting_receipts'
   [IO.Directory]::CreateDirectory($fbRoot)|Out-Null;[IO.Directory]::CreateDirectory($xRoot)|Out-Null
   # Attempt every pending X locale first. Only known pre-click content blockers may yield to Facebook.

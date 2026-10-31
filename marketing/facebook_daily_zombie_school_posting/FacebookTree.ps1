@@ -56,7 +56,9 @@ function Test-FacebookCampaignUrl([string]$Value, [string]$ExpectedUrl) {
   if ($actual.Scheme -cne $expected.Scheme -or $actual.Host -cne $expected.Host -or $actual.AbsolutePath.TrimEnd('/') -cne $expected.AbsolutePath.TrimEnd('/')) { return $false }
   $query = [System.Web.HttpUtility]::ParseQueryString($actual.Query)
   $keys = @($query.AllKeys | Where-Object { -not [string]::IsNullOrEmpty($_) })
-  if ($keys | Where-Object { $_ -notin @('id','fbclid') }) { return $false }
+  if ($keys | Where-Object { $_ -notin @('id','fbclid','utm_source','utm_medium','utm_campaign') }) { return $false }
+  $expectedQuery = [System.Web.HttpUtility]::ParseQueryString($expected.Query)
+  foreach ($utm in @('utm_source','utm_medium','utm_campaign')) { if ([string]$query[$utm] -cne [string]$expectedQuery[$utm]) { return $false } }
   if ($ExpectedUrl -ceq $script:FacebookTreePlayUrl) {
     $ids = @($query.GetValues('id') | Where-Object { $null -ne $_ })
     if ($ids.Count -ne 1 -or $ids[0] -cne 'com.jungyoon.zombieschool') { return $false }
@@ -81,7 +83,7 @@ function Get-FacebookPostEvidenceFromTree([string]$Tree, [string]$Permalink, [st
 
   $expectedUrls=@([regex]::Matches($ExpectedText,'https://[^\s]+') | ForEach-Object Value)
   if($expectedUrls.Count -lt 1 -or $expectedUrls[-1] -cne $script:FacebookTreePlayUrl){throw 'Expected copy must end its URL sequence with the canonical Play URL'}
-  if($expectedUrls.Count -gt 2 -or ($expectedUrls.Count -eq 2 -and $expectedUrls[0] -cne $script:FacebookTreeWebUrl)){throw 'Expected copy permits only optional Web URL followed by Play URL'}
+  if($expectedUrls.Count -gt 2 -or ($expectedUrls.Count -eq 2 -and -not $expectedUrls[0].StartsWith($script:FacebookTreeWebUrl, [StringComparison]::Ordinal))){throw 'Expected copy permits only optional Web URL followed by Play URL'}
   $hashtags = @($nodes | Where-Object { $_.raw -match '(?i)(?:link|\uB9C1\uD06C)\s+#\S+' })
   if ($hashtags.Count -ne 1) { throw "Scoped post requires exactly one hashtag link; found $($hashtags.Count)" }
   $photos = @($nodes | Where-Object { $_.raw -match '(?i)(?:link|\uB9C1\uD06C)\s+' -and $_.value -match '^https://www\.facebook\.com/photo/\?fbid=[^&]+&set=' })
