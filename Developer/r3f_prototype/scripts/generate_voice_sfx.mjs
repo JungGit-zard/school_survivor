@@ -173,6 +173,10 @@ const VOICE_SFX = {
   inuconBite: { dir: 'enemies', synth: () => voice({ dur: 0.2, targetLoudness: 0.17, seed: 0x6504, hold: 1, bits: 8, drive: 1.45, f0: [[0, 330], [0.25, 460], [1, 250]], jitter: 0.012, frames: [
     { t: 0, v: 'aw', amp: 0, voice: 0, noise: 0.55 }, { t: 0.04, v: 'aw', amp: 0.9, voice: 1, noise: 0.12 }, { t: 0.35, v: 'aa', amp: 0.75, voice: 1, noise: 0.12 }, { t: 0.65, v: 'aa', amp: 0, voice: 1, noise: 0.18 }, { t: 0.78, v: 'aa', amp: 0.45, voice: 0, noise: 1 }, { t: 1, v: 'aa', amp: 0, voice: 0, noise: 1 },
   ] }) },
+  // 2026-10-31 Terry: 이누콘이 주인공 대신 피해를 받을 때 크게 한 번 "왈!". dogeYelp 기반, 더 낮고 크게.
+  inuconBark: { dir: 'enemies', synth: () => voice({ dur: 0.26, targetLoudness: 0.2, seed: 0x6506, hold: 1, bits: 8, drive: 1.6, f0: [[0, 300], [0.18, 430], [1, 240]], jitter: 0.014, frames: [
+    { t: 0, v: 'aw', amp: 0, voice: 0, noise: 0.6 }, { t: 0.03, v: 'aw', amp: 1, voice: 1, noise: 0.14 }, { t: 0.4, v: 'aa', amp: 0.8, voice: 1, noise: 0.12 }, { t: 1, v: 'aa', amp: 0, voice: 1, noise: 0.2 },
+  ] }) },
   inuconHeal: { dir: 'enemies', synth: () => voice({ dur: 0.32, targetLoudness: 0.13, seed: 0x6505, hold: 1, bits: 8, drive: 1.1, f0: [[0, 360], [1, 310]], vib: { rate: 5, depth: 0.02 }, jitter: 0.008, frames: [
     { t: 0, v: 'ee', amp: 0, voice: 1, noise: 0.14 }, { t: 0.08, v: 'ee', amp: 0.5, voice: 1, noise: 0.08 }, { t: 0.55, v: 'oo', amp: 0.46, voice: 1, noise: 0.08 }, { t: 1, v: 'oo', amp: 0, voice: 1, noise: 0.1 },
   ] }) },

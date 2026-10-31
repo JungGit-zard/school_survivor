@@ -101,6 +101,7 @@ export const SOUND_MAP = {
   dogeEscape:         '/sfx/enemies/dogeEscape.ogg',
   dogeYelp:           '/sfx/enemies/dogeYelp.ogg',
   inuconBite:         '/sfx/enemies/inuconBite.ogg',
+  inuconBark:         '/sfx/enemies/inuconBark.ogg',   // 주인공 대신 피해(대리 피격) 신호
   inuconHeal:         '/sfx/enemies/inuconHeal.ogg',
 
   // ── UI ───────────────────────────────────────────────────────────────────────
@@ -147,6 +148,7 @@ export const COMBAT_VOICE_CAP = 6
 export const PROTECTED_DANGER_SFX = Object.freeze([
   'bossRoar',
   'bossDeath',
+  'inuconBark',  // 대리 피격 = 플레이어 생존 정보, 전투 캡으로 버리지 않는다
   'matildaSpawn',
   'matildaDash',
   'matildaLaugh',
@@ -255,6 +257,7 @@ export const POLYPHONY_COOLDOWN = Object.freeze({
   dogeDeath:        180,
   dogeEscape:       240,
   inuconBite:       180,
+  inuconBark:       400,  // 음원 0.26s보다 길게(자기 겹침 방지), 피격 최소 간격 532ms(1.88타/초)보다 짧게 — 같은 피격의 중복 emit만 1회로
   inuconHeal:       500,
   playerHit:        80,
   playerHeal:       220,

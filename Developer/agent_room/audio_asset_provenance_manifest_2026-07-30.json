@@ -1363,6 +1363,26 @@
       "licenseEvidence": "project-generated-procedural"
     },
     {
+      "logicalId": "inuconBark",
+      "category": "enemies",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/inuconBark.ogg",
+          "bytes": 4721,
+          "sha256": "73a3a7e773c8aed0ca4c71bb94ae25231501f5bb5d090af2da9d9bd85e862654"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/inuconBark.mp3",
+          "bytes": 2760,
+          "sha256": "738dea66e856a6e516d9ac557577c10ef3942ac42db6290f5c974f94cec05a99"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_voice_sfx.mjs inuconBark (project procedural source-filter voice synthesis; OGG/MP3 conversion via @ffmpeg-installer/ffmpeg); Developer/agent_room/soundmini_inucon_bark_cue_2026-10-31.md",
+      "notes": "Inucon damage-intercept bark added 2026-10-31. Project-generated voice-like procedural SFX; no external samples or third-party audio assets used.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
       "logicalId": "inuconHeal",
       "category": "enemies",
       "paths": [

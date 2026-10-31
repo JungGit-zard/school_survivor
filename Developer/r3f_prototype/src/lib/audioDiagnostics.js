@@ -8,8 +8,9 @@ import { TITLE_BGM_URL as titleBgmUrl } from './titleBgm.js'
 // 이미 실제 등록 수(78)와 어긋나 있었다.
 // 2026-08-22: 84 → 87 (좀비 사망 발성 5종 추가, 구 zombieDeath/zombieHeavyDeath 2종 폐기).
 // 2026-08-22: 87 → 90 (playerHeal/inuconBite/inuconHeal 음성형 SFX 추가).
-export const AUDIO_DIAGNOSTIC_SFX_COUNT = 90
-export const AUDIO_DIAGNOSTIC_EXPECTED_COUNT = 91
+// 2026-10-31: 90 → 91 (inuconBark 대리 피격 짖음 추가).
+export const AUDIO_DIAGNOSTIC_SFX_COUNT = 91
+export const AUDIO_DIAGNOSTIC_EXPECTED_COUNT = 92
 
 // This is intentionally derived from the runtime SFX authority plus the
 // shared title BGM CDN URL. It is not a second audio manifest.

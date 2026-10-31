@@ -30,6 +30,7 @@ const ids = [
   ['enemies', 'dogeYelp'],
   ['enemies', 'dogeDeath'],
   ['enemies', 'inuconBite'],
+  ['enemies', 'inuconBark'],
   ['enemies', 'inuconHeal'],
   ['events', 'rzlWhistle'],
   ['events', 'stage2GuardWhistle'],
