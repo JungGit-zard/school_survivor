@@ -104,7 +104,7 @@ describe('weaponCatalog', () => {
       label: '하나코',
       base: {
         healIntervalMs: 20000,
-        healPercent: 0.1,
+        healPercent: 0.15,
         followDistance: 1.44,
       },
       unlockConditions: null,

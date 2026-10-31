@@ -486,6 +486,7 @@ export const useGameStore = create(
         set({ inucon: { ...inucon, hp: Math.max(0, inuconHp), fainted, respawnAtMs: fainted ? getRuntimeElapsedMs(get().elapsedMs) + INUCON_RESPAWN_MS : null } })
         emitDamageNumber({ x: playerPos.x, y: 1.0, z: playerPos.z, amount: absorbed, colorHex: DAMAGE_NUMBER_COLORS.player })
         emitSfx({ id: 'inuconBark' })
+        logDamageTaken(absorbed, player.hp)
         amount -= absorbed
         if (amount <= 0) {
           set({ player: { ...player, invulnerable: true } })

@@ -12,22 +12,29 @@ export function shouldRenderHanakoCompanion(weapons = {}) {
   return weapons.hanako?.active === true && weapons.chibiko?.active === true
 }
 
-// Terry 2026-10-31: 하나코 Lv1~5 = 10/15/20/25/30%. 같은 비율이 20초 회복(현재 남은 HP 기준)과
-// 전 무기 치명타 피해 보너스에 함께 쓰인다.
-export const HANAKO_LEVEL_STEP = 0.05
+// Terry 2026-10-31 둘째 지시: 회복과 치명타 비율을 분리한다.
+// - 20초 회복 = 지금까지 잃은 HP(maxHp - hp) × 15/16/17/18/19% (Lv1~5, Lv당 +1%).
+// - 전 무기 치명타 피해 보너스 = 10/15/20/25/30% (Lv당 +5%, 기존 그대로).
+export const HANAKO_HEAL_LEVEL_STEP = 0.01
+export const HANAKO_CRIT_BASE = 0.1
+export const HANAKO_CRIT_LEVEL_STEP = 0.05
 
-export function getHanakoRatio(level = 1) {
-  const lv = Math.min(5, Math.max(1, Math.floor(Number(level)) || 1))
-  return HANAKO_HEAL_RATIO + HANAKO_LEVEL_STEP * (lv - 1)
+const clampLevel = (level) => Math.min(5, Math.max(1, Math.floor(Number(level)) || 1))
+
+export function getHanakoHealRatio(level = 1) {
+  return HANAKO_HEAL_RATIO + HANAKO_HEAL_LEVEL_STEP * (clampLevel(level) - 1)
 }
 
-// 기준은 최대 HP가 아니라 "현재 남은 HP"다(Terry 2026-10-31).
-export function computeHanakoHealAmount(currentHp, level = 1) {
-  if (!Number.isFinite(currentHp) || currentHp <= 0) return 0
-  return currentHp * getHanakoRatio(level)
+export function getHanakoCritRatio(level = 1) {
+  return HANAKO_CRIT_BASE + HANAKO_CRIT_LEVEL_STEP * (clampLevel(level) - 1)
+}
+
+export function computeHanakoHealAmount(currentHp, maxHp, level = 1) {
+  if (!Number.isFinite(currentHp) || !Number.isFinite(maxHp) || currentHp >= maxHp) return 0
+  return (maxHp - Math.max(0, currentHp)) * getHanakoHealRatio(level)
 }
 
 // 하나코가 실제로 따라다닐 때(치비코 동반)만 치명타 피해 보너스가 붙는다.
 export function getHanakoCritDamageBonus(weapons = {}) {
-  return shouldRenderHanakoCompanion(weapons) ? getHanakoRatio(weapons.hanako.level) : 0
+  return shouldRenderHanakoCompanion(weapons) ? getHanakoCritRatio(weapons.hanako.level) : 0
 }

@@ -162,7 +162,7 @@ export function HanakoWeapon() {
 
     if (now - lastHealAtRef.current >= HANAKO_HEAL_INTERVAL_MS) {
       const player = useGameStore.getState().player
-      const healAmount = computeHanakoHealAmount(player.hp, weapons.hanako?.level)
+      const healAmount = computeHanakoHealAmount(player.hp, player.maxHp, weapons.hanako?.level)
       lastHealAtRef.current = now
       if (healAmount > 0) {
         healPlayer(healAmount)

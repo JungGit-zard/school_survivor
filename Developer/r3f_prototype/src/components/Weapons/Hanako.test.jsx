@@ -28,7 +28,7 @@ describe('Hanako companion source contract', () => {
     const source = readFileSync(new URL('./Hanako.jsx', import.meta.url), 'utf8')
     expect(source).toContain('HANAKO_TRAIL_FOLLOW_DISTANCE')
     expect(source).toContain('HANAKO_HEAL_INTERVAL_MS')
-    expect(source).toContain('computeHanakoHealAmount(player.hp, weapons.hanako?.level)')
+    expect(source).toContain('computeHanakoHealAmount(player.hp, player.maxHp, weapons.hanako?.level)')
     expect(source).toContain('healPlayer(healAmount)')
     expect(source).toContain('shouldRenderHanakoCompanion(weapons)')
     expect(source).toContain('startedAtRef.current = now')

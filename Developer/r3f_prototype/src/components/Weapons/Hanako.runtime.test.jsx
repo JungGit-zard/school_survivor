@@ -96,10 +96,10 @@ describe('Hanako heal runtime', () => {
     runFrames(framesJustUnder)
     expect(useGameStore.getState().player.hp).toBe(startHp)
 
-    // 주기를 넘기면 정확히 현재 hp * 0.10 만큼 회복된다(최대 HP 기준 아님).
+    // 주기를 넘기면 정확히 잃은 hp(maxHp - hp) * 0.15 만큼 회복된다.
     runFrames(20, { startSeconds: framesJustUnder / 60 })
     const afterHp = useGameStore.getState().player.hp
-    expect(afterHp).toBeCloseTo(startHp * (1 + HANAKO_HEAL_RATIO), 5)
+    expect(afterHp).toBeCloseTo(startHp + (maxHp - startHp) * HANAKO_HEAL_RATIO, 5)
     expect(vi.mocked(emitSfx).mock.calls.filter(([e]) => e?.id === 'playerHeal')).toHaveLength(1)
     expect(recordMissionEvent).toHaveBeenCalledWith({ type: 'companion_heal', companionId: 'hanako' })
   })
@@ -130,7 +130,8 @@ describe('Hanako heal runtime', () => {
     // 재개 직후 첫 프레임에서, 실제로는 1초밖에 안 싸웠는데 힐이 터진다.
     useGameStore.setState({ phase: 'playing' })
     runFrames(1, { startSeconds: 25 })
-    expect(useGameStore.getState().player.hp).toBeCloseTo(10 * (1 + HANAKO_HEAL_RATIO), 5)
+    const maxHp = useGameStore.getState().player.maxHp
+    expect(useGameStore.getState().player.hp).toBeCloseTo(10 + (maxHp - 10) * HANAKO_HEAL_RATIO, 5)
   })
 
   it('최대 HP에서는 회복이 낭비되지 않고 쿨다운만 소모된다(현재 동작 기록)', () => {
@@ -165,7 +166,8 @@ describe('Hanako heal runtime', () => {
       elapsed = runFrames(framesPerInterval + 1, { startSeconds: elapsed })
       const heals = vi.mocked(emitSfx).mock.calls.filter(([e]) => e?.id === 'playerHeal')
       expect(heals).toHaveLength(interval)
-      expect(useGameStore.getState().player.hp).toBeCloseTo((1 + HANAKO_HEAL_RATIO) ** interval, 5)
+      const maxHp = useGameStore.getState().player.maxHp
+      expect(useGameStore.getState().player.hp).toBeCloseTo(maxHp - (maxHp - 1) * (1 - HANAKO_HEAL_RATIO) ** interval, 5)
     }
   })
 
@@ -189,6 +191,7 @@ describe('Hanako heal runtime', () => {
 
     // 남은 5초를 채우면(+여유 2프레임) 맞는 중이었든 아니든 회복이 들어온다.
     runFrames(5 * 60 + 2, { startSeconds: elapsed })
-    expect(useGameStore.getState().player.hp).toBeCloseTo(beforeHp * (1 + HANAKO_HEAL_RATIO), 5)
+    const maxHp = useGameStore.getState().player.maxHp
+    expect(useGameStore.getState().player.hp).toBeCloseTo(beforeHp + (maxHp - beforeHp) * HANAKO_HEAL_RATIO, 5)
   })
 })

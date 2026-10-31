@@ -135,8 +135,8 @@ export const WEAPON_CATALOG = {
   hanako: {
     id: 'hanako',
     label: '하나코',
-    // Terry 2026-10-31: Lv1 회복 = 현재 HP의 10%(Lv당 +5%, Lv5 30%). 치명타 피해 보너스도 같은 비율.
-    base: { damage: 0, healIntervalMs: 20000, healPercent: 0.1, followDistance: 1.44 }, // damage 0: 유틸 동반자(이누콘과 동일), 소크 유한수 검사용
+    // Terry 2026-10-31 둘째 지시: Lv1 회복 = 잃은 HP의 15%(Lv당 +1%, Lv5 19%). 치명타 보너스는 hanako.js 별도 상수.
+    base: { damage: 0, healIntervalMs: 20000, healPercent: 0.15, followDistance: 1.44 }, // damage 0: 유틸 동반자(이누콘과 동일), 소크 유한수 검사용
     // 하나코는 치비코 보유 중에만 발견하는 런 중 조합 카드다.
     unlockConditions: null,
   },

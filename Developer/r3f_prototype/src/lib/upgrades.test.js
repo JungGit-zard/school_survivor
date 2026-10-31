@@ -401,7 +401,7 @@ describe('isUpgradeAvailable', () => {
       hanako = applyUpgradeToWeapon(hanako, effect)
     }
     expect(hanako.level).toBe(5)
-    expect(hanako.healPercent).toBeCloseTo(0.30)
+    expect(hanako.healPercent).toBeCloseTo(0.19)
     expect(isUpgradeAvailable(effect, 10, weapons())).toBe(false)
   })
 

@@ -19,17 +19,19 @@ describe('hanako companion helpers', () => {
   it('uses the second companion trail distance and 20 second heal cadence contract', () => {
     expect(HANAKO_TRAIL_FOLLOW_DISTANCE).toBe(1.44)
     expect(HANAKO_HEAL_INTERVAL_MS).toBe(20000)
-    expect(HANAKO_HEAL_RATIO).toBe(0.1)
-    expect(computeHanakoHealAmount(0)).toBe(0)
-    expect(computeHanakoHealAmount(Number.NaN)).toBe(0)
+    expect(HANAKO_HEAL_RATIO).toBe(0.15)
+    expect(computeHanakoHealAmount(100, 100)).toBe(0)
+    expect(computeHanakoHealAmount(Number.NaN, 100)).toBe(0)
+    expect(computeHanakoHealAmount(40, Number.NaN)).toBe(0)
   })
 
-  it('Terry 2026-10-31: Lv1~5 heals 10/15/20/25/30% of CURRENT hp, not max hp', () => {
-    ;[0.10, 0.15, 0.20, 0.25, 0.30].forEach((ratio, i) => {
-      expect(computeHanakoHealAmount(40, i + 1)).toBeCloseTo(40 * ratio)
+  it('Terry 2026-10-31 둘째 지시: Lv1~5 heals 15/16/17/18/19% of LOST hp (maxHp - hp)', () => {
+    ;[0.15, 0.16, 0.17, 0.18, 0.19].forEach((ratio, i) => {
+      expect(computeHanakoHealAmount(40, 100, i + 1)).toBeCloseTo(60 * ratio)
     })
-    // 현재 HP 40 / 최대 HP 100 — 최대 HP 기준이었다면 Lv1에서 10이 나온다.
-    expect(computeHanakoHealAmount(40, 1)).toBeCloseTo(4)
+    // 현재 HP 40 / 최대 HP 100 — 잃은 60의 15% = 9, Lv5는 60의 19% = 11.4.
+    expect(computeHanakoHealAmount(40, 100, 1)).toBeCloseTo(9)
+    expect(computeHanakoHealAmount(40, 100, 5)).toBeCloseTo(11.4)
   })
 
   it('crit damage bonus follows Hanako level only while she is on the field', () => {

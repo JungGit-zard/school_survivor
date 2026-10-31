@@ -159,9 +159,9 @@ export const UPGRADE_EFFECTS = {
   chibikoDamage:        { weapon: 'chibiko',       kind: 'damage', dmg: 0.6 },
   chibikoCrit:          { weapon: 'chibiko',       kind: 'crit',   chanceStep: 0.02, chanceCap: 0.21 },
   acquireHanako:        { weapon: 'hanako',        kind: 'acquire', requiresActiveWeapon: 'chibiko', skipAccountUnlock: true },
-  // Terry 2026-10-31: 카드 1종 × 4장 = Lv5. 회복 %(현재 HP 기준)와 치명타 피해 보너스가 함께 +5%.
-  // 실제 비율은 hanako.js getHanakoRatio(level)가 정본이고 healPercent는 같은 값을 따라간다.
-  hanakoUpgrade:        { weapon: 'hanako',        kind: 'stat',   stat: 'healPercent', step: 0.05, cap: 0.3 },
+  // Terry 2026-10-31: 카드 1종 × 4장 = Lv5. 회복 %(잃은 HP 기준) +1%, 치명타 피해 +5%.
+  // 실제 비율은 hanako.js getHanakoHealRatio/getHanakoCritRatio(level)가 정본이고 healPercent는 회복 비율을 따라간다.
+  hanakoUpgrade:        { weapon: 'hanako',        kind: 'stat',   stat: 'healPercent', step: 0.01, cap: 0.19 },
   acquireInucon:        { weapon: 'inucon',        kind: 'acquire', minLevel: 8 },
   inuconHeal:           { weapon: 'inucon',        kind: 'stat',   stat: 'healPercent', step: 0.004, cap: 0.036 },
   inuconPushRadius:     { weapon: 'inucon',        kind: 'stat',   stat: 'pushRadius',  step: 0.1,  cap: 1.25 },
