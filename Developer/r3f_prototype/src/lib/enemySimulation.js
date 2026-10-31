@@ -142,7 +142,8 @@ function isScreenRunner(type) {
   return isRunCrew(type) || type === 13 || type === 14
 }
 
-function ignoresObstacles(type) {
+// 장애물을 통과하도록 설계된 타입(RZT 13 / RZG 14). 시뮬레이션과 소크 하네스가 같은 정본을 쓴다.
+export function ignoresObstacles(type) {
   return type === 13 || type === 14
 }
 

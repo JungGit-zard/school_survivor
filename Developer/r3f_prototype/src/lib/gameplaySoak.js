@@ -26,6 +26,7 @@ import {
   ENEMY_EVENT_RANGED_FIRE,
   ENEMY_SIZE_MULTIPLIER,
   ENEMY_STUCK_RECOVERY_MS,
+  ignoresObstacles,
 } from './enemySimulation.js'
 import {
   createPooledEnemySpawnDrainQueue,
@@ -33,7 +34,7 @@ import {
   enqueuePooledEnemySpawn,
   resetPooledEnemySpawnDrainQueue,
 } from './pooledEnemySpawnDrain.js'
-import { getStageBounds } from './stageConfig.js'
+import { getStageBounds, getStageConfig } from './stageConfig.js'
 import { clampPlayerPosition, getPlayerMovementBounds } from './playerMovementBounds.js'
 import { getE04IntroSec } from './stage2ProjectileRules.js'
 import { applyRadialDamage, applyForwardConeDamage, findClosestEnemy } from './weaponTargeting.js'
@@ -53,14 +54,33 @@ import {
   stageHpOverride,
   waveSizeForStageAtTime,
   createStage2GuardChaseEntries,
+  buildOvertimeMixedReinforcementEntries,
+  clampZombieSpawnRequest,
+  overtimeHpStatOverride,
+  overtimeReinforcementCountForTick,
+  repeatingBurstSpawnCountForTick,
+  shouldScheduleOvertimeReinforcement,
 } from '../components/Enemies.jsx'
-import { getRuntimeBurstEventsForStage, isBossType, RUN_ZOMBIE_CREW_FORMATION, STAGE2_GUARD_CHASE_FORMATION } from './burstEvents.js'
+import {
+  getRuntimeBurstEventsForStage,
+  isBossType,
+  isRepeatingBurstEvent,
+  postExitRepeatWaveIndex,
+  postExitWaveCount,
+  repeatingBurstSecAtTick,
+  repeatingBurstTickAt,
+  RUN_ZOMBIE_CREW_FORMATION,
+  STAGE2_GUARD_CHASE_FORMATION,
+} from './burstEvents.js'
 import { ENEMY_STATS } from '../components/Enemy.jsx'
 import { useGameStore } from '../store/useGameStore.js'
 
-export const SOAK_STAGES = ['stage1', 'stage2', 'stage3', 'stage4']
+// 출시 스테이지 1~5만 돈다. 6~10은 미출시 초안이라 소크 대상이 아니다.
+export const SOAK_STAGES = ['stage1', 'stage2', 'stage3', 'stage4', 'stage5']
 export const SOAK_FRAME_DELTA = 1 / 60
-const RUN_SECONDS = 240
+// 한 런 길이. 탈출구 개방(210초) 뒤 오버타임 증원(240초~, 30초 회차)과 반복 버스트 증가분이
+// 최소 몇 회차 돌도록 300초로 둔다.
+export const SOAK_RUN_SECONDS = 300
 const PLAYER_SPEED = 3
 const INPUT_CHANGE_FRAMES = 23
 const WEAPON_PERIOD_FRAMES = 7
@@ -254,14 +274,20 @@ function resolvePlayerVelocity(input, out) {
  * 인게임 프레임을 frames번 반복한다. 실패는 첫 발생 지점에서 즉시 반환한다(seed+frame으로 재현).
  * @returns {{ok: boolean, failure: object|null, frames: number, stats: object}}
  */
-export function runGameplaySoak({ frames = 3600, seed = 1, stages = SOAK_STAGES } = {}) {
+export function runGameplaySoak({
+  frames = 3600,
+  seed = 1,
+  stages = SOAK_STAGES,
+  runSeconds = SOAK_RUN_SECONDS,
+  saturateRuns = 'odd',
+} = {}) {
   const random = mulberry32(seed)
   const originalRandom = Math.random
   const originalState = useGameStore.getState()
   const originalStageId = originalState.currentStageId
   const originalPhase = originalState.phase
   const originalPlayer = originalState.player
-  const runFrames = Math.round(RUN_SECONDS / SOAK_FRAME_DELTA)
+  const runFrames = Math.round(runSeconds / SOAK_FRAME_DELTA)
   const stats = {
     spawns: 0,
     spawnFailures: 0,
@@ -292,6 +318,17 @@ export function runGameplaySoak({ frames = 3600, seed = 1, stages = SOAK_STAGES 
     heapEndMb: 0,
     heapGrowthMb: 0,
     stagesCovered: [],
+    // 탈출구 개방 후 성장 경로 — 오버타임 증원과 반복 버스트 증가분.
+    overtimeTicks: 0,
+    overtimeRequested: 0,
+    overtimeAdmitted: 0,
+    overtimeMaxRequested: 0,
+    repeatBurstTicks: 0,
+    repeatPostExitTicks: 0,
+    repeatRequested: 0,
+    repeatAdmitted: 0,
+    repeatMaxRequested: 0,
+    capClampedRequests: 0,
   }
   let weapons = buildSoakWeapons()
   let playerLevel = 1
@@ -304,6 +341,7 @@ export function runGameplaySoak({ frames = 3600, seed = 1, stages = SOAK_STAGES 
   const staleGeneration = new Uint16Array(16)
   let staleWrite = 0
   const firedBursts = new Uint8Array(64)
+  const repeatTicks = new Int16Array(64).fill(-1)
   // 슬롯이 재사용되면(generation 변화) 카운터를 리셋해야 다른 개체의 겹침이 누적되지 않는다.
   const overlapFrames = new Uint16Array(MAX_ENEMIES)
   const overlapGeneration = new Uint16Array(MAX_ENEMIES)
@@ -361,9 +399,12 @@ export function runGameplaySoak({ frames = 3600, seed = 1, stages = SOAK_STAGES 
         context.burstEvents = getRuntimeBurstEventsForStage(stageId)
         // 홀수 런(1,3,5…)은 풀 포화까지 밀어붙이는 스트레스 런, 짝수 런은 실제 웨이브만 쓴다.
         // 첫 런을 포화로 두는 이유: 기본 프레임 수(12,000 = 1런)만 돌려도 포화·접촉 경로가 커버된다.
-        context.saturate = stats.runs % 2 === 1
+        context.saturate = saturateRuns === 'all' || (saturateRuns === 'odd' && stats.runs % 2 === 1)
         if (context.saturate) stats.saturationRuns += 1
+        context.portalSec = getStageConfig(stageId).escapePortalSec
+        context.overtimeTick = -1
         firedBursts.fill(0)
+        repeatTicks.fill(-1)
         input.up = false
         input.down = false
         input.left = false
@@ -403,9 +444,61 @@ export function runGameplaySoak({ frames = 3600, seed = 1, stages = SOAK_STAGES 
         }
       }
 
+      // 2a) 탈출구 개방 후 오버타임 증원 — Enemies.jsx SCHEDULE_OVERTIME 배선 그대로
+      //     (30초 회차, 마릿수 +10%/회차, 동시 천장으로 먼저 자른 뒤 좌표 계산, HP 90초 계단).
+      const overtime = shouldScheduleOvertimeReinforcement(context.overtimeTick, sec, context.stageId)
+      if (overtime.shouldSchedule) {
+        context.overtimeTick = overtime.tick
+        const requested = overtimeReinforcementCountForTick(overtime.tick)
+        const count = clampZombieSpawnRequest(requested, { pooledActive: enemyPool.activeCount, pooledQueued: spawnDrain.count })
+        stats.overtimeTicks += 1
+        stats.overtimeRequested += requested
+        stats.overtimeAdmitted += count
+        if (requested > stats.overtimeMaxRequested) stats.overtimeMaxRequested = requested
+        if (count < requested) stats.capClampedRequests += 1
+        if (count > 0) {
+          const entries = buildOvertimeMixedReinforcementEntries(context.stageId, Math.random, count)
+          const taken = []
+          for (const entry of entries) {
+            const pos = randomSpawnPos(entry.type, context.spawnBounds, taken, Math.random, context.obstacles)
+            if (!pos) continue
+            taken.push(pos)
+            const statOverride = overtimeHpStatOverride(entry.type, context.stageId, overtime.tick)
+            if (statOverride && !Number.isFinite(statOverride.hp ?? 1)) {
+              failure = { reason: `오버타임 HP 비정상: ${statOverride.hp}`, frame, seed, stageId: context.stageId, sec }
+              break
+            }
+            if (!enqueuePooledEnemySpawn(spawnDrain, { type: entry.type, pos, statOverride }, context.spawnToken)) stats.drainDropped += 1
+          }
+          if (failure) break
+        }
+      }
+
       // 2b) 버스트 발화 — 형태 포위(ring/pincer/column) · 런좀비 크루 · 보스 호위.
       for (let burstIndex = 0; burstIndex < context.burstEvents.length; burstIndex += 1) {
         const evt = context.burstEvents[burstIndex]
+        // 반복 버스트는 tick마다 발화하고, 개방 후 회차는 +10%씩 늘린 뒤 동시 천장으로 자른다(Enemies.jsx와 같은 정본 함수).
+        if (isRepeatingBurstEvent(evt)) {
+          const lastTick = repeatingBurstTickAt(evt, sec)
+          if (lastTick === null || lastTick === undefined) continue
+          for (let tick = repeatTicks[burstIndex] + 1; tick <= lastTick; tick += 1) {
+            if (repeatingBurstSecAtTick(evt, tick) === null) continue
+            const postExitIndex = postExitRepeatWaveIndex(evt, tick, context.portalSec)
+            const requested = postExitWaveCount(evt.count ?? 1, postExitIndex)
+            const count = repeatingBurstSpawnCountForTick(evt, tick, context.portalSec,
+              { pooledActive: enemyPool.activeCount, pooledQueued: spawnDrain.count })
+            stats.repeatBurstTicks += 1
+            stats.bursts += 1
+            if (postExitIndex >= 0) stats.repeatPostExitTicks += 1
+            stats.repeatRequested += requested
+            stats.repeatAdmitted += count
+            if (requested > stats.repeatMaxRequested) stats.repeatMaxRequested = requested
+            if (count < requested) stats.capClampedRequests += 1
+            if (count > 0) enqueueBurst(spawnDrain, { ...evt, count }, context, stats)
+          }
+          repeatTicks[burstIndex] = lastTick
+          continue
+        }
         if (firedBursts[burstIndex] || sec < evt.sec) continue
         firedBursts[burstIndex] = 1
         stats.bursts += 1
@@ -574,7 +667,8 @@ function checkFrameInvariants(frame, seed, sec, context, stats, overlapFrames, o
       }
     }
     if (enemyPool.hitCooldown[index] > ENEMY_CONTACT_COOLDOWN_MS + 1) stats.contactCooldownViolations += 1
-    const overlapping = context.obstacleCount > 0 && collidesEnemyObstacle(
+    // 장애물 통과 타입(RZT/RZG)은 설계상 장애물 위를 지나가므로 겹침 검사에서 뺀다(enemySimulation 정본 플래그).
+    const overlapping = context.obstacleCount > 0 && !ignoresObstacles(enemyPool.type[index]) && collidesEnemyObstacle(
       enemyPool.posX[index], enemyPool.posZ[index], enemyCollisionRadius(enemyPool.type[index]),
       context.obstacles, context.obstacleCount)
     overlapFrames[index] = overlapping ? overlapFrames[index] + 1 : 0

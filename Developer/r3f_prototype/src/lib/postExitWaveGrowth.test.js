@@ -12,7 +12,7 @@ import {
 } from './burstEvents.js'
 import { ESCAPE_PORTAL_OPEN_SEC } from './stageConfig.js'
 import { MAX_ENEMIES } from './enemyEntityPool.js'
-import { clampZombieSpawnRequest, overtimeReinforcementCountForTick } from '../components/Enemies.jsx'
+import { clampZombieSpawnRequest, overtimeReinforcementCountForTick, repeatingBurstSpawnCountForTick } from '../components/Enemies.jsx'
 
 // 2026-10-31 Terry: 탈출구 개방 후 정기 대량 웨이브는 회차마다 기본의 10%씩(선형) 늘어난다.
 describe('post-exit periodic wave growth', () => {
@@ -77,5 +77,17 @@ describe('post-exit periodic wave growth', () => {
     // 필드에 120마리가 있으면 n=1(33)부터 30으로 잘린다.
     expect(clampZombieSpawnRequest(overtimeReinforcementCountForTick(1), { pooledActive: 120, specialActive: 0, pooledQueued: 0 })).toBe(30)
     expect(clampZombieSpawnRequest(overtimeReinforcementCountForTick(5), { pooledActive: 150, specialActive: 0, pooledQueued: 0 })).toBe(0)
+  })
+
+  it('clamps repeating post-exit reinforcement to free slots before positions are computed', () => {
+    const [green] = STAGE3_BOSS_PHASE_GREEN_SMILING_REINFORCEMENT_EVENTS
+    const empty = { pooledActive: 0, specialActive: 0, pooledQueued: 0 }
+    // 자리가 있으면 기존과 같은 마릿수(개방 전 10, 개방 후 n=0..8 → 10..18).
+    const full = Array.from({ length: repeatingBurstTickCount(green) }, (_, tick) =>
+      repeatingBurstSpawnCountForTick(green, tick, ESCAPE_PORTAL_OPEN_SEC, empty))
+    expect(full).toEqual([10, 10, 10, 10, 10, 10, 10, 11, 12, 13, 14, 15, 16, 17, 18])
+    // 천장 근처에서는 남은 칸만큼만(대기열 포함), 꽉 차면 0.
+    expect(repeatingBurstSpawnCountForTick(green, 14, ESCAPE_PORTAL_OPEN_SEC, { pooledActive: 140, specialActive: 2, pooledQueued: 3 })).toBe(5)
+    expect(repeatingBurstSpawnCountForTick(green, 14, ESCAPE_PORTAL_OPEN_SEC, { pooledActive: MAX_ENEMIES, specialActive: 0, pooledQueued: 0 })).toBe(0)
   })
 })

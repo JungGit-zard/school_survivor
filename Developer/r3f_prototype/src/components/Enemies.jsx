@@ -400,6 +400,13 @@ export function buildOvertimeMixedReinforcementEntries(stageId, random = Math.ra
   return entries
 }
 
+// 반복 버스트 한 회차의 실제 스폰 마릿수. 개방 후 성장분을 반영한 요청을 동시 천장의 남은 칸으로 자른다.
+// addEnemies도 천장에서 끊지만, 그 전에 버려질 좌표까지 뽑지 않도록 좌표 계산 전에 자른다.
+export function repeatingBurstSpawnCountForTick(evt, tick, portalSec, counts) {
+  const requested = postExitWaveCount(evt.count ?? 1, postExitRepeatWaveIndex(evt, tick, portalSec))
+  return clampZombieSpawnRequest(requested, counts)
+}
+
 export function clampZombieSpawnRequest(requested, counts, max = MAX_CONCURRENT_ZOMBIES) {
   const wanted = Math.max(0, Math.floor(requested) || 0)
   const total = Math.max(0, Math.floor(counts?.pooledActive ?? 0) || 0)
@@ -1798,7 +1805,8 @@ export default function Enemies() {
           if (tickTableSec === null) continue
           const batch = []
           // 탈출구 개방 후 회차마다 기본 마릿수의 10%씩 선형 증가 — 버티는 압박이 끝없이 자라 탈출을 강요한다.
-          const count = postExitWaveCount(evt.count ?? 1, postExitRepeatWaveIndex(evt, tick, getStageConfig(cache.id).escapePortalSec))
+          // 동시 천장(150)의 남은 칸으로 먼저 자른 뒤 좌표를 뽑는다(오버타임과 같은 순서).
+          const count = repeatingBurstSpawnCountForTick(evt, tick, getStageConfig(cache.id).escapePortalSec, totalZombieCounts())
           for (let spawnIndex = 0; spawnIndex < count; spawnIndex += 1) {
             const taken = batch.map((enemy) => enemy.pos)
             const pos = spawnPosForBurstType(evt.type, cache.bounds, taken, Math.random, cache.obstacles)
