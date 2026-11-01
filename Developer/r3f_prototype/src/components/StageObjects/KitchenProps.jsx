@@ -18,12 +18,11 @@ import {
   getStagePropOutlineUserData,
   getStagePropOutlineMaterial,
   getStagePropDepthWritingToonMaterial,
-  STAGE_PROP_OUTLINE_RENDERING,
-  STAGE_PROP_SURFACE_RENDERING,
   STAGE_PROP_SHARED_OUTLINE_RENDERING,
   STAGE_PROP_SHARED_SURFACE_RENDERING,
   STAGE_PROP_UNIT_BOX_GEOMETRY,
 } from './propRendering.js'
+import { getCachedCylinderGeo, getCachedIcosahedronGeo } from '../../lib/toon.js'
 import StudioTunedGroup from '../StudioTunedGroup.jsx'
 
 export const KITCHEN_PREP_TABLE_VARIANTS = Object.freeze(['bare', 'pans', 'cutting', 'side'])
@@ -77,9 +76,7 @@ function PropBox({ position = [0, 0, 0], rotation = [0, 0, 0], scale = [1, 1, 1]
 // 육각형 단면(radialSegments=6) 실린더 헬퍼 — 양동이·수전·캐스터·병 몸체에 공용.
 function PropCylinder({ position = [0, 0, 0], rotation = [0, 0, 0], args, material }) {
   return (
-    <mesh {...STAGE_PROP_SURFACE_RENDERING} position={position} rotation={rotation} material={material}>
-      <cylinderGeometry args={args} />
-    </mesh>
+    <mesh {...STAGE_PROP_SHARED_SURFACE_RENDERING} geometry={getCachedCylinderGeo(...args)} position={position} rotation={rotation} material={material} />
   )
 }
 
@@ -88,13 +85,9 @@ function OutlinedCylinder({ position = [0, 0, 0], rotation = [0, 0, 0], args, ma
   const s = getPropOutlineScale(1)
   return (
     <group position={position} rotation={rotation}>
-      <mesh {...STAGE_PROP_SURFACE_RENDERING} material={material}>
-        <cylinderGeometry args={args} />
-      </mesh>
+      <mesh {...STAGE_PROP_SHARED_SURFACE_RENDERING} geometry={getCachedCylinderGeo(...args)} material={material} />
       {outlineMaterial && (
-        <mesh {...STAGE_PROP_OUTLINE_RENDERING} userData={getStagePropOutlineUserData()} material={outlineMaterial} scale={[s, s, s]}>
-          <cylinderGeometry args={args} />
-        </mesh>
+        <mesh {...STAGE_PROP_SHARED_OUTLINE_RENDERING} userData={getStagePropOutlineUserData()} geometry={getCachedCylinderGeo(...args)} material={outlineMaterial} scale={[s, s, s]} />
       )}
     </group>
   )
@@ -103,9 +96,7 @@ function OutlinedCylinder({ position = [0, 0, 0], rotation = [0, 0, 0], args, ma
 // detail-0 정20면체(저분할) 헬퍼 — 냄비·볼·봉지 같은 각진 블롭 형태에 공용.
 function PropBlob({ position = [0, 0, 0], radius = 0.16, squashY = 1, material }) {
   return (
-    <mesh {...STAGE_PROP_SURFACE_RENDERING} position={position} material={material} scale={[radius, radius * squashY, radius]}>
-      <icosahedronGeometry args={[1, 0]} />
-    </mesh>
+    <mesh {...STAGE_PROP_SHARED_SURFACE_RENDERING} geometry={getCachedIcosahedronGeo(1, 0)} position={position} material={material} scale={[radius, radius * squashY, radius]} />
   )
 }
 
@@ -200,13 +191,10 @@ function CafeteriaFoodTray({ position = [0, 0, 0], trayMaterial, compartmentMate
   )
 }
 
-// 자석/메모/버튼 같은 단발성 표면 디테일 전용 박스 — 유일하게 리터럴 boxGeometry를
-// 직접 쓴다(공유 유닛박스를 쓸 만큼 반복되지 않는 1~3회성 소품이라 굳이 캐시를 태우지 않음).
+// 자석/메모/버튼 같은 단발성 표면 디테일 전용 박스 — 공유 유닛 박스를 scale로 늘려 쓴다.
 function MagnetTag({ position = [0, 0, 0], rotation = [0, 0, 0], scale = [0.05, 0.05, 0.01], material }) {
   return (
-    <mesh {...STAGE_PROP_SURFACE_RENDERING} position={position} rotation={rotation} scale={scale} material={material}>
-      <boxGeometry args={[1, 1, 1]} />
-    </mesh>
+    <mesh {...STAGE_PROP_SHARED_SURFACE_RENDERING} geometry={STAGE_PROP_UNIT_BOX_GEOMETRY} position={position} rotation={rotation} scale={scale} material={material} />
   )
 }
 
@@ -242,7 +230,7 @@ export function KitchenPrepTable({ variant = 'bare', ...props }) {
 
   return (
     <group {...props} name="kitchen-prep-table">
-      <StudioTunedGroup itemId="stage-object-kitchen-prep-table">
+      <StudioTunedGroup itemId="stage-object-kitchen-prep-table" freezeMatrices>
         {/* 상판: 콜라이더 외곽(2.16x1.02)과 정확히 일치하는 가장 넓은 부재. 2분할 이음선. */}
         <PropBox position={[0, 0.90, 0]} scale={[2.16, 0.08, 1.02]} material={stainless.top} outline={outlineMat} />
         <PropBox position={[-0.36, 0.945, 0]} scale={[0.02, 0.01, 1.0]} material={stainless.dark} />
@@ -351,7 +339,7 @@ export function KitchenCookLine({ ...props }) {
 
   return (
     <group {...props} name="kitchen-cook-line">
-      <StudioTunedGroup itemId="stage-object-kitchen-cook-line">
+      <StudioTunedGroup itemId="stage-object-kitchen-cook-line" freezeMatrices>
         {/* 하부 오븐 캐비닛(0~0.82) + 상부 카운터 캡(0.82~0.92) — 둘 다 콜라이더 x/z와 일치. */}
         <PropBox position={[0, 0.41, 0]} scale={[2.66, 0.82, 1.12]} material={stainless.panel} outline={outlineMat} />
         <PropBox position={[0, 0.87, 0]} scale={[2.66, 0.10, 1.12]} material={stainless.top} outline={outlineMat} />
@@ -418,7 +406,7 @@ export function KitchenSinkCounter({ ...props }) {
 
   return (
     <group {...props} name="kitchen-sink-counter">
-      <StudioTunedGroup itemId="stage-object-kitchen-sink-counter">
+      <StudioTunedGroup itemId="stage-object-kitchen-sink-counter" freezeMatrices>
         {/* 상판: 콜라이더 외곽(2.26x0.94)과 일치하는 최대 부재 */}
         <PropBox position={[0, 0.84, 0]} scale={[2.26, 0.08, 0.94]} material={stainless.top} outline={outlineMat} />
 
@@ -479,7 +467,7 @@ export function KitchenRefrigerator({ open = false, ...props }) {
 
   return (
     <group {...props} name="kitchen-refrigerator">
-      <StudioTunedGroup itemId="stage-object-kitchen-refrigerator">
+      <StudioTunedGroup itemId="stage-object-kitchen-refrigerator" freezeMatrices>
         {/* 본체: 콜라이더 외곽(1.20x1.92x0.92)과 정확히 일치 */}
         <PropBox position={[0, 0.96, 0]} scale={[1.20, 1.92, 0.92]} material={stainless.panel} outline={outlineMat} />
         <PropBox position={[0, 1.83, 0.42]} scale={[1.0, 0.12, 0.05]} material={stainless.dark} outline={outlineMat} />
@@ -537,7 +525,7 @@ export function KitchenTrayRack({ ...props }) {
 
   return (
     <group {...props} name="kitchen-tray-rack">
-      <StudioTunedGroup itemId="stage-object-kitchen-tray-rack">
+      <StudioTunedGroup itemId="stage-object-kitchen-tray-rack" freezeMatrices>
         <PropBox position={[0, 1.65, 0]} scale={[0.72, 0.06, 0.78]} material={stainless.frame} outline={outlineMat} />
         <PropBox position={[0, 0.09, 0]} scale={[0.72, 0.06, 0.78]} material={stainless.frame} outline={outlineMat} />
 
@@ -577,7 +565,7 @@ export function KitchenShelfCart({ ...props }) {
 
   return (
     <group {...props} name="kitchen-shelf-cart">
-      <StudioTunedGroup itemId="stage-object-kitchen-shelf-cart">
+      <StudioTunedGroup itemId="stage-object-kitchen-shelf-cart" freezeMatrices>
         {shelfYs.map((y) => (
           <PropBox key={y} position={[0, y, 0]} scale={[1.04, 0.05, 0.52]} material={stainless.frame} outline={outlineMat} />
         ))}
@@ -624,7 +612,7 @@ export function KitchenTrashBins({ variant = 'wheelie', ...props }) {
 
   return (
     <group {...props} name="kitchen-trash-bins">
-      <StudioTunedGroup itemId="stage-object-kitchen-trash-bins">
+      <StudioTunedGroup itemId="stage-object-kitchen-trash-bins" freezeMatrices>
         {v === 'wheelie' && (
           <>
             <PropBox position={[0, 0.41, 0]} scale={[0.60, 0.82, 0.60]} material={green} outline={outlineMat} />
@@ -669,7 +657,7 @@ export function KitchenCrateStack({ count = 3, ...props }) {
 
   return (
     <group {...props} name="kitchen-crate-stack">
-      <StudioTunedGroup itemId="stage-object-kitchen-crate-stack">
+      <StudioTunedGroup itemId="stage-object-kitchen-crate-stack" freezeMatrices>
         {Array.from({ length: layers }, (_, i) => i).map((i) => {
           const y = layerHeight * (i + 0.5)
           const kind = i % 3
@@ -724,7 +712,7 @@ export function KitchenClutter({ variant = 'pots', ...props }) {
 
   return (
     <group {...props} name="kitchen-clutter">
-      <StudioTunedGroup itemId="stage-object-kitchen-clutter">
+      <StudioTunedGroup itemId="stage-object-kitchen-clutter" freezeMatrices>
         {v === 'pots' && (
           <>
             <group position={[-0.3, 0.11, 0]}>

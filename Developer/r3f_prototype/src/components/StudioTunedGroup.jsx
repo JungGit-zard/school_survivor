@@ -493,7 +493,7 @@ export default function StudioTunedGroup(props) {
   return <StudioTunedRuntimeGroup {...props} snapshot={snapshot} />
 }
 
-function StudioTunedRuntimeGroup({ itemId, children, materialTuning = true, snapshot = null, transformPositionMultiplier = 1 }) {
+function StudioTunedRuntimeGroup({ itemId, children, materialTuning = true, snapshot = null, transformPositionMultiplier = 1, freezeMatrices = false }) {
   // A non-1 value is reserved for a fixed parent base scale: compensate only
   // the parent-scaled Studio position so runtime and preview stay world-equal.
   const groupRef = useRef(null)
@@ -537,6 +537,16 @@ function StudioTunedRuntimeGroup({ itemId, children, materialTuning = true, snap
     syncTextureDecals(groupRef.current, decals)
     invalidate()
   }, [itemId, materialTuning, tuning, tunings, decals, transformPositionMultiplier])
+
+  // Static props only (Stage 4 kitchen): skip per-frame matrix recompose. Runs after the
+  // apply effect on every commit, so any Studio Apply or prop change re-bakes the matrices.
+  useLayoutEffect(() => {
+    if (!freezeMatrices || !groupRef.current) return
+    groupRef.current.traverse((object) => {
+      object.matrixAutoUpdate = false
+      object.updateMatrix()
+    })
+  })
 
   // Release while the owned subtree is still attached. Passive unmount cleanup
   // runs after R3F has removed its children and cannot find the owned materials.

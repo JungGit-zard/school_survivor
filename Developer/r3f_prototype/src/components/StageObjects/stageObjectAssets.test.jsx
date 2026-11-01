@@ -223,17 +223,19 @@ describe('stage object asset catalog', () => {
     }
   })
 
+  // P4 (2026-11-01): every kitchen mesh now uses cached geometry, so all of them use the
+  // shared (dispose:null) rendering and none owns an inline JSX geometry.
   it('uses shared rendering only for kitchen meshes with shared geometry', () => {
     const source = readFileSync(new URL('./KitchenProps.jsx', import.meta.url), 'utf8')
 
     expect(source).toContain('STAGE_PROP_SHARED_SURFACE_RENDERING')
     expect(source).toContain('STAGE_PROP_SHARED_OUTLINE_RENDERING')
-    expect(source).toContain('STAGE_PROP_SURFACE_RENDERING')
-    expect(source).toContain('STAGE_PROP_OUTLINE_RENDERING')
+    expect(source).not.toContain('{...STAGE_PROP_SURFACE_RENDERING}')
+    expect(source).not.toContain('{...STAGE_PROP_OUTLINE_RENDERING}')
     expect(source.match(/userData=\{getStagePropOutlineUserData\(\)\}/g)).toHaveLength(2)
     expect(source).not.toContain('STAGE_PROP_SHARED_RESOURCE_MESH_RENDERING')
     expect(source).toMatch(/function PropBox[\s\S]*?\{\.\.\.STAGE_PROP_SHARED_SURFACE_RENDERING\}[\s\S]*?\{\.\.\.STAGE_PROP_SHARED_OUTLINE_RENDERING\}/)
-    expect(source).toMatch(/function OutlinedCylinder[\s\S]*?\{\.\.\.STAGE_PROP_SURFACE_RENDERING\}[\s\S]*?\{\.\.\.STAGE_PROP_OUTLINE_RENDERING\} userData=\{getStagePropOutlineUserData\(\)\}/)
+    expect(source).toMatch(/function OutlinedCylinder[\s\S]*?\{\.\.\.STAGE_PROP_SHARED_SURFACE_RENDERING\} geometry=\{getCachedCylinderGeo\(\.\.\.args\)\}[\s\S]*?\{\.\.\.STAGE_PROP_SHARED_OUTLINE_RENDERING\} userData=\{getStagePropOutlineUserData\(\)\} geometry=\{getCachedCylinderGeo\(\.\.\.args\)\}/)
   })
 
   it('uses the shared student body under its own fixed-color Studio root for the class president', () => {
@@ -443,9 +445,11 @@ describe('stage object asset catalog', () => {
   it('keeps Stage 4 kitchen props to low-poly block, six-sided cylinder and faceted blob primitives', () => {
     const source = readFileSync(new URL('./KitchenProps.jsx', import.meta.url), 'utf8')
 
-    expect(source).toContain('<boxGeometry')
-    expect(source).toContain('<cylinderGeometry')
-    expect(source).toContain('<icosahedronGeometry')
+    // P4: the same three primitives, now from the toon.js caches instead of inline JSX.
+    expect(source).toContain('geometry={STAGE_PROP_UNIT_BOX_GEOMETRY}')
+    expect(source).toContain('getCachedCylinderGeo(')
+    expect(source).toContain('getCachedIcosahedronGeo(1, 0)')
+    expect(source).not.toMatch(/<(box|cylinder|icosahedron)Geometry/)
     expect(source).not.toContain('sphereGeometry')
     // 886cbe7b's torus hoop rim lives in GymProps.jsx (Stage 3); the kitchen keeps no torus.
     expect(source).not.toContain('torusGeometry')
@@ -467,7 +471,7 @@ describe('stage object asset catalog', () => {
     expect(source).not.toContain('getStagePropToonMaterial(')
     expect(renderingSource).toContain('getCachedToonMat(color, emissiveIntensity, STAGE_PROP_SURFACE_SIDE, true)')
     expect(renderingSource).toContain('material.depthWrite = false')
-    expect(source).toContain('STAGE_PROP_OUTLINE_RENDERING')
+    expect(source).toContain('STAGE_PROP_SHARED_OUTLINE_RENDERING')
   })
 
   // 2026-07-25 사용자 결정: 중앙 조리대를 원화 위치로 되돌리고 콜라이더를 붙인다.
@@ -538,7 +542,7 @@ describe('stage object asset catalog', () => {
       expect(
         kitchenPropsSource,
         `KitchenProps.jsx is missing <StudioTunedGroup itemId="${itemId}"> for ${objectType}`,
-      ).toContain(`<StudioTunedGroup itemId="${itemId}">`)
+      ).toContain(`<StudioTunedGroup itemId="${itemId}" freezeMatrices>`)
     }
   })
 })

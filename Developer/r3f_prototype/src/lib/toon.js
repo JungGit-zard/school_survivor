@@ -118,6 +118,14 @@ export function getCachedCylinderGeo(...args) {
   return g
 }
 
+const _icosahedronGeoCache = new Map()
+export function getCachedIcosahedronGeo(radius = 1, detail = 0) {
+  const key = `${radius},${detail}`
+  let g = _icosahedronGeoCache.get(key)
+  if (!g) { g = new THREE.IcosahedronGeometry(radius, detail); _icosahedronGeoCache.set(key, g) }
+  return g
+}
+
 // toonMat: 동일 색상+발광 조합의 머티리얼 공유
 const _toonMatCache = new Map()
 export function getCachedToonMat(color, emissive = 0.08, side = THREE.FrontSide, depthWrite = true) {
@@ -171,6 +179,8 @@ if (import.meta.hot) {
     _chamferedBoxGeoCache.clear()
     _cylinderGeoCache.forEach((g) => g.dispose())
     _cylinderGeoCache.clear()
+    _icosahedronGeoCache.forEach((g) => g.dispose())
+    _icosahedronGeoCache.clear()
     _gradient?.dispose(); _gradient = null
   })
 }
