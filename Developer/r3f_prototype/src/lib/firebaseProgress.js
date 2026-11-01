@@ -2,6 +2,7 @@ import { getFirebaseConfig, isFirebaseAuthConfigured } from './firebaseAuth.js'
 import { normalizeBossPassiveUnlocks } from './bossPassiveItems.js'
 import { reconcileMissionProgress } from './missionProgress.js'
 import { isPlayerAppearance } from './playerAppearance.js'
+import { isPlayerOutfitId } from './playerOutfitIds.js'
 import {
   WEAPON_UNLOCK_SCHEMA_VERSION,
   mergeLegacyAccountEntitlements,
@@ -1077,6 +1078,8 @@ function createEmptyProgress() {
     records: Object.fromEntries(RECORD_KEYS.map((key) => [key, 0])),
     weaponUnlockSchemaVersion: WEAPON_UNLOCK_SCHEMA_VERSION,
     weaponUnlocks: {},
+    // Rosari wardrobe outfit ownership (outfitUnlocks.js). Same shape as weaponUnlocks; `default` is never stored.
+    outfitUnlocks: {},
     weaponPermanentUpgrades: {},
     passiveUpgrades: {},
     bossPassiveUnlocks: {},
@@ -1097,6 +1100,7 @@ function normalizeProgress(progress) {
   }
   out.weaponUnlockSchemaVersion = normalizeWeaponUnlockSchemaVersion(progress.weaponUnlockSchemaVersion)
   out.weaponUnlocks = normalizeFlagMap(progress.weaponUnlocks)
+  out.outfitUnlocks = normalizeOutfitUnlockMap(progress.outfitUnlocks)
   out.weaponPermanentUpgrades = normalizeNumberMap(progress.weaponPermanentUpgrades)
   out.passiveUpgrades = normalizeNumberMap(progress.passiveUpgrades)
   out.bossPassiveUnlocks = normalizeBossPassiveUnlocks(progress.bossPassiveUnlocks)
@@ -1252,6 +1256,16 @@ function normalizeNumberMap(value, requiredKeys = null) {
   return out
 }
 
+// Only ids the RTDB rule accepts (progress/outfitUnlocks/$outfitId) survive; `default` is always owned
+// and never stored, and an unknown id must not ride along into the next whole-progress save.
+function normalizeOutfitUnlockMap(value) {
+  const out = {}
+  for (const key of Object.keys(normalizeFlagMap(value))) {
+    if (isPlayerOutfitId(key) && key !== 'default') out[key] = 1
+  }
+  return out
+}
+
 function normalizeFlagMap(value) {
   const out = {}
   if (!value || typeof value !== 'object' || Array.isArray(value)) return out
@@ -1294,7 +1308,7 @@ function normalizeTitleSettings(value) {
     ...(isPlayerAppearance(value.playerAppearance)
       ? { playerAppearance: value.playerAppearance } : {}),
     // Rosari wardrobe outfit: separate axis from playerAppearance. Unknown values are dropped (=> 'default').
-    ...(value.playerOutfit === 'default' || value.playerOutfit === 'winter'
+    ...(isPlayerOutfitId(value.playerOutfit)
       ? { playerOutfit: value.playerOutfit } : {}),
     language: SUPPORTED_LANGUAGES.has(value.language) ? value.language : DEFAULT_TITLE_SETTINGS.language,
     vibration: typeof value.vibration === 'boolean' ? value.vibration : DEFAULT_TITLE_SETTINGS.vibration,
@@ -1365,6 +1379,7 @@ function cloneProgress(progress) {
     records: { ...progress.records },
     weaponUnlockSchemaVersion: progress.weaponUnlockSchemaVersion,
     weaponUnlocks: { ...progress.weaponUnlocks },
+    outfitUnlocks: { ...progress.outfitUnlocks },
     weaponPermanentUpgrades: { ...progress.weaponPermanentUpgrades },
     passiveUpgrades: { ...progress.passiveUpgrades },
     bossPassiveUnlocks: { ...progress.bossPassiveUnlocks },

@@ -9,8 +9,11 @@ import {
   moveRosariRoomPosition,
   resolveRosariMoveVector,
 } from '../lib/rosariRoom.js'
-import { DEFAULT_ROSARI_OUTFIT_ID, ROSARI_OUTFITS, applyRosariOutfit, resolveRosariOutfit } from '../lib/rosariOutfits.js'
+import { DEFAULT_ROSARI_OUTFIT_ID, applyRosariOutfit, resolveRosariOutfit } from '../lib/rosariOutfits.js'
 import { loadPlayerOutfit, savePlayerOutfit } from '../lib/titleSettings.js'
+import { getOwnedOutfitIds } from '../lib/outfitUnlocks.js'
+import { useT } from '../lib/i18n.js'
+import RosariWardrobeBody, { OutfitFeatureTable, OutfitTableButton } from './RosariWardrobePanel.jsx'
 import { joystickDir } from '../lib/refs.js'
 import VirtualJoystick from './VirtualJoystick.jsx'
 
@@ -24,10 +27,18 @@ const EMPTY_KEYS = Object.freeze({ up: false, down: false, left: false, right: f
 const DIRECTION_LABELS = Object.freeze({ up: '위', down: '아래', left: '왼쪽', right: '오른쪽' })
 
 export default function RosariRoom({ onBack }) {
+  const t = useT()
   const [wardrobeOpen, setWardrobeOpen] = useState(false)
+  // Outfit feature table (의상 능력표), opened from inside the wardrobe.
+  const [featureTableOpen, setFeatureTableOpen] = useState(false)
+  const featureTableButtonRef = useRef(null)
   // Wardrobe choice is titleSettings.playerOutfit: account cloud save when signed in and hydrated,
   // this tab's guest session memory otherwise. Separate axis from playerAppearance.
-  const [outfitId, setOutfitId] = useState(() => loadPlayerOutfit())
+  // A saved outfit that is not owned (yet) shows as the school uniform, same as the run start.
+  const [outfitId, setOutfitId] = useState(() => {
+    const saved = loadPlayerOutfit()
+    return getOwnedOutfitIds().has(saved) ? saved : DEFAULT_ROSARI_OUTFIT_ID
+  })
   const [outfitSaveFailed, setOutfitSaveFailed] = useState(false)
   const outfitSaveSeq = useRef(0)
   const currentOutfit = resolveRosariOutfit(outfitId)
@@ -59,9 +70,18 @@ export default function RosariRoom({ onBack }) {
   const layout = getRosariRoomLayout(roomSize)
 
   useEffect(() => {
-    if (wasWardrobeOpen.current && !wardrobeOpen) wardrobeButtonRef.current?.focus()
+    if (wasWardrobeOpen.current && !wardrobeOpen) {
+      setFeatureTableOpen(false)
+      wardrobeButtonRef.current?.focus()
+    }
     wasWardrobeOpen.current = wardrobeOpen
   }, [wardrobeOpen])
+
+  const closeFeatureTable = useCallback(() => {
+    setFeatureTableOpen(false)
+    // Return focus to the device that opened the table.
+    setTimeout(() => featureTableButtonRef.current?.focus(), 0)
+  }, [])
 
   useEffect(() => {
     const element = rootRef.current
@@ -101,7 +121,8 @@ export default function RosariRoom({ onBack }) {
     const down = (event) => {
       if (event.key === 'Escape') {
         if (event.repeat) return
-        if (wardrobeOpen) setWardrobeOpen(false)
+        if (featureTableOpen) closeFeatureTable()
+        else if (wardrobeOpen) setWardrobeOpen(false)
         else onBack?.()
         return
       }
@@ -123,7 +144,7 @@ export default function RosariRoom({ onBack }) {
       window.removeEventListener('pointercancel', clearAllKeys)
       clearAllKeys()
     }
-  }, [onBack, wardrobeOpen])
+  }, [onBack, wardrobeOpen, featureTableOpen, closeFeatureTable])
 
   const clearMobileKeys = useCallback(() => {
     for (const [id, held] of heldPointers.current) {
@@ -212,28 +233,20 @@ export default function RosariRoom({ onBack }) {
         <VirtualJoystick enabled={!wardrobeOpen} phase="playing" playAreaRef={stageRef} />
         <button type="button" aria-pressed={overview} style={styles.cameraButton} onClick={() => setOverview((value) => !value)}>{overview ? '캐릭터 따라보기' : '방 전체 보기'}</button>
         {wardrobeOpen && (
-          <section role="dialog" aria-modal="false" aria-label="로자리 옷장" style={styles.wardrobePanel} onKeyDown={(event) => { if (event.key !== 'Escape') event.stopPropagation() }}>
+          <section role="dialog" aria-modal="false" aria-label={t('outfit.wardrobe.dialogAria')} style={styles.wardrobePanel} onKeyDown={(event) => { if (event.key !== 'Escape') event.stopPropagation() }}>
             <div style={styles.wardrobeHeader}>
-              <h2 style={styles.wardrobeTitle}>옷장</h2>
-              <button autoFocus type="button" aria-label="옷장 닫기" style={styles.wardrobeCloseButton} onClick={() => setWardrobeOpen(false)}>×</button>
+              <h2 style={styles.wardrobeTitle}>{t('outfit.wardrobe.title')}</h2>
+              <div style={styles.wardrobeHeaderActions}>
+                <OutfitTableButton buttonRef={featureTableButtonRef} onOpen={() => setFeatureTableOpen(true)} />
+                <button autoFocus type="button" aria-label={t('outfit.wardrobe.closeAria')} style={styles.wardrobeCloseButton} onClick={() => setWardrobeOpen(false)}>×</button>
+              </div>
             </div>
             <div data-wardrobe-scroll style={styles.wardrobeBody}>
-              <div style={styles.currentOutfit}>현재 착용: {currentOutfit.label}</div>
-              <div role="group" aria-label="의상 선택" style={styles.outfitList}>
-                {ROSARI_OUTFITS.map((outfit) => (
-                  <button
-                    key={outfit.id}
-                    type="button"
-                    aria-pressed={outfit.id === currentOutfit.id}
-                    style={outfit.id === currentOutfit.id ? styles.outfitButtonActive : styles.outfitButton}
-                    onClick={() => selectOutfit(outfit.id)}
-                  >
-                    {outfit.label}
-                  </button>
-                ))}
-              </div>
-              <p style={styles.emptyOutfit}>{currentOutfit.note}</p>
-              {outfitSaveFailed && <p role="alert" style={styles.emptyOutfit}>옷을 저장하지 못했어요. 잠시 후 다시 골라 주세요.</p>}
+              <RosariWardrobeBody
+                currentOutfitId={currentOutfit.id}
+                onSelect={selectOutfit}
+                saveFailed={outfitSaveFailed}
+              />
             </div>
           </section>
         )}
@@ -259,6 +272,7 @@ export default function RosariRoom({ onBack }) {
           </button>
         </div>
       </div>
+      {wardrobeOpen && featureTableOpen && <OutfitFeatureTable onClose={closeFeatureTable} />}
     </main>
   )
 }
@@ -439,7 +453,7 @@ export function mountRosariModel(parent, source, limbs, gl, outfitId = DEFAULT_R
   }
   applyPixelOutlines(cloned, () => gl.getSize(new THREE.Vector2()))
   collectLimbRefs(cloned, limbs)
-  const bounds = new THREE.Box3().setFromObject(cloned)
+  const bounds = measureRosariBodyBounds(cloned)
   const size = bounds.getSize(new THREE.Vector3())
   const center = bounds.getCenter(new THREE.Vector3())
   const characterScale = size.y > 0 ? 1.32 / size.y : 0.86
@@ -452,6 +466,22 @@ export function mountRosariModel(parent, source, limbs, gl, outfitId = DEFAULT_R
     // Only this setup's materials/hulls; cached GLTF geometry/maps stay loader-owned.
     disposeRosariModel(cloned)
   }
+}
+
+// The approved room scale is fitted to the character's body. Outfit details (a hood or a
+// mortarboard rises above the bob) and their outline hulls are left out, so changing clothes
+// never resizes the character. Same per-mesh geometry boxes Box3.setFromObject would use.
+function measureRosariBodyBounds(root) {
+  const bounds = new THREE.Box3()
+  const box = new THREE.Box3()
+  root.updateWorldMatrix(true, true)
+  root.traverse((node) => {
+    if (!node.isMesh || !node.geometry) return
+    if (node.userData?.ownedGeometry || node.parent?.userData?.ownedGeometry) return
+    if (!node.geometry.boundingBox) node.geometry.computeBoundingBox()
+    bounds.union(box.copy(node.geometry.boundingBox).applyMatrix4(node.matrixWorld))
+  })
+  return bounds
 }
 
 // Only call on the room clone: all its surface materials were replaced above.
@@ -919,12 +949,9 @@ const styles = {
   wardrobeButtonDisabled: { width: '100%', minHeight: 44, border: '3px solid #b991ab', borderRadius: 14, background: '#eadfe7', color: '#8b7286', fontWeight: 900, cursor: 'not-allowed', touchAction: 'manipulation', userSelect: 'none' },
   wardrobePanel: { ...panel, position: 'absolute', zIndex: 4, top: 4, right: 4, width: 'min(292px, calc(100% - 8px))', maxHeight: 'calc(100% - 8px)', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', overflow: 'hidden', padding: 6, touchAction: 'pan-y' },
   wardrobeBody: { minHeight: 0, overflowY: 'auto', touchAction: 'pan-y', overscrollBehavior: 'contain', overflowWrap: 'anywhere' },
-  wardrobeHeader: { display: 'flex', flexShrink: 0, alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 6 },
-  wardrobeTitle: { margin: 0, fontSize: 24, lineHeight: 1, fontWeight: 1000 },
+  wardrobeHeader: { display: 'flex', flexWrap: 'wrap', flexShrink: 0, alignItems: 'center', justifyContent: 'space-between', gap: 6, marginBottom: 6 },
+  wardrobeTitle: { flex: '1 0 auto', margin: 0, fontSize: 24, lineHeight: 1, fontWeight: 1000 },
+  // Title and the two buttons share a row; a longer translation drops the buttons to a second row, right-aligned.
+  wardrobeHeaderActions: { display: 'flex', alignItems: 'center', gap: 6, marginLeft: 'auto' },
   wardrobeCloseButton: { minWidth: 44, minHeight: 44, flexShrink: 0, border: '3px solid #7c416e', borderRadius: 999, background: '#fff3cd', color: '#4e2449', fontSize: 24, fontWeight: 1000, cursor: 'pointer', touchAction: 'manipulation', userSelect: 'none' },
-  currentOutfit: { padding: 10, border: '2px solid #8a4a73', borderRadius: 12, background: '#fff3fa', fontWeight: 1000 },
-  outfitList: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(96px, 1fr))', gap: 6, marginTop: 8 },
-  outfitButton: { minHeight: 44, padding: '6px 8px', border: '2px solid #b991ab', borderRadius: 12, background: '#fff7fb', color: '#5f2d58', fontWeight: 900, cursor: 'pointer', touchAction: 'manipulation', userSelect: 'none' },
-  outfitButtonActive: { minHeight: 44, padding: '6px 8px', border: '3px solid #7c416e', borderRadius: 12, background: '#ffacd0', color: '#4e2449', fontWeight: 1000, cursor: 'pointer', touchAction: 'manipulation', userSelect: 'none' },
-  emptyOutfit: { margin: '10px 0 0', fontSize: 13, lineHeight: 1.45, fontWeight: 800 },
 }

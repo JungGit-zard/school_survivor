@@ -3,6 +3,7 @@ import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import { playerPos } from '../lib/refs.js'
 import { useGameStore } from '../store/useGameStore.js'
+import { getLunchHealAmount } from '../lib/outfitCatalog.js'
 import { outlineMat, toonMat, inflateScale } from '../lib/toon.js'
 import StudioTunedGroup from './StudioTunedGroup.jsx'
 
@@ -149,7 +150,8 @@ function LunchItem({ item, onCollect }) {
     const dx = playerPos.x - item.pos[0]
     const dz = playerPos.z - item.pos[2]
     if (Math.hypot(dx, dz) <= COLLECT_RADIUS) {
-      healPlayer(item.heal)
+      // 급식 당번복: 우유 8→10, 급식판 14→18 (RZT 드롭 포함). 흡혈·하나코·랜턴 회복은 해당 없음.
+      healPlayer(getLunchHealAmount(item.heal, useGameStore.getState().runOutfitId))
       const removed = onCollect(item.id)
       if (removed) {
         collectedRef.current = true

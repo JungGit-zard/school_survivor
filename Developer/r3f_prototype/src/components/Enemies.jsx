@@ -14,6 +14,7 @@ import XpTextbook from './XpTextbook.jsx'
 import DancingDogeEvent from './DancingDogeEvent.jsx'
 import TreasureChest from './TreasureChest.jsx'
 import { emitRztLunchFoodDrop } from './LunchItems.jsx'
+import { ENEMY_PROJECTILE_DAMAGE_SOURCE } from '../lib/outfitCatalog.js'
 import { PLAYER_MESH_WORLD_HEIGHT } from '../lib/characterVisualScale.js'
 import { getE04IntroSec } from '../lib/stage2ProjectileRules.js'
 import { getStageBounds, getStageConfig } from '../lib/stageConfig.js'
@@ -1431,7 +1432,8 @@ export default function Enemies() {
   const gamePhase = useGameStore((s) => s.phase)
   projectileHitRef.current = (_index, _generation, damage) => {
     const store = useGameStore.getState()
-    store.damagePlayer(damage)
+    // S1~5의 적 투사체(E04 탄, B04 1페이즈 탄)는 전부 여기로 들어온다. 비옷 배율은 이 태그 하나로 판정한다.
+    store.damagePlayer(damage, { source: ENEMY_PROJECTILE_DAMAGE_SOURCE })
     recordPlayerDamage(dominanceSwarmRef.current, damage, getRuntimeElapsedMs(store.elapsedMs))
   }
 

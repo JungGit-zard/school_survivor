@@ -52,3 +52,17 @@ export function tumblerSingleTargetUptime(weapon) {
     hitsPerSecond: hps / count,
   })
 }
+
+// 플레이어에게 보이는 내구력 신호(2026-11-01). HUD 게이지 없이 궤도 텀블러 몸통 색만 바꾼다.
+// 남은 내구력이 이 비율 아래로 내려가면 빨갛게 물들기 시작한다.
+export const TUMBLER_WEAR_TINT_START = 0.3
+
+// 0 = 원래 색, 1 = 완전히 빨강. 남은 비율 30% 이상이면 0, 0%에 가까울수록 1로 선형 증가.
+// 내구력이 비정상(내구력 없음)이면 0. 순수 함수 — 프레임마다 불러도 할당이 없다.
+export function tumblerWearTint(used, durability) {
+  if (!Number.isFinite(durability) || durability <= 0) return 0
+  const spent = Number.isFinite(used) && used > 0 ? used : 0
+  const remaining = Math.max(0, durability - spent) / durability
+  if (remaining >= TUMBLER_WEAR_TINT_START) return 0
+  return 1 - remaining / TUMBLER_WEAR_TINT_START
+}

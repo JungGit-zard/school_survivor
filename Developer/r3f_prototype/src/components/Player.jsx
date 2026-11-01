@@ -236,12 +236,11 @@ export default function Player() {
   const [comparisonModel, setComparisonModel] = useState(null)
   // 게스트는 이번 접속 메모리의 선택을 쓴다. 로그인했지만 아직 계정 진행도가 오기 전이면 기본값.
   const savedAppearance = loadSavedPlayerAppearance()
-  // 동복 등 의상 선택(titleSettings.playerOutfit). 없으면 'default'.
+  // 이번 판에 입은 옷(store.runOutfitId). resetGame이 "저장된 옷이 보유 목록에 있으면 그 옷, 아니면
+  // default"로 한 번 정한다 — 능력과 외형이 같은 값을 써야 "보이는 옷 ≠ 능력"이 생기지 않는다.
   // 세 외형 전부가 의상을 입는다 — 팔레트 정본은 lib/rosariOutfits.js 하나이고,
   // v9는 playerV9Outfits.js, 단순(PlayerMesh)는 playerMeshOutfits.js가 거기서 리맵한다.
-  const savedOutfit = resolvePlayerOutfitId(isFirebaseProgressHydrated()
-    ? loadTitleSettings().playerOutfit
-    : (useAuthStore.getState().user?.uid ? undefined : loadGuestSessionSettings().playerOutfit))
+  const savedOutfit = resolvePlayerOutfitId(useGameStore((s) => s.runOutfitId))
   const invTimer  = useRef(0)
   const lastVisibleHitFlashToken = useRef(0)
   const hitFlashVisibleFrames = useRef(0)

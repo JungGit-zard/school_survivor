@@ -2,6 +2,7 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { PLAYER_APPEARANCE_VALUES } from './playerAppearance.js'
+import { PLAYER_OUTFIT_IDS } from './playerOutfitIds.js'
 import { ZOMBIE_ENCYCLOPEDIA_TYPES } from './zombieEncyclopedia.js'
 
 const rules = JSON.parse(readFileSync(new URL('../../database.rules.json', import.meta.url), 'utf8'))
@@ -28,12 +29,15 @@ describe('Firebase encounter save contract', () => {
         .toBe(PLAYER_APPEARANCE_VALUES.includes(value))
     }
   })
-  it('allows only the two wardrobe outfit values for playerOutfit', () => {
+  it('allows exactly the canonical wardrobe outfit ids for playerOutfit', () => {
     const rule = rules.rules.users.$uid.progress.titleSettings.playerOutfit['.validate']
+    const ruleValues = rule.split("newData.val() === '").slice(1).map((part) => part.slice(0, part.indexOf("'")))
+    expect(ruleValues.sort()).toEqual([...PLAYER_OUTFIT_IDS].sort())
+    expect(PLAYER_OUTFIT_IDS).toHaveLength(6)
     const validate = new Function('newData', `return (${rule})`)
-    for (const value of ['default', 'winter', 'summer', 'v9', '', 1, true, null]) {
-      expect(validate({ val: () => value, isString: () => typeof value === 'string' }))
-        .toBe(value === 'default' || value === 'winter')
+    for (const value of [...PLAYER_OUTFIT_IDS, 'summer', 'v9', '', 1, true, null]) {
+      expect(validate({ val: () => value, isString: () => typeof value === 'string' }), String(value))
+        .toBe(PLAYER_OUTFIT_IDS.includes(value))
     }
   })
   // 2026-10-26: a full-file `firebase deploy --only database` from a stale tree

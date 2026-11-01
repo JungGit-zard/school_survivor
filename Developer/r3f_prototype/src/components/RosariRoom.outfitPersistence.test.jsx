@@ -14,6 +14,9 @@ vi.mock('../lib/titleSettings.js', () => ({
   loadPlayerOutfit: () => outfit.load(),
   savePlayerOutfit: (id) => outfit.save(id),
 }))
+// Ownership is outfitUnlocks.js's job (RosariWardrobePanel.test.jsx covers locked outfits);
+// here the account owns 동복 so the persistence path can be exercised.
+vi.mock('../lib/outfitUnlocks.js', () => ({ getOwnedOutfitIds: () => new Set(['default', 'winter']) }))
 import RosariRoom from './RosariRoom.jsx'
 
 describe('Rosari wardrobe persists titleSettings.playerOutfit', () => {

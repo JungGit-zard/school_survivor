@@ -42,6 +42,7 @@ import {
   updateFirebasePlayerProgress,
 } from './firebaseProgress.js'
 import { PLAYER_APPEARANCE_VALUES } from './playerAppearance.js'
+import { PLAYER_OUTFIT_IDS } from './playerOutfitIds.js'
 import { RECORD_KEYS } from './playerRecords.js'
 import { setUnlocked } from './weaponUnlocks.js'
 import { purchase as purchasePassive } from './passiveUpgrades.js'
@@ -102,7 +103,7 @@ describe('firebase-only player progress runtime', () => {
     expect(buildCloudProgressSnapshot().progress.titleSettings.playerAppearance).toBe(playerAppearance)
   })
 
-  it.each(['default', 'winter'])('preserves %s wardrobe outfit through cloud snapshot normalization', (playerOutfit) => {
+  it.each([...PLAYER_OUTFIT_IDS])('preserves %s wardrobe outfit through cloud snapshot normalization', (playerOutfit) => {
     applyCloudProgressSnapshot(remoteSnapshot({ progress: { titleSettings: { playerOutfit } } }), USER)
     expect(buildCloudProgressSnapshot().progress.titleSettings.playerOutfit).toBe(playerOutfit)
   })

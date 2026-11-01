@@ -1,10 +1,12 @@
 // GA4 run lifecycle at the store seam: run_start once per new run, run_end exactly once per run,
 // mirroring the once-per-run ranking write. lib/analytics.js is mocked; no PII in params.
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-const mocks = vi.hoisted(() => ({ track: vi.fn(), submit: vi.fn(), identity: vi.fn() }))
+const mocks = vi.hoisted(() => ({ track: vi.fn(), submit: vi.fn(), identity: vi.fn(), runOutfit: vi.fn(() => 'default') }))
 vi.mock('../lib/analytics.js', () => ({ trackEvent: mocks.track }))
 vi.mock('../lib/firebaseRanking.js', async (original) => ({ ...(await original()), submitRun: mocks.submit }))
 vi.mock('../lib/guestRankingIdentity.js', () => ({ getRankingUser: mocks.identity }))
+// The run outfit is fixed once at run start from outfitUnlocks.resolveRunOutfitId (levelmini seam).
+vi.mock('../lib/outfitUnlocks.js', async (original) => ({ ...(await original()), resolveRunOutfitId: () => mocks.runOutfit() }))
 import { useGameStore } from './useGameStore.js'
 import { useAuthStore } from './useAuthStore.js'
 import { _resetFirebaseProgressForTests } from '../lib/firebaseProgress.js'
@@ -18,12 +20,13 @@ beforeEach(() => {
   mocks.track.mockReset()
   mocks.submit.mockReset().mockResolvedValue({ written: ['allTime'], skipped: [], failed: [] })
   mocks.identity.mockReset().mockResolvedValue({ uid: 'guest', isAnonymous: true })
+  mocks.runOutfit.mockReset().mockReturnValue('default')
 })
 
 describe('GA4 run events', () => {
   it('pause quit: one run_start and one run_end(quit), however many end paths fire', async () => {
     useGameStore.getState().resetGame('stage1')
-    expect(events('run_start')).toEqual([{ stage_id: 'stage1', mode: 'guest' }])
+    expect(events('run_start')).toEqual([{ stage_id: 'stage1', mode: 'guest', outfit_id: 'default' }])
     useGameStore.getState().pauseGame('manual')
     useGameStore.getState().quitPausedRun()
     useGameStore.getState().quitPausedRun()
@@ -32,7 +35,7 @@ describe('GA4 run events', () => {
     const ends = events('run_end')
     expect(ends).toHaveLength(1)
     expect(ends[0]).toMatchObject({ stage_id: 'stage1', result: 'quit', level: 1 })
-    expect(Object.keys(ends[0]).sort()).toEqual(['duration_sec', 'level', 'result', 'score', 'stage_id'])
+    expect(Object.keys(ends[0]).sort()).toEqual(['duration_sec', 'level', 'outfit_id', 'result', 'score', 'stage_id'])
     await vi.waitFor(() => expect(mocks.submit).toHaveBeenCalledTimes(1))
   })
 
@@ -126,6 +129,30 @@ describe('GA4 run events', () => {
   it('signed-in run reports mode google without any identity param', () => {
     useAuthStore.setState({ user: { uid: 'u1', email: 'a@b.c', displayName: 'X' } })
     useGameStore.getState().resetGame('stage1')
-    expect(events('run_start')).toEqual([{ stage_id: 'stage1', mode: 'google' }])
+    expect(events('run_start')).toEqual([{ stage_id: 'stage1', mode: 'google', outfit_id: 'default' }])
+  })
+
+  // Rosari outfit system (S5): run_start/run_end carry outfit_id and the ranking run carries outfitId,
+  // both read from state.runOutfitId (the outfit whose abilities the run uses, fixed at run start).
+  it('reports the run outfit on run_end and in the ranking submission; unknown ids fall back safely', async () => {
+    mocks.runOutfit.mockReturnValue('gym')
+    useGameStore.getState().resetGame('stage1')
+    expect(events('run_start')).toEqual([expect.objectContaining({ outfit_id: 'gym' })])
+    useGameStore.getState().killPlayer('test')
+    useGameStore.getState().finishRankingRun('end')
+    expect(events('run_end')).toEqual([expect.objectContaining({ result: 'dead', outfit_id: 'gym' })])
+    // beforeEach's cleanup of the previous test's run can also land here asynchronously; pick this run's call.
+    const submittedRun = () => mocks.submit.mock.calls.map(([, run]) => run).filter((run) => run?.stageId === 'stage1')
+    await vi.waitFor(() => expect(submittedRun().some((run) => run.outfitId === 'gym')).toBe(true))
+    const before = mocks.submit.mock.calls.length
+
+    // Defensive: a non-canonical run outfit never reaches GA4 or the ranking payload.
+    useGameStore.getState().resetGame('stage1')
+    useGameStore.setState({ runOutfitId: 'summer', rankingRun: { ...useGameStore.getState().rankingRun, stages: [] } })
+    useGameStore.getState().killPlayer('test')
+    useGameStore.getState().finishRankingRun('end')
+    expect(events('run_end')[1]).toMatchObject({ outfit_id: 'default' })
+    await vi.waitFor(() => expect(mocks.submit.mock.calls.length).toBe(before + 1))
+    expect(mocks.submit.mock.calls.at(-1)[1]).not.toHaveProperty('outfitId')
   })
 })

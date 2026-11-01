@@ -20,6 +20,7 @@ import {
   getFirebaseProgressRuntimeSnapshot,
   setCloudProgressUser,
 } from './firebaseProgress.js'
+import { PLAYER_OUTFIT_IDS } from './playerOutfitIds.js'
 
 beforeEach(() => {
   _resetFirebaseProgressForTests()
@@ -30,9 +31,10 @@ beforeEach(() => {
 afterEach(() => vi.restoreAllMocks())
 
 describe('titleSettings.playerOutfit normalization', () => {
-  it('keeps default/winter and drops unknown values from loadTitleSettings', () => {
+  it('keeps every canonical outfit id and drops unknown values from loadTitleSettings', () => {
     _seedHydratedFirebaseProgressForTests()
-    for (const playerOutfit of ['default', 'winter']) {
+    expect(PLAYER_OUTFIT_IDS).toEqual(['default', 'winter', 'raincoat', 'gym', 'apron', 'grad'])
+    for (const playerOutfit of PLAYER_OUTFIT_IDS) {
       saveTitleSettings({ playerOutfit })
       expect(loadTitleSettings().playerOutfit).toBe(playerOutfit)
     }
@@ -75,6 +77,20 @@ describe('player outfit round trip', () => {
     cloud.save.mockRejectedValueOnce(new Error('PERMISSION_DENIED'))
     await expect(savePlayerOutfit('default')).resolves.toBe(false)
     expect(loadPlayerOutfit()).toBe('winter')
+  })
+
+  // threemini 2026-11-01: the four new outfits used to fail to save because this allow-list had only
+  // default/winter. Every canonical id must round-trip through the account save and guest memory.
+  it.each(['raincoat', 'gym', 'apron', 'grad'])('account and guest: saving the new outfit %s succeeds', async (id) => {
+    _seedHydratedFirebaseProgressForTests()
+    await expect(savePlayerOutfit(id)).resolves.toBe(true)
+    expect(cloud.save).toHaveBeenCalledTimes(1)
+    expect(getFirebaseProgressRuntimeSnapshot().progress.titleSettings.playerOutfit).toBe(id)
+    expect(loadPlayerOutfit()).toBe(id)
+    _resetFirebaseProgressForTests()
+    await expect(savePlayerOutfit(id)).resolves.toBe(true)
+    expect(loadGuestSessionSettings().playerOutfit).toBe(id)
+    expect(loadPlayerOutfit()).toBe(id)
   })
 
   it('rejects unknown ids without touching storage', async () => {

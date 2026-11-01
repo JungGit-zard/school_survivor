@@ -103,7 +103,7 @@ describe('PlayerMesh garment colors come from the shared wardrobe palette', () =
     expect(resolvePlayerMeshGarmentColor('legwear', 0xebebf2, 'winter')).toBe(hex(winter.legwear))
   })
 
-  it.each(['default', undefined, 'summer'])('keeps every original block color for outfit %s', (outfit) => {
+  it.each(['default', undefined, 'summer', 'raincoat', 'gym', 'apron', 'grad'])('keeps every original block color for outfit %s', (outfit) => {
     for (const [slot, base] of [['blazer', 0xd42020], ['shirt', 0xf4f4f4], ['skirt', 0x2d8cff], ['legwear', 0xebebf2]]) {
       expect(resolvePlayerMeshGarmentColor(slot, base, outfit)).toBe(base)
     }

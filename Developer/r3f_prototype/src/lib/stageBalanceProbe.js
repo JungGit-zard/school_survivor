@@ -28,6 +28,7 @@ import { clampPlayerPosition } from './playerMovementBounds.js'
 import { getE04IntroSec } from './stage2ProjectileRules.js'
 import { COLLECT_RADIUS_SQ } from './pickup.js'
 import { XP_TO_NEXT_START, nextXpThreshold } from './xpCurve.js'
+import { applyXpMultCarry, getOutfitStats } from './outfitCatalog.js'
 import { WEAPON_CATALOG } from './weaponCatalog.js'
 import { getStageObjectSightObstacles } from '../components/StageObjects/stageObjectColliders.js'
 import {
@@ -170,7 +171,15 @@ export function runStageBalanceRun({
   // true면 접촉 피해만 무시해 maxSec까지 완주시키고, XP 획득 페이스 자체를 측정한다.
   // 생존 시간 측정에는 절대 쓰지 말 것.
   ignoreContactDamage = false,
+  // 의상 A/B (T-14, balanceqa P-1). outfitId로 outfitCatalog 수치를 쓰고, outfitStatsOverride로
+  // 개별 배율(speedMult·maxHpDelta·damageTakenMult·projectileDamageMult·xpMult)을 덮는다.
+  // 미지정이면 default(전부 중립)라 기존 결과와 1비트도 다르지 않다.
+  // 주의: 이 프로브에는 적 투사체·급식·마틸다가 없다 — projectileDamageMult·lunchHealMult는 여기서 효과가 없다.
+  outfitId = null,
+  outfitStatsOverride = null,
 } = {}) {
+  const outfit = { ...getOutfitStats(outfitId), ...(outfitStatsOverride ?? {}) }
+  const playerSpeed = outfit.speedMult === 1 ? PLAYER_SPEED : PLAYER_SPEED * outfit.speedMult
   // 스테이지 정적 데이터는 시드 RNG를 걸기 **전에** 만든다.
   // getStageObjectSightObstacles는 모듈 레벨 Map으로 메모이즈되므로, 시드 RNG 안에서 처음 호출하면
   // 그 프로세스의 첫 판만 캐시 생성 비용만큼 난수를 더 소비하고 2번째 판부터는 소비하지 않는다.
@@ -208,7 +217,8 @@ export function runStageBalanceRun({
 
   resetRuntimeRefs()
 
-  let hp = PLAYER_MAX_HP
+  let hp = Math.max(1, PLAYER_MAX_HP + outfit.maxHpDelta)
+  let xpCarry = 0
   let invulnerableMs = 0
   let level = 1
   let xp = 0
@@ -268,8 +278,8 @@ export function runStageBalanceRun({
       // 2) 이동 — 카이팅
       if (resolveFleeDirection(flee, 3.5)) {
         const clamped = clampPlayerPosition(stageId, {
-          x: playerPos.x + flee.x * PLAYER_SPEED * FRAME_DELTA,
-          z: playerPos.z + flee.z * PLAYER_SPEED * FRAME_DELTA,
+          x: playerPos.x + flee.x * playerSpeed * FRAME_DELTA,
+          z: playerPos.z + flee.z * playerSpeed * FRAME_DELTA,
         })
         playerPos.set(clamped.x, 0, clamped.z)
       }
@@ -283,7 +293,7 @@ export function runStageBalanceRun({
       while (enemySimulationRuntime.events.drainInto(event)) {
         if (event.type === ENEMY_EVENT_CONTACT) {
           if (invulnerableMs <= CONTACT_COOLDOWN_GRACE) {
-            if (!ignoreContactDamage) hp -= event.value
+            if (!ignoreContactDamage) hp -= outfit.damageTakenMult === 1 ? event.value : event.value * outfit.damageTakenMult
             invulnerableMs = INVULNERABLE_MS
           }
         }
@@ -304,7 +314,9 @@ export function runStageBalanceRun({
         const dx = playerPos.x - orbs[index].x
         const dz = playerPos.z - orbs[index].z
         if (dx * dx + dz * dz >= collectRadiusSq) continue
-        xp += orbs[index].value
+        const outfitXp = applyXpMultCarry(orbs[index].value, xpCarry, outfit.xpMult)
+        xpCarry = outfitXp.carry
+        xp += outfitXp.gained
         xpCollected += 1
         xpTimeline.push({ sec: Math.round(sec * 100) / 100, type: orbs[index].type })
         orbs.splice(index, 1)

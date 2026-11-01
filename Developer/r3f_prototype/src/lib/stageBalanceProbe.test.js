@@ -76,3 +76,18 @@ describe('초반 XP 스노볼 회귀 가드', () => {
     expect(Math.max(stage1, stage2) / Math.min(stage1, stage2)).toBeLessThanOrEqual(2)
   }, 10 * 60 * 1000)
 })
+
+// T-14 (balanceqa P-1) 의상 인자. 측정 자체는 balanceqa가 S1~4 × 6벌 × 시드 20개로 돌린다.
+// default(전부 중립)는 코드상 기존 산술과 같은 경로를 탄다(배율 1이면 곱하지 않는다). 같은 시드 판끼리의
+// 비트 단위 비교는 이 프로브가 같은 프로세스 안에서 판마다 결과가 조금씩 흔들려(의상과 무관한 기존 동작) 하지 않는다.
+describe('stageBalanceProbe outfit args', () => {
+  it('outfit stats change the run (gym: hp 88 + speed 3.18, grad: damage +8%)', () => {
+    const plain = runStageBalanceRun({ stageId: 'stage1', seed: 7, maxSec: 90 })
+    const fragile = runStageBalanceRun({ stageId: 'stage1', seed: 7, maxSec: 90, outfitStatsOverride: { maxHpDelta: -99 } })
+    expect(fragile.survivedSec).toBeLessThanOrEqual(plain.survivedSec)
+    for (const outfitId of ['winter', 'gym', 'grad', 'apron', 'raincoat']) {
+      const run = runStageBalanceRun({ stageId: 'stage1', seed: 7, maxSec: 90, outfitId })
+      expect(run.survivedSec).toBeGreaterThan(0)
+    }
+  })
+})

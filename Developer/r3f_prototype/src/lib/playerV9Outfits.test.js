@@ -6,6 +6,7 @@ import {
   PLAYER_V9_DECAL_RULES,
   recolorPlayerV9DecalPixels,
   resolvePlayerOutfitId,
+  resolvePlayerV9OutfitId,
   resolvePlayerV9DecalTargets,
 } from './playerV9Outfits.js'
 import { resolveRosariOutfit } from './rosariOutfits.js'
@@ -157,5 +158,65 @@ describe('v9 player outfit (동복)', () => {
     expect(sourceTexture.source).toBe(sourceData)
     expect(ctx.putImageData).toHaveBeenCalledTimes(1)
     expect(`#${Array.from(pixels.data.slice(0, 3)).map((v) => v.toString(16).padStart(2, '0')).join('')}`).toBe(WINTER.tie)
+  })
+})
+
+// ── S6 임시안 (2026-11-01): v9 can only recolor, so it wears the two recolor looks and falls
+// back to the school uniform for the two whose identity is added geometry (scarf/bib, cap).
+describe('v9 player outfit (S6 placeholders)', () => {
+  it('knows every wardrobe id, but renders apron/grad as the default uniform', () => {
+    for (const id of ['raincoat', 'gym', 'apron', 'grad']) expect(resolvePlayerOutfitId(id)).toBe(id)
+    expect(resolvePlayerV9OutfitId('raincoat')).toBe('raincoat')
+    expect(resolvePlayerV9OutfitId('gym')).toBe('gym')
+    expect(resolvePlayerV9OutfitId('apron')).toBe('default')
+    expect(resolvePlayerV9OutfitId('grad')).toBe('default')
+    expect(resolvePlayerV9OutfitId('winter')).toBe('winter')
+    expect(resolvePlayerV9OutfitId('nope')).toBe('default')
+  })
+
+  it.each(['raincoat', 'gym'])('%s recolors the v9 garments from the shared palette and leaves hair, skin, shoes and bag alone', (id) => {
+    const colors = resolveRosariOutfit(id).colors
+    const root = buildV9LikeScene()
+    const before = new Map(snapshotMaterials(root).map((row) => [row[0], row[2]]))
+    applyPlayerV9Outfit(root, id)
+    const hex = (name) => `#${root.getObjectByName(name).material.color.getHexString()}`
+    const expectSlot = (name, slot) => expect(hex(name), `${id} ${name}`).toBe(colors[slot] ?? `#${before.get(name).toString(16).padStart(6, '0')}`)
+    expectSlot('Torso_short_school_jacket', 'blazer')
+    expectSlot('Arm_L_continuous_sleeve', 'blazer')
+    expectSlot('Arm_L_cuff', 'shirt')
+    expectSlot('Skirt_simple_closed_A_line', 'skirt')
+    for (const leg of ['Leg_L_sock', 'Leg_R_sock', 'Leg_L_thigh', 'Leg_R_thigh']) expectSlot(leg, 'legwear')
+    for (const name of ['Neck_short', 'Hand_L', 'Hair_bob_back', 'Head_skin_broad_short_chin', 'Shoe_L', 'Shoe_sole_L', 'Backpack_main_rectangular', 'Backpack_front_pocket']) {
+      expect(root.getObjectByName(name).material.color.getHex(), `${id} ${name}`).toBe(before.get(name))
+    }
+  })
+
+  it('raincoat keeps the skirt and legs; gym turns the skirt and legs navy', () => {
+    const raincoat = buildV9LikeScene()
+    const before = raincoat.getObjectByName('Skirt_simple_closed_A_line').material.color.getHex()
+    applyPlayerV9Outfit(raincoat, 'raincoat')
+    expect(raincoat.getObjectByName('Skirt_simple_closed_A_line').material.color.getHex()).toBe(before)
+    const gym = buildV9LikeScene()
+    applyPlayerV9Outfit(gym, 'gym')
+    expect(`#${gym.getObjectByName('Skirt_simple_closed_A_line').material.color.getHexString()}`).toBe('#1b3f8c')
+    expect(`#${gym.getObjectByName('Leg_L_thigh').material.color.getHexString()}`).toBe('#1b3f8c')
+  })
+
+  it('decal remap: gym paints the drawn tie and buttons into the white jersey; raincoat makes them the dark closure', () => {
+    const front = PLAYER_V9_DECAL_RULES.Surface_source_uniform_front
+    const target = (id, rgb) => resolvePlayerV9DecalTargets(front, id).find((entry) => entry.from.join() === rgb.join())?.to
+    expect(target('gym', [246, 184, 26])).toEqual([242, 244, 248]) // tie body -> jersey
+    expect(target('gym', [255, 210, 50])).toEqual([242, 244, 248]) // buttons -> jersey
+    expect(target('gym', [212, 32, 32])).toEqual([242, 244, 248]) // lapels -> jersey
+    expect(target('raincoat', [246, 184, 26])).toEqual([143, 111, 28]) // tie -> closure #8f6f1c
+    expect(target('raincoat', [212, 32, 32])).toEqual([201, 162, 39]) // lapels -> coat #c9a227
+  })
+
+  it.each(['apron', 'grad'])('%s on the real clone path is byte-for-byte the default uniform', (id) => {
+    const source = buildV9LikeScene()
+    const strip = (rows) => rows.map(([n, m, c, map, em, s, v]) => [n, m, c, map === null, em === null, s, v])
+    expect(strip(snapshotMaterials(clonePlayerV9Scene(source, true, id)))).toEqual(strip(snapshotMaterials(clonePlayerV9Scene(source, true, 'default'))))
+    expect(applyPlayerV9Outfit(buildV9LikeScene(), id)).toEqual([])
+    expect(resolvePlayerV9DecalTargets(PLAYER_V9_DECAL_RULES.Surface_source_uniform_front, id)).toEqual([])
   })
 })

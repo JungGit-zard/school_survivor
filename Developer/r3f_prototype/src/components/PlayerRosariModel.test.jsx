@@ -132,6 +132,8 @@ function buildRosariScene() {
   spine.add(node('backpack_pivot'))
   const head = node('head_neck_pivot')
   head.add(node('coherent_head_skull_UV_image_face', { mesh: true, materialName: 'faceSkin' }))
+  // The GLB parents the bob to this pivot; head outfit details (hood, scarf, cap) attach here.
+  head.add(node('removable_hair_pivot'))
   spine.add(head)
   // 몸통 표면도 어깨·가방·머리 다음에 붙어 spine.children[1] === right_shoulder_pivot 가 유지된다.
   for (const [meshName, materialName] of SPINE_SURFACES) {
@@ -530,5 +532,83 @@ describe('Player rosari gameplay outfit', () => {
     expect(source(), 'v9 전용 리맵을 import하면 안 된다').not.toMatch(/^import .*playerV9Outfits/m)
     // 게임플레이 로자리 분기도 의상을 받는다.
     expect(read('./Player.jsx')).toContain('<PlayerRosariModel movingRef={movingRef} hitFlashToken={hitFlashToken} previewArmAction={previewArmAction} gameplay={gameplay} outfit={outfit} />')
+  })
+})
+
+// S6 임시안 4벌 (2026-11-01) — 게임플레이 클론 경로에서도 방과 같은 색·디테일·숨김이 나오는지.
+describe('Player rosari gameplay outfit — S6 placeholders', () => {
+  const hex = (material) => `#${material.color.getHexString()}`
+  const outfitDetails = (model) => {
+    const out = []
+    model.traverse((object) => { if (object.name.startsWith('outfit_') && !object.userData.studioRenderOutline) out.push(object) })
+    return out
+  }
+  const expectedColor = (meshName, materialName, outfitId) => resolveRosariOutfit(outfitId).colors[getRosariGarmentSlot(meshName, materialName)]
+    ?? ROSARI_BASE_COLORS[getRosariMaterialBaseName(materialName)]
+    ?? FIXTURE_BASE_COLOR
+
+  it.each(['raincoat', 'gym', 'apron', 'grad'])('%s follows the two-layer color contract on every surface', (id) => {
+    const { model } = renderPlayer({ outfit: id, gameplay: true })
+    for (const [meshName, materialName] of [...GARMENT_SURFACES, ...RIG_ORPHANS.map((name) => [name, 'jacket.002'])]) {
+      expect(hex(model.getObjectByName(meshName).material), `${id} ${meshName}`).toBe(expectedColor(meshName, materialName, id))
+    }
+    // The bob is covered or capped, never recolored.
+    expect(hex(model.getObjectByName('continuous_fitted_reference_bob').material)).toBe(ROSARI_BASE_COLORS.hair)
+  })
+
+  it.each([
+    ['raincoat', { outfit_raincoat_hood: 'removable_hair_pivot' }],
+    ['gym', { outfit_gym_zipper: ROSARI_OUTFIT_TORSO_NODE }],
+    ['apron', { outfit_apron_headScarf: 'removable_hair_pivot', outfit_apron_apronBib: ROSARI_OUTFIT_TORSO_NODE }],
+    ['grad', { outfit_grad_capCrown: 'removable_hair_pivot', outfit_grad_capBoard: 'removable_hair_pivot', outfit_grad_capTassel: 'removable_hair_pivot' }],
+  ])('%s details use game toon materials, stencil 3 and their own outline hull', (id, parents) => {
+    const { model } = renderPlayer({ outfit: id, gameplay: true })
+    const details = outfitDetails(model)
+    expect(Object.fromEntries(details.map((mesh) => [mesh.name, mesh.parent.name]))).toEqual(parents)
+    let triangles = 0
+    for (const detail of details) {
+      expect(detail.material).toBeInstanceOf(THREE.MeshToonMaterial)
+      expect(detail.material.name).toBe('outfit_accessory')
+      expect(detail.material.gradientMap).toBe(model.getObjectByName('yellow_tie_knot').material.gradientMap)
+      expect(detail.material.stencilRef).toBe(3)
+      expect(detail.renderOrder).toBe(90)
+      const hull = detail.children.find((child) => child.userData.studioRenderOutline)
+      expect(hull, `${detail.name} 에 아웃라인 헐이 없다`).toBeTruthy()
+      expect(hull.material.side).toBe(THREE.BackSide)
+      triangles += (detail.geometry.index ? detail.geometry.index.count : detail.geometry.attributes.position.count) / 3
+    }
+    expect(triangles).toBeLessThanOrEqual(100)
+  })
+
+  it('gym hides the tie with its outline hull; apron hides only the long drop; raincoat and grad hide nothing', () => {
+    const tieState = (id) => {
+      const { model } = renderPlayer({ outfit: id, gameplay: true })
+      const knot = model.getObjectByName('yellow_tie_knot')
+      const drop = model.getObjectByName('yellow_tie_long_drop')
+      // The hull is a child of its surface, so a hidden surface takes its outline with it.
+      expect(knot.children.some((child) => child.userData.studioRenderOutline)).toBe(true)
+      return [knot.visible, drop.visible]
+    }
+    expect(tieState('gym')).toEqual([false, false])
+    expect(tieState('apron')).toEqual([true, false])
+    for (const id of ['default', 'winter', 'raincoat', 'grad']) expect(tieState(id), id).toEqual([true, true])
+  })
+
+  it('appends head details to the hair pivot in authoring order (after the bob in the real GLB), so saved part paths do not shift', () => {
+    const { model } = renderPlayer({ outfit: 'grad', gameplay: true })
+    const pivot = model.getObjectByName('removable_hair_pivot')
+    expect(pivot.children.map((child) => child.name)).toEqual(['outfit_grad_capCrown', 'outfit_grad_capBoard', 'outfit_grad_capTassel'])
+  })
+
+  it('releases every S6 detail geometry and material on unmount', () => {
+    const { model } = renderPlayer({ outfit: 'apron', gameplay: true })
+    const details = outfitDetails(model)
+    expect(details).toHaveLength(2)
+    const spies = details.flatMap((detail) => [
+      vi.spyOn(detail.geometry, 'dispose'),
+      vi.spyOn(detail.userData.rosariOutfitMaterial, 'dispose'),
+    ])
+    runtime.cleanups.forEach((cleanup) => cleanup())
+    for (const spy of spies) expect(spy).toHaveBeenCalled()
   })
 })

@@ -6,9 +6,9 @@ import { describe, expect, it } from 'vitest'
 describe('MiniRosariWeapon projectile visual (mini protagonist)', () => {
   const source = readFileSync(new URL('./MiniRosari.jsx', import.meta.url), 'utf8')
 
-  it('renders the real player model chosen by the saved appearance and outfit', () => {
+  it('renders the real player model chosen by the saved appearance and the run outfit', () => {
     expect(source).toContain('loadSavedPlayerAppearance()')
-    expect(source).toContain('loadPlayerOutfit()')
+    expect(source).toContain('outfit: useGameStore.getState().runOutfitId')
     expect(source).toContain('<PlayerV9Model movingRef={movingRef} animateRef={animateRef} gameplay outfit={look.outfit} />')
     expect(source).toContain('<PlayerRosariModel movingRef={movingRef} animateRef={animateRef} gameplay />')
     expect(source).toContain('<PlayerMesh movingRef={movingRef} outfit={look.outfit} />')

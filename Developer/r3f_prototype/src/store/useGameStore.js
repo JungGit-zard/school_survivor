@@ -25,6 +25,8 @@ import {
 } from '../lib/playerRecords.js'
 import { evaluateUnlocks, isStarter, WEAPON_CATALOG } from '../lib/weaponCatalog.js'
 import { getAllUnlocked, setUnlocked as setWeaponUnlocked } from '../lib/weaponUnlocks.js'
+import { DEFAULT_OUTFIT_ID, applyOutfitDamageTaken, applyOutfitXpCarry, getOutfitStats } from '../lib/outfitCatalog.js'
+import { grantOutfitUnlocksFromRecords, resolveRunOutfitId, syncOutfitUnlocksFromRecords } from '../lib/outfitUnlocks.js'
 import { DEFAULT_STAGE_ID, getClearContinuationStageId, getNextStageId, getStageConfig, isStageUnlocked, isStageVisible } from '../lib/stageConfig.js'
 import { getBossSpawnSec } from '../lib/burstEvents.js'
 import { getAdminBalanceConfig } from '../lib/adminConfig.js'
@@ -60,6 +62,7 @@ import { getRankingUser } from '../lib/guestRankingIdentity.js'
 import { isProjectMaster } from '../lib/projectAdmin.js'
 import { useAuthStore } from './useAuthStore.js'
 import { trackEvent } from '../lib/analytics.js'
+import { DEFAULT_PLAYER_OUTFIT, isPlayerOutfitId } from '../lib/playerOutfitIds.js'
 import { getStageVendingItem, getStageVendingPlacement, getStageVendingRemainingPurchases, isWithinStageVendingRange } from '../lib/stageVending.js'
 import { getBossClearBonus, getRankingScore, getRankingScorePolicy } from '../lib/rankingScorePolicy.js'
 import { logDamageTaken } from '../lib/playtestLogger.js'
@@ -96,9 +99,13 @@ const pendingRuns = new Map()
 let analyticsRun = null
 const ANALYTICS_RESULT_BY_PHASE = { gameover: 'dead', cleared: 'escaped', quit: 'quit' }
 
-function trackRunStart(stageId) {
+// outfit_id: the outfit whose abilities this run actually uses (state.runOutfitId, fixed at run start).
+// Anything else reads as 'default' — that is what a run without an outfit ability plays as.
+const readAnalyticsOutfitId = (state) => (isPlayerOutfitId(state?.runOutfitId) ? state.runOutfitId : DEFAULT_PLAYER_OUTFIT)
+
+function trackRunStart(stageId, state) {
   analyticsRun = { ended: false }
-  trackEvent('run_start', { stage_id: stageId, mode: useAuthStore.getState().user?.uid ? 'google' : 'guest' })
+  trackEvent('run_start', { stage_id: stageId, mode: useAuthStore.getState().user?.uid ? 'google' : 'guest', outfit_id: readAnalyticsOutfitId(state) })
 }
 
 function trackRunEnd(state, runs, endPhase) {
@@ -111,6 +118,7 @@ function trackRunEnd(state, runs, endPhase) {
     score: Math.max(...runs.map(stage => stage.score)),
     duration_sec: Math.floor(floorNonNegativeMs(last.globalTimeMs ?? last.timeMs) / 1000),
     level: state.player?.level ?? 1,
+    outfit_id: readAnalyticsOutfitId(state),
   })
 }
 
@@ -193,7 +201,7 @@ function buildRankingRunSnapshot(state, elapsedMs, phaseName = 'playing') {
   const stageScore = Math.max(rawScore, state.runKills > 0 ? 1 : 0)
   const score = state.continuousScoreBase + stageScore
   return {
-    run: { stageId: state.currentStageId, score, stageScore, timeMs: floorNonNegativeMs(elapsedMs), globalTimeMs: state.continuousTimeBase + floorNonNegativeMs(elapsedMs), cleared },
+    run: { stageId: state.currentStageId, score, stageScore, timeMs: floorNonNegativeMs(elapsedMs), globalTimeMs: state.continuousTimeBase + floorNonNegativeMs(elapsedMs), cleared, ...(isPlayerOutfitId(state.runOutfitId) ? { outfitId: state.runOutfitId } : {}) },
     survivalSeconds,
     bossBonus,
   }
@@ -208,10 +216,15 @@ const BASE_PLAYER = {
   healFlashToken: 0,
 }
 
-function buildInitialPlayer(levels) {
+// outfitId는 필수다 (R-2): 호출 경로 하나라도 옷을 빠뜨리면 그 경로에서 의상 능력이 몰래 사라진다.
+// 의상은 최대 체력 증감·이동속도 배율만 여기서 바꾼다. speed와 baseSpeed 둘 다 곱하므로
+// 이속 카드 상한(baseSpeed × 1.8)과 마틸다 돌진 기본 속도(player.speed × 1.4)도 같은 비율로 따라간다.
+export function buildInitialPlayer(levels, outfitId) {
+  if (typeof outfitId !== 'string') throw new Error('buildInitialPlayer requires the run outfit id')
+  const outfit = getOutfitStats(outfitId)
   const adminBalance = getAdminBalanceConfig()
-  const maxHp = BASE_PLAYER.maxHp + 2 * (levels.maxHp ?? 0) + adminBalance.player.maxHpBonus
-  const speed = BASE_PLAYER.speed * (1 + 0.01 * (levels.moveSpeed ?? 0)) * adminBalance.player.speedMultiplier
+  const maxHp = Math.max(1, BASE_PLAYER.maxHp + 2 * (levels.maxHp ?? 0) + adminBalance.player.maxHpBonus + outfit.maxHpDelta)
+  const speed = BASE_PLAYER.speed * (1 + 0.01 * (levels.moveSpeed ?? 0)) * adminBalance.player.speedMultiplier * outfit.speedMult
   return {
     ...BASE_PLAYER,
     hp: maxHp,
@@ -283,6 +296,12 @@ function saveGoldTotal(value) {
     return progress
   })
   return true
+}
+
+// 의상 소급 지급 + 동복 보호. 무기 소급 지급과 같은 시점(진행도 불러오기·판 시작)에 부른다.
+function syncStoredOutfitUnlocksFromRecords() {
+  if (!isFirebaseProgressHydrated()) return
+  syncOutfitUnlocksFromRecords(loadPlayerRecords())
 }
 
 function syncStoredWeaponUnlocksFromRecords() {
@@ -374,8 +393,15 @@ applyMagnetPassive(EMPTY_PASSIVE_LEVELS)
 
 export const useGameStore = create(
   subscribeWithSelector((set, get) => ({
-    player:      buildInitialPlayer(EMPTY_PASSIVE_LEVELS),
+    player:      buildInitialPlayer(EMPTY_PASSIVE_LEVELS, DEFAULT_OUTFIT_ID),
     weapons:     buildInitialWeapons(EMPTY_PASSIVE_LEVELS, { applyPermanent: false }),
+    // 이번 판에 입은 옷(외형 + 능력). resetGame이 판 시작 때 한 번 정하고 판 끝까지 고정한다.
+    // "다음 스테이지 계속"은 같은 판이라 유지한다. 판 도중에는 바꿀 수 없다(규칙 6-f).
+    runOutfitId: DEFAULT_OUTFIT_ID,
+    // gainXp 의상 경험치 배율의 소수 이월값. 판 시작 때 0.
+    xpCarry: 0,
+    // 이번 판 종료로 처음 얻은 옷 (탈출 결과 화면 카드). 'cleared'에서만 채운다.
+    newlyUnlockedOutfitIds: [],
     bossPassiveUnlocks: {},
     // 이누콘 경호견 체력(Terry 2026-10-31). null이면 resolveInucon이 활성 시 만피로 계산한다.
     inucon: null,
@@ -476,6 +502,10 @@ export const useGameStore = create(
         set({ godMode: false })
       }
       if (player.invulnerable && !ignoreInvulnerability) return
+      // 의상 받는 피해 배율 (무적 검사 다음, 이누콘 흡수 전). 적 투사체(source 'enemyProjectile')면
+      // 비옷 배율을 추가로 곱한다. 소수는 그대로 두고 표시만 반올림한다. default는 amount 그대로.
+      // 마틸다 접촉 즉사는 killPlayer 경로라 이 배율을 거치지 않는다.
+      amount = applyOutfitDamageTaken(amount, get().runOutfitId, source)
       // Terry 2026-10-31: 이누콘이 깨어 있으면 자기 체력만큼 대신 맞고 크게 짖는다.
       // 남은 피해만 주인공에게 간다. 흡수만 했어도 주인공 무적 520ms는 켠다(피격 상한 유지).
       const inucon = resolveInucon(get(), getRuntimeElapsedMs(get().elapsedMs))
@@ -576,9 +606,13 @@ export const useGameStore = create(
 
     // 경험치와 레벨업
     gainXp: (amount) => {
-      const { player, pendingLevelUps, growthMultiplier, runLevelUps } = get()
+      const { player, pendingLevelUps, growthMultiplier, runLevelUps, runOutfitId, xpCarry } = get()
       let { xp, xpToNext, level } = player
-      xp += Math.floor(amount * growthMultiplier)
+      // 의상 경험치 배율은 growthMultiplier에 곱하지 않는다(내림 때문에 +8%가 0, −5%가 −20%가 된다).
+      // 내림한 기본값 위에 carry로 판 전체에 걸쳐 정확한 비율을 준다. default는 지금과 1도 다르지 않다.
+      const outfitXp = applyOutfitXpCarry(Math.floor(amount * growthMultiplier), xpCarry ?? 0, runOutfitId)
+      xp += outfitXp.gained
+      if (outfitXp.carry !== xpCarry) set({ xpCarry: outfitXp.carry })
       let gainedLevelUps = 0
       while (xp >= xpToNext) {
         xp -= xpToNext
@@ -803,11 +837,18 @@ export const useGameStore = create(
       }
       if (progressReady) diff.forEach((id) => setWeaponUnlocked(id))
 
+      // 의상 해금: 무기 해금과 같은 evalInput(누적 기록 + 이번 판). 로그인 계정은 progress.outfitUnlocks,
+      // 게스트는 세션 메모리 합집합. 결과 화면 카드는 탈출('cleared')에서만 띄운다 — 다른 종료에서
+      // 지급되는 옷은 소급 지급과 같아 알림 없이 옷장에 풀려 있다.
+      const grantedOutfitIds = grantOutfitUnlocksFromRecords(evalInput)
+      const newlyUnlockedOutfitIds = Object.freeze(phaseName === 'cleared' ? grantedOutfitIds : [])
+
       if (!progressReady) {
         if (phaseName === 'gameover') emitSfx({ id: 'gameOver' })
         // 계정 진행도 저장 준비와 랭킹 제출은 별개다.
         set({
           newlyUnlockedWeaponIds: Object.freeze(diff),
+          newlyUnlockedOutfitIds,
         })
         get()._recordRankingRunEnd(phaseName, run)
         void get().saveMissionProgress()
@@ -824,7 +865,7 @@ export const useGameStore = create(
       setBestPlayerRecord(stage.bestRecordKey, runSurvivalSeconds)
       if (phaseName === 'gameover') emitSfx({ id: 'gameOver' })
 
-      set({ newlyUnlockedWeaponIds: Object.freeze(diff) })
+      set({ newlyUnlockedWeaponIds: Object.freeze(diff), newlyUnlockedOutfitIds })
       saveRuntimeProgress()
       void get().saveMissionProgress()
 
@@ -920,6 +961,10 @@ export const useGameStore = create(
 
     acknowledgeNewWeaponUnlocks: () => {
       set({ newlyUnlockedWeaponIds: Object.freeze([]) })
+    },
+
+    acknowledgeNewOutfitUnlocks: () => {
+      set({ newlyUnlockedOutfitIds: Object.freeze([]) })
     },
 
     dismissProgressSaveWarning: () => set({ progressSaveWarning: null }),
@@ -1052,7 +1097,7 @@ export const useGameStore = create(
       const levels = getAllLevels()
       applyMagnetPassive(levels)
       set((s) => ({
-        player: buildInitialPlayer(levels),
+        player: buildInitialPlayer(levels, s.runOutfitId),
         weapons: buildInitialWeapons(levels, { bossPassiveUnlocks: s.bossPassiveUnlocks }),
         growthMultiplier: buildGrowthMultiplier(levels),
         passiveVersion: s.passiveVersion + 1,
@@ -1069,9 +1114,11 @@ export const useGameStore = create(
       const bossPassiveUnlocks = loadBossPassiveUnlocks()
       applyMagnetPassive(levels)
       syncStoredWeaponUnlocksFromRecords()
+      syncStoredOutfitUnlocksFromRecords()
       set((s) => ({
         goldTotal: loadGoldTotal(),
-        player: buildInitialPlayer(levels),
+        // 진행된 판의 옷을 유지한다(판 도중 교체 금지). 다음 resetGame이 새 보유 목록으로 다시 정한다.
+        player: buildInitialPlayer(levels, s.runOutfitId),
         weapons: buildInitialWeapons(levels, { bossPassiveUnlocks }),
         bossPassiveUnlocks,
         growthMultiplier: buildGrowthMultiplier(levels),
@@ -1565,8 +1612,15 @@ export const useGameStore = create(
       const bossPassiveUnlocks = progressReady ? loadBossPassiveUnlocks() : get().bossPassiveUnlocks
       applyMagnetPassive(levels)
       syncStoredWeaponUnlocksFromRecords()
+      syncStoredOutfitUnlocksFromRecords()
+      // 판 시작 옷 고정: 저장된 옷이 보유 목록에 있으면 그 옷, 아니면 default (저장값은 그대로 둔다).
+      // "다음 스테이지 계속"은 같은 판이라 이전 스테이지의 옷을 그대로 입는다.
+      const runOutfitId = preserveContinuousScore ? get().runOutfitId : resolveRunOutfitId()
       set((s) => ({
-        player:      buildInitialPlayer(levels),
+        runOutfitId,
+        xpCarry:     0,
+        newlyUnlockedOutfitIds: [],
+        player:      buildInitialPlayer(levels, runOutfitId),
         weapons:     buildInitialWeapons(levels, { applyPermanent: progressReady, bossPassiveUnlocks }),
         bossPassiveUnlocks,
         inucon: null,
@@ -1621,7 +1675,7 @@ export const useGameStore = create(
         missionSpecialEnemySpawns: [],
       }))
       get().recordMissionEvent({ type: 'stage_started', stageId: nextStageId })
-      if (!preserveContinuousScore) trackRunStart(nextStageId)
+      if (!preserveContinuousScore) trackRunStart(nextStageId, get())
       recordRuntimePlayActivity(nextStageId)
       checkpointRun(get())
       saveRuntimeProgress()

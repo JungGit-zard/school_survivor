@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest'
 import { getBossClearBonus, getRankingScore } from './rankingScorePolicy.js'
 import { DEFAULT_SETTINGS } from './titleSettings.js'
 import { FIREBASE_STUDIO_DATASET_KEYS } from './firebaseStudio.js'
+import { PLAYER_OUTFIT_IDS, UNLOCKABLE_OUTFIT_IDS } from './playerOutfitIds.js'
 
 const RULES_PATH = fileURLToPath(new URL('../../database.rules.json', import.meta.url))
 const FIREBASE_RC_PATH = fileURLToPath(new URL('../../.firebaserc', import.meta.url))
@@ -365,5 +366,104 @@ describe('ranking entry write rules (evaluated against the real rule strings)', 
   it('rejects unknown extra children via $other', () => {
     expect(stageRule.$other['.validate']).toBe(false)
     expect(globalRule.$other['.validate']).toBe(false)
+  })
+})
+
+// T-11 / A-8 / A-9 — Rosari outfit system. The JS id list (playerOutfitIds.js) is the canonical one;
+// these rules cannot import it, so pin the rule strings to it here. A rule missing an id silently
+// rejects the whole progress save (progress/titleSettings are $other:false) or the whole six-bucket
+// ranking write (public entries are $other:false), so this must be green before the rules deploy.
+describe('Rosari outfit rules (T-11, A-8, A-9)', () => {
+  const progressRules = rules.users.$uid.progress
+  // Every `<lhs> === '<id>'` literal in one rule string (split, not regex, so `$`/`()` in lhs are literal).
+  const quotedIds = (expr, lhs) => expr.split(`${lhs} === '`).slice(1).map((part) => part.slice(0, part.indexOf("'"))).sort()
+  const outfitUnlockRule = progressRules.outfitUnlocks?.$outfitId?.['.validate']
+  const validateOutfitUnlock = (id, value) => new Function('$outfitId', 'newData', `return (${outfitUnlockRule})`)(id, ruleData(value))
+  const validateValue = (expr, value) => new Function('newData', `return (${expr})`)(ruleData(value))
+  const stageRule = rules.rankingService.v1.public.$seasonId.stage.$stageId.$window.$periodKey.entries.$uid
+  const globalRule = rules.rankingService.v1.public.$seasonId.global.$window.$periodKey.entries.$uid
+
+  // Full titleSettings acceptance: node .validate + every present child's .validate + $other for unknown keys.
+  function titleSettingsAccepts(value) {
+    const node = progressRules.titleSettings
+    if (!validateValue(node['.validate'], value)) return false
+    return Object.entries(value).every(([key, child]) => {
+      const rule = node[key] ?? node.$other
+      return rule['.validate'] === false ? false : validateValue(rule['.validate'], child)
+    })
+  }
+
+  it('outfitUnlocks sits beside weaponUnlocks and allows exactly the five unlockable outfits with value 1', () => {
+    expect(outfitUnlockRule).toBeTruthy()
+    expect(quotedIds(outfitUnlockRule, '$outfitId')).toEqual([...UNLOCKABLE_OUTFIT_IDS].sort())
+    for (const id of UNLOCKABLE_OUTFIT_IDS) {
+      expect(validateOutfitUnlock(id, 1), id).toBe(true)
+      for (const bad of [0, 2, true, '1', null]) expect(validateOutfitUnlock(id, bad), `${id}=${bad}`).toBe(false)
+    }
+    // default is always owned and never stored; unknown ids are rejected.
+    for (const id of ['default', 'summer', 'v9', 'winterX', '']) expect(validateOutfitUnlock(id, 1), id).toBe(false)
+  })
+
+  it('keeps outfitUnlocks optional so an old client progress save without it still validates (A-8)', () => {
+    expect(progressRules['.validate']).not.toContain("'outfitUnlocks'")
+    const oldClientProgress = { goldTotal: 10, records: { totalRuns: 1 }, titleSettings: { ...DEFAULT_SETTINGS } }
+    expect(evalRule(progressRules['.validate'], { newData: ruleData(oldClientProgress), data: ruleData(undefined) })).toBe(true)
+    // Old client titleSettings (no playerOutfit, or the original two values) still pass.
+    expect(titleSettingsAccepts({ ...DEFAULT_SETTINGS })).toBe(true)
+    expect(titleSettingsAccepts({ ...DEFAULT_SETTINGS, playerOutfit: 'default' })).toBe(true)
+    expect(titleSettingsAccepts({ ...DEFAULT_SETTINGS, playerOutfit: 'winter' })).toBe(true)
+  })
+
+  it('playerOutfit accepts exactly the six canonical outfit ids and rejects unknown ones (A-8)', () => {
+    const rule = progressRules.titleSettings.playerOutfit['.validate']
+    expect(PLAYER_OUTFIT_IDS).toEqual(['default', 'winter', 'raincoat', 'gym', 'apron', 'grad'])
+    expect(quotedIds(rule, 'newData.val()')).toEqual([...PLAYER_OUTFIT_IDS].sort())
+    for (const id of PLAYER_OUTFIT_IDS) expect(titleSettingsAccepts({ ...DEFAULT_SETTINGS, playerOutfit: id }), id).toBe(true)
+    for (const bad of ['summer', 'v9', 'GYM', '', 1, true]) {
+      expect(titleSettingsAccepts({ ...DEFAULT_SETTINGS, playerOutfit: bad }), String(bad)).toBe(false)
+    }
+  })
+
+  it('a new-client progress payload with outfitUnlocks and a new outfit never hits $other (A-8)', () => {
+    const newClientProgress = {
+      goldTotal: 10,
+      records: { totalRuns: 4, stage1Clears: 1, stage2Clears: 1, stage3Clears: 1, stage4Clears: 1 },
+      outfitUnlocks: { winter: 1, raincoat: 1, gym: 1, apron: 1, grad: 1 },
+      titleSettings: { ...DEFAULT_SETTINGS, playerOutfit: 'grad' },
+    }
+    for (const key of Object.keys(newClientProgress)) expect(progressRules[key], key).toBeTruthy()
+    expect(evalRule(progressRules['.validate'], { newData: ruleData(newClientProgress), data: ruleData(undefined) })).toBe(true)
+    for (const [id, value] of Object.entries(newClientProgress.outfitUnlocks)) expect(validateOutfitUnlock(id, value)).toBe(true)
+    expect(titleSettingsAccepts(newClientProgress.titleSettings)).toBe(true)
+  })
+
+  it('ranking outfitId is optional, allows the six ids, rejects unknown values, in both public families (A-9)', () => {
+    const families = [
+      [stageRule, { $window: 'daily', $stageId: 'stage1', $seasonId: 's1', $periodKey: '2026-11-01' }],
+      [stageRule, { $window: 'allTime', $stageId: 'stage3', $seasonId: 'all-time', $periodKey: 'all-time' }],
+      [globalRule, { $window: 'weekly', $seasonId: 's1', $periodKey: '2026-W44' }],
+      [globalRule, { $window: 'allTime', $seasonId: 'all-time', $periodKey: 'all-time' }],
+    ]
+    for (const [rule, path] of families) {
+      expect(rule.outfitId?.['.validate']).toBeTruthy()
+      expect(quotedIds(rule.outfitId['.validate'], 'newData.val()')).toEqual([...PLAYER_OUTFIT_IDS].sort())
+      expect(rule['.validate']).not.toContain("'outfitId'")
+      expect(rule.$other['.validate']).toBe(false)
+      const ctx = { auth: { uid: 'me' }, $uid: 'me', ...path }
+      const stageId = path.$stageId ?? 'stage2'
+      const old = honestEntry({ stageId })
+      // Old entry / old client: no outfitId at all.
+      expect(fullyAccepts(rule, { ...ctx, entry: old })).toBe(true)
+      for (const outfitId of PLAYER_OUTFIT_IDS) {
+        // 0-point first run with an outfit still registers (no minimum-score filter).
+        const zero = { ...old, score: 0, timeMs: 0, cleared: false, outfitId }
+        expect(fullyAccepts(rule, { ...ctx, entry: zero }), outfitId).toBe(true)
+        // A new client replacing an old entry (no outfitId) with an equal score.
+        expect(fullyAccepts(rule, { ...ctx, entry: { ...old, outfitId }, existing: old }), outfitId).toBe(true)
+      }
+      for (const bad of ['summer', 'GYM', '', 1, true]) {
+        expect(fullyAccepts(rule, { ...ctx, entry: { ...old, outfitId: bad } }), String(bad)).toBe(false)
+      }
+    }
   })
 })

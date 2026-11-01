@@ -13,7 +13,7 @@
 //     보스 보상·도감·미션·titleSettings), activity, consent, runLedger/checkpointLedger,
 //     updatedAt → lib/firebaseProgress.js, database.rules.json
 //   - rankingService/v1/public/**/{uid}: uid, displayName, score, timeMs, cleared,
-//     stageId, submittedAt, lastPlayedAt(공개 읽기) → lib/firebaseRanking.js
+//     stageId, submittedAt, lastPlayedAt, outfitId(선택, 공개 읽기) → lib/firebaseRanking.js
 //   - rankingService/v1/guestProfiles/{uid}/nickname → lib/guestRankingIdentity.js
 //   - adminVisitors/{uid}: uid, nickname, authType, email(Google만), firstVisitedAt,
 //     lastVisitedAt (+ 운영자 이관 필드) → lib/firebaseAdminVisitors.js
@@ -117,7 +117,7 @@ export const PRIVACY_TEXT = `${SERVICE_NAME}(이하 "게임")은 게임 운영�
    - 게스트의 진행 기록은 서버에 저장하지 않습니다.
 라. 랭킹 기록(모든 이용자)
    - 판이 끝날 때마다 0점 판을 포함해 자동으로 등록됩니다.
-   - 계정 식별자, 표시 이름(닉네임, 닉네임이 없으면 Google 프로필 표시 이름, 게스트는 게스트 닉네임), 점수, 생존 시간, 클리어 여부, 스테이지, 기록 시각, 마지막 플레이 시각
+   - 계정 식별자, 표시 이름(닉네임, 닉네임이 없으면 Google 프로필 표시 이름, 게스트는 게스트 닉네임), 점수, 생존 시간, 클리어 여부, 스테이지, 기록 시각, 마지막 플레이 시각, 그 기록을 낸 판에 입은 의상
 마. 접속 기록(모든 이용자)
    - 게임에 접속할 때마다 계정 식별자, 표시 이름(Google 로그인 이용자는 Google 프로필 표시 이름, 게스트는 게스트 닉네임), 로그인 방식(Google 또는 게스트), 최초 접속 시각, 최근 접속 시각을 기록합니다.
    - Google 로그인 이용자는 이메일 주소도 함께 기록합니다.

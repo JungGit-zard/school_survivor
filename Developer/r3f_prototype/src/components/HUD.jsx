@@ -44,6 +44,8 @@ import { schoolButton, schoolPanel, uiBorders, uiPalette, uiShadows, uiType } fr
 import { getMissionStatus } from '../lib/missionProgress.js'
 import { MISSION_BY_ID } from '../lib/missionCatalog.js'
 import MissionTracker from './MissionTracker.jsx'
+import OutfitUnlockCard from './OutfitUnlockCard.jsx'
+import { outfitEffectSummary, outfitName } from '../lib/outfitDisplay.js'
 import StageVendingPrompt from './StageVendingPrompt.jsx'
 import Stage4HazardGuide from './Stage4HazardGuide.jsx'
 import LobbySettingsModal from './LobbySettingsModal.jsx'
@@ -181,11 +183,11 @@ export const UPGRADES = [
   { key: 'bagPower', icon: 'ruler', labelFn: damageLabel('30cm 자 위력', 'schoolBag', 'bagPower'), desc: '더 세게 휘둘러 타격 위력 증가' },
   { key: 'bagRadius', icon: 'ruler', label: '30cm 자 사거리 +', desc: '자 휘두르기 타격 범위 증가' },
   { key: 'bagCrit', icon: 'ruler', label: '30cm 자 치명타 강화', desc: '치명타 확률 +2% (치명타 피해는 150% 고정)' },
-  { key: 'acquireTumbler', icon: 'tumbler', label: '텀블러 해금', desc: '플레이어 주변을 회전하는 방어 무기' },
-  { key: 'tumblerDamage', icon: 'tumbler', labelFn: damageLabel('텀블러 피해', 'tumbler', 'tumblerDamage'), desc: '회전 텀블러 접촉 피해 증가' },
-  { key: 'tumblerCount', icon: 'tumbler', label: '텀블러 개수 +1', desc: '회전 텀블러 개수 증가 (최대 3개)' },
-  { key: 'tumblerPower', icon: 'tumbler', labelFn: damageLabel('텀블러 위력', 'tumbler', 'tumblerPower'), desc: '텀블러를 가득 채워 접촉 위력 증가' },
-  { key: 'tumblerCrit', icon: 'tumbler', label: '텀블러 치명타 강화', desc: '치명타 확률 +2% (치명타 피해는 150% 고정)' },
+  { key: 'acquireTumbler', icon: 'tumbler', label: '텀블러 해금', desc: '플레이어 주변을 회전하는 방어 무기 · 내구력 40, 깨지면 2초 뒤 재생' },
+  { key: 'tumblerDamage', icon: 'tumbler', labelFn: damageLabel('텀블러 피해', 'tumbler', 'tumblerDamage'), desc: '회전 텀블러 접촉 피해 증가, 내구력 +10' },
+  { key: 'tumblerCount', icon: 'tumbler', label: '텀블러 개수 +1', desc: '회전 텀블러 개수 증가 (최대 3개), 내구력 +10' },
+  { key: 'tumblerPower', icon: 'tumbler', labelFn: damageLabel('텀블러 위력', 'tumbler', 'tumblerPower'), desc: '텀블러를 가득 채워 접촉 위력 증가, 내구력 +10' },
+  { key: 'tumblerCrit', icon: 'tumbler', label: '텀블러 치명타 강화', desc: '치명타 확률 +2% (치명타 피해는 150% 고정), 내구력 +10' },
   { key: 'acquireFlask', icon: 'flask', label: '플라스크 해금', desc: '밀집한 적에게 광역 폭발 투척' },
   { key: 'flaskDamage', icon: 'flask', labelFn: damageLabel('플라스크 피해', 'scienceFlask', 'flaskDamage'), desc: '폭발 피해 증가' },
   { key: 'flaskPower', icon: 'flask', labelFn: damageLabel('플라스크 위력', 'scienceFlask', 'flaskPower'), desc: '약품 농도를 올려 폭발 위력 증가, 웅덩이 지속 +1초' },
@@ -803,6 +805,8 @@ export default function HUD({
   const questBagButtonRef = useRef(null)
   const questCloseButtonRef = useRef(null)
   const wasQuestInventoryOpenRef = useRef(false)
+  const runOutfitId = useGameStore((s) => s.runOutfitId)
+  const newlyUnlockedOutfitIds = useGameStore((s) => s.newlyUnlockedOutfitIds)
   const {
     player, weapons, phase, pauseSource,
     elapsed, currentStageId, gameKey, bossSpawned, bossSpawnSec,
@@ -1505,7 +1509,8 @@ export default function HUD({
             animation: lowHp ? 'hpBlink 0.6s ease-in-out infinite' : 'none',
           }} />
         </div>
-        <span style={styles.hpNum}>{player.hp}/{player.maxHp}</span>
+        {/* 의상 피해 배율로 체력이 소수가 될 수 있다(R-9). 표시는 올림 — 살아 있으면 최소 1. */}
+        <span style={styles.hpNum}>{Math.ceil(player.hp)}/{player.maxHp}</span>
       </div>
 
       {/* XP bar — 화면 최상단 전체 폭 얇은 스트립 */}
@@ -1877,6 +1882,9 @@ export default function HUD({
                 {pauseSource === 'auto' && (
                   <p style={styles.pauseMessage}>{t('hud.awayBody')}</p>
                 )}
+                <p data-testid="pause-outfit-line" style={styles.pauseOutfitLine}>
+                  {t('outfit.pauseLine', { name: outfitName(runOutfitId), effects: outfitEffectSummary(runOutfitId) })}
+                </p>
                 <div style={styles.pauseActions}>
                   <button style={styles.restartBtn} onClick={resumeGame}>
                     {pauseSource === 'auto' ? t('hud.resumeAway') : t('hud.resume')}
@@ -1905,6 +1913,7 @@ export default function HUD({
               <p data-testid="escape-total-score" style={styles.escapeScore}>{t('hud.continuousScore', { score: gameNumber(clearTotalScore) })}</p>
               <p style={styles.escapeStageScore}>{t('hud.stageScore', { score: gameNumber(stageClearScore) })}</p>
               <p data-testid="escape-continue-hint" style={styles.escapeHint}>{t(continuationStageId ? 'hud.continueScoreHint' : nextStageId ? 'hud.bossRequiredForNextStage' : 'hud.continuousRunComplete')}</p>
+              <OutfitUnlockCard outfitIds={newlyUnlockedOutfitIds} />
               <div data-testid="result-primary-actions" style={styles.escapeActions}>
                 {continuationStageId && (
                   <button type="button" data-testid="escape-continue-next-stage" style={styles.escapeContinueBtn} onClick={continueToNextStage}>
@@ -2551,6 +2560,13 @@ const styles = {
     width: 'calc(100% - 56px)',
     maxWidth: 340,
     boxSizing: 'border-box',
+  },
+  pauseOutfitLine: {
+    color: uiPalette.mutedChalk,
+    fontSize: 13,
+    lineHeight: 1.45,
+    margin: '-10px 0 16px',
+    overflowWrap: 'anywhere',
   },
   pauseMessage: {
     color: uiPalette.mutedChalk,

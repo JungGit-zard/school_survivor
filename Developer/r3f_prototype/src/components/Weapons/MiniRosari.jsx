@@ -10,7 +10,6 @@ import PlayerMesh from '../PlayerMesh.jsx'
 import PlayerV9Model from '../PlayerV9Model.jsx'
 import PlayerRosariModel from '../PlayerRosariModel.jsx'
 import { loadSavedPlayerAppearance, resolvePlayerAppearance } from '../Player.jsx'
-import { loadPlayerOutfit } from '../../lib/titleSettings.js'
 
 // 꼬마 로자리(miniRosari) — 2026-10-30 Terry: "작은 로자리가 나가는 아이디어가 너무 좋다 다른 무기로 구현해".
 // 2026-10-28(b3fada83)에 오니기리 발사체를 주인공 미니 분신으로 바꿨던 구현을 오니기리에서 떼어 내
@@ -35,7 +34,8 @@ function MiniRosariModel({ animateRef }) {
   // 외형·의상은 장착 시점의 저장값으로 고정한다(런 도중 바뀌지 않는다).
   const [look] = useState(() => ({
     appearance: resolvePlayerAppearance(loadSavedPlayerAppearance()),
-    outfit: loadPlayerOutfit(),
+    // 본체와 같은 판 고정 옷(store.runOutfitId). 저장값이 아직 없는 옷이면 default를 입는다.
+    outfit: useGameStore.getState().runOutfitId,
   }))
   return (
     <group scale={[MINI_ROSARI_SCALE, MINI_ROSARI_SCALE, MINI_ROSARI_SCALE]}>

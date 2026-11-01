@@ -3,6 +3,7 @@
 import { getFirebaseProgressRuntimeSnapshot, isFirebaseProgressHydrated, readFirebasePlayerProgressOrDefault, requestCloudProgressSave, updateFirebasePlayerProgress } from './firebaseProgress.js'
 import { detectInitialLocale, isSupportedLocale, setLocale } from './i18n.js'
 import { isPlayerAppearance } from './playerAppearance.js'
+import { DEFAULT_PLAYER_OUTFIT as CANONICAL_DEFAULT_PLAYER_OUTFIT, PLAYER_OUTFIT_IDS as CANONICAL_PLAYER_OUTFIT_IDS, isPlayerOutfitId } from './playerOutfitIds.js'
 import { setScientificNotation } from './numberFormat.js'
 
 export const SETTINGS_STORAGE_KEY = 'school_survivor:titleSettings'
@@ -42,7 +43,7 @@ export function loadTitleSettings() {
     ...(isPlayerAppearance(settings.playerAppearance)
       ? { playerAppearance: settings.playerAppearance } : {}),
     // Rosari wardrobe outfit: separate axis from playerAppearance. Unknown values are dropped (=> 'default').
-    ...(settings.playerOutfit === 'default' || settings.playerOutfit === 'winter'
+    ...(isPlayerOutfitId(settings.playerOutfit)
       ? { playerOutfit: settings.playerOutfit } : {}),
     language: isSupportedLocale(settings.language) ? settings.language : DEFAULT_SETTINGS.language,
     vibration: typeof settings.vibration === 'boolean' ? settings.vibration : DEFAULT_SETTINGS.vibration,
@@ -68,10 +69,11 @@ export function saveTitleSettings(settings) {
 }
 
 // Rosari wardrobe outfit (titleSettings.playerOutfit). Separate axis from playerAppearance.
-// Ids mirror src/lib/rosariOutfits.js; absent or unknown => 'default'.
-export const PLAYER_OUTFIT_IDS = Object.freeze(['default', 'winter'])
-export const DEFAULT_PLAYER_OUTFIT = 'default'
-const isPlayerOutfit = (value) => PLAYER_OUTFIT_IDS.includes(value)
+// Canonical ids live in src/lib/playerOutfitIds.js (also read by firebaseProgress.js and pinned
+// against database.rules.json by tests); absent or unknown => 'default'.
+export const PLAYER_OUTFIT_IDS = CANONICAL_PLAYER_OUTFIT_IDS
+export const DEFAULT_PLAYER_OUTFIT = CANONICAL_DEFAULT_PLAYER_OUTFIT
+const isPlayerOutfit = isPlayerOutfitId
 
 // Same source rule as Player.jsx appearance: hydrated account => account setting,
 // guest => this tab's session memory, signed-in but not yet hydrated => default.

@@ -1,4 +1,5 @@
 import { useRef, useMemo, useEffect } from 'react'
+import * as THREE from 'three'
 import { usePlayingFrame } from '../../lib/usePlayingFrame.js'
 import { emitSfx } from '../../lib/sfxEvents.js'
 import { playerPos } from '../../lib/refs.js'
@@ -7,11 +8,22 @@ import { outlineMat, toonMat, inflateScale } from '../../lib/toon.js'
 import { applyEnemyHit, isEnemyHitLive } from '../../lib/weaponCollision.js'
 import { createWeaponTargetScratch, resolveWeaponTarget, scanOrbitEnemiesInto } from '../../lib/weaponTargeting.js'
 import { tumblerHitMultiplier } from '../../lib/tumblerFalloff.js'
-import { consumeTumblerDurability } from '../../lib/tumblerDurability.js'
+import { consumeTumblerDurability, tumblerWearTint } from '../../lib/tumblerDurability.js'
 import StudioTunedGroup from '../StudioTunedGroup.jsx'
 
-export function TumblerModel() {
-  const bodyMat = useMemo(() => toonMat(0x68d8ee, 0.15), [])
+const TUMBLER_BODY_HEX = 0x68d8ee
+// 내구력 신호: 남은 내구력 30% 아래에서 몸통이 이 색으로 물든다 (lib/tumblerDurability.js tumblerWearTint).
+const TUMBLER_BODY_COLOR = new THREE.Color(TUMBLER_BODY_HEX)
+const TUMBLER_WORN_COLOR = new THREE.Color(0xe8453c)
+
+// bodyMaterialRef: 궤도 텀블러가 내구력 색을 칠할 몸통 재질을 받는다. 그래픽 스튜디오 미리보기는 넘기지 않는다.
+export function TumblerModel({ bodyMaterialRef } = {}) {
+  const bodyMat = useMemo(() => toonMat(TUMBLER_BODY_HEX, 0.15), [])
+  useEffect(() => {
+    if (!bodyMaterialRef) return undefined
+    bodyMaterialRef.current = bodyMat
+    return () => { if (bodyMaterialRef.current === bodyMat) bodyMaterialRef.current = null }
+  }, [bodyMaterialRef, bodyMat])
   const capMat = useMemo(() => toonMat(0xf4fbff, 0.08), [])
   const outMat = useMemo(() => outlineMat(0.92), [])
   const handleMat = useMemo(() => toonMat(0x83eadc, 0.14), [])
@@ -65,6 +77,8 @@ export function TumblerOrbit() {
   const durabilityUsedRef = useRef(new Uint16Array(3))
   const brokenUntilRef = useRef(new Float64Array(3))
   const wasActiveRef = useRef(false)
+  // 텀블러별 몸통 재질. 마지막으로 칠한 비율은 재질 userData.wearTint에 둔다 — 재질이 새로 생기면 자동으로 다시 칠한다.
+  const bodyMaterialRefs = useRef([{ current: null }, { current: null }, { current: null }])
   const weapons = useGameStore((s) => s.weapons)
 
   usePlayingFrame(({ clock }) => {
@@ -180,6 +194,22 @@ export function TumblerOrbit() {
     }
   })
 
+  // 내구력 색 신호. 할당 없이 미리 만든 Color 두 개 사이를 lerp한다.
+  usePlayingFrame(() => {
+    const w = weapons.tumbler
+    if (!w?.active) return
+    const count = Math.max(1, Math.min(3, w.count ?? 1))
+    for (let i = 0; i < count; i += 1) {
+      const material = bodyMaterialRefs.current[i].current
+      if (!material) continue
+      const tint = tumblerWearTint(durabilityUsedRef.current[i], w.durability)
+      if (material.userData.wearTint === tint) continue
+      material.userData.wearTint = tint
+      material.color.lerpColors(TUMBLER_BODY_COLOR, TUMBLER_WORN_COLOR, tint)
+      material.emissive.copy(material.color)
+    }
+  })
+
   // ponytail: 텀블러는 항상 활성, fire 이벤트 없으므로 활성화 시점에 1회 emit
   // ref는 런이 바뀌어도 살아남으므로 활성화될 때 내구력 상태를 비운다(오리요강과 같은 이유).
   useEffect(() => {
@@ -199,7 +229,7 @@ export function TumblerOrbit() {
     <>
       {Array.from({ length: tumblerCount }, (_, idx) => (
         <group key={`tumbler-visual-${idx}`} ref={(node) => { visualRefs.current[idx] = node }}>
-          <TumblerModel />
+          <TumblerModel bodyMaterialRef={bodyMaterialRefs.current[idx]} />
         </group>
       ))}
     </>

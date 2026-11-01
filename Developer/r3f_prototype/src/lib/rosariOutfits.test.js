@@ -1,13 +1,20 @@
+import { readFileSync } from 'node:fs'
+import path from 'node:path'
 import { describe, expect, it } from 'vitest'
 import * as THREE from 'three'
 import {
   DEFAULT_ROSARI_OUTFIT_ID,
   ROSARI_BASE_COLORS,
   ROSARI_OUTFITS,
+  ROSARI_OUTFIT_ACCESSORY_IDS,
+  ROSARI_OUTFIT_HAIR_NODE,
+  ROSARI_OUTFIT_IDS,
   ROSARI_OUTFIT_TORSO_NODE,
   applyRosariOutfit,
   getRosariGarmentSlot,
+  isRosariOutfitSupportedOn,
   resolveRosariOutfit,
+  resolveRosariOutfitForModel,
 } from './rosariOutfits.js'
 import { resolvePlayerMeshGarmentColor } from './playerMeshOutfits.js'
 
@@ -185,5 +192,202 @@ describe('applyRosariOutfit', () => {
   it('adds no accessories when the torso node is missing', () => {
     const root = new THREE.Group()
     expect(applyRosariOutfit(root, 'winter', makeMaterial)).toEqual([])
+  })
+})
+
+// ── S6 임시안 4벌 (raincoat, gym, apron, grad) ────────────────────────────────────────────
+describe('S6 placeholder outfits', () => {
+  const NEW_IDS = ['raincoat', 'gym', 'apron', 'grad']
+  // removable_hair_pivot is the bob's parent in the GLB; the bob mesh space is the pivot space.
+  function fixtureWithHairPivot() {
+    const fixture = rosariFixture()
+    const pivot = new THREE.Group()
+    pivot.name = ROSARI_OUTFIT_HAIR_NODE
+    pivot.add(fixture.meshes.hair)
+    fixture.root.add(pivot)
+    const knot = new THREE.Mesh(new THREE.BoxGeometry(), new THREE.MeshToonMaterial({ name: 'tie' }))
+    knot.name = 'yellow_tie_knot'
+    fixture.root.add(knot)
+    return { ...fixture, pivot, knot }
+  }
+  const triangleCount = (mesh) => (mesh.geometry.index ? mesh.geometry.index.count : mesh.geometry.attributes.position.count) / 3
+
+  it('uses exactly the six ids of the outfit plan, in unlock order', () => {
+    expect(ROSARI_OUTFIT_IDS).toEqual(['default', 'winter', 'raincoat', 'gym', 'apron', 'grad'])
+    expect(ROSARI_OUTFITS.map((outfit) => outfit.label)).toEqual(['학교 교복', '동복', '비옷', '체육복', '급식 당번복', '졸업'])
+    for (const id of NEW_IDS) expect(resolveRosariOutfit(id).note, id).toContain('임시안')
+  })
+
+  it('every outfit only names garment slots the wardrobe knows (plus the v9-only buttons decal)', () => {
+    const slots = new Set(['blazer', 'shirt', 'collar', 'tie', 'skirt', 'legwear', 'buttons'])
+    for (const outfit of ROSARI_OUTFITS) {
+      for (const [slot, color] of Object.entries(outfit.colors)) {
+        expect(slots, `${outfit.id}.${slot}`).toContain(slot)
+        expect(color, `${outfit.id}.${slot}`).toMatch(/^#[0-9a-f]{6}$/)
+      }
+      for (const accessory of outfit.accessories) expect(ROSARI_OUTFIT_ACCESSORY_IDS, `${outfit.id}.${accessory}`).toContain(accessory)
+    }
+  })
+
+  it.each([
+    ['raincoat', ['outfit_raincoat_hood'], ['hair']],
+    ['gym', ['outfit_gym_zipper'], ['torso']],
+    ['apron', ['outfit_apron_headScarf', 'outfit_apron_apronBib'], ['hair', 'torso']],
+    ['grad', ['outfit_grad_capCrown', 'outfit_grad_capBoard', 'outfit_grad_capTassel'], ['hair', 'hair', 'hair']],
+  ])('%s attaches its low-poly details (<=100 tris) to the torso or hair pivot', (id, names, parents) => {
+    const { root, meshes, pivot } = fixtureWithHairPivot()
+    const added = applyRosariOutfit(root, id, makeMaterial)
+    expect(added.map((mesh) => mesh.name)).toEqual(names)
+    let triangles = 0
+    added.forEach((mesh, i) => {
+      expect(mesh.parent, mesh.name).toBe(parents[i] === 'hair' ? pivot : meshes.torso)
+      expect(mesh.userData.ownedGeometry).toBe(true)
+      expect(mesh.material).toBeInstanceOf(THREE.MeshToonMaterial)
+      expect(mesh.position.lengthSq()).toBe(0)
+      triangles += triangleCount(mesh)
+    })
+    expect(triangles).toBeLessThanOrEqual(100)
+  })
+
+  it('torso details stay on the torso front and never hang below the hem (leg-swing clipping)', () => {
+    for (const id of ['gym', 'apron']) {
+      const { root, meshes } = fixtureWithHairPivot()
+      for (const mesh of applyRosariOutfit(root, id, makeMaterial).filter((m) => m.parent === meshes.torso)) {
+        mesh.geometry.computeBoundingBox()
+        const box = mesh.geometry.boundingBox
+        expect(box.min.y, mesh.name).toBeGreaterThanOrEqual(1.233)
+        expect(box.max.y, mesh.name).toBeLessThanOrEqual(1.85)
+        expect(box.min.z, mesh.name).toBeGreaterThanOrEqual(0.322)
+        expect(box.max.z, mesh.name).toBeLessThan(0.36)
+        // the bib is widest at the hem, below where the backpack straps end (y 1.409)
+        expect(Math.max(-box.min.x, box.max.x), mesh.name).toBeLessThanOrEqual(0.301)
+      }
+    }
+  })
+
+  it('head shells face outward, so toon shading and the culled inside read correctly', () => {
+    for (const id of ['raincoat', 'apron']) {
+      const { root, pivot } = fixtureWithHairPivot()
+      const shell = applyRosariOutfit(root, id, makeMaterial).find((mesh) => mesh.parent === pivot)
+      const position = shell.geometry.attributes.position
+      const index = shell.geometry.index.array
+      const v = (k) => new THREE.Vector3().fromBufferAttribute(position, k)
+      for (let t = 0; t < index.length; t += 3) {
+        const [a, b, c] = [v(index[t]), v(index[t + 1]), v(index[t + 2])]
+        const normal = new THREE.Vector3().subVectors(b, a).cross(new THREE.Vector3().subVectors(c, a))
+        const centroid = a.clone().add(b).add(c).divideScalar(3)
+        const outward = new THREE.Vector3(centroid.x - 0.0125, 0.0001, centroid.z + 0.002)
+        expect(normal.dot(outward), `${id} triangle ${t / 3}`).toBeGreaterThan(0)
+      }
+    }
+  })
+
+  it('gym hides the whole tie, apron hides only the long drop under the bib, others hide nothing', () => {
+    const visibleAfter = (id) => {
+      const { root, meshes, knot } = fixtureWithHairPivot()
+      applyRosariOutfit(root, id, makeMaterial)
+      return { knot: knot.visible, drop: meshes.tie.visible, skirt: meshes.skirt.visible, hair: meshes.hair.visible }
+    }
+    expect(visibleAfter('gym')).toEqual({ knot: false, drop: false, skirt: true, hair: true })
+    expect(visibleAfter('apron')).toEqual({ knot: true, drop: false, skirt: true, hair: true })
+    for (const id of ['default', 'winter', 'raincoat', 'grad']) {
+      expect(visibleAfter(id), id).toEqual({ knot: true, drop: true, skirt: true, hair: true })
+    }
+  })
+
+  it('keeps the bob, skin and face on their base colors; the head is covered, never recolored', () => {
+    for (const id of NEW_IDS) {
+      const { root, meshes } = fixtureWithHairPivot()
+      applyRosariOutfit(root, id, makeMaterial)
+      expect(hex(meshes.hair), id).toBe(ROSARI_BASE_COLORS.hair)
+      expect(hex(meshes.hand), id).toBe('#ffe0c9')
+      expect(hex(meshes.face), id).toBe('#ffffff')
+    }
+  })
+
+  it('skips head details (but keeps torso ones) when the hair pivot is missing', () => {
+    expect(applyRosariOutfit(rosariFixture().root, 'apron', makeMaterial).map((mesh) => mesh.name)).toEqual(['outfit_apron_apronBib'])
+    expect(applyRosariOutfit(rosariFixture().root, 'grad', makeMaterial)).toEqual([])
+  })
+
+  it('declares which player models can render each look; everything else wears the default', () => {
+    const matrix = Object.fromEntries(ROSARI_OUTFIT_IDS.map((id) => [id, ['rosari', 'v9', 'legacy'].filter((model) => isRosariOutfitSupportedOn(id, model))]))
+    expect(matrix).toEqual({
+      default: ['rosari', 'v9', 'legacy'],
+      winter: ['rosari', 'v9', 'legacy'],
+      raincoat: ['rosari', 'v9'],
+      gym: ['rosari', 'v9'],
+      apron: ['rosari'],
+      grad: ['rosari'],
+    })
+    expect(resolveRosariOutfitForModel('apron', 'v9').id).toBe('default')
+    expect(resolveRosariOutfitForModel('gym', 'legacy').id).toBe('default')
+    expect(resolveRosariOutfitForModel('gym', 'v9').id).toBe('gym')
+    expect(resolveRosariOutfitForModel('nope', 'rosari').id).toBe('default')
+  })
+
+  it('the legacy block player (also the title player) keeps its original colors for every S6 outfit', () => {
+    for (const id of NEW_IDS) {
+      for (const slot of ['blazer', 'shirt', 'collar', 'tie', 'skirt', 'legwear']) {
+        expect(resolvePlayerMeshGarmentColor(slot, 0x123456, id), `${id}.${slot}`).toBe(0x123456)
+      }
+    }
+  })
+
+  // The design doc's real risk for hoods/scarves (§9-2): a cover sized to the bob's bounding box
+  // can still let the curved bob poke through. Check every shipped bob vertex instead.
+  it('hood, head scarf and cap crown enclose every bob vertex they span, and leave the face window open', () => {
+    const glb = readFileSync(path.join(process.cwd(), 'src/assets/models/PLAYER_wholebody_refined_t_efe49b7c.glb'))
+    const jsonLength = glb.readUInt32LE(12)
+    const gltf = JSON.parse(glb.toString('utf8', 20, 20 + jsonLength))
+    const binStart = 20 + jsonLength + 8
+    const vertices = (nodeName, materialName) => {
+      const nodeEntry = gltf.nodes.find((entry) => entry.name === nodeName)
+      const out = []
+      for (const primitive of gltf.meshes[nodeEntry.mesh].primitives) {
+        if (materialName && gltf.materials[primitive.material].name !== materialName) continue
+        const accessor = gltf.accessors[primitive.attributes.POSITION]
+        const view = gltf.bufferViews[accessor.bufferView]
+        const start = binStart + (view.byteOffset || 0) + (accessor.byteOffset || 0)
+        const stride = view.byteStride || 12
+        for (let i = 0; i < accessor.count; i += 1) {
+          out.push(new THREE.Vector3(glb.readFloatLE(start + i * stride), glb.readFloatLE(start + i * stride + 4), glb.readFloatLE(start + i * stride + 8)))
+        }
+      }
+      return out
+    }
+    // The bob and the face share the hair pivot's space (both identity under head_neck_pivot).
+    const bob = vertices('continuous_fitted_reference_bob')
+    const faceFront = vertices('coherent_head_skull_UV_image_face', 'faceSkin').filter((point) => point.z > 0.25)
+    expect(bob.length).toBeGreaterThan(1000)
+    const ray = new THREE.Raycaster()
+    const shells = [['raincoat', 'outfit_raincoat_hood'], ['apron', 'outfit_apron_headScarf'], ['grad', 'outfit_grad_capCrown']]
+    for (const [id, name] of shells) {
+      const { root } = fixtureWithHairPivot()
+      const shell = applyRosariOutfit(root, id, (color) => new THREE.MeshBasicMaterial({ color, side: THREE.DoubleSide })).find((mesh) => mesh.name === name)
+      shell.updateMatrixWorld(true)
+      shell.geometry.computeBoundingBox()
+      const { min, max } = shell.geometry.boundingBox
+      const castFromAxis = (point) => {
+        const direction = new THREE.Vector3(point.x - 0.0125, 0, point.z + 0.002)
+        const distance = direction.length()
+        ray.set(new THREE.Vector3(0.0125, point.y, -0.002), direction.normalize())
+        return { distance, hit: ray.intersectObject(shell, false)[0] }
+      }
+      let covered = 0
+      for (const point of bob) {
+        if (point.y < min.y || point.y > max.y) continue
+        const { distance, hit } = castFromAxis(point)
+        if (!hit) continue // inside the open face window
+        expect(hit.distance, `${name}: bob vertex ${point.toArray().map((n) => n.toFixed(3))} pokes through`).toBeGreaterThan(distance + 0.005)
+        covered += 1
+      }
+      expect(covered, name).toBeGreaterThan(400)
+      for (const point of faceFront) {
+        if (point.y < min.y || point.y > max.y) continue
+        const { distance, hit } = castFromAxis(point)
+        expect(!hit || hit.distance > distance, `${name} covers the face at ${point.toArray().map((n) => n.toFixed(3))}`).toBe(true)
+      }
+    }
   })
 })

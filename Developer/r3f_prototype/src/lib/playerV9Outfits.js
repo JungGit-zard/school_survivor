@@ -8,13 +8,20 @@
 //
 // Applied once per scene clone (PlayerV9Model's useMemo), never per frame.
 import * as THREE from 'three'
-import { DEFAULT_ROSARI_OUTFIT_ID, ROSARI_OUTFITS, resolveRosariOutfit } from './rosariOutfits.js'
+import { DEFAULT_ROSARI_OUTFIT_ID, ROSARI_OUTFITS, resolveRosariOutfitForModel } from './rosariOutfits.js'
 
 export const DEFAULT_PLAYER_OUTFIT_ID = DEFAULT_ROSARI_OUTFIT_ID
 
 // titleSettings.playerOutfit: unknown/absent => 'default'.
 export function resolvePlayerOutfitId(value) {
   return ROSARI_OUTFITS.some((outfit) => outfit.id === value) ? value : DEFAULT_PLAYER_OUTFIT_ID
+}
+
+// The outfit id v9 actually renders. v9 can only recolor (materials + decal texels), so an
+// outfit whose look depends on added geometry (rosariOutfits.js `models` without 'v9':
+// 급식 당번복, 졸업) is worn as the default school uniform here.
+export function resolvePlayerV9OutfitId(value) {
+  return resolveRosariOutfitForModel(resolvePlayerOutfitId(value), 'v9').id
 }
 
 // v9 material name -> garment slot of the shared outfit palette.
@@ -73,9 +80,9 @@ function shadeRgb([r, g, b], shade = 1) {
 // Resolve decal rules to concrete target RGB for an outfit; rules whose slot the outfit
 // does not recolor are dropped. Returns [] for the default outfit.
 export function resolvePlayerV9DecalTargets(rules, outfitId) {
-  const id = resolvePlayerOutfitId(outfitId)
+  const id = resolvePlayerV9OutfitId(outfitId)
   if (id === DEFAULT_PLAYER_OUTFIT_ID) return []
-  const outfit = resolveRosariOutfit(id)
+  const outfit = resolveRosariOutfitForModel(id, 'v9')
   const out = []
   for (const rule of rules || []) {
     const hex = outfit.colors[rule.slot] || V9_EXTRA_SLOT_COLORS[rule.slot]
@@ -129,13 +136,13 @@ function getRecoloredDecalTexture(source, materialName, outfitId) {
 }
 
 // Recolor a freshly cloned v9 scene (its materials must already be per-clone copies).
-// The default outfit returns immediately and touches nothing.
+// The default outfit (and any outfit v9 cannot render) returns immediately and touches nothing.
 // Returns the list of { mesh, slot } recolors and decal swaps for inspection.
 export function applyPlayerV9Outfit(root, outfitId) {
-  const id = resolvePlayerOutfitId(outfitId)
+  const id = resolvePlayerV9OutfitId(outfitId)
   const applied = []
   if (id === DEFAULT_PLAYER_OUTFIT_ID || !root) return applied
-  const outfit = resolveRosariOutfit(id)
+  const outfit = resolveRosariOutfitForModel(id, 'v9')
   root.traverse((node) => {
     if (!node.isMesh || node.userData.studioRenderOutline) return
     for (const material of Array.isArray(node.material) ? node.material : [node.material]) {

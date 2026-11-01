@@ -2,6 +2,7 @@ import { getFirebaseConfig } from './firebaseAuth.js'
 import { getAdminRankingSeasonConfig } from './adminConfig.js'
 import { getSavedNickname } from './userNickname.js'
 import { t } from './i18n.js'
+import { isPlayerOutfitId } from './playerOutfitIds.js'
 import {
   kstDailyKey,
   kstWeeklyKey,
@@ -245,7 +246,7 @@ async function flushPendingBucketsNow(user) {
 }
 
 // 한 스테이지 기록을 그 보드들의 대기 버킷에 병합만 한다. 네트워크는 submitRun의 flush 한 번이 탄다.
-function enqueueRunBuckets(user, { stageId, score, stageScore = score, timeMs, globalTimeMs = timeMs, cleared, lastPlayedAt, submittedAt, rankingPeriod } = {}) {
+function enqueueRunBuckets(user, { stageId, score, stageScore = score, timeMs, globalTimeMs = timeMs, cleared, lastPlayedAt, submittedAt, rankingPeriod, outfitId } = {}) {
   // E2E 우회 유저 점수는 실랭킹에 오염되지 않게 차단
   const now = submittedAt
   const season = rankingPeriod
@@ -264,6 +265,10 @@ function enqueueRunBuckets(user, { stageId, score, stageScore = score, timeMs, g
     stageId: sid,
     submittedAt: now,
     ...(Number.isFinite(lastPlayedAt) && lastPlayedAt > 0 ? { lastPlayedAt } : {}),
+    // 선택 필드: 그 판에 입은 로자리 의상. 공개 항목은 $other:false라 규칙 허용값 밖의 값을 보내면
+    // 이 판의 6버킷 멀티패스 쓰기가 통째로 거부된다(0점 판 포함) — 허용 목록 밖이면 아예 빼고 보낸다.
+    // 옛 항목/옛 클라이언트는 이 필드가 없어도 규칙을 통과한다.
+    ...(isPlayerOutfitId(outfitId) ? { outfitId } : {}),
   }
 
   const dailyKey = rankingPeriod.dailyKey
