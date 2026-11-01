@@ -38,3 +38,22 @@ describe('Onigiri projectile visual (2026-10-30: back to the rice ball)', () => 
     expect(OnigiiriModel).toBeTypeOf('function')
   })
 })
+
+// 2026-11-01 Terry: "오니기리 움직임이 이상해, 없어지고 다시 생겨나는 오니기리는 반드시 주인공의 몸으로 부터 발사된다."
+// 표적이 도착 전에 죽으면 예전에는 주먹밥이 공중의 현재 위치(posRef)에서 사거리 제한 없이 다시 조준해 맵을 떠돌았다.
+describe('Onigiri re-launch origin (2026-11-01)', () => {
+  const source = readFileSync(new URL('./Onigiri.jsx', import.meta.url), 'utf8')
+  const projectileSource = source.slice(source.indexOf('function OnigiiriProjectile'), source.indexOf('export function OnigiiriWeapon'))
+  const weaponSource = source.slice(source.indexOf('export function OnigiiriWeapon'))
+
+  it('never re-aims a projectile from its mid-air position when the target is lost', () => {
+    expect(projectileSource).not.toContain('from: posRef.current')
+    expect(projectileSource).toContain('onDone(id, { bouncesLeft: bouncesRef.current, hitSet: hitSetRef.current })')
+  })
+
+  it('every launch, first or re-launch, starts from the current playerPos through the shared launch builder', () => {
+    expect(weaponSource).not.toContain('start:')
+    expect(weaponSource.match(/createOnigiriLaunch\(\{ id: \+\+_onigiiriId, origin: playerPos,/g)).toHaveLength(2)
+    expect(weaponSource).toContain('pickNextOnigiriTarget({ from: playerPos, hitSet: relaunch.hitSet')
+  })
+})

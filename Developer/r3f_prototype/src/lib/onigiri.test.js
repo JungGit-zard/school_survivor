@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { createOnigiriBurstGrains, pickNextOnigiriTarget } from './onigiri.js'
+import { createOnigiriBurstGrains, createOnigiriLaunch, pickNextOnigiriTarget } from './onigiri.js'
 import { enemyBodies as globalEnemyBodies, enemyPool } from './refs.js'
 import { applyEnemyHit } from './weaponCollision.js'
 
@@ -115,5 +115,34 @@ describe('onigiri targeting', () => {
     expect(grains.every((grain) => grain.speed > 0 && grain.lift > 0 && grain.size > 0)).toBe(true)
     expect(Math.max(...grains.map((grain) => grain.delayMs))).toBeLessThan(24)
     expect(new Set(grains.map((grain) => grain.angle.toFixed(3))).size).toBeGreaterThan(8)
+  })
+
+  // 2026-11-01 Terry: "없어지고 다시 생겨나는 오니기리는 반드시 주인공의 몸으로부터 발사된다".
+  it('re-launches a lost onigiri from the player body at the current frame, not from where it vanished', () => {
+    const weapon = { damage: 52.5, bounces: 6, bounceRange: 4.5, range: 18, critChance: 0.08, critMultiplier: 1.5 }
+    const firstTarget = { enemyId: 'first', rb: rb(5, 0) }
+    const player = { x: 0, y: 0.32, z: 0 }
+    const first = createOnigiriLaunch({ id: 1, origin: player, target: firstTarget, weapon })
+    expect(first.start).toEqual([0, 0.32, 0])
+    expect(first.maxBounces).toBe(6)
+    expect(first.hitIds).toEqual(['first'])
+
+    // 첫 표적이 도착 전에 죽었고, 그 사이 주인공은 (-3, 2)로 이동했다. 주먹밥은 (2.5, 0) 근처에서 사라졌다.
+    player.x = -3; player.z = 2
+    const pooled = spawnPooledEnemy(-4, 3)
+    const next = pickNextOnigiriTarget({ from: player, hitSet: new Set(first.hitIds), range: weapon.range })
+    const relaunched = createOnigiriLaunch({
+      id: 2,
+      origin: player,
+      target: next,
+      weapon,
+      relaunch: { bouncesLeft: 4, hitSet: new Set(first.hitIds) },
+    })
+
+    expect(relaunched.start).toEqual([-3, 0.32, 2])
+    expect(relaunched.initialTarget.rb).toBe(enemyPool.get(pooled.handle))
+    expect(relaunched.maxBounces).toBe(4)
+    expect(relaunched.hitIds).toEqual(['first', next.enemyId])
+    expect([relaunched.damage, relaunched.bounceRange]).toEqual([52.5, 4.5])
   })
 })

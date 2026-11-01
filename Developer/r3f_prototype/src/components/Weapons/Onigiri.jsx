@@ -6,7 +6,7 @@ import { useGameStore } from '../../store/useGameStore.js'
 import { outlineMat, toonMat, inflateScale } from '../../lib/toon.js'
 import { findClosestEnemy } from '../../lib/weaponTargeting.js'
 import { applyEnemyHit, isEnemyHitLive } from '../../lib/weaponCollision.js'
-import { createOnigiriBurstGrains, pickNextOnigiriTarget } from '../../lib/onigiri.js'
+import { createOnigiriBurstGrains, createOnigiriLaunch, pickNextOnigiriTarget } from '../../lib/onigiri.js'
 import StudioTunedGroup from '../StudioTunedGroup.jsx'
 
 let _onigiiriId  = 0
@@ -119,12 +119,12 @@ function OnigiriBurst({ id, x, z, startMs, onDone }) {
   )
 }
 
-function OnigiiriProjectile({ id, start, initialTarget, maxBounces, damage, bounceRange, critChance, critMultiplier, onDone, onBurst }) {
+function OnigiiriProjectile({ id, start, initialTarget, hitIds, maxBounces, damage, bounceRange, critChance, critMultiplier, onDone, onBurst }) {
   const groupRef   = useRef()
   const posRef     = useRef({ x: start[0], y: start[1] + 0.25, z: start[2] })
   const targetRef  = useRef(initialTarget)
   const bouncesRef = useRef(maxBounces)
-  const hitSetRef  = useRef(new Set([initialTarget.enemyId]))
+  const hitSetRef  = useRef(new Set(hitIds))
   const spinRef    = useRef(0)
   const doneRef    = useRef(false)
   const SPEED      = 11 / 8
@@ -136,15 +136,10 @@ function OnigiiriProjectile({ id, start, initialTarget, maxBounces, damage, boun
 
     const target = targetRef.current
     if (!isEnemyHitLive(target.rb, target.generation)) {
-      const next = pickNextOnigiriTarget({
-        from: posRef.current,
-        hitSet: hitSetRef.current,
-      })
-      if (!next) {
-        doneRef.current = true; onDone(id); return
-      }
-      hitSetRef.current.add(next.enemyId)
-      targetRef.current = next
+      // 날아가던 표적이 먼저 죽으면 공중에서 다시 조준하지 않는다(맵 끝까지 떠도는 원인이었다).
+      // 이 주먹밥은 사라지고, 무기가 남은 바운스를 이어받아 주인공 몸에서 다시 던진다.
+      doneRef.current = true
+      onDone(id, { bouncesLeft: bouncesRef.current, hitSet: hitSetRef.current })
       return
     }
 
@@ -208,13 +203,15 @@ export function OnigiiriWeapon() {
   const [projectiles, setProjectiles] = useState([])
   const [bursts, setBursts]           = useState([])
   const projRef      = useRef([])
+  const relaunchRef  = useRef(null)
   const lastFireRef  = useRef(0)
   const burstIdRef   = useRef(0)
   const phase   = useGameStore((s) => s.phase)
   const weapons = useGameStore((s) => s.weapons)
 
-  const expire = useCallback((id) => {
+  const expire = useCallback((id, relaunch = null) => {
     projRef.current = projRef.current.filter((p) => p.id !== id)
+    relaunchRef.current = relaunch
     setProjectiles([...projRef.current])
   }, [])
 
@@ -229,25 +226,31 @@ export function OnigiiriWeapon() {
   usePlayingFrame(({ clock }) => {
     const w = weapons.onigiri
     if (phase !== 'playing' || !w?.active) return
+    if (projRef.current.length > 0) return
+
+    // 표적을 잃고 사라진 주먹밥은 같은 투척의 연장이라 쿨다운을 다시 기다리지 않는다.
+    const relaunch = relaunchRef.current
+    relaunchRef.current = null
+    if (relaunch) {
+      const target = pickNextOnigiriTarget({ from: playerPos, hitSet: relaunch.hitSet, range: w.range ?? 18 })
+      if (target) {
+        emitSfx({ id: 'onigiriFire' })
+        const p = createOnigiriLaunch({ id: ++_onigiiriId, origin: playerPos, target, weapon: w, relaunch })
+        projRef.current = [p]
+        setProjectiles([p])
+        return
+      }
+    }
+
     const now = clock.elapsedTime * 1000
     if (now - lastFireRef.current < w.cooldown) return
-    if (projRef.current.length > 0) return
 
     const target = findClosestEnemy(w.range ?? 18)
     if (!target) return
     lastFireRef.current = now
     emitSfx({ id: 'onigiriFire' })
 
-    const p = {
-      id:            ++_onigiiriId,
-      start:         [playerPos.x, playerPos.y, playerPos.z],
-      initialTarget: target,
-      maxBounces:    w.bounces ?? 2,
-      damage:        w.damage,
-      bounceRange:   w.bounceRange ?? 4.5,
-      critChance:    w.critChance,
-      critMultiplier: w.critMultiplier,
-    }
+    const p = createOnigiriLaunch({ id: ++_onigiiriId, origin: playerPos, target, weapon: w })
     projRef.current = [p]
     setProjectiles([p])
   })

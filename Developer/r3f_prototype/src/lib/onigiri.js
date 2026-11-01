@@ -64,3 +64,23 @@ export function createOnigiriBurstGrains({ id, x, z, count = 14 }) {
     }
   })
 }
+
+// 오니기리 발사 사양의 단일 출처(2026-11-01 Terry: "없어지고 다시 생겨나는 오니기리는 반드시
+// 주인공의 몸으로부터 발사된다"). 처음 던질 때든, 표적을 잃고 사라졌다가 다시 던질 때든 출발점은
+// 언제나 이번 프레임의 주인공 몸 위치(origin = playerPos)다. 공중·이전 위치에서 재출발하지 않는다.
+// relaunch는 사라진 발사체가 남긴 바운스 수와 이미 맞힌 적 목록을 그대로 이어받는다(피해 총량 불변).
+export function createOnigiriLaunch({ id, origin, target, weapon, relaunch = null }) {
+  const hitIds = relaunch ? [...relaunch.hitSet] : []
+  hitIds.push(target.enemyId)
+  return {
+    id,
+    start:          [origin.x, origin.y, origin.z],
+    initialTarget:  target,
+    hitIds,
+    maxBounces:     relaunch ? relaunch.bouncesLeft : (weapon.bounces ?? 2),
+    damage:         weapon.damage,
+    bounceRange:    weapon.bounceRange ?? 4.5,
+    critChance:     weapon.critChance,
+    critMultiplier: weapon.critMultiplier,
+  }
+}

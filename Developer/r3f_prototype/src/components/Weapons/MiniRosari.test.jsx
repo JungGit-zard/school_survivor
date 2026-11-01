@@ -59,3 +59,52 @@ describe('MiniRosariWeapon projectile visual (mini protagonist)', () => {
     expect(game).toContain('<MiniRosariWeapon />')
   })
 })
+
+// 2026-11-01 Terry: "미니로자리도 같은 문제 있으면 고쳐" — 표적이 도착 전에 죽으면 예전에는 분신이
+// 공중의 현재 위치(posRef)에서 사거리 제한 없이 다시 조준해 맵을 떠돌았다. 이제는 사라지고 주인공 몸에서 다시 나온다.
+describe('MiniRosari re-launch origin (2026-11-01)', () => {
+  const source = readFileSync(new URL('./MiniRosari.jsx', import.meta.url), 'utf8')
+  const projectileSource = source.slice(source.indexOf('function MiniRosariProjectile'), source.indexOf('export function MiniRosariWeapon'))
+  const weaponSource = source.slice(source.indexOf('export function MiniRosariWeapon'))
+
+  it('never re-aims the clone from its mid-air position when the target is lost', () => {
+    expect(projectileSource).not.toContain('from: posRef.current')
+    expect(projectileSource).toContain('onDone(id, { bouncesLeft: bouncesRef.current, hitSet: hitSetRef.current })')
+  })
+
+  it('every launch, first or re-launch, starts from the current playerPos through the shared onigiri launch builder', () => {
+    expect(source).toContain("import { createOnigiriLaunch, pickNextOnigiriTarget } from '../../lib/onigiri.js'")
+    expect(weaponSource).not.toContain('start:')
+    expect(weaponSource.match(/createOnigiriLaunch\(\{ id: \+\+_miniRosariId, origin: playerPos,/g)).toHaveLength(2)
+    expect(weaponSource).toContain('pickNextOnigiriTarget({ from: playerPos, hitSet: relaunch.hitSet')
+  })
+})
+
+// balanceqa M1 (2026-11-01): 표적을 잃은 프레임과 바운스를 다 쓴 프레임에 분신이 공중에 멈춘 채 1~2프레임 보였다.
+describe('MiniRosari clone hides on the frame it ends (balanceqa M1)', () => {
+  const source = readFileSync(new URL('./MiniRosari.jsx', import.meta.url), 'utf8')
+  const projectileSource = source.slice(source.indexOf('function MiniRosariProjectile'), source.indexOf('export function MiniRosariWeapon'))
+
+  it('hides the clone right before both end signals, and keeps the owner-checked unmount safety net', () => {
+    expect(projectileSource).toMatch(/hideMiniRosariClone\(groupRef\.current, id\)\s+onDone\(id, \{ bouncesLeft/)
+    expect(projectileSource).toContain('doneRef.current = true; hideMiniRosariClone(groupRef.current, id); onDone(id); return')
+    expect(projectileSource).not.toMatch(/doneRef\.current = true;?\s+onDone\(id/)
+    expect(projectileSource).toMatch(/useEffect\(\(\) => \(\) => \{\s+hideMiniRosariClone\(groupRef\.current, id\)/)
+    expect(projectileSource).toMatch(/groupRef\.current\.userData\.miniRosariOwnerId = id\s+groupRef\.current\.visible = true/)
+  })
+
+  it('only the projectile that owns the clone can hide it, so a late cleanup never blinks the next clone off', async () => {
+    const { hideMiniRosariClone } = await import('./MiniRosari.jsx')
+    const group = { visible: true, userData: { miniRosariOwnerId: 2 } }
+
+    hideMiniRosariClone(group, 1) // 늦게 도는 이전 발사체 정리
+    expect(group.visible).toBe(true)
+    expect(group.userData.miniRosariOwnerId).toBe(2)
+
+    hideMiniRosariClone(group, 2) // 현재 주인이 끝남
+    expect(group.visible).toBe(false)
+    expect(group.userData.miniRosariOwnerId).toBeNull()
+
+    expect(() => hideMiniRosariClone(null, 2)).not.toThrow()
+  })
+})

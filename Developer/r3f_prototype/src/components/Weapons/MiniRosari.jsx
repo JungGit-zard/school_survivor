@@ -5,7 +5,7 @@ import { playerPos } from '../../lib/refs.js'
 import { useGameStore } from '../../store/useGameStore.js'
 import { findClosestEnemy } from '../../lib/weaponTargeting.js'
 import { applyEnemyHit, isEnemyHitLive } from '../../lib/weaponCollision.js'
-import { pickNextOnigiriTarget } from '../../lib/onigiri.js'
+import { createOnigiriLaunch, pickNextOnigiriTarget } from '../../lib/onigiri.js'
 import PlayerMesh from '../PlayerMesh.jsx'
 import PlayerV9Model from '../PlayerV9Model.jsx'
 import PlayerRosariModel from '../PlayerRosariModel.jsx'
@@ -48,12 +48,20 @@ function MiniRosariModel({ animateRef }) {
   )
 }
 
-function MiniRosariProjectile({ id, start, initialTarget, maxBounces, damage, bounceRange, critChance, critMultiplier, onDone, visualRef }) {
+// 분신은 무기당 1개를 공유한다. 끝나는 그 프레임에 바로 숨겨 공중에 멈춘 채 남지 않게 하고,
+// 지금 분신을 차지한 발사체(ownerId)만 숨길 수 있다.
+export function hideMiniRosariClone(group, id) {
+  if (!group || group.userData.miniRosariOwnerId !== id) return
+  group.visible = false
+  group.userData.miniRosariOwnerId = null
+}
+
+function MiniRosariProjectile({ id, start, initialTarget, hitIds, maxBounces, damage, bounceRange, critChance, critMultiplier, onDone, visualRef }) {
   const groupRef   = visualRef
   const posRef     = useRef({ x: start[0], y: start[1], z: start[2] })
   const targetRef  = useRef(initialTarget)
   const bouncesRef = useRef(maxBounces)
-  const hitSetRef  = useRef(new Set([initialTarget.enemyId]))
+  const hitSetRef  = useRef(new Set(hitIds))
   const hopPhaseRef = useRef(0)
   const doneRef    = useRef(false)
 
@@ -64,15 +72,11 @@ function MiniRosariProjectile({ id, start, initialTarget, maxBounces, damage, bo
 
     const target = targetRef.current
     if (!isEnemyHitLive(target.rb, target.generation)) {
-      const next = pickNextOnigiriTarget({
-        from: posRef.current,
-        hitSet: hitSetRef.current,
-      })
-      if (!next) {
-        doneRef.current = true; onDone(id); return
-      }
-      hitSetRef.current.add(next.enemyId)
-      targetRef.current = next
+      // 2026-11-01 Terry: 오니기리와 같은 규칙 — 표적이 먼저 죽으면 공중에서 다시 조준하지 않는다.
+      // 분신은 사라지고, 무기가 남은 바운스를 이어받아 주인공 몸에서 다시 내보낸다.
+      doneRef.current = true
+      hideMiniRosariClone(groupRef.current, id)
+      onDone(id, { bouncesLeft: bouncesRef.current, hitSet: hitSetRef.current })
       return
     }
 
@@ -108,7 +112,7 @@ function MiniRosariProjectile({ id, start, initialTarget, maxBounces, damage, bo
       })
 
       if (bouncesRef.current <= 0 || !next) {
-        doneRef.current = true; onDone(id); return
+        doneRef.current = true; hideMiniRosariClone(groupRef.current, id); onDone(id); return
       }
       hitSetRef.current.add(next.enemyId)
       targetRef.current = next
@@ -121,14 +125,16 @@ function MiniRosariProjectile({ id, start, initialTarget, maxBounces, damage, bo
     const hop = Math.abs(Math.sin(hopPhaseRef.current * 0.45)) * MINI_ROSARI_HOP_HEIGHT
     p.y  = start[1] - 0.32 + MINI_ROSARI_FOOT_OFFSET + hop
 
+    groupRef.current.userData.miniRosariOwnerId = id
     groupRef.current.visible = true
     groupRef.current.position.set(p.x, p.y, p.z)
     groupRef.current.rotation.set(0.18, Math.atan2(dx, dz), 0, 'YXZ')
   })
 
+  // 안전망: 제거될 때도 숨긴다. 단, 이미 다음 분신이 차지한 뒤 늦게 도는 정리는 새 분신을 끄지 않는다.
   useEffect(() => () => {
-    if (groupRef.current) groupRef.current.visible = false
-  }, [groupRef])
+    hideMiniRosariClone(groupRef.current, id)
+  }, [groupRef, id])
 
   return null
 }
@@ -136,6 +142,7 @@ function MiniRosariProjectile({ id, start, initialTarget, maxBounces, damage, bo
 export function MiniRosariWeapon() {
   const [projectiles, setProjectiles] = useState([])
   const projRef      = useRef([])
+  const relaunchRef  = useRef(null)
   const miniRef      = useRef(null)
   // 분신이 뛰어가는 동안만 true — 숨겨진 분신의 포즈 계산을 멈춘다(모바일 CPU 절약, 3c0bcbe8).
   const miniActiveRef = useRef(false)
@@ -143,8 +150,9 @@ export function MiniRosariWeapon() {
   const phase   = useGameStore((s) => s.phase)
   const weapons = useGameStore((s) => s.weapons)
 
-  const expire = useCallback((id) => {
+  const expire = useCallback((id, relaunch = null) => {
     projRef.current = projRef.current.filter((p) => p.id !== id)
+    relaunchRef.current = relaunch
     miniActiveRef.current = projRef.current.length > 0
     setProjectiles([...projRef.current])
   }, [])
@@ -152,25 +160,32 @@ export function MiniRosariWeapon() {
   usePlayingFrame(({ clock }) => {
     const w = weapons.miniRosari
     if (phase !== 'playing' || !w?.active) return
+    if (projRef.current.length > 0) return
+
+    // 표적을 잃고 사라진 분신은 같은 투척의 연장이라 쿨다운을 다시 기다리지 않는다.
+    const relaunch = relaunchRef.current
+    relaunchRef.current = null
+    if (relaunch) {
+      const target = pickNextOnigiriTarget({ from: playerPos, hitSet: relaunch.hitSet, range: w.range ?? 18 })
+      if (target) {
+        emitSfx({ id: 'onigiriFire' })
+        const p = createOnigiriLaunch({ id: ++_miniRosariId, origin: playerPos, target, weapon: w, relaunch })
+        projRef.current = [p]
+        miniActiveRef.current = true
+        setProjectiles([p])
+        return
+      }
+    }
+
     const now = clock.elapsedTime * 1000
     if (now - lastFireRef.current < w.cooldown) return
-    if (projRef.current.length > 0) return
 
     const target = findClosestEnemy(w.range ?? 18)
     if (!target) return
     lastFireRef.current = now
     emitSfx({ id: 'onigiriFire' })
 
-    const p = {
-      id:             ++_miniRosariId,
-      start:          [playerPos.x, playerPos.y, playerPos.z],
-      initialTarget:  target,
-      maxBounces:     w.bounces ?? 2,
-      damage:         w.damage,
-      bounceRange:    w.bounceRange ?? 4.5,
-      critChance:     w.critChance,
-      critMultiplier: w.critMultiplier,
-    }
+    const p = createOnigiriLaunch({ id: ++_miniRosariId, origin: playerPos, target, weapon: w })
     projRef.current = [p]
     miniActiveRef.current = true
     setProjectiles([p])
