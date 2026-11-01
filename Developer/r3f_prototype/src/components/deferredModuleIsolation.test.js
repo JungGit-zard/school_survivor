@@ -13,8 +13,13 @@ describe('initial-screen deferred module isolation', () => {
 
     expect(app).toContain("const ReadyGameApp = lazy(() => import('./components/ReadyGameApp.jsx'))")
     expect(app).not.toContain("import ReadyGameApp from './components/ReadyGameApp.jsx'")
-    expect(readyGame).toContain("const Lobby = lazy(() => import('./Lobby.jsx'))")
-    expect(readyGame).toContain("const GameplayScreen = lazy(() => import('./GameplayScreen.jsx'))")
+    // Screen loaders are named so the idle prefetch (stale-deploy guard) warms the same dynamic imports.
+    expect(readyGame).toContain("const loadLobby = () => import('./Lobby.jsx')")
+    expect(readyGame).toContain('const Lobby = lazy(loadLobby)')
+    expect(readyGame).toContain("const loadGameplayScreen = () => import('./GameplayScreen.jsx')")
+    expect(readyGame).toContain('const GameplayScreen = lazy(loadGameplayScreen)')
+    expect(readyGame).not.toContain("import Lobby from")
+    expect(readyGame).not.toContain("import GameplayScreen from")
     expect(readyGame).not.toContain("from '../store/useGameStore.js'")
     expect(title).toContain("import TitleSceneCanvas from './TitleSceneCanvas.jsx'")
     expect(title).not.toContain("from '../store/useGameStore.js'")

@@ -26,6 +26,7 @@ import { useGameStore } from '../store/useGameStore.js'
 import LobbyBgm from './LobbyBgm.jsx'
 import WeaponModal from './WeaponModal.jsx'
 import LobbySettingsModal from './LobbySettingsModal.jsx'
+import RosariRoomSignInPopup from './RosariRoomSignInPopup.jsx'
 import StageBossPreview from './StageBossPreview.jsx'
 import { StageLockPreview } from './StageLock.jsx'
 import { preloadGameCanvasChunk } from './gameCanvasLoader.js'
@@ -104,6 +105,7 @@ export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onO
   const [stageBossPreview, setStageBossPreview] = useState(() => loadStageBossPreview())
   const [showtimeStageId, setShowtimeStageId] = useState(null)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [rosariGateOpen, setRosariGateOpen] = useState(false)
   // 바깥 클릭 닫기는 생략(YAGNI) — 버튼 재클릭·Escape로 닫는다.
   useEffect(() => {
     if (!menuOpen) return undefined
@@ -315,23 +317,20 @@ export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onO
           </div>
           {/* 우상단 「로자리의 방」 진입점(메뉴와 별개의 독립 버튼). 상태바 flex 흐름 안에 있어
               스테이지 카드 오버레이(previewClearBadge/rankingButton, 카드 좌측·z3)와 겹치지 않는다. */}
-          {authUser?.uid ? (
-            <button
-              type="button"
-              className="lobby-press"
-              data-testid="lobby-rosari-room"
-              aria-label="로자리의 방"
-              style={styles.rosariRoomButton}
-              onClick={() => !showtimeStageId && onOpenRosariRoom?.()}
-            >
-              로자리의 방
-            </button>
-          ) : (
-            // 게스트에게는 버튼 대신 왜 없는지 알려주는 비인터랙티브 안내만 둔다.
-            <span data-testid="lobby-rosari-room-hint" style={styles.rosariRoomHint}>
-              로그인하면 로자리의 방이 열립니다
-            </span>
-          )}
+          {/* 라벨은 로그인 상태와 무관하게 항상 방 이름(언어 설정 따름). 게스트가 누르면 로그인 안내 팝업. */}
+          <button
+            type="button"
+            className="lobby-press"
+            data-testid="lobby-rosari-room"
+            style={styles.rosariRoomButton}
+            onClick={() => {
+              if (showtimeStageId) return
+              if (authUser?.uid) onOpenRosariRoom?.()
+              else setRosariGateOpen(true)
+            }}
+          >
+            {t('rosariRoom.title')}
+          </button>
           <button
             type="button"
             className="lobby-press"
@@ -415,6 +414,7 @@ export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onO
       {modal === 'settings' && (
         <LobbySettingsModal onClose={closeModal} onNicknameChange={setNickname} onLogoutToTitle={onLogoutToTitle} />
       )}
+      {rosariGateOpen && <RosariRoomSignInPopup onClose={() => setRosariGateOpen(false)} />}
     </div>
   )
 }
@@ -669,20 +669,6 @@ const styles = {
     lineHeight: 1.1,
     letterSpacing: 0,
     whiteSpace: 'normal',
-    wordBreak: 'keep-all',
-  },
-  // 게스트용 안내 캡슐. 우측 묶음(코인+메뉴+톱니)과 360px 한 줄에 들어가도록 폭을 좁혀
-  // 3줄(10px×1.15×3+8 ≈ 43px)로 접는다 — 44px 행 높이를 키우지 않는다.
-  rosariRoomHint: {
-    flex: '0 1 auto',
-    maxWidth: 78,
-    padding: '4px 6px',
-    borderRadius: 10,
-    background: 'rgba(255,212,230,0.88)',
-    color: '#5f2d58',
-    fontSize: 10,
-    fontWeight: 700,
-    lineHeight: 1.15,
     wordBreak: 'keep-all',
   },
   profileBlock: {

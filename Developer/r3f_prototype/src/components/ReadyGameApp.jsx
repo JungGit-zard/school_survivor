@@ -9,6 +9,7 @@ import { applyLanguage, loadTitleSettings } from '../lib/titleSettings.js'
 import { t } from '../lib/i18n.js'
 import { clearPendingStartAfterLogin, hasPendingStartAfterLogin } from '../lib/loginContinuation.js'
 import LobbyBgm from './LobbyBgm.jsx'
+import { loadGameCanvas } from './gameCanvasLoader.js'
 
 const LOBBY_MUSIC_SUB_SCREENS = new Set(['coinShop', 'ranking', 'missionCenter'])
 // 런 종료 후 로비 이동은 클라우드 저장을 기다리되, 저장이 실패·지연(오프라인)돼도 막지 않는다.
@@ -21,15 +22,43 @@ function pushGameHistoryEntry() {
   window.history.pushState({ ...(window.history.state || {}), [GAME_HISTORY_KEY]: true }, '')
 }
 
-const RosariRoom = lazy(() => import('./RosariRoom.jsx'))
+const loadRosariRoom = () => import('./RosariRoom.jsx')
+const loadLobby = () => import('./Lobby.jsx')
+const loadGameplayScreen = () => import('./GameplayScreen.jsx')
+const loadCoinShop = () => import('./CoinShop.jsx')
+const loadUserRanking = () => import('./UserRanking.jsx')
+const loadStageRanking = () => import('./StageRanking.jsx')
+const loadMissionCenter = () => import('./MissionCenter.jsx')
+
+const RosariRoom = lazy(loadRosariRoom)
 const TitleScreen = lazy(() => import('./TitleScreen.jsx'))
-const Lobby = lazy(() => import('./Lobby.jsx'))
-const GameplayScreen = lazy(() => import('./GameplayScreen.jsx'))
+const Lobby = lazy(loadLobby)
+const GameplayScreen = lazy(loadGameplayScreen)
 const SfxLayer = lazy(() => import('./SfxLayer.jsx'))
-const CoinShop = lazy(() => import('./CoinShop.jsx'))
-const UserRanking = lazy(() => import('./UserRanking.jsx'))
-const StageRanking = lazy(() => import('./StageRanking.jsx'))
-const MissionCenter = lazy(() => import('./MissionCenter.jsx'))
+const CoinShop = lazy(loadCoinShop)
+const UserRanking = lazy(loadUserRanking)
+const StageRanking = lazy(loadStageRanking)
+const MissionCenter = lazy(loadMissionCenter)
+
+// 화면 청크는 해시 파일명이라 새 배포가 올라가면 옛 파일이 사라진다. 배포 전에 열어 둔 탭이 그때
+// 처음 미션·상점 등을 열면 옛 청크를 받으려다 index.html(SPA 폴백)을 받아 "이 화면을 불러오지
+// 못했습니다"가 뜬다(2026-11-01 미션 화면). 접속 직후 한가할 때 모든 화면 청크를 미리 받아 두면
+// 모듈이 메모리에 남아 이후 배포와 상관없이 열린다. import()는 같은 모듈을 한 번만 받는다.
+export const DEFERRED_SCREEN_PREFETCH_DELAY_MS = 5000
+const DEFERRED_SCREEN_LOADERS = [
+  loadLobby, loadMissionCenter, loadCoinShop, loadUserRanking, loadStageRanking, loadRosariRoom,
+  loadGameplayScreen, () => import('./HUD.jsx'), loadGameCanvas,
+]
+
+export function prefetchDeferredScreens(loaders = DEFERRED_SCREEN_LOADERS) {
+  return Promise.allSettled(loaders.map((load) => load()))
+}
+
+// 옛 배포의 청크를 못 받은 경우(브라우저마다 문구가 다르다). 이때는 새로고침만이 해결책이다.
+export function isStaleChunkError(error) {
+  const message = String(error?.message ?? error ?? '')
+  return /dynamically imported module|Importing a module script failed|Failed to load module script|Unable to preload CSS/i.test(message)
+}
 
 let runtimeUtilitiesInitialized = false
 
@@ -107,6 +136,11 @@ export default function ReadyGameApp({
 
   useEffect(() => {
     initializeRuntimeUtilities()
+  }, [])
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => { void prefetchDeferredScreens() }, DEFERRED_SCREEN_PREFETCH_DELAY_MS)
+    return () => window.clearTimeout(timer)
   }, [])
 
   useEffect(() => {
@@ -422,7 +456,7 @@ function ScreenFailure({ label, error = null, retry = null, reload = () => windo
   return (
     <main role="alert" data-testid="deferred-screen-failure" style={styles.screenFailure}>
       <h1 style={styles.screenFailureTitle}>{label}</h1>
-      <p style={styles.screenFailureMessage}>이 화면을 불러오지 못했습니다.</p>
+      <p style={styles.screenFailureMessage}>{isStaleChunkError(error) ? t('screenFailure.newVersion') : '이 화면을 불러오지 못했습니다.'}</p>
       {detail && <pre data-testid="screen-failure-detail" style={styles.screenFailureDetail}>{detail}</pre>}
       <div style={styles.screenFailureActions}>
         {retry && <button type="button" style={styles.screenFailureButton} onClick={retry}>다시 시도</button>}

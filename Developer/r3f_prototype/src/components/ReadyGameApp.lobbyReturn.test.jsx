@@ -41,6 +41,12 @@ vi.mock('./UserRanking.jsx', () => ({
   default: ({ onBack }) => <button type="button" data-testid="ranking-back" onClick={onBack}>back</button>,
 }))
 vi.mock('./SfxLayer.jsx', () => ({ default: () => null }))
+// The deferred screen prefetch (5s after start) would otherwise pull these real, heavy modules into jsdom.
+vi.mock('./RosariRoom.jsx', () => ({ default: () => null }))
+vi.mock('./StageRanking.jsx', () => ({ default: () => null }))
+vi.mock('./HUD.jsx', () => ({ default: () => null }))
+vi.mock('./MissionCenter.jsx', () => ({ default: () => null }))
+vi.mock('./CoinShop.jsx', () => ({ default: () => null }))
 vi.mock('./VirtualJoystick.jsx', () => ({ default: () => null }))
 vi.mock('./gameCanvasLoader.js', () => ({ loadGameCanvas: async () => ({ default: () => null }) }))
 vi.mock('./E2ERuntimePerformanceDiagnostics.jsx', () => ({ default: () => null }))
