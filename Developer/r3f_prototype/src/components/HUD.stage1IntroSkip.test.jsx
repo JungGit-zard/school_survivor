@@ -39,6 +39,13 @@ describe('Stage 1 intro skip', () => {
     expect(btn.closest('[data-testid="stage-intro-catcher"]')).not.toBeNull()
   })
 
+  it('shows the Rosari portrait beside the intro line', () => {
+    const img = container.querySelector('[data-testid="stage-intro-portrait"]')
+    expect(img).not.toBeNull()
+    expect(img.getAttribute('alt')).toBe('로자리 프로필')
+    expect(img.closest('[role="dialog"]')).not.toBeNull()
+  })
+
   it('one click on Skip ends the intro with the same state as tapping through the last card', () => {
     act(() => { skipButton().dispatchEvent(new MouseEvent('pointerdown', { bubbles: true })) })
     // pointerdown on Skip must not also advance a card
@@ -47,6 +54,7 @@ describe('Stage 1 intro skip', () => {
     const skipped = pick(useGameStore.getState())
     expect(skipped).toEqual({ phase: 'playing', pauseSource: null, introDialogue: null })
     expect(container.querySelector('[data-testid="stage-intro-catcher"]')).toBeNull()
+    expect(container.querySelector('[data-testid="stage-intro-portrait"]')).toBeNull()
 
     // tap-through path still works and lands on the identical state
     act(() => useGameStore.setState({ phase: 'paused', pauseSource: 'intro', introDialogue: { index: 0 } }))

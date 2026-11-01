@@ -75,6 +75,7 @@ import lanternIconSrc from '../assets/weapon_icon/16_wea_lantern.webp'
 
 import laidManPortraitSrc from '../assets/character/laid_man.webp'
 import matildaConversationPortraitSrc from '../assets/character/matilda_conversation.webp'
+import rosariIntroPortraitSrc from '../assets/character/rosari_intro.jpg'
 import escapeSuccessSrc from '../assets/escape_success.webp'
 
 const GAMEOVER_TRANSITION_MS = 1000
@@ -2075,8 +2076,19 @@ export default function HUD({
             {t('hud.skipIntro')}
           </button>
           <div style={styles.introBox} role="dialog" aria-label={t('hud.introAria')}>
-            <div style={styles.dialogueLine} aria-live="polite">
-              {introLine(introDialogue.index)}
+            <div style={styles.introRow}>
+              <div style={styles.matildaDialoguePortraitFrame}>
+                <img
+                  data-testid="stage-intro-portrait"
+                  src={rosariIntroPortraitSrc}
+                  alt={t('hud.introPortraitAlt')}
+                  draggable={false}
+                  style={styles.matildaDialoguePortrait}
+                />
+              </div>
+              <div style={styles.dialogueLine} aria-live="polite">
+                {introLine(introDialogue.index)}
+              </div>
             </div>
             <div style={styles.dialogueHint}>
               {introDialogue.index < STAGE1_INTRO_IDS.length - 1 ? t('hud.tapToContinue') : t('hud.tapToStart')}
@@ -3682,5 +3694,12 @@ const styles = {
     textAlign: 'center',
     animation: 'studentDialoguePop 150ms ease-out',
     transformOrigin: 'center',
+  },
+  introRow: {
+    display: 'grid',
+    gridTemplateColumns: '88px 1fr',
+    alignItems: 'center',
+    gap: 12,
+    textAlign: 'left',
   },
 }
