@@ -13,6 +13,7 @@ import MatildaMesh from './MatildaMesh.jsx'
 import ProceduralFaceTestZombie from './ProceduralFaceTestZombie.jsx'
 import StudioTunedGroup, { composeStudioPartPosition, composeStudioPartRotation, composeStudioPartScale } from './StudioTunedGroup.jsx'
 import BossFacePartsOverlay from './BossFacePartsOverlay.jsx'
+import { PROJECTILE_ZOMBIE_PALETTE_ENTRIES } from '../lib/projectileZombieVisuals.js'
 
 const disableRaycast = () => null
 export const ZOMBIE_CHARACTER_CHAMFER_STEPS = 1
@@ -51,6 +52,8 @@ export const ZOMBIE_PALETTE = {
   E43: { body: 0xd8cfa8, skin: 0xb6ad86, eye: 0x2a2418, mark: 0x2f8f8a },
   E44: { body: 0x322a62, skin: 0x6d659c, eye: 0xffe3a0, mark: 0xcdc7e6 },
   E45: { body: 0x1b3d44, skin: 0x567f85, eye: 0xffe3a0, mark: 0xf2e8cc },
+  // 신규 투사체 좀비 15종(E46~E60). 정본은 lib/projectileZombieVisuals.js의 팔레트다.
+  ...PROJECTILE_ZOMBIE_PALETTE_ENTRIES,
 }
 
 // 공용 박스 좀비의 신발 색. 공유 박스 트리와 신규 포즈형이 같은 상수를 쓴다.
@@ -504,8 +507,11 @@ const POSED_ZOMBIE_NO_POSE_DELTA = Object.freeze([0, 0, 0])
 // 13개 파트 슬롯에 대한 상태 포즈 델타. state는 ZombieInstanceLayer의 phase() 값이다
 // ('warn' = 예고, 'charge' = 타격, 'stun' = 회복). 파트 슬롯 수는 바뀌지 않는다.
 export function buildPosedZombieStatePose(type, state) {
-  const rig = POSED_ZOMBIE_RIGS[type]
-  const deltas = POSED_ZOMBIE_STATE_POSE_DELTAS[type]
+  return buildPosedZombieStatePoseFromRig(POSED_ZOMBIE_RIGS[type], POSED_ZOMBIE_STATE_POSE_DELTAS[type], state)
+}
+
+// 리그 객체를 직접 받는 형태. 신규 투사체 15종(lib/projectileZombieVisuals.js)도 같은 규칙을 쓴다.
+export function buildPosedZombieStatePoseFromRig(rig, deltas, state) {
   if (!rig || !deltas) return null
   const source = state === 'warn' ? deltas.telegraph : deltas.attack
   const damping = state === 'stun' ? POSED_ZOMBIE_RECOVER_DAMPING : 1
@@ -531,7 +537,12 @@ function scaled3(base, scale) {
 // 13개 파트 슬롯의 최종 수치를 한 곳에서 계산한다. 공유 박스 트리(ZombieMesh)와
 // 고정풀 인스턴스 경로(ZombieInstanceLayer)가 이 한 표만 소비해 동일 포즈를 그린다.
 export function buildPosedZombieParts(type) {
-  const rig = POSED_ZOMBIE_RIGS[type]
+  return buildPosedZombiePartsFromRig(POSED_ZOMBIE_RIGS[type])
+}
+
+// 리그 객체를 직접 받는 형태. 신규 투사체 15종(lib/projectileZombieVisuals.js)이 같은 13슬롯
+// 수치표를 만들 때 쓴다. 공유 박스 트리와 고정풀 인스턴스 경로가 같은 표를 소비한다.
+export function buildPosedZombiePartsFromRig(rig) {
   if (!rig) return null
   const base = POSED_ZOMBIE_BASE
   const head = rig.head

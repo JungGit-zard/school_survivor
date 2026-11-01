@@ -212,7 +212,8 @@ describe('예고 중 제자리 걷기가 사라졌다', () => {
     const source = fs.readFileSync(new URL('./ZombieInstanceLayer.jsx', import.meta.url), 'utf8')
     expect(source).toContain("const planted = state === 'stun' || (posed > 0 && state === 'warn')")
     expect(source).toContain('const walk = planted ? 0 :')
-    expect(source).toContain('setPartRotation(e,part[0],time,type,state,posed)')
+    // 신규 투사체 15종(proj)도 같은 '제자리 예고' 규칙을 탄다.
+    expect(source).toContain('setPartRotation(e,part[0],time,type,state,posed||proj)')
     expect(source).toContain('POSED_STATE_POSE_BY_TYPE[posed-1][state]')
   })
 })

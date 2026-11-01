@@ -51,7 +51,9 @@ describe('EnemyEntityPool', () => {
   it('E01-E06, RZL/RZC 및 B01-B04 타입을 고정 코드로 변환한다', () => {
     expect(Object.keys(ENEMY_TYPE_CODES).filter(id=>!/^E(?:19|2[0-9]|3[0-3])$|^B0[5-9]$/.test(id))).toEqual(['E01', 'E02', 'E03', 'E04', 'E05', 'E06', 'RZL', 'RZC', 'B01', 'B02', 'B03', 'B04', 'RZT', 'RZG', 'E07', 'E08',
       // Track B 신규 12종(2026-10-25). 배열 끝에만 붙어야 기존 typeCode가 밀리지 않는다.
-      'E34', 'E35', 'E36', 'E37', 'E38', 'E39', 'E40', 'E41', 'E42', 'E43', 'E44', 'E45'])
+      'E34', 'E35', 'E36', 'E37', 'E38', 'E39', 'E40', 'E41', 'E42', 'E43', 'E44', 'E45',
+      // 신규 투사체 15종(2026-10-31, typeCode 49~63). 역시 끝에만 붙는다.
+      'E46', 'E47', 'E48', 'E49', 'E50', 'E51', 'E52', 'E53', 'E54', 'E55', 'E56', 'E57', 'E58', 'E59', 'E60'])
     expect(enemyTypeToCode('B04')).toBe(12)
     expect(enemyTypeToCode('RZT')).toBe(13)
     expect(enemyTypeToCode('RZG')).toBe(14)

@@ -1,4 +1,5 @@
 import { EXPANSION_ENEMIES, EXPANSION_BOSSES } from './expansionContent.js'
+import { PROJECTILE_ZOMBIE_FIRST_TYPE_CODE, PROJECTILE_ZOMBIE_TYPES } from './projectileZombieVisuals.js'
 // 적 런타임의 정적 슬롯 풀. React/Three/Rapier 및 저장소에 의존하지 않는다.
 export const MAX_ENEMIES = 150
 export const MAX_ENEMY_GENERATION = 0xffff
@@ -42,9 +43,12 @@ export const ENEMY_TYPE_CODES = Object.freeze({
   E43: 46,  // 엇높이교차형 (Stage 4)
   E44: 47,  // 발맞춤후퇴형 (Stage 4)
   E45: 48,  // 무게중심넘김형 (Stage 4)
+  // 49~63 = 신규 투사체 좀비 15종 E46~E60(2026-10-31). 비주얼 정본: lib/projectileZombieVisuals.js,
+  // 행동 런타임: lib/projectileZombieBehavior.js. 고정 번호 — 재배열 금지. 64는 E59 미니(2차) 예약.
+  ...Object.fromEntries(PROJECTILE_ZOMBIE_TYPES.map((id, index) => [id, PROJECTILE_ZOMBIE_FIRST_TYPE_CODE + index])),
 })
 
-// 인덱스 = typeCode. 리터럴 17개(0~16) + 확장 20개(17~36) + Track B 12개(37~48).
+// 인덱스 = typeCode. 리터럴 17개(0~16) + 확장 20개(17~36) + Track B 12개(37~48) + 투사체 15개(49~63).
 // ⚠ 순서를 바꾸면 모든 typeCode가 밀린다. 새 타입은 반드시 배열 끝에만 붙인다.
 export const NOVEL_ZOMBIE_TYPE_IDS = Object.freeze([
   'E34', 'E35', 'E36', 'E37', 'E38', 'E39', 'E40', 'E41', 'E42', 'E43', 'E44', 'E45',
@@ -54,6 +58,7 @@ export const ENEMY_TYPE_NAMES = Object.freeze([
   '', 'E01', 'E02', 'E03', 'E04', 'E05', 'E06', 'RZL', 'RZC', 'B01', 'B02', 'B03', 'B04', 'RZT', 'RZG', 'E07', 'E08',
   ...expansionRows.map(e => e.id),
   ...NOVEL_ZOMBIE_TYPE_IDS,
+  ...PROJECTILE_ZOMBIE_TYPES,
 ])
 
 const MAX_GENERATION = MAX_ENEMY_GENERATION

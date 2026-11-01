@@ -7,6 +7,8 @@ import Enemy, { ENEMY_SIZE_MULTIPLIER, ENEMY_STATS } from './Enemy.jsx'
 import { EXPANSION_STAGES, EXPANSION_ENEMIES, EXPANSION_BOSSES, isExpansionStage, isExpansionEnemy, isExpansionBoss } from '../lib/expansionContent.js'
 import { expansionSpawnPosition } from '../lib/expansionSpawns.js'
 import EnemyDeathCollapse from './EnemyDeathCollapse.jsx'
+import { ZOMBIE_PALETTE } from './ZombieMesh.jsx'
+import { purifiedStudentPool, spawnPurifiedStudent } from '../lib/purifiedStudentPool.js'
 import GoldCoin from './GoldCoin.jsx'
 import XpTextbook from './XpTextbook.jsx'
 import DancingDogeEvent from './DancingDogeEvent.jsx'
@@ -104,6 +106,13 @@ export function getEliteBonusTextbookXp(type, fallbackXp) {
 
 export function shouldDropTextbook(dropData, roll = Math.random(), elapsedSec = Infinity) {
   return (dropData?.xp ?? 0) > 0 && roll < (EXPANSION_ENEMIES[dropData?.type]?.textbookChance ?? getTextbookDropRate(elapsedSec))
+}
+
+// 부서짐 뒤 '정화된 학생' 연출(순수 시각). 일반 좀비 전원(신규 15종 포함)이 이 한 함수를 거친다.
+// 보스(B01~B09)와 마틸다는 자체 사망 연출을 유지한다. 풀이 포화이거나 프레임이 느리면 건너뛴다.
+export function emitPurifiedStudentForDeath(dropData, pool = purifiedStudentPool) {
+  if (!dropData?.pos || dropData.isMatilda || !dropData.type || isBossType(dropData.type)) return -1
+  return spawnPurifiedStudent(pool, dropData.pos[0], dropData.pos[1], dropData.pos[2], dropData.visualScale, ZOMBIE_PALETTE[dropData.type] ?? ZOMBIE_PALETTE.E01)
 }
 
 export function createDeathCollapseEntry(id, dropData) {
@@ -1505,6 +1514,7 @@ export default function Enemies() {
           styleOverride: queue.deathStyle[slot] === 1 ? 'shatter5' : undefined,
         }
         pushBounded(queue.collapses, createDeathCollapseEntry(++_collapseId, dropData), 12)
+        emitPurifiedStudentForDeath(dropData)
         if (type === 'RZT') emitRztLunchFoodDrop(pos)
         const bonus = ELITE_BONUS[type]
         if (bonus) {
@@ -1943,6 +1953,7 @@ export default function Enemies() {
     })
 
     pushBounded(runtimeQueueRef.current.collapses, createDeathCollapseEntry(++_collapseId, dropData), 12)
+    emitPurifiedStudentForDeath(dropData)
     if (dropData.type === 'RZT') emitRztLunchFoodDrop(dropData.pos)
 
     const bonus = ELITE_BONUS[dropData.type]

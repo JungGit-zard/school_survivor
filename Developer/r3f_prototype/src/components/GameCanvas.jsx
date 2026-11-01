@@ -4,6 +4,7 @@ import { Physics } from '@react-three/rapier'
 import Game from './Game.jsx'
 import DamageNumbersLayer from './DamageNumbersLayer.jsx'
 import ZombieInstanceLayer from './ZombieInstanceLayer.jsx'
+import PurifiedStudentLayer from './PurifiedStudentLayer.jsx'
 import ExpansionZombieInstanceLayer from './expansion/ExpansionZombieInstanceLayer.jsx'
 import ExpansionHazardLayer from './expansion/ExpansionHazardLayer.jsx'
 import { expansionAttackSnapshots } from '../lib/expansionAttackRuntime.js'
@@ -49,6 +50,7 @@ export default function GameCanvas({ gameKey, phase }) {
           their frame update keeps the original simulation-then-visual order. */}
       <DamageNumbersLayer resetKey={gameKey} />
       <ZombieInstanceLayer resetKey={gameKey} />
+      <PurifiedStudentLayer resetKey={gameKey} />
       <ExpansionZombieInstanceLayer resetKey={gameKey} />
       {/* E07 웃는얼굴 좀비 몸통(셰이더 얼굴이라 인스턴싱 대상이 아님). 그림자·체력바·
           스폰 연기는 위 ZombieInstanceLayer가 그대로 담당한다. */}
