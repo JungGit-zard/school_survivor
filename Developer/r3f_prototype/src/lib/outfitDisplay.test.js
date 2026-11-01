@@ -51,6 +51,17 @@ describe('outfit i18n keys', () => {
     expect(outfitKeys(ja)).toEqual(outfitKeys(ko))
   })
 
+  it('Rosari room screen keys exist in ko, en and ja, with no Korean left in en/ja', () => {
+    const roomKeys = (dict) => Object.keys(dict).filter((key) => key.startsWith('rosariRoom.')).sort()
+    expect(roomKeys(ko).length).toBeGreaterThan(0)
+    expect(roomKeys(en)).toEqual(roomKeys(ko))
+    expect(roomKeys(ja)).toEqual(roomKeys(ko))
+    for (const key of roomKeys(ko)) {
+      expect(HANGUL.test(en[key]), `en ${key}`).toBe(false)
+      expect(HANGUL.test(ja[key]), `ja ${key}`).toBe(false)
+    }
+  })
+
   it('has no brand names in the outfit copy', () => {
     const text = [ko, en, ja].flatMap((dict) => Object.entries(dict).filter(([k]) => k.startsWith('outfit.')).map(([, v]) => v)).join(' ')
     expect(text).not.toMatch(/nike|adidas|puma|uniqlo|starbucks|tesla/i)
@@ -76,7 +87,7 @@ describe('outfit display helpers', () => {
   it('switches language', () => {
     setLocale('en')
     expect(outfitEffectSummary('grad')).toBe('XP gain +8% / Damage taken +8%')
-    expect(outfitUnlockText('winter')).toBe('Escape Stage 1 once')
+    expect(outfitUnlockText('winter')).toBe('Escape Stage 1')
     setLocale('ja')
     expect(outfitEffectSummary('gym')).toBe('移動速度 +6% / 最大HP -12')
   })

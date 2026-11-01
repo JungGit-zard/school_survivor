@@ -33,6 +33,16 @@ export function OutfitTableIcon() {
   )
 }
 
+// Keeps the number glued to the word before it ("taken -8%", "Stage 1"), so a narrow column never drops
+// the value alone onto its own line. Text content is unchanged; only the wrap points move.
+function AbilityText({ text }) {
+  const lastSpace = text.lastIndexOf(' ')
+  // Only a trailing number/value is glued; plain words ("처음부터 있어요") wrap normally.
+  if (lastSpace <= 0 || !/\d/.test(text.slice(lastSpace + 1))) return text
+  const glueFrom = text.lastIndexOf(' ', lastSpace - 1) + 1
+  return <>{text.slice(0, glueFrom)}<span style={styles.nowrap}>{text.slice(glueFrom)}</span></>
+}
+
 export function OutfitAbilityList({ outfitId, compact = false }) {
   const t = useT()
   const lines = outfitAbilityLines(outfitId)
@@ -49,7 +59,7 @@ export function OutfitAbilityList({ outfitId, compact = false }) {
           style={{ ...styles.abilityLine, fontSize, color: line.positive ? PRO_COLOR : CON_COLOR }}
         >
           <span style={{ ...styles.abilityTag, borderColor: line.positive ? PRO_COLOR : CON_COLOR }}>{t(line.positive ? 'outfit.pro' : 'outfit.con')}</span>
-          {line.text}
+          <AbilityText text={line.text} />
         </li>
       ))}
     </ul>
@@ -172,7 +182,7 @@ export function OutfitFeatureTable({ onClose }) {
                         {!isOwned && <LockIcon size={11} />}{t(isOwned ? 'outfit.owned' : 'outfit.lockedBadge')}
                       </span>
                     </th>
-                    <td style={styles.td}>{outfitUnlockText(outfit.id)}</td>
+                    <td style={styles.td}><AbilityText text={outfitUnlockText(outfit.id)} /></td>
                     <td style={styles.td}><OutfitAbilityList outfitId={outfit.id} compact /></td>
                   </tr>
                 )
@@ -189,6 +199,7 @@ const buttonBase = { minHeight: 44, padding: '6px 8px', borderRadius: 12, cursor
 const badgeBase = { display: 'inline-flex', alignItems: 'center', gap: 3, marginTop: 2, padding: '1px 6px', borderRadius: 999, fontSize: 11, fontWeight: 900, lineHeight: 1.4, whiteSpace: 'nowrap' }
 
 const styles = {
+  nowrap: { whiteSpace: 'nowrap' },
   currentOutfit: { padding: 8, border: '2px solid #8a4a73', borderRadius: 12, background: '#fff3fa', fontWeight: 1000, lineHeight: 1.3 },
   currentEffect: { display: 'block', marginTop: 2, fontSize: 12, fontWeight: 800, color: '#6d4f66' },
   outfitList: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(96px, 1fr))', gap: 6, marginTop: 8 },

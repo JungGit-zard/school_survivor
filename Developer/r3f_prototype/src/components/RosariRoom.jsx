@@ -12,7 +12,7 @@ import {
 import { DEFAULT_ROSARI_OUTFIT_ID, applyRosariOutfit, resolveRosariOutfit } from '../lib/rosariOutfits.js'
 import { loadPlayerOutfit, savePlayerOutfit } from '../lib/titleSettings.js'
 import { getOwnedOutfitIds } from '../lib/outfitUnlocks.js'
-import { useT } from '../lib/i18n.js'
+import { t as translate, useT } from '../lib/i18n.js'
 import RosariWardrobeBody, { OutfitFeatureTable, OutfitTableButton } from './RosariWardrobePanel.jsx'
 import { joystickDir } from '../lib/refs.js'
 import VirtualJoystick from './VirtualJoystick.jsx'
@@ -24,7 +24,6 @@ const OUTLINE_WIDTH_PX = 2
 const OUTLINE_COLOR = 0x050209
 const MOVE_SPEED = 1.85
 const EMPTY_KEYS = Object.freeze({ up: false, down: false, left: false, right: false })
-const DIRECTION_LABELS = Object.freeze({ up: '위', down: '아래', left: '왼쪽', right: '오른쪽' })
 
 export default function RosariRoom({ onBack }) {
   const t = useT()
@@ -200,15 +199,15 @@ export default function RosariRoom({ onBack }) {
   const canUseWardrobeButton = canRosariWardrobeToggle({ wardrobeOpen, nearWardrobe })
 
   return (
-    <main ref={rootRef} style={{ ...styles.root, gridTemplateColumns: layout.sideRail ? 'minmax(0, 1fr) 158px' : 'minmax(0, 1fr)', gridTemplateRows: layout.sideRail ? 'auto minmax(0, 1fr)' : styles.root.gridTemplateRows }} aria-label="로자리의 방">
+    <main ref={rootRef} style={{ ...styles.root, gridTemplateColumns: layout.sideRail ? 'minmax(0, 1fr) 158px' : 'minmax(0, 1fr)', gridTemplateRows: layout.sideRail ? 'auto minmax(0, 1fr)' : styles.root.gridTemplateRows }} aria-label={t('rosariRoom.title')}>
       <div style={styles.header}>
-        <button type="button" style={styles.backButton} onClick={onBack}>← 타이틀</button>
+        <button type="button" style={styles.backButton} onClick={onBack}>{t('rosariRoom.back')}</button>
         <div style={styles.titleBlock}>
-          <h1 style={{ ...styles.title, ...(layout.compact ? { fontSize: 16 } : {}) }}>로자리의 방</h1>
-          <p hidden={layout.compact} style={styles.subtitle}>방을 둘러보고 옷장을 열어 복장을 골라 입어요.</p>
+          <h1 style={{ ...styles.title, ...(layout.compact ? { fontSize: 16 } : {}) }}>{t('rosariRoom.title')}</h1>
+          <p hidden={layout.compact} style={styles.subtitle}>{t('rosariRoom.subtitle')}</p>
         </div>
       </div>
-      <section ref={stageRef} style={styles.stage} aria-label="로자리 방 3D 장면">
+      <section ref={stageRef} style={styles.stage} aria-label={t('rosariRoom.sceneAria')}>
         <RoomErrorBoundary>
         <Canvas
           dpr={[1, 1.5]}
@@ -216,7 +215,7 @@ export default function RosariRoom({ onBack }) {
           camera={{ position: [0, 0, 1], fov: 50 }}
           style={styles.canvas}
         >
-          <Suspense fallback={<Html center><div role="status" style={{ ...panel, padding: 12, width: 140, color: '#5f2d58' }}>로자리의 방을 불러오는 중…</div></Html>}>
+          <Suspense fallback={<Html center><div role="status" style={{ ...panel, padding: 12, width: 140, color: '#5f2d58' }}>{t('rosariRoom.loading')}</div></Html>}>
             <RoomScene
               overview={overview}
               keyboardKeysRef={keyboardKeysRef}
@@ -231,7 +230,7 @@ export default function RosariRoom({ onBack }) {
         </RoomErrorBoundary>
         {/* Same floating joystick as gameplay: touch the 3D scene anywhere and drag. */}
         <VirtualJoystick enabled={!wardrobeOpen} phase="playing" playAreaRef={stageRef} />
-        <button type="button" aria-pressed={overview} style={styles.cameraButton} onClick={() => setOverview((value) => !value)}>{overview ? '캐릭터 따라보기' : '방 전체 보기'}</button>
+        <button type="button" aria-pressed={overview} style={styles.cameraButton} onClick={() => setOverview((value) => !value)}>{t(overview ? 'rosariRoom.followCamera' : 'rosariRoom.overviewCamera')}</button>
         {wardrobeOpen && (
           <section role="dialog" aria-modal="false" aria-label={t('outfit.wardrobe.dialogAria')} style={styles.wardrobePanel} onKeyDown={(event) => { if (event.key !== 'Escape') event.stopPropagation() }}>
             <div style={styles.wardrobeHeader}>
@@ -252,14 +251,14 @@ export default function RosariRoom({ onBack }) {
         )}
       </section>
       <div style={{ ...styles.bottomHud, gridTemplateColumns: layout.sideRail ? 'minmax(0, 1fr)' : styles.bottomHud.gridTemplateColumns, alignContent: layout.sideRail ? 'space-between' : 'end' }}>
-        <div style={styles.controlPanel} aria-label="이동 조작">
+        <div style={styles.controlPanel} aria-label={t('rosariRoom.moveControlsAria')}>
           <PadButton direction="up" style={styles.padButton} handlers={makePadHandlers('up')}>▲</PadButton>
           <PadButton direction="down" style={styles.padButton} handlers={makePadHandlers('down')}>▼</PadButton>
           <PadButton direction="left" style={styles.padButton} handlers={makePadHandlers('left')}>◀</PadButton>
           <PadButton direction="right" style={styles.padButton} handlers={makePadHandlers('right')}>▶</PadButton>
         </div>
         <div style={styles.actionPanel}>
-          <p style={styles.hint} title="방향키/WASD: 이동 · ESC: 옷장 닫기/타이틀">{nearWardrobe ? '옷장을 열어보세요' : '옷장 근처로 이동'}{!layout.compact && <><br />방향키/WASD · ESC: 닫기/타이틀</>}</p>
+          <p style={styles.hint} title={t('rosariRoom.hintTitle')}>{t(nearWardrobe ? 'rosariRoom.hintNear' : 'rosariRoom.hintFar')}{!layout.compact && <><br />{t('rosariRoom.hintKeys')}</>}</p>
           <button
             ref={wardrobeButtonRef}
             type="button"
@@ -268,7 +267,7 @@ export default function RosariRoom({ onBack }) {
             aria-expanded={wardrobeOpen}
             onClick={() => { if (canUseWardrobeButton) setWardrobeOpen((open) => !open) }}
           >
-            옷장 {wardrobeOpen ? '닫기' : '열기'}
+            {t(wardrobeOpen ? 'rosariRoom.wardrobeClose' : 'rosariRoom.wardrobeOpen')}
           </button>
         </div>
       </div>
@@ -283,12 +282,12 @@ export class RoomErrorBoundary extends Component {
   render() {
     if (this.state.failed) return (
       <div role="alert" style={{ padding: 12, overflowY: 'auto', maxHeight: '100%', boxSizing: 'border-box' }}>
-        <p>방을 불러오지 못했어요. 다시 시도하거나 위의 타이틀 버튼으로 돌아가 주세요.</p>
+        <p>{translate('rosariRoom.loadFailed')}</p>
         <button type="button" style={styles.backButton} onClick={() => {
           // Evict only a rejected room load, never a successful shared loader entry.
           if (this.state.error && rosariLoadErrors.has(this.state.error)) useGLTF.clear(ROSARI_GLB_URL)
           this.setState({ failed: false, error: null })
-        }}>다시 시도</button>
+        }}>{translate('common.retry')}</button>
       </div>
     )
     return this.props.children
@@ -296,9 +295,10 @@ export class RoomErrorBoundary extends Component {
 }
 
 function PadButton({ direction, style, handlers, children }) {
-  const label = DIRECTION_LABELS[direction] || direction
+  const t = useT()
+  const label = t(`rosariRoom.dir.${direction}`, null, direction)
   return (
-    <button type="button" style={{ ...style, ...(handlers['aria-pressed'] ? { background: '#b94f85', color: '#fff', boxShadow: 'inset 0 2px 4px #67315c' } : {}), ...(handlers.disabled ? { opacity: 0.55, cursor: 'not-allowed' } : {}) }} aria-label={`이동: ${label}`} {...handlers}>
+    <button type="button" style={{ ...style, ...(handlers['aria-pressed'] ? { background: '#b94f85', color: '#fff', boxShadow: 'inset 0 2px 4px #67315c' } : {}), ...(handlers.disabled ? { opacity: 0.55, cursor: 'not-allowed' } : {}) }} aria-label={t('rosariRoom.moveAria', { direction: label })} {...handlers}>
       {children}
     </button>
   )
