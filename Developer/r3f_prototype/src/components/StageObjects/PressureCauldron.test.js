@@ -2,7 +2,13 @@ import fs from 'node:fs'
 import React from 'react'
 import { describe, expect, it } from 'vitest'
 import * as THREE from 'three'
-import { PressureCauldronModel } from './PressureCauldron.jsx'
+import { PressureCauldronModel, getPressureCauldronBoilCue } from './PressureCauldron.jsx'
+import {
+  PRESSURE_CAULDRON_BOIL_LEAD_MS,
+  PRESSURE_CAULDRON_BURST_DURATION_MS,
+  PRESSURE_CAULDRON_DAMAGE_RADIUS,
+  PRESSURE_CAULDRON_EXPLOSION_INTERVAL_MS,
+} from '../../lib/stage4PressureCauldronHazard.js'
 import { GRAPHICS_STUDIO_CATALOG, normalizeStudioTuning } from '../../lib/graphicsStudioConfig.js'
 import { getStudioTransformProps } from '../StudioTunedGroup.jsx'
 import { STAGE_PROP_TYPES } from '../../lib/stagePropPlacements.js'
@@ -84,6 +90,21 @@ function getDirectChildComponentTypesFromModel(groupName) {
     if (!priorDocument) delete globalThis.document
   }
 }
+
+describe('pressure cauldron self-lit boil cue (P7)', () => {
+  it('ramps glow and needle sweep over the unchanged 3s boil and pulses in the last 0.45s', () => {
+    expect([PRESSURE_CAULDRON_EXPLOSION_INTERVAL_MS, PRESSURE_CAULDRON_BOIL_LEAD_MS, PRESSURE_CAULDRON_BURST_DURATION_MS, PRESSURE_CAULDRON_DAMAGE_RADIUS])
+      .toEqual([15000, 3000, 250, 3.2])
+    expect(getPressureCauldronBoilCue(0)).toEqual({ needleOffsetZ: -0, emissiveIntensity: 0.12 })
+    expect(getPressureCauldronBoilCue(0.5).emissiveIntensity).toBeCloseTo(0.51)
+    expect(getPressureCauldronBoilCue(0.5).needleOffsetZ).toBeCloseTo(-0.31)
+    expect(getPressureCauldronBoilCue(1).needleOffsetZ).toBeCloseTo(-0.62)
+    const tail = Array.from({ length: 91 }, (_, i) => getPressureCauldronBoilCue(1 - (450 - i * 5) / 3000).emissiveIntensity)
+    const peaks = tail.filter((value, i) => i > 0 && i < tail.length - 1 && value > tail[i - 1] && value >= tail[i + 1])
+    expect(peaks.length).toBeGreaterThanOrEqual(2)
+    tail.forEach((value) => expect(value).toBeLessThanOrEqual(0.9 + 1e-9))
+  })
+})
 
 describe('pressure cauldron landmark', () => {
   it('uses only depth-writing opaque toon surfaces and non-depth-writing outlines', () => {

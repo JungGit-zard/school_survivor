@@ -25,9 +25,10 @@ export const STAGE_LIGHTING_PROFILES = Object.freeze({
     { kind: 'spot', position: [-5, 7, 0], target: [0, 0, 0], color: '#FFD37A', intensity: 186, distance: 15.5, angle: 0.68, penumbra: 0.44 },
     { kind: 'spot', position: [1, 8, 16], target: [0, 0, 13], color: '#FF9A3D', intensity: 196, distance: 16.5, angle: 0.68, penumbra: 0.40 },
   ]),
+  // stage4: 작업등은 냉백 계열만 쓴다 — 따뜻한 색은 위험(솥 경고 #FFE576·국물·폭발)에만, 민트는 E04 투사체 #34D6B8과 분리.
   stage4: freezeProfile([
-    { kind: 'spot', position: [0, 7, -13], target: [0, 0, -10], color: '#8DEBD1', intensity: 168, distance: 14, angle: 0.72, penumbra: 0.42 },
-    { kind: 'spot', position: [0, 6.5, 0], target: [0, 0, 0], color: '#FFE27A', intensity: 142, distance: 11, angle: 0.62, penumbra: 0.48 },
+    { kind: 'spot', position: [0, 7, -13], target: [0, 0, -10], color: '#CFE3FF', intensity: 168, distance: 14, angle: 0.72, penumbra: 0.42 },
+    { kind: 'spot', position: [0, 6.5, 0], target: [0, 0, 0], color: '#EEF3F6', intensity: 142, distance: 11, angle: 0.62, penumbra: 0.48 },
     { kind: 'spot', position: [1.5, 7, 12], target: [0, 0, 10], color: '#DFF6FF', intensity: 162, distance: 14, angle: 0.72, penumbra: 0.42 },
   ]),
   stage6: freezeProfile([

@@ -61,7 +61,7 @@ describe('스테이지 색 구역: 런타임 광원 0개 + 바닥 굽기', () =>
     const source = readFileSync(new URL('./ClassroomFloor.jsx', import.meta.url), 'utf8')
 
     expect(source).toContain("import { buildStageFloorLightMap, stageFloorLightMapProps } from '../lib/stageFloorLightBake.js'")
-    expect(source).toContain('buildStageFloorLightMap(stageId, { width: floorPlaneWidth, depth: floorPlaneDepth })')
+    expect(source).toMatch(/buildStageFloorLightMap\(stageId, \{\s+width: floorPlaneWidth,\s+depth: floorPlaneDepth,/)
     expect(source).toContain('...stageFloorLightMapProps(lightBake)')
     expect(source).toContain('useEffect(() => () => lightBake?.texture.dispose(), [lightBake])')
 

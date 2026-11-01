@@ -56,6 +56,7 @@ import {
   startB03ShuttleRun,
 } from '../lib/b03ShuttleRun.js'
 import {
+  B04_SOUP_BLAST_TELEGRAPH_MS,
   advanceB04SoupBlast,
   consumeB04SoupBlastHit,
   createB04SoupBlastState,
@@ -734,13 +735,36 @@ function emitStage4B04Cue(type, id) {
   try { emitSfx({ id }) } catch { /* Audio listeners must not interrupt combat. */ }
 }
 
-export function B04SoupBlastVisual({ phase, circles }) {
+// P6: inner soup fill grows 0 -> full during the 1200ms telegraph, read from the
+// game-time soup state ref (frozen on pause). Fill radius never exceeds radius - 0.22.
+export function getB04SoupFillProgress(elapsedMs) {
+  return Math.min(1, Math.max(0, (elapsedMs || 0) / B04_SOUP_BLAST_TELEGRAPH_MS))
+}
+
+// Without a live soup state (standalone preview) the fill stays full, as before.
+function getB04SoupFillScale(stateRef) {
+  return stateRef?.current ? Math.max(0.001, getB04SoupFillProgress(stateRef.current.elapsedMs)) : 1
+}
+
+function B04SoupFillDriver({ fill, stateRef }) {
+  useFrame(() => {
+    const scale = getB04SoupFillScale(stateRef)
+    fill.mesh?.scale.set(scale, 1, scale)
+  })
+  return null
+}
+
+export function B04SoupBlastVisual({ phase, circles, stateRef }) {
   if ((phase !== 'telegraph' && phase !== 'explode') || circles.length === 0) return null
   const visualState = getB04SoupBlastVisualState(phase)
   const visual = B04_SOUP_BLAST_VISUALS[visualState]
+  const telegraph = visualState === 'telegraph'
+  const fillScale = telegraph ? getB04SoupFillScale(stateRef) : 1
   return (
     <group name="B04 국물 대폭발 원형 표식" userData={{ soupBlastState: visualState }}>
-      {circles.map((circle, index) => (
+      {circles.map((circle, index) => {
+        const fill = {}
+        return (
         <group key={`${index}:${circle.x}:${circle.z}`} position={[circle.x, 0, circle.z]}>
           {Array.from({ length: 8 }, (_, segment) => (
             <mesh key={segment} name="b04-soup-segment" position={[0, 0.06, 0]} rotation={[-Math.PI / 2, 0, 0]} renderOrder={9}>
@@ -748,7 +772,7 @@ export function B04SoupBlastVisual({ phase, circles }) {
               <meshBasicMaterial color={visual.outline} depthWrite={false} toneMapped={false} />
             </mesh>
           ))}
-          <mesh position={[0, 0.047, 0]}>
+          <mesh name="b04-soup-fill" ref={(mesh) => { fill.mesh = mesh }} position={[0, 0.047, 0]} scale={[fillScale, 1, fillScale]}>
             <cylinderGeometry args={[circle.radius - 0.22, circle.radius - 0.22, 0.024, 32]} />
             <meshBasicMaterial color={visual.surface} transparent opacity={visual.surfaceOpacity} depthWrite={false} toneMapped={false} />
           </mesh>
@@ -763,8 +787,10 @@ export function B04SoupBlastVisual({ phase, circles }) {
               <meshBasicMaterial color="#fff4d4" depthWrite={false} toneMapped={false} />
             </mesh>
           ))}
+          {telegraph && <B04SoupFillDriver fill={fill} stateRef={stateRef} />}
         </group>
-      ))}
+        )
+      })}
     </group>
   )
 }
@@ -1855,6 +1881,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
         <B04SoupBlastVisual
           phase={b04SoupBlastVisual.phase}
           circles={b04SoupBlastVisual.circles}
+          stateRef={b04SoupBlastRef}
         />
       )}
 

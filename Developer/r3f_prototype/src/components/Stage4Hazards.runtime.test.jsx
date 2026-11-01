@@ -119,6 +119,38 @@ describe('Stage4 actual hazard frame paths (not GPU visual acceptance)', () => {
     expect(state.scene.getObjectByName('pressure-cauldron-world-warning')).toBeUndefined()
   })
 
+  it('P7: boil sweeps the gauge needle and pulses only the cauldron-owned glow, with zero runtime lights', async () => {
+    const { getStagePropDepthWritingToonMaterial } = await import('./StageObjects/propRendering.js')
+    const sharedRed = getStagePropDepthWritingToonMaterial(0xc8382d, 0.12)
+    const { state } = await mount(<PressureCauldron />)
+    const glowMeshes = () => { const out = []; state.scene.traverse(o => { if (o.isMesh && o.material?.name === 'pressure-cauldron-boil-glow') out.push(o) }); return out }
+    let needle
+    state.scene.traverse(o => { if (o.isMesh && o.material === sharedRed && Math.abs(o.scale.x - 0.045) < 1e-9 && Math.abs(o.scale.y - 0.23) < 1e-9) needle = o.parent })
+    expect(needle).toBeTruthy()
+    expect(glowMeshes()).toHaveLength(2)
+    const glow = glowMeshes()[0].material
+    expect(glow).not.toBe(sharedRed)
+    const lights = () => { let count = 0; state.scene.traverse(o => { if (o.isLight) count += 1 }); return count }
+
+    await frame(state, 11000)
+    // Rest value is whatever Studio applied; the pulse must restore it, never overwrite it.
+    const restGlow = glow.emissiveIntensity
+    const sharedRest = sharedRed.emissiveIntensity
+    expect(needle.rotation.z).toBeCloseTo(-0.58)
+    await frame(state, 13500)
+    const midGlow = glow.emissiveIntensity
+    expect(midGlow).toBeGreaterThan(restGlow)
+    expect(needle.rotation.z).toBeLessThan(-0.58)
+    await frame(state, 14400)
+    expect(glow.emissiveIntensity).toBeGreaterThan(midGlow)
+    expect(lights()).toBe(0)
+    expect(sharedRed.emissiveIntensity).toBe(sharedRest)
+    await frame(state, 15100)
+    expect(glow.emissiveIntensity).toBe(restGlow)
+    expect(needle.rotation.z).toBeCloseTo(-0.58)
+    expect(lights()).toBe(0)
+  })
+
   it('renders soup as separated bowl-rim arcs with unchanged exact centers and radius, not a second cauldron circle', async () => {
     const circles = [{ x: -3.2, z: 7, radius: 1.1 }, { x: 3.2, z: 7, radius: 1.1 }]
     const { state, render } = await mount(<B04SoupBlastVisual phase="telegraph" circles={circles} />)
@@ -144,12 +176,25 @@ describe('Stage4 actual hazard frame paths (not GPU visual acceptance)', () => {
     await frame(state, 150002)
     const soup = () => state.scene.getObjectByName('B04 국물 대폭발 원형 표식')
     expect(soup()?.userData.soupBlastState).toBe('telegraph')
-    await frame(state, 151201, 1.199)
+    // P6: fill grows 0 -> 1 over the 1200ms game-time telegraph; never wider than radius - 0.22.
+    const fills = () => { const out = []; soup()?.traverse(o => { if (o.name === 'b04-soup-fill') out.push(o) }); return out }
+    expect(fills().length).toBeGreaterThan(0)
+    for (const fill of fills()) {
+      expect(fill.scale.x).toBeLessThan(0.01)
+      expect(fill.geometry.parameters.radiusTop).toBeCloseTo(1.1 - 0.22)
+    }
+    await frame(state, 150602, 0.6)
+    for (const fill of fills()) expect(fill.scale.x).toBeCloseTo(0.5, 1)
+    await frame(state, 151201, 0.599)
     expect(soup()?.userData.soupBlastState).toBe('telegraph')
+    for (const fill of fills()) expect(fill.scale.x).toBeGreaterThan(0.99)
     await setGame({ phase: 'paused' }); await frame(state, 151201, 30)
     expect(soup()?.userData.soupBlastState).toBe('telegraph')
+    const pausedScale = fills()[0].scale.x
+    expect(pausedScale).toBeLessThan(1)
     await setGame({ phase: 'playing' }); await frame(state, 151202, 0.001)
     expect(soup()?.userData.soupBlastState).toBe('explode')
+    for (const fill of fills()) expect(fill.scale.x).toBe(1)
     const circle = soup().children[0]
     playerPos.set(circle.position.x, 0, circle.position.z)
     const damage = useGameStore.getState().damagePlayer

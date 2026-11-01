@@ -9,6 +9,9 @@ import { getStage2CorridorWallDisplay } from '../lib/stage2CorridorWall.js'
 import { getStageBounds } from '../lib/stageConfig.js'
 import { buildStageFloorLightMap, stageFloorLightMapProps } from '../lib/stageFloorLightBake.js'
 import Stage2CorridorDecor from './Stage2CorridorDecor.jsx'
+import { getStageObjectFootprint, getStageObjectSightObstacles } from './StageObjects/stageObjectColliders.js'
+import { getStageObjectPlacements } from './StageObjects/stageObjectPlacements.js'
+import { useStagePropPlacementsVersion } from '../lib/stagePropPlacements.js'
 
 const FLOOR_SIZE = 200
 const STAGE1_TILE_WORLD_SIZE = 6.9
@@ -67,6 +70,22 @@ export function getFloorPlaneSize(stageId) {
     width: tile.floorWidth ?? tile.floorSize,
     depth: tile.floorDepth ?? tile.floorSize,
   }
+}
+
+// Stage 4 바닥 접지 음영 입력. 소품을 그리는 StageObjectLayer와 같은 resolved 배치
+// (getStageObjectPlacements)에서 막힌 가구 OBB와 가마솥 원형 발자국만 뽑는다.
+// 통과형 kitchenClutter는 시야 장애물 집합에 없어 자동으로 빠진다. 다른 스테이지는 null.
+export function getStageFloorOcclusion(stageId) {
+  if (stageId !== 'stage4') return null
+  const { halfX, halfZ } = getStageBounds(stageId)
+  const boxes = getStageObjectSightObstacles(stageId).filter(({ type }) => type !== 'pressureCauldron')
+  const circles = getStageObjectPlacements(stageId)
+    .filter(({ type }) => type === 'pressureCauldron')
+    .map((placement) => {
+      const footprint = getStageObjectFootprint(placement)
+      return { x: footprint.x, z: footprint.z, radius: Math.max(footprint.halfX, footprint.halfZ) }
+    })
+  return { boxes, circles, halfX, halfZ }
 }
 
 export const STAGE2_CORRIDOR_END = {
@@ -242,9 +261,16 @@ export default function ClassroomFloor({ stageId = 'stage1' }) {
   // 스테이지 색 구역은 실시간 SpotLight가 아니라 바닥 lightMap 한 장으로 굽는다.
   // 광원을 추가하지 않으므로 씬의 NUM_SPOT_LIGHTS는 0으로 유지된다.
   const { width: floorPlaneWidth, depth: floorPlaneDepth } = getFloorPlaneSize(stageId)
+  // Studio 배치 Apply로 stage4 소품이 움직이면 접지 음영을 다시 굽는다. 다른 스테이지는 재굽기 없음.
+  const placementsVersion = useStagePropPlacementsVersion()
+  const occlusionVersion = stageId === 'stage4' ? placementsVersion : 0
   const lightBake = useMemo(
-    () => buildStageFloorLightMap(stageId, { width: floorPlaneWidth, depth: floorPlaneDepth }),
-    [stageId, floorPlaneWidth, floorPlaneDepth],
+    () => buildStageFloorLightMap(stageId, {
+      width: floorPlaneWidth,
+      depth: floorPlaneDepth,
+      occlusion: getStageFloorOcclusion(stageId),
+    }),
+    [stageId, floorPlaneWidth, floorPlaneDepth, occlusionVersion],
   )
   useEffect(() => () => lightBake?.texture.dispose(), [lightBake])
   const stage3Texture = useMemo(() => (stageId === 'stage3' ? buildStage3WoodTexture() : null), [stageId])

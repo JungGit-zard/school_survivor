@@ -14,8 +14,11 @@ import {
   STAGE4_TILE_REPEAT_X,
   STAGE4_TILE_REPEAT_Z,
   STAGE4_TILE_WORLD_SIZE,
+  getStageFloorOcclusion,
 } from './ClassroomFloor.jsx'
 import { getStageBounds } from '../lib/stageConfig.js'
+import { STAGE_FLOOR_OCCLUSION, stageFloorOcclusionAt } from '../lib/stageFloorLightBake.js'
+import { getStageObjectPlacements } from './StageObjects/stageObjectPlacements.js'
 
 describe('ClassroomFloor tiling', () => {
   it('uses the stage01 tile asset as the repeating floor pattern', () => {
@@ -119,5 +122,42 @@ describe('ClassroomFloor tiling', () => {
     expect(existsSync(webp)).toBe(true)
     expect(existsSync(png)).toBe(false)
     expect(STAGE_FLOOR_TILES.stage4.src).toMatch(/tile_stage04_white_ceramic\.webp/)
+  })
+
+  it('bakes prop ground occlusion and the edge band into the Stage 4 floor only', () => {
+    for (const stageId of ['stage1', 'stage2', 'stage3']) expect(getStageFloorOcclusion(stageId)).toBeNull()
+
+    const occlusion = getStageFloorOcclusion('stage4')
+    const { halfX, halfZ } = getStageBounds('stage4')
+    expect(occlusion.halfX).toBe(halfX)
+    expect(occlusion.halfZ).toBe(halfZ)
+    // 막힌 가구만 음영을 받는다. 통과형 바닥 잡동사니와 가마솥 OBB는 박스 목록에 없다.
+    expect(occlusion.boxes.length).toBeGreaterThan(0)
+    expect(occlusion.boxes.some(({ type }) => type === 'kitchenClutter' || type === 'pressureCauldron')).toBe(false)
+    expect(occlusion.circles).toHaveLength(1)
+
+    const cookLine = getStageObjectPlacements('stage4').find(({ type }) => type === 'kitchenCookLine')
+    expect(stageFloorOcclusionAt(occlusion, cookLine.position[0], cookLine.position[2]))
+      .toBeCloseTo(1 - STAGE_FLOOR_OCCLUSION.strength)
+    expect(stageFloorOcclusionAt(occlusion, 0, halfZ)).toBeLessThan(1)
+  })
+
+  it('never draws a ring at the 3.2-unit cauldron warning radius on the Stage 4 floor', () => {
+    const occlusion = getStageFloorOcclusion('stage4')
+    const [cauldron] = occlusion.circles
+    expect(cauldron.radius + STAGE_FLOOR_OCCLUSION.falloff).toBeLessThan(3.2)
+    const solo = { ...occlusion, boxes: [] }
+    for (let i = 0; i < 64; i += 1) {
+      const angle = (i / 64) * Math.PI * 2
+      expect(stageFloorOcclusionAt(solo, cauldron.x + 3.2 * Math.cos(angle), cauldron.z + 3.2 * Math.sin(angle))).toBe(1)
+    }
+  })
+
+  it('re-bakes the Stage 4 floor occlusion when Studio prop placements change', () => {
+    const source = readFileSync(new URL('./ClassroomFloor.jsx', import.meta.url), 'utf8')
+    expect(source).toContain('const placementsVersion = useStagePropPlacementsVersion()')
+    expect(source).toContain("const occlusionVersion = stageId === 'stage4' ? placementsVersion : 0")
+    expect(source).toContain('occlusion: getStageFloorOcclusion(stageId)')
+    expect(source).toContain('[stageId, floorPlaneWidth, floorPlaneDepth, occlusionVersion]')
   })
 })

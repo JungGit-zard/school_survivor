@@ -140,16 +140,61 @@ function linearToSrgbByte(value) {
   return Math.round(s * 255)
 }
 
+// 접지 음영(가구 발자국)과 맵 경계 띠. lightMap rgb는 스팟 irradiance를 *더하는* 값이라
+// 0 아래로 내릴 수 없고, 가구가 몰린 벽가는 스팟 원뿔 밖이다. 그래서 같은 캔버스의 알파에
+// 계수를 굽고 바닥 머티리얼이 직접광+간접광 전체에 곱한다(draw·머티리얼·텍스처 증가 0).
+export const STAGE_FLOOR_OCCLUSION = Object.freeze({
+  strength: 0.42, // 발자국 가장자리 최대 어둡힘
+  falloff: 0.6, // 발자국 밖으로 번지는 폭(units)
+  edgeStrength: 0.45, // 맵 경계 띠 최대 어둡힘
+  edgeWidth: 0.45, // 경계 띠 폭(units)
+})
+
+// occlusion = { boxes: 시야 장애물 OBB(x,z,halfX,halfZ,cosY,sinY), circles: {x,z,radius}, halfX, halfZ }
+// 반환값은 바닥 (x, 0, z)의 빛 계수(1 = 그대로).
+export function stageFloorOcclusionAt(occlusion, x, z) {
+  const { boxes = [], circles = [], halfX, halfZ } = occlusion
+  const { strength, falloff, edgeStrength, edgeWidth } = STAGE_FLOOR_OCCLUSION
+  let gap = Infinity
+  for (const box of boxes) {
+    const dx = x - box.x
+    const dz = z - box.z
+    const outX = Math.abs(dx * box.cosY - dz * box.sinY) - box.halfX
+    const outZ = Math.abs(dx * box.sinY + dz * box.cosY) - box.halfZ
+    gap = Math.min(gap, Math.hypot(Math.max(outX, 0), Math.max(outZ, 0)))
+  }
+  for (const circle of circles) {
+    gap = Math.min(gap, Math.max(Math.hypot(x - circle.x, z - circle.z) - circle.radius, 0))
+  }
+  const edge = Math.min(halfX - Math.abs(x), halfZ - Math.abs(z))
+  return (1 - strength * (1 - smoothstep(0, falloff, gap)))
+    * (1 - edgeStrength * (1 - smoothstep(0, edgeWidth, edge)))
+}
+
+const STAGE_FLOOR_OCCLUSION_CHUNK = `#include <aomap_fragment>
+	float stageFloorOcclusion = texture2D( lightMap, vLightMapUv ).a;
+	reflectedLight.directDiffuse *= stageFloorOcclusion;
+	reflectedLight.indirectDiffuse *= stageFloorOcclusion;`
+
+function applyStageFloorOcclusion(shader) {
+  shader.fragmentShader = shader.fragmentShader.replace('#include <aomap_fragment>', STAGE_FLOOR_OCCLUSION_CHUNK)
+}
+
+const stageFloorOcclusionCacheKey = () => 'stage-floor-occlusion'
+
 // 머티리얼 생성 인자에 그대로 펼쳐 넣는다. 굽기 결과가 없으면 빈 객체라 기존 동작 그대로다.
 export function stageFloorLightMapProps(bake) {
   if (!bake) return {}
-  return { lightMap: bake.texture, lightMapIntensity: bake.intensity }
+  const props = { lightMap: bake.texture, lightMapIntensity: bake.intensity }
+  if (!bake.occlusion) return props
+  return { ...props, onBeforeCompile: applyStageFloorOcclusion, customProgramCacheKey: stageFloorOcclusionCacheKey }
 }
 
 export function buildStageFloorLightMap(stageId, {
   width,
   depth,
   resolution = STAGE_FLOOR_LIGHT_BAKE_RESOLUTION,
+  occlusion = null,
 } = {}) {
   const lights = getStageLightingProfile(stageId)
   if (lights.length === 0) return null
@@ -168,6 +213,7 @@ export function buildStageFloorLightMap(stageId, {
   if (!ctx) return null
 
   const values = new Float32Array(resolution * resolution * 3)
+  const alpha = occlusion ? new Uint8Array(resolution * resolution) : null
   const rgb = [0, 0, 0]
   let peak = 0
   for (let py = 0; py < resolution; py += 1) {
@@ -182,6 +228,7 @@ export function buildStageFloorLightMap(stageId, {
       if (rgb[0] > peak) peak = rgb[0]
       if (rgb[1] > peak) peak = rgb[1]
       if (rgb[2] > peak) peak = rgb[2]
+      if (alpha) alpha[py * resolution + px] = Math.round(stageFloorOcclusionAt(occlusion, x, z) * 255)
     }
   }
   if (!(peak > 0)) return null
@@ -193,7 +240,7 @@ export function buildStageFloorLightMap(stageId, {
     data[p] = linearToSrgbByte(values[i] * invPeak)
     data[p + 1] = linearToSrgbByte(values[i + 1] * invPeak)
     data[p + 2] = linearToSrgbByte(values[i + 2] * invPeak)
-    data[p + 3] = 255
+    data[p + 3] = alpha ? alpha[p / 4] : 255
   }
   ctx.putImageData(image, 0, 0)
 
@@ -209,5 +256,5 @@ export function buildStageFloorLightMap(stageId, {
   texture.repeat.set(repeatX, repeatY)
   texture.offset.set(offsetX, offsetY)
 
-  return { texture, intensity: peak, span }
+  return { texture, intensity: peak, span, occlusion: Boolean(alpha) }
 }

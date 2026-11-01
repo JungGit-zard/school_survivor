@@ -33,6 +33,7 @@ import {
   getB02CorridorBlockadeLineVisualState,
   getB03ShuttleRunVisualState,
   getB04SoupBlastVisualState,
+  getB04SoupFillProgress,
   hasB03ShuttleRunVisualChanged,
   getEnemySpawnSfx,
   getMatildaBodyHalfExtents,
@@ -44,7 +45,12 @@ import {
   shouldReverseMatildaChargeOnObstacle,
   shouldRenderB02CorridorBlockadeVisual,
 } from './Enemy.jsx'
-import { B04_SOUP_BLAST_RADIUS } from '../lib/b04SoupBlast.js'
+import {
+  B04_SOUP_BLAST_DAMAGE,
+  B04_SOUP_BLAST_EXPLOSION_MS,
+  B04_SOUP_BLAST_RADIUS,
+  B04_SOUP_BLAST_TELEGRAPH_MS,
+} from '../lib/b04SoupBlast.js'
 
 describe('B02 corridor blockade visual states', () => {
   it('uses cyan surfaces and dark outlines, and lights every boss-ring line at once', () => {
@@ -183,6 +189,23 @@ describe('B04 soup blast visual states', () => {
     expect(B04SoupBlastVisual({ phase: 'idle', circles })).toBeNull()
     expect(B04SoupBlastVisual({ phase: 'telegraph', circles: [] })).toBeNull()
     expect(source).toContain('<B04SoupBlastVisual')
+  })
+})
+
+describe('B04 soup telegraph fill progress (P6)', () => {
+  it('grows 0 -> 1 across the unchanged 1200ms telegraph without touching judgement constants', () => {
+    expect({
+      damage: B04_SOUP_BLAST_DAMAGE,
+      telegraphMs: B04_SOUP_BLAST_TELEGRAPH_MS,
+      explosionMs: B04_SOUP_BLAST_EXPLOSION_MS,
+      radius: B04_SOUP_BLAST_RADIUS,
+    }).toEqual({ damage: 16, telegraphMs: 1200, explosionMs: 250, radius: 1.1 })
+    const samples = [0, 300, 600, 900, 1199, 1200, 5000].map(getB04SoupFillProgress)
+    expect(samples[0]).toBe(0)
+    samples.slice(1).forEach((value, index) => expect(value).toBeGreaterThanOrEqual(samples[index]))
+    expect(getB04SoupFillProgress(600)).toBe(0.5)
+    expect(getB04SoupFillProgress(1200)).toBe(1)
+    expect(getB04SoupFillProgress(5000)).toBe(1)
   })
 })
 

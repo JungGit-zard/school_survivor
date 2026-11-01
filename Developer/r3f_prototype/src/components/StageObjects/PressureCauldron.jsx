@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useFrame } from '@react-three/fiber'
 import {
   getStagePropDepthWritingToonMaterial,
@@ -19,6 +19,7 @@ import {
 import { useGameStore } from '../../store/useGameStore.js'
 import { SpawnSmokeEffect } from '../Enemy.jsx'
 import StudioTunedGroup, {
+  composeStudioPartRotation,
   studioPartPositionOffset,
   studioPartRotationOffset,
   studioPartScaleMultiplier,
@@ -42,15 +43,36 @@ const BURST_DEBRIS = Object.freeze([
   { angle: 5.42, lift: 0.76, size: [0.22, 0.24, 0.28] },
 ])
 
+// P7: self-lit boil cue without any runtime light. Needle sweeps toward the red
+// end and the cauldron-owned glow material ramps up, pulsing 3x in the last 0.45s.
+const CAULDRON_RED = 0xc8382d
+const NEEDLE_REST_Z = -0.58
+const NEEDLE_RED_SWEEP_Z = -0.62
+const GLOW_REST = 0.12
+const GLOW_PEAK = 0.9
+const GLOW_PULSE_MS = 450
+
+export function getPressureCauldronBoilCue(boilProgress) {
+  const progress = Math.min(1, Math.max(0, boilProgress || 0))
+  const remainingMs = (1 - progress) * PRESSURE_CAULDRON_BOIL_LEAD_MS
+  const pulse = remainingMs < GLOW_PULSE_MS
+    ? 0.775 + 0.225 * Math.cos(((GLOW_PULSE_MS - remainingMs) / GLOW_PULSE_MS) * 3 * 2 * Math.PI)
+    : null
+  return {
+    needleOffsetZ: NEEDLE_RED_SWEEP_Z * progress,
+    emissiveIntensity: pulse === null ? GLOW_REST + (GLOW_PEAK - GLOW_REST) * progress : GLOW_PEAK * pulse,
+  }
+}
+
 function scaleToBaseScale(scale) {
   const source = Array.isArray(scale) ? scale : [scale ?? 1, scale ?? 1, scale ?? 1]
   return source.map((value) => value * PRESSURE_CAULDRON_BASE_SCALE)
 }
 
-function Box({ position = [0, 0, 0], rotation = [0, 0, 0], scale, material, outlined = false }) {
+function Box({ position = [0, 0, 0], rotation = [0, 0, 0], scale, material, outlined = false, groupRef }) {
   const outline = outlined ? getStagePropOutlineMaterial(0.96, 0x050209) : null
   return (
-    <group position={position} rotation={rotation}>
+    <group ref={groupRef} position={position} rotation={rotation}>
       <mesh {...STAGE_PROP_SURFACE_RENDERING} geometry={STAGE_PROP_UNIT_BOX_GEOMETRY} material={material} scale={scale} />
       {outline && (
         <mesh {...STAGE_PROP_OUTLINE_RENDERING} userData={getStagePropOutlineUserData()} geometry={STAGE_PROP_UNIT_BOX_GEOMETRY} material={outline} scale={scale.map((value) => value * OUTLINE_SCALE)} />
@@ -95,12 +117,13 @@ function Latch({ position, dark, yellow, rotation = [0, 0, 0] }) {
   )
 }
 
-function PressureCauldronHazardVisual({ basePosition = [0, 0, 0], cauldronRootRef, steam, warning, dark }) {
+function PressureCauldronHazardVisual({ basePosition = [0, 0, 0], cauldronRootRef, needleRef, glow, steam, warning, dark }) {
   const bubblesRef = useRef(null)
   const burstRef = useRef(null)
   const smokeRefs = useRef([])
   const debrisRefs = useRef([])
   const wasBurstingRef = useRef(false)
+  const glowRestRef = useRef(null)
   const [burstSmokeId, setBurstSmokeId] = useState(0)
   const bubbleGeometry = getCachedCylinderGeo(0.24, 0.19, 0.36, 8)
 
@@ -117,13 +140,26 @@ function PressureCauldronHazardVisual({ basePosition = [0, 0, 0], cauldronRootRe
       const shiver = visual.boiling ? Math.sin(elapsedMs * 0.052) * 0.04 : 0
       cauldronRootRef.current.position.set(basePosition[0] + shiver, basePosition[1], basePosition[2] - shiver * 0.45)
     }
+    const cycleProgress = (
+      elapsedMs % PRESSURE_CAULDRON_EXPLOSION_INTERVAL_MS
+      - (PRESSURE_CAULDRON_EXPLOSION_INTERVAL_MS - PRESSURE_CAULDRON_BOIL_LEAD_MS)
+    ) / PRESSURE_CAULDRON_BOIL_LEAD_MS
+    const cue = visual.boiling ? getPressureCauldronBoilCue(cycleProgress) : null
+    const needle = needleRef?.current
+    // Absolute rest pose + Studio part offset + boil sweep; Studio rotation is never overwritten.
+    if (needle) needle.rotation.z = composeStudioPartRotation(needle, 'z', NEEDLE_REST_Z, cue ? cue.needleOffsetZ : 0)
+    if (glow) {
+      if (cue) {
+        if (glowRestRef.current === null) glowRestRef.current = glow.emissiveIntensity
+        glow.emissiveIntensity = cue.emissiveIntensity
+      } else if (glowRestRef.current !== null) {
+        glow.emissiveIntensity = glowRestRef.current
+        glowRestRef.current = null
+      }
+    }
     if (bubblesRef.current) {
       bubblesRef.current.visible = visual.boiling
       if (visual.boiling) {
-        const cycleProgress = (
-          elapsedMs % PRESSURE_CAULDRON_EXPLOSION_INTERVAL_MS
-          - (PRESSURE_CAULDRON_EXPLOSION_INTERVAL_MS - PRESSURE_CAULDRON_BOIL_LEAD_MS)
-        ) / PRESSURE_CAULDRON_BOIL_LEAD_MS
         smokeRefs.current.forEach((smoke, index) => {
           if (!smoke) return
           const [, baseY] = BOILING_SMOKE_PUFFS[index]
@@ -198,13 +234,15 @@ function PressureCauldronHazardVisual({ basePosition = [0, 0, 0], cauldronRootRe
 // The runtime and Studio preview both render this exact component. Keep this
 // shared base-scale seam inside the model, while placement and Studio/Firebase
 // tuning stay on their existing canonical paths.
-export function PressureCauldronModel({ scale, position = [0, 0, 0], cauldronRootRef, ...props }) {
+export function PressureCauldronModel({ scale, position = [0, 0, 0], cauldronRootRef, needleRef, glowMaterial, ...props }) {
   const white = getStagePropDepthWritingToonMaterial(0xf3f4ef, 0.04)
   const whiteShade = getStagePropDepthWritingToonMaterial(0xd7dcd8, 0.04)
   const dark = getStagePropDepthWritingToonMaterial(0x262b30, 0.02)
   const darkEdge = getStagePropDepthWritingToonMaterial(0x101316, 0.01)
   const yellow = getStagePropDepthWritingToonMaterial(0xf0c432, 0.12)
-  const red = getStagePropDepthWritingToonMaterial(0xc8382d, 0.12)
+  const red = getStagePropDepthWritingToonMaterial(CAULDRON_RED, 0.12)
+  // Cauldron-owned clone so the boil pulse never touches the shared cached red.
+  const glow = glowMaterial ?? red
   const gauge = getStagePropDepthWritingToonMaterial(0xf7f7ef, 0.02)
   const gray = getStagePropDepthWritingToonMaterial(0x697078, 0.04)
 
@@ -228,7 +266,7 @@ export function PressureCauldronModel({ scale, position = [0, 0, 0], cauldronRoo
           <group name="pressure-cauldron-white-safety-valve" position={[-0.88, 3.52, 0.08]}>
             <Cylinder args={[0.13, 0.13, 0.20, 8]} material={dark} />
             <Cylinder position={[0, 0.18, 0]} args={[0.27, 0.27, 0.18, 10]} material={white} outlined />
-            <Cylinder position={[0, 0.31, 0]} args={[0.07, 0.07, 0.09, 8]} material={red} />
+            <Cylinder position={[0, 0.31, 0]} args={[0.07, 0.07, 0.09, 8]} material={glow} />
           </group>
           <group name="pressure-cauldron-lid-latches-and-hinges">
             <Latch position={[-1.55, 2.77, 2.48]} dark={dark} yellow={yellow} rotation={[0, -0.28, 0]} />
@@ -250,8 +288,8 @@ export function PressureCauldronModel({ scale, position = [0, 0, 0], cauldronRoo
         <group name="pressure-cauldron-gauge-and-red-indicator" position={[1.16, 3.46, 0.28]}>
           <Cylinder rotation={[Math.PI / 2, 0, 0]} args={[0.43, 0.43, 0.18, 10]} material={dark} outlined />
           <Cylinder position={[0, 0, 0.105]} rotation={[Math.PI / 2, 0, 0]} args={[0.33, 0.33, 0.035, 10]} material={gauge} outlined />
-          <Box position={[0.02, 0.08, 0.155]} rotation={[0, 0, -0.58]} scale={[0.045, 0.23, 0.035]} material={red} />
-          <Cylinder position={[0.76, -0.02, 0.07]} rotation={[Math.PI / 2, 0, 0]} args={[0.17, 0.17, 0.14, 8]} material={red} />
+          <Box groupRef={needleRef} position={[0.02, 0.08, 0.155]} rotation={[0, 0, NEEDLE_REST_Z]} scale={[0.045, 0.23, 0.035]} material={red} />
+          <Cylinder position={[0.76, -0.02, 0.07]} rotation={[Math.PI / 2, 0, 0]} args={[0.17, 0.17, 0.14, 8]} material={glow} />
           <group name="pressure-cauldron-gauge-ticks-and-needle">
             <GaugeTicks dark={dark} />
             <Cylinder position={[0, 0, 0.16]} rotation={[Math.PI / 2, 0, 0]} args={[0.06, 0.06, 0.035, 8]} material={dark} />
@@ -294,7 +332,7 @@ export function PressureCauldronModel({ scale, position = [0, 0, 0], cauldronRoo
             {[-0.35, 0.35].map((z) => <Cylinder key={z} position={[2.75, 1.02, z]} rotation={[0, 0, Math.PI / 2]} args={[0.16, 0.16, 0.18, 8]} material={dark} />)}
           </group>
         </group>
-        <PressureCauldronHazardVisual basePosition={position} cauldronRootRef={cauldronRootRef} steam={whiteShade} warning={yellow} flash={red} dark={dark} />
+        <PressureCauldronHazardVisual basePosition={position} cauldronRootRef={cauldronRootRef} needleRef={needleRef} glow={glowMaterial} steam={whiteShade} warning={yellow} dark={dark} />
       </StudioTunedGroup>
     </group>
   )
@@ -302,5 +340,12 @@ export function PressureCauldronModel({ scale, position = [0, 0, 0], cauldronRoo
 
 export default function PressureCauldron(props) {
   const cauldronRootRef = useRef(null)
-  return <><PressureCauldronModel {...props} cauldronRootRef={cauldronRootRef} /><Stage4CauldronGroundWarning /></>
+  const needleRef = useRef(null)
+  const glowMaterial = useMemo(() => {
+    const material = getStagePropDepthWritingToonMaterial(CAULDRON_RED, GLOW_REST).clone()
+    material.name = 'pressure-cauldron-boil-glow'
+    return material
+  }, [])
+  useEffect(() => () => glowMaterial.dispose(), [glowMaterial])
+  return <><PressureCauldronModel {...props} cauldronRootRef={cauldronRootRef} needleRef={needleRef} glowMaterial={glowMaterial} /><Stage4CauldronGroundWarning /></>
 }

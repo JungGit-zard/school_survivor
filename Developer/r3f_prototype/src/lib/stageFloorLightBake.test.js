@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
+import { createHash } from 'node:crypto'
 import * as THREE from 'three'
 import {
+  STAGE_FLOOR_OCCLUSION,
   accumulateStageFloorIrradiance,
   buildStageFloorLightMap,
   getStageFloorLightHalfExtent,
@@ -8,6 +10,7 @@ import {
   prepareStageFloorLights,
   sampleStageFloorIrradiance,
   stageFloorLightMapProps,
+  stageFloorOcclusionAt,
 } from './stageFloorLightBake.js'
 import { getStageLightingProfile, STAGE_LIGHTING_PROFILES } from './stageLightingProfile.js'
 
@@ -152,5 +155,154 @@ describe('바닥 색 구역 굽기 — stageLightingProfile 정본에서 유도'
   it('document가 없는 환경에서는 캔버스를 만들지 않는다', () => {
     expect(typeof document).toBe('undefined')
     expect(buildStageFloorLightMap('stage1', { width: 20, depth: 28.8 })).toBeNull()
+  })
+})
+
+// node 테스트 환경에는 document가 없어 캔버스 대신 putImageData 바이트만 받아 두는 가짜를 쓴다.
+function bakeWithFakeCanvas(stageId, options) {
+  let image = null
+  globalThis.document = {
+    createElement: () => ({
+      getContext: () => ({
+        createImageData: (w, h) => ({ width: w, height: h, data: new Uint8ClampedArray(w * h * 4) }),
+        putImageData: (next) => { image = next },
+      }),
+    }),
+  }
+  try {
+    const bake = buildStageFloorLightMap(stageId, options)
+    return { bake, data: image?.data ?? null }
+  } finally {
+    delete globalThis.document
+  }
+}
+
+const sha256 = (bytes) => createHash('sha256').update(bytes).digest('hex')
+
+describe('P2 — stage4 작업등은 위험 경고색과 겹치지 않는다', () => {
+  const stage4 = prepareStageFloorLights(getStageLightingProfile('stage4'))
+  // 선형 RGB 기준 채도(HSV S)와 색상. HSL 채도는 흰색 근처에서 1로 튀어 쓰지 않는다.
+  const chroma = ([r, g, b]) => {
+    const max = Math.max(r, g, b)
+    return { s: 1 - Math.min(r, g, b) / max, h: new THREE.Color(r / max, g / max, b / max).getHSL({}).h }
+  }
+  const colorChroma = (hex) => {
+    const c = new THREE.Color(hex)
+    return chroma([c.r, c.g, c.b])
+  }
+
+  it('가마솥 경고 링 반경 3.2 units(0.8블록)의 바닥 빛은 무채색에 가깝고 노랑이 아니다', () => {
+    const warning = colorChroma('#FFE576')
+    for (const [x, z] of [[3.2, 0], [-3.2, 0], [0, 3.2], [0, -3.2], [2.26, 2.26]]) {
+      const baked = accumulateStageFloorIrradiance(stage4, x, z)
+      expect(luminance(baked)).toBeGreaterThan(0)
+      const floor = chroma(baked)
+      expect(floor.s).toBeLessThan(0.2)
+      // 경고 링은 진한 노랑이다. 바닥 빛과 채도 차이로 확실히 갈라진다.
+      expect(warning.s - floor.s).toBeGreaterThan(0.5)
+      // 냉백: 파랑 채널이 빨강 채널 이상(따뜻한 쪽으로 기울지 않음).
+      expect(baked[2]).toBeGreaterThanOrEqual(baked[0])
+    }
+  })
+
+  it('북쪽 구역은 E04 투사체 청록 #34D6B8과 색상(hue)이 분리된다', () => {
+    const projectile = colorChroma('#34D6B8')
+    const north = chroma(accumulateStageFloorIrradiance(stage4, 0, -10))
+    expect(Math.abs(north.h - projectile.h)).toBeGreaterThan(0.08)
+    expect(north.s).toBeLessThan(projectile.s / 2)
+  })
+})
+
+describe('P1 — stage4 접지 음영·경계 띠 계수', () => {
+  const box = { x: 0, z: 0, halfX: 1, halfZ: 0.5, cosY: 1, sinY: 0 }
+  const occlusion = { boxes: [box], circles: [{ x: 5, z: 0, radius: 1.47 }], halfX: 9.36, halfZ: 16 }
+
+  it('막힌 가구 발자국 가장자리가 주변 바닥보다 어둡고 falloff 밖은 그대로다', () => {
+    expect(stageFloorOcclusionAt(occlusion, 0, 0)).toBeCloseTo(1 - STAGE_FLOOR_OCCLUSION.strength)
+    expect(stageFloorOcclusionAt(occlusion, 1.2, 0)).toBeLessThan(1)
+    expect(stageFloorOcclusionAt(occlusion, 1 + STAGE_FLOOR_OCCLUSION.falloff + 0.01, 0)).toBe(1)
+  })
+
+  it('OBB 회전을 따른다 — 90° 돌린 발자국은 z축으로 길다', () => {
+    const turned = { ...occlusion, circles: [], boxes: [{ ...box, cosY: 0, sinY: 1 }] }
+    expect(stageFloorOcclusionAt(turned, 0, 0.9)).toBeCloseTo(1 - STAGE_FLOOR_OCCLUSION.strength)
+    expect(stageFloorOcclusionAt(turned, 1.2, 0)).toBe(1)
+  })
+
+  it('가마솥은 원형 발자국 음영만 있고 경고 반경 3.2 units에 테두리를 그리지 않는다', () => {
+    const solo = { boxes: [], circles: [{ x: 0, z: 0, radius: 1.47 }], halfX: 9.36, halfZ: 16 }
+    for (let i = 0; i < 32; i += 1) {
+      const a = (i / 32) * Math.PI * 2
+      expect(stageFloorOcclusionAt(solo, 3.2 * Math.cos(a), 3.2 * Math.sin(a))).toBe(1)
+    }
+    expect(stageFloorOcclusionAt(solo, 1.47, 0)).toBeCloseTo(1 - STAGE_FLOOR_OCCLUSION.strength)
+    // 반경이 늘수록 단조 밝아진다(링 모양 극소 없음).
+    let previous = 0
+    for (let r = 1.47; r <= 3.2; r += 0.05) {
+      const value = stageFloorOcclusionAt(solo, r, 0)
+      expect(value).toBeGreaterThanOrEqual(previous)
+      previous = value
+    }
+  })
+
+  it('맵 네 변에 어두운 경계 띠가 있고 안쪽은 영향이 없다', () => {
+    const empty = { boxes: [], circles: [], halfX: 9.36, halfZ: 16 }
+    const edgeValue = 1 - STAGE_FLOOR_OCCLUSION.edgeStrength
+    expect(stageFloorOcclusionAt(empty, 9.36, 0)).toBeCloseTo(edgeValue)
+    expect(stageFloorOcclusionAt(empty, -9.36, 0)).toBeCloseTo(edgeValue)
+    expect(stageFloorOcclusionAt(empty, 0, 16)).toBeCloseTo(edgeValue)
+    expect(stageFloorOcclusionAt(empty, 0, -16)).toBeCloseTo(edgeValue)
+    expect(stageFloorOcclusionAt(empty, 9.36 - STAGE_FLOOR_OCCLUSION.edgeWidth - 0.01, 0)).toBe(1)
+    expect(stageFloorOcclusionAt(empty, 0, 0)).toBe(1)
+  })
+})
+
+describe('P1 — 굽기 결과', () => {
+  // 변경 전과 같은 rgb 경로 + 알파 255. stage1~3 바이트가 1바이트라도 바뀌면 이 해시가 깨진다.
+  const STAGE_1_TO_3_BAKE_SHA256 = {
+    stage1: '402d5661d88746457b98d71856da6de8fa16e3a0432a12e7a425765087f839e8',
+    stage2: '9c897eb5c76eb668b5155be64166b85e0581daa1f57015b9c8035f2956195725',
+    stage3: '08f9e2813a24671a3d4e075376c920e308b62f09e9d94c971a588a590f9497df',
+  }
+  const FLOOR_SIZES = { stage1: [20, 28.8], stage2: [200, 200], stage3: [200, 200] }
+
+  it.each(['stage1', 'stage2', 'stage3'])('%s lightMap 픽셀은 바뀌지 않고 접지 음영 셰이더도 붙지 않는다', (stageId) => {
+    const [width, depth] = FLOOR_SIZES[stageId]
+    const { bake, data } = bakeWithFakeCanvas(stageId, { width, depth })
+    expect(sha256(data)).toBe(STAGE_1_TO_3_BAKE_SHA256[stageId])
+    expect(bake.occlusion).toBe(false)
+    expect(stageFloorLightMapProps(bake).onBeforeCompile).toBeUndefined()
+    for (let p = 3; p < data.length; p += 4) if (data[p] !== 255) throw new Error(`alpha ${p}`)
+  })
+
+  it('stage4 접지 음영은 알파에만 들어가고 rgb·intensity는 그대로다', () => {
+    const occlusion = { boxes: [{ x: 0, z: -10, halfX: 1, halfZ: 1, cosY: 1, sinY: 0 }], circles: [], halfX: 9.36, halfZ: 16 }
+    const plain = bakeWithFakeCanvas('stage4', { width: 18.72, depth: 32 })
+    const occluded = bakeWithFakeCanvas('stage4', { width: 18.72, depth: 32, occlusion })
+    expect(occluded.bake.intensity).toBe(plain.bake.intensity)
+    expect(occluded.bake.occlusion).toBe(true)
+    let dimmed = 0
+    for (let p = 0; p < plain.data.length; p += 4) {
+      expect(occluded.data[p]).toBe(plain.data[p])
+      expect(occluded.data[p + 1]).toBe(plain.data[p + 1])
+      expect(occluded.data[p + 2]).toBe(plain.data[p + 2])
+      if (occluded.data[p + 3] < 255) dimmed += 1
+    }
+    expect(dimmed).toBeGreaterThan(0)
+  })
+
+  it('접지 음영 바닥 머티리얼은 같은 lightMap 알파를 전체 확산광에 곱한다(머티리얼·광원 추가 없음)', () => {
+    const props = stageFloorLightMapProps({ texture: 'tex', intensity: 2, occlusion: true })
+    expect(props.lightMap).toBe('tex')
+    expect(props.lightMapIntensity).toBe(2)
+    const shader = { fragmentShader: ['a', '#include <aomap_fragment>', 'b'].join('\n') }
+    props.onBeforeCompile(shader)
+    expect(shader.fragmentShader).toContain('texture2D( lightMap, vLightMapUv ).a')
+    expect(shader.fragmentShader).toContain('reflectedLight.directDiffuse *= stageFloorOcclusion')
+    expect(shader.fragmentShader).toContain('reflectedLight.indirectDiffuse *= stageFloorOcclusion')
+    expect(props.customProgramCacheKey()).toBe('stage-floor-occlusion')
+    const material = new THREE.MeshLambertMaterial({ map: null, ...props, lightMap: null })
+    expect(material.onBeforeCompile).toBe(props.onBeforeCompile)
+    material.dispose()
   })
 })
