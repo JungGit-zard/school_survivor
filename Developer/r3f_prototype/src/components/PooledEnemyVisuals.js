@@ -64,7 +64,9 @@ export function shouldRenderPooledEnemyPart(type, partIndex, tier) {
     if (tier === ENEMY_RENDER_MID) return partIndex !== 34 && partIndex !== 35 && partIndex !== 36 && partIndex !== 37 && partIndex !== 39 && partIndex !== 40 && partIndex !== 42 && partIndex !== 44 && partIndex !== 46 && partIndex !== 48
     return partIndex === 33 || partIndex === 38 || partIndex === 41 || partIndex === 43 || partIndex === 45 || partIndex === 46 || partIndex === 47 || partIndex === 48
   }
-  if (type === 14) {
+  // Guard (14) and the single E08 coin monster (16, slots 66-80) have no
+  // default-slot core, so the generic far rule would drop their whole body.
+  if (type === 14 || type === 16) {
     return true
   }
   if (type === 7 || type === 8) {

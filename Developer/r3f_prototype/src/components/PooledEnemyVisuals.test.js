@@ -163,6 +163,13 @@ describe('pooled enemy visual pure contracts', () => {
     expect(runFar).toBeLessThan(runNear)
   })
 
+  it('keeps the E08 coin monster (slots 66-80) fully visible at far LOD so it never vanishes beyond ~11u', () => {
+    for (let index = 66; index <= 80; index += 1) {
+      expect(shouldRenderPooledEnemyPart(16, index, ENEMY_RENDER_FAR)).toBe(true)
+      expect(shouldRenderPooledEnemyPart(16, index, ENEMY_RENDER_MID)).toBe(true)
+    }
+  })
+
   it('staggers sight checks and immediately refreshes a reused generation', () => {
     let checks = 0
     for (let frame = 0; frame < 12; frame += 1) for (let slot = 0; slot < 200; slot += 1) if (shouldRefreshEnemySight(ENEMY_RENDER_CULLED, slot, frame, 1, 1)) checks += 1
