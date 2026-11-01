@@ -54,10 +54,10 @@ export function nextPlayerAppearance(current) {
 }
 
 const _v = { x: 0, y: 0, z: 0 }
-const INV_DURATION = 520
+export const INV_DURATION = 520
 const TURN_SPEED = 14
 const PLAYER_HIT_KNOCKBACK_SPEED = 4
-const PLAYER_HIT_KNOCKBACK_MS = 160
+export const PLAYER_HIT_KNOCKBACK_MS = 160
 // 2026-10-28 Terry 모바일 피드백: "회복 시각효과가 지나치다". 흡혈·랜턴처럼 회복이 잦아져도
 // 화면을 덮지 않도록 작게·짧게·옅게 줄이고, 재생 중이거나 직전 재생 직후의 회복 토큰은 새로
 // 재생하지 않는다(동시 이펙트 최대 1개, 최소 재생 간격). 그래도 한 번의 회복은 분명히 보인다.

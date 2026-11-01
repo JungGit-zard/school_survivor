@@ -876,7 +876,7 @@ export function bossEscortSize() {
 // 타게 되고(E07이 겪은 것과 같은 함정), 버스트에서 대체한 host와 총 HP가 갈라져 밀도 파생값이 움직인다.
 // hp가 host와 같게 못박혀 있으므로(Enemy.jsx NOVEL_ZOMBIE_STATS) 이 집합에 넣기만 하면
 // stageExpectedBaseJarmobHp / stageBurstJarmobBaseHp / stageJarmobLoadWindows가 비트 단위로 보존된다.
-const JARMOB_HP_TYPES = new Set([
+export const JARMOB_HP_TYPES = new Set([
   'E01', 'E02', 'E03', 'E04', 'E05', 'E06', 'E07',
   'E34', 'E35', 'E36', 'E37', 'E38', 'E39', 'E40', 'E41', 'E42', 'E43', 'E44', 'E45',
 ])

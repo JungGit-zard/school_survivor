@@ -47,7 +47,7 @@ const PLAYER_SPEED = 3
 const INVULNERABLE_MS = 520
 const CONTACT_COOLDOWN_GRACE = 0 // 접촉 쿨다운은 시뮬레이션이 이미 관리한다
 
-function mulberry32(seed) {
+export function mulberry32(seed) {
   let state = seed >>> 0
   return () => {
     state = (state + 0x6d2b79f5) >>> 0
@@ -95,8 +95,11 @@ function resolveFleeDirection(out, threatRadius) {
   return true
 }
 
-function nearestEnemyInRange(range) {
+// specials: 풀 밖 적(보스·마틸다, React/Rapier 경로)을 같은 조준·관통 규칙에 넣기 위한 선택 인자.
+// 각 원소는 { alive, x, z, halfWidth, applyHit(damage) }. 생략하면 기존(풀 전용) 동작과 같다.
+function nearestEnemyInRange(range, specials = null) {
   let bestIndex = -1
+  let bestSpecial = null
   let bestDistSq = range * range
   for (let index = 0; index <= enemyPool.highestActive; index += 1) {
     if (!enemyPool.active[index]) continue
@@ -108,17 +111,32 @@ function nearestEnemyInRange(range) {
       bestIndex = index
     }
   }
-  return bestIndex
+  if (specials) {
+    for (const special of specials) {
+      if (!special.alive) continue
+      const dx = special.x - playerPos.x
+      const dz = special.z - playerPos.z
+      const distSq = dx * dx + dz * dz
+      if (distSq < bestDistSq) {
+        bestDistSq = distSq
+        bestSpecial = special
+        bestIndex = -1
+      }
+    }
+  }
+  if (bestSpecial) return { x: bestSpecial.x, z: bestSpecial.z }
+  if (bestIndex < 0) return null
+  return { x: enemyPool.posX[bestIndex], z: enemyPool.posZ[bestIndex] }
 }
 
 // 연필: 쿨다운마다 사거리 안 최근접 적을 향해 발사하고 pierce 수만큼 관통한다.
 // 투사체 비행을 프레임 단위로 재현하는 대신, 발사 축 위 pierce명에게 즉시 적용한다.
 // 초반 밸런스(처치 속도) 측정에는 비행 시간보다 발사 간격·관통 수가 지배적이다.
-function firePencil(weapon, stats, onKill) {
-  const targetIndex = nearestEnemyInRange(weapon.range)
-  if (targetIndex < 0) return
-  const dirX = enemyPool.posX[targetIndex] - playerPos.x
-  const dirZ = enemyPool.posZ[targetIndex] - playerPos.z
+export function firePencil(weapon, stats, onKill, specials = null) {
+  const target = nearestEnemyInRange(weapon.range, specials)
+  if (!target) return false
+  const dirX = target.x - playerPos.x
+  const dirZ = target.z - playerPos.z
   const length = Math.hypot(dirX, dirZ) || 1
   const nx = dirX / length
   const nz = dirZ / length
@@ -132,10 +150,27 @@ function firePencil(weapon, stats, onKill) {
     if (forward < 0 || forward > weapon.range) continue
     const lateral = Math.abs(dx * nz - dz * nx)
     if (lateral > 0.28 * ENEMY_SIZE_MULTIPLIER) continue
-    hits.push({ index, forward })
+    hits.push({ index, forward, special: null })
+  }
+  if (specials) {
+    for (const special of specials) {
+      if (!special.alive) continue
+      const dx = special.x - playerPos.x
+      const dz = special.z - playerPos.z
+      const forward = dx * nx + dz * nz
+      if (forward < 0 || forward > weapon.range) continue
+      const lateral = Math.abs(dx * nz - dz * nx)
+      if (lateral > Math.max(0.28 * ENEMY_SIZE_MULTIPLIER, special.halfWidth ?? 0)) continue
+      hits.push({ index: -1, forward, special })
+    }
   }
   hits.sort((a, b) => a.forward - b.forward)
   for (let hit = 0; hit < Math.min(weapon.pierce, hits.length); hit += 1) {
+    if (hits[hit].special) {
+      hits[hit].special.applyHit(weapon.damage)
+      stats.shotsHit += 1
+      continue
+    }
     const index = hits[hit].index
     const generation = enemyPool.generation[index]
     // 실제 게임(pooledHitBridge)과 같은 순서: 데미지 적용 전에 처치 여부와 보상을 확정한다.
@@ -148,6 +183,7 @@ function firePencil(weapon, stats, onKill) {
     stats.shotsHit += 1
   }
   stats.shotsFired += 1
+  return true
 }
 
 /**
@@ -216,6 +252,10 @@ export function runStageBalanceRun({
   }
 
   resetRuntimeRefs()
+  // 결정론: 풀 reset()은 슬롯 세대를 +1만 하므로 판을 거듭하면 세대가 달라지고, Track B 회피 방향·E08 위상이
+  // 세대를 읽어 같은 시드인데도 결과가 갈라진다. 세대를 처음 판과 같은 값으로 맞춘다(stageRuntimeProbe.js와 같음).
+  enemyPool.generation.fill(1)
+  enemyPool.reset()
 
   let hp = Math.max(1, PLAYER_MAX_HP + outfit.maxHpDelta)
   let xpCarry = 0
