@@ -34,6 +34,7 @@ import {
   getB03ShuttleRunVisualState,
   getB04SoupBlastVisualState,
   getB04SoupFillProgress,
+  getB04SoupEdgeEmphasis,
   hasB03ShuttleRunVisualChanged,
   getEnemySpawnSfx,
   getMatildaBodyHalfExtents,
@@ -206,6 +207,13 @@ describe('B04 soup telegraph fill progress (P6)', () => {
     expect(getB04SoupFillProgress(600)).toBe(0.5)
     expect(getB04SoupFillProgress(1200)).toBe(1)
     expect(getB04SoupFillProgress(5000)).toBe(1)
+  })
+
+  it('emphasizes the rim arcs only in the last 300ms of the 1200ms telegraph', () => {
+    expect(getB04SoupEdgeEmphasis(500)).toBe(false)
+    expect(getB04SoupEdgeEmphasis(899)).toBe(false)
+    expect(getB04SoupEdgeEmphasis(900)).toBe(true)
+    expect(getB04SoupEdgeEmphasis(1000)).toBe(true)
   })
 })
 

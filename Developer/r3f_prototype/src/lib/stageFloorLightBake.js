@@ -159,6 +159,9 @@ export function stageFloorOcclusionAt(occlusion, x, z) {
   for (const box of boxes) {
     const dx = x - box.x
     const dz = z - box.z
+    // reachX/Z(굽기 전 1회 계산)는 회전 박스의 월드 AABB + falloff. 그 밖이면 gap ≥ falloff라
+    // 결과가 1로 같으므로 건너뛴다. reach가 없으면 비교가 false라 전수 검사 그대로다.
+    if (Math.abs(dx) > box.reachX || Math.abs(dz) > box.reachZ) continue
     const outX = Math.abs(dx * box.cosY - dz * box.sinY) - box.halfX
     const outZ = Math.abs(dx * box.sinY + dz * box.cosY) - box.halfZ
     gap = Math.min(gap, Math.hypot(Math.max(outX, 0), Math.max(outZ, 0)))
@@ -212,6 +215,15 @@ export function buildStageFloorLightMap(stageId, {
   const ctx = canvas.getContext('2d')
   if (!ctx) return null
 
+  const { falloff } = STAGE_FLOOR_OCCLUSION
+  const occ = occlusion && {
+    ...occlusion,
+    boxes: (occlusion.boxes ?? []).map((box) => ({
+      ...box,
+      reachX: Math.abs(box.cosY) * box.halfX + Math.abs(box.sinY) * box.halfZ + falloff,
+      reachZ: Math.abs(box.sinY) * box.halfX + Math.abs(box.cosY) * box.halfZ + falloff,
+    })),
+  }
   const values = new Float32Array(resolution * resolution * 3)
   const alpha = occlusion ? new Uint8Array(resolution * resolution) : null
   const rgb = [0, 0, 0]
@@ -228,7 +240,7 @@ export function buildStageFloorLightMap(stageId, {
       if (rgb[0] > peak) peak = rgb[0]
       if (rgb[1] > peak) peak = rgb[1]
       if (rgb[2] > peak) peak = rgb[2]
-      if (alpha) alpha[py * resolution + px] = Math.round(stageFloorOcclusionAt(occlusion, x, z) * 255)
+      if (alpha) alpha[py * resolution + px] = Math.round(stageFloorOcclusionAt(occ, x, z) * 255)
     }
   }
   if (!(peak > 0)) return null

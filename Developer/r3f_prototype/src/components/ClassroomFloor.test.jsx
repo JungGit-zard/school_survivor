@@ -157,7 +157,9 @@ describe('ClassroomFloor tiling', () => {
     const source = readFileSync(new URL('./ClassroomFloor.jsx', import.meta.url), 'utf8')
     expect(source).toContain('const placementsVersion = useStagePropPlacementsVersion()')
     expect(source).toContain("const occlusionVersion = stageId === 'stage4' ? placementsVersion : 0")
-    expect(source).toContain('occlusion: getStageFloorOcclusion(stageId)')
-    expect(source).toContain('[stageId, floorPlaneWidth, floorPlaneDepth, occlusionVersion]')
+    // Placement events are global; only a changed stage4 occlusion input re-bakes.
+    expect(source).toContain('JSON.stringify(getStageFloorOcclusion(stageId)), [stageId, occlusionVersion]')
+    expect(source).toContain('occlusion: JSON.parse(occlusionKey)')
+    expect(source).toContain('[stageId, floorPlaneWidth, floorPlaneDepth, occlusionKey]')
   })
 })

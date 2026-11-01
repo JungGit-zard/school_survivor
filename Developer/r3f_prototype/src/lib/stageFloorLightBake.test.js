@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { createHash } from 'node:crypto'
 import * as THREE from 'three'
 import {
+  STAGE_FLOOR_LIGHT_BAKE_RESOLUTION,
   STAGE_FLOOR_OCCLUSION,
   accumulateStageFloorIrradiance,
   buildStageFloorLightMap,
@@ -289,6 +290,26 @@ describe('P1 — 굽기 결과', () => {
       if (occluded.data[p + 3] < 255) dimmed += 1
     }
     expect(dimmed).toBeGreaterThan(0)
+  })
+
+  it('stage4 접지 음영 AABB 조기 종료는 전수 검사와 알파 바이트가 같다', () => {
+    const box = (x, z, halfX, halfZ, angle) => ({ x, z, halfX, halfZ, cosY: Math.cos(angle), sinY: Math.sin(angle) })
+    const occlusion = {
+      boxes: [box(0, -10, 1, 0.5, 0), box(4, 3, 1.4, 0.3, 0.7), box(-5, 8, 0.6, 2, -2.1), box(2, 12, 3, 0.4, Math.PI / 2)],
+      circles: [{ x: -3, z: -2, radius: 1.2 }],
+      halfX: 9.36,
+      halfZ: 16,
+    }
+    const { data, bake } = bakeWithFakeCanvas('stage4', { width: 18.72, depth: 32, occlusion })
+    const res = STAGE_FLOOR_LIGHT_BAKE_RESOLUTION
+    for (let py = 0; py < res; py += 1) {
+      const z = ((py + 0.5) / res) * bake.span - bake.span / 2
+      for (let px = 0; px < res; px += 1) {
+        const x = ((px + 0.5) / res) * bake.span - bake.span / 2
+        const expected = Math.round(stageFloorOcclusionAt(occlusion, x, z) * 255)
+        if (data[(py * res + px) * 4 + 3] !== expected) expect(data[(py * res + px) * 4 + 3]).toBe(expected)
+      }
+    }
   })
 
   it('접지 음영 바닥 머티리얼은 같은 lightMap 알파를 전체 확산광에 곱한다(머티리얼·광원 추가 없음)', () => {

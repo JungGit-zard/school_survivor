@@ -151,6 +151,24 @@ describe('Stage4 actual hazard frame paths (not GPU visual acceptance)', () => {
     expect(lights()).toBe(0)
   })
 
+  it('P7: pulses the material currently on the glow meshes after a Studio-style owner-clone swap, then restores it', async () => {
+    const { state } = await mount(<PressureCauldron />)
+    const glowMeshes = []
+    state.scene.traverse(o => { if (o.isMesh && o.material?.name === 'pressure-cauldron-boil-glow') glowMeshes.push(o) })
+    expect(glowMeshes).toHaveLength(2)
+    const original = glowMeshes[0].material
+    const clones = glowMeshes.map((mesh) => { mesh.material = mesh.material.clone(); mesh.material.emissiveIntensity = 0.3; return mesh.material })
+    const originalRest = original.emissiveIntensity
+
+    await frame(state, 11000)
+    await frame(state, 13500)
+    for (const clone of clones) expect(clone.emissiveIntensity).toBeGreaterThan(0.3)
+    expect(original.emissiveIntensity).toBe(originalRest)
+    await frame(state, 15100)
+    for (const clone of clones) expect(clone.emissiveIntensity).toBe(0.3)
+    expect(original.emissiveIntensity).toBe(originalRest)
+  })
+
   it('renders soup as separated bowl-rim arcs with unchanged exact centers and radius, not a second cauldron circle', async () => {
     const circles = [{ x: -3.2, z: 7, radius: 1.1 }, { x: 3.2, z: 7, radius: 1.1 }]
     const { state, render } = await mount(<B04SoupBlastVisual phase="telegraph" circles={circles} />)
@@ -183,11 +201,15 @@ describe('Stage4 actual hazard frame paths (not GPU visual acceptance)', () => {
       expect(fill.scale.x).toBeLessThan(0.01)
       expect(fill.geometry.parameters.radiusTop).toBeCloseTo(1.1 - 0.22)
     }
+    const rimColors = () => { const out = new Set(); soup()?.traverse(o => { if (o.name === 'b04-soup-segment') out.add(o.material.color.getHexString()) }); return [...out] }
     await frame(state, 150602, 0.6)
     for (const fill of fills()) expect(fill.scale.x).toBeCloseTo(0.5, 1)
+    expect(rimColors()).toEqual(['663507'])
     await frame(state, 151201, 0.599)
     expect(soup()?.userData.soupBlastState).toBe('telegraph')
     for (const fill of fills()) expect(fill.scale.x).toBeGreaterThan(0.99)
+    // P6: last 300ms steps the rim arcs to the bright soup tint (same material, no new mesh).
+    expect(rimColors()).toEqual(['f4ad32'])
     await setGame({ phase: 'paused' }); await frame(state, 151201, 30)
     expect(soup()?.userData.soupBlastState).toBe('telegraph')
     const pausedScale = fills()[0].scale.x

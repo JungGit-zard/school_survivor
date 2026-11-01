@@ -264,13 +264,15 @@ export default function ClassroomFloor({ stageId = 'stage1' }) {
   // Studio 배치 Apply로 stage4 소품이 움직이면 접지 음영을 다시 굽는다. 다른 스테이지는 재굽기 없음.
   const placementsVersion = useStagePropPlacementsVersion()
   const occlusionVersion = stageId === 'stage4' ? placementsVersion : 0
+  // 배치 이벤트는 전 스테이지 공통이라, stage4 굽기 입력이 실제로 바뀐 경우에만 다시 굽는다.
+  const occlusionKey = useMemo(() => JSON.stringify(getStageFloorOcclusion(stageId)), [stageId, occlusionVersion])
   const lightBake = useMemo(
     () => buildStageFloorLightMap(stageId, {
       width: floorPlaneWidth,
       depth: floorPlaneDepth,
-      occlusion: getStageFloorOcclusion(stageId),
+      occlusion: JSON.parse(occlusionKey),
     }),
-    [stageId, floorPlaneWidth, floorPlaneDepth, occlusionVersion],
+    [stageId, floorPlaneWidth, floorPlaneDepth, occlusionKey],
   )
   useEffect(() => () => lightBake?.texture.dispose(), [lightBake])
   const stage3Texture = useMemo(() => (stageId === 'stage3' ? buildStage3WoodTexture() : null), [stageId])

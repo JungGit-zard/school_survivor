@@ -746,10 +746,22 @@ function getB04SoupFillScale(stateRef) {
   return stateRef?.current ? Math.max(0.001, getB04SoupFillProgress(stateRef.current.elapsedMs)) : 1
 }
 
+// P6: the last 300ms of the telegraph steps the rim arcs from dark outline to the bright soup tint.
+export const B04_SOUP_EDGE_EMPHASIS_MS = 300
+export function getB04SoupEdgeEmphasis(elapsedMs) {
+  return (elapsedMs || 0) >= B04_SOUP_BLAST_TELEGRAPH_MS - B04_SOUP_EDGE_EMPHASIS_MS
+}
+
 function B04SoupFillDriver({ fill, stateRef }) {
   useFrame(() => {
     const scale = getB04SoupFillScale(stateRef)
     fill.mesh?.scale.set(scale, 1, scale)
+    const emphasis = Boolean(stateRef?.current) && getB04SoupEdgeEmphasis(stateRef.current.elapsedMs)
+    if (emphasis !== Boolean(fill.emphasis)) {
+      fill.emphasis = emphasis
+      const { outline, surface } = B04_SOUP_BLAST_VISUALS.telegraph
+      fill.segments.forEach((segment) => segment?.material.color.set(emphasis ? surface : outline))
+    }
   })
   return null
 }
@@ -763,11 +775,11 @@ export function B04SoupBlastVisual({ phase, circles, stateRef }) {
   return (
     <group name="B04 국물 대폭발 원형 표식" userData={{ soupBlastState: visualState }}>
       {circles.map((circle, index) => {
-        const fill = {}
+        const fill = { segments: [] }
         return (
         <group key={`${index}:${circle.x}:${circle.z}`} position={[circle.x, 0, circle.z]}>
           {Array.from({ length: 8 }, (_, segment) => (
-            <mesh key={segment} name="b04-soup-segment" position={[0, 0.06, 0]} rotation={[-Math.PI / 2, 0, 0]} renderOrder={9}>
+            <mesh key={segment} name="b04-soup-segment" ref={(mesh) => { fill.segments[segment] = mesh }} position={[0, 0.06, 0]} rotation={[-Math.PI / 2, 0, 0]} renderOrder={9}>
               <ringGeometry args={[circle.radius - 0.18, circle.radius, 48, 1, segment * Math.PI / 4, Math.PI / 4 - 0.13]} />
               <meshBasicMaterial color={visual.outline} depthWrite={false} toneMapped={false} />
             </mesh>
