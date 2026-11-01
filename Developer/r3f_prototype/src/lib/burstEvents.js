@@ -330,6 +330,13 @@ export function getRuntimeBurstEventsForStage(stageId) {
   return getBurstEventsForStage(stageId)
 }
 
+// 보상 이벤트(코인 몬스터)는 한 마리도 못 놓으면 fired로 남기지 않고 다음 틱에 재시도한다.
+// 동시 천장(150)이 보스 구간에 오래 차 있어도 이 창을 넘기면 포기해 무한 재시도를 막는다.
+export const REWARD_BURST_RETRY_WINDOW_SEC = 30
+export function shouldRetryRewardBurst(evt, placed, nowSec) {
+  return Boolean(evt?.rewardEvent) && !placed && nowSec < evt.sec + REWARD_BURST_RETRY_WINDOW_SEC
+}
+
 // 실제 런타임 스폰 캐시만 코인 보너스 이벤트를 합친다. 기존 버스트 API의 배열 identity와
 // 웨이브 HP 예산/앵커 계산 계약은 그대로 보존한다.
 export function getRuntimeSpawnEventsForStage(stageId) {

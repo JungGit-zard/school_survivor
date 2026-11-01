@@ -23,6 +23,7 @@ import {
   createStage2GuardChaseEntries,
   pickMixedReinforcementTypes,
   spawnPosForBurstType,
+  coinMonsterSpawnPos,
   RUN_ZOMBIE_CREW_SIZE,
   RUN_ZOMBIE_CREW_DIR,
   STAGE2_GUARD_CHASE_SIZE,
@@ -100,6 +101,9 @@ import { ENEMY_STATS, getActiveE04ProjectileCount, resetActiveE04ProjectileCount
 import { createEnemyEntityPool, enemyTypeFromCode } from '../lib/enemyEntityPool.js'
 import { MAX_ENEMIES } from '../lib/enemyEntityPool.js'
 import { playerPos } from '../lib/refs.js'
+import { PerspectiveCamera, Vector3 } from 'three'
+import { GAME_CAMERA_BACK, GAME_CAMERA_HEIGHT, getGameplayGroundReach } from '../lib/gameCameraFraming.js'
+import { shouldRetryRewardBurst, REWARD_BURST_RETRY_WINDOW_SEC } from '../lib/burstEvents.js'
 import { resolveRangedEnemyVelocity } from './Enemy.jsx'
 
 describe('Team A low-density runtime integration', () => {
@@ -286,6 +290,69 @@ describe('coin monster reward contract', () => {
         { sec: 180, type: 'E08', count: 1, rewardEvent: 'coinMonster' },
       ])
     }
+  })
+})
+
+describe('E08 coin monster spawn stays on screen', () => {
+  // Game.jsx와 같은 식으로 카메라와 screenBounds를 만들고, 실제 투영(NDC)으로 화면 안인지 따로 확인한다.
+  function viewFor(width, height, stageId, px, pz) {
+    const aspect = width / height
+    const base = getGameplayGroundReach(30, aspect)
+    const { halfX } = getStageBounds(stageId)
+    const zoom = base.reachSideNear > halfX ? base.reachSideNear / halfX : 1
+    const camera = new PerspectiveCamera(30, aspect, 0.1, 500)
+    camera.zoom = zoom
+    camera.position.set(px, GAME_CAMERA_HEIGHT, pz + GAME_CAMERA_BACK)
+    camera.lookAt(px, 0, pz)
+    camera.updateProjectionMatrix()
+    camera.updateMatrixWorld()
+    const side = base.reachSideFar / zoom
+    return { camera, view: { minX: px - side, maxX: px + side, minZ: pz - base.reachUp / zoom, maxZ: pz + base.reachDown / zoom } }
+  }
+
+  it('places every seeded E08 spawn inside the visible view for portrait 390x844 and 16:9 landscape', () => {
+    const prior = { x: playerPos.x, z: playerPos.z }
+    try {
+      for (const stageId of ['stage1', 'stage2', 'stage3', 'stage4', 'stage5']) {
+        for (const [width, height] of [[390, 844], [1920, 1080]]) {
+          playerPos.x = 0; playerPos.z = 0
+          const { camera, view } = viewFor(width, height, stageId, 0, 0)
+          let seed = 12345
+          const random = () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296)
+          for (let run = 0; run < 200; run += 1) {
+            const pos = coinMonsterSpawnPos(getStageBounds(stageId), [], random, getStageObjectSightObstacles(stageId), view)
+            expect(pos).not.toBeNull()
+            const ndc = new Vector3(pos[0], pos[1], pos[2]).project(camera)
+            expect(Math.abs(ndc.x)).toBeLessThan(1)
+            expect(Math.abs(ndc.y)).toBeLessThan(1)
+            expect(Math.hypot(pos[0], pos[2])).toBeGreaterThanOrEqual(4.5)
+          }
+        }
+      }
+    } finally { playerPos.x = prior.x; playerPos.z = prior.z }
+  })
+})
+
+describe('coin monster reward burst retry', () => {
+  it('retries a cap-blocked coin monster on the next tick and fires it exactly once', () => {
+    const evt = { sec: 180, type: 'E08', count: 1, rewardEvent: 'coinMonster' }
+    let fired = 0
+    let spawned = 0
+    const capFullUntil = 181
+    for (let sec = 179; sec <= 185; sec += 0.5) {
+      if (!shouldScheduleBurst(fired, sec, evt.sec)) continue
+      fired = 1
+      const placed = sec >= capFullUntil
+      if (shouldRetryRewardBurst(evt, placed, sec)) { fired = 0; continue }
+      if (placed) spawned += 1
+    }
+    expect(spawned).toBe(1)
+    expect(fired).toBe(1)
+    // 창을 넘기면 포기하고, 일반 이벤트는 재시도하지 않는다.
+    expect(shouldRetryRewardBurst(evt, false, evt.sec + REWARD_BURST_RETRY_WINDOW_SEC)).toBe(false)
+    expect(shouldRetryRewardBurst({ sec: 180, type: 'E01', count: 5 }, false, 180)).toBe(false)
+    const source = readFileSync(new URL('./Enemies.jsx', import.meta.url), 'utf8')
+    expect(source).toContain('shouldRetryRewardBurst(evt, batch.length > 0 && clampZombieSpawnRequest(1, totalZombieCounts()) > 0, b)')
   })
 })
 

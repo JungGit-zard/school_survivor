@@ -15,9 +15,10 @@ import { emitRztLunchFoodDrop } from './LunchItems.jsx'
 import { PLAYER_MESH_WORLD_HEIGHT } from '../lib/characterVisualScale.js'
 import { getE04IntroSec } from '../lib/stage2ProjectileRules.js'
 import { getStageBounds, getStageConfig } from '../lib/stageConfig.js'
+import { GAME_CAMERA_EDGE_INSET_FRACTION, getGameplayGroundReach } from '../lib/gameCameraFraming.js'
 import { dogeEscapeDirection } from '../lib/dogeEscape.js'
 import { getDefaultWavePhases } from '../lib/waveTimelines.js'
-import { RUN_ZOMBIE_CREW_FORMATION, STAGE2_GUARD_CHASE_FORMATION, getBurstEventsForStage, getRuntimeBurstEventsForStage, getRuntimeSpawnEventsForStage, isBossType, isRepeatingBurstEvent, postExitRepeatWaveIndex, postExitWaveCount, repeatingBurstSecAtTick, repeatingBurstTickAt } from '../lib/burstEvents.js'
+import { RUN_ZOMBIE_CREW_FORMATION, STAGE2_GUARD_CHASE_FORMATION, shouldRetryRewardBurst, getBurstEventsForStage, getRuntimeBurstEventsForStage, getRuntimeSpawnEventsForStage, isBossType, isRepeatingBurstEvent, postExitRepeatWaveIndex, postExitWaveCount, repeatingBurstSecAtTick, repeatingBurstTickAt } from '../lib/burstEvents.js'
 import { deathSfxId } from '../lib/enemyDeathSfx.js'
 import { buildWavePhasesFromEntries } from '../lib/waveControl.js'
 import { getAdminWaveControlConfig } from '../lib/adminConfig.js'
@@ -308,7 +309,42 @@ function rangedSpawnPos(bounds, taken = [], random = Math.random, obstacles = []
   return spawnPosOnValidRing('E04', bounds, RANGED_SPAWN_MIN_RADIUS, RANGED_SPAWN_MAX_RADIUS, taken, random, obstacles)
 }
 
+// E08 코인 몬스터는 다가오지 않고 스폰 지점 1.2u 안을 맴돈다. 세로 폰(390x844)은 가로 시야 반폭이
+// 2.4~4.2u라 일반 링(4.0~6.5u, 균등 각도)에서는 절반 넘게 화면 밖 좌우에 태어나 끝까지 안 보였다.
+// 그래서 E08만 현재 카메라 바닥 시야(사다리꼴, 가장자리 8% inset) 안의 링 점만 채택한다.
+// 거리는 도주 감지 4.5u 이상을 우선하고, 안 되면 거리보다 '화면 안'을 우선한다. 축별 1.2u 밀어내기 폴백은 쓰지 않는다.
+const E08_SPAWN_MIN_RADIUS = 4.5
+const E08_SPAWN_TRIES = 48
+const GROUND_VIEW_NEAR_RATIO = (() => {
+  const reach = getGameplayGroundReach(30, 1)
+  return reach.reachSideNear / reach.reachSideFar
+})()
+
+// view는 Game.jsx가 매 프레임 쓰는 screenBounds(가로 = 먼쪽 반폭) 형태다. 가까운쪽(+z)으로 갈수록 반폭이 줄어든다.
+export function isInsideGroundView(x, z, view, inset = GAME_CAMERA_EDGE_INSET_FRACTION) {
+  const t = (z - view.minZ) / (view.maxZ - view.minZ)
+  if (!(t >= inset && t <= 1 - inset)) return false
+  const half = (view.maxX - view.minX) / 2 * (1 - t * (1 - GROUND_VIEW_NEAR_RATIO)) * (1 - inset * 2)
+  return Math.abs(x - (view.minX + view.maxX) / 2) <= half
+}
+
+export function coinMonsterSpawnPos(bounds, taken = [], random = Math.random, obstacles = [], view = screenBounds) {
+  const y = BASE_COL_Y * (ENEMY_STATS.E08?.scale ?? 1) * ENEMY_SIZE_MULTIPLIER
+  const ok = (pos) => isInsideGroundView(pos[0], pos[2], view) && isValidSpawnPosition(pos, 'E08', bounds, taken, obstacles)
+  for (let i = 0; i < E08_SPAWN_TRIES; i++) {
+    const offset = randomPointOnSpawnRing(E08_SPAWN_MIN_RADIUS, SPAWN_MAX_RADIUS, random)
+    const pos = [playerPos.x + offset.x, y, playerPos.z + offset.z]
+    if (ok(pos)) return pos
+  }
+  for (let i = 0; i < E08_SPAWN_TRIES; i++) {
+    const pos = [view.minX + random() * (view.maxX - view.minX), y, view.minZ + random() * (view.maxZ - view.minZ)]
+    if (ok(pos)) return pos
+  }
+  return null
+}
+
 export function spawnPosForBurstType(type, bounds, taken = [], random = Math.random, obstacles = []) {
+  if (type === 'E08') return coinMonsterSpawnPos(bounds, taken, random, obstacles)
   return type === 'E04'
     ? rangedSpawnPos(bounds, taken, random, obstacles)
     : randomSpawnPos(type, bounds, taken, random, obstacles)
@@ -1860,6 +1896,11 @@ export default function Enemies() {
         const pos = positions ? positions[spawnIndex] : spawnPosForBurstType(type, cache.bounds, taken, Math.random, cache.obstacles)
         if (!pos) continue
         batch.push({ id: ++_uid, type, pos, statOverride: stageHpOverride(type, cache.id) })
+      }
+      // 코인 몬스터는 천장 150이 차 있거나 좌표를 못 뽑으면 다음 틱에 다시 시도한다(제한 시간 안에서만).
+      if (shouldRetryRewardBurst(evt, batch.length > 0 && clampZombieSpawnRequest(1, totalZombieCounts()) > 0, b)) {
+        firedBurstsRef.current[Math.trunc(a)] = 0
+        return
       }
       recordMissionBurstSpawns(store, batch, cache.id, b)
       addEnemies(batch, true, cache.spawnToken)
