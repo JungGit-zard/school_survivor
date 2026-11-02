@@ -117,6 +117,17 @@ describe('playSfx', () => {
     expect(howlVolume.mock.calls.reduce((sum, [volume]) => sum + volume, 0)).toBe(expectedGain)
   })
 
+  it.each([1.52, 1.8])('plays critical hit at half its former combined gain (caller volume %s)', async (callerVolume) => {
+    const { playSfx } = await import('./sfxRegistry.js')
+
+    // Before 2026-11-02 crit played two voices each clamped to 1 (combined 2.0).
+    // Terry asked for crit only at half: one voice, combined gain 1.0.
+    playSfx('criticalHit', callerVolume)
+
+    expect(howlPlay).toHaveBeenCalledTimes(1)
+    expect(howlVolume.mock.calls.reduce((sum, [volume]) => sum + volume, 0)).toBe(1)
+  })
+
   it('preserves the stun gun hit current-relative volume and pitch values below the default rate floor', async () => {
     const { playSfx } = await import('./sfxRegistry.js')
 
