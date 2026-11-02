@@ -7,9 +7,12 @@ describe('OnigiiriWeapon pool targeting', () => {
 
     expect(source).not.toContain('enemyBodies.forEach')
     expect(source).not.toContain('enemyBodies.get')
-    expect(source).toContain('isEnemyHitLive(target.rb, target.generation)')
-    expect(source).toContain('applyEnemyHit(target.rb, target.generation')
-    expect(source).toContain('pickNextOnigiriTarget')
+    expect(source).toContain('applyEnemyHit(flight.hitTarget.rb, flight.hitTarget.generation')
+    expect(source).toContain('stepOnigiriFlight')
+    // 표적 생존 확인·다음 표적 찾기는 공용 진행기가 {rb, generation}으로 한다.
+    const lib = readFileSync(new URL('../../lib/onigiri.js', import.meta.url), 'utf8')
+    expect(lib).toContain('isEnemyHitLive(current.rb, current.generation)')
+    expect(lib).not.toContain('enemyBodies.get')
   })
 })
 
@@ -39,21 +42,30 @@ describe('Onigiri projectile visual (2026-10-30: back to the rice ball)', () => 
   })
 })
 
-// 2026-11-01 Terry: "오니기리 움직임이 이상해, 없어지고 다시 생겨나는 오니기리는 반드시 주인공의 몸으로 부터 발사된다."
-// 표적이 도착 전에 죽으면 예전에는 주먹밥이 공중의 현재 위치(posRef)에서 사거리 제한 없이 다시 조준해 맵을 떠돌았다.
-describe('Onigiri re-launch origin (2026-11-01)', () => {
+// 2026-11-02 Terry 확정: 새 투척은 언제나 로자리 몸에서, 상한 없이. 바운스가 남은 주먹밥은 사라지지 않고
+// 공용 진행기(stepOnigiriFlight)로 그 자리에서 다음 적을 찾거나 떠서 기다린다(동작 검증은 lib/onigiri.test.js).
+describe('Onigiri launch origin and flight wiring (2026-11-02)', () => {
   const source = readFileSync(new URL('./Onigiri.jsx', import.meta.url), 'utf8')
   const projectileSource = source.slice(source.indexOf('function OnigiiriProjectile'), source.indexOf('export function OnigiiriWeapon'))
   const weaponSource = source.slice(source.indexOf('export function OnigiiriWeapon'))
 
-  it('never re-aims a projectile from its mid-air position when the target is lost', () => {
-    expect(projectileSource).not.toContain('from: posRef.current')
-    expect(projectileSource).toContain('onDone(id, { bouncesLeft: bouncesRef.current, hitSet: hitSetRef.current })')
+  it('the projectile follows the shared flight stepper and never ends early to relaunch from the player', () => {
+    expect(projectileSource).toContain('stepOnigiriFlight(flight, delta, SPEED)')
+    expect(projectileSource).not.toMatch(/onDone\(id, \{/)
+    expect(projectileSource).not.toContain('playerPos')
+    expect(source).not.toContain('relaunch')
   })
 
-  it('every launch, first or re-launch, starts from the current playerPos through the shared launch builder', () => {
+  it('every new throw starts from the current playerPos through the shared frame planner', () => {
     expect(weaponSource).not.toContain('start:')
-    expect(weaponSource.match(/createOnigiriLaunch\(\{ id: \+\+_onigiiriId, origin: playerPos,/g)).toHaveLength(2)
-    expect(weaponSource).toContain('pickNextOnigiriTarget({ from: playerPos, hitSet: relaunch.hitSet')
+    expect(weaponSource).not.toContain('createOnigiriLaunch')
+    expect(weaponSource.match(/planOnigiriFrame\(/g)).toHaveLength(1)
+    expect(weaponSource).toContain('origin: playerPos,')
+  })
+
+  // 2026-11-02 Terry: "화면상 오니기리가 몇 개 있더라도 늘려" — 날거나 떠 있는 주먹밥 수로 투척을 막지 않는다.
+  it('has no one-at-a-time gate: alive projectiles never block the cooldown throw', () => {
+    expect(weaponSource).not.toContain('if (projRef.current.length > 0) return')
+    expect(weaponSource).toContain('projRef.current = [...projRef.current, launch]')
   })
 })

@@ -1,15 +1,16 @@
-import { useRef, useState, useCallback, useMemo } from 'react'
+import { useRef, useState, useCallback, useEffect, useMemo } from 'react'
 import { usePlayingFrame } from '../../lib/usePlayingFrame.js'
 import { emitSfx } from '../../lib/sfxEvents.js'
 import { playerPos } from '../../lib/refs.js'
 import { useGameStore } from '../../store/useGameStore.js'
 import { outlineMat, toonMat, inflateScale } from '../../lib/toon.js'
 import { findClosestEnemy } from '../../lib/weaponTargeting.js'
-import { applyEnemyHit, isEnemyHitLive } from '../../lib/weaponCollision.js'
-import { createOnigiriBurstGrains, createOnigiriLaunch, pickNextOnigiriTarget } from '../../lib/onigiri.js'
+import { applyEnemyHit } from '../../lib/weaponCollision.js'
+import { FLIGHT_DONE, createOnigiriBurstGrains, createOnigiriFlight, planOnigiriFrame, stepOnigiriFlight } from '../../lib/onigiri.js'
 import StudioTunedGroup from '../StudioTunedGroup.jsx'
 
 let _onigiiriId  = 0
+const nextOnigiriId = () => ++_onigiiriId
 
 export function OnigiiriModel() {
   const riceMat = useMemo(() => toonMat(0xfcf8f0, 0.06), [])
@@ -121,10 +122,12 @@ function OnigiriBurst({ id, x, z, startMs, onDone }) {
 
 function OnigiiriProjectile({ id, start, initialTarget, hitIds, maxBounces, damage, bounceRange, critChance, critMultiplier, onDone, onBurst }) {
   const groupRef   = useRef()
-  const posRef     = useRef({ x: start[0], y: start[1] + 0.25, z: start[2] })
-  const targetRef  = useRef(initialTarget)
-  const bouncesRef = useRef(maxBounces)
-  const hitSetRef  = useRef(new Set(hitIds))
+  // 비행 상태는 공용 진행기(stepOnigiriFlight)가 소유한다. 바운스가 남아 있으면 사라지지 않고,
+  // 맞힌 자리·표적을 잃은 자리에서 bounceRange 안 다음 적을 찾고, 없으면 제자리에 떠서 기다린다.
+  const flightRef  = useRef(null)
+  if (flightRef.current === null) {
+    flightRef.current = createOnigiriFlight({ start, initialTarget, hitIds, maxBounces, bounceRange })
+  }
   const spinRef    = useRef(0)
   const doneRef    = useRef(false)
   const SPEED      = 11 / 8
@@ -133,26 +136,13 @@ function OnigiiriProjectile({ id, start, initialTarget, hitIds, maxBounces, dama
     if (doneRef.current || !groupRef.current) return
 
     spinRef.current += delta * 15
+    const flight = flightRef.current
+    const state = stepOnigiriFlight(flight, delta, SPEED)
 
-    const target = targetRef.current
-    if (!isEnemyHitLive(target.rb, target.generation)) {
-      // 날아가던 표적이 먼저 죽으면 공중에서 다시 조준하지 않는다(맵 끝까지 떠도는 원인이었다).
-      // 이 주먹밥은 사라지고, 무기가 남은 바운스를 이어받아 주인공 몸에서 다시 던진다.
-      doneRef.current = true
-      onDone(id, { bouncesLeft: bouncesRef.current, hitSet: hitSetRef.current })
-      return
-    }
-
-    const t  = target.rb.translation()
-    const p  = posRef.current
-    const dx = t.x - p.x
-    const dz = t.z - p.z
-    const dist = Math.hypot(dx, dz)
-
-    if (dist < 0.30) {
-      const hitIndex = maxBounces - bouncesRef.current
-      const hit = applyEnemyHit(target.rb, target.generation, damage, {
-        source: { x: p.x, z: p.z },
+    if (flight.hitTarget) {
+      const hitIndex = maxBounces - flight.bouncesLeft - 1
+      const hit = applyEnemyHit(flight.hitTarget.rb, flight.hitTarget.generation, damage, {
+        source: { x: flight.hitFromX, z: flight.hitFromZ },
         knockback: 3.2, knockbackMs: 90,
         critChance,
         critMultiplier,
@@ -164,29 +154,19 @@ function OnigiiriProjectile({ id, start, initialTarget, hitIds, maxBounces, dama
           rate: 0.96 + Math.min(hitIndex, 2) * 0.06,
         })
       }
-      bouncesRef.current--
-      p.x = t.x; p.z = t.z
-
-      const next = pickNextOnigiriTarget({
-        from: { x: t.x, z: t.z },
-        hitSet: hitSetRef.current,
-        range: bounceRange,
-      })
-
-      if (bouncesRef.current <= 0 || !next) {
-        onBurst(t.x, t.z, clock.elapsedTime * 1000)
-        doneRef.current = true; onDone(id); return
-      }
-      hitSetRef.current.add(next.enemyId)
-      targetRef.current = next
-      return
     }
 
-    p.x += (dx / dist) * SPEED * delta
-    p.z += (dz / dist) * SPEED * delta
-    p.y  = start[1] + 0.25 + Math.abs(Math.sin(spinRef.current * 0.45)) * 0.22
+    if (state === FLIGHT_DONE) {
+      onBurst(flight.x, flight.z, clock.elapsedTime * 1000)
+      doneRef.current = true; onDone(id); return
+    }
 
-    groupRef.current.position.set(p.x, p.y, p.z)
+    // 표적이 없으면(FLIGHT_HOVERING) 수평 위치는 그대로 두고 제자리에서 통통 튀며 돈다.
+    groupRef.current.position.set(
+      flight.x,
+      start[1] + 0.25 + Math.abs(Math.sin(spinRef.current * 0.45)) * 0.22,
+      flight.z,
+    )
     groupRef.current.rotation.y  = spinRef.current
     groupRef.current.rotation.x  = Math.sin(spinRef.current * 0.8) * 0.35
     groupRef.current.rotation.z  = Math.cos(spinRef.current * 0.6) * 0.25
@@ -203,15 +183,13 @@ export function OnigiiriWeapon() {
   const [projectiles, setProjectiles] = useState([])
   const [bursts, setBursts]           = useState([])
   const projRef      = useRef([])
-  const relaunchRef  = useRef(null)
   const lastFireRef  = useRef(0)
   const burstIdRef   = useRef(0)
   const phase   = useGameStore((s) => s.phase)
   const weapons = useGameStore((s) => s.weapons)
 
-  const expire = useCallback((id, relaunch = null) => {
+  const expire = useCallback((id) => {
     projRef.current = projRef.current.filter((p) => p.id !== id)
-    relaunchRef.current = relaunch
     setProjectiles([...projRef.current])
   }, [])
 
@@ -223,36 +201,40 @@ export function OnigiiriWeapon() {
     setBursts((prev) => prev.filter((burst) => burst.id !== id))
   }, [])
 
+  // balanceqa F1 (2026-11-02): 교체 카드로 무기가 빠지는 순간 떠 있던 주먹밥과 쌀알 연출은 끝난다.
+  // 목록을 비우지 않으면 같은 판에서 다시 얻었을 때 옛 주먹밥이 처음 던진 자리에서 바운스가 꽉 찬 채 되살아난다.
+  const active = !!weapons.onigiri?.active
+  useEffect(() => {
+    if (active) return
+    if (projRef.current.length > 0) {
+      projRef.current = []
+      setProjectiles([])
+    }
+    setBursts((prev) => (prev.length > 0 ? [] : prev))
+  }, [active])
+
   usePlayingFrame(({ clock }) => {
     const w = weapons.onigiri
     if (phase !== 'playing' || !w?.active) return
-    if (projRef.current.length > 0) return
-
-    // 표적을 잃고 사라진 주먹밥은 같은 투척의 연장이라 쿨다운을 다시 기다리지 않는다.
-    const relaunch = relaunchRef.current
-    relaunchRef.current = null
-    if (relaunch) {
-      const target = pickNextOnigiriTarget({ from: playerPos, hitSet: relaunch.hitSet, range: w.range ?? 18 })
-      if (target) {
-        emitSfx({ id: 'onigiriFire' })
-        const p = createOnigiriLaunch({ id: ++_onigiiriId, origin: playerPos, target, weapon: w, relaunch })
-        projRef.current = [p]
-        setProjectiles([p])
-        return
-      }
-    }
-
     const now = clock.elapsedTime * 1000
+    // 쿨다운 전에는 아무것도 만들지 않는다(balanceqa F3: 매 프레임 할당 없음).
     if (now - lastFireRef.current < w.cooldown) return
 
-    const target = findClosestEnemy(w.range ?? 18)
-    if (!target) return
+    // 2026-11-02 Terry: "화면상 오니기리가 몇 개 있더라도 늘려" — 이미 날거나 떠 있는 주먹밥 수로
+    // 새 투척을 막거나 늦추지 않는다. 새 투척은 언제나 이번 프레임의 주인공 몸(playerPos)에서 출발한다.
+    const launch = planOnigiriFrame({
+      now,
+      lastFireAt: lastFireRef.current,
+      weapon: w,
+      origin: playerPos,
+      findFreshTarget: findClosestEnemy,
+      nextId: nextOnigiriId,
+    })
+    if (!launch) return
     lastFireRef.current = now
     emitSfx({ id: 'onigiriFire' })
-
-    const p = createOnigiriLaunch({ id: ++_onigiiriId, origin: playerPos, target, weapon: w })
-    projRef.current = [p]
-    setProjectiles([p])
+    projRef.current = [...projRef.current, launch]
+    setProjectiles([...projRef.current])
   })
 
   if (!weapons.onigiri?.active) return null
