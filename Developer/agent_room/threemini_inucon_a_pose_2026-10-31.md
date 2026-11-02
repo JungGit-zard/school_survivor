@@ -11,3 +11,6 @@ armR 캡슐은 어깨 위쪽으로 뻗는 형태라 A포즈에는 약 π 회전�
 기절 비주얼(추가 지시): 셀렉터 `useGameStore(s => s.inucon?.fainted === true)` (경로 `state.inucon.fainted`, 없으면 false). fainted면 몸통 재질 흰 toon(opacity 0.45, transparent, depthWrite false), 외곽선 opacity 0.97→0.22(연청회색). 재질 두 세트는 useMemo로 한 번만 생성해 참조만 토글.
 천사 고리: Torus r0.22/tube0.03, 수평, y=1.82(머리 위 ≈0.25u) ±0.03 흔들림, #fff6c4 opacity 0.8. root의 마지막 자식이라 Studio 파츠 경로가 밀리지 않음.
 fainted 중 걷기 bob(모델·무기 그룹)·꼬리 wag·손 흔들기 정지, 전체 둥실 진폭 0.06. 테스트 `Inucon.test.jsx` 5/5 (getInuconVisualState/selectInuconFainted/halo 조건부 렌더 단언).
+
+## 2026-11-02 후속 (Advisor 직접, Terry "명확하게 A 포즈만들어" / "왜 이전팔이 달려있어")
+10-31 패스는 armR/armL 그룹만 회전시키고 원래 왼팔(길이 0.92 캡슐, x -0.33)을 그대로 뒀다 → 옛 팔 + 새 팔이 같이 보임. 조치: 옛 왼팔 캡슐 삭제, 양팔을 어깨 피벗(x ±0.2, y 1.02)에서 아래로 매달린 동일 캡슐(r 0.065, len 0.4, 총 0.53u)로 통일, 그룹 z 회전 ±0.5rad(수직 대비 29° 바깥). 팔 끝 (±0.454, 0.555). useFrame 흔들림(±0.03)·기절 비주얼·Studio 합성 경로 불변. Firebase 정본(rev 1952)에 weapon-inucon 튜닝 없음 → 자식 인덱스 이동 영향 없음. `Inucon.test.jsx` 6/6.

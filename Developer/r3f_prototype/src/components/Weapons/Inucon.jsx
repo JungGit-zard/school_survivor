@@ -232,19 +232,19 @@ export function InuconModel({ fainted: faintedProp } = {}) {
   return (
     <StudioTunedGroup itemId="weapon-inucon">
       <group ref={reg('root')}>
-        {/* 레퍼런스 기준: 세로로 긴 주황 강아지 + 굵은 검은 손그림 외곽선 + 한쪽 손 번쩍. */}
+        {/* 레퍼런스 기준: 세로로 긴 주황 강아지 + 굵은 검은 손그림 외곽선 + 양팔 A포즈. */}
         <BlobPart size={[0.62, 0.58, 0.46]} position={[0, 1.28, 0]} material={dogMat} outlineMaterial={outline} outlineScale={1.085} />
         <TriEar position={[-0.2, 1.64, 0.02]} rotation={[0, 0, -0.22]} material={dogMat} outlineMaterial={outline} outlineScale={1.085} />
         <TriEar position={[0.23, 1.63, 0.02]} rotation={[0, 0, 0.26]} material={dogMat} outlineMaterial={outline} outlineScale={1.085} />
         <InuconProceduralFace />
         <BlobPart size={[0.42, 1.5, 0.36]} position={[-0.02, 0.43, 0]} material={dogMat} outlineMaterial={outline} outlineScale={1.095} />
-        <CapsulePart radius={0.075} length={0.92} position={[-0.33, 0.77, 0.02]} rotation={[0, 0, -0.02]} scale={[1, 1, 0.82]} material={dogShadeMat} outlineMaterial={outline} outlineScale={1.065} />
         <CapsulePart radius={0.06} length={0.4} position={[-0.1, 0.94, -0.01]} rotation={[0, 0, Math.PI / 2]} scale={[1, 1.05, 1.7]} material={scarfMat} outlineMaterial={outline} outlineScale={1.035} />
-        <group ref={reg('armR')} position={[0.24, 0.88, 0.04]} rotation={[0, 0, -2.64]}>
-          <CapsulePart radius={0.065} length={0.34} position={[0.1, 0.1, 0]} rotation={[0, 0, -0.08]} scale={[1, 1, 0.82]} material={dogMat} outlineMaterial={outline} outlineScale={1.06} />
+        {/* A포즈: 어깨(y 1.02, x ±0.2) 피벗에서 아래로 0.53u 캡슐, 바깥으로 0.5rad(29°) 기울임. 양팔 동일 길이. */}
+        <group ref={reg('armR')} position={[0.2, 1.02, 0.03]} rotation={[0, 0, 0.5]}>
+          <CapsulePart radius={0.065} length={0.4} position={[0, -0.26, 0]} scale={[1, 1, 0.82]} material={dogMat} outlineMaterial={outline} outlineScale={1.06} />
         </group>
-        <group ref={reg('armL')} position={[-0.28, 0.78, 0.04]} rotation={[0, 0, -0.46]}>
-          <CapsulePart radius={0.055} length={0.28} position={[-0.06, -0.03, 0]} rotation={[0, 0, 0.04]} scale={[1, 1, 0.82]} material={dogShadeMat} outlineMaterial={outline} outlineScale={1.055} />
+        <group ref={reg('armL')} position={[-0.2, 1.02, 0.03]} rotation={[0, 0, -0.5]}>
+          <CapsulePart radius={0.065} length={0.4} position={[0, -0.26, 0]} scale={[1, 1, 0.82]} material={dogShadeMat} outlineMaterial={outline} outlineScale={1.06} />
         </group>
         <CapsulePart radius={0.06} length={0.22} position={[-0.14, -0.34, 0]} rotation={[0, 0, -0.12]} scale={[1, 1, 0.82]} material={dogShadeMat} outlineMaterial={outline} outlineScale={1.055} />
         <CapsulePart radius={0.06} length={0.22} position={[0.09, -0.34, 0]} rotation={[0, 0, 0.12]} scale={[1, 1, 0.82]} material={dogMat} outlineMaterial={outline} outlineScale={1.055} />
