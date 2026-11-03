@@ -62,16 +62,6 @@
             "commandWindows": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"& (Join-Path (git rev-parse --show-toplevel) 'Developer/agent_room/hooks/run-project-hook.ps1') -Hook stage2\""
           }
         ]
-      },
-      {
-        "matcher": "Skill",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash \"$(git rev-parse --show-toplevel)/.codex/hooks/check-gstack.sh\"",
-            "commandWindows": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"& (Join-Path (git rev-parse --show-toplevel) 'Developer/agent_room/hooks/run-project-hook.ps1') -Hook gstack\""
-          }
-        ]
       }
     ]
   }

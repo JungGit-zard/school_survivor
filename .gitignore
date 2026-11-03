@@ -15,6 +15,5 @@ tmp/
 **/__pycache__/
 
 .compound-engineering/*.local.yaml
-.gstack/
 
 .firebase/
