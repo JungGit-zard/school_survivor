@@ -506,7 +506,8 @@ describe('stage 2 mixed timed reinforcements', () => {
     const reinforcements = getRuntimeBurstEventsForStage('stage2')
       .filter((event) => event.reinforcement === STAGE2_MIXED_REINFORCEMENT)
     expect(reinforcements.map((event) => event.sec)).toEqual([150, 216])
-    expect(reinforcements.map((event) => event.count)).toEqual([8, 10])
+    // 2026-11-04 분산 재배치: 8 → 5, 10 → 6. 덜어 낸 7마리는 같은 hp 8의 E37/E34 단발 행으로 옮겼다.
+    expect(reinforcements.map((event) => event.count)).toEqual([5, 6])
 
     for (const event of reinforcements) {
       expect(event.mixedTypes.length).toBeGreaterThan(1)
@@ -770,7 +771,9 @@ describe('late zombie spawn relief', () => {
   })
 
   it('reduces burst zombie counts after 90 seconds without removing boss events', () => {
-    expect(getBurstEventsForStage('stage1').find((event) => event.sec === 108 && event.type === 'E01').count).toBe(6)
+    // 2026-11-04 분산 재배치: 108초 혼합 E01×6 중 3마리를 E36(같은 hp 8) 첫 등장으로 옮겼다.
+    expect(getBurstEventsForStage('stage1').find((event) => event.sec === 108 && event.type === 'E01').count).toBe(3)
+    expect(getBurstEventsForStage('stage1').find((event) => event.sec === 108 && event.type === 'E36').count).toBe(3)
     expect(getBurstEventsForStage('stage1').find((event) => event.sec === 216 && event.type === 'E05').count).toBe(3)
     // 2026-08-17: 스2 E04는 발사 게이트와 같은 72초 1건만 남았다(216초 1마리는 예산 감축으로 제거).
     expect(getBurstEventsForStage('stage2').filter((event) => event.type === 'E04').map((event) => event.sec)).toEqual([72])

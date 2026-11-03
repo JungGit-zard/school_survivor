@@ -100,15 +100,19 @@ describe('Stage 1 첫 웨이브 5초 게이트', () => {
       // 72초 E03×2 → E35×2. 전부 hp 동일 교체라 마릿수 92와 총 HP 3,710이 그대로다.
       { sec: 24, type: 'E01', count: 5 }, { sec: 24, type: 'E34', count: 4 },
       { sec: 40, type: 'E01', count: 6 }, { sec: 40, type: 'E07', count: 3 },
-      { sec: 60, type: 'E01', count: 3 }, { sec: 60, type: 'E36', count: 3 },
+      // 2026-11-04 분산 재배치: 60초 E36×3 → E34×3(복습, E02 첫 등장과 새 패턴 분리),
+      // 108초 혼합 E01×6 → E01×3 + E36×3(E36 단독 도입), 184초 혼합 E01×6 → E01×2 + E34×2 + E36×2(후반 조합).
+      // 전부 hp 8 맞교환이라 마릿수와 총 HP가 그대로다.
+      { sec: 60, type: 'E01', count: 3 }, { sec: 60, type: 'E34', count: 3 },
       { sec: 60, type: 'E07', count: 6 }, { sec: 60, type: 'E02', count: 2 },
       { sec: 72, type: 'E35', count: 2 },
-      { sec: 108, type: 'E01', count: 6 }, { sec: 108, type: 'E02', count: 3 },
+      { sec: 108, type: 'E01', count: 3 }, { sec: 108, type: 'E36', count: 3 }, { sec: 108, type: 'E02', count: 3 },
       { sec: 110, type: 'E07', count: 3 }, { sec: 110, type: 'E02', count: 3 },
       { sec: 120, type: 'E05', count: 3 }, { sec: 144, type: 'E05', count: 3 },
       { sec: 150, type: 'E07', count: 6 }, { sec: 150, type: 'E01', count: 6 },
       { sec: 168, type: 'E06', count: 1 },
-      { sec: 184, type: 'E01', count: 6 }, { sec: 184, type: 'E02', count: 3 }, { sec: 184, type: 'E05', count: 2 },
+      { sec: 184, type: 'E01', count: 2 }, { sec: 184, type: 'E34', count: 2 }, { sec: 184, type: 'E36', count: 2 },
+      { sec: 184, type: 'E02', count: 3 }, { sec: 184, type: 'E05', count: 2 },
       { sec: 216, type: 'E05', count: 3 },
     ])
   })
@@ -140,6 +144,10 @@ describe('Stage 2 좀비 시간표 Stage 1 앵커 재배열', () => {
       { type: 'E06', count: 1 },
       { type: 'E05', count: 3 },
       { type: 'E05', count: 3 },
+      // 2026-11-04 분산 재배치: 혼합 보강 E01 몫 7마리(150초 3 + 216초 4)를 같은 hp 8의 E37/E34로 옮겼다.
+      { type: 'E37', count: 3 },
+      { type: 'E37', count: 2 },
+      { type: 'E34', count: 2 },
       { type: 'RZT', count: 7, formation: STAGE2_GUARD_CHASE_FORMATION },
       { type: 'RZT', count: 7, formation: STAGE2_GUARD_CHASE_FORMATION },
       { type: 'E01', count: 8, formation: 'swarm' },
@@ -147,11 +155,11 @@ describe('Stage 2 좀비 시간표 Stage 1 앵커 재배열', () => {
       { type: 'E02', count: 2, formation: 'pincer' },
       { type: 'E07', count: 3 },
       { type: 'E02', count: 3 },
-      { type: 'E01', count: 8, mixedTypes: ['E01', 'E03'], reinforcement: 'stage2MixedReinforcement' },
-      { type: 'E01', count: 10, mixedTypes: ['E01', 'E03'], reinforcement: 'stage2MixedReinforcement' },
+      { type: 'E01', count: 5, mixedTypes: ['E01', 'E03'], reinforcement: 'stage2MixedReinforcement' },
+      { type: 'E01', count: 6, mixedTypes: ['E01', 'E03'], reinforcement: 'stage2MixedReinforcement' },
     ])
     expect(ordinary.reduce((sum, event) => sum + (event.count ?? 1), 0)).toBe(95)
-    expect(declaredCountByType(ordinary)).toEqual({ E01: 33, E37: 5, E02: 5, E03: 9, E38: 3, E04: 2, E05: 9, E06: 1, E07: 11, E39: 3, RZT: 14 })
+    expect(declaredCountByType(ordinary)).toEqual({ E01: 26, E37: 10, E34: 2, E02: 5, E03: 9, E38: 3, E04: 2, E05: 9, E06: 1, E07: 11, E39: 3, RZT: 14 })
     expect(stage2HpMultipliedBurstHp(ordinary)).toBe(3458)
   })
 
@@ -357,13 +365,15 @@ describe('stage3 체육교사 B03 단일 보스 + 형태 버스트 런타임 복
   // 단발 예산은 4,090 → 3,220이고, 반복 525를 더한 잡몹 실측은 3,745다.
   it('단발 비보스 이벤트는 공통 13개 앵커만 쓰며 1.3배 사다리 예산에 맞는 payload·마릿수·실제 HP를 갖는다', () => {
     const ordinary = singleShotEvents(STAGE3_BURST_EVENTS).filter((event) => !isBossType(event.type))
-    expect(uniqueSeconds(ordinary)).toEqual([5, 24, 40, 60, 72, 110, 120, 150, 184, 216])
+    expect(uniqueSeconds(ordinary)).toEqual([5, 24, 40, 60, 72, 110, 120, 150, 168, 184, 216])
     expect(ordinary.map(payloadWithoutSec)).toEqual([
       // 2026-10-25 Track B: 24초 E03×4 → E03×2 + E41×2, 216초 E05×3 → E05×1 + E40×2,
       // 120초 포위 E05×3 → E42×3(타입 전량 교체). hp 동일 교체라 마릿수 52와 실제 HP 3,220이 불변이다.
-      { type: 'E01', count: 10 }, { type: 'E03', count: 2 }, { type: 'E41', count: 2 },
+      // 2026-11-04 분산 재배치: 5초 E01×10 → E01×7 + E37×3(스2 복습), 216초 E40×2 중 1기를 168초로
+      // 당겨 탈출 전 첫 등장을 만든다. hp 동일 맞교환·이동이라 마릿수·HP 불변.
+      { type: 'E01', count: 7 }, { type: 'E37', count: 3 }, { type: 'E03', count: 2 }, { type: 'E41', count: 2 },
       { type: 'E04', count: 1 }, { type: 'E05', count: 1 },
-      { type: 'E05', count: 1 }, { type: 'E40', count: 2 },
+      { type: 'E40', count: 1 }, { type: 'E05', count: 1 }, { type: 'E40', count: 1 },
       { type: 'RZL', count: 13, formation: RUN_ZOMBIE_CREW_FORMATION },
       { type: 'E07', count: 3 }, { type: 'E02', count: 3 },
       { type: 'E03', count: 6, formation: 'ring' }, { type: 'E42', count: 3, formation: 'ring' },
@@ -374,7 +384,7 @@ describe('stage3 체육교사 B03 단일 보스 + 형태 버스트 런타임 복
     const nonCrewHp = ordinary.reduce((sum, event) => sum + ({
       E01: 12, E02: 101, E03: 14, E04: 46, E05: 101, E06: 461, E07: 23,
       // host와 같은 stage3 실효 HP: E41←E03(14), E40←E05(101), E42←E02(101).
-      E40: 101, E41: 14, E42: 101,
+      E40: 101, E41: 14, E42: 101, E37: 12,
     }[event.type] ?? 0) * event.count, 0)
     expect(nonCrewHp + Math.round(90 * 1.44) + 12 * Math.round(28 * 1.44)).toBe(3220)
     // 거대는 184초 앞뒤 벽 한 곳으로 모았다 — pincer는 ×2라야 성립하므로 ×1짜리 110초 건을 뺐다.
@@ -446,8 +456,11 @@ describe('stage4 급식실 대탈출 버스트', () => {
     expect(ordinary.map(payloadWithoutSec)).toEqual([
       // 2026-10-25 Track B: 144초 E02×2 → E02×1 + E43×1, 150초 E03×6 → E03×3 + E45×3,
       // 168초 E07×4 → E07×2 + E44×2. hp 동일 교체라 마릿수 68과 적용 HP 5,577이 불변이다.
-      { type: 'E01', count: 10 }, { type: 'E04', count: 4 }, { type: 'E05', count: 2 }, { type: 'E06', count: 1 },
-      { type: 'E07', count: 2 }, { type: 'E04', count: 4 },
+      // 2026-11-04 분산 재배치: 첫 등장을 E43@40 · E44@108로 앞당겼다(40초 E05×2 → E05×1 + E43×1,
+      // 108초 E07×2 → E44×2). 5초 E01×10 → E01×7 + E37×3(스2 복습). 전부 hp 동일 맞교환.
+      { type: 'E01', count: 7 }, { type: 'E37', count: 3 }, { type: 'E04', count: 4 },
+      { type: 'E05', count: 1 }, { type: 'E43', count: 1 }, { type: 'E06', count: 1 },
+      { type: 'E44', count: 2 }, { type: 'E04', count: 4 },
       { type: 'E02', count: 1 }, { type: 'E43', count: 1 }, { type: 'E05', count: 3 },
       { type: 'E03', count: 3 }, { type: 'E45', count: 3 },
       { type: 'E07', count: 2 }, { type: 'E44', count: 2 }, { type: 'E05', count: 4 },
@@ -460,7 +473,7 @@ describe('stage4 급식실 대탈출 버스트', () => {
     const appliedHp = ordinary.reduce((sum, event) => sum + ({
       E01: 14, E02: 121, E03: 17, E04: 55, E05: 121, E06: 553, E07: 28,
       // host와 같은 stage4 실효 HP: E43←E02(121), E44←E07(28), E45←E03(17).
-      E43: 121, E44: 28, E45: 17,
+      E43: 121, E44: 28, E45: 17, E37: 14,
     }[event.type] ?? 0) * event.count, 0)
     expect(appliedHp).toBe(5577)
   })
@@ -593,7 +606,8 @@ describe('스테이지 총체력 1.3배 사다리 (스1 앵커 고정)', () => {
   })
 
   it('stage3 이전 런좀비 복원 예외 외에는 단발 이벤트로 13개 앵커를 빠짐없이 쓴다', () => {
-    const stage3RestoredRunCrewAnchors = [5, 24, 40, 60, 72, 110, 120, 150, 184, 216]
+    // 2026-11-04: 168초에 E40 첫 등장(216초 2기 중 1기를 당김)이 들어와 스3 앵커가 하나 늘었다.
+    const stage3RestoredRunCrewAnchors = [5, 24, 40, 60, 72, 110, 120, 150, 168, 184, 216]
     for (const [stageId, events] of allStageBurstTables) {
       const secs = uniqueSeconds(stageZombieEvents(singleShotEvents(events)))
       expect(secs).toEqual(stageId === 'stage3' ? stage3RestoredRunCrewAnchors : SPAWN_ANCHORS)
