@@ -112,7 +112,7 @@ describe('PlayerMesh garment colors come from the shared wardrobe palette', () =
   it('wires those slots into the PlayerMesh garment blocks', async () => {
     const { readFileSync } = await import('node:fs')
     const source = readFileSync(`${process.cwd()}/src/components/PlayerMesh.jsx`, 'utf8')
-    expect(source).toContain("outfit = 'default' }) {")
+    expect(source).toContain("outfit = 'default', idleRig = null }) {")
     expect(source.match(/color=\{garment\('blazer', 0xd42020\)\}/g)).toHaveLength(3)
     expect(source.match(/color=\{garment\('shirt', 0xf4f4f4\)\}/g)).toHaveLength(1)
     expect(source.match(/color=\{garment\('skirt', 0x2d8cff\)\}/g)).toHaveLength(1)

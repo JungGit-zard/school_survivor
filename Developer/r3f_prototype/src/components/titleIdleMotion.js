@@ -4,6 +4,15 @@
 // 래퍼 그룹에만 건다. 그래서 여기서는 래퍼 그룹의 position/rotation/scale만 쓰고 모델 내부 파츠는 만지지 않는다.
 // 래퍼의 기본값은 항등(0/0/1)이라 기존 위치·포즈 위에 더해질 뿐이다.
 
+import {
+  PLAYER_RIG,
+  TITLE_PLAYER_RIG_CHANNELS,
+  TITLE_ZOMBIE_RIG_CHANNELS,
+  ZOMBIE_RIG,
+  createTitleIdleRig,
+  setTitlePlayerHeadTilt,
+} from '../lib/titleIdleRig.js'
+
 // 결정적 의사난수(mulberry32) — 새로고침마다 같은 엇박자, 테스트·스크린샷도 안정적이다.
 function seededRandom(seed) {
   let a = seed >>> 0
@@ -31,7 +40,7 @@ const TITLE_IDLE_ACTOR_DEFS = [
   { id: 'zombieE01', kind: 'zombie', glance: -1 },
   { id: 'zombieE02', kind: 'zombie', glance: 1 },
   { id: 'zombieE03', kind: 'zombie', glance: -1 },
-  { id: 'matilda', kind: 'zombie' },
+  { id: 'matilda', kind: 'zombie', noRig: true },
   { id: 'dogeTwist', kind: 'dog' },
   { id: 'dogeDisco', kind: 'dog' },
   { id: 'duck', kind: 'critter' },
@@ -139,19 +148,11 @@ export function computeTitleIdleOffsets(actor, t, out) {
       out.x = s1 * 0.015 * a
       out.y = Math.abs(Math.sin(t * w + actor.phase)) * 0.018 * a
       out.rx = s2 * 0.03 * a
-      if (actor.glance) {
-        // 가끔 로자리 쪽으로 몸을 돌려 기울여 본다: ease-in 0.5s → hold 1–2s → ease-out 0.6s.
-        const look = eventEnvelope(actor, t, 0.5, 0.6)
-        out.ry += look * 0.14 * actor.glance
-        out.rx += look * 0.08
-        out.rz += look * 0.05 * actor.glance
-      }
+      // 로자리 쪽 쳐다보기는 머리 파츠만 돌린다(computeTitleIdleRig). 몸 전체는 기울이지 않는다.
       break
     }
     case 'dog': {
-      // 가끔 고개(몸) 갸웃 + 꼬리 쪽 엉덩이 살랑(작은 yaw 흔들림).
-      const tilt = eventEnvelope(actor, t, 0.35, 0.45)
-      out.rz = tilt * 0.12 * (actor.phase > Math.PI ? 1 : -1)
+      // 고개 갸웃은 머리 파츠만(computeTitleIdleRig). 몸은 작은 yaw 살랑 + 미세 바운스만.
       out.ry = s1 * 0.05 * a
       out.y = Math.max(0, s2) * 0.012
       break
@@ -179,4 +180,122 @@ export function applyTitleIdleOffsets(node, out) {
   node.position.set(out.x, out.y, out.z)
   node.rotation.set(out.rx, out.ry, out.rz)
   node.scale.set(out.sx, out.sy, out.sz)
+}
+
+// ── 내부 파츠 리그(Terry 2026-11-04 타이틀 전용 지시) ─────────────────────────────
+
+export const TITLE_BLINK_MIN_GAP = 2.5
+export const TITLE_BLINK_MAX_GAP = 5
+export const TITLE_BLINK_CLOSED_SCALE = 0.1
+export const TITLE_BLINK_HOLD = 0.12
+const TITLE_BLINK_RAMP = 0.035
+
+export function createTitleActorRig(actor) {
+  // 마틸다는 파츠 리그를 받지 않는다(바깥 래퍼 동작만).
+  if (!actor || actor.noRig) return null
+  if (actor.kind === 'player') {
+    const rig = createTitleIdleRig(TITLE_PLAYER_RIG_CHANNELS)
+    rig.headTilt = 0
+    rig.beforeApply = (r) => setTitlePlayerHeadTilt(r, r.headTilt)
+    rig.blinkRandom = seededRandom(0xb1d4 + Math.floor(actor.phase * 1000))
+    rig.blinkStart = -10
+    rig.blinkNext = 1.2 + rig.blinkRandom() * 1.5
+    return rig
+  }
+  if (actor.kind === 'zombie' || actor.kind === 'boss' || actor.kind === 'dog') {
+    return createTitleIdleRig(TITLE_ZOMBIE_RIG_CHANNELS)
+  }
+  return null
+}
+
+// 눈 깜빡임 scale.y: 1 → 0.1(약 120ms 유지) → 1. 시작 전·후는 1.
+export function titleBlinkScale(t, blinkStart) {
+  const local = t - blinkStart
+  if (local < 0) return 1
+  if (local < TITLE_BLINK_RAMP) return 1 - (1 - TITLE_BLINK_CLOSED_SCALE) * (local / TITLE_BLINK_RAMP)
+  if (local < TITLE_BLINK_RAMP + TITLE_BLINK_HOLD) return TITLE_BLINK_CLOSED_SCALE
+  const opening = local - TITLE_BLINK_RAMP - TITLE_BLINK_HOLD
+  if (opening < TITLE_BLINK_RAMP) return TITLE_BLINK_CLOSED_SCALE + (1 - TITLE_BLINK_CLOSED_SCALE) * (opening / TITLE_BLINK_RAMP)
+  return 1
+}
+
+// 다음 깜빡임 시각을 2.5–5s 무작위 간격으로 잡는다(시간이 앞으로만 간다고 가정, 크게 건너뛰면 따라잡는다).
+export function advanceTitleBlink(rig, t) {
+  if (t < rig.blinkStart) {
+    rig.blinkStart = -10
+    rig.blinkNext = t + 1
+  }
+  while (t >= rig.blinkNext) {
+    rig.blinkStart = rig.blinkNext
+    rig.blinkNext += TITLE_BLINK_MIN_GAP + rig.blinkRandom() * (TITLE_BLINK_MAX_GAP - TITLE_BLINK_MIN_GAP)
+  }
+}
+
+function setChannel(rig, index, value) {
+  rig.channels[index].value = value
+}
+
+export function resetTitleIdleRig(rig) {
+  if (!rig) return
+  for (let i = 0; i < rig.channels.length; i += 1) {
+    const ch = rig.channels[i]
+    ch.value = ch.prop === 'scale' ? 1 : 0
+  }
+  if ('headTilt' in rig) rig.headTilt = 0
+}
+
+// 파츠 오프셋을 rig 채널에 쓴다. 실제 적용은 각 메시 useFrame의 runWithTitleIdleRig가 한다. 할당 없음.
+export function computeTitleIdleRig(actor, t, rig) {
+  if (!rig) return
+  const w = TAU / actor.period
+  const w2 = TAU / actor.period2
+  switch (actor.kind) {
+    case 'zombie': {
+      // 머리만: 자기 박자의 작은 끄덕임·갸웃. 팔: 좌우 반대 위상으로 살짝 늘어져 흔들림
+      // (기존 charge 팔 흔들림 위에 더해짐 — 그쪽은 모든 좀비가 같은 박자라 이것이 엇박을 만든다).
+      const nod = Math.sin(t * w2 + actor.phase2)
+      const tilt = Math.sin(t * w + actor.phase)
+      let headX = nod * 0.07
+      let headY = Math.sin(t * w2 * 0.5 + actor.phase) * 0.05
+      if (actor.glance) {
+        // 로자리 쪽으로 머리만 돌려 올려다본다: ease-in 0.5s → hold 1–2s → ease-out 0.6s.
+        const look = eventEnvelope(actor, t, 0.5, 0.6)
+        headY = headY * (1 - look) + look * 0.42 * actor.glance
+        headX = headX * (1 - look) - look * 0.26
+      }
+      setChannel(rig, ZOMBIE_RIG.headX, headX)
+      setChannel(rig, ZOMBIE_RIG.headY, headY)
+      setChannel(rig, ZOMBIE_RIG.headZ, tilt * 0.06)
+      const arm = Math.sin(t * w * 1.3 + actor.phase2)
+      setChannel(rig, ZOMBIE_RIG.armLX, arm * 0.1)
+      setChannel(rig, ZOMBIE_RIG.armRX, -arm * 0.1)
+      setChannel(rig, ZOMBIE_RIG.armLZ, Math.sin(t * w2 + actor.phase) * 0.04)
+      setChannel(rig, ZOMBIE_RIG.armRZ, -Math.sin(t * w2 + actor.phase + 1.1) * 0.04)
+      break
+    }
+    case 'boss': {
+      // 숨은 바깥 래퍼. 머리만 가끔 천천히 옆으로 돌린다(ease 1s, hold 1–2s).
+      const turn = eventEnvelope(actor, t + actor.eventCycle * 0.5, 1, 1.1)
+      const side = actor.phase > Math.PI ? 1 : -1
+      setChannel(rig, ZOMBIE_RIG.headY, turn * 0.38 * side)
+      setChannel(rig, ZOMBIE_RIG.headX, Math.sin(t * w2 + actor.phase2) * 0.025)
+      break
+    }
+    case 'dog': {
+      // 머리만 갸웃(춤 동작 위에 더해짐).
+      const tilt = eventEnvelope(actor, t, 0.35, 0.45)
+      setChannel(rig, ZOMBIE_RIG.headZ, tilt * 0.24 * (actor.phase > Math.PI ? 1 : -1))
+      break
+    }
+    case 'player': {
+      advanceTitleBlink(rig, t)
+      const blink = titleBlinkScale(t, rig.blinkStart)
+      setChannel(rig, PLAYER_RIG.eyeL, blink)
+      setChannel(rig, PLAYER_RIG.eyeR, blink)
+      rig.headTilt = eventEnvelope(actor, t, 0.45, 0.55) * 0.07 * (actor.phase > Math.PI ? 1 : -1)
+      break
+    }
+    default:
+      break
+  }
 }

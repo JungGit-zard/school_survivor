@@ -136,7 +136,7 @@ describe('B03 muscular PE teacher boss', () => {
     expect(zombieMeshSource).toContain("titleRunPose && type === 'B03' && animPhase === 'charge' ? 0.30")
     expect(zombieMeshSource).toContain("(animPhase === 'charge' ? 0.55 : 0.38)")
     expect(titleSceneSource).toMatch(
-      /type === 'B03'[\s\S]*?<ZombieMesh type=\{type\} animPhase="charge" titleRunPose \/>[\s\S]*?<ZombieMesh type=\{type\} animPhase="charge" \/>/,
+      /type === 'B03'[\s\S]*?<ZombieMesh type=\{type\} animPhase="charge" titleRunPose idleRig=\{idleRig\} \/>[\s\S]*?<ZombieMesh type=\{type\} animPhase="charge" idleRig=\{idleRig\} \/>/,
     )
   })
 

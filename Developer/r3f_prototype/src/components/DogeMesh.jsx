@@ -1,5 +1,6 @@
 import { useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
+import { runWithTitleIdleRig } from '../lib/titleIdleRig.js'
 import { inflateScale, outlineMat, toonMat } from '../lib/toon.js'
 import StudioTunedGroup, { studioPartRotationOffset } from './StudioTunedGroup.jsx'
 
@@ -124,7 +125,7 @@ export function DogeMesh({ hipRef = null, headRef = null, lArmRef = null, rArmRe
 // 양발로 서서 춤추는 도지.
 // dance: 'twist'(좌우 트위스트+엉덩이 씰룩) | 'disco'(바운스+팔 번갈아 찌르기)
 // delay: 위상차(여러 마리 엇박자), paused: true면 정지 포즈 고정(reduced effects용)
-export function DancingDoge({ position = [0, 0, 0], dance = 'twist', delay = 0, scale = 1, yaw = 0, paused = false }) {
+export function DancingDoge({ position = [0, 0, 0], dance = 'twist', delay = 0, scale = 1, yaw = 0, paused = false, idleRig = null }) {
   const rootRef = useRef()
   const hipRef = useRef()
   const headRef = useRef()
@@ -132,8 +133,9 @@ export function DancingDoge({ position = [0, 0, 0], dance = 'twist', delay = 0, 
   const rArmRef = useRef()
   const tailRef = useRef()
   const baseY = position[1]
+  const rigParts = useRef({})
 
-  useFrame((state) => {
+  const stepDanceFrame = (state) => {
     const hip = hipRef.current
     const head = headRef.current
     const lArm = lArmRef.current
@@ -194,6 +196,15 @@ export function DancingDoge({ position = [0, 0, 0], dance = 'twist', delay = 0, 
       tail.rotation.z = rot(tail, 'z', Math.sin(t * 6.4) * 0.42)
       tail.rotation.x = rot(tail, 'x', 0)
     }
+  }
+  // idleRig(타이틀 전용, 선택): 없으면 stepDanceFrame만 그대로 돈다.
+  useFrame((state, delta) => {
+    if (idleRig) {
+      rigParts.current.head = headRef.current
+      rigParts.current.armL = lArmRef.current
+      rigParts.current.armR = rArmRef.current
+    }
+    runWithTitleIdleRig(idleRig, rigParts.current, stepDanceFrame, state, delta)
   })
 
   return (

@@ -26,8 +26,11 @@ import {
   TITLE_IDLE_ACTOR_BY_ID,
   applyTitleIdleOffsets,
   computeTitleIdleOffsets,
+  computeTitleIdleRig,
+  createTitleActorRig,
   createTitleIdleOffsets,
   resetTitleIdleOffsets,
+  resetTitleIdleRig,
 } from './titleIdleMotion.js'
 
 const TITLE_CHASE_TARGET = [0.48, 0.08]
@@ -272,15 +275,22 @@ export const TITLE_SCENE_DIRECTION = {
 // 타이틀 대기 동작: 캐릭터마다 Studio 모델 바깥 래퍼 그룹 하나를 등록하고, 단 하나의 useFrame이 전부 움직인다.
 const TitleIdleContext = createContext(null)
 
-function useTitleIdleRef(id) {
+// ref: 바깥 래퍼 그룹용. rig: 머리·팔·눈 파츠용 선택 리그(메시에 idleRig로 넘긴다; 타이틀 전용).
+function useTitleIdle(id) {
   const registry = useContext(TitleIdleContext)
-  return useCallback((node) => {
+  const rig = useMemo(() => createTitleActorRig(TITLE_IDLE_ACTOR_BY_ID[id]), [id])
+  const ref = useCallback((node) => {
     if (!registry) return
     const index = registry.findIndex((entry) => entry.id === id)
     if (index >= 0) registry.splice(index, 1)
     const actor = TITLE_IDLE_ACTOR_BY_ID[id]
-    if (node && actor) registry.push({ id, node, actor })
-  }, [registry, id])
+    if (node && actor) registry.push({ id, node, actor, rig })
+  }, [registry, id, rig])
+  return { ref, rig }
+}
+
+function useTitleIdleRef(id) {
+  return useTitleIdle(id).ref
 }
 
 // 등록된 래퍼 전부에 한 프레임을 적용한다. still이면 항등(정지 포즈)으로 되돌린다. 프레임당 할당 없음.
@@ -290,6 +300,10 @@ export function applyTitleIdleFrame(entries, elapsedTime, still, out) {
     if (still) resetTitleIdleOffsets(out)
     else computeTitleIdleOffsets(entry.actor, elapsedTime, out)
     applyTitleIdleOffsets(entry.node, out)
+    if (entry.rig) {
+      if (still) resetTitleIdleRig(entry.rig)
+      else computeTitleIdleRig(entry.actor, elapsedTime, entry.rig)
+    }
   }
 }
 
@@ -363,7 +377,7 @@ function TitlePlayer({ reducedEffects, outfit = 'default' }) {
   const runnerRef = useRef(null)
   const meshGroup = useRef(null)
   const movingRef = useRef(!reducedEffects)
-  const idleRef = useTitleIdleRef('player')
+  const { ref: idleRef, rig: idleRig } = useTitleIdle('player')
 
   // STUDIO_OUTER_MOTION_ONLY — 이 useFrame은 StudioTunedGroup의 바깥 그룹만 움직인다.
   // 스튜디오 파츠는 건드리지 않으므로 튜닝을 덮어쓰지 않고 부모 변형으로 곱해질 뿐이다.
@@ -375,7 +389,7 @@ function TitlePlayer({ reducedEffects, outfit = 'default' }) {
   return (
     <group ref={runnerRef} position={TITLE_PLAYER_RUN_BASE_POSITION} rotation={TITLE_PLAYER_RUN_BASE_ROTATION} scale={2}>
       <group ref={idleRef}>
-        <PlayerMesh groupRef={meshGroup} movingRef={movingRef} outfit={outfit} />
+        <PlayerMesh groupRef={meshGroup} movingRef={movingRef} outfit={outfit} idleRig={idleRig} />
       </group>
     </group>
   )
@@ -445,7 +459,7 @@ function TitleFarBackgroundStory({ reducedEffects }) {
 
 function TitleZombie({ idleId, position, delay = 0, scale = 1, type = 'E01' }) {
   const ref = useRef()
-  const idleRef = useTitleIdleRef(idleId)
+  const { ref: idleRef, rig: idleRig } = useTitleIdle(idleId)
   const yaw = faceTitleTargetYaw(position)
   const liftedPosition = [position[0], position[1] + TITLE_ZOMBIE_GROUND_LIFT_Y, position[2]]
   // STUDIO_OUTER_MOTION_ONLY — 이 useFrame은 StudioTunedGroup의 바깥 그룹만 움직인다.
@@ -463,7 +477,7 @@ function TitleZombie({ idleId, position, delay = 0, scale = 1, type = 'E01' }) {
   return (
     <group ref={ref} position={liftedPosition} rotation={[0.14, yaw, 0]} scale={scale}>
       <group ref={idleRef}>
-        <ZombieMesh type={type} animPhase="charge" />
+        <ZombieMesh type={type} animPhase="charge" idleRig={idleRig} />
       </group>
     </group>
   )
@@ -496,7 +510,7 @@ function TitleMatildaPursuer({ position, delay = 0, scale = 1 }) {
 
 function TitleBossZombie({ type = 'B01', position, scale = 1.25, delay = 0 }) {
   const ref = useRef()
-  const idleRef = useTitleIdleRef('boss' + type)
+  const { ref: idleRef, rig: idleRig } = useTitleIdle('boss' + type)
   const yaw = faceTitleTargetYaw(position)
   const liftedPosition = [position[0], position[1] + TITLE_ZOMBIE_GROUND_LIFT_Y, position[2]]
   // STUDIO_OUTER_MOTION_ONLY — 이 useFrame은 StudioTunedGroup의 바깥 그룹만 움직인다.
@@ -513,8 +527,8 @@ function TitleBossZombie({ type = 'B01', position, scale = 1.25, delay = 0 }) {
     <group ref={ref} position={liftedPosition} rotation={[0, yaw, 0]} scale={scale}>
       <group ref={idleRef}>
         {type === 'B03'
-          ? <ZombieMesh type={type} animPhase="charge" titleRunPose />
-          : <ZombieMesh type={type} animPhase="charge" />}
+          ? <ZombieMesh type={type} animPhase="charge" titleRunPose idleRig={idleRig} />
+          : <ZombieMesh type={type} animPhase="charge" idleRig={idleRig} />}
       </group>
     </group>
   )
@@ -522,11 +536,11 @@ function TitleBossZombie({ type = 'B01', position, scale = 1.25, delay = 0 }) {
 
 // 춤추는 도지 위치에 래퍼를 두어 갸웃 동작의 회전 중심이 도지 발밑이 되게 한다. 도지 자체 춤은 그대로다.
 function TitleIdleDoge({ idleId, position, ...dogeProps }) {
-  const idleRef = useTitleIdleRef(idleId)
+  const { ref: idleRef, rig: idleRig } = useTitleIdle(idleId)
   return (
     <group position={position}>
       <group ref={idleRef}>
-        <DancingDoge position={[0, 0, 0]} {...dogeProps} />
+        <DancingDoge position={[0, 0, 0]} {...dogeProps} idleRig={idleRig} />
       </group>
     </group>
   )

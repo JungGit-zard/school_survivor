@@ -1,5 +1,6 @@
 import { useRef, useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
+import { runWithTitleIdleRig } from '../lib/titleIdleRig.js'
 import * as THREE from 'three'
 import { bagSwingState, playerArmActionState } from '../lib/refs.js'
 import { getActivePlayerArmAction, getPlayerArmPose } from '../lib/playerArmAction.js'
@@ -176,7 +177,7 @@ function setPlayerBodyFlash(root, flashMat, active) {
   })
 }
 
-export default function PlayerMesh({ groupRef, movingRef, hitFlashToken = 0, previewArmAction = null, outfit = 'default' }) {
+export default function PlayerMesh({ groupRef, movingRef, hitFlashToken = 0, previewArmAction = null, outfit = 'default', idleRig = null }) {
   // 동복 등 의상(titleSettings.playerOutfit)은 옷 블록의 기본색만 바꾼다. default는 원래 색 그대로.
   const garment = (slot, baseColor) => resolvePlayerMeshGarmentColor(slot, baseColor, outfit)
   const rootRef = useRef()
@@ -211,7 +212,7 @@ export default function PlayerMesh({ groupRef, movingRef, hitFlashToken = 0, pre
     p.current[key] = el
   }
 
-  useFrame(({ clock }, delta) => {
+  const stepPlayerFrame = ({ clock }, delta) => {
     const parts = p.current
     if (!parts.legL) return
 
@@ -282,7 +283,9 @@ export default function PlayerMesh({ groupRef, movingRef, hitFlashToken = 0, pre
       parts.eyeL.position.y = composeStudioPartPosition(parts.eyeL, 'y', baseY - 0.08, bob)
       parts.eyeR.position.y = composeStudioPartPosition(parts.eyeR, 'y', baseY - 0.08, bob)
     }
-  })
+  }
+  // idleRig(타이틀 전용, 선택): 없으면 stepPlayerFrame만 그대로 돈다.
+  useFrame((state, delta) => runWithTitleIdleRig(idleRig, p.current, stepPlayerFrame, state, delta))
 
   return (
     <group ref={setRoot}>
