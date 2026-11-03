@@ -3,6 +3,7 @@ import ConsentGate from './ConsentGate.jsx'
 import GoogleAccountPanel from './GoogleAccountPanel.jsx'
 import { ZOMBIE_BOARD_COPY } from './zombieBoardCopy.js'
 import TitleSceneCanvas from './TitleSceneCanvas.jsx'
+import TitleBackdrop from './TitleBackdrop.jsx'
 import { isFirebaseProgressHydrated, requestCloudProgressSave } from '../lib/firebaseProgress.js'
 import { getSavedNickname, saveNicknameForUser, validateNickname } from '../lib/userNickname.js'
 import { getAdminOperationsConfig } from '../lib/adminConfig.js'
@@ -16,7 +17,7 @@ import {
   saveTitleSettings,
   unlockAllStagesForDevCheat,
 } from '../lib/titleSettings.js'
-import { schoolButton, schoolPanel, uiBorders, uiPalette, uiShadows, uiType } from '../lib/uiStyle.js'
+import { paperSticker, schoolButton, schoolPanel, sunnyPalette, uiBorders, uiPalette, uiShadows, uiType } from '../lib/uiStyle.js'
 import { LOCALE_OPTIONS, useLocale, useT } from '../lib/i18n.js'
 import { useAuthStore } from '../store/useAuthStore.js'
 import {
@@ -28,57 +29,47 @@ import { TITLE_BGM_URL as titleBgmUrl } from '../lib/titleBgm.js'
 
 const REVEAL_CHEATS_CODE = ['arrowup', 'arrowdown', 'arrowup', 'arrowdown', 'a', 's', 'd']
 const DEV_CHEATS_ENABLED = import.meta.env.DEV
-// 한국어 정본 슬램 배치. 문자 수·진입 벡터·순서를 그대로 보존한다.
-const TITLE_ACCENT_LETTERS = [
-  { char: '탈', order: 0, x: '-110vw', y: '-5vh', rotation: '-18deg' },
-  { char: '출', order: 1, x: '8vw', y: '-55vh', rotation: '14deg' },
-  { char: '!', order: 6, x: '15vw', y: '-65vh', rotation: '24deg' },
+const P = sunnyPalette
+
+// 2026-11-03 타이틀 Stage 1(Terry "밝고 예쁘게, AI 티 안 나게"): 글자가 사방에서 날아드는 슬램 대신
+// 칠판에 분필로 왼쪽부터 쓰듯 읽는 순서대로 나타난다(전체 약 0.8초). 이모지는 쓰지 않는다.
+// 글자마다 살짝 다른 기울기·높이로 손글씨처럼 고르지 않게 둔다(결정적 값 — 매번 같은 모양).
+const TITLE_LETTER_JITTER = [
+  { rotate: -3, lift: 0 },
+  { rotate: 2, lift: -1 },
+  { rotate: -1, lift: 1 },
+  { rotate: 3, lift: 0 },
+  { rotate: -2, lift: 1 },
+  { rotate: 1, lift: -1 },
 ]
-const TITLE_SCHOOL_LETTERS = [
-  { char: '좀', order: 2, x: '110vw', y: '-8vh', rotation: '16deg' },
-  { char: '비', order: 3, x: '-6vw', y: '75vh', rotation: '-12deg' },
-  { char: '학', order: 4, x: '-100vw', y: '-35vh', rotation: '-16deg' },
-  { char: '교', order: 5, x: '100vw', y: '-28vh', rotation: '18deg' },
-]
-// 다른 언어는 글자 수가 달라 정본 배열을 쓸 수 없다. 같은 진입 벡터 풀을 순환시켜
-// 글자별 슬램을 만들고, 전체 인트로 길이는 한국어와 같게 유지한다.
-const TITLE_ENTER_VECTORS = [
-  { x: '-110vw', y: '-5vh', rotation: '-18deg' },
-  { x: '110vw', y: '-8vh', rotation: '16deg' },
-  { x: '8vw', y: '-55vh', rotation: '14deg' },
-  { x: '-6vw', y: '75vh', rotation: '-12deg' },
-  { x: '-100vw', y: '-35vh', rotation: '-16deg' },
-  { x: '100vw', y: '-28vh', rotation: '18deg' },
-  { x: '15vw', y: '-65vh', rotation: '24deg' },
-]
-const TITLE_SLAM_SPAN_MS = 805
+const TITLE_WRITE_SPAN_MS = 640
+const TITLE_LETTER_WRITE_MS = 150
 
 function buildTitleLetters(word, startOrder) {
   return Array.from(word, (char, index) => ({
-    char: char === ' ' ? ' ' : char,
+    // 띄어쓰기는 NBSP로 — inline-block 글자 안의 일반 공백은 0폭으로 접힌다.
+    char: char === ' ' ? '\u00a0' : char,
     order: startOrder + index,
-    ...TITLE_ENTER_VECTORS[(startOrder + index) % TITLE_ENTER_VECTORS.length],
+    ...TITLE_LETTER_JITTER[(startOrder + index) % TITLE_LETTER_JITTER.length],
   }))
 }
 
-function getTitleWords(locale, translate) {
-  if (locale === 'ko') return { accent: TITLE_ACCENT_LETTERS, school: TITLE_SCHOOL_LETTERS }
-  const accentWord = translate('title.wordAccent')
-  const schoolWord = translate('title.wordSchool')
-  const accent = buildTitleLetters(accentWord, 0)
-  const school = buildTitleLetters(schoolWord, accent.length)
+function getTitleWords(translate) {
+  const accent = buildTitleLetters(translate('title.wordAccent'), 0)
+  const school = buildTitleLetters(translate('title.wordSchool'), accent.length)
   return { accent, school }
 }
 
 // 제목 글자 크기는 게임 프레임(=TitleScreen 루트, container-type) 폭 기준이다. 로케일 문자열의 vw는
 // 창 폭이라, 짧은 가로 화면(915x412 → 프레임 232px)에서 "MBIE SCHOO"처럼 잘렸다(2026-11-03).
 // 가장 긴 줄의 대략적 em 폭으로 프레임 안에 들어가는 상한을 함께 건다.
-const TITLE_SIDE_GUTTER_PX = 44
-function estimateTitleLineEm(letters, emojiEm) {
-  let em = emojiEm
+// 여백 = 좌우 content 22px*2 + 칠판 안쪽 여백 12px*2 + 테두리 3px*2 + 여유 6px.
+const TITLE_SIDE_GUTTER_PX = 80
+function estimateTitleLineEm(letters) {
+  let em = 0
   for (const { char } of letters) {
     if (char === ' ') em += 0.3
-    else if (/[\u3000-\u9fff\uac00-\ud7af\uff00-\uffef]/.test(char)) em += 1
+    else if (/[　-鿿가-힯＀-￯]/.test(char)) em += 1
     else em += 0.74
   }
   return em
@@ -87,42 +78,58 @@ function estimateTitleLineEm(letters, emojiEm) {
 export function fitTitleFontSize(base, words) {
   if (!/\d/.test(String(base))) return base
   const frameBase = String(base).replace(/(\d)vw\b/g, '$1cqw')
-  const lineEm = Math.max(
-    estimateTitleLineEm(words.accent, 0.75),
-    estimateTitleLineEm(words.school, 1.35),
-  )
+  const lineEm = Math.max(estimateTitleLineEm(words.accent), estimateTitleLineEm(words.school))
   return `min(${frameBase}, calc((100cqw - ${TITLE_SIDE_GUTTER_PX}px) / ${lineEm.toFixed(2)}))`
 }
 
-function titleLetterDelayMs(order, total) {
-  return 60 + order * Math.max(35, Math.round(TITLE_SLAM_SPAN_MS / Math.max(1, total)))
+// 짧은 가로 화면(높이 390)에서는 높이로도 상한을 걸어 칠판이 START 이름표까지 내려오지 않게 한다.
+function titleHeadingFontSize(base, words) {
+  const fit = fitTitleFontSize(base, words)
+  return /\d/.test(String(fit)) ? `min(${fit}, 6.6vh)` : fit
 }
-const TITLE_EMOJI_CLUSTER = '🧟‍♀️❤️'
-const TITLE_SCHOOL_EMOJI = '🏫'
+
+export function titleLetterDelayMs(order, total) {
+  return 60 + Math.round((order * TITLE_WRITE_SPAN_MS) / Math.max(1, total))
+}
+
 const TITLE_INTRO_CSS = `
-  @keyframes titleLetterSlam {
-    0% { opacity: 0; transform: translate3d(var(--title-enter-x), var(--title-enter-y), 0) rotate(var(--title-enter-rotation)) scale(0.72); }
-    58% { opacity: 1; transform: translate3d(0, 0, 0) rotate(0deg) scale(1.16); }
-    74% { opacity: 1; transform: translate3d(0, 5px, 0) rotate(0deg) scale(0.92); }
-    100% { opacity: 1; transform: translate3d(0, 0, 0) rotate(0deg) scale(1); }
+  @keyframes titleChalkWrite {
+    0% { opacity: 0; clip-path: inset(0 100% 0 0); }
+    35% { opacity: 1; }
+    100% { opacity: 1; clip-path: inset(0 0 0 0); }
   }
-  @keyframes titleZombieScurry {
-    0% { opacity: 0; transform: translate3d(105vw, 8px, 0) rotate(8deg) scale(0.82); }
-    25% { opacity: 1; transform: translate3d(70vw, -8px, 0) rotate(-6deg) scale(0.88); }
-    50% { opacity: 1; transform: translate3d(38vw, 0, 0) rotate(5deg) scale(0.92); }
-    75% { opacity: 1; transform: translate3d(10vw, -6px, 0) rotate(-3deg) scale(0.97); }
-    90% { opacity: 1; transform: translate3d(0, 3px, 0) rotate(0deg) scale(0.92); }
-    100% { opacity: 1; transform: translate3d(0, 0, 0) rotate(0deg) scale(1); }
+  @keyframes titleChalkUnderline {
+    from { stroke-dashoffset: 1; }
+    to { stroke-dashoffset: 0; }
   }
   @keyframes titleSceneGather {
     0% { opacity: 0; transform: translate3d(0, 105vh, 0); }
     72% { opacity: 1; transform: translate3d(0, -2vh, 0); }
     100% { opacity: 1; transform: translate3d(0, 0, 0); }
   }
-  .title-intro-letter { animation: titleLetterSlam 260ms cubic-bezier(.16,.84,.28,1.08) backwards; }
-  .title-intro-zombie { animation: titleZombieScurry 450ms ease-out backwards; }
+  .title-intro-letter { animation: titleChalkWrite ${TITLE_LETTER_WRITE_MS}ms cubic-bezier(.3,.7,.4,1) backwards; }
+  .title-chalk-underline path { stroke-dasharray: 1; animation: titleChalkUnderline 220ms ease-out 760ms backwards; }
   .title-intro-scene { animation: titleSceneGather 425ms cubic-bezier(.16,.84,.28,1.04) backwards; }
-  .title-main-action:focus-visible, .title-language-action:focus-visible { outline:3px solid #fff8e8; outline-offset:3px; }
+  .title-start-tag { transform: rotate(-1.6deg); transition: transform 90ms ease-out, box-shadow 90ms ease-out; }
+  .title-start-tag::before { content: ''; position: absolute; top: -10px; right: 18px; width: 46px; height: 17px; background: rgba(159,216,242,0.82); border: 1.5px solid rgba(31,58,48,0.4); transform: rotate(7deg); }
+  .title-start-tag::after { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 12px; background: ${P.red}; border-right: 2.5px solid ${P.line}; border-radius: 3px 0 0 3px; }
+  .title-start-tag:hover:not(:disabled) { transform: rotate(-1.6deg) translate3d(0, -1px, 0); }
+  .title-start-tag:active:not(:disabled) { transform: rotate(-1.6deg) translate3d(2px, 4px, 0); box-shadow: 1px 1px 0 ${P.line}; }
+  .title-sticker:active { transform: translate3d(1px, 2px, 0) !important; box-shadow: 0 1px 0 ${P.line} !important; }
+  .title-main-action:focus-visible, .title-language-action:focus-visible { outline: 3px solid ${P.line}; outline-offset: 3px; }
+  @media (max-height: 480px) {
+    [data-title-language] { top: max(66px, calc(env(safe-area-inset-top, 0px) + 60px)) !important; right: max(12px, calc(env(safe-area-inset-right, 0px) + 8px)) !important; }
+    .title-content { top: calc(env(safe-area-inset-top, 0px) + 116px) !important; }
+    .title-content [data-title-service-name], .title-content .title-subtitle { display: none; }
+    .title-content [data-title-board] { padding: 8px 12px 9px !important; }
+    .title-chalk-underline { display: none !important; }
+    .title-main-stack { gap: 2px !important; }
+    .title-start-tag { min-height: 48px !important; font-size: 16px !important; letter-spacing: 0 !important; white-space: nowrap; padding: 0 10px 0 22px !important; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .title-intro-letter, .title-intro-scene, .title-chalk-underline path { animation: none; }
+    .title-start-tag, .title-sticker { transition: none; }
+  }
 `
 
 function TitleLetter({ config, total }) {
@@ -133,14 +140,37 @@ function TitleLetter({ config, total }) {
       data-title-char={config.char}
       style={{
         ...styles.titleLetter,
-        '--title-enter-x': config.x,
-        '--title-enter-y': config.y,
-        '--title-enter-rotation': config.rotation,
+        transform: `translateY(${config.lift}px) rotate(${config.rotate}deg)`,
         animationDelay: `${titleLetterDelayMs(config.order, total)}ms`,
       }}
     >
       {config.char}
     </span>
+  )
+}
+
+// 분필 질감: 글자 가장자리를 1px 남짓 흔들고 군데군데 가루가 빠진 듯 알파를 깎는다.
+function ChalkFilterDefs() {
+  return (
+    <svg width="0" height="0" aria-hidden="true" focusable="false" style={{ position: 'absolute' }}>
+      <filter id="title-chalk-texture" x="-5%" y="-5%" width="110%" height="110%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="7" result="noise" />
+        <feDisplacementMap in="SourceGraphic" in2="noise" scale="1.1" xChannelSelector="R" yChannelSelector="G" result="rough" />
+        <feColorMatrix in="noise" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  -1.5 0 0 0 1.55" result="speckle" />
+        <feComposite in="rough" in2="speckle" operator="in" />
+      </filter>
+    </svg>
+  )
+}
+
+function GlobeIcon() {
+  return (
+    <svg viewBox="0 0 20 20" width="15" height="15" aria-hidden="true" focusable="false" style={{ display: 'block' }}>
+      <g fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+        <circle cx="10" cy="10" r="7.6" />
+        <path d="M2.6 10 H17.4 M10 2.4 C6.6 6 6.6 14 10 17.6 M10 2.4 C13.4 6 13.4 14 10 17.6" />
+      </g>
+    </svg>
   )
 }
 
@@ -182,7 +212,7 @@ export default function TitleScreen({
   const cheatBufferRef = useRef([])
   const adminOperations = getAdminOperationsConfig()
   const cheatMenuButtonVisible = DEV_CHEATS_ENABLED && devCheatsVisible && adminOperations.cheatMenuButtonVisible
-  const titleWords = getTitleWords(locale, t)
+  const titleWords = getTitleWords(t)
   const titleLetterTotal = titleWords.accent.length + titleWords.school.length
   const mainActionBusy = !authUser?.uid && authSigningIn
   const mainActionStyle = mainActionBusy
@@ -370,15 +400,15 @@ export default function TitleScreen({
   return (
     <div style={styles.root}>
       <style data-title-intro-css>{TITLE_INTRO_CSS}</style>
+      <ChalkFilterDefs />
+      <TitleBackdrop />
       <TitleSceneCanvas
         className="title-intro-scene"
         style={{ ...styles.canvas, animationDelay: '1500ms' }}
       />
 
-      <div style={styles.tint} />
-      <div style={styles.vignette} />
       <GoogleAccountPanel compact />
-      <a href={`/landing?lang=${encodeURIComponent(locale || 'ko')}#inquiry`} className="title-main-action" style={{
+      <a href={`/landing?lang=${encodeURIComponent(locale || 'ko')}#inquiry`} className="title-main-action title-sticker" style={{
         ...styles.contactLink,
         ...(cheatMenuButtonVisible ? { top: 'max(66px, calc(env(safe-area-inset-top, 0px) + 60px))' } : {}),
       }}>{(ZOMBIE_BOARD_COPY[locale] || ZOMBIE_BOARD_COPY.ko).contact}</a>
@@ -387,19 +417,19 @@ export default function TitleScreen({
         onKeyDown={(event) => { if (event.key === 'Escape') setLanguageMenuOpen(false) }}
         style={{
           ...styles.languageAnchor,
-          ...(cheatMenuButtonVisible ? { top: 'max(118px, calc(env(safe-area-inset-top, 0px) + 112px))' } : {}),
+          ...(cheatMenuButtonVisible ? { top: 'max(66px, calc(env(safe-area-inset-top, 0px) + 60px))' } : {}),
         }}
       >
         <button
           type="button"
-          className="title-language-action"
+          className="title-language-action title-sticker"
           aria-label={t('settings.languageAria')}
           aria-haspopup="true"
           aria-expanded={languageMenuOpen}
           style={styles.languageButton}
           onClick={() => setLanguageMenuOpen((open) => !open)}
         >
-          <span aria-hidden="true">🌐</span>
+          <GlobeIcon />
           <span>{(locale || 'ko').toUpperCase()}</span>
         </button>
         {languageMenuOpen && (
@@ -444,44 +474,37 @@ export default function TitleScreen({
           {t('title.cheatButton')}
         </button>
       )}
-      <div style={styles.content}>
+      <div className="title-content" style={styles.content}>
         <div aria-hidden="true" data-title-service-name style={styles.serviceName}>{t('title.serviceName')}</div>
-        <h1 aria-label={t('title.serviceName')} style={{ ...styles.title, fontSize: fitTitleFontSize(t('title.fontSize'), titleWords) }}>
-          <span style={{ ...styles.titleAccent, ...styles.titleWord }}>
-            {titleWords.accent.map((config) => (
-              <TitleLetter key={`${config.char}-${config.order}`} config={config} total={titleLetterTotal} />
-            ))}
-            <span
-              aria-hidden="true"
-              className="title-intro-zombie"
-              data-title-emoji
-              style={{ ...styles.titleEmoji, animationDelay: '1025ms' }}
-            >
-              {TITLE_SCHOOL_EMOJI}
+        <div data-title-board style={styles.board}>
+          <h1 aria-label={t('title.serviceName')} style={{ ...styles.title, fontSize: titleHeadingFontSize(t('title.fontSize'), titleWords) }}>
+            <span style={{ ...styles.titleAccent, ...styles.titleWord }}>
+              {titleWords.accent.map((config) => (
+                <TitleLetter key={`${config.char}-${config.order}`} config={config} total={titleLetterTotal} />
+              ))}
             </span>
-          </span>
-          <span style={styles.titleWord}>
-            {titleWords.school.map((config) => (
-              <TitleLetter key={`${config.char}-${config.order}`} config={config} total={titleLetterTotal} />
-            ))}
-            <span
-              aria-hidden="true"
-              className="title-intro-zombie"
-              data-title-emoji
-              style={{ ...styles.titleEmoji, animationDelay: '1025ms' }}
-            >
-              {TITLE_EMOJI_CLUSTER}
+            <span style={styles.titleWord}>
+              {titleWords.school.map((config) => (
+                <TitleLetter key={`${config.char}-${config.order}`} config={config} total={titleLetterTotal} />
+              ))}
             </span>
-          </span>
-        </h1>
-        <p style={styles.subtitle}>{t('title.subtitle')}</p>
+          </h1>
+          <svg className="title-chalk-underline" viewBox="0 0 200 10" preserveAspectRatio="none" aria-hidden="true" focusable="false" style={styles.underline}>
+            <path d="M3 6 C40 2 78 8 116 4 C146 1 172 7 197 4" pathLength="1" fill="none" stroke={P.orange} strokeWidth="3" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+          </svg>
+          <p className="title-subtitle" style={styles.subtitle}>{t('title.subtitle')}</p>
+          <div aria-hidden="true" style={styles.chalkTray}>
+            <span style={styles.chalkPiece} />
+            <span style={{ ...styles.chalkPiece, ...styles.chalkPieceOrange }} />
+          </div>
+        </div>
       </div>
 
         <div style={styles.actions}>
-        <div style={styles.mainActionStack}>
+        <div className="title-main-stack" style={styles.mainActionStack}>
           <button
             type="button"
-            className="title-main-action"
+            className="title-main-action title-start-tag"
             style={mainActionStyle}
             disabled={mainActionBusy}
             aria-busy={mainActionBusy ? 'true' : undefined}
@@ -490,7 +513,7 @@ export default function TitleScreen({
             {mainActionBusy ? t('account.signingIn') : t('title.start')}
           </button>
           <a href="/landing" className="title-main-action" data-title-homepage style={styles.homepageLink}>
-            {t('title.homepage')}
+            <span style={styles.homepageSticker}>{t('title.homepage')}</span>
           </a>
         </div>
       </div>
@@ -589,15 +612,16 @@ function normalizeRevealCheatKey(key) {
 }
 
 const styles = {
-  // 문의 링크 바로 아래, 같은 우측 열(72px). 타이틀 글자는 가운데라 겹치지 않는다.
+  // 문의 스티커 왼쪽, 같은 맨 윗줄. 칠판이 위쪽(66px)부터 시작해도 겹치지 않는다(2026-11-03).
+  // 높이 480px 이하의 좁은 프레임(가로 화면 219px)은 한 줄에 다 안 들어가 문의 아래 열로 돌아간다(CSS).
   languageAnchor: {
     position: 'absolute',
-    top: 'max(66px, calc(env(safe-area-inset-top, 0px) + 60px))',
-    right: 'max(12px, calc(env(safe-area-inset-right, 0px) + 8px))',
+    top: 'max(14px, calc(env(safe-area-inset-top, 0px) + 8px))',
+    right: 'max(92px, calc(env(safe-area-inset-right, 0px) + 88px))',
     zIndex: 4,
   },
   languageButton: {
-    ...schoolButton('paper'),
+    ...paperSticker(1.5),
     position: 'relative',
     zIndex: 1,
     width: 72,
@@ -607,10 +631,10 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 4,
+    gap: 5,
+    fontFamily: uiType.family,
     fontSize: 13,
     lineHeight: 1,
-    cursor: 'pointer',
   },
   languageScrim: {
     position: 'fixed',
@@ -631,23 +655,26 @@ const styles = {
     gap: 6,
     padding: 6,
     boxSizing: 'border-box',
-    border: uiBorders.strong,
-    borderRadius: 10,
-    background: 'rgba(246,234,208,0.96)',
-    boxShadow: uiShadows.panel,
+    border: `2px solid ${P.line}`,
+    borderRadius: 6,
+    background: P.cream,
+    boxShadow: `3px 4px 0 ${P.line}`,
   },
   languageOption: (active) => ({
-    ...schoolButton(active ? 'primary' : 'paper'),
+    ...paperSticker(0),
+    background: active ? P.chalkboard : P.cream,
+    color: active ? P.cream : P.line,
+    boxShadow: 'none',
     width: '100%',
     minHeight: 44,
     padding: '6px 8px',
     boxSizing: 'border-box',
+    fontFamily: uiType.family,
     fontSize: 15,
     lineHeight: 1.1,
-    cursor: 'pointer',
   }),
   contactLink: {
-    ...schoolButton('paper'),
+    ...paperSticker(-1.5),
     position: 'absolute',
     top: 'max(14px, calc(env(safe-area-inset-top, 0px) + 8px))',
     right: 'max(12px, calc(env(safe-area-inset-right, 0px) + 8px))',
@@ -659,6 +686,7 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
+    fontFamily: uiType.family,
     fontSize: 12,
     lineHeight: 1.2,
     overflowWrap: 'anywhere',
@@ -673,27 +701,16 @@ const styles = {
     overflow: 'hidden',
     // 제목 글자 크기(cqw)의 기준 — 창이 아니라 게임 프레임 폭.
     containerType: 'inline-size',
-    background: '#151019',
+    background: P.sky,
     fontFamily: uiType.family,
   },
+  // 캔버스는 투명 — 뒤의 TitleBackdrop(하늘·학교·운동장)이 비친다.
   canvas: {
     position: 'absolute',
     inset: 0,
     width: '100%',
     height: '100%',
-    background: '#1c1824',
-  },
-  tint: {
-    position: 'absolute',
-    inset: 0,
-    background: 'linear-gradient(180deg, rgba(13,10,18,0.54) 0%, rgba(13,10,18,0.03) 36%, rgba(13,10,18,0.76) 100%)',
-    pointerEvents: 'none',
-  },
-  vignette: {
-    position: 'absolute',
-    inset: 0,
-    background: 'radial-gradient(120% 88% at 50% 44%, rgba(0,0,0,0) 46%, rgba(8,6,12,0.58) 100%)',
-    pointerEvents: 'none',
+    background: 'transparent',
   },
   cheatMenuButton: {
     position: 'absolute',
@@ -734,7 +751,8 @@ const styles = {
   },
   content: {
     position: 'absolute',
-    top: 'max(8%, calc(env(safe-area-inset-top, 0px) + 64px))',
+    // 윗줄 스티커(아래 끝 58px) 바로 밑에서 시작한다 — 칠판 아래로 3D 보스 얼굴이 보이게 위로 붙인다.
+    top: 'calc(env(safe-area-inset-top, 0px) + 66px)',
     left: 22,
     right: 22,
     display: 'flex',
@@ -744,18 +762,71 @@ const styles = {
     pointerEvents: 'none',
     zIndex: 2,
   },
+  // 칠판 위에 테이프로 붙인 작은 이름표.
   serviceName: {
-    padding: '4px 10px',
-    border: uiBorders.strong,
-    borderRadius: 999,
-    background: uiPalette.chalkboard,
-    color: uiPalette.reward,
+    position: 'relative',
+    zIndex: 1,
+    marginBottom: -8,
+    padding: '4px 10px 5px',
+    border: `2px solid ${P.line}`,
+    borderRadius: 3,
+    background: P.cream,
+    color: P.line,
     fontSize: 12,
+    lineHeight: 1,
     fontWeight: uiType.weightHeavy,
     letterSpacing: 0,
-    textShadow: `0 2px 0 ${uiPalette.ink}`,
-    boxShadow: uiShadows.pressSmall,
-    marginBottom: 8,
+    boxShadow: `2px 2px 0 ${P.line}`,
+    transform: 'rotate(2.2deg)',
+  },
+  board: {
+    position: 'relative',
+    maxWidth: '100%',
+    boxSizing: 'border-box',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    padding: '13px 12px 11px',
+    border: `3px solid ${P.line}`,
+    borderRadius: 8,
+    background: P.chalkboard,
+    boxShadow: `3px 5px 0 ${P.line}`,
+    transform: 'rotate(-1.2deg)',
+  },
+  underline: {
+    display: 'block',
+    width: '62%',
+    height: 8,
+    marginTop: 1,
+    overflow: 'visible',
+  },
+  chalkTray: {
+    position: 'absolute',
+    left: '12%',
+    right: '12%',
+    bottom: -9,
+    height: 7,
+    border: `2px solid ${P.line}`,
+    borderRadius: 2,
+    background: P.cream,
+  },
+  chalkPiece: {
+    position: 'absolute',
+    left: '18%',
+    top: -7,
+    width: 18,
+    height: 5,
+    border: `1.5px solid ${P.line}`,
+    borderRadius: 2,
+    background: P.cream,
+    transform: 'rotate(-6deg)',
+  },
+  chalkPieceOrange: {
+    left: 'auto',
+    right: '22%',
+    width: 12,
+    background: P.orange,
+    transform: 'rotate(4deg)',
   },
   title: {
     margin: 0,
@@ -763,18 +834,20 @@ const styles = {
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 0,
-    color: uiPalette.chalk,
+    gap: 2,
+    color: P.cream,
     fontSize: 'clamp(46.8px, 14.04vw, 65px)',
-    lineHeight: 0.96,
+    lineHeight: 1,
     fontWeight: uiType.weightHeavy,
     letterSpacing: 0,
-    WebkitTextFillColor: uiPalette.chalk,
-    textShadow: '0 0 18px rgba(255,170,80,0.45), 0 0 30px rgba(65,116,90,0.42)',
+    WebkitTextFillColor: P.cream,
+    // 번짐·네온 없음. 분필 가루가 아래로 살짝 밀린 정도의 납작한 그림자.
+    textShadow: '0 1px 0 rgba(31,58,48,0.55)',
+    filter: 'url(#title-chalk-texture)',
   },
   titleAccent: {
-    color: uiPalette.warning,
-    WebkitTextFillColor: uiPalette.warning,
+    color: P.orange,
+    WebkitTextFillColor: P.orange,
   },
   titleWord: {
     display: 'inline-flex',
@@ -784,26 +857,19 @@ const styles = {
   },
   titleLetter: {
     display: 'inline-block',
-    transformOrigin: '50% 88%',
-  },
-  titleEmoji: {
-    display: 'inline-block',
-    alignSelf: 'center',
-    marginLeft: 4,
-    fontSize: '0.6em',
-    lineHeight: 1,
-    WebkitTextFillColor: 'initial',
-    transformOrigin: '50% 90%',
+    transformOrigin: '50% 80%',
   },
   subtitle: {
-    color: uiPalette.chalk,
-    fontSize: 'clamp(12px, 3.7vw, 15px)',
+    color: P.cream,
+    fontSize: 'clamp(11px, 3.4cqw, 14px)',
     lineHeight: 1.35,
     fontWeight: uiType.weightStrong,
     letterSpacing: 0,
-    maxWidth: 336,
-    margin: '10px 0 0',
-    textShadow: `0 3px 0 ${uiPalette.ink}, 0 0 8px rgba(0,0,0,0.45)`,
+    maxWidth: 300,
+    textWrap: 'balance',
+    wordBreak: 'keep-all',
+    margin: '3px 0 2px',
+    opacity: 0.92,
   },
   actions: {
     position: 'absolute',
@@ -820,20 +886,16 @@ const styles = {
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    gap: 10,
-    padding: '11px 12px 12px',
-    border: uiBorders.strong,
-    borderRadius: 10,
-    background: 'rgba(246,234,208,0.86)',
-    boxShadow: uiShadows.panel,
-    transform: 'rotate(-0.8deg)',
+    gap: 8,
     pointerEvents: 'auto',
   },
+  // 출석부 이름표: 크림 종이 + 왼쪽 빨간 띠(::after) + 테이프(::before). 기울기·눌림은 .title-start-tag CSS.
   mainActionButton: {
+    position: 'relative',
     width: '100%',
     minWidth: 180,
-    maxWidth: 230,
-    transform: 'rotate(0.8deg)',
+    maxWidth: 240,
+    padding: '0 14px 0 26px',
   },
   mainActionButtonBusy: {
     cursor: 'wait',
@@ -841,30 +903,47 @@ const styles = {
     filter: 'saturate(0.78)',
   },
   primaryButton: {
-    ...schoolButton('primary'),
-    minHeight: 58,
+    minHeight: 60,
+    border: `2.5px solid ${P.line}`,
+    borderRadius: 5,
+    background: P.cream,
+    color: P.line,
+    boxShadow: `3px 5px 0 ${P.line}`,
+    fontFamily: uiType.family,
+    fontWeight: uiType.weightHeavy,
     fontSize: 21,
     letterSpacing: 1,
+    cursor: 'pointer',
   },
   // 보조 동선: 버튼이 아닌 작은 텍스트 링크. START GAME만 눈에 띄는 주 행동으로 남긴다.
   // 터치 타깃은 44px 높이를 유지한다.
+  // 보조 동선: 작은 종이 쪽지 링크. START GAME만 눈에 띄는 주 행동으로 남긴다.
+  // 터치 타깃은 44px 높이를 유지하고, 쪽지는 그 안에서 작게 보인다.
   homepageLink: {
     minHeight: 44,
     minWidth: 44,
-    padding: '0 12px',
+    padding: '0 4px',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     boxSizing: 'border-box',
-    color: uiPalette.ink,
+    color: P.line,
     fontFamily: uiType.family,
     fontSize: 13,
     fontWeight: uiType.weightStrong,
     lineHeight: 1,
+    textDecoration: 'none',
+  },
+  homepageSticker: {
+    display: 'block',
+    padding: '6px 12px',
+    border: `2px solid ${P.line}`,
+    borderRadius: 3,
+    background: P.cream,
+    boxShadow: `2px 2px 0 ${P.line}`,
     textDecoration: 'underline',
     textUnderlineOffset: 3,
-    opacity: 0.78,
-    transform: 'rotate(0.8deg)',
+    transform: 'rotate(1.4deg)',
   },
   cheatButtons: {
     display: 'grid',

@@ -104,49 +104,57 @@ describe('TitleScreen lobby entry', () => {
     cleanup()
   })
 
-  it('slams the title letters, sends the zombie, then gathers the 3D scene', () => {
+  // 2026-11-03 타이틀 Stage 1: 슬램·이모지 → 칠판 분필 쓰기(읽는 순서, 약 0.8초).
+  it('writes the title letters in reading order on a chalkboard, then gathers the 3D scene', () => {
     const { container, cleanup } = renderTitleScreen()
     const title = container.querySelector('h1[aria-label="탈출! 좀비학교"]')
     const letters = Array.from(title.querySelectorAll('[data-title-char]'))
-    const emojis = Array.from(title.querySelectorAll('[data-title-emoji]'))
     const scene = container.querySelector('[data-testid="mock-canvas"]')
+    const delays = letters.map((node) => parseFloat(node.style.animationDelay))
 
+    expect(container.querySelector('[data-title-board]')?.contains(title)).toBe(true)
     expect(letters.map((node) => node.textContent).join('')).toBe('탈출!좀비학교')
-    expect(letters
-      .toSorted((left, right) => parseFloat(left.style.animationDelay) - parseFloat(right.style.animationDelay))
-      .map((node) => node.textContent)
-      .join('')).toBe('탈출좀비학교!')
+    expect(delays).toEqual([...delays].sort((left, right) => left - right))
+    expect(Math.max(...delays) + 150).toBeLessThanOrEqual(900)
     expect(letters.every((node) => node.classList.contains('title-intro-letter'))).toBe(true)
     expect(letters.every((node) => node.getAttribute('aria-hidden') === 'true')).toBe(true)
-    expect(letters.every((node) => {
-      const x = node.style.getPropertyValue('--title-enter-x')
-      const y = node.style.getPropertyValue('--title-enter-y')
-      return (x.endsWith('vw') && Math.abs(parseFloat(x)) >= 50)
-        || (y.endsWith('vh') && Math.abs(parseFloat(y)) >= 50)
-    })).toBe(true)
-    expect(emojis.map((node) => node.textContent).join('')).toBe('🏫🧟‍♀️❤️')
-    expect(emojis.every((node) => node.classList.contains('title-intro-zombie'))).toBe(true)
-    expect(emojis.every((node) => node.getAttribute('aria-hidden') === 'true')).toBe(true)
-    expect(emojis.every((node) => parseFloat(node.style.animationDelay) > (
-      Math.max(...letters.map((letter) => parseFloat(letter.style.animationDelay))) + 260
-    ))).toBe(true)
-    expect(emojis.every((node) => node.style.animationDelay === '1025ms')).toBe(true)
+    expect(title.querySelector('[data-title-emoji]')).toBeNull()
     expect(scene.classList.contains('title-intro-scene')).toBe(true)
     expect(scene.style.animationDelay).toBe('1500ms')
     expect(container.querySelector('[data-title-service-name]').getAttribute('aria-hidden')).toBe('true')
 
     const motionCss = container.querySelector('style[data-title-intro-css]').textContent
-    expect(motionCss).toContain('@keyframes titleLetterSlam')
-    expect(motionCss).toContain('scale(1.16)')
-    expect(motionCss).toContain('scale(0.92)')
-    expect(motionCss).toContain('@keyframes titleZombieScurry')
+    expect(motionCss).toContain('@keyframes titleChalkWrite')
+    expect(motionCss).toContain('.title-intro-letter { animation: titleChalkWrite 150ms')
     expect(motionCss).toContain('@keyframes titleSceneGather')
     expect(motionCss).toContain('0% { opacity: 0; transform: translate3d(0, 105vh, 0); }')
-    expect(motionCss).toContain('.title-intro-letter { animation: titleLetterSlam 260ms')
-    expect(motionCss).toContain('.title-intro-zombie { animation: titleZombieScurry 450ms')
     expect(motionCss).toContain('.title-intro-scene { animation: titleSceneGather 425ms')
-    expect(motionCss).not.toContain('@media (prefers-reduced-motion: reduce)')
+    expect(motionCss).not.toContain('titleLetterSlam')
     expect(motionCss).not.toContain(':root[data-reduced-effects]')
+
+    cleanup()
+  })
+
+  it('renders no emoji in the title heading and turns off motion for prefers-reduced-motion', () => {
+    const { container, cleanup } = renderTitleScreen()
+    const heading = container.querySelector('h1')
+    const board = container.querySelector('[data-title-board]')
+
+    expect(heading.textContent).toBe('탈출!좀비학교')
+    expect(/\p{Extended_Pictographic}/u.test(board.textContent)).toBe(false)
+    expect(/\p{Extended_Pictographic}/u.test(container.querySelector('[data-title-service-name]').textContent)).toBe(false)
+
+    const introCss = container.querySelector('style[data-title-intro-css]').textContent
+    const reducedIntro = introCss.slice(introCss.indexOf('@media (prefers-reduced-motion: reduce)'))
+    expect(introCss).toContain('@media (prefers-reduced-motion: reduce)')
+    expect(reducedIntro).toMatch(/\.title-intro-letter, \.title-intro-scene, \.title-chalk-underline path \{ animation: none; \}/)
+
+    const backdropCss = container.querySelector('style[data-title-backdrop-css]').textContent
+    expect(backdropCss).toContain('.title-cloud-track { animation: titleCloudDrift')
+    const reducedBackdrop = backdropCss.slice(backdropCss.indexOf('@media (prefers-reduced-motion: reduce)'))
+    expect(backdropCss).toContain('@media (prefers-reduced-motion: reduce)')
+    expect(reducedBackdrop).toContain('.title-cloud-track { animation: none;')
+    expect(container.querySelectorAll('[data-title-cloud]')).toHaveLength(3)
 
     cleanup()
   })
@@ -161,9 +169,8 @@ describe('TitleScreen lobby entry', () => {
     expect(container.querySelector('[data-testid="mock-canvas"]')).not.toBeNull()
     expect(container.querySelector('[data-testid="mock-title-scene"]')).not.toBeNull()
     expect(container.querySelectorAll('.title-intro-letter')).toHaveLength(7)
-    expect(container.querySelector('.title-intro-zombie')).not.toBeNull()
     expect(container.querySelectorAll('[data-title-char]')).toHaveLength(7)
-    expect(container.querySelector('[data-title-emoji]')).not.toBeNull()
+    expect(container.querySelector('[data-title-emoji]')).toBeNull()
     expect(document.documentElement.dataset.reducedEffects).toBeUndefined()
     expect(container.querySelector('h1').style.textShadow).not.toBe('none')
     expect(Array.from(container.querySelectorAll('button')).find((button) => button.textContent === '게임 시작')?.style.fontSize).toBe('21px')
@@ -179,7 +186,7 @@ describe('TitleScreen lobby entry', () => {
       .find((node) => node.textContent.includes('좀비학교'))
     const [accent] = title.querySelectorAll('span')
 
-    expect(title.style.getPropertyValue('-webkit-text-fill-color')).toBe('rgb(248, 247, 242)')
+    expect(title.style.getPropertyValue('-webkit-text-fill-color')).toBe('rgb(251, 241, 218)')
     expect(accent.style.getPropertyValue('-webkit-text-fill-color')).toBe('rgb(255, 138, 55)')
     expect(title.style.getPropertyValue('-webkit-text-stroke')).toBe('')
     expect(readFileSync('src/components/TitleScreen.jsx', 'utf8'))

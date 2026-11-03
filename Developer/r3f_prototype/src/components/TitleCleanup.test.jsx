@@ -47,7 +47,7 @@ describe('guest sign-in collapses on the title', () => {
       accent: [...'ESCAPE!'].map((char) => ({ char })),
       school: [...'ZOMBIE SCHOOL'].map((char) => ({ char })),
     })
-    expect(size).toMatch(/^min\(clamp\(40px, 12cqw, 64px\), calc\(\(100cqw - 44px\) \/ [\d.]+\)\)$/)
+    expect(size).toMatch(/^min\(clamp\(40px, 12cqw, 64px\), calc\(\(100cqw - 80px\) \/ [\d.]+\)\)$/)
   })
 })
 

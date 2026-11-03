@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { useAuthStore } from '../store/useAuthStore.js'
 import { isProjectMaster } from '../lib/projectAdmin.js'
-import { schoolButton, schoolPanel, uiBorders, uiPalette, uiShadows, uiType } from '../lib/uiStyle.js'
+import { paperSticker, schoolButton, schoolPanel, sunnyPalette, uiBorders, uiPalette, uiShadows, uiType } from '../lib/uiStyle.js'
 import { t, useT } from '../lib/i18n.js'
 
 // compact: 타이틀 게스트용. 로그인 전에는 큰 상태 카드 대신 작은 보조 버튼 하나만 둔다
@@ -41,7 +41,7 @@ export function GoogleAccountPanelView({ status, user, error, signingIn, onSignI
   if (compact && !signedIn) {
     return (
       <section className="google-account-compact" data-account-compact style={styles.compactPanel} aria-label="Google account">
-        <style>{'.google-account-compact button:focus-visible { outline: 3px solid #fff8e8; outline-offset: 3px; }'}</style>
+        <style>{`.google-account-compact button:focus-visible { outline: 3px solid ${sunnyPalette.line}; outline-offset: 3px; } .google-account-compact button:active:not(:disabled) { transform: translate3d(1px, 2px, 0) !important; box-shadow: 0 1px 0 ${sunnyPalette.line} !important; }`}</style>
         <button
           type="button"
           className="google-account-action"
@@ -143,8 +143,9 @@ const styles = {
     zIndex: 3,
     pointerEvents: 'auto',
   },
+  // 타이틀 종이 스티커(2026-11-03 밝은 타이틀). 크기·동작은 그대로.
   compactButton: {
-    ...schoolButton('paper'),
+    ...paperSticker(-2),
     minWidth: 44,
     minHeight: 44,
     padding: '6px 12px',
@@ -152,11 +153,10 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     gap: 6,
+    fontFamily: uiType.family,
     fontSize: 12,
     lineHeight: 1,
     whiteSpace: 'nowrap',
-    boxShadow: uiShadows.pressSmall,
-    cursor: 'pointer',
   },
   panel: {
     ...schoolPanel('paper'),

@@ -11,7 +11,9 @@ import {
   TITLE_SCENE_BASE_POSITION,
   TITLE_SCENE_DIRECTION,
   TITLE_ZOMBIE_GROUND_LIFT_Y,
-  applyClubLightFrame,
+  TITLE_DAYLIGHT,
+  TITLE_FLOOR_CHALK_COLOR,
+  TITLE_FLOOR_COLOR,
   applyTitlePlayerRunFrame,
   applyTitleCharacterOutline,
   clampTitleBackgroundZ,
@@ -20,6 +22,7 @@ import {
   prepareTitleCharactersForStudioUpdate,
 } from './TitleScene3D.jsx'
 import { applyStudioTuning } from './StudioTunedGroup.jsx'
+import { sunnyPalette } from '../lib/uiStyle.js'
 
 describe('TitleScene3D direction', () => {
   it('uses the Studio preview bypass only for an explicit Studio preview, while preserving title-root offsets', () => {
@@ -53,17 +56,9 @@ describe('TitleScene3D direction', () => {
     expect(TITLE_SCENE_DIRECTION.scene).toMatchObject({
       exitGlow: true,
       infectionStreaks: 2,
-      warningLights: 2,
       zombieStudents: 5,
       bossZombies: 3,
       matildaPursuers: 1,
-      clubLights: {
-        beams: 2,
-        palette: ['cyan', 'magenta'],
-        animated: true,
-        dynamicLights: 1,
-        fixtures: 0,
-      },
       realForegroundResources: [
         'ZombieMesh',
         'MatildaMesh',
@@ -83,46 +78,48 @@ describe('TitleScene3D direction', () => {
     expect(studentZs.every((z) => z < -8.0)).toBe(true)
   })
 
-  it('keeps the blue and purple light beams while removing fixtures and lens squares', () => {
+  it('drops the club light beams and dark fog for the sunny after-school title', () => {
     const source = readFileSync(new URL('./TitleScene3D.jsx', import.meta.url), 'utf8')
 
-    expect(source).toContain('function ClubLightRig({ reducedEffects })')
-    expect(source).toContain('function ClubLightBeam')
-    expect(source).toContain('export function applyClubLightFrame')
-    expect(source).toContain('<ClubLightRig reducedEffects={reducedEffects} />')
-    expect(source).toContain('const CLUB_LIGHT_BEAMS = [')
-    expect(source).toContain('0x59c7ff')
-    expect(source).toContain('0xd64fa8')
-    expect(source).toContain('<pointLight ref={washRef}')
-    expect(source).toContain('<coneGeometry args={[1.18, 4.6, 10, 1, true]} />')
-    expect(source).toContain('<coneGeometry args={[0.46, 4.3, 8, 1, true]} />')
-    expect(source).not.toContain('<circleGeometry args={[0.13, 12]} />')
+    expect(TITLE_SCENE_DIRECTION.scene).not.toHaveProperty('clubLights')
+    expect(source).not.toContain('ClubLightRig')
+    expect(source).not.toContain('ClubLightBeam')
+    expect(source).not.toContain('CLUB_LIGHT_BEAMS')
+    expect(source).not.toContain('0xd64fa8')
+    expect(source).not.toContain('<coneGeometry')
+    expect(source).not.toContain('<fog')
+    expect(source).not.toContain('0x140f1c')
+    expect(TITLE_SCENE_DIRECTION.scene).not.toHaveProperty('warningLights')
+    expect(source).not.toContain('WarningLight')
+    expect(source).not.toContain('0xe99039')
     expect(source).not.toContain('CLUB_LIGHT_HOUSING_GEO')
     expect(source).not.toContain('housingMat')
-    expect(source).not.toContain('getCachedToonMat(0x17131e, 0.06)')
   })
 
-  it('freezes the restored light beams in reduced-effects mode and resumes animation', () => {
-    const beamStates = Array.from({ length: 2 }, () => ({
-      node: { rotation: { z: 99 } },
-      beamMat: { opacity: 99 },
-      coreMat: { opacity: 99 },
-    }))
-    const wash = { color: new THREE.Color(), intensity: 99 }
+  it('paints the floor as the backdrop playfield with soft edges and keeps one contact-shadow catcher', () => {
+    const source = readFileSync(new URL('./TitleScene3D.jsx', import.meta.url), 'utf8')
 
-    applyClubLightFrame(beamStates, wash, 3, true)
+    expect(TITLE_FLOOR_COLOR).toBe(sunnyPalette.chalkboard)
+    expect(TITLE_FLOOR_CHALK_COLOR).toBe(sunnyPalette.cream)
+    expect(source).not.toContain('toonMat(0x4a4054')
+    expect(source).toContain('const floorMat = useMemo(createTitlePlayfieldMaterial, [])')
+    expect(source).toContain("ctx.globalCompositeOperation = 'destination-in'")
+    expect(source).toContain('toneMapped: false')
+    expect(source).toContain('new THREE.ShadowMaterial({ opacity: TITLE_FLOOR_SHADOW_OPACITY')
+    expect(source.match(/castShadow/g)).toHaveLength(1)
+  })
 
-    expect(beamStates.map(({ node }) => node.rotation.z)).toEqual([0.13, -0.13])
-    expect(beamStates.map(({ beamMat }) => beamMat.opacity)).toEqual([0.065, 0.065])
-    expect(beamStates.map(({ coreMat }) => coreMat.opacity)).toEqual([0.08, 0.08])
-    expect(wash.intensity).toBe(0.45)
+  it('lights the title like a sunny day: sky hemisphere plus a warm upper-left sun', () => {
+    const source = readFileSync(new URL('./TitleScene3D.jsx', import.meta.url), 'utf8')
 
-    applyClubLightFrame(beamStates, wash, 3, false)
-
-    expect(beamStates[0].node.rotation.z).not.toBe(0.13)
-    expect(beamStates[0].beamMat.opacity).not.toBe(0.065)
-    expect(beamStates[0].coreMat.opacity).not.toBe(0.08)
-    expect(wash.intensity).not.toBe(0.45)
+    expect(source).toContain('<hemisphereLight args={[TITLE_DAYLIGHT.skyColor, TITLE_DAYLIGHT.groundColor, TITLE_DAYLIGHT.hemisphereIntensity]} />')
+    expect(source).toContain('<directionalLight position={[-5, 10, 6]} intensity={TITLE_DAYLIGHT.sunIntensity} color={TITLE_DAYLIGHT.sunColor} castShadow />')
+    expect(source).not.toContain('0xffa34f')
+    expect(source).not.toContain('<ambientLight')
+    const sun = new THREE.Color(TITLE_DAYLIGHT.sunColor)
+    expect(sun.r).toBeGreaterThan(sun.b)
+    const sky = new THREE.Color(TITLE_DAYLIGHT.skyColor)
+    expect(sky.b).toBeGreaterThan(sky.r)
   })
 
   it('uses the real Matilda model upright and facing the chase target', () => {
@@ -260,7 +257,6 @@ describe('TitleScene3D direction', () => {
   it('keeps the removed club-light housing boxes from returning', () => {
     const source = readFileSync(new URL('./TitleScene3D.jsx', import.meta.url), 'utf8')
 
-    expect(source).toContain('function ClubLightBeam')
     expect(source).not.toContain('CLUB_LIGHT_HOUSING_GEO')
     expect(source).not.toContain('housingMat')
     expect(source).not.toContain('getCachedToonMat(0x17131e, 0.06)')

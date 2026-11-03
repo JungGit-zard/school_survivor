@@ -17,6 +17,31 @@ export const uiPalette = {
   shadow: 'rgba(5, 2, 9, 0.45)',
 }
 
+// 2026-11-03 타이틀 "맑은 방과후 학교" 팔레트(Terry). 타이틀·웹 여백은 이 5색만 쓴다.
+// line은 칠판색을 짙게 낮춘 외곽선/글자 톤이다(새 색이 아니라 칠판색의 그림자).
+export const sunnyPalette = {
+  sky: '#9fd8f2',
+  cream: '#fbf1da',
+  chalkboard: '#2f5b48',
+  orange: uiPalette.warning,
+  red: uiPalette.danger,
+  line: '#1f3a30',
+}
+
+// 타이틀 보조 버튼용 종이 스티커: 크림 종이 + 고른 굵기 외곽선 + 흐림 없는 납작한 그림자.
+export function paperSticker(tiltDeg = 0) {
+  return {
+    border: `2px solid ${sunnyPalette.line}`,
+    borderRadius: 6,
+    background: sunnyPalette.cream,
+    color: sunnyPalette.line,
+    boxShadow: `2px 3px 0 ${sunnyPalette.line}`,
+    fontWeight: uiType.weightHeavy,
+    transform: `rotate(${tiltDeg}deg)`,
+    cursor: 'pointer',
+  }
+}
+
 export const uiBorders = {
   strong: `2px solid ${uiPalette.ink}`,
   hairline: '1.5px solid rgba(5, 2, 9, 0.72)',

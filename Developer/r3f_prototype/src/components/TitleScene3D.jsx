@@ -21,6 +21,7 @@ import { StarlinkSatelliteModel, ZomlonbiskModel } from './Weapons/StarlinkSatel
 import PlayerMesh from './PlayerMesh.jsx'
 import { FROZEN_STUDIO_SNAPSHOT } from '../title/frozenStudio.js'
 import { loadPlayerOutfit } from '../lib/titleSettings.js'
+import { sunnyPalette } from '../lib/uiStyle.js'
 
 const TITLE_CHASE_TARGET = [0.48, 0.08]
 export const TITLE_PLAYER_RUN_BASE_POSITION = [0.48, 0.88, 0.38]
@@ -48,13 +49,87 @@ export function getTitleSceneRootPosition({ position = [0, 0, 0] } = {}) {
 }
 const TITLE_MATERIAL_CACHE_KEY = 'titleCharacterMaterials'
 const TITLE_OUTLINE_STATE_KEY = 'titleCharacterOutline'
-const CLUB_LIGHT_BEAMS = [
-  { color: 0x59c7ff, position: [-2.35, 5.7, -5.15], angle: 0.13, phase: 0 },
-  { color: 0xd64fa8, position: [2.4, 5.8, -5.2], angle: -0.13, phase: Math.PI },
-]
-const CLUB_WASH_CYAN = new THREE.Color(0x59c7ff)
-const CLUB_WASH_MAGENTA = new THREE.Color(0xa278ad)
 
+// 2026-11-03 맑은 방과후 타이틀: 바닥은 2D 배경(TitleBackdrop)의 운동장과 같은 칠판색 땅 + 분필 점선.
+// 조명을 받지 않는 색 그대로(MeshBasic, toneMapped=false)라 CSS 운동장 색과 이음새 없이 맞고,
+// 가장자리는 알파로 흐려 판처럼 끊기지 않는다. 캐릭터 발밑 접지 그림자는 기존 햇빛 그림자 1장을 받는
+// 투명 ShadowMaterial 한 장으로만 그린다.
+export const TITLE_FLOOR_COLOR = sunnyPalette.chalkboard
+export const TITLE_FLOOR_CHALK_COLOR = sunnyPalette.cream
+export const TITLE_FLOOR_SIZE = [18, 14]
+export const TITLE_FLOOR_POSITION = [0, -0.02, -0.6]
+export const TITLE_FLOOR_SHADOW_OPACITY = 0.28
+export const TITLE_DAYLIGHT = {
+  skyColor: 0xcdeeff,
+  groundColor: 0x8fa678,
+  hemisphereIntensity: 1.15,
+  sunColor: 0xfff1d8,
+  sunIntensity: 2.3,
+  backFillColor: 0xfff6dc,
+  backFillIntensity: 0.65,
+}
+
+function createTitlePlayfieldTexture() {
+  if (typeof document === 'undefined') return null
+  const size = 512
+  const canvas = document.createElement('canvas')
+  canvas.width = size
+  canvas.height = size
+  const ctx = canvas.getContext('2d')
+  if (!ctx) return null
+
+  ctx.fillStyle = TITLE_FLOOR_COLOR
+  ctx.fillRect(0, 0, size, size)
+
+  // 분필 점선 두 줄 — 캔버스 위쪽이 화면 안쪽(먼 쪽)이다.
+  ctx.strokeStyle = TITLE_FLOOR_CHALK_COLOR
+  ctx.globalAlpha = 0.7
+  ctx.lineWidth = 3.5
+  ctx.lineCap = 'round'
+  ctx.setLineDash([16, 14])
+  ;[[0.5, 0.42], [0.76, 0.66]].forEach(([edgeY, midY]) => {
+    ctx.beginPath()
+    ctx.moveTo(-10, size * edgeY)
+    ctx.quadraticCurveTo(size / 2, size * midY, size + 10, size * edgeY)
+    ctx.stroke()
+  })
+  ctx.setLineDash([])
+  ctx.globalAlpha = 1
+
+  // 먼 쪽과 좌우 가장자리를 투명하게 흐린다(destination-in = 알파 곱).
+  ctx.globalCompositeOperation = 'destination-in'
+  const far = ctx.createLinearGradient(0, 0, 0, size)
+  far.addColorStop(0, 'rgba(0,0,0,0)')
+  far.addColorStop(0.08, 'rgba(0,0,0,1)')
+  far.addColorStop(1, 'rgba(0,0,0,1)')
+  ctx.fillStyle = far
+  ctx.fillRect(0, 0, size, size)
+  const sides = ctx.createLinearGradient(0, 0, size, 0)
+  sides.addColorStop(0, 'rgba(0,0,0,0)')
+  sides.addColorStop(0.12, 'rgba(0,0,0,1)')
+  sides.addColorStop(0.88, 'rgba(0,0,0,1)')
+  sides.addColorStop(1, 'rgba(0,0,0,0)')
+  ctx.fillStyle = sides
+  ctx.fillRect(0, 0, size, size)
+  ctx.globalCompositeOperation = 'source-over'
+
+  const texture = new THREE.CanvasTexture(canvas)
+  texture.colorSpace = THREE.SRGBColorSpace
+  texture.anisotropy = 4
+  return texture
+}
+
+function createTitlePlayfieldMaterial() {
+  const map = createTitlePlayfieldTexture()
+  return new THREE.MeshBasicMaterial({
+    color: map ? 0xffffff : TITLE_FLOOR_COLOR,
+    map,
+    transparent: true,
+    depthWrite: false,
+    toneMapped: false,
+    fog: false,
+  })
+}
 export function clampTitleBackgroundZ(z) {
   return Math.min(z, TITLE_BOARD_BACK_LIMIT_Z)
 }
@@ -173,18 +248,10 @@ export const TITLE_SCENE_DIRECTION = {
   scene: {
     exitGlow: true,
     infectionStreaks: 2,
-    warningLights: 2,
     zombieStudents: 5,
     bossZombies: 3,
     matildaPursuers: 1,
     dancingDoges: 2,
-    clubLights: {
-      beams: 2,
-      palette: ['cyan', 'magenta'],
-      animated: true,
-      dynamicLights: 1,
-      fixtures: 0,
-    },
     realForegroundResources: [
       'ZombieMesh',
       'MatildaMesh',
@@ -432,124 +499,6 @@ function SpeedStreak({ position, scale, delay = 0 }) {
   )
 }
 
-function WarningLight({ position, delay }) {
-  const ref = useRef()
-  const mat = useMemo(() => new THREE.MeshBasicMaterial({ color: 0xe99039, transparent: true, opacity: 0.7 }), [])
-  useFrame((state) => {
-    if (!ref.current) return
-    ref.current.material.opacity = 0.28 + Math.sin(state.clock.elapsedTime * 4 + delay) * 0.18
-  })
-
-  return (
-    <mesh ref={ref} position={position} rotation={[-Math.PI / 2, 0, 0]} material={mat}>
-      <circleGeometry args={[1.1, 24]} />
-    </mesh>
-  )
-}
-
-function ClubLightBeam({ config, register }) {
-  const beamMat = useMemo(() => new THREE.MeshBasicMaterial({
-    color: config.color,
-    transparent: true,
-    opacity: 0.11,
-    depthWrite: false,
-    side: THREE.DoubleSide,
-    blending: THREE.AdditiveBlending,
-    toneMapped: false,
-    forceSinglePass: true,
-  }), [config.color])
-  const coreMat = useMemo(() => new THREE.MeshBasicMaterial({
-    color: config.color,
-    transparent: true,
-    opacity: 0.16,
-    depthWrite: false,
-    side: THREE.DoubleSide,
-    blending: THREE.AdditiveBlending,
-    toneMapped: false,
-    forceSinglePass: true,
-  }), [config.color])
-
-  useEffect(() => () => {
-    beamMat.dispose()
-    coreMat.dispose()
-  }, [beamMat, coreMat])
-
-  return (
-    <group
-      ref={(node) => register(node ? { node, beamMat, coreMat } : null)}
-      position={config.position}
-      rotation={[0, 0, config.angle]}
-    >
-      <mesh position={[0, -2.3, 0]} material={beamMat} renderOrder={-1}>
-        <coneGeometry args={[1.18, 4.6, 10, 1, true]} />
-      </mesh>
-      <mesh position={[0, -2.15, 0.015]} material={coreMat}>
-        <coneGeometry args={[0.46, 4.3, 8, 1, true]} />
-      </mesh>
-    </group>
-  )
-}
-
-export function applyClubLightFrame(beamStates, wash, elapsedTime, reducedEffects) {
-  CLUB_LIGHT_BEAMS.forEach((config, index) => {
-    const beamState = beamStates[index]
-    if (!beamState) return
-
-    if (reducedEffects) {
-      beamState.node.rotation.z = config.angle
-      beamState.beamMat.opacity = 0.065
-      beamState.coreMat.opacity = 0.08
-      return
-    }
-
-    beamState.node.rotation.z = config.angle + Math.sin(elapsedTime * 1.05 + config.phase) * 0.08
-    beamState.beamMat.opacity = 0.1 + Math.sin(elapsedTime * 1.3 + config.phase) * 0.025
-    beamState.coreMat.opacity = 0.145 + Math.sin(elapsedTime * 1.15 + config.phase) * 0.035
-  })
-
-  if (!wash) return
-  if (reducedEffects) {
-    wash.color.lerpColors(CLUB_WASH_CYAN, CLUB_WASH_MAGENTA, 0.5)
-    wash.intensity = 0.45
-    return
-  }
-
-  const mix = (Math.sin(elapsedTime * 0.72) + 1) * 0.5
-  wash.color.lerpColors(CLUB_WASH_CYAN, CLUB_WASH_MAGENTA, mix)
-  wash.intensity = 0.7 + Math.sin(elapsedTime * 1.15) * 0.16
-}
-
-function ClubLightRig({ reducedEffects }) {
-  const beamStates = useRef([])
-  const washRef = useRef()
-  const reducedAppliedRef = useRef(false)
-
-  useFrame((state) => {
-    if (reducedEffects) {
-      if (reducedAppliedRef.current) return
-      applyClubLightFrame(beamStates.current, washRef.current, state.clock.elapsedTime, true)
-      reducedAppliedRef.current = true
-      return
-    }
-
-    reducedAppliedRef.current = false
-    applyClubLightFrame(beamStates.current, washRef.current, state.clock.elapsedTime, false)
-  })
-
-  return (
-    <>
-      {CLUB_LIGHT_BEAMS.map((config, index) => (
-        <ClubLightBeam
-          key={config.color}
-          config={config}
-          register={(beamState) => { beamStates.current[index] = beamState }}
-        />
-      ))}
-      <pointLight ref={washRef} position={[0, 3.8, -3.8]} intensity={0.7} distance={7} decay={2} />
-    </>
-  )
-}
-
 function ExitGlow() {
   const ref = useRef()
   const poolRef = useRef()
@@ -611,7 +560,13 @@ export default function TitleScene3D({
   studioTuning = null,
   reducedEffects = false,
 }) {
-  const floorMat = useMemo(() => toonMat(0x4a4054, 0.05), [])
+  const floorMat = useMemo(createTitlePlayfieldMaterial, [])
+  const floorShadowMat = useMemo(() => new THREE.ShadowMaterial({ opacity: TITLE_FLOOR_SHADOW_OPACITY, depthWrite: false }), [])
+  useEffect(() => () => {
+    floorMat.map?.dispose()
+    floorMat.dispose()
+    floorShadowMat.dispose()
+  }, [floorMat, floorShadowMat])
   const doorMat = useMemo(() => toonMat(0x805947, 0.05), [])
   const studioMode = studioTuning != null
   // 로자리 옷장에서 고른 의상(동복 등)을 게임과 같은 플레이어 모델에 입힌다. 표시 조건이 아니라 색만 고른다.
@@ -628,21 +583,21 @@ export default function TitleScene3D({
       position={titleSceneRootPosition}
       scale={studioTransform.scale}
     >
-      <mesh receiveShadow position={[0, -0.02, 0]} rotation={[-Math.PI / 2, 0, 0]} material={floorMat}>
-        <planeGeometry args={[8.6, 12]} />
+      <mesh position={TITLE_FLOOR_POSITION} rotation={[-Math.PI / 2, 0, 0]} material={floorMat} renderOrder={-2}>
+        <planeGeometry args={TITLE_FLOOR_SIZE} />
+      </mesh>
+      <mesh receiveShadow position={[TITLE_FLOOR_POSITION[0], TITLE_FLOOR_POSITION[1] + 0.005, TITLE_FLOOR_POSITION[2]]} rotation={[-Math.PI / 2, 0, 0]} material={floorShadowMat} renderOrder={-1}>
+        <planeGeometry args={TITLE_FLOOR_SIZE} />
       </mesh>
       <mesh receiveShadow position={[0, 1.3, -4.62]} material={doorMat}>
         <boxGeometry args={[1.7, 1.3, 0.32]} />
       </mesh>
 
-      <ClubLightRig reducedEffects={reducedEffects} />
       <ExitGlow />
       <TitleClassroomProps />
       <SpeedStreak position={[-0.98, 0.055, 1.9]} scale={[0.11, 1.8]} delay={0.3} />
       <SpeedStreak position={[0.02, 0.055, 1.3]} scale={[0.09, 2.25]} delay={1.0} />
       <SpeedStreak position={[1.06, 0.055, 0.98]} scale={[0.1, 1.75]} delay={1.7} />
-      <WarningLight position={[-2.3, 0.03, -1.5]} delay={0} />
-      <WarningLight position={[2.15, 0.03, 1.3]} delay={1.4} />
 
       <TitleCharacterOutlineGroup>
         <TitleFarBackgroundStory reducedEffects={reducedEffects} />
@@ -665,12 +620,11 @@ export default function TitleScene3D({
   return (
     <>
       <TitleCameraRig />
-      <fog attach="fog" args={[0x140f1c, 16, 34]} />
-      <ambientLight intensity={0.4} color={0x9fb0c4} />
-      <directionalLight position={[-5, 10, 6]} intensity={2.35} castShadow />
-      <directionalLight position={[2, 4, -5]} intensity={1.35} color={0xfff0bc} />
-      <directionalLight position={[5, 4, -4]} intensity={0.7} color={0xffa34f} />
-      <pointLight position={[0, 1.1, -3.7]} intensity={5.5} color={0xffdf9a} distance={11} decay={2} />
+      {/* 맑은 방과후 낮: 안개 없음, 하늘색 반구광 + 왼쪽 위 따뜻한 햇빛(그림자 1장 그대로) + 약한 뒤쪽 보조광. */}
+      <hemisphereLight args={[TITLE_DAYLIGHT.skyColor, TITLE_DAYLIGHT.groundColor, TITLE_DAYLIGHT.hemisphereIntensity]} />
+      <directionalLight position={[-5, 10, 6]} intensity={TITLE_DAYLIGHT.sunIntensity} color={TITLE_DAYLIGHT.sunColor} castShadow />
+      <directionalLight position={[2, 4, -5]} intensity={TITLE_DAYLIGHT.backFillIntensity} color={TITLE_DAYLIGHT.backFillColor} />
+      <pointLight position={[0, 1.1, -3.7]} intensity={3} color={0xffdf9a} distance={8} decay={2} />
 
       {studioMode ? (
         <>

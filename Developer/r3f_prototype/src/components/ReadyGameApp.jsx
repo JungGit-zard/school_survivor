@@ -10,6 +10,10 @@ import { t } from '../lib/i18n.js'
 import { clearPendingStartAfterLogin, hasPendingStartAfterLogin } from '../lib/loginContinuation.js'
 import LobbyBgm from './LobbyBgm.jsx'
 import { loadGameCanvas } from './gameCanvasLoader.js'
+import { sunnyPalette } from '../lib/uiStyle.js'
+
+const DARK_GUTTER = '#0a0810'
+const CREAM_GUTTER_SCREENS = new Set(['title', 'lobby'])
 
 const LOBBY_MUSIC_SUB_SCREENS = new Set(['coinShop', 'ranking', 'missionCenter'])
 // 런 종료 후 로비 이동은 클라우드 저장을 기다리되, 저장이 실패·지연(오프라인)돼도 막지 않는다.
@@ -340,11 +344,13 @@ export default function ReadyGameApp({
     return () => window.removeEventListener('popstate', onPopState)
   }, [])
 
-  // 넓은 웹 화면: 좌우 어두운 단색 여백(2026-11-03: 흰 여백 → 페이지 배경색 #0a0810) + 중앙 9:16 세로 프레임(6a72e281 복원 구조). 2026-10-31 Terry: 거터 그림 제거.
+  // 넓은 웹 화면: 좌우 단색 여백 + 중앙 9:16 세로 프레임(6a72e281 복원 구조). 2026-10-31 Terry: 거터 그림 제거.
+  // 2026-11-03 타이틀 밝게(Terry): 타이틀·로비에서만 하늘·크림과 맞는 크림 단색 여백. 게임 플레이 등
+  // 나머지 화면은 어두운 #0a0810 그대로 — 어두운 플레이 화면 옆 크림 띠는 눈부시다.
   // 세로로 긴 화면(실제 휴대폰·TWA)은 프레임 없이 전체화면 그대로 쓴다.
   const viewportStyle = {
     ...styles.viewport,
-    ...(fullBleedViewport ? null : { backgroundColor: '#0a0810' }),
+    ...(fullBleedViewport ? null : { backgroundColor: CREAM_GUTTER_SCREENS.has(screen) ? sunnyPalette.cream : DARK_GUTTER }),
   }
   const phoneFrameStyle = fullBleedViewport
     ? { ...styles.phoneFrame, ...styles.phoneFrameFullBleed }
@@ -504,7 +510,7 @@ const styles = {
     width: '100vw',
     height: '100vh',
     maxHeight: '100dvh',
-    backgroundColor: '#0a0810',
+    backgroundColor: DARK_GUTTER,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
