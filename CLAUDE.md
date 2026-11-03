@@ -63,6 +63,10 @@ Hermes/Kanban specialist profile(`threemini` 등)은 모델 계층과 별개의 
 세션 메모리 / 시작 시 필독 / 3시간 요약 관련 모든 규정은 `SESSION_CONTINUITY.md` 단일 정본을 따른다. 본 파일에 중복 기재하지 않는다.
 
 
+## 브라우저 자동화 — agent-browser만 (2026-11-04)
+
+웹 페이지 확인·QA·스크린샷·게임 화면 검증은 전부 `agent-browser`(vercel-labs/agent-browser, 전역 설치, `agent-browser skills get core`로 사용법 확인)로 한다. Playwright 스크립트·gstack·Chrome 확장 자동화는 쓰지 않는다. dev 서버(`http://localhost:5173/`)나 라이브(`https://escapezombie.com/`)를 `agent-browser open`으로 열고 `snapshot`·`screenshot`·`eval`로 확인한다. 끝나면 `agent-browser close`.
+
 ## Git Workflow — 격리 Worker + 단일 통합 목적지 (2026-10-21)
 
 **모든 에이전트의 유일한 통합 목적지는 `origin/zombie_only` (`refs/heads/zombie_only`)다.** Worker는 전용 checkout/worktree에서 작업하고 승인된 정확한 소스만 단일 integrator에게 인계한다. 로컬 feature/fix 브랜치는 작업 격리일 뿐 별도 장기 통합 목적지가 아니다.
