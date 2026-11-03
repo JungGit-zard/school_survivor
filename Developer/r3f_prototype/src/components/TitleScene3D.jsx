@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import { GRAPHICS_STUDIO_TUNING_EVENT } from '../lib/graphicsStudioConfig.js'
@@ -22,6 +22,13 @@ import PlayerMesh from './PlayerMesh.jsx'
 import { FROZEN_STUDIO_SNAPSHOT } from '../title/frozenStudio.js'
 import { loadPlayerOutfit } from '../lib/titleSettings.js'
 import { sunnyPalette } from '../lib/uiStyle.js'
+import {
+  TITLE_IDLE_ACTOR_BY_ID,
+  applyTitleIdleOffsets,
+  computeTitleIdleOffsets,
+  createTitleIdleOffsets,
+  resetTitleIdleOffsets,
+} from './titleIdleMotion.js'
 
 const TITLE_CHASE_TARGET = [0.48, 0.08]
 export const TITLE_PLAYER_RUN_BASE_POSITION = [0.48, 0.88, 0.38]
@@ -262,6 +269,65 @@ export const TITLE_SCENE_DIRECTION = {
   },
 }
 
+// 타이틀 대기 동작: 캐릭터마다 Studio 모델 바깥 래퍼 그룹 하나를 등록하고, 단 하나의 useFrame이 전부 움직인다.
+const TitleIdleContext = createContext(null)
+
+function useTitleIdleRef(id) {
+  const registry = useContext(TitleIdleContext)
+  return useCallback((node) => {
+    if (!registry) return
+    const index = registry.findIndex((entry) => entry.id === id)
+    if (index >= 0) registry.splice(index, 1)
+    const actor = TITLE_IDLE_ACTOR_BY_ID[id]
+    if (node && actor) registry.push({ id, node, actor })
+  }, [registry, id])
+}
+
+// 등록된 래퍼 전부에 한 프레임을 적용한다. still이면 항등(정지 포즈)으로 되돌린다. 프레임당 할당 없음.
+export function applyTitleIdleFrame(entries, elapsedTime, still, out) {
+  for (let i = 0; i < entries.length; i += 1) {
+    const entry = entries[i]
+    if (still) resetTitleIdleOffsets(out)
+    else computeTitleIdleOffsets(entry.actor, elapsedTime, out)
+    applyTitleIdleOffsets(entry.node, out)
+  }
+}
+
+const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)'
+
+function usePrefersReducedMotion() {
+  const [reduced, setReduced] = useState(() => (
+    typeof window !== 'undefined' && typeof window.matchMedia === 'function' && window.matchMedia(REDUCED_MOTION_QUERY).matches
+  ))
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return undefined
+    const media = window.matchMedia(REDUCED_MOTION_QUERY)
+    const onChange = () => setReduced(media.matches)
+    media.addEventListener?.('change', onChange)
+    return () => media.removeEventListener?.('change', onChange)
+  }, [])
+  return reduced
+}
+
+// 숨겨진 탭에서는 브라우저가 requestAnimationFrame을 멈추므로 R3F 루프와 함께 이 동작도 멈춘다.
+function TitleIdleDriver({ registry, reducedEffects }) {
+  const out = useMemo(createTitleIdleOffsets, [])
+  const prefersReducedMotion = usePrefersReducedMotion()
+  const still = reducedEffects || prefersReducedMotion
+  const settledRef = useRef(false)
+  useFrame((state) => {
+    if (still) {
+      if (settledRef.current) return
+      applyTitleIdleFrame(registry, 0, true, out)
+      settledRef.current = true
+      return
+    }
+    settledRef.current = false
+    applyTitleIdleFrame(registry, state.clock.elapsedTime, false, out)
+  })
+  return null
+}
+
 function TitleCameraRig() {
   const { camera } = useThree()
   useFrame(() => {
@@ -297,6 +363,7 @@ function TitlePlayer({ reducedEffects, outfit = 'default' }) {
   const runnerRef = useRef(null)
   const meshGroup = useRef(null)
   const movingRef = useRef(!reducedEffects)
+  const idleRef = useTitleIdleRef('player')
 
   // STUDIO_OUTER_MOTION_ONLY — 이 useFrame은 StudioTunedGroup의 바깥 그룹만 움직인다.
   // 스튜디오 파츠는 건드리지 않으므로 튜닝을 덮어쓰지 않고 부모 변형으로 곱해질 뿐이다.
@@ -307,7 +374,9 @@ function TitlePlayer({ reducedEffects, outfit = 'default' }) {
 
   return (
     <group ref={runnerRef} position={TITLE_PLAYER_RUN_BASE_POSITION} rotation={TITLE_PLAYER_RUN_BASE_ROTATION} scale={2}>
-      <PlayerMesh groupRef={meshGroup} movingRef={movingRef} outfit={outfit} />
+      <group ref={idleRef}>
+        <PlayerMesh groupRef={meshGroup} movingRef={movingRef} outfit={outfit} />
+      </group>
     </group>
   )
 }
@@ -315,6 +384,8 @@ function TitlePlayer({ reducedEffects, outfit = 'default' }) {
 function TitleCompanions() {
   const chibikoAttackPhaseRef = useRef(0)
   const duckRef = useRef()
+  const duckIdleRef = useTitleIdleRef('duck')
+  const chibikoIdleRef = useTitleIdleRef('chibiko')
 
   // STUDIO_OUTER_MOTION_ONLY — 오리요강의 타이틀 바깥 그룹에만 아주 약한 호흡 스케일을 적용한다.
   useFrame(({ clock }) => {
@@ -326,10 +397,14 @@ function TitleCompanions() {
   return (
     <>
       <group ref={duckRef} position={[-0.22, 0.2, 0.82]} rotation={[0, 0.28, -0.03]} scale={1.05}>
-        <CompassBladeModel />
+        <group ref={duckIdleRef}>
+          <CompassBladeModel />
+        </group>
       </group>
       <group position={[1.36, 0.27, 0.76]} rotation={[0, -0.38, 0.02]} scale={0.42}>
-        <ChibikoModel attackPhaseRef={chibikoAttackPhaseRef} />
+        <group ref={chibikoIdleRef}>
+          <ChibikoModel attackPhaseRef={chibikoAttackPhaseRef} />
+        </group>
       </group>
     </>
   )
@@ -368,8 +443,9 @@ function TitleFarBackgroundStory({ reducedEffects }) {
   )
 }
 
-function TitleZombie({ position, delay = 0, scale = 1, type = 'E01' }) {
+function TitleZombie({ idleId, position, delay = 0, scale = 1, type = 'E01' }) {
   const ref = useRef()
+  const idleRef = useTitleIdleRef(idleId)
   const yaw = faceTitleTargetYaw(position)
   const liftedPosition = [position[0], position[1] + TITLE_ZOMBIE_GROUND_LIFT_Y, position[2]]
   // STUDIO_OUTER_MOTION_ONLY — 이 useFrame은 StudioTunedGroup의 바깥 그룹만 움직인다.
@@ -386,13 +462,16 @@ function TitleZombie({ position, delay = 0, scale = 1, type = 'E01' }) {
 
   return (
     <group ref={ref} position={liftedPosition} rotation={[0.14, yaw, 0]} scale={scale}>
-      <ZombieMesh type={type} animPhase="charge" />
+      <group ref={idleRef}>
+        <ZombieMesh type={type} animPhase="charge" />
+      </group>
     </group>
   )
 }
 
 function TitleMatildaPursuer({ position, delay = 0, scale = 1 }) {
   const ref = useRef()
+  const idleRef = useTitleIdleRef('matilda')
   const yaw = faceTitleTargetYaw(position)
   const liftedPosition = [position[0], position[1] + TITLE_ZOMBIE_GROUND_LIFT_Y, position[2]]
   // STUDIO_OUTER_MOTION_ONLY — 이 useFrame은 StudioTunedGroup의 바깥 그룹만 움직인다.
@@ -408,13 +487,16 @@ function TitleMatildaPursuer({ position, delay = 0, scale = 1 }) {
 
   return (
     <group ref={ref} position={liftedPosition} rotation={[0, yaw, 0]} scale={scale}>
-      <MatildaMesh />
+      <group ref={idleRef}>
+        <MatildaMesh />
+      </group>
     </group>
   )
 }
 
 function TitleBossZombie({ type = 'B01', position, scale = 1.25, delay = 0 }) {
   const ref = useRef()
+  const idleRef = useTitleIdleRef('boss' + type)
   const yaw = faceTitleTargetYaw(position)
   const liftedPosition = [position[0], position[1] + TITLE_ZOMBIE_GROUND_LIFT_Y, position[2]]
   // STUDIO_OUTER_MOTION_ONLY — 이 useFrame은 StudioTunedGroup의 바깥 그룹만 움직인다.
@@ -429,9 +511,23 @@ function TitleBossZombie({ type = 'B01', position, scale = 1.25, delay = 0 }) {
 
   return (
     <group ref={ref} position={liftedPosition} rotation={[0, yaw, 0]} scale={scale}>
-      {type === 'B03'
-        ? <ZombieMesh type={type} animPhase="charge" titleRunPose />
-        : <ZombieMesh type={type} animPhase="charge" />}
+      <group ref={idleRef}>
+        {type === 'B03'
+          ? <ZombieMesh type={type} animPhase="charge" titleRunPose />
+          : <ZombieMesh type={type} animPhase="charge" />}
+      </group>
+    </group>
+  )
+}
+
+// 춤추는 도지 위치에 래퍼를 두어 갸웃 동작의 회전 중심이 도지 발밑이 되게 한다. 도지 자체 춤은 그대로다.
+function TitleIdleDoge({ idleId, position, ...dogeProps }) {
+  const idleRef = useTitleIdleRef(idleId)
+  return (
+    <group position={position}>
+      <group ref={idleRef}>
+        <DancingDoge position={[0, 0, 0]} {...dogeProps} />
+      </group>
     </group>
   )
 }
@@ -569,6 +665,7 @@ export default function TitleScene3D({
   }, [floorMat, floorShadowMat])
   const doorMat = useMemo(() => toonMat(0x805947, 0.05), [])
   const studioMode = studioTuning != null
+  const idleRegistry = useMemo(() => [], [])
   // 로자리 옷장에서 고른 의상(동복 등)을 게임과 같은 플레이어 모델에 입힌다. 표시 조건이 아니라 색만 고른다.
   // 타이틀은 로자리의 방에서 돌아올 때 다시 마운트되므로 마운트 시점 값이면 충분하다.
   const [playerOutfit] = useState(loadPlayerOutfit)
@@ -604,22 +701,23 @@ export default function TitleScene3D({
         <TitleBossZombie type="B02" position={[-1.99, 0.18, -3.7]} scale={0.93} delay={0.9} />
         <TitleBossZombie type="B03" position={[0.02, 0.4, -4.04]} scale={1.344} delay={1.35} />
         <TitleBossZombie type="B01" position={[-0.86, 0.34, -1.12]} scale={1.02} />
-        <TitleZombie position={[-3.3, 0.22, -3.42]} delay={0.4} scale={0.58} type="E03" />
-        <TitleZombie position={[2.0, 0.2, -3.18]} delay={1.6} scale={0.52} type="E02" />
-        <TitleZombie position={[-1.95, 0.22, -1.55]} delay={0.2} scale={0.7} type="E01" />
-        <TitleZombie position={[1.56, 0.2, -2.08]} delay={1.0} scale={0.62} type="E02" />
-        <TitleZombie position={[-0.92, 0.18, -2.72]} delay={2.1} scale={0.52} type="E03" />
+        <TitleZombie idleId="zombieE03Far" position={[-3.3, 0.22, -3.42]} delay={0.4} scale={0.58} type="E03" />
+        <TitleZombie idleId="zombieE02Far" position={[2.0, 0.2, -3.18]} delay={1.6} scale={0.52} type="E02" />
+        <TitleZombie idleId="zombieE01" position={[-1.95, 0.22, -1.55]} delay={0.2} scale={0.7} type="E01" />
+        <TitleZombie idleId="zombieE02" position={[1.56, 0.2, -2.08]} delay={1.0} scale={0.62} type="E02" />
+        <TitleZombie idleId="zombieE03" position={[-0.92, 0.18, -2.72]} delay={2.1} scale={0.52} type="E03" />
         <TitleMatildaPursuer position={[1.45, 0.36, -2.92]} delay={1.8} scale={1.44} />
-        <DancingDoge position={[-1.27, 0.0, 1.55]} dance="twist" delay={0} scale={0.92} yaw={0.42} paused={reducedEffects} />
-        <DancingDoge position={[1.97, 0.0, 1.5]} dance="disco" delay={1.15} scale={0.92} yaw={-0.5} paused={reducedEffects} />
+        <TitleIdleDoge idleId="dogeTwist" position={[-1.27, 0.0, 1.55]} dance="twist" delay={0} scale={0.92} yaw={0.42} paused={reducedEffects} />
+        <TitleIdleDoge idleId="dogeDisco" position={[1.97, 0.0, 1.5]} dance="disco" delay={1.15} scale={0.92} yaw={-0.5} paused={reducedEffects} />
         <TitleCompanions />
       </TitleCharacterOutlineGroup>
     </group>
   )
 
   return (
-    <>
+    <TitleIdleContext.Provider value={idleRegistry}>
       <TitleCameraRig />
+      <TitleIdleDriver registry={idleRegistry} reducedEffects={reducedEffects} />
       {/* 맑은 방과후 낮: 안개 없음, 하늘색 반구광 + 왼쪽 위 따뜻한 햇빛(그림자 1장 그대로) + 약한 뒤쪽 보조광. */}
       <hemisphereLight args={[TITLE_DAYLIGHT.skyColor, TITLE_DAYLIGHT.groundColor, TITLE_DAYLIGHT.hemisphereIntensity]} />
       <directionalLight position={[-5, 10, 6]} intensity={TITLE_DAYLIGHT.sunIntensity} color={TITLE_DAYLIGHT.sunColor} castShadow />
@@ -648,6 +746,6 @@ export default function TitleScene3D({
         </StudioTuningSnapshotProvider>
       )}
       {/* 세팅값은 동결 스냅샷(src/title/studioSnapshot.json)에서 온다 — Firebase 대기 없이 항상 렌더. */}
-    </>
+    </TitleIdleContext.Provider>
   )
 }
