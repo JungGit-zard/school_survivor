@@ -202,6 +202,7 @@ export default {
   'account.master': '신',
   'account.logout': '로그아웃',
   'account.signingIn': '로그인 중...',
+  'account.signInShort': '로그인',
   'account.signIn': 'Google 로그인',
   'account.status.signingIn': 'Google 로그인 중',
   'account.status.unconfigured': 'Google 로그인 설정 필요',

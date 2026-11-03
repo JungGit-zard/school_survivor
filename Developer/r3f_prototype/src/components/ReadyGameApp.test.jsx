@@ -186,7 +186,7 @@ describe('ReadyGameApp stage bypass hydration', () => {
     expect(ReadyGameAppSource).not.toContain('../assets/backgrounds/web_game_side_gutters_16x9.png')
     expect(ReadyGameAppSource).not.toContain('localStorage')
     expect(ReadyGameAppSource).not.toContain('sessionStorage')
-    expect(viewport.style.backgroundColor).toBe('rgb(255, 255, 255)')
+    expect(viewport.style.backgroundColor).toBe('rgb(10, 8, 16)')
     expect(viewport.style.backgroundImage).toBe('')
     expect(ReadyGameAppSource).toContain("width: 'min(100vw, 720px, 56.25dvh)'")
     expect(ReadyGameAppSource).toContain("aspectRatio: '9 / 16'")
@@ -203,7 +203,7 @@ describe('ReadyGameApp stage bypass hydration', () => {
     })
 
     expect(viewport.style.backgroundImage).toBe('')
-    expect(viewport.style.backgroundColor).toBe('rgb(255, 255, 255)')
+    expect(viewport.style.backgroundColor).toBe('rgb(10, 8, 16)')
     expect(ReadyGameAppSource).toContain("width: 'min(100vw, 720px, 56.25dvh)'")
     expect(ReadyGameAppSource).toContain("aspectRatio: '9 / 16'")
     expect(ReadyGameAppSource).toContain("maxHeight: 'min(100vh, 100dvh, 1280px)'")

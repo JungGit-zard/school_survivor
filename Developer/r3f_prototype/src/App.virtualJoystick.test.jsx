@@ -337,7 +337,9 @@ describe('App virtual joystick mounting', () => {
       expect(ReadyGameAppSource).toContain("width: 'min(100vw, 720px, 56.25dvh)'")
       expect(phoneFrame.style.height).toBe('auto')
       expect(phoneFrame.style.aspectRatio).toBe('9 / 16')
-      expect(viewport.style.backgroundImage).toContain('.webp')
+      // 2026-10-31 거터 그림 제거, 2026-11-03 어두운 단색 여백(#0a0810)
+      expect(viewport.style.backgroundImage).toBe('')
+      expect(viewport.style.backgroundColor).toBe('rgb(10, 8, 16)')
       view.unmount()
     } finally {
       Object.defineProperty(window, 'innerWidth', { configurable: true, value: previousSize[0] })

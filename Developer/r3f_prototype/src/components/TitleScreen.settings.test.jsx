@@ -337,7 +337,7 @@ describe('TitleScreen lobby entry', () => {
 
     const labels = Array.from(container.querySelectorAll('button')).map((button) => button.textContent)
     expect(labels.filter((label) => label === '게임 시작')).toHaveLength(1)
-    expect(labels).toContain('Google 로그인')
+    expect(labels).toContain('로그인') // 2026-11-03: 게스트 타이틀은 작은 보조 로그인 버튼
     expect(container.textContent).not.toContain('로그인 없이 들어가기')
 
     cleanup()

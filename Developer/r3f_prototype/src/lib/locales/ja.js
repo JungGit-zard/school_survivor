@@ -208,6 +208,7 @@ export default {
   'account.master': '最高管理者',
   'account.logout': 'ログアウト',
   'account.signingIn': 'ログイン中...',
+  'account.signInShort': 'ログイン',
   'account.signIn': 'Googleログイン',
   'account.status.signingIn': 'Googleログイン中',
   'account.status.unconfigured': 'Googleログインの設定が必要',

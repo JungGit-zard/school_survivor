@@ -208,6 +208,7 @@ export default {
   'account.master': 'Owner',
   'account.logout': 'Sign out',
   'account.signingIn': 'Signing in...',
+  'account.signInShort': 'Sign in',
   'account.signIn': 'Sign in with Google',
   'account.status.signingIn': 'Signing in with Google',
   'account.status.unconfigured': 'Google sign-in setup required',

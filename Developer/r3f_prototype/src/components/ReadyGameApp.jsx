@@ -77,6 +77,21 @@ function hasPersistedStageEntry(authUser) {
   }
 }
 
+// 타이틀 START 분기(2026-11-03 Terry 승인): 런을 한 번도 끝내지 않은 첫 플레이어는 로비를 건너뛰고
+// 바로 Stage 1 흐름(스토리 → 런)으로 들어간다. 새 저장 키 없이 기존 진행도 records로 판단한다.
+// 로그인했는데 진행도가 아직 안 붙었으면 기존 플레이어일 수 있으니 로비(현행)로 보낸다.
+// 게스트는 저장 기록이 없으므로 이 세션에서 런에 들어간 적이 있으면(sessionRunOwners) 돌아온 것으로 본다.
+export function hasFinishedRun(authUser) {
+  try {
+    if (!authUser?.uid) return false
+    if (!isFirebaseProgressHydrated(authUser)) return true
+    const records = getFirebaseProgressRuntimeSnapshot()?.progress?.records ?? {}
+    return (records.totalRuns ?? 0) > 0 || (records.stage1Clears ?? 0) > 0
+  } catch {
+    return true
+  }
+}
+
 function initializeRuntimeUtilities() {
   if (runtimeUtilitiesInitialized) return
   runtimeUtilitiesInitialized = true
@@ -99,6 +114,7 @@ export default function ReadyGameApp({
   const [weaponEncyclopediaRequest, setWeaponEncyclopediaRequest] = useState(null)
   const phoneFrameRef = useRef(null)
   const stage1IntroSeenRef = useRef(new Set())
+  const sessionRunOwnersRef = useRef(new Set())
 
   useEffect(() => {
     let stopped = false
@@ -200,6 +216,7 @@ export default function ReadyGameApp({
       const introOwner = authUser?.uid ?? 'guest'
       const introAlreadySeen = stage1IntroSeenRef.current.has(introOwner) || hasPersistedStageEntry(authUser)
       if (useGameStore.getState().resetGame(stageId) === false) return
+      sessionRunOwnersRef.current.add(introOwner)
       if (stageId === 'stage1' && !introAlreadySeen) {
         stage1IntroSeenRef.current.add(introOwner)
         useGameStore.getState().startStage1Intro()
@@ -209,6 +226,15 @@ export default function ReadyGameApp({
     } catch {
       setScreen('game-load-failed')
     }
+  }
+
+  const startFromTitle = () => {
+    const owner = authUser?.uid ?? 'guest'
+    if (sessionRunOwnersRef.current.has(owner) || hasFinishedRun(authUser)) {
+      setScreen('lobby')
+      return
+    }
+    void startGame('stage1')
   }
 
   const setImmediateGameoverResultForGameReturn = (from) => {
@@ -314,11 +340,11 @@ export default function ReadyGameApp({
     return () => window.removeEventListener('popstate', onPopState)
   }, [])
 
-  // 넓은 웹 화면: 좌우 흰색 단색 여백 + 중앙 9:16 세로 프레임(6a72e281 복원 구조). 2026-10-31 Terry: 거터 그림 제거.
+  // 넓은 웹 화면: 좌우 어두운 단색 여백(2026-11-03: 흰 여백 → 페이지 배경색 #0a0810) + 중앙 9:16 세로 프레임(6a72e281 복원 구조). 2026-10-31 Terry: 거터 그림 제거.
   // 세로로 긴 화면(실제 휴대폰·TWA)은 프레임 없이 전체화면 그대로 쓴다.
   const viewportStyle = {
     ...styles.viewport,
-    ...(fullBleedViewport ? null : { backgroundColor: '#ffffff' }),
+    ...(fullBleedViewport ? null : { backgroundColor: '#0a0810' }),
   }
   const phoneFrameStyle = fullBleedViewport
     ? { ...styles.phoneFrame, ...styles.phoneFrameFullBleed }
@@ -345,6 +371,7 @@ export default function ReadyGameApp({
             <Suspense fallback={<ScreenLoading label={t('loading.game')} />}>
               <TitleScreen
                 onEnterLobby={() => setScreen('lobby')}
+                onStart={startFromTitle}
                 devCheatsVisible={devCheatsVisible}
                 onRevealDevCheats={() => setDevCheatsVisible(true)}
                 onUnlockAllStages={() => setDevAllStagesUnlocked(true)}

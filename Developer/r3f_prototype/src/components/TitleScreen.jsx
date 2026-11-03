@@ -70,6 +70,30 @@ function getTitleWords(locale, translate) {
   return { accent, school }
 }
 
+// 제목 글자 크기는 게임 프레임(=TitleScreen 루트, container-type) 폭 기준이다. 로케일 문자열의 vw는
+// 창 폭이라, 짧은 가로 화면(915x412 → 프레임 232px)에서 "MBIE SCHOO"처럼 잘렸다(2026-11-03).
+// 가장 긴 줄의 대략적 em 폭으로 프레임 안에 들어가는 상한을 함께 건다.
+const TITLE_SIDE_GUTTER_PX = 44
+function estimateTitleLineEm(letters, emojiEm) {
+  let em = emojiEm
+  for (const { char } of letters) {
+    if (char === ' ') em += 0.3
+    else if (/[\u3000-\u9fff\uac00-\ud7af\uff00-\uffef]/.test(char)) em += 1
+    else em += 0.74
+  }
+  return em
+}
+
+export function fitTitleFontSize(base, words) {
+  if (!/\d/.test(String(base))) return base
+  const frameBase = String(base).replace(/(\d)vw\b/g, '$1cqw')
+  const lineEm = Math.max(
+    estimateTitleLineEm(words.accent, 0.75),
+    estimateTitleLineEm(words.school, 1.35),
+  )
+  return `min(${frameBase}, calc((100cqw - ${TITLE_SIDE_GUTTER_PX}px) / ${lineEm.toFixed(2)}))`
+}
+
 function titleLetterDelayMs(order, total) {
   return 60 + order * Math.max(35, Math.round(TITLE_SLAM_SPAN_MS / Math.max(1, total)))
 }
@@ -129,6 +153,7 @@ function TitleLetter({ config, total }) {
 // 코나미식 치트 시퀀스 + devCheatsVisible 치트 메뉴 노출 경로는 그대로 보존한다.
 export default function TitleScreen({
   onEnterLobby,
+  onStart,
   devCheatsVisible = false,
   onRevealDevCheats,
   onUnlockAllStages,
@@ -281,7 +306,8 @@ export default function TitleScreen({
     enterLobbyFromStart()
   }, [authUser?.uid])
 
-  // 게임 시작: 로그인 사용자·게스트 모두 즉시 로비로. Google 로그인은 계정 패널에서만 띄운다.
+  // 게임 시작: Google 로그인은 계정 패널에서만 띄운다. 어디로 갈지(첫 플레이어는 Stage 1 바로 진입,
+  // 돌아온 플레이어는 로비)는 onStart를 준 부모(ReadyGameApp)가 정한다. 없으면 로비로.
   // 패널에서 로그인 진행 중(mainActionBusy)에는 중복 진입을 막는다.
   const handleStartClick = () => {
     if (mainActionBusy) return
@@ -289,6 +315,11 @@ export default function TitleScreen({
     setNicknameOpen(false)
     setConsentOpen(false)
     setConsentUser(null)
+    if (onStart) {
+      clearPendingStartAfterLogin()
+      onStart()
+      return
+    }
     enterLobbyFromStart()
   }
 
@@ -346,7 +377,7 @@ export default function TitleScreen({
 
       <div style={styles.tint} />
       <div style={styles.vignette} />
-      <GoogleAccountPanel />
+      <GoogleAccountPanel compact />
       <a href={`/landing?lang=${encodeURIComponent(locale || 'ko')}#inquiry`} className="title-main-action" style={{
         ...styles.contactLink,
         ...(cheatMenuButtonVisible ? { top: 'max(66px, calc(env(safe-area-inset-top, 0px) + 60px))' } : {}),
@@ -415,7 +446,7 @@ export default function TitleScreen({
       )}
       <div style={styles.content}>
         <div aria-hidden="true" data-title-service-name style={styles.serviceName}>{t('title.serviceName')}</div>
-        <h1 aria-label={t('title.serviceName')} style={{ ...styles.title, fontSize: t('title.fontSize') }}>
+        <h1 aria-label={t('title.serviceName')} style={{ ...styles.title, fontSize: fitTitleFontSize(t('title.fontSize'), titleWords) }}>
           <span style={{ ...styles.titleAccent, ...styles.titleWord }}>
             {titleWords.accent.map((config) => (
               <TitleLetter key={`${config.char}-${config.order}`} config={config} total={titleLetterTotal} />
@@ -458,7 +489,7 @@ export default function TitleScreen({
           >
             {mainActionBusy ? t('account.signingIn') : t('title.start')}
           </button>
-          <a href="/landing" className="title-main-action" style={{ ...styles.homepageButton, ...styles.mainActionButton }}>
+          <a href="/landing" className="title-main-action" data-title-homepage style={styles.homepageLink}>
             {t('title.homepage')}
           </a>
         </div>
@@ -640,6 +671,8 @@ const styles = {
     width: '100%',
     height: '100%',
     overflow: 'hidden',
+    // 제목 글자 크기(cqw)의 기준 — 창이 아니라 게임 프레임 폭.
+    containerType: 'inline-size',
     background: '#151019',
     fontFamily: uiType.family,
   },
@@ -813,15 +846,25 @@ const styles = {
     fontSize: 21,
     letterSpacing: 1,
   },
-  homepageButton: {
-    ...schoolButton('paper'),
+  // 보조 동선: 버튼이 아닌 작은 텍스트 링크. START GAME만 눈에 띄는 주 행동으로 남긴다.
+  // 터치 타깃은 44px 높이를 유지한다.
+  homepageLink: {
     minHeight: 44,
+    minWidth: 44,
+    padding: '0 12px',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     boxSizing: 'border-box',
-    textDecoration: 'none',
-    fontSize: 16,
+    color: uiPalette.ink,
+    fontFamily: uiType.family,
+    fontSize: 13,
+    fontWeight: uiType.weightStrong,
+    lineHeight: 1,
+    textDecoration: 'underline',
+    textUnderlineOffset: 3,
+    opacity: 0.78,
+    transform: 'rotate(0.8deg)',
   },
   cheatButtons: {
     display: 'grid',

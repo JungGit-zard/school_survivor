@@ -43,12 +43,24 @@ export function detectInitialLocale() {
   return 'en' // unsupported browser locales default to English (CrazyGames requirement)
 }
 
+// 탭 제목·인앱 브라우저 상단 바·<html lang>을 게임 언어에 맞춘다(2026-11-03: en 방문자에게
+// 한국어 탭 제목이 보였다). index.html의 정적 <title>/lang은 JS 전 기본값이고 OG/meta는 건드리지 않는다.
+function syncDocumentLanguage(locale) {
+  if (typeof document === 'undefined') return
+  document.documentElement.lang = locale
+  const title = DICTS[locale]?.['title.serviceName']
+  if (title) document.title = title
+}
+
+const INITIAL_LOCALE = detectInitialLocale()
+syncDocumentLanguage(INITIAL_LOCALE)
+
 export const useLocaleStore = create((set) => ({
-  locale: detectInitialLocale(),
+  locale: INITIAL_LOCALE,
   // 런타임 표시 언어만 바꾼다. 저장은 titleSettings.applyLanguage/saveTitleSettings 경로.
   setLocale: (locale) => {
     if (!DICTS[locale]) return
-    if (typeof document !== 'undefined') document.documentElement.lang = locale
+    syncDocumentLanguage(locale)
     set({ locale })
   },
 }))

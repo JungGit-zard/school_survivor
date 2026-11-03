@@ -4,7 +4,9 @@ import { isProjectMaster } from '../lib/projectAdmin.js'
 import { schoolButton, schoolPanel, uiBorders, uiPalette, uiShadows, uiType } from '../lib/uiStyle.js'
 import { t, useT } from '../lib/i18n.js'
 
-export default function GoogleAccountPanel() {
+// compact: 타이틀 게스트용. 로그인 전에는 큰 상태 카드 대신 작은 보조 버튼 하나만 둔다
+// (2026-11-03 신규 방문자 감사: 360x640에서 카드가 "ESCAPE!" 헤드라인을 가렸다). 로그인 후 표시는 같다.
+export default function GoogleAccountPanel({ compact = false }) {
   const status = useAuthStore((s) => s.status)
   const user = useAuthStore((s) => s.user)
   const error = useAuthStore((s) => s.error)
@@ -25,15 +27,35 @@ export default function GoogleAccountPanel() {
       signingIn={signingIn}
       onSignIn={signInWithGoogle}
       onSignOut={signOutOfGoogle}
+      compact={compact}
     />
   )
 }
 
-export function GoogleAccountPanelView({ status, user, error, signingIn, onSignIn, onSignOut }) {
+export function GoogleAccountPanelView({ status, user, error, signingIn, onSignIn, onSignOut, compact = false }) {
   useT()
   const signedIn = status === 'signedIn' && user
   const disabled = status === 'unconfigured' || status === 'checking' || signingIn
   const label = getPanelLabel(status, signingIn)
+
+  if (compact && !signedIn) {
+    return (
+      <section className="google-account-compact" data-account-compact style={styles.compactPanel} aria-label="Google account">
+        <style>{'.google-account-compact button:focus-visible { outline: 3px solid #fff8e8; outline-offset: 3px; }'}</style>
+        <button
+          type="button"
+          className="google-account-action"
+          style={styles.compactButton}
+          disabled={disabled}
+          aria-label={signingIn ? t('account.signingIn') : t('account.signIn')}
+          title={status === 'error' ? (error || t('account.detail.error')) : t('account.signIn')}
+          onClick={onSignIn}
+        >
+          <span>{signingIn ? t('account.signingIn') : t('account.signInShort')}</span>
+        </button>
+      </section>
+    )
+  }
 
   return (
     <section className="google-account-panel" style={styles.panel} aria-label="Google account">
@@ -114,6 +136,28 @@ function getPanelDetail(status, error) {
 }
 
 const styles = {
+  compactPanel: {
+    position: 'absolute',
+    top: 'max(14px, calc(env(safe-area-inset-top, 0px) + 8px))',
+    left: 'max(12px, calc(env(safe-area-inset-left, 0px) + 8px))',
+    zIndex: 3,
+    pointerEvents: 'auto',
+  },
+  compactButton: {
+    ...schoolButton('paper'),
+    minWidth: 44,
+    minHeight: 44,
+    padding: '6px 12px',
+    boxSizing: 'border-box',
+    display: 'flex',
+    alignItems: 'center',
+    gap: 6,
+    fontSize: 12,
+    lineHeight: 1,
+    whiteSpace: 'nowrap',
+    boxShadow: uiShadows.pressSmall,
+    cursor: 'pointer',
+  },
   panel: {
     ...schoolPanel('paper'),
     position: 'absolute',
