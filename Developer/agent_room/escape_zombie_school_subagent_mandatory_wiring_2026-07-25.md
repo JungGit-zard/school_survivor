@@ -89,7 +89,7 @@ git status --short --branch
 
 ## Claude Code hook enforcement
 
-`.claude/settings.json` registers `Developer/agent_room/mandatory_precommand/check-required-documents.ps1` for `SessionStart` and PreToolUse `Bash|PowerShell|shell_command|Write|Edit|MultiEdit`, while preserving the subagent routing hook for edit tools.
+2026-11-03 Terry 지시로 `.claude/settings.json`의 훅을 줄였다: `check-required-documents.ps1`은 `SessionStart`에서만 돌고, 프롬프트·Bash·Write·Edit마다 돌던 라우팅 게이트 훅은 제거했다. 라우팅 의무 자체는 `CLAUDE.md`의 도메인 상주 에이전트 표가 정본이며, 체커는 필요할 때 수동으로 실행한다. 남은 PreToolUse 훅: rules_deploy_guard(Bash), stage2 v2 gate, soundmini gate, 저장 방식 확인 gate.
 The hook does not complete the routing by itself; it forces the current agent to acknowledge the mandatory routing gate before project edits proceed.
 
 ## Reporting format

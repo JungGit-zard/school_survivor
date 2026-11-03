@@ -37,24 +37,6 @@
           {
             "type": "command",
             "command": "powershell -NoProfile -ExecutionPolicy Bypass -File \"$CLAUDE_PROJECT_DIR/Developer/agent_room/mandatory_precommand/check-required-documents.ps1\" -Profile \"${CLAUDE_AGENT_PROFILE:-madangsue}\" -Domain auto"
-          },
-          {
-            "type": "command",
-            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File \"$CLAUDE_PROJECT_DIR/Developer/agent_room/hooks/require-advisor-worker-mode.ps1\""
-          }
-        ]
-      }
-    ],
-    "UserPromptSubmit": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/require-subagent-routing-for-prompt.sh\""
-          },
-          {
-            "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/normalize-voice-prompt.sh\""
           }
         ]
       }
@@ -74,7 +56,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File \"$CLAUDE_PROJECT_DIR/Developer/agent_room/mandatory_precommand/check-required-documents.ps1\" -Profile \"${CLAUDE_AGENT_PROFILE:-madangsue}\" -Domain auto"
+            "command": "python \"$CLAUDE_PROJECT_DIR/Developer/agent_room/guards/rules_deploy_guard.py\""
           },
           {
             "type": "command",
@@ -85,14 +67,6 @@
       {
         "matcher": "Write",
         "hooks": [
-          {
-            "type": "command",
-            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File \"$CLAUDE_PROJECT_DIR/Developer/agent_room/mandatory_precommand/check-required-documents.ps1\" -Profile \"${CLAUDE_AGENT_PROFILE:-madangsue}\" -Domain auto"
-          },
-          {
-            "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/require-subagent-routing-for-project.sh\""
-          },
           {
             "type": "command",
             "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/require-stage2-boss-v2-gate.sh\""
@@ -112,14 +86,6 @@
         "hooks": [
           {
             "type": "command",
-            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File \"$CLAUDE_PROJECT_DIR/Developer/agent_room/mandatory_precommand/check-required-documents.ps1\" -Profile \"${CLAUDE_AGENT_PROFILE:-madangsue}\" -Domain auto"
-          },
-          {
-            "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/require-subagent-routing-for-project.sh\""
-          },
-          {
-            "type": "command",
             "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/require-stage2-boss-v2-gate.sh\""
           },
           {
@@ -135,14 +101,6 @@
       {
         "matcher": "MultiEdit",
         "hooks": [
-          {
-            "type": "command",
-            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File \"$CLAUDE_PROJECT_DIR/Developer/agent_room/mandatory_precommand/check-required-documents.ps1\" -Profile \"${CLAUDE_AGENT_PROFILE:-madangsue}\" -Domain auto"
-          },
-          {
-            "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/require-subagent-routing-for-project.sh\""
-          },
           {
             "type": "command",
             "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/require-stage2-boss-v2-gate.sh\""

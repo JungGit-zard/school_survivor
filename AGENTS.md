@@ -96,13 +96,13 @@ Firebase 단일 저장 관련 작업에는 Claude Opus 4.8의 접근과 작업 �
 
 ## Direct Scope-Controlled Execution Rules
 
-<!-- boot-policy: immediate-execution smallest-coherent-change no-subagent-by-default minimal-verification concise-final-report -->
+<!-- boot-policy: immediate-execution smallest-coherent-change delegate-per-CLAUDE.md minimal-verification concise-final-report -->
 
 - 이 규칙은 매 세션 시작(`startup`, `resume`, `compact`)부터 모든 작업에 적용한다. 단, Escape! zombie school 관련 모든 비어 있지 않은 작업은 `project_develop_policy.md`와 `Developer/agent_room/escape_zombie_school_subagent_mandatory_wiring_2026-07-25.md`의 Kanban/서브에이전트 의무 라우팅 규칙이 우선한다.
 - 사용자의 요청을 권위 있는 범위로 삼고 즉시 실행한다. 사용자가 계획이나 승인을 요구하지 않는 한 시작 전에 계획을 제시하거나 승인을 요청하지 않는다.
 - 요청을 완전히 충족하는 가장 작은 일관된 변경만 수행하고, 필요하지 않은 아키텍처·동작·인터페이스와 관련 없는 코드는 보존한다.
 - 선택적 개선, 미래 요구 추측, 대규모 정리·리팩터링, 전체 파일 재작성은 요청 달성에 반드시 필요하지 않으면 하지 않는다.
-- 서브에이전트, 반복 리뷰, 광범위한 감사·문서·테스트, E2E·벤치마크·마이그레이션·인프라는 사용자가 요구하거나 검증에 엄격히 필요한 경우에만 사용한다. 단, Escape! zombie school 관련 작업은 사용자가 모든 작업을 Kanban으로 진행하라고 지시했으므로 Kanban 라우팅을 기본 실행 경로로 사용한다.
+- 서브에이전트 위임은 `CLAUDE.md`의 모델 분담(Advisor/Opus/Sonnet)과 도메인 상주 에이전트 표를 따른다. 반복 리뷰, 광범위한 감사·문서·테스트, E2E·벤치마크·마이그레이션·인프라는 사용자가 요구하거나 검증에 꼭 필요한 경우에만 한다.
 - 관련 코드 검사, 내부 판단, 비례적인 검증과 일반적인 기술 결정은 별도 승인 없이 수행한다.
 - 질문은 올바른 구현이 불가능하거나 파괴적 데이터 손실 위험이 있거나 합리적 기본값이 없는 중대한 선택에만 한다. 그 외에는 가장 보수적인 합리적 해석으로 진행한다.
 - 관련 없는 결함은 자동 수정하지 않으며, 요청 결과에 실제 영향을 줄 때만 최종 보고에 짧게 언급한다.
