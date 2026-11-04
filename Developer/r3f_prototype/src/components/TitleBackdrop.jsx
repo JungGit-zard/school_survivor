@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { sunnyPalette as P } from '../lib/uiStyle.js'
 
 // 2026-11-03 타이틀 Stage 1(Terry): "맑은 방과후 학교" 배경. 3D 캔버스 뒤에 깔리는 평면 SVG 한 장 +
@@ -24,7 +25,99 @@ export const TITLE_CLOUDS = [
   { id: 'c', top: '41%', width: '29%', duration: 80, delay: -62, rest: '22%' },
 ]
 
+// 2026-11-04 타이틀 Stage 3(Terry): 6~10초마다 하나씩 무작위로 벌어지는 작은 배경 이벤트.
+// 소리 없음, 글자·로고 없음. 배경 레이어 안에서만 그려져서 로고/START를 가리지 않는다.
+export const TITLE_EVENT_TYPES = ['zombiePeek', 'paperPlane', 'bellSwing']
+export const TITLE_EVENT_MIN_DELAY = 6000
+export const TITLE_EVENT_MAX_DELAY = 10000
+// 좀비가 내다볼 창(커튼 없는 창만). 좌표는 학교 그룹(translate 0 -64) 안 기준.
+export const TITLE_PEEK_WINDOWS = [
+  ...UPPER_WINDOWS.filter((i) => !CURTAINED.has(`u${i}`)).map((i) => ({ x: 64 + i * 34, y: 348 })),
+  ...LOWER_WINDOWS.filter((i) => !CURTAINED.has(`l${i}`)).map((i) => ({ x: 64 + i * 34, y: 393 })),
+]
+
+// 순수 함수: 다음 이벤트와 대기 시간(ms). 직전 이벤트는 다시 고르지 않는다.
+// 움직임 줄이기 설정이면 null(이벤트 없음).
+export function pickNextTitleEvent({ previous = null, reducedMotion = false, random = Math.random } = {}) {
+  if (reducedMotion) return null
+  const pool = TITLE_EVENT_TYPES.filter((t) => t !== previous)
+  const type = pool[Math.min(pool.length - 1, Math.floor(random() * pool.length))]
+  const span = TITLE_EVENT_MAX_DELAY - TITLE_EVENT_MIN_DELAY
+  const delay = TITLE_EVENT_MIN_DELAY + Math.min(span, Math.round(random() * span))
+  const windowIndex = Math.min(TITLE_PEEK_WINDOWS.length - 1, Math.floor(random() * TITLE_PEEK_WINDOWS.length))
+  return { type, delay, windowIndex }
+}
+
+function prefersReducedMotion() {
+  try {
+    return typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches
+  } catch {
+    return false
+  }
+}
+
+// setTimeout 하나로 다음 이벤트를 예약한다. 이벤트 길이(최대 5초)가 최소 대기 6초보다 짧아 한 번에 하나만 보인다.
+function useTitleAmbientEvent() {
+  const [event, setEvent] = useState(null)
+  useEffect(() => {
+    let timer = null
+    let previous = null
+    let serial = 0
+    const schedule = () => {
+      const next = pickNextTitleEvent({ previous, reducedMotion: prefersReducedMotion() })
+      if (!next) return
+      timer = setTimeout(() => {
+        previous = next.type
+        serial += 1
+        setEvent({ ...next, key: serial })
+        schedule()
+      }, next.delay)
+    }
+    schedule()
+    return () => clearTimeout(timer)
+  }, [])
+  return event
+}
+
 export const TITLE_BACKDROP_CSS = `
+  @keyframes titleZombiePeek {
+    0% { transform: translateY(22px); }
+    22% { transform: translateY(3px); }
+    34% { transform: translateY(4px) rotate(-6deg); }
+    52% { transform: translateY(3px) rotate(5deg); }
+    70% { transform: translateY(4px); }
+    100% { transform: translateY(22px); }
+  }
+  @keyframes titlePlaneDrift {
+    0% { transform: translate(-50px, 196px) rotate(6deg); }
+    25% { transform: translate(60px, 172px) rotate(-7deg); }
+    50% { transform: translate(170px, 186px) rotate(6deg); }
+    75% { transform: translate(280px, 166px) rotate(-6deg); }
+    100% { transform: translate(410px, 180px) rotate(4deg); }
+  }
+  @keyframes titleBellSwing {
+    0% { transform: rotate(0deg); }
+    14% { transform: rotate(18deg); }
+    32% { transform: rotate(-15deg); }
+    50% { transform: rotate(11deg); }
+    68% { transform: rotate(-7deg); }
+    84% { transform: rotate(3deg); }
+    100% { transform: rotate(0deg); }
+  }
+  @keyframes titleBellLines {
+    0%, 100% { opacity: 0; }
+    12%, 70% { opacity: 0.9; }
+  }
+  .title-ev-zombie { transform-box: fill-box; transform-origin: 50% 100%; transform: translateY(22px); animation: titleZombiePeek 2.6s ease-in-out both; }
+  .title-ev-plane { transform-box: fill-box; transform-origin: center; transform: translate(-50px, 196px); animation: titlePlaneDrift 5s ease-in-out both; }
+  .title-ev-bell { transform-box: fill-box; transform-origin: 50% 0%; }
+  .title-ev-bell.is-swinging { animation: titleBellSwing 1.6s ease-out both; }
+  .title-ev-bell-lines { opacity: 0; }
+  .title-ev-bell-lines.is-swinging { animation: titleBellLines 1.6s ease-out both; }
+  @media (prefers-reduced-motion: reduce) {
+    .title-ev-zombie, .title-ev-plane { display: none; }
+    .title-ev-bell, .title-ev-bell-lines { animation: none !important; }
+  }
   @keyframes titleCloudDrift {
     from { transform: translate3d(0, 0, 0); }
     to { transform: translate3d(140%, 0, 0); }
@@ -60,12 +153,16 @@ function Cloud({ cloud }) {
 }
 
 export default function TitleBackdrop() {
+  const event = useTitleAmbientEvent()
+  const peek = event?.type === 'zombiePeek' ? TITLE_PEEK_WINDOWS[event.windowIndex] : null
+  const bellSwinging = event?.type === 'bellSwing'
   return (
     <div data-title-backdrop aria-hidden="true" style={styles.root}>
       <style data-title-backdrop-css>{TITLE_BACKDROP_CSS}</style>
       <svg viewBox="0 0 360 640" preserveAspectRatio="xMidYMid slice" style={styles.scene} focusable="false">
         <rect x="-200" y="-200" width="760" height="1040" fill={P.sky} />
         <circle cx="304" cy="226" r="24" fill={P.cream} {...STROKE} />
+        {event?.type === 'paperPlane' && <PaperPlane key={event.key} />}
 
         {/* 학교·운동장: 3D 바닥 지평선(프레임 높이 약 44%) 위로 시계탑·지붕이 보이게 위로 올린다. */}
         <g transform="translate(0 -64)">
@@ -92,6 +189,8 @@ export default function TitleBackdrop() {
         {LOWER_WINDOWS.map((i) => (
           <Window key={`l${i}`} x={64 + i * 34} y={393} curtain={CURTAINED.has(`l${i}`)} />
         ))}
+        {peek && <ZombiePeek key={event.key} x={peek.x} y={peek.y} />}
+        <SchoolBell swinging={bellSwinging} swingKey={bellSwinging ? event.key : 0} />
         {/* 현관 */}
         <path d="M163 456 L163 402 L199 401 L199 456" fill={P.chalkboard} {...STROKE} />
         <path d="M181 403 L181 456" fill="none" {...STROKE} />
@@ -130,6 +229,64 @@ function Window({ x, y, curtain }) {
       <rect x={x} y={y} width="24" height="24" rx="1.5" fill={P.sky} {...STROKE} />
       {curtain && <path d={`M${x + 1.5} ${y + 1.5} L${x + 11} ${y + 1.5} C${x + 9} ${y + 9} ${x + 6} ${y + 15} ${x + 1.5} ${y + 22} Z`} fill={P.cream} />}
       <path d={`M${x + 12} ${y} L${x + 12} ${y + 24}`} fill="none" {...STROKE} />
+    </g>
+  )
+}
+
+// 좀비 얼굴: 창 안쪽으로 잘라서(clip) 아래에서 쏙 올라와 갸웃거리다 다시 숨는다.
+const ZOMBIE_SKIN = '#a9cf8c'
+function ZombiePeek({ x, y }) {
+  const id = `title-peek-${x}-${y}`
+  const cx = x + 12
+  const cy = y + 15
+  const thin = { ...STROKE, strokeWidth: 1.4 }
+  return (
+    <g data-title-event="zombiePeek">
+      <clipPath id={id}>
+        <rect x={x + 1} y={y + 1} width="22" height="22" />
+      </clipPath>
+      <g clipPath={`url(#${id})`}>
+        <g className="title-ev-zombie">
+          <path d={`M${cx - 9} ${cy + 12} C${cx - 10} ${cy - 2} ${cx - 8} ${cy - 9} ${cx} ${cy - 9} C${cx + 8} ${cy - 9} ${cx + 10} ${cy - 1} ${cx + 9} ${cy + 12} Z`} fill={ZOMBIE_SKIN} {...STROKE} strokeWidth={2} />
+          <path d={`M${cx - 5} ${cy - 8} L${cx - 3} ${cy - 11} L${cx - 1} ${cy - 8} M${cx + 2} ${cy - 8} L${cx + 4} ${cy - 10}`} fill="none" {...thin} />
+          <circle cx={cx - 3.6} cy={cy - 2} r="2.6" fill={P.cream} {...thin} />
+          <circle cx={cx + 3.8} cy={cy - 1.4} r="2" fill={P.cream} {...thin} />
+          <circle cx={cx - 3.2} cy={cy - 1.6} r="0.9" fill={P.line} />
+          <circle cx={cx + 4.2} cy={cy - 1.1} r="0.8" fill={P.line} />
+          <path d={`M${cx - 4} ${cy + 4} L${cx - 2} ${cy + 3} L${cx} ${cy + 4.5} L${cx + 2} ${cy + 3} L${cx + 4} ${cy + 4}`} fill="none" {...thin} />
+          <path d={`M${cx + 6} ${cy - 6} L${cx + 6} ${cy - 3} M${cx + 5} ${cy - 5} L${cx + 7} ${cy - 5} M${cx + 5} ${cy - 4} L${cx + 7} ${cy - 4}`} fill="none" {...STROKE} strokeWidth={1} />
+        </g>
+      </g>
+    </g>
+  )
+}
+
+// 접은 종이비행기: 하늘을 완만한 물결 곡선으로 가로지르고 점선 꼬리를 남긴다.
+function PaperPlane() {
+  return (
+    <g data-title-event="paperPlane" className="title-ev-plane">
+      <path d="M0 6 L24 0 L9 9 Z" fill={P.cream} {...STROKE} strokeWidth={2} />
+      <path d="M9 9 L24 0 L11 14 Z" fill={P.cream} {...STROKE} strokeWidth={2} />
+      <path d="M-4 9 C-10 10 -14 13 -20 12" fill="none" stroke={P.cream} strokeWidth="1.6" strokeLinecap="round" strokeDasharray="3 3" vectorEffect="non-scaling-stroke" opacity="0.9" />
+    </g>
+  )
+}
+
+// 시계탑 왼쪽 벽 받침대의 작은 종. 평소엔 가만히, 이벤트 때 잠깐 흔들리며 움직임 선이 뜬다(소리 없음).
+function SchoolBell({ swinging, swingKey }) {
+  const cls = swinging ? ' is-swinging' : ''
+  return (
+    <g data-title-event-bell>
+      <path d="M151 287 L138 287 L138 290" fill="none" {...STROKE} strokeWidth={2} />
+      <g key={`b${swingKey}`} className={`title-ev-bell${cls}`}>
+        <path d="M138 290 L138 292" fill="none" {...STROKE} strokeWidth={2} />
+        <path d="M131 304 C131 298 133 292 138 292 C143 292 145 298 145 304 Z" fill={P.orange} {...STROKE} strokeWidth={2} />
+        <circle cx="138" cy="306" r="1.8" fill={P.line} />
+      </g>
+      <g key={`l${swingKey}`} className={`title-ev-bell-lines${cls}`}>
+        <path d="M127 292 C124 296 124 301 126 305 M123 290 C119 296 119 303 122 308" fill="none" {...STROKE} strokeWidth={1.6} />
+        <path d="M149 292 C152 296 152 301 150 305" fill="none" {...STROKE} strokeWidth={1.6} />
+      </g>
     </g>
   )
 }
