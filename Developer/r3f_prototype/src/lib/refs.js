@@ -3,6 +3,7 @@ import { createPlayerArmActionState, clearPlayerArmAction } from './playerArmAct
 import { createEnemyEntityPool } from './enemyEntityPool.js'
 import { createEnemySimulationRuntime } from './enemySimulation.js'
 import { createEnemyProjectilePool } from './enemyProjectilePool.js'
+import { createPlayerSlowState, createProjectileZombieShotPool } from './projectileZombieShotPool.js'
 import { resetRuntimeTime } from './gameRuntimeTime.js'
 
 // 컴포넌트 간 플레이어 위치 공유 (re-render 없이)
@@ -44,6 +45,10 @@ export const enemyBodies = new Map()
 export const enemyPool = createEnemyEntityPool()
 export const enemySimulationRuntime = createEnemySimulationRuntime()
 export const enemyProjectilePool = createEnemyProjectilePool()
+// 투사체 좀비 15종(E46~E60)의 탄·바닥 표식. E04 풀과 분리한다(lib/projectileZombieShotPool.js 머리 주석).
+export const projectileZombieShotPool = createProjectileZombieShotPool()
+// 물웅덩이·물감·줄넘기 감속. Player.jsx가 매 고정 스텝 읽고, 가장 강한 1개만 적용한다.
+export const playerSlow = createPlayerSlowState()
 export const enemySightBlocked = new Uint8Array(200)
 export const enemyHandleScratch = { index: -1, generation: 0 }
 
@@ -63,6 +68,9 @@ export function resetRuntimeRefs(startPosition = [0, 0, 0]) {
   enemyPool.reset()
   enemySimulationRuntime.reset()
   enemyProjectilePool.reset()
+  projectileZombieShotPool.reset()
+  playerSlow.mul = 1
+  playerSlow.ms = 0
   enemySightBlocked.fill(0)
   joystickDir.x = 0
   joystickDir.z = 0

@@ -44,6 +44,10 @@ export const ENEMY_EVENT_RANGED_FIRE = 2
 export const ENEMY_EVENT_DESPAWN = 3
 export const ENEMY_EVENT_DEATH = 4
 export const ENEMY_EVENT_ERROR = 5
+// 투사체 좀비 15종(E46~E60). x/y/z = 사수 위치, value/aux = 확정 방향. 착탄점은 pool.homeX/homeZ.
+// 소비자는 projectileZombieBehavior.js의 spawnProjectileZombieTelegraphDecal / spawnProjectileZombieVolley를 부른다.
+export const ENEMY_EVENT_PROJECTILE_ZOMBIE_TELEGRAPH = 6
+export const ENEMY_EVENT_PROJECTILE_ZOMBIE_FIRE = 7
 
 export const ENEMY_GRID_CELL_SIZE = 2
 export const ENEMY_GRID_MAX_AXIS = 64
@@ -72,6 +76,20 @@ import {
   createNovelBehaviorResult,
   stepNovelZombieBehavior,
 } from './novelZombieBehavior.js'
+import {
+  PROJECTILE_ZOMBIE_STATS,
+  PZ_SHOT_CAP,
+  PZ_SHOT_CAP_BOSS,
+  PZ_STATE,
+  PZ_TYPE_MAX,
+  PZ_TYPE_MIN,
+  createProjectileZombieResult,
+  isProjectileZombieType,
+  projectileZombieBehavior,
+  projectileZombieShotCost,
+  stepProjectileZombieBehavior,
+} from './projectileZombieBehavior.js'
+import { PROJECTILE_ZOMBIE_TYPES } from './projectileZombieVisuals.js'
 const expansionRows = Object.values(EXPANSION_ENEMIES)
 
 // Track B 신규 12종(E34~E45 = typeCode 37~48)의 런타임 수치. Enemy.jsx의 NOVEL_ZOMBIE_STATS와
@@ -94,11 +112,13 @@ const NOVEL_RUNTIME_ROWS = [
 
 // 32~36은 확장 보스(B05~B09) 슬롯이다. 기존처럼 0으로 비워 두고 37부터 Track B를 채운다 —
 // 단순 concat으로는 신규 12종이 32~43에 잘못 내려앉는다.
+// 49~63 = 투사체 좀비 15종(E46~E60). 수치 정본은 projectileZombieBehavior.js 한 곳이다(복사본 없음).
 const extendRuntime = (values, key, novelKey) => {
-  const table = new Float32Array(NOVEL_TYPE_MAX + 1)
+  const table = new Float32Array(PZ_TYPE_MAX + 1)
   const head = [...values, ...expansionRows.map(e => e[key])]
   table.set(head, 0)
   for (let i = 0; i < NOVEL_RUNTIME_ROWS.length; i += 1) table[NOVEL_TYPE_MIN + i] = NOVEL_RUNTIME_ROWS[i][novelKey]
+  for (let i = 0; i < PROJECTILE_ZOMBIE_TYPES.length; i += 1) table[PZ_TYPE_MIN + i] = PROJECTILE_ZOMBIE_STATS[PROJECTILE_ZOMBIE_TYPES[i]][novelKey]
   return table
 }
 
@@ -718,12 +738,27 @@ export class EnemySimulationRuntime {
       this.grid.targetOrderingComparisonCount = 0
     }
 
+    // 투사체 좀비 탄 상한. 비행 중(맞을 수 있는 탄) + 이미 예고·일제사격 중인 사수가 예약한 탄을 뺀 나머지만
+    // 새 예고가 가져갈 수 있다. 예고가 시작되면 반드시 쏘므로(커밋) 예약분을 미리 빼 두어야 상한이 지켜진다.
+    let projectileZombieBudget = (context.bossPressure ? PZ_SHOT_CAP_BOSS : PZ_SHOT_CAP)
+      - (Number.isInteger(context.projectileZombieShotCount) ? context.projectileZombieShotCount : 0)
+    for (let index = 0; index <= pool.highestActive; index += 1) {
+      if (!pool.active[index] || !isProjectileZombieType(pool.type[index])) continue
+      const state = pool.state[index]
+      if (state === PZ_STATE.TELEGRAPH) projectileZombieBudget -= projectileZombieShotCost(pool.type[index])
+      else if (state === PZ_STATE.FIRE) {
+        const p = projectileZombieBehavior(pool.type[index])
+        if (p.volley === 'salvo') projectileZombieBudget -= Math.max(0, p.count - pool.knockbackY[index])
+      }
+    }
+
     for (let index = 0; index <= pool.highestActive; index += 1) {
       if (!pool.active[index]) continue
       // 유효 타입 = 1~8(E01~E06/RZL/RZC), 13~16(RZT/RZG/E07/E08), 17~31(확장 E19~E33),
-      // 37~48(Track B E34~E45). 9~12와 32~36은 보스라 이 런타임을 타지 않는다.
+      // 37~48(Track B E34~E45), 49~63(투사체 E46~E60). 9~12와 32~36은 보스라 이 런타임을 타지 않는다.
       if (pool.type[index] < 1 || pool.type[index] > 8 && pool.type[index] < 13
-        || pool.type[index] > 31 && pool.type[index] < NOVEL_TYPE_MIN || pool.type[index] > NOVEL_TYPE_MAX
+        || pool.type[index] > 31 && pool.type[index] < NOVEL_TYPE_MIN
+        || pool.type[index] > NOVEL_TYPE_MAX && !isProjectileZombieType(pool.type[index])
         || !hasFiniteSlot(pool, index)) {
         this._despawn(pool, index, ENEMY_EVENT_ERROR, 0, null)
         continue
@@ -811,6 +846,36 @@ export class EnemySimulationRuntime {
             pool.attackCooldown[index] = E04_FIRE_COOLDOWN_MS
             if (context.onRangedFire) context.onRangedFire(index, generation, posX, pool.posY[index], posZ, nx, nz)
           }
+        }
+      } else if (isProjectileZombieType(type)) {
+        // 투사체 좀비 15종. 접근 → 예고 → 발사 → 회복 상태기계는 projectileZombieBehavior.js가 소유한다.
+        const args = this._pzArgs ??= {
+          playerX: 0, playerZ: 0, posX: 0, posZ: 0, distance: 0, nx: 0, nz: 0, speed: 0, contactDist: 0, damage: 0,
+          hitReady: false, screenBounds: null, shotBudget: 0, deltaMs: 0,
+        }
+        args.playerX = playerX; args.playerZ = playerZ; args.posX = posX; args.posZ = posZ
+        args.distance = distance; args.nx = nx; args.nz = nz
+        args.speed = ENEMY_RUNTIME_SPEED[type]
+        args.contactDist = contactDistance(type)
+        args.damage = ENEMY_RUNTIME_DAMAGE[type]
+        args.hitReady = pool.hitCooldown[index] <= 0
+        args.screenBounds = context.screenBounds ?? null
+        args.shotBudget = projectileZombieBudget
+        args.deltaMs = deltaMs
+        const pz = stepProjectileZombieBehavior(pool, index, args, this._pzResult ??= createProjectileZombieResult())
+        projectileZombieBudget -= pz.cost
+        velocityX = pz.velocityX
+        velocityZ = pz.velocityZ
+        moving = pz.moving
+        preserveFacing = pz.state !== PZ_STATE.APPROACH
+        if (pz.hasYaw) pool.yaw[index] = pz.yaw
+        if (pz.telegraph) this.events.push(ENEMY_EVENT_PROJECTILE_ZOMBIE_TELEGRAPH, index, generation, posX, pool.posY[index], posZ, pool.runDirX[index], pool.runDirZ[index])
+        if (pz.fire) this.events.push(ENEMY_EVENT_PROJECTILE_ZOMBIE_FIRE, index, generation, posX, pool.posY[index], posZ, pool.runDirX[index], pool.runDirZ[index])
+        if (pz.damage > 0) {
+          pool.hitCooldown[index] = ENEMY_CONTACT_COOLDOWN_MS
+          pool.lastContactX[index] = playerX
+          pool.lastContactZ[index] = playerZ
+          this._emit(ENEMY_EVENT_CONTACT, pool, index, playerX, 0, playerZ, pz.damage, context.onContact)
         }
       } else if (isNovelZombieType(type)) {
         // Track B 신규 12종. 예고 → 공격 → 회복 상태기계는 novelZombieBehavior.js가 소유한다.

@@ -430,10 +430,11 @@ describe('boss runtime spawn routes', () => {
     const stage2 = getBurstEventsForStage('stage2')
     // 2026-08-17 1.3배 사다리 재설계로 마릿수는 6/11 → 5/6이 됐다. 여기서 지키려는 것은
     // 마릿수가 아니라 '표 → 스폰 위치 → 풀 라우팅' 세 링크가 끊기지 않는다는 사실이다.
-    expect(stage2).toContainEqual({ sec: 60, type: 'E07', count: 5 })
+    // 2026-11-04 투사체 좀비: 60·108초 E07 1마리씩을 E47(종이비행기, hp 16)이 대체한다.
+    expect(stage2).toContainEqual({ sec: 60, type: 'E07', count: 4 })
     // 2026-10-25 Track B: 108초 E07×6 중 3마리를 신규 E39(선끝접기형)가 대체한다.
     // hp(E39)=hp(E07)=16이라 이 슬롯의 총 HP·마릿수는 그대로다.
-    expect(stage2).toContainEqual({ sec: 108, type: 'E07', count: 3 })
+    expect(stage2).toContainEqual({ sec: 108, type: 'E07', count: 2 })
     expect(stage2).toContainEqual({ sec: 108, type: 'E39', count: 3 })
     expect(isPooledEnemyType('E07')).toBe(true)
     expect(ENEMY_STATS.E07).toBeDefined()
@@ -774,10 +775,11 @@ describe('late zombie spawn relief', () => {
     // 2026-11-04 분산 재배치: 108초 혼합 E01×6 중 3마리를 E36(같은 hp 8) 첫 등장으로 옮겼다.
     expect(getBurstEventsForStage('stage1').find((event) => event.sec === 108 && event.type === 'E01').count).toBe(3)
     expect(getBurstEventsForStage('stage1').find((event) => event.sec === 108 && event.type === 'E36').count).toBe(3)
-    expect(getBurstEventsForStage('stage1').find((event) => event.sec === 216 && event.type === 'E05').count).toBe(3)
+    // 2026-11-04 투사체 좀비: 216초 E05×3 중 1마리를 E56(보건실 복습, hp 70)이 대체한다.
+    expect(getBurstEventsForStage('stage1').find((event) => event.sec === 216 && event.type === 'E05').count).toBe(2)
     // 2026-08-17: 스2 E04는 발사 게이트와 같은 72초 1건만 남았다(216초 1마리는 예산 감축으로 제거).
     expect(getBurstEventsForStage('stage2').filter((event) => event.type === 'E04').map((event) => event.sec)).toEqual([72])
-    expect(getBurstEventsForStage('stage2').find((event) => event.sec === 216 && event.type === 'E05').count).toBe(3)
+    expect(getBurstEventsForStage('stage2').find((event) => event.sec === 216 && event.type === 'E05').count).toBe(2)
     expect(getBurstEventsForStage('stage1').find((event) => event.sec === 150 && event.type === 'B01').count).toBe(1)
     expect(getBurstEventsForStage('stage2').find((event) => event.sec === 150 && event.type === 'B02').count).toBe(1)
     expect(getBurstEventsForStage('stage2').some((event) => event.sec === 150 && event.type === 'B01')).toBe(false)
@@ -1045,6 +1047,8 @@ describe('all zombie HP follows the cumulative 1.2x-per-stage curve', () => {
       // Track B 신규 12종(2026-10-25). 확장 콘텐츠가 아니라 기존 곡선을 그대로 타는 잡몹이므로
       // 위 필터에서 빼지 않고 명단에 넣는다 — 아래 루프가 이 12종의 스테이지 HP 사다리까지 검증한다.
       'E34', 'E35', 'E36', 'E37', 'E38', 'E39', 'E40', 'E41', 'E42', 'E43', 'E44', 'E45',
+      // 투사체 좀비 15종(2026-11-04)도 같은 곡선을 타는 잡몹이다.
+      'E46', 'E47', 'E48', 'E49', 'E50', 'E51', 'E52', 'E53', 'E54', 'E55', 'E56', 'E57', 'E58', 'E59', 'E60',
     ])
     const stageMultipliers = { stage1: 1, stage2: 1.2, stage3: 1.44, stage4: 1.728 }
     for (const [stageId, multiplier] of Object.entries(stageMultipliers)) {

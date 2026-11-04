@@ -8,6 +8,7 @@
 import {
   enemyPool,
   enemyProjectilePool,
+  projectileZombieShotPool,
   enemySightBlocked,
   enemySimulationRuntime,
   playerPos,
@@ -15,6 +16,7 @@ import {
 } from './refs.js'
 import { MAX_ENEMIES } from './enemyEntityPool.js'
 import { MAX_ENEMY_PROJECTILES } from './enemyProjectilePool.js'
+import { spawnProjectileZombieTelegraphDecal, spawnProjectileZombieVolley } from './projectileZombieBehavior.js'
 import {
   collidesEnemyObstacle,
   enemyCollisionRadius,
@@ -24,6 +26,8 @@ import {
   ENEMY_EVENT_DESPAWN,
   ENEMY_EVENT_ERROR,
   ENEMY_EVENT_RANGED_FIRE,
+  ENEMY_EVENT_PROJECTILE_ZOMBIE_FIRE,
+  ENEMY_EVENT_PROJECTILE_ZOMBIE_TELEGRAPH,
   ENEMY_SIZE_MULTIPLIER,
   ENEMY_STUCK_RECOVERY_MS,
   ignoresObstacles,
@@ -556,6 +560,7 @@ export function runGameplaySoak({
       context.elapsedSec = sec
       context.activeProjectileCount = enemyProjectilePool.activeCount
       context.bossPressure = context.stageId !== 'stage4' && sec >= 120 && sec < 150
+      context.projectileZombieShotCount = projectileZombieShotPool.hostileCount
       if (!enemySimulationRuntime.step(enemyPool, context)) {
         failure = { reason: 'enemySimulationRuntime.step returned false', frame, seed, stageId: context.stageId, sec }
         break
@@ -574,6 +579,11 @@ export function runGameplaySoak({
         else if (event.type === ENEMY_EVENT_RANGED_FIRE) {
           stats.rangedFires += 1
           enemyProjectilePool.spawnInto({ index: -1, generation: 0 }, event.x, event.y, event.z, event.value, event.aux)
+        } else if (event.type === ENEMY_EVENT_PROJECTILE_ZOMBIE_TELEGRAPH) {
+          spawnProjectileZombieTelegraphDecal(projectileZombieShotPool, enemyPool, event.index, event.generation)
+        } else if (event.type === ENEMY_EVENT_PROJECTILE_ZOMBIE_FIRE) {
+          stats.rangedFires += 1
+          spawnProjectileZombieVolley(projectileZombieShotPool, enemyPool, event.index, event.generation)
         } else if (event.type === ENEMY_EVENT_DEATH) {
           stats.deaths += 1
           staleIndex[staleWrite] = event.index
@@ -584,6 +594,7 @@ export function runGameplaySoak({
         else if (event.type === ENEMY_EVENT_ERROR) stats.errorEvents += 1
       }
       enemyProjectilePool.step(SOAK_FRAME_DELTA, playerPos.x, playerPos.z, null)
+      projectileZombieShotPool.step(SOAK_FRAME_DELTA, playerPos.x, playerPos.z, null)
 
       // 6) 무기 — 단일 타겟 / 폭발 / 전방 원뿔 세 경로를 번갈아 실제 함수로 발사한다.
       if (frame % WEAPON_PERIOD_FRAMES === 0) {

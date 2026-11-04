@@ -6,6 +6,7 @@ import { RigidBody, CuboidCollider } from '@react-three/rapier'
 import * as THREE from 'three'
 import spawnSmokeUrl from '../assets/effects/spawn_smoke_puff.webp'
 import { enemyBodies, playerPos, enemyProjectilePool, enemyHandleScratch } from '../lib/refs.js'
+import { PROJECTILE_ZOMBIE_STATS } from '../lib/projectileZombieBehavior.js'
 import { getCachedBoxGeo, getCachedToonMat, getSharedOutlineMat, getFlashMat, inflateScale, outlineMat, toonMat } from '../lib/toon.js'
 import { useGameStore } from '../store/useGameStore.js'
 import { logKill, logPlaytestEvent } from '../lib/playtestLogger.js'
@@ -487,6 +488,8 @@ export const ENEMY_STATS = {
          chefPhase2: { charger: true, chargeSpeed: 1.4, warnDist: 6.0, warnDuration: 800, stunDuration: 1200, chargeDuration: 2200 } },
   ...EXPANSION_STATS,
   ...NOVEL_ZOMBIE_STATS,
+  // 투사체 좀비 15종(E46~E60). 수치 정본은 lib/projectileZombieBehavior.js(시뮬레이션과 같은 표를 쓴다).
+  ...PROJECTILE_ZOMBIE_STATS,
 }
 
 // 肄쒕씪?대뜑 湲곕낯 諛섑겕湲?(scale=1 湲곗?)

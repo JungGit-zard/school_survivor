@@ -3,7 +3,8 @@ import { useFrame } from '@react-three/fiber'
 import { Html } from '@react-three/drei'
 import { RigidBody, CuboidCollider } from '@react-three/rapier'
 import { useGameStore } from '../store/useGameStore.js'
-import { playerFacing, playerPos, joystickDir } from '../lib/refs.js'
+import { playerFacing, playerPos, joystickDir, playerSlow } from '../lib/refs.js'
+import { consumePlayerSlow } from '../lib/projectileZombieShotPool.js'
 import { moveKeys } from '../lib/keyboardInput.js'
 import { clampPlayerPosition } from '../lib/playerMovementBounds.js'
 import { getPlayerStartPosition } from '../lib/playerStartPosition.js'
@@ -324,8 +325,12 @@ export default function Player() {
         meshGroup.current.rotation.y += shortestAngleDiff(targetY, meshGroup.current.rotation.y) * turnRatio
       }
 
-      _v.x = nx * speed
-      _v.z = nz * speed
+      // 투사체 좀비의 물웅덩이·물감·줄넘기 감속(lib/projectileZombieShotPool.js). 없으면 1.
+      const slowMul = consumePlayerSlow(playerSlow, dt * 1000)
+      _v.x = nx * speed * slowMul
+      _v.z = nz * speed * slowMul
+    } else {
+      consumePlayerSlow(playerSlow, dt * 1000)
     }
 
     rb.current.setLinvel({ x: _v.x, y: 0, z: _v.z }, true)

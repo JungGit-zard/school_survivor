@@ -149,16 +149,22 @@ export const BURST_EVENTS = [
   { sec: 108, type: 'E02', count:  3 },
   ...ALL_STAGES_110SEC_SMILING_TANKER_REINFORCEMENT_EVENTS,
   { sec: 120, type: 'E05', count:  3 },  // 돌진 첫 등장 (E04 탄환형 폐기 — 2026-05-09)
-  { sec: 144, type: 'E05', count:  3 },  // 돌진 압박 강화
+  // 2026-11-04 투사체 좀비 15종 배치(Terry 지시). 스1은 원거리 피해 0 규칙(Bang_Rules: E04 스1 제외)을 지키려고
+  // 피해를 주지 않는 두 종만 넣는다 — E56(회복 지원)·E49(물웅덩이 감속, 피해 0). 둘 다 hp 70 = E05/E02 맞교환.
+  // 첫 등장은 기존 신규 종 첫 등장(24·72·108)과 30초 이상 떨어진 144·184초다.
+  { sec: 144, type: 'E05', count:  2 },  // 돌진 압박 강화
+  { sec: 144, type: 'E56', count:  1 },  // 보건실 첫 등장(공격 없음, 다친 아군 회복). hp 70 = E05
   ...STAGE1_150SEC_SMILING_GREEN_REINFORCEMENT_EVENTS,
   { sec: 168, type: 'E06', count:  1 },  // 거대 첫 등장
   { sec: 184, type: 'E01', count:  2, mixedTypes: LIGHT_MOB_MIX },  // 마지막 러시 — 경량대 랜덤 구성
   { sec: 184, type: 'E34', count:  2 },  // 2026-11-04: 후반 조합 — 스1에서 배운 근접 패턴 둘을 함께 다시 보여준다
   { sec: 184, type: 'E36', count:  2 },  //   (E34 사선 밀기 + E36 되짚기). 둘 다 hp 8 = E01
-  { sec: 184, type: 'E02', count:  3 },
+  { sec: 184, type: 'E02', count:  2 },
+  { sec: 184, type: 'E49', count:  1 },  // 양동이청소 첫 등장(물웅덩이 감속, 피해 0). hp 70 = E02
   { sec: 184, type: 'E05', count:  2 },
   { sec: 150, type: 'B01', count:  1 },  // 보스 등장 (2:30) — 보스 구간 파생 기준
-  { sec: 216, type: 'E05', count:  3 },
+  { sec: 216, type: 'E05', count:  2 },
+  { sec: 216, type: 'E56', count:  1 },  // 보건실 복습. hp 70 = E05
 ]
 
 // 4분 타임라인 — 스테이지2 "복도 돌파". 5분 기준 sec ×0.8.
@@ -174,20 +180,29 @@ export const STAGE2_BURST_EVENTS = [
   { sec:   5, type: 'E37', count:  5 },                       // 빗금엇갈림형(복도 축 교차). hp 8 = E01
   { sec:  24, type: 'E03', count:  3 },                       // 러너 첫 등장 — 이동 압박 시작
   { sec:  24, type: 'E38', count:  3 },                       // 빈칸반응형(플레이어 이동 읽기). hp 10 = E03
-  { sec:  60, type: 'E07', count:  5 },                       // 웃는좀비(E01 2배 스탯) 합류
+  // 2026-11-04 투사체 좀비 배치: 첫 등장 60(E47)·144(E51)·184(E46) — 기존 신규 종 첫 등장(5·24·108)과 30초 이상.
+  // 60·108·120·216은 같은 행 맞교환, 144·184 새 행은 같은 분(150초 E37, 216초 E34)에서 한 마리씩 옮겼다.
+  { sec:  60, type: 'E07', count:  4 },                       // 웃는좀비(E01 2배 스탯) 합류
+  { sec:  60, type: 'E47', count:  1 },                       // 종이비행기 첫 등장(느린 약유도 탄). hp 16 = E07
   { sec:  72, type: 'E04', count:  2 },                       // 원거리 첫 등장 — 발사 게이트(e04IntroSec 72)와 동시
-  { sec: 108, type: 'E07', count:  3 },                       // 웃는좀비 러시 — 절반을 E39로 교체
+  { sec: 108, type: 'E07', count:  2 },                       // 웃는좀비 러시 — 절반을 E39로 교체
+  { sec: 108, type: 'E47', count:  1 },                       // 종이비행기 복습. hp 16 = E07
   { sec: 108, type: 'E39', count:  3 },                       // 선끝접기형(열린 쪽 신호). hp 16 = E07
-  { sec: 120, type: 'E05', count:  3 },                       // 차저 첫 등장 (보스 등장과 동시각)
+  { sec: 120, type: 'E05', count:  2 },                       // 차저 첫 등장 (보스 등장과 동시각)
+  { sec: 120, type: 'E49', count:  1 },                       // 스1 양동이청소 복습. hp 70 = E05
+  { sec: 144, type: 'E51', count:  1 },                       // 합창지휘 첫 등장(물결 음표 3연). hp 8 — 150초 E37에서 옮김
   { sec: 168, type: 'E06', count:  1 },                       // 거대 첫 등장
   { sec: 184, type: 'E05', count:  3 },                       // 보스 처치 후 차저 재압박
-  { sec: 216, type: 'E05', count:  3 },                       // 마틸다 직전 차저 러시(스1·스3 공통 관용구)
+  { sec: 184, type: 'E46', count:  1 },                       // 지우개튕김 첫 등장(화면 가장자리 반사탄). hp 8 — 216초 E34에서 옮김
+  { sec: 216, type: 'E05', count:  2 },                       // 마틸다 직전 차저 러시(스1·스3 공통 관용구)
+  { sec: 216, type: 'E56', count:  1 },                       // 스1 보건실 복습. hp 70 = E05
   { sec: 150, type: 'B02', count:  1 },                       // 보스 등장 (2:30) — 보스 구간 파생 기준
   // 2026-11-04 분산 재배치: 108초 이후 신규 패턴이 전혀 없던 후반부에 패턴 복습을 넣는다.
   // 경량 혼합 보강(STAGE2_MIXED_REINFORCEMENT_EVENTS)의 E01 몫을 덜어 같은 hp 8 타입으로 바꾼 것이다.
-  { sec: 150, type: 'E37', count:  3 },                       // 빗금엇갈림형 복습(보스전 아래 경량)
-  { sec: 216, type: 'E37', count:  2 },                       // 탈출 스프린트 조합 — 빗금엇갈림형
-  { sec: 216, type: 'E34', count:  2 },                       //   + 스1 박자접기형 (둘 다 hp 8 = E01)
+  { sec: 150, type: 'E37', count:  2 },                       // 빗금엇갈림형 복습(보스전 아래 경량)
+  { sec: 216, type: 'E37', count:  1 },                       // 탈출 스프린트 조합 — 빗금엇갈림형
+  { sec: 216, type: 'E51', count:  1 },                       //   + 합창지휘 복습
+  { sec: 216, type: 'E34', count:  1 },                       //   + 스1 박자접기형 (전부 hp 8 = E01)
   // Stage 2 only: 도망치는 트렌치코트 좀비 + 경비 6명. 스테이지2 시그니처.
   // 2026-08-17: 4회(40/108/144/216) → 2회. 도입 1회 + 보스 구간 재현 1회로 리듬은 남기고 예산을 뺀다.
   { sec:  40, type: 'RZT', count:  7, formation: STAGE2_GUARD_CHASE_FORMATION },
@@ -229,16 +244,20 @@ export const STAGE3_BURST_EVENTS = [
   ...STAGE3_25_SECOND_GREEN_SMILING_REINFORCEMENT_EVENTS,
   ...STAGE3_BOSS_PHASE_GREEN_SMILING_REINFORCEMENT_EVENTS,
   { sec:   5, type: 'E01', count:  7 },                         // 온보딩 초기 밀도
-  { sec:   5, type: 'E37', count:  3 },                         // 2026-11-04: 스2 빗금엇갈림형 복습(오프닝 3마리 교체). hp 8 = E01
+  { sec:   5, type: 'E37', count:  2 },                         // 2026-11-04: 스2 빗금엇갈림형 복습(오프닝 3마리 교체). hp 8 = E01
+  { sec:   5, type: 'E46', count:  1 },                         // 스2 지우개튕김 복습. hp 8 = E01
   { sec:  24, type: 'E03', count:  2 },                         // 러너 조기 압박 — 절반을 E41로 교체
   { sec:  24, type: 'E41', count:  2 },                         // 쌍박자교대형(낮은 팔/높은 팔). hp 10 = E03
   { sec:  40, type: 'E04', count:  1 },                         // 원거리 조기 등장 신호(e04IntroSec 34 이후)
+  // 2026-11-04 투사체 좀비: 스3 단발 행은 반복 증원이 대부분이라 첫 등장 자리가 72초 하나뿐이다
+  // (기존 첫 등장 24·120·168과 30초 이상). 72초 차저 첫 등장 신호(E05×1)는 도입 사슬이라 그대로 두고,
+  // 216초 E05×1을 72초로 당겨 E57로 바꾼다(1~2분 +7.3% / 3~4분 −4.5%, 총 HP·마릿수 불변).
   { sec:  72, type: 'E05', count:  1 },                         // 차저 첫 등장 신호(2026-08-19: 2→1, 25초 반복 상쇄)
+  { sec:  72, type: 'E57', count:  1 },                         // 출석부 생활지도 첫 등장(카드 3연). hp 70 — 216초 E05에서 옮김
   // 2026-11-04 분산 재배치: E40은 216초(탈출구 개방 뒤)에만 있어 바로 탈출하면 한 번도 못 봤다.
   // 216초 E40×2 중 1기를 168초(보스 구간 중반, 다른 첫 등장 없음)로 당겨 탈출 전 첫 등장을 만든다.
   // 마릿수·총 HP는 그대로이고 2~3분 구간 +101 / 3~4분 구간 −101(각 +7.9% / −4.3%)만 옮겨 간다.
   { sec: 168, type: 'E40', count:  1 },                         // 중심축비틀기형 첫 등장(제자리 비틀림-해제). hp 70 = E05
-  { sec: 216, type: 'E05', count:  1 },                         // 마틸다 직전 차저 러시
   { sec: 216, type: 'E40', count:  1 },                         // 중심축비틀기형 복습. hp 70 = E05
   // ── 런좀비 크루: 리더 1 + 러닝크루 12, 대각선 화면 횡단. 이전 단일 대형 크루 리듬으로 복원.
   { sec:  72, type: 'RZL', count: 13, formation: RUN_ZOMBIE_CREW_FORMATION },
@@ -292,22 +311,30 @@ export const STAGE3_BURST_EVENTS = [
 //   전부 hp가 같은 맞교환이라 마릿수 68과 적용 HP 5,577이 그대로다.
 //   (E45는 hp 10이라 host가 E03뿐인데 스4의 단발 E03 행은 150초 하나라 그대로 둔다.)
 export const STAGE4_BURST_EVENTS = [
-  { sec:   5, type: 'E01', count:  7 },                        // 온보딩 초기 밀도
+  // 2026-11-04 투사체 좀비: 첫 등장 5(E58)·72(E50)·184(E59) — 기존 첫 등장(40·108·150)과 30초 이상.
+  // 72초 새 행은 108초 E44×2 중 1기, 184초 새 행은 216초 E05×4 중 1기를 같은 분 안에서 옮긴 것이다.
+  { sec:   5, type: 'E01', count:  6 },                        // 온보딩 초기 밀도
+  { sec:   5, type: 'E58', count:  1 },                        // 줄넘기 매복 첫 등장(숨어 기다리다 줄 채찍). hp 8 = E01
   { sec:   5, type: 'E37', count:  3 },                        // 스2 빗금엇갈림형 복습. hp 8 = E01
   { sec:  24, type: 'E04', count:  4 },                        // 원거리 조기 등장(발사 게이트 18s 이후) — 포화점 4기
   { sec:  40, type: 'E05', count:  1 },                        // 차저 조기 등장 신호
   { sec:  40, type: 'E43', count:  1 },                        // 엇높이교차형 첫 등장. hp 70 = E05
   { sec:  72, type: 'E06', count:  1 },                        // 거대 조기 등장 보장
-  { sec: 108, type: 'E44', count:  2 },                        // 발맞춤후퇴형 첫 등장 — 옛 경량 속공 E07×2 자리. hp 16 = E07
+  { sec:  72, type: 'E50', count:  1 },                        // 배구스파이크 첫 등장(착지점 원 → 스파이크). hp 16
+  { sec: 108, type: 'E44', count:  1 },                        // 발맞춤후퇴형 첫 등장 — 옛 경량 속공 E07×2 자리. hp 16 = E07
   { sec: 144, type: 'E04', count:  4 },                        // 보스 구간 원거리 벽 1 — 포화점 4기
-  { sec: 144, type: 'E02', count:  1 },                        // 원거리 벽 아래 탱커 몸통 — 2026-08-19 E04 회수분
+  { sec: 144, type: 'E57', count:  1 },                        // 원거리 벽 아래 몸통 — 스3 출석부 복습(옛 E02×1). hp 70
   { sec: 144, type: 'E43', count:  1 },                        // 엇높이교차형(낮은/높은 분리 스윕). hp 70 = E02
   { sec: 150, type: 'E05', count:  3 },                        // 보스 등장 동시 차저 — 2026-08-19 옛 E04×6 자리
   { sec: 150, type: 'E03', count:  3 },                        // 러너로 카이팅 차단(원거리 사선 유지용 몰이)
   { sec: 150, type: 'E45', count:  3 },                        // 무게중심넘김형(발 옮기고 넘김). hp 10 = E03
-  { sec: 168, type: 'E07', count:  2 },                        // 원거리 포위 안쪽을 메우는 속공 — 2026-08-19 E04 회수분
-  { sec: 168, type: 'E44', count:  2 },                        // 발맞춤후퇴형(옆 재배치 후 사선 복귀). hp 16 = E07
-  { sec: 216, type: 'E05', count:  4 },                        // 마틸다 직전 차저 러시 — 옛 빈 앵커
+  { sec: 168, type: 'E07', count:  1 },                        // 원거리 포위 안쪽을 메우는 속공 — 2026-08-19 E04 회수분
+  { sec: 168, type: 'E47', count:  1 },                        //   스2 종이비행기 복습. hp 16 = E07
+  { sec: 168, type: 'E44', count:  1 },                        // 발맞춤후퇴형(옆 재배치 후 사선 복귀). hp 16 = E07
+  { sec: 168, type: 'E50', count:  1 },                        //   배구스파이크 복습. hp 16
+  { sec: 184, type: 'E59', count:  1 },                        // 우유당번 첫 등장(멈춘 뒤 터지는 우유갑). hp 70 — 216초 E05에서 옮김
+  { sec: 216, type: 'E05', count:  2 },                        // 마틸다 직전 차저 러시 — 옛 빈 앵커
+  { sec: 216, type: 'E59', count:  1 },                        //   우유당번 복습. hp 70 = E05
   { sec: 150, type: 'B04', count:  1 },                        // 주방장 보스 등장(2:30) — 보스 구간 파생 기준
   ...ALL_STAGES_110SEC_SMILING_TANKER_REINFORCEMENT_EVENTS,
   // ── 형태(formation) 버스트 — 배열 순서 = STAGE4_SPAWN_TELEGRAPHS 순서(60 → 108 → 120 → 168 → 184).
@@ -327,26 +354,37 @@ export const STAGE4_BURST_EVENTS = [
 // 2026-11-04 balanceqa 검수: 5초 E34×3·24초 E38×2 복습은 되돌렸다. 시드 400판(반경 4u·2.5u, 탈출 돌입 봇)에서
 //   0:30~1:00 피격이 약 2배, 3:00 전 사망이 15 → 38판으로 늘었다. 두 행을 원래대로 두니 전체 사망 13.8% → 15.0%,
 //   3:00 전 사망 19판으로 돌아왔다. 스5 복습은 40초 E39·E44, 150초 E37, 216초 E40·E42·E43 6종으로 남긴다.
+// 2026-11-04 투사체 좀비: 가장 어려운 6종의 첫 등장을 5·40·72·108·144·184초에 하나씩(간격 32~40초) 둔다.
+//   스5에는 기존 신규 종 첫 등장이 없어 자리가 넓고, 마지막 스테이지라 고난도 사수가 맞는다.
+//   5초 E53은 24초 E03 1기, 108초 E60은 40초 E07 1기(0~1분 → 1~2분, 분당 HP −6% / +2%),
+//   144초 E54는 168초 E04 1기, 184초 E55는 216초 E05×1을 옮긴 것이다. 72초 E52는 E04 맞교환.
 export const STAGE5_BURST_EVENTS = [
   { sec: 5, type: 'E01', count: 12 },
-  { sec: 24, type: 'E03', count: 6 },
-  { sec: 40, type: 'E07', count: 4 },
+  { sec: 5, type: 'E53', count: 1 },                            // 물감뿌림 첫 등장(붙었다 빠지며 부채꼴 물감). hp 10 = E03
+  { sec: 24, type: 'E03', count: 5 },
+  { sec: 40, type: 'E07', count: 2 },
+  { sec: 40, type: 'E48', count: 1 },                           // 부메랑자 첫 등장(나갔다 돌아오는 자). hp 16 = E07
   { sec: 40, type: 'E39', count: 1 },                           // 스2 복습: 선끝접기형
   { sec: 40, type: 'E44', count: 1 },                           // 스4 복습: 발맞춤후퇴형
   { sec: 60, type: 'E03', count: 8, formation: 'ring' },
-  { sec: 72, type: 'E04', count: 2 },
+  { sec: 72, type: 'E04', count: 1 },
+  { sec: 72, type: 'E52', count: 1 },                           // 플라스크분열 첫 등장(3갈래 분열). hp 32 = E04
+  { sec: 108, type: 'E60', count: 1 },                          // 배수구잠복 첫 등장(숨어 오다 6방향 물줄기). hp 16 = E07
   { sec: 108, type: 'E02', count: 4, formation: 'pincer' },
   ...ALL_STAGES_110SEC_SMILING_TANKER_REINFORCEMENT_EVENTS,
   { sec: 120, type: 'E05', count: 4, formation: 'ring' },
   { sec: 144, type: 'E07', count: 6 },
+  { sec: 144, type: 'E54', count: 1 },                          // 확성기방송 첫 등장(부채꼴 음파 5발). hp 32 = E04
   { sec: 150, type: 'B03', count: 1 },
-  { sec: 150, type: 'E01', count: 6 },
-  { sec: 150, type: 'E37', count: 2 },                          // 스2 복습: 빗금엇갈림형
-  { sec: 168, type: 'E04', count: 2 },
+  { sec: 150, type: 'E01', count: 5 },
+  { sec: 150, type: 'E58', count: 1 },                          // 스4 복습: 줄넘기 매복. hp 8 = E01
+  { sec: 150, type: 'E37', count: 1 },                          // 스2 복습: 빗금엇갈림형
+  { sec: 150, type: 'E51', count: 1 },                          // 스2 복습: 합창지휘. hp 8 = E37
+  { sec: 168, type: 'E04', count: 1 },
+  { sec: 184, type: 'E55', count: 1 },                          // 강속구 야구부 첫 등장(1.1초 와인드업 강속구). hp 70 = E05
   { sec: 184, type: 'E06', count: 2, formation: 'pincer' },
   // 216초 차저 4 → 1 + 무거운 근접 3종 각 1(전부 hp 70). 탈출 스프린트에서 제자리·곡선·교차 휘두르기를
   // 한 번씩 보여 준다. 108초 협공을 E43으로 바꾸는 안은 프로브에서 1:48 사망이 늘어 폐기했다(2026-11-04).
-  { sec: 216, type: 'E05', count: 1 },
   { sec: 216, type: 'E40', count: 1 },                          // 스3 복습: 중심축비틀기형(제자리라 탈출 동선에서 피하기 쉽다)
   { sec: 216, type: 'E42', count: 1 },                          // 스3 복습: 반원발맞춤형
   { sec: 216, type: 'E43', count: 1 },                          // 스4 복습: 엇높이교차형

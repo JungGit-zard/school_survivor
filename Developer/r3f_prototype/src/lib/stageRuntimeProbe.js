@@ -32,12 +32,15 @@ import {
   enemySightBlocked,
   enemySimulationRuntime,
   playerPos,
+  projectileZombieShotPool,
   publishPortalTarget,
   resetRuntimeRefs,
   screenBounds,
 } from './refs.js'
 import {
   ENEMY_EVENT_CONTACT,
+  ENEMY_EVENT_PROJECTILE_ZOMBIE_FIRE,
+  ENEMY_EVENT_PROJECTILE_ZOMBIE_TELEGRAPH,
   ENEMY_EVENT_RANGED_FIRE,
   ENEMY_SIZE_MULTIPLIER,
   ENEMY_STATE_CHARGE,
@@ -45,6 +48,7 @@ import {
 } from './enemySimulation.js'
 import { enemyTypeFromCode, MAX_ENEMIES } from './enemyEntityPool.js'
 import { chefIngredientKindAt, ENEMY_PROJECTILE_KIND_SPHERE } from './enemyProjectilePool.js'
+import { spawnProjectileZombieTelegraphDecal, spawnProjectileZombieVolley } from './projectileZombieBehavior.js'
 import {
   createPooledEnemySpawnDrainQueue,
   drainPooledEnemySpawnQueue,
@@ -168,6 +172,8 @@ export const SPAWN_HP_BIN_SEC = 30
 // 피해 출처 키. 신규 종·Sltera는 감독 단계에서 'novel:E46' / 'sltera' 키로 더한다.
 export const SOURCE_CONTACT = 'contact'      // 풀 적 접촉 (contact:E01 형태로 세분)
 export const SOURCE_E04_SHOT = 'shot:E04'
+// 투사체 좀비 15종(E46~E60) 탄. 봇은 감속(물웅덩이·물감)을 따르지 않는다 — 피해만 센다.
+export const SOURCE_PROJECTILE_ZOMBIE_SHOT = 'shot:projectileZombie'
 export const SOURCE_BOSS_SHOT = 'shot:B04'
 export const SOURCE_BOSS = 'boss'            // boss:B01 형태(돌진·수프)
 export const SOURCE_MATILDA = 'matilda'
@@ -845,6 +851,8 @@ export function runStageRuntimeProbe({
     damagePlayer(damage, kind === ENEMY_PROJECTILE_KIND_SPHERE ? SOURCE_E04_SHOT : SOURCE_BOSS_SHOT)
   }
 
+  const projectileZombieHit = (_index, _generation, damage) => damagePlayer(damage, SOURCE_PROJECTILE_ZOMBIE_SHOT)
+
   const event = {}
   const move = { x: 0, z: 0 }
   const world = { nowMs: 0, player: playerPos, pool: enemyPool, specials, telegraphs: null, portal, suction: false, lastMode: null, moveBounds: getPlayerMovementBounds(stageId) }
@@ -936,6 +944,8 @@ export function runStageRuntimeProbe({
       context.spawnSec = spawnSec
       context.activeProjectileCount = enemyProjectilePool.activeCount
       context.bossPressure = probeBossPressure(stageId, sec, bossSpawnSec, escapePortalSec)
+      context.screenBounds = screenBounds
+      context.projectileZombieShotCount = projectileZombieShotPool.hostileCount
 
       const dominanceResult = evaluateDominanceSwarm(dominance, {
         nowMs: elapsedMs,
@@ -959,9 +969,14 @@ export function runStageRuntimeProbe({
           damagePlayer(event.value, `${SOURCE_CONTACT}:${typeName}`)
         } else if (event.type === ENEMY_EVENT_RANGED_FIRE) {
           enemyProjectilePool.spawnInto({ index: -1, generation: 0 }, event.x, event.y, event.z, event.value, event.aux)
+        } else if (event.type === ENEMY_EVENT_PROJECTILE_ZOMBIE_TELEGRAPH) {
+          spawnProjectileZombieTelegraphDecal(projectileZombieShotPool, enemyPool, event.index, event.generation)
+        } else if (event.type === ENEMY_EVENT_PROJECTILE_ZOMBIE_FIRE) {
+          spawnProjectileZombieVolley(projectileZombieShotPool, enemyPool, event.index, event.generation)
         }
       }
       enemyProjectilePool.step(PROBE_FRAME_DELTA, playerPos.x, playerPos.z, projectileHit, screenBounds)
+      projectileZombieShotPool.step(PROBE_FRAME_DELTA, playerPos.x, playerPos.z, projectileZombieHit, screenBounds, null, bounds)
       maxActiveProjectiles = Math.max(maxActiveProjectiles, enemyProjectilePool.activeCount)
 
       const overtime = shouldScheduleOvertimeReinforcement(overtimeTick, spawnSec, stageId)

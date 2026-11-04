@@ -2,7 +2,7 @@ import { useRef, useCallback, useState, useEffect } from 'react'
 import { useGameStore } from '../store/useGameStore.js'
 import { emitSfx } from '../lib/sfxEvents.js'
 import { usePlayingFrame } from '../lib/usePlayingFrame.js'
-import { playerPos, screenBounds, enemyBodies, enemyPool, enemySimulationRuntime, enemyProjectilePool, enemySightBlocked, enemyHandleScratch } from '../lib/refs.js'
+import { playerPos, screenBounds, enemyBodies, enemyPool, enemySimulationRuntime, enemyProjectilePool, enemySightBlocked, enemyHandleScratch, projectileZombieShotPool, playerSlow } from '../lib/refs.js'
 import Enemy, { ENEMY_SIZE_MULTIPLIER, ENEMY_STATS } from './Enemy.jsx'
 import { EXPANSION_STAGES, EXPANSION_ENEMIES, EXPANSION_BOSSES, isExpansionStage, isExpansionEnemy, isExpansionBoss } from '../lib/expansionContent.js'
 import { expansionSpawnPosition } from '../lib/expansionSpawns.js'
@@ -26,9 +26,10 @@ import { deathSfxId } from '../lib/enemyDeathSfx.js'
 import { buildWavePhasesFromEntries } from '../lib/waveControl.js'
 import { getAdminWaveControlConfig } from '../lib/adminConfig.js'
 import { enemyTypeToCode, enemyTypeFromCode, createEnemyEntityPool, MAX_ENEMIES } from '../lib/enemyEntityPool.js'
-import { ENEMY_EVENT_CONTACT, ENEMY_EVENT_RANGED_FIRE, ENEMY_EVENT_DEATH, ENEMY_EVENT_DESPAWN, ENEMY_EVENT_ERROR, collidesEnemyObstacle, createEnemySimulationRuntime } from '../lib/enemySimulation.js'
+import { ENEMY_EVENT_CONTACT, ENEMY_EVENT_RANGED_FIRE, ENEMY_EVENT_DEATH, ENEMY_EVENT_DESPAWN, ENEMY_EVENT_ERROR, ENEMY_EVENT_PROJECTILE_ZOMBIE_FIRE, ENEMY_EVENT_PROJECTILE_ZOMBIE_TELEGRAPH, collidesEnemyObstacle, createEnemySimulationRuntime } from '../lib/enemySimulation.js'
 import { createEnemyProjectilePool, MAX_ENEMY_PROJECTILES } from '../lib/enemyProjectilePool.js'
 import { isNovelZombieType } from '../lib/novelZombieBehavior.js'
+import { isProjectileZombieType, spawnProjectileZombieTelegraphDecal, spawnProjectileZombieVolley } from '../lib/projectileZombieBehavior.js'
 import { emitVfx } from '../lib/vfxEvents.js'
 import { emitDamageNumber, DAMAGE_NUMBER_COLORS } from '../lib/damageNumbers.js'
 import { resolveCriticalHitInto } from '../lib/criticalHits.js'
@@ -879,6 +880,8 @@ export function bossEscortSize() {
 export const JARMOB_HP_TYPES = new Set([
   'E01', 'E02', 'E03', 'E04', 'E05', 'E06', 'E07',
   'E34', 'E35', 'E36', 'E37', 'E38', 'E39', 'E40', 'E41', 'E42', 'E43', 'E44', 'E45',
+  // 투사체 좀비 15종(E46~E60)도 잡몹이다. hp가 burstEvents의 host와 같게 못박혀 있다(projectileZombieBehavior.js).
+  'E46', 'E47', 'E48', 'E49', 'E50', 'E51', 'E52', 'E53', 'E54', 'E55', 'E56', 'E57', 'E58', 'E59', 'E60',
 ])
 
 // 사용자 정본(2026-08-16): 모든 정적 좀비 타입은 Stage 1 기준 누적 1.2배 HP 곡선을 쓴다.
@@ -1210,7 +1213,7 @@ export function isPooledEnemyType(type) {
   // Enemy/ZombieMesh. ZombieInstanceLayer intentionally has no boss body mesh.
   // Track B 신규 12종(37~48)도 풀 경로다 — 특수 적 경로는 동시 3마리가 상한이라
   // 여기서 빠지면 네 번째부터 조용히 스폰이 버려진다.
-  return (code >= 1 && code <= STANDARD_POOL_TYPE_MAX || isExpansionEnemy(type) || isNovelZombieType(code))
+  return (code >= 1 && code <= STANDARD_POOL_TYPE_MAX || isExpansionEnemy(type) || isNovelZombieType(code) || isProjectileZombieType(code))
     && !isBossType(type)
 }
 
@@ -1405,7 +1408,7 @@ export default function Enemies() {
   const enemiesRef                = useRef([])
   const runtimeQueueRef           = useRef({ specialRemovals: [], textbooks: [], gold: [], collapses: [], doges: [], chests: [], flushScheduled: false, raf: 0, scheduleKind: new Uint8Array(64), scheduleA: new Float32Array(64), scheduleB: new Float32Array(64), scheduleRead: 0, scheduleWrite: 0, scheduleCount: 0, processScheduled: null, matildaEntry: null, spawnDrain: createPooledEnemySpawnDrainQueue(), drainPooled: null, deathType: new Uint8Array(MAX_RUNTIME_QUEUE), deathX: new Float32Array(MAX_RUNTIME_QUEUE), deathY: new Float32Array(MAX_RUNTIME_QUEUE), deathZ: new Float32Array(MAX_RUNTIME_QUEUE), deathXp: new Float32Array(MAX_RUNTIME_QUEUE), deathScale: new Float32Array(MAX_RUNTIME_QUEUE), deathDamage: new Float32Array(MAX_RUNTIME_QUEUE), deathMaxHp: new Float32Array(MAX_RUNTIME_QUEUE), deathKnockback: new Float32Array(MAX_RUNTIME_QUEUE), deathStyle: new Uint8Array(MAX_RUNTIME_QUEUE), deathRead: 0, deathWrite: 0, deathCount: 0, hitQueue: createEnemyHitEventQueue(), hitScratch: {} })
   const runtimeEventScratchRef    = useRef({})
-  const runtimeContextRef         = useRef({ delta: 0, playerX: 0, playerZ: 0, halfX: 1, halfZ: 1, elapsedSec: 0, spawnSec: 0, activeProjectileCount: 0, stageId: 'stage1', e04IntroSec: 72, bossPressure: false, obstacles: null, obstacleCount: 0, sightBlocked: enemySightBlocked })
+  const runtimeContextRef         = useRef({ delta: 0, playerX: 0, playerZ: 0, halfX: 1, halfZ: 1, elapsedSec: 0, spawnSec: 0, activeProjectileCount: 0, stageId: 'stage1', e04IntroSec: 72, bossPressure: false, obstacles: null, obstacleCount: 0, sightBlocked: enemySightBlocked, screenBounds: null, projectileZombieShotCount: 0 })
   const stageRuntimeCacheRef      = useRef(null)
   const projectileHitRef          = useRef(null)
   const firedBurstsRef            = useRef(new Uint8Array(2048))
@@ -2076,6 +2079,9 @@ export default function Enemies() {
     // 보스 등장은 버스트 표(= 스폰 시계)에서 당겨질 수 있으므로 하한도 spawnSec으로 본다.
     // 상한(탈출 포탈)은 실시간 이벤트라 sec 그대로 — 런 길이는 캐치업의 영향을 받지 않는다.
     context.bossPressure = currentStageId !== 'stage4' && sec >= bossSpawnSec && sec < (stageConfig.escapePortalSec ?? 210)
+    // 투사체 좀비 15종: 화면 게이트와 탄 상한(평시 14 / 보스 구간 6). E04의 activeProjectileCount와 섞지 않는다.
+    context.screenBounds = screenBounds
+    context.projectileZombieShotCount = projectileZombieShotPool.hostileCount
     const player = useGameStore.getState().player
     const dominance = evaluateDominanceSwarm(dominanceSwarmRef.current, {
       nowMs: sec * 1000,
@@ -2101,11 +2107,16 @@ export default function Enemies() {
         recordPlayerDamage(dominanceSwarmRef.current, runtimeEvent.value, getRuntimeElapsedMs(store.elapsedMs))
       } else if (runtimeEvent.type === ENEMY_EVENT_RANGED_FIRE) {
         enemyProjectilePool.spawnInto(enemyHandleScratch, runtimeEvent.x, runtimeEvent.y, runtimeEvent.z, runtimeEvent.value, runtimeEvent.aux)
+      } else if (runtimeEvent.type === ENEMY_EVENT_PROJECTILE_ZOMBIE_TELEGRAPH) {
+        spawnProjectileZombieTelegraphDecal(projectileZombieShotPool, enemyPool, runtimeEvent.index, runtimeEvent.generation)
+      } else if (runtimeEvent.type === ENEMY_EVENT_PROJECTILE_ZOMBIE_FIRE) {
+        spawnProjectileZombieVolley(projectileZombieShotPool, enemyPool, runtimeEvent.index, runtimeEvent.generation)
       } else if (runtimeEvent.type === ENEMY_EVENT_DEATH || runtimeEvent.type === ENEMY_EVENT_DESPAWN || runtimeEvent.type === ENEMY_EVENT_ERROR) {
         // death 보상은 generation-보호 hit handler에서 despawn 전에 확정한다. 탈주/오류는 보상 없음.
       }
     }
     enemyProjectilePool.step(delta, playerPos.x, playerPos.z, projectileHitRef.current, screenBounds)
+    projectileZombieShotPool.step(delta, playerPos.x, playerPos.z, projectileHitRef.current, screenBounds, playerSlow, bounds)
 
     goldTimerRef.current -= delta * 1000
     if (goldTimerRef.current <= 0) {

@@ -99,7 +99,8 @@ describe('Stage5 production enemy runtime', () => {
       runtime.default()
       effects[effectStart]()
       frame(0.016); flush()
-      expect(spy.mock.calls).toHaveLength(12)
+      // 5초 = E01×12 + E53×1(2026-11-04 투사체 좀비 물감뿌림 첫 등장, 24초 E03 1기를 옮김).
+      expect(spy.mock.calls).toHaveLength(13)
     } finally {
       for (const cleanup of cleanups.reverse()) cleanup()
       spy?.mockRestore(); clearPool()

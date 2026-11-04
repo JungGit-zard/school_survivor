@@ -37,10 +37,13 @@ const allStageBurstTables = [
 const STAGE1_FIRST_WAVE_SEC = 5
 // Track B 신규 12종(E34~E45, 2026-10-25)은 기존 E01/E03/E07/E02/E05 슬롯을 "대체"한 잡몹이라
 // 일반 좀비 앵커 집합에 함께 들어가야 한다. 빠지면 전량 교체된 앵커(스1 72초)가 사라진 것처럼 보인다.
-const ORDINARY_ZOMBIE_TYPE_RE = /^E(?:0[1-7]|3[4-9]|4[0-5])$/
+// 2026-11-04: 투사체 좀비 15종(E46~E60)도 같은 방식(host와 같은 hp의 맞교환)으로 들어간 잡몹이다.
+const ORDINARY_ZOMBIE_TYPE_RE = /^E(?:0[1-7]|3[4-9]|4[0-9]|5[0-9]|60)$/
 // 신규 12종의 base hp는 대체 대상(host)과 같은 값으로 못박혀 있다(Enemy.jsx NOVEL_ZOMBIE_STATS).
 // 그래서 아래 모든 총 HP 단언의 기대값이 교체 전후로 변하지 않는다.
-const NOVEL_BASE_HP = { E34: 8, E35: 10, E36: 8, E37: 8, E38: 10, E39: 16, E40: 70, E41: 10, E42: 70, E43: 70, E44: 16, E45: 10 }
+const NOVEL_BASE_HP = { E34: 8, E35: 10, E36: 8, E37: 8, E38: 10, E39: 16, E40: 70, E41: 10, E42: 70, E43: 70, E44: 16, E45: 10,
+  // 투사체 좀비 15종 — host와 같은 base hp(lib/projectileZombieBehavior.js PROJECTILE_ZOMBIE_STATS).
+  E46: 8, E47: 16, E48: 16, E49: 70, E50: 16, E51: 8, E52: 32, E53: 10, E54: 32, E55: 70, E56: 70, E57: 70, E58: 8, E59: 70, E60: 16 }
 const STAGE2_BASE_HP = { E01: 8, E02: 70, E03: 10, E04: 32, E05: 70, E06: 320, E07: 16, RZT: 140, RZG: 48, ...NOVEL_BASE_HP }
 const STAGE2_HP_MULTIPLIER = 1.2
 
@@ -108,12 +111,14 @@ describe('Stage 1 첫 웨이브 5초 게이트', () => {
       { sec: 72, type: 'E35', count: 2 },
       { sec: 108, type: 'E01', count: 3 }, { sec: 108, type: 'E36', count: 3 }, { sec: 108, type: 'E02', count: 3 },
       { sec: 110, type: 'E07', count: 3 }, { sec: 110, type: 'E02', count: 3 },
-      { sec: 120, type: 'E05', count: 3 }, { sec: 144, type: 'E05', count: 3 },
+      // 2026-11-04 투사체 좀비: 144초 E05×3 → E05×2 + E56(첫 등장), 184초 E02×3 → E02×2 + E49(첫 등장),
+      // 216초 E05×3 → E05×2 + E56(복습). 스1은 피해를 주지 않는 두 종만 쓴다. 전부 hp 70 맞교환.
+      { sec: 120, type: 'E05', count: 3 }, { sec: 144, type: 'E05', count: 2 }, { sec: 144, type: 'E56', count: 1 },
       { sec: 150, type: 'E07', count: 6 }, { sec: 150, type: 'E01', count: 6 },
       { sec: 168, type: 'E06', count: 1 },
       { sec: 184, type: 'E01', count: 2 }, { sec: 184, type: 'E34', count: 2 }, { sec: 184, type: 'E36', count: 2 },
-      { sec: 184, type: 'E02', count: 3 }, { sec: 184, type: 'E05', count: 2 },
-      { sec: 216, type: 'E05', count: 3 },
+      { sec: 184, type: 'E02', count: 2 }, { sec: 184, type: 'E49', count: 1 }, { sec: 184, type: 'E05', count: 2 },
+      { sec: 216, type: 'E05', count: 2 }, { sec: 216, type: 'E56', count: 1 },
     ])
   })
 })
@@ -136,18 +141,27 @@ describe('Stage 2 좀비 시간표 Stage 1 앵커 재배열', () => {
       { type: 'E37', count: 5 },
       { type: 'E03', count: 3 },
       { type: 'E38', count: 3 },
-      { type: 'E07', count: 5 },
+      // 2026-11-04 투사체 좀비: 60·108초 E07 1기씩 → E47, 120초 E05 1기 → E49, 216초 E05 1기 → E56,
+      // 150초 E37 1기 → 144초 E51, 216초 E34 1기 → 184초 E46, 216초 E37 1기 → E51. 전부 hp 동일, 마릿수 95 불변.
+      { type: 'E07', count: 4 },
+      { type: 'E47', count: 1 },
       { type: 'E04', count: 2 },
-      { type: 'E07', count: 3 },
+      { type: 'E07', count: 2 },
+      { type: 'E47', count: 1 },
       { type: 'E39', count: 3 },
-      { type: 'E05', count: 3 },
+      { type: 'E05', count: 2 },
+      { type: 'E49', count: 1 },
+      { type: 'E51', count: 1 },
       { type: 'E06', count: 1 },
       { type: 'E05', count: 3 },
-      { type: 'E05', count: 3 },
+      { type: 'E46', count: 1 },
+      { type: 'E05', count: 2 },
+      { type: 'E56', count: 1 },
       // 2026-11-04 분산 재배치: 혼합 보강 E01 몫 7마리(150초 3 + 216초 4)를 같은 hp 8의 E37/E34로 옮겼다.
-      { type: 'E37', count: 3 },
       { type: 'E37', count: 2 },
-      { type: 'E34', count: 2 },
+      { type: 'E37', count: 1 },
+      { type: 'E51', count: 1 },
+      { type: 'E34', count: 1 },
       { type: 'RZT', count: 7, formation: STAGE2_GUARD_CHASE_FORMATION },
       { type: 'RZT', count: 7, formation: STAGE2_GUARD_CHASE_FORMATION },
       { type: 'E01', count: 8, formation: 'swarm' },
@@ -159,7 +173,8 @@ describe('Stage 2 좀비 시간표 Stage 1 앵커 재배열', () => {
       { type: 'E01', count: 6, mixedTypes: ['E01', 'E03'], reinforcement: 'stage2MixedReinforcement' },
     ])
     expect(ordinary.reduce((sum, event) => sum + (event.count ?? 1), 0)).toBe(95)
-    expect(declaredCountByType(ordinary)).toEqual({ E01: 26, E37: 10, E34: 2, E02: 5, E03: 9, E38: 3, E04: 2, E05: 9, E06: 1, E07: 11, E39: 3, RZT: 14 })
+    expect(declaredCountByType(ordinary)).toEqual({ E01: 26, E37: 8, E34: 1, E02: 5, E03: 9, E38: 3, E04: 2, E05: 7, E06: 1, E07: 9, E39: 3, RZT: 14,
+      E46: 1, E47: 2, E49: 1, E51: 2, E56: 1 })
     expect(stage2HpMultipliedBurstHp(ordinary)).toBe(3458)
   })
 
@@ -184,9 +199,12 @@ describe('전 스테이지 1:50 웃는좀비·탱커 보강', () => {
   })
 
   it('Stage 2 웃는좀비 버스트는 사다리 예산에 맞춰 60초 5마리·108초 6마리로 재편성된다', () => {
-    expect(STAGE2_BURST_EVENTS).toContainEqual({ sec: 60, type: 'E07', count: 5 })
-    // 2026-10-25 Track B: 108초 6마리 중 3마리를 E39(선끝접기형)가 대체한다. 합은 여전히 6마리다.
-    expect(STAGE2_BURST_EVENTS).toContainEqual({ sec: 108, type: 'E07', count: 3 })
+    // 2026-11-04: 60초 5마리 중 1마리를 E47(종이비행기, hp 16)이 대체한다. 합은 여전히 5마리다.
+    expect(STAGE2_BURST_EVENTS).toContainEqual({ sec: 60, type: 'E07', count: 4 })
+    expect(STAGE2_BURST_EVENTS).toContainEqual({ sec: 60, type: 'E47', count: 1 })
+    // 2026-10-25 Track B: 108초 6마리 중 3마리를 E39(선끝접기형)가, 2026-11-04 1마리를 E47이 대체한다. 합은 6마리다.
+    expect(STAGE2_BURST_EVENTS).toContainEqual({ sec: 108, type: 'E07', count: 2 })
+    expect(STAGE2_BURST_EVENTS).toContainEqual({ sec: 108, type: 'E47', count: 1 })
     expect(STAGE2_BURST_EVENTS).toContainEqual({ sec: 108, type: 'E39', count: 3 })
   })
 })
@@ -371,9 +389,10 @@ describe('stage3 체육교사 B03 단일 보스 + 형태 버스트 런타임 복
       // 120초 포위 E05×3 → E42×3(타입 전량 교체). hp 동일 교체라 마릿수 52와 실제 HP 3,220이 불변이다.
       // 2026-11-04 분산 재배치: 5초 E01×10 → E01×7 + E37×3(스2 복습), 216초 E40×2 중 1기를 168초로
       // 당겨 탈출 전 첫 등장을 만든다. hp 동일 맞교환·이동이라 마릿수·HP 불변.
-      { type: 'E01', count: 7 }, { type: 'E37', count: 3 }, { type: 'E03', count: 2 }, { type: 'E41', count: 2 },
-      { type: 'E04', count: 1 }, { type: 'E05', count: 1 },
-      { type: 'E40', count: 1 }, { type: 'E05', count: 1 }, { type: 'E40', count: 1 },
+      // 2026-11-04 투사체 좀비: 5초 E37 1기 → E46(스2 복습), 216초 E05×1 → 72초 E57(첫 등장). hp 동일.
+      { type: 'E01', count: 7 }, { type: 'E37', count: 2 }, { type: 'E46', count: 1 }, { type: 'E03', count: 2 }, { type: 'E41', count: 2 },
+      { type: 'E04', count: 1 }, { type: 'E05', count: 1 }, { type: 'E57', count: 1 },
+      { type: 'E40', count: 1 }, { type: 'E40', count: 1 },
       { type: 'RZL', count: 13, formation: RUN_ZOMBIE_CREW_FORMATION },
       { type: 'E07', count: 3 }, { type: 'E02', count: 3 },
       { type: 'E03', count: 6, formation: 'ring' }, { type: 'E42', count: 3, formation: 'ring' },
@@ -385,6 +404,8 @@ describe('stage3 체육교사 B03 단일 보스 + 형태 버스트 런타임 복
       E01: 12, E02: 101, E03: 14, E04: 46, E05: 101, E06: 461, E07: 23,
       // host와 같은 stage3 실효 HP: E41←E03(14), E40←E05(101), E42←E02(101).
       E40: 101, E41: 14, E42: 101, E37: 12,
+      // 투사체 좀비: E46←E01(12), E57←E05(101).
+      E46: 12, E57: 101,
     }[event.type] ?? 0) * event.count, 0)
     expect(nonCrewHp + Math.round(90 * 1.44) + 12 * Math.round(28 * 1.44)).toBe(3220)
     // 거대는 184초 앞뒤 벽 한 곳으로 모았다 — pincer는 ×2라야 성립하므로 ×1짜리 110초 건을 뺐다.
@@ -458,12 +479,16 @@ describe('stage4 급식실 대탈출 버스트', () => {
       // 168초 E07×4 → E07×2 + E44×2. hp 동일 교체라 마릿수 68과 적용 HP 5,577이 불변이다.
       // 2026-11-04 분산 재배치: 첫 등장을 E43@40 · E44@108로 앞당겼다(40초 E05×2 → E05×1 + E43×1,
       // 108초 E07×2 → E44×2). 5초 E01×10 → E01×7 + E37×3(스2 복습). 전부 hp 동일 맞교환.
-      { type: 'E01', count: 7 }, { type: 'E37', count: 3 }, { type: 'E04', count: 4 },
-      { type: 'E05', count: 1 }, { type: 'E43', count: 1 }, { type: 'E06', count: 1 },
-      { type: 'E44', count: 2 }, { type: 'E04', count: 4 },
-      { type: 'E02', count: 1 }, { type: 'E43', count: 1 }, { type: 'E05', count: 3 },
+      // 2026-11-04 투사체 좀비: 5초 E01 1기 → E58(첫 등장), 108초 E44 1기 → 72초 E50(첫 등장),
+      // 144초 E02×1 → E57(스3 복습), 168초 E07·E44 1기씩 → E47(스2 복습)·E50(복습),
+      // 216초 E05 1기 → 184초 E59(첫 등장), 1기 → 216초 E59(복습). 전부 hp 동일, 마릿수 68 불변.
+      { type: 'E01', count: 6 }, { type: 'E58', count: 1 }, { type: 'E37', count: 3 }, { type: 'E04', count: 4 },
+      { type: 'E05', count: 1 }, { type: 'E43', count: 1 }, { type: 'E06', count: 1 }, { type: 'E50', count: 1 },
+      { type: 'E44', count: 1 }, { type: 'E04', count: 4 },
+      { type: 'E57', count: 1 }, { type: 'E43', count: 1 }, { type: 'E05', count: 3 },
       { type: 'E03', count: 3 }, { type: 'E45', count: 3 },
-      { type: 'E07', count: 2 }, { type: 'E44', count: 2 }, { type: 'E05', count: 4 },
+      { type: 'E07', count: 1 }, { type: 'E47', count: 1 }, { type: 'E44', count: 1 }, { type: 'E50', count: 1 },
+      { type: 'E59', count: 1 }, { type: 'E05', count: 2 }, { type: 'E59', count: 1 },
       { type: 'E07', count: 3 }, { type: 'E02', count: 3 },
       { type: 'E03', count: 6, formation: 'ring' }, { type: 'E02', count: 4, formation: 'pincer' },
       { type: 'E05', count: 4, formation: 'ring' }, { type: 'E04', count: 4, formation: 'ring' },
@@ -474,6 +499,8 @@ describe('stage4 급식실 대탈출 버스트', () => {
       E01: 14, E02: 121, E03: 17, E04: 55, E05: 121, E06: 553, E07: 28,
       // host와 같은 stage4 실효 HP: E43←E02(121), E44←E07(28), E45←E03(17).
       E43: 121, E44: 28, E45: 17, E37: 14,
+      // 투사체 좀비: E58←E01(14), E50·E47←E07/E44(28), E57←E02(121), E59←E05(121).
+      E58: 14, E50: 28, E47: 28, E57: 121, E59: 121,
     }[event.type] ?? 0) * event.count, 0)
     expect(appliedHp).toBe(5577)
   })

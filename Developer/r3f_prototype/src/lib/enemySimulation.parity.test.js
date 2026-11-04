@@ -59,7 +59,8 @@ describe('ENEMY_STATS ↔ ENEMY_RUNTIME_* 수치 패리티', () => {
       expect(ENEMY_RUNTIME_HP[code], `code ${code}`).toBe(0)
       expect(ENEMY_RUNTIME_SPEED[code], `code ${code}`).toBe(0)
     }
-    expect(ENEMY_RUNTIME_HP.length).toBe(49)
+    // 49~63 = 투사체 좀비 15종(2026-11-04). 표 길이는 마지막 typeCode 63 + 1.
+    expect(ENEMY_RUNTIME_HP.length).toBe(64)
   })
 
   // 이번 작업의 본래 목적. 약한 적이 강한 적보다 보상이 높으면 강적을 잡을 이유가 없다.

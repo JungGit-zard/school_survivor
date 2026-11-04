@@ -82,3 +82,83 @@ describe('applyChefIngredientSpin', () => {
     expect(Number.isFinite(guarded.x + guarded.y + guarded.z + guarded.w)).toBe(true)
   })
 })
+
+describe('PooledEnemyProjectileLayer projectile zombie shots', () => {
+  it('draws each shot kind with its own instanced look, groups decals, and props up hidden ambushers', async () => {
+    const { createProjectileZombieShotMeshes, writeProjectileZombieShotFrame, DECAL_OPACITY } = await import('./PooledEnemyProjectileLayer.jsx')
+    const { SHOT_KIND, SHOT_MOTION, createProjectileZombieShotPool, createShotSpec } = await import('../lib/projectileZombieShotPool.js')
+    const { DECAL_VISUAL, SHOT_VISUALS, getShotVisualIndex } = await import('../lib/projectileZombieShotGeometry.js')
+    const shots = createProjectileZombieShotMeshes({
+      bodyMat: new THREE.MeshBasicMaterial({ vertexColors: true }),
+      outMat: new THREE.MeshBasicMaterial({ side: THREE.BackSide }),
+      decalMats: DECAL_OPACITY.map((opacity) => new THREE.MeshBasicMaterial({ transparent: true, opacity })),
+    })
+    expect(shots.shotBodies).toHaveLength(SHOT_VISUALS.length)
+    expect(shots.decals).toHaveLength(4)
+    expect(shots.propBodies).toHaveLength(2)
+
+    const pool = createProjectileZombieShotPool()
+    const spec = (kind, motion, extra = {}) => ({ ...createShotSpec(), kind, motion, speed: 2, ...extra })
+    pool.spawn(0, 0, 1, 0, spec(SHOT_KIND.ERASER, SHOT_MOTION.BOUNCE))
+    pool.spawn(1, 0, 1, 0, spec(SHOT_KIND.ERASER, SHOT_MOTION.BOUNCE))
+    pool.spawn(0, 1, 0, 1, spec(SHOT_KIND.PAPER_PLANE, SHOT_MOTION.HOMING))
+    pool.spawn(0, 2, 0, 1, spec(SHOT_KIND.FLASK, SHOT_MOTION.SPLIT))
+    pool.spawn(0, 3, 0, 1, spec(SHOT_KIND.FLASK, SHOT_MOTION.STRAIGHT)) // 갈라진 파편
+    const fuse = pool.spawn(0, 4, 0, 1, spec(SHOT_KIND.MILK_CARTON, SHOT_MOTION.FUSE))
+    pool.velX[fuse] = 0; pool.velZ[fuse] = 0; pool.ageMs[fuse] = 40 // 멈춰서 깜빡이는 중
+    pool.spawnDecal(2, 2, SHOT_KIND.DECAL_MARKER, 0.9, 500)
+    pool.spawnDecal(3, 3, SHOT_KIND.DECAL_AIM_LINE, 0.09, 500, 3, 0.4)
+    pool.spawnDecal(4, 4, SHOT_KIND.ZONE_WATER, 0.9, 4000, 0, 0, 0.65)
+
+    const enemies = {
+      highestActive: 3,
+      active: new Uint8Array([1, 1, 1, 1]),
+      type: new Uint8Array([61, 63, 63, 49]), // E58 숨음, E60 숨음, E60 서 있음(회복), E46
+      state: new Uint8Array([14, 14, 17, 14]),
+      spawnTimer: new Float32Array([1000, 1000, 1000, 1000]),
+      posX: new Float32Array([0, 1, 2, 3]),
+      posZ: new Float32Array(4),
+      lastContactY: new Float32Array(4),
+      visualScale: new Float32Array([0.9, 1, 1, 1]),
+    }
+    writeProjectileZombieShotFrame(shots, pool, enemies, { minX: -20, maxX: 20, minZ: -20, maxZ: 20 }, { x: 0, z: 0 })
+
+    const count = (kind, motion) => shots.shotBodies[getShotVisualIndex(kind, motion)].count
+    expect(count(SHOT_KIND.ERASER, SHOT_MOTION.BOUNCE)).toBe(2)
+    expect(count(SHOT_KIND.PAPER_PLANE, SHOT_MOTION.HOMING)).toBe(1)
+    expect(count(SHOT_KIND.FLASK, SHOT_MOTION.SPLIT)).toBe(1)
+    expect(count(SHOT_KIND.FLASK, SHOT_MOTION.STRAIGHT)).toBe(1)
+    expect(count(SHOT_KIND.MILK_CARTON, SHOT_MOTION.FUSE)).toBe(1)
+    const totalBodies = shots.shotBodies.reduce((sum, m) => sum + m.count, 0)
+    expect(totalBodies).toBe(6)
+    shots.shotBodies.forEach((m, v) => expect(shots.shotOutlines[v].count).toBe(m.count))
+    // count 0인 외형은 그리지 않는다(드로콜 없음).
+    const drawn = shots.all.filter((m) => m.visible).length
+    expect(drawn).toBe(5 * 2 + 4 + 2 * 2)
+
+    expect(shots.decals[DECAL_VISUAL.RING].count).toBe(1)
+    expect(shots.decals[DECAL_VISUAL.MARKER_FILL].count).toBe(1)
+    expect(shots.decals[DECAL_VISUAL.LINE].count).toBe(1)
+    expect(shots.decals[DECAL_VISUAL.PUDDLE_FILL].count).toBe(1)
+
+    expect(shots.propBodies[0].count).toBe(1) // 줄넘기 똬리
+    expect(shots.propBodies[1].count).toBe(1) // 배수구(서 있는 E60은 제외)
+
+    // 퓨즈 우유갑은 instanceColor로 깜빡인다.
+    const milk = shots.shotBodies[getShotVisualIndex(SHOT_KIND.MILK_CARTON, SHOT_MOTION.FUSE)]
+    const c = new THREE.Color(); milk.getColorAt(0, c)
+    expect(c.getHex()).not.toBe(0xffffff)
+
+    pool.reset()
+    enemies.active.fill(0)
+    writeProjectileZombieShotFrame(shots, pool, enemies, { minX: -20, maxX: 20, minZ: -20, maxZ: 20 }, { x: 0, z: 0 })
+    expect(shots.all.every((m) => m.count === 0 && !m.visible)).toBe(true)
+    shots.geometries.forEach((g) => g.dispose())
+  })
+
+  it('keeps the E04 and chef render path separate from the projectile zombie shots', () => {
+    expect(source).toContain('writeProjectileZombieShotFrame(shots, projectileZombieShotPool, enemyPool, screenBounds, playerPos)')
+    expect(source).toContain('getShotVisualIndex(kind, motion)')
+    expect(source).not.toContain('shots.bodyMesh')
+  })
+})
