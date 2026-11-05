@@ -381,12 +381,22 @@ function matchesQuestCompletionSource(quest, sourceId) {
 // 인트로 종료 상태 전이 — advanceIntro 마지막 탭과 skipIntro가 공유한다.
 const STAGE1_INTRO_DONE = Object.freeze({ phase: 'playing', pauseSource: null, introDialogue: null })
 
-// 스테이지1 스토리 인트로 내레이션 3줄. 화면 탭마다 다음 줄, 마지막 탭에 플레이 시작.
-export const STAGE1_INTRO_IDS = Object.freeze([
-  'intro.stage1.001',
-  'intro.stage1.002',
-  'intro.stage1.003',
-])
+// 스테이지별 스토리 인트로 내레이션 3줄(Stage 1~5). 화면 탭마다 다음 줄, 마지막 탭에 플레이 시작.
+// 대사 문구는 dialogues/{ko,en,ja}/quests.txt의 intro.stageN.00x.
+const introIdsFor = (stageId) => Object.freeze([1, 2, 3].map((n) => `intro.${stageId}.00${n}`))
+export const STAGE_INTRO_IDS = Object.freeze({
+  stage1: introIdsFor('stage1'),
+  stage2: introIdsFor('stage2'),
+  stage3: introIdsFor('stage3'),
+  stage4: introIdsFor('stage4'),
+  stage5: introIdsFor('stage5'),
+})
+export const STAGE1_INTRO_IDS = STAGE_INTRO_IDS.stage1
+
+// 인트로가 있는 스테이지면 대사 ID 배열, 없으면(초안 스테이지 6~10 등) null.
+export function getStageIntroIds(stageId) {
+  return STAGE_INTRO_IDS[stageId] ?? null
+}
 
 const EMPTY_PASSIVE_LEVELS = Object.freeze({})
 applyMagnetPassive(EMPTY_PASSIVE_LEVELS)
@@ -411,6 +421,7 @@ export const useGameStore = create(
     pauseSource: null,        // 'manual' | 'auto' | 'dialogue' | null
     studentDialogue: null,    // null | { dialogueId, reward?, subjectType, subjectName } — 조사 결과
     introDialogue: null,      // null | { index } — 스테이지1 스토리 인트로 대화창 상태
+    introStageId: 'stage1',   // 진행 중인 인트로가 어느 스테이지 대사인지(STAGE_INTRO_IDS 키)
     elapsedMs:   0,
     currentStageId: DEFAULT_STAGE_ID,
     bossSpawnSec: getBossSpawnSec(DEFAULT_STAGE_ID),
@@ -1303,13 +1314,19 @@ export const useGameStore = create(
 
     // 스테이지1 스토리 인트로 시작: 게임을 멈추고(pauseSource='intro') 첫 대사를 띄운다.
     // pauseSource는 'dialogue'와 구분해 'intro'로 두어 HUD가 일반 일시정지 UI를 숨긴다.
-    startStage1Intro: () => set({ phase: 'paused', pauseSource: 'intro', introDialogue: { index: 0 } }),
+    // 스테이지 인트로 공통 경로 — 대사 목록이 없는 스테이지는 아무 것도 하지 않는다.
+    startStageIntro: (stageId) => {
+      if (!getStageIntroIds(stageId)) return
+      set({ phase: 'paused', pauseSource: 'intro', introDialogue: { index: 0 }, introStageId: stageId })
+    },
+    startStage1Intro: () => get().startStageIntro('stage1'),
 
     // 인트로 탭 진행: 다음 대사로. 마지막 대사에서 탭하면 대화창을 닫고 플레이를 시작한다.
     advanceIntro: () => set((s) => {
       if (!s.introDialogue) return {}
       const next = s.introDialogue.index + 1
-      if (next >= STAGE1_INTRO_IDS.length) return STAGE1_INTRO_DONE
+      const ids = getStageIntroIds(s.introStageId) ?? STAGE1_INTRO_IDS
+      if (next >= ids.length) return STAGE1_INTRO_DONE
       return { introDialogue: { index: next } }
     }),
 
@@ -1629,6 +1646,7 @@ export const useGameStore = create(
         pauseSource: null,
         studentDialogue: null,
         introDialogue: null,
+        introStageId: 'stage1',
         elapsedMs:   0,
         currentStageId: nextStageId,
         progressRunId,

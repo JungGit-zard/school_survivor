@@ -21,3 +21,15 @@ matilda.gameover	Matilda took your soul!!
 intro.stage1.001	The hearts of students who hated studying turned them into zombies…
 intro.stage1.002	And the teachers who hated working turned too.
 intro.stage1.003	I have to get out of here. This place is… a zombie school!
+intro.stage2.001	I made it out of the classroom, but the hallway is longer… and narrower.
+intro.stage2.002	Things are flying at me from every side, and a teacher zombie is drawing lines at the far end.
+intro.stage2.003	Stay outside the lines and keep running. The exit is at the end of this hall!
+intro.stage3.001	I opened the door at the end of the hall, and the gym was packed with zombies.
+intro.stage3.002	That whistle… even the buff P.E. teacher has turned.
+intro.stage3.003	I'm good at shuttle runs. I'll hold out to the end and get out!
+intro.stage4.001	The gym's back door led into the cafeteria. A giant cauldron is bubbling away…
+intro.stage4.002	Get out of the circle before it blows! The chef zombie is waiting for me.
+intro.stage4.003	Lunch can wait. Getting out of here comes first!
+intro.stage5.001	Past the cafeteria is the last exit. Make it through here, and I'm out of the school.
+intro.stage5.002	But… the P.E. teacher is blocking the way again. And this time, every zombie I've met is coming at once.
+intro.stage5.003	I've come this far. I'm getting out of this zombie school, no matter what!

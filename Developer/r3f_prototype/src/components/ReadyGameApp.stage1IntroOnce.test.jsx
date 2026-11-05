@@ -17,6 +17,7 @@ const mocks = vi.hoisted(() => ({
     reconcileCloudProgress: vi.fn(async () => true),
     retryRankingSubmission: vi.fn(async () => true),
     startStage1Intro: vi.fn(),
+    startStageIntro: vi.fn(),
   },
 }))
 
@@ -25,7 +26,11 @@ vi.mock('./TitleScreen.jsx', () => ({
 }))
 vi.mock('./Lobby.jsx', () => ({
   default: ({ onStartStage }) => (
-    <button type="button" data-testid="start-stage" onClick={() => onStartStage('stage1')}>start</button>
+    <>
+      <button type="button" data-testid="start-stage" onClick={() => onStartStage('stage1')}>start</button>
+      <button type="button" data-testid="start-stage2" onClick={() => onStartStage('stage2')}>start2</button>
+      <button type="button" data-testid="start-stage3" onClick={() => onStartStage('stage3')}>start3</button>
+    </>
   ),
 }))
 vi.mock('./GameplayScreen.jsx', () => ({
@@ -92,6 +97,7 @@ describe('stage1 story cut plays only the first time', () => {
     mocks.runtime = { activity: null, progress: { records: {} } }
     mocks.gameStore.resetGame.mockClear()
     mocks.gameStore.startStage1Intro.mockClear()
+    mocks.gameStore.startStageIntro.mockClear()
   })
 
   it('shows the story on the first stage1 entry and skips it on the second entry in the same session', async () => {
@@ -127,6 +133,31 @@ describe('stage1 story cut plays only the first time', () => {
     await view.click('start-stage')
     expect(mocks.gameStore.resetGame).toHaveBeenCalledWith('stage1')
     expect(mocks.gameStore.startStage1Intro).not.toHaveBeenCalled()
+    view.unmount()
+  })
+
+  it('Stages 2-5 each show their own intro once per session', async () => {
+    const view = await renderInLobby({ authUser: null, progressStatus: 'idle' })
+    await view.click('start-stage2')
+    expect(mocks.gameStore.startStageIntro).toHaveBeenCalledWith('stage2')
+    await view.click('go-lobby')
+    await view.click('start-stage2')
+    expect(mocks.gameStore.startStageIntro).toHaveBeenCalledTimes(1)
+    await view.click('go-lobby')
+    await view.click('start-stage3')
+    expect(mocks.gameStore.startStageIntro).toHaveBeenLastCalledWith('stage3')
+    expect(mocks.gameStore.startStageIntro).toHaveBeenCalledTimes(2)
+    expect(mocks.gameStore.startStage1Intro).not.toHaveBeenCalled()
+    view.unmount()
+  })
+
+  it('skips a Stage 2 intro for an account that already cleared Stage 2', async () => {
+    mocks.hydrated = true
+    mocks.runtime = { activity: { lastStageId: 'stage2' }, progress: { records: { totalRuns: 5, stage2Clears: 1 } } }
+    const view = await renderInLobby({ authUser: { uid: 'veteran2' }, progressStatus: 'ready' })
+    await view.click('start-stage2')
+    expect(mocks.gameStore.resetGame).toHaveBeenCalledWith('stage2')
+    expect(mocks.gameStore.startStageIntro).not.toHaveBeenCalled()
     view.unmount()
   })
 })

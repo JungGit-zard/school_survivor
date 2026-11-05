@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo, useRef } from 'react'
 import '../assets/fonts/nanumMyeongjo.css'
 import { useShallow } from 'zustand/react/shallow'
-import { useGameStore, STAGE1_INTRO_IDS } from '../store/useGameStore.js'
+import { useGameStore, STAGE1_INTRO_IDS, getStageIntroIds } from '../store/useGameStore.js'
 import { useAuthStore } from '../store/useAuthStore.js'
 import { enemyHandleScratch, enemyPool, joystickDir, playerPos, portalTarget } from '../lib/refs.js'
 import { ENEMY_SIZE_MULTIPLIER, ENEMY_STATS } from './Enemy.jsx'
@@ -429,8 +429,12 @@ export function limitDuplicateWeaponUpgradeOptions(options, weapons = {}) {
   return limited
 }
 
-function introLine(index) {
-  return getDialogueText(STAGE1_INTRO_IDS[index])
+function introIds(stageId) {
+  return getStageIntroIds(stageId) ?? STAGE1_INTRO_IDS
+}
+
+function introLine(index, stageId) {
+  return getDialogueText(introIds(stageId)[index])
 }
 
 export function getUpgradeChoiceLabel(option, weapons = {}) {
@@ -814,7 +818,7 @@ export default function HUD({
     goldSession, goldTotal, recentMilestone,
     newlyUnlockedWeaponIds, levelUpChoiceSerial, levelUpAcquireExposureKeys, levelUpWeaponCycleIds, levelUpOwnedWeaponCycleIds, pendingGuaranteedUpgradeChoiceKeys, pendingWeaponReplacement,
     escapePortalActive, matildaSpawned, deathCause, bossBonus, bossDefeated,
-    studentDialogue, introDialogue,
+    studentDialogue, introDialogue, introStageId,
     questProgress, questToast, newQuestItemIds, bossPassiveUnlocks,
     clearMilestone, applyUpgrade, recordLevelupAcquireExposure, recordLevelupWeaponCycle, recordLevelupOwnedWeaponCycle, consumeGuaranteedUpgradeChoices, discardUnavailableGuaranteedUpgradeChoices,
     confirmWeaponReplacement, cancelWeaponReplacement, discardPendingWeapon,
@@ -851,6 +855,7 @@ export default function HUD({
     bossDefeated:         s.bossDefeated,
     studentDialogue:      s.studentDialogue,
     introDialogue:        s.introDialogue,
+    introStageId:         s.introStageId,
     questProgress:        s.questProgress,
     questToast:           s.questToast,
     newQuestItemIds:      s.newQuestItemIds,
@@ -1286,10 +1291,10 @@ export default function HUD({
       stopDialogueVoice()
       return undefined
     }
-    const line = introLine(introDialogue.index)
+    const line = introLine(introDialogue.index, introStageId)
     playDialogueVoice(line, 'protagonistIntro', { volume: 1 })
     return () => stopDialogueVoice()
-  }, [introDialogue])
+  }, [introDialogue, introStageId])
 
   const showMatildaDialogue = matildaDialogueVisible || (isMatildaGameover && !gameoverModalReady)
   const matildaDialogueLine = getDialogueText(isMatildaGameover ? 'matilda.death' : 'matilda.entry')
@@ -2058,7 +2063,7 @@ export default function HUD({
         </div>
       )}
 
-      {/* 스테이지1 스토리 인트로 — 딤 처리된 화면 위 내레이션. 탭할 때마다 다음 대사, 마지막 탭에 게임 시작 */}
+      {/* 스테이지 스토리 인트로(Stage 1~5) — 딤 처리된 화면 위 내레이션. 탭할 때마다 다음 대사, 마지막 탭에 게임 시작 */}
       {introDialogue && (
         <div
           data-testid="stage-intro-catcher"
@@ -2077,21 +2082,21 @@ export default function HUD({
           </button>
           <div style={styles.introBox} role="dialog" aria-label={t('hud.introAria')}>
             <div style={styles.introRow}>
-              <div style={styles.matildaDialoguePortraitFrame}>
+              <div style={styles.introPortraitFrame}>
                 <img
                   data-testid="stage-intro-portrait"
                   src={rosariIntroPortraitSrc}
                   alt={t('hud.introPortraitAlt')}
                   draggable={false}
-                  style={styles.matildaDialoguePortrait}
+                  style={styles.introPortrait}
                 />
               </div>
               <div style={styles.dialogueLine} aria-live="polite">
-                {introLine(introDialogue.index)}
+                {introLine(introDialogue.index, introStageId)}
               </div>
             </div>
             <div style={styles.dialogueHint}>
-              {introDialogue.index < STAGE1_INTRO_IDS.length - 1 ? t('hud.tapToContinue') : t('hud.tapToStart')}
+              {introDialogue.index < introIds(introStageId).length - 1 ? t('hud.tapToContinue') : t('hud.tapToStart')}
             </div>
           </div>
         </div>
@@ -3695,9 +3700,29 @@ const styles = {
     animation: 'studentDialoguePop 150ms ease-out',
     transformOrigin: 'center',
   },
+  // 로자리 인트로 프로필: 얼굴(원본 144px 기준 중심 약 x95·y90)에 맞춰 1.3배 확대 — 마틸다 대화창 스타일은 그대로.
+  introPortraitFrame: {
+    width: 96,
+    height: 96,
+    borderRadius: 10,
+    border: '3px solid #211404',
+    background: 'linear-gradient(180deg, #352044, #15101f)',
+    boxShadow: 'inset 0 0 0 2px rgba(255,255,255,0.16), 0 4px 0 rgba(0,0,0,0.45)',
+    overflow: 'hidden',
+  },
+  introPortrait: {
+    width: '100%',
+    height: '100%',
+    objectFit: 'cover',
+    objectPosition: '66% 62%',
+    transform: 'scale(1.3)',
+    transformOrigin: '66% 62%',
+    display: 'block',
+    userSelect: 'none',
+  },
   introRow: {
     display: 'grid',
-    gridTemplateColumns: '88px 1fr',
+    gridTemplateColumns: '96px 1fr',
     alignItems: 'center',
     gap: 12,
     textAlign: 'left',

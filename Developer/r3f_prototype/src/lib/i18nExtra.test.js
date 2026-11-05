@@ -11,7 +11,7 @@ import en from './locales/en.js'
 import ja from './locales/ja.js'
 import ko from './locales/ko.js'
 import { WEAPON_CATALOG, getAllWeaponIds } from './weaponCatalog.js'
-import { STAGE1_INTRO_IDS } from '../store/useGameStore.js'
+import { STAGE1_INTRO_IDS, STAGE_INTRO_IDS } from '../store/useGameStore.js'
 import { getDialogueText } from '../dialogues/dialogueStore.js'
 
 const HANGUL = /[가-힣]/
@@ -32,6 +32,23 @@ describe('사전 바깥 문구 커버리지', () => {
         if (dict[`cond.${type}`] === undefined) problems.push(`${name}: missing cond.${type}`)
       }
     }
+    expect(problems).toEqual([])
+  })
+
+  it('스테이지 1~5 인트로가 ko·en·ja 모두 3줄씩 있다', () => {
+    const problems = []
+    for (const [stageId, ids] of Object.entries(STAGE_INTRO_IDS)) {
+      if (ids.length !== 3) problems.push(`${stageId}: ${ids.length} lines`)
+      for (const id of ids) {
+        const ko = getDialogueText(id, 'ko')
+        if (!ko || ko === id || !HANGUL.test(ko)) problems.push(`ko: missing ${id}`)
+        for (const locale of ['en', 'ja']) {
+          const text = getDialogueText(id, locale)
+          if (!text || text === id || HANGUL.test(text)) problems.push(`${locale}: untranslated ${id} -> "${text}"`)
+        }
+      }
+    }
+    expect(Object.keys(STAGE_INTRO_IDS)).toEqual(['stage1', 'stage2', 'stage3', 'stage4', 'stage5'])
     expect(problems).toEqual([])
   })
 

@@ -81,6 +81,17 @@ function hasPersistedStageEntry(authUser) {
   }
 }
 
+// Stage 2~5 인트로: 그 스테이지를 이미 클리어한 계정이면 본 것으로 친다(새 저장 키 없음).
+function hasPersistedStageClear(authUser, stageId) {
+  try {
+    if (!authUser?.uid || !isFirebaseProgressHydrated(authUser)) return false
+    const records = getFirebaseProgressRuntimeSnapshot()?.progress?.records ?? {}
+    return (records[`${stageId}Clears`] ?? 0) > 0
+  } catch {
+    return false
+  }
+}
+
 // 타이틀 START 분기(2026-11-03 Terry 승인): 런을 한 번도 끝내지 않은 첫 플레이어는 로비를 건너뛰고
 // 바로 Stage 1 흐름(스토리 → 런)으로 들어간다. 새 저장 키 없이 기존 진행도 records로 판단한다.
 // 로그인했는데 진행도가 아직 안 붙었으면 기존 플레이어일 수 있으니 로비(현행)로 보낸다.
@@ -117,7 +128,7 @@ export default function ReadyGameApp({
   const [showGameoverResultImmediately, setShowGameoverResultImmediately] = useState(false)
   const [weaponEncyclopediaRequest, setWeaponEncyclopediaRequest] = useState(null)
   const phoneFrameRef = useRef(null)
-  const stage1IntroSeenRef = useRef(new Set())
+  const stageIntroSeenRef = useRef(new Set())
   const sessionRunOwnersRef = useRef(new Set())
 
   useEffect(() => {
@@ -218,12 +229,17 @@ export default function ReadyGameApp({
       const { useGameStore } = await import('../store/useGameStore.js')
       // resetGame이 activity를 이번 입장으로 갱신하므로 "이미 봤는지"는 그 전에 읽는다.
       const introOwner = authUser?.uid ?? 'guest'
-      const introAlreadySeen = stage1IntroSeenRef.current.has(introOwner) || hasPersistedStageEntry(authUser)
+      // Stage 1은 기존 규칙(계정 기록 또는 이 세션에서 본 적 있으면 생략), Stage 2~5는 스테이지별로
+      // 이 세션에서 한 번 + 그 스테이지 클리어 기록이 있으면 생략. 대사가 없는 스테이지(6~10)는 store가 무시한다.
+      const introKey = stageId === 'stage1' ? introOwner : `${introOwner}:${stageId}`
+      const introAlreadySeen = stageIntroSeenRef.current.has(introKey)
+        || (stageId === 'stage1' ? hasPersistedStageEntry(authUser) : hasPersistedStageClear(authUser, stageId))
       if (useGameStore.getState().resetGame(stageId) === false) return
       sessionRunOwnersRef.current.add(introOwner)
-      if (stageId === 'stage1' && !introAlreadySeen) {
-        stage1IntroSeenRef.current.add(introOwner)
-        useGameStore.getState().startStage1Intro()
+      if (!introAlreadySeen) {
+        stageIntroSeenRef.current.add(introKey)
+        if (stageId === 'stage1') useGameStore.getState().startStage1Intro()
+        else useGameStore.getState().startStageIntro?.(stageId)
       }
       setShowGameoverResultImmediately(false)
       setScreen('game')

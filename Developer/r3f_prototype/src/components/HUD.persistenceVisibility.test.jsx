@@ -6,7 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 // In-memory stores only: never import the real progress/auth stores or SDK clients.
 vi.mock('../store/useGameStore.js', async () => {
   const { create } = await import('zustand')
-  return { useGameStore: create(() => ({})), STAGE1_INTRO_IDS: [] }
+  return { useGameStore: create(() => ({})), STAGE1_INTRO_IDS: [], getStageIntroIds: () => null }
 })
 vi.mock('../store/useAuthStore.js', async () => {
   const { create } = await import('zustand')

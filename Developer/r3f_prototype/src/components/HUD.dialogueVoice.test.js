@@ -7,9 +7,9 @@ describe('HUD dialogue voice wiring', () => {
   it('plays Animalese-style protagonist voice for Stage 1 intro lines', () => {
     expect(source).toContain("import { playDialogueVoice, stopDialogueVoice } from '../lib/dialogueVoice.js'")
     expect(source).toContain("playDialogueVoice(line, 'protagonistIntro'")
-    // introLine()이 STAGE1_INTRO_IDS로 로케일 문구를 조회해 돌려준다(i18n 전환 후 심볼명).
-    expect(source).toContain('const line = introLine(introDialogue.index)')
-    expect(source).toContain('STAGE1_INTRO_IDS[index]')
+    // introLine()이 진행 중인 스테이지(introStageId)의 인트로 대사 ID로 로케일 문구를 조회한다.
+    expect(source).toContain('const line = introLine(introDialogue.index, introStageId)')
+    expect(source).toContain('getDialogueText(introIds(stageId)[index])')
   })
 
   it('plays the distinct Matilda dialogue voice when her dialogue appears', () => {
