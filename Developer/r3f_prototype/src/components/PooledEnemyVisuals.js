@@ -35,6 +35,19 @@ export const ENEMY_RENDER_NEAR = 3
 // stale whole-pool bounding sphere and can hide every moving zombie at once.
 const RENDER_ENTER_MARGIN = 1.15
 const RENDER_KEEP_MARGIN = 1.8
+// E07(웃는얼굴 좀비, typeCode 15)의 셰이더 얼굴 몸통은 ProceduralFaceZombieLayer의 고정 슬롯이
+// 그린다(슬롯당 드로콜 13개라 상한을 크게 못 늘린다). 스테이지 3은 E07이 30기 넘게 동시에 살아
+// 있어서 상한 밖 개체가 그림자·체력바만 남고 몸통이 사라졌다(2026-11-05 실측). 그래서 두 레이어가
+// 이 한 규칙으로 슬롯을 나눈다: 화면 안(진입 여유 포함)의 노출된 E07을 풀 인덱스 순으로 앞에서부터
+// 상한만큼 얼굴 레이어가 갖고, 나머지는 ZombieInstanceLayer가 표준 툰 박스 몸통으로 그린다.
+export const PROCEDURAL_FACE_ZOMBIE_TYPE_CODE = 15
+export const PROCEDURAL_FACE_ZOMBIE_CAPACITY = 16
+export function isProceduralFaceZombieCandidate(pool, index, bounds) {
+  if (pool.active[index] !== 1 || pool.type[index] !== PROCEDURAL_FACE_ZOMBIE_TYPE_CODE || pool.spawnTimer[index] < SPAWN_REVEAL_MS) return false
+  const x = pool.posX[index]; const z = pool.posZ[index]
+  return !!bounds && x >= bounds.minX - RENDER_ENTER_MARGIN && x <= bounds.maxX + RENDER_ENTER_MARGIN
+    && z >= bounds.minZ - RENDER_ENTER_MARGIN && z <= bounds.maxZ + RENDER_ENTER_MARGIN
+}
 const RENDER_NEAR_DISTANCE_SQ = 6 * 6
 const RENDER_MID_DISTANCE_SQ = 11 * 11
 

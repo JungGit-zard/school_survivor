@@ -16,17 +16,16 @@
 // STUDIO_OUTER_MOTION_ONLY — 아래 useFrame은 StudioTunedGroup 바깥 그룹만 움직인다.
 import { createRef, useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
-import { enemyPool } from '../lib/refs.js'
-import { ENEMY_TYPE_CODES } from '../lib/enemyEntityPool.js'
+import { enemyPool, screenBounds } from '../lib/refs.js'
 import { getStudioZombieItemId } from '../lib/graphicsStudioConfig.js'
-import { SPAWN_REVEAL_MS } from './PooledEnemyVisuals.js'
+import { PROCEDURAL_FACE_ZOMBIE_CAPACITY, isProceduralFaceZombieCandidate } from './PooledEnemyVisuals.js'
 import StudioTunedGroup from './StudioTunedGroup.jsx'
 import ProceduralFaceTestZombie from './ProceduralFaceTestZombie.jsx'
 
-// 스테이지2 60초 E07 5마리와 82초 E07 10마리가 모두 살아 있을 수 있어 최악 동시 생존은 15마리다.
-// 상한을 넘은 개체는 시뮬레이션에는 살아 있지만 몸통이 안 보이므로 16개 슬롯으로 고정한다.
-export const PROCEDURAL_FACE_ZOMBIE_CAPACITY = 16
-const E07_TYPE_CODE = ENEMY_TYPE_CODES.E07
+// 슬롯 16개(슬롯당 드로콜 13개). 스테이지 3은 E07이 30기 넘게 동시에 살아 있으므로, 상한 밖의
+// 개체는 ZombieInstanceLayer가 같은 분배 규칙(isProceduralFaceZombieCandidate)으로 표준 툰 박스 몸통을
+// 그린다. 화면 밖 개체는 슬롯을 차지하지 않는다.
+export { PROCEDURAL_FACE_ZOMBIE_CAPACITY }
 const STUDIO_ITEM_ID = getStudioZombieItemId('E07')
 const MAX_POOL_SLOTS = 200
 
@@ -45,10 +44,9 @@ export default function ProceduralFaceZombieLayer() {
         Number.isInteger(pool.highestActive) ? pool.highestActive : MAX_POOL_SLOTS - 1,
       )
       for (let index = 0; index <= max && used < PROCEDURAL_FACE_ZOMBIE_CAPACITY; index += 1) {
-        if (pool.active[index] !== 1 || pool.type[index] !== E07_TYPE_CODE) continue
-        // 스폰 "펑" 정본: 연기가 먼저 뜨고 300ms 뒤에야 몸통이 드러난다.
+        // 스폰 "펑" 정본: 연기가 먼저 뜨고 300ms 뒤에야 몸통이 드러난다(후보 판정에 포함).
+        if (!isProceduralFaceZombieCandidate(pool, index, screenBounds)) continue
         const timer = pool.spawnTimer[index]
-        if (timer < SPAWN_REVEAL_MS) continue
         const group = slots[used].current
         used += 1
         if (!group) continue
