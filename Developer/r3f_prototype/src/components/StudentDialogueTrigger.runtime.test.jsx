@@ -11,7 +11,8 @@ vi.mock('../lib/usePlayingFrame.js', () => ({
   },
 }))
 
-import StudentDialogueTrigger, { shouldDeferGenericInvestigation } from './StudentDialogueTrigger.jsx'
+import StudentDialogueTrigger, { INVESTIGATION_COOLDOWN_MS, isInvestigationOnCooldown, shouldDeferGenericInvestigation } from './StudentDialogueTrigger.jsx'
+import { getRuntimeElapsedMs, setRuntimeElapsedMs } from '../lib/gameRuntimeTime.js'
 import { getStageQuestDefinitions } from '../lib/quests.js'
 import { playerPos } from '../lib/refs.js'
 import { commitFirebaseStudioRuntime } from '../lib/studioRuntimeState.js'
@@ -159,6 +160,111 @@ describe('Stage 2 bulletin board runtime investigation chain', () => {
         subjectName: board.subjectName,
       })
       expect(dialogue.dialogueId).toMatch(/^investigation\.corridorLostFoundBoard\./)
+    } finally {
+      act(() => root.unmount())
+      container.remove()
+    }
+  })
+})
+
+describe('investigation dialogue global cooldown', () => {
+  it('treats the window as half-open on game time', () => {
+    expect(isInvestigationOnCooldown(1000, -Infinity)).toBe(false)
+    expect(isInvestigationOnCooldown(1000 + INVESTIGATION_COOLDOWN_MS - 1, 1000)).toBe(true)
+    expect(isInvestigationOnCooldown(1000 + INVESTIGATION_COOLDOWN_MS, 1000)).toBe(false)
+  })
+
+  it('blocks a second prop dialogue until the cooldown elapses, without consuming that prop', () => {
+    _seedHydratedFirebaseProgressForTests({ uid: 'dialogue-trigger-cooldown' }, {
+      progress: { records: { stage1BossDefeats: 1 } },
+    })
+    expect(useGameStore.getState().resetGame('stage2')).not.toBe(false)
+    const quests = getStageQuestDefinitions('stage2')
+    const props = computeDefaultStageObjectPlacements('stage2')
+    commitFirebaseStudioRuntime({ propPlacements: { stage2: props } }, { revision: 4 })
+    const generic = getInvestigationTargets('stage2').filter((target) => (
+      !quests.some((quest) => target.id === quest.giver.placementId || target.id.startsWith(`${quest.giver.placementId}-copy-`))
+    ))
+    const contact = (target) => worldPointFromTargetLocal(target, 0, target.halfZ + target.contactMargin)
+    const isolated = generic.filter((target) => {
+      const p = contact(target)
+      return findInvestigationTargetInRange(p.x, p.z, generic, new Set()) === target
+        && !shouldDeferGenericInvestigation({
+          playerX: p.x, playerZ: p.z, itemTargets: [], completionTargets: [],
+          questProgress: useGameStore.getState().questProgress,
+        })
+    })
+    const plainIsolated = isolated.filter(({ subjectType }) => subjectType !== 'locker')
+    expect(plainIsolated.length).toBeGreaterThanOrEqual(2)
+    const [first, second] = plainIsolated
+
+    const { container, root } = renderTrigger()
+    try {
+      const startMs = getRuntimeElapsedMs(useGameStore.getState().elapsedMs)
+      let p = contact(first)
+      playerPos.set(p.x, 0, p.z)
+      act(() => frame.callback?.({}, 1 / 60))
+      expect(useGameStore.getState().studentDialogue?.subjectName).toBe(first.subjectName)
+      act(() => useGameStore.getState().closeStudentDialogue())
+      // An upgrade reward routes to levelup; the real frame loop only runs while playing.
+      act(() => useGameStore.setState({ phase: 'playing', pauseSource: null }))
+
+      p = contact(second)
+      playerPos.set(p.x, 0, p.z)
+      setRuntimeElapsedMs(startMs + INVESTIGATION_COOLDOWN_MS - 1)
+      act(() => frame.callback?.({}, 1 / 60))
+      expect(useGameStore.getState().studentDialogue).toBeNull()
+
+      setRuntimeElapsedMs(startMs + INVESTIGATION_COOLDOWN_MS)
+      act(() => frame.callback?.({}, 1 / 60))
+      expect(useGameStore.getState().studentDialogue?.subjectName).toBe(second.subjectName)
+    } finally {
+      act(() => root.unmount())
+      container.remove()
+    }
+  })
+
+  it('lets a guaranteed-reward locker open during the cooldown while a plain prop stays blocked', () => {
+    _seedHydratedFirebaseProgressForTests({ uid: 'dialogue-trigger-locker' }, {
+      progress: { records: { stage1BossDefeats: 1 } },
+    })
+    expect(useGameStore.getState().resetGame('stage2')).not.toBe(false)
+    const quests = getStageQuestDefinitions('stage2')
+    commitFirebaseStudioRuntime({ propPlacements: { stage2: computeDefaultStageObjectPlacements('stage2') } }, { revision: 5 })
+    const generic = getInvestigationTargets('stage2').filter((target) => (
+      !quests.some((quest) => target.id === quest.giver.placementId || target.id.startsWith(`${quest.giver.placementId}-copy-`))
+    ))
+    const contact = (target) => worldPointFromTargetLocal(target, 0, target.halfZ + target.contactMargin)
+    const isolated = generic.filter((target) => {
+      const p = contact(target)
+      return findInvestigationTargetInRange(p.x, p.z, generic, new Set()) === target
+        && !shouldDeferGenericInvestigation({
+          playerX: p.x, playerZ: p.z, itemTargets: [], completionTargets: [],
+          questProgress: useGameStore.getState().questProgress,
+        })
+    })
+    const plain = isolated.filter(({ subjectType }) => subjectType !== 'locker')
+    const locker = isolated.find(({ subjectType }) => subjectType === 'locker')
+    expect(plain.length).toBeGreaterThanOrEqual(2)
+    expect(locker).toBeTruthy()
+    const visit = (target) => {
+      const p = contact(target)
+      playerPos.set(p.x, 0, p.z)
+      act(() => frame.callback?.({}, 1 / 60))
+      const dialogue = useGameStore.getState().studentDialogue
+      if (dialogue) {
+        act(() => useGameStore.getState().closeStudentDialogue())
+        act(() => useGameStore.setState({ phase: 'playing', pauseSource: null }))
+      }
+      return dialogue
+    }
+
+    const { container, root } = renderTrigger()
+    try {
+      setRuntimeElapsedMs(getRuntimeElapsedMs(useGameStore.getState().elapsedMs))
+      expect(visit(plain[0])?.subjectName).toBe(plain[0].subjectName)
+      expect(visit(plain[1])).toBeNull()
+      expect(visit(locker)?.subjectType).toBe('locker')
     } finally {
       act(() => root.unmount())
       container.remove()

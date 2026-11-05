@@ -9,6 +9,7 @@ import { getStageVendingPlacement } from '../lib/stageVending.js'
 import { STAGE_CONFIGS, isStageVisible } from '../lib/stageConfig.js'
 import { _seedHydratedFirebaseProgressForTests } from '../lib/firebaseProgress.js'
 import { installProgressTransactionTestClient } from '../../test/progressTransactionClient.js'
+import { useAuthStore } from '../store/useAuthStore.js'
 
 globalThis.IS_REACT_ACT_ENVIRONMENT = true
 let host, root, fixtureId = 0
@@ -164,5 +165,20 @@ describe('real prompt + real store', () => {
     act(() => { live().resetGame('stage2'); move('stage2'); useGameStore.setState(s => ({ player: { ...s.player, hp: 40 }, goldTotal: 20 })) })
     expect(live().stageVendingPurchasedItemIds).toEqual([])
     expect(button().disabled).toBe(false)
+  })
+  it('guest: no pause popup, only a login hint bubble, and nothing is spent', () => {
+    useAuthStore.setState({ user: null, status: 'signedOut' })
+    mount(); act(() => vi.advanceTimersByTime(100))
+    expect(button()).toBeNull()
+    expect(live().phase).toBe('playing')
+    expect(host.querySelector('[data-testid="stage-vending-login"]').textContent).toBe('로그인하면 구매할 수 있어요')
+    expect(live().goldTotal).toBe(20)
+  })
+  it('the close button closes the popup and resumes play without spending', () => {
+    mount(); expect(live().pauseSource).toBe('vending')
+    act(() => host.querySelector('[data-testid="stage-vending-close"]').dispatchEvent(new MouseEvent('click', { bubbles: true })))
+    expect(button()).toBeNull()
+    expect(live().phase).toBe('playing')
+    expect(live().goldTotal).toBe(20)
   })
 })

@@ -512,7 +512,7 @@ export default function TitleScreen({
           >
             {mainActionBusy ? t('account.signingIn') : t('title.start')}
           </button>
-          <a href="/landing" className="title-main-action" data-title-homepage style={styles.homepageLink}>
+          <a href={`/landing?lang=${encodeURIComponent(locale || 'ko')}`} className="title-main-action" data-title-homepage style={styles.homepageLink}>
             <span style={styles.homepageSticker}>{t('title.homepage')}</span>
           </a>
         </div>

@@ -2091,7 +2091,7 @@ export default function HUD({
                   style={styles.introPortrait}
                 />
               </div>
-              <div style={styles.dialogueLine} aria-live="polite">
+              <div data-testid="stage-intro-line" style={{ ...styles.dialogueLine, ...styles.introLine }} aria-live="polite">
                 {introLine(introDialogue.index, introStageId)}
               </div>
             </div>
@@ -3700,8 +3700,10 @@ const styles = {
     animation: 'studentDialoguePop 150ms ease-out',
     transformOrigin: 'center',
   },
-  // 로자리 인트로 프로필: 얼굴(원본 144px 기준 중심 약 x95·y90)에 맞춰 1.3배 확대 — 마틸다 대화창 스타일은 그대로.
+  // 로자리 인트로 프로필: 1.3배 확대. 원본 144px 기준 얼굴 중심은 약 (95, 90)인데, 1.3배에서 도달 가능한 최대
+  // 중심은 ≈ (88.6, 88.6)/144(원점 우하단 100% 100%)라 그 지점으로 얼굴에 가장 가깝게 맞춘다 — 마틸다 대화창 스타일은 그대로.
   introPortraitFrame: {
+    flex: '0 0 96px',
     width: 96,
     height: 96,
     borderRadius: 10,
@@ -3714,17 +3716,23 @@ const styles = {
     width: '100%',
     height: '100%',
     objectFit: 'cover',
-    objectPosition: '66% 62%',
+    objectPosition: 'center',
     transform: 'scale(1.3)',
-    transformOrigin: '66% 62%',
+    transformOrigin: '100% 100%',
     display: 'block',
     userSelect: 'none',
   },
+  // 좁은 컬럼(가로 844x390의 219px 등)에서는 대사가 초상 아래로 내려가 글자 단위 줄바꿈을 막는다.
   introRow: {
-    display: 'grid',
-    gridTemplateColumns: '96px 1fr',
+    display: 'flex',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
     alignItems: 'center',
     gap: 12,
     textAlign: 'left',
+  },
+  introLine: {
+    flex: '1 1 140px',
+    minWidth: 0,
   },
 }

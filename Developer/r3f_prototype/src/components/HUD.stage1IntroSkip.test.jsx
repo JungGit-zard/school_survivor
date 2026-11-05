@@ -46,6 +46,13 @@ describe('Stage 1 intro skip', () => {
     expect(img.closest('[role="dialog"]')).not.toBeNull()
   })
 
+  it('lets the intro line wrap under the portrait in a narrow (landscape) column instead of one-char lines', () => {
+    const line = container.querySelector('[data-testid="stage-intro-line"]')
+    expect(line.style.flex).toBe('1 1 140px')
+    expect(line.style.minWidth).toBe('0px')
+    expect(line.parentElement.style.flexWrap).toBe('wrap')
+  })
+
   it('one click on Skip ends the intro with the same state as tapping through the last card', () => {
     act(() => { skipButton().dispatchEvent(new MouseEvent('pointerdown', { bubbles: true })) })
     // pointerdown on Skip must not also advance a card

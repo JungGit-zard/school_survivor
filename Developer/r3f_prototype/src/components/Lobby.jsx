@@ -253,6 +253,14 @@ export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onO
       /* 접근성/멀미 게이트: 모션 정지 */
       @media (prefers-reduced-motion: reduce){ .lobby-anim{ animation: none !important } }
       :root[data-reduced-effects] .lobby-anim{ animation: none !important }
+      /* 배경 레이어(inset -15%)가 스크롤 영역을 넓혀 포커스 이동 때 컬럼이 옆으로 밀리지 않게 한다(clip 미지원이면 인라인 hidden). */
+      .lobby-root{ overflow: clip !important }
+      /* 가로 폰(세로 고정 컬럼 약 219px): 닉네임+코인을 첫 줄, 버튼 셋을 둘째 줄 오른쪽에 둔다. */
+      @media (orientation: landscape) and (max-height: 500px){
+        .lobby-profile-row{ flex-wrap: wrap; row-gap: 6px }
+        .lobby-profile-block{ flex: 1 0 calc(100% - 110px) !important }
+        .lobby-rosari-btn{ margin-left: auto }
+      }
     `
     // StrictMode 이중 마운트 안전: 항상 교체(remove → append).
     document.getElementById('lobby-keyframes')?.remove()
@@ -291,7 +299,7 @@ export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onO
   }
 
   return (
-    <div style={styles.root} onPointerDown={handleLobbyPointerDown}>
+    <div className="lobby-root" style={styles.root} onPointerDown={handleLobbyPointerDown}>
       <LobbyBgm />
       {/* 배경 앰비언트 드리프트(콘텐츠 뒤, 클릭 방해 없음) */}
       <div
@@ -306,8 +314,8 @@ export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onO
 
       {/* 상단 sticky 상태바 */}
       <header style={styles.statusBar}>
-        <div style={styles.profileRow}>
-          <div style={styles.profileBlock}>
+        <div className="lobby-profile-row" style={styles.profileRow}>
+          <div className="lobby-profile-block" style={styles.profileBlock}>
             <span style={styles.profileEyebrow}>{t('lobby.player')}</span>
             <strong style={styles.profileName}>{displayNickname(nickname) || authUser?.displayName?.trim() || authUser?.email?.trim() || ''}</strong>
           </div>
@@ -320,7 +328,7 @@ export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onO
           {/* 라벨은 로그인 상태와 무관하게 항상 방 이름(언어 설정 따름). 게스트가 누르면 로그인 안내 팝업. */}
           <button
             type="button"
-            className="lobby-press"
+            className="lobby-press lobby-rosari-btn"
             data-testid="lobby-rosari-room"
             style={styles.rosariRoomButton}
             onClick={() => {

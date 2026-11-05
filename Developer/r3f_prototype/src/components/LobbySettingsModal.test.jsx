@@ -405,6 +405,26 @@ describe('LobbySettingsModal', () => {
     view.unmount()
   })
 
+  it('moves focus into the dialog on open, wraps Tab/Shift+Tab inside it and restores focus on close', async () => {
+    useAuthStore.setState({ status: 'signedIn', user: { uid: 'focus-user' }, signOutOfGoogle: vi.fn(async () => {}) })
+    const outside = document.createElement('button')
+    document.body.appendChild(outside)
+    outside.focus()
+    const view = renderSettings()
+    const dialog = view.container.querySelector('[role="dialog"]')
+    const focusables = [...dialog.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])')].filter(el => !el.disabled)
+    expect(dialog.contains(document.activeElement)).toBe(true)
+    expect(document.activeElement).toBe(focusables[0])
+    const tab = (shiftKey) => act(() => { window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', shiftKey, bubbles: true, cancelable: true })) })
+    tab(true)
+    expect(document.activeElement).toBe(focusables[focusables.length - 1])
+    tab(false)
+    expect(document.activeElement).toBe(focusables[0])
+    view.unmount()
+    expect(document.activeElement).toBe(outside)
+    outside.remove()
+  })
+
   it('closes on Escape, but first steps back out of the delete confirmation', async () => {
     useAuthStore.setState({ status: 'signedIn', user: { uid: 'test-user' }, signOutOfGoogle: vi.fn(async () => {}) })
     const onClose = vi.fn()

@@ -76,7 +76,8 @@ afterEach(() => {
 describe('TitleScreen lobby entry', () => {
   it('renders a homepage link alongside game start', () => {
     const { container, cleanup } = renderTitleScreen()
-    const homepage = container.querySelector('a[href="/landing"]')
+    const homepage = container.querySelector('a[data-title-homepage]')
+    expect(homepage?.getAttribute('href')).toMatch(/^\/landing\?lang=(ko|en|ja)$/)
     expect(homepage?.textContent).toBe('홈페이지로')
     expect(homepage?.style.minHeight).toBe('44px')
     expect(container.querySelector('button.title-main-action')?.textContent).toBe('게임 시작')

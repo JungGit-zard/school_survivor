@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import './StageVendingPrompt.css'
 import { useGameStore } from '../store/useGameStore.js'
+import { useAuthStore } from '../store/useAuthStore.js'
 import { playerPos } from '../lib/refs.js'
 import { useLocale } from '../lib/i18n.js'
 import {
@@ -35,6 +36,8 @@ const COPY = Object.freeze({
     buttonFull: 'HP 가득',
     buttonInsufficient: '골드 부족',
     noGold: '골드가 없어요!',
+    loginRequired: '로그인하면 구매할 수 있어요',
+    close: '닫기',
   }),
   en: Object.freeze({
     full: 'Your HP is already full',
@@ -55,6 +58,8 @@ const COPY = Object.freeze({
     buttonFull: 'HP full',
     buttonInsufficient: 'Need gold',
     noGold: 'No gold!',
+    loginRequired: 'Sign in to buy',
+    close: 'Close',
   }),
   ja: Object.freeze({
     full: 'HPはすでに満タンです',
@@ -75,6 +80,8 @@ const COPY = Object.freeze({
     buttonFull: 'HP満タン',
     buttonInsufficient: 'ゴールド不足',
     noGold: 'ゴールドがありません！',
+    loginRequired: 'ログインすると購入できます',
+    close: '閉じる',
   }),
 })
 
@@ -82,12 +89,14 @@ function fill(text, params) {
   return text.replace(/\{(\w+)\}/g, (match, name) => String(params[name] ?? match))
 }
 
-export function getStageVendingUiState({ phase, pauseSource = null, player, goldTotal, purchasedItemIds, inRange, item }) {
+export function getStageVendingUiState({ phase, pauseSource = null, player, goldTotal, purchasedItemIds, inRange, item, signedIn = true }) {
   const active = phase === 'playing' || (phase === 'paused' && pauseSource === 'vending')
   if (!active || !Number.isFinite(player?.hp) || player.hp <= 0) return 'notPlaying'
   if (!inRange) return 'outOfRange'
   if (getStageVendingRemainingPurchases(item, purchasedItemIds) <= 0) return 'purchased'
   if ((player?.hp ?? 0) >= (player?.maxHp ?? 0)) return 'full'
+  // 게스트는 계정 골드가 없어 스토어가 구매를 거절한다 — 팝업(일시정지) 대신 힌트만 띄운다.
+  if (!signedIn) return 'loginRequired'
   if ((goldTotal ?? 0) < item.priceGold) return 'insufficient'
   return 'available'
 }
@@ -119,6 +128,7 @@ export default function StageVendingPrompt() {
     openStageVending: state.openStageVending,
     closeStageVending: state.closeStageVending,
   }))
+  const signedIn = useAuthStore((state) => !!state.user?.uid)
   const placement = useMemo(() => getStageVendingPlacement(currentStageId), [currentStageId])
   const [inRange, setInRange] = useState(() => isWithinStageVendingRange(playerPos, placement))
   const [feedback, setFeedback] = useState(null)
@@ -152,6 +162,7 @@ export default function StageVendingPrompt() {
     purchasedItemIds,
     inRange,
     item,
+    signedIn,
   })
   // 살 수 있을 때만 띄운다 — 체력 가득·골드 부족·구매 완료면 진행을 멈추지 않는다(Terry 10-29).
   const shouldOpen = phase === 'playing' && !dismissed && !!placement && !!item && state === 'available'
@@ -173,7 +184,9 @@ export default function StageVendingPrompt() {
   // 골드가 모자라면 팝업 대신 근접할 때마다 짧은 말풍선만 띄운다(진행은 멈추지 않는다, Terry 10-29).
   const [noGoldToast, setNoGoldToast] = useState(false)
   const noGoldShownRef = useRef(false)
-  const noGold = phase === 'playing' && !!placement && !!item && state === 'insufficient'
+  // 게스트(loginRequired)도 같은 말풍선으로 로그인 안내만 한다.
+  const hintKey = state === 'insufficient' ? 'noGold' : state === 'loginRequired' ? 'loginRequired' : null
+  const noGold = phase === 'playing' && !!placement && !!item && !!hintKey
   useEffect(() => {
     if (!inRange) { noGoldShownRef.current = false; return undefined }
     if (!noGold || noGoldShownRef.current) return undefined
@@ -219,7 +232,7 @@ export default function StageVendingPrompt() {
   }, [closeStageVending])
 
   if (!visible || !placement || !item) {
-    return noGoldToast ? <div data-testid="stage-vending-nogold" role="status" style={styles.toast}>{STATUS_COPY.noGold}</div> : null
+    return noGoldToast && hintKey ? <div data-testid={hintKey === 'noGold' ? 'stage-vending-nogold' : 'stage-vending-login'} role="status" style={styles.toast}>{STATUS_COPY[hintKey]}</div> : null
   }
 
   // 바깥 탭 백드롭: 같은 탭이 조이스틱(캔버스 대상 touchstart)이나 아래 HUD 버튼으로 새지 않도록
@@ -268,6 +281,14 @@ export default function StageVendingPrompt() {
           style={{ ...styles.button, ...(disabled ? styles.buttonDisabled : styles.buttonEnabled) }}
         >
           {state === 'purchased' ? STATUS_COPY.buttonPurchased : state === 'full' ? STATUS_COPY.buttonFull : state === 'insufficient' ? STATUS_COPY.buttonInsufficient : STATUS_COPY.buy}
+        </button>
+        <button
+          type="button"
+          data-testid="stage-vending-close"
+          onClick={onBackdropClick}
+          style={{ ...styles.button, ...styles.buttonClose }}
+        >
+          {STATUS_COPY.close}
         </button>
       </div>
     </div>
@@ -376,6 +397,13 @@ const styles = {
     color: '#102018',
     background: 'linear-gradient(180deg, #7bf0b0, #4dffbd)',
     boxShadow: '0 5px 0 #20705a',
+    cursor: 'pointer',
+  },
+  buttonClose: {
+    minHeight: 44,
+    color: '#f8fafc',
+    background: 'transparent',
+    border: '2px solid rgba(156, 200, 216, 0.6)',
     cursor: 'pointer',
   },
   buttonDisabled: {

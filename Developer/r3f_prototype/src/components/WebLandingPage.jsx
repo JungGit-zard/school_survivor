@@ -37,6 +37,8 @@ function getRequestedLanguage() {
 export default function WebLandingPage() {
   const [language, setLanguage] = useState(getRequestedLanguage)
   const copy = LANDING_COPY[language]
+  // 고른 언어를 게임으로 넘긴다(게임은 ko/en/ja만 적용, 그 외는 기본값).
+  const gameHref = `/game?lang=${encodeURIComponent(language)}`
   const [activeMedia, setActiveMedia] = useState(null)
   const [mediaScrollRequest, setMediaScrollRequest] = useState(0)
   const [isMusicPlaying, setIsMusicPlaying] = useState(false)
@@ -176,7 +178,7 @@ export default function WebLandingPage() {
               <a href="#music" className="web-landing__nav-link web-landing__link" onClick={openMediaLink('music')}>{copy.musicNav}</a>
               <a href="#videos" className="web-landing__nav-link web-landing__link" onClick={openMediaLink('videos')}>{copy.videoNav}</a>
               <a href="#news" className="web-landing__nav-link web-landing__link">{copy.news}</a>
-              <a href="/game" className="web-landing__nav-cta web-landing__link">{copy.startGame}</a>
+              <a href={gameHref} className="web-landing__nav-cta web-landing__link">{copy.startGame}</a>
             </div>
             <label className="web-landing__language">
               <span className="web-landing__visually-hidden">{copy.languageLabel}</span>
@@ -203,7 +205,7 @@ export default function WebLandingPage() {
                 <p className="web-landing__headline">{copy.headline}</p>
                 <p className="web-landing__support">{copy.support}</p>
                 <div ref={heroActionsRef} className="web-landing__hero-actions" aria-label={copy.mainActions}>
-                  <a href="/game" className="web-landing__cta web-landing__link">{copy.playWeb}</a>
+                  <a href={gameHref} className="web-landing__cta web-landing__link">{copy.playWeb}</a>
                   <a href={comicsUrl} className="web-landing__cta web-landing__link" target="_blank" rel="noopener">{copy.comicNav}</a>
                   <a href="#music" className="web-landing__cta web-landing__link" onClick={openMediaLink('music')}>{copy.musicNav}</a>
                   <a href="#videos" className="web-landing__cta web-landing__link" onClick={openMediaLink('videos')}>{copy.videoNav}</a>
@@ -263,7 +265,7 @@ export default function WebLandingPage() {
                 <li key={step}>{step}</li>
               ))}
             </ol>
-            <a href="/game" className="web-landing__bottom-cta web-landing__link">{copy.guideCta}</a>
+            <a href={gameHref} className="web-landing__bottom-cta web-landing__link">{copy.guideCta}</a>
           </section>
 
           <section id="media" aria-labelledby="section-media-controls-title" className="web-landing__panel web-landing__panel--wide" data-reveal>
@@ -353,7 +355,7 @@ export default function WebLandingPage() {
                 <img key={url} className="web-landing__gallery-item" src={url} loading="lazy" decoding="async" alt="" width="480" height="270" />
               ))}
             </div>
-            <a href="/game" className="web-landing__bottom-cta web-landing__link">{copy.galleryCta}</a>
+            <a href={gameHref} className="web-landing__bottom-cta web-landing__link">{copy.galleryCta}</a>
           </section>
 
           <section id="news" aria-labelledby="section-news-title" className="web-landing__panel web-landing__panel--wide" data-reveal>
@@ -374,16 +376,20 @@ export default function WebLandingPage() {
           <section aria-label={copy.finalAria} className="web-landing__final-cta" data-reveal>
             <p>{copy.finalEyebrow}</p>
             <h2>{copy.finalTitle}</h2>
-            <a href="/game" className="web-landing__cta web-landing__link">{copy.startGame}</a>
+            <a href={gameHref} className="web-landing__cta web-landing__link">{copy.startGame}</a>
           </section>
 
           <footer className="web-landing__footer">
             <span>{copy.footerBrand}</span>
             <span>{copy.footer}</span>
+            <nav className="web-landing__legal" aria-label={copy.legalAria}>
+              <a href="/privacy.html" className="web-landing__link">{copy.privacy}</a>
+              <a href="/terms.html" className="web-landing__link">{copy.terms}</a>
+            </nav>
           </footer>
         </div>
       </section>
-      {heroActionsPassed && !isBoardOpen ? <a href="/game" className="web-landing__mobile-sticky-cta web-landing__link">{copy.startGame}</a> : null}
+      {heroActionsPassed && !isBoardOpen ? <a href={gameHref} className="web-landing__mobile-sticky-cta web-landing__link">{copy.startGame}</a> : null}
       {isBoardOpen ? <ZombieBoard
         key={boardSessionKey}
         open={isBoardOpen}
@@ -1224,6 +1230,19 @@ const landingCss = `
   color: #172033;
   font-size: 13px;
   font-weight: 700;
+}
+
+.web-landing__legal {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 16px;
+}
+
+.web-landing__legal a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: inherit;
 }
 
 .web-landing__mobile-sticky-cta {

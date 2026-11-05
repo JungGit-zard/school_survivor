@@ -35,7 +35,7 @@ export const LANDING_COPY = {
       ['생존 루트 안내', '이동, 자동 공격, 업그레이드 선택으로 이어지는 기본 흐름을 안내합니다.'],
       ['미디어 아카이브', '게임 속 학교와 생존 장면을 공식 이미지로 확인할 수 있습니다.'],
     ],
-    finalAria: '게임 시작 안내', finalEyebrow: '지금, 종이 울리기 전에', finalTitle: '학교 탈출을 시작하세요.', footerBrand: 'ESCAPE! ZOMBIE SCHOOL', footer: '공식 게임 홈페이지',
+    finalAria: '게임 시작 안내', finalEyebrow: '지금, 종이 울리기 전에', finalTitle: '학교 탈출을 시작하세요.', footerBrand: 'ESCAPE! ZOMBIE SCHOOL', footer: '공식 게임 홈페이지', privacy: '개인정보처리방침', terms: '이용약관', legalAria: '법적 고지',
   },
   en: {
     languageLabel: 'Select language', homeAria: 'Escape! Zombie School official website', skip: 'Skip to content', navigation: 'Official website navigation', brandHome: 'Escape! Zombie School home', official: 'Official Website',
@@ -64,7 +64,7 @@ export const LANDING_COPY = {
       ['Your Survival Route', 'Learn the basics: move, auto-attack, and choose upgrades.'],
       ['Media Archive', 'Explore official images of the school and survival scenes.'],
     ],
-    finalAria: 'Start game invitation', finalEyebrow: 'Now, before the bell rings', finalTitle: 'Start your school escape.', footerBrand: 'ESCAPE! ZOMBIE SCHOOL', footer: 'Official Game Website',
+    finalAria: 'Start game invitation', finalEyebrow: 'Now, before the bell rings', finalTitle: 'Start your school escape.', footerBrand: 'ESCAPE! ZOMBIE SCHOOL', footer: 'Official Game Website', privacy: 'Privacy Policy', terms: 'Terms of Service', legalAria: 'Legal',
   },
   ja: {
     languageLabel: '言語を選択', homeAria: '脱出！ゾンビ学校 公式サイト', skip: '本文へスキップ', navigation: '公式サイトのナビゲーション', brandHome: '脱出！ゾンビ学校 ホーム', official: '公式サイト',
@@ -93,7 +93,7 @@ export const LANDING_COPY = {
       ['生存ルートガイド', '移動、自動攻撃、アップグレード選択の基本的な流れをご案内します。'],
       ['メディアアーカイブ', 'ゲームの学校とサバイバルの場面を公式画像で確認できます。'],
     ],
-    finalAria: 'ゲーム開始の案内', finalEyebrow: 'さあ、チャイムが鳴る前に', finalTitle: '学校からの脱出を始めよう。', footerBrand: '脱出！ゾンビ学校', footer: '公式ゲームサイト',
+    finalAria: 'ゲーム開始の案内', finalEyebrow: 'さあ、チャイムが鳴る前に', finalTitle: '学校からの脱出を始めよう。', footerBrand: '脱出！ゾンビ学校', footer: '公式ゲームサイト', privacy: 'プライバシーポリシー', terms: '利用規約', legalAria: '法的情報',
   },
   'zh-CN': {
     languageLabel: '选择语言', homeAria: '《逃出！僵尸学校》官方网站', skip: '跳到正文', navigation: '官方网站主导航', brandHome: '《逃出！僵尸学校》主页', official: '官方网站',
@@ -122,7 +122,7 @@ export const LANDING_COPY = {
       ['生存路线指南', '介绍移动、自动攻击和升级选择的基本流程。'],
       ['媒体档案', '通过官方图片查看游戏里的学校和生存场景。'],
     ],
-    finalAria: '开始游戏引导', finalEyebrow: '现在，在铃声响起前', finalTitle: '开始逃出学校吧。', footerBrand: 'ESCAPE! ZOMBIE SCHOOL', footer: '官方游戏主页',
+    finalAria: '开始游戏引导', finalEyebrow: '现在，在铃声响起前', finalTitle: '开始逃出学校吧。', footerBrand: 'ESCAPE! ZOMBIE SCHOOL', footer: '官方游戏主页', privacy: '隐私政策', terms: '服务条款', legalAria: '法律信息',
   },
   vi: {
     languageLabel: 'Chọn ngôn ngữ', homeAria: 'Trang chính thức của Thoát khỏi Trường Zombie!', skip: 'Đến nội dung chính', navigation: 'Điều hướng trang chính thức', brandHome: 'Trang chủ Thoát khỏi Trường Zombie!', official: 'Trang chính thức',
@@ -151,7 +151,7 @@ export const LANDING_COPY = {
       ['Hướng dẫn sống sót', 'Tìm hiểu cách di chuyển, tấn công tự động và chọn nâng cấp.'],
       ['Kho nội dung', 'Xem hình ảnh chính thức về ngôi trường và những cảnh sinh tồn.'],
     ],
-    finalAria: 'Lời mời bắt đầu game', finalEyebrow: 'Ngay bây giờ, trước khi chuông reo', finalTitle: 'Bắt đầu thoát khỏi trường.', footerBrand: 'THOÁT KHỎI TRƯỜNG ZOMBIE!', footer: 'Trang game chính thức',
+    finalAria: 'Lời mời bắt đầu game', finalEyebrow: 'Ngay bây giờ, trước khi chuông reo', finalTitle: 'Bắt đầu thoát khỏi trường.', footerBrand: 'THOÁT KHỎI TRƯỜNG ZOMBIE!', footer: 'Trang game chính thức', privacy: 'Chính sách quyền riêng tư', terms: 'Điều khoản dịch vụ', legalAria: 'Thông tin pháp lý',
   },
   id: {
     languageLabel: 'Pilih bahasa', homeAria: 'Situs resmi Escape! Zombie School', skip: 'Lewati ke konten utama', navigation: 'Navigasi utama situs resmi', brandHome: 'Beranda Escape! Zombie School', official: 'Situs Resmi',
@@ -180,7 +180,7 @@ export const LANDING_COPY = {
       ['Panduan Rute Bertahan', 'Pelajari alur dasar: bergerak, serangan otomatis, dan memilih upgrade.'],
       ['Arsip Media', 'Lihat gambar resmi sekolah dan adegan bertahan hidup.'],
     ],
-    finalAria: 'Ajakan mulai game', finalEyebrow: 'Sekarang, sebelum bel berbunyi', finalTitle: 'Mulai pelarianmu dari sekolah.', footerBrand: 'ESCAPE! ZOMBIE SCHOOL', footer: 'Situs Game Resmi',
+    finalAria: 'Ajakan mulai game', finalEyebrow: 'Sekarang, sebelum bel berbunyi', finalTitle: 'Mulai pelarianmu dari sekolah.', footerBrand: 'ESCAPE! ZOMBIE SCHOOL', footer: 'Situs Game Resmi', privacy: 'Kebijakan Privasi', terms: 'Ketentuan Layanan', legalAria: 'Informasi Hukum',
   },
 }
 

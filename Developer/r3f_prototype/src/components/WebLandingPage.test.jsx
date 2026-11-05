@@ -46,7 +46,7 @@ describe('WebLandingPage', () => {
     act(() => onVisibility([{ isIntersecting: false, boundingClientRect: { bottom: 900 } }]))
     expect(sticky()).toBeNull()
     act(() => onVisibility([{ isIntersecting: false, boundingClientRect: { bottom: -1 } }]))
-    expect(sticky()?.getAttribute('href')).toBe('/game')
+    expect(sticky()?.getAttribute('href')).toBe('/game?lang=ko')
     act(() => onVisibility([{ isIntersecting: true, boundingClientRect: { bottom: 200 } }]))
     expect(sticky()).toBeNull()
     view.unmount()
@@ -70,7 +70,7 @@ describe('WebLandingPage', () => {
 
   it('uses the confirmed Korean hero copy by default, outlined Nanum Myeongjo title, and real game CTAs', () => {
     const view = renderLanding()
-    const gameLinks = Array.from(view.container.querySelectorAll('a[href="/game"]'))
+    const gameLinks = Array.from(view.container.querySelectorAll('a[href="/game?lang=ko"]'))
     const navCta = view.container.querySelector('.web-landing__nav-cta')
     const heroCta = view.container.querySelector('.web-landing__hero-actions .web-landing__cta')
     const languageSelect = view.container.querySelector('#web-landing-language')
@@ -82,8 +82,8 @@ describe('WebLandingPage', () => {
     expect(view.container.textContent).toContain('4개 스테이지')
     expect(view.container.textContent).not.toContain('5개 스테이지')
     expect(gameLinks.length).toBeGreaterThanOrEqual(3)
-    expect(navCta?.getAttribute('href')).toBe('/game')
-    expect(heroCta?.getAttribute('href')).toBe('/game')
+    expect(navCta?.getAttribute('href')).toBe('/game?lang=ko')
+    expect(heroCta?.getAttribute('href')).toBe('/game?lang=ko')
     expect(view.container.querySelector('.web-landing__mobile-cta')).toBeNull()
     expect(view.container.querySelector('.web-landing__nav-links a[href="/graphics-studio"]')).toBe(null)
     expect(webLandingSource).toContain("import '../assets/fonts/nanumMyeongjo.css'")
@@ -276,6 +276,27 @@ describe('WebLandingPage', () => {
       })
       expect(view.container.querySelector('.web-landing__media-link').getAttribute('href')).toBe(getMediaSiteComicsUrl(language))
       expect(view.container.querySelector('.web-landing__nav-link[target="_blank"]').getAttribute('href')).toBe(`${MEDIA_SITE_URL}?lang=${language}`)
+    }
+    view.unmount()
+  })
+
+  it('passes the selected language to every game link and shows localized privacy/terms footer links', () => {
+    const view = renderLanding()
+    const languageSelect = view.container.querySelector('#web-landing-language')
+    for (const language of ['ko', 'en', 'ja', 'vi']) {
+      act(() => {
+        languageSelect.value = language
+        languageSelect.dispatchEvent(new Event('change', { bubbles: true }))
+      })
+      const gameLinks = [...view.container.querySelectorAll('a[href^="/game"]')]
+      expect(gameLinks.length).toBeGreaterThanOrEqual(3)
+      for (const link of gameLinks) expect(link.getAttribute('href')).toBe(`/game?lang=${language}`)
+      const legal = view.container.querySelector('.web-landing__footer .web-landing__legal')
+      expect(legal.querySelector('a[href="/privacy.html"]').textContent).toBe(LANDING_COPY[language].privacy)
+      expect(legal.querySelector('a[href="/terms.html"]').textContent).toBe(LANDING_COPY[language].terms)
+    }
+    for (const copy of Object.values(LANDING_COPY)) {
+      expect(copy.privacy && copy.terms && copy.legalAria).toBeTruthy()
     }
     view.unmount()
   })

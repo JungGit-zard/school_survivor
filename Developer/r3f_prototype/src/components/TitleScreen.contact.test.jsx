@@ -34,7 +34,8 @@ it('adds a six-language safe-area top-right 44px contact link without changing o
     expect(contact.style.width).toBe('72px')
     expect(container.querySelector('.google-account-panel')).not.toBeNull()
     expect(container.querySelector('[data-testid="original-title-scene"]')).not.toBeNull()
-    expect(container.querySelector('a[href="/landing"]')).not.toBeNull()
+    // 홈페이지로도 현재 게임 언어를 넘긴다.
+    expect(container.querySelector(`a[data-title-homepage][href="/landing?lang=${locale}"]`)).not.toBeNull()
     // 로자리의 방은 로그인 전용 진입점이다 — 이 테스트의 auth 목은 게스트이므로 없어야 한다.
     expect([...container.querySelectorAll('button')].some((b) => b.textContent === '로자리의 방')).toBe(false)
   }

@@ -29,8 +29,19 @@ export function isSupportedLocale(locale) {
   return Object.prototype.hasOwnProperty.call(DICTS, locale)
 }
 
+// 홈페이지 → 게임 링크가 넘긴 ?lang=(ko/en/ja만). 모듈 로드 때 한 번만 읽고, 저장된 언어가 있으면 그쪽이 이긴다.
+const URL_LOCALE = (() => {
+  try {
+    const requested = new URLSearchParams(globalThis.location?.search ?? '').get('lang')?.toLowerCase()
+    return requested && Object.prototype.hasOwnProperty.call(DICTS, requested) ? requested : null
+  } catch {
+    return null
+  }
+})()
+
 // 로그인 전(=저장된 언어를 읽을 수 없는 시점)의 기본 언어.
 export function detectInitialLocale() {
+  if (URL_LOCALE) return URL_LOCALE
   const tags = typeof navigator === 'undefined'
     ? []
     : [navigator.language, ...(navigator.languages ?? [])].filter(Boolean)

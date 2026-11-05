@@ -206,8 +206,24 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
   const modalBusy = appearanceBusy || nicknameBusy || deleteStage === 'deleting' || reauthBusy
   const escapeStateRef = useRef(null)
   escapeStateRef.current = { modalBusy, nicknameOpen, deleteStage, onClose }
+  const dialogRef = useRef(null)
   useEffect(() => {
+    // 열릴 때 포커스를 모달 안(첫 포커스 가능 요소 = 닫기 버튼)으로 옮기고, 닫히면 원래 자리로 돌려준다.
+    const previous = document.activeElement
+    const focusables = () => [...(dialogRef.current?.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])') ?? [])].filter((el) => !el.disabled)
+    focusables()[0]?.focus()
     const onKeyDown = (event) => {
+      if (event.key === 'Tab') {
+        // Tab/Shift+Tab을 모달 안에서 순환시켜 배경 로비 버튼으로 새지 않게 한다.
+        const list = focusables()
+        if (!list.length) return
+        const first = list[0]
+        const last = list[list.length - 1]
+        const inside = dialogRef.current?.contains(document.activeElement)
+        if (event.shiftKey && (!inside || document.activeElement === first)) { event.preventDefault(); last.focus() }
+        else if (!event.shiftKey && (!inside || document.activeElement === last)) { event.preventDefault(); first.focus() }
+        return
+      }
       if (event.key !== 'Escape') return
       const state = escapeStateRef.current
       event.preventDefault()
@@ -218,7 +234,10 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
       state.onClose?.()
     }
     window.addEventListener('keydown', onKeyDown)
-    return () => window.removeEventListener('keydown', onKeyDown)
+    return () => {
+      window.removeEventListener('keydown', onKeyDown)
+      previous?.focus?.()
+    }
   }, [])
 
   const toggleLegal = (id) => {
@@ -262,7 +281,7 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
   return (
     <div style={styles.overlay}>
       <button type="button" aria-label={t('settings.closeBackdropAria')} style={styles.scrim} onClick={onClose} disabled={appearanceBusy || nicknameBusy} />
-      <section role="dialog" aria-modal="true" aria-labelledby="lobby-settings-heading" style={styles.modal}>
+      <section ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="lobby-settings-heading" style={styles.modal}>
         <div style={styles.modalHeader}>
           <h2 id="lobby-settings-heading" style={styles.modalTitle}>{t('settings.title')}</h2>
           <button type="button" aria-label={t('common.close')} style={styles.closeButton} onClick={onClose} disabled={appearanceBusy || nicknameBusy}>×</button>

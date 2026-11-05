@@ -2,11 +2,21 @@ import { useMemo, useRef } from 'react'
 import { useGameStore } from '../store/useGameStore.js'
 import { usePlayingFrame } from '../lib/usePlayingFrame.js'
 import { playerPos } from '../lib/refs.js'
+import { getRuntimeElapsedMs } from '../lib/gameRuntimeTime.js'
 import { getInvestigationTargets, findInvestigationTargetInRange } from '../lib/studentProximity.js'
 import { rollInvestigationReward } from '../lib/studentSearchRewards.js'
 import { getStageQuestDefinitions } from '../lib/quests.js'
 import { getStageObjectPlacements } from './StageObjects/stageObjectPlacements.js'
 import { getQuestTargetPosition, getQuestWorldInteraction } from './QuestWorldLayer.jsx'
+
+// 소품 조사 대화 사이 최소 간격(게임 시간). 대화 중엔 phase가 playing이 아니라 시간이
+// 흐르지 않으므로 '연 시각' = '닫힌 시각'이다. 8초 ≈ 이동속도 3u/s 기준 24u — 소품이 몰린
+// 구역(S4 배식대 줄)에서 연속 멈춤을 1회로 줄이되 3분 판에 소품 대화 ~20회 여지는 남긴다.
+export const INVESTIGATION_COOLDOWN_MS = 8000
+
+export function isInvestigationOnCooldown(nowMs, lastInvestigationMs) {
+  return nowMs - lastInvestigationMs < INVESTIGATION_COOLDOWN_MS
+}
 
 export function getQuestGiverInteraction(quest, progress) {
   if (!quest || !progress) return null
@@ -89,11 +99,13 @@ export default function StudentDialogueTrigger() {
   // 이번 판에서 이미 말 건 학생 id 집합. gameKey가 바뀌면 새 Set으로 리셋.
   const talkedRef = useRef(new Set())
   const deferredTargetRef = useRef(null)
+  const lastInvestigationMsRef = useRef(-Infinity)
   const lastGameKeyRef = useRef(gameKey)
   if (lastGameKeyRef.current !== gameKey) {
     lastGameKeyRef.current = gameKey
     talkedRef.current = new Set()
     deferredTargetRef.current = null
+    lastInvestigationMsRef.current = -Infinity
   }
 
   usePlayingFrame(() => {
@@ -143,6 +155,12 @@ export default function StudentDialogueTrigger() {
       talkedRef.current.add(target.id)
       return
     }
+    // 쿨다운 중엔 건너뛰기만 하고 '한 번만' 플래그는 소모하지 않는다(나중에 다시 지나가면 열림).
+    // 보상 보장 대상(사물함)은 예외: random=1이면 확률 보상은 전부 빗나가므로 남는 건 보장 보상뿐이다.
+    const nowMs = getRuntimeElapsedMs(store.elapsedMs)
+    const guaranteedReward = rollInvestigationReward(target.subjectType, () => 1) !== null
+    if (!guaranteedReward && isInvestigationOnCooldown(nowMs, lastInvestigationMsRef.current)) return
+    lastInvestigationMsRef.current = nowMs
     talkedRef.current.add(target.id)
     openStudentDialogue(
       getGenericInvestigationDialogueId({ target }),
