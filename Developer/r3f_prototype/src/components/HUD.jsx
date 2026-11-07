@@ -955,7 +955,7 @@ export default function HUD({
     const title = translate(`quest.${quest.id}.title`, null, quest.title)
     if (questToast.type === 'item') {
       const item = translate(`quest.${quest.id}.itemName`, null, quest.item.name)
-      return `${item}을 얻었습니다.`
+      return translate('hud.questToastItem', { item })
     }
     if (questToast.type === 'completed') return translate('hud.questToastDone', { title, gold: Math.round(quest.rewardGold * goldMultiplier) })
     return translate('hud.questToastStart', { title })
@@ -1332,7 +1332,7 @@ export default function HUD({
       @keyframes hpBlink { 0%,100%{opacity:1} 50%{opacity:0.25} }
       @keyframes vignettePulse { 0%,100%{opacity:0.40} 50%{opacity:0.65} }
       @keyframes milestonePop { 0%{transform:translate(-50%,-8px);opacity:0} 16%,82%{transform:translate(-50%,0);opacity:1} 100%{transform:translate(-50%,-8px);opacity:0} }
-      @keyframes bossPulse { 0%,100%{transform:translate(-50%,-50%) scale(1);opacity:0.95} 50%{transform:translate(-50%,-50%) scale(1.06);opacity:1} }
+      @keyframes bossPulse { 0%,100%{transform:translate(-50%,0) scale(1);opacity:0.95} 50%{transform:translate(-50%,0) scale(1.06);opacity:1} }
       @keyframes gameoverGrayscaleFade {
         0%{opacity:0;backdrop-filter:grayscale(0);-webkit-backdrop-filter:grayscale(0)}
         100%{opacity:1;backdrop-filter:grayscale(1);-webkit-backdrop-filter:grayscale(1)}
@@ -1343,12 +1343,22 @@ export default function HUD({
       .hud-pause-button:focus-visible,
       .hud-quest-bag-button:focus-visible,
       .levelup-upgrade-choice:focus-visible { outline:3px solid #fff8e8; outline-offset:3px; }
-      @media (max-width:360px) {
+      /* HUD root is the query container (= game frame). A landscape phone shows the game in a
+         ~202px-wide 9:16 frame, so window-based @media would pick the wide layout there. */
+      @container (max-width:360px) {
         .levelup-upgrade-choice { min-height:126px !important; padding:7px 4px 8px !important; gap:3px !important; }
         .levelup-upgrade-choice .levelup-choice-label { font-size:12px !important; line-height:1.12 !important; display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; overflow:hidden; }
         .levelup-upgrade-choice .levelup-choice-desc { font-size:11px !important; line-height:1.2 !important; }
       }
-      @media (max-width:520px) {
+      @container (max-width:300px) {
+        .hud-top-bar { flex-direction:column; gap:2px !important; }
+        .hud-gold-chip { display:grid !important; grid-template-columns:auto auto; justify-content:end; align-items:center; gap:3px 5px !important; }
+        .hud-gold-chip [data-testid="player-level-label"] { order:-1; grid-column:1 / -1; justify-self:end; }
+        .hud-pause-panel { padding:20px 14px !important; width:calc(100% - 24px) !important; }
+        .hud-matilda-dialogue { grid-template-columns:52px minmax(0, 1fr) !important; gap:8px !important; padding:10px !important; min-height:0 !important; }
+        .hud-matilda-dialogue > :first-child { width:52px !important; height:52px !important; }
+      }
+      @container (max-width:520px) {
         .levelup-upgrade-choices { grid-template-columns:repeat(2, minmax(0, 1fr)) !important; }
         .levelup-upgrade-choice { min-height:142px !important; }
         .levelup-upgrade-choice .levelup-choice-label { display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; overflow:hidden; }
@@ -1464,6 +1474,7 @@ export default function HUD({
       {showMatildaDialogue && (
         <div
           data-testid="matilda-dialogue"
+          className="hud-matilda-dialogue"
           style={styles.matildaDialogueBox}
           role="dialog"
           aria-label={t('hud.matildaDialogueAria')}
@@ -1502,7 +1513,7 @@ export default function HUD({
         </>
       )}
       {/* Top bar — 스테이지 번호 + 시간만 한 줄 */}
-      <div style={styles.topBar}>
+      <div className="hud-top-bar" style={styles.topBar}>
         <span style={styles.stageChip}>{stageConfig.label}</span>
         <span style={styles.timer}>{runClock}</span>
       </div>
@@ -1543,7 +1554,7 @@ export default function HUD({
       </div>
 
       {/* Modals */}
-      <div data-testid="gold-chip" style={styles.goldChip}>
+      <div data-testid="gold-chip" className="hud-gold-chip" style={styles.goldChip}>
         <span style={styles.goldDot} />
         <span data-testid="player-level-label" aria-label={`Lv.${player.level}`} style={styles.playerLevelLabel}>Lv.{player.level}</span>
         <span data-testid="gold-amount" style={styles.goldNum}>{goldSession}</span>
@@ -1664,12 +1675,16 @@ export default function HUD({
             {pendingWeaponReplacement && (
               <div data-testid="weapon-replacement-prompt" role="dialog" aria-modal="true" aria-labelledby="weapon-replacement-title" style={styles.levelupReplacementDialog}>
                 <p id="weapon-replacement-title" style={styles.levelupReplacementTitle}>
-                  무기 {activeWeapons.length}/{MAX_OWNED_WEAPONS} — {weaponLabel(
-                    pendingWeaponReplacement.weaponId,
-                    WEAPON_CATALOG[pendingWeaponReplacement.weaponId]?.label
-                      ?? weapons[pendingWeaponReplacement.weaponId]?.label
-                      ?? pendingWeaponReplacement.weaponId,
-                  )}을(를) 얻으려면 현재 무기 하나를 교체해야 합니다.
+                  {t('hud.weaponReplaceTitle', {
+                    count: activeWeapons.length,
+                    max: MAX_OWNED_WEAPONS,
+                    weapon: weaponLabel(
+                      pendingWeaponReplacement.weaponId,
+                      WEAPON_CATALOG[pendingWeaponReplacement.weaponId]?.label
+                        ?? weapons[pendingWeaponReplacement.weaponId]?.label
+                        ?? pendingWeaponReplacement.weaponId,
+                    ),
+                  })}
                 </p>
                 <div style={styles.levelupReplacementOptions}>
                   {activeWeapons.map(([id, weapon]) => (
@@ -1686,8 +1701,8 @@ export default function HUD({
                     </button>
                   ))}
                 </div>
-                <button type="button" data-testid="weapon-replacement-discard-new" style={styles.levelupReplacementCancel} onClick={discardPendingWeapon}>새 무기 버리기</button>
-                <button type="button" data-testid="weapon-replacement-cancel" style={styles.levelupReplacementCancel} onClick={cancelWeaponReplacement}>취소</button>
+                <button type="button" data-testid="weapon-replacement-discard-new" style={styles.levelupReplacementCancel} onClick={discardPendingWeapon}>{t('hud.weaponReplaceDiscardNew')}</button>
+                <button type="button" data-testid="weapon-replacement-cancel" style={styles.levelupReplacementCancel} onClick={cancelWeaponReplacement}>{t('common.cancel')}</button>
               </div>
             )}
           </div>
@@ -1775,7 +1790,7 @@ export default function HUD({
               <span style={styles.questStartContent}>
                 <span style={styles.questStartHeader}>
                   <strong style={{ ...styles.questStartTitle, ...styles.questAcceptanceNotice }}>{questToastMessage}</strong>
-                  <strong data-testid="quest-reward" style={styles.questReward}>보상 · {questToastQuest?.rewardGold ?? 0} 골드</strong>
+                  <strong data-testid="quest-reward" style={styles.questReward}>{t('hud.questRewardGold', { gold: questToastQuest?.rewardGold ?? 0 })}</strong>
                 </span>
                 {questPopupNextAction && <small style={{ ...styles.questStartAction, ...styles.questAcceptanceAction }}>{questPopupNextAction}</small>}
               </span>
@@ -1841,14 +1856,14 @@ export default function HUD({
               ))}
             </section>
           )}
-          <section aria-label="보스 패시브 아이템" style={styles.bossPassiveSection}>
-            <h3 style={styles.questItemHeading}>보스 패시브 아이템</h3>
+          <section aria-label={t('hud.bossPassiveTitle')} style={styles.bossPassiveSection}>
+            <h3 style={styles.questItemHeading}>{t('hud.bossPassiveTitle')}</h3>
             <div role="list" style={styles.bossPassiveGrid}>
               {bossPassiveSlots.map((item, index) => (
                 <div
                   key={item?.id ?? `empty-boss-passive-slot-${index}`}
                   role="listitem"
-                  aria-label={item ? `${item.name} — ${item.description}` : '빈 보스 패시브 슬롯'}
+                  aria-label={item ? `${item.name} — ${item.description}` : t('hud.bossPassiveEmptySlot')}
                   style={{ ...styles.bossPassiveSlot, ...(item ? styles.bossPassiveSlotUnlocked : null) }}
                 >
                   {item ? (
@@ -1871,6 +1886,7 @@ export default function HUD({
             <LobbySettingsModal inGame onClose={() => setIsPauseSettingsOpen(false)} />
           ) : (
           <div
+            className="hud-pause-panel"
             style={styles.pausePanel}
             role="dialog"
             aria-modal="true"
@@ -2133,6 +2149,9 @@ const styles = {
     position: 'absolute', inset: 0, pointerEvents: 'none',
     zIndex: 10,
     fontFamily: uiType.family, userSelect: 'none',
+    // cqw/cqh/@container below measure the game frame, not the window (landscape frame is ~202x360).
+    // inset:0 fixes the root's size, so size containment cannot change it.
+    containerType: 'size',
   },
   missionResultSummary: {
     display: 'grid', gap: 4, margin: '0 0 12px', padding: '9px 10px', border: uiBorders.hairline,
@@ -2144,7 +2163,7 @@ const styles = {
   topBar: {
     position: 'absolute', top: 'var(--hud-safe-top)', '--hud-safe-top': 'max(14px, env(safe-area-inset-top, 0px))', left: '50%', transform: 'translateX(-50%)',
     display: 'flex', gap: 10, alignItems: 'center',
-    pointerEvents: 'auto',
+    pointerEvents: 'none',
   },
   milestoneToast: {
     position: 'absolute',
@@ -2185,7 +2204,7 @@ const styles = {
     padding: '14px 18px',
     boxShadow: `${uiShadows.press}, ${uiShadows.glowDanger}`,
     animation: 'bossPulse 0.8s ease-in-out infinite',
-    pointerEvents: 'auto',
+    pointerEvents: 'none',
   },
   bossWarningLabel: {
     color: '#ffd8d8',
@@ -2212,7 +2231,7 @@ const styles = {
     padding: '11px 16px',
     boxShadow: `${uiShadows.press}, 0 0 20px rgba(84, 224, 200, 0.35)`,
     animation: 'bossPulse 0.8s ease-in-out infinite',
-    pointerEvents: 'auto',
+    pointerEvents: 'none',
   },
   projectileWarningLabel: {
     color: '#d8fffa',
@@ -2239,7 +2258,7 @@ const styles = {
     padding: '14px 18px',
     boxShadow: `${uiShadows.press}, 0 0 24px rgba(180, 0, 255, 0.5)`,
     animation: 'bossPulse 0.5s ease-in-out infinite',
-    pointerEvents: 'auto',
+    pointerEvents: 'none',
   },
   matildaWarningLabel: {
     color: '#f0aaff',
@@ -2259,7 +2278,7 @@ const styles = {
     bottom: 'max(env(safe-area-inset-bottom), 18px)',
     transform: 'translateX(-50%)',
     zIndex: 35,
-    width: 'min(660px, calc(100vw - 24px))',
+    width: 'min(660px, calc(100% - 24px))',
     minHeight: 112,
     boxSizing: 'border-box',
     display: 'grid',
@@ -2315,7 +2334,7 @@ const styles = {
   },
   matildaDialogueLine: {
     color: '#211404',
-    fontSize: 'clamp(16px, 3.7vw, 22px)',
+    fontSize: 'clamp(16px, 3.7cqw, 22px)',
     fontWeight: 900,
     lineHeight: 1.32,
     wordBreak: 'keep-all',
@@ -2325,8 +2344,9 @@ const styles = {
   formationWarning: {
     position: 'absolute',
     left: '50%',
-    // 보스/마틸다/탄환 경고(top:72)와 세로로 겹치지 않게 아래에 배치
-    top: 140,
+    // 보스/마틸다/탄환 경고(top:72, 높이 ~108)와 세로로 겹치지 않게 아래에 배치.
+    // Stage 3 보스 경고(147~150s)와 편대 예고(147.5~150s)가 동시에 뜬다.
+    top: 188,
     transform: 'translateX(-50%)',
     maxWidth: 'min(88vw, 320px)',
     textAlign: 'center',
@@ -2336,7 +2356,7 @@ const styles = {
     padding: '11px 18px',
     boxShadow: `${uiShadows.press}, 0 0 22px rgba(255, 168, 48, 0.45)`,
     animation: 'bossPulse 0.7s ease-in-out infinite',
-    pointerEvents: 'auto',
+    pointerEvents: 'none',
   },
   formationWarningLabel: {
     color: '#ffe6bf',
@@ -2449,7 +2469,7 @@ const styles = {
     position: 'absolute',
     top: 'var(--hud-safe-top)', '--hud-safe-top': 'max(14px, env(safe-area-inset-top, 0px))', right: 14,
     display: 'flex', alignItems: 'center', gap: 5,
-    pointerEvents: 'auto',
+    pointerEvents: 'none',
   },
   goldDot: {
     width: 13, height: 13, borderRadius: '50%',
@@ -2468,7 +2488,8 @@ const styles = {
     display: 'flex', alignItems: 'center', gap: 8,
     width: 'calc(100% - 48px)', maxWidth: 320,
     boxSizing: 'border-box',
-    pointerEvents: 'auto',
+    // 표시 전용. 'auto'면 이 줄에서 시작한 터치가 캔버스에 닿지 않아 조이스틱이 안 뜬다.
+    pointerEvents: 'none',
   },
   hpLabel: { color: uiPalette.paperLight, fontSize: 13, fontWeight: uiType.weightHeavy, width: 22, textShadow: `0 1px 2px ${uiPalette.ink}` },
   hpNum:   { color: uiPalette.paperLight, fontSize: 12, fontWeight: 800, width: 60, textAlign: 'right', textShadow: `0 1px 2px ${uiPalette.ink}` },
@@ -2478,7 +2499,6 @@ const styles = {
     background: 'rgba(10,8,14,0.78)',
     boxShadow: 'inset 0 -1px 0 rgba(255,255,255,0.18)',
     pointerEvents: 'none',
-    zIndex: 5,
   },
   xpFill: {
     height: '100%',
@@ -2505,7 +2525,7 @@ const styles = {
   weaponIconBar: {
     position: 'absolute', bottom: 'var(--hud-weapon-bottom)', '--hud-weapon-bottom': 'calc(50px + env(safe-area-inset-bottom, 0px))', left: '50%', transform: 'translateX(-50%)',
     display: 'flex', flexDirection: 'row', gap: 4, alignItems: 'center',
-    pointerEvents: 'auto',
+    pointerEvents: 'none',
   },
   weaponMiniIcon: {
     width: 28, height: 28,
@@ -2525,6 +2545,7 @@ const styles = {
   overlay: {
     position: 'absolute', inset: 0, background: 'rgba(5,2,9,0.62)',
     display: 'flex', alignItems: 'center', justifyContent: 'center',
+    padding: '12px 0', boxSizing: 'border-box',
     pointerEvents: 'auto',
   },
   gameoverGrayscaleTransition: {
@@ -2550,6 +2571,7 @@ const styles = {
     ...schoolPanel('dark'),
     padding: '18px 12px', textAlign: 'center',
     width: 'min(220px, calc(100% - 28px))', maxWidth: 220, boxSizing: 'border-box',
+    maxHeight: '100%', overflowY: 'auto', overscrollBehavior: 'contain',
   },
   modalTitle: {
     color: uiPalette.paperLight,
@@ -2586,6 +2608,7 @@ const styles = {
     width: 'calc(100% - 56px)',
     maxWidth: 340,
     boxSizing: 'border-box',
+    maxHeight: '100%', overflowY: 'auto', overscrollBehavior: 'contain',
   },
   pauseOutfitLine: {
     color: uiPalette.mutedChalk,
@@ -2634,6 +2657,7 @@ const styles = {
     padding: '12px',
     boxSizing: 'border-box',
     textAlign: 'center',
+    maxHeight: 'calc(100cqh - 16px)', overflowY: 'auto', overscrollBehavior: 'contain',
     pointerEvents: 'auto',
   },
   levelupTitle: {
@@ -2832,6 +2856,8 @@ const styles = {
   questPopupCenterText: { flex: 1, minWidth: 0, textAlign: 'center' },
   questStartPopup: {
     gap: 12,
+    // 좁은 프레임(가로 화면 ~202px)에서는 본문이 초상 아래로 내려간다(한 글자 줄바꿈 방지).
+    flexWrap: 'wrap',
     pointerEvents: 'auto',
     border: '2px solid #c9b98d',
     background: 'linear-gradient(180deg, #2f3440 0%, #181d28 100%)',
@@ -2839,21 +2865,21 @@ const styles = {
     boxShadow: '0 6px 0 rgba(4, 6, 10, 0.7), 0 0 0 4px rgba(255, 243, 214, 0.14)',
   },
   questGiverProfile: {
-    flex: '0 0 clamp(44px, 12vw, 76px)',
-    width: 'clamp(44px, 12vw, 76px)',
+    flex: '0 0 clamp(44px, 12cqw, 76px)',
+    width: 'clamp(44px, 12cqw, 76px)',
     height: 76,
     objectFit: 'cover',
     borderRadius: 10,
     border: '2px solid #fff3d6',
     background: '#10141d',
   },
-  questStartContent: { flex: 1, minWidth: 0, display: 'grid', gap: 12 },
+  questStartContent: { flex: '1 1 140px', minWidth: 0, display: 'grid', gap: 12 },
   questStartHeader: { flexWrap: 'wrap', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10 },
   questStartTitle: { color: '#fff3d6', fontSize: 18, lineHeight: 1.25 },
   questAcceptanceNotice: {
     color: '#cbd8ff',
     fontFamily: "'Nanum Myeongjo', serif",
-    fontSize: 'clamp(13px, 3.6vw, 15px)',
+    fontSize: 'clamp(13px, 3.6cqw, 15px)',
   },
   escapeOverlay: {
     padding: 'max(12px, env(safe-area-inset-top, 0px)) 12px max(12px, env(safe-area-inset-bottom, 0px))',
@@ -2884,7 +2910,7 @@ const styles = {
   questAcceptanceAction: {
     color: '#ffffff',
     fontFamily: uiType.family,
-    fontSize: 'clamp(22px, 6.4vw, 24px)',
+    fontSize: 'clamp(22px, 6.4cqw, 24px)',
     wordBreak: 'keep-all',
     overflowWrap: 'anywhere',
   },
@@ -2951,6 +2977,7 @@ const styles = {
   questDialoguePopup: {
     alignItems: 'flex-start',
     flexDirection: 'row',
+    flexWrap: 'wrap',
     pointerEvents: 'auto',
     border: '2px solid #c9b98d',
     background: 'linear-gradient(180deg, #2f3440 0%, #181d28 100%)',
@@ -2958,16 +2985,16 @@ const styles = {
     boxShadow: '0 6px 0 rgba(4, 6, 10, 0.7), 0 0 0 4px rgba(255, 243, 214, 0.14)',
   },
   questDialogueGiverProfile: {
-    flex: '0 0 clamp(44px, 12vw, 76px)',
-    width: 'clamp(44px, 12vw, 76px)',
-    height: 'clamp(56px, 18vw, 76px)',
+    flex: '0 0 clamp(44px, 12cqw, 76px)',
+    width: 'clamp(44px, 12cqw, 76px)',
+    height: 'clamp(56px, 18cqw, 76px)',
     objectFit: 'cover',
     borderRadius: 10,
     border: '2px solid #fff3d6',
     background: '#10141d',
   },
   questDialogueContent: {
-    flex: 1,
+    flex: '1 1 140px',
     minWidth: 0,
     display: 'grid',
     gap: 6,
@@ -2975,7 +3002,7 @@ const styles = {
   },
   questDialogueName: {
     color: '#fff3d6',
-    fontSize: 'clamp(12px, 3.4vw, 14px)',
+    fontSize: 'clamp(12px, 3.4cqw, 14px)',
     fontWeight: uiType.weightHeavy,
     letterSpacing: '-0.01em',
     textShadow: 'none',
@@ -2983,7 +3010,7 @@ const styles = {
   },
   questDialogueLine: {
     color: '#fff3d6',
-    fontSize: 'clamp(12px, 3.5vw, 13px)',
+    fontSize: 'clamp(12px, 3.5cqw, 13px)',
     fontWeight: 700,
     lineHeight: 1.34,
     wordBreak: 'keep-all',
@@ -3006,7 +3033,7 @@ const styles = {
   },
   questDialogueNotice: {
     display: 'block',
-    fontSize: 'clamp(21px, 6vw, 25px)',
+    fontSize: 'clamp(21px, 6cqw, 25px)',
     lineHeight: 1.16,
     textAlign: 'center',
     color: '#fff3d6',
@@ -3020,7 +3047,7 @@ const styles = {
   questDialogueNextAction: {
     display: 'block',
     color: '#fff3d6',
-    fontSize: 'clamp(16px, 4.6vw, 19px)',
+    fontSize: 'clamp(16px, 4.6cqw, 19px)',
     lineHeight: 1.24,
     fontFamily: "'Nanum Myeongjo', serif",
     fontWeight: 800,

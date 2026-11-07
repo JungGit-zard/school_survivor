@@ -189,7 +189,10 @@ describe('bottom-right pause control', () => {
 
       expect(choiceGrid?.className).toBe('levelup-upgrade-choices')
       expect(choiceGrid?.style.gridTemplateColumns).toBe('repeat(4, minmax(0, 1fr))')
-      expect(injectedCss).toContain('@media (max-width:520px)')
+      // Frame-based (HUD root is the container), so a ~202px landscape frame also gets 2 columns.
+      expect(container.firstElementChild.style.containerType).toBe('size')
+      expect(injectedCss).toContain('@container (max-width:520px)')
+      expect(injectedCss).not.toContain('@media (max-width:520px)')
       expect(injectedCss).toContain('.levelup-upgrade-choices { grid-template-columns:repeat(2, minmax(0, 1fr)) !important; }')
       expect(injectedCss).toContain('-webkit-line-clamp:2')
       expect(injectedCss).toContain('-webkit-line-clamp:3')
@@ -931,7 +934,7 @@ describe('level-up upgrade layout', () => {
       expect([...choiceButtons].every((choice) => choice.classList.contains('levelup-upgrade-choice'))).toBe(true)
 
       const accessibilityCss = document.getElementById('hud-keyframes')?.textContent ?? ''
-      expect(accessibilityCss).toContain('@media (max-width:360px)')
+      expect(accessibilityCss).toContain('@container (max-width:360px)')
       expect(accessibilityCss).toContain('.levelup-upgrade-choice:focus-visible')
       expect(accessibilityCss).toContain('font-size:11px !important')
     } finally {
@@ -1411,6 +1414,9 @@ describe('result action layout', () => {
       expect(container.textContent).not.toContain('다음에 만날 무기')
       expect(primaryActions.style.flexDirection).toBe('column')
       expect(modal.style.maxWidth).toBe('220px')
+      // A 360px-tall landscape frame cannot fit the whole popup: it scrolls instead of clipping buttons.
+      expect(modal.style.maxHeight).toBe('100%')
+      expect(modal.style.overflowY).toBe('auto')
       expect([...primaryActions.querySelectorAll('button')].every((button) => button.style.width === '136px')).toBe(true)
     } finally {
       act(() => {
@@ -2076,6 +2082,58 @@ describe('live score readout', () => {
       expect(container.textContent).not.toContain('360,000')
     } finally {
       act(() => root.unmount())
+    }
+  })
+})
+
+describe('landscape game-frame HUD fixes', () => {
+  const HANGUL = /[가-힣]/
+
+  function renderHud() {
+    const container = document.createElement('div')
+    const root = createRoot(container)
+    act(() => { root.render(<HUD onOpenCoinShop={() => {}} onGoToTitle={() => {}} />) })
+    return { container, root }
+  }
+
+  it('lets touches on the HUD readouts reach the canvas and keeps dims above the XP bar', () => {
+    useGameStore.getState().resetGame('stage1')
+    useGameStore.setState({ phase: 'playing' })
+    const { container, root } = renderHud()
+    try {
+      // VirtualJoystick starts only from touches whose target is the canvas.
+      for (const testId of ['hud-hp-row', 'weapon-icon-bar', 'gold-chip']) {
+        expect(container.querySelector(`[data-testid="${testId}"]`).style.pointerEvents).toBe('none')
+      }
+      expect(container.querySelector('[data-testid="player-xp-bar"]').style.zIndex).toBe('')
+      const css = document.getElementById('hud-keyframes')?.textContent ?? ''
+      // top:72 warnings keep their top edge; only the horizontal centring is animated with them.
+      expect(css).toContain('transform:translate(-50%,0) scale(1.06)')
+      expect(css).not.toContain('translate(-50%,-50%)')
+      expect(css).toContain('@container (max-width:300px)')
+    } finally {
+      act(() => root.unmount())
+    }
+  })
+
+  it('shows quest and boss-passive HUD copy without Korean in en and ja', () => {
+    useGameStore.getState().resetGame('stage1')
+    for (const locale of ['en', 'ja']) {
+      setLocale(locale)
+      useGameStore.setState({ phase: 'playing', pauseSource: null, questToast: { type: 'item', questId: 'stage1-talk-book' } })
+      const { container, root } = renderHud()
+      try {
+        expect(container.querySelector('[data-testid="quest-item-popup"] strong').textContent).not.toMatch(HANGUL)
+        act(() => useGameStore.setState({ questToast: { type: 'started', questId: 'stage1-talk-book' } }))
+        expect(container.querySelector('[data-testid="quest-reward"]').textContent).not.toMatch(HANGUL)
+        act(() => useGameStore.setState({ questToast: null, phase: 'paused', pauseSource: 'quest' }))
+        const passive = container.querySelector('#quest-inventory-panel section:last-of-type')
+        expect(passive.getAttribute('aria-label')).not.toMatch(HANGUL)
+        expect(passive.querySelector('h3').textContent).not.toMatch(HANGUL)
+        expect(passive.querySelector('[role="listitem"]').getAttribute('aria-label')).not.toMatch(HANGUL)
+      } finally {
+        act(() => root.unmount())
+      }
     }
   })
 })
