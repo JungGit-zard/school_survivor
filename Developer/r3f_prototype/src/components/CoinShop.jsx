@@ -5,6 +5,26 @@ import WeaponPermanentUpgradeList from './WeaponPermanentUpgradeList.jsx'
 import { schoolButton, schoolPanel, uiBorders, uiPalette, uiType, warningSticker } from '../lib/uiStyle.js'
 import { useT } from '../lib/i18n.js'
 
+// 가로 폰(높이 ≤500px)에서는 앱이 약 200px 폭의 9:16 세로 컬럼이 된다(Lobby와 같은 조건).
+// 헤더를 한 줄로 줄이고, 상점 카드(주인공·무기 공통)는 가격/버튼 열을 카드 아래 한 줄로 내린다.
+const LANDSCAPE_CSS = `@media (orientation: landscape) and (max-height: 500px){
+  .coinshop-root{ padding: 8px !important; gap: 6px !important }
+  .coinshop-header{ padding: 6px 8px !important; gap: 6px !important }
+  .coinshop-eyebrow{ display: none }
+  .coinshop-title{ margin-top: 0 !important; font-size: 18px !important; white-space: nowrap }
+  .coinshop-coin{ min-width: 0 !important; padding: 4px 8px !important }
+  .coinshop-coin strong{ font-size: 16px !important }
+  .coinshop-tabs{ grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important }
+  .coinshop-tabs button{ min-width: 0; padding: 4px !important; font-size: 12px !important }
+  .coinshop-back{ min-height: 44px !important; font-size: 14px !important }
+  .coinshop-root .shop-card{ grid-template-columns: 34px minmax(0, 1fr) !important; row-gap: 6px !important; padding: 7px !important; min-height: 0 !important; flex-shrink: 0 }
+  .coinshop-root .shop-card-icon{ width: 32px !important; height: 32px !important }
+  .coinshop-root .shop-card-icon img{ width: 26px !important; height: 26px !important }
+  .coinshop-root .shop-card-price{ grid-column: 1 / -1; flex-direction: row !important; align-items: center !important }
+  .coinshop-root .shop-card-price > button{ flex: 1; min-width: 0 }
+  .coinshop-root .shop-card-price > div{ align-self: center !important }
+}`
+
 const panelTone = {
   navy: '#18372f',
   sky: uiPalette.cta,
@@ -19,19 +39,20 @@ export default function CoinShop({ onBack, backLabel, onOpenWeaponDetails }) {
   const [activeTab, setActiveTab] = useState('passive')
 
   return (
-    <div style={styles.root}>
-      <div style={styles.header}>
+    <div className="coinshop-root" style={styles.root}>
+      <style>{LANDSCAPE_CSS}</style>
+      <div className="coinshop-header" style={styles.header}>
         <div style={styles.headerCopy}>
-          <div style={styles.eyebrow}>{t('shop.eyebrow')}</div>
-          <div style={styles.title}>{t('shop.title')}</div>
+          <div className="coinshop-eyebrow" style={styles.eyebrow}>{t('shop.eyebrow')}</div>
+          <div className="coinshop-title" style={styles.title}>{t('shop.title')}</div>
         </div>
-        <div style={styles.coinBadge}>
+        <div className="coinshop-coin" style={styles.coinBadge}>
           <span style={styles.coinBadgeLabel}>{t('common.ownedCoins')}</span>
           <strong style={styles.coinBadgeValue}>{goldTotal}</strong>
         </div>
       </div>
 
-      <div role="group" style={styles.tabs} aria-label={t('shop.tabsAria')}>
+      <div role="group" className="coinshop-tabs" style={styles.tabs} aria-label={t('shop.tabsAria')}>
         <button
           type="button"
           aria-pressed={activeTab === 'passive'}
@@ -56,7 +77,7 @@ export default function CoinShop({ onBack, backLabel, onOpenWeaponDetails }) {
         ? <PassiveUpgradeList style={styles.list} />
         : <WeaponPermanentUpgradeList style={styles.list} onOpenUnlockDetails={onOpenWeaponDetails} />}
 
-      <button type="button" style={styles.backButton} onClick={onBack}>
+      <button type="button" className="coinshop-back" style={styles.backButton} onClick={onBack}>
         {backLabel ?? t('back.toResult')}
       </button>
     </div>

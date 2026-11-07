@@ -1,5 +1,5 @@
 // 능력치 강화 모달 (로비). 코인상점과 동일한 패시브 카드 UI를 재사용한다.
-// 강화 로직 단일 소스: PassiveUpgradeList → useGameStore.purchasePassive. maxLevel=실제 3.
+// 강화 로직 단일 소스: PassiveUpgradeList → useGameStore.purchasePassive. maxLevel은 passiveCatalog 기준.
 import { useGameStore } from '../store/useGameStore.js'
 import PassiveUpgradeList from './PassiveUpgradeList.jsx'
 import { schoolPanel, schoolButton, uiPalette, uiType, warningSticker } from '../lib/uiStyle.js'

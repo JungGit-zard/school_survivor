@@ -1,5 +1,5 @@
 // 패시브 강화 카드 리스트. 코인상점(CoinShop)과 로비 능력치 모달(Lobby)이 공유한다.
-// 강화 로직 단일 소스: useGameStore.purchasePassive. maxLevel은 passiveCatalog(실제 3).
+// 강화 로직 단일 소스: useGameStore.purchasePassive. 종류 수·maxLevel·가격은 passiveCatalog가 정한다(UI는 가정하지 않음).
 import { useGameStore } from '../store/useGameStore.js'
 import { PASSIVE_CATALOG, getMvpPassiveIds, getPriceFor, formatEffectLabel } from '../lib/passiveCatalog.js'
 import { getLevel } from '../lib/passiveUpgrades.js'
@@ -17,6 +17,13 @@ const PASSIVE_ICON_SRCS = {
   might: iconMight,
   maxHp: iconMaxHp,
   growth: iconGrowth,
+}
+
+// 전용 아이콘이 아직 없는 패시브는 이모지 스탬프로 대체한다(무기 탭 ⚔️ 폴백과 같은 패턴).
+const PASSIVE_ICON_FALLBACK = {
+  armor: '🛡️',
+  cooldown: '⏱️',
+  greed: '🐷',
 }
 
 export default function PassiveUpgradeList({ style }) {
@@ -57,7 +64,8 @@ export default function PassiveUpgradeList({ style }) {
 }
 
 function PassiveCard({ index, entry, currentLevel, isMax, price, canAfford, onBuy }) {
-  const levelText = isMax ? 'Lv.MAX' : `Lv.${currentLevel}`
+  const levelText = `Lv.${currentLevel} / ${entry.maxLevel}`
+  const progressPct = Math.min(100, Math.round((currentLevel / Math.max(1, entry.maxLevel)) * 100))
   const effectText = formatEffectLabel(entry.id, currentLevel)
   const label = passiveLabel(entry.id, entry.label)
   const cardStateStyle = isMax ? styles.cardMax : canAfford ? styles.cardReady : styles.cardLocked
@@ -76,8 +84,8 @@ function PassiveCard({ index, entry, currentLevel, isMax, price, canAfford, onBu
   }
 
   return (
-    <div style={{ ...styles.card, ...cardStateStyle }}>
-      <div style={styles.cardStamp}>
+    <div className="shop-card" style={{ ...styles.card, ...cardStateStyle }}>
+      <div className="shop-card-icon" style={styles.cardStamp}>
         <PassiveIcon id={entry.id} label={translate('shop.iconAria', { name: label })} />
       </div>
       <div style={styles.cardMain}>
@@ -91,17 +99,12 @@ function PassiveCard({ index, entry, currentLevel, isMax, price, canAfford, onBu
         <div style={styles.cardLine2}>{effectText}</div>
         <div style={styles.progressRow} aria-label={translate('shop.progressAria', { name: label, current: currentLevel, max: entry.maxLevel })}>
           <span style={styles.progressLabel}>{translate('shop.progress')}</span>
-          <span style={styles.progressDots}>
-            {Array.from({ length: entry.maxLevel }, (_, dotIndex) => (
-              <span
-                key={dotIndex}
-                style={styles.levelDot(dotIndex < currentLevel)}
-              />
-            ))}
+          <span style={styles.progressTrack}>
+            <span style={styles.progressFill(progressPct, isMax)} />
           </span>
         </div>
       </div>
-      <div style={styles.cardPriceCol}>
+      <div className="shop-card-price" style={styles.cardPriceCol}>
         <div style={styles.cardPrice(isMax)}>{isMax ? translate('common.done') : translate('common.coinPrice', { price })}</div>
         <button type="button" style={buttonStyle} onClick={onBuy} disabled={disabled}>
           {buttonLabel}
@@ -113,6 +116,9 @@ function PassiveCard({ index, entry, currentLevel, isMax, price, canAfford, onBu
 
 function PassiveIcon({ id, label }) {
   const src = PASSIVE_ICON_SRCS[id]
+  if (!src) {
+    return <span role="img" aria-label={label} style={styles.passiveIconFallback}>{PASSIVE_ICON_FALLBACK[id] ?? '★'}</span>
+  }
   return (
     <img
       src={src}
@@ -142,6 +148,7 @@ const styles = {
     alignItems: 'center',
     gap: 8,
     minHeight: 82,
+    flexShrink: 0,
     padding: '8px 9px',
     border: uiBorders.strong,
     borderRadius: 8,
@@ -176,6 +183,10 @@ const styles = {
     height: 31,
     display: 'block',
     overflow: 'visible',
+  },
+  passiveIconFallback: {
+    fontSize: 21,
+    lineHeight: 1,
   },
   cardMain: {
     minWidth: 0,
@@ -231,8 +242,11 @@ const styles = {
     fontSize: 11,
     lineHeight: 1.25,
     fontWeight: 800,
-    textOverflow: 'ellipsis',
-    whiteSpace: 'nowrap',
+    display: '-webkit-box',
+    WebkitBoxOrient: 'vertical',
+    WebkitLineClamp: 2,
+    wordBreak: 'keep-all',
+    overflowWrap: 'anywhere',
   },
   progressRow: {
     display: 'flex',
@@ -246,18 +260,22 @@ const styles = {
     lineHeight: 1,
     fontWeight: uiType.weightStrong,
   },
-  progressDots: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 3,
-  },
-  levelDot: (filled) => ({
-    width: 17,
-    height: 7,
+  progressTrack: {
+    flex: 1,
+    minWidth: 0,
+    maxWidth: 110,
+    height: 8,
     border: `1.5px solid ${uiPalette.ink}`,
     borderRadius: 999,
-    background: filled ? uiPalette.cta : 'rgba(5,2,9,0.12)',
+    background: 'rgba(5,2,9,0.12)',
+    overflow: 'hidden',
     boxSizing: 'border-box',
+  },
+  progressFill: (pct, isMax) => ({
+    display: 'block',
+    width: `${pct}%`,
+    height: '100%',
+    background: isMax ? uiPalette.infection : uiPalette.cta,
   }),
   cardPriceCol: {
     display: 'flex',
@@ -267,9 +285,8 @@ const styles = {
     minWidth: 0,
   },
   cardPrice: (isMax) => ({
-    alignSelf: 'flex-end',
-    minWidth: 70,
-    padding: '4px 6px',
+    alignSelf: 'stretch',
+    padding: '4px 4px',
     border: uiBorders.strong,
     borderRadius: 999,
     background: isMax ? uiPalette.infection : uiPalette.reward,
@@ -279,13 +296,14 @@ const styles = {
     lineHeight: 1,
     fontWeight: uiType.weightHeavy,
     textAlign: 'center',
+    whiteSpace: 'nowrap',
     boxShadow: uiShadows.pressSmall,
     boxSizing: 'border-box',
   }),
   buyButton: {
     ...schoolButton('primary'),
     width: '100%',
-    minHeight: 37,
+    minHeight: 44,
     fontSize: 14,
     lineHeight: 1,
     boxShadow: uiShadows.pressSmall,
@@ -293,7 +311,7 @@ const styles = {
   insufficientButton: {
     ...schoolButton('danger'),
     width: '100%',
-    minHeight: 37,
+    minHeight: 44,
     fontSize: 12,
     lineHeight: 1,
     cursor: 'not-allowed',
@@ -303,7 +321,7 @@ const styles = {
   maxButton: {
     ...schoolButton('chalk'),
     width: '100%',
-    minHeight: 37,
+    minHeight: 44,
     background: uiPalette.chalkboardDeep,
     fontSize: 14,
     lineHeight: 1,

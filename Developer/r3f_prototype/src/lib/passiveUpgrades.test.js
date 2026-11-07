@@ -22,8 +22,8 @@ describe('passiveUpgrades storage layer', () => {
     const r = purchase('magnet', 30)
     expect(r.ok).toBe(true)
     expect(r.nextLevel).toBe(1)
-    expect(r.price).toBe(20)
-    expect(r.nextGold).toBe(10)
+    expect(r.price).toBe(5)
+    expect(r.nextGold).toBe(25)
     expect(getLevel('magnet')).toBe(1)
   })
 
@@ -39,24 +39,33 @@ describe('passiveUpgrades storage layer', () => {
   })
 
   it('코인 부족이면 ok:false, 저장 변경 없음', () => {
-    const r = purchase('magnet', 19)
-    expect(r).toMatchObject({ ok: false, reason: 'insufficient', price: 20 })
+    const r = purchase('magnet', 4)
+    expect(r).toMatchObject({ ok: false, reason: 'insufficient', price: 5 })
     expect(getLevel('magnet')).toBe(0)
   })
 
-  it('Lv.3까지만 구매 가능하고 4번째는 maxLevel로 차단된다', () => {
-    expect(purchase('magnet', 9999).ok).toBe(true)
-    expect(purchase('magnet', 9999).ok).toBe(true)
-    expect(purchase('magnet', 9999).ok).toBe(true)
+  it('maxLevel(magnet 10)까지만 구매 가능하고 그다음은 maxLevel로 차단된다', () => {
+    for (let i = 0; i < 10; i += 1) expect(purchase('magnet', 9999).ok).toBe(true)
     const r = purchase('magnet', 9999)
     expect(r).toMatchObject({ ok: false, reason: 'maxLevel' })
-    expect(getLevel('magnet')).toBe(3)
+    expect(getLevel('magnet')).toBe(10)
   })
 
-  it('2차 패시브(armor/cooldown/greed)는 disabled로 차단된다', () => {
-    expect(purchase('armor', 9999)).toMatchObject({ ok: false, reason: 'disabled' })
-    expect(purchase('cooldown', 9999)).toMatchObject({ ok: false, reason: 'disabled' })
-    expect(purchase('greed', 9999)).toMatchObject({ ok: false, reason: 'disabled' })
+  it('신규 패시브(armor/cooldown/greed)도 구매 가능하다', () => {
+    expect(purchase('armor', 9999)).toMatchObject({ ok: true, nextLevel: 1, price: 8 })
+    expect(purchase('cooldown', 9999)).toMatchObject({ ok: true, nextLevel: 1, price: 6 })
+    expect(purchase('greed', 9999)).toMatchObject({ ok: true, nextLevel: 1, price: 6 })
+  })
+
+  it('maxLevel을 넘는 옛 저장값은 maxLevel로 잘라 읽는다', () => {
+    updateFirebasePlayerProgress((progress) => {
+      progress.passiveUpgrades = { armor: 40, might: 3 }
+      return progress
+    })
+    expect(getLevel('armor')).toBe(6)
+    expect(getAllLevels().armor).toBe(6)
+    expect(getAllLevels().might).toBe(3)
+    expect(purchase('armor', 9999)).toMatchObject({ ok: false, reason: 'maxLevel' })
   })
 
   it('미지정 id는 unknownId로 차단된다', () => {

@@ -95,7 +95,7 @@ describe('CoinShop', () => {
         .dispatchEvent(new MouseEvent('click', { bubbles: true }))
     })
 
-    expect(useGameStore.getState().goldTotal).toBe(179)
+    expect(useGameStore.getState().goldTotal).toBe(194) // 199 − magnet Lv1 5골드(2026-11-07 메타 패시브 확장)
     expect(useGameStore.getState().passiveVersion).toBe(1)
 
     act(() => {
@@ -147,6 +147,49 @@ describe('CoinShop', () => {
       root.unmount()
     })
     container.remove()
+  })
+
+  it('renders 8 passive cards up to Lv10 with 4-digit prices without Lv3 assumptions', async () => {
+    vi.resetModules()
+    const ids = ['magnet', 'moveSpeed', 'maxHp', 'might', 'growth', 'armor', 'cooldown', 'greed']
+    const levels = { magnet: 7, might: 10 }
+    vi.doMock('../lib/passiveUpgrades.js', async (importOriginal) => ({
+      ...(await importOriginal()),
+      getLevel: (id) => levels[id] ?? 0,
+    }))
+    vi.doMock('../lib/passiveCatalog.js', async (importOriginal) => {
+      const original = await importOriginal()
+      const catalog = Object.fromEntries(ids.map((id) => [id, { ...original.PASSIVE_CATALOG[id], maxLevel: 10, enabled: true }]))
+      return {
+        ...original,
+        PASSIVE_CATALOG: catalog,
+        getMvpPassiveIds: () => ids,
+        getPriceFor: (id, next) => (next <= 10 ? next * 125 : null),
+        formatEffectLabel: (id, level) => `${id} +${level * 5}% → +${(level + 1) * 5}%`,
+      }
+    })
+    try {
+      const { default: PassiveUpgradeList } = await import('./PassiveUpgradeList.jsx')
+      const { useGameStore: freshStore } = await import('../store/useGameStore.js')
+      freshStore.setState({ goldTotal: 5000, passiveVersion: 0 })
+      const html = renderToStaticMarkup(<PassiveUpgradeList />)
+
+      expect((html.match(/<button/g) ?? []).length).toBe(8)
+      expect((html.match(/진행도 \d+\/10/g) ?? []).length).toBe(8)
+      expect(html).toContain('Lv.7 / 10')
+      expect(html).toContain('Lv.10 / 10')
+      expect(html).toContain('Lv.0 / 10')
+      expect(html).toContain('1000 코인')
+      expect(html).toContain('magnet +35% → +40%')
+      expect(html).toContain('방어력 아이콘')
+      expect(html).toContain('저금통 아이콘')
+      expect(html).toContain('완료')
+      expect(html).not.toContain('Lv.MAX')
+    } finally {
+      vi.doUnmock('../lib/passiveCatalog.js')
+      vi.doUnmock('../lib/passiveUpgrades.js')
+      vi.resetModules()
+    }
   })
 
   it('opens a locked weapon condition detail instead of purchasing it', () => {

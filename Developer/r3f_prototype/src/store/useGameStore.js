@@ -5,6 +5,7 @@ import { resetRuntimeRefs, playerPos } from '../lib/refs.js'
 import { getPlayerStartPosition } from '../lib/playerStartPosition.js'
 import { t } from '../lib/i18n.js'
 import { getAllLevels, purchase as purchasePassiveStorage, resetAllLevels as resetPassiveStorage } from '../lib/passiveUpgrades.js'
+import { getPassiveEffect } from '../lib/passiveCatalog.js'
 import {
   applyWeaponPermanentUpgradesToBaseWeapon,
   getChibikoAllWeaponBoost,
@@ -223,14 +224,17 @@ export function buildInitialPlayer(levels, outfitId) {
   if (typeof outfitId !== 'string') throw new Error('buildInitialPlayer requires the run outfit id')
   const outfit = getOutfitStats(outfitId)
   const adminBalance = getAdminBalanceConfig()
-  const maxHp = Math.max(1, BASE_PLAYER.maxHp + 2 * (levels.maxHp ?? 0) + adminBalance.player.maxHpBonus + outfit.maxHpDelta)
-  const speed = BASE_PLAYER.speed * (1 + 0.01 * (levels.moveSpeed ?? 0)) * adminBalance.player.speedMultiplier * outfit.speedMult
+  const maxHp = Math.max(1, BASE_PLAYER.maxHp + getPassiveEffect(levels, 'maxHp') + adminBalance.player.maxHpBonus + outfit.maxHpDelta)
+  const speed = BASE_PLAYER.speed * (1 + getPassiveEffect(levels, 'moveSpeed') / 100) * adminBalance.player.speedMultiplier * outfit.speedMult
   return {
     ...BASE_PLAYER,
     hp: maxHp,
     maxHp,
     speed,
     baseSpeed: speed,
+    // 영구 패시브 방어력(피격당 고정 감산)·저금통(런 골드 배율). damagePlayer / grantRunGold가 읽는다.
+    armor: getPassiveEffect(levels, 'armor'),
+    goldMultiplier: 1 + getPassiveEffect(levels, 'greed') / 100,
   }
 }
 
@@ -238,7 +242,9 @@ export function buildInitialPlayer(levels, outfitId) {
 // 나머지는 unlock 카드가 fire될 때 비로소 weapons[key].active = true로 활성화.
 // might passive multiplier는 모든 무기에 동일 적용.
 function buildInitialWeapons(levels, { applyPermanent = true, bossPassiveUnlocks = {} } = {}) {
-  const mightMult = 1 + (0.04 / 3) * (levels.might ?? 0)
+  const mightMult = 1 + getPassiveEffect(levels, 'might') / 100
+  // 손놀림 패시브: 모든 무기 쿨타임에 같은 배율. 무기 컴포넌트는 전부 store의 w.cooldown을 읽는다.
+  const cooldownMult = 1 - getPassiveEffect(levels, 'cooldown') / 100
   const out = {}
   for (const [key, entry] of Object.entries(WEAPON_CATALOG)) {
     const permanentBase = applyPermanent ? applyWeaponPermanentUpgradesToBaseWeapon(key, entry.base) : entry.base
@@ -253,6 +259,7 @@ function buildInitialWeapons(levels, { applyPermanent = true, bossPassiveUnlocks
       // studentLantern 0.15는 0.2로 올라붙어 공격력 패시브를 3레벨 다 찍어도(×1.12 → 0.168 → 0.2)
       // 위력이 0% 오르지 않았고, chibiko 1.25는 1.3이 돼 +12%가 +7.7%로 깎였다.
       damage: baseDamage * mightMult,
+      ...(typeof passiveBase?.cooldown === 'number' ? { cooldown: passiveBase.cooldown * cooldownMult } : {}),
     }
   }
   return out
@@ -267,12 +274,27 @@ function applyBossPassiveDamageToRuntimeWeapons(weapons, bossPassiveUnlocks) {
 }
 
 function buildGrowthMultiplier(levels) {
-  return 1 + (0.05 / 3) * (levels.growth ?? 0)
+  return 1 + getPassiveEffect(levels, 'growth') / 100
 }
 
 function applyMagnetPassive(levels) {
-  const lvl = levels.magnet ?? 0
-  setMagnetMultiplier(lvl === 0 ? 0 : 1 + (0.08 / 3) * lvl)
+  const effect = getPassiveEffect(levels, 'magnet')
+  setMagnetMultiplier(effect === 0 ? 0 : 1 + effect / 100)
+}
+
+// 방어력: 피격 1회당 armor만큼 감산하되 원 피해의 50%까지만, 1 미만으로는 내리지 않는다.
+// 50% 상한은 지속 피해 틱·가마솥(최대 체력 비율 피해)이 방어력으로 무력화되지 않게 하는 장치다.
+export function applyArmorReduction(amount, armor) {
+  if (!(armor > 0) || !(amount > 0)) return amount
+  return Math.max(amount - armor, amount * 0.5, Math.min(amount, 1))
+}
+
+// 저금통: 런 중 골드 4경로(코인·생존 마일스톤·퀘스트·조사 보상) 공통. 소수는 goldCarry로 이월해
+// 코인 1개 단위에서도 배율이 정확히 누적되게 한다.
+function grantRunGold(s, amount) {
+  const raw = amount * (s.player.goldMultiplier ?? 1) + (s.goldCarry ?? 0)
+  const gold = Math.floor(raw + 1e-9)
+  return { gold, goldCarry: Math.max(0, raw - gold) }
 }
 
 const GOLD_STORAGE_KEY = 'school_survivor:goldTotal'
@@ -410,6 +432,7 @@ export const useGameStore = create(
     runOutfitId: DEFAULT_OUTFIT_ID,
     // gainXp 의상 경험치 배율의 소수 이월값. 판 시작 때 0.
     xpCarry: 0,
+    goldCarry: 0,
     // 이번 판 종료로 처음 얻은 옷 (탈출 결과 화면 카드). 'cleared'에서만 채운다.
     newlyUnlockedOutfitIds: [],
     bossPassiveUnlocks: {},
@@ -517,6 +540,7 @@ export const useGameStore = create(
       // 비옷 배율을 추가로 곱한다. 소수는 그대로 두고 표시만 반올림한다. default는 amount 그대로.
       // 마틸다 접촉 즉사는 killPlayer 경로라 이 배율을 거치지 않는다.
       amount = applyOutfitDamageTaken(amount, get().runOutfitId, source)
+      amount = applyArmorReduction(amount, player.armor ?? 0)
       // Terry 2026-10-31: 이누콘이 깨어 있으면 자기 체력만큼 대신 맞고 크게 짖는다.
       // 남은 피해만 주인공에게 간다. 흡수만 했어도 주인공 무적 520ms는 켠다(피격 상한 유지).
       const inucon = resolveInucon(get(), getRuntimeElapsedMs(get().elapsedMs))
@@ -1008,8 +1032,9 @@ export const useGameStore = create(
     gainGold: (amount) => {
       if (!amount) return
       const { goldSession, goldTotal } = get()
-      const nextTotal = goldTotal + amount
-      set({ goldSession: goldSession + amount, goldTotal: nextTotal })
+      const { gold, goldCarry } = grantRunGold(get(), amount)
+      const nextTotal = goldTotal + gold
+      set({ goldSession: goldSession + gold, goldTotal: nextTotal, goldCarry })
       checkpointRun(get())
       saveRuntimeProgress()
     },
@@ -1151,11 +1176,12 @@ export const useGameStore = create(
       )
       if (earned.length === 0) return
       emitSfx({ id: 'milestoneGold' })
-      const gold = earned.reduce((sum, milestone) => sum + milestone.gold, 0)
+      const { gold, goldCarry } = grantRunGold(s, earned.reduce((sum, milestone) => sum + milestone.gold, 0))
       const nextTotal = s.goldTotal + gold
       set({
         goldSession: s.goldSession + gold,
         goldTotal: nextTotal,
+        goldCarry,
         survivalMilestonesHit: [
           ...s.survivalMilestonesHit,
           ...earned.map((milestone) => milestone.atMs),
@@ -1216,9 +1242,10 @@ export const useGameStore = create(
       const progress = s.questProgress?.[questId]
       if (s.phase !== 'playing' || !quest || quest.stageId !== s.currentStageId || progress?.status !== 'item-acquired'
         || !matchesQuestCompletionSource(quest, sourceId)) return false
-      const gold = quest.rewardGold
+      const { gold, goldCarry } = grantRunGold(s, quest.rewardGold)
       const goldTotal = s.goldTotal + gold
       set({
+        goldCarry,
         questProgress: {
           ...s.questProgress,
           [questId]: { ...progress, status: 'completed', itemHeld: false },
@@ -1287,14 +1314,16 @@ export const useGameStore = create(
       const reward = s.studentDialogue?.reward
 
       if (reward?.type === 'gold') {
-        const goldTotal = s.goldTotal + reward.amount
+        const { gold, goldCarry } = grantRunGold(s, reward.amount)
+        const goldTotal = s.goldTotal + gold
         emitSfx({ id: 'coinCollect' })
         return {
           phase: 'playing',
           pauseSource: null,
           studentDialogue: null,
-          goldSession: s.goldSession + reward.amount,
+          goldSession: s.goldSession + gold,
           goldTotal,
+          goldCarry,
         }
       }
 
@@ -1636,6 +1665,7 @@ export const useGameStore = create(
       set((s) => ({
         runOutfitId,
         xpCarry:     0,
+        goldCarry:   0,
         newlyUnlockedOutfitIds: [],
         player:      buildInitialPlayer(levels, runOutfitId),
         weapons:     buildInitialWeapons(levels, { applyPermanent: progressReady, bossPassiveUnlocks }),

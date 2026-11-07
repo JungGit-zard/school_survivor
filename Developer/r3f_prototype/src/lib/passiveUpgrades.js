@@ -1,6 +1,6 @@
 // Firebase runtime memory passive upgrade layer.
 // Durable player persistence is users/{uid} in Firebase only.
-import { PASSIVE_CATALOG, getPriceFor, isValidPassiveId } from './passiveCatalog.js'
+import { PASSIVE_CATALOG, clampPassiveLevel, getPriceFor, isValidPassiveId } from './passiveCatalog.js'
 import { _seedHydratedFirebaseProgressForTests, isFirebaseProgressHydrated, readFirebasePlayerProgressOrDefault, updateFirebasePlayerProgress } from './firebaseProgress.js'
 
 export const STORAGE_KEY = 'school_survivor:passiveUpgrades'
@@ -23,14 +23,14 @@ export function getAllLevels() {
   const raw = readRaw()
   const out = {}
   for (const id of Object.keys(PASSIVE_CATALOG)) {
-    out[id] = raw[id] ?? 0
+    out[id] = clampPassiveLevel(id, raw[id])
   }
   return out
 }
 
 export function getLevel(id) {
   if (!isValidPassiveId(id)) return 0
-  return readRaw()[id] ?? 0
+  return clampPassiveLevel(id, readRaw()[id])
 }
 
 // 다른 클라이언트 빌드가 저장한 미지정 키는 보존한다.

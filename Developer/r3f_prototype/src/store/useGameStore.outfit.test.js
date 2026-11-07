@@ -66,9 +66,10 @@ describe('T-05 buildInitialPlayer', () => {
 
   it('combines with permanent passives Lv3', () => {
     const gym = buildInitialPlayer({ maxHp: 3, moveSpeed: 3 }, 'gym')
-    expect(gym.maxHp).toBe(94)
-    expect(gym.speed).toBeCloseTo(3 * 1.03 * 1.06, 10)
-    expect(buildInitialPlayer({ maxHp: 3 }, 'raincoat').maxHp).toBe(100)
+    // 패시브 Lv3 = 체력 +24, 이속 +6% (2026-11-07 메타 패시브 확장 계수)
+    expect(gym.maxHp).toBe(112)
+    expect(gym.speed).toBeCloseTo(3 * 1.06 * 1.06, 10)
+    expect(buildInitialPlayer({ maxHp: 3 }, 'raincoat').maxHp).toBe(118)
   })
 
   it('R-2: refuses to build without an outfit', () => {

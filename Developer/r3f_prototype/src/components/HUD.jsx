@@ -820,6 +820,7 @@ export default function HUD({
   const wasQuestInventoryOpenRef = useRef(false)
   const runOutfitId = useGameStore((s) => s.runOutfitId)
   const newlyUnlockedOutfitIds = useGameStore((s) => s.newlyUnlockedOutfitIds)
+  const goldMultiplier = useGameStore((s) => s.player?.goldMultiplier ?? 1)
   const {
     player, weapons, phase, pauseSource,
     elapsed, currentStageId, gameKey, bossSpawned, bossSpawnSec,
@@ -956,9 +957,9 @@ export default function HUD({
       const item = translate(`quest.${quest.id}.itemName`, null, quest.item.name)
       return `${item}을 얻었습니다.`
     }
-    if (questToast.type === 'completed') return translate('hud.questToastDone', { title, gold: quest.rewardGold })
+    if (questToast.type === 'completed') return translate('hud.questToastDone', { title, gold: Math.round(quest.rewardGold * goldMultiplier) })
     return translate('hud.questToastStart', { title })
-  }, [questToast])
+  }, [questToast, goldMultiplier])
   const questStarted = typeof questToast === 'object' && questToast?.type === 'started'
   const questItemReceived = typeof questToast === 'object' && questToast?.type === 'item'
   const questCompleted = typeof questToast === 'object' && questToast?.type === 'completed'
@@ -974,7 +975,7 @@ export default function HUD({
       })
     }
     if (questCompleted) {
-      return translate('hud.questToastRewardReceived', { gold: questToastQuest.rewardGold })
+      return translate('hud.questToastRewardReceived', { gold: Math.round(questToastQuest.rewardGold * goldMultiplier) })
     }
     if (!questItemReceived) return null
     const isInstall = questToastQuest.completion.kind === 'install'
@@ -984,7 +985,7 @@ export default function HUD({
       ? 'hud.questToastNextInstall'
       : 'hud.questToastNextReturn'
     return translate(actionKey, { target })
-  }, [questCompleted, questItemReceived, questStarted, questToastQuest])
+  }, [questCompleted, questItemReceived, questStarted, questToastQuest, goldMultiplier])
   const questDialoguePopup = Boolean(
     studentDialogue
     && studentDialogue.subjectType === 'quest'

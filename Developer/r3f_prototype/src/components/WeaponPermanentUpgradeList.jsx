@@ -116,8 +116,8 @@ function WeaponPermanentCard({ plan, unlocked, currentLevel, isMax, price, canAf
   }
 
   return (
-    <div style={{ ...styles.card, ...(unlocked ? styles.cardReady : styles.cardLocked), ...(isMax ? styles.cardMax : null) }}>
-      <div style={styles.weaponIcon}>
+    <div className="shop-card" style={{ ...styles.card, ...(unlocked ? styles.cardReady : styles.cardLocked), ...(isMax ? styles.cardMax : null) }}>
+      <div className="shop-card-icon" style={styles.weaponIcon}>
         {iconSrc ? (
           <img
             src={iconSrc}
@@ -153,7 +153,7 @@ function WeaponPermanentCard({ plan, unlocked, currentLevel, isMax, price, canAf
             })}
         </div>
       </div>
-      <div style={styles.priceCol}>
+      <div className="shop-card-price" style={styles.priceCol}>
         <div style={styles.price}>{isMax ? translate('common.done') : unlocked ? translate('common.coinPrice', { price }) : translate('common.locked')}</div>
         <button
           type="button"

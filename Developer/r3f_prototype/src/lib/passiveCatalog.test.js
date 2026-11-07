@@ -5,44 +5,61 @@ import {
   getPriceFor,
   isValidPassiveId,
   formatEffectLabel,
+  getPassiveEffect,
+  clampPassiveLevel,
+  BASE_PRICES,
 } from './passiveCatalog.js'
 
 describe('passiveCatalog', () => {
-  it('MVP 5종은 enabled:true, maxLevel:3, 한국어 라벨이 모두 있다', () => {
-    const mvp = ['magnet', 'moveSpeed', 'maxHp', 'might', 'growth']
-    for (const id of mvp) {
+  it('8종 전부 enabled:true, maxLevel 5~10, 한국어 라벨이 있다', () => {
+    for (const id of ['magnet', 'moveSpeed', 'maxHp', 'might', 'growth', 'armor', 'cooldown', 'greed']) {
       const e = PASSIVE_CATALOG[id]
       expect(e.enabled).toBe(true)
-      expect(e.maxLevel).toBe(3)
-      expect(typeof e.label).toBe('string')
+      expect(e.maxLevel).toBeGreaterThanOrEqual(5)
+      expect(e.maxLevel).toBeLessThanOrEqual(10)
       expect(e.label.length).toBeGreaterThan(0)
     }
   })
 
-  it('2차 패시브 armor / cooldown / greed는 enabled:false로 등록되어 있다', () => {
-    for (const id of ['armor', 'cooldown', 'greed']) {
-      expect(PASSIVE_CATALOG[id].enabled).toBe(false)
+  it('BASE_PRICES가 최대 maxLevel을 덮고, 모든 레벨 가격이 null 아닌 4자리 이하 정수다', () => {
+    const maxLevel = Math.max(...Object.values(PASSIVE_CATALOG).map((e) => e.maxLevel))
+    expect(BASE_PRICES.length).toBeGreaterThanOrEqual(maxLevel)
+    for (const id of Object.keys(PASSIVE_CATALOG)) {
+      for (let lv = 1; lv <= PASSIVE_CATALOG[id].maxLevel; lv += 1) {
+        const price = getPriceFor(id, lv)
+        expect(Number.isInteger(price)).toBe(true)
+        expect(price).toBeGreaterThan(0)
+        expect(price).toBeLessThan(10000)
+      }
     }
   })
 
   it('가격 공식이 기획대로 계산된다', () => {
-    expect(getPriceFor('magnet', 1)).toBe(20)
-    expect(getPriceFor('magnet', 2)).toBe(45)
-    expect(getPriceFor('magnet', 3)).toBe(90)
-    expect(getPriceFor('moveSpeed', 1)).toBe(22)
-    expect(getPriceFor('might', 1)).toBe(25)
-    expect(getPriceFor('growth', 1)).toBe(22)
-    expect(getPriceFor('maxHp', 1)).toBe(20)
+    expect(getPriceFor('magnet', 1)).toBe(5)
+    expect(getPriceFor('magnet', 10)).toBe(33)
+    expect(getPriceFor('might', 1)).toBe(6)
+    expect(getPriceFor('might', 10)).toBe(41)
+    expect(getPriceFor('armor', 6)).toBe(26)
   })
 
   it('maxLevel 초과 / 음수 / 미지정 id는 null을 반환한다', () => {
-    expect(getPriceFor('magnet', 4)).toBeNull()
+    expect(getPriceFor('magnet', 11)).toBeNull()
+    expect(getPriceFor('armor', 7)).toBeNull()
     expect(getPriceFor('magnet', 0)).toBeNull()
     expect(getPriceFor('bogus', 1)).toBeNull()
   })
 
-  it('getMvpPassiveIds는 기획 순서대로 5종을 반환한다', () => {
-    expect(getMvpPassiveIds()).toEqual(['magnet', 'moveSpeed', 'maxHp', 'might', 'growth'])
+  it('getMvpPassiveIds는 기존 5종 순서 뒤에 신규 3종을 붙여 반환한다', () => {
+    expect(getMvpPassiveIds()).toEqual(['magnet', 'moveSpeed', 'maxHp', 'might', 'growth', 'armor', 'cooldown', 'greed'])
+  })
+
+  it('getPassiveEffect는 perLevel × 레벨이고, 저장값은 [0, maxLevel]로 자른다', () => {
+    expect(getPassiveEffect({ might: 5 }, 'might')).toBe(20)
+    expect(getPassiveEffect({ maxHp: 10 }, 'maxHp')).toBe(80)
+    expect(getPassiveEffect({ armor: 99 }, 'armor')).toBe(6)
+    expect(getPassiveEffect({ greed: -3 }, 'greed')).toBe(0)
+    expect(getPassiveEffect({}, 'cooldown')).toBe(0)
+    expect(clampPassiveLevel('magnet', 'x')).toBe(0)
   })
 
   it('isValidPassiveId는 카탈로그에 있는 키만 true', () => {
@@ -54,6 +71,8 @@ describe('passiveCatalog', () => {
   it('formatEffectLabel: Lv.0이면 다음 효과만, 중간이면 현재→다음, 최대면 현재만', () => {
     expect(formatEffectLabel('magnet', 0)).toBe('회수 반경 +2.7%')
     expect(formatEffectLabel('magnet', 1)).toBe('회수 반경 +2.7% → +5.4%')
-    expect(formatEffectLabel('magnet', 3)).toBe('회수 반경 +8.1%')
+    expect(formatEffectLabel('magnet', 10)).toBe('회수 반경 +27%')
+    expect(formatEffectLabel('maxHp', 2)).toBe('체력 +16 → +24')
+    expect(formatEffectLabel('armor', 6)).toBe('방어력 +6')
   })
 })
