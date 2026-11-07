@@ -17,7 +17,8 @@ const dist = (a, b) => Math.hypot(...rgb(a).map((v, i) => v - rgb(b)[i]))
 
 describe('projectile zombie registry (typeCode 49-63)', () => {
   it('registers E46-E60 at fixed codes 49-63 without moving any older code', () => {
-    expect(PROJECTILE_ZOMBIE_TYPES).toEqual(IDS)
+    // 2차 10종(E61~E70)은 뒤에 붙는다(typeCode 65~74, 64 예약). projectileZombieSecondBatch.test.js 참조.
+    expect(PROJECTILE_ZOMBIE_TYPES.slice(0, 15)).toEqual(IDS)
     IDS.forEach((id, index) => {
       expect(ENEMY_TYPE_CODES[id]).toBe(49 + index)
       expect(ENEMY_TYPE_NAMES[49 + index]).toBe(id)

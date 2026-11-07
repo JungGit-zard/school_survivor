@@ -2,7 +2,7 @@ import { useRef, useCallback, useState, useEffect } from 'react'
 import { useGameStore } from '../store/useGameStore.js'
 import { emitSfx } from '../lib/sfxEvents.js'
 import { usePlayingFrame } from '../lib/usePlayingFrame.js'
-import { playerPos, screenBounds, enemyBodies, enemyPool, enemySimulationRuntime, enemyProjectilePool, enemySightBlocked, enemyHandleScratch, projectileZombieShotPool, playerSlow } from '../lib/refs.js'
+import { playerPos, screenBounds, enemyBodies, enemyPool, enemySimulationRuntime, enemyProjectilePool, enemySightBlocked, enemyHandleScratch, projectileZombieShotPool, playerSlow, playerImpulse } from '../lib/refs.js'
 import Enemy, { ENEMY_SIZE_MULTIPLIER, ENEMY_STATS } from './Enemy.jsx'
 import { EXPANSION_STAGES, EXPANSION_ENEMIES, EXPANSION_BOSSES, isExpansionStage, isExpansionEnemy, isExpansionBoss } from '../lib/expansionContent.js'
 import { expansionSpawnPosition } from '../lib/expansionSpawns.js'
@@ -29,7 +29,7 @@ import { enemyTypeToCode, enemyTypeFromCode, createEnemyEntityPool, MAX_ENEMIES 
 import { ENEMY_EVENT_CONTACT, ENEMY_EVENT_RANGED_FIRE, ENEMY_EVENT_DEATH, ENEMY_EVENT_DESPAWN, ENEMY_EVENT_ERROR, ENEMY_EVENT_PROJECTILE_ZOMBIE_FIRE, ENEMY_EVENT_PROJECTILE_ZOMBIE_TELEGRAPH, collidesEnemyObstacle, createEnemySimulationRuntime } from '../lib/enemySimulation.js'
 import { createEnemyProjectilePool, MAX_ENEMY_PROJECTILES } from '../lib/enemyProjectilePool.js'
 import { isNovelZombieType } from '../lib/novelZombieBehavior.js'
-import { isProjectileZombieType, spawnProjectileZombieTelegraphDecal, spawnProjectileZombieVolley } from '../lib/projectileZombieBehavior.js'
+import { hasProjectileZombieSplit, isProjectileZombieType, spawnProjectileZombieTelegraphDecal, spawnProjectileZombieVolley } from '../lib/projectileZombieBehavior.js'
 import { emitVfx } from '../lib/vfxEvents.js'
 import { emitDamageNumber, DAMAGE_NUMBER_COLORS } from '../lib/damageNumbers.js'
 import { resolveCriticalHitInto } from '../lib/criticalHits.js'
@@ -882,6 +882,8 @@ export const JARMOB_HP_TYPES = new Set([
   'E34', 'E35', 'E36', 'E37', 'E38', 'E39', 'E40', 'E41', 'E42', 'E43', 'E44', 'E45',
   // 투사체 좀비 15종(E46~E60)도 잡몹이다. hp가 burstEvents의 host와 같게 못박혀 있다(projectileZombieBehavior.js).
   'E46', 'E47', 'E48', 'E49', 'E50', 'E51', 'E52', 'E53', 'E54', 'E55', 'E56', 'E57', 'E58', 'E59', 'E60',
+  // 2차 10종(2026-11-07)도 버스트 표 맞교환으로 들어가는 잡몹이다.
+  'E61', 'E62', 'E63', 'E64', 'E65', 'E66', 'E67', 'E68', 'E69', 'E70',
 ])
 
 // 사용자 정본(2026-08-16): 모든 정적 좀비 타입은 Stage 1 기준 누적 1.2배 HP 곡선을 쓴다.
@@ -1627,7 +1629,7 @@ export default function Enemies() {
         killKey: `${store.gameKey}:pool:${index}:${generation}`,
       })
       store.recordKill(); logKill(type); recordEnemyKill(dominanceSwarmRef.current, getRuntimeElapsedMs(store.elapsedMs)); emitSfx({ id: deathSfxId(type) })
-      enqueuePooledDeath(enemyPool.type[index], x, y, z, stats.xp, enemyPool.visualScale[index] * 0.333, critical.damage, enemyPool.maxHp[index], safeImpact.knockback ?? 0, safeImpact.deathStyleOverride)
+      enqueuePooledDeath(enemyPool.type[index], x, y, z, (hasProjectileZombieSplit(enemyPool, index) ? stats.xp * 0.5 : stats.xp), enemyPool.visualScale[index] * 0.333, critical.damage, enemyPool.maxHp[index], safeImpact.knockback ?? 0, safeImpact.deathStyleOverride)
     }
     enemySimulationRuntime.applyHitIndex(enemyPool, index, generation, critical.damage, dx / length * knockbackSpeed, dz / length * knockbackSpeed, knockbackMs)
   }
@@ -2118,7 +2120,7 @@ export default function Enemies() {
       }
     }
     enemyProjectilePool.step(delta, playerPos.x, playerPos.z, projectileHitRef.current, screenBounds)
-    projectileZombieShotPool.step(delta, playerPos.x, playerPos.z, projectileHitRef.current, screenBounds, playerSlow, bounds)
+    projectileZombieShotPool.step(delta, playerPos.x, playerPos.z, projectileHitRef.current, screenBounds, playerSlow, bounds, playerImpulse)
 
     goldTimerRef.current -= delta * 1000
     if (goldTimerRef.current <= 0) {

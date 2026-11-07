@@ -58,7 +58,9 @@ const BOSS_RECORD_KEYS = Array.from({ length: 10 }, (_, i) => `stage${i + 1}Boss
 const RECORD_KEY_SET = new Set(RECORD_KEYS)
 
 const SUPPORTED_LANGUAGES = new Set(['ko', 'en', 'ja'])
-const ZOMBIE_ENCOUNTER_TYPES = new Set(['E01', 'E02', 'E03', 'E04', 'E05', 'E06', 'RZL', 'RZC', 'B01', 'B02', 'B03', 'B04', 'RZT', 'RZG', 'E07', 'E08', 'E19', 'E20', 'E21', 'E22', 'E23', 'E24', 'E25', 'E26', 'E27', 'E28', 'E29', 'E30', 'E31', 'E32', 'E33', 'B05', 'B06', 'B07', 'B08', 'B09', 'E34', 'E35', 'E36', 'E37', 'E38', 'E39', 'E40', 'E41', 'E42', 'E43', 'E44', 'E45'])
+const ZOMBIE_ENCOUNTER_TYPES = new Set(['E01', 'E02', 'E03', 'E04', 'E05', 'E06', 'RZL', 'RZC', 'B01', 'B02', 'B03', 'B04', 'RZT', 'RZG', 'E07', 'E08', 'E19', 'E20', 'E21', 'E22', 'E23', 'E24', 'E25', 'E26', 'E27', 'E28', 'E29', 'E30', 'E31', 'E32', 'E33', 'B05', 'B06', 'B07', 'B08', 'B09', 'E34', 'E35', 'E36', 'E37', 'E38', 'E39', 'E40', 'E41', 'E42', 'E43', 'E44', 'E45',
+  // 투사체 좀비 E46~E60(1차)·E61~E70(2차, 2026-11-07). database.rules.json encounteredZombieTypes 허용 목록과 같다.
+  'E46', 'E47', 'E48', 'E49', 'E50', 'E51', 'E52', 'E53', 'E54', 'E55', 'E56', 'E57', 'E58', 'E59', 'E60', 'E61', 'E62', 'E63', 'E64', 'E65', 'E66', 'E67', 'E68', 'E69', 'E70'])
 const MISSION_PROGRESS_SCHEMA_VERSION = 1
 const DEFAULT_MISSION_CATALOG_VERSION = 'missions_2026_08_15_v1'
 const MISSION_ID_PATTERN = /^[a-z0-9_]{1,64}$/

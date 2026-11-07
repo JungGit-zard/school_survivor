@@ -53,7 +53,13 @@ describe('EnemyEntityPool', () => {
       // Track B 신규 12종(2026-10-25). 배열 끝에만 붙어야 기존 typeCode가 밀리지 않는다.
       'E34', 'E35', 'E36', 'E37', 'E38', 'E39', 'E40', 'E41', 'E42', 'E43', 'E44', 'E45',
       // 신규 투사체 15종(2026-10-31, typeCode 49~63). 역시 끝에만 붙는다.
-      'E46', 'E47', 'E48', 'E49', 'E50', 'E51', 'E52', 'E53', 'E54', 'E55', 'E56', 'E57', 'E58', 'E59', 'E60'])
+      'E46', 'E47', 'E48', 'E49', 'E50', 'E51', 'E52', 'E53', 'E54', 'E55', 'E56', 'E57', 'E58', 'E59', 'E60',
+      // 2차 10종(2026-11-07, typeCode 65~74). 64는 E59 미니 예약이라 빈 슬롯이다.
+      'E61', 'E62', 'E63', 'E64', 'E65', 'E66', 'E67', 'E68', 'E69', 'E70'])
+    expect(enemyTypeToCode('E61')).toBe(65)
+    expect(enemyTypeToCode('E70')).toBe(74)
+    expect(enemyTypeFromCode(64)).toBeNull()
+    expect(enemyTypeFromCode(65)).toBe('E61')
     expect(enemyTypeToCode('B04')).toBe(12)
     expect(enemyTypeToCode('RZT')).toBe(13)
     expect(enemyTypeToCode('RZG')).toBe(14)

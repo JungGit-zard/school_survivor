@@ -82,14 +82,13 @@ import {
   PZ_SHOT_CAP_BOSS,
   PZ_STATE,
   PZ_TYPE_MAX,
-  PZ_TYPE_MIN,
   createProjectileZombieResult,
   isProjectileZombieType,
   projectileZombieBehavior,
   projectileZombieShotCost,
   stepProjectileZombieBehavior,
 } from './projectileZombieBehavior.js'
-import { PROJECTILE_ZOMBIE_TYPES } from './projectileZombieVisuals.js'
+import { PROJECTILE_ZOMBIE_TYPES, PROJECTILE_ZOMBIE_TYPE_CODES } from './projectileZombieVisuals.js'
 const expansionRows = Object.values(EXPANSION_ENEMIES)
 
 // Track B 신규 12종(E34~E45 = typeCode 37~48)의 런타임 수치. Enemy.jsx의 NOVEL_ZOMBIE_STATS와
@@ -112,13 +111,14 @@ const NOVEL_RUNTIME_ROWS = [
 
 // 32~36은 확장 보스(B05~B09) 슬롯이다. 기존처럼 0으로 비워 두고 37부터 Track B를 채운다 —
 // 단순 concat으로는 신규 12종이 32~43에 잘못 내려앉는다.
-// 49~63 = 투사체 좀비 15종(E46~E60). 수치 정본은 projectileZombieBehavior.js 한 곳이다(복사본 없음).
+// 49~63·65~74 = 투사체 좀비 25종(E46~E70). 수치 정본은 projectileZombieBehavior.js 한 곳이다(복사본 없음).
 const extendRuntime = (values, key, novelKey) => {
   const table = new Float32Array(PZ_TYPE_MAX + 1)
   const head = [...values, ...expansionRows.map(e => e[key])]
   table.set(head, 0)
   for (let i = 0; i < NOVEL_RUNTIME_ROWS.length; i += 1) table[NOVEL_TYPE_MIN + i] = NOVEL_RUNTIME_ROWS[i][novelKey]
-  for (let i = 0; i < PROJECTILE_ZOMBIE_TYPES.length; i += 1) table[PZ_TYPE_MIN + i] = PROJECTILE_ZOMBIE_STATS[PROJECTILE_ZOMBIE_TYPES[i]][novelKey]
+  // 65~74 = 2차 10종(E61~E70). 64는 E59 미니 예약이라 0으로 남는다.
+  for (let i = 0; i < PROJECTILE_ZOMBIE_TYPES.length; i += 1) table[PROJECTILE_ZOMBIE_TYPE_CODES[PROJECTILE_ZOMBIE_TYPES[i]]] = PROJECTILE_ZOMBIE_STATS[PROJECTILE_ZOMBIE_TYPES[i]][novelKey]
   return table
 }
 
@@ -755,7 +755,7 @@ export class EnemySimulationRuntime {
     for (let index = 0; index <= pool.highestActive; index += 1) {
       if (!pool.active[index]) continue
       // 유효 타입 = 1~8(E01~E06/RZL/RZC), 13~16(RZT/RZG/E07/E08), 17~31(확장 E19~E33),
-      // 37~48(Track B E34~E45), 49~63(투사체 E46~E60). 9~12와 32~36은 보스라 이 런타임을 타지 않는다.
+      // 37~48(Track B E34~E45), 49~63·65~74(투사체 E46~E70). 9~12와 32~36은 보스라 이 런타임을 타지 않는다.
       if (pool.type[index] < 1 || pool.type[index] > 8 && pool.type[index] < 13
         || pool.type[index] > 31 && pool.type[index] < NOVEL_TYPE_MIN
         || pool.type[index] > NOVEL_TYPE_MAX && !isProjectileZombieType(pool.type[index])

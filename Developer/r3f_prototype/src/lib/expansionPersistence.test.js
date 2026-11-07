@@ -76,11 +76,11 @@ describe('expansion persistence contract', () => {
   })
 
   it('keeps unknown encounter IDs and malformed values out of both normalizers', () => {
-    const invalid = { E18: 1, E46: 1, B10: 1, E19: '1', E20: 2, B05: false }
+    const invalid = { E18: 1, E71: 1, B10: 1, E19: '1', E20: 2, B05: false }
     expect(normalizeZombieEncounterMap(invalid)).toEqual({})
     applyCloudProgressSnapshot(snapshot({ encounteredZombieTypes: invalid }), user)
     expect(buildCloudProgressSnapshot().progress.encounteredZombieTypes).toEqual({})
-    expect(recordZombieEncounter('E46')).toBe(false)
+    expect(recordZombieEncounter('E71')).toBe(false)
   })
 
   it.each(Array.from({ length: 10 }, (_, i) => i + 1))('keeps stage%s client/server bonus, priority and score parity', (order) => {

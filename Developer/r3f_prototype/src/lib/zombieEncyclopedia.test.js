@@ -11,7 +11,7 @@ import ko from './locales/ko.js'
 import en from './locales/en.js'
 import ja from './locales/ja.js'
 import { setLocale } from './i18n.js'
-import { NOVEL_ZOMBIE_TYPE_IDS } from './enemyEntityPool.js'
+import { ENEMY_TYPE_NAMES, NOVEL_ZOMBIE_TYPE_IDS } from './enemyEntityPool.js'
 import { ZOMBIE_ENCYCLOPEDIA_TYPES, buildZombieEncyclopediaEntries, getZombieTypeLabel, isKnownZombieType, normalizeZombieEncounterMap } from './zombieEncyclopedia.js'
 
 const HANGUL = /[가-힣]/
@@ -111,5 +111,55 @@ describe('신규 좀비 12종 도감 라벨', () => {
       expect(entry.label).toBe(EXPECTED[id].ko)
       expect(entry.encountered).toBe(false)
     }
+  })
+})
+
+// 2026-11-07: 투사체 좀비 E46~E60이 도감에서 통째로 빠져 있었다(라벨 표가 E45에서 멈춤). 같은 일이 다시 생기지 않게
+// 게임에 등록된 모든 적 코드(ENEMY_TYPE_NAMES)가 세 언어 모두 진짜 표시명을 갖는지 묶는다.
+// ko는 도감 표(zombieEncyclopedia.js)가 정본이고, en/ja는 사전 키가 있어야 한다(없으면 i18n이 조용히 한국어로 폴백한다).
+describe('등록된 모든 적 코드의 도감 표시명', () => {
+  const ALL = ENEMY_TYPE_NAMES.filter(Boolean)
+
+  it('모든 코드가 도감 타입이고 ko 라벨이 ID가 아니다', () => {
+    expect(ALL.length).toBeGreaterThanOrEqual(70)
+    const problems = []
+    setLocale('ko')
+    for (const id of ALL) {
+      if (!isKnownZombieType(id)) problems.push(`${id} 도감 미등록`)
+      const label = getZombieTypeLabel(id)
+      if (label === id || !HANGUL.test(label)) problems.push(`ko: ${id} -> "${label}"`)
+      const key = ko[`zombie.${id}`]
+      if (key !== undefined && key !== label) problems.push(`ko: zombie.${id} "${key}"가 도감 표 "${label}"와 다르다`)
+    }
+    expect(problems).toEqual([])
+  })
+
+  it('en·ja 사전에 모든 코드의 키가 있고 한국어로 폴백하지 않는다', () => {
+    const problems = []
+    for (const locale of ['en', 'ja']) {
+      setLocale(locale)
+      for (const id of ALL) {
+        const value = DICTS[locale][`zombie.${id}`]
+        if (typeof value !== 'string' || value.trim() === '') { problems.push(`${locale}: missing zombie.${id}`); continue }
+        const label = getZombieTypeLabel(id)
+        if (label !== value) problems.push(`${locale}: ${id} 표시명 "${label}" != 사전 "${value}"`)
+        if (HANGUL.test(label)) problems.push(`${locale}: ${id} 한국어 폴백 -> "${label}"`)
+      }
+    }
+    expect(problems).toEqual([])
+  })
+
+  it('로케일마다 표시명이 서로 겹치지 않는다', () => {
+    const problems = []
+    for (const locale of ['ko', 'en', 'ja']) {
+      setLocale(locale)
+      const seen = new Map()
+      for (const id of ALL) {
+        const label = getZombieTypeLabel(id)
+        if (seen.has(label)) problems.push(`${locale}: ${id}·${seen.get(label)} 같은 표시명 "${label}"`)
+        seen.set(label, id)
+      }
+    }
+    expect(problems).toEqual([])
   })
 })

@@ -3,9 +3,9 @@ import { useFrame } from '@react-three/fiber'
 import { Html } from '@react-three/drei'
 import { RigidBody, CuboidCollider } from '@react-three/rapier'
 import { useGameStore } from '../store/useGameStore.js'
-import { bagSwingState, playerArmActionState, playerFacing, playerPos, joystickDir, playerSlow } from '../lib/refs.js'
+import { bagSwingState, playerArmActionState, playerFacing, playerPos, joystickDir, playerSlow, playerImpulse } from '../lib/refs.js'
 import { clearPlayerArmAction } from '../lib/playerArmAction.js'
-import { consumePlayerSlow } from '../lib/projectileZombieShotPool.js'
+import { consumePlayerImpulse, consumePlayerSlow } from '../lib/projectileZombieShotPool.js'
 import { moveKeys } from '../lib/keyboardInput.js'
 import { clampPlayerPosition } from '../lib/playerMovementBounds.js'
 import { getPlayerStartPosition } from '../lib/playerStartPosition.js'
@@ -56,6 +56,7 @@ export function nextPlayerAppearance(current) {
 }
 
 const _v = { x: 0, y: 0, z: 0 }
+const _impulse = { x: 0, z: 0 }
 export const INV_DURATION = 520
 const TURN_SPEED = 14
 const PLAYER_HIT_KNOCKBACK_SPEED = 4
@@ -350,6 +351,12 @@ export default function Player() {
       _v.z = nz * speed * slowMul
     } else {
       consumePlayerSlow(playerSlow, dt * 1000)
+    }
+
+    // E63 마이크줄 끌림(0.25초). 넉백 중에는 넉백이 우선이라 시간만 흘려보낸다.
+    if (consumePlayerImpulse(playerImpulse, dt * 1000, _impulse) && !beingKnockedBack) {
+      _v.x += _impulse.x
+      _v.z += _impulse.z
     }
 
     rb.current.setLinvel({ x: _v.x, y: 0, z: _v.z }, true)

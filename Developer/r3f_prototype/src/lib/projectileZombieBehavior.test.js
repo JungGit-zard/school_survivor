@@ -38,7 +38,8 @@ import {
 import { PROJECTILE_ZOMBIE_TYPES } from './projectileZombieVisuals.js'
 import { getBurstEventsForStage } from './burstEvents.js'
 
-const IDS = PROJECTILE_ZOMBIE_TYPES
+// 1차 15종(E46~E60) 계약. 2차 10종(E61~E70)은 projectileZombieSecondBatch.test.js가 따로 검사한다.
+const IDS = PROJECTILE_ZOMBIE_TYPES.slice(0, 15)
 const HOST_HP_XP = { 8: 4, 10: 5, 16: 8, 32: 10, 70: 15 }
 const DT = 1 / 60
 const NON_DAMAGING = new Set(['E49', 'E56'])

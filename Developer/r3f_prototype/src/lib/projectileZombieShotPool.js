@@ -25,6 +25,8 @@ export const SHOT_MOTION = Object.freeze({
   FUSE: 7, // 감속 p0 u/s²로 멈춘 뒤 p1 ms 깜빡이고 반경 p2로 폭발(우유)
   ZONE: 8, // 바닥 지대: 반경 p0 안이면 감속 p1(배수). 피해 없음, 접촉해도 사라지지 않는다
   DECAL: 9, // 표식: 판정 없음. 반경 p0, 길이 p1(0이면 원), yaw p2
+  // 2차 10종(2026-11-07). 위 번호는 그대로 두고 뒤에만 붙인다.
+  ORBIT: 10, // 발사 지점(base) 둘레를 반경 p0, 각속도 p1 rad/s로 p2 ms 돈 뒤 접선 방향으로 날아간다(지구본). 시작 각 p3
 })
 
 // 탄 kind id. 3D 아티스트가 kind별로 고유 메시를 붙일 수 있게 종별로 하나씩 고정한다(재배열 금지).
@@ -51,9 +53,19 @@ export const SHOT_KIND = Object.freeze({
   ZONE_WATER: 33, // 물 웅덩이(파랑, 감속)
   ZONE_PAINT: 34, // 물감 자국(보라, 감속)
   DECAL_HEAL: 35, // 회복 파동(연두)
+  // 36~44 = 2차 10종(E61~E70) 탄·지대·표식(2026-11-07). 재배열 금지.
+  MIC_CORD: 36, // E63 마이크 줄 끝(맞으면 사수 쪽으로 끌려간다)
+  CHALK_BOMB: 37, // E64 분필가루 덩어리(포물선)
+  EXAM_PAPER: 38, // E65 시험지(바깥 고리에서 가운데로 모인다)
+  GLOBE: 39, // E68 지구본(사수 둘레를 돌다 튕겨 나간다)
+  DOMINO: 40, // E69 도미노 패(줄지어 차례로 쓰러지며 터진다)
+  TAG_MARK: 41, // E70 술래 터치(순간이동한 자리에서 터진다)
+  ZONE_SOUP: 42, // E61 쏟아진 국물(감속)
+  ZONE_CHALK: 43, // E64 분필가루 구름(지속 피해)
+  DECAL_SHIELD: 44, // E67 방패 파동(파랑)
 })
 export const SHOT_KIND_MIN = PROJECTILE_ZOMBIE_SHOT_KIND_BASE
-export const SHOT_KIND_MAX = SHOT_KIND.DECAL_HEAL
+export const SHOT_KIND_MAX = SHOT_KIND.DECAL_SHIELD
 
 // 아티스트·렌더러용 키와 임시 색. 지금은 E04 구체를 kind별 색으로만 칠한다.
 export const SHOT_KIND_INFO = Object.freeze({
@@ -77,6 +89,15 @@ export const SHOT_KIND_INFO = Object.freeze({
   33: { key: 'zoneWater', color: 0x4fb3ff, size: 1 },
   34: { key: 'zonePaint', color: 0xa64dff, size: 1 },
   35: { key: 'decalHeal', color: 0x7cf07c, size: 1 },
+  36: { key: 'micCord', color: 0x2a2a2a, size: 1.3 },
+  37: { key: 'chalkBomb', color: 0xf2f2ee, size: 1.4 },
+  38: { key: 'examPaper', color: 0xf6f4ec, size: 1.25 },
+  39: { key: 'globe', color: 0x3b8fe0, size: 1.5 },
+  40: { key: 'domino', color: 0x111111, size: 1.3 },
+  41: { key: 'tagMark', color: 0xff5a5a, size: 1.4 },
+  42: { key: 'zoneSoup', color: 0xf0a040, size: 1 },
+  43: { key: 'zoneChalk', color: 0xe8e8e0, size: 1 },
+  44: { key: 'decalShield', color: 0x4fc3ff, size: 1 },
 })
 
 export function isShotDecalMotion(motion) {
@@ -104,6 +125,32 @@ export function applyPlayerSlow(state, mul, ms) {
   return true
 }
 
+/**
+ * 플레이어 끌림·밀림(E63 마이크 줄). 속도(u/s) 벡터와 남은 시간. 가장 최근 것 하나만 적용한다.
+ * Player.jsx가 이동 속도에 더한다(넉백 중에는 넉백이 우선).
+ */
+export function createPlayerImpulseState() {
+  return { vx: 0, vz: 0, ms: 0 }
+}
+
+export function applyPlayerImpulse(state, vx, vz, ms) {
+  if (!state || !(ms > 0) || !finite(vx) || !finite(vz)) return false
+  state.vx = vx
+  state.vz = vz
+  state.ms = ms
+  return true
+}
+
+/** 이번 스텝에 더할 속도를 out에 쓰고, 적용 중이면 true. */
+export function consumePlayerImpulse(state, dtMs, out) {
+  if (!state || !(state.ms > 0)) return false
+  out.x = state.vx
+  out.z = state.vz
+  state.ms = Math.max(0, state.ms - (dtMs > 0 ? dtMs : 0))
+  if (state.ms <= 0) { state.vx = 0; state.vz = 0 }
+  return true
+}
+
 /** Player.jsx가 매 고정 스텝 읽는다. 시간이 다 되면 배수가 1로 돌아온다. */
 export function consumePlayerSlow(state, dtMs) {
   if (!state || state.ms <= 0) return 1
@@ -120,6 +167,8 @@ export function createShotSpec() {
     p0: 0, p1: 0, p2: 0, p3: 0, p4: 0, bounces: 0,
     hitSlowMul: 1, hitSlowMs: 0,
     endZoneKind: 0, endZoneRadius: 0, endZoneMs: 0, endZoneSlow: 1,
+    // 2차 10종: 지대 지속 피해(tickMs마다 damage), 명중 시 플레이어 끌림/밀림(impulseU < 0 = 사수 쪽으로 끌림).
+    endZoneDamage: 0, endZoneTickMs: 0, impulseU: 0, impulseMs: 0,
   }
 }
 
@@ -153,6 +202,10 @@ export class ProjectileZombieShotPool {
     this.endZoneRadius = new Float32Array(capacity)
     this.endZoneMs = new Float32Array(capacity)
     this.endZoneSlow = new Float32Array(capacity)
+    this.endZoneDamage = new Float32Array(capacity)
+    this.endZoneTickMs = new Float32Array(capacity)
+    this.impulseU = new Float32Array(capacity)
+    this.impulseMs = new Float32Array(capacity)
     this._freeNext = new Int16Array(capacity)
     this._freeHead = 0
     this._activeCount = 0
@@ -202,6 +255,10 @@ export class ProjectileZombieShotPool {
     this.endZoneRadius[i] = spec.endZoneRadius
     this.endZoneMs[i] = spec.endZoneMs
     this.endZoneSlow[i] = spec.endZoneSlow
+    this.endZoneDamage[i] = spec.endZoneDamage > 0 ? spec.endZoneDamage : 0
+    this.endZoneTickMs[i] = spec.endZoneTickMs > 0 ? spec.endZoneTickMs : 0
+    this.impulseU[i] = finite(spec.impulseU) ? spec.impulseU : 0
+    this.impulseMs[i] = spec.impulseMs > 0 ? spec.impulseMs : 0
     if (spec.motion === SHOT_MOTION.RETURN) {
       // 발사 방향 단위벡터를 기억해 두고 그 반대로 가속한다.
       this.p1[i] = ux
@@ -213,13 +270,16 @@ export class ProjectileZombieShotPool {
   }
 
   /** 바닥 표식/지대 1개. kind = SHOT_KIND.DECAL_* / ZONE_*. */
-  spawnDecal(x, z, kind, radius, lifeMs, lengthU = 0, yaw = 0, slowMul = 1) {
+  spawnDecal(x, z, kind, radius, lifeMs, lengthU = 0, yaw = 0, slowMul = 1, zoneDamage = 0, zoneTickMs = 0) {
     const s = this._spec
-    const zone = slowMul < 1
-    s.kind = kind; s.motion = zone ? SHOT_MOTION.ZONE : SHOT_MOTION.DECAL; s.speed = 0; s.damage = 0
+    const hurts = zoneDamage > 0 && zoneTickMs > 0
+    const zone = slowMul < 1 || hurts
+    s.kind = kind; s.motion = zone ? SHOT_MOTION.ZONE : SHOT_MOTION.DECAL; s.speed = 0; s.damage = hurts ? zoneDamage : 0
     s.lifeMs = lifeMs; s.hitRadius = 0
-    s.p0 = radius; s.p1 = zone ? slowMul : lengthU; s.p2 = yaw; s.p3 = 0; s.p4 = 0; s.bounces = 0
+    // 지대: p1 = 감속 배수(1이면 감속 없음), p3 = 마지막 피해 시각, p4 = 피해 간격.
+    s.p0 = radius; s.p1 = zone ? Math.min(1, slowMul) : lengthU; s.p2 = yaw; s.p3 = 0; s.p4 = hurts ? zoneTickMs : 0; s.bounces = 0
     s.hitSlowMul = 1; s.hitSlowMs = 0; s.endZoneKind = 0; s.endZoneRadius = 0; s.endZoneMs = 0; s.endZoneSlow = 1
+    s.endZoneDamage = 0; s.endZoneTickMs = 0; s.impulseU = 0; s.impulseMs = 0
     return this.spawn(x, z, 0, 1, s)
   }
 
@@ -239,7 +299,7 @@ export class ProjectileZombieShotPool {
 
   _spawnEndZone(i) {
     if (!this.endZoneKind[i] || !(this.endZoneMs[i] > 0)) return
-    this.spawnDecal(this.posX[i], this.posZ[i], this.endZoneKind[i], this.endZoneRadius[i], this.endZoneMs[i], 0, 0, this.endZoneSlow[i])
+    this.spawnDecal(this.posX[i], this.posZ[i], this.endZoneKind[i], this.endZoneRadius[i], this.endZoneMs[i], 0, 0, this.endZoneSlow[i], this.endZoneDamage[i], this.endZoneTickMs[i])
   }
 
   _blast(i, x, z, radius, playerX, playerZ, onHit, slowState) {
@@ -256,12 +316,14 @@ export class ProjectileZombieShotPool {
    * @param bounds 화면 영역 {minX,maxX,minZ,maxZ}(반사용, 선택)
    * @param slowState createPlayerSlowState() 결과(선택)
    * @param arena {halfX, halfZ} 맵 반폭(반사용, 선택)
+   * @param impulseState createPlayerImpulseState() 결과(선택, E63 끌림)
    */
-  step(delta, playerX, playerZ, onHit, bounds = null, slowState = null, arena = null) {
+  step(delta, playerX, playerZ, onHit, bounds = null, slowState = null, arena = null, impulseState = null) {
     if (!finite(delta) || delta < 0 || !finite(playerX) || !finite(playerZ)) return false
     const dt = Math.min(delta, 1 / 30)
     const dtMs = dt * 1000
     const reachBase = PLAYER_CONTACT_HALF_EXTENT
+    this._impulseState = impulseState
     for (let i = 0; i < this.capacity; i += 1) {
       if (!this.active[i]) continue
       const motion = this.motion[i]
@@ -276,9 +338,35 @@ export class ProjectileZombieShotPool {
         const dx = this.posX[i] - playerX
         const dz = this.posZ[i] - playerZ
         const r = this.p0[i] + reachBase
-        if (dx * dx + dz * dz <= r * r) applyPlayerSlow(slowState, this.p1[i], 180)
+        if (dx * dx + dz * dz <= r * r) {
+          if (this.p1[i] < 1) applyPlayerSlow(slowState, this.p1[i], 180)
+          // 지속 피해 지대(E64 분필가루): 안에 있으면 최대 p4 ms마다 한 번. 타이머는 구름이 생길 때 시작하므로
+          // 첫 피해는 생긴 뒤 p4 ms부터이고, 그 뒤에 들어서면 바로 맞는다(들어선 시점 기준 유예는 없다).
+          if (this.damage[i] > 0 && this.p4[i] > 0 && age - this.p3[i] >= this.p4[i]) {
+            this.p3[i] = age
+            if (onHit) onHit(i, this.generation[i], this.damage[i])
+          }
+        }
         if (age >= this.lifeMs[i]) this.despawnIndex(i)
         continue
+      }
+
+      if (motion === SHOT_MOTION.ORBIT) {
+        if (age < this.p2[i]) {
+          const angle = this.p3[i] + this.p1[i] * age / 1000
+          this.posX[i] = this.baseX[i] + Math.sin(angle) * this.p0[i]
+          this.posZ[i] = this.baseZ[i] + Math.cos(angle) * this.p0[i]
+          this._contact(i, playerX, playerZ, onHit, slowState)
+          if (this.active[i] && age >= this.lifeMs[i]) this.despawnIndex(i)
+          continue
+        }
+        // 공전이 끝나면 그 순간의 접선 방향으로 직진한다.
+        const angle = this.p3[i] + this.p1[i] * this.p2[i] / 1000
+        const sign = this.p1[i] >= 0 ? 1 : -1
+        const speed = Math.hypot(this.velX[i], this.velZ[i])
+        this.velX[i] = Math.cos(angle) * sign * speed
+        this.velZ[i] = -Math.sin(angle) * sign * speed
+        this.motion[i] = SHOT_MOTION.STRAIGHT
       }
 
       if (motion === SHOT_MOTION.LOB) {
@@ -386,8 +474,19 @@ export class ProjectileZombieShotPool {
     if (dx * dx + dz * dz > r * r) return false
     if (this.damage[i] > 0 && onHit) onHit(i, this.generation[i], this.damage[i])
     if (this.hitSlowMs[i] > 0) applyPlayerSlow(slowState, this.hitSlowMul[i], this.hitSlowMs[i])
+    if (this.impulseU[i] !== 0 && this.impulseMs[i] > 0) this._impulse(i, playerX, playerZ)
     this.despawnIndex(i)
     return true
+  }
+
+  // impulseU < 0: 발사 지점(사수 자리) 쪽으로 |impulseU| u 끌어당긴다. > 0: 탄 진행 방향으로 민다.
+  _impulse(i, playerX, playerZ) {
+    let dirX; let dirZ
+    if (this.impulseU[i] < 0) { dirX = this.baseX[i] - playerX; dirZ = this.baseZ[i] - playerZ } else { dirX = this.velX[i]; dirZ = this.velZ[i] }
+    const len = Math.hypot(dirX, dirZ)
+    if (!(len > 1e-6)) return
+    const speed = Math.abs(this.impulseU[i]) / (this.impulseMs[i] / 1000)
+    applyPlayerImpulse(this._impulseState, dirX / len * speed, dirZ / len * speed, this.impulseMs[i])
   }
 
   _reflect(i, bounds, arena) {
@@ -416,6 +515,7 @@ export class ProjectileZombieShotPool {
     s.lifeMs = childLife; s.hitRadius = this.hitRadius[i] * 0.8
     s.p0 = 0; s.p1 = 0; s.p2 = 0; s.p3 = 0; s.p4 = 0; s.bounces = 0
     s.hitSlowMul = 1; s.hitSlowMs = 0; s.endZoneKind = 0; s.endZoneRadius = 0; s.endZoneMs = 0; s.endZoneSlow = 1
+    s.endZoneDamage = 0; s.endZoneTickMs = 0; s.impulseU = 0; s.impulseMs = 0
     const x = this.posX[i]
     const z = this.posZ[i]
     for (let k = 1; k < count; k += 1) {

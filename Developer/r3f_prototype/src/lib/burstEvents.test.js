@@ -43,7 +43,9 @@ const ORDINARY_ZOMBIE_TYPE_RE = /^E(?:0[1-7]|3[4-9]|4[0-9]|5[0-9]|60)$/
 // 그래서 아래 모든 총 HP 단언의 기대값이 교체 전후로 변하지 않는다.
 const NOVEL_BASE_HP = { E34: 8, E35: 10, E36: 8, E37: 8, E38: 10, E39: 16, E40: 70, E41: 10, E42: 70, E43: 70, E44: 16, E45: 10,
   // 투사체 좀비 15종 — host와 같은 base hp(lib/projectileZombieBehavior.js PROJECTILE_ZOMBIE_STATS).
-  E46: 8, E47: 16, E48: 16, E49: 70, E50: 16, E51: 8, E52: 32, E53: 10, E54: 32, E55: 70, E56: 70, E57: 70, E58: 8, E59: 70, E60: 16 }
+  E46: 8, E47: 16, E48: 16, E49: 70, E50: 16, E51: 8, E52: 32, E53: 10, E54: 32, E55: 70, E56: 70, E57: 70, E58: 8, E59: 70, E60: 16,
+  // 2차 10종(2026-11-07) — host와 같은 base hp.
+  E61: 70, E62: 70, E63: 32, E64: 8, E65: 8, E66: 16, E67: 70, E68: 10, E69: 16, E70: 10 }
 const STAGE2_BASE_HP = { E01: 8, E02: 70, E03: 10, E04: 32, E05: 70, E06: 320, E07: 16, RZT: 140, RZG: 48, ...NOVEL_BASE_HP }
 const STAGE2_HP_MULTIPLIER = 1.2
 
@@ -107,13 +109,15 @@ describe('Stage 1 첫 웨이브 5초 게이트', () => {
       // 108초 혼합 E01×6 → E01×3 + E36×3(E36 단독 도입), 184초 혼합 E01×6 → E01×2 + E34×2 + E36×2(후반 조합).
       // 전부 hp 8 맞교환이라 마릿수와 총 HP가 그대로다.
       { sec: 60, type: 'E01', count: 3 }, { sec: 60, type: 'E34', count: 3 },
-      { sec: 60, type: 'E07', count: 6 }, { sec: 60, type: 'E02', count: 2 },
+      // 2026-11-07 2차 10종: 60초 E07×6 → E07×5 + E66(첫 등장), 120초 E05×3 → E05×2 + E62(첫 등장). 둘 다 탄 없음, hp 맞교환.
+      { sec: 60, type: 'E07', count: 5 }, { sec: 60, type: 'E66', count: 1 }, { sec: 60, type: 'E02', count: 2 },
       { sec: 72, type: 'E35', count: 2 },
       { sec: 108, type: 'E01', count: 3 }, { sec: 108, type: 'E36', count: 3 }, { sec: 108, type: 'E02', count: 3 },
       { sec: 110, type: 'E07', count: 3 }, { sec: 110, type: 'E02', count: 3 },
       // 2026-11-04 투사체 좀비: 144초 E05×3 → E05×2 + E56(첫 등장), 184초 E02×3 → E02×2 + E49(첫 등장),
       // 216초 E05×3 → E05×2 + E56(복습). 스1은 피해를 주지 않는 두 종만 쓴다. 전부 hp 70 맞교환.
-      { sec: 120, type: 'E05', count: 3 }, { sec: 144, type: 'E05', count: 2 }, { sec: 144, type: 'E56', count: 1 },
+      { sec: 120, type: 'E05', count: 2 }, { sec: 120, type: 'E62', count: 1 },
+      { sec: 144, type: 'E05', count: 2 }, { sec: 144, type: 'E56', count: 1 },
       { sec: 150, type: 'E07', count: 6 }, { sec: 150, type: 'E01', count: 6 },
       { sec: 168, type: 'E06', count: 1 },
       { sec: 184, type: 'E01', count: 2 }, { sec: 184, type: 'E34', count: 2 }, { sec: 184, type: 'E36', count: 2 },
@@ -145,11 +149,14 @@ describe('Stage 2 좀비 시간표 Stage 1 앵커 재배열', () => {
       // 150초 E37 1기 → 144초 E51, 216초 E34 1기 → 184초 E46, 216초 E37 1기 → E51. 전부 hp 동일, 마릿수 95 불변.
       { type: 'E07', count: 4 },
       { type: 'E47', count: 1 },
-      { type: 'E04', count: 2 },
+      // 2026-11-07 2차 10종: 72초 E04 1기 → E63, 120초 E05 1기 → E67, 40초 스웜 E01 1기 → E65. 전부 hp 동일, 마릿수 95 불변.
+      { type: 'E04', count: 1 },
+      { type: 'E63', count: 1 },
       { type: 'E07', count: 2 },
       { type: 'E47', count: 1 },
       { type: 'E39', count: 3 },
-      { type: 'E05', count: 2 },
+      { type: 'E05', count: 1 },
+      { type: 'E67', count: 1 },
       { type: 'E49', count: 1 },
       { type: 'E51', count: 1 },
       { type: 'E06', count: 1 },
@@ -164,7 +171,8 @@ describe('Stage 2 좀비 시간표 Stage 1 앵커 재배열', () => {
       { type: 'E34', count: 1 },
       { type: 'RZT', count: 7, formation: STAGE2_GUARD_CHASE_FORMATION },
       { type: 'RZT', count: 7, formation: STAGE2_GUARD_CHASE_FORMATION },
-      { type: 'E01', count: 8, formation: 'swarm' },
+      { type: 'E01', count: 7, formation: 'swarm' },
+      { type: 'E65', count: 1 },
       { type: 'E03', count: 6, formation: 'ring' },
       { type: 'E02', count: 2, formation: 'pincer' },
       { type: 'E07', count: 3 },
@@ -173,8 +181,8 @@ describe('Stage 2 좀비 시간표 Stage 1 앵커 재배열', () => {
       { type: 'E01', count: 6, mixedTypes: ['E01', 'E03'], reinforcement: 'stage2MixedReinforcement' },
     ])
     expect(ordinary.reduce((sum, event) => sum + (event.count ?? 1), 0)).toBe(95)
-    expect(declaredCountByType(ordinary)).toEqual({ E01: 26, E37: 8, E34: 1, E02: 5, E03: 9, E38: 3, E04: 2, E05: 7, E06: 1, E07: 9, E39: 3, RZT: 14,
-      E46: 1, E47: 2, E49: 1, E51: 2, E56: 1 })
+    expect(declaredCountByType(ordinary)).toEqual({ E01: 25, E37: 8, E34: 1, E02: 5, E03: 9, E38: 3, E04: 1, E05: 6, E06: 1, E07: 9, E39: 3, RZT: 14,
+      E46: 1, E47: 2, E49: 1, E51: 2, E56: 1, E63: 1, E65: 1, E67: 1 })
     expect(stage2HpMultipliedBurstHp(ordinary)).toBe(3458)
   })
 
@@ -390,12 +398,13 @@ describe('stage3 체육교사 B03 단일 보스 + 형태 버스트 런타임 복
       // 2026-11-04 분산 재배치: 5초 E01×10 → E01×7 + E37×3(스2 복습), 216초 E40×2 중 1기를 168초로
       // 당겨 탈출 전 첫 등장을 만든다. hp 동일 맞교환·이동이라 마릿수·HP 불변.
       // 2026-11-04 투사체 좀비: 5초 E37 1기 → E46(스2 복습), 216초 E05×1 → 72초 E57(첫 등장). hp 동일.
-      { type: 'E01', count: 7 }, { type: 'E37', count: 2 }, { type: 'E46', count: 1 }, { type: 'E03', count: 2 }, { type: 'E41', count: 2 },
+      // 2026-11-07 2차 10종: 5초 E01 1기 → E64(첫 등장), 60초 포위 E03 1기 → E68(첫 등장, 단독 행). hp 동일.
+      { type: 'E01', count: 6 }, { type: 'E64', count: 1 }, { type: 'E37', count: 2 }, { type: 'E46', count: 1 }, { type: 'E03', count: 2 }, { type: 'E41', count: 2 },
       { type: 'E04', count: 1 }, { type: 'E05', count: 1 }, { type: 'E57', count: 1 },
       { type: 'E40', count: 1 }, { type: 'E40', count: 1 },
       { type: 'RZL', count: 13, formation: RUN_ZOMBIE_CREW_FORMATION },
       { type: 'E07', count: 3 }, { type: 'E02', count: 3 },
-      { type: 'E03', count: 6, formation: 'ring' }, { type: 'E42', count: 3, formation: 'ring' },
+      { type: 'E03', count: 5, formation: 'ring' }, { type: 'E68', count: 1 }, { type: 'E42', count: 3, formation: 'ring' },
       { type: 'E02', count: 3, formation: 'pincer' },
       { type: 'E06', count: 2, formation: 'pincer' },
     ])
@@ -406,6 +415,8 @@ describe('stage3 체육교사 B03 단일 보스 + 형태 버스트 런타임 복
       E40: 101, E41: 14, E42: 101, E37: 12,
       // 투사체 좀비: E46←E01(12), E57←E05(101).
       E46: 12, E57: 101,
+      // 2차 10종: E64←E01(12), E68←E03(14).
+      E64: 12, E68: 14,
     }[event.type] ?? 0) * event.count, 0)
     expect(nonCrewHp + Math.round(90 * 1.44) + 12 * Math.round(28 * 1.44)).toBe(3220)
     // 거대는 184초 앞뒤 벽 한 곳으로 모았다 — pincer는 ×2라야 성립하므로 ×1짜리 110초 건을 뺐다.
@@ -484,13 +495,14 @@ describe('stage4 급식실 대탈출 버스트', () => {
       // 216초 E05 1기 → 184초 E59(첫 등장), 1기 → 216초 E59(복습). 전부 hp 동일, 마릿수 68 불변.
       { type: 'E01', count: 6 }, { type: 'E58', count: 1 }, { type: 'E37', count: 3 }, { type: 'E04', count: 4 },
       { type: 'E05', count: 1 }, { type: 'E43', count: 1 }, { type: 'E06', count: 1 }, { type: 'E50', count: 1 },
+      // 2026-11-07 2차 10종: 144초 E57 복습 → E61(첫 등장), 168초 E07 → E69(첫 등장), 60초 포위 E03 1기 → E70(첫 등장).
       { type: 'E44', count: 1 }, { type: 'E04', count: 4 },
-      { type: 'E57', count: 1 }, { type: 'E43', count: 1 }, { type: 'E05', count: 3 },
+      { type: 'E61', count: 1 }, { type: 'E43', count: 1 }, { type: 'E05', count: 3 },
       { type: 'E03', count: 3 }, { type: 'E45', count: 3 },
-      { type: 'E07', count: 1 }, { type: 'E47', count: 1 }, { type: 'E44', count: 1 }, { type: 'E50', count: 1 },
+      { type: 'E69', count: 1 }, { type: 'E47', count: 1 }, { type: 'E44', count: 1 }, { type: 'E50', count: 1 },
       { type: 'E59', count: 1 }, { type: 'E05', count: 2 }, { type: 'E59', count: 1 },
       { type: 'E07', count: 3 }, { type: 'E02', count: 3 },
-      { type: 'E03', count: 6, formation: 'ring' }, { type: 'E02', count: 4, formation: 'pincer' },
+      { type: 'E03', count: 5, formation: 'ring' }, { type: 'E70', count: 1 }, { type: 'E02', count: 4, formation: 'pincer' },
       { type: 'E05', count: 4, formation: 'ring' }, { type: 'E04', count: 4, formation: 'ring' },
       { type: 'E06', count: 2, formation: 'pincer' },
     ])
@@ -501,6 +513,8 @@ describe('stage4 급식실 대탈출 버스트', () => {
       E43: 121, E44: 28, E45: 17, E37: 14,
       // 투사체 좀비: E58←E01(14), E50·E47←E07/E44(28), E57←E02(121), E59←E05(121).
       E58: 14, E50: 28, E47: 28, E57: 121, E59: 121,
+      // 2차 10종: E61←E57(121), E69←E07(28), E70←E03(17).
+      E61: 121, E69: 28, E70: 17,
     }[event.type] ?? 0) * event.count, 0)
     expect(appliedHp).toBe(5577)
   })

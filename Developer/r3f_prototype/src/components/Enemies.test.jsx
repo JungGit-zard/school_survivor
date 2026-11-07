@@ -1049,6 +1049,8 @@ describe('all zombie HP follows the cumulative 1.2x-per-stage curve', () => {
       'E34', 'E35', 'E36', 'E37', 'E38', 'E39', 'E40', 'E41', 'E42', 'E43', 'E44', 'E45',
       // 투사체 좀비 15종(2026-11-04)도 같은 곡선을 타는 잡몹이다.
       'E46', 'E47', 'E48', 'E49', 'E50', 'E51', 'E52', 'E53', 'E54', 'E55', 'E56', 'E57', 'E58', 'E59', 'E60',
+      // 2차 10종(2026-11-07, typeCode 65~74).
+      'E61', 'E62', 'E63', 'E64', 'E65', 'E66', 'E67', 'E68', 'E69', 'E70',
     ])
     const stageMultipliers = { stage1: 1, stage2: 1.2, stage3: 1.44, stage4: 1.728 }
     for (const [stageId, multiplier] of Object.entries(stageMultipliers)) {

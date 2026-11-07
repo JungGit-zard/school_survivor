@@ -8,7 +8,7 @@
 // - 피부는 그리지 않는다(feature-only alpha). 머리 박스 앞면 위에 소프트 알파로 얹는다.
 // E07(웃는얼굴)은 이 모듈에 넣지 않는다(Studio 절대법칙, 리뷰 Q4).
 import * as THREE from 'three'
-import { PROJECTILE_ZOMBIE_FIRST_TYPE_CODE, PROJECTILE_ZOMBIE_TYPES } from './projectileZombieVisuals.js'
+import { PROJECTILE_ZOMBIE_TYPES, projectileZombieTypeCodeAt } from './projectileZombieVisuals.js'
 
 export const FACE_WARN_COLOR = 0xff7a1a
 // 얼굴 쿼드: 머리 박스 앞면(0.52 x 0.48, z = +0.23) 바로 앞, 머리 로컬 ε.
@@ -16,9 +16,10 @@ export const FACE_HEAD_BASE = Object.freeze([0.52, 0.48, 0.46])
 export const FACE_SURFACE_EPSILON = 0.006
 
 // faceId = 종 번호(1..15). prims = 평시 얼굴의 SDF 프리미티브 수(예고 추가 포함 최댓값).
-export const FACE_CATALOG = Object.freeze(PROJECTILE_ZOMBIE_TYPES.map((type, index) => Object.freeze({
+// 얼굴 셰이더 분기는 1차 15종 것만 있다. 2차 10종(E61~E70)은 visuals의 face 번호로 이 15개를 재사용한다.
+export const FACE_CATALOG = Object.freeze(PROJECTILE_ZOMBIE_TYPES.slice(0, 15).map((type, index) => Object.freeze({
   type,
-  typeCode: PROJECTILE_ZOMBIE_FIRST_TYPE_CODE + index,
+  typeCode: projectileZombieTypeCodeAt(index),
   faceId: index + 1,
   prims: [9, 5, 7, 9, 5, 4, 9, 6, 6, 6, 8, 11, 8, 7, 6][index],
 })))

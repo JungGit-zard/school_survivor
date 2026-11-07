@@ -59,8 +59,11 @@ describe('ENEMY_STATS ↔ ENEMY_RUNTIME_* 수치 패리티', () => {
       expect(ENEMY_RUNTIME_HP[code], `code ${code}`).toBe(0)
       expect(ENEMY_RUNTIME_SPEED[code], `code ${code}`).toBe(0)
     }
-    // 49~63 = 투사체 좀비 15종(2026-11-04). 표 길이는 마지막 typeCode 63 + 1.
-    expect(ENEMY_RUNTIME_HP.length).toBe(64)
+    // 49~63 = 투사체 좀비 15종(2026-11-04), 64 = E59 미니 예약(빈칸), 65~74 = 2차 10종(2026-11-07).
+    // 표 길이는 마지막 typeCode 74 + 1이고 예약 슬롯 64는 0으로 남는다.
+    expect(ENEMY_RUNTIME_HP.length).toBe(75)
+    expect(ENEMY_RUNTIME_HP[64]).toBe(0)
+    expect(ENEMY_RUNTIME_SPEED[64]).toBe(0)
   })
 
   // 이번 작업의 본래 목적. 약한 적이 강한 적보다 보상이 높으면 강적을 잡을 이유가 없다.

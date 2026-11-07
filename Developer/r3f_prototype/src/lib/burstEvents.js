@@ -139,7 +139,9 @@ export const BURST_EVENTS = [
   // 2026-11-04 분산 재배치: 60초는 탱커 E02 첫 등장 시각이라 새 패턴 E36을 겹치지 않는다.
   // 24초에 배운 E34를 다시 보여주는 복습 슬롯으로 바꾸고, E36 첫 등장은 108초로 옮겼다. hp 8 = E01.
   { sec:  60, type: 'E34', count:  3 },  // 박자접기형 복습
-  { sec:  60, type: 'E07', count:  6 },  // 60초 웃는좀비 추가 고정 스폰
+  // 2026-11-07 2차 10종: 스1은 원거리 금지라 탄이 없는 두 종만 넣는다(E66 분열·E62 몸 돌진). 같은 hp 맞교환.
+  { sec:  60, type: 'E07', count:  5 },  // 60초 웃는좀비 추가 고정 스폰
+  { sec:  60, type: 'E66', count:  1 },  // 플라나리아 첫 등장(반피에 둘로 갈라짐, 탄 없음). hp 16 = E07
   { sec:  60, type: 'E02', count:  2 },  // 탱커 첫 등장 신호 — 60초 총 2마리로 조정
   // 러너 슬롯(E03×2, hp 10)을 모서리비껴형으로 전량 교체한다. hp(E35)=10이라 총 HP 불변.
   // Stage 1에 원거리는 여전히 0이다 — E35는 선회 접촉만 한다.
@@ -148,7 +150,8 @@ export const BURST_EVENTS = [
   { sec: 108, type: 'E36', count:  3 },  // 반걸음되짚기형 첫 등장(2026-11-04: 60초 → 108초, 단독 도입). hp 8 = E01
   { sec: 108, type: 'E02', count:  3 },
   ...ALL_STAGES_110SEC_SMILING_TANKER_REINFORCEMENT_EVENTS,
-  { sec: 120, type: 'E05', count:  3 },  // 돌진 첫 등장 (E04 탄환형 폐기 — 2026-05-09)
+  { sec: 120, type: 'E05', count:  2 },  // 돌진 첫 등장 (E04 탄환형 폐기 — 2026-05-09)
+  { sec: 120, type: 'E62', count:  1 },  // 셔틀런 첫 등장(같은 선을 왕복 돌진, 탄 없음). hp 70 = E05
   // 2026-11-04 투사체 좀비 15종 배치(Terry 지시). 스1은 원거리 피해 0 규칙(Bang_Rules: E04 스1 제외)을 지키려고
   // 피해를 주지 않는 두 종만 넣는다 — E56(회복 지원)·E49(물웅덩이 감속, 피해 0). 둘 다 hp 70 = E05/E02 맞교환.
   // 첫 등장은 기존 신규 종 첫 등장(24·72·108)과 30초 이상 떨어진 144·184초다.
@@ -184,11 +187,13 @@ export const STAGE2_BURST_EVENTS = [
   // 60·108·120·216은 같은 행 맞교환, 144·184 새 행은 같은 분(150초 E37, 216초 E34)에서 한 마리씩 옮겼다.
   { sec:  60, type: 'E07', count:  4 },                       // 웃는좀비(E01 2배 스탯) 합류
   { sec:  60, type: 'E47', count:  1 },                       // 종이비행기 첫 등장(느린 약유도 탄). hp 16 = E07
-  { sec:  72, type: 'E04', count:  2 },                       // 원거리 첫 등장 — 발사 게이트(e04IntroSec 72)와 동시
+  { sec:  72, type: 'E04', count:  1 },                       // 원거리 첫 등장 — 발사 게이트(e04IntroSec 72)와 동시
+  { sec:  72, type: 'E63', count:  1 },                       // 2026-11-07 마이크줄 첫 등장(맞으면 끌려감). hp 32 = E04
   { sec: 108, type: 'E07', count:  2 },                       // 웃는좀비 러시 — 절반을 E39로 교체
   { sec: 108, type: 'E47', count:  1 },                       // 종이비행기 복습. hp 16 = E07
   { sec: 108, type: 'E39', count:  3 },                       // 선끝접기형(열린 쪽 신호). hp 16 = E07
-  { sec: 120, type: 'E05', count:  2 },                       // 차저 첫 등장 (보스 등장과 동시각)
+  { sec: 120, type: 'E05', count:  1 },                       // 차저 첫 등장 (보스 등장과 동시각)
+  { sec: 120, type: 'E67', count:  1 },                       // 2026-11-07 학생회 방패 첫 등장(아군 추가 체력, 공격 없음). hp 70 = E05
   { sec: 120, type: 'E49', count:  1 },                       // 스1 양동이청소 복습. hp 70 = E05
   { sec: 144, type: 'E51', count:  1 },                       // 합창지휘 첫 등장(물결 음표 3연). hp 8 — 150초 E37에서 옮김
   { sec: 168, type: 'E06', count:  1 },                       // 거대 첫 등장
@@ -208,7 +213,8 @@ export const STAGE2_BURST_EVENTS = [
   { sec:  40, type: 'RZT', count:  7, formation: STAGE2_GUARD_CHASE_FORMATION },
   { sec: 144, type: 'RZT', count:  7, formation: STAGE2_GUARD_CHASE_FORMATION },
   // ── 형태(formation) 버스트 — 균일 압력을 깨는 스파이크→이완 비트. E04/보스와 시각이 겹치지 않게 배치.
-  { sec:  40, type: 'E01', count:  8, formation: 'swarm' },    // 초반 단조 구간 깨기 — 경비추격과 동시각 스파이크
+  { sec:  40, type: 'E01', count:  7, formation: 'swarm' },    // 초반 단조 구간 깨기 — 경비추격과 동시각 스파이크
+  { sec:  40, type: 'E65', count:  1 },                        // 2026-11-07 시험감독 첫 등장(고리에서 가운데로 모이는 시험지). hp 8 — 스웜 E01 1기
   { sec:  60, type: 'E03', count:  6, formation: 'ring' },     // 러너 포위
   { sec: 150, type: 'E02', count:  2, formation: 'pincer' },   // 탱커 협공(보스 구간)
   ...ALL_STAGES_110SEC_SMILING_TANKER_REINFORCEMENT_EVENTS,
@@ -243,7 +249,8 @@ export const STAGE2_BURST_EVENTS = [
 export const STAGE3_BURST_EVENTS = [
   ...STAGE3_25_SECOND_GREEN_SMILING_REINFORCEMENT_EVENTS,
   ...STAGE3_BOSS_PHASE_GREEN_SMILING_REINFORCEMENT_EVENTS,
-  { sec:   5, type: 'E01', count:  7 },                         // 온보딩 초기 밀도
+  { sec:   5, type: 'E01', count:  6 },                         // 온보딩 초기 밀도
+  { sec:   5, type: 'E64', count:  1 },                         // 2026-11-07 분필가루 첫 등장(머물면 아픈 가루 구름). hp 8 = E01
   { sec:   5, type: 'E37', count:  2 },                         // 2026-11-04: 스2 빗금엇갈림형 복습(오프닝 3마리 교체). hp 8 = E01
   { sec:   5, type: 'E46', count:  1 },                         // 스2 지우개튕김 복습. hp 8 = E01
   { sec:  24, type: 'E03', count:  2 },                         // 러너 조기 압박 — 절반을 E41로 교체
@@ -265,7 +272,8 @@ export const STAGE3_BURST_EVENTS = [
   // ── 보스: 체육교사 B03 단일 등장(150). 로비 카드(체육교사)와 실제 전투 일치. ──
   { sec: 150, type: 'B03', count:  1 },
   // ── 형태(formation) 버스트 — 배열 순서 = STAGE3_SPAWN_TELEGRAPHS 순서(60 → 120 → 150 → 184).
-  { sec:  60, type: 'E03', count:  6, formation: 'ring' },      // 첫 완전 포위
+  { sec:  60, type: 'E03', count:  5, formation: 'ring' },      // 첫 완전 포위
+  { sec:  60, type: 'E68', count:  1 },                         // 2026-11-07 지구본 첫 등장(둘레를 도는 지구본 3개) — 포위 러너 1기. hp 10 = E03
   // Track B 대체(2026-10-25): 120초 포위를 차저(E05×3)에서 반원발맞춤형(E42×3)으로 통째로 바꾼다.
   // hp(E42) = hp(E05) = 70, count 3, sec·formation 그대로라 총 HP·마릿수·예고 1:1 정렬이 전부 보존된다.
   // 이벤트를 쪼개 150초에 두 번째 pincer를 더하는 안은 폐기했다 — 같은 초에 예고 배너가 두 번 떠서
@@ -323,12 +331,12 @@ export const STAGE4_BURST_EVENTS = [
   { sec:  72, type: 'E50', count:  1 },                        // 배구스파이크 첫 등장(착지점 원 → 스파이크). hp 16
   { sec: 108, type: 'E44', count:  1 },                        // 발맞춤후퇴형 첫 등장 — 옛 경량 속공 E07×2 자리. hp 16 = E07
   { sec: 144, type: 'E04', count:  4 },                        // 보스 구간 원거리 벽 1 — 포화점 4기
-  { sec: 144, type: 'E57', count:  1 },                        // 원거리 벽 아래 몸통 — 스3 출석부 복습(옛 E02×1). hp 70
+  { sec: 144, type: 'E61', count:  1 },                        // 2026-11-07 급식판 첫 등장(일직선 돌진 + 국물 웅덩이) — 옛 E57 복습 자리. hp 70
   { sec: 144, type: 'E43', count:  1 },                        // 엇높이교차형(낮은/높은 분리 스윕). hp 70 = E02
   { sec: 150, type: 'E05', count:  3 },                        // 보스 등장 동시 차저 — 2026-08-19 옛 E04×6 자리
   { sec: 150, type: 'E03', count:  3 },                        // 러너로 카이팅 차단(원거리 사선 유지용 몰이)
   { sec: 150, type: 'E45', count:  3 },                        // 무게중심넘김형(발 옮기고 넘김). hp 10 = E03
-  { sec: 168, type: 'E07', count:  1 },                        // 원거리 포위 안쪽을 메우는 속공 — 2026-08-19 E04 회수분
+  { sec: 168, type: 'E69', count:  1 },                        // 2026-11-07 도미노 첫 등장(줄지어 차례로 터짐) — 옛 속공 E07×1 자리. hp 16
   { sec: 168, type: 'E47', count:  1 },                        //   스2 종이비행기 복습. hp 16 = E07
   { sec: 168, type: 'E44', count:  1 },                        // 발맞춤후퇴형(옆 재배치 후 사선 복귀). hp 16 = E07
   { sec: 168, type: 'E50', count:  1 },                        //   배구스파이크 복습. hp 16
@@ -338,7 +346,8 @@ export const STAGE4_BURST_EVENTS = [
   { sec: 150, type: 'B04', count:  1 },                        // 주방장 보스 등장(2:30) — 보스 구간 파생 기준
   ...ALL_STAGES_110SEC_SMILING_TANKER_REINFORCEMENT_EVENTS,
   // ── 형태(formation) 버스트 — 배열 순서 = STAGE4_SPAWN_TELEGRAPHS 순서(60 → 108 → 120 → 168 → 184).
-  { sec:  60, type: 'E03', count:  6, formation: 'ring' },     // 첫 완전 포위(러너)
+  { sec:  60, type: 'E03', count:  5, formation: 'ring' },     // 첫 완전 포위(러너)
+  { sec:  60, type: 'E70', count:  1 },                        // 2026-11-07 술래 첫 등장(찍은 자리로 순간이동 + 터치) — 포위 러너 1기. hp 10 = E03
   { sec: 108, type: 'E02', count:  4, formation: 'pincer' },   // 탱커 앞뒤 협공(피크 예열)
   { sec: 120, type: 'E05', count:  4, formation: 'ring' },     // 차저 포위(피크 정점, 보스 직전)
   { sec: 168, type: 'E04', count:  4, formation: 'ring' },     // 원거리 포위 = "안전지대 소멸" 문자 그대로 — 포화점 4기
@@ -361,8 +370,10 @@ export const STAGE4_BURST_EVENTS = [
 export const STAGE5_BURST_EVENTS = [
   { sec: 5, type: 'E01', count: 12 },
   { sec: 5, type: 'E53', count: 1 },                            // 물감뿌림 첫 등장(붙었다 빠지며 부채꼴 물감). hp 10 = E03
-  { sec: 24, type: 'E03', count: 5 },
-  { sec: 40, type: 'E07', count: 2 },
+  { sec: 24, type: 'E03', count: 4 },
+  { sec: 24, type: 'E70', count: 1 },                           // 2026-11-07 스4 복습: 술래. hp 10 = E03
+  { sec: 40, type: 'E07', count: 1 },
+  { sec: 40, type: 'E66', count: 1 },                           // 2026-11-07 스1 복습: 플라나리아. hp 16 = E07
   { sec: 40, type: 'E48', count: 1 },                           // 부메랑자 첫 등장(나갔다 돌아오는 자). hp 16 = E07
   { sec: 40, type: 'E39', count: 1 },                           // 스2 복습: 선끝접기형
   { sec: 40, type: 'E44', count: 1 },                           // 스4 복습: 발맞춤후퇴형
@@ -376,7 +387,8 @@ export const STAGE5_BURST_EVENTS = [
   { sec: 144, type: 'E07', count: 6 },
   { sec: 144, type: 'E54', count: 1 },                          // 확성기방송 첫 등장(부채꼴 음파 5발). hp 32 = E04
   { sec: 150, type: 'B03', count: 1 },
-  { sec: 150, type: 'E01', count: 5 },
+  { sec: 150, type: 'E01', count: 4 },
+  { sec: 150, type: 'E65', count: 1 },                          // 2026-11-07 스2 복습: 시험감독. hp 8 = E01
   { sec: 150, type: 'E58', count: 1 },                          // 스4 복습: 줄넘기 매복. hp 8 = E01
   { sec: 150, type: 'E37', count: 1 },                          // 스2 복습: 빗금엇갈림형
   { sec: 150, type: 'E51', count: 1 },                          // 스2 복습: 합창지휘. hp 8 = E37

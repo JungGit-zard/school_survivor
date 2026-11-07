@@ -1,5 +1,5 @@
 import { EXPANSION_ENEMIES, EXPANSION_BOSSES } from './expansionContent.js'
-import { PROJECTILE_ZOMBIE_FIRST_TYPE_CODE, PROJECTILE_ZOMBIE_TYPES } from './projectileZombieVisuals.js'
+import { PROJECTILE_ZOMBIE_TYPE_CODES, PROJECTILE_ZOMBIE_TYPE_NAME_SLOTS } from './projectileZombieVisuals.js'
 // 적 런타임의 정적 슬롯 풀. React/Three/Rapier 및 저장소에 의존하지 않는다.
 export const MAX_ENEMIES = 150
 export const MAX_ENEMY_GENERATION = 0xffff
@@ -45,7 +45,8 @@ export const ENEMY_TYPE_CODES = Object.freeze({
   E45: 48,  // 무게중심넘김형 (Stage 4)
   // 49~63 = 신규 투사체 좀비 15종 E46~E60(2026-10-31). 비주얼 정본: lib/projectileZombieVisuals.js,
   // 행동 런타임: lib/projectileZombieBehavior.js. 고정 번호 — 재배열 금지. 64는 E59 미니(2차) 예약.
-  ...Object.fromEntries(PROJECTILE_ZOMBIE_TYPES.map((id, index) => [id, PROJECTILE_ZOMBIE_FIRST_TYPE_CODE + index])),
+  // 65~74 = 2차 10종 E61~E70(2026-11-07). 같은 공용 경로·같은 표를 쓴다.
+  ...PROJECTILE_ZOMBIE_TYPE_CODES,
 })
 
 // 인덱스 = typeCode. 리터럴 17개(0~16) + 확장 20개(17~36) + Track B 12개(37~48) + 투사체 15개(49~63).
@@ -58,13 +59,14 @@ export const ENEMY_TYPE_NAMES = Object.freeze([
   '', 'E01', 'E02', 'E03', 'E04', 'E05', 'E06', 'RZL', 'RZC', 'B01', 'B02', 'B03', 'B04', 'RZT', 'RZG', 'E07', 'E08',
   ...expansionRows.map(e => e.id),
   ...NOVEL_ZOMBIE_TYPE_IDS,
-  ...PROJECTILE_ZOMBIE_TYPES,
+  // 49~74. 예약 슬롯 64는 빈 문자열이라 알 수 없는 코드로 취급된다.
+  ...PROJECTILE_ZOMBIE_TYPE_NAME_SLOTS,
 ])
 
 const MAX_GENERATION = MAX_ENEMY_GENERATION
 
 function isKnownTypeCode(typeCode) {
-  return Number.isInteger(typeCode) && typeCode > 0 && typeCode < ENEMY_TYPE_NAMES.length
+  return Number.isInteger(typeCode) && typeCode > 0 && typeCode < ENEMY_TYPE_NAMES.length && ENEMY_TYPE_NAMES[typeCode] !== ''
 }
 
 export function enemyTypeToCode(type) {

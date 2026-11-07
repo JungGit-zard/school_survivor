@@ -28,8 +28,10 @@ describe('existing ledger wire contract and baseline Firebase Rules', () => {
   // 2026-11-01: 9279bf98에서 로자리 의상 3곳만 추가(f969eedf…): progress/outfitUnlocks/$outfitId(=1, 5벌),
   // titleSettings.playerOutfit 6값, 공개 랭킹 global·stage 항목의 선택 필드 outfitId(6값).
   // 클라이언트가 셋 다 쓰므로(progress·titleSettings·공개 항목 모두 $other:false) 이 Rules를 먼저 배포해야 한다.
-  it('pins the reviewed Rules bytes: a9 plus the E34-E45 encounter whitelist, the rosari appearance, the wardrobe playerOutfit, the run-ledger summary and the outfit unlocks/ranking outfitId (deploy Rules before the client)', () => {
-    expect(createHash('sha256').update(bytes).digest('hex')).toBe('f969eedfe874a45ec933193b6dca61c66ec80952566db69bbe688271de69069f')
+  // 2026-11-07: f969eedf에서 encounteredZombieTypes 화이트리스트에 E46~E70(투사체 좀비 1·2차 25종)만 추가(509c9e29…).
+  // 클라이언트(firebaseProgress ZOMBIE_ENCOUNTER_TYPES·도감)가 이 조우를 저장하므로 이 Rules를 클라이언트보다 먼저 배포해야 한다.
+  it('pins the reviewed Rules bytes: a9 plus the E34-E45 and E46-E70 encounter whitelist, the rosari appearance, the wardrobe playerOutfit, the run-ledger summary and the outfit unlocks/ranking outfitId (deploy Rules before the client)', () => {
+    expect(createHash('sha256').update(bytes).digest('hex')).toBe('509c9e2902041e3a82fe882252fc247bcf6e3486af4a4c656a0b5d50dd304e87')
   })
   it.each([1,2,3,4,5,6,7,8,9,10])('stage %i virtual key uses existing numeric run-row validator, not progress schema additions', n => {
     const key=`stage${n}BossDefeats`

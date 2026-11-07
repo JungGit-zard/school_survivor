@@ -23,6 +23,7 @@ import {
   PROJECTILE_ZOMBIE_STATE,
   PROJECTILE_ZOMBIE_TYPES,
   PROJECTILE_ZOMBIE_VISUALS,
+  projectileZombieIndex,
 } from './projectileZombieVisuals.js'
 import { SHOT_KIND, SHOT_MOTION, createShotSpec } from './projectileZombieShotPool.js'
 
@@ -58,6 +59,18 @@ export const PROJECTILE_ZOMBIE_STATS = Object.freeze({
   E58: Object.freeze({ hp: 8,  speed: 0.70, damage: 5,  scale: 0.90, xp: 4,  contactDist: 0.24, projectileZombie: true }),
   E59: Object.freeze({ hp: 70, speed: 0.44, damage: 10, scale: 1.20, xp: 15, contactDist: 0.34, projectileZombie: true }),
   E60: Object.freeze({ hp: 16, speed: 0.60, damage: 8,  scale: 1.00, xp: 8,  contactDist: 0.26, projectileZombie: true }),
+  // 2차 10종(2026-11-07, typeCode 65~74). hp/xp = 버스트 표에서 자리를 넘겨준 host와 같다.
+  //   E61 ← E57(70) · E62·E67 ← E05(70) · E63 ← E04(32) · E64·E65 ← E01(8) · E66·E69 ← E07(16) · E68·E70 ← E03(10)
+  E61: Object.freeze({ hp: 70, speed: 0.48, damage: 9,  scale: 1.15, xp: 15, contactDist: 0.32, projectileZombie: true }),
+  E62: Object.freeze({ hp: 70, speed: 0.52, damage: 8,  scale: 1.10, xp: 15, contactDist: 0.30, projectileZombie: true }),
+  E63: Object.freeze({ hp: 32, speed: 0.56, damage: 6,  scale: 1.00, xp: 10, contactDist: 0.26, projectileZombie: true }),
+  E64: Object.freeze({ hp: 8,  speed: 0.62, damage: 5,  scale: 0.95, xp: 4,  contactDist: 0.24, projectileZombie: true }),
+  E65: Object.freeze({ hp: 8,  speed: 0.54, damage: 5,  scale: 0.95, xp: 4,  contactDist: 0.24, projectileZombie: true }),
+  E66: Object.freeze({ hp: 16, speed: 0.58, damage: 8,  scale: 1.05, xp: 8,  contactDist: 0.28, projectileZombie: true }),
+  E67: Object.freeze({ hp: 70, speed: 0.46, damage: 8,  scale: 1.15, xp: 15, contactDist: 0.32, projectileZombie: true }),
+  E68: Object.freeze({ hp: 10, speed: 0.56, damage: 6,  scale: 1.00, xp: 5,  contactDist: 0.26, projectileZombie: true }),
+  E69: Object.freeze({ hp: 16, speed: 0.58, damage: 6,  scale: 1.00, xp: 8,  contactDist: 0.26, projectileZombie: true }),
+  E70: Object.freeze({ hp: 10, speed: 0.60, damage: 6,  scale: 0.95, xp: 5,  contactDist: 0.24, projectileZombie: true }),
 })
 
 // ── 행동표 ───────────────────────────────────────────────────────────────────
@@ -66,6 +79,11 @@ export const PROJECTILE_ZOMBIE_STATS = Object.freeze({
 // target: dir(방향만) | player(예고 시작 시 플레이어 위치) | ahead(사수 앞 aheadU 지점)
 // volley: single | spread(count, spreadDeg) | salvo(count, intervalMs) | radial(count) | heal
 // telegraphDecal: none | line(lengthU) | ring(radiusU, 착탄점) | self(radiusU, 사수 발밑)
+// 2차 10종(2026-11-07)이 더한 것:
+//   move:   chase(늘 플레이어 쪽으로 걷는다)
+//   volley: charge(몸 돌진, chargeLegs 2면 왕복) | converge(착탄점 둘레 고리에서 가운데로 모이는 탄)
+//           | orbit(사수 둘레를 도는 탄) | domino(조준선 위에 차례로 터지는 지뢰) | blink(착탄점으로 순간이동 + 터치 폭발)
+//           | split(체력이 반 아래면 둘로 갈라진다) | shield(주변 아군에게 추가 체력 방패)
 const base = Object.freeze({
   move: 'kite', prefDist: 4.5, minDist: 2.5, fireRange: 6.0, minFireDist: 1.5,
   aim: 'lockStart', lockLeftMs: PZ_MIN_LOCK_TO_FIRE_MS, target: 'dir', aheadU: 0,
@@ -74,6 +92,8 @@ const base = Object.freeze({
   firstDelayMs: 1200, cooldownMs: 3000, recoverMs: 400, recoverMove: 'hold',
   ambushRange: 0, creepMul: 0.55,
   heal: null,
+  chargeSpeed: 0, chargeMs: 0, chargeLegs: 1, chargeDamage: 0, chargeZone: null,
+  ringRadius: 0, orbit: null, domino: null, blink: null, split: null, shield: null,
 })
 
 function shot(overrides) {
@@ -187,6 +207,78 @@ export const PROJECTILE_ZOMBIE_BEHAVIORS = Object.freeze({
     move: 'ambush', ambushRange: 2.6, fireRange: 2.6, minFireDist: 0, volley: 'radial', count: 6,
     telegraphDecal: 'self', decalSize: 0.6, cooldownMs: 3200, recoverMs: 800,
     shot: shot({ kind: SHOT_KIND.DRAIN_WATER, motion: SHOT_MOTION.STRAIGHT, speed: 2.4, damage: 4, lifeMs: 1600, hitRadius: 0.11 }) }),
+
+  // ── 2차 10종(2026-11-07). typeCode 64는 E59 미니 예약이라 65부터다. ──────────────────────────────
+  // E61 급식판 돌진: 0.8초 웅크린 뒤(조준선 3.8u) 급식판을 앞세워 4.2u/s로 0.9초 일직선 돌진(닿으면 9).
+  //   멈춘 자리에 국물이 쏟아져 반경 0.8u 웅덩이가 3초 남는다(안에서 −30%). 돌진 뒤 0.9초 숨을 고른다(취약).
+  65: Object.freeze({ ...base, id: 'E61', name: '급식판 돌진',
+    prefDist: 3.6, minDist: 2.2, fireRange: 4.2, minFireDist: 1.4,
+    volley: 'charge', chargeSpeed: 4.2, chargeMs: 900, chargeLegs: 1, chargeDamage: 9,
+    chargeZone: Object.freeze({ kind: SHOT_KIND.ZONE_SOUP, radius: 0.8, ms: 3000, slow: 0.7 }),
+    telegraphDecal: 'line', decalSize: 3.8, cooldownMs: 4600, recoverMs: 900, shot: null }),
+  // E62 셔틀런: 0.7초 출발 자세 뒤 4.6u/s로 0.65초(3u) 플레이어 쪽으로 달리고, 같은 선으로 곧장 되돌아온다
+  //   (몸은 플레이어를 뚫지 못해 부딪히면 그 자리에서 멈췄다가 돌아간다). 선 밖으로 비키면 둘 다 빗나간다.
+  //   2.4u 밖에서만 출발한다(balanceqa 2026-11-07): 가까이서 출발하면 앞 다리 초반에 닿은 뒤 접촉 쿨다운이
+  //   끝나고 다시 닿아 한 번 돌진에 두 번 맞았다. 2.4u 밖이면 앞 다리 끝에서 한 번 닿고 곧 되돌아간다.
+  66: Object.freeze({ ...base, id: 'E62', name: '셔틀런',
+    prefDist: 3.0, minDist: 1.8, fireRange: 3.2, minFireDist: 2.4,
+    volley: 'charge', chargeSpeed: 4.6, chargeMs: 650, chargeLegs: 2, chargeDamage: 8,
+    telegraphDecal: 'line', decalSize: 3.0, cooldownMs: 4200, recoverMs: 700, shot: null }),
+  // E63 마이크줄 방송부: 조준선(5u) 뒤 마이크를 줄째 던진다(4.5u/s). 맞으면 피해 3 + 사수 쪽으로 1.4u 끌려간다(0.25초).
+  67: Object.freeze({ ...base, id: 'E63', name: '마이크줄',
+    prefDist: 4.5, minDist: 2.6, fireRange: 5.0, minFireDist: 2.0,
+    telegraphDecal: 'line', decalSize: 5.0, cooldownMs: 4400, recoverMs: 500,
+    shot: shot({ kind: SHOT_KIND.MIC_CORD, motion: SHOT_MOTION.STRAIGHT, speed: 4.5, damage: 3, lifeMs: 1150, hitRadius: 0.12,
+      impulseU: -1.4, impulseMs: 250 }) }),
+  // E64 분필가루: 예고 시작 때 플레이어 자리에 칠판지우개 가루를 포물선으로 턴다(착지점 원 1.0u, 확정→착지 1.4초).
+  //   착지 피해는 없고 반경 1.0u 가루 구름이 3.5초 남아 안에 있으면 0.7초마다 2. 감속은 없다 — 지나가는 건 괜찮고 머무는 게 위험하다.
+  68: Object.freeze({ ...base, id: 'E64', name: '분필가루',
+    prefDist: 4.0, minDist: 2.2, fireRange: 5.5, target: 'player', telegraphDecal: 'ring', decalSize: 1.0,
+    cooldownMs: 5600, recoverMs: 500,
+    shot: shot({ kind: SHOT_KIND.CHALK_BOMB, motion: SHOT_MOTION.LOB, speed: 1, damage: 0, lifeMs: 3000, hitRadius: 0,
+      p2: 900, p3: 1.0, endZoneKind: SHOT_KIND.ZONE_CHALK, endZoneRadius: 1.0, endZoneMs: 3500, endZoneSlow: 1,
+      endZoneDamage: 2, endZoneTickMs: 700 }) }),
+  // E65 시험감독: 예고 시작 때 플레이어 자리를 반경 2.4u 고리로 감싼다(0.7초). 고리 위 6장의 시험지가 2.0u/s로
+  //   가운데로 모인다(1.2초). 바퀴살 하나는 사수 쪽 선 위라, 조준선과 직각으로(옆으로) 걸어 나가면 바퀴살 사이 틈이다.
+  69: Object.freeze({ ...base, id: 'E65', name: '시험감독',
+    prefDist: 5.0, minDist: 3.0, fireRange: 6.5, minFireDist: 2.5, target: 'player',
+    volley: 'converge', count: 6, ringRadius: 2.4, telegraphDecal: 'ring', decalSize: 2.4,
+    cooldownMs: 5400, recoverMs: 600,
+    shot: shot({ kind: SHOT_KIND.EXAM_PAPER, motion: SHOT_MOTION.STRAIGHT, speed: 2.0, damage: 3, lifeMs: 1300, hitRadius: 0.11 }) }),
+  // E66 플라나리아 생물부: 공격 없이 쫓아온다. 체력이 절반 이하가 되면 0.5초 몸을 비튼 뒤 둘로 갈라진다
+  //   (지금 체력 그대로 한 마리 더, 둘 다 0.82배 크기). 갈라진 개체는 다시 갈라지지 않는다.
+  70: Object.freeze({ ...base, id: 'E66', name: '플라나리아',
+    move: 'chase', fireRange: 99, minFireDist: 0, volley: 'split',
+    split: Object.freeze({ hpRatio: 0.5, scaleMul: 0.82, offsetU: 0.4 }),
+    telegraphDecal: 'self', decalSize: 0.5, firstDelayMs: 0, cooldownMs: 1000, recoverMs: 300, shot: null }),
+  // E67 학생회 방패: 공격하지 않는 지원형. 무리 뒤(4.5u)에 머물다 주변(2.6u)에 방패 없는 아군이 있으면 0.5초 예고 뒤
+  //   파란 방패 파동. 아군 최대 3기에게 추가 체력 +5(최대 체력도 +5), 한 아군은 한 번만, 한 기의 평생 총량 20.
+  //   보스·마틸다·거대·크루·코인·보건실·다른 방패는 받지 않는다.
+  71: Object.freeze({ ...base, id: 'E67', name: '학생회 방패',
+    move: 'support', prefDist: 4.5, minDist: 3.0, fireRange: 9.0, minFireDist: 0, volley: 'shield',
+    shield: Object.freeze({ radius: 2.6, armor: 5, maxTargets: 3, lifeBudget: 20 }),
+    telegraphDecal: 'self', decalSize: 2.6, cooldownMs: 5200, recoverMs: 500, shot: null }),
+  // E68 지구본: 1.8u까지 다가와 0.6초 지구본을 돌린 뒤 자기 둘레(반경 1.1u)에 지구본 3개를 띄운다.
+  //   지구본은 1.8초 동안 초당 0.75바퀴 돌다가 접선 방향으로 튕겨 나간다(2.4u/s). 도는 동안 사수는 제자리에 선다.
+  72: Object.freeze({ ...base, id: 'E68', name: '지구본',
+    move: 'dash', prefDist: 2.0, minDist: 1.0, fireRange: 2.4, minFireDist: 0, volley: 'orbit', count: 3,
+    orbit: Object.freeze({ radius: 1.1, turnsPerSec: 0.75, orbitMs: 1800 }),
+    telegraphDecal: 'self', decalSize: 1.1, cooldownMs: 5200, recoverMs: 1800,
+    shot: shot({ kind: SHOT_KIND.GLOBE, motion: SHOT_MOTION.ORBIT, speed: 2.4, damage: 3, lifeMs: 3000, hitRadius: 0.14 }) }),
+  // E69 도미노: 조준선(4.8u)을 긋고 그 위에 도미노 5장을 세운다(1.2u부터 0.9u 간격). 0.6초 뒤 가까운 것부터
+  //   0.16초 간격으로 차례로 쓰러지며 반경 0.45u로 터진다(피해 4). 선에서 옆으로 한 걸음이면 전부 빗나간다.
+  73: Object.freeze({ ...base, id: 'E69', name: '도미노',
+    prefDist: 4.0, minDist: 2.0, fireRange: 4.8, minFireDist: 1.2, volley: 'domino', count: 5,
+    domino: Object.freeze({ startU: 1.2, stepU: 0.9, fuseMs: 600, stepMs: 160, radius: 0.45 }),
+    telegraphDecal: 'line', decalSize: 4.8, cooldownMs: 4800, recoverMs: 600,
+    shot: shot({ kind: SHOT_KIND.DOMINO, motion: SHOT_MOTION.FUSE, speed: 0, damage: 4, lifeMs: 2000, hitRadius: 0.1 }) }),
+  // E70 숨바꼭질 술래: 예고 시작 때 플레이어 자리에 원(0.75u)을 찍고 0.9초 숫자를 센다. 그 자리로 순간이동한 뒤
+  //   0.4초 뒤 술래 터치가 터진다(피해 6). 원이 보이는 1.3초 안에 원 밖으로 나가면 된다.
+  74: Object.freeze({ ...base, id: 'E70', name: '숨바꼭질 술래',
+    prefDist: 4.0, minDist: 2.0, fireRange: 5.0, minFireDist: 1.5, target: 'player', volley: 'blink', count: 1,
+    blink: Object.freeze({ fuseMs: 400, radius: 0.75 }),
+    telegraphDecal: 'ring', decalSize: 0.75, cooldownMs: 5600, recoverMs: 600,
+    shot: shot({ kind: SHOT_KIND.TAG_MARK, motion: SHOT_MOTION.FUSE, speed: 0, damage: 6, lifeMs: 1200, hitRadius: 0.1 }) }),
 })
 
 export function isProjectileZombieType(typeCode) {
@@ -198,7 +290,7 @@ export function projectileZombieBehavior(typeCode) {
 }
 
 export function projectileZombieTelegraphMs(typeCode) {
-  const id = PROJECTILE_ZOMBIE_TYPES[typeCode - PZ_TYPE_MIN]
+  const id = PROJECTILE_ZOMBIE_TYPES[projectileZombieIndex(typeCode) - 1]
   return PROJECTILE_ZOMBIE_VISUALS[id]?.telegraphMs ?? 500
 }
 
@@ -221,11 +313,12 @@ export function ambushSinkDepth(visualScale) {
 }
 
 // ── 회복(E56) ────────────────────────────────────────────────────────────────
-// 회복하지 않는 타입: 0, E06(6), 크루(7/8/13/14), 보스(9~12, 32~36), 코인(16), 확장(17~31), 보건실 자신(59).
+// 회복하지 않는 타입: 0, E06(6), 크루(7/8/13/14), 보스(9~12, 32~36), 코인(16), 확장(17~31), 보건실 자신(59),
+// 예약 64, 학생회 방패(71). 2차 10종(65~74)은 나머지 전부 회복·방패 대상이다.
 export function isHealableTypeCode(typeCode) {
-  if (typeCode === 59) return false
+  if (typeCode === 59 || typeCode === 71) return false
   return typeCode === 1 || typeCode === 2 || typeCode === 3 || typeCode === 4 || typeCode === 5 || typeCode === 15
-    || (typeCode >= 37 && typeCode <= 63)
+    || (typeCode >= 37 && typeCode <= 63) || (typeCode >= 65 && typeCode <= 74)
 }
 
 const healBudget = new Float32Array(256)
@@ -278,6 +371,117 @@ export function applyProjectileZombieHeal(pool, index, heal) {
   }
   healBudget[index] = budget
   return total
+}
+
+// ── 방패(E67) ────────────────────────────────────────────────────────────────
+// 아군 슬롯이 방패를 받은 세대. 같은 개체는 한 번만 받는다(슬롯 재사용은 세대가 달라 자동 해제).
+const shieldedGeneration = new Uint16Array(256)
+
+function isUnshieldedAlly(pool, i) {
+  return pool.active[i] && isHealableTypeCode(pool.type[i]) && shieldedGeneration[i] !== pool.generation[i] && pool.hp[i] > 0
+}
+
+/** 방패를 줄 대상이 있는지(예고 진입 조건). */
+export function hasUnshieldedAllyNear(pool, index, radius) {
+  const x = pool.posX[index]
+  const z = pool.posZ[index]
+  const r2 = radius * radius
+  for (let i = 0; i <= pool.highestActive; i += 1) {
+    if (i === index || !isUnshieldedAlly(pool, i)) continue
+    const dx = pool.posX[i] - x
+    const dz = pool.posZ[i] - z
+    if (dx * dx + dz * dz <= r2) return true
+  }
+  return false
+}
+
+/** 방패 파동 1회. 실제로 더한 추가 체력 총량을 돌려준다. */
+export function applyProjectileZombieShield(pool, index, shield) {
+  if (!shield) return 0
+  let budget = remainingHealBudget(pool, index, shield.lifeBudget)
+  if (!(budget > 0)) return 0
+  const x = pool.posX[index]
+  const z = pool.posZ[index]
+  const r2 = shield.radius * shield.radius
+  let total = 0
+  let targets = 0
+  for (let i = 0; i <= pool.highestActive && budget > 0 && targets < shield.maxTargets; i += 1) {
+    if (i === index || !isUnshieldedAlly(pool, i)) continue
+    const dx = pool.posX[i] - x
+    const dz = pool.posZ[i] - z
+    if (dx * dx + dz * dz > r2) continue
+    const amount = Math.min(shield.armor, budget)
+    pool.maxHp[i] += amount
+    pool.hp[i] += amount
+    shieldedGeneration[i] = pool.generation[i]
+    budget -= amount
+    total += amount
+    targets += 1
+  }
+  healBudget[index] = budget
+  return total
+}
+
+export function isProjectileZombieShielded(pool, index) {
+  return Boolean(pool.active[index]) && shieldedGeneration[index] === pool.generation[index]
+}
+
+// ── 분열(E66) ────────────────────────────────────────────────────────────────
+// 이미 갈라진(또는 갈라져 나온) 개체의 세대. 다시 갈라지지 않는다.
+const splitGeneration = new Uint16Array(256)
+
+/**
+ * 판(런)이 새로 시작될 때 회복 예산·방패 표시·분열 표시를 비운다. 이 표들은 슬롯 세대로 개체를 구분하는데,
+ * 런타임 프로브는 판마다 세대를 1로 되돌리므로(stageRuntimeProbe 결정론) 지우지 않으면 앞 판 표시가
+ * 다음 판 같은 슬롯에 남아 같은 시드 두 판이 갈라진다. refs.resetRuntimeRefs()가 부른다.
+ */
+export function resetProjectileZombieBehaviorState() {
+  healBudget.fill(0)
+  healGeneration.fill(0)
+  shieldedGeneration.fill(0)
+  splitGeneration.fill(0)
+}
+
+export function hasProjectileZombieSplit(pool, index) {
+  return splitGeneration[index] === pool.generation[index]
+}
+
+function splitReady(pool, index, split) {
+  return !hasProjectileZombieSplit(pool, index) && pool.maxHp[index] > 0 && pool.hp[index] > 0
+    && pool.hp[index] <= pool.maxHp[index] * split.hpRatio
+}
+
+const _twinHandle = { index: -1, generation: 0 }
+const _twinSource = {
+  type: 0, x: 0, y: 0, z: 0, hp: 1, maxHp: 1, visualScale: 1, runDirX: 1, runDirZ: 0, yaw: 0, spawnTimer: 1000,
+}
+
+/** 분열 1회: 원본과 같은 체력의 쌍둥이를 옆에 세운다. 둘 다 작아지고 다시 갈라지지 않는다. */
+export function spawnProjectileZombieSplitTwin(enemyPool, index, split) {
+  if (!split || hasProjectileZombieSplit(enemyPool, index)) return false
+  splitGeneration[index] = enemyPool.generation[index]
+  const hp = Math.max(1, enemyPool.hp[index])
+  const maxHp = Math.max(hp, enemyPool.maxHp[index] * split.hpRatio)
+  enemyPool.maxHp[index] = maxHp
+  enemyPool.hp[index] = Math.min(enemyPool.hp[index], maxHp)
+  enemyPool.visualScale[index] *= split.scaleMul
+  const dirX = enemyPool.runDirX[index]
+  const dirZ = enemyPool.runDirZ[index]
+  const len = Math.hypot(dirX, dirZ) || 1
+  _twinSource.type = enemyPool.type[index]
+  _twinSource.x = enemyPool.posX[index] - (dirZ / len) * split.offsetU
+  _twinSource.z = enemyPool.posZ[index] + (dirX / len) * split.offsetU
+  // 매복형이 아니라 posY가 곧 기준 높이다.
+  _twinSource.y = enemyPool.posY[index]
+  _twinSource.hp = hp
+  _twinSource.maxHp = maxHp
+  _twinSource.visualScale = enemyPool.visualScale[index]
+  _twinSource.runDirX = dirX
+  _twinSource.runDirZ = dirZ
+  _twinSource.yaw = enemyPool.yaw[index]
+  if (!enemyPool.spawnInto(_twinHandle, _twinSource)) return false
+  splitGeneration[_twinHandle.index] = _twinHandle.generation
+  return true
 }
 
 // ── 1프레임 행동 ──────────────────────────────────────────────────────────────
@@ -348,7 +552,8 @@ export function stepProjectileZombieBehavior(pool, index, a, out) {
     pool.stateTimer[index] = 0
     pool.runDirX[index] = 1
     pool.runDirZ[index] = 0
-    pool.attackCooldown[index] = p.firstDelayMs + phaseFraction(index) * p.cooldownMs * 0.5
+    // 분열형은 공격 주기가 없어(체력 조건) 위상을 흩지 않는다 — 흩으면 슬롯에 따라 분열이 늦어진다.
+    pool.attackCooldown[index] = p.firstDelayMs + (p.split ? 0 : phaseFraction(index) * p.cooldownMs * 0.5)
     // 매복형 숨김 높이의 기준점(스폰 높이)을 기억해 둔다. lastContactY는 이 15종에서 다른 용도가 없다.
     pool.lastContactY[index] = pool.posY[index]
     pool.knockbackY[index] = 0
@@ -365,12 +570,15 @@ export function stepProjectileZombieBehavior(pool, index, a, out) {
 
   // ── 상태 전이 ─────────────────────────────────────────────────────────────
   if (state === PZ_STATE.APPROACH && pool.attackCooldown[index] <= 0) {
-    const inRange = p.move === 'ambush'
-      ? distance <= p.ambushRange
-      : distance <= p.fireRange && distance >= p.minFireDist
+    const inRange = p.split
+      ? splitReady(pool, index, p.split)
+      : p.move === 'ambush'
+        ? distance <= p.ambushRange
+        : distance <= p.fireRange && distance >= p.minFireDist
     const ready = inRange && onScreen(a, a.posX, a.posZ)
       && (cost === 0 || a.shotBudget >= cost)
       && (!p.heal || hasDamagedAllyNear(pool, index, p.heal.radius))
+      && (!p.shield || hasUnshieldedAllyNear(pool, index, p.shield.radius))
     if (ready) {
       state = PZ_STATE.TELEGRAPH
       pool.state[index] = state
@@ -389,14 +597,13 @@ export function stepProjectileZombieBehavior(pool, index, a, out) {
     if (pool.stateTimer[index] <= 0) {
       state = PZ_STATE.FIRE
       pool.state[index] = state
-      const salvoMs = p.volley === 'salvo' ? (p.count - 1) * p.intervalMs : 0
-      pool.stateTimer[index] = salvoMs + 120
+      pool.stateTimer[index] = fireStateMs(p)
       pool.knockbackY[index] = 0
     }
   }
 
   if (state === PZ_STATE.FIRE) {
-    const elapsed = (p.volley === 'salvo' ? (p.count - 1) * p.intervalMs : 0) + 120 - pool.stateTimer[index]
+    const elapsed = fireStateMs(p) - pool.stateTimer[index]
     const shots = p.volley === 'salvo' ? p.count : 1
     const fired = pool.knockbackY[index]
     if (fired < shots && elapsed >= fired * p.intervalMs) {
@@ -419,8 +626,24 @@ export function stepProjectileZombieBehavior(pool, index, a, out) {
   const facing = Math.atan2(pool.runDirX[index], pool.runDirZ[index])
 
   // ── 이동 ──────────────────────────────────────────────────────────────────
-  if (state === PZ_STATE.APPROACH) {
-    if (p.move === 'ambush') {
+  let charging = false
+  if (state === PZ_STATE.FIRE && p.volley === 'charge') {
+    // 몸 돌진: 확정 방향으로 chargeMs 달린다. 왕복(chargeLegs 2)이면 같은 선으로 되돌아온다.
+    const elapsed = fireStateMs(p) - pool.stateTimer[index]
+    const back = p.chargeLegs > 1 && elapsed >= p.chargeMs
+    const sign = back ? -1 : 1
+    out.velocityX = pool.runDirX[index] * p.chargeSpeed * sign
+    out.velocityZ = pool.runDirZ[index] * p.chargeSpeed * sign
+    out.moving = true
+    out.hasYaw = true
+    out.yaw = back ? facing + Math.PI : facing
+    charging = true
+  } else if (state === PZ_STATE.APPROACH) {
+    if (p.move === 'chase') {
+      out.velocityX = nx * speed
+      out.velocityZ = nz * speed
+      out.moving = true
+    } else if (p.move === 'ambush') {
       out.velocityX = nx * speed * p.creepMul
       out.velocityZ = nz * speed * p.creepMul
       out.moving = distance > p.ambushRange * 0.6
@@ -467,9 +690,15 @@ export function stepProjectileZombieBehavior(pool, index, a, out) {
   const hidden = p.move === 'ambush' && state === PZ_STATE.APPROACH
   const baseY = pool.lastContactY[index]
   pool.posY[index] = hidden ? baseY - ambushSinkDepth(pool.visualScale[index]) : baseY
-  if (!hidden && a.hitReady && distance <= a.contactDist) out.damage = a.damage
+  if (!hidden && a.hitReady && distance <= a.contactDist) out.damage = charging && p.chargeDamage > 0 ? p.chargeDamage : a.damage
 
   return out
+}
+
+// 발사 상태 길이: 일제사격은 마지막 발까지, 돌진은 다리 수만큼, 나머지는 120ms.
+function fireStateMs(p) {
+  if (p.volley === 'charge') return p.chargeMs * p.chargeLegs
+  return (p.volley === 'salvo' ? (p.count - 1) * p.intervalMs : 0) + 120
 }
 
 // ── 이벤트 → 탄 생성 ──────────────────────────────────────────────────────────
@@ -499,13 +728,15 @@ export function spawnProjectileZombieTelegraphDecal(shotPool, enemyPool, index, 
     return shotPool.spawnDecal(x + dirX * len * 0.5, z + dirZ * len * 0.5, SHOT_KIND.DECAL_AIM_LINE, 0.09, leadMs + 120, len, Math.atan2(dirX, dirZ)) >= 0
   }
   if (p.telegraphDecal === 'self') {
-    const kind = p.heal ? SHOT_KIND.DECAL_HEAL : SHOT_KIND.DECAL_MARKER
+    const kind = p.heal ? SHOT_KIND.DECAL_HEAL : p.shield ? SHOT_KIND.DECAL_SHIELD : SHOT_KIND.DECAL_MARKER
     return shotPool.spawnDecal(x, z, kind, p.decalSize, leadMs + 200) >= 0
   }
   // ring: 착탄·폭발 예정점. 원은 실제 착지·폭발 순간까지 남긴다.
   const s = p.shot
   let extraMs = 0
-  if (s.motion === SHOT_MOTION.LOB) extraMs = s.p2
+  if (p.blink) extraMs = p.blink.fuseMs
+  else if (p.volley === 'converge') extraMs = (p.ringRadius / s.speed) * 1000
+  else if (s.motion === SHOT_MOTION.LOB) extraMs = s.p2
   else if (s.motion === SHOT_MOTION.SPLIT) extraMs = s.p0
   else if (s.motion === SHOT_MOTION.FUSE) {
     const d = Math.max(1, Math.hypot(enemyPool.homeX[index] - x, enemyPool.homeZ[index] - z))
@@ -525,9 +756,88 @@ export function spawnProjectileZombieVolley(shotPool, enemyPool, index, generati
     shotPool.spawnDecal(x, z, SHOT_KIND.DECAL_HEAL, p.heal.radius, 450)
     return 0
   }
+  if (p.shield) {
+    applyProjectileZombieShield(enemyPool, index, p.shield)
+    shotPool.spawnDecal(x, z, SHOT_KIND.DECAL_SHIELD, p.shield.radius, 450)
+    return 0
+  }
+  if (p.split) {
+    spawnProjectileZombieSplitTwin(enemyPool, index, p.split)
+    return 0
+  }
   const dirX = enemyPool.runDirX[index]
   const dirZ = enemyPool.runDirZ[index]
+  if (p.volley === 'charge') {
+    // 편도 돌진의 멈출 자리에 국물 웅덩이. 몸이 장애물에 막혀 일찍 서도 표식은 계획한 자리에 남는다.
+    const z0 = p.chargeZone
+    if (z0 && p.chargeLegs === 1) {
+      const len = p.chargeSpeed * p.chargeMs / 1000
+      shotPool.spawnDecal(x + dirX * len, z + dirZ * len, z0.kind, z0.radius, p.chargeMs + z0.ms, 0, 0, z0.slow)
+    }
+    return 0
+  }
   const spec = copySpec(p.shot)
+  if (p.volley === 'converge') {
+    // 확정 착탄점 둘레 고리에서 가운데로. 바퀴살 하나를 사수 쪽 선에 맞춰(0°) 두면 6장일 때
+    // 조준선의 직각(90°) 방향이 바퀴살 사이 틈이 된다 — "옆으로 비키면 빠진다"가 늘 성립한다.
+    const cx = enemyPool.homeX[index]
+    const cz = enemyPool.homeZ[index]
+    const start = Math.atan2(dirX, dirZ)
+    let spawned = 0
+    for (let k = 0; k < p.count; k += 1) {
+      const angle = start + (2 * Math.PI * k) / p.count
+      const sx = Math.sin(angle); const cz2 = Math.cos(angle)
+      if (shotPool.spawn(cx + sx * p.ringRadius, cz + cz2 * p.ringRadius, -sx, -cz2, spec) >= 0) spawned += 1
+    }
+    return spawned
+  }
+  if (p.volley === 'orbit') {
+    const o = p.orbit
+    const omega = 2 * Math.PI * o.turnsPerSec * (((index + enemyPool.generation[index]) & 1) === 0 ? 1 : -1)
+    spec.p0 = o.radius; spec.p1 = omega; spec.p2 = o.orbitMs
+    // 플레이어 쪽(확정 방향)에는 지구본을 띄우지 않는다 — 생기자마자 맞는 일이 없게 반 칸 비낀다.
+    const start = Math.atan2(dirX, dirZ) + Math.PI / p.count
+    let spawned = 0
+    for (let k = 0; k < p.count; k += 1) {
+      const angle = start + (2 * Math.PI * k) / p.count
+      spec.p3 = angle
+      const slot = shotPool.spawn(x + Math.sin(angle) * o.radius, z + Math.cos(angle) * o.radius, Math.cos(angle), -Math.sin(angle), spec)
+      if (slot >= 0) {
+        // 공전 중심은 사수 자리다(spawn은 발사 지점을 base로 잡는다).
+        shotPool.baseX[slot] = x
+        shotPool.baseZ[slot] = z
+        spawned += 1
+      }
+    }
+    return spawned
+  }
+  if (p.volley === 'domino') {
+    const d = p.domino
+    let spawned = 0
+    for (let k = 0; k < p.count; k += 1) {
+      const along = d.startU + k * d.stepU
+      const fuse = d.fuseMs + k * d.stepMs
+      spec.p0 = 0; spec.p1 = fuse; spec.p2 = d.radius; spec.p3 = 0
+      spec.lifeMs = fuse + 200
+      const px = x + dirX * along
+      const pz = z + dirZ * along
+      if (shotPool.spawn(px, pz, dirX, dirZ, spec) >= 0) {
+        shotPool.spawnDecal(px, pz, SHOT_KIND.DECAL_MARKER, d.radius, fuse)
+        spawned += 1
+      }
+    }
+    return spawned
+  }
+  if (p.volley === 'blink') {
+    // 확정한 자리로 순간이동하고, 그 자리에서 fuseMs 뒤 터치가 터진다.
+    const tx = enemyPool.homeX[index]
+    const tz = enemyPool.homeZ[index]
+    enemyPool.posX[index] = tx
+    enemyPool.posZ[index] = tz
+    if (typeof enemyPool.markSpatialChanged === 'function') enemyPool.markSpatialChanged()
+    spec.p0 = 0; spec.p1 = p.blink.fuseMs; spec.p2 = p.blink.radius; spec.p3 = 0
+    return shotPool.spawn(tx, tz, dirX, dirZ, spec) >= 0 ? 1 : 0
+  }
   if (spec.motion === SHOT_MOTION.LOB) {
     spec.p0 = enemyPool.homeX[index]
     spec.p1 = enemyPool.homeZ[index]

@@ -222,6 +222,13 @@ export const SHOT_VISUALS = Object.freeze([
   { key: 'milkCarton', create: milkCarton, spin: 'tumble', rate: 0.006 },
   { key: 'drainWater', create: drainWater, spin: 'point', rate: 0 },
   { key: 'fallback', create: fallbackSphere, spin: 'point', rate: 0 },
+  // 2차 10종. 기존 인덱스(0..16)를 밀지 않게 fallback 뒤에 붙인다.
+  { key: 'micCord', create: micCord, spin: 'point', rate: 0 },
+  { key: 'chalkBomb', create: chalkBomb, spin: 'tumble', rate: 0.008 },
+  { key: 'examPaper', create: examPaper, spin: 'spinY', rate: 0.02 },
+  { key: 'globe', create: globe, spin: 'spinY', rate: 0.012 },
+  { key: 'domino', create: domino, spin: 'point', rate: 0 },
+  { key: 'tagMark', create: tagMark, spin: 'spinY', rate: 0.01 },
 ].map(Object.freeze))
 
 const VISUAL_INDEX = Object.fromEntries(SHOT_VISUALS.map((v, i) => [v.key, i]))
@@ -243,6 +250,12 @@ const KIND_TO_VISUAL = Object.freeze({
   [SHOT_KIND.JUMP_ROPE]: VISUAL_INDEX.jumpRope,
   [SHOT_KIND.MILK_CARTON]: VISUAL_INDEX.milkCarton,
   [SHOT_KIND.DRAIN_WATER]: VISUAL_INDEX.drainWater,
+  [SHOT_KIND.MIC_CORD]: VISUAL_INDEX.micCord,
+  [SHOT_KIND.CHALK_BOMB]: VISUAL_INDEX.chalkBomb,
+  [SHOT_KIND.EXAM_PAPER]: VISUAL_INDEX.examPaper,
+  [SHOT_KIND.GLOBE]: VISUAL_INDEX.globe,
+  [SHOT_KIND.DOMINO]: VISUAL_INDEX.domino,
+  [SHOT_KIND.TAG_MARK]: VISUAL_INDEX.tagMark,
 })
 
 /** 탄 kind·궤적 → SHOT_VISUALS 인덱스. 플라스크는 갈라진 뒤(STRAIGHT) 파편 모양이 된다. */
@@ -414,4 +427,57 @@ export function composeShotQuaternion(quaternion, visualIndex, headingX, heading
     default:
       return quaternion.setFromAxisAngle(UP, yaw)
   }
+}
+
+// -- 2차 10종(E61~E70, 2026-11-07) 탄 외형 --
+// 함수 선언은 호이스팅되므로 위 SHOT_VISUALS 표가 이 아래 정의를 그대로 참조한다(파일 끝에 덧붙여 병합 충돌을 줄인다).
+// E63 마이크: 검은 손잡이 + 둥근 망 머리 + 뒤로 늘어진 빨간 줄.
+function micCord() {
+  return merge([
+    part(new THREE.SphereGeometry(0.06, 8, 6), 0x3a3a3a, { z: 0.07 }),
+    part(new THREE.CylinderGeometry(0.03, 0.022, 0.12, 7), 0x1c1c22, { rx: HALF_PI, z: -0.02 }),
+    part(new THREE.BoxGeometry(0.022, 0.022, 0.36), 0xff4d6d, { z: -0.26 }),
+  ])
+}
+// E64 분필가루 덩어리: 흰 가루 뭉치 + 갈색 칠판지우개.
+function chalkBomb() {
+  return merge([
+    part(new THREE.SphereGeometry(0.08, 8, 6), 0xf2f2ee),
+    part(new THREE.SphereGeometry(0.05, 6, 5), 0xe0e0d8, { x: 0.06, y: 0.03 }),
+    part(new THREE.BoxGeometry(0.12, 0.05, 0.07), 0x5a3a2a, { y: -0.07 }),
+  ])
+}
+// E65 시험지: 흰 종이 + 빨간 채점 줄.
+function examPaper() {
+  return merge([
+    part(new THREE.BoxGeometry(0.17, 0.014, 0.22), 0xf6f4ec),
+    part(new THREE.BoxGeometry(0.12, 0.02, 0.02), 0xd94040, { z: 0.05 }),
+    part(new THREE.BoxGeometry(0.12, 0.02, 0.02), 0x30343c, { z: -0.02 }),
+  ])
+}
+// E68 지구본: 파란 공 + 초록 대륙 둘 + 금색 고리.
+function globe() {
+  return merge([
+    part(new THREE.SphereGeometry(0.09, 10, 8), 0x3b8fe0),
+    part(new THREE.SphereGeometry(0.045, 6, 5), 0x4caf50, { x: 0.05, y: 0.04, z: 0.04 }),
+    part(new THREE.SphereGeometry(0.035, 6, 5), 0x4caf50, { x: -0.05, y: -0.03, z: 0.05 }),
+    part(new THREE.CylinderGeometry(0.11, 0.11, 0.015, 14), 0xd8b040, { rz: 0.45 }),
+  ])
+}
+// E69 도미노 패: 검은 판 + 흰 점 둘.
+function domino() {
+  return merge([
+    part(new THREE.BoxGeometry(0.11, 0.22, 0.05), 0x111111),
+    part(new THREE.SphereGeometry(0.022, 6, 5), 0xf8f8f8, { y: 0.05, z: 0.026 }),
+    part(new THREE.SphereGeometry(0.022, 6, 5), 0xf8f8f8, { y: -0.05, z: 0.026 }),
+  ])
+}
+// E70 술래 터치: 빨간 손바닥 모양(원판 + 손가락 셋).
+function tagMark() {
+  return merge([
+    part(new THREE.CylinderGeometry(0.08, 0.08, 0.03, 10), 0xff5a5a),
+    part(new THREE.BoxGeometry(0.03, 0.03, 0.08), 0xff5a5a, { x: -0.045, z: 0.1 }),
+    part(new THREE.BoxGeometry(0.03, 0.03, 0.09), 0xff5a5a, { z: 0.11 }),
+    part(new THREE.BoxGeometry(0.03, 0.03, 0.08), 0xff5a5a, { x: 0.045, z: 0.1 }),
+  ])
 }
