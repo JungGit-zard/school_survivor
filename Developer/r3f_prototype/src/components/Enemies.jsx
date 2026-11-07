@@ -1826,7 +1826,8 @@ export default function Enemies() {
         // 2026-08-24 사용자 지시로 돌진 속도를 절반(2.8 → 1.4배)으로 낮췄다.
         // 여전히 플레이어보다 빠르므로 직선으로 도망치는 것으로는 못 뿌리치고,
         // 마틸다가 벽에서 반전하는 사이 옆으로 빠지는 회피는 성립한다.
-        chargeSpeed: player.speed * 1.4,
+        // 2026-11-07 Terry: 이동속도 패시브는 마틸다와 별개 — 패시브 배율만 빼고 의상·이속 카드 비율은 그대로 따른다.
+        chargeSpeed: (player.speed / (player.moveSpeedPassiveMult ?? 1)) * 1.4,
         xp: 0,
       }
       const spawnPos = randomSpawnPos('B01', cache.bounds, [], Math.random, cache.obstacles, matildaStats.scale)

@@ -212,6 +212,15 @@ describe('T-06c Matilda dash base follows outfit speed', () => {
   })
 })
 
+describe('moveSpeed passive does not speed up Matilda dash', () => {
+  it('player.speed / moveSpeedPassiveMult equals the no-passive speed', () => {
+    const plain = buildInitialPlayer({}, 'default')
+    const boosted = buildInitialPlayer({ moveSpeed: 10 }, 'default')
+    expect(boosted.speed).toBeGreaterThan(plain.speed)
+    expect(boosted.speed / boosted.moveSpeedPassiveMult).toBeCloseTo(plain.speed, 12)
+  })
+})
+
 describe('T-09 speed card cap = baseSpeed(with outfit) × 1.8', () => {
   it.each([['gym', 3 * 1.06 * 1.8], ['winter', 3 * 0.96 * 1.8], ['default', 5.4]])('%s caps at %f', (id, cap) => {
     startRun('stage1', id)

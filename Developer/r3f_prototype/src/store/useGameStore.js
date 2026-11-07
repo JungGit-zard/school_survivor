@@ -225,13 +225,16 @@ export function buildInitialPlayer(levels, outfitId) {
   const outfit = getOutfitStats(outfitId)
   const adminBalance = getAdminBalanceConfig()
   const maxHp = Math.max(1, BASE_PLAYER.maxHp + getPassiveEffect(levels, 'maxHp') + adminBalance.player.maxHpBonus + outfit.maxHpDelta)
-  const speed = BASE_PLAYER.speed * (1 + getPassiveEffect(levels, 'moveSpeed') / 100) * adminBalance.player.speedMultiplier * outfit.speedMult
+  const moveSpeedPassiveMult = 1 + getPassiveEffect(levels, 'moveSpeed') / 100
+  const speed = BASE_PLAYER.speed * moveSpeedPassiveMult * adminBalance.player.speedMultiplier * outfit.speedMult
   return {
     ...BASE_PLAYER,
     hp: maxHp,
     maxHp,
     speed,
     baseSpeed: speed,
+    // 2026-11-07 Terry: 이동속도 패시브는 마틸다 돌진과 별개다. Enemies.jsx가 player.speed에서 이 배율을 나눠 쓴다.
+    moveSpeedPassiveMult,
     // 영구 패시브 방어력(피격당 고정 감산)·저금통(런 골드 배율). damagePlayer / grantRunGold가 읽는다.
     armor: getPassiveEffect(levels, 'armor'),
     goldMultiplier: 1 + getPassiveEffect(levels, 'greed') / 100,

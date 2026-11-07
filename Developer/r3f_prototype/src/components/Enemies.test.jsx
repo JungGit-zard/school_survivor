@@ -1071,7 +1071,7 @@ describe('all zombie HP follows the cumulative 1.2x-per-stage curve', () => {
     expect(source).toContain('sameTypeZombieHpForStage(matildaHpFromWeapons(store.weapons), cache.id)')
     // 2026-08-24 사용자 지시로 돌진 속도를 절반으로 낮췄다(2.8 → 1.4).
     // 소스 문자열 단언이라 "값이 이 자리에 있다"까지만 보증한다 — 실제 이동은 프레임 검증이 아니다.
-    expect(source).toContain('chargeSpeed: player.speed * 1.4,')
+    expect(source).toContain('chargeSpeed: (player.speed / (player.moveSpeedPassiveMult ?? 1)) * 1.4,')
     expect(source).not.toContain('chargeSpeed: player.speed * 2.8,')
     expect(dogeHpForStage('stage2')).toBe(220)
     expect(dogeHpForStage('stage3')).toBe(242)
