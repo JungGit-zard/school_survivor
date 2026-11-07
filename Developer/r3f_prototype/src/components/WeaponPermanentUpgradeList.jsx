@@ -17,6 +17,7 @@ import bellIconSrc from '../assets/weapon_icon/05_wea_bell.png.webp'
 import stunIconSrc from '../assets/weapon_icon/06_wea_stungun.png.webp'
 import onigiriIconSrc from '../assets/weapon_icon/07_wea_onigiri.png.webp'
 import miniRosariIconSrc from '../assets/weapon_icon/20_wea_mini_rosari.svg'
+import paperPlaneIconSrc from '../assets/weapon_icon/21_wea_paper_plane.svg'
 import missileIconSrc from '../assets/weapon_icon/08_wea_extrabattery.png.webp'
 import starlinkIconSrc from '../assets/weapon_icon/09_wea_starlink.png.webp'
 import compassBladeIconSrc from '../assets/weapon_icon/10_wea_compass.png.webp'
@@ -37,6 +38,7 @@ const WEAPON_PERMANENT_ICON_SRC = {
   stunGun: stunIconSrc,
   onigiri: onigiriIconSrc,
   miniRosari: miniRosariIconSrc,
+  paperPlane: paperPlaneIconSrc,
   guidedMissile: missileIconSrc,
   starlink: starlinkIconSrc,
   compassBlade: compassBladeIconSrc,

@@ -74,7 +74,7 @@ describe('sequential rotating level-up choices', () => {
 
   it('records every displayed account-unlocked weapon before any group repeats', () => {
     const weaponKeys = getAccountUnlockableWeaponIds()
-    expect(weaponKeys).toHaveLength(18)
+    expect(weaponKeys).toHaveLength(19) // 2026-11-07 종이비행기 추가
     expect(weaponKeys.every((weaponId) => Object.values(UPGRADE_EFFECTS).some((effect) => effect.weapon === weaponId))).toBe(true)
     let weaponCycleIds = []
     const displayed = []
@@ -92,7 +92,7 @@ describe('sequential rotating level-up choices', () => {
     }
 
     expect(displayed).toEqual(weaponKeys)
-    expect(new Set(displayed)).toHaveLength(18)
+    expect(new Set(displayed)).toHaveLength(19)
   })
 
   it('uses displayed groups, excludes locked IDs, and wraps only after the account-unlocked list completes', () => {

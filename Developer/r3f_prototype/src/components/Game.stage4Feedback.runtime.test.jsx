@@ -18,6 +18,7 @@ vi.mock('../lib/criticalScreenShake.js', () => ({ createCriticalScreenShakeFrame
 vi.mock('./Player.jsx', () => ({ default: () => null }))
 vi.mock('./Floor.jsx', () => ({ default: () => null }))
 vi.mock('./Enemies.jsx', () => ({ default: () => null }))
+vi.mock('./SlteraEvent.jsx', () => ({ default: () => null }))
 vi.mock('./LunchItems.jsx', () => ({ default: () => null }))
 vi.mock('./VFXLayer.jsx', () => ({ default: () => null }))
 vi.mock('./EscapePortal.jsx', () => ({ default: () => null }))
@@ -25,7 +26,7 @@ vi.mock('./StudentDialogueTrigger.jsx', () => ({ default: () => null }))
 vi.mock('./QuestWorldLayer.jsx', () => ({ default: () => null }))
 vi.mock('./Weapons/index.js', () => Object.fromEntries([
   'PencilThrow', 'SchoolBagSwing', 'BoxCutterWeapon', 'TumblerOrbit', 'BellShockwave', 'ScienceFlaskSplash',
-  'OnigiiriWeapon', 'MiniRosariWeapon', 'StunGunWeapon', 'GuidedMissile', 'StarlinkWeapon', 'CompassBladeWeapon', 'UmbrellaGuardWeapon',
+  'OnigiiriWeapon', 'MiniRosariWeapon', 'PaperPlaneWeapon', 'StunGunWeapon', 'GuidedMissile', 'StarlinkWeapon', 'CompassBladeWeapon', 'UmbrellaGuardWeapon',
   'EraserBombWeapon', 'ChibikoWeapon', 'HanakoWeapon', 'InuconWeapon', 'SharkMissileWeapon', 'StudentLanternWeapon',
   'BikittyCutterWeapon', 'LineDrawWeapon',
 ].map((name) => [name, () => null])))

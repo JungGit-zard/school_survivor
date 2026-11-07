@@ -49,6 +49,8 @@ export const WEAPON_PERMANENT_UPGRADE_PLANS = {
   // 꼬마 로자리: 오니기리의 '투사체 속도'는 분신 이동속도가 컴포넌트 상수라 base에 speed가 없어 효과가
   // 없다. 대신 정체성(한 방 무게)에 맞게 실제로 적용되는 '피해' +2~8%를 준다(Lv10 34 → 36.7).
   miniRosari: makePlan('miniRosari', '피해', '바운스 횟수 +1', '바운스 횟수 추가 +1', DAMAGE_LEVELS, '치명타 확률', CRIT_CHANCE_LEVELS),
+  // 종이비행기: 5·10레벨에 관통 +1씩(카드 cap 6 = 기본 3 + 카드 1 + 영구 2).
+  paperPlane: makePlan('paperPlane', '피해', '관통 +1', '관통 추가 +1', DAMAGE_LEVELS, '치명타 확률', CRIT_CHANCE_LEVELS),
   chibiko: {
     id: 'chibiko',
     label: WEAPON_CATALOG.chibiko.label,
@@ -250,6 +252,8 @@ export function applyWeaponPermanentUpgradesToBaseWeapon(id, weapon) {
   if (id === 'onigiri' && level >= 10) out.bounces = (out.bounces ?? 0) + 1
   if (id === 'miniRosari' && level >= 5) out.bounces = (out.bounces ?? 0) + 1
   if (id === 'miniRosari' && level >= 10) out.bounces = (out.bounces ?? 0) + 1
+  if (id === 'paperPlane' && level >= 5) out.pierce = (out.pierce ?? 1) + 1
+  if (id === 'paperPlane' && level >= 10) out.pierce = (out.pierce ?? 1) + 1
   if (id === 'chibiko' && level >= 10) out.projectileCount = (out.projectileCount ?? 1) + 1
   if (id === 'boxCutter' && level >= 10) out.permanentExtraSlashChance = 0.1
   if (id === 'guidedMissile' && level >= 5) out.homingStrength = 1.1

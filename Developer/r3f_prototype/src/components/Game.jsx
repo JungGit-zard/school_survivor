@@ -8,6 +8,8 @@ import Player from './Player.jsx'
 import Floor from './Floor.jsx'
 import { clearExpansionAttacks } from '../lib/expansionAttackRuntime.js'
 import Enemies from './Enemies.jsx'
+import SlteraEvent from './SlteraEvent.jsx'
+import { isSlteraStage } from '../lib/slteraEvent.js'
 import LunchItems from './LunchItems.jsx'
 import VFXLayer from './VFXLayer.jsx'
 import EscapePortal from './EscapePortal.jsx'
@@ -26,7 +28,7 @@ import {
   getPressureCauldronExplosionTimes,
   isInsidePressureCauldronBlastRadius,
 } from '../lib/stage4PressureCauldronHazard.js'
-import { PencilThrow, SchoolBagSwing, BoxCutterWeapon, TumblerOrbit, BellShockwave, ScienceFlaskSplash, OnigiiriWeapon, MiniRosariWeapon, StunGunWeapon, GuidedMissile, StarlinkWeapon, CompassBladeWeapon, UmbrellaGuardWeapon, EraserBombWeapon, ChibikoWeapon, HanakoWeapon, InuconWeapon, SharkMissileWeapon, StudentLanternWeapon, BikittyCutterWeapon, LineDrawWeapon } from './Weapons/index.js'
+import { PencilThrow, SchoolBagSwing, BoxCutterWeapon, TumblerOrbit, BellShockwave, ScienceFlaskSplash, OnigiiriWeapon, MiniRosariWeapon, StunGunWeapon, GuidedMissile, StarlinkWeapon, CompassBladeWeapon, UmbrellaGuardWeapon, EraserBombWeapon, ChibikoWeapon, HanakoWeapon, InuconWeapon, SharkMissileWeapon, StudentLanternWeapon, BikittyCutterWeapon, LineDrawWeapon, PaperPlaneWeapon } from './Weapons/index.js'
 
 const _camTarget = new THREE.Vector3()
 const _cameraPlayerVisualLeft = new THREE.Vector3()
@@ -246,6 +248,7 @@ export default function Game() {
       <InuconWeapon />
       <SharkMissileWeapon />
       <StudentLanternWeapon />
+      <PaperPlaneWeapon />
 
       {/* ── Shared VFX Layer (적 위에 그릴 효과는 이쪽으로) ── */}
       <VFXLayer />
@@ -253,6 +256,9 @@ export default function Game() {
       {/* ── Enemies (AI + physics). Persistent GPU visual pools live beside
           Physics in GameCanvas and are reset in-place by gameKey. ── */}
       <Enemies />
+
+      {/* ── Sltera 돌진 이벤트(S1~S5 매 판, lib/slteraEvent.js 스케줄) ── */}
+      {isSlteraStage(currentStageId) && <SlteraEvent key={`${gameKey}:${currentStageId}`} stageId={currentStageId} gameKey={gameKey} />}
 
       {/* ── Escape Portal (스테이지 설정 시간 이후 등장) ── */}
       {escapePortalActive && <EscapePortal stageId={currentStageId} />}

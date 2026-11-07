@@ -125,6 +125,24 @@ export const WEAPON_CATALOG = {
     unlockConditions: [{ type: 'bossKills', value: 2 }],
     minLevelToAppear: 6,
   },
+  paperPlane: {
+    id: 'paperPlane',
+    label: '종이비행기',
+    // 2026-11-07 Terry: E47 종이비행기 좀비의 탄을 로자리 무기로. 1스테이지부터 레벨업 카드로 등장한다
+    // (기본 계정 해금, 시작 무기는 아님). 동작: 로자리에서 출발 → 가장 가까운 적을 향해 활공 선회 →
+    // 꿰뚫고 지나가며 서로 다른 적을 pierce회까지 맞힘 → 남은 비행기는 수명(4초) 동안 다음 적을 쫓는다.
+    // 비행·선회·수명 상수는 lib/paperPlane.js. levelmini 2026-11-07 "중간 티어" 수치(balanceqa 튜닝 반영):
+    //   단일 대상 Lv1: 9 × 1대 / 1.8초 × (1 + 0.05×0.5) = 5.13/s  (연필 4.36 < 종이비행기 < 오니기리 10.92)
+    //   군중 1사이클: 9 × 1대 × 3관통 / 1.8초 = 15/s
+    //   Lv5(데미지 카드 2장 +4.5×2, 대수 +1, 관통 +1): 단일 18 × 2대 / 1.8 × 1.025 = 20.5/s, 군중 18×2×4/1.8 = 80/s
+    // range 9u = 12블록(1블록 0.75u): 첫 발사 표적 탐색 반경.
+    // singleTargetProjectiles: 표적이 하나뿐이면 launchPaperPlanes(lib/paperPlane.js)가 모든 비행기를 그 적에게
+    // 보낸다(p % targetCount). 그래서 단일 대상 DPS(playerDpsEstimate weaponOnTargetHits)가 비행기 수를
+    // 곱해야 마틸다 HP(= DPS × 1800초)가 맞다. 연필은 서로 다른 적에게만 나눠 던지므로 이 플래그가 없다.
+    base: { damage: 9, cooldown: 1800, lastFired: 0, projectileCount: 1, singleTargetProjectiles: true, pierce: 3, range: 9, critChance: 0.05, critMultiplier: 1.5 },
+    unlockConditions: STARTER,
+    minLevelToAppear: 1,
+  },
   chibiko: {
     id: 'chibiko',
     label: '치비코',

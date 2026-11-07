@@ -60,6 +60,7 @@ import bellIconSrc from '../assets/weapon_icon/05_wea_bell.png.webp'
 import stunIconSrc from '../assets/weapon_icon/06_wea_stungun.png.webp'
 import onigiriIconSrc from '../assets/weapon_icon/07_wea_onigiri.png.webp'
 import miniRosariIconSrc from '../assets/weapon_icon/20_wea_mini_rosari.svg'
+import paperPlaneIconSrc from '../assets/weapon_icon/21_wea_paper_plane.svg'
 import missileIconSrc from '../assets/weapon_icon/08_wea_extrabattery.png.webp'
 import starlinkIconSrc from '../assets/weapon_icon/09_wea_starlink.png.webp'
 import compassBladeIconSrc from '../assets/weapon_icon/10_wea_compass.png.webp'
@@ -213,6 +214,11 @@ export const UPGRADES = [
   { key: 'miniRosariBounce', icon: 'miniRosari', label: '꼬마 로자리 바운스 +1', desc: '튕겨 가는 횟수 증가' },
   { key: 'miniRosariPower', icon: 'miniRosari', labelFn: damageLabel('꼬마 로자리 위력', 'miniRosari', 'miniRosariPower'), desc: '더 힘차게 뛰어 들이받는 위력 증가' },
   { key: 'miniRosariCrit', icon: 'miniRosari', label: '꼬마 로자리 치명타 강화', desc: '치명타 확률 +2% (치명타 피해는 150% 고정)' },
+  { key: 'acquirePaperPlane', icon: 'paperPlane', label: '종이비행기 해금', desc: '로자리가 던진 종이비행기가 가까운 적을 따라 날아가 꿰뚫고, 남으면 다음 적을 쫓는다' },
+  { key: 'paperPlaneDamage', icon: 'paperPlane', labelFn: damageLabel('종이비행기 피해', 'paperPlane', 'paperPlaneDamage'), desc: '꿰뚫는 피해 증가' },
+  { key: 'paperPlaneCount', icon: 'paperPlane', label: '종이비행기 +1대', desc: '한 번에 던지는 비행기 수 증가' },
+  { key: 'paperPlanePierce', icon: 'paperPlane', label: '종이비행기 관통 +1', desc: '비행기 한 대가 꿰뚫는 적 수 증가' },
+  { key: 'paperPlanePower', icon: 'paperPlane', labelFn: damageLabel('종이비행기 위력', 'paperPlane', 'paperPlanePower'), desc: '접는 선을 날카롭게 세워 꿰뚫는 위력 증가' },
   { key: 'acquireMissile', icon: 'missile', label: '보조배터리 미사일 해금', desc: '먼 적 무리를 호밍 폭발로 처리' },
   { key: 'missileDamage', icon: 'missile', labelFn: damageLabel('미사일 피해', 'guidedMissile', 'missileDamage'), desc: '폭발 피해 증가' },
   { key: 'missilePower', icon: 'missile', labelFn: damageLabel('미사일 위력', 'guidedMissile', 'missilePower'), desc: '충전 용량을 키워 폭발 위력 증가' },
@@ -288,6 +294,7 @@ const WEAPON_UPGRADE_ICON_SRC = {
   stun: stunIconSrc,
   onigiri: onigiriIconSrc,
   miniRosari: miniRosariIconSrc,
+  paperPlane: paperPlaneIconSrc,
   missile: missileIconSrc,
   starlink: starlinkIconSrc,
   compassBlade: compassBladeIconSrc,
@@ -312,6 +319,7 @@ const WEAPON_KEY_TO_ICON = {
   stunGun:       'stun',
   onigiri:       'onigiri',
   miniRosari:    'miniRosari',
+  paperPlane:    'paperPlane',
   guidedMissile: 'missile',
   starlink:      'starlink',
   compassBlade:  'compassBlade',

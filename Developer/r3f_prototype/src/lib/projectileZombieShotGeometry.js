@@ -67,6 +67,22 @@ function paperPlane() {
     part(new THREE.BoxGeometry(0.022, 0.05, 0.24), 0xbfd6e6, { y: -0.03, z: -0.03 }),
   ])
 }
+// 로자리 무기 '종이비행기'(Weapons/PaperPlane.jsx)용 — 위 E47 탄 메시를 그대로 쓰고 색만 바꾼다.
+// paperPlane()의 몸체 정점은 흰색(1,1,1), 용골 정점은 그 외 색이라 그 기준으로 다시 칠한다.
+// (모양 정본은 위 paperPlane() 하나 — 좀비 탄 모양을 고치면 무기도 같이 바뀐다.)
+export function createPaperPlaneGeometry(bodyHex = 0xffffff, keelHex = 0xbfd6e6) {
+  const geometry = paperPlane()
+  const colors = geometry.attributes.color
+  const body = new THREE.Color().setHex(bodyHex)
+  const keel = new THREE.Color().setHex(keelHex)
+  for (let i = 0; i < colors.count; i += 1) {
+    const isBody = colors.getX(i) === 1 && colors.getY(i) === 1 && colors.getZ(i) === 1
+    const c = isBody ? body : keel
+    colors.setXYZ(i, c.r, c.g, c.b)
+  }
+  colors.needsUpdate = true
+  return geometry
+}
 // E48 자 부메랑: 긴 크림색 자 + 눈금.
 function ruler() {
   const parts = [part(new THREE.BoxGeometry(0.4, 0.024, 0.075), 0xe7e2c8)]

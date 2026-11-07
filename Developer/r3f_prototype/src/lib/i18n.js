@@ -147,6 +147,7 @@ const PERMANENT_SUMMARY_PHRASES = [
   '타격 반경', '타격 피해', '폭발 범위', '폭발 피해', '동료 피해', '칼날 피해',
   '접촉 피해', '회전 속도', '파동 크기', '공격 범위', '귀소 속도', '체인 수',
   '회복량', '공격력', '쿨타임', '넉백', '피해',
+  '관통 추가', '관통',
 ]
 
 export function permanentSummary(summary) {

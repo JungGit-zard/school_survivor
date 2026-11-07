@@ -53,7 +53,7 @@ describe('WeaponModal encyclopedia', () => {
       act(() => {
         root.render(<WeaponModal onClose={() => {}} />)
       })
-      expect(container.querySelector('[data-testid="weapon-account-unlock-count"]').textContent).toMatch(/\/18$/)
+      expect(container.querySelector('[data-testid="weapon-account-unlock-count"]').textContent).toMatch(/\/19$/)
       expect(container.querySelector('[data-testid="weapon-status-bikittyCutter"]').textContent).toContain('런 중 조합')
       act(() => {
         container.querySelector('[data-testid="weapon-filter-locked"]').dispatchEvent(new MouseEvent('click', { bubbles: true }))
@@ -77,7 +77,7 @@ describe('WeaponModal encyclopedia', () => {
       expect(container.querySelector('[data-testid="weapon-filter-all"]')).not.toBeNull()
       expect(container.querySelector('[data-testid="weapon-row-pencilThrow"]')).not.toBeNull()
       expect(container.querySelector('[data-testid="weapon-icon-pencilThrow"]')).not.toBeNull()
-      expect(container.querySelector('[data-testid="weapon-account-unlock-count"]').textContent).toMatch(/^4\/18$/)
+      expect(container.querySelector('[data-testid="weapon-account-unlock-count"]').textContent).toMatch(/^5\/19$/)
     } finally {
       act(() => root.unmount())
     }
@@ -135,7 +135,7 @@ describe('WeaponModal encyclopedia', () => {
         root.render(<WeaponModal onClose={() => {}} />)
       })
 
-      expect(Object.keys(WEAPON_CATALOG)).toHaveLength(21)
+      expect(Object.keys(WEAPON_CATALOG)).toHaveLength(22)
       for (const id of Object.keys(WEAPON_CATALOG)) {
         expect(container.querySelector(`[data-testid="weapon-icon-${id}"]`), `${id} icon`).not.toBeNull()
       }

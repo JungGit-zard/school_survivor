@@ -21,17 +21,18 @@ describe('weaponCatalog', () => {
     })
   })
 
-  it('21종 entry 등록 + 기본군 starter 4종', () => {
+  // 2026-11-07: 종이비행기(paperPlane)를 1스테이지부터 나오는 기본 해금 레벨업 무기로 추가 → 22종, starter 5종.
+  it('22종 entry 등록 + 기본 해금 starter 5종', () => {
     const all = getAllWeaponIds()
-    expect(all.length).toBe(21)
+    expect(all.length).toBe(22)
     const starter = getStarterIds()
-    expect(starter).toEqual(['pencilThrow', 'schoolBag', 'boxCutter', 'tumbler'])
-    expect(getAccountUnlockableWeaponIds()).toHaveLength(18)
+    expect(starter).toEqual(['pencilThrow', 'schoolBag', 'boxCutter', 'tumbler', 'paperPlane'])
+    expect(getAccountUnlockableWeaponIds()).toHaveLength(19)
     expect(['hanako', 'bikittyCutter', 'lineDraw'].every(isRuntimeCombinationWeapon)).toBe(true)
     expect(['hanako', 'bikittyCutter', 'lineDraw'].every(isAccountUnlockable)).toBe(false)
   })
 
-  it('승인된 21종 해금표가 ID별로 정확히 고정된다', () => {
+  it('승인된 22종 해금표가 ID별로 정확히 고정된다', () => {
     const conditionById = Object.fromEntries(getAllWeaponIds().map((id) => [id, WEAPON_CATALOG[id].unlockConditions]))
     expect(conditionById).toEqual({
       pencilThrow: STARTER,
@@ -43,6 +44,7 @@ describe('weaponCatalog', () => {
       stunGun: [{ type: 'stage2Clears', value: 1 }],
       onigiri: [{ type: 'totalKills', value: 700 }],
       miniRosari: [{ type: 'bossKills', value: 2 }],
+      paperPlane: STARTER,
       chibiko: [{ type: 'totalRuns', value: 3 }],
       hanako: null,
       inucon: [{ type: 'bossKills', value: 3 }],
@@ -58,7 +60,7 @@ describe('weaponCatalog', () => {
     })
     expect(Object.fromEntries(getAllWeaponIds().map((id) => [id, WEAPON_CATALOG[id].minLevelToAppear ?? null]))).toEqual({
       pencilThrow: 1, schoolBag: 2, boxCutter: 2, tumbler: 2, scienceFlask: 4,
-      bell: 4, stunGun: 6, onigiri: 6, miniRosari: 6, chibiko: 8, hanako: null, inucon: 8,
+      bell: 4, stunGun: 6, onigiri: 6, miniRosari: 6, paperPlane: 1, chibiko: 8, hanako: null, inucon: 8,
       guidedMissile: 4, sharkMissile: 8, starlink: 8, compassBlade: 3,
       umbrellaGuard: 3, eraserBomb: 4, studentLantern: 5, bikittyCutter: 6, lineDraw: 8,
     })
@@ -253,9 +255,9 @@ describe('weaponCatalog', () => {
     })
   })
 
-  it('evaluateUnlocks 빈 records → 기본군 4종만', () => {
+  it('evaluateUnlocks 빈 records → 기본 해금 5종만', () => {
     const u = evaluateUnlocks({})
-    expect(u.size).toBe(4)
+    expect(u.size).toBe(5)
     for (const id of getStarterIds()) expect(u.has(id)).toBe(true)
     expect(u.has('compassBlade')).toBe(false)
   })
@@ -314,7 +316,7 @@ describe('weaponCatalog', () => {
   it('null/undefined records 안전', () => {
     expect(() => evaluateUnlocks(null)).not.toThrow()
     expect(() => evaluateUnlocks(undefined)).not.toThrow()
-    expect(evaluateUnlocks(null).size).toBe(4) // starter only
+    expect(evaluateUnlocks(null).size).toBe(5) // starter only
   })
 
   it('isStarter / isValidWeaponId / STARTER 상수', () => {
