@@ -199,8 +199,12 @@ export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onO
 
   const handleLobbyPointerDown = (event) => {
     if (!lobbyMotionAllowed()) return
-    const x = event.clientX / window.innerWidth - 0.5
-    const y = event.clientY / window.innerHeight - 0.5
+    // 가로 화면·데스크톱은 9:16 프레임 안에 로비를 그리므로 window가 아니라 로비 루트 기준으로 잰다.
+    const rect = event.currentTarget.getBoundingClientRect()
+    const fx = (event.clientX - rect.left) / (rect.width || 1)
+    const fy = (event.clientY - rect.top) / (rect.height || 1)
+    const x = fx - 0.5
+    const y = fy - 0.5
     const touchAmbient = touchAmbientRef.current
     if (touchAmbient) {
       touchAmbient.style.opacity = '1'
@@ -212,8 +216,8 @@ export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onO
     }
     const pulse = touchPulseRef.current
     if (pulse) {
-      pulse.style.left = `${Math.max(0, Math.min(100, (event.clientX / window.innerWidth) * 100))}%`
-      pulse.style.top = `${Math.max(0, Math.min(100, (event.clientY / window.innerHeight) * 100))}%`
+      pulse.style.left = `${Math.max(0, Math.min(100, fx * 100))}%`
+      pulse.style.top = `${Math.max(0, Math.min(100, fy * 100))}%`
       pulse.classList.remove('lobby-touch-pulse-active')
       void pulse.offsetWidth
       pulse.classList.add('lobby-touch-pulse-active')
@@ -836,6 +840,8 @@ const styles = {
     display: 'grid',
     gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
     gap: 7,
+    // 버튼 라벨이 nav 폭(cqw)에 맞춰 줄어든다 — 가로 화면 9:16 프레임은 ~200px뿐이다.
+    containerType: 'inline-size',
     padding: '8px 10px max(10px, calc(env(safe-area-inset-bottom, 0px) + 8px))',
     borderTop: uiBorders.strong,
     background: 'rgba(16,40,32,0.97)',
@@ -848,8 +854,9 @@ const styles = {
     minWidth: 0,
     minHeight: 48,
     padding: '0 4px',
-    fontSize: 13,
+    fontSize: 'clamp(10px, 3.6cqw, 13px)',
     lineHeight: 1,
+    overflowWrap: 'anywhere',
     boxShadow: uiShadows.pressSmall,
   },
   bottomNavButtonAccent: {
@@ -857,8 +864,9 @@ const styles = {
     minWidth: 0,
     minHeight: 48,
     padding: '0 4px',
-    fontSize: 13,
+    fontSize: 'clamp(10px, 3.6cqw, 13px)',
     lineHeight: 1,
+    overflowWrap: 'anywhere',
     boxShadow: uiShadows.pressSmall,
   },
   bottomNavButtonReward: {
@@ -866,8 +874,9 @@ const styles = {
     minWidth: 0,
     minHeight: 48,
     padding: '0 4px',
-    fontSize: 13,
+    fontSize: 'clamp(10px, 3.6cqw, 13px)',
     lineHeight: 1,
+    overflowWrap: 'anywhere',
     boxShadow: uiShadows.pressSmall,
   },
   weaponNewBadge: {

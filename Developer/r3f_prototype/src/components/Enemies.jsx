@@ -1936,9 +1936,11 @@ export default function Enemies() {
     setDoges((prev) => prev.filter((d) => d.id !== dogeId))
   }, [])
 
-  // 상자 오픈(드랍+1.5초) → 상자 제거 + 주변에 코인 잭팟 산포.
+  // 상자 오픈(드랍+1.5초) → 주변에 코인 잭팟 산포.
+  // 여기서 상자를 목록에서 빼면 같은 프레임에 언마운트돼 "퍽" 버스트(뚜껑·플래시)가 한 프레임도
+  // 그려지지 않았다. 상자는 버스트가 끝나면 스스로 null을 렌더하고(openedRef로 재오픈 없음),
+  // 항목은 런마다 도지 수만큼만 생기며 gameKey 리마운트 때 비워진다.
   const onChestOpen = useCallback((chestId, pos) => {
-    setChests((prev) => prev.filter((c) => c.id !== chestId))
     for (const coinPos of dogeTreasureCoinPositions(pos)) dropGoldCoin(coinPos)
   }, [dropGoldCoin])
 

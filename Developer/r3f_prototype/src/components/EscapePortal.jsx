@@ -1,4 +1,4 @@
-import { useEffect, useRef, useMemo } from 'react'
+import { useEffect, useRef, useMemo, useState } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import { clearPortalTarget, playerPos, publishPortalTarget } from '../lib/refs.js'
@@ -21,6 +21,65 @@ import StudioTunedGroup, {
 const PORTAL_RADIUS = 1.5
 // 작동(흡입) 히트박스 — 시각 링(PORTAL_RADIUS)과 분리해 중앙 좁은 원으로 제한.
 const PORTAL_TRIGGER_RADIUS = 0.6
+const PORTAL_LIGHT_DISTANCE = 6
+const PORTAL_LIGHT_DECAY = 2
+
+// Mounting a pointLight mid-run changes NUM_POINT_LIGHTS and recompiles every
+// lit material that the stage-entry prewarm already compiled.  Gameplay keeps
+// one EscapePortalSceneLight mounted for the whole stage at intensity 0; the
+// portal borrows it while active.  Without a mounted host (Studio preview) the
+// portal keeps its own light so the preview looks the same.
+const portalSceneLight = { hosts: 0, anchor: null, visual: null }
+
+export function getEscapePortalSceneLightIntensity(state = portalSceneLight) {
+  return state.anchor && state.visual ? state.visual.lightIntensity : 0
+}
+
+export function EscapePortalSceneLight() {
+  const lightRef = useRef()
+  const appliedColorRef = useRef(PORTAL_VISUAL_STATE.idle.color)
+
+  useEffect(() => {
+    portalSceneLight.hosts += 1
+    return () => {
+      portalSceneLight.hosts -= 1
+    }
+  }, [])
+
+  useFrame(() => {
+    const light = lightRef.current
+    if (!light) return
+    const intensity = getEscapePortalSceneLightIntensity()
+    light.intensity = intensity
+    if (intensity === 0) return
+    const { anchor, visual } = portalSceneLight
+    if (appliedColorRef.current !== visual.color) {
+      light.color.set(visual.color)
+      appliedColorRef.current = visual.color
+    }
+    anchor.getWorldPosition(light.position)
+    light.parent?.worldToLocal(light.position)
+  })
+
+  return (
+    <pointLight
+      ref={lightRef}
+      name="escape-portal-scene-light"
+      color={PORTAL_VISUAL_STATE.idle.color}
+      intensity={0}
+      distance={PORTAL_LIGHT_DISTANCE}
+      decay={PORTAL_LIGHT_DECAY}
+    />
+  )
+}
+
+export function getEscapePortalSceneLightState() {
+  return portalSceneLight
+}
+
+function setPortalSceneLightAnchor(node) {
+  portalSceneLight.anchor = node ?? null
+}
 
 export default function EscapePortal({ stageId }) {
   const clearStage = useGameStore((s) => s.clearStage)
@@ -32,6 +91,8 @@ export default function EscapePortal({ stageId }) {
   const ringMaterialRef = useRef()
   const glowMaterialRef = useRef()
   const portalLightRef = useRef()
+  // Decided once per portal life so the light count never flips while mounted.
+  const [usesSceneLight] = useState(() => portalSceneLight.hosts > 0)
   const spinRef = useRef({ ringY: 0, glowY: 0 })
   const suckingRef      = useRef(false)
   const suctionClockRef = useRef(null)
@@ -42,6 +103,14 @@ export default function EscapePortal({ stageId }) {
     publishPortalTarget(pos[0], pos[2])
     return clearPortalTarget
   }, [pos])
+
+  useEffect(() => {
+    if (!usesSceneLight) return undefined
+    portalSceneLight.visual = PORTAL_VISUAL_STATE.idle
+    return () => {
+      portalSceneLight.visual = null
+    }
+  }, [usesSceneLight])
 
   useFrame((_, delta) => {
     if (phase !== 'playing' || clearedRef.current) return
@@ -72,8 +141,9 @@ export default function EscapePortal({ stageId }) {
       applyPortalSuctionVisuals({
         ringMaterial: ringMaterialRef.current,
         glowMaterial: glowMaterialRef.current,
-        light: portalLightRef.current,
+        light: usesSceneLight ? null : portalLightRef.current,
       })
+      if (usesSceneLight) portalSceneLight.visual = PORTAL_VISUAL_STATE.sucking
       emitSfx({ id: 'portalSuction' })
       // Trigger frame only starts the sequence. The next playing frame owns
       // the first fixed suction step, preventing a resume hitch from skipping it.
@@ -130,14 +200,18 @@ export default function EscapePortal({ stageId }) {
             side={THREE.DoubleSide}
           />
         </mesh>
-        {/* point light for scene glow */}
-        <pointLight
-          ref={portalLightRef}
-          color={PORTAL_VISUAL_STATE.idle.color}
-          intensity={PORTAL_VISUAL_STATE.idle.lightIntensity}
-          distance={6}
-          decay={2}
-        />
+        {/* point light for scene glow (borrowed from EscapePortalSceneLight in gameplay) */}
+        {usesSceneLight ? (
+          <group ref={setPortalSceneLightAnchor} name="escape-portal-light-anchor" />
+        ) : (
+          <pointLight
+            ref={portalLightRef}
+            color={PORTAL_VISUAL_STATE.idle.color}
+            intensity={PORTAL_VISUAL_STATE.idle.lightIntensity}
+            distance={PORTAL_LIGHT_DISTANCE}
+            decay={PORTAL_LIGHT_DECAY}
+          />
+        )}
       </StudioTunedGroup>
     </group>
   )

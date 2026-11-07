@@ -34,6 +34,13 @@ describe('GameCanvas reset ownership', () => {
     expect(source).toContain("filter: isMatildaContactDeath ? 'grayscale(1)' : 'none'")
   })
 
+  it('redraws the frozen Matilda frame on resize without running the frame loop', () => {
+    expect(source).toContain('<RedrawFrozenOnResize active={isMatildaContactDeath} />')
+    expect(source).toContain('gl.render(scene, camera)')
+    // The freeze itself is never re-rendered; only a later size change redraws.
+    expect(source).toMatch(/if \(frozenSizeRef\.current === null\) \{\s*frozenSizeRef\.current = sizeKey\s*return/)
+  })
+
   it('starts Canvas-local shader warmup in every build and gates only diagnostics to DEV', () => {
     const diagnostics = readFileSync(new URL('./StageEntryRuntimeDiagnostics.jsx', import.meta.url), 'utf8')
     expect(diagnostics).toContain('useLayoutEffect')

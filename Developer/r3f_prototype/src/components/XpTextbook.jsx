@@ -18,7 +18,9 @@ export default function XpTextbook({ id, pos, value, onCollect }) {
   const collected = useRef(false)
   const pRef      = useRef({ x: pos[0], y: FLOOR_Y, z: pos[2] })
   const seed      = pos[0] * 11.3 + pos[2] * 7.7
-  const birthSec  = useRef(performance.now() / 1000)
+  // 착지 후 플로트 시간. R3F clock은 일시정지 중에도 흐르므로, 플레이 중에만 누적해야
+  // 일시정지 해제 때 회전·출렁임이 튀지 않는다.
+  const floatSecRef = useRef(0)
   const tossMsRef = useRef(0)
   const landedRef = useRef(false)
 
@@ -39,7 +41,7 @@ export default function XpTextbook({ id, pos, value, onCollect }) {
 
   // STUDIO_OUTER_MOTION_ONLY — 이 useFrame은 StudioTunedGroup의 바깥 그룹만 움직인다.
   // 스튜디오 파츠는 건드리지 않으므로 튜닝을 덮어쓰지 않고 부모 변형으로 곱해질 뿐이다.
-  useFrame(({ clock }, delta) => {
+  useFrame((_, delta) => {
     if (collected.current || !groupRef.current) return
     if (useGameStore.getState().phase !== 'playing') return
 
@@ -84,12 +86,13 @@ export default function XpTextbook({ id, pos, value, onCollect }) {
     }
 
     // 둥둥 떠있는 플로트 (Y 위아래 + Z 앞뒤로 살짝)
-    const t = clock.elapsedTime * 1.8 + seed
+    floatSecRef.current += delta
+    const t = floatSecRef.current * 1.8 + seed
     const bobY = Math.sin(t) * 0.06
     const bobZ = Math.cos(t * 0.8) * 0.04
     const p = pRef.current
     groupRef.current.position.set(p.x, p.y + bobY, p.z + bobZ)
-    groupRef.current.rotation.y = (clock.elapsedTime - birthSec.current) * 0.6
+    groupRef.current.rotation.y = floatSecRef.current * 0.6
   })
 
   return (

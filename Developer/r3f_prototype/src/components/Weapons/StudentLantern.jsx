@@ -1,4 +1,4 @@
-import { useMemo, useRef } from 'react'
+import { useLayoutEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import { usePlayingFrame } from '../../lib/usePlayingFrame.js'
 import { emitSfx } from '../../lib/sfxEvents.js'
@@ -33,6 +33,8 @@ const lanternBeamFragmentShader = `
     float sideAlpha = 1.0 - smoothstep(0.18, 1.0, edge01);
     float tipAlpha = 1.0 - smoothstep(0.78, 1.0, y01);
     gl_FragColor = vec4(uColor, uOpacity * sideAlpha * tipAlpha);
+    // uColor는 THREE.Color라 선형 공간 값이다. 출력 색공간(sRGB)으로 변환해야 지정한 hex 색이 나온다.
+    #include <colorspace_fragment>
   }
 `
 
@@ -44,6 +46,16 @@ function createLanternBeamUniforms(color, opacity, length, width, baseWidth) {
     uWidth: { value: width },
     uBaseWidth: { value: baseWidth },
   }
+}
+
+// 크기 uniform은 값만 바꾼다. uniforms 객체를 갈아 끼우면 렌더러는 컴파일 때 잡은 옛 객체를
+// 계속 올린다. Studio 재질 튜닝이 재질을 복제할 수 있으므로 지금 메시에 붙은 재질에 쓴다.
+function setLanternBeamSize(mesh, length, width, baseWidth) {
+  const uniforms = mesh?.material?.uniforms
+  if (!uniforms?.uLength) return
+  uniforms.uLength.value = length
+  uniforms.uWidth.value = width
+  uniforms.uBaseWidth.value = baseWidth
 }
 
 function setLanternBeamOpacity(mesh, opacity) {
@@ -69,7 +81,7 @@ export function getLanternBeamOrigin(player, facing) {
   }
 }
 
-export function StudentLanternVisual({ beamRef = null, coreRef = null, length = 2.08 * LANTERN_BEAM_VISUAL_SCALE, width = 3.6 * LANTERN_BEAM_VISUAL_SCALE, baseWidth = 0.35 * LANTERN_BEAM_VISUAL_SCALE }) {
+export function StudentLanternVisual({ beamRef: beamRefProp = null, coreRef: coreRefProp = null, length = 2.08 * LANTERN_BEAM_VISUAL_SCALE, width = 3.6 * LANTERN_BEAM_VISUAL_SCALE, baseWidth = 0.35 * LANTERN_BEAM_VISUAL_SCALE }) {
   const coreLength = length * 0.68
   const coreBaseWidth = baseWidth * 0.65
   const coreWidth = width * 0.48
@@ -91,14 +103,23 @@ export function StudentLanternVisual({ beamRef = null, coreRef = null, length = 
     shape.closePath()
     return shape
   }, [coreBaseWidth, coreLength, coreWidth])
+  const localBeamRef = useRef(null)
+  const localCoreRef = useRef(null)
+  const beamRef = beamRefProp ?? localBeamRef
+  const coreRef = coreRefProp ?? localCoreRef
+  // 마운트당 한 번만 만든다. 이후 스탯 변화는 아래 layout effect가 값만 갱신한다.
   const beamUniforms = useMemo(
     () => createLanternBeamUniforms(0xffd964, 0.3, length, width, baseWidth),
-    [baseWidth, length, width],
+    [],
   )
   const coreUniforms = useMemo(
     () => createLanternBeamUniforms(0xfff0b0, 0.38, coreLength, coreWidth, coreBaseWidth),
-    [coreBaseWidth, coreLength, coreWidth],
+    [],
   )
+  useLayoutEffect(() => {
+    setLanternBeamSize(beamRef.current, length, width, baseWidth)
+    setLanternBeamSize(coreRef.current, coreLength, coreWidth, coreBaseWidth)
+  }, [beamRef, coreRef, length, width, baseWidth, coreLength, coreWidth, coreBaseWidth])
 
   return (
     <>

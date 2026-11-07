@@ -672,7 +672,7 @@ const ARCHIVE_TOON_GRADIENT = (() => {
   }
 })()
 
-function collectLimbRefs(root, refs) {
+export function collectLimbRefs(root, refs) {
   for (const key of Object.keys(refs)) delete refs[key]
   root.traverse((node) => {
     const name = node.name || ''
@@ -689,27 +689,41 @@ function collectLimbRefs(root, refs) {
     if (name === 'left_ankle_pivot') refs.leftAnkle = node
     if (name === 'right_ankle_pivot') refs.rightAnkle = node
   })
+  // The GLB bakes small rest rotations into several pivots (shoulders, elbows, hips,
+  // knees).  The room animation is an offset on top of that rest pose.
+  for (const node of Object.values(refs)) {
+    node.userData.roomBaseRotX = node.rotation.x
+    node.userData.roomBaseRotZ = node.rotation.z
+  }
 }
 
-function animateNamedLimbs(refs, t, moving) {
+function setLimbRotationX(node, offset) {
+  if (node) node.rotation.x = (node.userData.roomBaseRotX ?? 0) + offset
+}
+
+function setLimbRotationZ(node, offset) {
+  if (node) node.rotation.z = (node.userData.roomBaseRotZ ?? 0) + offset
+}
+
+export function animateNamedLimbs(refs, t, moving) {
   const armSwing = moving ? Math.sin(t) * 0.34 : 0
   const legSwing = moving ? Math.sin(t + Math.PI) * 0.3 : 0
   const elbowBend = moving ? 0.08 + Math.max(0, Math.sin(t + Math.PI)) * 0.16 : 0
   const kneeBend = moving ? Math.max(0, Math.sin(t)) * 0.18 : 0
   const settle = moving ? Math.sin(t * 2) * 0.03 : 0
 
-  if (refs.leftShoulder) refs.leftShoulder.rotation.x = armSwing
-  if (refs.rightShoulder) refs.rightShoulder.rotation.x = -armSwing
-  if (refs.leftHip) refs.leftHip.rotation.x = legSwing
-  if (refs.rightHip) refs.rightHip.rotation.x = -legSwing
-  if (refs.leftElbow) refs.leftElbow.rotation.x = -elbowBend
-  if (refs.rightElbow) refs.rightElbow.rotation.x = -elbowBend
-  if (refs.leftKnee) refs.leftKnee.rotation.x = kneeBend
-  if (refs.rightKnee) refs.rightKnee.rotation.x = moving ? Math.max(0, Math.sin(t + Math.PI)) * 0.18 : 0
-  if (refs.leftWrist) refs.leftWrist.rotation.z = settle
-  if (refs.rightWrist) refs.rightWrist.rotation.z = -settle
-  if (refs.leftAnkle) refs.leftAnkle.rotation.x = -kneeBend * 0.35
-  if (refs.rightAnkle) refs.rightAnkle.rotation.x = (moving ? -Math.max(0, Math.sin(t + Math.PI)) * 0.18 : 0) * 0.35
+  setLimbRotationX(refs.leftShoulder, armSwing)
+  setLimbRotationX(refs.rightShoulder, -armSwing)
+  setLimbRotationX(refs.leftHip, legSwing)
+  setLimbRotationX(refs.rightHip, -legSwing)
+  setLimbRotationX(refs.leftElbow, -elbowBend)
+  setLimbRotationX(refs.rightElbow, -elbowBend)
+  setLimbRotationX(refs.leftKnee, kneeBend)
+  setLimbRotationX(refs.rightKnee, moving ? Math.max(0, Math.sin(t + Math.PI)) * 0.18 : 0)
+  setLimbRotationZ(refs.leftWrist, settle)
+  setLimbRotationZ(refs.rightWrist, -settle)
+  setLimbRotationX(refs.leftAnkle, -kneeBend * 0.35)
+  setLimbRotationX(refs.rightAnkle, (moving ? -Math.max(0, Math.sin(t + Math.PI)) * 0.18 : 0) * 0.35)
 }
 
 function makeArchiveToonMaterial(source) {

@@ -2,7 +2,9 @@ import { describe, expect, it } from 'vitest'
 import { readFileSync } from 'node:fs'
 import * as THREE from 'three'
 import { composeStudioPartTransformCache, getStudioTransformProps } from './StudioTunedGroup.jsx'
-import { CHARGE_CUE_CAPACITY, ENEMY_RENDER_CULLED, ENEMY_RENDER_FAR, ENEMY_RENDER_MID, ENEMY_RENDER_NEAR, ENEMY_VISUAL_WORLD_SCALE, POOLED_CHARGE_CUE_PARTS, POOLED_CHARGE_CUE_TYPE_CODE, applyCachedPartTransform, applyPooledZombieStudioPartTunings, copyRootTransform, e01PartSlotsForNumericPath, fillChargeCueSlots, fillEnemyHealthBarLayout, fillVisibleChargeCueSlots, getPooledEnemyAnimationTime, getPooledChargeCueY, getPooledEnemyRenderTier, getPooledEnemyVisibility, getSpawnSmokeOpacity, hasUnsupportedStudioPartTuning, pooledZombiePartSlotsForNumericPath, selectChargeCueSlots, setSlotOpacity, shouldRefreshEnemySight, shouldRenderPooledEnemyPart, updateHealthVisualState } from './PooledEnemyVisuals.js'
+import { POSED_ZOMBIE_FIRST_TYPE_CODE as MESH_POSED_FIRST_TYPE_CODE, POSED_ZOMBIE_TYPES, buildPosedZombieParts } from './ZombieMesh.jsx'
+import { POSED_SLOT_BASE } from './ZombieInstanceLayer.jsx'
+import { CHARGE_CUE_CAPACITY, ENEMY_RENDER_CULLED, ENEMY_RENDER_FAR, ENEMY_RENDER_MID, ENEMY_RENDER_NEAR, ENEMY_VISUAL_WORLD_SCALE, POOLED_CHARGE_CUE_PARTS, POOLED_CHARGE_CUE_TYPE_CODE, POOLED_POSED_MARK_PARENTS, POOLED_POSED_SLOT_BASE, POSED_ZOMBIE_FIRST_TYPE_CODE, applyCachedPartTransform, applyPooledZombieStudioPartTunings, copyRootTransform, e01PartSlotsForNumericPath, fillChargeCueSlots, fillEnemyHealthBarLayout, fillVisibleChargeCueSlots, getPooledEnemyAnimationTime, getPooledChargeCueY, getPooledEnemyRenderTier, getPooledEnemyVisibility, getSpawnSmokeOpacity, hasUnsupportedStudioPartTuning, pooledZombiePartSlotsForNumericPath, selectChargeCueSlots, setSlotOpacity, shouldRefreshEnemySight, shouldRenderPooledEnemyPart, updateHealthVisualState } from './PooledEnemyVisuals.js'
 
 describe('pooled enemy visual pure contracts', () => {
   it('holds smoke before and through reveal, then hides it at its final lifetime', () => {
@@ -227,6 +229,45 @@ describe('pooled enemy visual pure contracts', () => {
       expect(cache[offset + 4]).toBeCloseTo(THREE.MathUtils.degToRad(15))
       expect(cache[offset + 6]).toBeCloseTo(1.2)
     }
+  })
+
+  it('maps posed zombie (E34-E45) numeric paths onto the PosedBoxZombieMesh tree slots', () => {
+    expect(POOLED_POSED_SLOT_BASE).toBe(POSED_SLOT_BASE)
+    expect(POSED_ZOMBIE_FIRST_TYPE_CODE).toBe(MESH_POSED_FIRST_TYPE_CODE)
+    expect(POOLED_POSED_MARK_PARENTS).toHaveLength(POSED_ZOMBIE_TYPES.length)
+    const groupKeys = ['head', 'body', 'armL', 'armR', 'legL', 'legR']
+    const slots = new Int16Array(12)
+    POSED_ZOMBIE_TYPES.forEach((name, typeIndex) => {
+      const type = POSED_ZOMBIE_FIRST_TYPE_CODE + typeIndex
+      const parts = buildPosedZombieParts(name)
+      groupKeys.forEach((key, pivot) => {
+        // Same child order PosedBoxZombieMesh renders under each pivot group.
+        const expected = parts.map((part, j) => (part.key === key ? POSED_SLOT_BASE + j : -1)).filter((slot) => slot >= 0)
+        expect(pooledZombiePartSlotsForNumericPath(type, `0.${pivot}`, slots)).toBe(expected.length)
+        expect(Array.from(slots.slice(0, expected.length))).toEqual(expected)
+        expected.forEach((slot, leaf) => {
+          expect(pooledZombiePartSlotsForNumericPath(type, `0.${pivot}.${leaf}`, slots)).toBe(1)
+          expect(slots[0]).toBe(slot)
+          expect(pooledZombiePartSlotsForNumericPath(type, `0.${pivot}.${leaf}.0`, slots)).toBe(1)
+          expect(slots[0]).toBe(slot)
+        })
+        expect(pooledZombiePartSlotsForNumericPath(type, `0.${pivot}.${expected.length}`, slots)).toBe(0)
+      })
+    })
+  })
+
+  it('applies a saved posed zombie part tuning to its pooled slot', () => {
+    const partCount = POSED_SLOT_BASE + 13
+    const type = POSED_ZOMBIE_FIRST_TYPE_CODE
+    const cache = new Float32Array((type + 1) * partCount * 9)
+    for (let part = 0; part < partCount; part += 1) cache.fill(1, type * partCount * 9 + part * 9 + 6, type * partCount * 9 + part * 9 + 9)
+    const slots = new Int16Array(12)
+    const tunings = { 'zombie-e34::part::0.0.0': { positionX: 0.25, rotationY: 15, scale: 1.2 } }
+    applyPooledZombieStudioPartTunings(cache, type, partCount, 'zombie-e34', tunings, getStudioTransformProps, composeStudioPartTransformCache, slots)
+    const offset = type * partCount * 9 + POSED_SLOT_BASE * 9
+    expect(cache[offset]).toBeCloseTo(0.25)
+    expect(cache[offset + 4]).toBeCloseTo(THREE.MathUtils.degToRad(15))
+    expect(cache[offset + 6]).toBeCloseTo(1.2)
   })
 
   it('maps Stage 2 fugitive and guard numeric paths to their dedicated pooled slots', () => {

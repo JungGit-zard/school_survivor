@@ -160,9 +160,13 @@ function clonePlayerRosariScene(scene, gameplay, outfit = DEFAULT_ROSARI_OUTFIT_
   return cloned
 }
 
-function setPlayerRosariFlash(root, flashMaterial, active) {
+// Flash only the cloned GLB surfaces.  The blob shadow and the lantern (block +
+// translucent light cone) are siblings of the GLB primitive, and Studio texture
+// decals are transparent overlays; swapping any of them to the opaque white
+// flash material turns them into solid white shapes for the flash frame.
+export function setPlayerRosariFlash(root, flashMaterial, active) {
   root?.traverse((object) => {
-    if (!object.isMesh || object.userData.studioRenderOutline) return
+    if (!object.isMesh || object.userData.studioRenderOutline || object.userData.studioTextureDecal) return
     if (active) {
       if (!object.userData.playerRosariBaseMaterial) object.userData.playerRosariBaseMaterial = object.material
       object.material = flashMaterial
@@ -293,7 +297,7 @@ export default function PlayerRosariModel({ groupRef, movingRef, animateRef = nu
       lastHitFlashToken.current = hitFlashToken
       hitFlashFrames.current = 1
     }
-    setPlayerRosariFlash(modelRef.current, flashMat, hitFlashFrames.current > 0)
+    setPlayerRosariFlash(scene, flashMat, hitFlashFrames.current > 0)
     if (hitFlashFrames.current > 0) hitFlashFrames.current -= 1
 
     const isMoving = movingRef?.current ?? false

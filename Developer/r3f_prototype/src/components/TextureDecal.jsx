@@ -6,6 +6,7 @@ import { getDecalPlacement } from '../lib/textureDecal.js'
 
 const DECAL_KEY = 'studioTextureDecalKey'
 const DECAL_MESHES = 'studioTextureDecalMeshes'
+const DECAL_MISSING = 'studioTextureDecalMissingParts'
 
 // part(group)의 자식 mesh들을 part 로컬 좌표계 기준 AABB로 합산.
 // 월드 행렬을 쓰지 않으므로 root 변환·프레임 타이밍과 무관하게 안정적이다.
@@ -100,10 +101,13 @@ export function syncTextureDecals(root, decals = []) {
   const list = Array.isArray(decals) ? decals : []
   const key = getDecalSyncKey(list)
   const tracked = root.userData[DECAL_MESHES] ?? []
-  // 전 레이어가 생성되어 아직 root에 붙어 있을 때만 no-op.
-  // (파트 미발견/리마운트 시에는 재시도·재생성한다)
-  const complete = tracked.length === list.length && tracked.every((mesh) => isAttachedToRoot(mesh, root))
-  if (root.userData[DECAL_KEY] === key && complete) return
+  // 같은 입력이고 생성된 레이어가 아직 root에 붙어 있으면 no-op.
+  // 파트 미발견 레이어는 그 파트가 나타났을 때만 재생성한다 — 예전에는 개수 불일치만으로
+  // 매 프레임 전 레이어를 지우고 텍스처를 다시 만들었다. 리마운트로 떨어진 경우도 재생성한다.
+  if (root.userData[DECAL_KEY] === key && tracked.every((mesh) => isAttachedToRoot(mesh, root))) {
+    const missingPartIds = root.userData[DECAL_MISSING] ?? []
+    if (!missingPartIds.some((partId) => findPartByStudioId(root, partId))) return
+  }
 
   tracked.forEach(disposeDecalMesh)
   const strays = []
@@ -113,9 +117,13 @@ export function syncTextureDecals(root, decals = []) {
   strays.forEach(disposeDecalMesh)
 
   const created = []
+  const missingPartIds = []
   list.forEach((decal) => {
     const part = findPartByStudioId(root, decal.partId)
-    if (!part) return
+    if (!part) {
+      missingPartIds.push(decal.partId)
+      return
+    }
     const box = computePartLocalBox(part)
     const localBox = box.isEmpty()
       ? { min: [0, 0, 0], max: [0, 0, 0] }
@@ -125,6 +133,7 @@ export function syncTextureDecals(root, decals = []) {
     created.push(mesh)
   })
   root.userData[DECAL_MESHES] = created
+  root.userData[DECAL_MISSING] = missingPartIds
   root.userData[DECAL_KEY] = key
 }
 
@@ -137,5 +146,6 @@ export function disposeTextureDecals(root) {
   })
   decalMeshes.forEach(disposeDecalMesh)
   root.userData[DECAL_MESHES] = []
+  root.userData[DECAL_MISSING] = []
   root.userData[DECAL_KEY] = ''
 }

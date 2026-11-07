@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import React from 'react'
+import React, { useLayoutEffect } from 'react'
 import { act } from 'react'
 import { createRoot } from 'react-dom/client'
 import { readFileSync } from 'node:fs'
@@ -637,12 +637,15 @@ describe('StudioTunedGroup', () => {
     body.add(new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), sharedSuit))
     root.add(head, body)
 
+    // Every real caller runs the root pass before the part pass.
+    applyStudioTuning(root, {})
     applySavedStudioPartTunings(root, 'zombie-e01', {
       'zombie-e01::group::id:sample-head+id:sample-body': {
         color: '#0000ff',
         colorStrength: 1,
       },
     })
+    applyStudioTuning(root, {})
     applySavedStudioPartTunings(root, 'zombie-e01', {
       'zombie-e01::part::id:sample-head': {
         positionX: 0.25,
@@ -823,9 +826,15 @@ describe('StudioTunedGroup', () => {
     arm.add(armMesh)
     root.add(head, arm)
 
+    // Every real caller runs the root pass before the part pass; the root pass
+    // is what restores a reset part's owned clone to the root-tuned color.
+    applyStudioTuning(root, {})
     applySavedStudioPartTunings(root, 'zombie-e01', {
       'zombie-e01::part::id:sample-head': { color: '#ff0000', colorStrength: 1 },
     })
+    applyStudioTuning(root, {})
+    // The root pass owns shared-material defaults; the part pass must not touch them.
+    const sharedEmissiveBeforePartPass = shared.emissiveIntensity
     applySavedStudioPartTunings(root, 'zombie-e01', {
       'zombie-e01::part::id:sample-head': {},
     })
@@ -833,8 +842,74 @@ describe('StudioTunedGroup', () => {
     expect(headMesh.material).not.toBe(shared)
     expect(headMesh.material.color.getHexString()).toBe('111923')
     expect(armMesh.material).toBe(shared)
-    expect(armMesh.material.emissiveIntensity).toBe(0.07)
+    expect(armMesh.material.emissiveIntensity).toBe(sharedEmissiveBeforePartPass)
     expect(shared.color.getHexString()).toBe('111923')
+  })
+
+  it('keeps root and group tint on a part whose own tuning is transform-only', () => {
+    const root = new THREE.Group()
+    const head = new THREE.Group()
+    const body = new THREE.Group()
+    head.userData.studioPartId = 'sample-head'
+    body.userData.studioPartId = 'sample-body'
+    const shared = new THREE.MeshToonMaterial({ color: 0x111923 })
+    const headMesh = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), shared)
+    const bodyMesh = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), shared)
+    head.add(headMesh)
+    body.add(bodyMesh)
+    root.add(head, body)
+
+    applyStudioTuning(root, { color: '#00ff00', colorStrength: 1, outlineColor: '#ff00ff' })
+    applySavedStudioPartTunings(root, 'zombie-e01', {
+      'zombie-e01::part::id:sample-head': { positionX: 0.3 },
+    })
+    expect(head.position.x).toBeCloseTo(0.3)
+    expect(headMesh.material.color.getHexString()).toBe('00ff00')
+
+    applyStudioTuning(root, {})
+    applySavedStudioPartTunings(root, 'zombie-e01', {
+      'zombie-e01::group::id:sample-head+id:sample-body': { color: '#0000ff', colorStrength: 1 },
+      'zombie-e01::part::id:sample-head': { scale: 1.2 },
+    })
+    expect(head.scale.x).toBeCloseTo(1.2)
+    expect(headMesh.material.color.getHexString()).toBe('0000ff')
+    expect(bodyMesh.material.color.getHexString()).toBe('0000ff')
+    expect(shared.color.getHexString()).toBe('111923')
+  })
+
+  it('picks up a Firebase commit that lands between first render and listener attach', () => {
+    const container = document.createElement('div')
+    const root = createRoot(container)
+    // Sibling layout effects run before the group's passive listener effect.
+    function CommitBeforeListener() {
+      useLayoutEffect(() => {
+        applyFirebaseStudioSnapshot({
+          schemaVersion: 1,
+          revision: 3,
+          updatedAt: '2026-11-07T00:00:00.000Z',
+          datasets: {
+            tunings: { player: { scale: 1.6 } },
+            sfxTunings: {},
+            stageBossPreview: {},
+            decals: {},
+            propPlacements: {},
+          },
+        })
+      }, [])
+      return null
+    }
+
+    act(() => {
+      root.render(
+        <>
+          <StudioTunedGroup itemId="player" materialTuning={false}><mesh /></StudioTunedGroup>
+          <CommitBeforeListener />
+        </>,
+      )
+    })
+
+    expect(container.querySelector('group').getAttribute('scale')).toBe('1.6,1.6,1.6')
+    act(() => root.unmount())
   })
 
   it('deduplicates repeated part keys inside an imported group key', () => {

@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react'
+import { useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import { usePlayingFrame } from '../../lib/usePlayingFrame.js'
@@ -276,36 +276,55 @@ export function ZomlonbiskModel({ running = true }) {
 }
 
 // ── 추락 폭발 이펙트 (데미지 없음, 순수 비주얼) ──────────────────────────────
+// Studio 재질 튜닝은 메시 재질을 복제본으로 교체한다. JSX opacity prop은 원본 재질에만 들어가므로
+// 지금 메시에 붙은 재질에도 같은 값을 써야 튜닝 후에도 폭발이 사라진다.
+function setLiveOpacity(mesh, opacity) {
+  const material = mesh?.material
+  if (material) material.opacity = opacity
+}
+
 export function CrashExplosionVisual({ x, z, t }) {
   const fade = Math.max(0, 1 - t)
   const ringScale = 0.6 + t * 3.4
+  const coreFlashRef = useRef(null)
+  const fireFlashRef = useRef(null)
+  const yellowRingRef = useRef(null)
+  const blueRingRef = useRef(null)
+  const pillarRef = useRef(null)
+  useLayoutEffect(() => {
+    setLiveOpacity(coreFlashRef.current, fade * 0.95)
+    setLiveOpacity(fireFlashRef.current, fade * 0.85)
+    setLiveOpacity(yellowRingRef.current, fade * 0.9)
+    setLiveOpacity(blueRingRef.current, fade * 0.5)
+    if (t < 0.45) setLiveOpacity(pillarRef.current, (1 - t / 0.45) * 0.7)
+  })
 
   return (
     <StudioTunedGroup itemId="weapon-starlink-crash-impact">
     <group position={[x, 0, z]}>
       {/* 백색 코어 플래시 */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.06, 0]} renderOrder={6}>
+      <mesh ref={coreFlashRef} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.06, 0]} renderOrder={6}>
         <circleGeometry args={[scaleEffectVisual(0.7 + t * 0.5), 32]} />
         <meshBasicMaterial color={0xffffff} transparent opacity={fade * 0.95} depthWrite={false} side={THREE.DoubleSide} />
       </mesh>
       {/* 주황 화염 플래시 */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.05, 0]} renderOrder={5}>
+      <mesh ref={fireFlashRef} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.05, 0]} renderOrder={5}>
         <circleGeometry args={[scaleEffectVisual(1.35 + t * 0.8), 32]} />
         <meshBasicMaterial color={0xff8a2a} transparent opacity={fade * 0.85} depthWrite={false} side={THREE.DoubleSide} />
       </mesh>
       {/* 노란 확산 링 */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.07, 0]} scale={[ringScale, ringScale, 1]} renderOrder={4}>
+      <mesh ref={yellowRingRef} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.07, 0]} scale={[ringScale, ringScale, 1]} renderOrder={4}>
         <ringGeometry args={[scaleEffectVisual(0.85), scaleEffectVisual(1.1), 32]} />
         <meshBasicMaterial color={0xffd23a} transparent opacity={fade * 0.9} depthWrite={false} side={THREE.DoubleSide} />
       </mesh>
       {/* 청백 외곽 링 (스타링크 전기 느낌 잔향) */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.04, 0]} scale={[ringScale * 1.5, ringScale * 1.5, 1]} renderOrder={3}>
+      <mesh ref={blueRingRef} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.04, 0]} scale={[ringScale * 1.5, ringScale * 1.5, 1]} renderOrder={3}>
         <ringGeometry args={[scaleEffectVisual(0.9), scaleEffectVisual(1.12), 32]} />
         <meshBasicMaterial color={0x88ddff} transparent opacity={fade * 0.5} depthWrite={false} side={THREE.DoubleSide} />
       </mesh>
       {/* 솟는 섬광 기둥 (짧게) */}
       {t < 0.45 && (
-        <mesh position={[0, 1.1, 0]}>
+        <mesh ref={pillarRef} position={[0, 1.1, 0]}>
           <cylinderGeometry args={[0.3 * (1 - t), 0.55 * (1 - t), 2.2, 10]} />
           <meshBasicMaterial color={0xffc46a} transparent opacity={(1 - t / 0.45) * 0.7} depthWrite={false} />
         </mesh>

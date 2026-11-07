@@ -1,4 +1,4 @@
-import { useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { useFrame, useLoader } from '@react-three/fiber'
 import * as THREE from 'three'
 import matildaFaceTextureUrl from '../assets/character/matilda_face_texture.webp'
@@ -144,6 +144,8 @@ function Part({ groupRef = null, size, position, rotation = [0, 0, 0], color, em
   const geo = useMemo(() => new THREE.BoxGeometry(...size), [size.join(',')])
   const mat = useMemo(() => toonMat(color, emissive), [color, emissive])
   const outMat = useMemo(() => outlineMat(0.96), [])
+  // Per-mount resources: release them so every Matilda spawn does not leak GPU buffers.
+  useEffect(() => () => { geo.dispose(); mat.dispose(); outMat.dispose() }, [geo, mat, outMat])
   const outline = inflateScale(outlineScale)
 
   return (

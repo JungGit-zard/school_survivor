@@ -49,12 +49,13 @@ export default function Stage4HazardGuide({ stageId, phase, gameKey, hidden = fa
 }
 
 // Reserved gap below the top controls (44px), above MissionTracker (safe+102),
-// and to the right of liveScore's min(34vw, 116px) column.
+// and to the right of liveScore's 116px column. % is the HUD root (= game frame)
+// width; vw would be the whole landscape viewport and squeeze the banner to ~50px.
 // No button, focus target, full-screen layer or lower thumb-zone content.
 const guideStyle = {
   position: 'absolute',
   top: 'calc(max(14px, env(safe-area-inset-top, 0px)) + 52px)',
-  left: 'calc(max(14px, env(safe-area-inset-left, 0px)) + min(34vw, 116px) + 8px)',
+  left: 'calc(max(14px, env(safe-area-inset-left, 0px)) + min(34%, 116px) + 8px)',
   right: 'var(--stage4-guide-right)',
   '--stage4-guide-right': 'max(14px, env(safe-area-inset-right, 0px))',
   maxWidth: 480,

@@ -251,8 +251,8 @@ export function KitchenPrepTable({ variant = 'bare', ...props }) {
           <>
             {/* 하부 통풍 그릴(정면) */}
             <PropBox position={[0, 0.12, 0.49]} scale={[0.9, 0.16, 0.02]} material={stainless.dark} />
-            <PropBox position={[0, 0.145, 0.495]} scale={[0.82, 0.01, 0.01]} material={stainless.frame} />
-            <PropBox position={[0, 0.095, 0.495]} scale={[0.82, 0.01, 0.01]} material={stainless.frame} />
+            <PropBox position={[0, 0.145, 0.505]} scale={[0.82, 0.01, 0.01]} material={stainless.frame} />
+            <PropBox position={[0, 0.095, 0.505]} scale={[0.82, 0.01, 0.01]} material={stainless.frame} />
           </>
         )}
 
@@ -347,30 +347,30 @@ export function KitchenCookLine({ ...props }) {
         {/* 6구 버너 그레이트 */}
         <PropBox position={[0, 0.935, 0]} scale={[2.3, 0.03, 0.85]} material={stainless.dark} />
         {[-0.24, 0, 0.24].map((oz) => (
-          <PropBox key={oz} position={[0, 0.94, oz]} scale={[2.2, 0.008, 0.02]} material={stainless.frame} />
+          <PropBox key={oz} position={[0, 0.955, oz]} scale={[2.2, 0.008, 0.02]} material={stainless.frame} />
         ))}
 
-        {/* 오븐 도어 3짝(창+손잡이) */}
+        {/* 오븐 도어 3짝(창+손잡이). 깊이 기록 재질이라 디테일은 몸통 정면(z 0.56) 밖에 둔다. */}
         {doorXs.map((x) => (
-          <group key={x} position={[x, 0.32, 0.53]}>
+          <group key={x} position={[x, 0.32, 0.575]}>
             <PropBox scale={[0.75, 0.55, 0.03]} material={stainless.panel} />
-            <PropBox position={[0, 0.02, 0.001]} scale={[0.42, 0.28, 0.01]} material={darkWindow} />
-            <PropBox position={[0, -0.22, 0.01]} scale={[0.28, 0.03, 0.03]} material={stainless.dark} />
+            <PropBox position={[0, 0.02, 0.018]} scale={[0.42, 0.28, 0.01]} material={darkWindow} />
+            <PropBox position={[0, -0.22, 0.025]} scale={[0.28, 0.03, 0.03]} material={stainless.dark} />
           </group>
         ))}
 
         {/* 컨트롤 패널 + 빨간 노브 줄 */}
-        <PropBox position={[0, 0.70, 0.53]} scale={[2.3, 0.14, 0.02]} material={stainless.dark} />
+        <PropBox position={[0, 0.70, 0.57]} scale={[2.3, 0.14, 0.02]} material={stainless.dark} />
         {knobXs.map((x) => (
-          <PropCylinder key={x} position={[x, 0.70, 0.54]} rotation={[Math.PI / 2, 0, 0]} args={[0.032, 0.032, 0.014, 6]} material={red} />
+          <PropCylinder key={x} position={[x, 0.70, 0.588]} rotation={[Math.PI / 2, 0, 0]} args={[0.032, 0.032, 0.014, 6]} material={red} />
         ))}
 
         {/* 후드: 덕트 라이저 + 캐노피 + 정면 벤트 그릴(SIDE 뷰의 L자 프로파일). 전부 x/z 봉투 안. */}
         <PropBox position={[0, 1.345, -0.15]} scale={[0.5, 0.85, 0.42]} material={stainless.panel} />
         <PropBox position={[0, 1.92, -0.08]} scale={[2.5, 0.30, 0.85]} material={stainless.top} outline={outlineMat} />
         <PropBox position={[0, 1.80, 0.34]} scale={[2.2, 0.14, 0.05]} material={stainless.dark} />
-        <PropBox position={[0, 1.845, 0.35]} scale={[2.1, 0.012, 0.01]} material={stainless.frame} />
-        <PropBox position={[0, 1.755, 0.35]} scale={[2.1, 0.012, 0.01]} material={stainless.frame} />
+        <PropBox position={[0, 1.845, 0.37]} scale={[2.1, 0.012, 0.01]} material={stainless.frame} />
+        <PropBox position={[0, 1.755, 0.37]} scale={[2.1, 0.012, 0.01]} material={stainless.frame} />
 
         {/* 화구 위 냄비 */}
         <group position={[0.2, 1.03, -0.05]}>
@@ -410,11 +410,12 @@ export function KitchenSinkCounter({ ...props }) {
         {/* 상판: 콜라이더 외곽(2.26x0.94)과 일치하는 최대 부재 */}
         <PropBox position={[0, 0.84, 0]} scale={[2.26, 0.08, 0.94]} material={stainless.top} outline={outlineMat} />
 
-        {/* 2조 싱크볼(림+어두운 내부면으로 recessed 표현) */}
+        {/* 2조 싱크볼(림+어두운 내부면으로 recessed 표현). 림은 상판(윗면 0.88) 위에 얹고,
+            어두운 내부면은 림 윗면보다 살짝 높게 둬 깊이 기록 재질에서도 보이게 한다. */}
         {[-0.5, 0.5].map((x) => (
-          <group key={x} position={[x, 0.845, 0]}>
+          <group key={x} position={[x, 0.888, 0]}>
             <PropBox scale={[0.62, 0.02, 0.62]} material={stainless.top} />
-            <PropBox position={[0, -0.015, 0]} scale={[0.52, 0.05, 0.52]} material={stainless.dark} />
+            <PropBox position={[0, 0.004, 0]} scale={[0.52, 0.02, 0.52]} material={stainless.dark} />
           </group>
         ))}
 
@@ -468,18 +469,19 @@ export function KitchenRefrigerator({ open = false, ...props }) {
   return (
     <group {...props} name="kitchen-refrigerator">
       <StudioTunedGroup itemId="stage-object-kitchen-refrigerator" freezeMatrices>
-        {/* 본체: 콜라이더 외곽(1.20x1.92x0.92)과 정확히 일치 */}
+        {/* 본체: 콜라이더 외곽(1.20x1.92x0.92)과 정확히 일치. 정면(z 0.46) 디테일은 깊이 기록
+            재질에서 묻히거나 z-fighting 나지 않게 정면 밖에 둔다. */}
         <PropBox position={[0, 0.96, 0]} scale={[1.20, 1.92, 0.92]} material={stainless.panel} outline={outlineMat} />
-        <PropBox position={[0, 1.83, 0.42]} scale={[1.0, 0.12, 0.05]} material={stainless.dark} outline={outlineMat} />
+        <PropBox position={[0, 1.83, 0.475]} scale={[1.0, 0.12, 0.05]} material={stainless.dark} outline={outlineMat} />
 
         {!open && (
           <>
-            <PropBox position={[0, 0.96, 0.45]} scale={[0.02, 1.86, 0.02]} material={stainless.dark} />
-            <PropBox position={[-0.10, 0.96, 0.435]} scale={[0.05, 0.85, 0.05]} material={stainless.dark} />
-            <PropBox position={[0.10, 0.96, 0.435]} scale={[0.05, 0.85, 0.05]} material={stainless.dark} />
-            <MagnetTag position={[-0.32, 1.35, 0.455]} scale={[0.09, 0.09, 0.01]} material={green} />
-            <MagnetTag position={[0.30, 1.35, 0.455]} scale={[0.08, 0.08, 0.01]} material={red} />
-            <MagnetTag position={[0.30, 1.15, 0.455]} rotation={[0, 0, 0.05]} scale={[0.12, 0.15, 0.008]} material={white} />
+            <PropBox position={[0, 0.96, 0.465]} scale={[0.02, 1.86, 0.02]} material={stainless.dark} />
+            <PropBox position={[-0.10, 0.96, 0.48]} scale={[0.05, 0.85, 0.05]} material={stainless.dark} />
+            <PropBox position={[0.10, 0.96, 0.48]} scale={[0.05, 0.85, 0.05]} material={stainless.dark} />
+            <MagnetTag position={[-0.32, 1.35, 0.466]} scale={[0.09, 0.09, 0.01]} material={green} />
+            <MagnetTag position={[0.30, 1.35, 0.466]} scale={[0.08, 0.08, 0.01]} material={red} />
+            <MagnetTag position={[0.30, 1.15, 0.466]} rotation={[0, 0, 0.05]} scale={[0.12, 0.15, 0.008]} material={white} />
           </>
         )}
 
@@ -490,8 +492,8 @@ export function KitchenRefrigerator({ open = false, ...props }) {
             <PropBox position={[0, 1.20, 0]} scale={[1.0, 0.03, 0.7]} material={stainless.panel} />
             <PropBox position={[0, 0.90, 0]} scale={[0.5, 0.18, 0.5]} material={red} />
 
-            <PropBox position={[-0.30, 0.96, 0.435]} scale={[0.58, 1.86, 0.05]} material={stainless.panel} />
-            <PropBox position={[-0.16, 0.96, 0.435]} scale={[0.05, 0.85, 0.05]} material={stainless.dark} />
+            <PropBox position={[-0.30, 0.96, 0.485]} scale={[0.58, 1.86, 0.05]} material={stainless.panel} />
+            <PropBox position={[-0.16, 0.96, 0.53]} scale={[0.05, 0.85, 0.05]} material={stainless.dark} />
 
             <group position={[0.60, 0.96, 0.46]} rotation={[0, -1.65, 0]}>
               <PropBox position={[0.29, 0, 0]} scale={[0.58, 1.86, 0.05]} material={stainless.panel} />
@@ -667,8 +669,8 @@ export function KitchenCrateStack({ count = 3, ...props }) {
             return (
               <group key={i} position={[0, y, 0]}>
                 <PropBox scale={[0.72, bodyHeight, 0.60]} material={lime} outline={outline} />
-                <PropBox position={[0, 0, 0.295]} scale={[0.60, bodyHeight * 0.7, 0.008]} material={stainless.dark} />
-                <PropBox position={[0, 0, -0.295]} scale={[0.60, bodyHeight * 0.7, 0.008]} material={stainless.dark} />
+                <PropBox position={[0, 0, 0.305]} scale={[0.60, bodyHeight * 0.7, 0.008]} material={stainless.dark} />
+                <PropBox position={[0, 0, -0.305]} scale={[0.60, bodyHeight * 0.7, 0.008]} material={stainless.dark} />
               </group>
             )
           }
@@ -676,16 +678,16 @@ export function KitchenCrateStack({ count = 3, ...props }) {
             return (
               <group key={i} position={[0, y, 0]}>
                 <PropBox scale={[0.72, bodyHeight, 0.60]} material={wood} outline={outline} />
-                <PropBox position={[0, bodyHeight * 0.22, 0.295]} scale={[0.66, 0.015, 0.008]} material={stainless.dark} />
-                <PropBox position={[0, -bodyHeight * 0.22, 0.295]} scale={[0.66, 0.015, 0.008]} material={stainless.dark} />
+                <PropBox position={[0, bodyHeight * 0.22, 0.305]} scale={[0.66, 0.015, 0.008]} material={stainless.dark} />
+                <PropBox position={[0, -bodyHeight * 0.22, 0.305]} scale={[0.66, 0.015, 0.008]} material={stainless.dark} />
               </group>
             )
           }
           return (
             <group key={i} position={[0, y, 0]}>
               <PropBox scale={[0.72, bodyHeight, 0.60]} material={cardboard} outline={outline} />
-              <PropBox position={[0, 0, 0.295]} scale={[0.02, bodyHeight, 0.008]} material={label} />
-              <PropBox position={[0.16, 0.02, 0.296]} scale={[0.20, bodyHeight * 0.4, 0.006]} material={label} />
+              <PropBox position={[0, 0, 0.305]} scale={[0.02, bodyHeight, 0.008]} material={label} />
+              <PropBox position={[0.16, 0.02, 0.305]} scale={[0.20, bodyHeight * 0.4, 0.006]} material={label} />
             </group>
           )
         })}

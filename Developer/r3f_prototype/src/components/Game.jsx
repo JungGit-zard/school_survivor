@@ -12,7 +12,7 @@ import SlteraEvent from './SlteraEvent.jsx'
 import { isSlteraStage } from '../lib/slteraEvent.js'
 import LunchItems from './LunchItems.jsx'
 import VFXLayer from './VFXLayer.jsx'
-import EscapePortal from './EscapePortal.jsx'
+import EscapePortal, { EscapePortalSceneLight } from './EscapePortal.jsx'
 import StudentDialogueTrigger from './StudentDialogueTrigger.jsx'
 import QuestWorldLayer from './QuestWorldLayer.jsx'
 import { emitSfx } from '../lib/sfxEvents.js'
@@ -261,6 +261,7 @@ export default function Game() {
       {isSlteraStage(currentStageId) && <SlteraEvent key={`${gameKey}:${currentStageId}`} stageId={currentStageId} gameKey={gameKey} />}
 
       {/* ── Escape Portal (스테이지 설정 시간 이후 등장) ── */}
+      <EscapePortalSceneLight />
       {escapePortalActive && <EscapePortal stageId={currentStageId} />}
 
       {/* ── 쓰러진 학생 근접 대화 트리거(비주얼 없음) ── */}

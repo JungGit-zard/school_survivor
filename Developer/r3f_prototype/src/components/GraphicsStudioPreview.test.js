@@ -113,7 +113,7 @@ describe('GraphicsStudioPreview render contracts', () => {
     expect(source).toContain("STABLE_PART_KEY_PREFIX = 'id:'")
     expect(source).toContain('onDoubleClick={handlePartDoubleClick}')
     expect(source).not.toContain('function applyFocusedPartTuning')
-    expect(source).toContain('applySavedStudioPartTunings(rootRef.current, itemId, partTunings)')
+    expect(source).toContain('applySavedStudioPartTunings(rootRef.current, itemId, partTunings, { materialTuning })')
   })
 
   it('does not focus runtime or studio-generated outline objects', () => {
@@ -195,6 +195,28 @@ describe('GraphicsStudioPreview render contracts', () => {
 
     expect(studioSource).toContain('partTunings={livePreviewTunings}')
     expect(previewSource).toContain('applySavedStudioPartTunings(rootRef.current, itemId, partTunings')
+  })
+
+  it('keeps preview lights, floor material rule, camera and apply order in parity with the game', () => {
+    const source = readFileSync(new URL('./GraphicsStudioPreview.jsx', import.meta.url), 'utf8')
+    const gameSource = readFileSync(new URL('./Game.jsx', import.meta.url), 'utf8')
+
+    // Game.jsx's key light has not cast shadows since 064a121a.
+    expect(gameSource).not.toContain('castShadow')
+    expect(source).not.toContain('castShadow')
+    // Studio apply runs before model animation frames, like the game.
+    expect(source).toContain('}, -1)')
+    // A switch unmounts the scene so the layout cleanup still sees the old subtree.
+    expect(source).toContain('key={selectedItem.id}')
+    expect(source).toMatch(/useLayoutEffect\(\(\) => \{\s*const root = rootRef\.current\s*return \(\) => \{\s*disposeTextureDecals\(root\)\s*disposeStudioOwnedMaterials\(root\)/)
+    // R3F applies the Canvas camera prop once; per-item presets are re-applied here.
+    expect(source).toContain('<PreviewCameraSync camera={frame.camera} />')
+    // Floors render with materialTuning={false} in the game (Floor.jsx).
+    expect(source).toContain('selectedItem.materialTuning !== false')
+    expect(source).toContain('if (materialTuning) applyStudioTuning(rootRef.current, tuning)')
+    const floorItems = GRAPHICS_STUDIO_CATALOG.filter(({ id }) => id === 'stage-floor-stage1' || id === 'stage-floor-stage2')
+    expect(floorItems).toHaveLength(2)
+    floorItems.forEach((item) => expect(item.materialTuning).toBe(false))
   })
 
   it('keeps catalog-only studio items wired to runtime tuning groups', () => {

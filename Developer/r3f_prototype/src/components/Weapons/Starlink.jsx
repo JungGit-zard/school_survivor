@@ -1,4 +1,5 @@
-import { useRef, useState, useCallback, useMemo, useEffect } from 'react'
+import { useRef, useState, useCallback, useMemo, useEffect, useLayoutEffect } from 'react'
+import { useFrame } from '@react-three/fiber'
 import { usePlayingFrame } from '../../lib/usePlayingFrame.js'
 import { useBeforePhysicsStep } from '@react-three/rapier'
 import { emitSfx } from '../../lib/sfxEvents.js'
@@ -11,7 +12,7 @@ import { applyEraserBombImpact } from '../../lib/eraserBombImpact.js'
 import { scaleEffectVisual } from '../../lib/effectVisualScale.js'
 import { advanceCrashCounter, selectCrashLandingPoint } from '../../lib/starlinkCrash.js'
 import { StarlinkCrashSequence } from './StarlinkSatellite.jsx'
-import StudioTunedGroup from '../StudioTunedGroup.jsx'
+import StudioTunedGroup, { composeStudioPartScale } from '../StudioTunedGroup.jsx'
 
 // starlink / 고장난 스타링크
 // 역할: 플레이어 주변 strikeCenter 안에서 적이 있는 지점에 무작위 낙뢰.
@@ -123,70 +124,105 @@ export function createStarlinkStrikeQueue(targets, weapon) {
   }))
 }
 
-export function StrikeVisual({ x, z, age }) {
+// 번개 한 겹의 표시·투명도. Studio 재질 튜닝은 재질을 복제본으로 바꾸므로 JSX 재질이 아니라
+// 지금 메시에 붙은 재질에 쓴다. 겹은 항상 마운트해 두고 보이기만 끈다 — 늦게 마운트된 메시는
+// Studio 튜닝을 못 받고, 자식 순서가 밀리면 저장된 파츠 경로가 엉뚱한 대상을 가리킨다.
+function setStrikeLayer(mesh, opacity) {
+  if (!mesh) return
+  mesh.visible = opacity > 0
+  if (mesh.material) mesh.material.opacity = opacity
+}
+
+// 확산 링의 선언 배율은 Studio 미리보기 기본 자세(age 180ms)의 확산 배율이다. 미리보기에서 보던
+// 기준 크기를 base로 두고, 애니메이션은 그 base 대비 배율로만 곱한다(Studio 파츠 배율 보존).
+const STRIKE_RING_REST_SCALE = 1.4
+
+// fallback base는 선언 배율과 같아야 한다. 미리보기 루트는 이 layout effect 뒤에 base를 잡는데,
+// age 180에서는 애니메이션 배율이 정확히 1이라 선언값 그대로 base가 된다.
+function setStrikeRingScale(mesh, restScale, flashScale) {
+  if (!mesh) return
+  const animation = flashScale / STRIKE_RING_REST_SCALE
+  mesh.scale.set(
+    composeStudioPartScale(mesh, 'x', restScale, animation),
+    composeStudioPartScale(mesh, 'y', restScale, animation),
+    composeStudioPartScale(mesh, 'z', 1, 1),
+  )
+}
+
+export function StrikeVisual({ x, z, age = 0, ageRef = null }) {
+  const boltOuterRef = useRef(null)
+  const boltCoreRef = useRef(null)
+  const flashCoreRef = useRef(null)
+  const flashYellowRef = useRef(null)
+  const ringInnerRef = useRef(null)
+  const ringOuterRef = useRef(null)
+
   // 0..1 진행도. 처음 55%는 번개 줄기, 나머지는 ground flash.
-  const t = Math.min(1, age / STRIKE_DURATION_MS)
-  const boltOpacity = t < 0.55 ? 1 - t / 0.55 : 0
-  const flashOpacity = t >= 0.35 ? Math.max(0, 1 - (t - 0.35) / 0.65) : 0
-  const flashScale = 0.5 + t * 2.4
+  // 게임은 ageRef로 매 프레임 진행하고(리렌더 없음), Studio 미리보기는 고정 age prop을 쓴다.
+  const applyStrike = () => {
+    const currentAge = ageRef ? ageRef.current : age
+    const t = Math.min(1, currentAge / STRIKE_DURATION_MS)
+    const boltOpacity = t < 0.55 ? 1 - t / 0.55 : 0
+    const flashOpacity = t >= 0.35 ? Math.max(0, 1 - (t - 0.35) / 0.65) : 0
+    const flashScale = 0.5 + t * 2.4
+    setStrikeLayer(boltOuterRef.current, boltOpacity * 0.9)
+    setStrikeLayer(boltCoreRef.current, boltOpacity)
+    setStrikeLayer(flashCoreRef.current, flashOpacity * 0.95)
+    setStrikeLayer(flashYellowRef.current, flashOpacity * 0.88)
+    setStrikeLayer(ringInnerRef.current, flashOpacity * 0.9)
+    setStrikeLayer(ringOuterRef.current, flashOpacity * 0.45)
+    setStrikeRingScale(ringInnerRef.current, STRIKE_RING_REST_SCALE, flashScale)
+    setStrikeRingScale(ringOuterRef.current, STRIKE_RING_REST_SCALE * 1.6, flashScale)
+  }
+  // StudioTunedGroup(자식)의 튜닝·재질 복제가 끝난 뒤, 첫 페인트 전에 한 번 적용한다.
+  useLayoutEffect(applyStrike)
+  useFrame(applyStrike)
 
   return (
     <group position={[x, 0, z]}>
       <StudioTunedGroup itemId="weapon-starlink">
       {/* 번개 줄기 외곽 — 선명한 청백색 두꺼운 기둥 */}
-      {boltOpacity > 0 && (
-        <mesh position={[0, 2.4, 0]}>
-          <cylinderGeometry args={[0.14, 0.06, 4.8, 8]} />
-          <meshBasicMaterial color={0x44aaff} transparent opacity={boltOpacity * 0.9} depthWrite={false} />
-        </mesh>
-      )}
+      <mesh ref={boltOuterRef} position={[0, 2.4, 0]}>
+        <cylinderGeometry args={[0.14, 0.06, 4.8, 8]} />
+        <meshBasicMaterial color={0x44aaff} transparent opacity={0} depthWrite={false} />
+      </mesh>
       {/* 번개 줄기 코어 — 순백색 날카로운 중심 */}
-      {boltOpacity > 0 && (
-        <mesh position={[0, 2.4, 0]}>
-          <cylinderGeometry args={[0.045, 0.016, 4.8, 6]} />
-          <meshBasicMaterial color={0xffffff} transparent opacity={boltOpacity} depthWrite={false} />
-        </mesh>
-      )}
+      <mesh ref={boltCoreRef} position={[0, 2.4, 0]}>
+        <cylinderGeometry args={[0.045, 0.016, 4.8, 6]} />
+        <meshBasicMaterial color={0xffffff} transparent opacity={0} depthWrite={false} />
+      </mesh>
       {/* 충돌 지점 백색 코어 플래시 */}
-      {flashOpacity > 0 && (
-        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.05, 0]} renderOrder={6}>
-          <circleGeometry args={[scaleEffectVisual(0.5), 32]} />
-          <meshBasicMaterial
-            color={0xffffff}
-            transparent
-            opacity={flashOpacity * 0.95}
-            depthWrite={false}
-            side={THREE.DoubleSide}
-          />
-        </mesh>
-      )}
+      <mesh ref={flashCoreRef} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.05, 0]} renderOrder={6}>
+        <circleGeometry args={[scaleEffectVisual(0.5), 32]} />
+        <meshBasicMaterial
+          color={0xffffff}
+          transparent
+          opacity={0}
+          depthWrite={false}
+          side={THREE.DoubleSide}
+        />
+      </mesh>
       {/* 충돌 지점 노란 플래시 */}
-      {flashOpacity > 0 && (
-        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.04, 0]} renderOrder={5}>
-          <circleGeometry args={[scaleEffectVisual(1.0), 32]} />
-          <meshBasicMaterial
-            color={0xffee00}
-            transparent
-            opacity={flashOpacity * 0.88}
-            depthWrite={false}
-            side={THREE.DoubleSide}
-          />
-        </mesh>
-      )}
+      <mesh ref={flashYellowRef} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.04, 0]} renderOrder={5}>
+        <circleGeometry args={[scaleEffectVisual(1.0), 32]} />
+        <meshBasicMaterial
+          color={0xffee00}
+          transparent
+          opacity={0}
+          depthWrite={false}
+          side={THREE.DoubleSide}
+        />
+      </mesh>
       {/* 1차 확산 링 — 청백색 */}
-      {flashOpacity > 0 && (
-        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.06, 0]} scale={[flashScale, flashScale, 1]} renderOrder={4}>
-          <ringGeometry args={[scaleEffectVisual(0.8), scaleEffectVisual(1.05), 32]} />
-          <meshBasicMaterial color={0x88ddff} transparent opacity={flashOpacity * 0.9} depthWrite={false} side={THREE.DoubleSide} />
-        </mesh>
-      )}
+      <mesh ref={ringInnerRef} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.06, 0]} scale={[STRIKE_RING_REST_SCALE, STRIKE_RING_REST_SCALE, 1]} renderOrder={4}>
+        <ringGeometry args={[scaleEffectVisual(0.8), scaleEffectVisual(1.05), 32]} />
+        <meshBasicMaterial color={0x88ddff} transparent opacity={0} depthWrite={false} side={THREE.DoubleSide} />
+      </mesh>
       {/* 2차 확산 링 — 넓게 퍼지는 옅은 황색 외곽 glow */}
-      {flashOpacity > 0 && (
-        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.03, 0]} scale={[flashScale * 1.6, flashScale * 1.6, 1]} renderOrder={3}>
-          <ringGeometry args={[scaleEffectVisual(0.85), scaleEffectVisual(1.15), 32]} />
-          <meshBasicMaterial color={0xffff88} transparent opacity={flashOpacity * 0.45} depthWrite={false} side={THREE.DoubleSide} />
-        </mesh>
-      )}
+      <mesh ref={ringOuterRef} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.03, 0]} scale={[STRIKE_RING_REST_SCALE * 1.6, STRIKE_RING_REST_SCALE * 1.6, 1]} renderOrder={3}>
+        <ringGeometry args={[scaleEffectVisual(0.85), scaleEffectVisual(1.15), 32]} />
+        <meshBasicMaterial color={0xffff88} transparent opacity={0} depthWrite={false} side={THREE.DoubleSide} />
+      </mesh>
       </StudioTunedGroup>
     </group>
   )
@@ -194,16 +230,17 @@ export function StrikeVisual({ x, z, age }) {
 
 function StrikeWrapper({ id, x, z, damage, radius, critChance, critMultiplier, delayMs = 0, onDone }) {
   const ageRef = useRef(0)
+  const strikeAgeRef = useRef(0)
   const damageDealtRef = useRef(false)
-  const [, force] = useState(0)
+  // 지연이 끝나는 순간 한 번만 리렌더해 번개를 마운트한다. 이후 진행은 strikeAgeRef로만 전달한다.
+  const [started, setStarted] = useState(delayMs <= 0)
 
   usePlayingFrame((_, delta) => {
     ageRef.current += delta * 1000
-    if (ageRef.current < delayMs) {
-      force((n) => n + 1)
-      return
-    }
+    if (ageRef.current < delayMs) return
+    if (!started) setStarted(true)
     const strikeAge = ageRef.current - delayMs
+    strikeAgeRef.current = strikeAge
     if (strikeAge > STRIKE_DURATION_MS) {
       onDone(id)
       return
@@ -215,12 +252,10 @@ function StrikeWrapper({ id, x, z, damage, radius, critChance, critMultiplier, d
       const hitCount = applyRadialDamage({ x, z, radius, damage, knockback: 1.4, knockbackMs: 80, critChance, critMultiplier })
       if (hitCount > 0) emitSfx({ id: 'starlinkHit' })
     }
-
-    force((n) => n + 1)
   })
 
-  if (ageRef.current < delayMs) return null
-  return <StrikeVisual x={x} z={z} age={ageRef.current - delayMs} />
+  if (!started) return null
+  return <StrikeVisual x={x} z={z} ageRef={strikeAgeRef} />
 }
 
 export function StarlinkWeapon() {

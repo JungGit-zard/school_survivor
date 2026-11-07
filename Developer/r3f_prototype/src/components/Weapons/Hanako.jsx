@@ -1,4 +1,4 @@
-import { useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import { useGameStore } from '../../store/useGameStore.js'
 import { playerPos } from '../../lib/refs.js'
@@ -19,6 +19,8 @@ import StudioTunedGroup, { composeStudioPartPosition, composeStudioPartRotation 
 
 function Part({ size, position, rotation = [0, 0, 0], material, outlineMaterial, outlineScale = 1.07 }) {
   const geometry = useMemo(() => new THREE.BoxGeometry(...size), [size.join(',')])
+  // prop으로 넘긴 지오메트리는 R3F가 정리하지 않는다. 직접 만든 것은 직접 정리한다.
+  useEffect(() => () => geometry.dispose(), [geometry])
   const s = inflateScale(outlineScale)
   return (
     <group position={position} rotation={rotation}>

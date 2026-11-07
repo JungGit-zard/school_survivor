@@ -13,17 +13,13 @@ import StudioTunedGroup from '../StudioTunedGroup.jsx'
 
 const TUMBLER_BODY_HEX = 0x68d8ee
 // 내구력 신호: 남은 내구력 30% 아래에서 몸통이 이 색으로 물든다 (lib/tumblerDurability.js tumblerWearTint).
-const TUMBLER_BODY_COLOR = new THREE.Color(TUMBLER_BODY_HEX)
 const TUMBLER_WORN_COLOR = new THREE.Color(0xe8453c)
 
-// bodyMaterialRef: 궤도 텀블러가 내구력 색을 칠할 몸통 재질을 받는다. 그래픽 스튜디오 미리보기는 넘기지 않는다.
-export function TumblerModel({ bodyMaterialRef } = {}) {
+// bodyMeshRef: 궤도 텀블러가 내구력 색을 칠할 몸통 메시를 받는다. 그래픽 스튜디오 미리보기는 넘기지 않는다.
+// 재질이 아니라 메시를 넘기는 이유: Studio 재질 튜닝은 메시 재질을 복제본으로 교체하므로,
+// 칠할 대상은 언제나 "지금 메시에 붙은 재질"이어야 한다.
+export function TumblerModel({ bodyMeshRef } = {}) {
   const bodyMat = useMemo(() => toonMat(TUMBLER_BODY_HEX, 0.15), [])
-  useEffect(() => {
-    if (!bodyMaterialRef) return undefined
-    bodyMaterialRef.current = bodyMat
-    return () => { if (bodyMaterialRef.current === bodyMat) bodyMaterialRef.current = null }
-  }, [bodyMaterialRef, bodyMat])
   const capMat = useMemo(() => toonMat(0xf4fbff, 0.08), [])
   const outMat = useMemo(() => outlineMat(0.92), [])
   const handleMat = useMemo(() => toonMat(0x83eadc, 0.14), [])
@@ -35,7 +31,7 @@ export function TumblerModel({ bodyMaterialRef } = {}) {
       <mesh material={outMat} scale={inflateScale([1.12, 1.12, 1.08])}>
         <cylinderGeometry args={[0.15, 0.20, 0.58, 10]} />
       </mesh>
-      <mesh material={bodyMat}>
+      <mesh material={bodyMat} ref={bodyMeshRef}>
         <cylinderGeometry args={[0.15, 0.20, 0.58, 10]} />
       </mesh>
       <mesh material={capMat} position={[0, 0.34, 0]}>
@@ -77,8 +73,12 @@ export function TumblerOrbit() {
   const durabilityUsedRef = useRef(new Uint16Array(3))
   const brokenUntilRef = useRef(new Float64Array(3))
   const wasActiveRef = useRef(false)
-  // 텀블러별 몸통 재질. 마지막으로 칠한 비율은 재질 userData.wearTint에 둔다 — 재질이 새로 생기면 자동으로 다시 칠한다.
-  const bodyMaterialRefs = useRef([{ current: null }, { current: null }, { current: null }])
+  // 텀블러별 몸통 메시와 마지막 칠 상태. 재질이 바뀌었거나(Studio 복제) 누가 색을 다시 썼으면(Studio Apply)
+  // 그 색을 새 기준색으로 잡고 다시 칠한다 — 그래야 Studio 색 튜닝 위에 내구력 색이 얹힌다.
+  const bodyMeshRefs = useRef([{ current: null }, { current: null }, { current: null }])
+  const wearPaintRef = useRef(Array.from({ length: 3 }, () => ({
+    material: null, tint: -1, base: new THREE.Color(), painted: new THREE.Color(),
+  })))
   const weapons = useGameStore((s) => s.weapons)
 
   usePlayingFrame(({ clock }) => {
@@ -200,13 +200,20 @@ export function TumblerOrbit() {
     if (!w?.active) return
     const count = Math.max(1, Math.min(3, w.count ?? 1))
     for (let i = 0; i < count; i += 1) {
-      const material = bodyMaterialRefs.current[i].current
-      if (!material) continue
+      const material = bodyMeshRefs.current[i].current?.material
+      if (!material?.color) continue
+      const paint = wearPaintRef.current[i]
       const tint = tumblerWearTint(durabilityUsedRef.current[i], w.durability)
-      if (material.userData.wearTint === tint) continue
-      material.userData.wearTint = tint
-      material.color.lerpColors(TUMBLER_BODY_COLOR, TUMBLER_WORN_COLOR, tint)
+      const rewritten = paint.material !== material || !material.color.equals(paint.painted)
+      if (!rewritten && paint.tint === tint) continue
+      if (rewritten) {
+        paint.material = material
+        paint.base.copy(material.color)
+      }
+      paint.tint = tint
+      material.color.lerpColors(paint.base, TUMBLER_WORN_COLOR, tint)
       material.emissive.copy(material.color)
+      paint.painted.copy(material.color)
     }
   })
 
@@ -229,7 +236,7 @@ export function TumblerOrbit() {
     <>
       {Array.from({ length: tumblerCount }, (_, idx) => (
         <group key={`tumbler-visual-${idx}`} ref={(node) => { visualRefs.current[idx] = node }}>
-          <TumblerModel bodyMaterialRef={bodyMaterialRefs.current[idx]} />
+          <TumblerModel bodyMeshRef={bodyMeshRefs.current[idx]} />
         </group>
       ))}
     </>

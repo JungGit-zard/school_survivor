@@ -25,7 +25,6 @@ const FACE_VERTEX_SHADER = `
 `
 
 const FACE_FRAGMENT_SHADER = `
-  precision mediump float;
   uniform float uTime;
   uniform int uBrow;
   uniform int uEye;
@@ -198,7 +197,9 @@ export default function BossFacePartsOverlay({ bossType, recipe: recipeOverride 
         fragmentShader={FACE_FRAGMENT_SHADER}
         transparent
         depthWrite={false}
-        depthTest={false}
+        polygonOffset
+        polygonOffsetFactor={-1}
+        polygonOffsetUnits={-4}
         toneMapped={false}
       />
     </mesh>

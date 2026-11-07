@@ -22,7 +22,7 @@ export default function MissionTracker({ missionProgress, hidden }) {
 }
 
 const styles = {
-  root: { position: 'absolute', top: 'max(116px, calc(env(safe-area-inset-top, 0px) + 102px))', left: 14, zIndex: 6, width: 'min(220px, calc(100vw - 28px))', overflow: 'hidden', border: uiBorders.strong, borderRadius: 9, background: 'rgba(255,248,232,0.96)', color: uiPalette.ink, boxShadow: uiShadows.pressSmall, pointerEvents: 'auto', fontFamily: uiType.family },
+  root: { position: 'absolute', top: 'max(116px, calc(env(safe-area-inset-top, 0px) + 102px))', left: 14, zIndex: 6, width: 'min(220px, calc(100% - 28px))', overflow: 'hidden', border: uiBorders.strong, borderRadius: 9, background: 'rgba(255,248,232,0.96)', color: uiPalette.ink, boxShadow: uiShadows.pressSmall, pointerEvents: 'auto', fontFamily: uiType.family },
   toggle: { width: '100%', minHeight: 44, border: 0, borderBottom: uiBorders.hairline, background: 'transparent', color: uiPalette.ink, fontWeight: uiType.weightHeavy, textAlign: 'left', padding: '0 10px', cursor: 'pointer' },
   item: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, minHeight: 30, padding: '5px 10px', fontSize: 12, lineHeight: 1.25 },
 }

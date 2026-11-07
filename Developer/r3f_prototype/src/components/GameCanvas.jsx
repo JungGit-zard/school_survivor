@@ -1,5 +1,5 @@
-import { useEffect } from 'react'
-import { Canvas, useStore } from '@react-three/fiber'
+import { useEffect, useLayoutEffect, useRef } from 'react'
+import { Canvas, useStore, useThree } from '@react-three/fiber'
 import { Physics } from '@react-three/rapier'
 import Game from './Game.jsx'
 import DamageNumbersLayer from './DamageNumbersLayer.jsx'
@@ -24,6 +24,32 @@ function DevQaHandle() {
   return null
 }
 
+// frameloop 'never' (Matilda contact freeze) stops all rendering, but a resize or
+// rotation still resizes — and clears — the drawing buffer. Redraw the scene once per
+// size change (never on the freeze itself) without running useFrame, so the frozen
+// frame stays frozen and visible.
+function RedrawFrozenOnResize({ active }) {
+  const gl = useThree((state) => state.gl)
+  const scene = useThree((state) => state.scene)
+  const camera = useThree((state) => state.camera)
+  const sizeKey = useThree((state) => `${state.size.width}x${state.size.height}@${state.viewport.dpr}`)
+  const frozenSizeRef = useRef(null)
+  useLayoutEffect(() => {
+    if (!active) {
+      frozenSizeRef.current = null
+      return
+    }
+    if (frozenSizeRef.current === null) {
+      frozenSizeRef.current = sizeKey
+      return
+    }
+    if (frozenSizeRef.current === sizeKey) return
+    frozenSizeRef.current = sizeKey
+    gl.render(scene, camera)
+  }, [active, sizeKey, gl, scene, camera])
+  return null
+}
+
 export default function GameCanvas({ gameKey, phase }) {
   const deathCause = useGameStore((state) => state.deathCause)
   const isMatildaContactDeath = phase === 'gameover' && deathCause === 'matilda'
@@ -41,6 +67,7 @@ export default function GameCanvas({ gameKey, phase }) {
       style={{ width: '100%', height: '100%', background: '#c8c4bc', display: 'block', filter: isMatildaContactDeath ? 'grayscale(1)' : 'none' }}
     >
       {import.meta.env.DEV && <DevQaHandle />}
+      <RedrawFrozenOnResize active={isMatildaContactDeath} />
       <Physics key={gameKey} gravity={[0, 0, 0]} timeStep={1 / 60} paused={phase !== 'playing'}>
         <Game />
       </Physics>

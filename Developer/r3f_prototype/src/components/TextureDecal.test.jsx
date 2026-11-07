@@ -113,6 +113,30 @@ describe('syncTextureDecals', () => {
     expect(() => syncTextureDecals(null, [baseDecal])).not.toThrow()
   })
 
+  it('keeps placed decals stable while another decal part is missing, then adds it when the part appears', () => {
+    const { root } = makePartRoot()
+    const missing = { ...baseDecal, partId: 'b02-hat' }
+    const decals = [baseDecal, missing]
+
+    syncTextureDecals(root, decals)
+    const placed = findDecalMeshes(root)
+    expect(placed).toHaveLength(1)
+    // Per-frame preview sync must not delete and reload the placed decal texture.
+    syncTextureDecals(root, decals)
+    syncTextureDecals(root, decals)
+    expect(findDecalMeshes(root)).toEqual(placed)
+
+    const hat = new THREE.Group()
+    hat.userData.studioPartId = 'b02-hat'
+    hat.add(new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshBasicMaterial()))
+    root.add(hat)
+    syncTextureDecals(root, decals)
+
+    const meshes = findDecalMeshes(root)
+    expect(meshes).toHaveLength(2)
+    expect(meshes.some((mesh) => mesh.parent === hat)).toBe(true)
+  })
+
   it('disposes every decal on teardown', () => {
     const { root } = makePartRoot()
     syncTextureDecals(root, [baseDecal])

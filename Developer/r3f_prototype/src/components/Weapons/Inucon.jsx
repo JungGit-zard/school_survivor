@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import * as THREE from 'three'
 import { useGameStore } from '../../store/useGameStore.js'
 import { playerPos } from '../../lib/refs.js'
@@ -22,6 +22,8 @@ import {
 
 function Part({ size, position, rotation = [0, 0, 0], material, outlineMaterial, outlineScale = 1.07, geometry = null }) {
   const boxGeometry = useMemo(() => new THREE.BoxGeometry(...size), [size.join(',')])
+  // prop으로 넘긴 지오메트리는 R3F가 정리하지 않는다. 직접 만든 것만 직접 정리한다.
+  useEffect(() => () => boxGeometry.dispose(), [boxGeometry])
   const actualGeometry = geometry ?? boxGeometry
   const s = inflateScale(outlineScale)
   return (
@@ -50,6 +52,7 @@ function BlobPart({ size, position, rotation = [0, 0, 0], material, outlineMater
     g.center()
     return g
   }, [size.join(','), cornerRatio])
+  useEffect(() => () => geometry.dispose(), [geometry])
   const s = inflateScale(outlineScale)
   return (
     <group position={position} rotation={rotation}>
@@ -61,6 +64,7 @@ function BlobPart({ size, position, rotation = [0, 0, 0], material, outlineMater
 
 function CapsulePart({ radius = 0.08, length = 0.5, position, rotation = [0, 0, 0], scale = [1, 1, 1], material, outlineMaterial, outlineScale = 1.065 }) {
   const geometry = useMemo(() => new THREE.CapsuleGeometry(radius, length, 1, 8), [radius, length])
+  useEffect(() => () => geometry.dispose(), [geometry])
   const s = inflateScale(outlineScale)
   return (
     <group position={position} rotation={rotation} scale={scale}>
@@ -81,6 +85,7 @@ function TriEar({ position, rotation = [0, 0, 0], material, outlineMaterial, out
     g.center()
     return g
   }, [])
+  useEffect(() => () => geometry.dispose(), [geometry])
   return <Part size={[1, 1, 1]} position={position} rotation={rotation} material={material} outlineMaterial={outlineMaterial} outlineScale={outlineScale} geometry={geometry} />
 }
 
@@ -200,6 +205,10 @@ export function InuconModel({ fainted: faintedProp } = {}) {
     return { outline: outlineMat(0.22, 0xb8c4e8), dog: body, dogShade: body, scarf: body }
   }, [])
   const { outline, dog: dogMat, dogShade: dogShadeMat, scarf: scarfMat } = fainted ? ghostMats : normalMats
+  useEffect(() => () => {
+    Object.values(normalMats).forEach((material) => material.dispose())
+    new Set(Object.values(ghostMats)).forEach((material) => material.dispose())
+  }, [normalMats, ghostMats])
 
   const reg = (key) => (el) => { if (el) parts.current[key] = el }
 
@@ -229,8 +238,10 @@ export function InuconModel({ fainted: faintedProp } = {}) {
     if (parts.current.armL) parts.current.armL.rotation.z = composeStudioPartRotation(parts.current.armL, 'z', 0, -wave * 0.25)
   })
 
+  // 기절/회복 때 재질 세트가 통째로 바뀐다. Studio 튜닝은 마운트 때 재질에 입혀지므로,
+  // 세트가 바뀌면 튜닝 서브트리를 다시 마운트해 새 재질에도 튜닝이 다시 걸리게 한다.
   return (
-    <StudioTunedGroup itemId="weapon-inucon">
+    <StudioTunedGroup key={fainted ? 'ghost' : 'normal'} itemId="weapon-inucon">
       <group ref={reg('root')}>
         {/* 레퍼런스 기준: 세로로 긴 주황 강아지 + 굵은 검은 손그림 외곽선 + 양팔 A포즈. */}
         <BlobPart size={[0.62, 0.58, 0.46]} position={[0, 1.28, 0]} material={dogMat} outlineMaterial={outline} outlineScale={1.085} />

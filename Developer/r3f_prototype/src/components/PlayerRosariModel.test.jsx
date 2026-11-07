@@ -16,6 +16,7 @@ vi.mock('@react-three/fiber', () => ({ useFrame: (frame) => { runtime.frame = fr
 vi.mock('@react-three/drei', () => ({ useGLTF: Object.assign(() => ({ scene: runtime.scene }), { preload: () => {} }) }))
 
 import PlayerRosariModel, {
+  setPlayerRosariFlash,
   PLAYER_ROSARI_RAW_HEIGHT,
   PLAYER_ROSARI_RAW_MIN_Y,
 } from './PlayerRosariModel.jsx'
@@ -290,7 +291,7 @@ describe('Player rosari gameplay and Studio runtime model contract', () => {
       expect(source(), `${roomOnly} 는 로자리 방 전용 아웃라인 경로다`).not.toContain(roomOnly)
     }
     // 피격 플래시는 헐을 건너뛴다 — 안 그러면 캐릭터가 확대된 흰 덩어리가 된다.
-    expect(source()).toContain('if (!object.isMesh || object.userData.studioRenderOutline) return')
+    expect(source()).toContain('if (!object.isMesh || object.userData.studioRenderOutline || object.userData.studioTextureDecal) return')
     // Studio의 outlineThickness는 헐 scale로만 간다.
     const before = hull.scale.x
     applyStudioTuning(face, { outlineThickness: 1.5, outlineColor: '#112233', outlineOpacity: 0.7 })
@@ -610,5 +611,43 @@ describe('Player rosari gameplay outfit — S6 placeholders', () => {
     ])
     runtime.cleanups.forEach((cleanup) => cleanup())
     for (const spy of spies) expect(spy).toHaveBeenCalled()
+  })
+})
+
+describe('Player Rosari hit flash', () => {
+  it('flashes only GLB surfaces and restores them, skipping outlines, decals, the shadow and the lantern', () => {
+    const surfaceMaterial = new THREE.MeshToonMaterial()
+    const outlineMaterial = new THREE.MeshBasicMaterial()
+    const decalMaterial = new THREE.MeshBasicMaterial({ transparent: true })
+    const shadowMaterial = new THREE.MeshBasicMaterial({ transparent: true })
+    const flashMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff })
+    const geometry = new THREE.BoxGeometry(1, 1, 1)
+
+    const glb = new THREE.Group()
+    const surface = new THREE.Mesh(geometry, surfaceMaterial)
+    const outline = new THREE.Mesh(geometry, outlineMaterial)
+    outline.userData.studioRenderOutline = true
+    const decal = new THREE.Mesh(geometry, decalMaterial)
+    decal.userData.studioTextureDecal = true
+    glb.add(surface, outline, decal)
+    const modelGroup = new THREE.Group()
+    const shadow = new THREE.Mesh(geometry, shadowMaterial)
+    modelGroup.add(shadow, glb)
+
+    setPlayerRosariFlash(glb, flashMaterial, true)
+    expect(surface.material).toBe(flashMaterial)
+    expect(outline.material).toBe(outlineMaterial)
+    expect(decal.material).toBe(decalMaterial)
+    expect(shadow.material).toBe(shadowMaterial)
+
+    setPlayerRosariFlash(glb, flashMaterial, false)
+    expect(surface.material).toBe(surfaceMaterial)
+    expect(surface.userData.playerRosariBaseMaterial).toBeUndefined()
+  })
+
+  it('drives the flash from the cloned GLB scene, not the model group with shadow and lantern', () => {
+    const source = readFileSync(new URL('./PlayerRosariModel.jsx', import.meta.url), 'utf8')
+    expect(source).toContain('setPlayerRosariFlash(scene, flashMat')
+    expect(source).not.toContain('setPlayerRosariFlash(modelRef.current')
   })
 })

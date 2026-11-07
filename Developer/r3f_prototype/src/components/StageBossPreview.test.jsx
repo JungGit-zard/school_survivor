@@ -13,6 +13,7 @@ import StageBossPreview, {
 import { DEFAULT_STAGE_BOSS_PREVIEW } from '../lib/graphicsStudioConfig.js'
 
 const invalidate = vi.fn()
+const previewCamera = { zoom: 1, updateProjectionMatrix: vi.fn() }
 
 const SIZE_MULT = 4 / 3 // ENEMY_SIZE_MULTIPLIER (mock)
 const BOSS_SCALE = 2 // B01/B02 ENEMY_STATS.scale (mock)
@@ -46,7 +47,7 @@ vi.mock('@react-three/fiber', () => ({
     <div data-testid="stage-boss-preview-canvas" data-frameloop={frameloop}>{children}</div>
   ),
   useFrame: vi.fn(),
-  useThree: (selector) => selector({ invalidate }),
+  useThree: (selector) => selector({ invalidate, camera: previewCamera }),
 }))
 
 vi.mock('./Enemy.jsx', () => ({
@@ -160,6 +161,28 @@ describe('StageBossPreview B04 chef framing', () => {
     for (const bossType of ['B01', 'B02', 'B03', 'B04']) {
       expect(resolveBossPreviewZoom(DEFAULT_BASE_ZOOM, bossType)).toBe(DEFAULT_BASE_ZOOM)
     }
+  })
+})
+
+describe('StageBossPreview zoom sync', () => {
+  it('applies a zoom change to the same live camera without remounting the canvas', () => {
+    container = document.createElement('div')
+    document.body.appendChild(container)
+    const root = createRoot(container)
+    act(() => {
+      root.render(<StageBossPreview framing={{ zoom: 120, panX: 0, panY: 0 }} />)
+    })
+    const canvas = container.querySelector('[data-testid="stage-boss-preview-canvas"]')
+    expect(previewCamera.zoom).toBe(120)
+
+    previewCamera.updateProjectionMatrix.mockClear()
+    act(() => {
+      root.render(<StageBossPreview framing={{ zoom: 135, panX: 0, panY: 0 }} />)
+    })
+    expect(previewCamera.zoom).toBe(135)
+    expect(previewCamera.updateProjectionMatrix).toHaveBeenCalled()
+    expect(container.querySelector('[data-testid="stage-boss-preview-canvas"]')).toBe(canvas)
+    act(() => root.unmount())
   })
 })
 

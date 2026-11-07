@@ -108,7 +108,9 @@ describe('Firebase runtime Graphics Studio config', () => {
   })
 
   it('normalizes and replaces stage boss preview in memory', () => {
-    expect(normalizeStageBossPreview({ zoom: 0, panX: 0, panY: 0 }).zoom).toBe(0)
+    // zoom 0 would put NaN into the ortho projection and blank the boss card.
+    expect(normalizeStageBossPreview({ zoom: 0, panX: 0, panY: 0 }).zoom).toBe(1)
+    expect(normalizeStageBossPreview({ zoom: -20 }).zoom).toBe(1)
     expect(normalizeStageBossPreview({ zoom: 999, panX: -9, panY: 9 })).toEqual({
       zoom: 180,
       panX: -2,

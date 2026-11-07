@@ -419,32 +419,20 @@ export function CompassBladeWeapon() {
   if (!weapons.compassBlade?.active) return null
 
   const bladeCount = Math.max(1, Math.min(3, weapons.compassBlade.count ?? 1))
-  const radius = weapons.compassBlade.radius ?? 1.15
-  const orbitSpeed = weapons.compassBlade.orbitSpeed ?? 3.4
+  // 위치·회전·표시는 프레임 루프만 쓴다. 여기서 elapsed=0 궤도 자세를 prop으로 주면
+  // 리렌더(레벨업 등)마다 그 자세로 튀고, 일시정지 중에는 그대로 멈춰 보인다.
+  // 첫 스텝 전까지는 숨겨 두고, 루프가 첫 스텝에서 visible = alive로 켠다.
   return (
     <>
-      {Array.from({ length: bladeCount }, (_, idx) => {
-        const pose = getCompassBladeOrbitPose({
-          elapsedSec: 0,
-          index: idx,
-          count: bladeCount,
-          radius,
-          orbitSpeed,
-          player: playerPos,
-        })
-
-        return (
-          <group
-            key={`compassBlade-visual-${idx}`}
-            ref={(node) => { visualRefs.current[idx] = node ?? null }}
-            position={[pose.position.x, pose.position.y, pose.position.z]}
-            rotation={[pose.rotation.x, pose.rotation.y, pose.rotation.z]}
-            visible
-          >
-            <CompassBladeModel />
-          </group>
-        )
-      })}
+      {Array.from({ length: bladeCount }, (_, idx) => (
+        <group
+          key={`compassBlade-visual-${idx}`}
+          ref={(node) => { visualRefs.current[idx] = node ?? null }}
+          visible={false}
+        >
+          <CompassBladeModel />
+        </group>
+      ))}
 
       {explosions.map((explosion) => (
         <CompassBladeExplosion key={explosion.id} {...explosion} onDone={removeExplosion} />

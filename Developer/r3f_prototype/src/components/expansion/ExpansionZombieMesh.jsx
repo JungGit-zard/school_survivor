@@ -2,6 +2,7 @@ import { useEffect, useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
 import StudioTunedGroup from '../StudioTunedGroup.jsx'
 import { getExpansionVisual } from '../../lib/expansionVisuals.js'
+import { getFlashMat } from '../../lib/toon.js'
 import { animateExpansionRig, createExpansionRig, disposeExpansionRig } from './expansionRig.js'
 
 export default function ExpansionZombieMesh({ type, animPhase='normal', hitFlash=false, staticPose=false }) {
@@ -18,9 +19,10 @@ export default function ExpansionZombieMesh({ type, animPhase='normal', hitFlash
     animateExpansionRig(root,clock.elapsedTime,animPhase,reduced)
     rig.traverse(node=>{
       if(!node.isMesh||node.userData.expansionOutline)return
-      const mat=node.material
-      if(hitFlash){if(!mat.userData.expansionFlashColor)mat.userData.expansionFlashColor=mat.color.clone();mat.color.set('#ffffff')}
-      else if(mat.userData.expansionFlashColor){mat.color.copy(mat.userData.expansionFlashColor);delete mat.userData.expansionFlashColor}
+      // Swap per mesh, never recolor: without Studio material tuning node.material is the shared
+      // getCachedToonMat singleton, so mutating its color whitened every zombie using it.
+      if(hitFlash){if(!node.userData.expansionFlashRestore){node.userData.expansionFlashRestore=node.material;node.material=getFlashMat();node.userData.studioNonTunable=true}}
+      else if(node.userData.expansionFlashRestore){node.material=node.userData.expansionFlashRestore;delete node.userData.expansionFlashRestore;delete node.userData.studioNonTunable}
     })
   })
   if(!def||!rig)return null

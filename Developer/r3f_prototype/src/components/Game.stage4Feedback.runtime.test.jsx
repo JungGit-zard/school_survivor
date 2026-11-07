@@ -21,7 +21,7 @@ vi.mock('./Enemies.jsx', () => ({ default: () => null }))
 vi.mock('./SlteraEvent.jsx', () => ({ default: () => null }))
 vi.mock('./LunchItems.jsx', () => ({ default: () => null }))
 vi.mock('./VFXLayer.jsx', () => ({ default: () => null }))
-vi.mock('./EscapePortal.jsx', () => ({ default: () => null }))
+vi.mock('./EscapePortal.jsx', () => ({ default: () => null, EscapePortalSceneLight: () => null }))
 vi.mock('./StudentDialogueTrigger.jsx', () => ({ default: () => null }))
 vi.mock('./QuestWorldLayer.jsx', () => ({ default: () => null }))
 vi.mock('./Weapons/index.js', () => Object.fromEntries([

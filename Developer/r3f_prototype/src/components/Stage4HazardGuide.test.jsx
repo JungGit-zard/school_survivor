@@ -83,7 +83,8 @@ describe('Stage4 nonmodal contextual guide', () => {
     expect(el.style.top).toContain('safe-area-inset-top')
     expect(el.style.top).toContain('52px')
     expect(el.style.maxHeight).toBe('44px')
-    expect(el.style.left).toContain('34vw') // reserve the existing live-score column
+    expect(el.style.left).toContain('34%') // reserve the live-score column, measured against the game frame (not vw)
+    expect(el.style.left).not.toContain('vw')
     expect(el.style.right).toBe('var(--stage4-guide-right)')
     expect(el.style.getPropertyValue('--stage4-guide-right')).toContain('safe-area-inset-right')
     expect(el.querySelector('button, input, [tabindex], [role="dialog"]')).toBe(null)

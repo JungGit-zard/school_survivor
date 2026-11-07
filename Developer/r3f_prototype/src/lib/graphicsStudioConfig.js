@@ -338,6 +338,8 @@ export const GRAPHICS_STUDIO_CATALOG = Object.freeze([
     label: 'Stage 1 Floor',
     source: 'components/Floor.jsx',
     previewKind: 'floor',
+    // Floor.jsx renders floors with materialTuning={false}; the preview must match.
+    materialTuning: false,
     runtimePreviewComponent: 'FloorVisual',
     stageId: 'stage1',
     assetUrl: stage1FloorUrl,
@@ -349,6 +351,8 @@ export const GRAPHICS_STUDIO_CATALOG = Object.freeze([
     label: 'Stage 2 Corridor Floor',
     source: 'components/Floor.jsx',
     previewKind: 'floor',
+    // Floor.jsx renders floors with materialTuning={false}; the preview must match.
+    materialTuning: false,
     runtimePreviewComponent: 'FloorVisual',
     stageId: 'stage2',
     assetUrl: stage2FloorUrl,
@@ -662,7 +666,7 @@ export const GRAPHICS_STUDIO_CATALOG = Object.freeze([
     previewKind: 'vfx',
     runtimePreviewComponent: 'SpawnSmokeEffect',
     vfxType: 'spawnSmoke',
-    applyTargets: ['components/Enemy.jsx', 'assets/effects/spawn_smoke_puff.png'],
+    applyTargets: ['components/Enemy.jsx', 'assets/effects/spawn_smoke_puff.webp'],
   },
   {
     id: 'vfx-charge-warning',
@@ -795,7 +799,9 @@ function normalizeHexColor(value, fallback) {
 export function normalizeStageBossPreview(input = {}) {
   const source = input && typeof input === 'object' ? input : {}
   return {
-    zoom: Math.round(clampNumber(source.zoom, [0, 180], DEFAULT_STAGE_BOSS_PREVIEW.zoom)),
+    // Lower bound 1, not 0: an orthographic zoom of 0 divides the frustum by zero
+    // (NaN projection) and blanks the boss card. Also clamps already-saved payloads.
+    zoom: Math.round(clampNumber(source.zoom, [1, 180], DEFAULT_STAGE_BOSS_PREVIEW.zoom)),
     panX: Number(clampNumber(source.panX, [-2, 2], DEFAULT_STAGE_BOSS_PREVIEW.panX).toFixed(2)),
     panY: Number(clampNumber(source.panY, STAGE_BOSS_PREVIEW_PAN_Y_RANGE, DEFAULT_STAGE_BOSS_PREVIEW.panY).toFixed(2)),
   }

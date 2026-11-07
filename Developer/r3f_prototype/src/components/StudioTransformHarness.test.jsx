@@ -113,6 +113,6 @@ describe('zombie-e01 공통 변형 강제 하네스', () => {
     const previewSource = fs.readFileSync(new URL('./GraphicsStudioPreview.jsx', import.meta.url), 'utf8')
     expect(previewSource).not.toContain('function applyFocusedPartTuning')
     expect(previewSource).not.toContain('function resetFocusedPartTransforms')
-    expect(previewSource).toContain('applySavedStudioPartTunings(rootRef.current, itemId, partTunings)')
+    expect(previewSource).toContain('applySavedStudioPartTunings(rootRef.current, itemId, partTunings, { materialTuning })')
   })
 })

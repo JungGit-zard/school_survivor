@@ -230,13 +230,32 @@ function QuestNoticeSymbolMaterial({ color }) {
 function QuestNoticeGlow({ color }) {
   return (
     <group name="quest-notice-symbol-glow">
-      <pointLight color={color} intensity={1.25} distance={1.2} decay={2} />
       <mesh position={[0, 0.02, -0.035]}>
         <sphereGeometry args={[0.72, 16, 10]} />
         <meshBasicMaterial color={color} transparent opacity={0.16} depthWrite={false} blending={THREE.AdditiveBlending} />
       </mesh>
     </group>
   )
+}
+
+// One point light per stage quest stays mounted for the whole run; a quest
+// without a notice marker keeps its light at intensity 0.  Mounting or
+// unmounting a light mid-run changes NUM_POINT_LIGHTS and recompiles every
+// lit material, so markers never own their light.
+export const QUEST_NOTICE_LIGHT_INTENSITY = 1.25
+const QUEST_NOTICE_LIGHT_PARKED_POSITION = Object.freeze([0, -100, 0])
+
+export function getQuestNoticeLightSlots(quests = [], noticeMarkers = []) {
+  const markerByQuestId = new Map(noticeMarkers.map((marker) => [marker.quest.id, marker]))
+  return quests.map((quest) => {
+    const marker = markerByQuestId.get(quest.id)
+    return {
+      questId: quest.id,
+      position: marker ? marker.target.position : QUEST_NOTICE_LIGHT_PARKED_POSITION,
+      color: marker ? marker.color : 0xffd84a,
+      intensity: marker ? QUEST_NOTICE_LIGHT_INTENSITY : 0,
+    }
+  })
 }
 
 function QuestExclamationSymbol({ color }) {
@@ -520,6 +539,16 @@ export default function QuestWorldLayer({ stageId }) {
 
   return (
     <group name={`quest-world-layer-${stageId}`}>
+      {getQuestNoticeLightSlots(quests, noticeMarkers).map(({ questId, position, color, intensity }) => (
+        <pointLight
+          key={`quest-notice-light-${questId}`}
+          position={position}
+          color={color}
+          intensity={intensity}
+          distance={1.2}
+          decay={2}
+        />
+      ))}
       {noticeMarkers.map(({ quest, kind, symbol, color, target }) => (
         <QuestNoticeMarker
           key={`${quest.id}:${kind}:${target.sourceId}`}

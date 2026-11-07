@@ -77,9 +77,13 @@ export function clonePlayerV9Scene(scene, gameplay, outfit = 'default') {
   return cloned
 }
 
-function setPlayerV9Flash(root, flashMaterial, active) {
+// Flash only the cloned GLB surfaces.  The blob shadow and the lantern (block +
+// translucent light cone) are siblings of the GLB primitive, and Studio texture
+// decals are transparent overlays; swapping any of them to the opaque white
+// flash material turns them into solid white shapes for the flash frame.
+export function setPlayerV9Flash(root, flashMaterial, active) {
   root?.traverse((object) => {
-    if (!object.isMesh || object.userData.studioRenderOutline) return
+    if (!object.isMesh || object.userData.studioRenderOutline || object.userData.studioTextureDecal) return
     if (active) {
       if (!object.userData.playerV9BaseMaterial) object.userData.playerV9BaseMaterial = object.material
       object.material = flashMaterial
@@ -206,7 +210,7 @@ export default function PlayerV9Model({ groupRef, movingRef, animateRef = null, 
       lastHitFlashToken.current = hitFlashToken
       hitFlashFrames.current = 1
     }
-    setPlayerV9Flash(modelRef.current, flashMat, hitFlashFrames.current > 0)
+    setPlayerV9Flash(scene, flashMat, hitFlashFrames.current > 0)
     if (hitFlashFrames.current > 0) hitFlashFrames.current -= 1
 
     const isMoving = movingRef?.current ?? false

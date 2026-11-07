@@ -1,4 +1,4 @@
-import { forwardRef, useImperativeHandle, useMemo, useRef, useState } from 'react'
+import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
 import * as THREE from 'three'
 import { outlineMat, toonMat, inflateScale } from '../../lib/toon.js'
 import StudioTunedGroup from '../StudioTunedGroup.jsx'
@@ -232,6 +232,17 @@ export function buildLineDrawTrailGeometry(
   return geo
 }
 
+// 교차 번쩍임 판은 모든 절단선이 같은 1x1 판을 쓴다. 절단선마다 이펙트가 마운트되므로
+// 모듈당 하나만 만든다.
+let lineDrawFlashGeometry = null
+function getLineDrawFlashGeometry() {
+  if (!lineDrawFlashGeometry) {
+    lineDrawFlashGeometry = new THREE.PlaneGeometry(1, 1)
+    lineDrawFlashGeometry.rotateX(-Math.PI / 2)
+  }
+  return lineDrawFlashGeometry
+}
+
 /**
  * 절단선 이펙트.
  *
@@ -259,11 +270,7 @@ export const LineDrawTrailEffect = forwardRef(function LineDrawTrailEffect({
   const nowRef = useRef(0)
 
   const trailGeometry = useMemo(() => buildLineDrawTrailGeometry(length, width), [length, width])
-  const flashGeometry = useMemo(() => {
-    const geo = new THREE.PlaneGeometry(1, 1)
-    geo.rotateX(-Math.PI / 2)
-    return geo
-  }, [])
+  const flashGeometry = getLineDrawFlashGeometry()
 
   const trailMat = useMemo(() => new THREE.MeshBasicMaterial({
     color: 0xff2f42,
@@ -284,6 +291,13 @@ export const LineDrawTrailEffect = forwardRef(function LineDrawTrailEffect({
       blending: THREE.AdditiveBlending,
     }))
   ), [])
+
+  // 절단선 하나가 사라질 때 그 이펙트가 만든 지오메트리·재질을 정리한다(prop으로 넘긴 객체는 R3F가 정리하지 않는다).
+  useEffect(() => () => trailGeometry.dispose(), [trailGeometry])
+  useEffect(() => () => {
+    trailMat.dispose()
+    flashMats.forEach((material) => material.dispose())
+  }, [trailMat, flashMats])
 
   const flashes = useMemo(() => (
     Array.from({ length: LINE_DRAW_FLASH_POOL }, () => ({ startMs: -Infinity, x: 0, z: 0 }))

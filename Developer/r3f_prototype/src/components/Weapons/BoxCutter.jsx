@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import * as THREE from 'three'
 import { usePlayingFrame } from '../../lib/usePlayingFrame.js'
 import { emitSfx } from '../../lib/sfxEvents.js'
@@ -114,11 +114,19 @@ function buildSlashRibbon(points, halfWidth) {
   return geo
 }
 
+// 리본 입력(SLASH_PATH, 0.13)은 상수라 모듈당 하나만 만든다. 이펙트는 베기마다 마운트되므로
+// 마운트마다 만들면 정리되지 않은 BufferGeometry가 베기 횟수만큼 GPU에 쌓인다.
+let slashRibbonGeometry = null
+function getSlashRibbonGeometry() {
+  if (!slashRibbonGeometry) slashRibbonGeometry = buildSlashRibbon(SLASH_PATH, 0.13)
+  return slashRibbonGeometry
+}
+
 function BoxCutterStrikeEffect({ strike, duration }) {
   const rootRef = useRef(null)
   const ribbonRef = useRef(null)
   const tipRef = useRef(null)
-  const geometry = useMemo(() => buildSlashRibbon(SLASH_PATH, 0.13), [])
+  const geometry = getSlashRibbonGeometry()
   const mats = useMemo(() => ({
     ribbon: new THREE.MeshBasicMaterial({
       vertexColors: true,
@@ -136,6 +144,10 @@ function BoxCutterStrikeEffect({ strike, duration }) {
       blending: THREE.AdditiveBlending,
     }),
   }), [])
+  useEffect(() => () => {
+    mats.ribbon.dispose()
+    mats.tip.dispose()
+  }, [mats])
 
   usePlayingFrame(({ clock }) => {
     if (!strike || !rootRef.current) return

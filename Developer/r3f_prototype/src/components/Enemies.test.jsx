@@ -1247,6 +1247,8 @@ describe('dancing doge event monster', () => {
     expect(source).toContain("emitSfx({ id: 'chestDrop'")
     expect(source).toContain('setChests((prev) => [...prev, { id: ++_chestId, pos }])')
     expect(source).toContain('for (const coinPos of dogeTreasureCoinPositions(pos)) dropGoldCoin(coinPos)')
+    // 오픈 순간 상자를 목록에서 빼면 "퍽" 버스트가 렌더되지 않는다 — 상자는 버스트 뒤 스스로 사라진다.
+    expect(source).not.toContain('setChests((prev) => prev.filter((c) => c.id !== chestId))')
     // 도지/상자 개체를 렌더한다.
     expect(source).toContain('<DancingDogeEvent')
     expect(source).toContain('<TreasureChest')

@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { Canvas, useFrame, useLoader } from '@react-three/fiber'
+import { Canvas, useFrame, useLoader, useThree } from '@react-three/fiber'
 import { Html, OrbitControls } from '@react-three/drei'
 import * as THREE from 'three'
 import { PlayerVisual } from './Player.jsx'
@@ -217,7 +217,7 @@ function updatePartGroupOutlines(root) {
   })
 }
 
-function useApplyStudioTuning(rootRef, itemId, tuning, focusedPartKeys, partTunings, decals) {
+function useApplyStudioTuning(rootRef, itemId, tuning, focusedPartKeys, partTunings, decals, materialTuning = true) {
   // 게임 런타임과 같은 규칙: 첫 프레임 전에 rest 포즈를 base로 확정한다.
   // 이게 없으면 애니메이션이 도는 프리뷰에서 파츠를 처음 만지는 순간의 자세가 base로 굳어,
   // 0을 다시 입력해도 원래 자리로 돌아오지 않는다.
@@ -225,16 +225,21 @@ function useApplyStudioTuning(rootRef, itemId, tuning, focusedPartKeys, partTuni
     captureStudioPartBaseTransforms(rootRef.current)
   })
 
+  // materialTuning === false mirrors the runtime StudioTunedGroup prop (e.g. Floor.jsx):
+  // transforms apply, colors/emissive do not.
   useEffect(() => {
     if (!rootRef.current) return
-    applyStudioTuning(rootRef.current, tuning)
-    applySavedStudioPartTunings(rootRef.current, itemId, partTunings)
+    if (materialTuning) applyStudioTuning(rootRef.current, tuning)
+    applySavedStudioPartTunings(rootRef.current, itemId, partTunings, { materialTuning })
     syncPartGroupOutlines(rootRef.current, focusedPartKeys)
     updatePartGroupOutlines(rootRef.current)
     syncTextureDecals(rootRef.current, decals)
-  }, [rootRef, itemId, tuning, focusedPartKeys, partTunings, decals])
+  }, [rootRef, itemId, tuning, focusedPartKeys, partTunings, decals, materialTuning])
 
-  useEffect(() => {
+  // Layout cleanup runs while the item subtree is still attached (StudioScene is keyed
+  // by item id, so a switch unmounts it). A passive cleanup ran after R3F had detached
+  // the old item and leaked its material clones and decal textures.
+  useLayoutEffect(() => {
     const root = rootRef.current
     return () => {
       disposeTextureDecals(root)
@@ -242,15 +247,33 @@ function useApplyStudioTuning(rootRef, itemId, tuning, focusedPartKeys, partTuni
     }
   }, [rootRef, itemId])
 
+  // Priority -1 runs before the models' own animation frames (priority 0), the same
+  // order as the game (Studio apply, then animation). Running after them froze
+  // animated tuned parts on the first item shown.
   useFrame(() => {
     if (!rootRef.current) return
-    applyStudioTuning(rootRef.current, tuning)
-    applySavedStudioPartTunings(rootRef.current, itemId, partTunings)
+    if (materialTuning) applyStudioTuning(rootRef.current, tuning)
+    applySavedStudioPartTunings(rootRef.current, itemId, partTunings, { materialTuning })
     syncPartGroupOutlines(rootRef.current, focusedPartKeys)
     updatePartGroupOutlines(rootRef.current)
     // 애니메이션/리마운트로 파트가 교체되면 데칼이 유실되므로 매 프레임 재검증(같은 입력이면 no-op)
     syncTextureDecals(rootRef.current, decals)
-  })
+  }, -1)
+}
+
+// R3F applies the Canvas camera prop only once, so switching items kept the first
+// item's position/fov/near/far (e.g. far 30 clipped the floor). Re-apply per frame preset.
+function PreviewCameraSync({ camera: preset }) {
+  const camera = useThree((state) => state.camera)
+  const [px, py, pz] = preset.position
+  useLayoutEffect(() => {
+    camera.position.set(px, py, pz)
+    camera.fov = preset.fov
+    camera.near = preset.near
+    camera.far = preset.far
+    camera.updateProjectionMatrix()
+  }, [camera, px, py, pz, preset.fov, preset.near, preset.far])
+  return null
 }
 
 function StudioOrbitControls({ frame }) {
@@ -730,7 +753,7 @@ function StudioScene({ selectedItem, tuning, frame, focusedPartKeys, partTunings
     ? { ...selectedItem, animation: tuning.animation }
     : selectedItem
 
-  useApplyStudioTuning(rootRef, selectedItem.id, tuning, focusedPartKeys, partTunings, decals)
+  useApplyStudioTuning(rootRef, selectedItem.id, tuning, focusedPartKeys, partTunings, decals, selectedItem.materialTuning !== false)
 
   const handlePartDoubleClick = (event) => {
     const key = getStudioPartKey(rootRef.current, event.object)
@@ -756,17 +779,10 @@ function StudioScene({ selectedItem, tuning, frame, focusedPartKeys, partTunings
   return (
     <>
       <ambientLight intensity={0.38} color={0x6d6780} />
+      {/* Same lights as Game.jsx: the game key light stopped casting shadows in 064a121a. */}
       <directionalLight
         position={[-10, 22, 12]}
         intensity={3.2}
-        castShadow
-        shadow-mapSize={[1024, 1024]}
-        shadow-camera-near={0.5}
-        shadow-camera-far={120}
-        shadow-camera-left={-40}
-        shadow-camera-right={40}
-        shadow-camera-top={40}
-        shadow-camera-bottom={-40}
       />
       <directionalLight position={[10, 12, -10]} intensity={0.85} color={0xffe2b0} />
       <group ref={rootRef} scale={transform.scale} position={transform.position} rotation={transform.rotation} onDoubleClick={handlePartDoubleClick}>
@@ -789,7 +805,9 @@ export default function GraphicsStudioPreview({ selectedItem, tuning, focusedPar
     >
       <StudioTuningPreviewProvider>
         <color attach="background" args={[backgroundColor]} />
+        <PreviewCameraSync camera={frame.camera} />
         <StudioScene
+          key={selectedItem.id}
           selectedItem={selectedItem}
           tuning={tuning}
           frame={frame}

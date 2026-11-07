@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { DEFAULT_STAGE_BOSS_PREVIEW, normalizeStageBossPreview } from '../lib/graphicsStudioConfig.js'
 import { EnemyVisual, ENEMY_STATS, ENEMY_SIZE_MULTIPLIER } from './Enemy.jsx'
@@ -169,6 +169,20 @@ function ReactiveBoss({ framing, bossType, enabled, staticPose, burstRef, parall
   )
 }
 
+// R3F applies the Canvas camera prop only once, so zoom is synced here on the live
+// camera. Remounting the Canvas per zoom step (a Canvas keyed by zoom) created a new
+// WebGL context per wheel/slider step and could evict the Studio's main context.
+function ZoomSync({ zoom }) {
+  const camera = useThree((s) => s.camera)
+  const invalidate = useThree((s) => s.invalidate)
+  useLayoutEffect(() => {
+    camera.zoom = zoom
+    camera.updateProjectionMatrix()
+    invalidate()
+  }, [camera, zoom, invalidate])
+  return null
+}
+
 export default function StageBossPreview({
   framing = DEFAULT_STAGE_BOSS_PREVIEW,
   interactive = false,
@@ -185,6 +199,8 @@ export default function StageBossPreview({
   const renderZoom = resolveBossPreviewZoom(frame.zoom)
   const frameRef = useRef(frame)
   const dragRef = useRef(null)
+  // Stable options object: the initial camera keeps R3F's lookAt(0,0,0); ZoomSync owns zoom.
+  const [cameraOptions] = useState(() => ({ position: [0, 2.2, 5.5], zoom: renderZoom }))
   // 입장 쇼타임(motionToken)은 유저가 직접 누른 행동의 1초 피드백이라 모션 게이트를 우회한다.
   // (OS 동작줄이기/연출줄이기 상태에서도 카드 클릭 연출은 항상 재생 — 앰비언트·탭 반응만 게이트.)
   const [activeMotionToken, setActiveMotionToken] = useState(() => (motionToken > 0 ? motionToken : 0))
@@ -292,7 +308,8 @@ export default function StageBossPreview({
           ReactiveBoss가 루트 위치를 고정하므로 이동 없이 관절만 반복한다.
           쇼타임 버스트는 이 보행과 별개인 바깥 래퍼 반응이며,
           framing 변경은 기존처럼 스튜디오 실시간 sync를 그대로 반영한다. */}
-      <Canvas frameloop="always" key={renderZoom} orthographic camera={{ position: [0, 2.2, 5.5], zoom: renderZoom }} dpr={[1, 1.5]}>
+      <Canvas frameloop="always" orthographic camera={cameraOptions} dpr={[1, 1.5]} gl={{ stencil: true, antialias: true }}>
+        <ZoomSync zoom={renderZoom} />
         <ambientLight intensity={0.7} />
         <directionalLight position={[3, 5, 4]} intensity={2.6} />
         <ReactiveBoss

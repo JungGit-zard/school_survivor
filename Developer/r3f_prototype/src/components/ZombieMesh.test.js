@@ -489,3 +489,21 @@ describe('coin jingle zombie visual concept', () => {
   })
 })
 
+
+describe('hit flash keeps Studio-owned materials', () => {
+  it('swaps the ZBlock flash imperatively instead of through the material prop', () => {
+    const source = readFileSync(new URL('./ZombieMesh.jsx', import.meta.url), 'utf8')
+    // A prop swap made R3F restore the raw cached material and drop the Studio-tuned clone.
+    expect(source).not.toContain('flash ? getFlashMat() : getCachedToonMat(color, emissive)')
+    expect(source).toContain('const mat    = getCachedToonMat(color, emissive)')
+    expect(source).toContain('mesh.material = getFlashMat()')
+    expect(source).toContain('mesh.material = restore')
+  })
+
+  it('never recolors the shared cached expansion materials for the flash', () => {
+    const source = readFileSync(new URL('./expansion/ExpansionZombieMesh.jsx', import.meta.url), 'utf8')
+    expect(source).not.toContain("mat.color.set('#ffffff')")
+    expect(source).toContain('node.material=getFlashMat()')
+    expect(source).toContain('node.material=node.userData.expansionFlashRestore')
+  })
+})

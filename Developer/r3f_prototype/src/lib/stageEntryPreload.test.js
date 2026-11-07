@@ -6,7 +6,7 @@ describe('stage entry preload mapping', () => {
     expect(getStageEntryTextureUrls('stage1').join(' ')).toMatch(/tile_stage01/)
     expect(getStageEntryTextureUrls('stage2').join(' ')).toMatch(/tile_stage02_corridor/)
     expect(getStageEntryTextureUrls('stage3').join(' ')).not.toMatch(/tile_stage0[12]/)
-    expect(getStageEntryTextureUrls('stage4').join(' ')).toMatch(/tile_stage04_cafeteria/)
+    expect(getStageEntryTextureUrls('stage4').join(' ')).toMatch(/tile_stage04_white_ceramic/)
   })
 
   it('keeps the Stage 2 end-wall exclusive to Stage 2', () => {

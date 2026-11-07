@@ -3,7 +3,8 @@ import { useFrame } from '@react-three/fiber'
 import { Html } from '@react-three/drei'
 import { RigidBody, CuboidCollider } from '@react-three/rapier'
 import { useGameStore } from '../store/useGameStore.js'
-import { playerFacing, playerPos, joystickDir, playerSlow } from '../lib/refs.js'
+import { bagSwingState, playerArmActionState, playerFacing, playerPos, joystickDir, playerSlow } from '../lib/refs.js'
+import { clearPlayerArmAction } from '../lib/playerArmAction.js'
 import { consumePlayerSlow } from '../lib/projectileZombieShotPool.js'
 import { moveKeys } from '../lib/keyboardInput.js'
 import { clampPlayerPosition } from '../lib/playerMovementBounds.js'
@@ -229,6 +230,12 @@ export function PlayerVisual({ meshGroup, movingRef, hp, maxHp, hitFlashToken = 
   )
 }
 
+export function resetPlayerPoseGlobals() {
+  bagSwingState.active = false
+  bagSwingState.progress = 0
+  clearPlayerArmAction(playerArmActionState)
+}
+
 export default function Player() {
   const rb        = useRef()
   const gameplayClockRef = useRef(null)
@@ -262,6 +269,11 @@ export default function Player() {
   const visualPose = getPlayerVisualPoseTransform({ phase, deathCause })
   if (gameplayClockRef.current === null) gameplayClockRef.current = createGameplayFixedStepClock()
 
+  // The arm/bag pose globals are shared with every other player model (title, Studio
+  // preview, Mini Rosari).  Leaving a run mid-swing or mid-arm-action must not leave
+  // them frozen or scheduled on a different Canvas clock.
+  useEffect(() => () => resetPlayerPoseGlobals(), [])
+
   useEffect(() => {
     if (!import.meta.env.DEV) return undefined
     const onKeyDown = (event) => {
@@ -287,7 +299,14 @@ export default function Player() {
 
   useFrame((_, delta) => {
     if (!rb.current) return
-    if (phase !== 'playing') { movingRef.current = false; rb.current.setLinvel({ x: 0, y: 0, z: 0 }, true); return }
+    if (phase !== 'playing') {
+      movingRef.current = false
+      rb.current.setLinvel({ x: 0, y: 0, z: 0 }, true)
+      // The invulnerability blink only runs while playing; never leave the body
+      // hidden on a blink-off frame through level-up, pause, gameover or clear.
+      if (meshGroup.current) meshGroup.current.visible = true
+      return
+    }
     runGameplayFixedSteps(gameplayClockRef.current, delta, (dt) => {
 
     if (hitFlashToken !== lastKnockbackHitToken.current) {

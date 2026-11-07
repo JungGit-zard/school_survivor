@@ -8,7 +8,7 @@
 // 탄은 외형(lib/projectileZombieShotGeometry.js SHOT_VISUALS)마다 InstancedMesh 한 쌍(body + 외곽선 헐),
 // 표식은 ring/markerFill/puddleFill/line 4개, 매복 소품(E58 줄 똬리·E60 배수구)은 소품마다 한 쌍.
 // count 0인 메시는 visible=false라 드로콜이 없다 — 화면에 실제로 보이는 외형 수만큼만 그린다.
-import { useEffect, useLayoutEffect, useMemo } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import { enemyPool, enemyProjectilePool, playerPos, projectileZombieShotPool, screenBounds } from '../lib/refs.js'
@@ -23,6 +23,9 @@ import { ENEMY_PROJECTILE_KIND_COUNT, MAX_ENEMY_PROJECTILES } from '../lib/enemy
 import { createChefIngredientGeometries } from '../lib/chefIngredientGeometry.js'
 import { applyChefIngredientSpin } from '../lib/chefIngredientSpin.js'
 import { getToonGradient } from '../lib/toon.js'
+import { getFirebaseStudioRuntimeState } from '../lib/studioRuntimeState.js'
+import { GRAPHICS_STUDIO_TUNING_EVENT, loadStudioTunings } from '../lib/graphicsStudioConfig.js'
+import { getStudioTransformProps } from './StudioTunedGroup.jsx'
 import { getPooledEnemyRenderTier } from './PooledEnemyVisuals.js'
 import { markInstancedMeshFullUpdate, markInstancedMeshPrefixUpdate } from './ZombieInstanceLayer.jsx'
 
@@ -30,6 +33,19 @@ const CHEF_INGREDIENT_VISUAL_SCALE = 3
 const OUTLINE_SCALE_MULTIPLIER = 1.22
 const zero = new THREE.Matrix4().makeScale(0, 0, 0)
 const matrix = new THREE.Matrix4(); const position = new THREE.Vector3(); const quaternion = new THREE.Quaternion(); const scale = new THREE.Vector3(1, 1, 1)
+
+// E04 탄(kind 0)의 Studio 루트 변환. 프리뷰(EnemyProjectileVisual)와 같은 아이템 id를 쓰고,
+// ZombieInstanceLayer와 같은 규칙으로 Firebase 런타임 상태가 준비되면 갱신한다.
+export const E04_PROJECTILE_STUDIO_ITEM_ID = 'enemy-projectile-e04'
+const outlineScaleMatrix = new THREE.Matrix4().makeScale(OUTLINE_SCALE_MULTIPLIER, OUTLINE_SCALE_MULTIPLIER, OUTLINE_SCALE_MULTIPLIER)
+const studioEuler = new THREE.Euler(); const studioQuaternion = new THREE.Quaternion(); const studioPosition = new THREE.Vector3(); const studioScale = new THREE.Vector3()
+export function composeE04ProjectileStudioRoot(out, tuning) {
+  const transform = getStudioTransformProps(tuning)
+  studioPosition.set(transform.position[0], transform.position[1], transform.position[2])
+  studioQuaternion.setFromEuler(studioEuler.set(transform.rotation[0], transform.rotation[1], transform.rotation[2]))
+  studioScale.set(transform.scale[0], transform.scale[1], transform.scale[2])
+  return out.compose(studioPosition, studioQuaternion, studioScale)
+}
 
 const shotColor = new THREE.Color()
 const shotEuler = new THREE.Euler()
@@ -177,7 +193,9 @@ export default function PooledEnemyProjectileLayer({ resetKey }) {
   const { bodies, outlines, geometries, materials, tiers, counts } = useMemo(() => {
     const toon = new THREE.MeshToonMaterial({ color: 0x34d6b8, emissive: 0x34d6b8, emissiveIntensity: .45, gradientMap: getToonGradient() })
     const ingredient = new THREE.MeshToonMaterial({ vertexColors: true, gradientMap: getToonGradient() })
-    const out = new THREE.MeshBasicMaterial({ color: 0x050209, side: THREE.BackSide, depthWrite: false })
+    // transparent(opacity 1): depthWrite가 꺼진 외곽선 헐을 투명 패스로 보내, 뒤에 그려지는 불투명
+    // 좀비 몸통이 헐을 지우지 못하게 한다(lib/toon.js outlineMat과 같은 패턴).
+    const out = new THREE.MeshBasicMaterial({ color: 0x050209, side: THREE.BackSide, transparent: true, opacity: 1, depthWrite: false })
     const geos = [new THREE.SphereGeometry(.09, 8, 8), ...createChefIngredientGeometries()]
     return {
       bodies: geos.map((geometry, kind) => mesh(geometry, kind === 0 ? toon : ingredient)),
@@ -192,7 +210,7 @@ export default function PooledEnemyProjectileLayer({ resetKey }) {
     const gradientMap = getToonGradient()
     return createProjectileZombieShotMeshes({
       bodyMat: new THREE.MeshToonMaterial({ vertexColors: true, gradientMap, emissive: 0x161616 }),
-      outMat: new THREE.MeshBasicMaterial({ color: 0x050209, side: THREE.BackSide, depthWrite: false }),
+      outMat: new THREE.MeshBasicMaterial({ color: 0x050209, side: THREE.BackSide, transparent: true, opacity: 1, depthWrite: false }),
       decalMats: DECAL_OPACITY.map((opacity) => new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 })),
     })
   }, [])
@@ -202,6 +220,17 @@ export default function PooledEnemyProjectileLayer({ resetKey }) {
     shots.geometries.forEach((geometry) => geometry.dispose())
     shots.materials.forEach((material) => material.dispose())
   }, [geometries, materials, shots])
+  const e04StudioRoot = useRef(new THREE.Matrix4())
+  useEffect(() => {
+    const refresh = () => {
+      const state = getFirebaseStudioRuntimeState()
+      if (!state?.datasets || !Number.isInteger(state.revision)) return
+      composeE04ProjectileStudioRoot(e04StudioRoot.current, loadStudioTunings()[E04_PROJECTILE_STUDIO_ITEM_ID])
+    }
+    refresh()
+    window.addEventListener(GRAPHICS_STUDIO_TUNING_EVENT, refresh)
+    return () => window.removeEventListener(GRAPHICS_STUDIO_TUNING_EVENT, refresh)
+  }, [])
   useLayoutEffect(() => {
     for (let kind = 0; kind < bodies.length; kind += 1) {
       for (let i = 0; i < MAX_ENEMY_PROJECTILES; i += 1) {
@@ -234,6 +263,15 @@ export default function PooledEnemyProjectileLayer({ resetKey }) {
       if (kind === 0) quaternion.identity()
       else applyChefIngredientSpin(quaternion, i, enemyProjectilePool.ageMs[i])
       const slot = counts[kind]
+      if (kind === 0) {
+        // StudioTunedGroup 순서: 월드 위치 → Studio 루트(T·R·S) → 자식(몸통 1, 외곽선 1.22).
+        matrix.makeTranslation(position.x, position.y, position.z).multiply(e04StudioRoot.current)
+        bodies[0].setMatrixAt(slot, matrix)
+        matrix.multiply(outlineScaleMatrix)
+        outlines[0].setMatrixAt(slot, matrix)
+        counts[0] = slot + 1
+        continue
+      }
       scale.setScalar(kind === 0 ? 1 : CHEF_INGREDIENT_VISUAL_SCALE)
       matrix.compose(position, quaternion, scale)
       bodies[kind].setMatrixAt(slot, matrix)

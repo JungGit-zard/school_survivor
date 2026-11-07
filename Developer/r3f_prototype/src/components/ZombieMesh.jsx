@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useLayoutEffect, useRef } from 'react'
 import { useFrame, useLoader } from '@react-three/fiber'
 import { runWithTitleIdleRig } from '../lib/titleIdleRig.js'
 import * as THREE from 'three'
@@ -752,7 +752,23 @@ export const B02_STAGE2_BOSS_FACE = {
 function ZBlock({ name, studioPartId, size, position, rotation, color, emissive = 0.12, outlineScale = 1.08, flash = false, chamferSteps = ZOMBIE_CHARACTER_CHAMFER_STEPS, groupRef = null, boxScale = null, children = null }) {
   const geo    = chamferSteps > 0 ? getCachedChamferedBoxGeo(...size, chamferSteps) : getCachedBoxGeo(...size)
   const outMat = getSharedOutlineMat()
-  const mat    = flash ? getFlashMat() : getCachedToonMat(color, emissive)
+  // The material prop stays constant: swapping it through props made R3F put the raw
+  // cached toon material back when the flash ended, discarding the Studio-isolated,
+  // Studio-tuned clone (StudioTunedRuntimeGroup only re-applies on Studio events).
+  const mat    = getCachedToonMat(color, emissive)
+  const bodyRef = useRef(null)
+  useLayoutEffect(() => {
+    const mesh = bodyRef.current
+    if (!flash || !mesh) return undefined
+    const restore = mesh.material
+    mesh.material = getFlashMat()
+    // Keep Studio tuning off the shared flash singleton while it is swapped in.
+    mesh.userData.studioNonTunable = true
+    return () => {
+      mesh.material = restore
+      delete mesh.userData.studioNonTunable
+    }
+  }, [flash])
   const os     = inflateScale(outlineScale)
   const bx     = boxScale ? boxScale[0] : 1
   const by     = boxScale ? boxScale[1] : 1
@@ -760,7 +776,7 @@ function ZBlock({ name, studioPartId, size, position, rotation, color, emissive 
   return (
     <group ref={groupRef} name={studioPartId ?? name} userData={studioPartId ? { studioPartId } : undefined} position={position} rotation={rotation}>
       <mesh renderOrder={1} geometry={geo} material={outMat} scale={[os * bx, os * by, os * bz]} userData={{ studioRenderOutline: true }} raycast={disableRaycast} />
-      <mesh renderOrder={2} geometry={geo} material={mat} scale={[bx, by, bz]} />
+      <mesh ref={bodyRef} renderOrder={2} geometry={geo} material={mat} scale={[bx, by, bz]} />
       {children}
     </group>
   )

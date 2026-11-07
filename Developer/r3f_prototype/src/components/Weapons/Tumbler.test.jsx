@@ -16,7 +16,7 @@ function indexOfOrThrow(needle) {
 describe('TumblerModel visual spec', () => {
   it('keeps the original body outline/body/cap children at the front before adding decorative parts', () => {
     const outline = indexOfOrThrow('<mesh material={outMat} scale={inflateScale([1.12, 1.12, 1.08])}>')
-    const body = indexOfOrThrow('<mesh material={bodyMat}>')
+    const body = indexOfOrThrow('<mesh material={bodyMat} ref={bodyMeshRef}>')
     const cap = indexOfOrThrow('<mesh material={capMat} position={[0, 0.34, 0]}>')
     const handleOutline = indexOfOrThrow('<mesh material={outMat} position={[0.29, 0, 0]}')
     const handleBody = indexOfOrThrow('<mesh material={handleMat} position={[0.29, 0, 0]}')

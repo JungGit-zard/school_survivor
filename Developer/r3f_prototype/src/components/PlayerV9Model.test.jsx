@@ -14,7 +14,7 @@ vi.mock('react', async (importOriginal) => ({
 vi.mock('@react-three/fiber', () => ({ useFrame: (frame) => { runtime.frame = frame }, useThree: () => ({}) }))
 vi.mock('@react-three/drei', () => ({ useGLTF: Object.assign(() => ({ scene: runtime.scene }), { preload: () => {} }) }))
 
-import PlayerV9Model, { PLAYER_V9_RAW_HEIGHT, PLAYER_V9_RAW_MIN_Y } from './PlayerV9Model.jsx'
+import PlayerV9Model, { PLAYER_V9_RAW_HEIGHT, PLAYER_V9_RAW_MIN_Y, setPlayerV9Flash } from './PlayerV9Model.jsx'
 import StudioTunedGroup, { applySavedStudioPartTunings, applyStudioTuning, findStudioPartByKey } from './StudioTunedGroup.jsx'
 import { GRAPHICS_STUDIO_CATALOG } from '../lib/graphicsStudioConfig.js'
 import { PLAYER_OUTLINE_THICKNESS, PLAYER_OUTLINE_THICKNESS_PREVIEW } from '../lib/playerV9Outline.js'
@@ -256,5 +256,43 @@ describe('Player v9 gameplay and Studio runtime model contract', () => {
     expect(lantern.position.z).toBeCloseTo(baseZ - 0.59, 10)
     for (const axis of ['x', 'y', 'z']) expect(root.getObjectByName('grp_body').rotation[axis]).toBeCloseTo(0, 10)
     expect(JSON.stringify(saved)).toBe(before)
+  })
+})
+
+describe('Player v9 hit flash', () => {
+  it('flashes only GLB surfaces and restores them, skipping outlines, decals, the shadow and the lantern', () => {
+    const surfaceMaterial = new THREE.MeshToonMaterial()
+    const outlineMaterial = new THREE.MeshBasicMaterial()
+    const decalMaterial = new THREE.MeshBasicMaterial({ transparent: true })
+    const shadowMaterial = new THREE.MeshBasicMaterial({ transparent: true })
+    const flashMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff })
+    const geometry = new THREE.BoxGeometry(1, 1, 1)
+
+    const glb = new THREE.Group()
+    const surface = new THREE.Mesh(geometry, surfaceMaterial)
+    const outline = new THREE.Mesh(geometry, outlineMaterial)
+    outline.userData.studioRenderOutline = true
+    const decal = new THREE.Mesh(geometry, decalMaterial)
+    decal.userData.studioTextureDecal = true
+    glb.add(surface, outline, decal)
+    const modelGroup = new THREE.Group()
+    const shadow = new THREE.Mesh(geometry, shadowMaterial)
+    modelGroup.add(shadow, glb)
+
+    setPlayerV9Flash(glb, flashMaterial, true)
+    expect(surface.material).toBe(flashMaterial)
+    expect(outline.material).toBe(outlineMaterial)
+    expect(decal.material).toBe(decalMaterial)
+    expect(shadow.material).toBe(shadowMaterial)
+
+    setPlayerV9Flash(glb, flashMaterial, false)
+    expect(surface.material).toBe(surfaceMaterial)
+    expect(surface.userData.playerV9BaseMaterial).toBeUndefined()
+  })
+
+  it('drives the flash from the cloned GLB scene, not the model group with shadow and lantern', () => {
+    const source = readFileSync(new URL('./PlayerV9Model.jsx', import.meta.url), 'utf8')
+    expect(source).toContain('setPlayerV9Flash(scene, flashMat')
+    expect(source).not.toContain('setPlayerV9Flash(modelRef.current')
   })
 })

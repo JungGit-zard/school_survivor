@@ -18,6 +18,7 @@ import { createRef, useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { enemyPool, screenBounds } from '../lib/refs.js'
 import { getStudioZombieItemId } from '../lib/graphicsStudioConfig.js'
+import { getFlashMat } from '../lib/toon.js'
 import { PROCEDURAL_FACE_ZOMBIE_CAPACITY, isProceduralFaceZombieCandidate } from './PooledEnemyVisuals.js'
 import StudioTunedGroup from './StudioTunedGroup.jsx'
 import ProceduralFaceTestZombie from './ProceduralFaceTestZombie.jsx'
@@ -29,11 +30,37 @@ export { PROCEDURAL_FACE_ZOMBIE_CAPACITY }
 const STUDIO_ITEM_ID = getStudioZombieItemId('E07')
 const MAX_POOL_SLOTS = 200
 
+// 피격 플래시: 몸통 박스 메시만 흰 플래시 재질로 바꿨다가 원래(스튜디오 소유) 재질로 되돌린다.
+// 외곽선 헐(studioRenderOutline)과 셰이더 얼굴(studioNonTunable)은 건드리지 않는다.
+function collectFlashMeshes(group, out) {
+  group.traverse((node) => {
+    if (node.isMesh && !node.userData.studioRenderOutline && !node.userData.studioNonTunable && !node.material?.isShaderMaterial) out.push(node)
+  })
+  return out
+}
+
+export function setProceduralFaceSlotFlash(meshes, flashing) {
+  for (let i = 0; i < meshes.length; i += 1) {
+    const mesh = meshes[i]
+    if (flashing && !mesh.userData.faceLayerFlashRestore) {
+      mesh.userData.faceLayerFlashRestore = mesh.material
+      mesh.material = getFlashMat()
+      mesh.userData.studioNonTunable = true
+    } else if (!flashing && mesh.userData.faceLayerFlashRestore) {
+      mesh.material = mesh.userData.faceLayerFlashRestore
+      delete mesh.userData.faceLayerFlashRestore
+      delete mesh.userData.studioNonTunable
+    }
+  }
+}
+
 export default function ProceduralFaceZombieLayer() {
   const slots = useMemo(
     () => Array.from({ length: PROCEDURAL_FACE_ZOMBIE_CAPACITY }, () => createRef()),
     [],
   )
+  const flashMeshes = useMemo(() => slots.map(() => []), [slots])
+  const flashState = useMemo(() => new Uint8Array(PROCEDURAL_FACE_ZOMBIE_CAPACITY), [])
 
   useFrame(() => {
     const pool = enemyPool
@@ -62,11 +89,19 @@ export default function ProceduralFaceZombieLayer() {
         group.rotation.set(0, pool.yaw[index], Math.sin(walk) * 0.06)
         group.scale.setScalar(scale)
         group.visible = true
+        const slot = used - 1
+        const flashing = pool.hitFlashTimer[index] > 0 ? 1 : 0
+        if (flashing !== flashState[slot]) {
+          if (!flashMeshes[slot].length) collectFlashMeshes(group, flashMeshes[slot])
+          setProceduralFaceSlotFlash(flashMeshes[slot], flashing === 1)
+          flashState[slot] = flashing
+        }
       }
     }
     for (let slot = used; slot < PROCEDURAL_FACE_ZOMBIE_CAPACITY; slot += 1) {
       const group = slots[slot].current
       if (group) group.visible = false
+      if (flashState[slot]) { setProceduralFaceSlotFlash(flashMeshes[slot], false); flashState[slot] = 0 }
     }
   })
 

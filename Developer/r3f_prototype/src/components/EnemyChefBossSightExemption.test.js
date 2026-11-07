@@ -35,3 +35,11 @@ describe('B04 chef boss sight-block exemption', () => {
     expect(phaseIndex).toBeGreaterThan(gateIndex)
   })
 })
+
+describe('B04 phase-2 entry after the soup blast', () => {
+  it('writes the phase-2 state and normal pose only on the transition frame', () => {
+    // Re-queuing 'normal' every frame erased the phase-2 charger's one-shot warn/charge/stun poses.
+    expect(enemySource).toContain("if (soup.phase === 'done' && chefPhaseRef.current !== CHEF_PHASE2) {")
+    expect(enemySource).not.toContain('const enteringPhase2 = chefPhaseRef.current !== CHEF_PHASE2')
+  })
+})

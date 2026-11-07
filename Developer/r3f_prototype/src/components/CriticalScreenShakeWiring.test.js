@@ -31,7 +31,7 @@ describe('critical screen shake wiring', () => {
   // star contract lives in VFXLayer.criticalStar.test.js).
   it('criticalHitBurst는 단일 가산 금색 별로 번쩍인다', () => {
     expect(vfxLayerSource).not.toContain('criticalFlashMatRef')
-    expect(vfxLayerSource).toContain('starMatRef')
+    expect(vfxLayerSource).toContain('starMeshRef')
     expect(vfxLayerSource).toContain('color={VFX_COLORS.criticalGold}')
     expect(vfxLayerSource).toContain('blending={THREE.AdditiveBlending}')
   })

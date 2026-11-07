@@ -68,8 +68,10 @@ export default function TapFeedbackBurst() {
       sizeRef.current = { w, h, dpr }
       canvas.width = w
       canvas.height = h
-      canvas.style.width = '100vw'
-      canvas.style.height = '100vh'
+      // CSS 크기를 비트맵과 같은 innerWidth/innerHeight로 맞춘다. 100vh는 모바일 주소창 때문에
+      // innerHeight와 달라 입자가 탭 지점에서 늘어나 보인다.
+      canvas.style.width = `${window.innerWidth}px`
+      canvas.style.height = `${window.innerHeight}px`
     }
 
     function draw(now) {

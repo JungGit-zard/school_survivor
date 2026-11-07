@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import {
   getQuestFallbackPosition,
   getQuestNoticeMarkerPosition,
+  getQuestNoticeLightSlots,
   getQuestNoticeMarkers,
   getQuestSurfacePosition,
   getQuestTargetPosition,
@@ -10,6 +11,7 @@ import {
   isQuestInteractionInRange,
   markQuestActionHandled,
   QUEST_ITEM_STYLE,
+  QUEST_NOTICE_LIGHT_INTENSITY,
   QUEST_QUESTION_MARK_CURVE_POINTS,
   QUEST_QUESTION_MARK_DOT_POSITION,
   QUEST_QUESTION_MARK_DOT_RADIUS,
@@ -111,9 +113,11 @@ describe('quest world placement resolution', () => {
     expect(noticeSection).toContain('QuestNoticeSymbol3D')
     expect(noticeSection).toContain('quest-exclamation-symbol-3d')
     expect(noticeSection).toContain('quest-question-symbol-3d')
-    expect(noticeSection).toContain('<pointLight color={color}')
+    expect(noticeSection).not.toContain('<pointLight')
     expect(noticeSection).toContain('emissiveIntensity={1.55}')
-    expect(noticeSection).toContain('distance={1.2}')
+    const layerSection = source.slice(source.indexOf('export default function QuestWorldLayer'))
+    expect(layerSection).toContain('<pointLight')
+    expect(layerSection).toContain('distance={1.2}')
     expect(noticeSection).toContain('position.y = baseY + Math.sin(elapsed * 1.4) * 0.09')
     expect(noticeSection).toContain('groupRef.current.scale.setScalar(0.5 + Math.max(0, Math.sin(elapsed * 2.4)) * 0.04)')
     expect(noticeSection).not.toContain('circleGeometry')
@@ -170,6 +174,28 @@ describe('quest world placement resolution', () => {
     expect(markers[1]).toMatchObject({ kind: 'objective', symbol: '?' })
     expect(completionMarkers[0]).toMatchObject({ kind: 'return', symbol: '?' })
     expect([...markers, ...completionMarkers].every(({ target }) => target.position[1] > 1)).toBe(true)
+  })
+
+  it('keeps one quest notice light per stage quest mounted so the point-light count never changes mid-run', () => {
+    const quests = getStageQuestDefinitions('stage1')
+    const placements = getStageObjectPlacements('stage1')
+    const [firstQuest, secondQuest] = quests
+    const states = [
+      { [firstQuest.id]: { status: 'undiscovered' }, [secondQuest.id]: { status: 'undiscovered' } },
+      { [firstQuest.id]: { status: 'active' }, [secondQuest.id]: { status: 'completed' } },
+      { [firstQuest.id]: { status: 'completed' }, [secondQuest.id]: { status: 'completed' } },
+    ]
+    for (const progress of states) {
+      const markers = getQuestNoticeMarkers('stage1', quests, progress, placements)
+      const slots = getQuestNoticeLightSlots(quests, markers)
+      expect(slots).toHaveLength(quests.length)
+      expect(slots.filter((slot) => slot.intensity > 0)).toHaveLength(markers.length)
+      for (const marker of markers) {
+        const slot = slots.find(({ questId }) => questId === marker.quest.id)
+        expect(slot).toMatchObject({ intensity: QUEST_NOTICE_LIGHT_INTENSITY, color: marker.color })
+        expect(slot.position).toEqual(marker.target.position)
+      }
+    }
   })
 
   it('uses type and fallback types when an exact Firebase placement is absent', () => {

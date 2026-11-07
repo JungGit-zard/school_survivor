@@ -66,7 +66,7 @@ describe('tumbler wear tint', () => {
 
   it('the orbit paints the body from the remaining durability without allocating per frame', () => {
     expect(tumblerSource).toContain('tumblerWearTint(durabilityUsedRef.current[i], w.durability)')
-    expect(tumblerSource).toContain('material.color.lerpColors(TUMBLER_BODY_COLOR, TUMBLER_WORN_COLOR, tint)')
+    expect(tumblerSource).toContain('material.color.lerpColors(paint.base, TUMBLER_WORN_COLOR, tint)')
     const frame = tumblerSource.slice(tumblerSource.indexOf('// 내구력 색 신호'), tumblerSource.indexOf('// ponytail: 텀블러는 항상 활성'))
     expect(frame.length).toBeGreaterThan(0)
     expect(frame).not.toMatch(/new THREE\.|new Float|new Array/)

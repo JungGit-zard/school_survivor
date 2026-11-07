@@ -5,9 +5,11 @@ const CATEGORY_LABELS = Object.fromEntries(BOSS_FACE_PART_CATEGORIES.map((catego
 const FACE_INK = '#1d1014'
 const FACE_ACCENT = '#e35d3d'
 
+// SVG y grows downward; the in-game shader (BossFacePartsOverlay.jsx) uses UV y upward.
+// Angry = outer ends high, inner ends low; worried = the reverse — same as the shader.
 function BrowSvg({ id }) {
-  if (id === 'brow-angry-slash') return <><path d="M27 38 L43 32" /><path d="M57 32 L73 38" /></>
-  if (id === 'brow-worried-roof') return <><path d="M27 35 L42 41" /><path d="M58 41 L73 35" /></>
+  if (id === 'brow-angry-slash') return <><path d="M27 32 L43 38" /><path d="M57 38 L73 32" /></>
+  if (id === 'brow-worried-roof') return <><path d="M27 41 L42 35" /><path d="M58 35 L73 41" /></>
   if (id === 'brow-flat-deadpan') return <><path d="M27 36 L43 36" /><path d="M57 36 L73 36" /></>
   if (id === 'brow-wiggle-goofy') return <><path d="M25 36 Q31 31 37 36 T47 36" /><path d="M53 36 Q59 31 65 36 T75 36" /></>
   return <><path d="M27 37 Q35 32 43 35" /><path d="M57 35 Q65 32 73 37" /></>
@@ -17,7 +19,7 @@ function EyeSvg({ id }) {
   if (id === 'eye-happy-arc') return <><path d="M29 48 Q36 42 43 48" /><path d="M57 48 Q64 42 71 48" /></>
   if (id === 'eye-empty-oval') return <><ellipse cx="36" cy="48" rx="7" ry="5" /><ellipse cx="64" cy="48" rx="7" ry="5" /></>
   if (id === 'eye-x-dizzy') return <><path d="M31 43 L41 53 M41 43 L31 53" /><path d="M59 43 L69 53 M69 43 L59 53" /></>
-  if (id === 'eye-squint-lines') return <><path d="M29 48 L43 45" /><path d="M57 45 L71 48" /></>
+  if (id === 'eye-squint-lines') return <><path d="M29 45 L43 48" /><path d="M57 48 L71 45" /></>
   return <><circle cx="36" cy="48" r="4.6" fill={FACE_INK} /><circle cx="64" cy="48" r="4.6" fill={FACE_INK} /></>
 }
 
@@ -57,7 +59,7 @@ export default function BossFaceGridPreview({ bossLabel, recipe }) {
         </defs>
         <rect x="10" y="8" width="80" height="86" rx="18" fill="url(#boss-face-grid-bg)" stroke="#2b3828" strokeWidth="2.4" />
         {columns.map((column) => <line key={`v${column}`} x1={10 + column * 8} y1="8" x2={10 + column * 8} y2="94" stroke="#eaffdd" strokeOpacity="0.28" strokeWidth="0.55" />)}
-        {rows.map((row) => <line key={`h${row}`} x1="10" y1={8 + row * 9.5} x2="90" y2={8 + row * 9.5} stroke="#eaffdd" strokeOpacity="0.28" strokeWidth="0.55" />)}
+        {rows.map((row) => <line key={`h${row}`} x1="10" y1={8 + row * 10.75} x2="90" y2={8 + row * 10.75} stroke="#eaffdd" strokeOpacity="0.28" strokeWidth="0.55" />)}
         <g fill="none" stroke={FACE_INK} strokeLinecap="round" strokeLinejoin="round" strokeWidth="3.4">
           <BrowSvg id={normalized.brow} />
           <EyeSvg id={normalized.eye} />

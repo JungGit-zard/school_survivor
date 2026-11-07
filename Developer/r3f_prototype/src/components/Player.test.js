@@ -1,4 +1,6 @@
 import { describe, expect, it } from 'vitest'
+import { bagSwingState, playerArmActionState } from '../lib/refs.js'
+import { getActivePlayerArmAction, startPlayerArmAction } from '../lib/playerArmAction.js'
 import { readFileSync } from 'node:fs'
 import {
   HEAL_EFFECT_CORE_SCALE,
@@ -12,6 +14,7 @@ import {
   MATILDA_FAINTED_POSE_Y_OFFSET,
   getPlayerVisualPoseTransform,
   advancePlayerStep,
+  resetPlayerPoseGlobals,
   resolvePlayerHitKnockback,
   shouldStartHealEffect,
 } from './Player.jsx'
@@ -150,5 +153,27 @@ describe('player footsteps', () => {
     expect(source).toContain("emitSfx({ id: 'playerStep', volume: PLAYER_STEP_VOLUME, rate: 0.92 + Math.random() * 0.16 })")
     // 발소리는 배경이라 코드베이스의 어떤 emit보다도 조용해야 한다(최저 기존값 0.18).
     expect(source).toContain('const PLAYER_STEP_VOLUME = 0.15')
+  })
+})
+
+describe('player visual lifecycle', () => {
+  it('restores the body visibility whenever the phase leaves playing (blink cannot stick off)', () => {
+    const source = readFileSync(new URL('./Player.jsx', import.meta.url), 'utf8')
+    const notPlaying = source.slice(source.indexOf("if (phase !== 'playing') {"))
+    const branch = notPlaying.slice(0, notPlaying.indexOf('return'))
+    expect(branch).toContain('meshGroup.current.visible = true')
+  })
+
+  it('clears the shared bag-swing and arm-action pose globals when the gameplay player unmounts', () => {
+    bagSwingState.active = true
+    bagSwingState.progress = 0.4
+    startPlayerArmAction(playerArmActionState, 'boxCutter', 120_000)
+
+    resetPlayerPoseGlobals()
+
+    expect(bagSwingState).toMatchObject({ active: false, progress: 0 })
+    expect(getActivePlayerArmAction(playerArmActionState, 120_100)).toBe(null)
+    const source = readFileSync(new URL('./Player.jsx', import.meta.url), 'utf8')
+    expect(source).toContain('useEffect(() => () => resetPlayerPoseGlobals(), [])')
   })
 })

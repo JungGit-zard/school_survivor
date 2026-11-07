@@ -629,7 +629,7 @@ export function resetActiveE04ProjectileCountForTest() {
 // E01-E06 standard zombies render via ZombieInstanceLayer (instanced). B01 + Matilda use React mesh.
 const INSTANCED_TYPES = new Set(['E01', 'E02', 'E03', 'E04', 'E05', 'E06'])
 
-export function EnemyVisual({ type = 'E01', animPhase = 'normal', hitFlash = false, hp, showHealthBar = true, groupRef = null, isMatilda = false, forceMesh = false, staticPose = false, scale, bossFaceRecipe, isChefPhase2 = false }) {
+export function EnemyVisual({ type = 'E01', animPhase = 'normal', hitFlash = false, hp, showHealthBar = true, groupRef = null, isMatilda = false, forceMesh = false, staticPose = false, scale, bossFaceRecipe, isChefPhase2 = false, maxHp }) {
   const stats = ENEMY_STATS[type] ?? ENEMY_STATS.E01
   // scale prop lets a caller (Enemy) pass the merged statOverride scale (Matilda keeps B01's base scale)
   // so the rendered body matches the physics collider exactly. Falls back to the base
@@ -647,7 +647,7 @@ export function EnemyVisual({ type = 'E01', animPhase = 'normal', hitFlash = fal
         {!useInstanced && <ZombieMesh type={type} animPhase={animPhase} hitFlash={hitFlash} isMatilda={isMatilda} staticPose={staticPose} bossFaceRecipe={bossFaceRecipe} />}
         {!staticPose && canShowChargeCue && animPhase === 'warn' && <ChargeToonCue y={CHARGE_CUE_LAYOUT.y} />}
       </group>
-      {showHealthBar && <MiniHealthBar current={currentHp} max={stats.hp} width={0.32 * cs} height={0.045} y={0.72 * cs} />}
+      {showHealthBar && <MiniHealthBar current={currentHp} max={maxHp ?? stats.hp} width={0.32 * cs} height={0.045} y={0.72 * cs} />}
     </>
   )
 }
@@ -1525,12 +1525,13 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
           return
         }
       }
-      if (soup.phase === 'done') {
-        const enteringPhase2 = chefPhaseRef.current !== CHEF_PHASE2
+      // 전환 프레임에만 상태를 쓴다. 매 프레임 'normal'을 큐잉하면 2페이즈 차저의
+      // 1회성 warn/charge/stun 포즈가 다음 프레임에 덮여 사라진다.
+      if (soup.phase === 'done' && chefPhaseRef.current !== CHEF_PHASE2) {
         chefPhaseRef.current = CHEF_PHASE2
         setIsChefPhase2(true)
         queueVisualState('animPhase', 'normal')
-        if (enteringPhase2) emitStage4B04Cue(type, 'bossRoar')
+        emitStage4B04Cue(type, 'bossRoar')
       }
     }
 
@@ -1873,7 +1874,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
           colliders={false}
         >
           <CuboidCollider args={colArgs} sensor={isMatilda} />
-          <EnemyVisual groupRef={groupRef} type={type} animPhase={animPhase} hitFlash={hitFlash} hp={hp} isMatilda={isMatilda} scale={stats.scale} isChefPhase2={isChefPhase2} />
+          <EnemyVisual groupRef={groupRef} type={type} animPhase={animPhase} hitFlash={hitFlash} hp={hp} maxHp={stats.hp} isMatilda={isMatilda} scale={stats.scale} isChefPhase2={isChefPhase2} />
         </RigidBody>
       )}
       {type === 'B02' && currentStageId === 'stage2' && (

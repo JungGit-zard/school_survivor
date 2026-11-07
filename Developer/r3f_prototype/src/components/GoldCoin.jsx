@@ -203,13 +203,13 @@ export default function GoldCoin({ id, pos, value, onCollect }) {
             <cylinderGeometry args={[R + 0.006, R + 0.014, TH * 0.55, 22]} />
           </mesh>
 
-          {/* 앞면 광택 */}
-          <mesh renderOrder={3} material={shineMat} position={[TH / 2 + 0.002, 0, 0]}>
+          {/* 앞면 광택 — circleGeometry는 +Z를 보므로 Y축 ±π/2로 돌려 코인 면(±X)에 눕힌다. */}
+          <mesh renderOrder={3} material={shineMat} position={[TH / 2 + 0.002, 0, 0]} rotation={[0, Math.PI / 2, 0]}>
             <circleGeometry args={[R * 0.50, 18]} />
           </mesh>
 
           {/* 뒷면 광택 */}
-          <mesh renderOrder={3} material={shineMat} position={[-(TH / 2 + 0.002), 0, 0]} rotation={[0, Math.PI, 0]}>
+          <mesh renderOrder={3} material={shineMat} position={[-(TH / 2 + 0.002), 0, 0]} rotation={[0, -Math.PI / 2, 0]}>
             <circleGeometry args={[R * 0.50, 18]} />
           </mesh>
         </group>

@@ -232,11 +232,44 @@ export function e01PartSlotsForNumericPath(path, out) {
   return 0
 }
 
+// E34-E45 posed zombies (type codes 37-48) share ZombieInstanceLayer's 13
+// POSED slots starting at POSED_SLOT_BASE.  PosedBoxZombieMesh renders six
+// pivot groups (POSED_ZOMBIE_GROUP_KEYS order) and puts each part index j under
+// the pivot whose key matches; slot 12 (the mark) lives under its rig's
+// mark.parent.  Kept as plain data so this module stays dependency-free;
+// PooledEnemyVisuals.test.js pins it to ZombieMesh's rigs and the layer base.
+export const POSED_ZOMBIE_FIRST_TYPE_CODE = 37
+export const POOLED_POSED_SLOT_BASE = 81
+const POSED_GROUP_KEYS = ['head', 'body', 'armL', 'armR', 'legL', 'legR']
+const POSED_PART_KEYS = ['head', 'head', 'head', 'body', 'armL', 'armL', 'armR', 'armR', 'legL', 'legL', 'legR', 'legR']
+// E34..E45 in POSED_ZOMBIE_TYPES order.
+export const POOLED_POSED_MARK_PARENTS = ['body', 'head', 'body', 'body', 'head', 'armL', 'body', 'body', 'body', 'armL', 'body', 'body']
+
+function posedPartSlotsForNumericPath(type, path, out) {
+  const markParent = POOLED_POSED_MARK_PARENTS[type - POSED_ZOMBIE_FIRST_TYPE_CODE]
+  const parts = String(path).split('.').map(Number)
+  let start = -1
+  for (let index = 0; index < parts.length - 1; index += 1) { if (parts[index] === 0 && Number.isInteger(parts[index + 1]) && parts[index + 1] <= 5) { start = index; break } }
+  if (start < 0) return 0
+  const pivotKey = POSED_GROUP_KEYS[parts[start + 1]]
+  const leaf = parts[start + 2]
+  let count = 0
+  let n = 0
+  for (let j = 0; j <= POSED_PART_KEYS.length; j += 1) {
+    const key = j === POSED_PART_KEYS.length ? markParent : POSED_PART_KEYS[j]
+    if (key !== pivotKey) continue
+    if (!Number.isInteger(leaf)) { out[count++] = POOLED_POSED_SLOT_BASE + j; continue }
+    if (n++ === leaf) { out[0] = POOLED_POSED_SLOT_BASE + j; return 1 }
+  }
+  return count
+}
+
 // E01-E06 share the E01 hierarchy.  The running pair has a richer hierarchy,
 // but it is still resolved into the same canonical Studio transform cache;
 // only this structural path-to-slot mapping differs.
 export function pooledZombiePartSlotsForNumericPath(type, path, out) {
   if (type >= 1 && type <= 6) return e01PartSlotsForNumericPath(path, out)
+  if (type >= POSED_ZOMBIE_FIRST_TYPE_CODE && type < POSED_ZOMBIE_FIRST_TYPE_CODE + POOLED_POSED_MARK_PARENTS.length) return posedPartSlotsForNumericPath(type, path, out)
   if (type !== 7 && type !== 8 && type !== 13 && type !== 14) return 0
 
   const parts = String(path).split('.').map(Number)

@@ -9,6 +9,7 @@ import {
   loadTextureDecals,
   normalizeStudioTuning,
 } from '../lib/graphicsStudioConfig.js'
+import { getFirebaseStudioRuntimeState } from '../lib/studioRuntimeState.js'
 import { disposeTextureDecals, syncTextureDecals } from './TextureDecal.jsx'
 
 const StudioPreviewContext = createContext(false)
@@ -461,7 +462,12 @@ export function applySavedStudioPartTunings(root, itemId, tunings = loadStudioTu
         composeStudioPartOffset(part.userData.studioPartBaseRotation.z, rotationZ),
       )
       if (materialTuning) {
-        entries.forEach(({ tuning }) => applyStudioTuning(part, tuning, { scope: 'part' }))
+        // A transform-only part entry must not repaint the part: the root pass
+        // (always run first by every caller) already set root/group tint, and a
+        // default-material part pass would reset owned clones to the base color.
+        entries.forEach(({ tuning }) => {
+          if (hasStudioMaterialTuning(normalizeStudioTuning(tuning))) applyStudioTuning(part, tuning, { scope: 'part' })
+        })
       }
     })
 }
@@ -497,19 +503,28 @@ function StudioTunedRuntimeGroup({ itemId, children, materialTuning = true, snap
   // A non-1 value is reserved for a fixed parent base scale: compensate only
   // the parent-scaled Studio position so runtime and preview stay world-equal.
   const groupRef = useRef(null)
+  // What the current studioState was read from: a commit between first render and
+  // listener attach (or an itemId change) must still reach this group.
+  const loadedFromRef = useRef({ itemId, datasets: getFirebaseStudioRuntimeState().datasets })
   const [studioState, setStudioState] = useState(() => (
     snapshot ? loadSnapshotStudioState(itemId, snapshot) : loadStudioState(itemId)
   ))
 
   useEffect(() => {
     if (snapshot) {
+      loadedFromRef.current = { itemId: null, datasets: null }
       setStudioState(loadSnapshotStudioState(itemId, snapshot))
       return undefined
     }
     if (typeof window === 'undefined') return undefined
-    const update = () => setStudioState(loadStudioState(itemId))
+    const update = () => {
+      loadedFromRef.current = { itemId, datasets: getFirebaseStudioRuntimeState().datasets }
+      setStudioState(loadStudioState(itemId))
+    }
     window.addEventListener(GRAPHICS_STUDIO_TUNING_EVENT, update)
     window.addEventListener(TEXTURE_DECALS_EVENT, update)
+    if (loadedFromRef.current.itemId !== itemId
+      || loadedFromRef.current.datasets !== getFirebaseStudioRuntimeState().datasets) update()
     return () => {
       window.removeEventListener(GRAPHICS_STUDIO_TUNING_EVENT, update)
       window.removeEventListener(TEXTURE_DECALS_EVENT, update)

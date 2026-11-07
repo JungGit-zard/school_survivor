@@ -15,6 +15,13 @@ import StudioTunedGroup, { composeStudioPartScale } from '../StudioTunedGroup.js
 
 let _missileId = 0
 
+// Studio 재질 튜닝은 메시 재질을 복제본으로 교체한다. useMemo로 잡은 원본이 아니라
+// 지금 메시에 붙은 재질에 투명도를 써야 연기·화염 연출이 튜닝 후에도 살아 있다.
+function setLiveOpacity(mesh, opacity) {
+  const material = mesh?.material
+  if (material) material.opacity = opacity
+}
+
 export function MissileBody() {
   const bodyMat  = useMemo(() => toonMat(0xff3d85, 0.22), [])   // 선명한 핑크
   const labelMat = useMemo(() => toonMat(0xff80b8, 0.28), [])   // 밝은 핑크 밴드
@@ -59,6 +66,8 @@ function MissileProjectile({ id, start, target, damage, radius, homingStrength =
   const controlTime = getGuidedMissileControlTime(homingStrength)
   const groupRef    = useRef()
   const flameRef    = useRef()
+  const flameOuterRef = useRef()
+  const flameCoreRef  = useRef()
   const smokeRef    = useRef()
   const ageRef      = useRef(0)
   const speedRef    = useRef(0)
@@ -131,7 +140,7 @@ function MissileProjectile({ id, start, target, damage, radius, homingStrength =
 
       // 연기: 충전 초반엔 얇게, 끝으로 갈수록 뭉게뭉게
       if (smokeRef.current) {
-        smokeMat.opacity = chargeT * (0.58 + Math.sin(ageRef.current * 12) * 0.10)
+        setLiveOpacity(smokeRef.current, chargeT * (0.58 + Math.sin(ageRef.current * 12) * 0.10))
         smokeRef.current.scale.set(
           composeStudioPartScale(smokeRef.current, 'x', 1, 0.38 + chargeT * 1.4),
           composeStudioPartScale(smokeRef.current, 'y', 1, 1.0 + chargeT * 3.0),
@@ -146,8 +155,8 @@ function MissileProjectile({ id, start, target, damage, radius, homingStrength =
           composeStudioPartScale(flameRef.current, 'y', 1, flameScale),
           composeStudioPartScale(flameRef.current, 'z', 1, flameScale),
         )
-        flameMat.opacity     = 0.06 + chargeT * 0.22
-        flameCoreMat.opacity = 0.08 + chargeT * 0.25
+        setLiveOpacity(flameOuterRef.current, 0.06 + chargeT * 0.22)
+        setLiveOpacity(flameCoreRef.current, 0.08 + chargeT * 0.25)
       }
       speedRef.current = 0
       return
@@ -181,13 +190,13 @@ function MissileProjectile({ id, start, target, damage, radius, homingStrength =
         composeStudioPartScale(flameRef.current, 'y', 1, flameScale),
         composeStudioPartScale(flameRef.current, 'z', 1, flameScale),
       )
-      flameMat.opacity     = 0.18 + t * 0.37
-      flameCoreMat.opacity = 0.22 + t * 0.43
+      setLiveOpacity(flameOuterRef.current, 0.18 + t * 0.37)
+      setLiveOpacity(flameCoreRef.current, 0.22 + t * 0.43)
     }
 
     if (smokeRef.current) {
       const smokeT = 1 - t
-      smokeMat.opacity = smokeT * (0.50 + Math.sin(ageRef.current * 9) * 0.08)
+      setLiveOpacity(smokeRef.current, smokeT * (0.50 + Math.sin(ageRef.current * 9) * 0.08))
       smokeRef.current.scale.set(
         composeStudioPartScale(smokeRef.current, 'x', 1, pulse * (0.55 + smokeT * 0.9)),
         composeStudioPartScale(smokeRef.current, 'y', 1, 1 + smokeT * 2.2),
@@ -206,10 +215,10 @@ function MissileProjectile({ id, start, target, damage, radius, homingStrength =
         </mesh>
         {/* 배기 화염 */}
         <group ref={flameRef} position={[0, 0, -0.36]}>
-          <mesh renderOrder={4} material={flameMat} rotation={[Math.PI / 2, 0, 0]}>
+          <mesh ref={flameOuterRef} renderOrder={4} material={flameMat} rotation={[Math.PI / 2, 0, 0]}>
             <coneGeometry args={[0.038, 0.20, 8]} />
           </mesh>
-          <mesh renderOrder={5} material={flameCoreMat} rotation={[Math.PI / 2, 0, 0]} scale={[0.52, 0.58, 0.52]}>
+          <mesh ref={flameCoreRef} renderOrder={5} material={flameCoreMat} rotation={[Math.PI / 2, 0, 0]} scale={[0.52, 0.58, 0.52]}>
             <coneGeometry args={[0.038, 0.20, 8]} />
           </mesh>
         </group>

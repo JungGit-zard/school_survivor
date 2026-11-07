@@ -16,7 +16,8 @@ vi.mock('@react-three/fiber', () => ({
   useFrame: vi.fn(), useThree: vi.fn(),
 }))
 vi.mock('@react-three/drei', () => ({ Html: ({ children }) => children, useGLTF: Object.assign(vi.fn(), { preload: vi.fn(), clear: vi.fn() }) }))
-import RosariRoom from './RosariRoom.jsx'
+import * as THREE from 'three'
+import RosariRoom, { animateNamedLimbs, collectLimbRefs } from './RosariRoom.jsx'
 
 const NO_KEYS = { up: false, down: false, left: false, right: false }
 const IDLE_STICK = { x: 0, z: 0, active: false }
@@ -128,5 +129,29 @@ describe('Rosari room input wiring', () => {
     act(() => root.unmount())
     expect(joystickDir.active).toBe(false)
     root = createRoot(container)
+  })
+})
+
+describe('Rosari room limb animation', () => {
+  it('animates pivots as offsets on top of the GLB-baked rest rotation', () => {
+    const root = new THREE.Group()
+    const shoulder = new THREE.Group()
+    shoulder.name = 'left_shoulder_pivot'
+    shoulder.rotation.set(0.05, 0, -0.33)
+    const wrist = new THREE.Group()
+    wrist.name = 'right_wrist_pivot'
+    wrist.rotation.set(0, 0, 0.1)
+    root.add(shoulder, wrist)
+    const refs = {}
+    collectLimbRefs(root, refs)
+
+    animateNamedLimbs(refs, 0, false)
+    expect(shoulder.rotation.x).toBeCloseTo(0.05, 6)
+    expect(shoulder.rotation.z).toBeCloseTo(-0.33, 6)
+    expect(wrist.rotation.z).toBeCloseTo(0.1, 6)
+
+    animateNamedLimbs(refs, Math.PI / 2, true)
+    expect(shoulder.rotation.x).toBeCloseTo(0.05 + 0.34, 6)
+    expect(wrist.rotation.z).toBeCloseTo(0.1 - Math.sin(Math.PI) * 0.03, 6)
   })
 })

@@ -7,7 +7,12 @@ vi.mock('@react-three/fiber', () => ({ useFrame: vi.fn() }))
 vi.mock('../lib/sfxEvents.js', () => ({ emitSfx: vi.fn() }))
 vi.mock('./StudioTunedGroup.jsx', () => ({ default: () => null }))
 
-import EscapePortal from './EscapePortal.jsx'
+import EscapePortal, {
+  EscapePortalSceneLight,
+  getEscapePortalSceneLightIntensity,
+  getEscapePortalSceneLightState,
+} from './EscapePortal.jsx'
+import { PORTAL_VISUAL_STATE } from '../lib/portalVisualState.js'
 import { useFrame } from '@react-three/fiber'
 import { clearPortalTarget, portalTarget, playerPos } from '../lib/refs.js'
 import { useGameStore } from '../store/useGameStore.js'
@@ -74,5 +79,49 @@ describe('EscapePortal target publishing', () => {
       root.unmount()
     })
     expect(portalTarget).toEqual({ active: false, x: 0, z: 0 })
+  })
+})
+
+describe('EscapePortal scene light', () => {
+  it('borrows the always-mounted scene light instead of mounting its own point light mid-run', () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
+    useGameStore.getState().resetGame('stage1')
+    const state = getEscapePortalSceneLightState()
+    const hostRoot = createRoot(document.createElement('div'))
+    const portalRoot = createRoot(document.createElement('div'))
+    try {
+      act(() => hostRoot.render(<EscapePortalSceneLight />))
+      expect(state.hosts).toBe(1)
+      expect(getEscapePortalSceneLightIntensity()).toBe(0)
+
+      act(() => portalRoot.render(<EscapePortal stageId="stage1" />))
+      expect(state.visual).toBe(PORTAL_VISUAL_STATE.idle)
+      // The anchor lives inside StudioTunedGroup (mocked out here).
+      state.anchor = {}
+      expect(getEscapePortalSceneLightIntensity()).toBe(PORTAL_VISUAL_STATE.idle.lightIntensity)
+
+      const frame = useFrame.mock.calls.filter(([fn]) => fn.length === 2).at(-1)[0]
+      playerPos.set(portalTarget.x, 0, portalTarget.z)
+      act(() => frame({}, 1 / 60))
+      expect(getEscapePortalSceneLightIntensity()).toBe(PORTAL_VISUAL_STATE.sucking.lightIntensity)
+
+      act(() => portalRoot.unmount())
+      expect(state.visual).toBe(null)
+      state.anchor = null
+      expect(getEscapePortalSceneLightIntensity()).toBe(0)
+    } finally {
+      state.anchor = null
+      act(() => hostRoot.unmount())
+      consoleError.mockRestore()
+    }
+    expect(state.hosts).toBe(0)
+  })
+
+  it('keeps its own light when no scene light host is mounted (Studio preview)', () => {
+    useGameStore.getState().resetGame('stage1')
+    const root = createRoot(document.createElement('div'))
+    act(() => root.render(<EscapePortal stageId="stage1" />))
+    expect(getEscapePortalSceneLightState().visual).toBe(null)
+    act(() => root.unmount())
   })
 })
