@@ -35,11 +35,11 @@ describe('passiveCatalog', () => {
   })
 
   it('가격 공식이 기획대로 계산된다', () => {
-    expect(getPriceFor('magnet', 1)).toBe(5)
-    expect(getPriceFor('magnet', 10)).toBe(33)
-    expect(getPriceFor('might', 1)).toBe(6)
-    expect(getPriceFor('might', 10)).toBe(41)
-    expect(getPriceFor('armor', 6)).toBe(26)
+    expect(getPriceFor('magnet', 1)).toBe(4)
+    expect(getPriceFor('magnet', 10)).toBe(24)
+    expect(getPriceFor('might', 1)).toBe(5)
+    expect(getPriceFor('might', 10)).toBe(30)
+    expect(getPriceFor('armor', 6)).toBe(18)
   })
 
   it('maxLevel 초과 / 음수 / 미지정 id는 null을 반환한다', () => {

@@ -95,7 +95,7 @@ describe('CoinShop', () => {
         .dispatchEvent(new MouseEvent('click', { bubbles: true }))
     })
 
-    expect(useGameStore.getState().goldTotal).toBe(194) // 199 − magnet Lv1 5골드(2026-11-07 메타 패시브 확장)
+    expect(useGameStore.getState().goldTotal).toBe(195) // 199 − magnet Lv1 4골드(2026-11-07 balanceqa 가격 하향)
     expect(useGameStore.getState().passiveVersion).toBe(1)
 
     act(() => {

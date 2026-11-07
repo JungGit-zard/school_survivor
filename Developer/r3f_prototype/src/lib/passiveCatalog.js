@@ -5,7 +5,7 @@ import { passiveLabel } from './i18n.js'
 // 단위: unit '%'는 perLevel이 퍼센트 포인트, unit ''는 절대값(체력 +N, 방어력 −N/피격).
 // 설계 근거·런당 골드·런 수 추정: Developer/agent_room/meta_passive_expansion_20261107.md
 // 인바리언트: BASE_PRICES.length >= max(maxLevel). 가격 = round(BASE_PRICES[lv-1] × priceMultiplier).
-export const BASE_PRICES = [5, 7, 9, 11, 14, 17, 20, 24, 28, 33]
+export const BASE_PRICES = [4, 5, 6, 8, 10, 12, 14, 17, 20, 24]
 
 export const PASSIVE_CATALOG = {
   magnet:    { id: 'magnet',    label: '회수 반경', unit: '%', perLevel: 2.7, priceMultiplier: 1.0,  maxLevel: 10, enabled: true },

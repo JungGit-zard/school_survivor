@@ -22,8 +22,8 @@ describe('passiveUpgrades storage layer', () => {
     const r = purchase('magnet', 30)
     expect(r.ok).toBe(true)
     expect(r.nextLevel).toBe(1)
-    expect(r.price).toBe(5)
-    expect(r.nextGold).toBe(25)
+    expect(r.price).toBe(4)
+    expect(r.nextGold).toBe(26)
     expect(getLevel('magnet')).toBe(1)
   })
 
@@ -39,8 +39,8 @@ describe('passiveUpgrades storage layer', () => {
   })
 
   it('코인 부족이면 ok:false, 저장 변경 없음', () => {
-    const r = purchase('magnet', 4)
-    expect(r).toMatchObject({ ok: false, reason: 'insufficient', price: 5 })
+    const r = purchase('magnet', 3)
+    expect(r).toMatchObject({ ok: false, reason: 'insufficient', price: 4 })
     expect(getLevel('magnet')).toBe(0)
   })
 
@@ -52,9 +52,9 @@ describe('passiveUpgrades storage layer', () => {
   })
 
   it('신규 패시브(armor/cooldown/greed)도 구매 가능하다', () => {
-    expect(purchase('armor', 9999)).toMatchObject({ ok: true, nextLevel: 1, price: 8 })
-    expect(purchase('cooldown', 9999)).toMatchObject({ ok: true, nextLevel: 1, price: 6 })
-    expect(purchase('greed', 9999)).toMatchObject({ ok: true, nextLevel: 1, price: 6 })
+    expect(purchase('armor', 9999)).toMatchObject({ ok: true, nextLevel: 1, price: 6 })
+    expect(purchase('cooldown', 9999)).toMatchObject({ ok: true, nextLevel: 1, price: 5 })
+    expect(purchase('greed', 9999)).toMatchObject({ ok: true, nextLevel: 1, price: 4 })
   })
 
   it('maxLevel을 넘는 옛 저장값은 maxLevel로 잘라 읽는다', () => {
