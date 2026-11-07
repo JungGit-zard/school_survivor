@@ -312,8 +312,13 @@ export default function Player() {
 
     if (hitFlashToken !== lastKnockbackHitToken.current) {
       lastKnockbackHitToken.current = hitFlashToken
-      knockbackRemainingMs.current = PLAYER_HIT_KNOCKBACK_MS
-      knockbackVel.current = null // 피격 넉백은 항상 facing 기준
+      // 이 피격이 끌림(E63 마이크줄)을 걸었으면 끌림이 이 피격의 넉백이다. 일반 넉백(0.16초)을 걸면 끌림 0.25초를
+      // 먹어 1.4u가 0.5u로 줄었다. 끌림은 피해가 들어간 명중에만 걸리고 뒤이은 무적(0.52초) 동안 일반 피격은 없으니 지금 끌림은 이 피격의 것이다.
+      // 예외: 무적을 뚫는 피해(B01 삼각자·S4 압력솥)가 끌림 0.25초 안에 들어오면 그 넉백도 생략된다. S1-5에선 E63(S2)과 겹치지 않는다.
+      if (!(playerImpulse.ms > 0)) {
+        knockbackRemainingMs.current = PLAYER_HIT_KNOCKBACK_MS
+        knockbackVel.current = null // 피격 넉백은 항상 facing 기준
+      }
     }
 
     const { up, down, left, right } = moveKeys
@@ -353,7 +358,7 @@ export default function Player() {
       consumePlayerSlow(playerSlow, dt * 1000)
     }
 
-    // E63 마이크줄 끌림(0.25초). 넉백 중에는 넉백이 우선이라 시간만 흘려보낸다.
+    // E63 마이크줄 끌림(0.25초). 외부 넉백(도지 몸통) 중에는 넉백이 우선이라 시간만 흘려보낸다.
     if (consumePlayerImpulse(playerImpulse, dt * 1000, _impulse) && !beingKnockedBack) {
       _v.x += _impulse.x
       _v.z += _impulse.z

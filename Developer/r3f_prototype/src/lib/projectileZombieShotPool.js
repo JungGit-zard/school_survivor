@@ -127,7 +127,8 @@ export function applyPlayerSlow(state, mul, ms) {
 
 /**
  * 플레이어 끌림·밀림(E63 마이크 줄). 속도(u/s) 벡터와 남은 시간. 가장 최근 것 하나만 적용한다.
- * Player.jsx가 이동 속도에 더한다(넉백 중에는 넉백이 우선).
+ * Player.jsx가 이동 속도에 더한다. 끌림이 걸린 피격은 일반 피격 넉백을 걸지 않는다(끌림이 그 피격의 넉백이다).
+ * 외부 넉백(도지 몸통) 중에는 그 넉백이 우선이다.
  */
 export function createPlayerImpulseState() {
   return { vx: 0, vz: 0, ms: 0 }
@@ -147,7 +148,8 @@ export function consumePlayerImpulse(state, dtMs, out) {
   out.x = state.vx
   out.z = state.vz
   state.ms = Math.max(0, state.ms - (dtMs > 0 ? dtMs : 0))
-  if (state.ms <= 0) { state.vx = 0; state.vz = 0 }
+  // 250ms에서 1/60초 스텝을 15번 빼면 3.6e-14ms가 남아 16번째 스텝까지 끌렸다(1.4u → 1.49u). 부동소수 찌꺼기는 끝난 것으로 본다.
+  if (state.ms <= 1e-6) { state.ms = 0; state.vx = 0; state.vz = 0 }
   return true
 }
 
@@ -472,9 +474,11 @@ export class ProjectileZombieShotPool {
     const dz = this.posZ[i] - playerZ
     const r = this.hitRadius[i] + PLAYER_CONTACT_HALF_EXTENT
     if (dx * dx + dz * dz > r * r) return false
-    if (this.damage[i] > 0 && onHit) onHit(i, this.generation[i], this.damage[i])
+    // onHit은 피해가 실제로 들어갔으면 true를 돌려준다(Enemies.jsx → damagePlayer). 무적이면 false.
+    const landed = this.damage[i] > 0 && onHit ? onHit(i, this.generation[i], this.damage[i]) : false
     if (this.hitSlowMs[i] > 0) applyPlayerSlow(slowState, this.hitSlowMul[i], this.hitSlowMs[i])
-    if (this.impulseU[i] !== 0 && this.impulseMs[i] > 0) this._impulse(i, playerX, playerZ)
+    // 끌림·밀림(E63)은 피해가 들어간 명중에만 건다. 무적 중에 맞으면 피해도 끌림도 없다.
+    if (landed && this.impulseU[i] !== 0 && this.impulseMs[i] > 0) this._impulse(i, playerX, playerZ)
     this.despawnIndex(i)
     return true
   }

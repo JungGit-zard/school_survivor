@@ -530,15 +530,16 @@ export const useGameStore = create(
       return true
     },
 
-    // 플레이어 피해
+    // 플레이어 피해. 피해가 실제로 들어갔으면 true(이누콘이 대신 맞은 것 포함), 무적·게임 중 아님·마스터
+    // 갓모드로 막혔으면 false. 탄 풀은 true일 때만 E63 마이크줄 끌림을 건다(무적 중 명중은 끌리지 않는다).
     damagePlayer: (amount, { ignoreInvulnerability = false, source = null } = {}) => {
       const { player, phase, godMode } = get()
-      if (phase !== 'playing') return
+      if (phase !== 'playing') return false
       if (godMode) {
-        if (isProjectMaster(useAuthStore.getState().user)) return
+        if (isProjectMaster(useAuthStore.getState().user)) return false
         set({ godMode: false })
       }
-      if (player.invulnerable && !ignoreInvulnerability) return
+      if (player.invulnerable && !ignoreInvulnerability) return false
       // 의상 받는 피해 배율 (무적 검사 다음, 이누콘 흡수 전). 적 투사체(source 'enemyProjectile')면
       // 비옷 배율을 추가로 곱한다. 소수는 그대로 두고 표시만 반올림한다. default는 amount 그대로.
       // 마틸다 접촉 즉사는 killPlayer 경로라 이 배율을 거치지 않는다.
@@ -558,7 +559,7 @@ export const useGameStore = create(
         amount -= absorbed
         if (amount <= 0) {
           set({ player: { ...player, invulnerable: true } })
-          return
+          return true
         }
       }
       const hp = Math.max(0, player.hp - amount)
@@ -576,12 +577,13 @@ export const useGameStore = create(
         emitSfx({ id: 'playerDeath' })
         vibrateRuntimeFeedback([40, 60, 40])
         get()._onRunEnd('gameover')
-        return
+        return true
       }
       emitSfx({ id: 'playerHit' })
       vibrateRuntimeFeedback(18)
       set({ player: { ...player, hp, invulnerable: true, hitFlashToken: player.hitFlashToken + 1 } })
       // 무적 해제는 Player.jsx의 useFrame에서 처리한다. setTimeout을 쓰지 않는다.
+      return true
     },
 
     // 마틸다 즉사 전용. 신 지정 사양 S1: 마틸다 몸에 닿으면 플레이어 능력(최대 체력·

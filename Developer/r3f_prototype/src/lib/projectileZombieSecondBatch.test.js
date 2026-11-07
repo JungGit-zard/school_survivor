@@ -70,8 +70,9 @@ function spawn(world, id, x, z, hp) {
   return world.handle.index
 }
 
-function run(world, { player, seconds, playerMove = null }) {
-  const out = { projectileDamage: 0, contactDamage: 0, telegraphs: [], fires: [] }
+// landed: 탄 명중 때 피해 경로(Enemies.jsx → damagePlayer)가 돌려주는 "피해가 실제로 들어갔는지". false = 무적 중 명중.
+function run(world, { player, seconds, playerMove = null, landed = true }) {
+  const out = { projectileDamage: 0, projectileHits: 0, contactDamage: 0, telegraphs: [], fires: [] }
   const event = {}
   const frames = Math.round(seconds / DT)
   for (let frame = 0; frame < frames; frame += 1) {
@@ -91,7 +92,11 @@ function run(world, { player, seconds, playerMove = null }) {
         spawnProjectileZombieVolley(world.shots, world.pool, event.index, event.generation)
       }
     }
-    world.shots.step(DT, player.x, player.z, (_i, _g, damage) => { out.projectileDamage += damage }, null, world.slow, null, world.impulse)
+    world.shots.step(DT, player.x, player.z, (_i, _g, damage) => {
+      out.projectileHits += 1
+      if (landed) out.projectileDamage += damage
+      return landed
+    }, null, world.slow, null, world.impulse)
   }
   return out
 }
@@ -236,6 +241,15 @@ describe('2차 10종 메커니즘(실제 런타임)', () => {
     const miss = run(dodge, { player: { x: 0, z: 4 }, seconds: 3.2, playerMove: sidestepAfterTelegraph() })
     expect(miss.projectileDamage).toBe(0)
     expect(dodge.impulse.ms).toBe(0)
+  })
+
+  // balanceqa 2026-11-07: E63 스폰을 늘리기 전 조건. 실제 이동 거리(1.4u / 제자리)는 components/Player.micCordPull.test.jsx.
+  it('E63 마이크줄: 무적 중 명중(피해 경로가 false)은 끌림을 걸지 않는다', () => {
+    const world = createWorld()
+    spawn(world, 'E63', 0, 0)
+    const out = run(world, { player: { x: 0, z: 4 }, seconds: 3.2, landed: false })
+    expect(out.projectileHits).toBe(1)
+    expect(world.impulse.ms).toBe(0)
   })
 
   it('E64 분필가루: 착지 자리에 머물면 지속 피해, 감속은 없다', () => {

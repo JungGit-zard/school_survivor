@@ -1438,8 +1438,10 @@ export default function Enemies() {
   projectileHitRef.current = (_index, _generation, damage) => {
     const store = useGameStore.getState()
     // S1~5의 적 투사체(E04 탄, B04 1페이즈 탄)는 전부 여기로 들어온다. 비옷 배율은 이 태그 하나로 판정한다.
-    store.damagePlayer(damage, { source: ENEMY_PROJECTILE_DAMAGE_SOURCE })
+    const landed = store.damagePlayer(damage, { source: ENEMY_PROJECTILE_DAMAGE_SOURCE })
     recordPlayerDamage(dominanceSwarmRef.current, damage, getRuntimeElapsedMs(store.elapsedMs))
+    // 피해가 실제로 들어갔는지. 탄 풀(projectileZombieShotPool)은 true일 때만 E63 끌림을 건다.
+    return landed
   }
 
   // 스테이지 정적 데이터는 stage 전환시에만 해석한다. 프레임 경로는 이 캐시만 읽는다.
