@@ -3,8 +3,8 @@ import { readFileSync } from 'node:fs'
 import {
   SLTERA_BOSS_DAMAGE, SLTERA_HALF_LENGTH, SLTERA_HALF_WIDTH, SLTERA_LANE_EDGE_MARGIN, SLTERA_PHASE,
   SLTERA_PLAYER_DAMAGE_RATIO, SLTERA_PLAYER_RADIUS, SLTERA_RUN_OVER_CHANCE, SLTERA_RUN_OVER_DAMAGE, SLTERA_SPEED,
-  SLTERA_STAGE_IDS,
-  beginSlteraPass, checkSlteraPlayerHit, createSlteraPass, getSlteraDeadlineMs, getSlteraPassStartMs,
+  SLTERA_STAGE_IDS, SLTERA_THUD_GAP_MS,
+  beginSlteraPass, checkSlteraPlayerHit, claimSlteraThud, createSlteraPass, getSlteraDeadlineMs, getSlteraPassStartMs,
   getSlteraPassTimesMs, getSlteraSweepBox, isSlteraStage, pickSlteraLaneZ, rollSlteraRunOver, stepSlteraPass,
 } from './slteraEvent.js'
 
@@ -138,6 +138,29 @@ describe('Sltera run-over and Rosari damage', () => {
     for (let i = 0; i < 2000; i += 1) if (rollSlteraRunOver(pass, i, 0, null, 'E01', rand) > 0) hits += 1
     expect(hits / 2000).toBeGreaterThan(0.6)
     expect(hits / 2000).toBeLessThan(0.7)
+  })
+
+  it('plays at most one run-over thud per 150 ms of game time', () => {
+    expect(SLTERA_THUD_GAP_MS).toBe(150)
+    const pass = beginSlteraPass(createSlteraPass(), { playerX: 0, playerZ: 0, bounds, rand: seq([0.2, 0.5]) })
+    // 무리를 쓸고 가며 60fps 연속 프레임마다 쳐도(0~133ms) 첫 쿵만 즉시 울린다.
+    const t0 = 20_000
+    const frames = Array.from({ length: 9 }, (_, i) => t0 + i * (1000 / 60))
+    expect(frames.map((t) => claimSlteraThud(pass, t))).toEqual([true, false, false, false, false, false, false, false, false])
+    // 직전 쿵에서 150ms가 지나면 다시 허용 — 간격은 늘 직전 쿵 기준.
+    expect(claimSlteraThud(pass, t0 + 149)).toBe(false)
+    expect(claimSlteraThud(pass, t0 + 150)).toBe(true)
+    // 같은 시각(한 렌더 프레임에 몰아 도는 고정 스텝 — 런 시계가 그대로)은 한 번만.
+    expect(claimSlteraThud(pass, t0 + 150)).toBe(false)
+    expect(claimSlteraThud(pass, t0 + 299)).toBe(false)
+    expect(claimSlteraThud(pass, t0 + 300)).toBe(true)
+    // 새 질주는 첫 쿵부터 다시 즉시.
+    beginSlteraPass(pass, { playerX: 0, playerZ: 0, bounds, rand: seq([0.2, 0.5]) })
+    expect(claimSlteraThud(pass, t0 + 310)).toBe(true)
+    // 런타임은 이 게이트를 거쳐서만 쿵을 내고, 음량·피치는 그대로다.
+    const src = readFileSync(new URL('../components/SlteraEvent.jsx', import.meta.url), 'utf8')
+    expect(src).toContain("if (ranOver && claimSlteraThud(pass, elapsedMs)) emitSfx({ id: 'zombieGiantThud', volume: 0.6, rate: 1.1 })")
+    expect(src.match(/zombieGiantThud/g)).toHaveLength(1)
   })
 
   it('only sweeps the on-screen part of its path (zombies off-screen are not run over)', () => {

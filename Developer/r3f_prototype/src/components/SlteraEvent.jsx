@@ -13,7 +13,7 @@ import { createWeaponTargetScratch, resolveWeaponTarget, scanOrientedBoxEnemiesI
 import { applyEnemyHit } from '../lib/weaponCollision.js'
 import {
   SLTERA_DAMAGE_SOURCE, SLTERA_KNOCKBACK, SLTERA_KNOCKBACK_MS, SLTERA_PHASE,
-  beginSlteraPass, checkSlteraPlayerHit, createSlteraPass, getSlteraPassStartMs, getSlteraSweepBox,
+  beginSlteraPass, checkSlteraPlayerHit, claimSlteraThud, createSlteraPass, getSlteraPassStartMs, getSlteraSweepBox,
   rollSlteraRunOver, stepSlteraPass,
 } from '../lib/slteraEvent.js'
 import SlteraCar from './SlteraCar.jsx'
@@ -74,7 +74,10 @@ export default function SlteraEvent({ stageId, gameKey }) {
         const damage = rollSlteraRunOver(pass, index, generation, special, rb._enemyType)
         if (damage > 0 && applyEnemyHit(rb, generation, damage, s.impact)) ranOver = true
       }
-      if (ranOver) emitSfx({ id: 'zombieGiantThud', volume: 0.6, rate: 1.1 })
+      // 쿵 소리는 게임 시간 150ms에 한 번 — 무리를 쓸고 가면 연속 프레임마다 쳐서 쿵이 쌓이고 클리핑했다.
+      // 런 시계(elapsedMs)로 잰다: 일시정지 중엔 흐르지 않고, 한 렌더 프레임에 몰아 도는 고정 스텝끼리는
+      // 같은 값이라 프레임 끊김 뒤 따라잡기 스텝에서도 한꺼번에 여러 번 울리지 않는다.
+      if (ranOver && claimSlteraThud(pass, elapsedMs)) emitSfx({ id: 'zombieGiantThud', volume: 0.6, rate: 1.1 })
     }
 
     // 로자리 피격 — 질주당 1회. 무적 판정은 damagePlayer의 일반 규칙을 따른다.

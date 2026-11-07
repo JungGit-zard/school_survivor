@@ -24,6 +24,8 @@
 //   한 번만 굴림 — 65% 확률로 치어 60 피해 + 넉백, 35%는 아슬아슬하게 비켜 간다(무작위 치기).
 //   보스·마틸다는 20만. 화면 밖(진입·이탈 여유 구간)의 적은 치지 않는다.
 //   로자리와 겹치면 질주당 1회 최대 HP의 15% 피해(일반 무적 규칙을 따른다 — 무적 중이면 무시).
+//   치기 쿵 소리(zombieGiantThud)는 게임 시간 150ms에 한 번만 — 무리를 쓸고 가면 연속 프레임마다 쳐서
+//   쿵이 겹쳐 쌓이고 클리핑했다(보호 등급 소리라 동시 재생 캡에도 안 걸린다). claimSlteraThud 참고.
 import { getStageConfig } from './stageConfig.js'
 import { isBossType } from './burstEvents.js'
 
@@ -44,6 +46,7 @@ export const SLTERA_KNOCKBACK = 6
 export const SLTERA_KNOCKBACK_MS = 220
 export const SLTERA_PLAYER_DAMAGE_RATIO = 0.15
 export const SLTERA_DAMAGE_SOURCE = 'sltera'
+export const SLTERA_THUD_GAP_MS = 150 // 치기 쿵 소리 최소 간격(게임 시간 ms)
 
 export const SLTERA_PHASE = Object.freeze({ DRIVE: 'drive', DONE: 'done' })
 
@@ -97,6 +100,7 @@ export function createSlteraPass() {
     prevX: 0,
     swept: false, // 이번 step에서 차가 실제로 화면을 쓸고 지나갔는가(치기·피격 판정 대상)
     playerHit: false,
+    lastThudMs: -Infinity, // 마지막 치기 쿵 소리 시각(런 시계 ms). 질주마다 초기화 — 첫 쿵은 늘 즉시
     rolledPool: new Set(), // index * 65536 + generation
     rolledSpecial: new Set(),
   }
@@ -128,6 +132,7 @@ export function beginSlteraPass(pass, { playerX, playerZ, bounds, rand = Math.ra
   pass.prevX = pass.startX
   pass.swept = false
   pass.playerHit = false
+  pass.lastThudMs = -Infinity
   pass.rolledPool.clear()
   pass.rolledSpecial.clear()
   return pass
@@ -184,6 +189,16 @@ export function rollSlteraRunOver(pass, index, generation, special, type, rand =
   }
   if (!(rand() < SLTERA_RUN_OVER_CHANCE)) return 0
   return isBossType(type) ? SLTERA_BOSS_DAMAGE : SLTERA_RUN_OVER_DAMAGE
+}
+
+/**
+ * 치기 쿵 소리 간격 제한. 직전 쿵에서 SLTERA_THUD_GAP_MS 이상 지났으면 이번 시각을 기록하고 true.
+ * nowMs = 게임 시간(런 시계, 일시정지 제외 — 벽시계 아님). 같은 시각에 다시 물으면 false.
+ */
+export function claimSlteraThud(pass, nowMs) {
+  if (nowMs - pass.lastThudMs < SLTERA_THUD_GAP_MS) return false
+  pass.lastThudMs = nowMs
+  return true
 }
 
 /**
