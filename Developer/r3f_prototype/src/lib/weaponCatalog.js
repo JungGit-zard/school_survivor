@@ -129,17 +129,21 @@ export const WEAPON_CATALOG = {
     id: 'paperPlane',
     label: '종이비행기',
     // 2026-11-07 Terry: E47 종이비행기 좀비의 탄을 로자리 무기로. 1스테이지부터 레벨업 카드로 등장한다
-    // (기본 계정 해금, 시작 무기는 아님). 동작: 로자리에서 출발 → 가장 가까운 적을 향해 활공 선회 →
-    // 꿰뚫고 지나가며 서로 다른 적을 pierce회까지 맞힘 → 남은 비행기는 수명(4초) 동안 다음 적을 쫓는다.
-    // 비행·선회·수명 상수는 lib/paperPlane.js. levelmini 2026-11-07 "중간 티어" 수치(balanceqa 튜닝 반영):
-    //   단일 대상 Lv1: 9 × 1대 / 1.8초 × (1 + 0.05×0.5) = 5.13/s  (연필 4.36 < 종이비행기 < 오니기리 10.92)
-    //   군중 1사이클: 9 × 1대 × 3관통 / 1.8초 = 15/s
-    //   Lv5(데미지 카드 2장 +4.5×2, 대수 +1, 관통 +1): 단일 18 × 2대 / 1.8 × 1.025 = 20.5/s, 군중 18×2×4/1.8 = 80/s
+    // (기본 계정 해금, 시작 무기는 아님).
+    // 2026-11-08 Terry: 비행은 E47 좀비 종이비행기와 완전히 같다(크기 1.35·초속 1.6u·초당 45°/누적 90° 선회·
+    // 수명 4.2초·접촉 0.256u, 로자리 것만 민트 테두리). 로자리에서 출발해 가장 가까운 적 쪽으로 난다.
+    // pierce = 한 대가 맞히는 서로 다른 적 수. 기본 1이면 좀비 탄처럼 한 번 맞히고 사라지고, 관통 카드·영구강화로
+    // +1될 때마다 맞힌 좀비를 뚫고 지나가 뒤의 좀비를 하나 더 맞힌다(같은 좀비 두 번 X). 비행 정본은 lib/paperPlane.js.
+    //   단일 대상 Lv1: 9 × 1대 / 1.8초 × (1 + 0.05×0.5) = 5.13/s(100% 명중 가정; 느린 보스 실측 근사 96~100%)
+    //   Lv5(데미지 카드 2장 +4.5×2, 대수 +1, 관통 +1): 단일 18 × 2대 / 1.8 × 1.025 = 20.5/s
+    //   군중(levelmini 2026-11-08 시뮬, 스1 잡몹 15마리·로자리 이동, 치명타 제외): 명중률 84~97%,
+    //   초당 피해 Lv1 4.9 · Lv2 7.2 · Lv3 13.9 · Lv4 17.3 · Lv5 20.4(관통 2 = 비행기당 평균 1.0~1.15타).
+    //   옆걸음질하는 적에는 약하다(5u 거리 1.2u/s로 가로지르는 적 명중 4~8%) — 좀비 탄을 로자리가 피하는 것과 같다.
     // range 9u = 12블록(1블록 0.75u): 첫 발사 표적 탐색 반경.
     // singleTargetProjectiles: 표적이 하나뿐이면 launchPaperPlanes(lib/paperPlane.js)가 모든 비행기를 그 적에게
     // 보낸다(p % targetCount). 그래서 단일 대상 DPS(playerDpsEstimate weaponOnTargetHits)가 비행기 수를
     // 곱해야 마틸다 HP(= DPS × 1800초)가 맞다. 연필은 서로 다른 적에게만 나눠 던지므로 이 플래그가 없다.
-    base: { damage: 9, cooldown: 1800, lastFired: 0, projectileCount: 1, singleTargetProjectiles: true, pierce: 3, range: 9, critChance: 0.05, critMultiplier: 1.5 },
+    base: { damage: 9, cooldown: 1800, lastFired: 0, projectileCount: 1, singleTargetProjectiles: true, pierce: 1, range: 9, critChance: 0.05, critMultiplier: 1.5 },
     unlockConditions: STARTER,
     minLevelToAppear: 1,
   },

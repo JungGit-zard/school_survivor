@@ -233,6 +233,13 @@ export function acquireStreamingBgm(url, { volume = 0.5, active = true } = {}) {
   }
 }
 
+// Whether `url` is already playing (held, or bridging after its last holder left). A new
+// holder of such a track gets no fresh 'playing' event (MusicRoomBgm relies on this).
+export function isStreamingBgmPlaying(url) {
+  const player = players.get(url)
+  return Boolean(player && !player.audio.paused)
+}
+
 // Re-assert every wanted track now (e.g. right after another audio source started).
 // Never starts an unwanted or hidden-tab track.
 export function resumeStreamingBgm() {

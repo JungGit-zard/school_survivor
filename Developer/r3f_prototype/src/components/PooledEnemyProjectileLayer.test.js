@@ -173,7 +173,11 @@ describe('PooledEnemyProjectileLayer projectile zombie shots', () => {
     expect(composeE04ProjectileStudioRoot(new THREE.Matrix4(), undefined).equals(new THREE.Matrix4())).toBe(true)
     expect(source).toContain('loadStudioTunings()[E04_PROJECTILE_STUDIO_ITEM_ID]')
     expect(source).toContain('window.addEventListener(GRAPHICS_STUDIO_TUNING_EVENT, refresh)')
-    expect(source.match(/side: THREE\.BackSide, transparent: true, opacity: 1, depthWrite: false/g)).toHaveLength(2)
+    expect(source.match(/side: THREE\.BackSide, transparent: true, opacity: 1, depthWrite: false/g)).toHaveLength(1)
+    // 투사체 좀비 탄 외곽선은 공용 재질(로자리 종이비행기와 같이 쓴다)로 만들고, 같은 투명 패스 규칙을 지킨다.
+    expect(source).toContain('outMat: createShotOutlineMaterial(),')
+    const { createShotOutlineMaterial } = await import('../lib/projectileZombieShotGeometry.js')
+    expect(createShotOutlineMaterial()).toMatchObject({ side: THREE.BackSide, transparent: true, opacity: 1, depthWrite: false })
     const preview = readFileSync(new URL('./EnemyProjectileVisual.jsx', import.meta.url), 'utf8')
     expect(preview).toContain('scale={[1.22, 1.22, 1.22]}')
     expect(preview).toContain('outlineMat(1)')

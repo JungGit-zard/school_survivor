@@ -115,6 +115,23 @@ export default {
   'lobby.showtime.B02': 'TEACHER SWING!',
   'lobby.showtime.B03': 'MUSCLE POSE!',
 
+  // ─── Lobby ≡ menu · Music Room ───
+  'lobby.menu.musicRoom': 'Music Room',
+  'lobby.menu.homepage': 'Homepage',
+  'lobby.menu.contact': 'Contact us',
+  'musicRoom.title': 'Music Room',
+  'musicRoom.hint': 'Tap a song to play it.',
+  'musicRoom.listAria': 'Zombie School songs',
+  'musicRoom.closeAria': 'Close the music room',
+  'musicRoom.nowPlaying': 'Playing',
+  'musicRoom.track.opening': 'Opening Theme',
+  'musicRoom.track.lobby': 'Lobby Theme',
+  'musicRoom.track.stageOdd': 'Stage Theme 1',
+  'musicRoom.track.stageEven': 'Stage Theme 2',
+  'musicRoom.usedIn.opening': 'Title screen',
+  'musicRoom.usedIn.lobby': 'Lobby',
+  'musicRoom.usedIn.stages': 'Stages {stages}',
+
   // ─── Settings ───
   'settings.title': 'Settings',
   'settings.closeBackdropAria': 'Close settings backdrop',
@@ -682,7 +699,7 @@ export default {
   'up.miniRosariCrit.label': 'Mini Rosari crit up',
   'up.miniRosariCrit.desc': 'Crit chance +2% (critical damage is fixed at 150%)',
   'up.acquirePaperPlane.label': 'Unlock Paper Plane',
-  'up.acquirePaperPlane.desc': 'Rosari throws paper planes that glide after the nearest enemy, pierce through, and chase the next one',
+  'up.acquirePaperPlane.desc': "Rosari throws paper planes that curve slowly toward the nearest enemy, just like the zombies' planes",
   'up.paperPlaneDamage.label': 'Paper Plane damage +{amount} (Lv{level})',
   'up.paperPlaneDamage.desc': 'Increases piercing damage',
   'up.paperPlaneCount.label': 'Paper Plane +1',

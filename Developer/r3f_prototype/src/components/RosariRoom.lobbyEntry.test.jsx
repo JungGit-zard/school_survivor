@@ -225,7 +225,7 @@ describe('Rosari room sign-in popup copy', () => {
 })
 
 describe('Lobby menu button', () => {
-  it('sits right before the gear button and toggles an empty dropdown', async () => {
+  it('sits right before the gear button and toggles the menu dropdown', async () => {
     await renderLobby()
     const button = host.querySelector('[data-testid="lobby-menu-button"]')
     const panel = () => host.querySelector('[data-testid="lobby-menu-panel"]')

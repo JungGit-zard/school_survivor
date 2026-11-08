@@ -16,8 +16,8 @@ import { MAX_PROJECTILE_ZOMBIE_SHOTS, SHOT_KIND_INFO, SHOT_MOTION } from '../lib
 import { PZ_STATE, isProjectileZombieHidden } from '../lib/projectileZombieBehavior.js'
 import { MAX_ENEMIES } from '../lib/enemyEntityPool.js'
 import {
-  DECAL_VISUAL, composeShotQuaternion, createAmbushPropGeometries, createDecalGeometries, createOutlineGeometry,
-  createShotGeometries, getAmbushPropIndex, getDecalVisuals, getShotHeading, getShotVisualIndex,
+  DECAL_VISUAL, SHOT_OUTLINE_THICKNESS, composeShotQuaternion, createAmbushPropGeometries, createDecalGeometries, createOutlineGeometry,
+  createShotBodyMaterial, createShotGeometries, createShotOutlineMaterial, getAmbushPropIndex, getDecalVisuals, getShotHeading, getShotVisualIndex,
 } from '../lib/projectileZombieShotGeometry.js'
 import { ENEMY_PROJECTILE_KIND_COUNT, MAX_ENEMY_PROJECTILES } from '../lib/enemyProjectilePool.js'
 import { createChefIngredientGeometries } from '../lib/chefIngredientGeometry.js'
@@ -69,7 +69,7 @@ export const DECAL_OPACITY = Object.freeze([0.85, 0.22, 0.5, 0.6])
 /** 투사체 좀비 탄·표식·매복 소품 InstancedMesh 묶음. 재질은 호출자가 넘긴다(테스트는 canvas 없이 만든다). */
 export function createProjectileZombieShotMeshes({ bodyMat, outMat, decalMats }) {
   const shotGeometries = createShotGeometries()
-  const shotOutlineGeometries = shotGeometries.map((g) => createOutlineGeometry(g, 0.013))
+  const shotOutlineGeometries = shotGeometries.map((g) => createOutlineGeometry(g, SHOT_OUTLINE_THICKNESS))
   const propGeometries = createAmbushPropGeometries()
   const propOutlineGeometries = propGeometries.map((g) => createOutlineGeometry(g, 0.014))
   const decalGeometries = createDecalGeometries()
@@ -207,10 +207,9 @@ export default function PooledEnemyProjectileLayer({ resetKey }) {
     }
   }, [])
   const shots = useMemo(() => {
-    const gradientMap = getToonGradient()
     return createProjectileZombieShotMeshes({
-      bodyMat: new THREE.MeshToonMaterial({ vertexColors: true, gradientMap, emissive: 0x161616 }),
-      outMat: new THREE.MeshBasicMaterial({ color: 0x050209, side: THREE.BackSide, transparent: true, opacity: 1, depthWrite: false }),
+      bodyMat: createShotBodyMaterial(getToonGradient()),
+      outMat: createShotOutlineMaterial(),
       decalMats: DECAL_OPACITY.map((opacity) => new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 })),
     })
   }, [])

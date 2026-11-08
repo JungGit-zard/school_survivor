@@ -61,27 +61,12 @@ function eraser() {
   ])
 }
 // E47 종이비행기: 납작한 삼각 다트(코가 +Z) + 아래 용골.
+// 로자리 무기 '종이비행기'(Weapons/PaperPlane.jsx)도 이 메시를 색까지 그대로 쓴다(외곽선 색만 민트).
 function paperPlane() {
   return merge([
     part(new THREE.ConeGeometry(0.13, 0.32, 3), 0xffffff, { sz: 0.22, rx: HALF_PI }),
     part(new THREE.BoxGeometry(0.022, 0.05, 0.24), 0xbfd6e6, { y: -0.03, z: -0.03 }),
   ])
-}
-// 로자리 무기 '종이비행기'(Weapons/PaperPlane.jsx)용 — 위 E47 탄 메시를 그대로 쓰고 색만 바꾼다.
-// paperPlane()의 몸체 정점은 흰색(1,1,1), 용골 정점은 그 외 색이라 그 기준으로 다시 칠한다.
-// (모양 정본은 위 paperPlane() 하나 — 좀비 탄 모양을 고치면 무기도 같이 바뀐다.)
-export function createPaperPlaneGeometry(bodyHex = 0xffffff, keelHex = 0xbfd6e6) {
-  const geometry = paperPlane()
-  const colors = geometry.attributes.color
-  const body = new THREE.Color().setHex(bodyHex)
-  const keel = new THREE.Color().setHex(keelHex)
-  for (let i = 0; i < colors.count; i += 1) {
-    const isBody = colors.getX(i) === 1 && colors.getY(i) === 1 && colors.getZ(i) === 1
-    const c = isBody ? body : keel
-    colors.setXYZ(i, c.r, c.g, c.b)
-  }
-  colors.needsUpdate = true
-  return geometry
 }
 // E48 자 부메랑: 긴 크림색 자 + 눈금.
 function ruler() {
@@ -382,6 +367,22 @@ export function createOutlineGeometry(geometry, thickness = 0.012) {
 
 export function createShotGeometries() {
   return SHOT_VISUALS.map((visual) => visual.create())
+}
+
+// ── 탄 재질 ──────────────────────────────────────────────────────────────────
+// 좀비 탄 레이어(PooledEnemyProjectileLayer)와 로자리 무기 종이비행기(Weapons/PaperPlane.jsx)가 같이 쓴다.
+// 몸체는 vertex color 툰 재질 하나, 외곽선은 BackSide 헐. 외곽선은 transparent(opacity 1)로 투명 패스에 보내
+// 뒤에 그려지는 불투명 좀비 몸통이 depthWrite 꺼진 헐을 지우지 못하게 한다(lib/toon.js outlineMat과 같은 패턴).
+export const SHOT_OUTLINE_THICKNESS = 0.013
+export const SHOT_OUTLINE_COLOR = 0x050209
+export const SHOT_BODY_EMISSIVE = 0x161616
+
+export function createShotBodyMaterial(gradientMap) {
+  return new THREE.MeshToonMaterial({ vertexColors: true, gradientMap, emissive: SHOT_BODY_EMISSIVE })
+}
+
+export function createShotOutlineMaterial(color = SHOT_OUTLINE_COLOR) {
+  return new THREE.MeshBasicMaterial({ color, side: THREE.BackSide, transparent: true, opacity: 1, depthWrite: false })
 }
 
 // ── 방향·회전 ────────────────────────────────────────────────────────────────

@@ -105,7 +105,8 @@ export function isShotDecalMotion(motion) {
 }
 
 const LOB_PEAK = 1.4
-const SHOT_HEIGHT = 0.45
+// 탄 비행 높이(월드 y). 로자리 무기 '종이비행기'(lib/paperPlane.js)도 같은 높이로 난다.
+export const SHOT_HEIGHT = 0.45
 const MIN_SLOW_MUL = 0.5
 
 function finite(value) {
@@ -161,6 +162,27 @@ export function consumePlayerSlow(state, dtMs) {
   if (state.ms <= 0) state.mul = 1
   return mul
 }
+
+/**
+ * HOMING(약유도, E47 종이비행기) 한 스텝 선회. 속도 (vx, vz)를 목표 방향 (toX, toZ) 쪽으로
+ * 초당 turnRate rad까지, 남은 선회 예산 budget rad 안에서만 꺾는다. 외적 부호로 회전 방향만 정한다.
+ * 꺾었으면 새 속도를 out.x/out.z에 쓰고 쓴 예산(rad)을 돌려준다. 꺾지 않았으면 0을 돌려주고 out은 그대로다.
+ * 좀비 탄(아래 step)과 로자리 무기 종이비행기(lib/paperPlane.js)가 이 함수 하나를 같이 쓴다.
+ */
+export function steerHomingVelocity(vx, vz, toX, toZ, turnRate, budget, dt, out) {
+  const cross = vx * toZ - vz * toX
+  const dot = vx * toX + vz * toZ
+  const want = Math.abs(Math.atan2(cross, dot))
+  const turn = Math.min(turnRate * dt, budget, want) * (cross >= 0 ? 1 : -1)
+  if (turn === 0) return 0
+  const c = Math.cos(turn)
+  const s = Math.sin(turn)
+  // three.js 좌표(x, z) 평면에서 cross>0이면 +turn 회전이 목표 쪽이다.
+  out.x = vx * c - vz * s
+  out.z = vx * s + vz * c
+  return Math.abs(turn)
+}
+const _steer = { x: 0, z: 0 }
 
 // spawn 스펙의 기본값. 호출자는 바꿀 필드만 넘긴다(프레임 경로에서는 재사용 객체를 넘긴다).
 export function createShotSpec() {
@@ -421,22 +443,12 @@ export class ProjectileZombieShotPool {
       }
 
       if (motion === SHOT_MOTION.HOMING && this.p1[i] > 0) {
-        // 남은 선회 예산 안에서 플레이어 쪽으로 초당 p0 rad까지 꺾는다. 외적 부호로 회전 방향만 정한다.
-        const vx = this.velX[i]
-        const vz = this.velZ[i]
-        const tx = playerX - this.posX[i]
-        const tz = playerZ - this.posZ[i]
-        const cross = vx * tz - vz * tx
-        const dot = vx * tx + vz * tz
-        const want = Math.abs(Math.atan2(cross, dot))
-        const turn = Math.min(this.p0[i] * dt, this.p1[i], want) * (cross >= 0 ? 1 : -1)
-        if (turn !== 0) {
-          const c = Math.cos(turn)
-          const s = Math.sin(turn)
-          // three.js 좌표(x, z) 평면에서 cross>0이면 +turn 회전이 목표 쪽이다.
-          this.velX[i] = vx * c - vz * s
-          this.velZ[i] = vx * s + vz * c
-          this.p1[i] -= Math.abs(turn)
+        // 남은 선회 예산(p1) 안에서 플레이어 쪽으로 초당 p0 rad까지 꺾는다.
+        const used = steerHomingVelocity(this.velX[i], this.velZ[i], playerX - this.posX[i], playerZ - this.posZ[i], this.p0[i], this.p1[i], dt, _steer)
+        if (used !== 0) {
+          this.velX[i] = _steer.x
+          this.velZ[i] = _steer.z
+          this.p1[i] -= used
         }
       } else if (motion === SHOT_MOTION.RETURN) {
         this.velX[i] -= this.p1[i] * this.p0[i] * dt

@@ -128,11 +128,13 @@ export const UPGRADE_EFFECTS = {
   // 종이비행기(2026-11-07 levelmini) — 1스테이지부터 나오는 중간 티어. 데미지 카드 2장 합 9 = base 9의 100%.
   // 대수 카드(1→2대)도 단일 대상에 겹친다(singleTargetProjectiles) → Lv1→만렙 단일 대상 4.0배(balanceqa 승인).
   // 대수 cap 4 = 기본 1 + 카드 1 + 여유.
-  // 관통 cap 6 = 기본 3 + 카드 1 + 영구강화 최대 2. lib/paperPlane.js PAPER_PLANE_MAX_PIERCE(8) 안쪽.
+  // 관통(2026-11-08 Terry): pierce = 비행기 한 대가 맞히는 서로 다른 적 수. 기본 1(E47 좀비 탄처럼 한 번 맞히고
+  // 사라짐), +1마다 맞힌 좀비를 뚫고 지나가 뒤의 좀비를 하나 더 맞힌다.
+  // 관통 cap 4 = 기본 1 + 카드 1 + 영구강화 최대 2. lib/paperPlane.js PAPER_PLANE_MAX_PIERCE(8) 안쪽.
   acquirePaperPlane: { weapon: 'paperPlane',  kind: 'acquire', minLevel: 1 },
   paperPlaneDamage:  { weapon: 'paperPlane',  kind: 'damage', dmg: 4.5 },
   paperPlaneCount:   { weapon: 'paperPlane',  kind: 'stat',   stat: 'projectileCount', step: 1, cap: 4 },
-  paperPlanePierce:  { weapon: 'paperPlane',  kind: 'stat',   stat: 'pierce',          step: 1, cap: 6 },
+  paperPlanePierce:  { weapon: 'paperPlane',  kind: 'stat',   stat: 'pierce',          step: 1, cap: 4 },
   paperPlanePower:   { weapon: 'paperPlane',  kind: 'damage', dmg: 4.5 },
   acquireMissile:  { weapon: 'guidedMissile', kind: 'acquire', minLevel: 4 },
   missileDamage:  { weapon: 'guidedMissile', kind: 'damage', dmg: 4 },

@@ -115,6 +115,23 @@ export default {
   'lobby.showtime.B02': '先生スイング！',
   'lobby.showtime.B03': '筋肉ポーズ！',
 
+  // ─── ロビー ≡ メニュー · 音楽室 ───
+  'lobby.menu.musicRoom': '音楽室',
+  'lobby.menu.homepage': 'ホームページ',
+  'lobby.menu.contact': 'お問い合わせ',
+  'musicRoom.title': '音楽室',
+  'musicRoom.hint': '曲をタップするとすぐに再生します。',
+  'musicRoom.listAria': 'ゾンビ学校の曲リスト',
+  'musicRoom.closeAria': '音楽室を閉じる',
+  'musicRoom.nowPlaying': '再生中',
+  'musicRoom.track.opening': 'オープニングテーマ',
+  'musicRoom.track.lobby': 'ロビーテーマ',
+  'musicRoom.track.stageOdd': 'ステージテーマ1',
+  'musicRoom.track.stageEven': 'ステージテーマ2',
+  'musicRoom.usedIn.opening': 'タイトル画面',
+  'musicRoom.usedIn.lobby': 'ロビー',
+  'musicRoom.usedIn.stages': 'ステージ {stages}',
+
   // ─── 設定 ───
   'settings.title': '設定',
   'settings.closeBackdropAria': '設定を閉じる背景',
@@ -682,7 +699,7 @@ export default {
   'up.miniRosariCrit.label': 'ちびロザリ クリティカル強化',
   'up.miniRosariCrit.desc': 'クリティカル率 +2%（クリティカルダメージは150%固定）',
   'up.acquirePaperPlane.label': '紙飛行機解禁',
-  'up.acquirePaperPlane.desc': 'ロザリが投げた紙飛行機が近くの敵を追って飛び、貫通して次の敵を追いかける',
+  'up.acquirePaperPlane.desc': 'ゾンビの紙飛行機と同じように、近くの敵へゆっくり曲がりながら飛んで当たる',
   'up.paperPlaneDamage.label': '紙飛行機ダメージ +{amount} (Lv{level})',
   'up.paperPlaneDamage.desc': '貫通ダメージが増加',
   'up.paperPlaneCount.label': '紙飛行機 +1機',

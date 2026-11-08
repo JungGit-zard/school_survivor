@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { acquireStreamingBgm, BRIDGE_MAX_MS, STALL_RECOVERY_MS, _streamingBgmPlayersForTests } from './streamingBgm.js'
+import { acquireStreamingBgm, BRIDGE_MAX_MS, isStreamingBgmPlaying, STALL_RECOVERY_MS, _streamingBgmPlayersForTests } from './streamingBgm.js'
 import { installFakeAudio, setVisibility } from './fakeStreamingAudio.testUtil.js'
 
 const URL_A = 'https://music.escapezombie.com/a.mp3'
@@ -91,6 +91,18 @@ describe('streamingBgm', () => {
     expect(fake.instances).toHaveLength(1)
     expect(audio.pause).not.toHaveBeenCalled()
     expect(audio.currentTime).toBe(30)
+  })
+
+  it('reports whether a track is already playing, bridges included', () => {
+    expect(isStreamingBgmPlaying(URL_A)).toBe(false)
+    const handle = acquireStreamingBgm(URL_A)
+    expect(isStreamingBgmPlaying(URL_A)).toBe(true)
+    handle.release() // still audible: bridges
+    expect(isStreamingBgmPlaying(URL_A)).toBe(true)
+    vi.advanceTimersByTime(BRIDGE_MAX_MS)
+    expect(isStreamingBgmPlaying(URL_A)).toBe(false)
+    acquireStreamingBgm(URL_B, { active: false })
+    expect(isStreamingBgmPlaying(URL_B)).toBe(false)
   })
 
   it('switching tracks stops the old one and starts the new one', () => {

@@ -8,7 +8,7 @@
 //   onOpenRosariRoom()     — 「로자리의 방」 화면 진입. 상태바 우상단 버튼이 호출한다.
 //                            로그인 유저에게만 보인다(게스트는 저장이 탭 메모리뿐이라 서버 검증이 없다 —
 //                            rosari_model_generations_outfit_contract_2026-10-28.md §5).
-// (설정/닉네임/무기 모달은 로비 내부에서 자체 처리 — App 배선 불필요)
+// (설정/닉네임/무기/음악실 모달은 로비 내부에서 자체 처리 — App 배선 불필요)
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { VISIBLE_STAGE_IDS, getStageConfig, isStageUnlocked } from '../lib/stageConfig.js'
 import { load as loadPlayerRecords } from '../lib/playerRecords.js'
@@ -26,6 +26,7 @@ import { useGameStore } from '../store/useGameStore.js'
 import LobbyBgm from './LobbyBgm.jsx'
 import WeaponModal from './WeaponModal.jsx'
 import LobbySettingsModal from './LobbySettingsModal.jsx'
+import MusicRoomModal from './MusicRoomModal.jsx'
 import RosariRoomSignInPopup from './RosariRoomSignInPopup.jsx'
 import StageBossPreview from './StageBossPreview.jsx'
 import { StageLockPreview } from './StageLock.jsx'
@@ -98,13 +99,14 @@ export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onO
   }, [authUser?.uid, progressStatus])
   const goldTotal = useGameStore((s) => s.goldTotal)
   const [recordsRefreshVersion, setRecordsRefreshVersion] = useState(0)
-  const [modal, setModal] = useState(() => weaponEncyclopediaRequest ? 'weapon' : null) // 'weapon' | 'settings' | null
+  const [modal, setModal] = useState(() => weaponEncyclopediaRequest ? 'weapon' : null) // 'weapon' | 'settings' | 'music' | null
   const [weaponModalInitialId, setWeaponModalInitialId] = useState(() => weaponEncyclopediaRequest?.weaponId ?? null)
   const newlyUnlockedWeaponIds = useGameStore((s) => s.newlyUnlockedWeaponIds)
   const acknowledgeNewWeaponUnlocks = useGameStore((s) => s.acknowledgeNewWeaponUnlocks)
   const [stageBossPreview, setStageBossPreview] = useState(() => loadStageBossPreview())
   const [showtimeStageId, setShowtimeStageId] = useState(null)
   const [menuOpen, setMenuOpen] = useState(false)
+  const menuButtonRef = useRef(null)
   const [rosariGateOpen, setRosariGateOpen] = useState(false)
   // 바깥 클릭 닫기는 생략(YAGNI) — 버튼 재클릭·Escape로 닫는다.
   useEffect(() => {
@@ -254,6 +256,8 @@ export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onO
       .lobby-press:active{ transform: scale(0.96) }
       .lobby-press.lobby-touch-feedback{ filter:brightness(1.18);box-shadow:0 0 16px rgba(126,228,200,0.78) }
       .lobby-touch-pulse-active{ animation:lobbyTouchPulse 520ms ease-out both }
+      /* ≡ 메뉴 항목 hover(마우스 기기만 — 터치에서 hover가 남지 않게) */
+      @media (hover: hover){ .lobby-menu-item:hover{ background: rgba(89,199,255,0.24) !important } }
       /* 접근성/멀미 게이트: 모션 정지 */
       @media (prefers-reduced-motion: reduce){ .lobby-anim{ animation: none !important } }
       :root[data-reduced-effects] .lobby-anim{ animation: none !important }
@@ -344,6 +348,7 @@ export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onO
             {t('rosariRoom.title')}
           </button>
           <button
+            ref={menuButtonRef}
             type="button"
             className="lobby-press"
             data-testid="lobby-menu-button"
@@ -361,8 +366,26 @@ export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onO
         </div>
         {menuOpen ? (
           <div id="lobby-menu-panel" data-testid="lobby-menu-panel" role="menu" style={styles.menuPanel}>
-            {/* ponytail: 메뉴 항목(role="menuitem")은 Terry 지정 후 여기에 추가한다. */}
-            <span style={styles.menuPlaceholder}>메뉴 항목 준비 중</span>
+            {/* 항목 순서는 Terry 지정(2026-11-08): 음악실 → 홈페이지 → 문의하기. 링크는 타이틀과 같은 /landing(같은 탭). */}
+            <button
+              type="button"
+              role="menuitem"
+              className="lobby-press lobby-menu-item"
+              data-testid="lobby-menu-music-room"
+              style={styles.menuItem}
+              onClick={() => {
+                setMenuOpen(false)
+                if (!showtimeStageId) setModal('music')
+              }}
+            >
+              {t('lobby.menu.musicRoom')}
+            </button>
+            <a role="menuitem" className="lobby-press lobby-menu-item" data-testid="lobby-menu-homepage" style={styles.menuItem} href={`/landing?lang=${encodeURIComponent(locale || 'ko')}`}>
+              {t('lobby.menu.homepage')}
+            </a>
+            <a role="menuitem" className="lobby-press lobby-menu-item" data-testid="lobby-menu-contact" style={styles.menuItem} href={`/landing?lang=${encodeURIComponent(locale || 'ko')}#inquiry`}>
+              {t('lobby.menu.contact')}
+            </a>
           </div>
         ) : null}
 
@@ -425,6 +448,10 @@ export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onO
       {modal === 'weapon' && <WeaponModal onClose={closeWeaponModal} initialWeaponId={weaponModalInitialId} newlyUnlockedWeaponIds={newlyUnlockedWeaponIds} playerRecords={records} recordsStatus={progressStatus} onRetryRecords={() => { void useAuthStore.getState().retryCloudProgress?.() }} />}
       {modal === 'settings' && (
         <LobbySettingsModal onClose={closeModal} onNicknameChange={setNickname} onLogoutToTitle={onLogoutToTitle} />
+      )}
+      {/* 음악실은 ≡ 메뉴에서 열린다. 메뉴 항목은 이미 닫혔으므로 닫을 때 포커스를 ≡ 버튼으로 돌려준다. */}
+      {modal === 'music' && (
+        <MusicRoomModal stageIds={stageIds} onClose={() => { closeModal(); menuButtonRef.current?.focus() }} />
       )}
       {rosariGateOpen && <RosariRoomSignInPopup onClose={() => setRosariGateOpen(false)} />}
     </div>
@@ -740,16 +767,35 @@ const styles = {
     zIndex: 6,
     minWidth: 160,
     marginTop: 4,
-    padding: '12px 14px',
+    padding: 6,
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 2,
     border: uiBorders.strong,
     borderRadius: 8,
     background: uiPalette.paperLight,
     boxShadow: uiShadows.pressSmall,
   },
-  menuPlaceholder: {
+  // 버튼(음악실)과 링크(홈페이지·문의하기)가 같은 모양이 되도록 기본 스타일을 지운다. 터치 타깃 44px.
+  menuItem: {
+    width: '100%',
+    minHeight: 44,
+    display: 'flex',
+    alignItems: 'center',
+    padding: '0 12px',
+    border: 0,
+    borderRadius: 6,
+    background: 'transparent',
     color: uiPalette.ink,
-    fontSize: 13,
-    opacity: 0.7,
+    font: 'inherit',
+    fontSize: 15,
+    lineHeight: 1.2,
+    fontWeight: uiType.weightHeavy,
+    textAlign: 'left',
+    textDecoration: 'none',
+    whiteSpace: 'nowrap',
+    cursor: 'pointer',
+    boxSizing: 'border-box',
   },
   gearButton: {
     flex: '0 0 auto',

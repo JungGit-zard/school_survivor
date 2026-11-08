@@ -112,6 +112,23 @@ export default {
   'lobby.showtime.B02': '선생님 스윙!',
   'lobby.showtime.B03': '근육 포즈!',
 
+  // ─── 로비 ≡ 메뉴 · 음악실 ───
+  'lobby.menu.musicRoom': '음악실',
+  'lobby.menu.homepage': '홈페이지',
+  'lobby.menu.contact': '문의하기',
+  'musicRoom.title': '음악실',
+  'musicRoom.hint': '곡을 누르면 바로 재생돼요.',
+  'musicRoom.listAria': '좀비학교 노래 목록',
+  'musicRoom.closeAria': '음악실 닫기',
+  'musicRoom.nowPlaying': '재생 중',
+  'musicRoom.track.opening': '오프닝 테마',
+  'musicRoom.track.lobby': '로비 테마',
+  'musicRoom.track.stageOdd': '스테이지 테마 1',
+  'musicRoom.track.stageEven': '스테이지 테마 2',
+  'musicRoom.usedIn.opening': '타이틀 화면',
+  'musicRoom.usedIn.lobby': '로비',
+  'musicRoom.usedIn.stages': '스테이지 {stages}',
+
   // ─── 설정 ───
   'settings.title': '설정',
   'settings.closeBackdropAria': '설정 닫기 배경',
