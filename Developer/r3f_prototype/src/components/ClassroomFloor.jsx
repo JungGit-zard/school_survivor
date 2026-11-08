@@ -8,6 +8,7 @@ import stage4TileUrl from '../assets/background_floor/tile_stage04_white_ceramic
 import { getStage2CorridorWallDisplay } from '../lib/stage2CorridorWall.js'
 import { getStageBounds } from '../lib/stageConfig.js'
 import { buildStageFloorLightMap, stageFloorLightMapProps } from '../lib/stageFloorLightBake.js'
+import { STAGE_FLOOR_OCCLUSION } from '../lib/stageFloorLightBake.js'
 import Stage2CorridorDecor from './Stage2CorridorDecor.jsx'
 import { getStageObjectFootprint, getStageObjectSightObstacles } from './StageObjects/stageObjectColliders.js'
 import { getStageObjectPlacements } from './StageObjects/stageObjectPlacements.js'
@@ -250,6 +251,94 @@ function FloorPlane({ material, width = FLOOR_SIZE, depth = FLOOR_SIZE }) {
       <planeGeometry args={[width, depth]} />
       <primitive object={material} />
     </mesh>
+  )
+}
+
+// Stage 1·4 바닥은 전투 경계 크기로 잘려 있다(위 STAGE1/STAGE4 계약). 옆벽에 붙은 로사리를 화면 안에
+// 두려고 카메라가 맵 밖으로 밀리면(gameCameraFraming.keepPlayerInsideCameraX) 화면 위 모서리에 캔버스
+// 배경이 쐐기 모양으로 드러난다. 바닥 평면(크기·repeat·lightMap)은 그대로 두고, 같은 타일을 바닥 밖으로
+// 이어 그리는 고정 테두리 메시 하나로 그 자리를 채운다. 가운데가 뚫린 사각형이라 바닥 픽셀은 다시 칠하지 않는다.
+// 바깥은 한 가지 고정 색으로 어둡게 둔다. 빈 배경 없이도 "여기서 막힌다"는 경계가 보인다.
+export const FLOOR_BACKDROP = Object.freeze({
+  margin: 24, // 바닥 가장자리 밖으로 덮는 폭(units, 6블록). 정지 카메라의 맵 밖 이탈은 약 3 units다.
+  overlap: 0.5, // 바닥 가장자리 안쪽으로 겹치는 폭. 원근 시차로 이음새에 틈이 보이지 않게 한다.
+  y: -0.02, // 바닥(y=0) 바로 아래. 겹친 띠는 바닥이 덮는다.
+  // 선형 밝기 배수 0.55. Stage 4 바닥 lightMap이 벽선에서 굽는 경계 띠 값과 같아 그 띠가 바깥까지
+  // 끊김 없이 이어지고, 경계 띠가 없는 Stage 1에서는 벽선에 어두운 경계가 생긴다.
+  tint: 1 - STAGE_FLOOR_OCCLUSION.edgeStrength,
+})
+
+// 200×200 바닥(Stage 2·3, Stage 5의 Stage 3 바닥)은 이미 화면을 다 덮는다. 경계 크기로 자른 바닥만 채운다.
+export function getFloorBackdropSpec(stageId) {
+  const tile = STAGE_FLOOR_TILES[stageId]
+  if (!(tile?.floorWidth > 0) || !(tile?.floorDepth > 0)) return null
+  return { tile, width: tile.floorWidth, depth: tile.floorDepth }
+}
+
+// 바깥 사각형 4점 + 안쪽 사각형 4점, 삼각형 8개. 정점 UV는 FloorPlane(planeGeometry를 -PI/2 회전)과
+// 같은 월드→UV 식 u=(x+w/2)/w, v=(d/2-z)/d라 바닥 타일 repeat를 그대로 써도 무늬가 경계에서 이어진다.
+export function buildFloorBackdropGeometry(width, depth, { margin = FLOOR_BACKDROP.margin, overlap = FLOOR_BACKDROP.overlap } = {}) {
+  const positions = []
+  const uvs = []
+  for (const [halfX, halfZ] of [[width / 2 + margin, depth / 2 + margin], [width / 2 - overlap, depth / 2 - overlap]]) {
+    for (const [sx, sz] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) {
+      const x = sx * halfX
+      const z = sz * halfZ
+      positions.push(x, 0, z)
+      uvs.push((x + width / 2) / width, (depth / 2 - z) / depth)
+    }
+  }
+  const index = []
+  for (let i = 0; i < 4; i += 1) {
+    const next = (i + 1) % 4
+    // 바깥·안쪽 루프가 같은 방향이라 네 변 모두 위(+Y)를 향하는 감기가 된다.
+    index.push(i, 4 + i, next, next, 4 + i, 4 + next)
+  }
+  const geometry = new THREE.BufferGeometry()
+  geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3))
+  geometry.setAttribute('normal', new THREE.Float32BufferAttribute([0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0], 3))
+  geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2))
+  geometry.setIndex(index)
+  return geometry
+}
+
+// 바닥과 같은 Lambert 음영(색 구역 lightMap만 없음)에 고정 색 하나만 곱한다. 매 프레임 작업이 없다.
+// Color.setScalar는 작업 색공간(선형) 값을 그대로 넣는다 — 16진 색은 sRGB로 해석돼 0.55가 되지 않는다.
+export function createFloorBackdropMaterial(map) {
+  return new THREE.MeshLambertMaterial({ map, color: new THREE.Color().setScalar(FLOOR_BACKDROP.tint) })
+}
+
+// 게임 화면(Floor.jsx)에서만 그린다. Studio 미리보기(FloorVisual)와 StudioTunedGroup 숫자 파츠 경로 밖이다.
+export function FloorBackdrop({ stageId = 'stage1' }) {
+  const spec = getFloorBackdropSpec(stageId)
+  return spec ? <FloorBackdropRing floorTile={spec.tile} /> : null
+}
+
+function FloorBackdropRing({ floorTile }) {
+  // TexturedFloor와 같은 R3F 캐시 텍스처·같은 repeat 설정(멱등)이다. GPU 텍스처 업로드는 늘지 않는다.
+  const texture = useLoader(THREE.TextureLoader, floorTile.src)
+  texture.userData.floorRepeatX = floorTile.repeatX ?? floorTile.repeat
+  texture.userData.floorRepeatZ = floorTile.repeatZ ?? floorTile.repeat
+  const backdropTex = useMemo(() => buildRepeatingTexture(texture), [texture])
+  const geometry = useMemo(
+    () => buildFloorBackdropGeometry(floorTile.floorWidth, floorTile.floorDepth),
+    [floorTile.floorWidth, floorTile.floorDepth],
+  )
+  // 텍스처는 캐시 소유라 dispose하지 않는다. 직접 만든 geometry·material만 해제한다.
+  const material = useMemo(() => createFloorBackdropMaterial(backdropTex), [backdropTex])
+  useEffect(() => () => geometry.dispose(), [geometry])
+  useEffect(() => () => material.dispose(), [material])
+
+  // renderOrder -1: 불투명 패스에서 바닥보다 먼저 그려 겹친 띠는 바닥이 깊이 판정으로 덮는다.
+  return (
+    <mesh
+      name="stage-floor-backdrop"
+      geometry={geometry}
+      material={material}
+      position={[0, FLOOR_BACKDROP.y, 0]}
+      receiveShadow
+      renderOrder={-1}
+    />
   )
 }
 

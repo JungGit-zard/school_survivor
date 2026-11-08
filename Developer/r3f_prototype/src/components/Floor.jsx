@@ -1,5 +1,5 @@
 import { RigidBody } from '@react-three/rapier'
-import ClassroomFloor from './ClassroomFloor.jsx'
+import ClassroomFloor, { FloorBackdrop } from './ClassroomFloor.jsx'
 import ExpansionStageEnvironment from './expansion/ExpansionStageEnvironment.jsx'
 import { EXPANSION_STAGE_VISUALS } from '../lib/expansionVisuals.js'
 import { StageObjectColliderLayer, StageObjectLayer } from './StageObjects/index.js'
@@ -33,6 +33,8 @@ export default function Floor({ stageId = 'stage1' }) {
   return (
     <group>
       <FloorVisual stageId={stageId} />
+      {/* 맵 밖 카메라 이탈 자리를 바닥 타일로 채운다(Stage 1·4만, 충돌체 없음). */}
+      <FloorBackdrop stageId={stageId} />
       <StageObjectColliderLayer stageId={stageId} />
 
       <RigidBody type="fixed" colliders="cuboid">
