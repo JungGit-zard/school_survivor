@@ -85,6 +85,20 @@ describe('Sltera instant spawn — owner cheat', () => {
     expect(requestSlteraInstantPass()).toBe(false)
   })
 
+  it('sits in the top-left HUD column under the score, clear of the joystick thumb zone', () => {
+    // 2026-11-08 모바일 검수: top 42%는 가로 화면(220px 세로 프레임)에서 조이스틱 링과 겹쳤다.
+    setSlteraInstantSpawnEnabled(true)
+    unregister = registerSlteraInstantSpawnTarget(() => true)
+    act(() => root.render(<SlteraInstantSpawnButton phase="playing" />))
+    const style = spawnButton().style
+    expect(style.top).toMatch(/96px/) // 점수 칸(안전 위 +50~+85px) 바로 아래
+    expect(style.top).not.toContain('%')
+    expect(style.bottom).toBe('')
+    expect(Number(style.zIndex)).toBeLessThan(10) // HUD 루트(10)·조이스틱(100) 아래 — 경고·팝업이 위에 그려진다
+    expect(Number.parseInt(style.minWidth, 10)).toBeGreaterThanOrEqual(44)
+    expect(Number.parseInt(style.height, 10)).toBeGreaterThanOrEqual(44) // 터치 타깃 44px 유지
+  })
+
   it('normal players never see it: the only switch sits inside the DEV-only title cheat menu', () => {
     const title = readFileSync(new NodeURL('./TitleScreen.jsx', import.meta.url), 'utf8')
     expect(title).toContain('const DEV_CHEATS_ENABLED = import.meta.env.DEV')
