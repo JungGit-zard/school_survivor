@@ -177,6 +177,21 @@ function tuneColor(baseColor, tuning) {
   return next.lerp(_tuneTargetColor.set(tuning.color), tuning.colorStrength)
 }
 
+// 풀 렌더러(ZombieInstanceLayer)는 여러 좀비 타입이 함께 쓰는 InstancedMesh 재질에
+// applyStudioTuning을 걸 수 없어서, 같은 색 커널로 인스턴스 색을 미리 굽는다.
+// 공유 스크래치를 밖으로 내주지 않도록 out에 복사해서 돌려준다.
+export function tuneStudioColorInto(out, baseColor, tuning) {
+  return out.copy(tuneColor(baseColor, tuning))
+}
+
+// applyStudioTuning 안의 outlineScaleFactor와 같은 식(외곽선 헐 배율). 풀 렌더러가 인스턴스
+// 외곽선 행렬에 곱한다. ZombieInstanceLayer.studioMaterial.test.jsx가 applyStudioTuning 실제 결과와 비교한다.
+export function getStudioOutlineScaleFactor(tuning) {
+  return 1 + (tuning.outlineThickness - 1) * 0.12
+}
+
+export { hasStudioMaterialTuning }
+
 export function applyStudioTuning(root, tuning = DEFAULT_STUDIO_TUNING, { scope = 'root' } = {}) {
   const t = normalizeStudioTuning(tuning)
   const customMaterialTuning = hasStudioMaterialTuning(t)

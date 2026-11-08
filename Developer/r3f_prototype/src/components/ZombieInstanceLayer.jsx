@@ -8,13 +8,13 @@ import spawnSmokeUrl from '../assets/effects/spawn_smoke_puff.webp'
 import { enemyPool, playerPos, screenBounds } from '../lib/refs.js'
 import { isExpansionNormalCode } from '../lib/expansionVisuals.js'
 import { getFirebaseStudioRuntimeState } from '../lib/studioRuntimeState.js'
-import { GRAPHICS_STUDIO_TUNING_EVENT, getStudioZombieItemId, loadStudioTunings } from '../lib/graphicsStudioConfig.js'
-import { composeStudioPartMultiplier, composeStudioPartOffset, composeStudioPartTransformCache, getStudioTransformProps } from './StudioTunedGroup.jsx'
+import { DEFAULT_STUDIO_TUNING, GRAPHICS_STUDIO_TUNING_EVENT, getStudioZombieItemId, loadStudioTunings, normalizeStudioTuning } from '../lib/graphicsStudioConfig.js'
+import { composeStudioPartMultiplier, composeStudioPartOffset, composeStudioPartTransformCache, getStudioOutlineScaleFactor, getStudioTransformProps, hasStudioMaterialTuning, tuneStudioColorInto } from './StudioTunedGroup.jsx'
 import { getCachedChamferedBoxGeo, getToonGradient } from '../lib/toon.js'
 import { POSED_ZOMBIE_ANIM_BASE_ROTATION, POSED_ZOMBIE_BASE, POSED_ZOMBIE_FIRST_TYPE_CODE, POSED_ZOMBIE_MARK_SLOT, POSED_ZOMBIE_PART_KEYS, POSED_ZOMBIE_PART_OUTLINES, POSED_ZOMBIE_PART_ROLES, POSED_ZOMBIE_TYPES, ZOMBIE_PALETTE, buildPosedZombieParts, buildPosedZombiePartsFromRig, buildPosedZombieStatePose, buildPosedZombieStatePoseFromRig } from './ZombieMesh.jsx'
 import { PROJECTILE_ZOMBIE_TYPE_CODES, PROJECTILE_ZOMBIE_TYPE_NAME_SLOTS, projectileZombieFaceId, PROJECTILE_ZOMBIE_MAX_PROPS, PROJECTILE_ZOMBIE_PROP_PARENTS, PROJECTILE_ZOMBIE_PROP_SHAPES, PROJECTILE_ZOMBIE_STATE_POSE_DELTAS, PROJECTILE_ZOMBIE_TYPES, PROJECTILE_ZOMBIE_VISUALS, getProjectileZombieSlotColors, getProjectileZombieTelegraphProgress, projectileZombieStatePhase } from '../lib/projectileZombieVisuals.js'
 import { composePooledFaceMatrix, createProjectileZombieFaceMaterial, getFaceAspect } from '../lib/projectileZombieFace.js'
-import { ENEMY_RENDER_FAR, POOLED_CHARGE_CUE_PARTS, POOLED_ENEMY_CAPACITY, PROCEDURAL_FACE_ZOMBIE_CAPACITY, isProceduralFaceZombieCandidate, SPAWN_REVEAL_MS, SPAWN_SMOKE_MS, applyPooledZombieStudioPartTunings, fillEnemyHealthBarLayout, fillVisibleChargeCueSlots, getPooledChargeCueY, getPooledEnemyAnimationTime, getPooledEnemyRenderTier, getSpawnSmokeOpacity, setSlotOpacity, shouldRenderPooledEnemyPart, updateHealthVisualState } from './PooledEnemyVisuals.js'
+import { ENEMY_RENDER_FAR, POOLED_CHARGE_CUE_PARTS, POOLED_ENEMY_CAPACITY, PROCEDURAL_FACE_ZOMBIE_CAPACITY, isProceduralFaceZombieCandidate, SPAWN_REVEAL_MS, SPAWN_SMOKE_MS, applyPooledZombieStudioPartTunings, fillEnemyHealthBarLayout, fillVisibleChargeCueSlots, getPooledChargeCueY, getPooledEnemyAnimationTime, getPooledEnemyRenderTier, getSpawnSmokeOpacity, pooledZombiePartSlotsForNumericPath, setSlotOpacity, shouldRenderPooledEnemyPart, updateHealthVisualState } from './PooledEnemyVisuals.js'
 
 const ZERO = new THREE.Matrix4().makeScale(0, 0, 0)
 const m = new THREE.Matrix4(); const a = new THREE.Matrix4(); const e = new THREE.Euler('XYZ')
@@ -22,6 +22,15 @@ const p = new THREE.Vector3(); const s = new THREE.Vector3(); const q = new THRE
 const translate = new THREE.Matrix4(); const rotate = new THREE.Matrix4(); const inflate = new THREE.Matrix4(); const shadowRotation = new THREE.Euler(-Math.PI / 2, 0, 0)
 const IDENTITY = new THREE.Matrix4()
 const parentMats = Array.from({ length: 6 }, () => new THREE.Matrix4())
+const cameraRotation = new THREE.Matrix4(); const barBase = new THREE.Matrix4(); const barPart = new THREE.Matrix4()
+const tuneBase = new THREE.Color(); const tuneOut = new THREE.Color()
+// 미니 체력바·스폰 연기의 Studio 아이템. 보스 체력바(MiniHealthBar)·스튜디오 프리뷰와 같은 id다.
+export const HEALTH_BAR_STUDIO_ITEM_ID = 'ui-mini-health-bar'
+export const SPAWN_PUFF_STUDIO_ITEM_ID = 'vfx-zombie-spawn-puff'
+// 스튜디오 기본 외곽선(#050209, 불투명도 .96) — 인스턴스 외곽선 속성의 기본값이다.
+const DEFAULT_OUTLINE_RGBA = (() => { const c = new THREE.Color(DEFAULT_STUDIO_TUNING.outlineColor); return new Float32Array([c.r, c.g, c.b, DEFAULT_STUDIO_TUNING.outlineOpacity]) })()
+// 재질 표 한 칸 = 렌더 파트 하나: [r, g, b, 발광, 외곽선 r, g, b, 외곽선 불투명도, 외곽선 굵기 배율]
+export const MATERIAL_STRIDE = 9
 const OUTLINE = 1
 const RUN_TYPES = new Set([7, 8])
 const COIN_JINGLE_TYPE = 16
@@ -156,7 +165,10 @@ function createPropGeometry(shape) {
 // 컴파일 프리웜(compileAsync는 traverseVisible만 돈다)을 위해 visible은 늘 true, count만 0으로 둔다.
 function alwaysVisibleIM(geometry, material, capacity) { const x = new THREE.InstancedMesh(geometry, material, capacity); x.frustumCulled = false; x.instanceMatrix.setUsage(THREE.DynamicDrawUsage); for (let i = 0; i < capacity; i++) x.setMatrixAt(i, ZERO); x.count = 0; x.visible = true; return x }
 export function markAlwaysVisibleUpdate(x, count, attributes) { x.count = count; x.visible = true; markInstanceAttributePrefix(x.instanceMatrix, count, 16); if (attributes) for (let i = 0; i < attributes.length; i++) markInstanceAttributePrefix(attributes[i], count, attributes[i].itemSize) }
-const STUDIO_TUNED_TYPE_CODES = [1, 2, 3, 4, 5, 6, 7, 8, 13, 14].concat(POSED_ZOMBIE_TYPES.map((_, i) => POSED_ZOMBIE_FIRST_TYPE_CODE + i))
+// 15(E07): 얼굴 슬롯 밖으로 넘쳐 여기서 박스 몸통으로 그려지는 E07도 얼굴 레이어 E07과 같은
+// Studio 아이템(zombie-procedural-face-test)의 루트 변환·재질을 받는다. 그 아이템의 파트 경로는
+// 박스 몸통 슬롯에 대응하지 않으므로(pooledZombiePartSlotsForNumericPath가 0) 파트 값은 닿지 않는다.
+const STUDIO_TUNED_TYPE_CODES = [1, 2, 3, 4, 5, 6, 7, 8, 13, 14, 15].concat(POSED_ZOMBIE_TYPES.map((_, i) => POSED_ZOMBIE_FIRST_TYPE_CODE + i))
 const PART_STRIDE = 9
 const PART_COUNT = ALL_PARTS.length
 const partSlotScratch = new Int16Array(12)
@@ -174,6 +186,69 @@ function createDefaultStudioPartTransforms() {
     }
   }
   return transforms
+}
+// Studio 기본 발광(.14). 스튜디오 프리뷰와 StudioTunedGroup의 applyStudioTuning은 툰 파트마다
+// 발광 = 자기 색 × emissiveIntensity를 준다. Studio 아이템이 없는 타입(E08, 투사체 E46-E70)은 0이라
+// 예전 모습 그대로다. 같은 InstancedMesh를 여러 타입이 나눠 쓰므로 인스턴스 속성으로 싣는다.
+function createDefaultStudioEmissive() {
+  const emissive = new Float32Array(TYPE_NAMES.length)
+  for (let i = 0; i < STUDIO_TUNED_TYPE_CODES.length; i += 1) emissive[STUDIO_TUNED_TYPE_CODES[i]] = DEFAULT_STUDIO_TUNING.emissiveIntensity
+  return emissive
+}
+// 역할별 팔레트 색. 프레임 루프와 Studio 재질 표가 같은 표를 쓴다.
+function pooledPartHex(type, role, pal) {
+  const run = type === 7; const fugitive = type === 13; const guard = type === 14
+  return role==='mark'?pal.mark:role==='skin'?pal.skin:role==='eye'?pal.eye:role==='foot'?0x1a1a1a:role==='hair'?0x35251c:role==='coat'?0xb48755:role==='scarf'?0xd8b057:role==='coatShadow'?0x76502d:role==='cap'?0x102c4a:role==='uniform'?0x173a5e:role==='vest'?0xe3bf3f:role==='badge'?0xf3d46b:role==='pants'?(fugitive?0x382d29:0x13263b):role==='trim'?(run?0x7d3fc6:0x1880bd):role==='stripe'?0xffffff:role==='jersey'?(run?0x5a2484:0xf0eee4):role==='shorts'?(run?0x22152f:0x1974aa):role==='shoe'?(fugitive?0x171717:guard?0x111317:run?0x6e35b8:0x1771a6):role==='sole'?0xf5f1e8:role==='bib'?0xb48755:role==='digit'?0x151515:role==='mouth'?(fugitive?0x381510:guard?0x35100f:0x151515):role==='medal'?0xf0b62d:pal.body
+}
+function typeRenderParts(type) {
+  const posed = POSED_TYPE_INDEX[type] || 0; const proj = PROJ_TYPE_INDEX[type] || 0
+  const parts = type === 13 ? RZT : type === 14 ? RZG : RUN_TYPES.has(type) ? RUN : STANDARD
+  return type === COIN_JINGLE_TYPE ? COIN_JINGLE : posed ? POSED_BY_TYPE[posed - 1] : proj ? PROJ_BY_TYPE[proj - 1] : parts
+}
+function typeSlotBase(type) {
+  const posed = POSED_TYPE_INDEX[type] || 0; const proj = PROJ_TYPE_INDEX[type] || 0
+  return type === 13 ? RZT_OFFSET : type === 14 ? RZG_OFFSET : type === COIN_JINGLE_TYPE ? COIN_JINGLE_OFFSET : (posed || proj) ? POSED_SLOT_BASE : RUN_TYPES.has(type) ? STANDARD.length : 0
+}
+const materialSlotScratch = new Int16Array(16)
+function writeStudioMaterialSlot(table, j, hex, t) {
+  const o = j * MATERIAL_STRIDE
+  tuneStudioColorInto(tuneOut, tuneBase.setHex(hex), t)
+  table[o] = tuneOut.r; table[o + 1] = tuneOut.g; table[o + 2] = tuneOut.b; table[o + 3] = t.emissiveIntensity
+  tuneOut.set(t.outlineColor)
+  table[o + 4] = tuneOut.r; table[o + 5] = tuneOut.g; table[o + 6] = tuneOut.b; table[o + 7] = t.outlineOpacity; table[o + 8] = getStudioOutlineScaleFactor(t)
+}
+// 풀 좀비 한 타입의 Studio 재질 표(렌더 파트마다 MATERIAL_STRIDE칸). 스튜디오가 박스 트리에 하는 일을
+// 그대로 따른다: applyStudioTuning(루트)이 모든 파트를 칠하고, applySavedStudioPartTunings가 재질 값을
+// 가진 파트/그룹 항목으로 그 파트를 원래 색에서 다시 칠한다(경로 사전순, 같은 경로는 그룹 → 파트 순).
+// 파트 경로 → 슬롯은 변환과 같은 pooledZombiePartSlotsForNumericPath를 쓴다. 재질 값이 하나도 없으면
+// null — 팔레트 경로와 기본 발광이 그대로 쓰인다.
+export function buildPooledStudioMaterialTable(type, itemId, tunings = {}) {
+  const root = normalizeStudioTuning(tunings[itemId])
+  const groupPrefix = `${itemId}::group::`; const partPrefix = `${itemId}::part::`
+  const saved = Object.keys(tunings)
+    .filter((key) => key.startsWith(groupPrefix) || key.startsWith(partPrefix))
+    .map((key) => {
+      const group = key.startsWith(groupPrefix)
+      const paths = group ? [...new Set(key.slice(groupPrefix.length).split('+').filter(Boolean))] : [key.slice(partPrefix.length)]
+      return { key, group, paths, tuning: normalizeStudioTuning(tunings[key]) }
+    })
+    .sort((a, b) => (a.group !== b.group ? (a.group ? -1 : 1) : a.key.localeCompare(b.key)))
+  const byPath = new Map()
+  saved.forEach((entry) => entry.paths.forEach((path) => { if (!byPath.has(path)) byPath.set(path, []); byPath.get(path).push(entry) }))
+  const painted = [...byPath.entries()].sort(([a], [b]) => a.localeCompare(b))
+    .flatMap(([path, entries]) => entries.filter((entry) => hasStudioMaterialTuning(entry.tuning)).map((entry) => [path, entry.tuning]))
+  if (!hasStudioMaterialTuning(root) && !painted.length) return null
+  const parts = typeRenderParts(type); const pal = TYPE_PALETTES[type]; const slotBase = typeSlotBase(type)
+  const table = new Float32Array(parts.length * MATERIAL_STRIDE)
+  for (let j = 0; j < parts.length; j += 1) writeStudioMaterialSlot(table, j, pooledPartHex(type, parts[j][1], pal), root)
+  painted.forEach(([path, tuning]) => {
+    const count = pooledZombiePartSlotsForNumericPath(type, path, materialSlotScratch)
+    for (let n = 0; n < count; n += 1) {
+      const j = materialSlotScratch[n] - slotBase
+      if (j >= 0 && j < parts.length) writeStudioMaterialSlot(table, j, pooledPartHex(type, parts[j][1], pal), tuning)
+    }
+  })
+  return table
 }
 // Bubble, tail and block-letter GO! parts from ChargeToonCue.  A fixed 16-slot
 // pool bounds its draw cost even when every E05 enters warning together.
@@ -221,6 +296,19 @@ function makeOutline() { const x = new THREE.MeshBasicMaterial({ color: 0x050209
 function makeCueMat() { const x = new THREE.MeshBasicMaterial({ color: 0xffffff, depthTest: false, depthWrite: false, toneMapped: false }); return x }
 function im(part, material) { const chamferSteps = part[6] === 'chamfer2' ? 2 : 1; const geometry = getCachedChamferedBoxGeo(...part[2], chamferSteps); const x = new THREE.InstancedMesh(geometry, material, POOLED_ENEMY_CAPACITY); x.frustumCulled = false; x.instanceMatrix.setUsage(THREE.DynamicDrawUsage); for (let i=0;i<POOLED_ENEMY_CAPACITY;i++) x.setMatrixAt(i,ZERO); x.count=0; x.visible=false; return x }
 export function installInstanceAlpha(geometry, material, count) { const alpha = new THREE.InstancedBufferAttribute(new Float32Array(count).fill(1), 1); geometry.setAttribute('instanceAlpha', alpha); material.onBeforeCompile = (shader) => { shader.vertexShader = `attribute float instanceAlpha; varying float pooledInstanceAlpha;\n${shader.vertexShader}`.replace('#include <begin_vertex>', '#include <begin_vertex>\npooledInstanceAlpha = instanceAlpha;'); shader.fragmentShader = `varying float pooledInstanceAlpha;\n${shader.fragmentShader}`.replace('#include <opaque_fragment>', '#include <opaque_fragment>\ngl_FragColor.a *= pooledInstanceAlpha;') }; material.customProgramCacheKey = () => 'pooled-instance-alpha-v1'; return alpha }
+// 몸통 발광: 재질 발광은 흰색 × 1로 두고, 셰이더에서 인스턴스 색 × 인스턴스 발광 세기를 곱한다.
+// 결과는 스튜디오의 applyStudioTuning(발광 = 튜닝된 색 × emissiveIntensity)과 같다.
+export function installInstanceEmissive(geometry, material, count) { const emissive = new THREE.InstancedBufferAttribute(new Float32Array(count), 1); emissive.setUsage(THREE.DynamicDrawUsage); geometry.setAttribute('instanceEmissive', emissive); material.onBeforeCompile = (shader) => { shader.vertexShader = `attribute float instanceEmissive; varying float pooledInstanceEmissive;\n${shader.vertexShader}`.replace('#include <begin_vertex>', '#include <begin_vertex>\npooledInstanceEmissive = instanceEmissive;'); shader.fragmentShader = `varying float pooledInstanceEmissive;\n${shader.fragmentShader}`.replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\n#ifdef USE_COLOR\ntotalEmissiveRadiance *= vColor;\n#endif\ntotalEmissiveRadiance *= pooledInstanceEmissive;') }; material.customProgramCacheKey = () => 'pooled-zombie-emissive-v1'; return emissive }
+// 외곽선 색·불투명도: 재질은 흰색 × 1, 인스턴스 vec4(rgb, a)를 diffuseColor에 곱한다.
+export function installInstanceOutline(geometry, material, count) { const outline = new THREE.InstancedBufferAttribute(new Float32Array(count * 4), 4); outline.setUsage(THREE.DynamicDrawUsage); fillDefaultOutline(outline.array); geometry.setAttribute('instanceOutline', outline); material.onBeforeCompile = (shader) => { shader.vertexShader = `attribute vec4 instanceOutline; varying vec4 pooledInstanceOutline;\n${shader.vertexShader}`.replace('#include <begin_vertex>', '#include <begin_vertex>\npooledInstanceOutline = instanceOutline;'); shader.fragmentShader = `varying vec4 pooledInstanceOutline;\n${shader.fragmentShader}`.replace('#include <color_fragment>', '#include <color_fragment>\ndiffuseColor *= pooledInstanceOutline;') }; material.customProgramCacheKey = () => 'pooled-zombie-outline-v1'; return outline }
+function fillDefaultOutline(array) { for (let i = 0; i < array.length; i += 4) { array[i] = DEFAULT_OUTLINE_RGBA[0]; array[i + 1] = DEFAULT_OUTLINE_RGBA[1]; array[i + 2] = DEFAULT_OUTLINE_RGBA[2]; array[i + 3] = DEFAULT_OUTLINE_RGBA[3] } }
+// 인스턴스 속성은 지오메트리에 붙으므로, 다른 메시와 공유하는 캐시 박스를 복사해 메시마다 따로 쓴다.
+function bodyIM(part) { const x = im(part, makeMat()); x.material.emissive.setHex(0xffffff); x.material.emissiveIntensity = 1; x.geometry = new THREE.BufferGeometry().copy(x.geometry); x.userData.instanceEmissive = installInstanceEmissive(x.geometry, x.material, POOLED_ENEMY_CAPACITY); x.setColorAt(0, color.setHex(0xffffff)); x.instanceColor.setUsage(THREE.DynamicDrawUsage); return x }
+function outlineIM(part) { const x = im(part, makeOutline()); x.material.color.setHex(0xffffff); x.material.opacity = 1; x.geometry = new THREE.BufferGeometry().copy(x.geometry); x.userData.instanceOutline = installInstanceOutline(x.geometry, x.material, POOLED_ENEMY_CAPACITY); return x }
+// MiniHealthBar와 같은 계층: 좀비 위치 · Studio 루트 · (0, y, 0) · 카메라 회전 · 바별 x 오프셋 · 크기.
+function setBarMatrix(mesh, slot, dx, sx, sy) { barPart.makeScale(sx, sy, 1); barPart.elements[12] = dx; a.multiplyMatrices(barBase, barPart); mesh.setMatrixAt(slot, a) }
+function createDefaultStudioSmoke() { return { position: new THREE.Vector3(), quaternion: new THREE.Quaternion(), scale: new THREE.Vector3(1, 1, 1) } }
+function composeStudioRoot(out, transform) { p.set(transform.position[0], transform.position[1], transform.position[2]); e.set(transform.rotation[0], transform.rotation[1], transform.rotation[2]); q.setFromEuler(e); s.set(transform.scale[0], transform.scale[1], transform.scale[2]); return out.compose(p, q, s) }
 function plane(material) { const geometry=new THREE.PlaneGeometry(1,1); const x = new THREE.InstancedMesh(geometry,material,POOLED_ENEMY_CAPACITY); x.frustumCulled=false; x.instanceMatrix.setUsage(THREE.DynamicDrawUsage); x.userData.instanceAlpha=installInstanceAlpha(geometry,material,POOLED_ENEMY_CAPACITY); for(let i=0;i<POOLED_ENEMY_CAPACITY;i++) x.setMatrixAt(i,ZERO); x.count=0; x.visible=false; return x }
 function cueIM(def, material) { const geometry=def.radius?new THREE.SphereGeometry(def.radius,12,8):new THREE.BoxGeometry(...def.size); const x = new THREE.InstancedMesh(geometry, material, 16); x.frustumCulled=false; x.instanceMatrix.setUsage(THREE.DynamicDrawUsage); for(let i=0;i<16;i++)x.setMatrixAt(i,ZERO); x.count=0; x.visible=false; return x }
 function clearRanges(attribute) { if (!attribute) return; if (typeof attribute.clearUpdateRanges === 'function') attribute.clearUpdateRanges(); else if (Array.isArray(attribute.updateRanges)) attribute.updateRanges.length = 0 }
@@ -230,6 +318,7 @@ export function markInstancedMeshFullUpdate(x, options = {}) { x.visible = x.cou
 function markResetMeshes(meshes, options) { for (let i=0;i<meshes.length;i++) markInstancedMeshFullUpdate(meshes[i], options) }
 function markFrameMeshes(meshes, counts, options) { for (let i=0;i<meshes.length;i++) markInstancedMeshPrefixUpdate(meshes[i], counts[i], options) }
 function markFrameMeshesUniform(meshes, count, options) { for (let i=0;i<meshes.length;i++) markInstancedMeshPrefixUpdate(meshes[i], count, options) }
+function markFrameUserAttribute(meshes, counts, key, itemSize) { for (let i=0;i<meshes.length;i++) markInstanceAttributePrefix(meshes[i].userData[key], counts[i], itemSize) }
 
 export { PART_COUNT, POSED_SLOT_BASE }
 
@@ -239,13 +328,8 @@ export function resolvePooledZombieVisual(typeCode) {
   const name = TYPE_NAMES[typeCode] || ''
   const posed = POSED_TYPE_INDEX[typeCode] || 0
   const proj = PROJ_TYPE_INDEX[typeCode] || 0
-  const parts = typeCode === 13 ? RZT : typeCode === 14 ? RZG : RUN_TYPES.has(typeCode) ? RUN : STANDARD
-  const renderParts = typeCode === COIN_JINGLE_TYPE ? COIN_JINGLE : posed ? POSED_BY_TYPE[posed - 1] : proj ? PROJ_BY_TYPE[proj - 1] : parts
-  const slotBase = typeCode === 13 ? RZT_OFFSET
-    : typeCode === 14 ? RZG_OFFSET
-      : typeCode === COIN_JINGLE_TYPE ? COIN_JINGLE_OFFSET
-        : (posed || proj) ? POSED_SLOT_BASE
-          : RUN_TYPES.has(typeCode) ? STANDARD.length : 0
+  const renderParts = typeRenderParts(typeCode)
+  const slotBase = typeSlotBase(typeCode)
   return {
     name,
     posedIndex: posed,
@@ -266,14 +350,14 @@ export function resolvePooledZombieVisual(typeCode) {
 
 export default function ZombieInstanceLayer({ resetKey }) {
   const { camera } = useThree(); const smokeTexture = useLoader(THREE.TextureLoader, spawnSmokeUrl)
-  const studio = useRef({ revision: null, rootMatrices: [], rootScaleX: new Float32Array(TYPE_NAMES.length), rootScaleZ: new Float32Array(TYPE_NAMES.length), supported: new Uint8Array(TYPE_NAMES.length), partTransforms: createDefaultStudioPartTransforms() }); const cueOverflowRef = useRef(0); const cueIndicesRef = useRef(new Int16Array(16))
+  const studio = useRef({ revision: null, rootMatrices: [], rootScaleX: new Float32Array(TYPE_NAMES.length), rootScaleZ: new Float32Array(TYPE_NAMES.length), supported: new Uint8Array(TYPE_NAMES.length), partTransforms: createDefaultStudioPartTransforms(), material: [], emissive: createDefaultStudioEmissive(), outlineTuned: false, barRoot: new THREE.Matrix4(), smoke: createDefaultStudioSmoke() }); const cueOverflowRef = useRef(0); const cueIndicesRef = useRef(new Int16Array(16))
   const renderTiers = useRef(new Uint8Array(POOLED_ENEMY_CAPACITY))
   const partCounts = useRef(new Int16Array(PART_COUNT))
   const health = useRef({ generation:new Uint16Array(200), lastRatio:new Float32Array(200), trailRatio:new Float32Array(200), flash:new Float32Array(200), ratio:new Float32Array(200), visibleTrailRatio:new Float32Array(200) })
   const healthBarLayout = useRef(new Float32Array(3))
   const propCountsRef = useRef(new Int16Array(PROJECTILE_ZOMBIE_PROP_SHAPES.length))
   const all = useMemo(() => {
-    const body = ALL_PARTS.map(x=>im(x,makeMat(x[1]==='eye'))); const out=ALL_PARTS.map(x=>im(x,makeOutline()))
+    const body = ALL_PARTS.map(bodyIM); const out=ALL_PARTS.map(outlineIM)
     const shadow=plane(new THREE.MeshBasicMaterial({color:0,transparent:true,opacity:.3,depthTest:true,depthWrite:false}));
     const bars=[plane(new THREE.MeshBasicMaterial({color:0,transparent:true,opacity:.88,depthTest:false,depthWrite:false})),plane(new THREE.MeshBasicMaterial({color:0xd72832,transparent:true,opacity:.95,depthTest:false,depthWrite:false})),plane(new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.9,depthTest:false,depthWrite:false})),plane(new THREE.MeshBasicMaterial({color:0xffd23c,transparent:true,opacity:1,depthTest:false,depthWrite:false}))]
     smokeTexture.colorSpace=THREE.SRGBColorSpace; const smoke=plane(new THREE.MeshBasicMaterial({map:smokeTexture,transparent:true,depthTest:false,depthWrite:false,alphaTest:.01,toneMapped:false}))
@@ -285,6 +369,9 @@ export default function ZombieInstanceLayer({ resetKey }) {
     // 얼굴: 분기 셰이더 1개 = 1 드로콜. vec4 aFace(id, time, tele, progress) + vec2 aFaceAux(aspect, flash).
     const faceGeometry=new THREE.PlaneGeometry(1,1); const faceAttr=new THREE.InstancedBufferAttribute(new Float32Array(POOLED_ENEMY_CAPACITY*4),4); const faceAux=new THREE.InstancedBufferAttribute(new Float32Array(POOLED_ENEMY_CAPACITY*2),2); faceAttr.setUsage(THREE.DynamicDrawUsage); faceAux.setUsage(THREE.DynamicDrawUsage); faceGeometry.setAttribute('aFace',faceAttr); faceGeometry.setAttribute('aFaceAux',faceAux)
     const face=alwaysVisibleIM(faceGeometry,createProjectileZombieFaceMaterial(),POOLED_ENEMY_CAPACITY); face.userData.faceAttr=faceAttr; face.userData.faceAux=faceAux
+    // Studio 색 튜닝은 처음 색에서 다시 계산한다(applyStudioTuning의 studioBaseColor와 같은 규칙).
+    for(let i=0;i<bars.length;i++)bars[i].material.userData.pooledBaseColor=bars[i].material.color.clone()
+    smoke.material.userData.pooledBaseColor=smoke.material.color.clone()
     return {body,out,shadow,bars,smoke,cue,propBody,propOut,face}
   }, [smokeTexture])
   useEffect(() => () => {
@@ -340,31 +427,42 @@ export default function ZombieInstanceLayer({ resetKey }) {
     markResetMeshes(all.body, { matrix: true, color: true }); markResetMeshes(all.out, { matrix: true }); markResetMeshes(all.bars, { matrix: true, alpha: true }); markResetMeshes(all.cue, { matrix: true, color: true }); markInstancedMeshFullUpdate(all.shadow, { matrix: true, alpha: true }); markInstancedMeshFullUpdate(all.smoke, { matrix: true, alpha: true })
   }, [all, resetKey])
   useEffect(() => { const refresh=()=>{ const state=getFirebaseStudioRuntimeState(); if (!state?.datasets || !Number.isInteger(state.revision)) return; const tunings=loadStudioTunings(); const rootMatrices=[]; const rootScaleX=new Float32Array(TYPE_NAMES.length);const rootScaleZ=new Float32Array(TYPE_NAMES.length); const supported=new Uint8Array(TYPE_NAMES.length); const partTransforms=createDefaultStudioPartTransforms(); for(const t of STUDIO_TUNED_TYPE_CODES){const id=TYPE_ITEM_IDS[t];const transform=getStudioTransformProps(tunings[id]);const root=new THREE.Matrix4();p.set(transform.position[0],transform.position[1],transform.position[2]);e.set(transform.rotation[0],transform.rotation[1],transform.rotation[2]);q.setFromEuler(e);s.set(transform.scale[0],transform.scale[1],transform.scale[2]);root.compose(p,q,s);rootMatrices[t]=root;rootScaleX[t]=transform.scale[0];rootScaleZ[t]=transform.scale[2];supported[t]=1;const base=t*PART_COUNT*PART_STRIDE;for(let part=0;part<PART_COUNT;part+=1){partTransforms[base+part*PART_STRIDE+6]=1;partTransforms[base+part*PART_STRIDE+7]=1;partTransforms[base+part*PART_STRIDE+8]=1}applyPooledZombieStudioPartTunings(partTransforms,t,PART_COUNT,id,tunings,getStudioTransformProps,composeStudioPartTransformCache,partSlotScratch)}
-    studio.current={revision:state.revision,rootMatrices,rootScaleX,rootScaleZ,supported,partTransforms} }; refresh(); window.addEventListener(GRAPHICS_STUDIO_TUNING_EVENT,refresh); return()=>window.removeEventListener(GRAPHICS_STUDIO_TUNING_EVENT,refresh) },[])
+    // Studio 재질(색·밝기·채도·색 강도·발광·외곽선 색/불투명도/굵기): 재질 값이 있는 타입만 표를 굽는다.
+    const material=[]; const emissive=createDefaultStudioEmissive(); let outlineTuned=false
+    for(let n=0;n<STUDIO_TUNED_TYPE_CODES.length;n+=1){const t=STUDIO_TUNED_TYPE_CODES[n];const table=buildPooledStudioMaterialTable(t,TYPE_ITEM_IDS[t],tunings);if(table){material[t]=table;outlineTuned=true}}
+    // 튜닝이 사라지면 프레임 루프가 외곽선 속성을 더 쓰지 않으므로 여기서 기본값으로 한 번 되돌린다.
+    if(!outlineTuned&&studio.current.outlineTuned)for(let i=0;i<all.out.length;i+=1){fillDefaultOutline(all.out[i].userData.instanceOutline.array);markInstanceAttributePrefix(all.out[i].userData.instanceOutline,POOLED_ENEMY_CAPACITY,4)}
+    // 미니 체력바·스폰 연기: 보스 체력바(MiniHealthBar)·스폰 연기와 같은 Studio 아이템의 루트 변환과 색.
+    const barTuning=normalizeStudioTuning(tunings[HEALTH_BAR_STUDIO_ITEM_ID]); const barRoot=composeStudioRoot(new THREE.Matrix4(),getStudioTransformProps(barTuning))
+    for(let i=0;i<all.bars.length;i+=1){const barMaterial=all.bars[i].material;tuneStudioColorInto(barMaterial.color,barMaterial.userData.pooledBaseColor,barTuning)}
+    const smokeTuning=normalizeStudioTuning(tunings[SPAWN_PUFF_STUDIO_ITEM_ID]); const smokeTransform=getStudioTransformProps(smokeTuning); const smoke=createDefaultStudioSmoke(); smoke.position.fromArray(smokeTransform.position); smoke.quaternion.setFromEuler(e.set(smokeTransform.rotation[0],smokeTransform.rotation[1],smokeTransform.rotation[2])); smoke.scale.fromArray(smokeTransform.scale)
+    tuneStudioColorInto(all.smoke.material.color,all.smoke.material.userData.pooledBaseColor,smokeTuning)
+    studio.current={revision:state.revision,rootMatrices,rootScaleX,rootScaleZ,supported,partTransforms,material,emissive,outlineTuned,barRoot,smoke} }; refresh(); window.addEventListener(GRAPHICS_STUDIO_TUNING_EVENT,refresh); return()=>window.removeEventListener(GRAPHICS_STUDIO_TUNING_EVENT,refresh) },[all])
   useFrame((_,delta) => {
     const pool=enemyPool; if (!pool) return; const max=Math.min(199,Number.isInteger(pool.highestActive)?pool.highestActive:199); const tiers=renderTiers.current;const counts=partCounts.current;counts.fill(0)
     let bodyCount=0; let healthCount=0; let smokeCount=0; let faceCount=0; let e07FaceClaims=0; const propCounts=propCountsRef.current; propCounts.fill(0); const faceArr=all.face.userData.faceAttr.array; const auxArr=all.face.userData.faceAux.array
+    const outlineTuned=studio.current.outlineTuned; cameraRotation.makeRotationFromQuaternion(camera.quaternion)
     for(let i=0;i<200;i++) {
       const active=i<=max&&pool.active[i]===1; if(!active){tiers[i]=0;continue}
       const timer=pool.spawnTimer[i]; const type=pool.type[i]; if(isExpansionNormalCode(type))continue; const e07FaceDrawn=type===15&&isProceduralFaceZombieCandidate(pool,i,screenBounds)&&++e07FaceClaims<=PROCEDURAL_FACE_ZOMBIE_CAPACITY; const tier=getPooledEnemyRenderTier(screenBounds,pool.posX[i],pool.posZ[i],playerPos.x,playerPos.z,tiers[i]); tiers[i]=tier
       if(!tier)continue
       const bodyVisible=timer>=SPAWN_REVEAL_MS&&((type>=1&&type<=8)||type===13||type===14||type===15||type===COIN_JINGLE_TYPE||POSED_TYPE_INDEX[type]>0||PROJ_TYPE_INDEX[type]>0); const smokeVisible=timer>=0&&timer<SPAWN_SMOKE_MS
-      if(bodyVisible){const renderSlot=bodyCount++;const rootMatrix=studio.current.rootMatrices[type]||IDENTITY;const scale=(pool.visualScale[i]||1)*.333;const state=phase(pool,i);const time=getPooledEnemyAnimationTime(timer,tier);const pal=TYPE_PALETTES[type];const posed=POSED_TYPE_INDEX[type]||0;const proj=PROJ_TYPE_INDEX[type]||0;const parts=type===13?RZT:type===14?RZG:RUN_TYPES.has(type)?RUN:STANDARD;const renderParts=type===COIN_JINGLE_TYPE?COIN_JINGLE:posed?POSED_BY_TYPE[posed-1]:proj?PROJ_BY_TYPE[proj-1]:parts;const offset=type===13?RZT_OFFSET:type===14?RZG_OFFSET:type===COIN_JINGLE_TYPE?COIN_JINGLE_OFFSET:(posed||proj)?POSED_SLOT_BASE:RUN_TYPES.has(type)?STANDARD.length:0;const partCount=e07FaceDrawn?NO_INSTANCED_PART_COUNT:renderParts.length;const statePose=posed&&state!=='normal'?POSED_STATE_POSE_BY_TYPE[posed-1][state]:proj&&state!=='normal'?PROJ_STATE_POSE_BY_TYPE[proj-1][state]:null;const flashing=pool.hitFlashTimer[i]>0
+      if(bodyVisible){const renderSlot=bodyCount++;const rootMatrix=studio.current.rootMatrices[type]||IDENTITY;const mat=studio.current.material[type];const baseEmissive=studio.current.emissive[type];const scale=(pool.visualScale[i]||1)*.333;const state=phase(pool,i);const time=getPooledEnemyAnimationTime(timer,tier);const pal=TYPE_PALETTES[type];const posed=POSED_TYPE_INDEX[type]||0;const proj=PROJ_TYPE_INDEX[type]||0;const parts=type===13?RZT:type===14?RZG:RUN_TYPES.has(type)?RUN:STANDARD;const renderParts=type===COIN_JINGLE_TYPE?COIN_JINGLE:posed?POSED_BY_TYPE[posed-1]:proj?PROJ_BY_TYPE[proj-1]:parts;const offset=type===13?RZT_OFFSET:type===14?RZG_OFFSET:type===COIN_JINGLE_TYPE?COIN_JINGLE_OFFSET:(posed||proj)?POSED_SLOT_BASE:RUN_TYPES.has(type)?STANDARD.length:0;const partCount=e07FaceDrawn?NO_INSTANCED_PART_COUNT:renderParts.length;const statePose=posed&&state!=='normal'?POSED_STATE_POSE_BY_TYPE[posed-1][state]:proj&&state!=='normal'?PROJ_STATE_POSE_BY_TYPE[proj-1][state]:null;const flashing=pool.hitFlashTimer[i]>0
         const screenRunnerLift=type===13||type===14?scale*.45:0;p.set(pool.posX[i],pool.posY[i]+screenRunnerLift,pool.posZ[i]);e.set(0,pool.yaw[i],0);q.setFromEuler(e);s.set(scale,scale,scale);m.compose(p,q,s);m.multiply(rootMatrix)
         p.set(pool.posX[i],.018,pool.posZ[i]);s.set(Math.max(.05,scale*(studio.current.rootScaleX[type]||1)*.62),Math.max(.05,scale*(studio.current.rootScaleZ[type]||1)*.34),1);q.setFromEuler(shadowRotation);a.compose(p,q,s);all.shadow.setMatrixAt(renderSlot,a)
-        for(let j=0;j<partCount;j++){const part=renderParts[j];const slot=offset+j;if((proj&&PROJ_SKIPPED_SLOT[j])||!shouldRenderPooledEnemyPart(type,(posed||proj)?j:slot,tier)||(part[6]==='leader'&&type!==7))continue;const partRenderSlot=counts[slot]++;const partBase=type*PART_COUNT*PART_STRIDE+slot*PART_STRIDE;const pose=part[7];a.copy(m);translate.makeTranslation(composeStudioPartOffset(part[3][0],studio.current.partTransforms[partBase]),composeStudioPartOffset(part[3][1],studio.current.partTransforms[partBase+1]),composeStudioPartOffset(part[3][2],studio.current.partTransforms[partBase+2]));a.multiply(translate);setPartRotation(e,part[0],time,type,state,posed||proj);e.set(composeStudioPartOffset(e.x,studio.current.partTransforms[partBase+3],(pose?pose[0]:0)+(statePose?statePose[j][0]:0)),composeStudioPartOffset(e.y,studio.current.partTransforms[partBase+4],(pose?pose[1]:0)+(statePose?statePose[j][1]:0)),composeStudioPartOffset(e.z,studio.current.partTransforms[partBase+5],(pose?pose[2]:0)+(statePose?statePose[j][2]:0)));rotate.makeRotationFromEuler(e);a.multiply(rotate);inflate.makeScale(composeStudioPartMultiplier(1,studio.current.partTransforms[partBase+6]),composeStudioPartMultiplier(1,studio.current.partTransforms[partBase+7]),composeStudioPartMultiplier(1,studio.current.partTransforms[partBase+8]));a.multiply(inflate);if(proj&&PROJ_SLOT_TO_PARENT[j]>=0)parentMats[PROJ_SLOT_TO_PARENT[j]].copy(a);translate.makeTranslation(part[4][0],part[4][1],part[4][2]);a.multiply(translate);const box=part[8];if(box){inflate.makeScale(box[0],box[1],box[2]);a.multiply(inflate)}all.body[slot].setMatrixAt(partRenderSlot,a);const role=part[1];const run=type===7;const fugitive=type===13;const guard=type===14;const hex=pool.hitFlashTimer[i]>0?0xffffff:proj?PROJ_SLOT_COLORS[proj-1][j]:role==='mark'?pal.mark:role==='skin'?pal.skin:role==='eye'?pal.eye:role==='foot'?0x1a1a1a:role==='hair'?0x35251c:role==='coat'?0xb48755:role==='scarf'?0xd8b057:role==='coatShadow'?0x76502d:role==='cap'?0x102c4a:role==='uniform'?0x173a5e:role==='vest'?0xe3bf3f:role==='badge'?0xf3d46b:role==='pants'?(fugitive?0x382d29:0x13263b):role==='trim'?(run?0x7d3fc6:0x1880bd):role==='stripe'?0xffffff:role==='jersey'?(run?0x5a2484:0xf0eee4):role==='shorts'?(run?0x22152f:0x1974aa):role==='shoe'?(fugitive?0x171717:guard?0x111317:run?0x6e35b8:0x1771a6):role==='sole'?0xf5f1e8:role==='bib'?0xb48755:role==='digit'?0x151515:role==='mouth'?(fugitive?0x381510:guard?0x35100f:0x151515):role==='medal'?0xf0b62d:pal.body;color.setHex(hex);all.body[slot].setColorAt(partRenderSlot,color);const outlineScale=1+(part[5]-1)*2;inflate.makeScale(outlineScale,outlineScale,outlineScale);a.multiply(inflate);all.out[slot].setMatrixAt(partRenderSlot,a)}
+        for(let j=0;j<partCount;j++){const part=renderParts[j];const slot=offset+j;if((proj&&PROJ_SKIPPED_SLOT[j])||!shouldRenderPooledEnemyPart(type,(posed||proj)?j:slot,tier)||(part[6]==='leader'&&type!==7))continue;const partRenderSlot=counts[slot]++;const partBase=type*PART_COUNT*PART_STRIDE+slot*PART_STRIDE;const pose=part[7];a.copy(m);translate.makeTranslation(composeStudioPartOffset(part[3][0],studio.current.partTransforms[partBase]),composeStudioPartOffset(part[3][1],studio.current.partTransforms[partBase+1]),composeStudioPartOffset(part[3][2],studio.current.partTransforms[partBase+2]));a.multiply(translate);setPartRotation(e,part[0],time,type,state,posed||proj);e.set(composeStudioPartOffset(e.x,studio.current.partTransforms[partBase+3],(pose?pose[0]:0)+(statePose?statePose[j][0]:0)),composeStudioPartOffset(e.y,studio.current.partTransforms[partBase+4],(pose?pose[1]:0)+(statePose?statePose[j][1]:0)),composeStudioPartOffset(e.z,studio.current.partTransforms[partBase+5],(pose?pose[2]:0)+(statePose?statePose[j][2]:0)));rotate.makeRotationFromEuler(e);a.multiply(rotate);inflate.makeScale(composeStudioPartMultiplier(1,studio.current.partTransforms[partBase+6]),composeStudioPartMultiplier(1,studio.current.partTransforms[partBase+7]),composeStudioPartMultiplier(1,studio.current.partTransforms[partBase+8]));a.multiply(inflate);if(proj&&PROJ_SLOT_TO_PARENT[j]>=0)parentMats[PROJ_SLOT_TO_PARENT[j]].copy(a);translate.makeTranslation(part[4][0],part[4][1],part[4][2]);a.multiply(translate);const box=part[8];if(box){inflate.makeScale(box[0],box[1],box[2]);a.multiply(inflate)}all.body[slot].setMatrixAt(partRenderSlot,a);const mo=j*MATERIAL_STRIDE;if(flashing)color.setHex(0xffffff);else if(mat)color.fromArray(mat,mo);else color.setHex(proj?PROJ_SLOT_COLORS[proj-1][j]:pooledPartHex(type,part[1],pal));all.body[slot].setColorAt(partRenderSlot,color);all.body[slot].userData.instanceEmissive.array[partRenderSlot]=mat?mat[mo+3]:baseEmissive;if(outlineTuned){const ol=all.out[slot].userData.instanceOutline.array;const oo=partRenderSlot*4;const src=mat||DEFAULT_OUTLINE_RGBA;const so=mat?mo+4:0;ol[oo]=src[so];ol[oo+1]=src[so+1];ol[oo+2]=src[so+2];ol[oo+3]=src[so+3]}const outlineScale=(1+(part[5]-1)*2)*(mat?mat[mo+8]:1);inflate.makeScale(outlineScale,outlineScale,outlineScale);a.multiply(inflate);all.out[slot].setMatrixAt(partRenderSlot,a)}
         if(proj&&tier!==ENEMY_RENDER_FAR){const props=PROJ_PROPS[proj-1];for(let k=0;k<props.length;k++){const item=props[k];const shape=item.shape;const propSlot=propCounts[shape];if(propSlot>=PROP_CAPACITY)continue;propCounts[shape]=propSlot+1;a.multiplyMatrices(parentMats[item.parent],item.local);all.propBody[shape].setMatrixAt(propSlot,a);color.setHex(flashing?0xffffff:item.color);all.propBody[shape].setColorAt(propSlot,color);a.multiplyMatrices(parentMats[item.parent],item.outline);all.propOut[shape].setMatrixAt(propSlot,a)}
           const faceSlot=faceCount++;composePooledFaceMatrix(a,parentMats[0],PROJ_HEAD_BOX[proj-1]);all.face.setMatrixAt(faceSlot,a);const fo=faceSlot*4;faceArr[fo]=PROJ_FACE_ID[proj-1];faceArr[fo+1]=time%600;faceArr[fo+2]=state==='warn'?1:0;faceArr[fo+3]=getProjectileZombieTelegraphProgress(type,pool.state[i],pool.stateTimer[i]);auxArr[faceSlot*2]=PROJ_FACE_ASPECT[proj-1];auxArr[faceSlot*2+1]=flashing?1:0}
-        if(tier!==ENEMY_RENDER_FAR){const healthSlot=healthCount++;const ratio=(pool.maxHp[i]>0?pool.hp[i]/pool.maxHp[i]:1);updateHealthVisualState(health.current,i,pool.generation[i],ratio,delta);const visibleTrailRatio=health.current.visibleTrailRatio[i];const currentRatio=health.current.ratio[i];const flash=health.current.flash[i];const layout=fillEnemyHealthBarLayout(healthBarLayout.current,pool.visualScale[i]);const w=layout[0];const h=layout[1];p.set(pool.posX[i],pool.posY[i]+layout[2],pool.posZ[i]);q.copy(camera.quaternion);s.set(w+.008,h+.008,1);a.compose(p,q,s);all.bars[0].setMatrixAt(healthSlot,a);s.set(w,h,1);a.compose(p,q,s);all.bars[1].setMatrixAt(healthSlot,a);s.set(w*visibleTrailRatio,h,1);p.x=pool.posX[i]-w*(1-visibleTrailRatio)/2;a.compose(p,q,s);all.bars[2].setMatrixAt(healthSlot,a);s.set(w*currentRatio,h,1);p.x=pool.posX[i]-w*(1-currentRatio)/2;a.compose(p,q,s);all.bars[3].setMatrixAt(healthSlot,a);setSlotOpacity(all.bars[2].userData.instanceAlpha,healthSlot,visibleTrailRatio-currentRatio>.006?.18+flash*.82:0)}
+        if(tier!==ENEMY_RENDER_FAR){const healthSlot=healthCount++;const ratio=(pool.maxHp[i]>0?pool.hp[i]/pool.maxHp[i]:1);updateHealthVisualState(health.current,i,pool.generation[i],ratio,delta);const visibleTrailRatio=health.current.visibleTrailRatio[i];const currentRatio=health.current.ratio[i];const flash=health.current.flash[i];const layout=fillEnemyHealthBarLayout(healthBarLayout.current,pool.visualScale[i]);const w=layout[0];const h=layout[1];translate.makeTranslation(pool.posX[i],pool.posY[i],pool.posZ[i]);barBase.multiplyMatrices(translate,studio.current.barRoot);translate.makeTranslation(0,layout[2],0);barBase.multiply(translate).multiply(cameraRotation);setBarMatrix(all.bars[0],healthSlot,0,w+.008,h+.008);setBarMatrix(all.bars[1],healthSlot,0,w,h);setBarMatrix(all.bars[2],healthSlot,-w*(1-visibleTrailRatio)/2,w*visibleTrailRatio,h);setBarMatrix(all.bars[3],healthSlot,-w*(1-currentRatio)/2,w*currentRatio,h);setSlotOpacity(all.bars[2].userData.instanceAlpha,healthSlot,visibleTrailRatio-currentRatio>.006?.18+flash*.82:0)}
       }
-      if(smokeVisible){const smokeSlot=smokeCount++;const t=timer/SPAWN_SMOKE_MS;const size=(pool.visualScale[i]||1)*.333*(1.7+(1-(1-t)*(1-t))*(3.1-1.7));p.set(pool.posX[i],pool.posY[i]+(pool.visualScale[i]||1)*.333*(1+t*.32),pool.posZ[i]);q.copy(camera.quaternion);s.set(size,size,1);a.compose(p,q,s);all.smoke.setMatrixAt(smokeSlot,a);setSlotOpacity(all.smoke.userData.instanceAlpha,smokeSlot,getSpawnSmokeOpacity(timer))}
+      if(smokeVisible){const smokeSlot=smokeCount++;const t=timer/SPAWN_SMOKE_MS;const size=(pool.visualScale[i]||1)*.333*(1.7+(1-(1-t)*(1-t))*(3.1-1.7));const puff=studio.current.smoke;p.set(0,(pool.visualScale[i]||1)*.333*(1+t*.32),0).multiply(puff.scale).applyQuaternion(puff.quaternion).add(puff.position);p.x+=pool.posX[i];p.y+=pool.posY[i];p.z+=pool.posZ[i];q.copy(camera.quaternion);s.set(size*puff.scale.x,size*puff.scale.y,1);a.compose(p,q,s);all.smoke.setMatrixAt(smokeSlot,a);setSlotOpacity(all.smoke.userData.instanceAlpha,smokeSlot,getSpawnSmokeOpacity(timer))}
     }
     const cueIndices=cueIndicesRef.current;cueOverflowRef.current=fillVisibleChargeCueSlots(pool,tiers,cueIndices);let cueCount=0
     for(let ci=0;ci<16;ci++){const enemyIndex=cueIndices[ci];if(enemyIndex<0)continue;const cueSlot=cueCount++;const pulse=1+Math.sin(pool.spawnTimer[enemyIndex]*.012)*.08;p.set(pool.posX[enemyIndex],getPooledChargeCueY(pool.posY[enemyIndex],pool.visualScale[enemyIndex]),pool.posZ[enemyIndex]);q.copy(camera.quaternion);s.set(pulse,pulse,pulse);m.compose(p,q,s);for(let part=0;part<CUE.length;part++){a.copy(m);const cuePart=CUE[part];translate.makeTranslation(cuePart.position[0],cuePart.position[1],cuePart.position[2]);a.multiply(translate);if(cuePart.rotation){e.set(cuePart.rotation[0],cuePart.rotation[1],cuePart.rotation[2]);rotate.makeRotationFromEuler(e);a.multiply(rotate)}all.cue[part].setMatrixAt(cueSlot,a);color.setHex(cuePart.color);all.cue[part].setColorAt(cueSlot,color)}}
     for(let i=0;i<all.body.length;i++){all.body[i].count=counts[i];all.out[i].count=counts[i]}for(let i=0;i<all.bars.length;i++)all.bars[i].count=healthCount;for(let i=0;i<all.cue.length;i++)all.cue[i].count=cueCount;all.shadow.count=bodyCount;all.smoke.count=smokeCount
     for(let i=0;i<all.propBody.length;i++){markAlwaysVisibleUpdate(all.propBody[i],propCounts[i],[all.propBody[i].instanceColor]);markAlwaysVisibleUpdate(all.propOut[i],propCounts[i])}
     markAlwaysVisibleUpdate(all.face,faceCount,[all.face.userData.faceAttr,all.face.userData.faceAux])
-    markFrameMeshes(all.body, counts, { matrix: true, color: true }); markFrameMeshes(all.out, counts, { matrix: true }); markInstancedMeshPrefixUpdate(all.shadow, bodyCount, { matrix: true }); markInstancedMeshPrefixUpdate(all.bars[0], healthCount, { matrix: true }); markInstancedMeshPrefixUpdate(all.bars[1], healthCount, { matrix: true }); markInstancedMeshPrefixUpdate(all.bars[2], healthCount, { matrix: true, alpha: true }); markInstancedMeshPrefixUpdate(all.bars[3], healthCount, { matrix: true }); markInstancedMeshPrefixUpdate(all.smoke, smokeCount, { matrix: true, alpha: true }); markFrameMeshesUniform(all.cue, cueCount, { matrix: true, color: true })
+    markFrameMeshes(all.body, counts, { matrix: true, color: true }); markFrameUserAttribute(all.body, counts, 'instanceEmissive', 1); markFrameMeshes(all.out, counts, { matrix: true }); if (outlineTuned) markFrameUserAttribute(all.out, counts, 'instanceOutline', 4); markInstancedMeshPrefixUpdate(all.shadow, bodyCount, { matrix: true }); markInstancedMeshPrefixUpdate(all.bars[0], healthCount, { matrix: true }); markInstancedMeshPrefixUpdate(all.bars[1], healthCount, { matrix: true }); markInstancedMeshPrefixUpdate(all.bars[2], healthCount, { matrix: true, alpha: true }); markInstancedMeshPrefixUpdate(all.bars[3], healthCount, { matrix: true }); markInstancedMeshPrefixUpdate(all.smoke, smokeCount, { matrix: true, alpha: true }); markFrameMeshesUniform(all.cue, cueCount, { matrix: true, color: true })
   })
   return <>{<primitive object={all.shadow} renderOrder={1}/>} {ALL_PARTS.map((x,i)=><primitive key={`b${i}`} object={all.body[i]} renderOrder={2}/>)} {ALL_PARTS.map((x,i)=><primitive key={`o${i}`} object={all.out[i]} renderOrder={1}/>)} {all.bars.map((x,i)=><primitive key={`h${i}`} object={all.bars[i]} renderOrder={20+i}/>)} {all.cue.map((x,i)=><primitive key={`cue${i}`} object={all.cue[i]} renderOrder={30}/>)} <primitive object={all.smoke} renderOrder={100}/> {all.propBody.map((x,i)=><primitive key={`pb${i}`} object={x} renderOrder={2}/>)} {all.propOut.map((x,i)=><primitive key={`po${i}`} object={x} renderOrder={1}/>)} <primitive object={all.face} renderOrder={0.5}/></>
 }
