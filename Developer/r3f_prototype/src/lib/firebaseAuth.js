@@ -150,16 +150,19 @@ export async function createFirebaseAuthClient(env = getDefaultEnv(), globalScop
   ])
   const app = resolveFirebaseAppForRoute(firebaseAppModule, env, globalScope)
   await maybeInitAppCheck(app, env)
+  const isStudioRoute = isGraphicsStudioLocation(globalScope?.location)
+  // Firebase Authentication is the sole auth source. Never copy credentials anywhere else.
+  // Game route (Terry 2026-11-08 "한번 로그인한 브라우저에 캐시하게해"): Firebase keeps its own
+  // Google session in IndexedDB so the same browser stays signed in across visits; memory is
+  // the fallback when IndexedDB is unavailable. signOut/deleteUser remove that record.
+  // Graphics Studio keeps memory-only sessions (2026-08-08 unexpected-login diagnosis).
   const auth = authModule.initializeAuth(app, {
-    persistence: authModule.inMemoryPersistence,
+    persistence: isStudioRoute ? authModule.inMemoryPersistence : getGameAuthPersistence(authModule),
     popupRedirectResolver: authModule.browserPopupRedirectResolver,
   })
-  const isStudioRoute = isGraphicsStudioLocation(globalScope?.location)
   const useNativeGoogle = shouldUseNativeGoogleSignIn(globalScope)
   const useWebRedirectGoogle = !isStudioRoute && shouldUseWebRedirectGoogleSignIn(globalScope)
-  // Firebase Authentication is the sole auth source, and its session stays in memory only.
-  // Do not copy credentials or persist browser login state anywhere else.
-  await setFirebaseAuthInMemoryPersistence(authModule, auth)
+  if (isStudioRoute) await setFirebaseAuthInMemoryPersistence(authModule, auth)
   // A Capacitor shell must never consume a web redirect result: Android/iOS
   // sign-in is bridged exclusively through the native Google credential.
   let pendingRedirectUser = null
@@ -232,6 +235,12 @@ export async function createFirebaseAuthClient(env = getDefaultEnv(), globalScop
       await authModule.reauthenticateWithPopup(current, provider)
     },
   }
+}
+
+// The only device store for the game's Google session: Firebase's IndexedDB, then memory.
+// localStorage (browserLocalPersistence) and sessionStorage persistence are never listed.
+export function getGameAuthPersistence(authModule) {
+  return [authModule.indexedDBLocalPersistence, authModule.inMemoryPersistence].filter(Boolean)
 }
 
 export async function setFirebaseAuthInMemoryPersistence(authModule, auth) {

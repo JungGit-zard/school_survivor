@@ -5,6 +5,7 @@ import { useGameStore } from '../store/useGameStore.js'
 import { t } from '../lib/i18n.js'
 import { subscribeWholeScreenCriticalShake } from '../lib/criticalScreenShake.js'
 import Stage1Bgm from './Stage1Bgm.jsx'
+import SlteraInstantSpawnButton from './SlteraInstantSpawn.jsx'
 
 const GameCanvas = lazy(loadGameCanvas)
 const HUD = lazy(() => import('./HUD.jsx'))
@@ -93,6 +94,7 @@ export default function GameplayScreen({
         />}
       </Suspense>
       {isActive && mobileJoystickEnabled && <VirtualJoystick enabled phase={phase} playAreaRef={phoneFrameRef} />}
+      {isActive && <SlteraInstantSpawnButton phase={phase} />}
     </>
   )
 }

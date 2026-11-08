@@ -17,6 +17,13 @@ function listSourceFiles(directory = SOURCE_ROOT) {
   })
 }
 
+// The repo sits on a slow disk: read every source file once for all policy checks.
+const sourceCache = new Map()
+function readSource(path) {
+  if (!sourceCache.has(path)) sourceCache.set(path, readFileSync(path, 'utf8'))
+  return sourceCache.get(path)
+}
+
 function stripCommentsAndStrings(source) {
   let result = ''
   let index = 0
@@ -68,12 +75,35 @@ function findLocalStorageCalls(source) {
   return [...code.matchAll(call)].map((match) => match[0])
 }
 
-describe('localStorage source policy', () => {
+function findPersistentAuthStores(source) {
+  const code = stripCommentsAndStrings(source)
+  return [...new Set(code.match(/\b(?:indexedDBLocalPersistence|browserLocalPersistence|browserSessionPersistence)\b/g) ?? [])].sort()
+}
+
+// Persistent Firebase Auth stores are allowed only where Terry approved them.
+const PERSISTENT_AUTH_STORE_ALLOWLIST = {
+  // 2026-11-08 "한번 로그인한 브라우저에 캐시하게해": game Google sign-in, Firebase IndexedDB only.
+  'lib/firebaseAuth.js': ['indexedDBLocalPersistence'],
+  // 2026-10-29: guest-ranking anonymous identity (IndexedDB, then localStorage, then memory).
+  'lib/guestRankingIdentity.js': ['browserLocalPersistence', 'indexedDBLocalPersistence'],
+}
+
+describe('localStorage source policy', { timeout: 30_000 }, () => {
+  it('allows persistent Firebase Auth stores only in the two approved auth modules', () => {
+    const found = Object.fromEntries(listSourceFiles()
+      .map((path) => [relative(SOURCE_ROOT, path).replaceAll('\\', '/'), path])
+      .filter(([file]) => !file.includes('.test.'))
+      .map(([file, path]) => [file, findPersistentAuthStores(readSource(path))])
+      .filter(([, stores]) => stores.length > 0))
+
+    expect(found).toEqual(PERSISTENT_AUTH_STORE_ALLOWLIST)
+  })
+
   it('allows executable localStorage calls only in dedicated negative guard tests', () => {
     const violations = listSourceFiles()
       .map((path) => ({
         file: relative(SOURCE_ROOT, path).replaceAll('\\', '/'),
-        calls: findLocalStorageCalls(readFileSync(path, 'utf8')),
+        calls: findLocalStorageCalls(readSource(path)),
       }))
       .filter(({ file, calls }) => file !== THIS_FILE && calls.length > 0 && !NEGATIVE_POLICY_TEST_ALLOWLIST.has(file))
 
@@ -84,7 +114,7 @@ describe('localStorage source policy', () => {
     const violations = listSourceFiles()
       .map((path) => ({
         file: relative(SOURCE_ROOT, path).replaceAll('\\', '/'),
-        calls: findLocalStorageCalls(readFileSync(path, 'utf8')),
+        calls: findLocalStorageCalls(readSource(path)),
       }))
       .filter(({ file, calls }) => !file.includes('.test.') && calls.length > 0)
 

@@ -23,9 +23,13 @@ const firebaseAuthMock = vi.hoisted(() => {
     emailVerified: true,
     providerData: [{ providerId: 'google.com' }],
   })
+  const auth = { currentUser: null }
   return {
-    auth: { currentUser: null },
+    auth,
+    initializeAuth: vi.fn(() => auth),
+    browserPopupRedirectResolver: { resolver: 'popup-redirect' },
     inMemoryPersistence: { type: 'NONE' },
+    indexedDBLocalPersistence: { type: 'LOCAL' },
     setCustomParameters: vi.fn(),
     setPersistence: vi.fn(async () => {}),
     getRedirectResult: vi.fn(async () => ({ user: firebaseUser })),
@@ -60,9 +64,10 @@ vi.mock('firebase/auth', () => ({
     static credential = vi.fn()
   },
   getAuth: vi.fn(() => firebaseAuthMock.auth),
-  initializeAuth: vi.fn(() => firebaseAuthMock.auth),
-  browserPopupRedirectResolver: {},
+  initializeAuth: (...args) => firebaseAuthMock.initializeAuth(...args),
+  browserPopupRedirectResolver: firebaseAuthMock.browserPopupRedirectResolver,
   inMemoryPersistence: firebaseAuthMock.inMemoryPersistence,
+  indexedDBLocalPersistence: firebaseAuthMock.indexedDBLocalPersistence,
   setPersistence: (...args) => firebaseAuthMock.setPersistence(...args),
   getRedirectResult: (...args) => firebaseAuthMock.getRedirectResult(...args),
   onAuthStateChanged: (...args) => firebaseAuthMock.onAuthStateChanged(...args),
@@ -164,16 +169,18 @@ describe('Android TWA Firebase Google login 100,000회 격리 하네스', () => 
         }
       }
 
-      expect(firebaseAuthMock.setPersistence).toHaveBeenCalledTimes(ITERATIONS)
+      // Google session lives in Firebase's IndexedDB store (memory fallback); no memory-only override.
+      expect(firebaseAuthMock.setPersistence).not.toHaveBeenCalled()
+      expect(firebaseAuthMock.initializeAuth).toHaveBeenCalledTimes(ITERATIONS)
+      expect(firebaseAuthMock.initializeAuth).toHaveBeenLastCalledWith(firebaseAppMock.app, {
+        persistence: [firebaseAuthMock.indexedDBLocalPersistence, firebaseAuthMock.inMemoryPersistence],
+        popupRedirectResolver: firebaseAuthMock.browserPopupRedirectResolver,
+      })
       expect(firebaseAppMock.initializeApp).toHaveBeenCalledTimes(ITERATIONS)
       expect(firebaseAppMock.initializeApp).toHaveBeenLastCalledWith(expect.objectContaining({
         projectId: 'escape-zombie-school',
         authDomain: 'escapezombie.com',
       }))
-      expect(firebaseAuthMock.setPersistence).toHaveBeenLastCalledWith(
-        firebaseAuthMock.auth,
-        firebaseAuthMock.inMemoryPersistence,
-      )
       expect(firebaseAuthMock.getRedirectResult).toHaveBeenCalledTimes(ITERATIONS)
       expect(firebaseAuthMock.onAuthStateChanged).toHaveBeenCalledTimes(ITERATIONS)
       expect(firebaseAuthMock.signInWithPopup).not.toHaveBeenCalled()

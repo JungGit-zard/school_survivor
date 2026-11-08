@@ -35,7 +35,7 @@
 유일한 예외(Terry 확인 2026-10-29): 타이틀 화면은 의도적으로 고정되어 있다. 타이틀은 Firebase가 아니라 저장소의 고정 스냅샷 `Developer/r3f_prototype/src/title/studioSnapshot.json`으로 렌더링한다(bb0d7e1a, 2026-08-09 "Detach the title screen from Firebase"). 이것은 금지된 로컬 스튜디오 시드가 아니며 되돌리거나 Firebase로 다시 연결하지 않는다. 타이틀 외 모든 그래픽 스튜디오 값은 위 규칙대로 Firebase 전용이다.
 Firebase 단일 저장 관련 작업에는 Claude Opus 4.8의 접근과 작업 참여를 금지한다.
 
-모든 기능과 모든 동작에서 브라우저 localStorage 사용은 절대 금지하며 치명적인 버그로 분류한다. Google/Firebase 로그인 상태의 유일한 정본은 Firebase Authentication이다. 비밀번호, Google OAuth 토큰, Firebase ID 토큰, 갱신 토큰을 Realtime Database나 로컬 저장소에 복제하지 않는다. 클라이언트 인증 지속성은 메모리 전용으로 설정하여 브라우저 로컬 로그인 캐시를 만들지 않는다. 유일한 예외(Terry 승인 2026-10-29): 게스트 랭킹 전용 익명 Auth 앱(`guest-ranking`, `src/lib/guestRankingIdentity.js`)은 같은 기기에서 손님 기록을 이어가기 위해 IndexedDB(불가 시 localStorage, 그다음 메모리) 지속성을 쓴다. Google 로그인(`[DEFAULT]`)과 그 외 모든 기능은 계속 메모리 전용·localStorage 금지다.
+모든 기능과 모든 동작에서 브라우저 localStorage 사용은 절대 금지하며 치명적인 버그로 분류한다. Google/Firebase 로그인 상태의 유일한 정본은 Firebase Authentication이다. 비밀번호, Google OAuth 토큰, Firebase ID 토큰, 갱신 토큰을 Realtime Database나 로컬 저장소에 복제하지 않는다. 클라이언트 인증 지속성은 메모리 전용으로 설정하여 브라우저 로컬 로그인 캐시를 만들지 않는다. 유일한 예외(Terry 승인 2026-10-29): 게스트 랭킹 전용 익명 Auth 앱(`guest-ranking`, `src/lib/guestRankingIdentity.js`)은 같은 기기에서 손님 기록을 이어가기 위해 IndexedDB(불가 시 localStorage, 그다음 메모리) 지속성을 쓴다. 두 번째 예외(Terry 승인 2026-11-08, "한번 로그인한 브라우저에 캐시하게해"): 게임의 Google 로그인(`[DEFAULT]`, `src/lib/firebaseAuth.js`)은 다음 방문에도 로그인이 유지되도록 Firebase Authentication 자신의 IndexedDB 지속성(불가 시 메모리)을 쓴다. 이 경우에도 localStorage·sessionStorage는 쓰지 않고, 토큰을 다른 저장소에 복제하지 않는다. Graphics Studio 로그인과 그 외 모든 기능은 계속 메모리 전용·localStorage 금지다.
 
 ## 테스트 전후 상태 절대 동일성 법칙
 

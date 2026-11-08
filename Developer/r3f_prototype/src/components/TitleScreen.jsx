@@ -26,6 +26,7 @@ import {
 } from '../lib/loginContinuation.js'
 import { acquireStreamingBgm } from '../lib/streamingBgm.js'
 import { TITLE_BGM_URL as titleBgmUrl } from '../lib/titleBgm.js'
+import { SlteraInstantSpawnToggle, SlteraMasterTitleToggle } from './SlteraInstantSpawn.jsx'
 
 const REVEAL_CHEATS_CODE = ['arrowup', 'arrowdown', 'arrowup', 'arrowdown', 'a', 's', 'd']
 const DEV_CHEATS_ENABLED = import.meta.env.DEV
@@ -474,6 +475,7 @@ export default function TitleScreen({
           {t('title.cheatButton')}
         </button>
       )}
+      <SlteraMasterTitleToggle />
       <div className="title-content" style={styles.content}>
         <div aria-hidden="true" data-title-service-name style={styles.serviceName}>{t('title.serviceName')}</div>
         <div data-title-board style={styles.board}>
@@ -540,6 +542,7 @@ export default function TitleScreen({
               <button type="button" style={styles.resetButton} onClick={handleResetPassiveUpgrades}>
                 {t('title.resetPassives')}
               </button>
+              <SlteraInstantSpawnToggle style={styles.cheatButton} />
             </div>
           </section>
         </div>

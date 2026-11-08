@@ -1011,7 +1011,7 @@ H. Connection information processed while providing the service
    - The website and game files (escapezombie.com) and music files (music.escapezombie.com) are delivered through Cloudflare, which processes connection information such as IP address, requested URL, and browser information (User-Agent) while handling requests.
    - Google Firebase servers also process connection information such as IP address while handling sign-in and data storage requests.
 I. Information stored on your device
-   - Google sign-in state is kept only in memory and is not left in device storage. You need to sign in again when you reopen the Game.
+   - Google sign-in state (account identifier, email address, profile display name and photo URL, and authentication and refresh tokens) is stored by Firebase Authentication in browser storage (IndexedDB), so you stay signed in on later visits from the same device and browser. It is deleted when you sign out, delete your account, or clear the browser's site data. If the browser does not allow IndexedDB, it is kept only in memory and you need to sign in again when you reopen the Game.
    - Guest sign-in state (guest identifier and refresh token) is stored in browser storage.
    - Game progress data is not stored in device storage.
    - A temporary marker used to continue starting the Game right after Google sign-in is stored in session storage (sessionStorage).
@@ -1075,7 +1075,7 @@ The Game has no procedure for checking users' ages. Users under 14 should obtain
 9. Security measures
    - Data in transit uses encrypted communication (HTTPS).
    - Database security rules restrict reading of progress records, game settings, and consent records to you and the operator, and reading of the access log to the operator only.
-   - Google sign-in state is kept only in memory and is not left in device storage.
+   - Google sign-in state is stored only in the browser storage (IndexedDB) managed by Firebase Authentication, and authentication tokens are not copied to the game database or to any other storage such as localStorage. Signing out deletes it.
 
 10. Privacy officer and contact
    - Contact: ${CONTACT_EMAIL}
@@ -1327,4 +1327,8 @@ Effective date: ${EFFECTIVE_DATE}`,
   'outfit.table.colUnlock': "How to get",
   'outfit.table.colEffect': "Effects",
   'outfit.pauseLine': "Outfit: {name} ({effects})",
+  'sltera.cheatToggleOn': 'Sltera instant spawn: ON',
+  'sltera.cheatToggleOff': 'Sltera instant spawn: OFF',
+  'sltera.spawnButton': 'Sltera',
+  'sltera.spawnAria': 'Spawn Sltera now',
 }

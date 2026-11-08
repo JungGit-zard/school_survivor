@@ -639,4 +639,8 @@ export default {
   'outfit.table.colUnlock': "획득 조건",
   'outfit.table.colEffect': "능력",
   'outfit.pauseLine': "입은 옷: {name} ({effects})",
+  'sltera.cheatToggleOn': '슬테라 즉시 출현: 켜짐',
+  'sltera.cheatToggleOff': '슬테라 즉시 출현: 꺼짐',
+  'sltera.spawnButton': '슬테라',
+  'sltera.spawnAria': '슬테라 즉시 출현',
 }

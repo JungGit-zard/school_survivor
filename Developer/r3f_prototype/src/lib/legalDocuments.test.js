@@ -62,6 +62,18 @@ describe('legal documents truthfulness', () => {
     expect(TERMS_TEXT).toContain('0점 판을 포함해')
   })
 
+  it('discloses that Google sign-in stays in the browser (IndexedDB) instead of claiming memory-only', () => {
+    // firebaseAuth.js keeps the game's Google session in Firebase's IndexedDB store (Terry 2026-11-08).
+    expect(PRIVACY_TEXT).not.toContain('메모리에만 유지하며 기기 저장소에 남기지 않습니다')
+    expect(PRIVACY_TEXT).not.toContain('기기 저장소에 남기지 않고 메모리에만 유지합니다')
+    expect(PRIVACY_TEXT).toContain('Firebase Authentication이 브라우저 저장소(IndexedDB)에 저장하므로')
+    expect(en['legal.privacy.text']).not.toContain('kept only in memory and is not left in device storage')
+    expect(en['legal.privacy.text']).toContain('stored by Firebase Authentication in browser storage (IndexedDB)')
+    expect(ja['legal.privacy.text']).not.toContain('端末のストレージには残しません')
+    expect(ja['legal.privacy.text']).not.toContain('端末のストレージに残さず')
+    expect(ja['legal.privacy.text']).toContain('ブラウザのストレージ（IndexedDB）に保存するため')
+  })
+
   it('keeps the English and Japanese documents on the same effective date', () => {
     expect(en['legal.terms.text']).toContain('Effective date: October 29, 2026')
     expect(en['legal.privacy.text']).toContain('Effective date: October 29, 2026')
