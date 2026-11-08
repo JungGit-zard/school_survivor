@@ -9,7 +9,15 @@ import {
   B03_SHUTTLE_TELEGRAPH_BLINK_MIN,
   B03_SHUTTLE_TELEGRAPH_MS,
   B03_SHUTTLE_STUN_MS,
+  B03_SHUTTLE_HOP_HEIGHT,
+  B03_SHUTTLE_HOP_TARGET_MS,
+  B03_SHUTTLE_STOMP_RING_MS,
   advanceB03ShuttleRun,
+  getB03ShuttleBodyMaxStep,
+  getB03ShuttleHopCount,
+  getB03ShuttleRunHopHeight,
+  getB03ShuttleStompRing,
+  stepB03ShuttleBodyToward,
   consumeB03ShuttleRunPassHit,
   createB03ShuttleRunState,
   getB03ShuttleRunFacingX,
@@ -267,5 +275,150 @@ describe('B03 왕복 오래달리기', () => {
     expect(degenerate.centerX).toBe(2)
     expect(degenerate.length).toBe(B03_SHUTTLE_LANE_MIN_LENGTH)
     expect(degenerate.length).toBeGreaterThan(0)
+  })
+
+  // ── 2026-11-08 실플레이 회귀(사용자 보고) ──────────────────────────────────────
+  // "그래픽이 잔상이 생기며 마구 흩어지고 순간이동하듯이 사라진다."
+  // 원인: Enemy.jsx가 _vel.x = (코스X - 몸통X) / 렌더delta 를 1/60 고정 스텝·감쇠 8 물리에 넣었다.
+  // 60Hz 초과 화면에서 과보정 진동(잔상) → 144Hz에서는 발산(보스가 사라짐).
+  // 지금은 몸통을 stepB03ShuttleBodyToward로 코스에 직접 놓는다. 아래는 공격 전 구간을
+  // 여러 주사율·불규칙 프레임으로 돌려 "매 프레임 연속·항상 보임·링 ≤ 1개·끝나면 정리"를 값으로 증명한다.
+  function simulateShuttle({ frameMsList, bossX = -6.4, bossZ = 3.5 }) {
+    const lane = getB03ShuttleRunLaneFromBoss(bossX, bossZ, STAGE3_HALF_X, STAGE3_HALF_Z)
+    let state = startB03ShuttleRun(createB03ShuttleRunState(), 'sixtyFive', { ...lane, baseSpeed: B03_SHUTTLE_BASE_SPEED })
+    let body = { x: bossX, z: bossZ }
+    const frames = []
+    let i = 0
+    while (state.phase !== 'idle') {
+      const frameMs = frameMsList[i % frameMsList.length]
+      i += 1
+      state = advanceB03ShuttleRun(state, frameMs)
+      const next = stepB03ShuttleBodyToward(body.x, body.z, getB03ShuttleRunX(state), state.laneZ,
+        getB03ShuttleBodyMaxStep(B03_SHUTTLE_BASE_SPEED, frameMs))
+      frames.push({
+        frameMs, phase: state.phase, passIndex: state.passIndex,
+        laneX: getB03ShuttleRunX(state), x: next.x, z: next.z,
+        jump: Math.hypot(next.x - body.x, next.z - body.z),
+        height: getB03ShuttleRunHopHeight(state), ring: getB03ShuttleStompRing(state),
+      })
+      body = next
+      if (i > 200_000) throw new Error('shuttle never finished')
+    }
+    return { lane, frames, finalState: state }
+  }
+
+  const COURSE_SPEED = B03_SHUTTLE_BASE_SPEED * B03_SHUTTLE_SPEED_MULTIPLIER
+  const REFRESH_CASES = [
+    ['60Hz', [1000 / 60]],
+    ['120Hz', [1000 / 120]],
+    ['144Hz', [1000 / 144]],
+    ['불규칙 프레임(7~40ms 히치 포함)', [7, 16.7, 33.3, 8.3, 40, 11, 16.7, 6.9]],
+  ]
+
+  it.each(REFRESH_CASES)('%s: 보스는 매 프레임 코스 위에서 연속 이동하고 순간이동하지 않는다', (_label, frameMsList) => {
+    const { lane, frames, finalState } = simulateShuttle({ frameMsList })
+    for (const frame of frames) {
+      // 한 프레임 이동량은 코스 속도 × 그 프레임 delta를 넘지 않는다(+부동소수 여유).
+      expect(frame.jump).toBeLessThanOrEqual(COURSE_SPEED * frame.frameMs / 1000 + 1e-9)
+      // 몸통은 언제나 코스 위다 — 레인 Z, 그리고 코스 X와 정확히 같다(진동·이탈 0).
+      expect(frame.z).toBeCloseTo(lane.laneZ, 9)
+      expect(frame.x).toBeCloseTo(frame.laneX, 9)
+      expect(Number.isFinite(frame.x) && Number.isFinite(frame.z)).toBe(true)
+      // 코스 밖(예고선 밖)으로 나가지 않는다.
+      expect(frame.x).toBeGreaterThanOrEqual(Math.min(lane.startX, lane.endX) - 1e-9)
+      expect(frame.x).toBeLessThanOrEqual(Math.max(lane.startX, lane.endX) + 1e-9)
+    }
+    // 끝나면 출발점으로 돌아와 바닥에 서 있고, 착지 링도 남지 않는다.
+    expect(finalState.phase).toBe('idle')
+    expect(frames.at(-1).x).toBeCloseTo(lane.startX, 9)
+    expect(frames.at(-1).height).toBe(0)
+    expect(getB03ShuttleStompRing(finalState)).toBeNull()
+  })
+
+  it.each(REFRESH_CASES)('%s: 코스를 쿵쿵쿵 홉으로 뛰고(높이 0~최대, 착지마다 링 1개) 잔상이 쌓이지 않는다', (_label, frameMsList) => {
+    const { frames, finalState } = simulateShuttle({ frameMsList })
+    const hopsPerPass = getB03ShuttleHopCount(finalState.passDurationMs)
+    let maxHeight = 0
+    let landings = 0
+    let previousRing = null
+    for (const frame of frames) {
+      expect(frame.height).toBeGreaterThanOrEqual(0)
+      expect(frame.height).toBeLessThanOrEqual(B03_SHUTTLE_HOP_HEIGHT + 1e-9)
+      if (frame.phase !== 'active') expect(frame.height).toBe(0)
+      maxHeight = Math.max(maxHeight, frame.height)
+      // 링은 상태에서 유도되는 단일 값이다(0개 또는 1개). 진행도 0→1, 착지점은 코스 위.
+      if (frame.ring) {
+        expect(frame.ring.progress).toBeGreaterThanOrEqual(0)
+        expect(frame.ring.progress).toBeLessThan(1)
+        expect(frame.ring.z).toBe(finalState.laneZ)
+        if (!previousRing || frame.ring.progress < previousRing.progress) landings += 1
+      }
+      if (frame.phase === 'telegraph') expect(frame.ring).toBeNull()
+      previousRing = frame.ring
+    }
+    // 실제로 떠오른다(시각 확인 가능한 높이) — 미끄러지는 걷기가 아니라 홉이다.
+    expect(maxHeight).toBeGreaterThan(B03_SHUTTLE_HOP_HEIGHT * 0.9)
+    // 홉 리듬은 약 0.5초 — "쿵, 쿵, 쿵".
+    expect(finalState.passDurationMs / hopsPerPass).toBeGreaterThan(B03_SHUTTLE_HOP_TARGET_MS * 0.66)
+    expect(finalState.passDurationMs / hopsPerPass).toBeLessThan(B03_SHUTTLE_HOP_TARGET_MS * 1.5)
+    // 착지 횟수 = 왕복 전체 홉 수 - 출발 도약 1회 + 마지막 착지 1회 = 홉 수 × 2.
+    // 프레임이 링 구간(320ms)보다 훨씬 짧으므로 모든 착지가 최소 한 프레임은 보인다.
+    expect(landings).toBe(hopsPerPass * 2)
+  })
+
+  it('패스 경계와 마지막 착지에서 높이는 0이다(공중에서 방향을 꺾거나 공중에서 멈추지 않는다)', () => {
+    const lane = getB03ShuttleRunLaneFromBoss(0, 0, STAGE3_HALF_X, STAGE3_HALF_Z)
+    const active = advanceB03ShuttleRun(
+      startB03ShuttleRun(createB03ShuttleRunState(), 'thirty', { ...lane, baseSpeed: B03_SHUTTLE_BASE_SPEED }),
+      B03_SHUTTLE_TELEGRAPH_MS,
+    )
+    expect(getB03ShuttleRunHopHeight(active)).toBeCloseTo(0, 9)
+    const atTurn = advanceB03ShuttleRun(active, active.passDurationMs)
+    expect(atTurn.passIndex).toBe(1)
+    expect(getB03ShuttleRunHopHeight(atTurn)).toBeCloseTo(0, 9)
+    // 반환점 착지 링은 도착점(endX)에 생긴다.
+    expect(getB03ShuttleStompRing(atTurn).x).toBeCloseTo(lane.endX, 9)
+    const done = advanceB03ShuttleRun(atTurn, active.passDurationMs)
+    expect(done.phase).toBe('stun')
+    expect(getB03ShuttleRunHopHeight(done)).toBe(0)
+    expect(getB03ShuttleStompRing(done).x).toBeCloseTo(lane.startX, 9)
+    expect(getB03ShuttleStompRing(advanceB03ShuttleRun(done, B03_SHUTTLE_STOMP_RING_MS))).toBeNull()
+  })
+
+  it('몸통이 무엇에 밀려 코스에서 멀어져도 한 프레임에 상한 이상 튀지 않는다', () => {
+    const maxStep = getB03ShuttleBodyMaxStep(B03_SHUTTLE_BASE_SPEED, 1000 / 60)
+    expect(maxStep).toBeCloseTo(COURSE_SPEED / 60 * 2, 9)
+    const stepped = stepB03ShuttleBodyToward(0, 0, 5, 0, maxStep)
+    expect(Math.hypot(stepped.x, stepped.z)).toBeCloseTo(maxStep, 9)
+    // 가까우면 정확히 목표에 붙는다.
+    expect(stepB03ShuttleBodyToward(1, 1, 1.01, 1, maxStep)).toEqual({ x: 1.01, z: 1 })
+    // 비정상 입력에도 NaN을 만들지 않는다.
+    expect(stepB03ShuttleBodyToward(0, 0, 3, 4, Number.NaN)).toEqual({ x: 0, z: 0 })
+    expect(getB03ShuttleRunHopHeight(createB03ShuttleRunState())).toBe(0)
+    expect(getB03ShuttleStompRing(createB03ShuttleRunState())).toBeNull()
+    expect(getB03ShuttleStompRing(null)).toBeNull()
+  })
+
+  it('홉 수치는 피해·소요시간·속도 사양을 바꾸지 않는다', () => {
+    expect(B03_SHUTTLE_SPEED_MULTIPLIER).toBe(3)
+    expect(B03_SHUTTLE_TELEGRAPH_MS).toBe(1_250)
+    expect(B03_SHUTTLE_STUN_MS).toBe(1_200)
+    expect(B03_SHUTTLE_PLAYER_DAMAGE_RATIO).toBe(0.3)
+    expect(getB03ShuttleHopCount(8421.05)).toBe(17)
+    expect(getB03ShuttleHopCount(0)).toBe(1)
+  })
+
+  it('벽에 붙어 발동해도(코스 밖) 예고 1.25초 동안 코스로 미끄러져 들어가고 튀지 않는다', () => {
+    const bossX = 7.3
+    const bossZ = 18.9
+    const { lane, frames } = simulateShuttle({ frameMsList: [1000 / 144], bossX, bossZ })
+    expect(Math.abs(lane.startX - bossX)).toBeGreaterThan(0.5)
+    expect(Math.abs(lane.laneZ - bossZ)).toBeGreaterThan(0.5)
+    for (const frame of frames) {
+      expect(frame.jump).toBeLessThanOrEqual(getB03ShuttleBodyMaxStep(B03_SHUTTLE_BASE_SPEED, frame.frameMs) + 1e-9)
+    }
+    const firstActive = frames.find((frame) => frame.phase === 'active')
+    expect(firstActive.x).toBeCloseTo(firstActive.laneX, 9)
+    expect(firstActive.z).toBeCloseTo(lane.laneZ, 9)
   })
 })

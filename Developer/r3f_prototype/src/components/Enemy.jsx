@@ -47,14 +47,18 @@ import {
   advanceB03ShuttleRun,
   consumeB03ShuttleRunPassHit,
   createB03ShuttleRunState,
+  getB03ShuttleBodyMaxStep,
   getB03ShuttleRunTrigger,
   getB03ShuttleRunFacingX,
+  getB03ShuttleRunHopHeight,
   getB03ShuttleRunLaneFromBoss,
   getB03ShuttleRunLaneGeometry,
   getB03ShuttleRunPlayerDamage,
   getB03ShuttleRunX,
+  getB03ShuttleStompRing,
   getB03ShuttleTelegraphBlinkFactor,
   startB03ShuttleRun,
+  stepB03ShuttleBodyToward,
 } from '../lib/b03ShuttleRun.js'
 import {
   B04_SOUP_BLAST_TELEGRAPH_MS,
@@ -822,9 +826,15 @@ export function hasB03ShuttleRunVisualChanged(previous, state) {
     || previous.startX !== state.startX || previous.endX !== state.endX
 }
 
-function B03ShuttleRunVisual({ phase, passIndex, laneZ, startX, endX }) {
+// 착지 충격 링 1개. 반지름은 world units(보스 발밑 0.35 → 1.25로 퍼짐).
+export const B03_SHUTTLE_STOMP_RING_VISUAL = Object.freeze({
+  color: '#fff2c4', opacity: 0.85, innerRadius: 0.82, outerRadius: 1, startScale: 0.35, endScale: 1.25,
+})
+
+function B03ShuttleRunVisual({ phase, passIndex, laneZ, startX, endX, stateRef }) {
   const outlineMatRef = useRef()
   const surfaceMatRef = useRef()
+  const stompRingRef = useRef()
   const telegraphMsRef = useRef(0)
   const visualState = getB03ShuttleRunVisualState({ phase, passIndex })
   const visual = B03_SHUTTLE_RUN_VISUALS[visualState]
@@ -832,6 +842,20 @@ function B03ShuttleRunVisual({ phase, passIndex, laneZ, startX, endX }) {
   // 깜빡임을 리액트 state로 돌리면 텔레그래프 내내 프레임마다 리렌더가 난다.
   // 머티리얼 opacity만 useFrame에서 직접 흔들고, 리렌더는 phase 전환에서만 일어나게 둔다.
   useFrame((_, delta) => {
+    // 착지 링은 게임 상태(stateRef)에서 매 프레임 바로 유도한다 — 메시 1개를 재배치할 뿐이라
+    // 잔상이 쌓이지 않고, 공격이 끝나면(ring === null) 즉시 숨는다.
+    const ringMesh = stompRingRef.current
+    if (ringMesh) {
+      const ring = getB03ShuttleStompRing(stateRef?.current)
+      ringMesh.visible = Boolean(ring)
+      if (ring) {
+        const { startScale, endScale, opacity } = B03_SHUTTLE_STOMP_RING_VISUAL
+        const scale = startScale + (endScale - startScale) * ring.progress
+        ringMesh.position.set(ring.x, 0.07, ring.z)
+        ringMesh.scale.set(scale, scale, 1)
+        ringMesh.material.opacity = opacity * (1 - ring.progress)
+      }
+    }
     const outlineMaterial = outlineMatRef.current
     const surfaceMaterial = surfaceMatRef.current
     if (!outlineMaterial || !surfaceMaterial) return
@@ -858,6 +882,10 @@ function B03ShuttleRunVisual({ phase, passIndex, laneZ, startX, endX }) {
       <mesh position={[centerX, 0.047, laneZ]}>
         <boxGeometry args={[length, 0.024, B03_SHUTTLE_LANE_WIDTH]} />
         <meshBasicMaterial ref={surfaceMatRef} color={visual.surface} transparent opacity={visual.surfaceOpacity} depthWrite={false} toneMapped={false} />
+      </mesh>
+      <mesh name="b03-shuttle-stomp-ring" ref={stompRingRef} visible={false} rotation={[-Math.PI / 2, 0, 0]} renderOrder={9}>
+        <ringGeometry args={[B03_SHUTTLE_STOMP_RING_VISUAL.innerRadius, B03_SHUTTLE_STOMP_RING_VISUAL.outerRadius, 32]} />
+        <meshBasicMaterial color={B03_SHUTTLE_STOMP_RING_VISUAL.color} transparent opacity={0} depthWrite={false} toneMapped={false} />
       </mesh>
     </group>
   )
@@ -1191,6 +1219,8 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
     syncB02BlockadeVisual(b02BlockadeRef.current)
     b03ShuttleRef.current = createB03ShuttleRunState()
     syncB03ShuttleVisual(b03ShuttleRef.current)
+    // 셔틀런 홉 도중 슬롯이 재사용되면 시각 그룹이 공중에 뜬 채 넘어간다.
+    if (groupRef.current) groupRef.current.position.y = 0
     b04SoupBlastRef.current = createB04SoupBlastState()
     syncB04SoupBlastVisual(b04SoupBlastRef.current)
     queueVisualState('animPhase', isMatilda ? 'stun' : 'normal')
@@ -1371,6 +1401,10 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
       if(dist<=stats.contactDist*ENEMY_SIZE_MULTIPLIER && contactDamageCooldownRef.current<=0){damagePlayer(stats.damage);contactDamageCooldownRef.current=500}
       return
     }
+    // B03 셔틀런 중에는 넉백이 코스를 끊지 못한다. 이 분기가 셔틀 분기보다 앞이라, 예전에는
+    // 무기에 맞을 때마다 셔틀 타이머가 멈추고 몸통이 레인 밖으로 밀렸다가, 끝나면 코스로
+    // 한 프레임에 튀어 돌아갔다(2026-11-08 "순간이동하듯이" 보고의 원인 중 하나).
+    if (type === 'B03' && b03ShuttleRef.current.phase !== 'idle') knockbackRemainingRef.current = 0
     if (knockbackRemainingRef.current > 0) {
       knockbackRemainingRef.current -= frameDeltaMs
       _vel.x = knockbackDir.current.x * knockbackSpeedRef.current
@@ -1429,7 +1463,8 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
     if (type === 'B03' && currentStageId === 'stage3') {
       const previous = b03ShuttleRef.current
       if (previous.phase !== 'idle') {
-        let next = advanceB03ShuttleRun(previous, delta * 1000)
+        // 게임시간 delta(재개 프레임 고정·상한 적용)를 쓴다. 원시 delta는 히치 한 번에 코스를 건너뛴다.
+        let next = advanceB03ShuttleRun(previous, frameDeltaMs)
         const shuttleX = getB03ShuttleRunX(next)
         const hit = consumeB03ShuttleRunPassHit(next, playerPos.z, playerPos.x, shuttleX)
         next = hit.state
@@ -1442,9 +1477,17 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
         }
         b03ShuttleRef.current = next
         syncB03ShuttleVisual(next)
-        _vel.x = next.phase === 'active' ? (shuttleX - t.x) / Math.max(delta, 0.001) : 0
-        _vel.y = 0; _vel.z = 0
+        // 몸통은 코스 좌표에 직접 놓는다(속도 추종 금지). 예전 식 _vel.x = (shuttleX - t.x) / delta는
+        // 렌더 delta로 나눈 속도를 1/60 고정 스텝·linearDamping 8 물리에 넣는 구조라, 60Hz를 넘는
+        // 화면에서 매 스텝 과보정으로 좌우 진동했다(90~120Hz: 잔상처럼 겹쳐 보임, 144Hz: 발산해서
+        // 보스가 화면 밖으로 사라짐). 한 프레임 이동은 코스 속도×delta×2로 상한을 둬 순간이동도 막는다.
+        const body = stepB03ShuttleBodyToward(t.x, t.z, shuttleX, next.laneZ,
+          getB03ShuttleBodyMaxStep(stats.speed, frameDeltaMs))
+        if (body.x !== t.x || body.z !== t.z) rb.current.setTranslation({ x: body.x, y: t.y, z: body.z }, true)
+        _vel.x = 0; _vel.y = 0; _vel.z = 0
         rb.current.setLinvel(_vel, true)
+        // 쿵쿵쿵: 코스를 따라 포물선으로 뛰고 착지한다. 높이는 시각 그룹에만 준다(물리 몸통은 바닥 고정).
+        if (groupRef.current) groupRef.current.position.y = getB03ShuttleRunHopHeight(next)
         // 왕복 방향을 실제로 바라보게 돌린다. 이 회전이 없으면 걷기 사이클이 돌아도
         // 보스는 정면을 유지한 채 옆으로 미끄러져 "달리는 느낌이 전혀 나지 않는"
         // 이동이 된다(2026-08-29 사용자 보고). 텔레그래프 1.25초 동안 미리 돌아선다.
@@ -1891,6 +1934,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
           laneZ={b03ShuttleVisual.laneZ}
           startX={b03ShuttleVisual.startX}
           endX={b03ShuttleVisual.endX}
+          stateRef={b03ShuttleRef}
         />
       )}
       {type === 'B04' && currentStageId === 'stage4' && (

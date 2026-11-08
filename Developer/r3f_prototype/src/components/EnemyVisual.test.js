@@ -132,6 +132,38 @@ describe('B03 shuttle run visual states', () => {
     expect(source).toContain('args={[length, 0.024, B03_SHUTTLE_LANE_WIDTH]}')
     expect(source).not.toContain('args={[halfX * 2, 0.024, B03_SHUTTLE_LANE_WIDTH]}')
   })
+
+  // 2026-11-08 실플레이 회귀: "잔상이 생기며 마구 흩어지고 순간이동하듯이 사라진다."
+  // 순수 모듈(b03ShuttleRun.test.js)이 코스·홉·링을 프레임 단위로 증명하고, 여기서는
+  // Enemy.jsx가 그 결과를 물리 몸통에 "직접 놓는" 연결을 유지하는지 지킨다.
+  it('셔틀런 몸통은 속도 추종이 아니라 코스 좌표에 직접 놓이고, 넉백·원시 delta에 흔들리지 않는다', () => {
+    const source = readFileSync(new URL('./Enemy.jsx', import.meta.url), 'utf8')
+    const start = source.indexOf("if (type === 'B03' && currentStageId === 'stage3') {")
+    expect(start).toBeGreaterThan(-1)
+    const branch = source.slice(start, source.indexOf('const trigger = getB03ShuttleRunTrigger', start))
+    // 옛 발산 원인: 렌더 delta로 나눈 속도를 1/60 고정 스텝·감쇠 물리에 넣던 식.
+    expect(branch).not.toMatch(/\(shuttleX - t\.x\)\s*\/\s*Math\.max\(delta/)
+    expect(branch).toContain('stepB03ShuttleBodyToward(t.x, t.z, shuttleX, next.laneZ,')
+    expect(branch).toContain('getB03ShuttleBodyMaxStep(stats.speed, frameDeltaMs)')
+    expect(branch).toContain('rb.current.setTranslation({ x: body.x, y: t.y, z: body.z }, true)')
+    expect(branch).toContain('advanceB03ShuttleRun(previous, frameDeltaMs)')
+    expect(branch).not.toContain('advanceB03ShuttleRun(previous, delta * 1000)')
+    // 홉 높이는 시각 그룹에만 준다(물리 몸통은 바닥).
+    expect(branch).toContain('groupRef.current.position.y = getB03ShuttleRunHopHeight(next)')
+
+    // 넉백 분기가 셔틀 분기보다 앞에 있으므로, 셔틀 중에는 그 앞에서 넉백을 지운다.
+    const guard = "if (type === 'B03' && b03ShuttleRef.current.phase !== 'idle') knockbackRemainingRef.current = 0"
+    const guardIndex = source.indexOf(guard)
+    expect(guardIndex).toBeGreaterThan(-1)
+    expect(guardIndex).toBeLessThan(source.indexOf('if (knockbackRemainingRef.current > 0) {'))
+
+    // 착지 링: 메시 1개, 상태 ref에서 매 프레임 유도(잔상이 쌓일 구조가 없다).
+    expect(source.match(/name="b03-shuttle-stomp-ring"/g)).toHaveLength(1)
+    expect(source).toContain('getB03ShuttleStompRing(stateRef?.current)')
+    expect(source).toContain('stateRef={b03ShuttleRef}')
+    // 슬롯 재사용 시 공중에 뜬 채 넘어가지 않는다.
+    expect(source).toContain('if (groupRef.current) groupRef.current.position.y = 0')
+  })
 })
 
 describe('B04 soup blast visual states', () => {

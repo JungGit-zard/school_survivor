@@ -158,3 +158,81 @@ export function consumeB03ShuttleRunPassHit(state, playerZ, playerX, bossX) {
   // 수치가 아니라 "맞았는가"만 낸다 — 실제 피해는 비율이라 호출부가 그 순간 플레이어 HP로 계산한다.
   return { state: { ...state, hitPasses }, hit: true }
 }
+
+// ── 2026-11-08 "쿵쿵쿵" 홉 이동(사용자 지시) ─────────────────────────────────────
+// 사양: 바닥에 코스를 먼저 보여 준 뒤, 보스가 그 코스를 따라 쿵, 쿵, 쿵 뛰어간다.
+// 수평 진행은 기존 getB03ShuttleRunX(속도 ×3 선형)를 그대로 쓴다 — 포물선 도약은 공중에서
+// 수평 속도가 일정하므로 이게 물리적으로도 맞고, 피격 판정·소요시간·피해 수치가 하나도 안 바뀐다.
+// 홉은 순수 시각(높이)이며 한 패스는 정수 개의 홉으로 나눠 패스 끝이 항상 착지와 맞물린다.
+export const B03_SHUTTLE_HOP_TARGET_MS = 500
+export const B03_SHUTTLE_HOP_HEIGHT = 0.45
+export const B03_SHUTTLE_STOMP_RING_MS = 320
+// 보스 몸통을 코스로 끌고 갈 때 한 프레임 최대 이동 = 코스 속도 × delta × 이 배수.
+// 정상 주행이면 코스와 몸통 차이가 한 프레임 분량이라 그대로 붙고, 무엇에 밀려 벗어났어도
+// 한 프레임에 순간이동하지 않고 이 상한으로 따라잡는다.
+export const B03_SHUTTLE_BODY_CATCHUP = 2
+
+export function getB03ShuttleHopCount(passDurationMs) {
+  const safe = Number.isFinite(passDurationMs) ? passDurationMs : 0
+  return Math.max(1, Math.round(safe / B03_SHUTTLE_HOP_TARGET_MS))
+}
+
+// 액티브 경과 시간(ms) → 현재 홉 위치. 패스 경계에서는 다음 패스의 0번 홉으로 넘어간다.
+function getB03ShuttleHopTiming(state) {
+  const passDurationMs = state.passDurationMs
+  const hopCount = getB03ShuttleHopCount(passDurationMs)
+  const hopDurationMs = passDurationMs / hopCount
+  const local = Math.max(0, state.elapsedMs % passDurationMs)
+  const hopIndex = Math.min(hopCount - 1, Math.floor(local / hopDurationMs))
+  const hopElapsedMs = local - hopIndex * hopDurationMs
+  return { hopIndex, hopDurationMs, hopElapsedMs, progress: Math.min(1, hopElapsedMs / hopDurationMs) }
+}
+
+// 보스 시각 그룹을 띄울 높이(world units). 액티브가 아니면 항상 0 — 끝나면 바닥에 붙어 있다.
+export function getB03ShuttleRunHopHeight(state) {
+  if (state?.phase !== 'active' || !(state.passDurationMs > 0)) return 0
+  const { progress } = getB03ShuttleHopTiming(state)
+  return 4 * B03_SHUTTLE_HOP_HEIGHT * progress * (1 - progress)
+}
+
+function getB03ShuttleLaneXAtActiveMs(state, activeMs) {
+  const passDurationMs = state.passDurationMs
+  const passIndex = Math.min(1, Math.max(0, Math.floor(activeMs / passDurationMs)))
+  const local = Math.min(1, Math.max(0, (activeMs - passIndex * passDurationMs) / passDurationMs))
+  return passIndex === 0
+    ? state.startX + (state.endX - state.startX) * local
+    : state.endX + (state.startX - state.endX) * local
+}
+
+// 착지 충격 링: 직전 착지점에 바닥 링 하나가 퍼지며 사라진다. 상태에서 바로 유도하므로
+// 잔여 이펙트가 쌓일 수 없다 — 링은 언제나 0개 또는 1개이고, idle이면 반드시 null이다.
+// 출발 도약(0번 패스 0번 홉)은 착지가 아니라 링이 없다. 마지막 착지는 stun 첫 구간에서 보인다.
+export function getB03ShuttleStompRing(state) {
+  if (!state || !(state.passDurationMs > 0)) return null
+  if (state.phase === 'stun') {
+    if (state.elapsedMs >= B03_SHUTTLE_STOMP_RING_MS) return null
+    return { x: state.startX, z: state.laneZ, progress: Math.max(0, state.elapsedMs) / B03_SHUTTLE_STOMP_RING_MS }
+  }
+  if (state.phase !== 'active') return null
+  const { hopIndex, hopElapsedMs } = getB03ShuttleHopTiming(state)
+  if (state.passIndex === 0 && hopIndex === 0) return null
+  if (hopElapsedMs >= B03_SHUTTLE_STOMP_RING_MS) return null
+  const x = getB03ShuttleLaneXAtActiveMs(state, state.elapsedMs - hopElapsedMs)
+  return { x, z: state.laneZ, progress: hopElapsedMs / B03_SHUTTLE_STOMP_RING_MS }
+}
+
+// 몸통 좌표를 목표 쪽으로 최대 maxStep만큼만 옮긴다(XZ 거리 기준). 순간이동 차단의 마지막 방어선.
+export function stepB03ShuttleBodyToward(currentX, currentZ, targetX, targetZ, maxStep) {
+  const dx = targetX - currentX
+  const dz = targetZ - currentZ
+  const distance = Math.hypot(dx, dz)
+  const limit = Math.max(0, Number.isFinite(maxStep) ? maxStep : 0)
+  if (distance <= limit || distance === 0) return { x: targetX, z: targetZ }
+  const scale = limit / distance
+  return { x: currentX + dx * scale, z: currentZ + dz * scale }
+}
+
+export function getB03ShuttleBodyMaxStep(baseSpeed, deltaMs) {
+  const speed = Math.max(0.0001, (Number.isFinite(baseSpeed) ? baseSpeed : B03_SHUTTLE_BASE_SPEED) * B03_SHUTTLE_SPEED_MULTIPLIER)
+  return speed * Math.max(0, deltaMs) / 1000 * B03_SHUTTLE_BODY_CATCHUP
+}
