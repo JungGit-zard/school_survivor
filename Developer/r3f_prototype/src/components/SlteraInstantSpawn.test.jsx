@@ -107,7 +107,7 @@ describe('Sltera instant spawn — owner cheat', () => {
     const toggleAt = title.indexOf('<SlteraInstantSpawnToggle style={styles.cheatButton} />')
     expect(modalStart).toBeGreaterThan(0)
     expect(toggleAt).toBeGreaterThan(modalStart)
-    expect(toggleAt).toBeLessThan(title.indexOf('{consentOpen && consentUser && ('))
+    expect(toggleAt).toBeLessThan(title.indexOf('</section>', modalStart)) // 치트 모달 안쪽
     expect(title.match(/<SlteraInstantSpawnToggle/g)).toHaveLength(1)
     const gameplay = readFileSync(new NodeURL('./GameplayScreen.jsx', import.meta.url), 'utf8')
     expect(gameplay).toContain('{isActive && <SlteraInstantSpawnButton phase={phase} />}')
