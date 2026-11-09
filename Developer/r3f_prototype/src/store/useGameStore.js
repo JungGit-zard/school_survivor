@@ -13,6 +13,7 @@ import {
 } from '../lib/weaponPermanentUpgrades.js'
 import {
   applyBossPassiveDamageToBaseWeapon,
+  getBossPassiveItemIdForBoss,
   normalizeBossPassiveUnlocks,
   unlockBossPassiveItem,
 } from '../lib/bossPassiveItems.js'
@@ -406,7 +407,7 @@ function matchesQuestCompletionSource(quest, sourceId) {
 // 인트로 종료 상태 전이 — advanceIntro 마지막 탭과 skipIntro가 공유한다.
 const STAGE1_INTRO_DONE = Object.freeze({ phase: 'playing', pauseSource: null, introDialogue: null })
 
-// 스테이지별 스토리 인트로 내레이션 3줄(Stage 1~5). 화면 탭마다 다음 줄, 마지막 탭에 플레이 시작.
+// 스테이지별 스토리 인트로 내레이션 3줄(Stage 1~6). 화면 탭마다 다음 줄, 마지막 탭에 플레이 시작.
 // 대사 문구는 dialogues/{ko,en,ja}/quests.txt의 intro.stageN.00x.
 const introIdsFor = (stageId) => Object.freeze([1, 2, 3].map((n) => `intro.${stageId}.00${n}`))
 export const STAGE_INTRO_IDS = Object.freeze({
@@ -415,10 +416,11 @@ export const STAGE_INTRO_IDS = Object.freeze({
   stage3: introIdsFor('stage3'),
   stage4: introIdsFor('stage4'),
   stage5: introIdsFor('stage5'),
+  stage6: introIdsFor('stage6'),
 })
 export const STAGE1_INTRO_IDS = STAGE_INTRO_IDS.stage1
 
-// 인트로가 있는 스테이지면 대사 ID 배열, 없으면(초안 스테이지 6~10 등) null.
+// 인트로가 있는 스테이지면 대사 ID 배열, 없으면(초안 스테이지 7~10 등) null.
 export function getStageIntroIds(stageId) {
   return STAGE_INTRO_IDS[stageId] ?? null
 }
@@ -682,15 +684,8 @@ export const useGameStore = create(
     // 현재 메모리 런에서 즉시 해금·적용되며, 저장 실패가 플레이를 막지 않는다.
     recordBossKill: (bossId) => {
       const state = get()
-      const bossPassiveItemId = bossId === 'B01'
-        ? 'b01SetSquare'
-        : bossId === 'B02'
-          ? 'b02CorridorPass'
-          : bossId === 'B03'
-            ? 'b03GymWhistle'
-            : bossId === 'B04'
-              ? 'b04ServingLadle'
-          : null
+      // B01~B04, B10(교감 결재 도장), B05(교장 훈화 마이크). 매핑 정본은 bossPassiveItems.js.
+      const bossPassiveItemId = getBossPassiveItemIdForBoss(bossId)
       const nextBossPassiveUnlocks = bossPassiveItemId
         ? unlockBossPassiveItem(state.bossPassiveUnlocks, bossPassiveItemId)
         : state.bossPassiveUnlocks

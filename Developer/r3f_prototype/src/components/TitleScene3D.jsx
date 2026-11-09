@@ -12,12 +12,6 @@ import StudioTunedGroup, {
   StudioTuningRuntimeProvider,
   StudioTuningSnapshotProvider,
 } from './StudioTunedGroup.jsx'
-import ClassroomChair from './StageObjects/ClassroomChair.jsx'
-import ClassroomDesk from './StageObjects/ClassroomDesk.jsx'
-import UnconsciousStudent from './StageObjects/UnconsciousStudent.jsx'
-import { CompassBladeModel } from './Weapons/CompassBlade.jsx'
-import { ChibikoModel } from './Weapons/Chibiko.jsx'
-import { StarlinkSatelliteModel, ZomlonbiskModel } from './Weapons/StarlinkSatellite.jsx'
 import PlayerMesh from './PlayerMesh.jsx'
 import { FROZEN_STUDIO_SNAPSHOT } from '../title/frozenStudio.js'
 import { loadPlayerOutfit } from '../lib/titleSettings.js'
@@ -44,11 +38,32 @@ export const TITLE_ZOMBIE_GROUND_LIFT_Y = 0.16
 export const TITLE_SCENE_BASE_POSITION = [0, -1.15, 0]
 const TITLE_CHARACTER_STENCIL_REF = 2
 const TITLE_OUTLINE_SCALE_BOOST = 1.02
-const TITLE_STANDING_STUDENTS = [
-  { position: [-0.9, 0.37, -8.8], rotationY: 0.08 },
-  { position: [-0.35, 0.37, -9.1], rotationY: -0.16 },
-  { position: [1, 0.37, -8.6], rotationY: 0.18 },
-]
+
+// 2026-11-08 타이틀 정리(결정 1): 줄어든 출연진 전체(바닥·소품·캐릭터·로자리)를 감싸는 타이틀 전용 바깥 그룹.
+// 로자리 발밑 근처(pivot)를 중심으로 조금 줄이고 살짝 올려, 로고 바로 아래 띠와 시작 버튼 위 띠를 비우고
+// 화면 가장자리에서 잘리는 캐릭터가 없게 한다. 모델 내부·Studio 값은 건드리지 않는 바깥 변형뿐이다.
+export const TITLE_STAGE_FRAME = {
+  pivot: [0.44, -0.27, 0.42],
+  scale: 0.78,
+  lift: [-0.1, 0.3, 0],
+}
+
+// 2026-11-08: 출구문(갈색 판 + 빛 패널)은 학교 건물 가운데와 시계를 가리던 빈 판처럼 보였다.
+// 문·빛 패널 자체는 그대로 두고, 바깥 그룹만 문 밑 바닥(pivot)을 중심으로 줄여 땅에 내려 앉힌다.
+// 바닥의 빛 웅덩이는 이 그룹 밖에 두어 크기가 변하지 않는다.
+export const TITLE_EXIT_DOOR_FRAME = {
+  pivot: [0, 0, -4.62],
+  scale: 0.5,
+  drop: -0.32,
+}
+
+export function getTitleExitDoorFramePosition({ pivot, scale, drop } = TITLE_EXIT_DOOR_FRAME) {
+  return [pivot[0] * (1 - scale), pivot[1] * (1 - scale) + drop, pivot[2] * (1 - scale)]
+}
+
+export function getTitleStageFramePosition({ pivot, scale, lift } = TITLE_STAGE_FRAME) {
+  return pivot.map((value, axis) => value * (1 - scale) + lift[axis])
+}
 
 export function getTitleSceneRootPosition({ position = [0, 0, 0] } = {}) {
   return [
@@ -258,16 +273,13 @@ export const TITLE_SCENE_DIRECTION = {
   scene: {
     exitGlow: true,
     infectionStreaks: 2,
-    zombieStudents: 5,
-    bossZombies: 3,
+    zombieStudents: 3,
+    bossZombies: 1,
     matildaPursuers: 1,
-    dancingDoges: 2,
+    dancingDoges: 1,
     realForegroundResources: [
       'ZombieMesh',
       'MatildaMesh',
-      'ClassroomDesk',
-      'ClassroomChair',
-      'UnconsciousStudent',
     ],
   },
 }
@@ -395,68 +407,6 @@ function TitlePlayer({ reducedEffects, outfit = 'default' }) {
   )
 }
 
-function TitleCompanions() {
-  const chibikoAttackPhaseRef = useRef(0)
-  const duckRef = useRef()
-  const duckIdleRef = useTitleIdleRef('duck')
-  const chibikoIdleRef = useTitleIdleRef('chibiko')
-
-  // STUDIO_OUTER_MOTION_ONLY — 오리요강의 타이틀 바깥 그룹에만 아주 약한 호흡 스케일을 적용한다.
-  useFrame(({ clock }) => {
-    if (!duckRef.current) return
-    const breath = Math.sin(clock.elapsedTime * 1.7) * 0.014
-    duckRef.current.scale.set(1.05, 1.05 * (1 + breath), 1.05)
-  })
-
-  return (
-    <>
-      <group ref={duckRef} position={[-0.22, 0.2, 0.82]} rotation={[0, 0.28, -0.03]} scale={1.05}>
-        <group ref={duckIdleRef}>
-          <CompassBladeModel />
-        </group>
-      </group>
-      <group position={[1.36, 0.27, 0.76]} rotation={[0, -0.38, 0.02]} scale={0.42}>
-        <group ref={chibikoIdleRef}>
-          <ChibikoModel attackPhaseRef={chibikoAttackPhaseRef} />
-        </group>
-      </group>
-    </>
-  )
-}
-
-function TitleFarBackgroundStory({ reducedEffects }) {
-  const zomlonbiskRef = useRef()
-
-  // STUDIO_OUTER_MOTION_ONLY — 이 useFrame은 StudioTunedGroup의 바깥 그룹만 움직인다.
-  // 스튜디오 파츠는 건드리지 않으므로 튜닝을 덮어쓰지 않고 부모 변형으로 곱해질 뿐이다.
-  useFrame(({ clock }) => {
-    if (!zomlonbiskRef.current) return
-    if (reducedEffects) {
-      zomlonbiskRef.current.position.y = 0.68
-      zomlonbiskRef.current.rotation.y = -0.28
-      zomlonbiskRef.current.rotation.z = 0
-      return
-    }
-
-    const t = clock.elapsedTime
-    const s = Math.sin(t * 3.2)
-    zomlonbiskRef.current.position.y = 0.68 + Math.abs(s) * 0.05
-    zomlonbiskRef.current.rotation.y = -0.28 + s * 0.5
-    zomlonbiskRef.current.rotation.z = Math.sin(t * 6.4) * 0.09
-  })
-
-  return (
-    <>
-      <group position={[-2.35, 1.12, clampTitleBackgroundZ(-7.0)]} rotation={[0.08, -0.42, -1.2]} scale={1.24}>
-        <StarlinkSatelliteModel studioItemId="title-crashed-starlink" />
-      </group>
-      <group ref={zomlonbiskRef} position={[1.86, 0.68, clampTitleBackgroundZ(-8.0)]} rotation={[0, -0.28, 0]} scale={1.16}>
-        <ZomlonbiskModel running={false} />
-      </group>
-    </>
-  )
-}
-
 function TitleZombie({ idleId, position, delay = 0, scale = 1, type = 'E01' }) {
   const ref = useRef()
   const { ref: idleRef, rig: idleRig } = useTitleIdle(idleId)
@@ -546,45 +496,6 @@ function TitleIdleDoge({ idleId, position, ...dogeProps }) {
   )
 }
 
-function TitleClassroomProps() {
-  const ref = useRef()
-  // STUDIO_OUTER_MOTION_ONLY — 이 useFrame은 StudioTunedGroup의 바깥 그룹만 움직인다.
-  // 스튜디오 파츠는 건드리지 않으므로 튜닝을 덮어쓰지 않고 부모 변형으로 곱해질 뿐이다.
-  useFrame((state) => {
-    if (!ref.current) return
-    ref.current.rotation.y = -0.06 + Math.sin(state.clock.elapsedTime * 0.9) * 0.015
-  })
-
-  return (
-    <group ref={ref}>
-      <group position={[-2.78, 0.02, 0.95]} rotation={[0, 0.42, -0.06]} scale={0.72}>
-        <ClassroomDesk variant="overturned" />
-      </group>
-      <group position={[2.42, 0.02, 0.48]} rotation={[0, -0.36, 0.04]} scale={1.02}>
-        <ClassroomChair variant="tilted" />
-      </group>
-      <group position={[-1.72, 0.02, 0.12]} rotation={[0, 0.9, 0]} scale={0.84}>
-        <ClassroomChair variant="overturned" />
-      </group>
-      <group position={[2.62, 0.05, -1.08]} rotation={[0, -0.78, 0]} scale={0.84}>
-        <ClassroomDesk variant="abandoned" />
-      </group>
-      {TITLE_STANDING_STUDENTS.map(({ position, rotationY }, index) => (
-        <group
-          key={`title-standing-student-${index}`}
-          position={position}
-          rotation={[0, rotationY, 0]}
-          scale={0.4}
-        >
-          <group rotation={[-Math.PI / 2, 0, 0]}>
-            <UnconsciousStudent variant="faceUp" />
-          </group>
-        </group>
-      ))}
-    </group>
-  )
-}
-
 function SpeedStreak({ position, scale, delay = 0 }) {
   const ref = useRef()
   const mat = useMemo(() => new THREE.MeshBasicMaterial({
@@ -622,9 +533,11 @@ function ExitGlow() {
 
   return (
     <group>
-      <mesh ref={ref} position={[0, 1.35, -4.35]} material={mat}>
-        <boxGeometry args={[1.475, 1.15, 0.08]} />
-      </mesh>
+      <group position={getTitleExitDoorFramePosition()} scale={TITLE_EXIT_DOOR_FRAME.scale}>
+        <mesh ref={ref} position={[0, 1.35, -4.35]} material={mat}>
+          <boxGeometry args={[1.475, 1.15, 0.08]} />
+        </mesh>
+      </group>
       <mesh ref={poolRef} position={[0, 0.015, -3.4]} rotation={[-Math.PI / 2, 0, 0]} material={poolMat} renderOrder={1}>
         <circleGeometry args={[2.6, 36]} />
       </mesh>
@@ -700,30 +613,26 @@ export default function TitleScene3D({
       <mesh receiveShadow position={[TITLE_FLOOR_POSITION[0], TITLE_FLOOR_POSITION[1] + 0.005, TITLE_FLOOR_POSITION[2]]} rotation={[-Math.PI / 2, 0, 0]} material={floorShadowMat} renderOrder={-1}>
         <planeGeometry args={TITLE_FLOOR_SIZE} />
       </mesh>
-      <mesh receiveShadow position={[0, 1.3, -4.62]} material={doorMat}>
-        <boxGeometry args={[1.7, 1.3, 0.32]} />
-      </mesh>
+      <group position={getTitleExitDoorFramePosition()} scale={TITLE_EXIT_DOOR_FRAME.scale}>
+        <mesh receiveShadow position={[0, 1.3, -4.62]} material={doorMat}>
+          <boxGeometry args={[1.7, 1.3, 0.32]} />
+        </mesh>
+      </group>
 
       <ExitGlow />
-      <TitleClassroomProps />
       <SpeedStreak position={[-0.98, 0.055, 1.9]} scale={[0.11, 1.8]} delay={0.3} />
       <SpeedStreak position={[0.02, 0.055, 1.3]} scale={[0.09, 2.25]} delay={1.0} />
       <SpeedStreak position={[1.06, 0.055, 0.98]} scale={[0.1, 1.75]} delay={1.7} />
 
+      {/* 2026-11-08 타이틀 정리(결정 1): 출연진을 로자리 + 보스 B01 + 마틸다 + 일반 좀비 3 + 도지 1로 줄였다.
+          빠진 캐릭터는 목록에서 지운 것이지 숨긴 것이 아니다 — 남은 모델은 Studio·게임과 같은 원천 그대로다. */}
       <TitleCharacterOutlineGroup>
-        <TitleFarBackgroundStory reducedEffects={reducedEffects} />
-        <TitleBossZombie type="B02" position={[-1.99, 0.18, -3.7]} scale={0.93} delay={0.9} />
-        <TitleBossZombie type="B03" position={[0.02, 0.4, -4.04]} scale={1.344} delay={1.35} />
         <TitleBossZombie type="B01" position={[-0.86, 0.34, -1.12]} scale={1.02} />
-        <TitleZombie idleId="zombieE03Far" position={[-3.3, 0.22, -3.42]} delay={0.4} scale={0.58} type="E03" />
-        <TitleZombie idleId="zombieE02Far" position={[2.0, 0.2, -3.18]} delay={1.6} scale={0.52} type="E02" />
         <TitleZombie idleId="zombieE01" position={[-1.95, 0.22, -1.55]} delay={0.2} scale={0.7} type="E01" />
         <TitleZombie idleId="zombieE02" position={[1.56, 0.2, -2.08]} delay={1.0} scale={0.62} type="E02" />
         <TitleZombie idleId="zombieE03" position={[-0.92, 0.18, -2.72]} delay={2.1} scale={0.52} type="E03" />
         <TitleMatildaPursuer position={[1.45, 0.36, -2.92]} delay={1.8} scale={1.44} />
         <TitleIdleDoge idleId="dogeTwist" position={[-1.27, 0.0, 1.55]} dance="twist" delay={0} scale={0.92} yaw={0.42} paused={reducedEffects} />
-        <TitleIdleDoge idleId="dogeDisco" position={[1.97, 0.0, 1.5]} dance="disco" delay={1.15} scale={0.92} yaw={-0.5} paused={reducedEffects} />
-        <TitleCompanions />
       </TitleCharacterOutlineGroup>
     </group>
   )
@@ -738,6 +647,7 @@ export default function TitleScene3D({
       <directionalLight position={[2, 4, -5]} intensity={TITLE_DAYLIGHT.backFillIntensity} color={TITLE_DAYLIGHT.backFillColor} />
       <pointLight position={[0, 1.1, -3.7]} intensity={3} color={0xffdf9a} distance={8} decay={2} />
 
+      <group position={getTitleStageFramePosition()} scale={TITLE_STAGE_FRAME.scale}>
       {studioMode ? (
         <>
           <StudioTuningPreviewProvider>
@@ -759,6 +669,7 @@ export default function TitleScene3D({
           </group>
         </StudioTuningSnapshotProvider>
       )}
+      </group>
       {/* 세팅값은 동결 스냅샷(src/title/studioSnapshot.json)에서 온다 — Firebase 대기 없이 항상 렌더. */}
     </TitleIdleContext.Provider>
   )

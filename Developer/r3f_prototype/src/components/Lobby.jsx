@@ -54,6 +54,10 @@ export const BOSS_SHOWTIME = Object.freeze({
   B01: { labelKey: 'lobby.showtime.B01', label: '돌진!', sounds: [{ id: 'bossRoar', volume: 0.9, rate: 0.9 }, { id: 'bossSpawn', volume: 0.62, delay: 170 }] },
   B02: { labelKey: 'lobby.showtime.B02', label: '선생님 스윙!', sounds: [{ id: 'zombieTankGroan', volume: 0.78, rate: 1.12 }, { id: 'zombieRangedShoot', volume: 0.52, delay: 210, rate: 0.9 }] },
   B03: { labelKey: 'lobby.showtime.B03', label: '근육 포즈!', sounds: [{ id: 'zombieChargeRoar', volume: 0.82, rate: 0.82 }, { id: 'zombieGiantThud', volume: 0.72, delay: 240, rate: 1.05 }] },
+  // 2026-11-08 Stage 5·6 공개: B04·B10·B05가 B01 '돌진!'으로 대체되던 것을 각 보스 라벨/기존 패턴 SFX로 연결.
+  B04: { labelKey: 'lobby.showtime.B04', label: '국자 휘두르기!', sounds: [{ id: 'zombieTankGroan', volume: 0.78, rate: 0.95 }, { id: 'zombieGiantThud', volume: 0.66, delay: 220, rate: 1.1 }] },
+  B10: { labelKey: 'lobby.showtime.B10', label: '결재!', sounds: [{ id: 'b10StampSlam', volume: 0.8 }] },
+  B05: { labelKey: 'lobby.showtime.B05', label: '훈화 시작!', sounds: [{ id: 'stage6MicFeedback', volume: 0.6 }] },
 })
 
 function lobbyMotionAllowed() {
@@ -146,6 +150,12 @@ export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onO
     if (progressStatus !== 'ready' || !isFirebaseProgressHydrated(authUser)) return null
     return loadPlayerRecords()
   }, [authUser?.uid, progressStatus, recordsRefreshVersion])
+
+  // 입장 버튼 무한 펄스는 추천 카드 하나(열린 스테이지 중 가장 마지막)만 돌린다. 카드마다 돌면 filter 리페인트가 카드 수만큼 쌓인다.
+  const recommendedStageId = [...stageIds].reverse().find((id) => (
+    (records == null ? id === 'stage1' : isStageUnlocked(id, records))
+    && (getStageConfig(id).playable !== false || devAllStagesUnlocked)
+  )) ?? null
 
   // "내 최고기록"은 본인 all-time 스테이지 랭킹 엔트리가 단일 출처다. 게스트는 users/{uid} 진행도가
   // 없어 위 records가 항상 비어 있으므로, 이 엔트리 없이는 방금 끝낸 판도 '기록 없음'으로 보였다.
@@ -417,6 +427,7 @@ export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onO
               key={stageId}
               index={index}
               stageId={stageId}
+              recommended={stageId === recommendedStageId}
               stage={stage}
               unlocked={unlocked}
               cleared={cleared}
@@ -463,7 +474,7 @@ function showtimeLabel(translateFn, bossType) {
   return translateFn(entry.labelKey, null, entry.label)
 }
 
-function StageCard({ index = 0, stageId, stage, unlocked, cleared, bestSurvivalSec, hasBestRecord = bestSurvivalSec > 0, recordsPending = false, stageBossPreview, showtimeStageId, devAllStagesUnlocked = false, onBeginShowtime, onFinishShowtime, onStart, onRanking }) {
+function StageCard({ index = 0, stageId, recommended = false, stage, unlocked, cleared, bestSurvivalSec, hasBestRecord = bestSurvivalSec > 0, recordsPending = false, stageBossPreview, showtimeStageId, devAllStagesUnlocked = false, onBeginShowtime, onFinishShowtime, onStart, onRanking }) {
   const t = useT()
   const localizedStageTitle = stageTitle(stageId, stage.title)
   const isExpansionStage = ['stage6', 'stage7', 'stage8', 'stage9', 'stage10'].includes(stageId)
@@ -473,11 +484,9 @@ function StageCard({ index = 0, stageId, stage, unlocked, cleared, bestSurvivalS
   const soundTimerRefs = useRef([])
   const showtimePendingRef = useRef(false)
   const lobbyBossType = stage.lobbyBossType ?? stage.bossType
-  // New card previews are decorative; the card/entry button owns the click.
+  // Card previews are decorative; the card/entry button owns the click.
   // Let swipes reach the list instead of either R3F Canvas capturing touch.
-  const previewStyle = isExpansionStage
-    ? { ...styles.cardBossPreview, pointerEvents: 'none', touchAction: 'pan-y' }
-    : styles.cardBossPreview
+  const previewStyle = { ...styles.cardBossPreview, pointerEvents: 'none', touchAction: 'pan-y' }
   const playable = stage.playable !== false || devAllStagesUnlocked
   const unlockUnknown = recordsPending && !devAllStagesUnlocked && stageId !== 'stage1'
   const canStart = unlocked && playable && !unlockUnknown
@@ -558,7 +567,7 @@ function StageCard({ index = 0, stageId, stage, unlocked, cleared, bestSurvivalS
               <button
                 type="button"
                 className="lobby-press lobby-anim"
-                style={{ ...styles.previewEnterButton, animation: 'lobbyCtaPulse 1600ms ease-in-out infinite' }}
+                style={recommended ? { ...styles.previewEnterButton, animation: 'lobbyCtaPulse 1600ms ease-in-out infinite' } : styles.previewEnterButton}
                 onClick={(event) => {
                   event.stopPropagation()
                   queueStart()

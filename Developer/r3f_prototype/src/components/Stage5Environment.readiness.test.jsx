@@ -2,39 +2,43 @@ import { describe, expect, it } from 'vitest'
 import Stage5Environment, { getStage5EnvironmentScale } from './Stage5Environment.jsx'
 import Floor from './Floor.jsx'
 import { getStageBounds, getStageConfig } from '../lib/stageConfig.js'
+import { getPlayerMovementBounds } from '../lib/playerMovementBounds.js'
 import { getStageVendingPlacement, isWithinStageVendingRange } from '../lib/stageVending.js'
 import { getStageObjectPlacements } from './StageObjects/stageObjectPlacements.js'
-import { getStageObjectColliders, getStageObjectSightObstacles } from './StageObjects/stageObjectColliders.js'
+import { getStageObjectColliders, getStageObjectFootprint, getStageObjectSightObstacles } from './StageObjects/stageObjectColliders.js'
 
 describe('Stage5 current unmocked dependency readiness (not gameplay/WebGL acceptance)', () => {
-  it('either consumes registered gameplay bounds or fails closed while gameplay is pending', () => {
-    const registered = getStageConfig('stage5').id === 'stage5'
-    console.info(`STAGE5_GAMEPLAY_REGISTERED=${registered}`)
-    if (!registered) {
-      expect(getStage5EnvironmentScale()).toBeNull()
-      expect(Stage5Environment()).toBeNull()
-      expect(Floor({ stageId: 'stage5' })).toBeNull()
-      return
-    }
-    expect(getStageBounds('stage5')).toEqual({ halfX: 7.5, halfZ: 19.2 })
+  it('consumes the registered staff room bounds and mounts the environment', () => {
+    expect(getStageConfig('stage5').id).toBe('stage5')
+    expect(getStageBounds('stage5')).toEqual({ halfX: 9.36, halfZ: 16 })
     expect(getStage5EnvironmentScale()).toEqual([1, 1, 1])
     expect(Stage5Environment()).not.toBeNull()
     expect(Floor({ stageId: 'stage5' })).not.toBeNull()
   })
 
-  it('adds no Stage3-only physics or sight blockers to the open Stage5 court', () => {
-    expect(getStageObjectPlacements('stage5')).toEqual([])
-    expect(getStageObjectColliders('stage5')).toEqual([])
-    expect(getStageObjectSightObstacles('stage5')).toEqual([])
+  it('registers 34 staff room placements whose 20 solids are the only physics and sight blockers', () => {
+    expect(getStageObjectPlacements('stage5')).toHaveLength(34)
+    expect(getStageObjectColliders('stage5')).toHaveLength(20)
+    expect(new Set(getStageObjectSightObstacles('stage5').map(({ id }) => id)).size).toBe(20)
   })
 
-  it('uses the actual gameplay vending contract and a reachable interior approach', () => {
+  it('keeps the vending machine reachable from the player area and clear of every solid prop', () => {
     const placement = getStageVendingPlacement('stage5')
-    expect(placement).toMatchObject({ id: 'vending-stage5', position: { x: 6.25, y: 0, z: -14 }, wallSide: 'east' })
-    // This is a static XZ geometry check, not a player traversal claim.
-    const approach = { x: 4.5, z: -14 }
-    expect(Math.abs(approach.x)).toBeLessThan(7.5 - 0.5)
-    expect(Math.abs(approach.z)).toBeLessThan(19.2 - 0.5)
+    expect(placement).toMatchObject({ id: 'vending-stage5', position: { x: 8.55, y: 0, z: -10.6 }, wallSide: 'east' })
+    // Static XZ geometry: the nearest point the player can stand on, not a traversal claim.
+    const bounds = getPlayerMovementBounds('stage5')
+    const approach = {
+      x: Math.min(bounds.maxX, Math.max(bounds.minX, placement.position.x)),
+      z: Math.min(bounds.maxZ, Math.max(bounds.minZ, placement.position.z)),
+    }
     expect(isWithinStageVendingRange(approach, placement)).toBe(true)
+    for (const prop of getStageObjectPlacements('stage5')) {
+      const footprint = getStageObjectFootprint(prop)
+      if (!footprint) continue
+      for (const point of [approach, placement.position]) {
+        const inside = Math.abs(point.x - footprint.x) <= footprint.halfX && Math.abs(point.z - footprint.z) <= footprint.halfZ
+        expect(inside, prop.id).toBe(false)
+      }
+    }
   })
 })

@@ -12,6 +12,8 @@ const TARGET_WEAPON_IDS = ['boxCutter', 'schoolBag', 'bikittyCutter']
 const B02_TARGET_WEAPON_IDS = ['lineDraw', 'bell', 'studentLantern']
 const B03_TARGET_WEAPON_IDS = ['miniRosari', 'chibiko', 'onigiri']
 const B04_TARGET_WEAPON_IDS = ['tumbler', 'scienceFlask', 'eraserBomb']
+const B10_TARGET_WEAPON_IDS = ['pencilThrow', 'compassBlade', 'hanako']
+const B05_TARGET_WEAPON_IDS = ['stunGun', 'starlink', 'umbrellaGuard']
 
 function damageSnapshot(weapons) {
   return Object.fromEntries(Object.entries(weapons).map(([id, weapon]) => [id, weapon.damage]))
@@ -82,6 +84,9 @@ describe('B01 삼각자 보스 패시브 런타임', () => {
   it.each([
     ['B03', 'b03GymWhistle', 'stage3', B03_TARGET_WEAPON_IDS],
     ['B04', 'b04ServingLadle', 'stage4', B04_TARGET_WEAPON_IDS],
+    // Stage 5·6은 아직 비공개라 resetGame은 stage1로 확인한다 (해금 판정은 bossId만 본다).
+    ['B10', 'b10ApprovalStamp', 'stage1', B10_TARGET_WEAPON_IDS],
+    ['B05', 'b05PrincipalMic', 'stage1', B05_TARGET_WEAPON_IDS],
   ])('%s 첫 처치는 %s를 해금하고 현재 런과 다음 런의 세 대상 damage만 정확히 1.05배 한다', (bossId, itemId, stageId, targetIds) => {
     const before = damageSnapshot(useGameStore.getState().weapons)
     const playerBefore = useGameStore.getState().player

@@ -55,8 +55,8 @@ function drawnBodyInstances() {
 
 describe('ZombieInstanceLayer body visibility after studio hydrate', () => {
   playerPos.set(0, 0, 0)
-  // E07은 얼굴 레이어, 17-31은 확장 레이어, B0x는 보스 전용 컴포넌트가 그린다.
-  const types = ENEMY_TYPE_NAMES.filter((name, code) => name && !/^B0/.test(name) && name !== 'E07' && !isExpansionNormalCode(code))
+  // E07은 얼굴 레이어, 17-31은 확장 레이어, 보스(B01~B10)는 보스 전용 컴포넌트가 그린다(풀 경로 아님).
+  const types = ENEMY_TYPE_NAMES.filter((name, code) => name && !/^B\d+$/.test(name) && name !== 'E07' && !isExpansionNormalCode(code))
 
   it.each(types)('%s draws a non-zero body', (type) => {
     clearPool(); spawn(type, 1)

@@ -27,7 +27,8 @@ import {
 } from './gameplayFrameTime.js'
 import { clampPlayerPosition } from './playerMovementBounds.js'
 
-export const MULTI_HZ_STAGE_IDS = Object.freeze(['stage1', 'stage2', 'stage3', 'stage4'])
+// Stage 5(교무실, 2026-11-08)도 같은 순수 시뮬레이션 하네스로 돈다(스토어 진입 게이트와 무관).
+export const MULTI_HZ_STAGE_IDS = Object.freeze(['stage1', 'stage2', 'stage3', 'stage4', 'stage5'])
 export const MULTI_HZ_RENDER_RATES = Object.freeze([30, 60, 120])
 export const MULTI_HZ_CHECKPOINT_SECONDS = Object.freeze([30, 60, 120, 180, 240])
 export const MULTI_HZ_SEED = 0x5a17e

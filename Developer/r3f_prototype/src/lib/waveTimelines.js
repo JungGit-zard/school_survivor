@@ -238,19 +238,48 @@ export const STAGE2_WAVE_PHASES = retuneReducedStageZombieWeights(BASE_STAGE2_WA
 export const STAGE3_WAVE_PHASES = retuneReducedStageZombieWeights(BASE_STAGE3_WAVE_PHASES)
 export const STAGE4_WAVE_PHASES = retuneReducedStageZombieWeights(BASE_STAGE4_WAVE_PHASES)
 
-export const STAGE5_WAVE_PHASES = [
-  { start: 0, end: 48, target: 18, weights: { E01: 1 } },
-  { start: 48, end: 108, target: 24, weights: { E01: 0.6, E03: 0.2, E04: 0.2 } },
-  { start: 108, end: 150, target: 28, weights: { E01: 0.4, E02: 0.3, E05: 0.3 } },
-  { start: 150, end: 192, target: 18, weights: { E01: 0.5, E02: 0.3, E05: 0.2 } },
-  { start: 192, end: 240, target: 24, weights: { E01: 0.6, E05: 0.2, E07: 0.2 } },
+// ── Stage 5 「교무실 최종 돌파」(2026-11-08 스펙 Part B §5-4) ──
+// 분석용 웨이브 표다. 런타임 스폰은 STAGE5_BURST_EVENTS(버스트 표)만 만든다 — 이 표는 밀도 파생·soak·
+// probe·어드민 미리보기의 분석 일관성용이다. S1~S4와 같은 E02/E03 ×0.9 리튠을 적용한다.
+// 원거리 E04는 12초부터(e04IntroSec 12) 고비중. 150~160 보스 구간 1은 E04 0(보스 구간 발사 억제와 일치).
+// weights 합 = 1.00(waveTimelines.test.js가 검증).
+const BASE_STAGE5_WAVE_PHASES = [
+  // 0:00–0:12 온보딩 — 러너로 이동 압박
+  { start:   0, end:  12, target: 18, weights: { E01: 0.80, E03: 0.20 } },
+  // 0:12–0:30 원거리 사수 발사 개시 — "같은 레인 = 사선" 학습
+  { start:  12, end:  30, target: 22, weights: { E01: 0.50, E03: 0.16, E02: 0.14, E04: 0.20 } },
+  // 0:30–0:52 차저 합류
+  { start:  30, end:  52, target: 24, weights: { E01: 0.40, E03: 0.14, E02: 0.16, E05: 0.12, E04: 0.18 } },
+  // 0:52–1:14 빌드업
+  { start:  52, end:  74, target: 26, weights: { E01: 0.36, E03: 0.16, E02: 0.16, E05: 0.14, E04: 0.18 } },
+  // 1:14–1:36 거대 합류(레인 봉쇄)
+  { start:  74, end:  96, target: 26, weights: { E01: 0.32, E03: 0.12, E02: 0.18, E05: 0.16, E04: 0.16, E06: 0.06 } },
+  // 1:36–1:52 협공 구간
+  { start:  96, end: 112, target: 28, weights: { E01: 0.26, E02: 0.24, E05: 0.18, E04: 0.20, E06: 0.12 } },
+  // 1:52–2:08 피크
+  { start: 112, end: 128, target: 29, weights: { E01: 0.22, E03: 0.08, E02: 0.22, E05: 0.24, E04: 0.14, E06: 0.10 } },
+  // 2:08–2:30 보스 직전 원거리 벽
+  { start: 128, end: 150, target: 30, weights: { E01: 0.22, E03: 0.08, E02: 0.20, E05: 0.22, E04: 0.20, E06: 0.08 } },
+  // ── 교감 좀비 B10@150(burstEvents) ──
+  // 2:30–2:40 보스 구간 1 — E04 0(보스 구간 발사 억제)
+  { start: 150, end: 160, target: 18, weights: { E01: 0.50, E02: 0.26, E05: 0.24 } },
+  // 2:40–3:02 보스 구간 2
+  { start: 160, end: 182, target: 20, weights: { E01: 0.44, E02: 0.28, E05: 0.20, E06: 0.08 } },
+  // 3:02–3:30 보스 구간 3 · 탈출 준비
+  { start: 182, end: 210, target: 22, weights: { E01: 0.44, E02: 0.30, E05: 0.18, E06: 0.08 } },
+  // 3:30–4:00 탈출 스프린트 — 포탈 이후 bossPressure 해제라 원거리 소량 복귀
+  { start: 210, end: 240, target: 24, weights: { E01: 0.56, E02: 0.20, E05: 0.14, E04: 0.10 } },
 ]
 
+export const STAGE5_WAVE_PHASES = retuneReducedStageZombieWeights(BASE_STAGE5_WAVE_PHASES)
+
+// 스테이지5 형태 버스트 예고 배너 정본. sec 순서는 STAGE5_BURST_EVENTS의 formation 항목(ring/pincer) 순서와 1:1.
+// S3·S4와 달리 labelKey가 있어 HUD가 t(labelKey, null, label)로 ko/en/ja를 낸다(label은 ko 폴백).
 export const STAGE5_SPAWN_TELEGRAPHS = [
-  { sec: 60, leadSec: 2.5, label: '마지막 방어선이 에워싼다' },
-  { sec: 108, leadSec: 2.5, label: '앞뒤에서 조여온다' },
-  { sec: 120, leadSec: 2.5, label: '돌진 무리가 몰려온다' },
-  { sec: 184, leadSec: 2.5, label: '거대들이 탈출로를 막는다' },
+  { sec:  60, leadSec: 2.5, label: '지각생들이 사방에서 몰려온다', labelKey: 'stage5Telegraph.ring60' },    // ring   E03×8
+  { sec: 108, leadSec: 2.5, label: '앞뒤 통로에서 선생님이 조여온다', labelKey: 'stage5Telegraph.pincer108' }, // pincer E02×4
+  { sec: 120, leadSec: 2.5, label: '돌진 무리가 통로를 메운다', labelKey: 'stage5Telegraph.ring120' },      // ring   E05×4
+  { sec: 184, leadSec: 2.5, label: '돌진 좀비가 현관 길을 막는다', labelKey: 'stage5Telegraph.pincer184' }, // pincer E05×2
 ]
 
 export function getDefaultWavePhases(stageId = 'stage1') {
@@ -291,4 +320,17 @@ export const STAGE4_SPAWN_TELEGRAPHS = [
   { sec: 120, leadSec: 2.5, label: '돌진 무리가 식탁을 넘는다' },   // ring   E05×4 (피크 정점)
   { sec: 168, leadSec: 2.5, label: '사방에서 급식판이 날아온다' }, // ring   E04×4 (원거리 포위 = 안전지대 소멸, 포화점)
   { sec: 184, leadSec: 2.5, label: '거대들이 배식대를 막는다' },   // pincer E06×2 (보스 구간)
+]
+
+// 스테이지6 형태 배너 정본(스펙 Part C C-10-2). 배열 순서 = 이벤트 표의 줄·트랙 formation 행 순서
+// (64·96초 앞뒤 협공은 행 2개가 배너 1개). label = ko 폴백, labelKey = uimini가 t(labelKey, null, label)로 렌더.
+export const STAGE6_SPAWN_TELEGRAPHS = [
+  { sec:   5, leadSec: 2.5, label: '조회 줄이 선다', labelKey: 'hud.stage6.formation.row' },
+  { sec:  36, leadSec: 2.5, label: '조회 줄이 선다', labelKey: 'hud.stage6.formation.row' },
+  { sec:  64, leadSec: 2.5, label: '앞뒤로 조회 줄이 선다', labelKey: 'hud.stage6.formation.pincer' },
+  { sec:  96, leadSec: 2.5, label: '앞뒤로 조회 줄이 선다', labelKey: 'hud.stage6.formation.pincer' },
+  { sec: 124, leadSec: 2.5, label: '트랙에서 계주 대열이 달려온다', labelKey: 'hud.stage6.formation.relay' },
+  { sec: 132, leadSec: 2.5, label: '조회 줄이 선다', labelKey: 'hud.stage6.formation.row' },
+  { sec: 192, leadSec: 2.5, label: '정문 앞에 줄이 선다', labelKey: 'hud.stage6.formation.gate' },
+  { sec: 216, leadSec: 2.5, label: '정문 앞에 줄이 선다', labelKey: 'hud.stage6.formation.gate' },
 ]

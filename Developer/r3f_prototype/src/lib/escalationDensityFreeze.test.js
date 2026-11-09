@@ -75,8 +75,9 @@ const NOVEL_ESCALATION_TYPE_CODES = [64]
 
 describe('A3 밀도 경로 바이트 동일', () => {
   it('STAGE_DENSITY_MULTIPLIER·STAGE_JARMOB_HP_MULTIPLIER가 감독 도입 전 값과 비트 동일하다', () => {
-    expect(Object.keys(STAGE_DENSITY_MULTIPLIER).sort()).toEqual(['stage2', 'stage3', 'stage4'])
-    expect(Object.keys(STAGE_JARMOB_HP_MULTIPLIER).sort()).toEqual(['stage2', 'stage3', 'stage4'])
+    // 2026-11-08 Stage 5 교무실: 분석용 밀도 배율에 stage5 키가 새로 생겼다(_STAGE_BLEND_IDS). stage2~4 값은 아래에서 비트 동일.
+    expect(Object.keys(STAGE_DENSITY_MULTIPLIER).sort()).toEqual(['stage2', 'stage3', 'stage4', 'stage5'])
+    expect(Object.keys(STAGE_JARMOB_HP_MULTIPLIER).sort()).toEqual(['stage2', 'stage3', 'stage4', 'stage5'])
     for (const stageId of ['stage2', 'stage3', 'stage4']) {
       expect(STAGE_DENSITY_MULTIPLIER[stageId]).toBe(FROZEN.density[stageId])
       expect(STAGE_JARMOB_HP_MULTIPLIER[stageId]).toBe(FROZEN.hpMult[stageId])

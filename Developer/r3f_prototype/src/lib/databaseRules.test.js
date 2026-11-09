@@ -5,6 +5,7 @@ import { getBossClearBonus, getRankingScore } from './rankingScorePolicy.js'
 import { DEFAULT_SETTINGS } from './titleSettings.js'
 import { FIREBASE_STUDIO_DATASET_KEYS } from './firebaseStudio.js'
 import { PLAYER_OUTFIT_IDS, UNLOCKABLE_OUTFIT_IDS } from './playerOutfitIds.js'
+import { BOSS_PASSIVE_ITEMS } from './bossPassiveItems.js'
 
 const RULES_PATH = fileURLToPath(new URL('../../database.rules.json', import.meta.url))
 const FIREBASE_RC_PATH = fileURLToPath(new URL('../../.firebaserc', import.meta.url))
@@ -89,7 +90,9 @@ describe('Realtime Database rules', () => {
   it('allows every implemented boss passive unlock flag and rejects unknown flags', () => {
     const unlocks = rules.users.$uid.progress.bossPassiveUnlocks
 
-    for (const id of ['b01SetSquare', 'b02CorridorPass', 'b03GymWhistle', 'b04ServingLadle']) {
+    // 규칙의 고정 키 = 카탈로그 id 전부 (+ $other 거부). 한쪽만 늘리면 저장 전체가 거부된다.
+    expect(Object.keys(unlocks).filter((key) => key !== '$other').sort()).toEqual(Object.keys(BOSS_PASSIVE_ITEMS).sort())
+    for (const id of ['b01SetSquare', 'b02CorridorPass', 'b03GymWhistle', 'b04ServingLadle', 'b10ApprovalStamp', 'b05PrincipalMic']) {
       expect(unlocks[id]['.validate']).toContain('newData.isBoolean()')
       expect(unlocks[id]['.validate']).toContain('newData.val() === true')
       expect(evalRule(unlocks[id]['.validate'], { newData: ruleData(true) })).toBe(true)
@@ -414,9 +417,9 @@ describe('Rosari outfit rules (T-11, A-8, A-9)', () => {
     expect(titleSettingsAccepts({ ...DEFAULT_SETTINGS, playerOutfit: 'winter' })).toBe(true)
   })
 
-  it('playerOutfit accepts exactly the six canonical outfit ids and rejects unknown ones (A-8)', () => {
+  it('playerOutfit accepts exactly the canonical outfit ids and rejects unknown ones (A-8)', () => {
     const rule = progressRules.titleSettings.playerOutfit['.validate']
-    expect(PLAYER_OUTFIT_IDS).toEqual(['default', 'winter', 'raincoat', 'gym', 'apron', 'grad'])
+    expect(PLAYER_OUTFIT_IDS).toEqual(['default', 'winter', 'raincoat', 'gym', 'apron', 'grad', 'prefect', 'sportsDay'])
     expect(quotedIds(rule, 'newData.val()')).toEqual([...PLAYER_OUTFIT_IDS].sort())
     for (const id of PLAYER_OUTFIT_IDS) expect(titleSettingsAccepts({ ...DEFAULT_SETTINGS, playerOutfit: id }), id).toBe(true)
     for (const bad of ['summer', 'v9', 'GYM', '', 1, true]) {

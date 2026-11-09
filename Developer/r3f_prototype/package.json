@@ -26,6 +26,7 @@
     "browser:reserve": "npm run branch:check && powershell -NoProfile -ExecutionPolicy Bypass -File scripts/guard-game-browser-limit.ps1 -Mode reserve",
     "pretest": "npm run branch:check && node scripts/assert-no-legacy-b02.mjs && node scripts/assert-dialogue-store.mjs && node scripts/assert-studio-game-sync-contract.mjs",
     "verify:studio-game-sync": "node scripts/assert-studio-game-sync-contract.mjs && vitest run src/App.firebaseBootstrap.test.jsx src/App.studioGameSync.test.jsx src/components/GraphicsStudio.immediate.test.jsx src/lib/studioGameBridge.test.js",
+    "studio:pin": "node scripts/export-studio-snapshot.mjs",
     "verify:dialogue-targets": "node scripts/assert-dialogue-store.mjs --require-targets",
     "test": "vitest run",
     "test:watch": "python scripts/single_branch_guard.py run -- npm.cmd exec -- vitest",

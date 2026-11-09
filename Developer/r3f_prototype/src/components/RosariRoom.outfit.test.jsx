@@ -40,12 +40,13 @@ describe('Rosari wardrobe outfit selection', () => {
     expect(dialog.textContent).toContain('현재 착용: 학교 교복')
     const group = dialog.querySelector('[role="group"][aria-label="의상 선택"]')
     const options = [...group.querySelectorAll('button')]
-    expect(options.map((node) => node.dataset.outfitId)).toEqual(['default', 'winter', 'raincoat', 'gym', 'apron', 'grad'])
+    expect(options.map((node) => node.dataset.outfitId)).toEqual(['default', 'winter', 'raincoat', 'gym', 'apron', 'grad', 'prefect', 'sportsDay'])
     expect(options[0].textContent).toBe('학교 교복')
     expect(options[1].textContent).toBe('동복')
     expect(options[0].getAttribute('aria-pressed')).toBe('true')
     for (const option of options) expect(option.style.minHeight).toBe('44px')
-    for (const id of ['raincoat', 'gym', 'apron', 'grad']) expect(optionFor(id).getAttribute('aria-disabled')).toBe('true')
+    // prefect(Stage 5 클리어)·sportsDay(Stage 6 클리어)는 임시 외형으로 목록에 오르지만 기록이 없으면 잠겨 있다.
+    for (const id of ['raincoat', 'gym', 'apron', 'grad', 'prefect', 'sportsDay']) expect(optionFor(id).getAttribute('aria-disabled')).toBe('true')
 
     // A locked outfit is never worn, even when pressed.
     act(() => optionFor('gym').dispatchEvent(new MouseEvent('click', { bubbles: true })))
@@ -67,7 +68,7 @@ describe('Rosari wardrobe outfit selection', () => {
     act(() => container.querySelector('[data-outfit-table-open]').dispatchEvent(new MouseEvent('click', { bubbles: true })))
     const table = container.querySelector('[data-outfit-feature-table]')
     expect(table).not.toBeNull()
-    expect(table.querySelectorAll('tbody tr')).toHaveLength(6)
+    expect(table.querySelectorAll('tbody tr')).toHaveLength(8)
     act(() => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' })))
     expect(container.querySelector('[data-outfit-feature-table]')).toBeNull()
     expect(container.querySelector('[role="dialog"][aria-label="로자리 옷장"]')).not.toBeNull()
@@ -128,7 +129,7 @@ describe('mountRosariModel outfit lifecycle', () => {
   })
 
   it('outfit choice does not change the approved room character scale', () => {
-    const ids = ['default', 'winter', 'raincoat', 'gym', 'apron', 'grad']
+    const ids = ['default', 'winter', 'raincoat', 'gym', 'apron', 'grad', 'prefect', 'sportsDay']
     const scales = ids.map((outfitId) => {
       const f = fixture()
       const parent = new THREE.Group()

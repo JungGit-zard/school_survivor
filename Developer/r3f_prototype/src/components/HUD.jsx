@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, useRef } from 'react'
+import { useCallback, useEffect, useState, useMemo, useRef } from 'react'
 import '../assets/fonts/nanumMyeongjo.css'
 import { useShallow } from 'zustand/react/shallow'
 import { useGameStore, STAGE1_INTRO_IDS, getStageIntroIds } from '../store/useGameStore.js'
@@ -12,8 +12,9 @@ import { isUnlocked as isWeaponUnlocked } from '../lib/weaponUnlocks.js'
 import { buildPlaytestSummary, sendPlaytestSummaryToAssistant } from '../lib/playtestLogger.js'
 import { emitSfx } from '../lib/sfxEvents.js'
 import { playDialogueVoice, stopDialogueVoice } from '../lib/dialogueVoice.js'
-import { getClearContinuationStageId, getNextStageId, getStageConfig } from '../lib/stageConfig.js'
-import { STAGE2_SPAWN_TELEGRAPHS, STAGE3_SPAWN_TELEGRAPHS, STAGE4_SPAWN_TELEGRAPHS } from '../lib/waveTimelines.js'
+import { PART1_FINAL_STAGE_ID, getClearContinuationStageId, getNextStageId, getStageConfig } from '../lib/stageConfig.js'
+import { STAGE2_SPAWN_TELEGRAPHS, STAGE3_SPAWN_TELEGRAPHS, STAGE4_SPAWN_TELEGRAPHS, STAGE5_SPAWN_TELEGRAPHS, STAGE6_SPAWN_TELEGRAPHS } from '../lib/waveTimelines.js'
+import { getE04IntroSec } from '../lib/stage2ProjectileRules.js'
 import { getAdminOperationsConfig } from '../lib/adminConfig.js'
 import { getRankingScore } from '../lib/rankingScorePolicy.js'
 import { formatRunClock, useGameNumber } from '../lib/numberFormat.js'
@@ -38,6 +39,19 @@ const BOSS_PASSIVE_ITEM_ICONS = Object.freeze({
   b02CorridorPass: '🚧',
   b03GymWhistle: '📣',
   b04ServingLadle: '🥄',
+  b10ApprovalStamp: '📝',
+  b05PrincipalMic: '🎤',
+})
+
+// 1부 엔딩 컷(스펙 Part C C-8-3): Stage 6 정문 탈출 때마다 결과 패널 위에 3줄. 건너뛰기 항상 표시.
+export const PART1_ENDING_IDS = Object.freeze(['ending.part1.001', 'ending.part1.002', 'ending.part1.003'])
+
+// 확장 스테이지 원거리(E04) 도입 경고 문구. stage2·stage4는 기존 공용 문구.
+const E04_INTRO_WARNING_KEYS = Object.freeze({
+  stage2: 'hud.projectileWarning',
+  stage4: 'hud.projectileWarning',
+  stage5: 'hud.projectileWarning.stage5',
+  stage6: 'hud.stage6.rangedWarning',
 })
 import { isProjectMaster } from '../lib/projectAdmin.js'
 import { schoolButton, schoolPanel, uiBorders, uiPalette, uiShadows, uiType } from '../lib/uiStyle.js'
@@ -48,8 +62,10 @@ import OutfitUnlockCard from './OutfitUnlockCard.jsx'
 import { outfitEffectSummary, outfitName } from '../lib/outfitDisplay.js'
 import StageVendingPrompt from './StageVendingPrompt.jsx'
 import Stage4HazardGuide from './Stage4HazardGuide.jsx'
+import Stage5CallGuide from './Stage5CallGuide.jsx'
+import Stage6HudCues from './Stage6HudCues.jsx'
 import LobbySettingsModal from './LobbySettingsModal.jsx'
-import { milestoneLabel, missionTitle, t as translate, useT, weaponLabel } from '../lib/i18n.js'
+import { milestoneLabel, missionTitle, t as translate, useLocale, useT, weaponLabel } from '../lib/i18n.js'
 import { dispatchStarlinkCheatCrash } from './Weapons/Starlink.jsx'
 import pencilIconSrc from '../assets/weapon_icon/01_wea_pencil.png.webp'
 import rulerIconSrc from '../assets/weapon_icon/02_wea_30ruller.png.webp'
@@ -910,9 +926,34 @@ export default function HUD({
     cleared: false,
   })
   const stageConfig = getStageConfig(currentStageId)
+  const locale = useLocale()
   const nextStageId = getNextStageId(currentStageId)
   // 탈출 결과창의 이어 가기는 이번 런 보스 처치가 최소 조건이다. 탈출구로만 나왔으면 로비만 보인다.
   const continuationStageId = getClearContinuationStageId(currentStageId, { bossDefeated })
+  // 1부 마지막 스테이지(Stage 6) 탈출 결과: 이어 가기 없음, 엔드리스 예고 배지(비활성), 엔딩 컷.
+  const isPart1Finale = phase === 'cleared' && currentStageId === PART1_FINAL_STAGE_ID
+  const [part1EndingIndex, setPart1EndingIndex] = useState(-1)
+  const part1EndingOpen = isPart1Finale && part1EndingIndex >= 0
+  const part1EndingShownRef = useRef(null)
+  useEffect(() => {
+    if (!isPart1Finale) {
+      part1EndingShownRef.current = null
+      setPart1EndingIndex(-1)
+      return
+    }
+    if (part1EndingShownRef.current === gameKey) return
+    part1EndingShownRef.current = gameKey
+    setPart1EndingIndex(0)
+  }, [isPart1Finale, gameKey])
+  const closePart1Ending = useCallback(() => setPart1EndingIndex(-1), [])
+  const advancePart1Ending = useCallback(() => {
+    setPart1EndingIndex((index) => (index < 0 || index >= PART1_ENDING_IDS.length - 1 ? -1 : index + 1))
+  }, [])
+  useEffect(() => {
+    if (!part1EndingOpen) return undefined
+    playDialogueVoice(getDialogueText(PART1_ENDING_IDS[part1EndingIndex]), 'protagonistIntro', { volume: 1 })
+    return () => stopDialogueVoice()
+  }, [part1EndingOpen, part1EndingIndex])
   const stageClearScore = escapeResult?.stageScore ?? getRankingScore({
     stageId: currentStageId,
     survivalSeconds: Math.floor(elapsed / 1000),
@@ -1143,9 +1184,12 @@ export default function HUD({
 
   // stage2/stage4는 e04IntroSec가 E04 실발사 게이트와 일치하므로 허위 경고가 아니다.
   // stage3은 e04IntroSec(34)이 HUD 힌트용이라 실발사(72)와 어긋나 여기서 제외한다.
+  // stage5(12초)·stage6(8초)는 실발사 게이트(getE04IntroSec)를 그대로 읽는다.
   const e04IntroWarning = useMemo(() => {
-    if ((currentStageId !== 'stage2' && currentStageId !== 'stage4') || phase !== 'playing') return null
-    const introSec = stageConfig.e04IntroSec ?? 90
+    if (!E04_INTRO_WARNING_KEYS[currentStageId] || phase !== 'playing') return null
+    const introSec = currentStageId === 'stage5' || currentStageId === 'stage6'
+      ? getE04IntroSec(currentStageId)
+      : stageConfig.e04IntroSec ?? 90
     const elapsedSec = elapsed / 1000
     if (elapsedSec < introSec - 3 || elapsedSec >= introSec) return null
     return Math.max(1, Math.ceil(introSec - elapsedSec))
@@ -1154,9 +1198,14 @@ export default function HUD({
   // 대형(형태) 버스트 스폰 예고 배너 라벨. stage2는 현재 빈 정본([]),
   // stage3는 개방 아레나 포위 편대(STAGE3_SPAWN_TELEGRAPHS),
   // stage4는 급식실 편대(STAGE4_SPAWN_TELEGRAPHS)를 예고한다.
+  // stage5·stage6 행은 labelKey가 있어 t(labelKey, null, label)로 ko/en/ja를 낸다(S3·S4는 ko label 그대로).
   const formationWarning = useMemo(() => {
     if (phase !== 'playing') return null
-    const telegraphs = currentStageId === 'stage4'
+    const telegraphs = currentStageId === 'stage6'
+      ? (STAGE6_SPAWN_TELEGRAPHS ?? [])
+      : currentStageId === 'stage5'
+        ? (STAGE5_SPAWN_TELEGRAPHS ?? [])
+        : currentStageId === 'stage4'
       ? (STAGE4_SPAWN_TELEGRAPHS ?? [])
       : currentStageId === 'stage3'
         ? (STAGE3_SPAWN_TELEGRAPHS ?? [])
@@ -1168,8 +1217,9 @@ export default function HUD({
     const hit = telegraphs.find(
       (t) => elapsedSec >= t.sec - t.leadSec && elapsedSec < t.sec,
     )
-    return hit ? hit.label : null
-  }, [currentStageId, elapsed, phase])
+    if (!hit) return null
+    return hit.labelKey ? translate(hit.labelKey, null, hit.label) : hit.label
+  }, [currentStageId, elapsed, phase, locale])
 
   // 마틸다 등장 전 카운트다운
   const matildaWarning = useMemo(() => {
@@ -1461,7 +1511,7 @@ export default function HUD({
       )}
       {e04IntroWarning != null && (
         <div style={styles.projectileWarning}>
-          <div style={styles.projectileWarningLabel}>{t('hud.projectileWarning')}</div>
+          <div style={styles.projectileWarningLabel}>{t(E04_INTRO_WARNING_KEYS[currentStageId] ?? 'hud.projectileWarning')}</div>
           <div style={styles.projectileWarningCount}>{e04IntroWarning}</div>
         </div>
       )}
@@ -1469,6 +1519,9 @@ export default function HUD({
         <div data-testid="matilda-warning" style={styles.matildaWarning}>
           <div style={styles.matildaWarningLabel}>{t('hud.matildaWarning')}</div>
           <div data-testid="matilda-warning-count" style={styles.matildaWarningCount}>{matildaWarning}</div>
+          {currentStageId === 'stage6' && (
+            <div data-testid="matilda-warning-flavor" style={styles.matildaWarningFlavor}>{t('hud.stage6.matildaFlavor')}</div>
+          )}
         </div>
       )}
       {showMatildaDialogue && (
@@ -1603,6 +1656,27 @@ export default function HUD({
         </>
       )}
 
+      <Stage5CallGuide
+        stageId={currentStageId}
+        phase={phase}
+        gameKey={gameKey}
+        bossDefeated={bossDefeated}
+        escapePortalActive={escapePortalActive}
+        hidden={!Number.isFinite(player.hp) || player.hp <= 0
+          || !!studentDialogue || !!introDialogue || !!questToast || questInventoryOpen
+          || bossWarning != null || e04IntroWarning != null || matildaWarning != null || formationWarning != null
+          || showMatildaDialogue || portalFlash || !!recentMilestone
+          || isTitleReturnConfirmOpen || (devToolsVisible && weaponCheatOpen)}
+      />
+      <Stage6HudCues
+        stageId={currentStageId}
+        phase={phase}
+        gameKey={gameKey}
+        escapePortalActive={escapePortalActive}
+        hidden={!Number.isFinite(player.hp) || player.hp <= 0
+          || !!studentDialogue || !!introDialogue || questInventoryOpen
+          || isTitleReturnConfirmOpen || (devToolsVisible && weaponCheatOpen)}
+      />
       <Stage4HazardGuide
         stageId={currentStageId}
         phase={phase}
@@ -1863,14 +1937,14 @@ export default function HUD({
                 <div
                   key={item?.id ?? `empty-boss-passive-slot-${index}`}
                   role="listitem"
-                  aria-label={item ? `${item.name} — ${item.description}` : t('hud.bossPassiveEmptySlot')}
+                  aria-label={item ? `${t(`bossPassive.${item.id}.name`, null, item.name)} — ${t(`bossPassive.${item.id}.description`, null, item.description)}` : t('hud.bossPassiveEmptySlot')}
                   style={{ ...styles.bossPassiveSlot, ...(item ? styles.bossPassiveSlotUnlocked : null) }}
                 >
                   {item ? (
                     <>
                       <span aria-hidden="true" style={styles.bossPassiveIcon}>{item.icon}</span>
-                      <strong style={styles.bossPassiveName}>{item.name}</strong>
-                      <small style={styles.bossPassiveDescription}>{item.description}</small>
+                      <strong style={styles.bossPassiveName}>{t(`bossPassive.${item.id}.name`, null, item.name)}</strong>
+                      <small style={styles.bossPassiveDescription}>{t(`bossPassive.${item.id}.description`, null, item.description)}</small>
                     </>
                   ) : <span aria-hidden="true" style={styles.bossPassiveEmptyMark}>+</span>}
                 </div>
@@ -1936,17 +2010,22 @@ export default function HUD({
       )}
 
       {phase === 'cleared' && (
-        <div data-testid="escape-success-screen" style={{ ...styles.overlay, ...styles.escapeOverlay }}>
+        <div data-testid="escape-success-screen" style={{ ...styles.overlay, ...styles.escapeOverlay }} aria-hidden={part1EndingOpen ? 'true' : undefined}>
           <section style={styles.escapePanel} aria-labelledby="escape-success-title">
             <img src={escapeSuccessSrc} alt="" style={styles.escapeImage} />
             <div style={styles.escapeContent}>
-              <h2 id="escape-success-title" style={styles.escapeTitle}>{t('hud.escapeSuccess')}</h2>
+              <h2 id="escape-success-title" style={styles.escapeTitle}>{t(isPart1Finale ? 'hud.part1Complete.title' : 'hud.escapeSuccess')}</h2>
               <p data-testid="escape-total-score" style={styles.escapeScore}>{t('hud.continuousScore', { score: gameNumber(clearTotalScore) })}</p>
               <p style={styles.escapeStageScore}>{t('hud.stageScore', { score: gameNumber(stageClearScore) })}</p>
-              <p data-testid="escape-continue-hint" style={styles.escapeHint}>{t(continuationStageId ? 'hud.continueScoreHint' : nextStageId ? 'hud.bossRequiredForNextStage' : 'hud.continuousRunComplete')}</p>
+              <p data-testid="escape-continue-hint" style={styles.escapeHint}>{t(isPart1Finale ? 'hud.part1Complete.hint' : continuationStageId ? 'hud.continueScoreHint' : nextStageId ? 'hud.bossRequiredForNextStage' : 'hud.continuousRunComplete')}</p>
+              {isPart1Finale && (
+                <div data-testid="part1-endless-teaser" role="note" aria-disabled="true" style={styles.part1EndlessTeaser}>
+                  {t('hud.part1Complete.endlessTeaser')}
+                </div>
+              )}
               <OutfitUnlockCard outfitIds={newlyUnlockedOutfitIds} />
               <div data-testid="result-primary-actions" style={styles.escapeActions}>
-                {continuationStageId && (
+                {continuationStageId && !isPart1Finale && (
                   <button type="button" data-testid="escape-continue-next-stage" style={styles.escapeContinueBtn} onClick={continueToNextStage}>
                     {t('hud.continueNextStage')}
                   </button>
@@ -2088,7 +2167,39 @@ export default function HUD({
         </div>
       )}
 
-      {/* 스테이지 스토리 인트로(Stage 1~5) — 딤 처리된 화면 위 내레이션. 탭할 때마다 다음 대사, 마지막 탭에 게임 시작 */}
+      {/* 1부 엔딩 컷(Stage 6 정문 탈출 때마다) — 인트로 대사 상자와 같은 모양. 탭으로 넘기고 건너뛰기는 항상 보인다. */}
+      {part1EndingOpen && (
+        <div
+          data-testid="part1-ending-catcher"
+          style={styles.introCatcher}
+          onPointerDown={() => { emitSfx({ id: 'buttonClick' }); advancePart1Ending() }}
+        >
+          <button
+            type="button"
+            data-testid="part1-ending-skip"
+            style={styles.introSkipButton}
+            onPointerDown={(event) => event.stopPropagation()}
+            onClick={() => { emitSfx({ id: 'buttonClick' }); closePart1Ending() }}
+          >
+            {t('hud.skipIntro')}
+          </button>
+          <div style={styles.introBox} role="dialog" aria-modal="true" aria-label={t('hud.part1Complete.title')}>
+            <div style={styles.introRow}>
+              <div style={styles.introPortraitFrame}>
+                <img src={rosariIntroPortraitSrc} alt={t('hud.introPortraitAlt')} draggable={false} style={styles.introPortrait} />
+              </div>
+              <div data-testid="part1-ending-line" style={{ ...styles.dialogueLine, ...styles.introLine }} aria-live="polite">
+                {getDialogueText(PART1_ENDING_IDS[part1EndingIndex])}
+              </div>
+            </div>
+            <div style={styles.dialogueHint}>
+              {part1EndingIndex < PART1_ENDING_IDS.length - 1 ? t('hud.tapToContinue') : t('common.close')}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 스테이지 스토리 인트로(Stage 1~6) — 딤 처리된 화면 위 내레이션. 탭할 때마다 다음 대사, 마지막 탭에 게임 시작 */}
       {introDialogue && (
         <div
           data-testid="stage-intro-catcher"
@@ -2264,6 +2375,27 @@ const styles = {
     color: '#f0aaff',
     fontSize: 15,
     fontWeight: 900,
+  },
+  matildaWarningFlavor: {
+    color: '#f0aaff',
+    fontSize: 13,
+    fontWeight: 900,
+    marginTop: 6,
+  },
+  // 버튼처럼 보이지 않는 비활성 예고 배지(점선 테두리, 낮은 채도, 탭 무반응).
+  part1EndlessTeaser: {
+    alignSelf: 'center',
+    margin: '2px 0 8px',
+    padding: '5px 10px',
+    border: '1.5px dashed rgba(255,255,255,0.45)',
+    borderRadius: 8,
+    color: 'rgba(255,255,255,0.7)',
+    fontSize: 12,
+    fontWeight: 800,
+    lineHeight: 1.2,
+    textAlign: 'center',
+    pointerEvents: 'none',
+    userSelect: 'none',
   },
   matildaWarningCount: {
     color: '#ffffff',

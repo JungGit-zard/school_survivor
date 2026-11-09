@@ -135,8 +135,24 @@ describe('C2 Stage 5', () => {
     const run = runStageRuntimeProbe({ stageId: 'stage5', seed: 3, bot: KITE4, immortal: true, maxSec: 230 })
     expect(run.spawnCountBySource.burst).toBeGreaterThan(20)
     expect(run.spawnCountBySource.boss).toBe(1)
+    // 교무실 개편(2026-11-08): 보스는 B10 교감 좀비, 실효 HP 3,241(150초 = 30초 bin 5).
+    expect(run.spawnHpByBin[Math.floor(150 / 30)].boss).toBe(3241)
+    // 전교 호출(73·133·193)과 보스 구간 잡몹(160·180·200·220)은 반복 경로로 나온다.
+    expect(run.spawnCountBySource['burst-repeat']).toBeGreaterThan(0)
+    expect(run.maxActiveEnemies).toBeLessThanOrEqual(150)
     expect(run.cleared).toBe(true)
     expect(run.clearSec).toBeGreaterThanOrEqual(211)
+  }, LONG)
+
+  // 게이트 자체(11.9s 불가·12s 가능)는 stage2ProjectileRules.test.js가 본다. 여기서는 프로브가 그 게이트를
+  // 실제로 타서 Stage 5 사수가 초반에 쏘는지만 확인한다 — 옛 72초 게이트였다면 40초 창의 E04 피해는 0이다.
+  // (프로브·런타임의 게이트는 캐치업으로 앞당겨질 수 있는 스폰 시계를 본다.)
+  // wave 4(2026-11-08): Stage 5는 책상 섬이 E04 사선을 끊는다 — 가운데 광장에 가만히 선 IDLE은 대개 사선 밖이라
+  // 움직이는 KITE 봇으로 본다(레인에 들어서면 사선이 열린다). 여러 시드 중 하나라도 맞으면 게이트가 살아 있는 것이다.
+  // 400판 실측(seed 1~200 × KITE 2종): E04 피해는 판당 약 5(≈ 0.6발) — 줄었지만 0은 아니다.
+  it('Stage 5 원거리 E04는 사선이 열린 레인에서 실제로 맞힌다(시드 1~8 × 120초 합계 > 0)', () => {
+    const hits = [1, 2, 3, 4, 5, 6, 7, 8].map((seed) => runStageRuntimeProbe({ stageId: 'stage5', seed, bot: KITE4, immortal: true, maxSec: 120 }).damageBySource[SOURCE_E04_SHOT] ?? 0)
+    expect(hits.reduce((a, b) => a + b, 0)).toBeGreaterThan(0)
   }, LONG)
 })
 

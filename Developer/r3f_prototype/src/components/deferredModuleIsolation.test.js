@@ -34,6 +34,10 @@ describe('initial-screen deferred module isolation', () => {
     // 88e94787 wraps the statically imported scene in <Suspense> for in-scene asset loads (title redraw fix);
     // the module itself must still not be code-split.
     expect(scene).not.toContain("from './StageObjects/index.js'")
-    expect(scene).toContain("import ClassroomDesk from './StageObjects/ClassroomDesk.jsx'")
+    expect(scene).not.toContain("from './StageObjects'")
+    // 2026-11-08 title decision 1 dropped the desks/chairs/students from the title cast, so the title module
+    // no longer imports any stage prop; any future one must stay a direct file import, never the barrel.
+    const stageObjectImports = scene.match(/from '\.\/StageObjects\/[^']+'/g) ?? []
+    stageObjectImports.forEach((line) => expect(line).not.toContain('index.js'))
   })
 })

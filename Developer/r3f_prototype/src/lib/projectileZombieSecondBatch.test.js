@@ -371,7 +371,7 @@ describe('2차 10종 스폰 배치(스1~5)', () => {
     return seen
   }
 
-  // 스5는 이 빌드에서 들어갈 수 없다(stageConfig VISIBLE_STAGE_IDS = 스1~4). 첫 등장은 반드시 스1~4다.
+  // 설계 규칙: 2차 10종의 첫 등장은 스1~4다(스5는 해금 전 계정이 많아 첫 조우 지점으로 쓰지 않는다).
   it('10종 전부 스1~4에 1마리 단독으로 첫 등장하고, 다른 신규 종과 같은 초에 겹치지 않는다', () => {
     const mine = debuts(IDS)
     expect([...mine.keys()].sort()).toEqual([...IDS].sort())

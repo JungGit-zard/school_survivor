@@ -6,7 +6,9 @@ import { getStageBounds, getStageConfig } from '../lib/stageConfig.js'
 import { playerPos, screenBounds } from '../lib/refs.js'
 import Player from './Player.jsx'
 import Floor from './Floor.jsx'
-import { clearExpansionAttacks } from '../lib/expansionAttackRuntime.js'
+import { clearExpansionAttacks, stepExpansionHazardSnapshots } from '../lib/expansionAttackRuntime.js'
+import { getExpansionStageHazards } from '../lib/expansionContent.js'
+import { STAGE6_SFX, advanceAssemblySpeech, createAssemblySpeechState, emitAssemblySpeechRing, publishAssemblySpeechCue } from '../lib/stage6AssemblySpeech.js'
 import Enemies from './Enemies.jsx'
 import SlteraEvent from './SlteraEvent.jsx'
 import { isSlteraStage } from '../lib/slteraEvent.js'
@@ -17,10 +19,13 @@ import StudentDialogueTrigger from './StudentDialogueTrigger.jsx'
 import QuestWorldLayer from './QuestWorldLayer.jsx'
 import { emitSfx } from '../lib/sfxEvents.js'
 import { getStage4CauldronFeedback } from '../lib/stage4CauldronFeedback.js'
+import { getStage5CallLaneFeedback, getStage5CallLaneVisual } from '../lib/stage5CallLane.js'
+import { getSpawnCatchUpOffsetSec } from '../lib/spawnCatchUp.js'
 import { createCriticalScreenShakeFrame, sampleCriticalScreenShake } from '../lib/criticalScreenShake.js'
 import { PUBLISH_INTERVAL_MS, advanceRuntimeTime, getRuntimeElapsedMs } from '../lib/gameRuntimeTime.js'
 import { clampGameplayFrameDelta, createGameplayFixedStepClock, runGameplayFixedSteps } from '../lib/gameplayFrameTime.js'
 import { PLAYER_MESH_WORLD_HALF_WIDTH, PLAYER_MESH_WORLD_HEIGHT } from '../lib/characterVisualScale.js'
+import { EXPANSION_STAGE_VISUALS } from '../lib/expansionVisuals.js'
 import { GAME_CAMERA_BACK, GAME_CAMERA_EDGE_INSET_FRACTION, GAME_CAMERA_HEIGHT, clampGameplayCameraFocus, getGameplayGroundReach, keepPlayerInsideCameraX } from '../lib/gameCameraFraming.js'
 import {
   PRESSURE_CAULDRON_DAMAGE_RATIO,
@@ -49,6 +54,7 @@ export default function Game() {
   if (gameplayClockRef.current === null) gameplayClockRef.current = createGameplayFixedStepClock()
   const phase      = useGameStore((s) => s.phase)
   const currentStageId = useGameStore((s) => s.currentStageId)
+  const stageAmbient = EXPANSION_STAGE_VISUALS[currentStageId]?.ambient
   const escapePortalActive = useGameStore((s) => s.escapePortalActive)
   const activateEscapePortal = useGameStore((s) => s.activateEscapePortal)
   const spawnMatilda = useGameStore((s) => s.spawnMatilda)
@@ -64,6 +70,18 @@ export default function Game() {
     cauldronAudio.stageId = currentStageId
     cauldronAudio.warningCycle = cauldronAudio.burstCycle = -1
   }
+  // Stage 5 전교 호출 방송 SFX(차임/시작)를 회차당 1회만 낸다. 일시정지·재개 사이에는 유지, 런/스테이지가 바뀌면 초기화.
+  const callLaneAudioRef = useRef({ gameKey, stageId: currentStageId, chimeCycle: -1, startCycle: -1 })
+  const callLaneAudio = callLaneAudioRef.current
+  if (callLaneAudio.gameKey !== gameKey || callLaneAudio.stageId !== currentStageId) {
+    callLaneAudio.gameKey = gameKey
+    callLaneAudio.stageId = currentStageId
+    callLaneAudio.chimeCycle = callLaneAudio.startCycle = -1
+  }
+  const callLaneVisualRef = useRef({ chiming: false, calling: false, cycle: -1 })
+  // Stage 6 '훈화 말씀' 해저드 스케줄 상태. 일시정지·재개 사이에는 유지, 런/스테이지가 바뀌면 새로 만든다.
+  const hazardRef = useRef({ gameKey, stageId: currentStageId, states: new Map() })
+  const hazardStepArgsRef = useRef({ deltaMs: 0, playing: true, playerX: 0, playerZ: 0, gameKey: 0 })
   useEffect(() => { clearExpansionAttacks(); return clearExpansionAttacks }, [gameKey,currentStageId])
   useEffect(() => { if(phase==='gameover'||phase==='cleared')clearExpansionAttacks() }, [phase])
 
@@ -108,6 +126,65 @@ export default function Game() {
             try { emitSfx({ id: feedbackId }) } catch { /* gameplay continues */ }
           }
         }
+        // Stage 5 전교 호출: 호출은 스폰과 묶여 있어 스폰 시계(실시간 + 캐치업 오프셋)로 경계를 본다.
+        if (gs.currentStageId === 'stage5') {
+          const offsetMs = getSpawnCatchUpOffsetSec() * 1000
+          const callFeedbackId = getStage5CallLaneFeedback(previousElapsedMs + offsetMs, elapsedMs + offsetMs, gs.currentStageId, gs.phase)
+          if (callFeedbackId) {
+            const audio = callLaneAudioRef.current
+            if (audio.gameKey !== gs.gameKey || audio.stageId !== gs.currentStageId) {
+              audio.gameKey = gs.gameKey
+              audio.stageId = gs.currentStageId
+              audio.chimeCycle = audio.startCycle = -1
+            }
+            const cycle = getStage5CallLaneVisual(elapsedMs + offsetMs, gs.currentStageId, gs.phase, callLaneVisualRef.current).cycle
+            const edge = callFeedbackId === 'stage5CallStart' ? 'startCycle' : 'chimeCycle'
+            if (cycle > audio[edge]) {
+              audio[edge] = cycle
+              // 오디오는 선택 사항이다 — 실패해도 스폰·판정·진행은 계속된다. 재시도하지 않는다.
+              try { emitSfx({ id: callFeedbackId }) } catch { /* gameplay continues */ }
+            }
+          }
+        }
+        // Stage 6 조회대 스피커 '훈화 말씀': 스케줄(런타임 시계) → 고리 스냅샷 발신 → 진행·피해(무적 존중).
+        // 해저드가 없는 스테이지는 빈 배열이라 아무것도 하지 않는다.
+        const stageHazards = getExpansionStageHazards(gs.currentStageId)
+        if (stageHazards.length > 0) {
+          const hz = hazardRef.current
+          if (hz.gameKey !== gs.gameKey || hz.stageId !== gs.currentStageId) {
+            hz.gameKey = gs.gameKey
+            hz.stageId = gs.currentStageId
+            hz.states = new Map()
+          }
+          const bounds = getStageBounds(gs.currentStageId)
+          for (const hazard of stageHazards) {
+            let speech = hz.states.get(hazard.id)
+            if (!speech) { speech = createAssemblySpeechState(gs.gameKey); hz.states.set(hazard.id, speech) }
+            advanceAssemblySpeech(speech, hazard, previousElapsedMs / 1000, elapsedMs / 1000,
+              (entry) => Boolean(emitAssemblySpeechRing(speech, hazard, entry, {
+                gameKey: gs.gameKey, playerX: playerPos.x, playerZ: playerPos.z, stageId: gs.currentStageId, halfX: bounds.halfX, halfZ: bounds.halfZ,
+              })),
+              (cue) => {
+                publishAssemblySpeechCue(gs.gameKey, cue.kind, cue.cycle)
+                const cueSfx = cue.kind === 'tutorial' ? STAGE6_SFX.schoolChime : STAGE6_SFX.micFeedback
+                try { emitSfx({ id: cueSfx }) } catch { /* 오디오는 선택 사항 */ }
+              })
+          }
+          const stepArgs = hazardStepArgsRef.current
+          stepArgs.deltaMs = fixedDelta * 1000
+          stepArgs.playing = gs.phase === 'playing'
+          stepArgs.playerX = playerPos.x
+          stepArgs.playerZ = playerPos.z
+          stepArgs.gameKey = gs.gameKey
+          const hazardStep = stepExpansionHazardSnapshots(stepArgs)
+          if (hazardStep.activeStarts > 0) {
+            try { emitSfx({ id: STAGE6_SFX.speechRingPulse }) } catch { /* 오디오는 선택 사항 */ }
+          }
+          if (hazardStep.damage > 0) {
+            const live = useGameStore.getState()
+            if (live.phase === 'playing') live.damagePlayer(hazardStep.damage, { source: 'stage6AssemblySpeech' })
+          }
+        }
         const cauldronExplosions = getPressureCauldronExplosionTimes(
           previousElapsedMs,
           elapsedMs,
@@ -127,6 +204,8 @@ export default function Game() {
         if (!gs.escapePortalActive && elapsedMs >= stageConfig.escapePortalSec * 1000) {
           activateEscapePortal()
           emitSfx({ id: 'portalAppear' })
+          // Stage 6: 정문 철문 미닫이 소리(soundmini가 등록하기 전까지 무음). 문 열림 비주얼은 threemini.
+          if (gs.currentStageId === 'stage6') { try { emitSfx({ id: STAGE6_SFX.gateOpen }) } catch { /* 오디오는 선택 사항 */ } }
         }
         // 스테이지 설정 시간에 마틸다 스폰
         if (!gs.matildaSpawned && elapsedMs >= stageConfig.matildaWarningSec * 1000) {
@@ -210,12 +289,13 @@ export default function Game() {
   return (
     <>
       {/* ── Lighting ── */}
-      <ambientLight intensity={0.38} color={0x6d6780} />
+      {/* 야외 스테이지(Stage 6 운동장)는 스테이지 비주얼의 ambient로 밝은 햇빛 톤을 쓴다. 광원 개수는 그대로다. */}
+      <ambientLight intensity={stageAmbient?.intensity ?? 0.38} color={stageAmbient?.color ?? 0x6d6780} />
       <directionalLight
         position={[-10, 22, 12]}
         intensity={3.2}
       />
-      <directionalLight position={[10, 12, -10]} intensity={0.85} color={0xffe2b0} />
+      <directionalLight position={[10, 12, -10]} intensity={0.85} color={stageAmbient?.rimColor ?? 0xffe2b0} />
       {/* 스테이지 색 구역은 런타임 광원이 아니라 바닥 lightMap으로 굽는다
           (ClassroomFloor → stageFloorLightBake.js). 실시간 SpotLight 3개는
           픽셀마다 감쇠·콘 연산과 툰 gradientMap 종속 페치를 추가해 모바일에서

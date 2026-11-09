@@ -27,4 +27,22 @@ describe('getInvestigationDialogue', () => {
       expect(dialogue.dialogueId).toMatch(new RegExp(`^investigation\\.student\\.${stageId}\\.`))
     }
   })
+
+  // 2026-11-08 Stage 5 교무실 프롭 6종: 어느 것을 조사해도 "대사 없음" 문구가 나오지 않는다(ko/en/ja 각 5줄).
+  it('gives every staff-room prop its own five-line pool in ko, en and ja', () => {
+    const types = ['staffroomDeskIsland', 'staffroomViceDesk', 'staffroomCopier', 'staffroomEntranceDoor', 'staffroomSpeaker', 'staffroomClutter']
+    for (const type of types) {
+      for (const locale of ['ko', 'en', 'ja']) {
+        const ids = new Set()
+        for (let index = 0; index < 5; index += 1) {
+          const dialogue = getInvestigationDialogue('stage5', type, { random: () => (index + 0.5) / 5 })
+          expect(dialogue?.dialogueId, type).not.toBe('dialogue.unavailable')
+          ids.add(dialogue.dialogueId)
+          expect(getDialogueText(dialogue.dialogueId, locale)).not.toBe(getDialogueText('dialogue.unavailable', locale))
+        }
+        expect(ids.size, type).toBe(5)
+      }
+    }
+    expect(getInvestigationDialogue('stage5', 'unconsciousStudent', { random: () => 0 }).dialogueId).toMatch(/^investigation\.student\.stage5\./)
+  })
 })

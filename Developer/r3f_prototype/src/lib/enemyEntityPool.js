@@ -1,5 +1,6 @@
 import { EXPANSION_ENEMIES, EXPANSION_BOSSES } from './expansionContent.js'
 import { PROJECTILE_ZOMBIE_TYPE_CODES, PROJECTILE_ZOMBIE_TYPE_NAME_SLOTS } from './projectileZombieVisuals.js'
+import { B10_TYPE_CODE } from './stage5ViceBoss.js'
 // 적 런타임의 정적 슬롯 풀. React/Three/Rapier 및 저장소에 의존하지 않는다.
 export const MAX_ENEMIES = 150
 export const MAX_ENEMY_GENERATION = 0xffff
@@ -47,9 +48,12 @@ export const ENEMY_TYPE_CODES = Object.freeze({
   // 행동 런타임: lib/projectileZombieBehavior.js. 고정 번호 — 재배열 금지. 64는 E59 미니(2차) 예약.
   // 65~74 = 2차 10종 E61~E70(2026-11-07). 같은 공용 경로·같은 표를 쓴다.
   ...PROJECTILE_ZOMBIE_TYPE_CODES,
+  // 75 = Stage 5 보스 B10 교감 좀비(2026-11-08). 확장 DATA.bosses 밖의 authored-attack 보스(lib/stage5ViceBoss.js).
+  // 스펙 초안의 65는 2차 10종(E61~E70 = 65~74)이 먼저 차지해 다음 빈 번호 75를 쓴다. 64는 여전히 E59 미니 예약(스폰 금지).
+  B10: B10_TYPE_CODE,
 })
 
-// 인덱스 = typeCode. 리터럴 17개(0~16) + 확장 20개(17~36) + Track B 12개(37~48) + 투사체 15개(49~63).
+// 인덱스 = typeCode. 리터럴 17개(0~16) + 확장 20개(17~36) + Track B 12개(37~48) + 투사체 25개(49~74, 64 예약) + B10(75).
 // ⚠ 순서를 바꾸면 모든 typeCode가 밀린다. 새 타입은 반드시 배열 끝에만 붙인다.
 export const NOVEL_ZOMBIE_TYPE_IDS = Object.freeze([
   'E34', 'E35', 'E36', 'E37', 'E38', 'E39', 'E40', 'E41', 'E42', 'E43', 'E44', 'E45',
@@ -61,6 +65,8 @@ export const ENEMY_TYPE_NAMES = Object.freeze([
   ...NOVEL_ZOMBIE_TYPE_IDS,
   // 49~74. 예약 슬롯 64는 빈 문자열이라 알 수 없는 코드로 취급된다.
   ...PROJECTILE_ZOMBIE_TYPE_NAME_SLOTS,
+  // 75 = B10(Stage 5 교감 좀비). 보스라 풀 슬롯을 쓰지 않는다(특수 적 경로) — typeCode는 조우·도감 식별용.
+  'B10',
 ])
 
 const MAX_GENERATION = MAX_ENEMY_GENERATION

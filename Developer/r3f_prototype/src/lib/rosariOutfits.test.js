@@ -212,10 +212,10 @@ describe('S6 placeholder outfits', () => {
   }
   const triangleCount = (mesh) => (mesh.geometry.index ? mesh.geometry.index.count : mesh.geometry.attributes.position.count) / 3
 
-  it('uses exactly the six ids of the outfit plan, in unlock order', () => {
-    expect(ROSARI_OUTFIT_IDS).toEqual(['default', 'winter', 'raincoat', 'gym', 'apron', 'grad'])
-    expect(ROSARI_OUTFITS.map((outfit) => outfit.label)).toEqual(['학교 교복', '동복', '비옷', '체육복', '급식 당번복', '졸업'])
-    for (const id of NEW_IDS) expect(resolveRosariOutfit(id).note, id).toContain('임시안')
+  it('uses exactly the eight ids of the outfit plan, in unlock order', () => {
+    expect(ROSARI_OUTFIT_IDS).toEqual(['default', 'winter', 'raincoat', 'gym', 'apron', 'grad', 'prefect', 'sportsDay'])
+    expect(ROSARI_OUTFITS.map((outfit) => outfit.label)).toEqual(['학교 교복', '동복', '비옷', '체육복', '급식 당번복', '졸업', '선도부 교복', '운동회 반티'])
+    for (const id of [...NEW_IDS, 'prefect', 'sportsDay']) expect(resolveRosariOutfit(id).note, id).toContain('임시안')
   })
 
   it('every outfit only names garment slots the wardrobe knows (plus the v9-only buttons decal)', () => {
@@ -234,13 +234,16 @@ describe('S6 placeholder outfits', () => {
     ['gym', ['outfit_gym_zipper'], ['torso']],
     ['apron', ['outfit_apron_headScarf', 'outfit_apron_apronBib'], ['hair', 'torso']],
     ['grad', ['outfit_grad_capCrown', 'outfit_grad_capBoard', 'outfit_grad_capTassel'], ['hair', 'hair', 'hair']],
-  ])('%s attaches its low-poly details (<=100 tris) to the torso or hair pivot', (id, names, parents) => {
+    // The fixture carries only the left hand, so the right glove is skipped here (it attaches in the GLB).
+    ['prefect', ['outfit_prefect_prefectArmband', 'outfit_prefect_gloveLeft'], ['sleeve', 'hand']],
+    ['sportsDay', ['outfit_sportsDay_headband'], ['hair']],
+  ])('%s attaches its low-poly details (<=100 tris) to the torso, hair pivot, sleeve or hand', (id, names, parents) => {
     const { root, meshes, pivot } = fixtureWithHairPivot()
     const added = applyRosariOutfit(root, id, makeMaterial)
     expect(added.map((mesh) => mesh.name)).toEqual(names)
     let triangles = 0
     added.forEach((mesh, i) => {
-      expect(mesh.parent, mesh.name).toBe(parents[i] === 'hair' ? pivot : meshes.torso)
+      expect(mesh.parent, mesh.name).toBe({ hair: pivot, sleeve: meshes.sleeve, hand: meshes.hand }[parents[i]] ?? meshes.torso)
       expect(mesh.userData.ownedGeometry).toBe(true)
       expect(mesh.material).toBeInstanceOf(THREE.MeshToonMaterial)
       expect(mesh.position.lengthSq()).toBe(0)
@@ -290,7 +293,8 @@ describe('S6 placeholder outfits', () => {
     }
     expect(visibleAfter('gym')).toEqual({ knot: false, drop: false, skirt: true, hair: true })
     expect(visibleAfter('apron')).toEqual({ knot: true, drop: false, skirt: true, hair: true })
-    for (const id of ['default', 'winter', 'raincoat', 'grad']) {
+    expect(visibleAfter('sportsDay')).toEqual({ knot: false, drop: false, skirt: true, hair: true })
+    for (const id of ['default', 'winter', 'raincoat', 'grad', 'prefect']) {
       expect(visibleAfter(id), id).toEqual({ knot: true, drop: true, skirt: true, hair: true })
     }
   })
@@ -319,6 +323,8 @@ describe('S6 placeholder outfits', () => {
       gym: ['rosari', 'v9'],
       apron: ['rosari'],
       grad: ['rosari'],
+      prefect: ['rosari', 'v9'],
+      sportsDay: ['rosari', 'v9'],
     })
     expect(resolveRosariOutfitForModel('apron', 'v9').id).toBe('default')
     expect(resolveRosariOutfitForModel('gym', 'legacy').id).toBe('default')

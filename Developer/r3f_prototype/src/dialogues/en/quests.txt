@@ -15,6 +15,10 @@ quest.stage4-allergy-list.start	I want to hand out the leftover food, but I have
 quest.stage4-allergy-list.completion	Now I can hand it out safely. I will not make anyone else sick.
 quest.stage4-gas-valve.start	The cook line is leaking gas! The red valve handle rolled toward the sink.
 quest.stage4-gas-valve.completion	The valve is shut. The cook line flames and hissing die down.
+quest.stage5-late-slip.start	I left my late slip at the copier… I can't leave without it!
+quest.stage5-late-slip.completion	Got it! Now I can escape as an official latecomer.
+quest.stage5-pa-key.start	Only the Vice Principal's key can cut that PA call. It's in the desk drawer!
+quest.stage5-pa-key.completion	The volume dropped a notch… not off, but my ears are saved!
 matilda.entry	Ohohoho! Give me a rice cake and I won't eat you!
 matilda.death	Ohohoho!!!!! You look delicious!!!!
 matilda.gameover	Matilda took your soul!!
@@ -30,6 +34,12 @@ intro.stage3.003	I'm good at shuttle runs. I'll hold out to the end and get out!
 intro.stage4.001	The gym's back door led into the cafeteria. A giant cauldron is bubbling away…
 intro.stage4.002	Get out of the circle before it blows! The chef zombie is waiting for me.
 intro.stage4.003	Lunch can wait. Getting out of here comes first!
-intro.stage5.001	Past the cafeteria is the last exit. Make it through here, and I'm out of the school.
-intro.stage5.002	But… the P.E. teacher is blocking the way again. And this time, every zombie I've met is coming at once.
-intro.stage5.003	I've come this far. I'm getting out of this zombie school, no matter what!
+intro.stage5.001	Past the cafeteria is the main entrance. And in the staff room next to it… every teacher zombie is gathered.
+intro.stage5.002	The Vice Principal Zombie raises an approval stamp. I have to pick my path between the desks.
+intro.stage5.003	Break through the entrance and it's the schoolyard. I can't stop here!
+intro.stage6.001	I pushed through the front doors and sunlight poured in. Outside at last… no, it's the schoolyard.
+intro.stage6.002	The podium speaker crackled on. The Principal Zombie's speech… never ends.
+intro.stage6.003	Inside the ring or outside it—just stay off the line. When the gate opens, I run!
+ending.part1.001	Past the gate, the sand under my feet turned to asphalt.
+ending.part1.002	The bell rang behind me. My friends and teachers in there… someday I'll wake them all.
+ending.part1.003	Escape from Zombie School: Part 1 complete. But school isn't over yet!

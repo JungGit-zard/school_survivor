@@ -35,7 +35,7 @@ describe('사전 바깥 문구 커버리지', () => {
     expect(problems).toEqual([])
   })
 
-  it('스테이지 1~5 인트로가 ko·en·ja 모두 3줄씩 있다', () => {
+  it('스테이지 1~6 인트로가 ko·en·ja 모두 3줄씩 있다', () => {
     const problems = []
     for (const [stageId, ids] of Object.entries(STAGE_INTRO_IDS)) {
       if (ids.length !== 3) problems.push(`${stageId}: ${ids.length} lines`)
@@ -48,7 +48,7 @@ describe('사전 바깥 문구 커버리지', () => {
         }
       }
     }
-    expect(Object.keys(STAGE_INTRO_IDS)).toEqual(['stage1', 'stage2', 'stage3', 'stage4', 'stage5'])
+    expect(Object.keys(STAGE_INTRO_IDS)).toEqual(['stage1', 'stage2', 'stage3', 'stage4', 'stage5', 'stage6'])
     expect(problems).toEqual([])
   })
 

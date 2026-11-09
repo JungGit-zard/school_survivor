@@ -4,6 +4,10 @@ export const BOSS_PASSIVE_ITEM_UI_CAPACITY = 8
 // B02 통제선: 바닥에 그은 선/링/빛 상자 — 선긋기·벨 8방향 충격파·랜턴 빛 상자.
 // B03 왕복 달리기: 달려가 때리고 돌아오거나 튀어다니는 것 — 꼬마 로자리 왕복 사냥꾼·치비코 동반 주자·오니기리 바운스.
 // B04 포격·국물 대폭발: 던지고 터지는 급식 — 텀블러·플라스크 웅덩이·지우개 폭탄 폭발.
+// B10 교감(Stage 5) 결재 도장: 문구·꽂힘 — 연필(pencilThrow)·오리요강(compassBlade)·하나코 (spec56 B §9, Part E 조정으로 스턴건 대신 하나코).
+// B05 교장(Stage 6) 훈화 마이크: 전기·방송 — 전기(stunGun)·고장난 스타링크·우산 방어막 (spec56 C-6-6).
+// 미사일 2종(guidedMissile·sharkMissile)과 inucon은 어느 세트에도 넣지 않는다 (Terry 10-31 "미사일은 지금으로 충분").
+// 선언 순서 = HUD 슬롯 순서(스테이지 순). id를 추가하면 database.rules.json bossPassiveUnlocks에도 같은 커밋에서 추가한다.
 
 export const BOSS_PASSIVE_ITEMS = Object.freeze({
   b01SetSquare: Object.freeze({
@@ -38,20 +42,42 @@ export const BOSS_PASSIVE_ITEMS = Object.freeze({
     weaponIds: Object.freeze(['tumbler', 'scienceFlask', 'eraserBomb']),
     damageMultiplier: 1.05,
   }),
+  b10ApprovalStamp: Object.freeze({
+    id: 'b10ApprovalStamp',
+    bossId: 'B10',
+    name: '교감 결재 도장',
+    description: '연필·오리요강·하나코 공격력 +5%',
+    weaponIds: Object.freeze(['pencilThrow', 'compassBlade', 'hanako']),
+    damageMultiplier: 1.05,
+  }),
+  b05PrincipalMic: Object.freeze({
+    id: 'b05PrincipalMic',
+    bossId: 'B05',
+    name: '교장 훈화 마이크',
+    description: '전기·고장난 스타링크·우산 방어막 공격력 +5%',
+    weaponIds: Object.freeze(['stunGun', 'starlink', 'umbrellaGuard']),
+    damageMultiplier: 1.05,
+  }),
 })
 
-const B01_SET_SQUARE_ID = 'b01SetSquare'
-const B02_CORRIDOR_PASS_ID = 'b02CorridorPass'
-const B03_GYM_WHISTLE_ID = 'b03GymWhistle'
-const B04_SERVING_LADLE_ID = 'b04ServingLadle'
+const BOSS_PASSIVE_ITEM_IDS = Object.freeze(Object.keys(BOSS_PASSIVE_ITEMS))
+const BOSS_PASSIVE_ITEM_ID_BY_BOSS_ID = Object.freeze(
+  Object.fromEntries(Object.values(BOSS_PASSIVE_ITEMS).map((item) => [item.bossId, item.id])),
+)
+
+// 보스 id(B01…) → 처치 시 해금되는 패시브 id. 패시브가 없는 보스(B06~B09 등)는 null.
+export function getBossPassiveItemIdForBoss(bossId) {
+  return Object.prototype.hasOwnProperty.call(BOSS_PASSIVE_ITEM_ID_BY_BOSS_ID, bossId)
+    ? BOSS_PASSIVE_ITEM_ID_BY_BOSS_ID[bossId]
+    : null
+}
 
 export function normalizeBossPassiveUnlocks(value) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return {}
   const out = {}
-  if (value[B01_SET_SQUARE_ID] === true) out[B01_SET_SQUARE_ID] = true
-  if (value[B02_CORRIDOR_PASS_ID] === true) out[B02_CORRIDOR_PASS_ID] = true
-  if (value[B03_GYM_WHISTLE_ID] === true) out[B03_GYM_WHISTLE_ID] = true
-  if (value[B04_SERVING_LADLE_ID] === true) out[B04_SERVING_LADLE_ID] = true
+  for (const id of BOSS_PASSIVE_ITEM_IDS) {
+    if (value[id] === true) out[id] = true
+  }
   return out
 }
 
@@ -60,7 +86,7 @@ export function isBossPassiveItemUnlocked(unlocks, itemId) {
 }
 
 export function unlockBossPassiveItem(unlocks, itemId) {
-  if (![B01_SET_SQUARE_ID, B02_CORRIDOR_PASS_ID, B03_GYM_WHISTLE_ID, B04_SERVING_LADLE_ID].includes(itemId)) return normalizeBossPassiveUnlocks(unlocks)
+  if (!BOSS_PASSIVE_ITEM_IDS.includes(itemId)) return normalizeBossPassiveUnlocks(unlocks)
   return { ...normalizeBossPassiveUnlocks(unlocks), [itemId]: true }
 }
 

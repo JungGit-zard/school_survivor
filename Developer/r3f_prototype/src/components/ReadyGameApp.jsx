@@ -13,7 +13,8 @@ import { loadGameCanvas } from './gameCanvasLoader.js'
 import { sunnyPalette } from '../lib/uiStyle.js'
 
 const DARK_GUTTER = '#0a0810'
-const CREAM_GUTTER_SCREENS = new Set(['title', 'lobby'])
+// 2026-11-08 타이틀 정리 1단계: 로비는 어두운 칠판 화면이라 여백도 어둡게 둔다(크림 띠 충돌 제거). 크림 여백은 타이틀만.
+const CREAM_GUTTER_SCREENS = new Set(['title'])
 
 const LOBBY_MUSIC_SUB_SCREENS = new Set(['coinShop', 'ranking', 'missionCenter'])
 // 런 종료 후 로비 이동은 클라우드 저장을 기다리되, 저장이 실패·지연(오프라인)돼도 막지 않는다.
@@ -81,7 +82,7 @@ function hasPersistedStageEntry(authUser) {
   }
 }
 
-// Stage 2~5 인트로: 그 스테이지를 이미 클리어한 계정이면 본 것으로 친다(새 저장 키 없음).
+// Stage 2~6 인트로: 그 스테이지를 이미 클리어한 계정이면 본 것으로 친다(새 저장 키 없음).
 function hasPersistedStageClear(authUser, stageId) {
   try {
     if (!authUser?.uid || !isFirebaseProgressHydrated(authUser)) return false
@@ -229,8 +230,8 @@ export default function ReadyGameApp({
       const { useGameStore } = await import('../store/useGameStore.js')
       // resetGame이 activity를 이번 입장으로 갱신하므로 "이미 봤는지"는 그 전에 읽는다.
       const introOwner = authUser?.uid ?? 'guest'
-      // Stage 1은 기존 규칙(계정 기록 또는 이 세션에서 본 적 있으면 생략), Stage 2~5는 스테이지별로
-      // 이 세션에서 한 번 + 그 스테이지 클리어 기록이 있으면 생략. 대사가 없는 스테이지(6~10)는 store가 무시한다.
+      // Stage 1은 기존 규칙(계정 기록 또는 이 세션에서 본 적 있으면 생략), Stage 2~6은 스테이지별로
+      // 이 세션에서 한 번 + 그 스테이지 클리어 기록(stage6Clears 등)이 있으면 생략. 대사가 없는 스테이지(7~10)는 store가 무시한다.
       const introKey = stageId === 'stage1' ? introOwner : `${introOwner}:${stageId}`
       const introAlreadySeen = stageIntroSeenRef.current.has(introKey)
         || (stageId === 'stage1' ? hasPersistedStageEntry(authUser) : hasPersistedStageClear(authUser, stageId))
@@ -361,7 +362,7 @@ export default function ReadyGameApp({
   }, [])
 
   // 넓은 웹 화면: 좌우 단색 여백 + 중앙 9:16 세로 프레임(6a72e281 복원 구조). 2026-10-31 Terry: 거터 그림 제거.
-  // 2026-11-03 타이틀 밝게(Terry): 타이틀·로비에서만 하늘·크림과 맞는 크림 단색 여백. 게임 플레이 등
+  // 2026-11-03 타이틀 밝게(Terry): 타이틀에서만 하늘·크림과 맞는 크림 단색 여백(11-08부터 로비는 어두운 여백). 게임 플레이 등
   // 나머지 화면은 어두운 #0a0810 그대로 — 어두운 플레이 화면 옆 크림 띠는 눈부시다.
   // 세로로 긴 화면(실제 휴대폰·TWA)은 프레임 없이 전체화면 그대로 쓴다.
   const viewportStyle = {

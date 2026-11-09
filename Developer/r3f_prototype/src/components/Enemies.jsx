@@ -5,7 +5,7 @@ import { usePlayingFrame } from '../lib/usePlayingFrame.js'
 import { playerPos, screenBounds, enemyBodies, enemyPool, enemySimulationRuntime, enemyProjectilePool, enemySightBlocked, enemyHandleScratch, projectileZombieShotPool, playerSlow, playerImpulse } from '../lib/refs.js'
 import Enemy, { ENEMY_SIZE_MULTIPLIER, ENEMY_STATS } from './Enemy.jsx'
 import { EXPANSION_STAGES, EXPANSION_ENEMIES, EXPANSION_BOSSES, isExpansionStage, isExpansionEnemy, isExpansionBoss } from '../lib/expansionContent.js'
-import { expansionSpawnPosition } from '../lib/expansionSpawns.js'
+import { expansionSpawnPosition, expansionRowPositions, expansionTrackLanePositions } from '../lib/expansionSpawns.js'
 import EnemyDeathCollapse from './EnemyDeathCollapse.jsx'
 import { ZOMBIE_PALETTE } from './ZombieMesh.jsx'
 import { purifiedStudentPool, spawnPurifiedStudent } from '../lib/purifiedStudentPool.js'
@@ -18,10 +18,16 @@ import { ENEMY_PROJECTILE_DAMAGE_SOURCE } from '../lib/outfitCatalog.js'
 import { PLAYER_MESH_WORLD_HEIGHT } from '../lib/characterVisualScale.js'
 import { getE04IntroSec } from '../lib/stage2ProjectileRules.js'
 import { getStageBounds, getStageConfig } from '../lib/stageConfig.js'
+import { STAGE5_CALL_STAGE_ID, addStage5CallLanePulse, clearStage5CallLanePulseBuffer, createStage5CallLanePulseBuffer, createStage5CallLanePulses, getStage5CallLaneVisual, laneIndexForX, stage5CallLanePulseOffset } from '../lib/stage5CallLane.js'
+import { getStage5CallLaneState, publishStage5CallLaneState, resetStage5CallLaneState } from '../lib/stage5CallLaneRuntime.js'
+import { drainBossSummonInto, resetBossSummonQueue } from '../lib/bossSummonQueue.js'
+import { b10SummonRingPositions } from '../lib/stage5ViceBoss.js'
+import { STAGE6_SFX } from '../lib/stage6AssemblySpeech.js'
+import { isRangedPropBlockStage } from '../lib/stageRangedBlockers.js'
 import { GAME_CAMERA_EDGE_INSET_FRACTION, getGameplayGroundReach } from '../lib/gameCameraFraming.js'
 import { dogeEscapeDirection } from '../lib/dogeEscape.js'
 import { getDefaultWavePhases } from '../lib/waveTimelines.js'
-import { RUN_ZOMBIE_CREW_FORMATION, STAGE2_GUARD_CHASE_FORMATION, shouldRetryRewardBurst, getBurstEventsForStage, getRuntimeBurstEventsForStage, getRuntimeSpawnEventsForStage, isBossType, isRepeatingBurstEvent, postExitRepeatWaveIndex, postExitWaveCount, repeatingBurstSecAtTick, repeatingBurstTickAt } from '../lib/burstEvents.js'
+import { RUN_ZOMBIE_CREW_FORMATION, STAGE2_GUARD_CHASE_FORMATION, STAGE5_CALL_LANE_FORMATION, shouldRetryRewardBurst, getBurstEventsForStage, getRuntimeBurstEventsForStage, getRuntimeSpawnEventsForStage, isBossType, isRepeatingBurstEvent, postExitRepeatWaveIndex, postExitWaveCount, repeatingBurstSecAtTick, repeatingBurstTickAt } from '../lib/burstEvents.js'
 import { deathSfxId } from '../lib/enemyDeathSfx.js'
 import { buildWavePhasesFromEntries } from '../lib/waveControl.js'
 import { getAdminWaveControlConfig } from '../lib/adminConfig.js'
@@ -98,6 +104,8 @@ export const ELITE_BONUS = {
   // B04는 최종 보스인데도 이 표에서 빠져 있어 처치 보상이 0이었다.
   // 정본: Planner/permanent_upgrade_expansion_design_2026-07-26.md §5-1 — B01~B03과 동일 수치.
   B04: { textbook: 3, textbookXp: 40, gold: 5 },
+  // B10 교감 좀비(Stage 5, 2026-11-08). 확장 DATA.bosses 밖이라 위 확장 행에서 빠진다 — B01~B04와 같은 보스 공통 보상.
+  B10: { textbook: 3, textbookXp: 40, gold: 5 },
 }
 
 export function getEliteBonusTextbookXp(type, fallbackXp) {
@@ -281,6 +289,19 @@ function findNearestFreeFormationPosition(pos, type, bounds, obstacles, taken) {
     }
   }
   return null
+}
+
+// 지정 좌표 스폰(Stage 5 호출 레인 양끝, B10 소집 링). 경계 밖이면 스폰 경계로 당기고,
+// 장애물(책상 섬 등) 위면 formation과 같은 규칙으로 가장 가까운 빈칸으로 옮긴다. 자리가 없으면 null.
+function fixedSpawnPos(type, x, z, bounds, obstacles, taken) {
+  let px = x
+  let pz = z
+  if (!isInsideSpawnBounds(px, pz, bounds)) {
+    const clamped = clampToBounds(px, pz, bounds)
+    px = clamped[0]
+    pz = clamped[1]
+  }
+  return findNearestFreeFormationPosition([px, FORMATION_Y, pz], type, bounds, obstacles, taken)
 }
 
 function randomPointOnSpawnRing(minRadius, maxRadius, random = Math.random) {
@@ -1013,12 +1034,13 @@ const STAGE_DENSITY_TARGET_FACTOR = {
   stage2: Math.pow(1.10, 2),  // 1.21 — 2026-08-06 난이도 +10% 조정 유지
   stage3: Math.pow(1.10, 3),  // 1.331
   stage4: Math.pow(1.10, 4),  // 1.4641
+  stage5: Math.pow(1.10, 5),  // 1.61051 — 분석 함수(soak·probe)용. 런타임 스폰은 버스트 표만 쓴다
 }
 
 // 밀도 배율(모듈 로드시 1회 파생). 이전 스폰 동작을 보존하는 계산값이며 HP 정본과 분리한다.
 // 기존 계산은 waveBase×m² + burstJarmobBase×m + crewFixed = 앵커×factor를 풀어 m을 얻는다.
 // 여기서 m은 오직 스폰량에만 사용한다. stage1은 앵커라 밀도배율이 없다.
-const _STAGE_BLEND_IDS = ['stage1', 'stage2', 'stage3', 'stage4']
+const _STAGE_BLEND_IDS = ['stage1', 'stage2', 'stage3', 'stage4', 'stage5']
 // 앵커는 위 주석이 선언한 대로 "stage1 실전달 총량"이어야 한다. stageExpectedBaseJarmobHp는 웨이브
 // base만 돌려주므로 버스트(stage1 기준 2336, 총량의 34.8%)를 더해야 정의와 코드가 일치한다.
 // 누락 상태에서는 앵커가 작아 m이 과도하게 깎였고, "stage1을 강화할수록 stage2가 상대적으로 쉬워지는"
@@ -1121,7 +1143,7 @@ export const DOGE_SCALE = Number(((2 * PLAYER_MESH_WORLD_HEIGHT) / DOGE_RAW_HEIG
 // 이벤트 보너스 몬스터 HP — 60초 시점 DPS로 "몇 초 안에" 잡히는 수준(E06 320보다 낮게 200 기준).
 // 스테이지 상승 곡선(+10%/스테이지)을 잡몹·보스와 동일 철학으로 적용(1.0 / 1.10 / 1.21 / 1.331).
 export const DOGE_BASE_HP = 200
-const DOGE_STAGE_HP_MULTIPLIER = { stage2: 1.10, stage3: 1.21, stage4: 1.331 }
+const DOGE_STAGE_HP_MULTIPLIER = { stage2: 1.10, stage3: 1.21, stage4: 1.331, stage5: 1.4641 }
 // 보물상자 코인 잭팟: 일반 처치(코인 1)·보스(코인 5)보다 확실히 많은 12개를 원형 산포한다.
 export const DOGE_COIN_COUNT = 12
 const DOGE_COIN_RING_MIN = 0.3
@@ -1208,6 +1230,14 @@ const SCHEDULE_MATILDA = 6
 const SCHEDULE_OVERTIME = 7
 const SCHEDULE_DOMINANCE_SWARM = 8
 const SCHEDULE_LOW_DENSITY_REINFORCEMENT = 9
+// Stage 5 전교 호출 펄스(a = 펄스 버퍼 슬롯). 펄스 시각(스폰 시계) 도달 시 레인 양끝에 1기씩.
+const SCHEDULE_STAGE5_CALL_LANE = 10
+// 보스 소환(a = 보스 x, b = 보스 z). B10 교무회의 소집 E57·E51·E54 3기 링.
+const SCHEDULE_BOSS_SUMMON = 11
+// 확장 보스 소환(a = 보스 typeCode, b = 미사용). Stage 6 B05 '운동장 10바퀴' E21×6 트랙 6지점.
+const SCHEDULE_EXPANSION_SUMMON = 12
+// 트랙 계주 대열(track_lanes, Stage 6 124초) 직전 호루라기 리드. 보스 소환 경고(B05 summon.warningMs 1,200ms)와 같은 길이.
+export const TRACK_LANE_CUE_LEAD_SEC = 1.2
 
 export function isPooledEnemyType(type) {
   const code = enemyTypeToCode(type)
@@ -1233,7 +1263,8 @@ export function countPendingZombieSchedules(queue) {
   let count = 0
   for (let offset = 0; offset < pending; offset += 1) {
     const kind = queue.scheduleKind[(queue.scheduleRead + offset) % capacity]
-    if (kind === SCHEDULE_BURST || kind === SCHEDULE_OVERTIME || kind === SCHEDULE_MATILDA || kind === SCHEDULE_DOGE || kind === SCHEDULE_DOMINANCE_SWARM || kind === SCHEDULE_LOW_DENSITY_REINFORCEMENT) count += 1
+    if (kind === SCHEDULE_BURST || kind === SCHEDULE_OVERTIME || kind === SCHEDULE_MATILDA || kind === SCHEDULE_DOGE || kind === SCHEDULE_DOMINANCE_SWARM || kind === SCHEDULE_LOW_DENSITY_REINFORCEMENT
+      || kind === SCHEDULE_STAGE5_CALL_LANE || kind === SCHEDULE_BOSS_SUMMON || kind === SCHEDULE_EXPANSION_SUMMON) count += 1
   }
   return count
 }
@@ -1340,9 +1371,20 @@ export function buildLowDensityReinforcementBatch(cache, count = 20, random = Ma
 }
 
 // The scheduler and clock harness consume this same safe/capped authoring path.
+// formation: 'assembly_row'(조회 줄, side top/bottom/gate/auto) · 'track_lanes'(트랙 6지점) · 없음/'ring_safe_candidates'(기본 링).
+// 줄·트랙은 좌표를 한꺼번에 받고, 자리를 못 받은 개체는 건너뛴다(skip_individual). 상한은 먼저 clampZombieSpawnRequest로 자른다.
 export function buildExpansionBurstBatch(cache,evt,counts,random=Math.random) {
   const count=clampZombieSpawnRequest(evt.count??1,counts)
   const batch=[],taken=[]
+  const fixed=evt.formation==='assembly_row'
+    ? expansionRowPositions(evt.type,cache.id,playerPos,cache.bounds,screenBounds,count,evt.side??'top',cache.obstacles)
+    : evt.formation==='track_lanes'
+      ? expansionTrackLanePositions(evt.type,cache.id,playerPos,cache.bounds,count,cache.obstacles)
+      : null
+  if(fixed){
+    for(const pos of fixed) batch.push({id:++_uid,type:evt.type,pos,statOverride:stageHpOverride(evt.type,cache.id)})
+    return batch
+  }
   for(let index=0;index<count;index++) {
     const type=evt.mixedTypes?evt.mixedTypes[index%evt.mixedTypes.length]:evt.type
     const pos=expansionSpawnPosition(type,cache.id,playerPos,cache.bounds,taken,cache.obstacles,random,ENEMY_STATS[type]?.scale)
@@ -1416,6 +1458,10 @@ export default function Enemies() {
   const firedBurstsRef            = useRef(new Uint8Array(2048))
   const scheduledRepeatBurstTicksRef = useRef(new Int16Array(2048))
   const consumedRepeatBurstTicksRef = useRef(new Int16Array(2048))
+  // Stage 5 전교 호출 / B10 소집 프레임 경로용 스크래치(프레임마다 객체를 만들지 않는다).
+  const callLaneVisualScratchRef = useRef({ chiming: false, calling: false, cycle: -1 })
+  const bossSummonScratchRef = useRef({ gameKey: 0, x: 0, z: 0 })
+  const trackLaneCueFiredRef = useRef(new Uint8Array(2048))
   const goldTimerRef              = useRef(nextGoldInterval())
   const dogeSpawnedRef           = useRef(false)     // 60초 도지 이벤트 1회 스폰 가드
   const overtimeTickRef          = useRef(-1)
@@ -1456,18 +1502,32 @@ export default function Enemies() {
     queue.matildaEntry = null
     const bounds = getStageBounds(currentStageId)
     queue.lowDensityDeferred = false
+    // Stage 5 전교 호출 펄스·상태와 보스 소환 요청은 런/스테이지가 바뀌면 전부 버린다(gameKey 태그도 함께 검사).
+    queue.callPulses ??= createStage5CallLanePulseBuffer()
+    clearStage5CallLanePulseBuffer(queue.callPulses)
+    queue.lastSpawnMs = 0
+    resetStage5CallLaneState()
+    resetBossSummonQueue()
+    const stageObstacles = getStageObjectSightObstacles(currentStageId)
+    // Stage 5 교무실만: solid 프롭(책상 섬·교감 책상·복사기·사물함)이 E04 사선과 원거리 탄을 막는다.
+    // 그 외 스테이지는 null → 기존 동작(S4 기준선 보존). 런/스테이지가 바뀔 때마다 다시 건다.
+    const rangedBlockers = isRangedPropBlockStage(currentStageId) && stageObstacles.length > 0 ? stageObstacles : null
+    enemyProjectilePool.setPropBlockers(rangedBlockers)
+    projectileZombieShotPool.setPropBlockers(rangedBlockers)
     stageRuntimeCacheRef.current = {
       id: currentStageId,
       gameKey,
       spawnToken: stageSpawnTokenRef.current,
       bounds,
       burstEvents: getRuntimeSpawnEventsForStage(currentStageId),
-      obstacles: getStageObjectSightObstacles(currentStageId),
+      obstacles: stageObstacles,
+      rangedBlockers,
       stageConfig: getStageConfig(currentStageId),
     }
     firedBurstsRef.current.fill(0)
     scheduledRepeatBurstTicksRef.current.fill(-1)
     consumedRepeatBurstTicksRef.current.fill(-1)
+    trackLaneCueFiredRef.current.fill(0)
     overtimeTickRef.current = -1
     liveDogeCountRef.current = 0
     resetSpawnCatchUpState(spawnCatchUpRef.current)
@@ -1749,6 +1809,38 @@ export default function Enemies() {
     scheduleRuntimeFlush()
   }, [scheduleRuntimeFlush])
 
+  // Stage 5 전교 호출 펄스 1회(레인 북쪽 끝 + 남쪽 끝 각 1기). RAF에서만 호출된다.
+  const spawnStage5CallLanePulse = (cache, slot) => {
+    const buffer = runtimeQueueRef.current.callPulses
+    const pulse = buffer?.pulses[slot]
+    if (!pulse || buffer.state[slot] === 0) return
+    const pulseGameKey = buffer.gameKey[slot]
+    buffer.state[slot] = 0
+    buffer.pulses[slot] = null
+    if (pulseGameKey !== cache.gameKey) return
+    // 동시 천장 150 초과분은 버린다(재시도 없음, 스펙 §7-1).
+    const count = clampZombieSpawnRequest(pulse.spawns.length, totalZombieCounts())
+    const batch = []
+    for (let index = 0; index < count; index += 1) {
+      const spawn = pulse.spawns[index]
+      const pos = fixedSpawnPos(pulse.type, spawn.x, spawn.z, cache.bounds, cache.obstacles, batch.map((enemy) => enemy.pos))
+      if (pos) batch.push({ id: ++_uid, type: pulse.type, pos, statOverride: stageHpOverride(pulse.type, cache.id) })
+    }
+    if (batch.length === 0) return
+    const store = useGameStore.getState()
+    recordMissionBurstSpawns(store, batch, cache.id, getRuntimeElapsedMs(store.elapsedMs) / 1000)
+    addEnemies(batch, true, cache.spawnToken)
+  }
+
+  // 호출 회차의 레인: 차임 프레임에 스냅샷한 값. 캐치업으로 차임을 건너뛰었으면 지금 플레이어 x로 스냅샷한다.
+  const resolveStage5CallLane = (gameKey, cycle) => {
+    const callState = getStage5CallLaneState()
+    if (callState.gameKey === gameKey && callState.cycle === cycle && callState.laneIndex >= 0) return callState.laneIndex
+    const laneIndex = laneIndexForX(playerPos.x)
+    publishStage5CallLaneState(gameKey, cycle, laneIndex, 'calling')
+    return laneIndex
+  }
+
   // scheduler는 RAF에서만 객체/배치를 만든다. usePlayingFrame은 scalar 요청만 기록한다.
   runtimeQueueRef.current.processScheduled = (kind, a, b) => {
     const queue = runtimeQueueRef.current
@@ -1834,6 +1926,31 @@ export default function Enemies() {
       }
       const spawnPos = randomSpawnPos('B01', cache.bounds, [], Math.random, cache.obstacles, matildaStats.scale)
       if (spawnPos) addEnemies([{ id: ++_uid, type: 'B01', pos: spawnPos, statOverride: matildaStats, isMatilda: true }])
+    } else if (kind === SCHEDULE_STAGE5_CALL_LANE) {
+      spawnStage5CallLanePulse(cache, Math.trunc(a))
+    } else if (kind === SCHEDULE_EXPANSION_SUMMON) {
+      // 확장 보스 소환(B05 '운동장 10바퀴'): 보스 데이터의 summon(type·count·formation)을 확장 배치 경로로 낸다.
+      const summon = EXPANSION_BOSSES[enemyTypeFromCode(Math.trunc(a))]?.summon
+      if (!summon || !isExpansionStage(cache.id)) return
+      const batch = buildExpansionBurstBatch(cache, { type: summon.type, count: summon.count, formation: summon.formation }, totalZombieCounts())
+      if (batch.length > 0) {
+        recordMissionBurstSpawns(store, batch, cache.id, getRuntimeElapsedMs(store.elapsedMs) / 1000)
+        addEnemies(batch, true, cache.spawnToken)
+      }
+    } else if (kind === SCHEDULE_BOSS_SUMMON) {
+      // B10 교무회의 소집: 보스 중심 2.5u 링에 E57·E51·E54. 첫 자리는 플레이어 반대쪽.
+      const ring = b10SummonRingPositions(a, b, playerPos.x, playerPos.z)
+      const count = clampZombieSpawnRequest(ring.length, totalZombieCounts())
+      const batch = []
+      for (let index = 0; index < count; index += 1) {
+        const slot = ring[index]
+        const pos = fixedSpawnPos(slot.type, slot.x, slot.z, cache.bounds, cache.obstacles, batch.map((enemy) => enemy.pos))
+        if (pos) batch.push({ id: ++_uid, type: slot.type, pos, statOverride: stageHpOverride(slot.type, cache.id) })
+      }
+      if (batch.length > 0) {
+        recordMissionBurstSpawns(store, batch, cache.id, getRuntimeElapsedMs(store.elapsedMs) / 1000)
+        addEnemies(batch, true, cache.spawnToken)
+      }
     } else if (kind === SCHEDULE_BURST) {
       const evt = cache.burstEvents[Math.trunc(a)]
       if (!evt) return
@@ -1843,6 +1960,9 @@ export default function Enemies() {
           if(!batch.length){firedBurstsRef.current[Math.trunc(a)]=0;return}
           spawnBoss()
         }
+        // 보상 이벤트(코인 몬스터)는 확장 스테이지에서도 자리를 못 받으면 창(30초) 안에서 다음 틱에 재시도한다.
+        // 예전에는 한 번 실패하면 fired로 남아 그 판에 다시 나오지 않았다.
+        if(shouldRetryRewardBurst(evt,batch.length>0,b)){firedBurstsRef.current[Math.trunc(a)]=0;return}
         recordMissionBurstSpawns(store,batch,cache.id,b)
         addEnemies(batch,true,cache.spawnToken)
         return
@@ -1856,6 +1976,24 @@ export default function Enemies() {
         // 표 시각(repeatingBurstSecAtTick)은 tick 존재 확인에만 쓰고 기록에는 넘기지 않는다 —
         // 단발 버스트도 같은 규약으로 실시간을 넘긴다.
         const missionSpawnSec = getRuntimeElapsedMs(useGameStore.getState().elapsedMs) / 1000
+        if (evt.formation === STAGE5_CALL_LANE_FORMATION) {
+          // 전교 호출: 즉시 스폰하지 않고 레인 양끝 펄스(2초 간격)로 펼쳐 펄스 버퍼에 예약한다.
+          // 펄스 시각이 이미 지났으면(캐치업·RAF 지연) 바로 스폰한다 — 나머지는 프레임 루프가 시각에 맞춰 큐에 올린다.
+          const portalSec = getStageConfig(cache.id).escapePortalSec
+          const firstPulse = stage5CallLanePulseOffset(cache.burstEvents, eventIndex, STAGE5_CALL_LANE_FORMATION)
+          for (let tick = firstTick; tick <= lastTick; tick += 1) {
+            const tickSec = repeatingBurstSecAtTick(evt, tick)
+            if (tickSec === null) continue
+            const count = postExitWaveCount(evt.count ?? 1, postExitRepeatWaveIndex(evt, tick, portalSec))
+            const laneIndex = resolveStage5CallLane(cache.gameKey, tick)
+            for (const pulse of createStage5CallLanePulses({ type: evt.type, count }, laneIndex, tickSec, firstPulse)) {
+              const slot = addStage5CallLanePulse(queue.callPulses, pulse, cache.gameKey)
+              if (slot >= 0 && pulse.atMs <= queue.lastSpawnMs) spawnStage5CallLanePulse(cache, slot)
+            }
+          }
+          consumedRepeatBurstTicksRef.current[eventIndex] = lastTick
+          return
+        }
         for (let tick = firstTick; tick <= lastTick; tick += 1) {
           const tickTableSec = repeatingBurstSecAtTick(evt, tick)
           if (tickTableSec === null) continue
@@ -2083,6 +2221,7 @@ export default function Enemies() {
     context.activeProjectileCount = enemyProjectilePool.activeCount
     context.stageId = currentStageId
     context.e04IntroSec = getE04IntroSec(currentStageId)
+    context.rangedSightObstacles = stageRuntime.rangedBlockers
     // 보스 등장은 버스트 표(= 스폰 시계)에서 당겨질 수 있으므로 하한도 spawnSec으로 본다.
     // 상한(탈출 포탈)은 실시간 이벤트라 sec 그대로 — 런 길이는 캐치업의 영향을 받지 않는다.
     context.bossPressure = currentStageId !== 'stage4' && sec >= bossSpawnSec && sec < (stageConfig.escapePortalSec ?? 210)
@@ -2143,6 +2282,37 @@ export default function Enemies() {
       enqueueScheduled(SCHEDULE_OVERTIME)
     }
 
+    // Stage 5 전교 호출 방송: 스폰 시계로 차임/호출 단계를 판정해 발행하고(차임 진입 프레임에 레인 스냅샷),
+    // 시각이 된 펄스를 스케줄 큐에 올린다. 스칼라 쓰기만 한다(객체 생성은 RAF).
+    const runtimeQueue = runtimeQueueRef.current
+    if (stageRuntime.id === STAGE5_CALL_STAGE_ID) {
+      const spawnMs = spawnSec * 1000
+      runtimeQueue.lastSpawnMs = spawnMs
+      const visual = getStage5CallLaneVisual(spawnMs, stageRuntime.id, 'playing', callLaneVisualScratchRef.current)
+      const callState = getStage5CallLaneState()
+      if (visual.cycle >= 0) {
+        const sameCycle = callState.gameKey === stageRuntime.gameKey && callState.cycle === visual.cycle && callState.laneIndex >= 0
+        publishStage5CallLaneState(stageRuntime.gameKey, visual.cycle, sameCycle ? callState.laneIndex : laneIndexForX(playerPos.x), visual.chiming ? 'chiming' : 'calling')
+      } else if (callState.phase !== 'idle') {
+        publishStage5CallLaneState(callState.gameKey, callState.cycle, callState.laneIndex, 'idle')
+      }
+      const pulses = runtimeQueue.callPulses
+      if (pulses) {
+        for (let slot = 0; slot < pulses.state.length; slot += 1) {
+          if (pulses.state[slot] !== 1 || pulses.gameKey[slot] !== stageRuntime.gameKey || pulses.atMs[slot] > spawnMs) continue
+          if (enqueueScheduled(SCHEDULE_STAGE5_CALL_LANE, slot, 0)) pulses.state[slot] = 2
+        }
+      }
+    }
+    // 보스 소환 요청(Enemy.jsx B10 → bossSummonQueue). 큐에 자리가 있을 때만 꺼내고, 이전 런 요청은 버린다.
+    const summonScratch = bossSummonScratchRef.current
+    while (runtimeQueue.scheduleCount < runtimeQueue.scheduleKind.length && drainBossSummonInto(summonScratch)) {
+      if (summonScratch.gameKey !== stageRuntime.gameKey) continue
+      const summonBossType = enemyTypeFromCode(summonScratch.bossTypeCode)
+      if (summonBossType && EXPANSION_BOSSES[summonBossType]?.summon) enqueueScheduled(SCHEDULE_EXPANSION_SUMMON, summonScratch.bossTypeCode, 0)
+      else enqueueScheduled(SCHEDULE_BOSS_SUMMON, summonScratch.x, summonScratch.z)
+    }
+
     // 버스트 스케줄 발화.
     // 모든 일반 좀비와 보스는 명시 BURST_EVENTS/STAGE2/3/4_BURST_EVENTS에서만 발화한다.
     // 20~40초 랜덤 웨이브, 중간 보강, 보스 호위 자동 웨이브는 런타임에서 발화하지 않는다.
@@ -2155,6 +2325,11 @@ export default function Enemies() {
         if (tick === null || tick <= scheduledRepeatBurstTicksRef.current[burstIndex]) continue
         if (enqueueScheduled(SCHEDULE_BURST, burstIndex, tick)) scheduledRepeatBurstTicksRef.current[burstIndex] = tick
         continue
+      }
+      // 트랙 계주 대열 직전 호루라기(1회). 같은 스폰 시계로 1.2초 앞에서 울린다.
+      if (evt.formation === 'track_lanes' && !trackLaneCueFiredRef.current[burstIndex] && eventSpawnSec >= evt.sec - TRACK_LANE_CUE_LEAD_SEC) {
+        trackLaneCueFiredRef.current[burstIndex] = 1
+        try { emitSfx({ id: STAGE6_SFX.relayWhistle, volume: 0.65 }) } catch { /* 오디오는 선택 사항 */ }
       }
       if (!shouldScheduleBurst(firedBurstsRef.current[burstIndex], eventSpawnSec, evt.sec)) continue
       if (isExpansionStage(stageRuntime.id)) {

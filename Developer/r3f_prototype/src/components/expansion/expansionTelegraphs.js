@@ -1,7 +1,37 @@
 import * as THREE from 'three'
-export const EXPANSION_PATTERN_SHAPES=Object.freeze({b05_p1:'cross',b05_p2:'annulus',b06_p1:'disk',b06_p2:'three_disks',b07_p1:'three_lines',b07_p2:'annulus',b08_p1:'cross',b08_p2:'sector',b09_p1:'grid',b09_p2:'annulus'})
-export const EXPANSION_TELEGRAPH_CAPACITY=32
 const tau=Math.PI*2
+export const EXPANSION_PATTERN_SHAPES=Object.freeze({b05_p1:'annulus',b05_p2:'cross',b06_p1:'disk',b06_p2:'three_disks',b07_p1:'three_lines',b07_p2:'annulus',b08_p1:'cross',b08_p2:'sector',b09_p1:'grid',b09_p2:'annulus',b10_p1:'disk',b10_p2:'sector'})
+export const EXPANSION_TELEGRAPH_CAPACITY=32
+// B10 결재 도장(b10_p1) disk 중심 "決" 도장 무늬 데칼(스펙 Part B §12-3).
+// windup 중 opacity 0→0.6, active 순간 0.9. 텍스처는 모듈 수명 동안 하나만 만든다(캔버스가 없으면 생략).
+export const B10_STAMP_PATTERN_ID='b10_p1'
+export const B10_STAMP_DECAL=Object.freeze({color:'#d7263d',windupMaxOpacity:.6,activeOpacity:.9,radiusScale:.82})
+let b10StampTexture
+export function getB10StampTexture() {
+ if(b10StampTexture!==undefined)return b10StampTexture
+ b10StampTexture=null
+ if(typeof document==='undefined')return null
+ const canvas=document.createElement('canvas');canvas.width=canvas.height=256
+ const ctx=canvas.getContext?.('2d')
+ if(!ctx||typeof ctx.fillText!=='function')return null
+ ctx.clearRect(0,0,256,256)
+ ctx.strokeStyle=B10_STAMP_DECAL.color;ctx.fillStyle=B10_STAMP_DECAL.color
+ ctx.lineWidth=18;ctx.beginPath();ctx.arc(128,128,110,0,tau);ctx.stroke()
+ ctx.lineWidth=6;ctx.beginPath();ctx.arc(128,128,88,0,tau);ctx.stroke()
+ ctx.font='bold 128px serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('決',128,136)
+ b10StampTexture=new THREE.CanvasTexture(canvas);b10StampTexture.colorSpace=THREE.SRGBColorSpace
+ return b10StampTexture
+}
+function addB10StampDecal(root,d,radius) {
+ if((d.patternId??d.id)!==B10_STAMP_PATTERN_ID||!positive(radius))return
+ const texture=getB10StampTexture()
+ if(!texture)return
+ const material=new THREE.MeshBasicMaterial({map:texture,transparent:true,opacity:d.phase==='active'?B10_STAMP_DECAL.activeOpacity:0,depthWrite:false,toneMapped:false,side:THREE.DoubleSide})
+ const size=radius*B10_STAMP_DECAL.radiusScale*2
+ const mesh=new THREE.Mesh(new THREE.PlaneGeometry(size,size),material)
+ mesh.name='b10-stamp-decal';mesh.rotation.x=-Math.PI/2;mesh.position.y=.008;mesh.renderOrder=6
+ root.add(mesh);root.userData.stampMat=material
+}
 const positive=v=>Number.isFinite(v)&&v>0&&v<=64
 // World-space diagonal hatch: normal spacing .28 units (.07 blocks), width
 // .045 units (.01125 blocks). Clip each stripe to the authoritative convex piece.
@@ -57,6 +87,7 @@ export function updateExpansionTelegraphVisual(root,event) {
  const raw=event.windupMs>0?event.elapsedMs/event.windupMs:event.progress??0
  const progress=Number.isFinite(raw)?Math.max(0,Math.min(1,raw)):0
  root.userData.fillMat.opacity=event.phase==='active'?.30:.12+progress*.08
+ if(root.userData.stampMat)root.userData.stampMat.opacity=event.phase==='active'?B10_STAMP_DECAL.activeOpacity:progress*B10_STAMP_DECAL.windupMaxOpacity
  if(root.userData.warningProgress===progress)return
  root.userData.warningProgress=progress
  const outer=.96*(1-progress),inside=outer*.84
@@ -119,6 +150,7 @@ export function createExpansionTelegraphVisual(event) {
        if(material===fillMat&&!active)addWarningCues(root,mesh,polygons,x,z)
      }
    }
+   if(shape==='disk')addB10StampDecal(root,d,radius)
    root.userData.expansionSnapshot=d
    updateExpansionTelegraphVisual(root,d)
    return root
@@ -146,7 +178,7 @@ export function createExpansionTelegraphVisual(event) {
    root.add(group)
  }
  switch(shape) {
- case 'disk':circle(0,0);break
+ case 'disk':circle(0,0);addB10StampDecal(root,d,radius);break
  case 'annulus':circle(0,0,d.innerRadius??Math.max(0,radius-width));break
  case 'three_disks':d.offsetsUnits.forEach(([ox,oz])=>circle(ox,oz));break
  case 'sector': {
@@ -171,4 +203,5 @@ export function disposeExpansionTelegraphVisual(root) {
  root.traverse(n=>{if(n.isMesh)n.geometry.dispose()})
  root.userData.fillMat?.dispose();root.userData.edgeMat?.dispose()
  root.userData.hatchMat?.dispose();root.userData.shrinkMat?.dispose()
+ root.userData.stampMat?.dispose()
 }

@@ -33,7 +33,7 @@ afterEach(() => vi.restoreAllMocks())
 describe('titleSettings.playerOutfit normalization', () => {
   it('keeps every canonical outfit id and drops unknown values from loadTitleSettings', () => {
     _seedHydratedFirebaseProgressForTests()
-    expect(PLAYER_OUTFIT_IDS).toEqual(['default', 'winter', 'raincoat', 'gym', 'apron', 'grad'])
+    expect(PLAYER_OUTFIT_IDS).toEqual(['default', 'winter', 'raincoat', 'gym', 'apron', 'grad', 'prefect', 'sportsDay'])
     for (const playerOutfit of PLAYER_OUTFIT_IDS) {
       saveTitleSettings({ playerOutfit })
       expect(loadTitleSettings().playerOutfit).toBe(playerOutfit)

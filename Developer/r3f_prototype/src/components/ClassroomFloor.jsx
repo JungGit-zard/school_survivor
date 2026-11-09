@@ -6,7 +6,7 @@ import stage2TileUrl from '../assets/background_floor/tile_stage02_corridor.webp
 import stage2EndWallUrl from '../assets/background_floor/stage02_corridor_end_wall.webp'
 import stage4TileUrl from '../assets/background_floor/tile_stage04_white_ceramic.webp'
 import { getStage2CorridorWallDisplay } from '../lib/stage2CorridorWall.js'
-import { getStageBounds } from '../lib/stageConfig.js'
+import { getStageBounds, isSolidPropStage } from '../lib/stageConfig.js'
 import { buildStageFloorLightMap, stageFloorLightMapProps } from '../lib/stageFloorLightBake.js'
 import { STAGE_FLOOR_OCCLUSION } from '../lib/stageFloorLightBake.js'
 import Stage2CorridorDecor from './Stage2CorridorDecor.jsx'
@@ -66,6 +66,11 @@ export const STAGE_FLOOR_TILES = {
 export function getFloorPlaneSize(stageId) {
   // Stage 3는 절차적 나무마루라 STAGE_FLOOR_TILES 항목이 없고 FloorPlane 기본값을 쓴다.
   if (stageId === 'stage3') return { width: FLOOR_SIZE, depth: FLOOR_SIZE }
+  // Stage 5 교무실은 절차적 리놀륨이 맵 경계(18.72 × 32)를 정확히 덮는다.
+  if (stageId === 'stage5') {
+    const { halfX, halfZ } = getStageBounds('stage5')
+    return { width: halfX * 2, depth: halfZ * 2 }
+  }
   const tile = STAGE_FLOOR_TILES[stageId] ?? STAGE_FLOOR_TILES.stage1
   return {
     width: tile.floorWidth ?? tile.floorSize,
@@ -73,11 +78,11 @@ export function getFloorPlaneSize(stageId) {
   }
 }
 
-// Stage 4 바닥 접지 음영 입력. 소품을 그리는 StageObjectLayer와 같은 resolved 배치
+// Stage 4·5 바닥 접지 음영 입력. 소품을 그리는 StageObjectLayer와 같은 resolved 배치
 // (getStageObjectPlacements)에서 막힌 가구 OBB와 가마솥 원형 발자국만 뽑는다.
 // 통과형 kitchenClutter는 시야 장애물 집합에 없어 자동으로 빠진다. 다른 스테이지는 null.
 export function getStageFloorOcclusion(stageId) {
-  if (stageId !== 'stage4') return null
+  if (!isSolidPropStage(stageId)) return null
   const { halfX, halfZ } = getStageBounds(stageId)
   const boxes = getStageObjectSightObstacles(stageId).filter(({ type }) => type !== 'pressureCauldron')
   const circles = getStageObjectPlacements(stageId)
@@ -162,6 +167,91 @@ function buildStage3WoodTexture() {
   const tex = new THREE.CanvasTexture(canvas)
   tex.wrapS = tex.wrapT = THREE.RepeatWrapping
   tex.repeat.set(STAGE3_ARENA.woodRepeat, STAGE3_ARENA.woodRepeat)
+  tex.anisotropy = 8
+  tex.colorSpace = THREE.SRGBColorSpace
+  return tex
+}
+
+// Stage 5 교무실 리놀륨(스펙 Part B §3-3). 정사각 타일 1.2u, 베이스 세이지 그레이,
+// 줄눈 폭 0.03u, 타일당 반점 6~10개(지름 0.02~0.05u). 캔버스 한 장에 4×4 타일을 담아
+// 반점 배치가 16타일 주기로만 반복되게 한다. 시드 고정 — 매 마운트 같은 바닥.
+export const STAGE5_LINOLEUM = Object.freeze({
+  tileWorldSize: 1.2,
+  tilesPerCanvas: 4,
+  canvasSize: 512,
+  base: '#A7B4A0',
+  grout: '#8F9C89',
+  groutWidth: 0.03,
+  speckle: '#C3CBB9',
+  speckleMin: 6,
+  speckleMax: 10,
+  speckleDiameterMin: 0.02,
+  speckleDiameterMax: 0.05,
+  seed: 0x5f5,
+})
+
+export function getStage5LinoleumRepeat() {
+  const { width, depth } = getFloorPlaneSize('stage5')
+  const canvasWorld = STAGE5_LINOLEUM.tileWorldSize * STAGE5_LINOLEUM.tilesPerCanvas
+  return { x: width / canvasWorld, z: depth / canvasWorld }
+}
+
+function mulberry32(seed) {
+  let a = seed >>> 0
+  return () => {
+    a = (a + 0x6d2b79f5) >>> 0
+    let t = a
+    t = Math.imul(t ^ (t >>> 15), t | 1)
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61)
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+  }
+}
+
+export function buildStage5LinoleumTexture() {
+  if (typeof document === 'undefined') return null
+  const L = STAGE5_LINOLEUM
+  const size = L.canvasSize
+  const canvas = document.createElement('canvas')
+  canvas.width = canvas.height = size
+  const ctx = canvas.getContext('2d')
+  if (!ctx) return null
+
+  const tilePx = size / L.tilesPerCanvas
+  const pxPerUnit = tilePx / L.tileWorldSize
+  const random = mulberry32(L.seed)
+
+  ctx.fillStyle = L.base
+  ctx.fillRect(0, 0, size, size)
+
+  // 반점: 타일마다 6~10개, 지름 0.02~0.05u.
+  ctx.fillStyle = L.speckle
+  for (let row = 0; row < L.tilesPerCanvas; row += 1) {
+    for (let col = 0; col < L.tilesPerCanvas; col += 1) {
+      const count = L.speckleMin + Math.floor(random() * (L.speckleMax - L.speckleMin + 1))
+      for (let i = 0; i < count; i += 1) {
+        const diameter = (L.speckleDiameterMin + random() * (L.speckleDiameterMax - L.speckleDiameterMin)) * pxPerUnit
+        const x = col * tilePx + tilePx * (0.08 + random() * 0.84)
+        const y = row * tilePx + tilePx * (0.08 + random() * 0.84)
+        ctx.beginPath()
+        ctx.arc(x, y, Math.max(0.75, diameter / 2), 0, Math.PI * 2)
+        ctx.fill()
+      }
+    }
+  }
+
+  // 줄눈: 타일 경계마다 0.03u. 캔버스 가장자리는 반폭씩 나눠 그려 반복 이음새가 한 줄로 이어진다.
+  ctx.fillStyle = L.grout
+  const grout = L.groutWidth * pxPerUnit
+  for (let i = 0; i <= L.tilesPerCanvas; i += 1) {
+    const p = i * tilePx
+    ctx.fillRect(p - grout / 2, 0, grout, size)
+    ctx.fillRect(0, p - grout / 2, size, grout)
+  }
+
+  const tex = new THREE.CanvasTexture(canvas)
+  const repeat = getStage5LinoleumRepeat()
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping
+  tex.repeat.set(repeat.x, repeat.z)
   tex.anisotropy = 8
   tex.colorSpace = THREE.SRGBColorSpace
   return tex
@@ -350,10 +440,10 @@ export default function ClassroomFloor({ stageId = 'stage1' }) {
   // 스테이지 색 구역은 실시간 SpotLight가 아니라 바닥 lightMap 한 장으로 굽는다.
   // 광원을 추가하지 않으므로 씬의 NUM_SPOT_LIGHTS는 0으로 유지된다.
   const { width: floorPlaneWidth, depth: floorPlaneDepth } = getFloorPlaneSize(stageId)
-  // Studio 배치 Apply로 stage4 소품이 움직이면 접지 음영을 다시 굽는다. 다른 스테이지는 재굽기 없음.
+  // Studio 배치 Apply로 stage4·5 solid 가구가 움직이면 접지 음영을 다시 굽는다. 다른 스테이지는 재굽기 없음.
   const placementsVersion = useStagePropPlacementsVersion()
-  const occlusionVersion = stageId === 'stage4' ? placementsVersion : 0
-  // 배치 이벤트는 전 스테이지 공통이라, stage4 굽기 입력이 실제로 바뀐 경우에만 다시 굽는다.
+  const occlusionVersion = isSolidPropStage(stageId) ? placementsVersion : 0
+  // 배치 이벤트는 전 스테이지 공통이라, stage4·5 굽기 입력이 실제로 바뀐 경우에만 다시 굽는다.
   const occlusionKey = useMemo(() => JSON.stringify(getStageFloorOcclusion(stageId)), [stageId, occlusionVersion])
   const lightBake = useMemo(
     () => buildStageFloorLightMap(stageId, {
@@ -377,12 +467,24 @@ export default function ClassroomFloor({ stageId = 'stage1' }) {
     stage3Material?.dispose()
     stage3Texture?.dispose()
   }, [stage3Material, stage3Texture])
+  // Stage 5 리놀륨도 이 바닥이 소유하는 CanvasTexture다(stage3와 같은 dispose 규칙).
+  const stage5Texture = useMemo(() => (stageId === 'stage5' ? buildStage5LinoleumTexture() : null), [stageId])
+  const stage5Material = useMemo(
+    () => (stageId === 'stage5'
+      ? new THREE.MeshLambertMaterial({ map: stage5Texture, ...stageFloorLightMapProps(lightBake) })
+      : null),
+    [stageId, stage5Texture, lightBake],
+  )
+  useEffect(() => () => {
+    stage5Material?.dispose()
+    stage5Texture?.dispose()
+  }, [stage5Material, stage5Texture])
 
   return (
     <group>
-      {stageId === 'stage3'
-        ? <FloorPlane material={stage3Material} />
-        : <TexturedFloor floorTile={floorTile} lightBake={lightBake} />}
+      {stageId === 'stage3' && <FloorPlane material={stage3Material} />}
+      {stageId === 'stage5' && <FloorPlane material={stage5Material} width={floorPlaneWidth} depth={floorPlaneDepth} />}
+      {stageId !== 'stage3' && stageId !== 'stage5' && <TexturedFloor floorTile={floorTile} lightBake={lightBake} />}
 
       {stageId === 'stage2' && (
         <Stage2EndWall />

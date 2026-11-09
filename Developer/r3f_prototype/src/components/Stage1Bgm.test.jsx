@@ -2,7 +2,7 @@
 import React, { act } from 'react'
 import { createRoot } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import Stage1Bgm, { getStageBgmUrl, STAGE1_BGM_URL, STAGE2_BGM_URL } from './Stage1Bgm.jsx'
+import Stage1Bgm, { getStageBgmUrl, STAGE1_BGM_URL, STAGE2_BGM_URL, STAGE5_BGM_URL, STAGE6_BGM_URL } from './Stage1Bgm.jsx'
 import { STAGE_CONFIGS } from '../lib/stageConfig.js'
 import { installFakeAudio, setVisibility } from '../lib/fakeStreamingAudio.testUtil.js'
 
@@ -41,8 +41,25 @@ describe('stage gameplay CDN BGM', () => {
     expect(fake.instances[0].paused).toBe(true)
   })
 
-  it('never leaves a stage silent: stages 3-10 fall back to zombie_3rd (odd) / zombie_2nd (even)', () => {
+  it('assigns Stage 5 candy_boy and Stage 6 candy_girl, never sharing one track', () => {
+    expect(getStageBgmUrl('stage5')).toBe('https://music.escapezombie.com/candy_boy.mp3')
+    expect(getStageBgmUrl('stage6')).toBe('https://music.escapezombie.com/candy_girl.mp3')
+    expect(STAGE5_BGM_URL).not.toBe(STAGE6_BGM_URL)
+    for (const url of [STAGE5_BGM_URL, STAGE6_BGM_URL]) {
+      expect([STAGE1_BGM_URL, STAGE2_BGM_URL]).not.toContain(url)
+    }
+  })
+
+  it('hands over from Stage 5 to Stage 6 without a silent gap', () => {
+    const stage5 = render({ stageId: 'stage5' })
+    expect(stage5).toMatchObject({ src: STAGE5_BGM_URL, loop: true, paused: false })
+    const stage6 = render({ stageId: 'stage6', gameKey: 2 })
+    expect(stage6).toMatchObject({ src: STAGE6_BGM_URL, loop: true, paused: false })
+  })
+
+  it('never leaves a stage silent: unassigned stages fall back to zombie_3rd (odd) / zombie_2nd (even)', () => {
     for (let n = 1; n <= 10; n += 1) {
+      if (n === 5 || n === 6) continue
       expect(getStageBgmUrl(`stage${n}`)).toBe(n % 2 ? STAGE1_BGM_URL : STAGE2_BGM_URL)
     }
     expect(getStageBgmUrl('unknown')).toBeUndefined()

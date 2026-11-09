@@ -306,6 +306,9 @@ investigation.student.stage3.001	I can see a whistle. One blow and PE class migh
 investigation.student.stage3.002	A basketball is stuck to their side. Friend or accomplice? Still unclear.
 investigation.student.stage4.001	The tray is so polite. It looks like it is waiting for food, which is oddly sad.
 investigation.student.stage4.002	The spoon and chopsticks are perfectly lined up. My first well-mannered horror.
+investigation.student.stage5.001	Sitting perfectly upright in a staff room chair. The "about to get scolded" posture is muscle memory now.
+investigation.student.stage5.002	Clutching a letter of apology. It stops on line three.
+investigation.student.stage5.003	A sticky note on the forehead: "Wake me when the Vice Principal comes."
 investigation.classroomDesk.001	A pencil jabbed the back of my hand. So the desk is on the zombies’ side too.
 investigation.classroomDesk.002	"Lunch is the best" is carved here. Now my stomach is the one that panicked.
 investigation.classroomDesk.003	The desk's scratches form a map. I can hide in it.
@@ -431,3 +434,33 @@ investigation.pressureCauldron.002	I can feel the heat on my face. I am not gett
 investigation.pressureCauldron.003	I cannot see through that white steam. I should step aside.
 investigation.pressureCauldron.004	I tucked my hands into my pockets when the lid rattled.
 investigation.pressureCauldron.005	I am keeping my distance from that hot pot. Just looking, then leaving.
+investigation.staffroomDeskIsland.001	The monitor has said "grading in progress" for three weeks.
+investigation.staffroomDeskIsland.002	Five coffee mugs. All half full.
+investigation.staffroomDeskIsland.003	The partition says "Do not disturb while working." Still obeyed, even as a zombie.
+investigation.staffroomDeskIsland.004	The drawer is full of confiscated game consoles. No plans to return them, apparently.
+investigation.staffroomDeskIsland.005	The calendar has "37 days to vacation" circled.
+investigation.staffroomViceDesk.001	A mountain of approval folders. The top one is titled "Plan for Organizing Approval Papers."
+investigation.staffroomViceDesk.002	Only the word "Vice Principal" on the nameplate is polished to a shine.
+investigation.staffroomViceDesk.003	The stamp case is empty. I think I know who's holding it now.
+investigation.staffroomViceDesk.004	The chair spun by itself. It's still warm.
+investigation.staffroomViceDesk.005	A memo: "Keep meetings short (3 hours)."
+investigation.staffroomCopier.001	The copier says "paper jam." Probably forever.
+investigation.staffroomCopier.002	One test sheet is stuck in the tray. No answers visible. Too bad.
+investigation.staffroomCopier.003	Still warm. Someone just printed 2,000 pages.
+investigation.staffroomCopier.004	Under "No personal copies" there's a doodle of my face. Who did this?
+investigation.staffroomCopier.005	I pressed a button and it just beeped. Same note as the PA chime.
+investigation.staffroomEntranceDoor.001	Through the glass doors I can see the schoolyard. Just a little farther.
+investigation.staffroomEntranceDoor.002	The doormat says "Welcome." Nothing for people on their way out.
+investigation.staffroomEntranceDoor.003	The attendance book hangs on the handle. Absent today: the whole school.
+investigation.staffroomEntranceDoor.004	My sneakers are still in the shoe rack. No time to change — I'm running out as I am.
+investigation.staffroomEntranceDoor.005	A breeze slips through the gap. Outside still smells like an ordinary afternoon.
+investigation.staffroomSpeaker.001	The speaker just crackles. The next call hasn't come yet.
+investigation.staffroomSpeaker.002	The volume knob is taped at MAX.
+investigation.staffroomSpeaker.003	It says "Quiet during announcements." The announcements are the loudest thing here.
+investigation.staffroomSpeaker.004	I followed the cable. It runs all the way to the Vice Principal's desk.
+investigation.staffroomSpeaker.005	There is gum stuck in the speaker grille. Someone tried to shut it up.
+investigation.staffroomClutter.001	The top approval form is stamped "URGENT" five times.
+investigation.staffroomClutter.002	A pile of apology letters. The handwriting on top looks familiar… it's mine.
+investigation.staffroomClutter.003	Stacks of notices for parents. Nobody ever took them home.
+investigation.staffroomClutter.004	A confiscated comic is tucked between the papers. Only volume 3 is missing.
+investigation.staffroomClutter.005	A mountain of paper clips. Even as zombies, they keep filing.

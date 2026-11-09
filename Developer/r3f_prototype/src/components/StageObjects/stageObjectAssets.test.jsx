@@ -546,3 +546,41 @@ describe('stage object asset catalog', () => {
     }
   })
 })
+
+describe('Stage 5 staff room prop catalog (spec Part B §3-4 · §12)', () => {
+  const staffroomTypes = [
+    'staffroomDeskIsland',
+    'staffroomViceDesk',
+    'staffroomCopier',
+    'staffroomEntranceDoor',
+    'staffroomSpeaker',
+    'staffroomClutter',
+  ]
+
+  it('registers all six staff room props in the render and placeable type catalogs', () => {
+    for (const type of staffroomTypes) {
+      expect(STAGE_OBJECT_TYPES, type).toContain(type)
+      expect(STAGE_PROP_TYPES, type).toContain(type)
+    }
+  })
+
+  it('makes only the desk islands, vice desk and copiers solid; papers, speakers and the door stay pass-through', () => {
+    for (const type of ['staffroomDeskIsland', 'staffroomViceDesk', 'staffroomCopier']) {
+      expect(BLOCKING_STAGE_OBJECT_TYPES.has(type), type).toBe(true)
+    }
+    for (const type of ['staffroomClutter', 'staffroomSpeaker', 'staffroomEntranceDoor']) {
+      expect(BLOCKING_STAGE_OBJECT_TYPES.has(type), type).toBe(false)
+    }
+  })
+
+  it('keeps staff room props to shared unit boxes and cached cylinders with toon + outline materials', () => {
+    const source = readFileSync(new URL('./StaffroomProps.jsx', import.meta.url), 'utf8')
+    expect(source).toContain('geometry={STAGE_PROP_UNIT_BOX_GEOMETRY}')
+    expect(source).toContain('getStagePropDepthWritingToonMaterial(')
+    expect(source).toContain('getStagePropOutlineMaterial(')
+    expect(source).toContain('<instancedMesh')
+    expect(source).not.toMatch(/<(box|cylinder|sphere|icosahedron)Geometry/)
+    expect(source).not.toContain('castShadow')
+    expect(source).not.toContain('receiveShadow')
+  })
+})

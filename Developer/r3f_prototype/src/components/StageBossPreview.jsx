@@ -62,6 +62,37 @@ function pointerFine() {
   return typeof window !== 'undefined' && window.matchMedia?.('(pointer: fine)')?.matches === true
 }
 
+// 로비는 카드마다 이 캔버스를 띄운다. 화면 밖 카드까지 매 프레임 그리면 메인 스레드가 카드 수만큼 잠기므로
+// 스크롤 영역에서 보일 때(+여유 160px)만 루프를 돌린다. IntersectionObserver가 없으면(jsdom 등) 항상 보이는 것으로 본다.
+function useOnScreen(ref) {
+  const [onScreen, setOnScreen] = useState(true)
+  useEffect(() => {
+    const el = ref.current
+    if (!el || typeof IntersectionObserver === 'undefined') return undefined
+    const io = new IntersectionObserver(([entry]) => setOnScreen(entry.isIntersecting), { rootMargin: '160px 0px' })
+    io.observe(el)
+    return () => io.disconnect()
+  }, [ref])
+  return onScreen
+}
+
+// 로비 카드 보행은 30fps면 충분하다. 보스 4마리가 동시에 걷는 로비에서 저사양 폰 메인 스레드를 절반으로 줄인다.
+// Graphics Studio(interactive)와 게임 본편은 이 상한을 쓰지 않는다(스튜디오는 frameloop="always" 유지).
+export const LOBBY_BOSS_PREVIEW_FPS = 30
+
+// 로비 전용 프레임 상한: Canvas는 demand 루프로 두고 30Hz로 invalidate해 다음 rAF에 한 장씩 그리게 한다.
+// 시계(clock)는 실제 시간으로 흐르므로 보행 속도는 그대로이고 프레임 수만 줄어든다.
+// 쇼타임 버스트·패럴랙스는 ReactiveBoss가 진행 중 매 프레임 invalidate하므로 그동안은 부드럽게 그려진다.
+function LobbyFrameCap({ fps = LOBBY_BOSS_PREVIEW_FPS }) {
+  const invalidate = useThree((s) => s.invalidate)
+  useEffect(() => {
+    invalidate()
+    const timer = window.setInterval(() => invalidate(), 1000 / fps)
+    return () => window.clearInterval(timer)
+  }, [invalidate, fps])
+  return null
+}
+
 // Canvas 자식: R3F 훅(useThree/useFrame)은 반드시 여기 안에서만 호출.
 // demand 루프 유지 — 버스트/패럴랙스가 진행 중일 때만 invalidate()로 프레임을 요청하고,
 // settle되면 아무 것도 안 해서 정적으로 되돌아간다.
@@ -199,6 +230,8 @@ export default function StageBossPreview({
   const renderZoom = resolveBossPreviewZoom(frame.zoom)
   const frameRef = useRef(frame)
   const dragRef = useRef(null)
+  const wrapperRef = useRef(null)
+  const onScreen = useOnScreen(wrapperRef)
   // Stable options object: the initial camera keeps R3F's lookAt(0,0,0); ZoomSync owns zoom.
   const [cameraOptions] = useState(() => ({ position: [0, 2.2, 5.5], zoom: renderZoom }))
   // 입장 쇼타임(motionToken)은 유저가 직접 누른 행동의 1초 피드백이라 모션 게이트를 우회한다.
@@ -235,6 +268,14 @@ export default function StageBossPreview({
   // 고정하므로 로비에서는 팔·다리 관절만 반복되고 모델은 제자리에 머문다.
   const staticPose = false
 
+  // 로비 카드(비인터랙티브)는 세로 스와이프를 목록 스크롤에 넘긴다(none이면 카드 위 스와이프가 죽는다).
+  // 스튜디오(interactive)만 드래그 팬을 위해 none.
+  const wrapperTouchAction = interactive ? 'none' : 'pan-y'
+  // 화면 밖이면 둘 다 "never"(마지막 프레임 유지). 화면 안: 스튜디오는 상한 없이 "always",
+  // 로비 카드는 "demand" + LobbyFrameCap 30Hz.
+  const lobbyFrameCap = !interactive && onScreen
+  const frameloop = !onScreen ? 'never' : interactive ? 'always' : 'demand'
+
   const updateFrame = (patch) => {
     if (!interactive || !onChange) return
     onChange(normalizeStageBossPreview({ ...frameRef.current, ...patch }))
@@ -242,14 +283,16 @@ export default function StageBossPreview({
 
   return (
     <div
+      ref={wrapperRef}
       data-testid={testId}
       data-zoom={frame.zoom}
       data-pan-x={frame.panX}
       data-pan-y={frame.panY}
       data-boss-type={bossType}
       data-motion-active={motionEnabled}
+      data-on-screen={onScreen}
       aria-label={ariaLabel}
-      style={{ ...previewFrameStyle, ...style, touchAction: !interactive && ['B05', 'B06', 'B07', 'B08', 'B09'].includes(bossType) ? 'pan-y' : 'none' }}
+      style={{ ...previewFrameStyle, ...style, touchAction: wrapperTouchAction }}
       onWheel={(event) => {
         if (!interactive) return
         event.preventDefault()
@@ -304,12 +347,14 @@ export default function StageBossPreview({
         invalidateRef.current?.()
       }}
     >
-      {/* 로비 B01~B04는 frameloop="always"에서 기존 normal 보행을 계속 재생한다.
+      {/* 로비 B01~B04는 화면에 보이는 동안 기존 normal 보행을 계속 재생한다 — 30fps 상한(demand + LobbyFrameCap).
+          스튜디오 미리보기는 상한 없이 "always". 스크롤 밖이면 둘 다 "never"로 멈춰 마지막 프레임을 유지한다.
           ReactiveBoss가 루트 위치를 고정하므로 이동 없이 관절만 반복한다.
           쇼타임 버스트는 이 보행과 별개인 바깥 래퍼 반응이며,
           framing 변경은 기존처럼 스튜디오 실시간 sync를 그대로 반영한다. */}
-      <Canvas frameloop="always" orthographic camera={cameraOptions} dpr={[1, 1.5]} gl={{ stencil: true, antialias: true }}>
+      <Canvas frameloop={frameloop} data-frame-cap={lobbyFrameCap ? LOBBY_BOSS_PREVIEW_FPS : undefined} orthographic camera={cameraOptions} dpr={[1, 1.5]} gl={{ stencil: true, antialias: true }}>
         <ZoomSync zoom={renderZoom} />
+        {lobbyFrameCap ? <LobbyFrameCap /> : null}
         <ambientLight intensity={0.7} />
         <directionalLight position={[3, 5, 4]} intensity={2.6} />
         <ReactiveBoss

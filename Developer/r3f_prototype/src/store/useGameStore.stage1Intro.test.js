@@ -80,7 +80,7 @@ describe('스테이지1 스토리 인트로 상태 (useGameStore)', () => {
     expect(useGameStore.getState().introStageId).toBe('stage1')
   })
 
-  it.each(['stage2', 'stage3', 'stage4', 'stage5'])('%s 인트로도 3줄 진행 후 마지막 탭에 플레이를 시작한다', (stageId) => {
+  it.each(['stage2', 'stage3', 'stage4', 'stage5', 'stage6'])('%s 인트로도 3줄 진행 후 마지막 탭에 플레이를 시작한다', (stageId) => {
     useGameStore.getState().startStageIntro(stageId)
     expect(useGameStore.getState().introStageId).toBe(stageId)
     expect(useGameStore.getState().introDialogue).toEqual({ index: 0 })

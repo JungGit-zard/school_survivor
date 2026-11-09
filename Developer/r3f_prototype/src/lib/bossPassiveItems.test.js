@@ -4,6 +4,7 @@ import {
   BOSS_PASSIVE_ITEM_UI_CAPACITY,
   applyBossPassiveDamageToBaseWeapon,
   getBossPassiveDamageMultiplier,
+  getBossPassiveItemIdForBoss,
   isBossPassiveItemUnlocked,
   normalizeBossPassiveUnlocks,
   unlockBossPassiveItem,
@@ -60,10 +61,41 @@ describe('B01 boss passive item catalog', () => {
       .toMatchObject({ damage: 7.875, zoneTickDamage: 2.52 })
   })
 
-  it('keeps the four boss passive weapon sets disjoint', () => {
+  it.each([
+    ['b10ApprovalStamp', 'B10', '교감 결재 도장', '연필·오리요강·하나코 공격력 +5%', ['pencilThrow', 'compassBlade', 'hanako']],
+    ['b05PrincipalMic', 'B05', '교장 훈화 마이크', '전기·고장난 스타링크·우산 방어막 공격력 +5%', ['stunGun', 'starlink', 'umbrellaGuard']],
+  ])('Stage 5·6 boss passive %s (%s) is +5%% on its three weapons only', (id, bossId, name, description, weaponIds) => {
+    const unlocks = { [id]: true }
+    expect(BOSS_PASSIVE_ITEMS[id]).toMatchObject({ id, bossId, name, description, weaponIds, damageMultiplier: 1.05 })
+    expect(getBossPassiveItemIdForBoss(bossId)).toBe(id)
+    expect(normalizeBossPassiveUnlocks({ [id]: true, futureBossItem: true })).toEqual({ [id]: true })
+    expect(unlockBossPassiveItem({ b01SetSquare: true }, id)).toEqual({ b01SetSquare: true, [id]: true })
+    for (const weaponId of weaponIds) expect(getBossPassiveDamageMultiplier(weaponId, unlocks)).toBe(1.05)
+    for (const other of ['boxCutter', 'lineDraw', 'onigiri', 'tumbler', 'guidedMissile', 'sharkMissile', 'inucon']) {
+      expect(getBossPassiveDamageMultiplier(other, unlocks), other).toBe(1)
+    }
+  })
+
+  it('spec checks: compassBlade with B10 stamp and stunGun with B05 mic are exactly 1.05', () => {
+    expect(getBossPassiveDamageMultiplier('compassBlade', { b10ApprovalStamp: true })).toBe(1.05)
+    expect(getBossPassiveDamageMultiplier('stunGun', { b05PrincipalMic: true })).toBe(1.05)
+    expect(getBossPassiveDamageMultiplier('stunGun', { b10ApprovalStamp: true })).toBe(1)
+  })
+
+  it('maps each boss to its passive; bosses without one get null', () => {
+    expect(['B01', 'B02', 'B03', 'B04', 'B10', 'B05'].map(getBossPassiveItemIdForBoss))
+      .toEqual(['b01SetSquare', 'b02CorridorPass', 'b03GymWhistle', 'b04ServingLadle', 'b10ApprovalStamp', 'b05PrincipalMic'])
+    for (const bossId of ['B06', 'B07', 'B08', 'B09', 'E01', '', undefined, 'constructor', '__proto__']) {
+      expect(getBossPassiveItemIdForBoss(bossId), String(bossId)).toBeNull()
+    }
+  })
+
+  it('keeps the six boss passive weapon sets disjoint and leaves the missiles out', () => {
     const all = Object.values(BOSS_PASSIVE_ITEMS).flatMap((item) => item.weaponIds)
-    expect(all).toHaveLength(12)
+    expect(all).toHaveLength(18)
     expect(new Set(all).size).toBe(all.length)
+    for (const missile of ['guidedMissile', 'sharkMissile']) expect(all).not.toContain(missile)
+    expect(Object.keys(BOSS_PASSIVE_ITEMS).length).toBeLessThanOrEqual(BOSS_PASSIVE_ITEM_UI_CAPACITY)
   })
 
   it('does not multiply the same runtime weapon twice', () => {

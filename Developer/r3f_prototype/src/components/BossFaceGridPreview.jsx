@@ -5,7 +5,7 @@ const CATEGORY_LABELS = Object.fromEntries(BOSS_FACE_PART_CATEGORIES.map((catego
 const FACE_INK = '#1d1014'
 const FACE_ACCENT = '#e35d3d'
 
-// SVG y grows downward; the in-game shader (BossFacePartsOverlay.jsx) uses UV y upward.
+// SVG y grows downward; the in-game shader (BossProceduralFace.jsx recipe shapes) uses UV y upward.
 // Angry = outer ends high, inner ends low; worried = the reverse — same as the shader.
 function BrowSvg({ id }) {
   if (id === 'brow-angry-slash') return <><path d="M27 32 L43 38" /><path d="M57 38 L73 32" /></>

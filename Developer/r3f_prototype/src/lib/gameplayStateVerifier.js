@@ -2,8 +2,11 @@ import { MAX_OWNED_WEAPONS, UPGRADE_EFFECTS, isUpgradeAvailable } from './upgrad
 import { getRuntimeBurstEventsForStage } from './burstEvents.js'
 import { WEAPON_CATALOG } from './weaponCatalog.js'
 import { useGameStore } from '../store/useGameStore.js'
+import { isStageVisible } from './stageConfig.js'
 
-export const STATE_VERIFIER_STAGES = Object.freeze(['stage1', 'stage2', 'stage3', 'stage4'])
+// 스토어 resetGame은 비노출 스테이지 진입을 거부하므로(출시 게이트 VISIBLE_STAGE_IDS), 후보 스테이지는
+// 출시되는 순간 자동으로 검증 대상에 들어간다. 2026-11-08 Stage 5·6 공개로 이 목록은 stage1~6이다.
+export const STATE_VERIFIER_STAGES = Object.freeze(['stage1', 'stage2', 'stage3', 'stage4', 'stage5', 'stage6'].filter(isStageVisible))
 
 const VALID_PHASES = new Set(['playing', 'paused', 'levelup', 'gameover', 'cleared'])
 const NON_NUMERIC_WEAPON_FIELDS = new Set(['label', 'active', 'singleTargetProjectiles', 'chibikoBoostApplied'])
@@ -328,6 +331,8 @@ export function runGameplayStateVerifier({ runs = 20000, seed = 1, maxActionsPer
     stage2Runs: 0,
     stage3Runs: 0,
     stage4Runs: 0,
+    stage5Runs: 0,
+    stage6Runs: 0,
     levelUps: 0,
     upgradesApplied: 0,
     replacementsConfirmed: 0,

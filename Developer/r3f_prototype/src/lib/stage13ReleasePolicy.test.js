@@ -1,12 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import { STAGE_CONFIGS, VISIBLE_STAGE_IDS, getNextStageId, isStageVisible, isStageUnlocked } from './stageConfig.js'
 
-describe('four-stage release policy preserves historical content', () => {
+describe('six-stage release policy (2026-11-08: Stage 5·6 public, 7+ hidden) preserves historical content', () => {
   it('has a fixed frozen whitelist, independent of every content definition', () => {
     expect(Object.isFrozen(VISIBLE_STAGE_IDS)).toBe(true)
-    expect(VISIBLE_STAGE_IDS).toEqual(['stage1', 'stage2', 'stage3', 'stage4'])
+    expect(VISIBLE_STAGE_IDS).toEqual(['stage1', 'stage2', 'stage3', 'stage4', 'stage5', 'stage6'])
     expect(Object.keys(STAGE_CONFIGS)).toHaveLength(10)
-    for (const value of ['stage5','stage10','stage11','Stage1','stage01',null,undefined,'']) expect(isStageVisible(value)).toBe(false)
+    for (const id of ['stage5','stage6']) expect(isStageVisible(id)).toBe(true)
+    for (const value of ['stage7','stage8','stage9','stage10','stage11','Stage1','stage01',null,undefined,'']) expect(isStageVisible(value)).toBe(false)
     expect(getNextStageId()).toBe('stage2')
     expect(getNextStageId('unknown')).toBeNull()
   })
@@ -23,7 +24,8 @@ describe('four-stage release policy preserves historical content', () => {
     for (let i = 1; i <= 10; i++) {
       expect(isStageUnlocked(`stage${i}`, records)).toBe(true)
       if (i > 1) expect(isStageUnlocked(`stage${i}`, { ...records, [`stage${i - 1}BossDefeats`]: 0 })).toBe(false)
-      expect(getNextStageId(`stage${i}`)).toBe(i < 4 ? `stage${i + 1}` : null)
+      // Stage 6 = PART1_FINAL: no next stage even though stage7 evidence exists.
+      expect(getNextStageId(`stage${i}`)).toBe(i < 6 ? `stage${i + 1}` : null)
     }
     expect(records).toEqual(before)
     expect(JSON.stringify(STAGE_CONFIGS)).toBe(definitions)

@@ -49,10 +49,11 @@ describe('스테이지 색 구역: 런타임 광원 0개 + 바닥 굽기', () =>
   it('회귀 이전부터 있던 ambientLight 1 + directionalLight 2는 그대로다', () => {
     const source = readFileSync(new URL('./Game.jsx', import.meta.url), 'utf8')
 
-    expect(source).toContain('<ambientLight intensity={0.38} color={0x6d6780} />')
+    // 실내 스테이지 값(0.38 · 0x6d6780 · 0xffe2b0)은 그대로이고, 야외 스테이지(Stage 6)만 스테이지 비주얼 ambient로 바꾼다.
+    expect(source).toContain('<ambientLight intensity={stageAmbient?.intensity ?? 0.38} color={stageAmbient?.color ?? 0x6d6780} />')
     expect(source).toContain('position={[-10, 22, 12]}')
     expect(source).toContain('intensity={3.2}')
-    expect(source).toContain('<directionalLight position={[10, 12, -10]} intensity={0.85} color={0xffe2b0} />')
+    expect(source).toContain('<directionalLight position={[10, 12, -10]} intensity={0.85} color={stageAmbient?.rimColor ?? 0xffe2b0} />')
     expect(source.match(/<ambientLight/g)).toHaveLength(1)
     expect(source.match(/<directionalLight/g)).toHaveLength(2)
   })

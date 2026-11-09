@@ -126,5 +126,5 @@ function readToken(value) {
 }
 
 function readStageId(value) {
-  return ['stage1', 'stage2', 'stage3', 'stage4'].includes(value) ? value : ''
+  return ['stage1', 'stage2', 'stage3', 'stage4', 'stage5'].includes(value) ? value : ''
 }

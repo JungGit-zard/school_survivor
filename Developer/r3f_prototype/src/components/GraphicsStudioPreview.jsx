@@ -34,6 +34,12 @@ import {
   KitchenTrashBins,
   KitchenTrayRack,
   PressureCauldron,
+  StaffroomClutter,
+  StaffroomCopier,
+  StaffroomDeskIsland,
+  StaffroomEntranceDoor,
+  StaffroomSpeaker,
+  StaffroomViceDesk,
 } from './StageObjects/index.js'
 import GoldCoin from './GoldCoin.jsx'
 import XpTextbook from './XpTextbook.jsx'
@@ -639,6 +645,13 @@ function RenderPreviewItem({ item }) {
   if (item.previewKind === 'stageObject' && item.objectType === 'kitchenCrateStack') return <KitchenCrateStack />
   if (item.previewKind === 'stageObject' && item.objectType === 'kitchenClutter') return <KitchenClutter variant={item.variant} />
   if (item.previewKind === 'stageObject' && item.objectType === 'pressureCauldron') return <PressureCauldron />
+  // 교무실(stage5) 프랍 6종 — 런타임과 같은 컴포넌트(StaffroomProps.jsx).
+  if (item.previewKind === 'stageObject' && item.objectType === 'staffroomDeskIsland') return <StaffroomDeskIsland variant={item.variant} />
+  if (item.previewKind === 'stageObject' && item.objectType === 'staffroomViceDesk') return <StaffroomViceDesk />
+  if (item.previewKind === 'stageObject' && item.objectType === 'staffroomCopier') return <StaffroomCopier variant={item.variant} />
+  if (item.previewKind === 'stageObject' && item.objectType === 'staffroomEntranceDoor') return <StaffroomEntranceDoor />
+  if (item.previewKind === 'stageObject' && item.objectType === 'staffroomSpeaker') return <StaffroomSpeaker />
+  if (item.previewKind === 'stageObject' && item.objectType === 'staffroomClutter') return <StaffroomClutter variant={item.variant} />
   if (item.previewKind === 'pickup') {
     return <PickupPreview type={item.pickupType} />
   }

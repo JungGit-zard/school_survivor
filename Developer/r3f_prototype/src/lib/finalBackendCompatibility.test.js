@@ -24,11 +24,14 @@ describe('final minimal backend and Stage5 compatibility',()=>{
   const expression=rules.users.$uid.progress.encounteredZombieTypes.$zombieType['.validate']
   const accept=(type,value=1)=>Function('$zombieType','newData',`return (${expression})`)(type,{val:()=>value})
   for(const e of [...Object.values(EXPANSION_ENEMIES),...Object.values(EXPANSION_BOSSES)])expect(accept(e.id),e.id).toBe(true)
-  for(const type of ['E71','B10','unknown'])expect(accept(type)).toBe(false)
+  // B10 = Stage 5 교감 좀비 (2026-11-08). 'E59M' 미니는 도감·조우 대상이 아니다.
+  expect(accept('B10')).toBe(true)
+  for(const type of ['E71','B11','E59M','unknown'])expect(accept(type)).toBe(false)
   expect(accept('E19',2)).toBe(false)
  })
  it('retains the accepted Stage5 east-wall vending position inside its stage bounds',()=>{
-  const p=getStageVendingPlacement('stage5');expect(p).toMatchObject({id:'vending-stage5',stageId:'stage5',position:{x:6.25,y:0,z:-14}})
+  // 2026-11-08 교무실 개편: 북벽 복사기(6.0, −13.4)와 겹치던 (6.25, −14)를 동벽 레인 4 앞끝으로 옮겼다(스펙 Part B §3-5).
+  const p=getStageVendingPlacement('stage5');expect(p).toMatchObject({id:'vending-stage5',stageId:'stage5',wallSide:'east',position:{x:8.55,y:0,z:-10.6}})
   const b=getStageBounds('stage5');expect(Math.abs(p.position.x)).toBeLessThan(b.halfX);expect(Math.abs(p.position.z)).toBeLessThan(b.halfZ)
  })
  it('keeps sessionStorage identity separate before touching the forbidden localStorage getter',()=>{

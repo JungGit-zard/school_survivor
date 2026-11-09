@@ -78,8 +78,10 @@ export function StageLockModel() {
 }
 
 export function StageLockPreview({ style = null, testId = 'stage-lock-preview', ariaLabel = '잠긴 스테이지 3D 자물쇠' }) {
+  // 정적 자물쇠라 매 프레임 그릴 필요가 없다. demand는 마운트·리사이즈·프롭 변경(스튜디오 튜닝 invalidate) 때만 그린다.
   return (
     <Canvas
+      frameloop="demand"
       data-testid={testId}
       aria-label={ariaLabel}
       camera={{ position: [1.8, 1.55, 2.8], fov: 34, near: 0.01, far: 30 }}

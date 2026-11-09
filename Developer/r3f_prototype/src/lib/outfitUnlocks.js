@@ -5,7 +5,7 @@
 //   게스트 _onRunEnd 판정 입력은 "이번 판 하나"뿐이라, 보유 목록을 판마다 다시 계산하지 않고
 //   합집합으로 쌓는다 (Stage 1 탈출 다음 판에서 죽어도 동복이 남는다, balanceqa §3-3).
 // 로그인했지만 계정 진행도가 아직 오지 않았으면 default만 보유로 본다 (무기 해금과 같은 규칙).
-import { DEFAULT_OUTFIT_ID, evaluateOutfitUnlocks, isAccountUnlockableOutfitId, isOutfitId } from './outfitCatalog.js'
+import { DEFAULT_OUTFIT_ID, evaluateOutfitUnlocks, isAccountUnlockableOutfitId, isOutfitId, isOutfitReleased } from './outfitCatalog.js'
 import {
   _seedHydratedFirebaseProgressForTests,
   getFirebaseProgressRuntimeSnapshot,
@@ -118,11 +118,11 @@ function loadSavedOutfitId() {
   return loadGuestSessionSettings().playerOutfit
 }
 
-// 판 시작 때 입는 옷 = 저장된 옷이 보유 목록에 있으면 그 옷, 아니면 default.
+// 판 시작 때 입는 옷 = 저장된 옷이 보유 목록에 있고 외형이 준비된 옷이면 그 옷, 아니면 default.
 // 저장값은 덮어쓰지 않는다 (T-04). 스토어 runOutfitId와 Player.jsx 외형이 이 값 하나를 같이 쓴다.
 export function resolveRunOutfitId() {
   const saved = loadSavedOutfitId()
-  return isOutfitId(saved) && isOutfitUnlocked(saved) ? saved : DEFAULT_OUTFIT_ID
+  return isOutfitId(saved) && isOutfitReleased(saved) && isOutfitUnlocked(saved) ? saved : DEFAULT_OUTFIT_ID
 }
 
 export function _resetGuestOutfitUnlocksForTests() {

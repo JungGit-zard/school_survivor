@@ -30,7 +30,7 @@ describe('expansion live gameplay', () => {
   expect(isStageUnlocked('stage6',{stage5Clears:1})).toBe(false)
   expect(isStageUnlocked('stage6',{stage5BossDefeats:1})).toBe(true)
   for(let n=7;n<=10;n++) expect(isStageUnlocked(`stage${n}`,{[`stage${n-1}BossDefeats`]:1})).toBe(true)
-  expect(getStageConfig('stage5').bossType).toBe('B03')
+  expect(getStageConfig('stage5').bossType).toBe('B10') // 2026-11-08 교무실 개편: B03 재탕 → B10 교감 좀비
   for(const s of Object.values(EXPANSION_STAGES)) {
    expect(getStageConfig(s.id).bossType).toBe(s.bossId)
    const events=getRuntimeSpawnEventsForStage(s.id)

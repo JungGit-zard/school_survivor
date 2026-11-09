@@ -153,11 +153,11 @@ describe('ClassroomFloor tiling', () => {
     }
   })
 
-  it('re-bakes the Stage 4 floor occlusion when Studio prop placements change', () => {
+  it('re-bakes the Stage 4·5 floor occlusion when Studio prop placements change', () => {
     const source = readFileSync(new URL('./ClassroomFloor.jsx', import.meta.url), 'utf8')
     expect(source).toContain('const placementsVersion = useStagePropPlacementsVersion()')
-    expect(source).toContain("const occlusionVersion = stageId === 'stage4' ? placementsVersion : 0")
-    // Placement events are global; only a changed stage4 occlusion input re-bakes.
+    expect(source).toContain('const occlusionVersion = isSolidPropStage(stageId) ? placementsVersion : 0')
+    // Placement events are global; only a changed stage4/stage5 occlusion input re-bakes.
     expect(source).toContain('JSON.stringify(getStageFloorOcclusion(stageId)), [stageId, occlusionVersion]')
     expect(source).toContain('occlusion: JSON.parse(occlusionKey)')
     expect(source).toContain('[stageId, floorPlaneWidth, floorPlaneDepth, occlusionKey]')

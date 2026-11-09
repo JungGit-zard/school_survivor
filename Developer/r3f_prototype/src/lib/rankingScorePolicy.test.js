@@ -92,4 +92,12 @@ describe('ranking score policy', () => {
     // 240 + 90 = 330, 탈출 보너스 15% = 49
     expect(getRankingScore({ stageId: 'stage2', survivalSeconds: 240, cleared: true }, policy)).toBe(379)
   })
+
+  // 2026-11-08: 확장 스테이지(6~10) 보너스는 데이터 scoreStageBonus가 정본이다. 서버 표와 1:1로 같아야 한다.
+  it('확장 스테이지 보너스는 데이터 scoreStageBonus이고 서버 SERVER_STAGE_BONUS와 같다', async () => {
+    const { EXPANSION_STAGES } = await import('./expansionContent.js')
+    const { SERVER_STAGE_BONUS } = await import('../../functions/src/ranking.js')
+    for (const stage of Object.values(EXPANSION_STAGES)) expect(STAGE_BONUS[stage.id]).toBe(stage.scoreStageBonus)
+    expect(STAGE_BONUS).toEqual(SERVER_STAGE_BONUS)
+  })
 })

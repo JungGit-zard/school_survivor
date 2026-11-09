@@ -33,6 +33,12 @@ export const BLOCKING_STAGE_OBJECT_TYPES = new Set([
   'kitchenTrashBins',
   'kitchenCrateStack',
   'pressureCauldron',
+  // stage5 교무실 solid 가구 3종. staffroomClutter(바닥 서류)·staffroomSpeaker(벽 스피커)·
+  // staffroomEntranceDoor(현관 비주얼)는 kitchenClutter와 같은 이유로 넣지 않는다 —
+  // 이 집합은 콜라이더와 E04·투사체 좀비 시야 차단을 동시에 결정한다.
+  'staffroomDeskIsland',
+  'staffroomViceDesk',
+  'staffroomCopier',
 ])
 
 const DESK_COLLIDER_PARTS = [
@@ -180,6 +186,23 @@ const PRESSURE_CAULDRON_COLLIDER_PARTS = [
   { key: 'pressure-cauldron-handwheel', position: [1.272, 0.472, 0.816], size: [0.336, 0.472, 0.368] },
 ]
 
+// stage5 교무실. size는 전체 치수 [X, Y, Z] — multiplyHalfExtents가 반으로 나눈다.
+const STAFFROOM_DESK_ISLAND_LONG_COLLIDER_PARTS = [
+  { key: 'desk-island-footprint', position: [0, 0.42, 0], size: [2.0, 0.84, 3.4] },
+]
+
+const STAFFROOM_DESK_ISLAND_SHORT_COLLIDER_PARTS = [
+  { key: 'desk-island-footprint', position: [0, 0.42, 0], size: [2.0, 0.84, 2.2] },
+]
+
+const STAFFROOM_VICE_DESK_COLLIDER_PARTS = [
+  { key: 'vice-desk-footprint', position: [0, 0.42, 0], size: [3.2, 0.84, 1.4] },
+]
+
+const STAFFROOM_COPIER_COLLIDER_PARTS = [
+  { key: 'copier-footprint', position: [0, 0.55, 0], size: [1.2, 1.1, 0.9] },
+]
+
 const COLLIDER_DEFS = {
   classroomChair: {
     variants: CLASSROOM_CHAIR_VARIANTS,
@@ -211,6 +234,16 @@ const COLLIDER_DEFS = {
   kitchenTrashBins: { parts: KITCHEN_TRASH_BINS_COLLIDER_PARTS },
   kitchenCrateStack: { parts: KITCHEN_CRATE_STACK_COLLIDER_PARTS },
   pressureCauldron: { parts: PRESSURE_CAULDRON_COLLIDER_PARTS },
+  // 변형별 parts가 있으면 그것을 쓴다(섬 long 3.4 / short 2.2). 변형이 없으면 long.
+  staffroomDeskIsland: {
+    variants: {
+      long: { parts: STAFFROOM_DESK_ISLAND_LONG_COLLIDER_PARTS },
+      short: { parts: STAFFROOM_DESK_ISLAND_SHORT_COLLIDER_PARTS },
+    },
+    parts: STAFFROOM_DESK_ISLAND_LONG_COLLIDER_PARTS,
+  },
+  staffroomViceDesk: { parts: STAFFROOM_VICE_DESK_COLLIDER_PARTS },
+  staffroomCopier: { parts: STAFFROOM_COPIER_COLLIDER_PARTS },
 }
 
 const MIN_BLOCKING_HALF_HEIGHT = 0.44
@@ -356,8 +389,9 @@ export function getStageObjectColliderParts(placement = {}) {
   const variantName = placement.props?.variant ?? 'upright'
   const variant = def.variants?.[variantName] ?? def.variants?.upright ?? {}
   const placementScale = normalizeScale(placement.scale)
+  const parts = variant.parts ?? def.parts
 
-  return def.parts.map(({ key, position, rotation = [0, 0, 0], size }) => {
+  return parts.map(({ key, position, rotation = [0, 0, 0], size }) => {
     const modelPosition = variant.modelPosition ?? [0, 0, 0]
     const modelRotation = variant.modelRotation ?? [0, 0, 0]
 

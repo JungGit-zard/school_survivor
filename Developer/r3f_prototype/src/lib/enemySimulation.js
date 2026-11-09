@@ -1,11 +1,12 @@
 import { MAX_ENEMIES, getNovelCyclePhaseOffsetMs} from './enemyEntityPool.js'
 import {
   STAGE2_E04_FIRST_FIRE_DELAY_MS,
-  STAGE2_E04_INTRO_SEC,
   STAGE2_E04_MAX_PROJECTILES,
   STAGE2_E04_MIN_FIRE_DISTANCE,
-  STAGE4_E04_INTRO_SEC,
+  getE04IntroSec,
 } from './stage2ProjectileRules.js'
+import { hasClearRangedSight } from './stageRangedBlockers.js'
+import { E04_PROJECTILE_RADIUS } from './enemyProjectilePool.js'
 
 export const ENEMY_SIZE_MULTIPLIER = 4 / 3
 export const ENEMY_SPAWN_REVEAL_MS = 300
@@ -376,7 +377,7 @@ export function resolveRangedEnemyVelocityRaw(out, dirX, dirZ, distance, strafeS
 
 function isE04FireAllowed(context, ageMs, cooldownMs, distance, projectileCount) {
   const stageId = context.stageId === undefined ? 'stage2' : context.stageId
-  const introSec = context.e04IntroSec === undefined ? (stageId === 'stage4' ? STAGE4_E04_INTRO_SEC : STAGE2_E04_INTRO_SEC) : context.e04IntroSec
+  const introSec = context.e04IntroSec === undefined ? getE04IntroSec(stageId) : context.e04IntroSec
   // 발사 하한(introSec)과 억제 조건(bossPressure)은 반드시 같은 시계를 봐야 한다.
   // bossPressure는 스폰 시계(캐치업으로 앞당겨진 시각)를 쓰므로 인트로 게이트도 spawnSec을 본다.
   // 둘이 갈리면 보스가 당겨졌을 때 발사 창 [introSec, bossSec)이 공집합이 되어 E04가 한 발도
@@ -840,7 +841,9 @@ export class EnemySimulationRuntime {
         velocityX = this._velocityScratch.x
         velocityZ = this._velocityScratch.z
         moving = true
-        if (isE04FireAllowed(context, pool.spawnTimer[index], pool.attackCooldown[index], distance, stepProjectileCount)) {
+        // context.rangedSightObstacles: solid 프롭이 사선을 끊는 스테이지(Stage 5)에서만 호출측이 넣는다. 그 외 null → 기존 동작.
+        if (isE04FireAllowed(context, pool.spawnTimer[index], pool.attackCooldown[index], distance, stepProjectileCount)
+          && (!context.rangedSightObstacles || hasClearRangedSight(posX, posZ, playerX, playerZ, context.rangedSightObstacles, E04_PROJECTILE_RADIUS))) {
           if (this.events.push(ENEMY_EVENT_RANGED_FIRE, index, generation, posX, pool.posY[index], posZ, nx, nz)) {
             stepProjectileCount += 1
             pool.attackCooldown[index] = E04_FIRE_COOLDOWN_MS

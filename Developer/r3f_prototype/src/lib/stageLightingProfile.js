@@ -31,10 +31,17 @@ export const STAGE_LIGHTING_PROFILES = Object.freeze({
     { kind: 'spot', position: [0, 6.5, 0], target: [0, 0, 0], color: '#EEF3F6', intensity: 142, distance: 11, angle: 0.62, penumbra: 0.48 },
     { kind: 'spot', position: [1.5, 7, 12], target: [0, 0, 10], color: '#DFF6FF', intensity: 162, distance: 14, angle: 0.72, penumbra: 0.42 },
   ]),
+  // stage5 교무실: 채도를 낮춘 따뜻한 형광등. 노랑 텔레그래프 #f5ce69와 구분하고, 호출 레인 파랑 #5B8CFF는 쓰지 않는다.
+  stage5: freezeProfile([
+    { kind: 'spot', position: [0, 7, -12.5], target: [0, 0, -9.5], color: '#FFF4E0', intensity: 166, distance: 14, angle: 0.74, penumbra: 0.42 },
+    { kind: 'spot', position: [-4, 6.5, 0], target: [0, 0, 0], color: '#FFE9C7', intensity: 150, distance: 12, angle: 0.66, penumbra: 0.46 },
+    { kind: 'spot', position: [1.5, 7, 12], target: [0, 0, 9.5], color: '#F7F1E3', intensity: 160, distance: 14, angle: 0.72, penumbra: 0.42 },
+  ]),
+  // stage6 운동장(spec C-3-7): 런타임 미소비 데이터(확장 스테이지는 ClassroomFloor 굽기를 쓰지 않는다). 햇빛 톤.
   stage6: freezeProfile([
-    {kind:'spot',position:[-2,7,-14],target:[0,0,-10],color:'#F3D59D',intensity:162,distance:16,angle:.75,penumbra:.5},
-    {kind:'spot',position:[5,7,0],target:[0,0,0],color:'#A0BBEF',intensity:145,distance:14,angle:.72,penumbra:.5},
-    {kind:'spot',position:[1,7,14],target:[0,0,10],color:'#E6BC69',intensity:168,distance:16,angle:.75,penumbra:.5},
+    { kind: 'spot', position: [-2, 9, -14], target: [0, 0, -10], color: '#FFF3D6', intensity: 170, distance: 18, angle: 0.8, penumbra: 0.5 },
+    { kind: 'spot', position: [5, 9, 0], target: [0, 0, 0], color: '#FFFFFF', intensity: 150, distance: 16, angle: 0.8, penumbra: 0.5 },
+    { kind: 'spot', position: [1, 9, 14], target: [0, 0, 10], color: '#FFE9B8', intensity: 170, distance: 18, angle: 0.8, penumbra: 0.5 },
   ]),
   stage7: freezeProfile([
     {kind:'spot',position:[0,7,-14],target:[0,0,-10],color:'#8FE8DA',intensity:150,distance:16,angle:.75,penumbra:.5},

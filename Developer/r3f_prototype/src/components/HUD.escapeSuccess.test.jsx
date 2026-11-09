@@ -97,7 +97,10 @@ describe('escape success choices', () => {
     // b3fada83: the continue button needs this run's boss defeat.
     useGameStore.setState({ phase: 'playing', elapsedMs: 100_000, continuousScoreBase: 500, bossDefeated: true })
     renderSuccess()
-    const score = 500 + getRankingScore({ stageId: 'stage4', survivalSeconds: 100, cleared: true })
+    // 이번 런 보스 처치 보너스가 스테이지 점수에 들어간다(결과창은 store bossBonus를 그대로 쓴다).
+    const { bossBonus } = useGameStore.getState()
+    expect(bossBonus).toBeGreaterThan(0)
+    const score = 500 + getRankingScore({ stageId: 'stage4', survivalSeconds: 100, cleared: true, bossBonus })
     const next = [...container.querySelector('[data-testid="result-primary-actions"]').querySelectorAll('button')].find((button) => button.textContent === '다음 스테이지 계속')
     expect(next).toBeDefined()
     expect(container.querySelector('[data-testid="escape-total-score"]').textContent).toContain(String(score))
@@ -105,6 +108,7 @@ describe('escape success choices', () => {
     expect(useGameStore.getState()).toMatchObject({ phase: 'playing', currentStageId: 'stage5', continuousScoreBase: score })
   })
 
+  // 2026-11-08 Stage 6 공개: 마지막 노출 스테이지는 1부 종착(PART1_FINAL)이다 — 예전 '모든 스테이지를 탈출' 문구 대신 1부 완결 문구.
   it.each([VISIBLE_STAGE_IDS.at(-1)])('shows the cumulative final escape at %s without a nonexistent next stage', (stageId) => {
     _seedHydratedFirebaseProgressForTests({uid:crypto.randomUUID()})
     seedStageEntryForTests(stageId)
@@ -113,7 +117,9 @@ describe('escape success choices', () => {
     useGameStore.setState({ phase: 'playing', elapsedMs: 100_000, continuousScoreBase: 500 })
     renderSuccess()
     expect(container.textContent).not.toContain('다음 스테이지 계속')
-    expect(container.textContent).toContain('모든 스테이지를 탈출했습니다!')
+    expect(stageId).toBe('stage6')
+    expect(container.textContent).not.toContain('모든 스테이지를 탈출했습니다!')
+    expect(container.querySelector('[data-testid="escape-continue-hint"]').textContent).toBe('1부 완결! 좀비학교를 빠져나왔습니다.')
     expect(container.querySelector('[data-testid="escape-total-score"]').textContent).toContain((500 + getRankingScore({ stageId, survivalSeconds: 100, cleared: true })).toLocaleString())
     expect(container.querySelector('section').style.overflowY).toBe('auto')
     expect(container.querySelector('section').style.maxHeight).toBe('100%')

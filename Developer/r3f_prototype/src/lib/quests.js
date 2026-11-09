@@ -155,6 +155,43 @@ export const QUEST_DEFINITIONS = Object.freeze([
     completionDialogueId: 'quest.stage4-gas-valve.completion',
     rewardGold: 2,
   },
+  // Stage 5 「교무실 최종 돌파」 퀘스트 2개 (spec56 B §10-3). 보상은 골드뿐 — 호출 기믹은 계속된다.
+  {
+    id: 'stage5-late-slip',
+    stageId: 'stage5',
+    title: '사라진 지각 확인서',
+    startDialogueId: 'quest.stage5-late-slip.start',
+    objective: '북동쪽 복사기에서 지각 확인서를 찾아 불려 온 학생에게 돌려주자.',
+    item: {
+      id: 'late-slip',
+      name: '지각 확인서',
+      description: '교감 도장만 빼고 다 찍혀 있는 분홍 쪽지.',
+      visualKind: 'list',
+    },
+    giver: { placementId: 'stage5-student-called-southwest', name: '교무실에 불려 온 학생' },
+    itemTarget: { placementId: 'stage5-copier-north-east', type: 'staffroomCopier', fallbackTypes: ['staffroomClutter'] },
+    completion: { kind: 'return', placementId: 'stage5-student-called-southwest', name: '불려 온 학생' },
+    completionDialogueId: 'quest.stage5-late-slip.completion',
+    rewardGold: 2,
+  },
+  {
+    id: 'stage5-pa-key',
+    stageId: 'stage5',
+    title: '끝나지 않는 교내 방송',
+    startDialogueId: 'quest.stage5-pa-key.start',
+    objective: '교감 책상에서 방송 차단 열쇠를 찾아 서쪽 사물함 옆 방송 단자함에 꽂자.',
+    item: {
+      id: 'pa-cutoff-key',
+      name: '방송 차단 열쇠',
+      description: '"교감 전용"이라고 적힌 노란 꼬리표가 달린 열쇠.',
+      visualKind: 'valve',
+    },
+    giver: { placementId: 'stage5-student-broadcast-east', name: '방송부 학생' },
+    itemTarget: { placementId: 'stage5-vice-desk-north', type: 'staffroomViceDesk' },
+    completion: { kind: 'install', placementId: 'stage5-lockers-west-3', name: '방송 단자함' },
+    completionDialogueId: 'quest.stage5-pa-key.completion',
+    rewardGold: 2,
+  },
 ])
 
 const QUESTS_BY_ID = new Map(QUEST_DEFINITIONS.map((quest) => [quest.id, quest]))

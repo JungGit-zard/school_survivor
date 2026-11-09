@@ -1,3 +1,4 @@
+import { isPointInsideRangedBlockers } from './stageRangedBlockers.js'
 // E04 투사체의 고정 슬롯 풀. 렌더/물리 엔진에 의존하지 않는다.
 export const MAX_ENEMY_PROJECTILES = 32
 export const E04_PROJECTILE_LIFETIME_MS = 3200
@@ -43,6 +44,7 @@ function storableKind(value) {
 
 export class EnemyProjectilePool {
   constructor() {
+    this._propBlockers = null
     this.active = new Uint8Array(MAX_ENEMY_PROJECTILES)
     this.generation = new Uint16Array(MAX_ENEMY_PROJECTILES)
     this.posX = new Float32Array(MAX_ENEMY_PROJECTILES)
@@ -114,6 +116,11 @@ export class EnemyProjectilePool {
     return true
   }
 
+  // solid 프롭이 탄을 막는 스테이지(Stage 5 교무실, lib/stageRangedBlockers.js)에서만 장애물을 건다. null이면 기존 동작.
+  setPropBlockers(obstacles) {
+    this._propBlockers = obstacles && obstacles.length > 0 ? obstacles : null
+  }
+
   step(delta, playerX, playerZ, onHit, bounds = null) {
     if (!storable(delta) || delta < 0 || !storable(playerX) || !storable(playerZ)) return false
     const dt = Math.min(delta, 1 / 30)
@@ -129,6 +136,11 @@ export class EnemyProjectilePool {
       this.posX[index] = nextX
       this.posZ[index] = nextZ
       this.ageMs[index] += dt * 1000
+      // 책상·사물함 등 solid 프롭에 닿으면 그 자리에서 사라진다(플레이어 판정보다 먼저 — 프롭 너머를 맞히지 않는다).
+      if (this._propBlockers && isPointInsideRangedBlockers(nextX, nextZ, E04_PROJECTILE_RADIUS, this._propBlockers)) {
+        this.despawn(index, this.generation[index])
+        continue
+      }
       const isSphere = this.kind[index] === ENEMY_PROJECTILE_KIND_SPHERE
       const hasScreenBounds = bounds
         && storable(bounds.minX) && storable(bounds.maxX) && storable(bounds.minZ) && storable(bounds.maxZ)

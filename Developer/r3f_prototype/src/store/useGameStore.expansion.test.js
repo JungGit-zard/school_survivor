@@ -21,7 +21,8 @@ beforeEach(()=>{
 // they join VISIBLE_STAGE_IDS. These end-to-end runs re-enable themselves once the stages are released.
 const itWhenReleased=(...ids)=>ids.every(isStageVisible)?it:it.skip
 describe('new stage gameplay progression against offline-only progress fixture',()=>{
- itWhenReleased('stage5',...Object.keys(EXPANSION_STAGES)).each(Object.values(EXPANSION_STAGES))('$id selectable→boss→portal→own persisted keys and next stage (Stage10 terminal)',async stage=>{
+ // 2026-11-08: Stage 5·6 released; run the end-to-end slice for every released expansion stage (7-10 join when visible).
+ itWhenReleased('stage5','stage6').each(Object.values(EXPANSION_STAGES).filter(s=>isStageVisible(s.id)))('$id selectable→boss→portal→own persisted keys and next stage (Stage10 terminal)',async stage=>{
   const store=()=>useGameStore.getState(),next=getNextStageId(stage.id)
   expect(getNextStageId('stage5')).toBe('stage6')
   updateFirebasePlayerProgress(p => {p.records[`stage${stage.order-1}BossDefeats`]=1})

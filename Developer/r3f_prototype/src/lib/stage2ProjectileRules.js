@@ -1,6 +1,10 @@
 export const STAGE2_E04_INTRO_SEC = 72
 // 스테이지4는 원거리 "안전지대 소멸"이 시그니처라 발사 게이트를 18s로 앞당긴다(그 외 72 불변).
 export const STAGE4_E04_INTRO_SEC = 18
+// 스테이지5(교무실)는 레인 사선 학습이 시그니처라 12s로 더 당긴다(추세 72→34→18→12).
+export const STAGE5_E04_INTRO_SEC = 12
+// 스테이지6(운동장)은 엄폐 없는 개방지라 8s(추세 72→34→18→12→8).
+export const STAGE6_E04_INTRO_SEC = 8
 export const STAGE2_E04_FIRST_FIRE_DELAY_MS = 900
 export const STAGE2_E04_MAX_PROJECTILES = 6
 // E04 스탯 minDist(3.5, Enemy.jsx ENEMY_STATS.E04)와 일치시킨다. 이전 3.0은
@@ -27,10 +31,13 @@ export function getE04Cap(elapsedSec, stageId = 'stage2') {
   return getStage2E04Cap(elapsedSec)
 }
 
-// 스테이지별 E04 발사 인트로 게이트(초). stage4만 18s, 그 외 72s(스2/스3 불변).
+// 스테이지별 E04 발사 인트로 게이트(초). stage4 18s, stage5 12s, stage6 8s, 그 외 72s(스2/스3 불변).
 // 주의: stage3의 stageConfig.e04IntroSec=34는 HUD 힌트용이며 실발사는 72 — 이 헬퍼가 발사 게이트 정본.
 export function getE04IntroSec(stageId = 'stage2') {
-  return stageId === 'stage4' ? STAGE4_E04_INTRO_SEC : STAGE2_E04_INTRO_SEC
+  if (stageId === 'stage4') return STAGE4_E04_INTRO_SEC
+  if (stageId === 'stage5') return STAGE5_E04_INTRO_SEC
+  if (stageId === 'stage6') return STAGE6_E04_INTRO_SEC
+  return STAGE2_E04_INTRO_SEC
 }
 
 export function canE04FireProjectile({

@@ -10,6 +10,7 @@ import {
   normalizeStudioTuning,
 } from '../lib/graphicsStudioConfig.js'
 import { getFirebaseStudioRuntimeState } from '../lib/studioRuntimeState.js'
+import { normalizeBossFaceRecipeMap } from '../lib/bossFaceParts.js'
 import { disposeTextureDecals, syncTextureDecals } from './TextureDecal.jsx'
 
 const StudioPreviewContext = createContext(false)
@@ -32,16 +33,24 @@ export function StudioTuningRuntimeProvider({ children }) {
   )
 }
 
+// 동결 스냅샷(타이틀)은 튜닝·데칼뿐 아니라 보스 얼굴 레시피까지 같은 동결본에서 읽는다.
+// 이 provider 안의 소비자는 Firebase 런타임 값을 참조하지 않는다(BossProceduralFace.useBossFaceRecipe).
 export function StudioTuningSnapshotProvider({ datasets, children }) {
   const snapshot = useMemo(() => ({
     tunings: datasets?.tunings ?? {},
     decals: datasets?.decals ?? {},
+    bossFaceRecipes: normalizeBossFaceRecipeMap(datasets?.bossFaceRecipes ?? {}),
   }), [datasets])
   return (
     <StudioSnapshotContext.Provider value={snapshot}>
       {children}
     </StudioSnapshotContext.Provider>
   )
+}
+
+// 가장 가까운 StudioTuningSnapshotProvider의 동결 데이터셋. provider 밖이면 null.
+export function useStudioTuningSnapshot() {
+  return useContext(StudioSnapshotContext)
 }
 
 export function getStudioTransformProps(tuning = DEFAULT_STUDIO_TUNING) {

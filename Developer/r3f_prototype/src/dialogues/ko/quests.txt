@@ -14,6 +14,10 @@ quest.stage4-allergy-list.start	남은 음식을 나눠 주고 싶은데, 알레
 quest.stage4-allergy-list.completion	이제 안전하게 나눠 줄 수 있어. 한 명도 더 아프게 하지 않을게.
 quest.stage4-gas-valve.start	쿡라인 가스가 새! 빨간 밸브 손잡이가 싱크대 쪽으로 굴러갔어.
 quest.stage4-gas-valve.completion	밸브를 잠갔다. 쿡라인의 불꽃과 가스 소리가 잦아든다.
+quest.stage5-late-slip.start	지각 확인서를 복사기에 두고 왔어… 그거 없으면 나 여기서 못 나가!
+quest.stage5-late-slip.completion	찾았다! 이제 당당하게 지각생으로 탈출할 수 있어.
+quest.stage5-pa-key.start	저 호출 방송, 교감 선생님 열쇠로만 끌 수 있어. 책상 서랍에 있을 거야!
+quest.stage5-pa-key.completion	볼륨이 한 칸 줄었다… 완전히 꺼지진 않네. 그래도 귀는 살았다!
 matilda.entry	오호호호! 떡하나주면 안잡아먹지!
 matilda.death	오호호호!!!!! 맛있게 먹을께!!!!
 matilda.gameover	마틸다 에게 영혼을 뺴앗겨 버렸다!!
@@ -29,7 +33,13 @@ intro.stage3.003	셔틀런이라면 자신 있어. 끝까지 버티고 빠져나
 intro.stage4.001	체육관 뒷문은 급식실로 이어져 있었다. 가마솥이 부글부글 끓고 있다…
 intro.stage4.002	솥이 터지기 전에 원 밖으로! 주방장 좀비가 기다리고 있다.
 intro.stage4.003	밥은 나중에 먹자. 지금은 여기서 나가는 게 먼저야!
-intro.stage5.001	급식실을 지나면 마지막 탈출구다. 여기만 넘으면 학교 밖이야.
-intro.stage5.002	그런데… 체육교사가 다시 길을 막아섰다. 이번엔 지금까지 만난 좀비들이 한꺼번에 몰려온다.
-intro.stage5.003	여기까지 왔어. 반드시 이 좀비학교를 빠져나간다!
+intro.stage5.001	급식실을 나오니 중앙 현관이다. 현관 옆 교무실에… 선생님 좀비들이 전부 모여 있다.
+intro.stage5.002	교감 선생님 좀비가 결재 도장을 들었다. 책상 사이 길을 잘 골라야 해.
+intro.stage5.003	현관만 뚫으면 운동장이야. 여기서 끝낼 수는 없어!
+intro.stage6.001	현관문을 밀고 나오자 햇빛이 쏟아졌다. 드디어 밖… 아니, 운동장이다.
+intro.stage6.002	조회대 스피커가 지지직 켜졌다. 교장 선생님 좀비의 훈화가… 끝나지 않는다.
+intro.stage6.003	고리 안쪽이든 바깥쪽이든, 선 위만 피하면 돼. 정문이 열리면 바로 달린다!
+ending.part1.001	정문을 지나자 발밑이 운동장 모래에서 아스팔트로 바뀌었다.
+ending.part1.002	뒤에서 종이 울린다. 저 안의 친구들과 선생님들은… 언젠가 꼭 깨워 줄게.
+ending.part1.003	좀비학교 탈출, 1부 끝. 하지만 학교는 아직 끝나지 않았어!
 dialogue.unavailable	??? ???? ???.

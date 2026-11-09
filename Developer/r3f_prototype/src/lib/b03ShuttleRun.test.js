@@ -17,6 +17,7 @@ import {
   getB03ShuttleHopCount,
   getB03ShuttleRunHopHeight,
   getB03ShuttleStompRing,
+  isB03ShuttleNewLanding,
   stepB03ShuttleBodyToward,
   consumeB03ShuttleRunPassHit,
   createB03ShuttleRunState,
@@ -420,5 +421,44 @@ describe('B03 왕복 오래달리기', () => {
     const firstActive = frames.find((frame) => frame.phase === 'active')
     expect(firstActive.x).toBeCloseTo(firstActive.laneX, 9)
     expect(firstActive.z).toBeCloseTo(lane.laneZ, 9)
+  })
+})
+
+describe('B03 셔틀런 착지 쿵 SFX 엣지 (2026-11-08)', () => {
+  // Enemy.jsx 셔틀 분기와 같은 방식으로 프레임을 돌리며 착지 엣지를 센다.
+  function countLandings(frameMs, hitchEvery = 0) {
+    const lane = { laneZ: 0, startX: -6, endX: 6 }
+    let state = startB03ShuttleRun(createB03ShuttleRunState(), 'sixtyFive', lane)
+    let previous = null
+    let landings = 0
+    for (let frame = 0; state.phase !== 'idle' && frame < 10_000; frame += 1) {
+      const delta = hitchEvery && frame % hitchEvery === 0 ? 250 : frameMs
+      state = advanceB03ShuttleRun(state, delta)
+      const ring = getB03ShuttleStompRing(state)
+      if (isB03ShuttleNewLanding(previous, ring)) landings += 1
+      previous = ring ? ring.progress : null
+    }
+    return { landings, hops: getB03ShuttleHopCount(state.passDurationMs) }
+  }
+
+  it('fires exactly once per landing at 60/120/144 Hz, never on the take-off hop', () => {
+    for (const hz of [60, 120, 144]) {
+      const { landings, hops } = countLandings(1000 / hz)
+      // 두 패스 × 홉 수 = 착지 수(출발 도약 제외, 마지막 착지는 stun 첫 프레임).
+      expect(landings, String(hz) + "Hz").toBe(hops * 2)
+    }
+  })
+
+  it('still catches every landing when hitches skip the gap between rings', () => {
+    const { landings, hops } = countLandings(1000 / 60, 7)
+    expect(landings).toBe(hops * 2)
+  })
+
+  it('is silent without a ring and on a continuing ring', () => {
+    expect(isB03ShuttleNewLanding(null, null)).toBe(false)
+    expect(isB03ShuttleNewLanding(0.4, null)).toBe(false)
+    expect(isB03ShuttleNewLanding(null, { progress: 0.05 })).toBe(true)
+    expect(isB03ShuttleNewLanding(0.2, { progress: 0.25 })).toBe(false)
+    expect(isB03ShuttleNewLanding(0.9, { progress: 0.1 })).toBe(true)
   })
 })

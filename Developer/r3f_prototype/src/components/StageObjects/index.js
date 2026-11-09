@@ -32,5 +32,17 @@ export {
   KitchenTrashBins,
   KitchenTrayRack,
 } from './KitchenProps.jsx'
+export {
+  STAFFROOM_CLUTTER_VARIANTS,
+  STAFFROOM_COPIER_VARIANTS,
+  STAFFROOM_DESK_ISLAND_VARIANTS,
+  StaffroomClutter,
+  StaffroomCopier,
+  StaffroomDeskIsland,
+  StaffroomDeskIslandBatch,
+  StaffroomEntranceDoor,
+  StaffroomSpeaker,
+  StaffroomViceDesk,
+} from './StaffroomProps.jsx'
 export * from './stageObjectColliders.js'
 export * from './stageObjectPlacements.js'

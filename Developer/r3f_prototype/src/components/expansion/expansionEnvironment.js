@@ -1,5 +1,6 @@
 import * as THREE from 'three'
 import { EXPANSION_STAGE_VISUALS } from '../../lib/expansionVisuals.js'
+import { EXPANSION_STAGES } from '../../lib/expansionContent.js'
 import { getCachedToonMat, getCachedOutlineMat, inflateScale } from '../../lib/toon.js'
 import { getExpansionGeometry } from './expansionRig.js'
 import { captureStudioPartBaseTransforms, composeStudioPartPosition, composeStudioPartRotation, disposeStudioOwnedMaterials } from '../StudioTunedGroup.jsx'
@@ -9,6 +10,7 @@ import { captureStudioPartBaseTransforms, composeStudioPartPosition, composeStud
 export function createExpansionEnvironment(stageId,{halfX=7.5,halfZ=19.2}={}) {
  const art=EXPANSION_STAGE_VISUALS[stageId]
  if(!art)return null
+ if(art.theme==='schoolyard')return createSchoolyardEnvironment(stageId,art,{halfX,halfZ})
  const root=new THREE.Group();root.name=`${stageId}-${art.theme}-environment`
  const records=[],bounds=[]
  const add=(name,shape,size,p,color=art.coat,r=[0,0,0],emissive=.06)=>records.push({name,shape,size,p,color,r,emissive})
@@ -28,22 +30,7 @@ export function createExpansionEnvironment(stageId,{halfX=7.5,halfZ=19.2}={}) {
    for(let z=-halfZ+2;z<halfZ;z+=5.1) {
      claim(x,z,1.28,1.85)
      box('perimeter-plinth',[2.5,.33,3.6],[x,.13,z],art.dark)
-     if(stageId==='stage6') {
-       box('bookcase-back',[.20,3.65,3.45],[x+side*.94,1.99,z],art.coat)
-       for(const dz of [-1.66,1.66])box('bookcase-upright',[2.30,3.65,.15],[x,1.99,z+dz],art.trim)
-       for(let tier=0;tier<4;tier++) {
-         const y=.38+tier*.83
-         box('bookcase-shelf',[2.30,.12,3.46],[x,y,z],art.coat)
-         for(let b=0;b<11;b++) {
-           const h=.47+(b%3)*.10
-           box('gilt-books',[.30,h,.17],[x-side*.33,y+.08+h*.5,z-1.45+b*.27],['#84705b','#4b698c','#b99159','#784755'][b%4],[0,0,(b%5===0?side*.13:0)])
-           box('book-gilt',[.315,.05,.175],[x-side*.33,y+.20,z-1.45+b*.27],art.trim)
-         }
-       }
-       cyl('brass-lamp-stem',[.10,1.05,.10],[x,4.22,z],art.trim)
-       cone('library-lampshade',[.87,.52,.87],[x,4.88,z],art.light)
-       orb('lamp-pearl',[.23,.23,.23],[x,4.62,z],art.trim)
-     } else if(stageId==='stage7') {
+     if(stageId==='stage7') {
        box('lab-console',[2.32,1.03,3.30],[x,.84,z],art.coat)
        box('worktop',[2.50,.15,3.50],[x,1.44,z],art.dark)
        for(let b=0;b<5;b++) {
@@ -107,9 +94,7 @@ export function createExpansionEnvironment(stageId,{halfX=7.5,halfZ=19.2}={}) {
    box('end-platform',[halfX*2+5,.36,2.2],[0,.12,z],art.dark)
    for(let x=-halfX;x<=halfX;x+=1.35) {
      box('end-dado',[.32,2.2,.28],[x,1.39,z],art.trim)
-     if(stageId==='stage6') {
-       for(let page=0;page<4;page++)box('archive-pediment-book',[1.08,.14,.66],[x,2.8+page*.17,z],page%2?art.coat:art.trim,[0,0,(page%2-.5)*.09])
-     }else if(stageId==='stage7') {
+     if(stageId==='stage7') {
        cyl('prism-base',[.92,.22,.92],[x,2.63,z],art.dark)
        cone('prism-crystal',[.67,1.15,.67],[x,3.30,z],x%2?art.trim:art.light,[0,Math.PI/4,0])
      }else if(stageId==='stage8') {
@@ -126,7 +111,7 @@ export function createExpansionEnvironment(stageId,{halfX=7.5,halfZ=19.2}={}) {
        for(let tooth=0;tooth<3;tooth++)ring('rod-insulator',[.57,.57,.57],[x,3.30+tooth*.25,z],art.light,[Math.PI/2,0,0])
      }
    }
-   if(stageId==='stage6'||stageId==='stage9')box('ornate-crossbeam',[halfX*2+1,.50,.52],[0,5.23,z],art.trim)
+   if(stageId==='stage9')box('ornate-crossbeam',[halfX*2+1,.50,.52],[0,5.23,z],art.trim)
  }
  if(stageId==='stage10')for(const side of [-1,1]) {
    const x=side*(halfX+2),z=-halfZ-2.8;claim(x,z,1,1)
@@ -135,15 +120,7 @@ export function createExpansionEnvironment(stageId,{halfX=7.5,halfZ=19.2}={}) {
    // These two turbines animate in the fixed-size spectacle pool below.
  }
  // Hero landmarks: silhouettes beyond the playable edges, never roofs over actors.
- if(stageId==='stage6') {
-   const z=-halfZ-2.4;claim(0,z,5.5,.55)
-   ring('oculus-brass',[10.4,10.4,1.3],[0,6.4,z],art.trim)
-   ring('oculus-inner-rim',[8.8,8.8,1.1],[0,6.4,z],art.light)
-   for(let spoke=0;spoke<12;spoke++) {
-     const a=spoke*Math.PI/6
-     box('oculus-tracery',[.12,1.65,.13],[Math.sin(a)*4.45,6.4+Math.cos(a)*4.45,z],art.trim,[0,0,-a])
-   }
- } else if(stageId==='stage7') {
+ if(stageId==='stage7') {
    for(const side of [-1,1]) {
      const x=side*(halfX+4.1),z=-halfZ+4;claim(x,z,1.3,1.3)
      cyl('reaction-tower-core',[1.27,5.1,1.27],[x,2.8,z],art.trim)
@@ -201,31 +178,15 @@ export function createExpansionEnvironment(stageId,{halfX=7.5,halfZ=19.2}={}) {
      for(let cloud=0;cloud<5;cloud++)orb('storm-cloud',[2.1,1.2,1.5],[x+(cloud-2)*1.45,8.2+Math.sin(cloud)*.3,-halfZ-5],cloud%2?art.coat:art.dark)
    }
  }
- const staticRoot=new THREE.Group();staticRoot.name='authored-static-volumes';root.add(staticRoot)
- const batches=new Map()
- for(const record of records){const key=`${record.shape}:${record.color}:${record.emissive}`;if(!batches.has(key))batches.set(key,[]);batches.get(key).push(record)}
- const matrix=new THREE.Matrix4(),p=new THREE.Vector3(),q=new THREE.Quaternion(),s=new THREE.Vector3(),e=new THREE.Euler()
- for(const [key,items]of batches) {
-   const first=items[0],geometry=getExpansionGeometry(first.shape)
-   const solid=new THREE.InstancedMesh(geometry,getCachedToonMat(first.color,first.emissive),items.length)
-   solid.name=`${art.theme}-${key}-solid`;solid.frustumCulled=false
-   const hull=new THREE.InstancedMesh(geometry,getCachedOutlineMat(),items.length)
-   hull.name=`${art.theme}-${key}-outline`;hull.frustumCulled=false;hull.renderOrder=1
-   for(let i=0;i<items.length;i++) {
-     const item=items[i];p.fromArray(item.p);q.setFromEuler(e.fromArray(item.r));s.fromArray(item.size)
-     matrix.compose(p,q,s);solid.setMatrixAt(i,matrix)
-     s.multiplyScalar(inflateScale(1.025));matrix.compose(p,q,s);hull.setMatrixAt(i,matrix)
-   }
-   staticRoot.add(solid,hull)
- }
+ bakeStaticRecords(root,records,art.theme)
  const spectacle=new THREE.Group();spectacle.name=`${art.theme}-bounded-spectacle`;root.add(spectacle)
  for(let i=0;i<art.spectacleCount;i++) {
    const side=i%2?-1:1,x=side*(halfX+1.35),z=-halfZ+1.6+(i/2%8)*(halfZ*2-3.2)/8
    const moving=new THREE.Group();moving.name=`${art.theme}-spectacle-${i}`;moving.position.set(x,3+(i%3)*.36,z)
    moving.userData.expansionPhase=i*1.71
-   const shape=stageId==='stage6'?'box':stageId==='stage7'?'orb':stageId==='stage8'?'cone':stageId==='stage9'?'cone':'ring'
+   const shape=stageId==='stage7'?'orb':stageId==='stage8'?'cone':stageId==='stage9'?'cone':'ring'
    const mesh=new THREE.Mesh(getExpansionGeometry(shape),getCachedToonMat(i%2?art.accent:art.light,.22))
-   mesh.name=`${art.theme}-spectacle-solid`;mesh.scale.set(stageId==='stage6'?.55:.22,stageId==='stage6'?.11:.35,.26)
+   mesh.name=`${art.theme}-spectacle-solid`;mesh.scale.set(.22,.35,.26)
    const hull=new THREE.Mesh(mesh.geometry,getCachedOutlineMat());hull.scale.copy(mesh.scale).multiplyScalar(inflateScale(1.035));hull.renderOrder=1
    moving.add(mesh,hull)
    if(stageId==='stage10'&&i<2) {
@@ -243,8 +204,6 @@ export function createExpansionEnvironment(stageId,{halfX=7.5,halfZ=19.2}={}) {
        const a=atom*Math.PI*2/3,part=new THREE.Mesh(getExpansionGeometry('orb'),getCachedToonMat(art.accent,.12))
        part.position.set(Math.sin(a)*.36,Math.cos(a)*.36,0);part.scale.setScalar(.17);moving.add(part)
      }
-   } else if(stageId==='stage6') {
-     const pages=new THREE.Mesh(getExpansionGeometry('box'),getCachedToonMat(art.light,.08));pages.position.y=.022;pages.scale.set(.49,.065,.27);moving.add(pages)
    }
    spectacle.add(moving)
  }
@@ -252,11 +211,209 @@ export function createExpansionEnvironment(stageId,{halfX=7.5,halfZ=19.2}={}) {
  captureStudioPartBaseTransforms(root)
  return root
 }
-export function animateExpansionEnvironment(root,time=0,reducedMotion=false) {
+// Static records -> one solid + one outline InstancedMesh per shape/color/emissive (shared by every set).
+// `outline:false` records (flat paint: track, lines, grass) get no hull, so ground paint never rims.
+function bakeStaticRecords(root,records,theme) {
+ const staticRoot=new THREE.Group();staticRoot.name='authored-static-volumes';root.add(staticRoot)
+ const batches=new Map()
+ for(const record of records){const key=`${record.shape}:${record.color}:${record.emissive}${record.outline===false?':flat':''}`;if(!batches.has(key))batches.set(key,[]);batches.get(key).push(record)}
+ const matrix=new THREE.Matrix4(),p=new THREE.Vector3(),q=new THREE.Quaternion(),s=new THREE.Vector3(),e=new THREE.Euler()
+ for(const [key,items]of batches) {
+   const first=items[0],geometry=getExpansionGeometry(first.shape)
+   const solid=new THREE.InstancedMesh(geometry,getCachedToonMat(first.color,first.emissive),items.length)
+   solid.name=`${theme}-${key}-solid`;solid.frustumCulled=false
+   const hull=first.outline===false?null:new THREE.InstancedMesh(geometry,getCachedOutlineMat(),items.length)
+   if(hull){hull.name=`${theme}-${key}-outline`;hull.frustumCulled=false;hull.renderOrder=1}
+   for(let i=0;i<items.length;i++) {
+     const item=items[i];p.fromArray(item.p);q.setFromEuler(e.fromArray(item.r));s.fromArray(item.size)
+     matrix.compose(p,q,s);solid.setMatrixAt(i,matrix)
+     if(hull){s.multiplyScalar(inflateScale(1.025));matrix.compose(p,q,s);hull.setMatrixAt(i,matrix)}
+   }
+   staticRoot.add(solid);if(hull)staticRoot.add(hull)
+ }
+ return staticRoot
+}
+
+// Stage 6 「운동장 최후의 조회」 (spec C-3-3 · C-3-4 · C-12): sand pitch, red track and white lines on the
+// ground; school facade, assembly podium, PA poles, flags, stands, plane trees, gate and fence beyond the
+// playable edges (all claim()ed). The two soccer goals are the only in-arena visuals: they draw the solid
+// layout.obstacles at their exact collider coordinates (recorded in obstacleVisualIds, never claimed).
+// The gate leaves slide open when the escape portal activates (animateExpansionEnvironment gateOpen).
+export const SCHOOLYARD_GATE_OPEN_SLIDE = 2.6
+export const SCHOOLYARD_GATE_OPEN_SECONDS = 1.0
+function createSchoolyardEnvironment(stageId,art,{halfX,halfZ}) {
+ const root=new THREE.Group();root.name=`${stageId}-${art.theme}-environment`
+ const records=[],bounds=[]
+ const add=(name,shape,size,p,color,r=[0,0,0],emissive=.06,outline=true)=>records.push({name,shape,size,p,color,r,emissive,outline})
+ const box=(n,s,p,c,r)=>add(n,'box',s,p,c,r)
+ const paint=(n,s,p,c,r)=>add(n,'box',s,p,c,r,.04,false)
+ const cyl=(n,s,p,c,r)=>add(n,'cylinder',s,p,c,r)
+ const orb=(n,s,p,c)=>add(n,'orb',s,p,c)
+ const cone=(n,s,p,c,r)=>add(n,'cone',s,p,c,r)
+ const ring=(n,s,p,c,r)=>add(n,'ring',s,p,c,r)
+ const claim=(x,z,hx,hz)=>bounds.push({minX:x-hx,maxX:x+hx,minZ:z-hz,maxZ:z+hz})
+ const C={track:'#C9673F',line:'#F7F4EA',grass:'#7DBF68',wall:'#EFE3C6',window:'#7FB7D9',door:'#6B4F3A',stone:'#B9B2A6',cap:'#8C8478',podium:'#A7A9AC',wood:'#7A5A3C',steel:'#8C9399',horn:'#E8E8E8',pole:'#C9CDD1',leaf:'#5DAA4F',bars:'#4C7FB8',gate:'#3E6B4E',plate:'#F2E6C9',goal:'#FFFFFF',net:'#DADDE0',netFace:'#C8CDD2'}
+
+ // ── Ground: sand slab, grass beyond the side and top edges (flat paint, no hulls) ──
+ paint('arena-slab',[halfX*2,.30,halfZ*2],[0,-.17,0],art.floor)
+ for(const side of [-1,1])paint('outfield-grass',[4,.30,halfZ*2+4],[side*(halfX+2),-.172,0],C.grass)
+ paint('outfield-grass',[halfX*2+8,.30,4],[0,-.172,-halfZ-2],C.grass)
+ paint('outfield-grass',[halfX*2+8,.30,4],[0,-.172,halfZ+2],C.grass)
+
+ // ── Running track: two straights + two 16-segment half circles, white edge and lane lines ──
+ const R=halfX-3,zc=halfZ-R-1,band=1.4,segs=16,segLen=R*Math.PI/segs*1.06
+ for(const side of [-1,1])paint('track-straight',[band,.012,zc*2],[side*R,-.004,0],C.track)
+ for(const [rr,w,name,y] of [[R,band,'track-curve',-.004],[R-band/2,.08,'track-line',-.002],[R+band/2,.08,'track-line',-.002],[R,.08,'track-line',-.002]]) {
+   for(const end of [-1,1])for(let i=0;i<segs;i++) {
+     const phi=(i+.5)*Math.PI/segs
+     paint(name,[w,.012,rr*Math.PI/segs*1.06],[rr*Math.cos(phi),y,end*(zc+rr*Math.sin(phi))],name==='track-curve'?C.track:C.line,[0,end<0?phi:-phi,0])
+   }
+   if(name==='track-line')for(const side of [-1,1])paint('track-line',[.08,.012,zc*2],[side*rr,-.002,0],C.line)
+ }
+ // ── Soccer lines: halfway line, centre circle, two penalty boxes ──
+ paint('pitch-halfway-line',[(R-band/2)*2-.4,.012,.08],[0,-.003,0],C.line)
+ for(let i=0;i<24;i++){const a=(i+.5)*Math.PI*2/24;paint('pitch-centre-circle',[.08,.012,2.5*Math.PI*2/24*1.05],[2.5*Math.cos(a),-.003,2.5*Math.sin(a)],C.line,[0,-a,0])}
+ const goals=(EXPANSION_STAGES[stageId]?.layout?.obstacles??[])
+ for(const goal of goals) {
+   const f=goal.zUnits<0?1:-1,front=goal.zUnits+f*goal.halfZUnits
+   paint('pitch-penalty-box',[6,.012,.08],[goal.xUnits,-.003,front+f*3],C.line)
+   for(const side of [-1,1])paint('pitch-penalty-box',[.08,.012,3],[goal.xUnits+side*3,-.003,front+f*1.5],C.line)
+ }
+
+ // ── Soccer goals = the solid layout obstacles, drawn at their collider coordinates ──
+ const obstacleVisualIds=[]
+ for(const goal of goals) {
+   const {xUnits:x,zUnits:z,halfXUnits:hx,halfZUnits:hz}=goal,f=z<0?1:-1,mouth=z+f*hz,back=z-f*hz,H=1.4
+   for(const side of [-1,1])box('goal-post',[.12,H,.12],[x+side*hx,H/2,mouth],C.goal)
+   box('goal-crossbar',[hx*2,.12,.12],[x,H,mouth],C.goal)
+   box('goal-net-top',[hx*2,.06,hz*2],[x,H,z],C.net)
+   for(const side of [-1,1])box('goal-net-side',[.06,H,hz*2],[x+side*hx,H/2,z],C.net)
+   box('goal-net-back',[hx*2-.1,H-.1,.03],[x,(H-.1)/2,back],C.netFace)
+   obstacleVisualIds.push(goal.id)
+ }
+
+ // ── Top (−Z): school facade, assembly podium, PA poles, flag poles ──
+ {
+   const z=-halfZ-5;claim(0,z,13,.5)
+   box('school-facade',[26,6,1],[0,3,z],C.wall)
+   for(let floor=0;floor<3;floor++)for(let i=0;i<10;i++){
+     const wx=-11.25+i*2.5;if(floor===0&&Math.abs(wx)<2)continue
+     box('school-window',[1.2,.9,.05],[wx,1.2+floor*1.7,z+.53],C.window)
+   }
+   box('school-entrance-door',[3,2.4,.05],[0,1.2,z+.53],C.door)
+   ring('school-clock',[1.1,1.1,.15],[0,5.3,z+.6],art.light)
+ }
+ {
+   const z=-halfZ-1.8;claim(0,z,3,1.2)
+   box('assembly-podium',[6,1.0,2.4],[0,.5,z],C.podium)
+   box('assembly-podium-step',[3,.67,.3],[0,.335,-halfZ-.45],C.podium)
+   box('assembly-podium-step',[3,.34,.3],[0,.17,-halfZ-.15],C.podium)
+   box('assembly-lectern',[1.2,1.1,.6],[0,1.55,z+.4],C.wood)
+   cyl('assembly-mic-stand',[.04,.5,.04],[.32,2.35,z+.65],C.steel)
+   orb('assembly-mic',[.12,.12,.12],[.32,2.62,z+.7],'#2B2B2B')
+   for(const side of [-1,1]) {
+     const px=side*3.4,pz=-halfZ-1.2;claim(px,pz,.35,.35)
+     cyl('pa-speaker-pole',[.12,4.2,.12],[px,2.1,pz],C.steel)
+     for(const y of [3.4,3.95])cone('pa-speaker-horn',[.5,.6,.5],[px,y,pz+.25],C.horn,[Math.PI/2,0,0])
+   }
+   const flags=['#2F5FA8','#F2C94C','#E04B4B']
+   ;[-6.5,-8.0,-9.5].forEach((fx,i)=>{
+     const fz=-halfZ-1.5;claim(fx,fz,.6,.2)
+     cyl('flag-pole',[.08,5.5,.08],[fx,2.75,fz],C.pole)
+     orb('flag-pole-finial',[.18,.18,.18],[fx,5.55,fz],art.trim)
+     box('flag',[1.0,.6,.03],[fx+.52,5.0,fz],flags[i])
+   })
+ }
+
+ // ── Sides: three-tier stands and plane trees; bottom-right climbing frame ──
+ for(const side of [-1,1]) {
+   claim(side*(halfX+2.75),0,1.25,12)
+   for(let tier=0;tier<3;tier++)box('grandstand-tier',[.83,.4*(tier+1),24],[side*(halfX+1.92+tier*.83),.2*(tier+1),0],C.stone)
+   for(const tz of [-15,-5,5,15]) {
+     const tx=side*(halfX+5);claim(tx,tz,1.2,1.2)
+     cyl('plane-tree-trunk',[.35,2.6,.35],[tx,1.3,tz],C.wood)
+     orb('plane-tree-canopy',[2.4,2.0,2.4],[tx,3.3,tz],C.leaf)
+   }
+ }
+ {
+   const gx=halfX+2.5,gz=halfZ-4;claim(gx,gz,.8,.8)
+   for(const dx of [-.6,.6])for(const dz of [-.6,.6])cyl('climbing-frame-post',[.08,1.7,.08],[gx+dx,.85,gz+dz],C.bars)
+   for(const dz of [-.6,.6])box('climbing-frame-rail',[1.3,.08,.08],[gx,1.7,gz+dz],C.bars)
+   for(let rung=0;rung<5;rung++)box('climbing-frame-rung',[.06,.06,1.25],[gx-.5+rung*.25,1.7,gz],C.bars)
+ }
+
+ // ── Bottom (+Z): gate pillars, name plate, fence (the sliding leaves are built below) ──
+ const gateZ=halfZ+.6
+ for(const side of [-1,1]) {
+   claim(side*3.4,gateZ,.55,.55)
+   box('gate-pillar',[.9,3.2,.9],[side*3.4,1.6,gateZ],C.stone)
+   box('gate-pillar-cap',[1.1,.2,1.1],[side*3.4,3.3,gateZ],C.cap)
+   claim(side*10.25,gateZ,5.75,.1)
+   box('schoolyard-fence',[11.5,1.6,.2],[side*10.25,.8,gateZ],C.gate)
+ }
+ box('school-name-plate',[.7,.9,.05],[-3.4,2.0,gateZ+.48],C.plate)
+
+ bakeStaticRecords(root,records,art.theme)
+
+ // Gate leaves: two sliding groups (6 bars + 2 rails each), outside the static batch so they can move.
+ const gate=new THREE.Group();gate.name='stage6-gate-doors';gate.position.set(0,0,halfZ+.4);root.add(gate)
+ const leafMat=getCachedToonMat(C.gate,.06)
+ const leaves=[-1,1].map((side)=>{
+   const leaf=new THREE.Group();leaf.name=`stage6-gate-leaf-${side<0?'left':'right'}`;gate.add(leaf)
+   const parts=[...Array.from({length:6},(_,i)=>[[.06,1.8,.06],[side*(.25+i*.5),.95,0]]),[[3,.08,.08],[side*1.5,1.75,0]],[[3,.08,.08],[side*1.5,.25,0]]]
+   for(const [size,pos] of parts) {
+     const mesh=new THREE.Mesh(getExpansionGeometry('box'),leafMat);mesh.scale.fromArray(size);mesh.position.fromArray(pos)
+     const hull=new THREE.Mesh(mesh.geometry,getCachedOutlineMat());hull.scale.copy(mesh.scale).multiplyScalar(inflateScale(1.035));hull.position.copy(mesh.position);hull.renderOrder=1
+     leaf.add(mesh,hull)
+   }
+   leaf.userData.gateSide=side
+   return leaf
+ })
+ claim(0,halfZ+.4,3.1,.1)
+
+ // Spectacle: 운동회 만국기 — pennants strung over the two stands, gentle y sway only.
+ const spectacle=new THREE.Group();spectacle.name=`${art.theme}-bounded-spectacle`;root.add(spectacle)
+ for(let i=0;i<art.spectacleCount;i++) {
+   // Strung along the stands (z −11..+11 on the 12×20 map).
+   const span=Math.min(11,halfZ-3),perSide=Math.max(2,Math.ceil(art.spectacleCount/2))
+   const side=i%2?-1:1,x=side*(halfX+1.35),z=-span+Math.floor(i/2)*span*2/(perSide-1)
+   const moving=new THREE.Group();moving.name=`${art.theme}-spectacle-${i}`;moving.position.set(x,3+(i%3)*.35,z)
+   moving.userData.expansionPhase=i*1.71
+   const mesh=new THREE.Mesh(getExpansionGeometry('cone'),getCachedToonMat(i%4<2?art.accent:art.light,.22))
+   mesh.name=`${art.theme}-spectacle-solid`;mesh.scale.set(.22,.30,.03);mesh.rotation.z=Math.PI
+   const hull=new THREE.Mesh(mesh.geometry,getCachedOutlineMat());hull.scale.copy(mesh.scale).multiplyScalar(inflateScale(1.035));hull.rotation.copy(mesh.rotation);hull.renderOrder=1
+   moving.add(mesh,hull);spectacle.add(moving)
+ }
+
+ root.userData.staticPartCount=records.length;root.userData.decorationBounds=bounds;root.userData.spectacle=spectacle;root.userData.expansionStageId=stageId
+ root.userData.obstacleVisualIds=obstacleVisualIds;root.userData.gateLeaves=leaves;root.userData.gateOpenness=0
+ captureStudioPartBaseTransforms(root)
+ return root
+}
+
+// Gate openness 0 → 1 over SCHOOLYARD_GATE_OPEN_SECONDS (immediate under reduced motion); back to 0 on reset.
+export function stepSchoolyardGate(root,gateOpen,deltaSec,reducedMotion=false) {
+ const leaves=root?.userData.gateLeaves
+ if(!leaves)return 0
+ const target=gateOpen?1:0
+ let open=root.userData.gateOpenness??0
+ if(reducedMotion||!gateOpen)open=target
+ else open=Math.min(1,open+Math.max(0,deltaSec)/SCHOOLYARD_GATE_OPEN_SECONDS)
+ root.userData.gateOpenness=open
+ for(const leaf of leaves)leaf.position.x=composeStudioPartPosition(leaf,'x',0,leaf.userData.gateSide*open*SCHOOLYARD_GATE_OPEN_SLIDE)
+ return open
+}
+
+export function animateExpansionEnvironment(root,time=0,reducedMotion=false,{gateOpen=false}={}) {
  if(!root)return
+ const t=Number.isFinite(time)?time:0
+ if(root.userData.gateLeaves) {
+   const last=root.userData.gateLastTime
+   root.userData.gateLastTime=t
+   stepSchoolyardGate(root,gateOpen,Number.isFinite(last)?t-last:0,reducedMotion)
+ }
  const spectacle=root.userData.spectacle;spectacle.visible=!reducedMotion
  if(reducedMotion)return
- const t=Number.isFinite(time)?time:0
  for(const node of spectacle.children) {
    const a=node.userData.expansionPhase
    if(node.userData.expansionTurbine) {
@@ -264,7 +421,7 @@ export function animateExpansionEnvironment(root,time=0,reducedMotion=false) {
      continue
    }
    node.position.y=composeStudioPartPosition(node,'y',0,Math.sin(t*.62+a)*.22)
-   node.position.z=composeStudioPartPosition(node,'z',0,root.userData.expansionStageId==='stage6'?Math.sin(t*.20+a)*.65:0)
+   node.position.z=composeStudioPartPosition(node,'z',0,0)
    node.rotation.y=composeStudioPartRotation(node,'y',0,node.userData.expansionMolecule?t*.24+a:Math.sin(t*.31+a)*.35)
    node.rotation.z=composeStudioPartRotation(node,'z',0,Math.sin(t*.47+a)*.13)
  }

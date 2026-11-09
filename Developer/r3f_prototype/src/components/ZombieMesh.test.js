@@ -1,14 +1,13 @@
 import { describe, expect, it } from 'vitest'
-import { createHash } from 'node:crypto'
 import { readFileSync } from 'node:fs'
 import { ENEMY_STATS } from './Enemy.jsx'
-import { B01_BOSS_FACE, B01_BOSS_VISUAL_PALETTE, B01_BOSS_VISUAL_PARTS, B01_MATH_SET_SQUARE_LAYOUT, B02_STAGE2_BOSS_FACE, B02_STAGE2_BOSS_PALETTE, B02_STAGE2_BOSS_PARTS, B03_PE_TEACHER_FACE, B03_PE_TEACHER_FACE_LAYOUT, B03_PE_TEACHER_PALETTE, B03_PE_TEACHER_PARTS, B04_CHEF_FACE, B04_CHEF_PALETTE, B04_CHEF_PARTS, RUN_ZOMBIE_VISUAL, STAGE2_GUARD_CHASE_VISUAL, ZOMBIE_PALETTE } from './ZombieMesh.jsx'
+import { B01_BOSS_VISUAL_PALETTE, B01_BOSS_VISUAL_PARTS, B01_MATH_SET_SQUARE_LAYOUT, B02_STAGE2_BOSS_PALETTE, B02_STAGE2_BOSS_PARTS, B03_PE_TEACHER_FACE_LAYOUT, B03_PE_TEACHER_PALETTE, B03_PE_TEACHER_PARTS, B04_CHEF_PALETTE, B04_CHEF_PARTS, RUN_ZOMBIE_VISUAL, STAGE2_GUARD_CHASE_VISUAL, ZOMBIE_PALETTE } from './ZombieMesh.jsx'
+import { getBossFaceLayout } from './BossProceduralFace.jsx'
 import { GRAPHICS_STUDIO_CATALOG, getStudioZombieItemId } from '../lib/graphicsStudioConfig.js'
 
 const zombieMeshSource = readFileSync(new URL('./ZombieMesh.jsx', import.meta.url), 'utf8')
 const titleSceneSource = readFileSync(new URL('./TitleScene3D.jsx', import.meta.url), 'utf8')
 const graphicsStudioConfigSource = readFileSync(new URL('../lib/graphicsStudioConfig.js', import.meta.url), 'utf8')
-const b04ChefFaceTexture = readFileSync(new URL('../assets/faces/b04_chef_boss_face.webp', import.meta.url))
 const legacyB02ItemId = ['zombie', 'b02', 'teacher'].join('-')
 
 describe('Stage 1 boss visual reference', () => {
@@ -30,7 +29,7 @@ describe('Stage 1 boss visual reference', () => {
     expect(B01_BOSS_VISUAL_PARTS).toEqual([
       'blockHead',
       'raggedHair',
-      'faceTexture',
+      'proceduralFace',
       'suitJacket',
       'whiteShirt',
       'redTie',
@@ -41,18 +40,14 @@ describe('Stage 1 boss visual reference', () => {
     ])
   })
 
-  it('replaces the modeled B01 math-teacher face parts with the supplied face texture decal', () => {
-    expect(B01_BOSS_FACE).toEqual({
-      size: [0.58, 0.50],
-      position: [0, 0, 0.251],
-      repeat: [1, 1],
-      offset: [0, 0],
-    })
-
-    expect(zombieMeshSource).toContain("import boss01FaceUrl from '../assets/faces/b01_math_teacher_face.webp'")
-    expect(zombieMeshSource).toContain('function B01MathTeacherFaceTexture')
-    expect(zombieMeshSource).toContain('<B01MathTeacherFaceTexture />')
-    expect(zombieMeshSource).toContain('THREE.SRGBColorSpace')
+  it('draws the B01 math-teacher face procedurally on the head block front, inside the flat (un-chamfered) face', () => {
+    const layout = getBossFaceLayout('B01')
+    expect(layout.size[0]).toBeCloseTo(0.58 - 2 * 0.48 * 0.14, 6)
+    expect(layout.size[1]).toBeCloseTo(0.50 - 2 * 0.48 * 0.14, 6)
+    expect(layout.position).toEqual([0, 0, 0.24 + 0.0015])
+    expect(zombieMeshSource).not.toContain('boss01FaceUrl')
+    expect(zombieMeshSource).not.toContain('FaceTexture')
+    expect(zombieMeshSource).toMatch(/<ZBlock size=\{\[0\.58, 0\.50, 0\.48\]\}[^>]*>\s*<BossProceduralFace bossType="B01" recipe=\{bossFaceRecipe\} \/>\s*<\/ZBlock>/)
     expect(zombieMeshSource).not.toContain('B01_BOSS_FACE_LAYOUT')
     expect(zombieMeshSource).not.toContain('face.leftBrow')
     expect(zombieMeshSource).not.toContain('face.rightBrow')
@@ -102,7 +97,7 @@ describe('B03 muscular PE teacher boss', () => {
 
   it('uses only the shared numeric scene-tree path for B03 parts', () => {
     const b03Source = zombieMeshSource.match(
-      /function B03PhysicalEducationBossMesh[\s\S]*?function B02Stage2BossFaceTexture/,
+      /function B03PhysicalEducationBossMesh[\s\S]*?function B04ChefBossMesh/,
     )?.[0]
 
     expect(b03Source).toBeDefined()
@@ -127,7 +122,7 @@ describe('B03 muscular PE teacher boss', () => {
 
   it('scopes torso lift and reduced stride to the B03 title charge pose', () => {
     const b03Source = zombieMeshSource.match(
-      /function B03PhysicalEducationBossMesh[\s\S]*?function B02Stage2BossFaceTexture/,
+      /function B03PhysicalEducationBossMesh[\s\S]*?function B04ChefBossMesh/,
     )?.[0]
 
     expect(b03Source).toContain("name=\"b01PeTeacherLegLRig\" ref={reg('legL')} position={[-0.19, 0.00, 0]}")
@@ -161,7 +156,7 @@ describe('B03 muscular PE teacher boss', () => {
 
   it('narrows only the B03 title legs and brings the jersey V medal detail forward', () => {
     const b03Source = zombieMeshSource.match(
-      /function B03PhysicalEducationBossMesh[\s\S]*?function B02Stage2BossFaceTexture/,
+      /function B03PhysicalEducationBossMesh[\s\S]*?function B04ChefBossMesh/,
     )?.[0]
 
     expect(b03Source).toBeDefined()
@@ -177,25 +172,18 @@ describe('B03 muscular PE teacher boss', () => {
     expect(b03Source.indexOf('b01JerseyVLeft')).toBeLessThan(b03Source.indexOf('b01JerseyVRight'))
   })
 
-  it('replaces the modeled PE-teacher face/whistle with the supplied face texture decal', () => {
+  it('draws the PE-teacher face, headband and whistle procedurally on the head block front', () => {
     const source = zombieMeshSource
-
-    // ?ъ슜???쒓났 ?쇨뎬 ?띿뒪泥?癒몃━?졖룻샇猷⑤씪湲??ы븿)瑜?癒몃━ ?욌㈃ ?곗뭡濡??ъ슜
-    expect(source).toContain("import boss03FaceUrl from '../assets/faces/b03_pe_teacher_face.webp'")
-    expect(source).toContain('function B03PeTeacherFaceTexture')
-    expect(source).toContain('<B03PeTeacherFaceTexture />')
-    expect(source).toContain('THREE.SRGBColorSpace')
-    // ?띿뒪泥섏뿉 洹몃젮吏??대ぉ援щ퉬/?몃（?쇨린? 以묐났?섎뜕 3D ?뚯툩???쒓굅??
+    expect(source).not.toContain('boss03FaceUrl')
+    expect(source).toMatch(/<ZBlock name="b01Head"[^>]*>\s*<BossProceduralFace bossType="B03" recipe=\{bossFaceRecipe\} \/>\s*<\/ZBlock>/)
+    // 절차적 얼굴에 그려지므로 3D 이목구비/호루라기 파츠는 다시 만들지 않는다.
     expect(source).not.toContain('name="b01WhistleCord')
     expect(source).not.toContain('name="b01Nose"')
     expect(source).not.toContain('name="b01EyeL"')
-
-    // ?몄텧 ?쇨뎬硫??ㅻ뱶 諛뺤뒪 ?욌㈃ 0.56횞0.48, center y=0) cover-fit:
-    // 醫낇슒鍮?7:6 留욎땄 ?곷떒 14.3% ?щ∼(?ㅻ뱶諛대뱶 ???щ갚), z???욌㈃ 0.22 + 0.01
-    expect(B03_PE_TEACHER_FACE.size).toEqual([0.56, 0.48])
-    expect(B03_PE_TEACHER_FACE.position).toEqual([0, 0, 0.23])
-    expect(B03_PE_TEACHER_FACE.repeat).toEqual([1, 0.857])
-    expect(B03_PE_TEACHER_FACE.offset).toEqual([0, 0])
+    const layout = getBossFaceLayout('B03')
+    expect(layout.size[0]).toBeCloseTo(0.56 - 2 * 0.44 * 0.14, 6)
+    expect(layout.size[1]).toBeCloseTo(0.48 - 2 * 0.44 * 0.14, 6)
+    expect(layout.position).toEqual([0, 0, 0.22 + 0.0015])
   })
 
   it('uses Matilda idle by default but enables her movement pose in the enemy runtime path', () => {
@@ -214,12 +202,6 @@ describe('B03 muscular PE teacher boss', () => {
 })
 
 describe('Stage 4 chef zombie boss', () => {
-  it('uses the approved B04-only face texture converted from texture_boss04', () => {
-    expect(createHash('sha256').update(b04ChefFaceTexture).digest('hex')).toBe(
-      '1bb8899b0b132bf787491aef924914d148d3071c0448633e395bea10cc8117c9',
-    )
-  })
-
   it('defines the chef palette and stable ordered part groups', () => {
     expect(B04_CHEF_PALETTE).toMatchObject({
       skin: 0x7fa65a,
@@ -233,7 +215,7 @@ describe('Stage 4 chef zombie boss', () => {
     expect(B04_CHEF_PARTS).toEqual([
       'hat',
       'head',
-      'faceTexture',
+      'proceduralFace',
       'body',
       'neckerchief',
       'armL',
@@ -243,12 +225,10 @@ describe('Stage 4 chef zombie boss', () => {
       'legL',
       'legR',
     ])
-    expect(B04_CHEF_FACE).toEqual({
-      size: [0.66, 0.48],
-      position: [0, 0, 0.271],
-      repeat: [1, 1],
-      offset: [0, 0],
-    })
+    const layout = getBossFaceLayout('B04')
+    expect(layout.size[0]).toBeCloseTo(0.66 - 2 * 0.48 * 0.14, 6)
+    expect(layout.size[1]).toBeCloseTo(0.48 - 2 * 0.48 * 0.14, 6)
+    expect(layout.position).toEqual([0, 0, 0.26 + 0.0015])
   })
 
   it('builds the chef as a dedicated model with the characteristic silhouette', () => {
@@ -264,7 +244,10 @@ describe('Stage 4 chef zombie boss', () => {
     expect(chefSource).not.toContain('name="chefEyeL"')
     expect(chefSource).not.toContain('name="chefEyeR"')
     expect(chefSource).not.toContain('name="chefFaceCleanPlate"')
-    expect(chefSource).toContain('<B04ChefBossFaceTexture />')
+    expect(chefSource).toMatch(/<ZBlock name="chefHead"[^>]*>\s*<BossProceduralFace bossType="B04" recipe=\{bossFaceRecipe\} \/>\s*<\/ZBlock>/)
+    // 귀는 예전 얼굴 평면 자리(빈 슬롯) 뒤에 남아 Studio 숫자 경로 2·3번을 유지한다.
+    expect(chefSource.indexOf('<group name="chefFaceSlot" />')).toBeGreaterThan(-1)
+    expect(chefSource.indexOf('<group name="chefFaceSlot" />')).toBeLessThan(chefSource.indexOf('name="chefEarL"'))
     expect(chefSource).toContain('name="chefEarL"')
     expect(chefSource).toContain('name="chefEarR"')
     expect(chefSource).not.toContain('name="chefNose"')
@@ -282,10 +265,7 @@ describe('Stage 4 chef zombie boss', () => {
     expect(zombieMeshSource).toContain("if (type === 'B04')")
     expect(zombieMeshSource).toContain("itemId={getStudioZombieItemId('B04')}")
     expect(zombieMeshSource).toContain('<B04ChefBossMesh hitFlash={hitFlash} reg={reg} bossFaceRecipe={bossFaceRecipe} />')
-    expect(zombieMeshSource).toContain("import boss04FaceUrl from '../assets/faces/b04_chef_boss_face.webp'")
-    expect(zombieMeshSource).toContain('function B04ChefBossFaceTexture()')
-    expect(zombieMeshSource).toContain('texture.colorSpace = THREE.SRGBColorSpace')
-    expect(zombieMeshSource).toContain('name="chefFaceTexture"')
+    expect(zombieMeshSource).not.toContain('boss04FaceUrl')
     expect(chefSource).toBeDefined()
     expect(chefSource).not.toContain('studioPartId')
   })
@@ -294,14 +274,14 @@ describe('Stage 4 chef zombie boss', () => {
     const chefSource = zombieMeshSource.match(
       /function B04ChefBossMesh[\s\S]*?function B02Stage2BossMesh/,
     )?.[0]
-    const blockTags = chefSource?.match(/<ZBlock\b[^>]*\/>/g) ?? []
+    const blockTags = chefSource?.match(/<ZBlock\b[^>]*\/?>/g) ?? []
     const blockNames = blockTags.map((tag) => tag.match(/name="([^"]+)"/)?.[1])
     const groupNames = [...(chefSource?.matchAll(/<group name="([^"]+)"/g) ?? [])].map((match) => match[1])
 
     expect(blockTags).toHaveLength(44)
     expect(blockNames.every(Boolean)).toBe(true)
     expect(new Set(blockNames).size).toBe(blockNames.length)
-    expect(groupNames).toHaveLength(11)
+    expect(groupNames).toHaveLength(12)
     expect(groupNames.every(Boolean)).toBe(true)
     expect(new Set(groupNames).size).toBe(groupNames.length)
     expect(blockNames).toEqual(expect.arrayContaining([
@@ -412,7 +392,7 @@ describe('Stage 2 boss visual reference', () => {
       shoe: 0x17100d,
     })
     expect(B02_STAGE2_BOSS_PARTS).toEqual([
-      'blockHeadWithTextureFace',
+      'blockHeadWithProceduralFace',
       'brownBobAndBunHair',
       'redTornBlazer',
       'whiteShirtTieLanyard',
@@ -423,32 +403,19 @@ describe('Stage 2 boss visual reference', () => {
     ])
   })
 
-  it('uses a head-attached face texture and separate controllable hair parts', () => {
+  it('uses a head-attached procedural face and separate controllable hair parts', () => {
     const source = zombieMeshSource
 
-    expect(source).toContain("import boss02FaceUrl from '../assets/faces/b02_stage2_boss_face.webp'")
-    expect(source).toContain('<B02Stage2BossFaceTexture />')
+    expect(source).not.toContain('boss02FaceUrl')
+    expect(source).toMatch(/<ZBlock name="b02Head"[^>]*>\s*<BossProceduralFace bossType="B02" recipe=\{bossFaceRecipe\} \/>\s*<\/ZBlock>/)
     expect(source).toContain('<B02Stage2BossMesh hitFlash={hitFlash} reg={reg} bossFaceRecipe={bossFaceRecipe} />')
     expect(source).toContain('itemId={getStudioZombieItemId(type)}')
     expect(source).toContain('studioRenderOutline')
     expect(source).not.toContain(legacyB02ItemId)
-    // ?몄텧 ?쇨뎬硫??ㅻ뱶 諛뺤뒪 ?욌㈃ 0.62횞0.62 ?꾩껜, center y=0) cover-fit:
-    // ?곷떒 20% 癒몃━ 諛대뱶 + 醫뚯슦 10%??UV ?щ∼(?뺤궗媛??좎?, 臾댁뒪?몃젅移?,
-    // z???욌㈃ 0.25 + 0.01濡??⑤윺?숈뒪 理쒖냼??
-    expect(B02_STAGE2_BOSS_FACE.size).toEqual([0.58, 0.50])
-    expect(B02_STAGE2_BOSS_FACE.repeat).toEqual([1, 1])
-    expect(B02_STAGE2_BOSS_FACE.offset).toEqual([0, 0])
-    expect(B02_STAGE2_BOSS_FACE.position).toEqual([0, 0, 0.251])
-  })
-
-  it('keeps the supplied B02 face texture out of the numeric-path focus list', () => {
-    const faceSource = zombieMeshSource.match(
-      /function B02Stage2BossFaceTexture[\s\S]*?function B02Stage2BossMesh/,
-    )
-
-    expect(faceSource).not.toBeNull()
-    expect(faceSource[0]).toContain('studioNonFocusable: true')
-    expect(faceSource[0]).toContain('transparent')
+    const layout = getBossFaceLayout('B02')
+    expect(layout.size[0]).toBeCloseTo(0.58 - 2 * 0.48 * 0.14, 6)
+    expect(layout.size[1]).toBeCloseTo(0.50 - 2 * 0.48 * 0.14, 6)
+    expect(layout.position).toEqual([0, 0, 0.24 + 0.0015])
     expect(graphicsStudioConfigSource).not.toContain(legacyB02ItemId)
   })
 

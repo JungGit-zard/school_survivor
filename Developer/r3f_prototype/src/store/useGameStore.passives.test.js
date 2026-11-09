@@ -122,18 +122,20 @@ describe('useGameStore spendGold / purchasePassive', () => {
     useGameStore.setState({ goldTotal: 30 })
     const before = useGameStore.getState().passiveVersion
     const r = useGameStore.getState().purchasePassive('magnet')
-    expect(r).toMatchObject({ ok: true, nextLevel: 1, price: 5 })
-    expect(useGameStore.getState().goldTotal).toBe(25)
+    // magnet 1단계 가격은 passiveCatalog.js 정본(4골드, passiveCatalog.test.js와 같다).
+    expect(r).toMatchObject({ ok: true, nextLevel: 1, price: 4 })
+    expect(useGameStore.getState().goldTotal).toBe(26)
     expect(useGameStore.getState().passiveVersion).toBe(before + 1)
   })
 
   it('purchasePassive 실패 시 goldTotal 불변, passiveVersion 불변', () => {
-    useGameStore.setState({ goldTotal: 4 })
+    // 가격 4골드보다 1 적은 3골드 — 정말로 부족해야 실패 경로를 검증한다.
+    useGameStore.setState({ goldTotal: 3 })
     const before = useGameStore.getState().passiveVersion
     const r = useGameStore.getState().purchasePassive('magnet')
     expect(r.ok).toBe(false)
     expect(r.reason).toBe('insufficient')
-    expect(useGameStore.getState().goldTotal).toBe(4)
+    expect(useGameStore.getState().goldTotal).toBe(3)
     expect(useGameStore.getState().passiveVersion).toBe(before)
   })
 })

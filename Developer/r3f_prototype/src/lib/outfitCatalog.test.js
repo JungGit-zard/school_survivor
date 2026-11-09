@@ -15,22 +15,73 @@ import {
   getOutfitAbilities,
   getOutfitStats,
   isOutfitId,
+  isOutfitReleased,
+  isOutfitUnlockedByRecords,
   listOutfits,
 } from './outfitCatalog.js'
 import { PLAYER_OUTFIT_IDS } from './playerOutfitIds.js'
 import { ROSARI_OUTFITS } from './rosariOutfits.js'
 
 const rules = JSON.parse(readFileSync(fileURLToPath(new URL('../../database.rules.json', import.meta.url)), 'utf8'))
-const quotedIds = (expr) => [...expr.matchAll(/'([a-z]+)'/g)].map((m) => m[1])
+const quotedIds = (expr) => [...expr.matchAll(/'([A-Za-z]+)'/g)].map((m) => m[1])
+
+// Stage 5·6 클리어 의상은 2026-11-08 외형(rosariOutfits.js 임시안)이 생겨 공개됐다. 숨김 의상 없음.
+const UNRELEASED_OUTFIT_IDS = []
+
+describe('Stage 5·6 clear outfits (spec56 B §9, C-9-4)', () => {
+  it('prefect: Stage 5 escape, max HP +10 / move speed x0.95', () => {
+    expect(OUTFIT_CATALOG.prefect).toMatchObject({ id: 'prefect', order: 6, nameKey: 'outfit.prefect.name' })
+    expect(OUTFIT_CATALOG.prefect.unlock).toMatchObject({ type: 'stageClears', recordKeys: ['stage5Clears'], labelKey: 'outfit.unlock.stageClear', labelParams: { n: 5 } })
+    expect(getOutfitStats('prefect')).toEqual({ ...NEUTRAL_OUTFIT_STATS, maxHpDelta: 10, speedMult: 0.95 })
+    expect(getOutfitAbilities('prefect').map((a) => [a.stat, a.display, a.positive])).toEqual([
+      ['maxHpDelta', '+10', true],
+      ['speedMult', '-5', false],
+    ])
+  })
+
+  it('sportsDay: Stage 6 escape, max HP +10 / move speed -3%', () => {
+    expect(OUTFIT_CATALOG.sportsDay).toMatchObject({ id: 'sportsDay', order: 7, nameKey: 'outfit.sportsDay.name' })
+    expect(OUTFIT_CATALOG.sportsDay.unlock).toMatchObject({ type: 'stageClears', recordKeys: ['stage6Clears'], labelParams: { n: 6 } })
+    expect(getOutfitStats('sportsDay')).toEqual({ ...NEUTRAL_OUTFIT_STATS, maxHpDelta: 10, speedMult: 0.97 })
+    expect(getOutfitAbilities('sportsDay').map((a) => [a.stat, a.display, a.positive])).toEqual([
+      ['maxHpDelta', '+10', true],
+      ['speedMult', '-3', false],
+    ])
+  })
+
+  it('the records unlock them, and with their looks in place they are listed and granted', () => {
+    expect(isOutfitUnlockedByRecords('prefect', { stage5Clears: 0 })).toBe(false)
+    expect(isOutfitUnlockedByRecords('prefect', { stage5Clears: 1 })).toBe(true)
+    expect(isOutfitUnlockedByRecords('sportsDay', { stage6Clears: 1 })).toBe(true)
+    expect(isOutfitUnlockedByRecords('sportsDay', { stage5Clears: 1 })).toBe(false)
+    for (const id of ['prefect', 'sportsDay']) {
+      expect(isOutfitReleased(id), id).toBe(true)
+      expect(listOutfits().some((outfit) => outfit.id === id), id).toBe(true)
+    }
+    const granted = evaluateOutfitUnlocks({ stage5Clears: 3, stage6Clears: 2 })
+    expect(granted.has('prefect')).toBe(true)
+    expect(granted.has('sportsDay')).toBe(true)
+    expect(evaluateOutfitUnlocks({ stage5Clears: 1 }).has('sportsDay')).toBe(false)
+    // grad stays Stage 1~4 only; Stage 5·6 clears add nothing to it.
+    expect(evaluateOutfitUnlocks({ stage5Clears: 1, stage6Clears: 1 }).has('grad')).toBe(false)
+  })
+
+  it('released outfits report isOutfitReleased true; unknown ids false', () => {
+    for (const id of ['default', 'winter', 'raincoat', 'gym', 'apron', 'grad', 'prefect', 'sportsDay']) expect(isOutfitReleased(id), id).toBe(true)
+    expect(isOutfitReleased('labcoat')).toBe(false)
+  })
+})
 
 describe('T-01 outfit id list is one list everywhere', () => {
   it('catalog ids = PLAYER_OUTFIT_IDS = ROSARI_OUTFITS (visual-ready) ids', () => {
-    expect([...OUTFIT_IDS]).toEqual(['default', 'winter', 'raincoat', 'gym', 'apron', 'grad'])
+    expect([...OUTFIT_IDS]).toEqual(['default', 'winter', 'raincoat', 'gym', 'apron', 'grad', 'prefect', 'sportsDay'])
     expect([...OUTFIT_IDS]).toEqual([...PLAYER_OUTFIT_IDS])
     expect(Object.keys(OUTFIT_CATALOG).sort()).toEqual([...OUTFIT_IDS].sort())
     const visualReadyIds = listOutfits().map((outfit) => outfit.id)
-    expect(visualReadyIds).toEqual([...OUTFIT_IDS])
+    // 옷장에 보이는 옷 = 외형(ROSARI_OUTFITS)이 있는 옷. 외형이 생기면 visualReady를 켜야 이 단언이 다시 맞는다.
+    expect(visualReadyIds).toEqual(OUTFIT_IDS.filter((id) => !UNRELEASED_OUTFIT_IDS.includes(id)))
     expect(ROSARI_OUTFITS.map((outfit) => outfit.id).sort()).toEqual([...visualReadyIds].sort())
+    expect(listOutfits({ includeHidden: true }).map((outfit) => outfit.id)).toEqual([...OUTFIT_IDS])
   })
 
   it('catalog ids = RTDB rule allow-lists (outfitUnlocks without default)', () => {
@@ -47,7 +98,7 @@ describe('T-01 outfit id list is one list everywhere', () => {
       expect(outfit.id).toBe(id)
       expect(outfit.nameKey).toBe(`outfit.${id}.name`)
       expect(outfit.order).toBe(index)
-      expect(outfit.visualReady).toBe(true)
+      expect(outfit.visualReady).toBe(!UNRELEASED_OUTFIT_IDS.includes(id))
       expect(outfit.available).toBe(true)
     })
   })

@@ -4,7 +4,8 @@
  * 실행: node scripts/generate_sfx.mjs
  */
 
-import { writeFileSync, mkdirSync } from 'fs'
+import { writeFileSync, mkdirSync, unlinkSync } from 'fs'
+import { execFileSync } from 'child_process'
 import { dirname, join } from 'path'
 import { fileURLToPath } from 'url'
 
@@ -141,6 +142,82 @@ function mix(...layers) {
   // 피크 정규화
   const peak = Math.max(...Array.from(out).map(Math.abs)) || 1
   return out.map(v => v / Math.max(peak, 1))
+}
+
+// ── 2026-11-08 추가 헬퍼 (Stage 5·6 / B03 착지 레시피 전용) ────────────────────────
+// 기존 정의는 이 헬퍼를 쓰지 않으므로 기존 음원 출력은 바뀌지 않는다.
+
+// 레이어를 sec초 뒤에 놓는다(기존 정의의 offset/padded 패턴을 함수로 묶은 것).
+function at(samples, sec) {
+  const offset = Math.floor(sec * SR)
+  const out = new Float32Array(samples.length + offset)
+  out.set(samples, offset)
+  return out
+}
+
+// 지수 감쇠 부분음 합성. 종('띵')과 저역 충격('쿵')에 쓴다. synth()의 선형 ADSR보다
+// 실제 타격음처럼 빨리 떨어진다. partials = [[주파수비, 진폭, 감쇠시간배수?], ...]
+function strike({ freq, freqEnd = null, dur, vol = 0.6, tau = 0.2, attack = 0.002, partials = [[1, 1]] }) {
+  const n = Math.floor(SR * dur)
+  const out = new Float32Array(n)
+  const phases = partials.map(() => 0)
+  const tailS = Math.floor(SR * 0.008)
+  for (let i = 0; i < n; i++) {
+    const t = i / SR
+    const f = freqEnd != null ? freq * Math.pow(freqEnd / freq, i / n) : freq
+    let s = 0
+    for (let k = 0; k < partials.length; k++) {
+      const [ratio, amp, tauMul = 1] = partials[k]
+      phases[k] += (f * ratio) / SR
+      s += amp * Math.sin(PI2 * phases[k]) * Math.exp(-t / (tau * tauMul))
+    }
+    const atk = t < attack ? t / attack : 1
+    const tail = i > n - tailS ? (n - i) / tailS : 1
+    out[i] = s * atk * tail * vol
+  }
+  return out
+}
+
+// 컷오프가 시간에 따라 움직이는 대역 노이즈('휙', '착', '드르륵'). 2단 1-pole LP + HP(fc/3).
+// am > 0이면 그 주파수로 진폭을 흔들어 철문 롤러 같은 덜컹임을 만든다.
+function sweptNoise({ dur, from, to, vol = 0.5, attack = 0.005, release = 0.05, am = 0, amDepth = 0 }) {
+  const n = Math.floor(SR * dur)
+  const out = new Float32Array(n)
+  const atkS = Math.max(1, Math.floor(SR * attack))
+  const relS = Math.max(1, Math.floor(SR * release))
+  let lp1 = 0, lp2 = 0, hp = 0, prevIn = 0
+  for (let i = 0; i < n; i++) {
+    const fc = from * Math.pow(to / from, i / n)
+    const a = 1 - Math.exp(-PI2 * fc / SR)
+    lp1 += a * (osc.noise() - lp1)
+    lp2 += a * (lp1 - lp2)
+    const hpA = Math.exp(-PI2 * (fc / 3) / SR)
+    hp = hpA * (hp + lp2 - prevIn)
+    prevIn = lp2
+    let env = i < atkS ? i / atkS : (i > n - relS ? (n - i) / relS : 1)
+    if (am > 0) env *= 1 - amDepth * (0.5 + 0.5 * Math.sin(PI2 * am * i / SR))
+    out[i] = hp * env
+  }
+  return peakTo(out, vol)
+}
+
+// 피크를 target으로 맞추고 끝 5ms를 페이드해 클릭을 없앤다.
+function peakTo(samples, target) {
+  let peak = 0
+  for (const v of samples) peak = Math.max(peak, Math.abs(v))
+  const g = peak > 0 ? target / peak : 0
+  const fadeS = Math.floor(SR * 0.005)
+  const out = new Float32Array(samples.length)
+  for (let i = 0; i < samples.length; i++) {
+    const fade = i > samples.length - fadeS ? (samples.length - i) / fadeS : 1
+    out[i] = samples[i] * g * fade
+  }
+  return out
+}
+
+// 정확한 길이로 자른다(스펙 길이 고정용).
+function trimTo(samples, sec) {
+  return samples.slice(0, Math.min(samples.length, Math.floor(sec * SR)))
 }
 
 // ── 사운드 정의 ────────────────────────────────────────────────────────────────
@@ -743,20 +820,154 @@ const sounds = {
     })
     return mix(...layers)
   })(),
+
+  // ── Stage 5 「교무실 최종 돌파」 (B_stage5.md §11-2, 2026-11-08 soundmini) ──────────
+  // 전부 자체 합성. 실존 교내 방송 차임·기존 게임 음원을 복제하지 않는다.
+  // 전교 호출 경고 차임 1.6s — 딩-동-댕-동 4음(G5-E5-C5-G4, 스펙 음정). 사인 종 + 약한 스퀘어.
+  'events/stage5CallChime': () => (() => {
+    const notes = [784, 659, 523, 392]
+    const layers = notes.map((f, i) => {
+      const last = i === notes.length - 1
+      const dur = last ? 0.52 : 0.5
+      return at(mix(
+        strike({ freq: f, dur, vol: 0.55, tau: last ? 0.34 : 0.26,
+          partials: [[1, 1], [2, 0.18, 0.6], [3, 0.06, 0.4]] }),
+        synth({ wave: 'square', freq: f, dur: 0.3, vol: 0.06, attack: 0.003, decay: 0.1, sustain: 0.3, release: 0.15 }),
+      ), i * 0.36)
+    })
+    return peakTo(trimTo(mix(...layers), 1.6), 0.8)
+  })(),
+  // 호출 시작 0.4s — 마이크 '삑'(1kHz 블립) + 방송 히스 꼬리.
+  'events/stage5CallStart': () => peakTo(trimTo(mix(
+    sweptNoise({ dur: 0.015, from: 3000, to: 1500, vol: 0.25, attack: 0.001, release: 0.01 }),
+    synth({ wave: 'sine', freq: 1000, dur: 0.13, vol: 0.6, attack: 0.002, decay: 0.02, sustain: 0.9, release: 0.025 }),
+    synth({ wave: 'square', freq: 1000, dur: 0.13, vol: 0.1, attack: 0.002, decay: 0.02, sustain: 0.9, release: 0.025 }),
+    at(sweptNoise({ dur: 0.29, from: 5200, to: 2400, vol: 0.16, attack: 0.01, release: 0.22 }), 0.11),
+  ), 0.4), 0.8),
+  // 결재 도장 내려찍기 0.35s — 저역 '쿵' + 종이 '착'.
+  'enemies/b10StampSlam': () => peakTo(trimTo(mix(
+    strike({ freq: 120, freqEnd: 48, dur: 0.3, vol: 0.9, tau: 0.09, partials: [[1, 1], [2, 0.25, 0.5]] }),
+    strike({ freq: 240, freqEnd: 150, dur: 0.12, vol: 0.35, tau: 0.03 }),
+    at(sweptNoise({ dur: 0.07, from: 6000, to: 3000, vol: 0.45, attack: 0.001, release: 0.05 }), 0.004),
+    at(sweptNoise({ dur: 0.25, from: 2500, to: 1200, vol: 0.07, attack: 0.01, release: 0.2 }), 0.05),
+  ), 0.35), 0.9),
+  // 출석부 휘두르기 0.3s — 휙(상승 노이즈 스윕) + 끝에 장부 '팍'.
+  'enemies/b10LedgerSwing': () => peakTo(trimTo(mix(
+    sweptNoise({ dur: 0.24, from: 420, to: 3200, vol: 0.6, attack: 0.12, release: 0.09 }),
+    at(mix(
+      sweptNoise({ dur: 0.06, from: 3000, to: 1500, vol: 0.32, attack: 0.001, release: 0.045 }),
+      strike({ freq: 180, freqEnd: 120, dur: 0.07, vol: 0.25, tau: 0.02 }),
+    ), 0.22),
+  ), 0.3), 0.85),
+  // 교무회의 소집 0.5s — 탁상 종 '띵'(비조화 부분음 + 미세 디튠 맥놀이).
+  'enemies/b10MeetingBell': () => peakTo(trimTo(mix(
+    sweptNoise({ dur: 0.01, from: 6000, to: 4000, vol: 0.2, attack: 0.001, release: 0.006 }),
+    strike({ freq: 1568, dur: 0.5, vol: 0.6, tau: 0.22,
+      partials: [[1, 1], [1.004, 0.5], [2.76, 0.35, 0.5], [5.4, 0.15, 0.3]] }),
+  ), 0.5), 0.75),
+
+  // ── Stage 6 「운동장 최후의 조회」 (C_stage6.md C-11-2, 2026-11-08 soundmini) ───────
+  // 국가·실존 교가·실제 교내 차임 선율 미사용. 음정은 전부 자작.
+  // 훈화 마이크 하울링 0.5s — 사인 2.4kHz→3.1kHz 상승 + 약한 노이즈, 끝 50ms 페이드.
+  'events/stage6MicFeedback': () => peakTo(trimTo(mix(
+    synth({ wave: 'sine', freq: 2400, freqEnd: 3100, dur: 0.5, vol: 0.45, attack: 0.15, decay: 0.05,
+      sustain: 0.95, release: 0.05, vibRate: 7, vibDepth: 25, noiseAmt: 0.05, overtones: [{ ratio: 2, amp: 0.08 }] }),
+    synth({ wave: 'sine', freq: 120, dur: 0.5, vol: 0.06, attack: 0.02, decay: 0.05, sustain: 0.8, release: 0.05 }),
+  ), 0.5), 0.6),
+  // 훈화 고리 active 0.25s — 120Hz 저역 펄스 + 짧은 '웅' 포먼트.
+  'events/stage6SpeechRingPulse': () => peakTo(trimTo(mix(
+    strike({ freq: 120, freqEnd: 95, dur: 0.25, vol: 0.8, tau: 0.08, partials: [[1, 1], [2, 0.4, 0.6], [3, 0.2, 0.4]] }),
+    peakTo(bandpass(lowpass(synth({ wave: 'sawtooth', freq: 125, freqEnd: 110, dur: 0.22, vol: 0.5,
+      attack: 0.01, decay: 0.06, sustain: 0.4, release: 0.12 }), 900), 250, 900), 0.4),
+  ), 0.25), 0.85),
+  // 첫 훈화 튜토리얼 학교 종 1.6s — 자작 4음 D5-G5-A5-D6, 사각파(부드럽게 LP) + 한 옥타브 아래 사인.
+  'events/stage6SchoolChime': () => (() => {
+    const notes = [587, 784, 880, 1175]
+    const layers = notes.map((f, i) => {
+      const last = i === notes.length - 1
+      const dur = last ? 0.52 : 0.4
+      return at(mix(
+        lowpass(synth({ wave: 'square', freq: f, dur, vol: 0.4, attack: 0.004, decay: 0.12, sustain: 0.35,
+          release: last ? 0.3 : 0.2 }), 3200),
+        synth({ wave: 'sine', freq: f / 2, dur, vol: 0.18, attack: 0.004, decay: 0.12, sustain: 0.3,
+          release: last ? 0.3 : 0.2 }),
+      ), i * 0.36)
+    })
+    return peakTo(trimTo(mix(...layers), 1.6), 0.8)
+  })(),
+  // 계주 호루라기 0.6s — 짧게 두 번, 3.2kHz 트릴.
+  'events/stage6RelayWhistle': () => (() => {
+    const blast = (dur, fStart, fEnd, vol) => mix(
+      synth({ wave: 'sine', freq: fStart, freqEnd: fEnd, dur, vol, attack: 0.006, decay: 0.03, sustain: 0.9,
+        release: 0.04, vibRate: 30, vibDepth: 170, noiseAmt: 0.05, overtones: [{ ratio: 1.5, amp: 0.14 }] }),
+      synth({ wave: 'sine', freq: fStart + 120, freqEnd: fEnd + 120, dur, vol: vol * 0.45, attack: 0.006,
+        decay: 0.03, sustain: 0.85, release: 0.04, vibRate: 30, vibDepth: 170 }),
+    )
+    return peakTo(trimTo(mix(
+      blast(0.18, 3200, 3200, 0.75),
+      at(blast(0.26, 3150, 3260, 0.8), 0.3),
+    ), 0.6), 0.85)
+  })(),
+  // 교가 제창 windup 0.9s — 자작 3음 상행 금관풍 칩튠(G4-C5-E5), 마지막 음 비브라토로 끈다.
+  'events/stage6AnthemSting': () => (() => {
+    const note = (f, dur, last) => lowpass(mix(
+      synth({ wave: 'sawtooth', freq: f, dur, vol: 0.45, attack: 0.025, decay: 0.08, sustain: 0.7,
+        release: last ? 0.2 : 0.05, vibRate: last ? 5.5 : 0, vibDepth: last ? 6 : 0 }),
+      synth({ wave: 'square', freq: f / 2, dur, vol: 0.14, attack: 0.025, decay: 0.08, sustain: 0.6,
+        release: last ? 0.2 : 0.05 }),
+    ), 2800)
+    return peakTo(trimTo(mix(
+      note(392, 0.2, false),
+      at(note(523, 0.2, false), 0.2),
+      at(note(659, 0.5, true), 0.4),
+    ), 0.9), 0.85)
+  })(),
+  // 정문 개방 0.9s — 철문 미닫이 '드르륵'(22Hz 롤러 덜컹 AM 노이즈) + 끝에 '쿵'.
+  'events/stage6GateOpen': () => peakTo(trimTo(mix(
+    sweptNoise({ dur: 0.72, from: 1800, to: 900, vol: 0.5, attack: 0.04, release: 0.12, am: 22, amDepth: 0.85 }),
+    lowpass(synth({ wave: 'sawtooth', freq: 520, freqEnd: 470, dur: 0.6, vol: 0.05, attack: 0.08, decay: 0.1,
+      sustain: 0.6, release: 0.15 }), 1500),
+    at(mix(
+      strike({ freq: 95, freqEnd: 45, dur: 0.2, vol: 0.85, tau: 0.06, partials: [[1, 1], [2.3, 0.3, 0.4]] }),
+      sweptNoise({ dur: 0.05, from: 2500, to: 1000, vol: 0.3, attack: 0.001, release: 0.04 }),
+      strike({ freq: 620, dur: 0.18, vol: 0.18, tau: 0.05, partials: [[1, 1], [2.7, 0.4, 0.5]] }),
+    ), 0.7),
+  ), 0.9), 0.9),
+
+  // ── B03 셔틀런 착지 '쿵' (2026-11-08 Terry "쿵쿵쿵") ───────────────────────────────
+  // 0.22s. 저역 쿵(95→42Hz) + 폰 스피커용 180Hz 몸통 + 짧은 바닥 트랜지언트. 홉 간격(≥0.33s)보다 짧다.
+  'enemies/b03ShuttleStomp': () => peakTo(trimTo(mix(
+    strike({ freq: 95, freqEnd: 42, dur: 0.22, vol: 0.95, tau: 0.07, partials: [[1, 1], [2, 0.3, 0.5], [3, 0.12, 0.3]] }),
+    strike({ freq: 180, freqEnd: 110, dur: 0.1, vol: 0.5, tau: 0.035, partials: [[1, 1], [2, 0.35, 0.6]] }),
+    sweptNoise({ dur: 0.04, from: 900, to: 300, vol: 0.35, attack: 0.001, release: 0.03 }),
+  ), 0.22), 0.9),
+}
+
+function encodeDeployPair(wavPath) {
+  const ffmpeg = process.env.FFMPEG_BINARY || 'ffmpeg'
+  const base = wavPath.replace(/\.wav$/, '')
+  execFileSync(ffmpeg, ['-y', '-loglevel', 'error', '-i', wavPath, '-ac', '1', '-ar', String(SR), '-c:a', 'libvorbis', '-q:a', '2', base + '.ogg'])
+  execFileSync(ffmpeg, ['-y', '-loglevel', 'error', '-i', wavPath, '-ac', '1', '-ar', String(SR), '-c:a', 'libmp3lame', '-b:a', '64k', base + '.mp3'])
+  unlinkSync(wavPath)
 }
 
 // ── 생성 실행 ─────────────────────────────────────────────────────────────────
 // 필터 인자: node generate_sfx.mjs [부분문자열] — 매칭되는 사운드만 재생성.
 // (noise 파형이 Math.random 기반이라 전체 재생성 시 모든 파일이 바뀜 → 선택 재생성 필수)
 export { sounds, synth, writeWav }
+// --encode: WAV를 배포 쌍(OGG libvorbis q2 / MP3 64k, 44.1kHz 모노)으로 바꾸고 WAV는 지운다.
+//   ffmpeg 경로는 FFMPEG_BINARY 환경변수(예: node_modules/@ffmpeg-installer/win32-x64/ffmpeg.exe).
 if (process.argv[1] && process.argv[1].endsWith('generate_sfx.mjs')) {
-  const filter = process.argv[2]
+  const args = process.argv.slice(2)
+  const encode = args.includes('--encode')
+  const filter = args.find((arg) => !arg.startsWith('--'))
   let count = 0
   for (const [id, gen] of Object.entries(sounds)) {
     if (filter && !id.includes(filter)) continue
     const samples = gen()
     const filepath = join(OUT, id + '.wav')
     writeWav(filepath, samples)
+    if (encode) encodeDeployPair(filepath)
     count++
     process.stdout.write(`\r생성 중... ${count}/${Object.keys(sounds).length} — ${id}.wav`)
   }

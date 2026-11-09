@@ -1,4 +1,10 @@
 {
+  "schemaVersion": 1,
+  "revision": 1952,
+  "updatedAt": "2026-08-10T16:17:15.598Z",
+  "exportedAt": "2026-11-08T13:21:01.879Z",
+  "source": "studioWorkspaces/v1/canonical/current",
+  "sha256": "5114d87edbaf43d41cd26b04f10a4508f9ae20d3c29759902bbce3ba26634c08",
   "datasets": {
     "tunings": {
       "player::part::0.0.8.0.0": {
@@ -954,9 +960,9 @@
           "id": "stage1-student-south-01",
           "type": "classPresidentStudent",
           "position": [
-            -5.796,
+            -0.23,
             0,
-            -0.031
+            4.142
           ],
           "rotation": [
             0,
@@ -1404,9 +1410,9 @@
           "id": "stage2-student-east-north-copy-1",
           "type": "unconsciousStudent",
           "position": [
-            3.135,
+            3.07,
             0,
-            -11.14
+            -9.515
           ],
           "rotation": [
             0,
@@ -1469,8 +1475,5 @@
         "mouth": "mouth-big-smile"
       }
     }
-  },
-  "revision": 1947,
-  "schemaVersion": 1,
-  "updatedAt": "2026-08-09T05:53:37.271Z"
+  }
 }

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   ENEMY_TYPE_CODES,
+  ENEMY_TYPE_NAMES,
   MAX_ENEMY_GENERATION,
   MAX_ENEMIES,
   createEnemyEntityPool,
@@ -55,7 +56,14 @@ describe('EnemyEntityPool', () => {
       // 신규 투사체 15종(2026-10-31, typeCode 49~63). 역시 끝에만 붙는다.
       'E46', 'E47', 'E48', 'E49', 'E50', 'E51', 'E52', 'E53', 'E54', 'E55', 'E56', 'E57', 'E58', 'E59', 'E60',
       // 2차 10종(2026-11-07, typeCode 65~74). 64는 E59 미니 예약이라 빈 슬롯이다.
-      'E61', 'E62', 'E63', 'E64', 'E65', 'E66', 'E67', 'E68', 'E69', 'E70'])
+      'E61', 'E62', 'E63', 'E64', 'E65', 'E66', 'E67', 'E68', 'E69', 'E70',
+      // Stage 5 보스 B10 교감 좀비(2026-11-08, typeCode 75). 스펙 초안의 65는 2차 10종이 먼저 차지했다.
+      'B10'])
+    expect(enemyTypeToCode('B10')).toBe(75)
+    expect(enemyTypeFromCode(75)).toBe('B10')
+    expect(ENEMY_TYPE_NAMES).toHaveLength(76)
+    expect(enemyTypeToCode('E60')).toBe(63)
+    expect(enemyTypeToCode('E59M')).toBe(0)
     expect(enemyTypeToCode('E61')).toBe(65)
     expect(enemyTypeToCode('E70')).toBe(74)
     expect(enemyTypeFromCode(64)).toBeNull()

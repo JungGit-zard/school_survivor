@@ -26,6 +26,8 @@ const STAGE_CLEAR_RECORD_KEYS = Object.freeze({
   2: 'stage2Clears',
   3: 'stage3Clears',
   4: 'stage4Clears',
+  5: 'stage5Clears',
+  6: 'stage6Clears',
 })
 
 // 의상 배율의 "아무 효과 없음" 값. default는 이 값과 완전히 같다.
@@ -65,7 +67,7 @@ const ALWAYS_UNLOCK = Object.freeze({
   labelParams: Object.freeze({}),
 })
 
-function defineOutfit({ id, order, unlock, stats = {} }) {
+function defineOutfit({ id, order, unlock, stats = {}, visualReady = true }) {
   return Object.freeze({
     id,
     order,
@@ -74,7 +76,9 @@ function defineOutfit({ id, order, unlock, stats = {} }) {
     stats: Object.freeze({ ...NEUTRAL_OUTFIT_STATS, ...stats }),
     // Terry 2026-11-01: 6벌 모두 연다. 4벌 새 옷은 threemini 임시 외형으로 visualReady.
     // 외형이 없는 옷을 능력만으로 열지 않는다 — 옷장은 visualReady && available만 보여 준다.
-    visualReady: true,
+    // visualReady:false인 옷은 목록에서 빠지고(listOutfits), 지급되지 않고(evaluateOutfitUnlocks),
+    // 판 시작 때 입지도 않는다(outfitUnlocks.resolveRunOutfitId). 외형이 생기면 true로 바꾼다.
+    visualReady,
     available: true,
   })
 }
@@ -102,6 +106,16 @@ export const OUTFIT_CATALOG = Object.freeze({
     id: 'grad', order: 5, unlock: stageClearsUnlock([1, 2, 3, 4]),
     stats: { xpMult: 1.08, damageTakenMult: 1.08 },
   }),
+  // Stage 5·6 클리어 의상 (spec56 B §9, C-9-4). 외형은 rosariOutfits.js ROSARI_OUTFITS의 같은 id(임시안,
+  // 2026-11-08). 로그인 소급 지급(syncOutfitUnlocksFromRecords)이 이미 탈출한 계정에 알림 없이 풀어 준다.
+  prefect: defineOutfit({
+    id: 'prefect', order: 6, unlock: stageClearsUnlock([5]),
+    stats: { maxHpDelta: 10, speedMult: 0.95 },
+  }),
+  sportsDay: defineOutfit({
+    id: 'sportsDay', order: 7, unlock: stageClearsUnlock([6]),
+    stats: { maxHpDelta: 10, speedMult: 0.97 },
+  }),
 })
 
 export function isOutfitId(id) {
@@ -118,6 +132,13 @@ export function getOutfit(id) {
   return isOutfitId(id) ? OUTFIT_CATALOG[id] : OUTFIT_CATALOG[DEFAULT_OUTFIT_ID]
 }
 
+// 옷장에 보이고, 지급되고, 입을 수 있는 옷인가 (외형 준비 + 출시 플래그).
+export function isOutfitReleased(id) {
+  if (!isOutfitId(id)) return false
+  const outfit = OUTFIT_CATALOG[id]
+  return outfit.visualReady === true && outfit.available === true
+}
+
 export function getOutfitStats(id) {
   return getOutfit(id).stats
 }
@@ -126,7 +147,7 @@ export function getOutfitStats(id) {
 export function listOutfits({ includeHidden = false } = {}) {
   return OUTFIT_IDS
     .map((id) => OUTFIT_CATALOG[id])
-    .filter((outfit) => includeHidden || (outfit.visualReady && outfit.available))
+    .filter((outfit) => includeHidden || isOutfitReleased(outfit.id))
 }
 
 // ---- 능력 표시 설명자 (uimini 옷장 기능표·일시정지 한 줄이 그대로 렌더한다) ----
@@ -188,11 +209,12 @@ export function isOutfitUnlockedByRecords(id, records) {
   return false
 }
 
-// default 포함. records가 비거나 숫자가 아니면 default만.
+// default 포함. records가 비거나 숫자가 아니면 default만. 외형이 없는 옷(isOutfitReleased false)은
+// 조건을 채워도 지급하지 않는다 — 결과 화면이 보이지 않는 옷을 알리지 않게.
 export function evaluateOutfitUnlocks(records) {
   const out = new Set()
   for (const id of OUTFIT_IDS) {
-    if (isOutfitUnlockedByRecords(id, records ?? {})) out.add(id)
+    if (isOutfitReleased(id) && isOutfitUnlockedByRecords(id, records ?? {})) out.add(id)
   }
   return out
 }

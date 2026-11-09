@@ -24,8 +24,8 @@ afterEach(() => {
   _resetFirebaseProgressForTests()
 })
 
-describe('Stage1–4 release entry boundary', () => {
-  it.each(['stage5','stage6','stage7','stage8','stage9','stage10'])('rejects unlocked %s before any runtime/progress mutation', async (stageId) => {
+describe('Stage1–6 release entry boundary (2026-11-08)', () => {
+  it.each(['stage7','stage8','stage9','stage10'])('rejects unlocked %s before any runtime/progress mutation', async (stageId) => {
     account.records = Object.fromEntries(Array.from({ length: 10 }, (_, i) => [`stage${i + 1}BossDefeats`, 1]))
     useAuthStore.setState({ user: null })
     useGameStore.setState({ phase: 'title', progressRunId: null })
@@ -39,15 +39,17 @@ describe('Stage1–4 release entry boundary', () => {
     expect(buildCloudProgressSnapshot()).toEqual(progress)
   })
 
-  it('retains all ten config definitions and ends the normal next path at Stage4', () => {
+  it('retains all ten config definitions and ends the normal next path at Stage6 (Part 1 finale)', () => {
     expect(Object.keys(STAGE_CONFIGS)).toEqual(Array.from({ length: 10 }, (_, i) => `stage${i + 1}`))
     expect(getNextStageId('stage1')).toBe('stage2')
     expect(getNextStageId('stage2')).toBe('stage3')
     expect(getNextStageId('stage3')).toBe('stage4')
-    for (let i = 4; i <= 10; i++) expect(getNextStageId(`stage${i}`)).toBeNull()
+    expect(getNextStageId('stage4')).toBe('stage5')
+    expect(getNextStageId('stage5')).toBe('stage6')
+    for (let i = 6; i <= 10; i++) expect(getNextStageId(`stage${i}`)).toBeNull()
   })
 
-  it.each(['stage4','stage5','stage6','stage7','stage8','stage9','stage10'])('%s terminal next does not flush, reset, submit, or change the completed run', async (stageId) => {
+  it.each(['stage6','stage7','stage8','stage9','stage10'])('%s terminal next does not flush, reset, submit, or change the completed run', async (stageId) => {
     useAuthStore.setState({ user: null })
     const flush = vi.fn(async () => true)
     const reset = vi.fn()
@@ -62,7 +64,7 @@ describe('Stage1–4 release entry boundary', () => {
     expect(buildCloudProgressSnapshot()).toEqual(progress)
   })
 
-  it.each(['stage2', 'stage3', 'stage4'])('keeps naturally locked %s start mutation-free', (stageId) => {
+  it.each(['stage2', 'stage3', 'stage4', 'stage5', 'stage6'])('keeps naturally locked %s start mutation-free', (stageId) => {
     const before = useGameStore.getState()
     const position = { ...playerPos }
     const progress = buildCloudProgressSnapshot()

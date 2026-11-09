@@ -30,6 +30,7 @@ vi.mock('./Lobby.jsx', () => ({
       <button type="button" data-testid="start-stage" onClick={() => onStartStage('stage1')}>start</button>
       <button type="button" data-testid="start-stage2" onClick={() => onStartStage('stage2')}>start2</button>
       <button type="button" data-testid="start-stage3" onClick={() => onStartStage('stage3')}>start3</button>
+      <button type="button" data-testid="start-stage6" onClick={() => onStartStage('stage6')}>start6</button>
     </>
   ),
 }))
@@ -159,5 +160,25 @@ describe('stage1 story cut plays only the first time', () => {
     expect(mocks.gameStore.resetGame).toHaveBeenCalledWith('stage2')
     expect(mocks.gameStore.startStageIntro).not.toHaveBeenCalled()
     view.unmount()
+  })
+
+  // 2026-11-08 Stage 6 인트로 배선: 세션당 한 번, stage6Clears가 있는 계정은 건너뛴다(Stage 2~5와 같은 규칙).
+  it('shows the Stage 6 intro once per session and skips it for an account that already escaped Stage 6', async () => {
+    const guest = await renderInLobby({ authUser: null, progressStatus: 'idle' })
+    await guest.click('start-stage6')
+    expect(mocks.gameStore.startStageIntro).toHaveBeenCalledWith('stage6')
+    await guest.click('go-lobby')
+    await guest.click('start-stage6')
+    expect(mocks.gameStore.startStageIntro).toHaveBeenCalledTimes(1)
+    guest.unmount()
+
+    mocks.gameStore.startStageIntro.mockClear()
+    mocks.hydrated = true
+    mocks.runtime = { activity: { lastStageId: 'stage6' }, progress: { records: { totalRuns: 9, stage6Clears: 1 } } }
+    const veteran = await renderInLobby({ authUser: { uid: 'veteran6' }, progressStatus: 'ready' })
+    await veteran.click('start-stage6')
+    expect(mocks.gameStore.resetGame).toHaveBeenCalledWith('stage6')
+    expect(mocks.gameStore.startStageIntro).not.toHaveBeenCalled()
+    veteran.unmount()
   })
 })

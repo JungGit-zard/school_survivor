@@ -23,32 +23,42 @@ import { getStageObjectSightObstacles } from '../components/StageObjects/stageOb
 import { ENEMY_STATS } from '../components/Enemy.jsx'
 import { getRuntimeSpawnEventsForStage } from './burstEvents.js'
 import { playerPos } from './refs.js'
+import { getStageBounds } from './stageConfig.js'
 const randomSeed=()=>{let x=777;return()=>((x=Math.imul(x,1664525)+1013904223)>>>0)/4294967296}
 afterEach(clearExpansionAttacks)
 const args=(deltaMs=2500)=>({deltaMs,playing:true,alive:true,gameKey:1,x:0,z:0,playerX:0,playerZ:.5,hpRatio:1})
 describe('expansion real integrations',()=>{
+ // 2026-11-08: stage6(운동장)은 경계 12×20, 줄(assembly_row)·트랙(track_lanes) 포메이션, 보스 앵커(조회대 앞 (0,−17)),
+ // 일반 적 190마리를 쓴다. 링 거리(8.5u) 규칙은 포메이션 없는 행에만 적용한다. stage7~10은 기존 그대로.
  it.each(Object.values(EXPANSION_STAGES))('$id safe scheduled events reach actual pool and special boss route without fallback',stage=>{
-  const cache={id:stage.id,bounds:{halfX:7.5,halfZ:19.2},obstacles:getStageObjectSightObstacles(stage.id)}
-  const pool=createEnemyEntityPool(),random=randomSeed();let bossCount=0,normal=0,coin=0
+  const cache={id:stage.id,bounds:stage.id==='stage6'?getStageBounds('stage6'):{halfX:7.5,halfZ:19.2},obstacles:getStageObjectSightObstacles(stage.id)}
+  const expectedNormal=stage.events.filter(e=>!e.type.startsWith('B')).reduce((n,e)=>n+e.count,0)
+  let pool=createEnemyEntityPool();const random=randomSeed();let bossCount=0,normal=0,coin=0
   const saved=playerPos.clone();playerPos.set(0,0,0)
   try{for(const evt of getRuntimeSpawnEventsForStage(stage.id)){
+   // stage6은 일반 적이 190마리라 한 풀(150)에 다 안 들어간다 — 실제 게임은 동시 천장이 자른다. 테스트 풀은 차면 새로 쓴다.
+   if(pool.activeCount>130){expect(pool.validateInvariants()).toBe(true);pool=createEnemyEntityPool()}
    const batch=buildExpansionBurstBatch(cache,evt,{pooledActive:0,specialActive:0,pooledQueued:0},random)
    expect(batch.length).toBeGreaterThan(0)
-   for(const row of batch){expect(row.pos.every(Number.isFinite)).toBe(true);expect(Math.hypot(row.pos[0],row.pos[2])).toBeGreaterThanOrEqual(row.type.startsWith('B')?5.999:8.499)
+   const minDistance=row=>row.type.startsWith('B')?5.999:evt.formation==='assembly_row'?3:evt.formation==='track_lanes'?4:8.499
+   for(const row of batch){expect(row.pos.every(Number.isFinite)).toBe(true);expect(Math.hypot(row.pos[0],row.pos[2])).toBeGreaterThanOrEqual(minDistance(row))
     if(row.type.startsWith('B')){bossCount++;continue}
     expect(pool.spawn({type:row.type,hp:row.statOverride?.hp??ENEMY_STATS[row.type].hp,maxHp:row.statOverride?.hp??ENEMY_STATS[row.type].hp,x:row.pos[0],z:row.pos[2],spawnTimer:300})).toBeTruthy()
     row.type==='E08'?coin++:normal++
    }
   }}finally{playerPos.copy(saved)}
-  expect(bossCount).toBe(1);expect(coin).toBe(2);expect(normal).toBeLessThanOrEqual(100);expect(normal).toBeGreaterThan(90)
+  expect(bossCount).toBe(1);expect(coin).toBe(2);expect(normal).toBeLessThanOrEqual(expectedNormal);expect(normal).toBeGreaterThan(expectedNormal*.9)
   expect(pool.validateInvariants()).toBe(true)
   expect(buildExpansionBurstBatch(cache,{type:stage.enemyIds[0],count:20},{pooledActive:147,specialActive:1,pooledQueued:2},random)).toEqual([])
   expect(buildExpansionBurstBatch(cache,{type:stage.enemyIds[0],count:20},{pooledActive:147,specialActive:1,pooledQueued:1},random)).toHaveLength(1)
  })
- it('keeps 4 actual physical/sight blockers on every new map without blocking center',()=>{
+ // stage6 운동장은 solid가 축구 골대 2개뿐인 개방지다(중앙 안전지대 규칙 없음, 스펙 Part C C-3-4). stage7~10은 4개·중앙 비움 그대로.
+ it('keeps actual physical/sight blockers on every new map (4 + clear centre for 7-10, 2 goals for the stage6 schoolyard)',()=>{
   for(const stage of Object.values(EXPANSION_STAGES)){
-   const placements=getStageObjectPlacements(stage.id);expect(placements).toHaveLength(4)
-   expect(getStageObjectColliders(stage.id)).toHaveLength(4);expect(getStageObjectSightObstacles(stage.id)).toHaveLength(4)
+   const count=stage.id==='stage6'?2:4
+   const placements=getStageObjectPlacements(stage.id);expect(placements).toHaveLength(count)
+   expect(getStageObjectColliders(stage.id)).toHaveLength(count);expect(getStageObjectSightObstacles(stage.id)).toHaveLength(count)
+   if(stage.id==='stage6'){expect(placements.map(p=>[p.position[0],p.position[2]])).toEqual([[0,-11],[0,11]]);continue}
    for(const p of placements)expect(Math.abs(p.position[0])-p.props.halfX).toBeGreaterThanOrEqual(2)
   }
  })
@@ -58,19 +68,23 @@ describe('expansion real integrations',()=>{
    expect(ENEMY_RUNTIME_DAMAGE[c]).toBe(e.contactDamage);expect(ENEMY_RUNTIME_CONTACT_DIST[c]).toBeCloseTo(e.contactDistUnits);expect(ENEMY_RUNTIME_SCALE[c]).toBeCloseTo(e.scale);expect(ENEMY_RUNTIME_XP[c]).toBe(e.xpPerTextbook)
    expect(shouldDropTextbook({type:e.id,xp:e.xpPerTextbook},.299,0)).toBe(true);expect(shouldDropTextbook({type:e.id,xp:e.xpPerTextbook},.3,0)).toBe(false)
   }
-  for(const b of Object.values(EXPANSION_BOSSES)){expect(ELITE_BONUS[b.id]).toEqual({gold:b.gold,textbook:3,textbookXp:40});expect(getEliteBonusTextbookXp(b.id,0)).toBe(40)}
+  // 보스 보상은 데이터 그대로(B05 교장 4권 × 45 XP, 골드 10 / B06~B09 3 × 40).
+  for(const b of Object.values(EXPANSION_BOSSES)){expect(ELITE_BONUS[b.id]).toEqual({gold:b.gold,textbook:b.textbooks,textbookXp:b.textbookXp});expect(getEliteBonusTextbookXp(b.id,0)).toBe(b.textbookXp)}
+  expect(ELITE_BONUS.B05).toEqual({gold:10,textbook:4,textbookXp:45})
  })
  it('waits for attack completion before one HP50 transition, preserves windup duration',()=>{
   const s=createExpansionAttackState('B05','transition',1);stepExpansionAttack(s,args());const first=s.snapshot
   stepExpansionAttack(s,{...args(100),hpRatio:.4});expect(s.snapshot).toBe(first);expect(s.enrageRemainingMs).toBe(0)
   stepExpansionAttack(s,{...args(4000),hpRatio:.4});stepExpansionAttack(s,{...args(1),hpRatio:.4});expect(s.enrageRemainingMs).toBeGreaterThan(0)
   stepExpansionAttack(s,{...args(1500),hpRatio:.4});expect(s.enraged).toBe(true)
-  stepExpansionAttack(s,{...args(6000),hpRatio:.4});expect(s.snapshot.windupMs).toBe(1600)
+  stepExpansionAttack(s,{...args(6000),hpRatio:.4});expect(s.snapshot.windupMs).toBe(EXPANSION_BOSSES.B05.patterns[s.snapshot.patternId==='b05_p1'?0:1].windupMs)
  })
- it('does not start ranged attacks outside authored trigger distance',()=>{
+ // 2026-11-08: E21이 lob(사거리 형) → dash(계주 바통, 발동 1.4u)로 바뀌어 같은 규칙을 dash 사거리로 본다.
+ it('does not start special attacks outside authored trigger distance',()=>{
   const s=createExpansionAttackState('E21','range',1)
-  stepExpansionAttack(s,{...args(),playerZ:7});expect(s.snapshot).toBe(null)
-  stepExpansionAttack(s,{...args(1),playerZ:3});expect(s.snapshot.targetXZ).toEqual([0,3])
+  expect(EXPANSION_BEHAVIORS[EXPANSION_ENEMIES.E21.behaviorId].rangeUnits).toBe(1.4)
+  stepExpansionAttack(s,{...args(),playerZ:3});expect(s.snapshot).toBe(null)
+  stepExpansionAttack(s,{...args(1),playerZ:1.2});expect(s.snapshot.targetXZ).toEqual([0,1.2])
  })
  it('resets pooled warnings synchronously and pool reuse cannot retain an old attack',()=>{
   const pool=createEnemyEntityPool(),runtime=createEnemySimulationRuntime()

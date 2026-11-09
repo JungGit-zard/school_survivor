@@ -80,8 +80,10 @@ describe('stage 2 E04 projectile rules', () => {
 })
 
 describe('stage-aware E04 발사 인트로 게이트 (stage4 시그니처 + 스2/스3 불변)', () => {
-  it('getE04IntroSec: stage4만 18s, 그 외 72s', () => {
+  it('getE04IntroSec: stage4 18s, stage5 12s, stage6 8s, 그 외 72s', () => {
     expect(getE04IntroSec('stage4')).toBe(18)
+    expect(getE04IntroSec('stage5')).toBe(12)
+    expect(getE04IntroSec('stage6')).toBe(8)
     expect(getE04IntroSec('stage2')).toBe(72)
     expect(getE04IntroSec('stage3')).toBe(72)
     expect(getE04IntroSec()).toBe(72)
@@ -99,6 +101,13 @@ describe('stage-aware E04 발사 인트로 게이트 (stage4 시그니처 + 스2
   it('stage4: 18s부터 발사 가능, 17s는 불가(introSec=18)', () => {
     expect(canE04FireProjectile(ready({ elapsedSec: 17, introSec: 18 }))).toBe(false)
     expect(canE04FireProjectile(ready({ elapsedSec: 18, introSec: 18 }))).toBe(true)
+  })
+
+  it('stage5(교무실): 12s부터 발사 가능, 11.9s는 불가 — 보스 구간(150~210)은 bossPressure로 차단(예외 아님)', () => {
+    const introSec = getE04IntroSec('stage5')
+    expect(canE04FireProjectile(ready({ elapsedSec: 11.9, introSec }))).toBe(false)
+    expect(canE04FireProjectile(ready({ elapsedSec: 12, introSec }))).toBe(true)
+    expect(canE04FireProjectile(ready({ elapsedSec: 160, introSec, bossPressure: true }))).toBe(false)
   })
 
   it('stage2 불변: introSec 미지정(기본 72)에서 71s 불가·72s 가능', () => {

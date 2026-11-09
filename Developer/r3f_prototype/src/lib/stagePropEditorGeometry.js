@@ -34,6 +34,14 @@ export const STAGE_PROP_PALETTE = Object.freeze([
   { type: 'kitchenCrateStack', label: '상자더미', defaultScale: 1.05, glyph: '📦', defaultProps: { count: 3 } },
   { type: 'kitchenClutter', label: '주방잡동사니', defaultScale: 1.1, defaultVariant: 'pots', glyph: '🥘' },
   { type: 'pressureCauldron', label: '압력가마솥', defaultScale: 1, glyph: '♨' },
+  // 교무실(stage5) solid 가구 3종
+  { type: 'staffroomDeskIsland', label: '교무실 책상', defaultScale: 1, defaultVariant: 'long', glyph: '🗂️' },
+  { type: 'staffroomViceDesk', label: '교감 책상', defaultScale: 1, glyph: '🪑' },
+  { type: 'staffroomCopier', label: '복사기', defaultScale: 1, defaultVariant: 'normal', glyph: '🖨️' },
+  // 교무실(stage5) 통과형 비주얼 3종 — 배치 정규화가 STAGE_PROP_TYPES 밖 타입을 버리므로 함께 등록한다.
+  { type: 'staffroomEntranceDoor', label: '중앙 현관', defaultScale: 1, glyph: '🚪' },
+  { type: 'staffroomSpeaker', label: '교내 방송 스피커', defaultScale: 1, glyph: '📢', defaultProps: { lane: 'L1' } },
+  { type: 'staffroomClutter', label: '결재 서류', defaultScale: 1, defaultVariant: 'papers', glyph: '📄' },
 ])
 
 // 팔레트 항목에서 신규 배치 시 시드할 기본 props(있으면 객체, 없으면 null).

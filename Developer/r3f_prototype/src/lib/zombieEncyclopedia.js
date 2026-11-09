@@ -23,9 +23,9 @@ const ZOMBIE_TYPE_LABELS = Object.freeze({
   B02: '보스 좀비 B02',
   B03: '보스 좀비 B03',
   B04: '주방장 좀비',
-  E19: '서가운반 좀비',
-  E20: '색인질주 좀비',
-  E21: '반납투척 좀비',
+  E19: '조회 줄서기 좀비',
+  E20: '국민체조 좀비',
+  E21: '계주 바통 좀비',
   E22: '배양액 좀비',
   E23: '자석실험 좀비',
   E24: '보안경돌격 좀비',
@@ -38,11 +38,13 @@ const ZOMBIE_TYPE_LABELS = Object.freeze({
   E31: '전선수리 좀비',
   E32: '풍향계질주 좀비',
   E33: '축전지운반 좀비',
-  B05: '금서관장',
+  B05: '교장 선생님 좀비',
   B06: '융합과학교사',
   B07: '온실관리장',
   B08: '가면지휘자',
   B09: '폭풍교장',
+  // Stage 5 보스(spec56 B §6-2). 게임 풀 등록(enemyEntityPool, levelmini)보다 먼저 저장 id로 고정한다.
+  B10: '교감 좀비',
   // Track B 신규 일반 좀비 12종(typeCode 37~48). 한국어 정본은
   // Planner/stage_zombie_original_concepts_20261025.md의 개념명이다.
   // en/ja 표시명은 locales/{en,ja}.js의 zombie.<ID> 키가 덮어쓴다.
@@ -90,7 +92,7 @@ const ZOMBIE_TYPE_LABELS = Object.freeze({
 
 export const ZOMBIE_ENCYCLOPEDIA_TYPES = Object.freeze(
   // Persistence IDs are stable even before the gameplay pool registration lands.
-  [...new Set([...ENEMY_TYPE_NAMES, 'E19', 'E20', 'E21', 'E22', 'E23', 'E24', 'E25', 'E26', 'E27', 'E28', 'E29', 'E30', 'E31', 'E32', 'E33', 'B05', 'B06', 'B07', 'B08', 'B09'])]
+  [...new Set([...ENEMY_TYPE_NAMES, 'E19', 'E20', 'E21', 'E22', 'E23', 'E24', 'E25', 'E26', 'E27', 'E28', 'E29', 'E30', 'E31', 'E32', 'E33', 'B05', 'B06', 'B07', 'B08', 'B09', 'B10'])]
     .filter((type) => type && ZOMBIE_TYPE_LABELS[type]),
 )
 

@@ -28,10 +28,25 @@ function isInquiryRequest() {
     || new URLSearchParams(window.location.search).get('focus') === 'inquiry'
 }
 
+// ?lang가 없으면 브라우저 언어를 따른다(미국=en, 일본=ja). 지원 안 하는 언어는 게임과 같이 en(2026-11-08).
+const BROWSER_LANGUAGE_PREFIXES = [['ko', 'ko'], ['ja', 'ja'], ['en', 'en'], ['vi', 'vi'], ['id', 'id'], ['zh', 'zh-CN']]
+
+function getBrowserLanguage() {
+  const tags = typeof navigator === 'undefined'
+    ? []
+    : [navigator.language, ...(navigator.languages ?? [])].filter(Boolean)
+  for (const tag of tags) {
+    const lower = String(tag).toLowerCase()
+    const match = BROWSER_LANGUAGE_PREFIXES.find(([prefix, code]) => lower.startsWith(prefix) && LANDING_COPY[code])
+    if (match) return match[1]
+  }
+  return 'en'
+}
+
 function getRequestedLanguage() {
-  if (typeof window === 'undefined') return 'ko'
+  if (typeof window === 'undefined') return 'en'
   const requested = new URLSearchParams(window.location.search).get('lang')
-  return requested && LANDING_COPY[requested] ? requested : 'ko'
+  return requested && LANDING_COPY[requested] ? requested : getBrowserLanguage()
 }
 
 export default function WebLandingPage() {

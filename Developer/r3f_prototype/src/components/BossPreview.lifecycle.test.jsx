@@ -65,7 +65,7 @@ function assertLiveModel(state, type) {
   state.scene.updateMatrixWorld(true)
   const meshes = meshesIn(state.scene)
   expect(meshes.length).toBeGreaterThan(40)
-  const face = state.scene.getObjectByName(type === 'B01' ? 'b01MathTeacherFaceTexture' : 'b02Stage2BossFaceTexture')
+  const face = state.scene.getObjectByName(type === 'B01' ? 'b01MathTeacherProceduralFace' : 'b02Stage2BossProceduralFace')
   expect(face).toBeTruthy()
   const frustum = new THREE.Frustum().setFromProjectionMatrix(new THREE.Matrix4().multiplyMatrices(state.camera.projectionMatrix, state.camera.matrixWorldInverse))
   expect(frustum.intersectsObject(face), 'approved face is in the preview camera frustum').toBe(true)
@@ -124,7 +124,7 @@ describe('Stage1/2 authored model lifecycle (CPU reconciler, not rendered-device
     let release
     const pending = new Promise((resolve) => { release = resolve })
     await act(async () => { render(pending) })
-    const hiddenFace = state.scene.getObjectByName(type === 'B01' ? 'b01MathTeacherFaceTexture' : 'b02Stage2BossFaceTexture')
+    const hiddenFace = state.scene.getObjectByName(type === 'B01' ? 'b01MathTeacherProceduralFace' : 'b02Stage2BossProceduralFace')
     let node = hiddenFace
     let hidden = false
     while (node) { hidden ||= !node.visible; node = node.parent }

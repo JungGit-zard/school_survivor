@@ -5,6 +5,10 @@ import {
   STAGE2_BURST_EVENTS,
   STAGE3_BURST_EVENTS,
   STAGE4_BURST_EVENTS,
+  STAGE5_BURST_EVENTS,
+  STAGE5_BOSS_PHASE_REINFORCEMENT,
+  STAGE5_CALL_LANE_FORMATION,
+  STAGE5_CALL_LANE_REINFORCEMENT,
   STAGE3_25_SECOND_GREEN_SMILING_REINFORCEMENT_EVENTS,
   STAGE3_25_SECOND_REINFORCEMENT_START_SEC,
   STAGE3_25_SECOND_REINFORCEMENT_END_EXCLUSIVE_SEC,
@@ -26,12 +30,15 @@ import {
   getBossPhaseStatus,
   isBossPhase,
 } from './burstEvents.js'
+import { STAGE5_SPAWN_TELEGRAPHS } from './waveTimelines.js'
+import { STAGE5_B10_SUMMON_FIXED_HP } from './stage5ViceBoss.js'
 
 const allStageBurstTables = [
   ['stage1', BURST_EVENTS],
   ['stage2', STAGE2_BURST_EVENTS],
   ['stage3', STAGE3_BURST_EVENTS],
   ['stage4', STAGE4_BURST_EVENTS],
+  ['stage5', STAGE5_BURST_EVENTS],
 ]
 
 const STAGE1_FIRST_WAVE_SEC = 5
@@ -202,7 +209,7 @@ describe('전 스테이지 1:50 웃는좀비·탱커 보강', () => {
     const baseEvents = singleShotEvents(events)
     expect(baseEvents.filter((event) => event.sec === 110 && event.type === 'E07' && event.count === 3)).toHaveLength(1)
     // 2026-08-17: 스2가 따로 얹고 있던 110초 E02×3 중복분은 예산 감축으로 제거됐다.
-    // 이제 네 스테이지 모두 공유 배열 1건씩만 갖는다 = 배열 분리 없이 공유를 유지할 수 있는 상태다.
+    // 이제 다섯 스테이지 모두 공유 배열 1건씩만 갖는다 = 배열 분리 없이 공유를 유지할 수 있는 상태다.
     expect(baseEvents.filter((event) => event.sec === 110 && event.type === 'E02' && event.count === 3)).toHaveLength(1)
   })
 
@@ -294,6 +301,7 @@ describe('burstEvents 보스 등장 시각 파생', () => {
     expect(getRuntimeBurstEventsForStage('stage2').filter((event) => isBossType(event.type))).toEqual([{ sec: 150, type: 'B02', count: 1 }])
     expect(getRuntimeBurstEventsForStage('stage3').filter((event) => isBossType(event.type))).toEqual([{ sec: 150, type: 'B03', count: 1 }])
     expect(getRuntimeBurstEventsForStage('stage4').filter((event) => isBossType(event.type))).toEqual([{ sec: 150, type: 'B04', count: 1 }])
+    expect(getRuntimeBurstEventsForStage('stage5').filter((event) => isBossType(event.type))).toEqual([{ sec: 150, type: 'B10', count: 1 }])
   })
 
   it('보스 버스트가 없는 스테이지는 Infinity (보스 구간 없음)', () => {
@@ -427,7 +435,8 @@ describe('stage3 체육교사 B03 단일 보스 + 형태 버스트 런타임 복
 
 describe('보스 타입 단일 소스(isBossType) + B04 배선', () => {
   it('BOSS_BURST_TYPES는 B01~B04를 포함하고 isBossType이 판별한다', () => {
-    expect(BOSS_BURST_TYPES).toEqual(['B01','B02','B03','B04','B05','B06','B07','B08','B09'])
+    expect(BOSS_BURST_TYPES).toEqual(['B01','B02','B03','B04','B05','B06','B07','B08','B09','B10'])
+    expect(isBossType('B10')).toBe(true)
     expect(isBossType('B04')).toBe(true)
     expect(isBossType('B01')).toBe(true)
     expect(isBossType('E04')).toBe(false)
@@ -560,13 +569,105 @@ describe('stage4 급식실 대탈출 버스트', () => {
   })
 })
 
+// ── Stage 5 「교무실 최종 돌파」(2026-11-08 스펙 Part B §5-1·§15) ──────────────────────────────
+describe('stage5 교무실 최종 돌파 버스트', () => {
+  const S5 = 1.2 ** 4
+  const S5_BASE_HP = { E01: 8, E02: 70, E03: 10, E04: 32, E05: 70, E06: 320, E07: 16, ...NOVEL_BASE_HP, B10: 1563 }
+  const applied = (type) => Math.round(S5_BASE_HP[type] * S5)
+  const rowHp = (event) => applied(event.type) * (event.count ?? 1)
+
+  it('getBurstEventsForStage/런타임: stage5는 STAGE5 목록 전체', () => {
+    expect(getBurstEventsForStage('stage5')).toBe(STAGE5_BURST_EVENTS)
+    expect(getRuntimeBurstEventsForStage('stage5')).toBe(STAGE5_BURST_EVENTS)
+    expect(isBossPhase(150, 'stage5')).toBe(true)
+    expect(isBossPhase(149, 'stage5')).toBe(false)
+  })
+
+  it('보스는 B10 교감 좀비 1기, 150초 — 옛 B03 재탕은 없다', () => {
+    expect(STAGE5_BURST_EVENTS.filter((event) => isBossType(event.type))).toEqual([{ sec: 150, type: 'B10', count: 1 }])
+    expect(STAGE5_BURST_EVENTS.some((event) => event.type === 'B03')).toBe(false)
+  })
+
+  it('형태 버스트(ring/pincer) 4건은 STAGE5_SPAWN_TELEGRAPHS와 sec 순서까지 1:1', () => {
+    const shaped = STAGE5_BURST_EVENTS.filter((event) => event.formation === 'ring' || event.formation === 'pincer')
+    expect(shaped.map((event) => event.sec)).toEqual([60, 108, 120, 184])
+    expect(shaped.map((event) => event.sec)).toEqual(STAGE5_SPAWN_TELEGRAPHS.map((t) => t.sec))
+    expect(shaped.map(payloadWithoutSec)).toEqual([
+      { type: 'E03', count: 8, formation: 'ring' },
+      { type: 'E02', count: 4, formation: 'pincer' },
+      { type: 'E05', count: 4, formation: 'ring' },
+      { type: 'E05', count: 2, formation: 'pincer' },
+    ])
+    // 형태 버스트 외 formation은 반복 descriptor의 전교 호출 레인뿐이다(예고 배너 대상 아님).
+    const others = STAGE5_BURST_EVENTS.filter((event) => event.formation && !shaped.includes(event))
+    expect(others).toHaveLength(2)
+    expect(others.every((event) => event.formation === STAGE5_CALL_LANE_FORMATION && isRepeatingBurstEvent(event))).toBe(true)
+  })
+
+  it('E04 사수는 앵커당 ≤ 4(포화점 4.13기)이고 보스 구간 150~210초에는 0이다', () => {
+    const perSec = new Map()
+    for (const event of STAGE5_BURST_EVENTS.filter((e) => e.type === 'E04')) perSec.set(event.sec, (perSec.get(event.sec) ?? 0) + event.count)
+    expect([...perSec.entries()].sort((a, b) => a[0] - b[0])).toEqual([[5, 2], [24, 2], [72, 1], [144, 4], [216, 1]])
+    for (const count of perSec.values()) expect(count).toBeLessThanOrEqual(4)
+    expect(STAGE5_BURST_EVENTS.filter((e) => e.type === 'E04' && e.sec >= 150 && e.sec < 210)).toEqual([])
+    // 0~48초 포화점: 5초 2 + 24초 2 = 4.
+    expect([...perSec.entries()].filter(([sec]) => sec < 48).reduce((sum, [, c]) => sum + c, 0)).toBe(4)
+  })
+
+  it('단발 82기·실효 5,305, 앵커별 합이 스펙 §15-2와 같다', () => {
+    const single = singleShotEvents(STAGE5_BURST_EVENTS).filter((event) => !isBossType(event.type))
+    expect(single.reduce((sum, event) => sum + event.count, 0)).toBe(82)
+    const byAnchor = {}
+    for (const event of single) byAnchor[event.sec] = (byAnchor[event.sec] ?? 0) + rowHp(event)
+    expect(byAnchor).toEqual({ 5: 306, 24: 361, 40: 165, 60: 168, 72: 813, 108: 613, 110: 534, 120: 580, 144: 495, 150: 136, 168: 198, 184: 435, 216: 501 })
+    expect(single.reduce((sum, event) => sum + rowHp(event), 0)).toBe(5305)
+  })
+
+  it('반복: 보스 구간 잡몹 672(4 tick), 전교 호출 702(73·133·193 3회, 회당 E03 8 + E07 2)', () => {
+    const repeating = STAGE5_BURST_EVENTS.filter(isRepeatingBurstEvent)
+    const familyHp = (tag) => repeating.filter((e) => e.reinforcement === tag)
+      .reduce((sum, e) => sum + rowHp(e) * repeatingBurstTickCount(e), 0)
+    expect(familyHp(STAGE5_BOSS_PHASE_REINFORCEMENT)).toBe(672)
+    expect(familyHp(STAGE5_CALL_LANE_REINFORCEMENT)).toBe(702)
+    const anchors = [5, 24, 40, 60, 72, 108, 110, 120, 144, 150, 168, 184, 216]
+    for (const event of repeating.filter((e) => e.reinforcement === STAGE5_CALL_LANE_REINFORCEMENT)) {
+      expect(event.formation).toBe(STAGE5_CALL_LANE_FORMATION)
+      const secs = Array.from({ length: repeatingBurstTickCount(event) }, (_, tick) => repeatingBurstSecAtTick(event, tick))
+      expect(secs).toEqual([73, 133, 193])
+      // 10초 스트림 [S, S+10)이 공통 앵커와 겹치지 않는다(스펙 §7-1 위상 근거).
+      for (const start of secs) expect(anchors.filter((a) => a >= start && a < start + 10)).toEqual([])
+      // 마지막 호출(193~203)은 마틸다 경고(205) 전에 끝난다.
+      expect(secs.at(-1) + 10).toBeLessThan(205)
+    }
+  })
+
+  it('총 HP 사다리: 단발 5,305 + 반복 672 + 호출 702 + B10 3,241 + 소집 684 = 10,604 (목표 10,596, ±2%)', () => {
+    const total = STAGE5_BURST_EVENTS.reduce((sum, event) => sum + rowHp(event)
+      * (isRepeatingBurstEvent(event) ? repeatingBurstTickCount(event) : 1), 0) + STAGE5_B10_SUMMON_FIXED_HP
+    expect(applied('B10')).toBe(3241)
+    expect(total).toBe(10604)
+    const target = Math.round(3710 * 1.3 ** 4)
+    expect(target).toBe(10596)
+    expect(Math.abs(total / target - 1)).toBeLessThanOrEqual(0.02)
+  })
+
+  it('2차 10종 복습 3종(E70·E66·E65)은 같은 hp 맞교환으로 보존된다', () => {
+    const at = (sec, type) => STAGE5_BURST_EVENTS.filter((e) => e.sec === sec && e.type === type && !isRepeatingBurstEvent(e))
+      .reduce((sum, e) => sum + e.count, 0)
+    expect([at(24, 'E03'), at(24, 'E70')]).toEqual([3, 1])
+    expect([at(40, 'E07'), at(40, 'E66')]).toEqual([1, 1])
+    expect([at(150, 'E01'), at(150, 'E65')]).toEqual([4, 1])
+    expect([S5_BASE_HP.E70, S5_BASE_HP.E66, S5_BASE_HP.E65]).toEqual([S5_BASE_HP.E03, S5_BASE_HP.E07, S5_BASE_HP.E01])
+  })
+})
+
 // ── 2026-08-17 사용자 정본: 스테이지 총체력 1.3배 사다리 + 전 스테이지 공통 스폰 앵커 ────────────
 // 런타임 좀비 스폰 경로는 이 버스트 표 / 마틸다 / 오버타임 3개뿐이고, 240초 스테이지에서는
 // 오버타임(300초 시작)이 발화하지 않는다. 따라서 "스테이지 총 HP"는 이 표만으로 결정된다
 // — 웨이브 타임라인(waveTimelines.js)은 밀도 파생용 분석 데이터일 뿐 스폰을 만들지 않는다.
 // 그래서 이 파일에서 총량을 단언하는 것이 곧 실제 게임 총량을 단언하는 것이다.
 describe('스테이지 총체력 1.3배 사다리 (스1 앵커 고정)', () => {
-  const STAGE_HP_MULTIPLIER = { stage1: 1, stage2: 1.2, stage3: 1.44, stage4: 1.728 }
+  const STAGE_HP_MULTIPLIER = { stage1: 1, stage2: 1.2, stage3: 1.44, stage4: 1.728, stage5: 1.2 ** 4 }
   const BASE_HP = {
     E01: 8, E02: 70, E03: 10, E04: 32, E05: 70, E06: 320, E07: 16,
     RZL: 90, RZC: 28, RZT: 140, RZG: 48,
@@ -576,6 +677,8 @@ describe('스테이지 총체력 1.3배 사다리 (스1 앵커 고정)', () => {
     // B03만 1246 — 2026-08-24 사용자 지시("스3 보스 = 스2 보스 × 1.3")를 stage3 배수 1.44로
     // 역산한 base다. 실효 HP는 round(1246 × 1.44) = 1,794 = round(1150 × 1.2) × 1.3.
     B01: 1150, B02: 1150, B03: 1246, B04: 1500,
+    // B10 교감 좀비(Stage 5): 실효 round(1563 × 2.0736) = 3,241 = S4 B04 2,592 × 1.25.
+    B10: 1563,
   }
   // 런좀비 크루 인원은 evt.count가 아니라 Enemies.jsx의 RUN_ZOMBIE_CREW_SIZE가 정한다(리더 1 + 수하 8).
   const CREW_SIZE = 9
@@ -594,11 +697,14 @@ describe('스테이지 총체력 1.3배 사다리 (스1 앵커 고정)', () => {
     stage1: STAGE1_TOTAL_HP,
     stage2: Math.round(STAGE1_TOTAL_HP * 1.3),
     stage4: Math.round(STAGE1_TOTAL_HP * 1.3 ** 3),
+    stage5: Math.round(STAGE1_TOTAL_HP * 1.3 ** 4),
   }
+  // 버스트 표 밖에서 확정 발화하는 HP. Stage 5 B10 교무회의 소집(HP 85/50/25% 각 1회, E57+E51+E54 = 228) 최대 3회.
+  const LADDER_FIXED_EXTRA_HP = { stage5: STAGE5_B10_SUMMON_FIXED_HP }
   // 사다리 단언 대상. stage3는 위 판정으로 사다리를 적용하지 않으므로 명시적으로 제외한다
   // — 위반 항목을 필터로 걸러 초록을 만드는 2026-08-19식 사고를 반복하지 않기 위해,
   // "제외"를 여기 한 줄로 못박고 stage3 총량은 아래 실측 단언이 따로 고정한다.
-  const LADDER_STAGES = ['stage1', 'stage2', 'stage4']
+  const LADDER_STAGES = ['stage1', 'stage2', 'stage4', 'stage5']
 
   const appliedHp = (type, stageId) => Math.round(BASE_HP[type] * STAGE_HP_MULTIPLIER[stageId])
   const eventHp = (event, stageId) => {
@@ -619,7 +725,7 @@ describe('스테이지 총체력 1.3배 사다리 (스1 앵커 고정)', () => {
     .reduce((sum, event) => sum + eventTotalHp(event, stageId), 0)
 
   it.each(LADDER_STAGES)('%s 총 HP(보스 포함)는 현재 정본 목표의 ±2% 안이다', (stageId) => {
-    const total = stageTotalHp(stageId)
+    const total = stageTotalHp(stageId) + (LADDER_FIXED_EXTRA_HP[stageId] ?? 0)
     const target = TARGETS[stageId]
     expect(Math.abs(total / target - 1)).toBeLessThanOrEqual(0.02)
   })
@@ -673,15 +779,23 @@ describe('스테이지 총체력 1.3배 사다리 (스1 앵커 고정)', () => {
     },
   }
 
-  it('반복 보강은 stage3 전용 명시 예외이며 계열별 균일 간격 규칙을 지킨다', () => {
+  // 2026-11-08 Stage 5 교무실: 반복 계열 2개가 더 생겼다 — 보스 구간 잡몹 유지(160~240, 20초)와
+  // 전교 호출 방송(73~240, 60초 = 73·133·193). 둘 다 reinforcement 태그로 계열을 밝힌다.
+  Object.assign(REPEATING_FAMILIES, {
+    [STAGE5_BOSS_PHASE_REINFORCEMENT]: { secs: [160, 180, 200, 220], counts: { E01: 6, E07: 2 } },
+    [STAGE5_CALL_LANE_REINFORCEMENT]: { secs: [73, 133, 193], counts: { E03: 8, E07: 2 } },
+  })
+  const REPEATING_STAGE_EVENT_COUNT = { stage3: 4, stage5: 4 }
+
+  it('반복 보강은 stage3·stage5 전용 명시 예외이며 계열별 균일 간격 규칙을 지킨다', () => {
     for (const [stageId, events] of allStageBurstTables) {
       const repeating = events.filter(isRepeatingBurstEvent)
-      if (stageId !== 'stage3') {
+      if (!REPEATING_STAGE_EVENT_COUNT[stageId]) {
         expect(repeating).toEqual([])
         continue
       }
-      // 두 계열 × 두 타입(E01·E07) = 4건. 태그 없는 반복 이벤트가 끼어들면 여기서 걸린다.
-      expect(repeating).toHaveLength(4)
+      // 두 계열 × 두 타입 = 4건. 태그 없는 반복 이벤트가 끼어들면 여기서 걸린다.
+      expect(repeating).toHaveLength(REPEATING_STAGE_EVENT_COUNT[stageId])
       for (const event of repeating) {
         const family = REPEATING_FAMILIES[event.reinforcement]
         expect(family).toBeDefined()
@@ -689,8 +803,8 @@ describe('스테이지 총체력 1.3배 사다리 (스1 앵커 고정)', () => {
         const secs = Array.from({ length: ticks }, (_, tick) => repeatingBurstSecAtTick(event, tick))
         expect(secs).toEqual(family.secs)
         expect(secs.every((sec) => sec >= event.sec && sec < event.endExclusiveSec)).toBe(true)
-        // 반복 보강 풀은 경량대(E01 8hp·E07 16hp)로 제한한다 — 확정 발화라 무거운 타입은 예산을 뚫는다.
-        expect(['E01', 'E07']).toContain(event.type)
+        // 반복 보강 풀은 경량대(E01 8hp·E03 10hp·E07 16hp)로 제한한다 — 확정 발화라 무거운 타입은 예산을 뚫는다.
+        expect(['E01', 'E03', 'E07']).toContain(event.type)
         expect(event.count).toBe(family.counts[event.type])
       }
     }
@@ -735,6 +849,7 @@ describe('스테이지 총체력 1.3배 사다리 (스1 앵커 고정)', () => {
     expect(getBossSpawnSec('stage2')).toBe(150)
     expect(getBossSpawnSec('stage3')).toBe(150)
     expect(getBossSpawnSec('stage4')).toBe(150)
+    expect(getBossSpawnSec('stage5')).toBe(150)
   })
 
   it('한 앵커에 몰린 스폰도 동시 상한 150을 넘지 않는다', () => {
@@ -748,5 +863,18 @@ describe('스테이지 총체력 1.3배 사다리 (스1 앵커 고정)', () => {
       }
       expect(Math.max(...perSec.values())).toBeLessThanOrEqual(150)
     }
+  })
+})
+
+// 2026-11-08: 확장 스테이지는 데이터 bonusEvents를 런타임이 읽는다(예전에는 공통 표만 붙였다). 값은 같은 90·180초 E08×1이고
+// rewardEvent가 붙어 자리를 못 받으면 재시도 대상이 된다.
+describe('expansion bonusEvents runtime', () => {
+  it('stage6~10 런타임 스폰 표 끝의 코인 몬스터는 데이터 bonusEvents와 같고 rewardEvent를 가진다', async () => {
+    const { EXPANSION_STAGES } = await import('./expansionContent.js')
+    for (const stage of Object.values(EXPANSION_STAGES)) {
+      const tail = getRuntimeSpawnEventsForStage(stage.id).slice(-stage.bonusEvents.length)
+      expect(tail).toEqual(stage.bonusEvents.map((e) => ({ sec: e.sec, type: e.type, count: e.count, rewardEvent: 'coinMonster' })))
+    }
+    expect(getRuntimeSpawnEventsForStage('stage4').slice(-2)).toEqual([...COIN_MONSTER_RUNTIME_EVENTS])
   })
 })

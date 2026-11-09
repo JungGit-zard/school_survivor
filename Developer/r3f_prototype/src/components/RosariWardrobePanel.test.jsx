@@ -93,10 +93,11 @@ describe('wardrobe locked state', () => {
 })
 
 describe('outfit feature table', () => {
-  it('lists all six outfits from the catalog with condition, owned/locked, upside and downside', () => {
+  it('lists every released outfit from the catalog with condition, owned/locked, upside and downside', () => {
     grantOutfitUnlocksFromRecords({ stage2Clears: 1 })
     act(() => root.render(<OutfitFeatureTable onClose={() => {}} />))
     const rows = [...container.querySelectorAll('tbody tr')]
+    // Stage 5·6 의상(prefect·sportsDay)도 외형이 생겨(2026-11-08) 표에 나온다.
     expect(rows.map((row) => row.dataset.outfitRow)).toEqual([...OUTFIT_IDS])
     for (const row of rows) {
       const id = row.dataset.outfitRow

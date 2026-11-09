@@ -18,7 +18,7 @@ import { emitCriticalHitScreenShake, emitEnemyHitScreenShake } from '../lib/crit
 import { createEnemyCriticalHitBurstEvent, createEnemyHitSparkEvent, resolveEnemyHitKnockback } from '../lib/enemyHitVfx.js'
 import { resolveCollapseIntensity } from '../lib/enemyDeathCollapse.js'
 import { canE04FireProjectile, getE04IntroSec } from '../lib/stage2ProjectileRules.js'
-import { ENEMY_PROJECTILE_KIND_SPHERE, chefIngredientKindAt } from '../lib/enemyProjectilePool.js'
+import { E04_PROJECTILE_RADIUS, ENEMY_PROJECTILE_KIND_SPHERE, chefIngredientKindAt } from '../lib/enemyProjectilePool.js'
 import {
   CHEF_PHASE1,
   CHEF_TELEGRAPH,
@@ -27,7 +27,7 @@ import {
   advanceChefBossPhase,
   resolveChefBossActiveStats,
 } from '../lib/chefBossPhase.js'
-import { getStageBounds, getStageConfig } from '../lib/stageConfig.js'
+import { getStageBounds, getStageConfig, isSolidPropStage } from '../lib/stageConfig.js'
 import { getRuntimeElapsedMs } from '../lib/gameRuntimeTime.js'
 import { getMatildaDashSpeed } from '../lib/matildaDashSpeed.js'
 import { getSpawnCatchUpOffsetSec } from '../lib/spawnCatchUp.js'
@@ -57,6 +57,7 @@ import {
   getB03ShuttleRunX,
   getB03ShuttleStompRing,
   getB03ShuttleTelegraphBlinkFactor,
+  isB03ShuttleNewLanding,
   startB03ShuttleRun,
   stepB03ShuttleBodyToward,
 } from '../lib/b03ShuttleRun.js'
@@ -73,8 +74,14 @@ import { getGameplayFrameDeltaMs } from '../lib/pausableStateTimer.js'
 import { getStageObjectSightObstacles, isStageObjectEnemyTrackingBlocked } from './StageObjects/stageObjectColliders.js'
 import { isPlayerWeaponSightBlocked } from '../lib/weaponTargeting.js'
 import ZombieMesh from './ZombieMesh.jsx'
-import { EXPANSION_STATS, isExpansionBoss, isExpansionStage } from '../lib/expansionContent.js'
+import { EXPANSION_BOSSES, EXPANSION_STATS, isExpansionBoss, isExpansionStage } from '../lib/expansionContent.js'
+import { createBossSummonState, publishBossSummonWarning, stepBossSummon } from '../lib/expansionBossSummons.js'
+import { STAGE6_SFX } from '../lib/stage6AssemblySpeech.js'
+import { hasClearRangedSight, isRangedPropBlockStage } from '../lib/stageRangedBlockers.js'
 import { createExpansionAttackState, stepExpansionAttack, cancelExpansionAttack } from '../lib/expansionAttackRuntime.js'
+import { queueB10StampDeathMark } from './B10StampDeathMark.jsx'
+import { B10_SFX, STAGE5_BOSS_STATS, createB10SummonState, isAuthoredAttackBoss, isB10EnrageTransitionDone, stepB10SummonTriggers, AUTHORED_ATTACK_BOSSES } from '../lib/stage5ViceBoss.js'
+import { pushBossSummon } from '../lib/bossSummonQueue.js'
 import MiniHealthBar from './MiniHealthBar.jsx'
 import {
   MATH_TEACHER_SWING_RADIUS,
@@ -439,6 +446,9 @@ const NOVEL_ZOMBIE_STATS = {
   E45: { hp: 10, speed: 0.60, damage: 10, scale: 1.00, xp: 5,  contactDist: 0.26, novel: true },
 }
 
+// 확장 보스 패턴 windup 시작 SFX(Stage 6 B05, 스펙 Part C C-6-2·C-11-2).
+const EXPANSION_PATTERN_WINDUP_SFX = Object.freeze({ b05_p1: STAGE6_SFX.micFeedback, b05_p2: STAGE6_SFX.anthemSting })
+
 export const ENEMY_STATS = {
   // E01 xp 6 → 4 (2026-08-08): E01(hp 8)이 더 강한 E03(hp 14, speed 1.1, xp 5)보다
   // 보상이 높은 역전 상태였다. 최약체가 최고 효율이면 강적을 잡을 이유가 없다.
@@ -494,6 +504,8 @@ export const ENEMY_STATS = {
   ...NOVEL_ZOMBIE_STATS,
   // 투사체 좀비 15종(E46~E60). 수치 정본은 lib/projectileZombieBehavior.js(시뮬레이션과 같은 표를 쓴다).
   ...PROJECTILE_ZOMBIE_STATS,
+  // Stage 5 보스 B10 교감 좀비(base 1,563 → 실효 3,241). 수치 정본은 lib/stage5ViceBoss.js.
+  ...STAGE5_BOSS_STATS,
 }
 
 // 肄쒕씪?대뜑 湲곕낯 諛섑겕湲?(scale=1 湲곗?)
@@ -1092,6 +1104,15 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
   const dead                  = useRef(false)
   const expansionAttackRef = useRef(null)
   const expansionArgsRef = useRef({deltaMs:0,playing:true,alive:true,gameKey:0,x:0,z:0,playerX:0,playerZ:0,hpRatio:1})
+  // B10 교감 좀비(authored-attack 보스) 전용: 교무회의 소집 트리거 상태·직전 hpRatio·소집 정지 잔량(ms)·패턴 SFX 1회 판정 키.
+  const b10SummonRef = useRef(null)
+  const b10PrevHpRatioRef = useRef(1)
+  const b10SummonStopMsRef = useRef(0)
+  const b10ActiveSfxKeyRef = useRef('')
+  // 확장 보스 소환 타이머(B05 '운동장 10바퀴')·패턴 windup SFX 1회 판정 키·등장 SFX 1회.
+  const expansionSummonRef = useRef(null)
+  const expansionWindupSfxKeyRef = useRef('')
+  const expansionSpawnSfxRef = useRef(false)
   useEffect(() => () => cancelExpansionAttack(expansionAttackRef.current), [])
   // 벽시계 기한(performance.now() + 기간)이 아니라 남은 ms다. pause 동안 useFrame이
   // 일찍 return하는데 벽시계는 계속 흘러, 재개 첫 프레임에 넉백 구간이 통째로 소진됐다.
@@ -1123,6 +1144,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
   const chargeStateElapsedRef = useRef(0)
   const b02BlockadeRef = useRef(createB02CorridorBlockadeState())
   const b03ShuttleRef = useRef(createB03ShuttleRunState())
+  const b03StompProgressRef = useRef(null) // 직전 프레임 착지 링 progress(착지 SFX 엣지용)
   const b04SoupBlastRef = useRef(createB04SoupBlastState())
   const matildaLaughRemainingRef = useRef(0)
   const matildaLaughCuePendingRef = useRef(false)
@@ -1309,6 +1331,8 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
         }
         logKill(type)
         const t = rb.current?.translation()
+        // B10: 떨어진 결재 도장이 바닥에 "決" 자국을 1.5s 남긴다(비주얼 전용).
+        if (type === 'B10' && t) queueB10StampDeathMark(t.x, t.z, store.gameKey)
         // 留됲? ?꾨젰?쇰줈 諛뺤궡 媛뺣룄(??以?媛? 寃곗젙. impact.knockback? 臾닿린 ?먯쿇 ?됰갚(?놁쑝硫?0).
         const intensity = resolveCollapseIntensity({
           killingDamage: finalDamage,
@@ -1351,7 +1375,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
     }
 
     const t = rb.current.translation()
-    if (currentStageId === 'stage4' || isExpansionStage(currentStageId)) {
+    if (isSolidPropStage(currentStageId) || isExpansionStage(currentStageId)) {
       const { halfX, halfZ } = stageCombatConfig.bounds
       const boundedX = Math.min(halfX - colArgs[0], Math.max(-halfX + colArgs[0], t.x))
       const boundedZ = Math.min(halfZ - colArgs[2], Math.max(-halfZ + colArgs[2], t.z))
@@ -1362,7 +1386,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
       }
     }
     const applySpecialEnemyVelocity = () => {
-      if (currentStageId === 'stage4' || isExpansionStage(currentStageId)) {
+      if (isSolidPropStage(currentStageId) || isExpansionStage(currentStageId)) {
         writeSpecialEnemyVelocityWithinStageBounds(stage4BoundedVelocityRef.current, t, _vel, stageCombatConfig.bounds, colArgs, delta)
         _vel.x = stage4BoundedVelocityRef.current.x
         _vel.z = stage4BoundedVelocityRef.current.z
@@ -1385,19 +1409,70 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
     enemyAgeMsRef.current += frameDeltaMs
     if (contactDamageCooldownRef.current > 0) contactDamageCooldownRef.current -= frameDeltaMs
 
-    if (isExpansionBoss(type)) {
+    const authoredAttackBoss = isAuthoredAttackBoss(type)
+    if (isExpansionBoss(type) || authoredAttackBoss) {
       const store=useGameStore.getState()
       const state=expansionAttackRef.current ??= createExpansionAttackState(type,id,store.gameKey)
       const a=expansionArgsRef.current
       a.deltaMs=Math.min(delta,1/30)*1000;a.playing=phase==='playing';a.alive=!dead.current;a.gameKey=store.gameKey
       a.x=t.x;a.z=t.z;a.playerX=playerPos.x;a.playerZ=playerPos.z;a.hpRatio=hpRef.current/stats.hp
+      if (authoredAttackBoss) {
+        // 확장 스테이지 표에 없는 보스라 안전 기하의 스테이지·경계·장애물을 현재 전투 스테이지로 넘긴다.
+        // 첫 공격 지연 2,500ms는 createExpansionAttackState 기본값(nextMs 2500)과 같다.
+        a.stageId=currentStageId;a.halfX=stageCombatConfig.bounds.halfX;a.halfZ=stageCombatConfig.bounds.halfZ
+      }
       const attack=stepExpansionAttack(state,a)
       if(attack.damage>0) damagePlayer(attack.damage)
-      const speed=attack.stop?0:stats.speed
+      const expansionBoss=EXPANSION_BOSSES[type]
+      if (expansionBoss) {
+        // Stage 6 B05: 등장 순간 마이크 하울링 1회, windup 시작에 패턴 SFX(훈화 고리 = 하울링, 교가 제창 = 3음 스팅).
+        // id는 soundmini 추가 전까지 무음(sfxRegistry가 모르는 id는 조용히 버린다).
+        if (type==='B05' && !expansionSpawnSfxRef.current) { expansionSpawnSfxRef.current=true; try { emitSfx({ id: STAGE6_SFX.micFeedback, volume: 0.7 }) } catch { /* 오디오는 선택 사항 */ } }
+        const snap=state.snapshot
+        const windupSfx=snap && EXPANSION_PATTERN_WINDUP_SFX[snap.patternId]
+        if (windupSfx && expansionWindupSfxKeyRef.current!==snap.attackId) {
+          expansionWindupSfxKeyRef.current=snap.attackId
+          try { emitSfx({ id: windupSfx, volume: 0.7 }) } catch { /* 오디오는 선택 사항 */ }
+        }
+        // 소환 타이머(패턴 슬롯과 별개): 경고 시 호루라기 + HUD 배너 발행, 발동 시 보스 소환 큐에 넣는다(Enemies.jsx가 track_lanes로 스폰).
+        if (expansionBoss.summon) {
+          const summonState=expansionSummonRef.current ??= createBossSummonState(expansionBoss.summon)
+          const summon=stepBossSummon(summonState, expansionBoss.summon, { deltaMs: a.deltaMs, playing: a.playing, enraged: state.enraged, enrageDone: !(state.enrageRemainingMs>0) })
+          if (summon.warn) {
+            publishBossSummonWarning(store.gameKey, type)
+            try { emitSfx({ id: STAGE6_SFX.relayWhistle, volume: 0.7 }) } catch { /* 오디오는 선택 사항 */ }
+          }
+          if (summon.fire) pushBossSummon(store.gameKey,t.x,t.z,expansionBoss.typeCode)
+        }
+      }
+      let summonStop=false
+      if (authoredAttackBoss) {
+        // 패턴 SFX: active 진입 프레임에 1회(도장 내려찍기 / 출석부 휘두르기). id는 soundmini 추가 전까지 무음.
+        const snap=state.snapshot
+        if (snap?.phase==='active' && b10ActiveSfxKeyRef.current!==snap.attackId) {
+          b10ActiveSfxKeyRef.current=snap.attackId
+          const sfxId=B10_SFX[snap.patternId]
+          if (sfxId) try { emitSfx({ id: sfxId, volume: 0.7 }) } catch { /* 오디오는 선택 사항 */ }
+        }
+        // 교무회의 소집: HP 85/50/25% 각 1회. 50%(이하)는 격노 전환 정지가 끝난 프레임에 실행.
+        const ratio=a.hpRatio
+        const summons=stepB10SummonTriggers(b10SummonRef.current ??= createB10SummonState(), b10PrevHpRatioRef.current, ratio, isB10EnrageTransitionDone(state))
+        b10PrevHpRatioRef.current=ratio
+        if (summons>0) {
+          for (let i=0;i<summons;i+=1) pushBossSummon(store.gameKey,t.x,t.z,AUTHORED_ATTACK_BOSSES[type].typeCode)
+          b10SummonStopMsRef.current=AUTHORED_ATTACK_BOSSES[type].summon.stopMs
+          try { emitSfx({ id: B10_SFX.summon, volume: 0.75 }) } catch { /* 오디오는 선택 사항 */ }
+          publishBossSummonWarning(store.gameKey, 'B10')
+        }
+        if (b10SummonStopMsRef.current>0) { b10SummonStopMsRef.current-=frameDeltaMs; summonStop=true }
+      }
+      const speed=(attack.stop||summonStop)?0:stats.speed
       _vel.x=dist>0.001?_dir.x/dist*speed:0;_vel.y=0;_vel.z=dist>0.001?_dir.z/dist*speed:0
       applySpecialEnemyVelocity()
       if(dist>0.001) _applyRotation(groupRef,_dir.x/dist,_dir.z/dist,.22)
-      queueVisualState('animPhase',state.enrageRemainingMs>0?'stun':state.snapshot?.phase==='windup'?'warn':'normal')
+      // B10: 도장(b10_p1) windup = 'warn', 출석부(b10_p2) windup = 'charge', 소집 정지 = 'stun'(탁상 종). 확장 보스는 그대로.
+      const windup=state.snapshot?.phase==='windup'
+      queueVisualState('animPhase',state.enrageRemainingMs>0||(authoredAttackBoss&&summonStop)?'stun':windup?(authoredAttackBoss&&state.snapshot.patternId==='b10_p2'?'charge':'warn'):summonStop?'warn':'normal')
       if(dist<=stats.contactDist*ENEMY_SIZE_MULTIPLIER && contactDamageCooldownRef.current<=0){damagePlayer(stats.damage);contactDamageCooldownRef.current=500}
       return
     }
@@ -1477,6 +1552,10 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
         }
         b03ShuttleRef.current = next
         syncB03ShuttleVisual(next)
+        // 쿵쿵쿵 착지음: 착지 링이 새로 시작되는 프레임에 1회(간격 제한은 sfxRegistry 쿨다운). emitSfx는 throw하지 않는다.
+        const stompRing = getB03ShuttleStompRing(next)
+        if (isB03ShuttleNewLanding(b03StompProgressRef.current, stompRing)) emitSfx({ id: 'b03ShuttleStomp', volume: 0.8 })
+        b03StompProgressRef.current = stompRing ? stompRing.progress : null
         // 몸통은 코스 좌표에 직접 놓는다(속도 추종 금지). 예전 식 _vel.x = (shuttleX - t.x) / delta는
         // 렌더 delta로 나눈 속도를 1/60 고정 스텝·linearDamping 8 물리에 넣는 구조라, 60Hz를 넘는
         // 화면에서 매 스텝 과보정으로 좌우 진동했다(90~120Hz: 잔상처럼 겹쳐 보임, 144Hz: 발산해서
@@ -1642,7 +1721,9 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
       fireArgs.cooldownMs = active.rangedCooldown
       fireArgs.introSec = stageCombatConfig.e04IntroSec
       fireArgs.bossPressure = currentStageId === 'stage4' ? false : (elapsedSec >= stageCombatConfig.bossPressureStartSec && elapsedSec < stageCombatConfig.bossPressureEndSec)
-      const canFire = (currentStageId === 'stage2' || currentStageId === 'stage3' || currentStageId === 'stage4') && canE04FireProjectile(fireArgs)
+      const canFire = (currentStageId === 'stage2' || currentStageId === 'stage3' || currentStageId === 'stage4' || currentStageId === 'stage5') && canE04FireProjectile(fireArgs)
+        // Stage 5 교무실만: 책상·사물함 등 solid 프롭이 사선을 끊으면 쏘지 않는다(lib/stageRangedBlockers.js).
+        && (!isRangedPropBlockStage(currentStageId) || hasClearRangedSight(t.x, t.z, playerPos.x, playerPos.z, getStageObjectSightObstacles(currentStageId), E04_PROJECTILE_RADIUS))
 
       // ?ъ궗泥?諛쒖궗
       if (canFire) {

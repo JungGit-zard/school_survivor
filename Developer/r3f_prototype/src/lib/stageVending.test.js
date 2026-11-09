@@ -50,4 +50,23 @@ describe('stageVending gameplay contract', () => {
     expect(isWithinStageVendingRange({ x: placement.position.x + 2.25, z: placement.position.z }, placement)).toBe(true)
     expect(isWithinStageVendingRange({ x: placement.position.x + 2.26, z: placement.position.z }, placement)).toBe(false)
   })
+
+  it('Stage 5 교무실 자판기는 북벽 복사기를 피해 동벽 (8.55, −10.6)에 있고 레인 4 앞끝에서 닿는다', () => {
+    const placement = getStageVendingPlacement('stage5')
+    expect(placement).toMatchObject({ id: 'vending-stage5', wallSide: 'east', position: { x: 8.55, y: 0, z: -10.6 } })
+    // 플레이어 이동 한계 x 7.36(= 9.36 − inset 2)에서 1.19u ≤ 반경 2.25u.
+    const nearest = { x: 9.36 - 2, z: -10.6 }
+    expect(isWithinStageVendingRange(nearest, placement)).toBe(true)
+    // 몸체는 플레이어 이동 밖이라 레인을 막지 않는다.
+    expect(placement.position.x).toBeGreaterThan(nearest.x)
+    // 옛 위치(6.25, −14)는 복사기(6.0, −13.4) 원점과 0.65u — 겹쳐서 옮겼다.
+    expect(Math.hypot(placement.position.x - 6.0, placement.position.z + 13.4)).toBeGreaterThan(2)
+  })
+
+  it('Stage 6 운동장 자판기는 서쪽 스탠드 아래 (−10.5, 6), stage7~10은 확장 공통 (6.25, −14) 그대로', () => {
+    const s6 = getStageVendingPlacement('stage6')
+    expect(s6).toMatchObject({ id: 'vending-stage6', wallSide: 'west', position: { x: -10.5, y: 0, z: 6 } })
+    expect(isWithinStageVendingRange({ x: -10, z: 6 }, s6)).toBe(true)
+    for (const id of ['stage7', 'stage8', 'stage9', 'stage10']) expect(getStageVendingPlacement(id).position).toMatchObject({ x: 6.25, z: -14 })
+  })
 })

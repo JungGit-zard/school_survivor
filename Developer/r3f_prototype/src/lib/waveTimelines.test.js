@@ -6,9 +6,11 @@ import {
   STAGE4_WAVE_PHASES,
   STAGE3_SPAWN_TELEGRAPHS,
   STAGE4_SPAWN_TELEGRAPHS,
+  STAGE5_WAVE_PHASES,
+  STAGE5_SPAWN_TELEGRAPHS,
   getDefaultWavePhases,
 } from './waveTimelines.js'
-import { isBossPhase, getBossSpawnSec, STAGE3_BURST_EVENTS, STAGE4_BURST_EVENTS } from './burstEvents.js'
+import { isBossPhase, getBossSpawnSec, STAGE3_BURST_EVENTS, STAGE4_BURST_EVENTS, STAGE5_BURST_EVENTS } from './burstEvents.js'
 
 describe('waveTimelines 기본 타임라인', () => {
   it('getDefaultWavePhases: stage2는 STAGE2, 그 외 stage1', () => {
@@ -165,5 +167,63 @@ describe('stage4 급식실 대탈출 타임라인', () => {
     const telegraphSecs = STAGE4_SPAWN_TELEGRAPHS.map((t) => t.sec)
     expect(telegraphSecs).toEqual(formationSecs)
     expect(STAGE4_SPAWN_TELEGRAPHS.every((t) => typeof t.label === 'string' && t.label.length > 0)).toBe(true)
+  })
+})
+
+// ── Stage 5 「교무실 최종 돌파」(2026-11-08 스펙 Part B §5-4·§5-7) — 분석용 웨이브 표 ──
+describe('stage5 교무실 최종 돌파 타임라인', () => {
+  it('getDefaultWavePhases: stage5는 STAGE5', () => {
+    expect(getDefaultWavePhases('stage5')).toBe(STAGE5_WAVE_PHASES)
+  })
+
+  it('12구간·0~240s 빈틈·중복 없이 연속 커버, start<end', () => {
+    expect(STAGE5_WAVE_PHASES).toHaveLength(12)
+    expect(STAGE5_WAVE_PHASES[0].start).toBe(0)
+    expect(STAGE5_WAVE_PHASES.at(-1).end).toBe(240)
+    for (let i = 0; i < STAGE5_WAVE_PHASES.length; i += 1) {
+      expect(STAGE5_WAVE_PHASES[i].start).toBeLessThan(STAGE5_WAVE_PHASES[i].end)
+      if (i > 0) expect(STAGE5_WAVE_PHASES[i].start).toBe(STAGE5_WAVE_PHASES[i - 1].end)
+    }
+  })
+
+  it('모든 phase weights 합 = 1.00 (E02/E03 ×0.9 리튠 후에도)', () => {
+    for (const phase of STAGE5_WAVE_PHASES) {
+      const sum = Object.values(phase.weights).reduce((a, b) => a + b, 0)
+      expect(Math.abs(sum - 1)).toBeLessThan(1e-9)
+    }
+  })
+
+  it('S1~S4와 같은 E02/E03 ×0.9 리튠이 적용된다', () => {
+    // 12~30 구간 원본 E03 0.16 · E02 0.14 → ×0.9
+    const p = STAGE5_WAVE_PHASES.find((phase) => phase.start === 12)
+    expect(p.weights.E03).toBeCloseTo(0.16 * 0.9, 9)
+    expect(p.weights.E02).toBeCloseTo(0.14 * 0.9, 9)
+  })
+
+  it('150~160 보스 구간 1에는 E04가 없다(보스 구간 발사 억제와 일치), 원거리는 12초부터', () => {
+    const boss1 = STAGE5_WAVE_PHASES.find((phase) => phase.start === 150)
+    expect(boss1.end).toBe(160)
+    expect(Object.hasOwn(boss1.weights, 'E04')).toBe(false)
+    expect(STAGE5_WAVE_PHASES.find((phase) => phase.start === 0).weights.E04).toBeUndefined()
+    expect(STAGE5_WAVE_PHASES.find((phase) => phase.start === 12).weights.E04).toBeGreaterThan(0)
+  })
+
+  it('bossPhase 필드를 하드코딩하지 않고, 보스 구간은 B10 등장 150초에서 파생된다', () => {
+    expect(STAGE5_WAVE_PHASES.some((phase) => 'bossPhase' in phase)).toBe(false)
+    expect(getBossSpawnSec('stage5')).toBe(150)
+    expect(isBossPhase(150, 'stage5')).toBe(true)
+    expect(isBossPhase(128, 'stage5')).toBe(false)
+  })
+
+  it('예고는 ring/pincer 형태 버스트와 sec 순서까지 1:1, labelKey로 다국어 배너를 낸다', () => {
+    const shapedSecs = STAGE5_BURST_EVENTS.filter((e) => e.formation === 'ring' || e.formation === 'pincer').map((e) => e.sec)
+    expect(STAGE5_SPAWN_TELEGRAPHS.map((t) => t.sec)).toEqual(shapedSecs)
+    expect(STAGE5_SPAWN_TELEGRAPHS.map((t) => t.labelKey)).toEqual([
+      'stage5Telegraph.ring60', 'stage5Telegraph.pincer108', 'stage5Telegraph.ring120', 'stage5Telegraph.pincer184',
+    ])
+    expect(STAGE5_SPAWN_TELEGRAPHS.map((t) => t.label)).toEqual([
+      '지각생들이 사방에서 몰려온다', '앞뒤 통로에서 선생님이 조여온다', '돌진 무리가 통로를 메운다', '돌진 좀비가 현관 길을 막는다',
+    ])
+    expect(STAGE5_SPAWN_TELEGRAPHS.every((t) => t.leadSec === 2.5)).toBe(true)
   })
 })

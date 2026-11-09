@@ -35,12 +35,14 @@ describe('Stage5 playable store vertical slice', () => {
     expect(getNextStageId('stage5')).toBe(stage5Released && isStageVisible('stage6') ? 'stage6' : null)
     expect(useGameStore.getState().resetGame('stage5')).toBe(stage5Released)
     if (stage5Released) expect(useGameStore.getState()).toMatchObject({ currentStageId: 'stage5', phase: 'playing', bossSpawnSec: 150 })
-    expect(getStageConfig('stage5')).toMatchObject({ id: 'stage5', bossType: 'B03', durationSec: 240, escapePortalSec: 210 })
-    expect(getStageBounds('stage5')).toEqual({ halfX: 7.5, halfZ: 19.2 })
-    expect(getDefaultWavePhases('stage5')[0].weights).toEqual({ E01: 1 })
+    // 2026-11-08 교무실 최종 돌파 개편: 보스 B10 교감 좀비, 급식실과 같은 9.36 × 16 경계, 12구간 분석 웨이브 표.
+    expect(getStageConfig('stage5')).toMatchObject({ id: 'stage5', bossType: 'B10', durationSec: 240, escapePortalSec: 210 })
+    expect(getStageBounds('stage5')).toEqual({ halfX: 9.36, halfZ: 16 })
+    expect(getDefaultWavePhases('stage5')[0]).toMatchObject({ start: 0, end: 12 })
     expect(getDefaultWavePhases('stage5').at(-1).end).toBe(240)
     expect(getBossSpawnSec('stage5')).toBe(150)
-    expect(getRuntimeSpawnEventsForStage('stage5').filter(e => e.type === 'B03')).toEqual([{ sec: 150, type: 'B03', count: 1 }])
+    expect(getRuntimeSpawnEventsForStage('stage5').filter(e => e.type === 'B10')).toEqual([{ sec: 150, type: 'B10', count: 1 }])
+    expect(getRuntimeSpawnEventsForStage('stage5').some(e => e.type === 'B03')).toBe(false)
   })
 
   itWhenStage5Released('runs Stage4 portal→Stage5 purchase/milestones/boss→terminal portal→durable clear/best payload; retry resets', async () => {

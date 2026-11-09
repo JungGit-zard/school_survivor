@@ -8,7 +8,8 @@
 // (하드코딩 나열이 여러 파일로 번지지 않도록 isBossType 헬퍼로 통일 — Enemy/Enemies/AdminPage가 재사용한다.)
 import { EXPANSION_STAGES, EXPANSION_BOSSES } from './expansionContent.js'
 
-export const BOSS_BURST_TYPES = ['B01', 'B02', 'B03', 'B04', ...Object.keys(EXPANSION_BOSSES)]
+// B10(교감 좀비, Stage 5)은 확장 DATA.bosses 밖의 authored-attack 보스다(lib/stage5ViceBoss.js) — 끝에 붙인다.
+export const BOSS_BURST_TYPES = ['B01', 'B02', 'B03', 'B04', ...Object.keys(EXPANSION_BOSSES), 'B10']
 export const isBossType = (type) => BOSS_BURST_TYPES.includes(type)
 export const RUN_ZOMBIE_CREW_FORMATION = 'runZombieCrew'
 export const STAGE2_GUARD_CHASE_FORMATION = 'stage2GuardChase'
@@ -354,54 +355,77 @@ export const STAGE4_BURST_EVENTS = [
   { sec: 184, type: 'E06', count:  2, formation: 'pincer' },   // 보스 구간 거대 앞뒤 벽
 ]
 
-// Stage5: 승인된 기존 적(Track B 12종 포함)만 사용. 반복 descriptor 종료는 exclusive다.
-// 2026-11-04 분산 재배치: 스5는 특수 행동 좀비가 0종이었다. 마지막 스테이지라 스1~4 패턴 8종을 다시 보여준다.
-//   쉬운 것(스1·2)은 앞쪽, 무거운 근접(E40·E42·E43)은 216초 탈출 구간이다. 모두 같은 hp의 기존 행을 쪼갠 맞교환이다.
-//   처음 안(12종 전부, 24초 러너 6 전량·40초 웃는좀비 4 교체)은 런타임 프로브(시드 36 × 봇 2)에서
-//   사망이 9/72 → 21/72로 늘었다. 느린 근접형이 빠른 E03/E07 자리를 다 먹으면 무리가 늦게 녹아 쌓이기 때문이라
-//   각 행에서 1~3자리만 바꾸고 144초 웃는좀비 러시는 그대로 두는 쪽으로 줄였다(최종안 10/72, 변경 전 9/72).
-// 2026-11-04 balanceqa 검수: 5초 E34×3·24초 E38×2 복습은 되돌렸다. 시드 400판(반경 4u·2.5u, 탈출 돌입 봇)에서
-//   0:30~1:00 피격이 약 2배, 3:00 전 사망이 15 → 38판으로 늘었다. 두 행을 원래대로 두니 전체 사망 13.8% → 15.0%,
-//   3:00 전 사망 19판으로 돌아왔다. 스5 복습은 40초 E39·E44, 150초 E37, 216초 E40·E42·E43 6종으로 남긴다.
-// 2026-11-04 투사체 좀비: 가장 어려운 6종의 첫 등장을 5·40·72·108·144·184초에 하나씩(간격 32~40초) 둔다.
-//   스5에는 기존 신규 종 첫 등장이 없어 자리가 넓고, 마지막 스테이지라 고난도 사수가 맞는다.
-//   5초 E53은 24초 E03 1기, 108초 E60은 40초 E07 1기(0~1분 → 1~2분, 분당 HP −6% / +2%),
-//   144초 E54는 168초 E04 1기, 184초 E55는 216초 E05×1을 옮긴 것이다. 72초 E52는 E04 맞교환.
+// ── Stage 5 「교무실 최종 돌파」(2026-11-08 스펙 Part B §5-1) ──────────────────────────────
+// 1층 교무실: 책상 섬 12개가 레인 4개를 만든다. 보스 = B10 교감 좀비(150). 원거리 E04 발사 게이트 12초.
+// 총 HP 사다리: 스1 3,710 × 1.3^4 = 10,596(±2%). 설계값 = 단발 5,305 + 보스구간 반복 672 + 전교 호출 702
+//   + B10 3,241 + 교무회의 소집 최대 684 = 10,604(+0.07%). burstEvents.test.js가 단언한다.
+// 공통 앵커 13개를 단발로 빠짐없이 쓴다. E04는 앵커당 ≤ 4(포화점 4.13기), 보스 구간(150~210)에는 0이다
+//   — S5는 bossPressure 예외가 아니라 그 구간 E04는 발사하지 못하는 HP 낭비가 되기 때문.
+// 2026-11-07 2차 10종 복습 3종(E70·E66·E65)은 스펙 표(1c085b2d 기준, 2차 10종 이전 작성) 위에 같은 hp 맞교환으로
+//   보존했다: 24초 E03 1기 → E70(hp 10), 40초 E07 1기 → E66(hp 16), 150초 E01 1기 → E65(hp 8). 마릿수·총 HP 불변.
+// 형태 버스트 4행은 STAGE5_SPAWN_TELEGRAPHS 순서(60 → 108 → 120 → 184)와 1:1로 아래 블록에 모은다.
+// 반복 descriptor는 맨 끝. 'stage5CallLane'(전교 호출 방송)은 지금 런타임이 일반 반복 증원처럼 무작위 링에
+//   스폰한다 — 레인 양끝 펄스 스폰(SCHEDULE_STAGE5_CALL_LANE)은 2차 작업(§7)이 붙인다. HP·마릿수는 이미 확정이다.
+export const STAGE5_BOSS_PHASE_REINFORCEMENT = 'stage5BossPhaseE01E07'
+export const STAGE5_CALL_LANE_FORMATION = 'stage5CallLane'
+export const STAGE5_CALL_LANE_REINFORCEMENT = 'stage5CallLane'
 export const STAGE5_BURST_EVENTS = [
-  { sec: 5, type: 'E01', count: 12 },
-  { sec: 5, type: 'E53', count: 1 },                            // 물감뿌림 첫 등장(붙었다 빠지며 부채꼴 물감). hp 10 = E03
-  { sec: 24, type: 'E03', count: 4 },
-  { sec: 24, type: 'E70', count: 1 },                           // 2026-11-07 스4 복습: 술래. hp 10 = E03
-  { sec: 40, type: 'E07', count: 1 },
-  { sec: 40, type: 'E66', count: 1 },                           // 2026-11-07 스1 복습: 플라나리아. hp 16 = E07
-  { sec: 40, type: 'E48', count: 1 },                           // 부메랑자 첫 등장(나갔다 돌아오는 자). hp 16 = E07
-  { sec: 40, type: 'E39', count: 1 },                           // 스2 복습: 선끝접기형
-  { sec: 40, type: 'E44', count: 1 },                           // 스4 복습: 발맞춤후퇴형
-  { sec: 60, type: 'E03', count: 8, formation: 'ring' },
-  { sec: 72, type: 'E04', count: 1 },
-  { sec: 72, type: 'E52', count: 1 },                           // 플라스크분열 첫 등장(3갈래 분열). hp 32 = E04
-  { sec: 108, type: 'E60', count: 1 },                          // 배수구잠복 첫 등장(숨어 오다 6방향 물줄기). hp 16 = E07
-  { sec: 108, type: 'E02', count: 4, formation: 'pincer' },
+  // 0:05 오프닝 — E01 9 + 사수 2(12초부터 발사 = "레인이 곧 사선") + 물감뿌림 첫 노출
+  { sec:   5, type: 'E01', count: 9 },
+  { sec:   5, type: 'E04', count: 2 },
+  { sec:   5, type: 'E53', count: 1 },                           // 물감뿌림(미술 교사) 첫 등장. hp 10
+  // 0:24 러너로 이동 강제 + 사수 4기 포화 + 첫 교사형 엘리트
+  { sec:  24, type: 'E03', count: 3 },
+  { sec:  24, type: 'E70', count: 1 },                           // 2026-11-07 스4 복습: 술래. hp 10 = E03 (E03 4 → 3 + 1)
+  { sec:  24, type: 'E04', count: 2 },
+  { sec:  24, type: 'E57', count: 1 },                           // 출석부 생활지도(스3·스4 복습). hp 70
+  // 0:40 속공 + 복습
+  { sec:  40, type: 'E07', count: 1 },
+  { sec:  40, type: 'E66', count: 1 },                           // 2026-11-07 스1 복습: 플라나리아. hp 16 = E07 (E07 2 → 1 + 1)
+  { sec:  40, type: 'E48', count: 1 },                           // 부메랑자 첫 등장. hp 16
+  { sec:  40, type: 'E39', count: 1 },                           // 스2 복습: 선끝접기형
+  { sec:  40, type: 'E44', count: 1 },                           // 스4 복습: 발맞춤후퇴형
+  // 1:12 거대 조기 등장 — 레인 하나를 막아 "다른 레인으로 돌아가기"를 처음 강제
+  { sec:  72, type: 'E04', count: 1 },
+  { sec:  72, type: 'E52', count: 1 },                           // 플라스크분열(과학 교사) 첫 등장. hp 32
+  { sec:  72, type: 'E51', count: 1 },                           // 합창지휘(음악 교사). hp 8
+  { sec:  72, type: 'E06', count: 1 },
+  // 1:48 배수구잠복 첫 등장(같은 초 pincer는 형태 블록)
+  { sec: 108, type: 'E60', count: 1 },                           // hp 16
   ...ALL_STAGES_110SEC_SMILING_TANKER_REINFORCEMENT_EVENTS,
-  { sec: 120, type: 'E05', count: 4, formation: 'ring' },
-  { sec: 144, type: 'E07', count: 6 },
-  { sec: 144, type: 'E54', count: 1 },                          // 확성기방송 첫 등장(부채꼴 음파 5발). hp 32 = E04
-  { sec: 150, type: 'B03', count: 1 },
+  // 2:24 보스 직전 원거리 벽(포화점 4) + 속공 + 확성기방송 첫 등장
+  { sec: 144, type: 'E04', count: 4 },
+  { sec: 144, type: 'E07', count: 5 },
+  { sec: 144, type: 'E54', count: 1 },                           // 확성기방송(방송 담당 교사) 첫 등장. hp 32
+  // 2:30 교감 좀비 B10 등장 — 보스 구간 파생 기준
+  { sec: 150, type: 'B10', count: 1 },
   { sec: 150, type: 'E01', count: 4 },
-  { sec: 150, type: 'E65', count: 1 },                          // 2026-11-07 스2 복습: 시험감독. hp 8 = E01
-  { sec: 150, type: 'E58', count: 1 },                          // 스4 복습: 줄넘기 매복. hp 8 = E01
-  { sec: 150, type: 'E37', count: 1 },                          // 스2 복습: 빗금엇갈림형
-  { sec: 150, type: 'E51', count: 1 },                          // 스2 복습: 합창지휘. hp 8 = E37
-  { sec: 168, type: 'E04', count: 1 },
-  { sec: 184, type: 'E55', count: 1 },                          // 강속구 야구부 첫 등장(1.1초 와인드업 강속구). hp 70 = E05
-  { sec: 184, type: 'E06', count: 2, formation: 'pincer' },
-  // 216초 차저 4 → 1 + 무거운 근접 3종 각 1(전부 hp 70). 탈출 스프린트에서 제자리·곡선·교차 휘두르기를
-  // 한 번씩 보여 준다. 108초 협공을 E43으로 바꾸는 안은 프로브에서 1:48 사망이 늘어 폐기했다(2026-11-04).
-  { sec: 216, type: 'E40', count: 1 },                          // 스3 복습: 중심축비틀기형(제자리라 탈출 동선에서 피하기 쉽다)
-  { sec: 216, type: 'E42', count: 1 },                          // 스3 복습: 반원발맞춤형
-  { sec: 216, type: 'E43', count: 1 },                          // 스4 복습: 엇높이교차형
-  { sec: 160, endExclusiveSec: 240, repeatIntervalSec: 20, type: 'E01', count: 8 },
-  { sec: 160, endExclusiveSec: 240, repeatIntervalSec: 20, type: 'E07', count: 2 },
+  { sec: 150, type: 'E65', count: 1 },                           // 2026-11-07 스2 복습: 시험감독. hp 8 = E01 (E01 5 → 4 + 1)
+  { sec: 150, type: 'E58', count: 1 },                           // 스4 복습: 줄넘기 매복. hp 8
+  { sec: 150, type: 'E37', count: 1 },                           // 스2 복습: 빗금엇갈림형. hp 8
+  { sec: 150, type: 'E51', count: 1 },                           // 합창지휘. hp 8
+  // 2:48 근접 속공(보스 구간이라 E04는 쏘지 못한다) + 배구스파이크 복습
+  { sec: 168, type: 'E07', count: 5 },
+  { sec: 168, type: 'E50', count: 1 },                           // hp 16
+  // 3:04 강속구 야구부 첫 등장(같은 초 pincer는 형태 블록)
+  { sec: 184, type: 'E55', count: 1 },                           // hp 70
+  // 3:36 탈출 스프린트 — 무거운 근접 3종 복습 + 포탈 이후라 발사 가능한 사수 1
+  { sec: 216, type: 'E40', count: 1 },                           // 스3 복습: 중심축비틀기형
+  { sec: 216, type: 'E42', count: 1 },                           // 스3 복습: 반원발맞춤형
+  { sec: 216, type: 'E43', count: 1 },                           // 스4 복습: 엇높이교차형
+  { sec: 216, type: 'E04', count: 1 },
+  // ── 형태(formation) 버스트 — 배열 순서 = STAGE5_SPAWN_TELEGRAPHS 순서(60 → 108 → 120 → 184).
+  { sec:  60, type: 'E03', count: 8, formation: 'ring' },      // 지각생 무리 첫 완전 포위
+  { sec: 108, type: 'E02', count: 4, formation: 'pincer' },    // 레인 앞뒤 탱커 협공
+  { sec: 120, type: 'E05', count: 4, formation: 'ring' },      // 차저 포위(피크 정점)
+  { sec: 184, type: 'E05', count: 2, formation: 'pincer' },    // 레인 앞뒤 차저 협공(현관 막기)
+  // ── 반복 descriptor(종료 exclusive) ──
+  // 보스 구간 잡몹 유지: 160·180·200·220 4회. 220 tick은 포탈(210) 이후 첫 회(n=0)라 +10% 성장 대상.
+  { sec: 160, endExclusiveSec: 240, repeatIntervalSec: 20, type: 'E01', count: 6, reinforcement: STAGE5_BOSS_PHASE_REINFORCEMENT },
+  { sec: 160, endExclusiveSec: 240, repeatIntervalSec: 20, type: 'E07', count: 2, reinforcement: STAGE5_BOSS_PHASE_REINFORCEMENT },
+  // 전교 호출 방송: 73·133·193 3회(10초 스트림이 공통 앵커와 겹치지 않는 유일한 60초 위상). 회당 E03 8 + E07 2.
+  { sec:  73, endExclusiveSec: 240, repeatIntervalSec: 60, type: 'E03', count: 8, formation: STAGE5_CALL_LANE_FORMATION, reinforcement: STAGE5_CALL_LANE_REINFORCEMENT },
+  { sec:  73, endExclusiveSec: 240, repeatIntervalSec: 60, type: 'E07', count: 2, formation: STAGE5_CALL_LANE_FORMATION, reinforcement: STAGE5_CALL_LANE_REINFORCEMENT },
 ]
 
 export function getBurstEventsForStage(stageId) {
@@ -428,8 +452,25 @@ export function shouldRetryRewardBurst(evt, placed, nowSec) {
 
 // 실제 런타임 스폰 캐시만 코인 보너스 이벤트를 합친다. 기존 버스트 API의 배열 identity와
 // 웨이브 HP 예산/앵커 계산 계약은 그대로 보존한다.
+// 확장 스테이지(6~10)는 데이터의 bonusEvents가 정본이다(2026-11-08: 예전에는 이 필드를 런타임이 읽지 않고
+// 공통 표만 붙였다). 값은 공통 표와 같은 90·180초 E08×1이라 스폰은 바뀌지 않는다. rewardEvent를 붙여
+// 실패 시 재시도(shouldRetryRewardBurst) 대상이 되게 한다.
+const expansionBonusEventCache = new Map()
+function expansionBonusEvents(stageId) {
+  const stage = EXPANSION_STAGES[stageId]
+  if (!stage?.bonusEvents) return null
+  let events = expansionBonusEventCache.get(stageId)
+  if (!events) {
+    events = Object.freeze(stage.bonusEvents.map((evt) => Object.freeze({
+      sec: evt.sec, type: evt.type, count: evt.count ?? 1, ...(evt.type === 'E08' ? { rewardEvent: 'coinMonster' } : {}),
+    })))
+    expansionBonusEventCache.set(stageId, events)
+  }
+  return events
+}
+
 export function getRuntimeSpawnEventsForStage(stageId) {
-  return [...getRuntimeBurstEventsForStage(stageId), ...COIN_MONSTER_RUNTIME_EVENTS]
+  return [...getRuntimeBurstEventsForStage(stageId), ...(expansionBonusEvents(stageId) ?? COIN_MONSTER_RUNTIME_EVENTS)]
 }
 
 // 보스(B01/B02) 등장 시각 — 없으면 Infinity. 보스 구간 파생의 단일 소스.

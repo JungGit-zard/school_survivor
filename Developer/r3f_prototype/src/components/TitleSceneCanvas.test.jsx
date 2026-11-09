@@ -8,16 +8,18 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 const sceneMock = vi.hoisted(() => ({
   mode: 'ready',
   pending: null,
+  invalidate: null,
 }))
 
 vi.mock('@react-three/fiber', () => ({
-  Canvas: ({ children }) => <div data-testid="title-canvas">{children}</div>,
+  Canvas: ({ children, frameloop }) => <div data-testid="title-canvas" data-frameloop={frameloop}>{children}</div>,
+  useThree: (selector) => selector({ invalidate: sceneMock.invalidate }),
 }))
 
 vi.mock('./TitleScene3D.jsx', () => ({
-  default: () => {
+  default: ({ reducedEffects }) => {
     if (sceneMock.mode === 'suspended') throw sceneMock.pending
-    return <div data-testid="title-scene-3d" />
+    return <div data-testid="title-scene-3d" data-reduced-effects={String(reducedEffects)} />
   },
 }))
 
@@ -27,7 +29,39 @@ describe('TitleSceneCanvas is fully detached from Firebase', () => {
   afterEach(() => {
     sceneMock.mode = 'ready'
     sceneMock.pending = null
+    sceneMock.invalidate = null
     document.body.innerHTML = ''
+    vi.unstubAllGlobals()
+    vi.useRealTimers()
+  })
+
+  // 2026-11-08: 타이틀 "움직임 줄이기"가 3D에도 적용된다(장면 구성은 그대로, 루프만 멈춤).
+  it('stops the 3D loop for prefers-reduced-motion and keeps it running otherwise', async () => {
+    for (const reduce of [false, true]) {
+      vi.stubGlobal('matchMedia', (query) => ({
+        matches: reduce && query === '(prefers-reduced-motion: reduce)',
+        addEventListener: () => {},
+        removeEventListener: () => {},
+      }))
+      vi.useFakeTimers()
+      sceneMock.invalidate = vi.fn()
+      const container = document.createElement('div')
+      document.body.appendChild(container)
+      const root = createRoot(container)
+      await act(async () => {
+        root.render(<TitleSceneCanvas />)
+      })
+      const canvas = container.querySelector('[data-testid="title-canvas"]')
+      const scene = container.querySelector('[data-testid="title-scene-3d"]')
+      expect(scene).not.toBeNull()
+      expect(canvas.getAttribute('data-frameloop')).toBe(reduce ? 'demand' : 'always')
+      expect(scene.getAttribute('data-reduced-effects')).toBe(String(reduce))
+      await act(async () => { vi.advanceTimersByTime(2000) })
+      expect(sceneMock.invalidate).toHaveBeenCalledTimes(reduce ? 3 : 0)
+      act(() => root.unmount())
+      vi.useRealTimers()
+      vi.unstubAllGlobals()
+    }
   })
 
   it('mounts TitleScene3D synchronously and unconditionally, with no Studio readiness prop left in the title path', async () => {

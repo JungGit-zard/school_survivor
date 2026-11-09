@@ -9,6 +9,7 @@ import StageBossPreview, {
   resolveBossPreviewZoom,
   FACE_LOCAL_Y,
   ENEMY_VISUAL_SCALE,
+  LOBBY_BOSS_PREVIEW_FPS,
 } from './StageBossPreview.jsx'
 import { DEFAULT_STAGE_BOSS_PREVIEW } from '../lib/graphicsStudioConfig.js'
 
@@ -43,8 +44,8 @@ function faceNdcY({ bossType, panY = 0, zoom = 100, width = 220, height = 144 })
 
 // Canvas???먯떇???뚮뜑?섏? ?딅뒗 鍮?div濡?mock ??ReactiveBoss??R3F ?낆? ?ㅽ뻾?섏? ?딅뒗??
 vi.mock('@react-three/fiber', () => ({
-  Canvas: ({ children, frameloop }) => (
-    <div data-testid="stage-boss-preview-canvas" data-frameloop={frameloop}>{children}</div>
+  Canvas: ({ children, frameloop, 'data-frame-cap': frameCap }) => (
+    <div data-testid="stage-boss-preview-canvas" data-frameloop={frameloop} data-frame-cap={frameCap}>{children}</div>
   ),
   useFrame: vi.fn(),
   useThree: (selector) => selector({ invalidate, camera: previewCamera }),
@@ -105,7 +106,7 @@ describe('StageBossPreview ?⑤뵒留⑤뱶 紐⑥뀡', () => {
     expect(el.querySelector('[data-testid="stage-boss-preview"]').dataset.motionActive).toBe('true')
   })
 
-  it('keeps every lobby stage boss on the existing walking animation loop', () => {
+  it('keeps every lobby stage boss on the existing walking animation loop, capped at 30 fps', () => {
     const el = render(
       <div>
         {['B01', 'B02', 'B03', 'B04'].map((bossType) => (
@@ -116,9 +117,43 @@ describe('StageBossPreview ?⑤뵒留⑤뱶 紐⑥뀡', () => {
 
     for (const bossType of ['B01', 'B02', 'B03', 'B04']) {
       const preview = el.querySelector(`[data-testid="walking-preview-${bossType}"]`)
+      // 보스는 계속 걷는다(정적 포즈 아님). 로비 카드는 demand 루프 + 30Hz invalidate로 30fps에 묶인다.
       expect(preview.querySelector('[data-testid="stage-boss-preview-enemy"]').dataset.staticPose).toBe('false')
-      expect(preview.querySelector('[data-testid="stage-boss-preview-canvas"]').dataset.frameloop).toBe('always')
+      const canvas = preview.querySelector('[data-testid="stage-boss-preview-canvas"]')
+      expect(canvas.dataset.frameloop).toBe('demand')
+      expect(canvas.dataset.frameCap).toBe(String(LOBBY_BOSS_PREVIEW_FPS))
     }
+    expect(LOBBY_BOSS_PREVIEW_FPS).toBe(30)
+  })
+
+  it('drives the capped lobby walk with a 30 Hz invalidate tick that stops on unmount', () => {
+    vi.useFakeTimers()
+    try {
+      invalidate.mockClear()
+      const host = document.createElement('div')
+      document.body.appendChild(host)
+      const root = createRoot(host)
+      act(() => { root.render(<StageBossPreview bossType="B01" />) })
+      const afterMount = invalidate.mock.calls.length
+      act(() => { vi.advanceTimersByTime(1000) })
+      const ticks = invalidate.mock.calls.length - afterMount
+      expect(ticks).toBeGreaterThanOrEqual(29)
+      expect(ticks).toBeLessThanOrEqual(31)
+      act(() => { root.unmount() })
+      host.remove()
+      const afterUnmount = invalidate.mock.calls.length
+      act(() => { vi.advanceTimersByTime(1000) })
+      expect(invalidate.mock.calls.length).toBe(afterUnmount)
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('leaves the Graphics Studio preview uncapped on the always loop', () => {
+    const el = render(<StageBossPreview interactive testId="studio-uncapped" />)
+    const canvas = el.querySelector('[data-testid="stage-boss-preview-canvas"]')
+    expect(canvas.dataset.frameloop).toBe('always')
+    expect(canvas.dataset.frameCap).toBeUndefined()
   })
 
   it('keeps the walking loop active during the short entry motion', () => {
@@ -274,5 +309,56 @@ describe('StageBossPreview ?꾨젅??梨꾩?(湲곕낯 zoom)', () => {
   it('湲곕낯 zoom(?뚮뜑 zoom)?먯꽌???쇨뎬? ?몃줈 以묒븰(NDC.y??)???좎??쒕떎', () => {
     expect(Math.abs(faceNdcY({ bossType: 'B01', zoom: resolveBossPreviewZoom(DEFAULT_BASE_ZOOM, 'B01') }))).toBeLessThan(0.005)
     expect(Math.abs(faceNdcY({ bossType: 'B02', zoom: resolveBossPreviewZoom(DEFAULT_BASE_ZOOM, 'B02') }))).toBeLessThan(0.005)
+  })
+})
+
+// 2026-11-08 lobby load: offscreen lobby cards stop their render loop; lobby swipes reach the list.
+describe('StageBossPreview lobby scroll/load', () => {
+  afterEach(() => {
+    delete globalThis.IntersectionObserver
+  })
+
+  it('lets vertical swipes over non-interactive B01-B04 previews scroll the list; Studio keeps drag (none)', () => {
+    const el = render(
+      <div>
+        {['B01', 'B02', 'B03', 'B04'].map((bossType) => (
+          <StageBossPreview key={bossType} testId={`swipe-${bossType}`} bossType={bossType} />
+        ))}
+        <StageBossPreview testId="swipe-studio" bossType="B01" interactive />
+      </div>,
+    )
+    for (const bossType of ['B01', 'B02', 'B03', 'B04']) {
+      expect(el.querySelector(`[data-testid="swipe-${bossType}"]`).style.touchAction).toBe('pan-y')
+    }
+    expect(el.querySelector('[data-testid="swipe-studio"]').style.touchAction).toBe('none')
+  })
+
+  it('pauses the render loop while scrolled off screen and resumes walking when visible again', () => {
+    let observer = null
+    globalThis.IntersectionObserver = class {
+      constructor(callback, options) {
+        this.callback = callback
+        this.options = options
+        this.disconnect = vi.fn()
+        observer = this
+      }
+      observe(target) { this.target = target }
+    }
+    const el = render(<StageBossPreview />)
+    const preview = el.querySelector('[data-testid="stage-boss-preview"]')
+    const canvas = () => preview.querySelector('[data-testid="stage-boss-preview-canvas"]')
+    expect(observer.target).toBe(preview)
+    expect(canvas().dataset.frameloop).toBe('demand')
+
+    act(() => observer.callback([{ isIntersecting: false }]))
+    expect(canvas().dataset.frameloop).toBe('never')
+    expect(preview.dataset.onScreen).toBe('false')
+    // The preview stays mounted (no fallback): the 3D boss is still in the tree.
+    expect(preview.querySelector('[data-testid="stage-boss-preview-enemy"]')).toBeTruthy()
+
+    act(() => observer.callback([{ isIntersecting: true }]))
+    expect(canvas().dataset.frameloop).toBe('demand')
+    expect(canvas().dataset.frameCap).toBe(String(LOBBY_BOSS_PREVIEW_FPS))
+    expect(preview.dataset.onScreen).toBe('true')
   })
 })

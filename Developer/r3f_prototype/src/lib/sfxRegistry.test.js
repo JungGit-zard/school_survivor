@@ -598,3 +598,58 @@ describe('playSfx', () => {
     expect(howlPlay).toHaveBeenCalledTimes(weaponCap + 5)
   })
 })
+
+// 2026-11-08 Stage 5·6 배치 + B03 셔틀런 착지. 게임플레이 코드가 이미 이 id로 emit하므로,
+// 등록이 빠지면 playSfx가 조용히 건너뛰어 무음이 된다(B_stage5 §11-2, C_stage6 C-11-2).
+describe('Stage 5/6 batch and B03 stomp cues', () => {
+  const STAGE_BATCH_SFX = {
+    stage5CallChime: '/sfx/events/stage5CallChime.ogg',
+    stage5CallStart: '/sfx/events/stage5CallStart.ogg',
+    b10StampSlam: '/sfx/enemies/b10StampSlam.ogg',
+    b10LedgerSwing: '/sfx/enemies/b10LedgerSwing.ogg',
+    b10MeetingBell: '/sfx/enemies/b10MeetingBell.ogg',
+    stage6MicFeedback: '/sfx/events/stage6MicFeedback.ogg',
+    stage6SpeechRingPulse: '/sfx/events/stage6SpeechRingPulse.ogg',
+    stage6SchoolChime: '/sfx/events/stage6SchoolChime.ogg',
+    stage6RelayWhistle: '/sfx/events/stage6RelayWhistle.ogg',
+    stage6AnthemSting: '/sfx/events/stage6AnthemSting.ogg',
+    stage6GateOpen: '/sfx/events/stage6GateOpen.ogg',
+    b03ShuttleStomp: '/sfx/enemies/b03ShuttleStomp.ogg',
+  }
+
+  it('registers every id with a small OGG + MP3 pair and a cooldown of at least 120ms', async () => {
+    const { SOUND_MAP, POLYPHONY_COOLDOWN } = await import('./sfxRegistry.js')
+    expect(SOUND_MAP).toMatchObject(STAGE_BATCH_SFX)
+    for (const [id, oggPath] of Object.entries(STAGE_BATCH_SFX)) {
+      expect(POLYPHONY_COOLDOWN[id], `${id} cooldown`).toBeGreaterThanOrEqual(120)
+      for (const extension of ['ogg', 'mp3']) {
+        const assetUrl = new URL(`../../public${oggPath.replace(/\.ogg$/, `.${extension}`)}`, import.meta.url)
+        const size = statSync(assetUrl).size
+        expect(size, `${id} ${extension}`).toBeGreaterThan(1000)
+        // 파일당 상한: Stage 6 스펙 20KB(Stage 5는 30KB)라 더 엄격한 쪽으로 묶는다.
+        expect(size, `${id} ${extension}`).toBeLessThanOrEqual(20 * 1024)
+      }
+    }
+  })
+
+  it('matches the B10 pattern ids the vice-principal runtime emits', async () => {
+    const { SOUND_MAP } = await import('./sfxRegistry.js')
+    const { B10_SFX } = await import('./stage5ViceBoss.js')
+    for (const id of Object.values(B10_SFX)) expect(SOUND_MAP[id], id).toBeTruthy()
+  })
+
+  it('keeps boss pattern and stomp cues out of the combat voice cap', async () => {
+    const { isProtectedSfx } = await import('./sfxRegistry.js')
+    for (const id of ['b10StampSlam', 'b10LedgerSwing', 'b10MeetingBell', 'b03ShuttleStomp']) {
+      expect(isProtectedSfx(id), id).toBe(true)
+    }
+  })
+
+  it('lets consecutive shuttle-run landings through (cooldown shorter than one hop)', async () => {
+    const { POLYPHONY_COOLDOWN } = await import('./sfxRegistry.js')
+    const { B03_SHUTTLE_HOP_TARGET_MS } = await import('./b03ShuttleRun.js')
+    // 홉 수는 round(pass/500)라 패스가 750ms 이상이면 홉 길이는 최소 약 333ms다. 그보다 짧은
+    // 레인은 홉 1회라 쿨다운에 걸려도 착지 1회가 빠질 뿐이다(속도 제한이 의도).
+    expect(POLYPHONY_COOLDOWN.b03ShuttleStomp).toBeLessThan(B03_SHUTTLE_HOP_TARGET_MS * 2 / 3)
+  })
+})

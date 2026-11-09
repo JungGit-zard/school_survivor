@@ -92,7 +92,8 @@ describe('Firebase-only Graphics Studio persistence', () => {
     expect(loadSfxTunings()).toEqual({ buttonClick: { volume: 0.2, rate: 0.8 } })
     expect(loadStageBossPreview()).toEqual({ zoom: 145, panX: -0.3, panY: 0.1 })
     expect(loadTextureDecals()).toEqual({})
-    expect(loadStagePropPlacements()).toEqual({ stage1: null, stage2: [], stage3: null, stage4: null })
+    // stage5(교무실) 프랍도 Studio 편집 대상이라 hydrate 결과에 포함된다(입력에 없으면 null = 기본 배치).
+    expect(loadStagePropPlacements()).toEqual({ stage1: null, stage2: [], stage3: null, stage4: null, stage5: null })
   })
 
   it('subscribes every runtime to newer Firebase revisions and applies them immediately', async () => {

@@ -33,7 +33,7 @@ describe('Firebase encounter save contract', () => {
     const rule = rules.rules.users.$uid.progress.titleSettings.playerOutfit['.validate']
     const ruleValues = rule.split("newData.val() === '").slice(1).map((part) => part.slice(0, part.indexOf("'")))
     expect(ruleValues.sort()).toEqual([...PLAYER_OUTFIT_IDS].sort())
-    expect(PLAYER_OUTFIT_IDS).toHaveLength(6)
+    expect(PLAYER_OUTFIT_IDS).toHaveLength(8)
     const validate = new Function('newData', `return (${rule})`)
     for (const value of [...PLAYER_OUTFIT_IDS, 'summer', 'v9', '', 1, true, null]) {
       expect(validate({ val: () => value, isString: () => typeof value === 'string' }), String(value))

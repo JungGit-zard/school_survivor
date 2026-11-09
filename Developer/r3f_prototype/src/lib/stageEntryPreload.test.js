@@ -16,10 +16,10 @@ describe('stage entry preload mapping', () => {
     }
   })
 
-  it('includes spawn smoke and the matching boss face for every playable stage', () => {
-    expect(getStageEntryTextureUrls('stage1').join(' ')).toMatch(/spawn_smoke_puff.*b01_math_teacher_face/)
-    expect(getStageEntryTextureUrls('stage2').join(' ')).toMatch(/spawn_smoke_puff.*b02_stage2_boss_face/)
-    expect(getStageEntryTextureUrls('stage3').join(' ')).toMatch(/spawn_smoke_puff.*b03_pe_teacher_face/)
-    expect(getStageEntryTextureUrls('stage4').join(' ')).toMatch(/spawn_smoke_puff.*b04_chef_boss_face/)
+  it('includes spawn smoke for every playable stage and no boss face image (faces are procedural)', () => {
+    for (const stageId of ['stage1', 'stage2', 'stage3', 'stage4']) {
+      expect(getStageEntryTextureUrls(stageId).join(' ')).toMatch(/spawn_smoke_puff/)
+      expect(getStageEntryTextureUrls(stageId).join(' ')).not.toMatch(/_face/)
+    }
   })
 })

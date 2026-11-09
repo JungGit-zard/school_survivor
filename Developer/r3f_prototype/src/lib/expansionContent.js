@@ -4,11 +4,12 @@ const DATA = {
     {
       "id": "stage6",
       "order": 6,
-      "nameKo": "금서 도서관",
-      "themeKey": "library",
-      "palette": "남색·금색",
-      "spectacle": "끝없이 솟은 서가, 공중을 흐르는 책 띠, 거대한 원형 천창",
-      "lesson": "책장 사이 길 찾기 → 원형 착탄 회피",
+      "nameKo": "운동장 최후의 조회",
+      "descriptionKo": "끝나지 않는 훈화 고리를 넘어, 열린 정문으로 탈출하세요.",
+      "themeKey": "schoolyard",
+      "palette": "모래색·적토·하늘색",
+      "spectacle": "조회대·국기 게양대·학교 건물 정면, 적토 트랙, 운동회 만국기, 정문 기둥",
+      "lesson": "개방지 줄 대형 회피 → 고리 선 위만 피하기 → 정문 전력 질주",
       "enemyIds": [
         "E19",
         "E20",
@@ -20,10 +21,11 @@ const DATA = {
       "portalSec": 210,
       "matildaWarningSec": 205,
       "matildaSec": 210,
-      "mapHalfXUnits": 7.5,
-      "mapHalfXBlocks": 1.875,
-      "mapHalfZUnits": 19.2,
-      "mapHalfZBlocks": 4.8,
+      "e04IntroSec": 8,
+      "mapHalfXUnits": 12,
+      "mapHalfXBlocks": 3.0,
+      "mapHalfZUnits": 20,
+      "mapHalfZBlocks": 5.0,
       "unlockClearsKey": "stage5Clears",
       "unlockClearsRequired": 1,
       "clearRecordKey": "stage6Clears",
@@ -36,61 +38,122 @@ const DATA = {
       "milestones": [
         {
           "sec": 48,
-          "gold": 6
+          "gold": 6,
+          "label": "운동장 진입 보너스"
         },
         {
           "sec": 144,
-          "gold": 8
+          "gold": 8,
+          "label": "조회 버티기 보너스"
         },
         {
           "sec": 192,
-          "gold": 12
+          "gold": 13,
+          "label": "교장 조우 보너스"
         },
         {
           "sec": 240,
-          "gold": 22
+          "gold": 22,
+          "label": "정문 탈출 보너스"
         }
       ],
       "events": [
         {
           "sec": 5,
           "type": "E19",
-          "count": 6
+          "count": 12,
+          "formation": "assembly_row",
+          "side": "top"
+        },
+        {
+          "sec": 8,
+          "type": "E04",
+          "count": 2
+        },
+        {
+          "sec": 16,
+          "type": "E01",
+          "count": 10
         },
         {
           "sec": 24,
-          "type": "E19",
-          "count": 8
-        },
-        {
-          "sec": 40,
           "type": "E20",
           "count": 2
         },
         {
-          "sec": 60,
+          "sec": 36,
           "type": "E19",
-          "count": 8
+          "count": 14,
+          "formation": "assembly_row",
+          "side": "bottom"
         },
         {
-          "sec": 60,
+          "sec": 44,
+          "type": "E21",
+          "count": 2
+        },
+        {
+          "sec": 52,
+          "type": "E01",
+          "count": 12
+        },
+        {
+          "sec": 52,
+          "type": "E04",
+          "count": 2
+        },
+        {
+          "sec": 64,
+          "type": "E19",
+          "count": 12,
+          "formation": "assembly_row",
+          "side": "top"
+        },
+        {
+          "sec": 64,
+          "type": "E19",
+          "count": 12,
+          "formation": "assembly_row",
+          "side": "bottom"
+        },
+        {
+          "sec": 72,
           "type": "E20",
-          "count": 3
+          "count": 2
         },
         {
           "sec": 72,
           "type": "E21",
-          "count": 1
+          "count": 3
+        },
+        {
+          "sec": 84,
+          "type": "E05",
+          "count": 2
         },
         {
           "sec": 96,
           "type": "E19",
-          "count": 8
+          "count": 12,
+          "formation": "assembly_row",
+          "side": "top"
         },
         {
           "sec": 96,
+          "type": "E19",
+          "count": 12,
+          "formation": "assembly_row",
+          "side": "bottom"
+        },
+        {
+          "sec": 108,
+          "type": "E04",
+          "count": 2
+        },
+        {
+          "sec": 108,
           "type": "E20",
-          "count": 4
+          "count": 2
         },
         {
           "sec": 110,
@@ -104,23 +167,31 @@ const DATA = {
         },
         {
           "sec": 120,
+          "type": "E05",
+          "count": 2
+        },
+        {
+          "sec": 124,
+          "type": "E21",
+          "count": 6,
+          "formation": "track_lanes"
+        },
+        {
+          "sec": 132,
           "type": "E19",
-          "count": 8
+          "count": 14,
+          "formation": "assembly_row",
+          "side": "auto"
         },
         {
-          "sec": 120,
-          "type": "E21",
+          "sec": 132,
+          "type": "E04",
           "count": 2
         },
         {
           "sec": 144,
-          "type": "E20",
-          "count": 4
-        },
-        {
-          "sec": 144,
-          "type": "E21",
-          "count": 2
+          "type": "E06",
+          "count": 1
         },
         {
           "sec": 150,
@@ -129,43 +200,52 @@ const DATA = {
         },
         {
           "sec": 168,
-          "type": "E19",
-          "count": 8
+          "type": "E20",
+          "count": 1
         },
         {
           "sec": 168,
-          "type": "E20",
+          "type": "E21",
           "count": 3
         },
         {
           "sec": 184,
-          "type": "E19",
-          "count": 8
+          "type": "E06",
+          "count": 1
         },
         {
-          "sec": 184,
-          "type": "E21",
-          "count": 2
+          "sec": 192,
+          "type": "E19",
+          "count": 14,
+          "formation": "assembly_row",
+          "side": "gate"
         },
         {
           "sec": 200,
-          "type": "E20",
+          "type": "E05",
+          "count": 2
+        },
+        {
+          "sec": 216,
+          "type": "E19",
+          "count": 13,
+          "formation": "assembly_row",
+          "side": "gate"
+        },
+        {
+          "sec": 216,
+          "type": "E21",
           "count": 4
         },
         {
           "sec": 216,
-          "type": "E19",
-          "count": 8
-        },
-        {
-          "sec": 216,
-          "type": "E20",
-          "count": 3
-        },
-        {
-          "sec": 216,
-          "type": "E21",
+          "type": "E04",
           "count": 2
+        },
+        {
+          "sec": 228,
+          "type": "E07",
+          "count": 4
         }
       ],
       "bonusEvents": [
@@ -181,7 +261,7 @@ const DATA = {
         }
       ],
       "overtime": {
-        "startSec": 300,
+        "startSec": 240,
         "intervalSec": 30,
         "count": 30,
         "mixedTypes": [
@@ -199,7 +279,7 @@ const DATA = {
         "minDistanceBlocks": 2.125,
         "maxDistanceUnits": 12.5,
         "maxDistanceBlocks": 3.125,
-        "maxAttempts": 16,
+        "maxAttempts": 24,
         "unsafeAction": "skip_individual",
         "introSpecialDelayMs": 2500,
         "formation": "ring_safe_candidates",
@@ -207,66 +287,63 @@ const DATA = {
         "bossSpawnDistanceBlocks": 1.5
       },
       "layout": {
-        "layoutId": "expansion_library",
-        "centralSafeHalfXUnits": 2,
-        "centralSafeHalfXBlocks": 0.5,
-        "clearLaneWidthUnits": 2,
-        "clearLaneWidthBlocks": 0.5,
+        "layoutId": "expansion_schoolyard",
+        "centralSafeHalfXUnits": 0,
+        "centralSafeHalfXBlocks": 0.0,
+        "clearLaneWidthUnits": 8,
+        "clearLaneWidthBlocks": 2.0,
         "obstacles": [
           {
-            "id": "exp_s6_prop_1",
-            "xUnits": -4,
-            "xBlocks": -1.0,
-            "zUnits": -10,
-            "zBlocks": -2.5,
-            "halfXUnits": 0.6,
-            "halfXBlocks": 0.15,
-            "halfZUnits": 1,
-            "halfZBlocks": 0.25
+            "id": "exp_s6_goal_north",
+            "xUnits": 0,
+            "xBlocks": 0.0,
+            "zUnits": -11,
+            "zBlocks": -2.75,
+            "halfXUnits": 1.6,
+            "halfXBlocks": 0.4,
+            "halfZUnits": 0.45,
+            "halfZBlocks": 0.1125
           },
           {
-            "id": "exp_s6_prop_2",
-            "xUnits": 4,
-            "xBlocks": 1.0,
-            "zUnits": -5,
-            "zBlocks": -1.25,
-            "halfXUnits": 0.6,
-            "halfXBlocks": 0.15,
-            "halfZUnits": 1,
-            "halfZBlocks": 0.25
-          },
-          {
-            "id": "exp_s6_prop_3",
-            "xUnits": -4,
-            "xBlocks": -1.0,
-            "zUnits": 2,
-            "zBlocks": 0.5,
-            "halfXUnits": 0.6,
-            "halfXBlocks": 0.15,
-            "halfZUnits": 1,
-            "halfZBlocks": 0.25
-          },
-          {
-            "id": "exp_s6_prop_4",
-            "xUnits": 4,
-            "xBlocks": 1.0,
-            "zUnits": 9,
-            "zBlocks": 2.25,
-            "halfXUnits": 0.6,
-            "halfXBlocks": 0.15,
-            "halfZUnits": 1,
-            "halfZBlocks": 0.25
+            "id": "exp_s6_goal_south",
+            "xUnits": 0,
+            "xBlocks": 0.0,
+            "zUnits": 11,
+            "zBlocks": 2.75,
+            "halfXUnits": 1.6,
+            "halfXBlocks": 0.4,
+            "halfZUnits": 0.45,
+            "halfZBlocks": 0.1125
           }
         ],
+        "portalMode": "anchor",
         "portalAnchorUnits": [
           0,
           0,
-          -16
+          16.5
         ],
         "portalAnchorBlocks": [
           0,
           0,
-          -4
+          4.125
+        ],
+        "bossAnchorUnits": [
+          0,
+          0,
+          -17
+        ],
+        "bossAnchorBlocks": [
+          0,
+          0,
+          -4.25
+        ],
+        "speechOriginUnits": [
+          0,
+          -19
+        ],
+        "speechOriginBlocks": [
+          0,
+          -4.75
         ]
       }
     },
@@ -1351,20 +1428,20 @@ const DATA = {
     {
       "id": "E19",
       "typeCode": 17,
-      "nameKo": "서가운반 좀비",
+      "nameKo": "조회 줄서기 좀비",
       "stageId": "stage6",
-      "hp": 48,
-      "speedUnitsPerSec": 0.58,
-      "speedBlocksPerSec": 0.145,
+      "hp": 30,
+      "speedUnitsPerSec": 0.6,
+      "speedBlocksPerSec": 0.15,
       "contactDamage": 10,
-      "xpPerTextbook": 10,
+      "xpPerTextbook": 6,
       "textbookChance": 0.3,
       "goldDrop": 0,
-      "scale": 1.1,
-      "contactDistUnits": 0.3,
-      "contactDistBlocks": 0.075,
+      "scale": 1.0,
+      "contactDistUnits": 0.28,
+      "contactDistBlocks": 0.07,
       "behaviorId": "chase",
-      "silhouette": "책등을 쌓은 각진 배낭과 한쪽 긴 팔",
+      "silhouette": "앞으로 나란히 뻗은 두 팔, 챙 달린 체육모자, 가슴 흰 명찰",
       "studioItemId": "zombie-e19",
       "modelKey": "expansion-e19",
       "maxConcurrentSpecial": 2
@@ -1372,41 +1449,42 @@ const DATA = {
     {
       "id": "E20",
       "typeCode": 18,
-      "nameKo": "색인질주 좀비",
+      "nameKo": "국민체조 좀비",
       "stageId": "stage6",
-      "hp": 24,
-      "speedUnitsPerSec": 1.12,
-      "speedBlocksPerSec": 0.28,
-      "contactDamage": 8,
-      "xpPerTextbook": 7,
+      "hp": 64,
+      "speedUnitsPerSec": 0.55,
+      "speedBlocksPerSec": 0.1375,
+      "contactDamage": 10,
+      "xpPerTextbook": 12,
       "textbookChance": 0.3,
       "goldDrop": 0,
-      "scale": 0.85,
-      "contactDistUnits": 0.24,
-      "contactDistBlocks": 0.06,
-      "behaviorId": "sidestep",
-      "silhouette": "부채꼴 색인 탭 머리와 비대칭 짧은 다리",
+      "scale": 1.1,
+      "contactDistUnits": 0.3,
+      "contactDistBlocks": 0.075,
+      "behaviorId": "ring",
+      "silhouette": "옆으로 쭉 벌린 T자 팔, 빨간 머리띠, 가슴 등번호판",
       "studioItemId": "zombie-e20",
       "modelKey": "expansion-e20",
-      "maxConcurrentSpecial": 2
+      "maxConcurrentSpecial": 2,
+      "attackDamage": 7
     },
     {
       "id": "E21",
       "typeCode": 19,
-      "nameKo": "반납투척 좀비",
+      "nameKo": "계주 바통 좀비",
       "stageId": "stage6",
-      "hp": 60,
-      "speedUnitsPerSec": 0.48,
-      "speedBlocksPerSec": 0.12,
-      "contactDamage": 10,
-      "xpPerTextbook": 14,
+      "hp": 36,
+      "speedUnitsPerSec": 1.1,
+      "speedBlocksPerSec": 0.275,
+      "contactDamage": 9,
+      "xpPerTextbook": 8,
       "textbookChance": 0.3,
       "goldDrop": 0,
-      "scale": 1,
-      "contactDistUnits": 0.28,
-      "contactDistBlocks": 0.07,
-      "behaviorId": "lob",
-      "silhouette": "열린 반납함 가슴과 책 한 권을 든 높은 팔",
+      "scale": 0.9,
+      "contactDistUnits": 0.25,
+      "contactDistBlocks": 0.0625,
+      "behaviorId": "dash",
+      "silhouette": "앞으로 숙인 몸, 오른손 노란 바통, 대각선 어깨띠",
       "studioItemId": "zombie-e21",
       "modelKey": "expansion-e21",
       "maxConcurrentSpecial": 2
@@ -1668,64 +1746,84 @@ const DATA = {
     {
       "id": "B05",
       "typeCode": 32,
-      "nameKo": "금서관장",
+      "nameKo": "교장 선생님 좀비",
       "stageId": "stage6",
-      "hp": 1800,
+      "hp": 4050,
       "speedUnitsPerSec": 0.5,
       "speedBlocksPerSec": 0.125,
-      "contactDamage": 20,
-      "scale": 2,
+      "contactDamage": 22,
+      "scale": 2.2,
       "contactDistUnits": 0.4,
       "contactDistBlocks": 0.1,
       "xp": 0,
       "studioItemId": "zombie-b05",
       "modelKey": "expansion-b05",
-      "silhouette": "거대한 펼친 책 망토, 초승달 책갈피 왕관",
+      "silhouette": "넓은 정장 어깨, 대머리와 동그란 안경, 입가의 손마이크",
       "enrageHpRatio": 0.5,
       "enrageTransitionMs": 1500,
       "firstAttackDelayMs": 2500,
-      "textbooks": 3,
-      "textbookXp": 40,
-      "gold": 8,
+      "textbooks": 4,
+      "textbookXp": 45,
+      "gold": 10,
       "patterns": [
         {
           "id": "b05_p1",
-          "nameKo": "책장십자",
-          "windupMs": 1400,
-          "activeMs": 350,
-          "recoveryMs": 1400,
-          "cooldownMs": 6000,
-          "phase2CooldownMs": 5200,
-          "rangeUnits": 4,
-          "rangeBlocks": 1.0,
-          "widthUnits": 0.8,
-          "widthBlocks": 0.2,
-          "damage": 18,
-          "maxHitsPerTarget": 1,
-          "shape": "cross",
-          "origin": "boss_snapshot",
-          "angleDeg": 45,
-          "targetLockedAtWindupStart": true
-        },
-        {
-          "id": "b05_p2",
-          "nameKo": "낙장고리",
+          "nameKo": "훈화 고리",
           "windupMs": 1600,
           "activeMs": 350,
-          "recoveryMs": 1400,
-          "cooldownMs": 6000,
-          "phase2CooldownMs": 5200,
-          "rangeUnits": 1.8,
-          "rangeBlocks": 0.45,
-          "widthUnits": 0.4,
-          "widthBlocks": 0.1,
-          "damage": 18,
+          "recoveryMs": 1000,
+          "cooldownMs": 9000,
+          "phase2CooldownMs": 8000,
+          "rangeUnits": 6,
+          "rangeBlocks": 1.5,
+          "widthUnits": 1.2,
+          "widthBlocks": 0.3,
+          "damage": 9,
           "maxHitsPerTarget": 1,
           "shape": "annulus",
           "origin": "boss_snapshot",
+          "targetLockedAtWindupStart": true,
+          "radiusMode": "player_distance",
+          "radiusPaddingUnits": 0.6,
+          "minRangeUnits": 2,
+          "maxRangeUnits": 40,
+          "phase2ExtraRingOffsetsUnits": [
+            2.4
+          ],
+          "ignoresSightBlockers": true
+        },
+        {
+          "id": "b05_p2",
+          "nameKo": "교가 제창",
+          "windupMs": 1400,
+          "activeMs": 350,
+          "recoveryMs": 1000,
+          "cooldownMs": 9000,
+          "phase2CooldownMs": 8000,
+          "rangeUnits": 7,
+          "rangeBlocks": 1.75,
+          "widthUnits": 0.8,
+          "widthBlocks": 0.2,
+          "damage": 9,
+          "maxHitsPerTarget": 1,
+          "shape": "cross",
+          "origin": "player_snapshot",
+          "angleDeg": 0,
           "targetLockedAtWindupStart": true
         }
-      ]
+      ],
+      "summon": {
+        "id": "b05_summon",
+        "nameKo": "운동장 10바퀴",
+        "type": "E21",
+        "count": 6,
+        "formation": "track_lanes",
+        "warningMs": 1200,
+        "firstDelayMs": 12000,
+        "intervalMs": 30000,
+        "phase2IntervalMs": 25000,
+        "summonOnEnrage": true
+      }
     },
     {
       "id": "B06",
@@ -2015,6 +2113,53 @@ const DATA = {
       ]
     }
   ],
+  "hazards": [
+    {
+      "id": "H06",
+      "stageId": "stage6",
+      "nameKo": "훈화 말씀",
+      "originUnits": [
+        0,
+        -19
+      ],
+      "originBlocks": [
+        0,
+        -4.75
+      ],
+      "firstSec": 30,
+      "intervalSec": 30,
+      "endExclusiveSec": 150,
+      "ringDelaysMs": [
+        0,
+        800
+      ],
+      "followUpRingOffsetUnits": 1.8,
+      "followUpRingOffsetBlocks": 0.45,
+      "preCueLeadMs": 1000,
+      "pattern": {
+        "id": "h06_ring",
+        "shape": "annulus",
+        "origin": "fixed",
+        "windupMs": 1600,
+        "activeMs": 350,
+        "recoveryMs": 600,
+        "widthUnits": 1.2,
+        "widthBlocks": 0.3,
+        "rangeUnits": 6,
+        "rangeBlocks": 1.5,
+        "radiusMode": "player_distance",
+        "radiusPaddingUnits": 0.6,
+        "minRangeUnits": 2,
+        "maxRangeUnits": 40,
+        "damage": 12,
+        "maxHitsPerTarget": 1,
+        "ignoresSightBlockers": true,
+        "targetLockedAtWindupStart": true
+      },
+      "retryMs": 250,
+      "maxRetries": 4
+    }
+  ],
   "behaviors": {
     "chase": {
       "windupMs": 0,
@@ -2213,6 +2358,9 @@ export const EXPANSION_ENEMIES = map(DATA.enemies)
 export const EXPANSION_BOSSES = map(DATA.bosses)
 export const EXPANSION_BEHAVIORS = freeze(DATA.behaviors)
 export const EXPANSION_LIMITS = freeze(DATA.limits)
+// 비보스 해저드 발신원(Stage 6 조회대 스피커 '훈화 말씀' H06). Game.jsx가 스케줄하고 확장 공격 런타임이 판정한다.
+export const EXPANSION_HAZARDS = freeze(Object.fromEntries((DATA.hazards ?? []).map(h => [h.id, h])))
+export const getExpansionStageHazards = stageId => Object.values(EXPANSION_HAZARDS).filter(h => h.stageId === stageId)
 export const isExpansionStage = id => Object.hasOwn(EXPANSION_STAGES,id)
 export const isExpansionEnemy = id => Object.hasOwn(EXPANSION_ENEMIES,id)
 export const isExpansionBoss = id => Object.hasOwn(EXPANSION_BOSSES,id)
@@ -2224,7 +2372,13 @@ export function getExpansionStats(id) {
  return e ? {hp:e.hp,speed:e.speedUnitsPerSec,damage:e.contactDamage,scale:e.scale,xp:e.xpPerTextbook??e.xp,contactDist:e.contactDistUnits,expansion:true} : null
 }
 export const EXPANSION_STATS = freeze(Object.fromEntries([...DATA.enemies,...DATA.bosses].map(e=>[e.id,getExpansionStats(e.id)])))
+// descriptionKo·milestone label·portalMode 'anchor'는 Stage 6 운동장(2026-11-08)부터 쓰는 선택 필드다.
+// stage7~10은 세 필드가 없어 결과가 그대로다. portalMode 'anchor'면 portalPlacement가 앵커를 고정 정문으로 쓴다
+// (플레이어 최소 거리 규칙 없이 접근 경로만 검사). 앵커 좌표만 있고 모드가 없으면(7~10) 기존 무작위 배치.
 export function getExpansionStageConfig(id) {
  const s=EXPANSION_STAGES[id]; if(!s)return null
- return {...s,label:`Stage ${s.order}`,title:s.nameKo,description:'3분 30초 후 열린 탈출구로 탈출하기',bossType:s.bossId,bossWarningSec:s.bossSec,escapePortalSec:s.portalSec,mapHalfX:s.mapHalfXUnits,mapHalfZ:s.mapHalfZUnits,survivalMilestones:s.milestones.map(m=>({atMs:m.sec*1000,gold:m.gold,label:s.nameKo+' 생존 보너스'}))}
+ const anchor=s.layout?.portalMode==='anchor'?s.layout.portalAnchorUnits:null
+ return {...s,label:`Stage ${s.order}`,title:s.nameKo,description:s.descriptionKo??'3분 30초 후 열린 탈출구로 탈출하기',bossType:s.bossId,bossWarningSec:s.bossSec,escapePortalSec:s.portalSec,mapHalfX:s.mapHalfXUnits,mapHalfZ:s.mapHalfZUnits,
+  ...(anchor?{portalAnchor:{x:anchor[0],z:anchor[2],fixed:true}}:{}),
+  survivalMilestones:s.milestones.map(m=>({atMs:m.sec*1000,gold:m.gold,label:m.label??s.nameKo+' 생존 보너스'}))}
 }

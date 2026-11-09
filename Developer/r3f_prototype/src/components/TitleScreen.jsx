@@ -1,11 +1,9 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
-import ConsentGate from './ConsentGate.jsx'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import GoogleAccountPanel from './GoogleAccountPanel.jsx'
-import { ZOMBIE_BOARD_COPY } from './zombieBoardCopy.js'
+import TitleMoreSheet from './TitleMoreSheet.jsx'
 import TitleSceneCanvas from './TitleSceneCanvas.jsx'
 import TitleBackdrop from './TitleBackdrop.jsx'
 import { isFirebaseProgressHydrated, requestCloudProgressSave } from '../lib/firebaseProgress.js'
-import { getSavedNickname, saveNicknameForUser, validateNickname } from '../lib/userNickname.js'
 import { getAdminOperationsConfig } from '../lib/adminConfig.js'
 import {
   applyHitCameraShake,
@@ -17,7 +15,7 @@ import {
   saveTitleSettings,
   unlockAllStagesForDevCheat,
 } from '../lib/titleSettings.js'
-import { paperSticker, schoolButton, schoolPanel, sunnyPalette, uiBorders, uiPalette, uiShadows, uiType } from '../lib/uiStyle.js'
+import { paperSticker, schoolButton, schoolPanel, sunnyCta, sunnyPalette, uiBorders, uiPalette, uiShadows, uiType } from '../lib/uiStyle.js'
 import { LOCALE_OPTIONS, useLocale, useT } from '../lib/i18n.js'
 import { useAuthStore } from '../store/useAuthStore.js'
 import {
@@ -112,20 +110,16 @@ const TITLE_INTRO_CSS = `
   .title-chalk-underline path { stroke-dasharray: 1; animation: titleChalkUnderline 220ms ease-out 760ms backwards; }
   .title-intro-scene { animation: titleSceneGather 425ms cubic-bezier(.16,.84,.28,1.04) backwards; }
   .title-start-tag { transform: rotate(-1.6deg); transition: transform 90ms ease-out, box-shadow 90ms ease-out; }
-  .title-start-tag::before { content: ''; position: absolute; top: -10px; right: 18px; width: 46px; height: 17px; background: rgba(159,216,242,0.82); border: 1.5px solid rgba(31,58,48,0.4); transform: rotate(7deg); }
   .title-start-tag::after { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 12px; background: ${P.red}; border-right: 2.5px solid ${P.line}; border-radius: 3px 0 0 3px; }
   .title-start-tag:hover:not(:disabled) { transform: rotate(-1.6deg) translate3d(0, -1px, 0); }
   .title-start-tag:active:not(:disabled) { transform: rotate(-1.6deg) translate3d(2px, 4px, 0); box-shadow: 1px 1px 0 ${P.line}; }
   .title-sticker:active { transform: translate3d(1px, 2px, 0) !important; box-shadow: 0 1px 0 ${P.line} !important; }
-  .title-main-action:focus-visible, .title-language-action:focus-visible { outline: 3px solid ${P.line}; outline-offset: 3px; }
+  .title-main-action:focus-visible, .title-language-action:focus-visible, .title-util-action:focus-visible { outline: 3px solid ${P.line}; outline-offset: 3px; }
   @media (max-height: 480px) {
-    [data-title-language] { top: max(66px, calc(env(safe-area-inset-top, 0px) + 60px)) !important; right: max(12px, calc(env(safe-area-inset-right, 0px) + 8px)) !important; }
-    .title-content { top: calc(env(safe-area-inset-top, 0px) + 116px) !important; }
-    .title-content [data-title-service-name], .title-content .title-subtitle { display: none; }
+    .title-content .title-subtitle { display: none; }
     .title-content [data-title-board] { padding: 8px 12px 9px !important; }
     .title-chalk-underline { display: none !important; }
-    .title-main-stack { gap: 2px !important; }
-    .title-start-tag { min-height: 48px !important; font-size: 16px !important; letter-spacing: 0 !important; white-space: nowrap; padding: 0 10px 0 22px !important; }
+    .title-start-tag { min-height: 48px !important; height: 48px !important; font-size: 18px !important; letter-spacing: 0 !important; white-space: nowrap; padding: 0 10px 0 22px !important; }
   }
   @media (prefers-reduced-motion: reduce) {
     .title-intro-letter, .title-intro-scene, .title-chalk-underline path { animation: none; }
@@ -164,9 +158,17 @@ function ChalkFilterDefs() {
   )
 }
 
+function MenuIcon() {
+  return (
+    <svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true" focusable="false" style={{ display: 'block' }}>
+      <path d="M3 5 H17 M3 10 H17 M3 15 H17" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
+    </svg>
+  )
+}
+
 function GlobeIcon() {
   return (
-    <svg viewBox="0 0 20 20" width="15" height="15" aria-hidden="true" focusable="false" style={{ display: 'block' }}>
+    <svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true" focusable="false" style={{ display: 'block' }}>
       <g fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
         <circle cx="10" cy="10" r="7.6" />
         <path d="M2.6 10 H17.4 M10 2.4 C6.6 6 6.6 14 10 17.6 M10 2.4 C13.4 6 13.4 14 10 17.6" />
@@ -192,14 +194,12 @@ export default function TitleScreen({
   const t = useT()
   const locale = useLocale()
   const [cheatOpen, setCheatOpen] = useState(false)
-  const [nicknameOpen, setNicknameOpen] = useState(false)
-  const [nicknameInput, setNicknameInput] = useState('')
-  const [nicknameError, setNicknameError] = useState('')
-  const [consentOpen, setConsentOpen] = useState(false)
-  const [consentUser, setConsentUser] = useState(null)
   const [languageMenuOpen, setLanguageMenuOpen] = useState(false)
+  const [moreOpen, setMoreOpen] = useState(false)
+  const moreButtonRef = useRef(null)
   const authUser = useAuthStore((s) => s.user)
   const authSigningIn = useAuthStore((s) => s.signingIn)
+  const signOutOfGoogle = useAuthStore((s) => s.signOutOfGoogle)
   const [settings] = useState(() => (
     isFirebaseProgressHydrated(authUser) ? loadTitleSettings() : !authUser?.uid ? loadGuestSessionSettings() : {
       vibration: true,
@@ -219,6 +219,7 @@ export default function TitleScreen({
   const mainActionStyle = mainActionBusy
     ? { ...styles.primaryButton, ...styles.mainActionButton, ...styles.mainActionButtonBusy }
     : { ...styles.primaryButton, ...styles.mainActionButton }
+  const currentLocaleLabel = (LOCALE_OPTIONS.find((option) => option.id === (locale || 'ko')) || LOCALE_OPTIONS[0]).label
 
   // 타이틀 연출은 항상 재생하고, 화면을 벗어날 때 저장된 전역 설정을 복원한다.
   useEffect(() => {
@@ -250,18 +251,15 @@ export default function TitleScreen({
   }, [])
 
   useEffect(() => {
-    if (!cheatOpen && !nicknameOpen) return undefined
+    if (!cheatOpen) return undefined
 
     const handleKeyDown = (event) => {
-      if (event.key === 'Escape') {
-        setCheatOpen(false)
-        setNicknameOpen(false)
-      }
+      if (event.key === 'Escape') setCheatOpen(false)
     }
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [cheatOpen, nicknameOpen])
+  }, [cheatOpen])
 
   useEffect(() => {
     if (!DEV_CHEATS_ENABLED) return undefined
@@ -308,20 +306,6 @@ export default function TitleScreen({
       .catch(() => {})
   }
 
-  // 닉네임 판정 이후 단계: 닉네임 있으면 로비로, 없으면 닉네임 모달로.
-  const proceedPastConsent = (user) => {
-    const savedNickname = getSavedNickname(user)
-    setCheatOpen(false)
-
-    if (savedNickname) {
-      onEnterLobby?.()
-    } else {
-      setNicknameInput(normalizeInitialNickname(user?.displayName))
-      setNicknameError('')
-      setNicknameOpen(true)
-    }
-  }
-
   const enterLobbyFromStart = () => {
     clearPendingStartAfterLogin()
     onEnterLobby?.()
@@ -331,9 +315,7 @@ export default function TitleScreen({
     if (!authUser?.uid) return
     if (!consumePendingStartAfterLogin()) return
     setCheatOpen(false)
-    setNicknameOpen(false)
-    setConsentOpen(false)
-    setConsentUser(null)
+    setMoreOpen(false)
     enterLobbyFromStart()
   }, [authUser?.uid])
 
@@ -343,9 +325,7 @@ export default function TitleScreen({
   const handleStartClick = () => {
     if (mainActionBusy) return
     setCheatOpen(false)
-    setNicknameOpen(false)
-    setConsentOpen(false)
-    setConsentUser(null)
+    setMoreOpen(false)
     if (onStart) {
       clearPendingStartAfterLogin()
       onStart()
@@ -354,31 +334,14 @@ export default function TitleScreen({
     enterLobbyFromStart()
   }
 
-  const handleConsentConfirmed = () => {
-    setConsentOpen(false)
-    const user = consentUser
-    setConsentUser(null)
-    proceedPastConsent(user)
-  }
+  // ≡ 시트를 닫으면 포커스를 ≡ 버튼으로 돌려 준다(키보드·스크린리더 사용자가 위치를 잃지 않게).
+  const closeMore = useCallback(() => {
+    setMoreOpen(false)
+    moreButtonRef.current?.focus()
+  }, [])
 
-  const handleConsentCancel = () => {
-    setConsentOpen(false)
-    setConsentUser(null)
-  }
-
-  const handleNicknameSubmit = (event) => {
-    event.preventDefault()
-    const result = saveNicknameForUser(authUser, nicknameInput)
-    if (!result.ok) {
-      setNicknameError(result.error)
-      return
-    }
-
-    setNicknameInput(result.nickname)
-    setNicknameError('')
-    setNicknameOpen(false)
-    requestCloudProgressSave()
-    onEnterLobby?.()
+  const handleSignOut = () => {
+    Promise.resolve(signOutOfGoogle?.()).catch(() => {})
   }
 
   const closeCheat = () => {
@@ -408,57 +371,69 @@ export default function TitleScreen({
         style={{ ...styles.canvas, animationDelay: '1500ms' }}
       />
 
-      <GoogleAccountPanel compact />
-      <a href={`/landing?lang=${encodeURIComponent(locale || 'ko')}#inquiry`} className="title-main-action title-sticker" style={{
-        ...styles.contactLink,
-        ...(cheatMenuButtonVisible ? { top: 'max(66px, calc(env(safe-area-inset-top, 0px) + 60px))' } : {}),
-      }}>{(ZOMBIE_BOARD_COPY[locale] || ZOMBIE_BOARD_COPY.ko).contact}</a>
-      <div
-        data-title-language
-        onKeyDown={(event) => { if (event.key === 'Escape') setLanguageMenuOpen(false) }}
-        style={{
-          ...styles.languageAnchor,
-          ...(cheatMenuButtonVisible ? { top: 'max(66px, calc(env(safe-area-inset-top, 0px) + 60px))' } : {}),
-        }}
-      >
-        <button
-          type="button"
-          className="title-language-action title-sticker"
-          aria-label={t('settings.languageAria')}
-          aria-haspopup="true"
-          aria-expanded={languageMenuOpen}
-          style={styles.languageButton}
-          onClick={() => setLanguageMenuOpen((open) => !open)}
-        >
-          <GlobeIcon />
-          <span>{(locale || 'ko').toUpperCase()}</span>
-        </button>
-        {languageMenuOpen && (
-          <>
+      {/* 상단 줄(2026-11-08 타이틀 정리 1단계): 왼쪽 로그인/계정 칩, 오른쪽 [🌐][≡]. 높이 44px 한 줄, 기울기 0°.
+          문의하기·홈페이지는 ≡ 시트로 옮겼다. 포커스 순서: 로그인 → 🌐 → ≡ → START. */}
+      <div data-title-topbar style={cheatMenuButtonVisible ? { ...styles.topBar, ...styles.topBarBesideCheat } : styles.topBar}>
+        <GoogleAccountPanel compact />
+        <div style={styles.topBarRight}>
+          <div
+            data-title-language
+            onKeyDown={(event) => { if (event.key === 'Escape') setLanguageMenuOpen(false) }}
+            style={styles.languageAnchor}
+          >
             <button
               type="button"
-              aria-label={t('common.close')}
-              tabIndex={-1}
-              style={styles.languageScrim}
-              onClick={() => setLanguageMenuOpen(false)}
-            />
-            <div role="group" aria-label={t('settings.languageAria')} style={styles.languageMenu}>
-              {LOCALE_OPTIONS.map((option) => (
+              className="title-language-action title-sticker"
+              aria-label={t('title.languageCurrent', { language: currentLocaleLabel })}
+              aria-haspopup="true"
+              aria-expanded={languageMenuOpen}
+              style={styles.utilButton}
+              onClick={() => setLanguageMenuOpen((open) => !open)}
+            >
+              <GlobeIcon />
+            </button>
+            {languageMenuOpen && (
+              <>
                 <button
-                  key={option.id}
                   type="button"
-                  lang={option.id}
-                  className="title-language-action"
-                  aria-pressed={locale === option.id}
-                  style={styles.languageOption(locale === option.id)}
-                  onClick={() => selectLanguage(option.id)}
-                >
-                  {option.label}
-                </button>
-              ))}
-            </div>
-          </>
-        )}
+                  aria-label={t('common.close')}
+                  tabIndex={-1}
+                  style={styles.languageScrim}
+                  onClick={() => setLanguageMenuOpen(false)}
+                />
+                <div role="group" aria-label={t('settings.languageAria')} style={styles.languageMenu}>
+                  {LOCALE_OPTIONS.map((option) => (
+                    <button
+                      key={option.id}
+                      type="button"
+                      lang={option.id}
+                      className="title-language-action"
+                      aria-pressed={locale === option.id}
+                      style={styles.languageOption(locale === option.id)}
+                      onClick={() => selectLanguage(option.id)}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+          <button
+            ref={moreButtonRef}
+            type="button"
+            className="title-util-action title-sticker"
+            data-title-more-button
+            aria-label={t('title.more')}
+            aria-haspopup="dialog"
+            aria-expanded={moreOpen}
+            aria-controls={moreOpen ? 'title-more-sheet' : undefined}
+            style={styles.utilButton}
+            onClick={() => { setLanguageMenuOpen(false); setMoreOpen(true) }}
+          >
+            <MenuIcon />
+          </button>
+        </div>
       </div>
       {cheatRevealMessage && (
         <div style={styles.cheatRevealToast}>{t('title.cheatToast')}</div>
@@ -477,7 +452,6 @@ export default function TitleScreen({
       )}
       <SlteraMasterTitleToggle />
       <div className="title-content" style={styles.content}>
-        <div aria-hidden="true" data-title-service-name style={styles.serviceName}>{t('title.serviceName')}</div>
         <div data-title-board style={styles.board}>
           <h1 aria-label={t('title.serviceName')} style={{ ...styles.title, fontSize: titleHeadingFontSize(t('title.fontSize'), titleWords) }}>
             <span style={{ ...styles.titleAccent, ...styles.titleWord }}>
@@ -495,14 +469,10 @@ export default function TitleScreen({
             <path d="M3 6 C40 2 78 8 116 4 C146 1 172 7 197 4" pathLength="1" fill="none" stroke={P.orange} strokeWidth="3" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
           </svg>
           <p className="title-subtitle" style={styles.subtitle}>{t('title.subtitle')}</p>
-          <div aria-hidden="true" style={styles.chalkTray}>
-            <span style={styles.chalkPiece} />
-            <span style={{ ...styles.chalkPiece, ...styles.chalkPieceOrange }} />
-          </div>
         </div>
       </div>
 
-        <div style={styles.actions}>
+      <div style={styles.actions}>
         <div className="title-main-stack" style={styles.mainActionStack}>
           <button
             type="button"
@@ -514,11 +484,17 @@ export default function TitleScreen({
           >
             {mainActionBusy ? t('account.signingIn') : t('title.start')}
           </button>
-          <a href={`/landing?lang=${encodeURIComponent(locale || 'ko')}`} className="title-main-action" data-title-homepage style={styles.homepageLink}>
-            <span style={styles.homepageSticker}>{t('title.homepage')}</span>
-          </a>
         </div>
       </div>
+
+      {moreOpen && (
+        <TitleMoreSheet
+          locale={locale}
+          onClose={closeMore}
+          signedIn={Boolean(authUser?.uid)}
+          onSignOut={handleSignOut}
+        />
+      )}
 
       {cheatOpen && cheatMenuButtonVisible && (
         <div style={styles.modalLayer}>
@@ -548,62 +524,8 @@ export default function TitleScreen({
         </div>
       )}
 
-      {consentOpen && consentUser && (
-        <ConsentGate
-          user={consentUser}
-          onConfirmed={handleConsentConfirmed}
-          onCancel={handleConsentCancel}
-        />
-      )}
-
-      {nicknameOpen && (
-        <div style={styles.modalLayer}>
-          <button type="button" aria-label={t('title.nicknameCloseAria')} style={styles.modalScrim} onClick={() => setNicknameOpen(false)} />
-          <section role="dialog" aria-modal="true" aria-labelledby="title-nickname-heading" style={styles.nicknameModal}>
-            <div style={styles.modalHeader}>
-              <h2 id="title-nickname-heading" style={styles.modalTitle}>{t('title.nicknameHeading')}</h2>
-              <button type="button" aria-label={t('common.close')} style={styles.closeButton} onClick={() => setNicknameOpen(false)}>
-                ×
-              </button>
-            </div>
-
-            <form style={styles.nicknameForm} onSubmit={handleNicknameSubmit}>
-              <label style={styles.nicknameLabel} htmlFor="title-nickname-input">
-                {t('title.nicknameLabel')}
-              </label>
-              <input
-                id="title-nickname-input"
-                aria-label={t('title.nicknameLabel')}
-                value={nicknameInput}
-                maxLength={12}
-                style={styles.nicknameInput}
-                onChange={(event) => {
-                  setNicknameInput(event.target.value)
-                  if (nicknameError) {
-                    const result = validateNickname(event.target.value)
-                    if (result.ok) setNicknameError('')
-                  }
-                }}
-                autoFocus
-              />
-              <p style={nicknameError ? styles.nicknameError : styles.nicknameHint}>
-                {nicknameError || t('title.nicknameHint')}
-              </p>
-              <button type="submit" style={styles.nicknameSubmitButton}>
-                {t('title.nicknameSubmit')}
-              </button>
-            </form>
-          </section>
-        </div>
-      )}
-
     </div>
   )
-}
-
-function normalizeInitialNickname(value) {
-  if (typeof value !== 'string') return ''
-  return value.replace(/\s+/g, ' ').trim().slice(0, 12)
 }
 
 function normalizeRevealCheatKey(key) {
@@ -615,28 +537,47 @@ function normalizeRevealCheatKey(key) {
 }
 
 const styles = {
-  // 문의 스티커 왼쪽, 같은 맨 윗줄. 칠판이 위쪽(66px)부터 시작해도 겹치지 않는다(2026-11-03).
-  // 높이 480px 이하의 좁은 프레임(가로 화면 219px)은 한 줄에 다 안 들어가 문의 아래 열로 돌아간다(CSS).
-  languageAnchor: {
+  // 상단 줄: 한 높이(44px), 좌우 안전 영역 + 8px, 요소 간격 8px(2026-11-08 타이틀 정리 1단계).
+  topBar: {
     position: 'absolute',
-    top: 'max(14px, calc(env(safe-area-inset-top, 0px) + 8px))',
-    right: 'max(92px, calc(env(safe-area-inset-right, 0px) + 88px))',
-    zIndex: 4,
-  },
-  languageButton: {
-    ...paperSticker(1.5),
-    position: 'relative',
-    zIndex: 1,
-    width: 72,
-    minHeight: 44,
-    padding: '6px 4px',
-    boxSizing: 'border-box',
+    top: 'max(12px, calc(env(safe-area-inset-top, 0px) + 8px))',
+    left: 'max(12px, calc(env(safe-area-inset-left, 0px) + 8px))',
+    right: 'max(12px, calc(env(safe-area-inset-right, 0px) + 8px))',
+    height: 44,
     display: 'flex',
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: 5,
+    justifyContent: 'space-between',
+    gap: 8,
+    zIndex: 4,
+    pointerEvents: 'none',
+  },
+  // 개발 빌드에서 치트 버튼(우상단 52px, 위치 그대로)이 보이면 상단 줄 오른쪽 끝을 그 옆으로 비켜 둔다.
+  topBarBesideCheat: {
+    right: 'max(72px, calc(env(safe-area-inset-right, 0px) + 68px))',
+  },
+  topBarRight: {
+    flex: '0 0 auto',
+    display: 'flex',
+    alignItems: 'center',
+    gap: 8,
+    pointerEvents: 'auto',
+  },
+  languageAnchor: {
+    position: 'relative',
+    zIndex: 4,
+  },
+  // 지구본·≡ 공용: 정확히 44x44, 아이콘 18px, 기울기 0°.
+  utilButton: {
+    ...paperSticker(0),
+    position: 'relative',
+    zIndex: 1,
+    width: 44,
+    height: 44,
+    padding: 0,
+    boxSizing: 'border-box',
+    display: 'grid',
+    placeItems: 'center',
     fontFamily: uiType.family,
-    fontSize: 13,
     lineHeight: 1,
   },
   languageScrim: {
@@ -676,27 +617,6 @@ const styles = {
     fontSize: 15,
     lineHeight: 1.1,
   }),
-  contactLink: {
-    ...paperSticker(-1.5),
-    position: 'absolute',
-    top: 'max(14px, calc(env(safe-area-inset-top, 0px) + 8px))',
-    right: 'max(12px, calc(env(safe-area-inset-right, 0px) + 8px))',
-    width: 72,
-    minWidth: 44,
-    minHeight: 44,
-    padding: '6px 4px',
-    boxSizing: 'border-box',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontFamily: uiType.family,
-    fontSize: 12,
-    lineHeight: 1.2,
-    overflowWrap: 'anywhere',
-    textAlign: 'center',
-    textDecoration: 'none',
-    zIndex: 3,
-  },
   root: {
     position: 'relative',
     width: '100%',
@@ -754,33 +674,16 @@ const styles = {
   },
   content: {
     position: 'absolute',
-    // 윗줄 스티커(아래 끝 58px) 바로 밑에서 시작한다 — 칠판 아래로 3D 보스 얼굴이 보이게 위로 붙인다.
-    top: 'calc(env(safe-area-inset-top, 0px) + 66px)',
-    left: 22,
-    right: 22,
+    // 상단 줄(44px) 아래 12px에서 시작한다 — 칠판 아래로 3D 보스 얼굴이 보이게 위로 붙인다.
+    top: 'calc(max(12px, calc(env(safe-area-inset-top, 0px) + 8px)) + 56px)',
+    left: 24,
+    right: 24,
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
     textAlign: 'center',
     pointerEvents: 'none',
     zIndex: 2,
-  },
-  // 칠판 위에 테이프로 붙인 작은 이름표.
-  serviceName: {
-    position: 'relative',
-    zIndex: 1,
-    marginBottom: -8,
-    padding: '4px 10px 5px',
-    border: `2px solid ${P.line}`,
-    borderRadius: 3,
-    background: P.cream,
-    color: P.line,
-    fontSize: 12,
-    lineHeight: 1,
-    fontWeight: uiType.weightHeavy,
-    letterSpacing: 0,
-    boxShadow: `2px 2px 0 ${P.line}`,
-    transform: 'rotate(2.2deg)',
   },
   board: {
     position: 'relative',
@@ -802,34 +705,6 @@ const styles = {
     height: 8,
     marginTop: 1,
     overflow: 'visible',
-  },
-  chalkTray: {
-    position: 'absolute',
-    left: '12%',
-    right: '12%',
-    bottom: -9,
-    height: 7,
-    border: `2px solid ${P.line}`,
-    borderRadius: 2,
-    background: P.cream,
-  },
-  chalkPiece: {
-    position: 'absolute',
-    left: '18%',
-    top: -7,
-    width: 18,
-    height: 5,
-    border: `1.5px solid ${P.line}`,
-    borderRadius: 2,
-    background: P.cream,
-    transform: 'rotate(-6deg)',
-  },
-  chalkPieceOrange: {
-    left: 'auto',
-    right: '22%',
-    width: 12,
-    background: P.orange,
-    transform: 'rotate(4deg)',
   },
   title: {
     margin: 0,
@@ -864,7 +739,7 @@ const styles = {
   },
   subtitle: {
     color: P.cream,
-    fontSize: 'clamp(11px, 3.4cqw, 14px)',
+    fontSize: 14,
     lineHeight: 1.35,
     fontWeight: uiType.weightStrong,
     letterSpacing: 0,
@@ -872,32 +747,31 @@ const styles = {
     textWrap: 'balance',
     wordBreak: 'keep-all',
     margin: '3px 0 2px',
-    opacity: 0.92,
   },
+  // START 아래에는 아무것도 두지 않는다(홈페이지 링크 오탭 문제 제거).
   actions: {
     position: 'absolute',
-    left: 'max(20px, calc(env(safe-area-inset-left, 0px) + 18px))',
-    right: 'max(20px, calc(env(safe-area-inset-right, 0px) + 18px))',
-    bottom: 'max(16px, calc(env(safe-area-inset-bottom, 0px) + 8px))',
+    left: 'max(24px, calc(env(safe-area-inset-left, 0px) + 16px))',
+    right: 'max(24px, calc(env(safe-area-inset-right, 0px) + 16px))',
+    bottom: 'max(28px, calc(env(safe-area-inset-bottom, 0px) + 16px))',
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
     zIndex: 3,
   },
   mainActionStack: {
-    width: 'min(252px, 100%)',
+    width: 'min(280px, 100%)',
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
     gap: 8,
     pointerEvents: 'auto',
   },
-  // 출석부 이름표: 크림 종이 + 왼쪽 빨간 띠(::after) + 테이프(::before). 기울기·눌림은 .title-start-tag CSS.
+  // 출석부 이름표: 화면에서 유일한 오렌지 채움 버튼 + 왼쪽 빨간 띠(::after). 기울기·눌림은 .title-start-tag CSS.
   mainActionButton: {
     position: 'relative',
     width: '100%',
     minWidth: 180,
-    maxWidth: 240,
     padding: '0 14px 0 26px',
   },
   mainActionButtonBusy: {
@@ -906,47 +780,12 @@ const styles = {
     filter: 'saturate(0.78)',
   },
   primaryButton: {
-    minHeight: 60,
-    border: `2.5px solid ${P.line}`,
-    borderRadius: 5,
-    background: P.cream,
-    color: P.line,
-    boxShadow: `3px 5px 0 ${P.line}`,
+    ...sunnyCta(),
+    height: 64,
+    minHeight: 64,
     fontFamily: uiType.family,
-    fontWeight: uiType.weightHeavy,
-    fontSize: 21,
-    letterSpacing: 1,
-    cursor: 'pointer',
-  },
-  // 보조 동선: 버튼이 아닌 작은 텍스트 링크. START GAME만 눈에 띄는 주 행동으로 남긴다.
-  // 터치 타깃은 44px 높이를 유지한다.
-  // 보조 동선: 작은 종이 쪽지 링크. START GAME만 눈에 띄는 주 행동으로 남긴다.
-  // 터치 타깃은 44px 높이를 유지하고, 쪽지는 그 안에서 작게 보인다.
-  homepageLink: {
-    minHeight: 44,
-    minWidth: 44,
-    padding: '0 4px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    boxSizing: 'border-box',
-    color: P.line,
-    fontFamily: uiType.family,
-    fontSize: 13,
-    fontWeight: uiType.weightStrong,
-    lineHeight: 1,
-    textDecoration: 'none',
-  },
-  homepageSticker: {
-    display: 'block',
-    padding: '6px 12px',
-    border: `2px solid ${P.line}`,
-    borderRadius: 3,
-    background: P.cream,
-    boxShadow: `2px 2px 0 ${P.line}`,
-    textDecoration: 'underline',
-    textUnderlineOffset: 3,
-    transform: 'rotate(1.4deg)',
+    fontSize: 22,
+    letterSpacing: 0.5,
   },
   cheatButtons: {
     display: 'grid',
@@ -992,15 +831,6 @@ const styles = {
     transform: 'translateY(-50%)',
     padding: 14,
   },
-  nicknameModal: {
-    ...schoolPanel('dark'),
-    position: 'absolute',
-    top: '50%',
-    left: 'max(24px, calc(env(safe-area-inset-left, 0px) + 16px))',
-    right: 'max(24px, calc(env(safe-area-inset-right, 0px) + 16px))',
-    transform: 'translateY(-50%)',
-    padding: 14,
-  },
   modalHeader: {
     display: 'flex',
     alignItems: 'center',
@@ -1034,54 +864,5 @@ const styles = {
     fontSize: 12,
     fontWeight: uiType.weightStrong,
     letterSpacing: 0,
-  },
-  nicknameForm: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 8,
-  },
-  nicknameLabel: {
-    color: uiPalette.reward,
-    fontSize: 12,
-    lineHeight: 1,
-    fontWeight: uiType.weightStrong,
-  },
-  nicknameInput: {
-    width: '100%',
-    minHeight: 46,
-    padding: '0 11px',
-    border: uiBorders.strong,
-    borderRadius: 8,
-    background: uiPalette.paperLight,
-    color: uiPalette.ink,
-    fontSize: 17,
-    lineHeight: 1,
-    fontWeight: 900,
-    outline: 'none',
-    boxShadow: uiShadows.pressSmall,
-    boxSizing: 'border-box',
-  },
-  nicknameHint: {
-    minHeight: 30,
-    margin: 0,
-    color: '#c8c1d7',
-    fontSize: 11,
-    lineHeight: 1.35,
-    fontWeight: 800,
-  },
-  nicknameError: {
-    minHeight: 30,
-    margin: 0,
-    color: uiPalette.warning,
-    fontSize: 11,
-    lineHeight: 1.35,
-    fontWeight: 900,
-  },
-  nicknameSubmitButton: {
-    ...schoolButton('primary'),
-    width: '100%',
-    minHeight: 46,
-    fontSize: 16,
-    lineHeight: 1,
   },
 }

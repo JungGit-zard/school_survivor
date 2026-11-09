@@ -10,6 +10,7 @@ import {
   TITLE_PLAYER_RUN_SWAY_X,
   TITLE_SCENE_BASE_POSITION,
   TITLE_SCENE_DIRECTION,
+  TITLE_STAGE_FRAME,
   TITLE_ZOMBIE_GROUND_LIFT_Y,
   TITLE_DAYLIGHT,
   TITLE_FLOOR_CHALK_COLOR,
@@ -19,6 +20,9 @@ import {
   clampTitleBackgroundZ,
   disposeTitleCharacterOutlines,
   getTitleSceneRootPosition,
+  getTitleStageFramePosition,
+  getTitleExitDoorFramePosition,
+  TITLE_EXIT_DOOR_FRAME,
   prepareTitleCharactersForStudioUpdate,
 } from './TitleScene3D.jsx'
 import { applyStudioTuning } from './StudioTunedGroup.jsx'
@@ -52,30 +56,29 @@ describe('TitleScene3D direction', () => {
     expect(source.match(/position=\{liftedPosition\}/g)).toHaveLength(3)
   })
 
-  it('keeps the title scene focused on exit and zombie pursuit', () => {
+  it('keeps the title scene focused on exit and zombie pursuit with the reduced cast', () => {
     expect(TITLE_SCENE_DIRECTION.scene).toMatchObject({
       exitGlow: true,
       infectionStreaks: 2,
-      zombieStudents: 5,
-      bossZombies: 3,
+      zombieStudents: 3,
+      bossZombies: 1,
       matildaPursuers: 1,
+      dancingDoges: 1,
       realForegroundResources: [
         'ZombieMesh',
         'MatildaMesh',
-        'ClassroomDesk',
-        'ClassroomChair',
-        'UnconsciousStudent',
       ],
     })
   })
 
-  it('puts standing students behind the title weapons and zombie layers', () => {
+  it('drops the background students and classroom furniture from the title list (2026-11-08 decision 1)', () => {
     const source = readFileSync(new URL('./TitleScene3D.jsx', import.meta.url), 'utf8')
-    const studentBlock = source.match(/const TITLE_STANDING_STUDENTS = \[[\s\S]*?\n\]/)?.[0]
-    const studentZs = [...studentBlock.matchAll(/position: \[[^,]+, [^,]+, (-?\d+(?:\.\d+)?)\]/g)].map((match) => Number(match[1]))
 
-    expect(studentZs).toEqual([-8.8, -9.1, -8.6])
-    expect(studentZs.every((z) => z < -8.0)).toBe(true)
+    expect(source).not.toContain('TITLE_STANDING_STUDENTS')
+    expect(source).not.toContain('UnconsciousStudent')
+    expect(source).not.toContain('ClassroomChair')
+    expect(source).not.toContain('ClassroomDesk')
+    expect(source).not.toContain('TitleClassroomProps')
   })
 
   it('drops the club light beams and dark fog for the sunny after-school title', () => {
@@ -132,95 +135,78 @@ describe('TitleScene3D direction', () => {
     expect(source).toContain('<MatildaMesh />')
   })
 
-  it('fills title foreground props with real in-game resources', () => {
+  it('keeps real in-game models for the reduced cast: B01, three ordinary zombies, Matilda and one Doge', () => {
     const source = readFileSync(new URL('./TitleScene3D.jsx', import.meta.url), 'utf8')
 
     expect(source).toContain("import ZombieMesh from './ZombieMesh.jsx'")
-    expect(source).toContain("import ClassroomChair from './StageObjects/ClassroomChair.jsx'")
-    expect(source).toContain("import ClassroomDesk from './StageObjects/ClassroomDesk.jsx'")
-    expect(source).toContain("import UnconsciousStudent from './StageObjects/UnconsciousStudent.jsx'")
     expect(source).not.toContain("from './StageObjects/index.js'")
     expect(source).toContain('<ZombieMesh type={type} animPhase="charge" idleRig={idleRig} />')
-    expect(source).toContain('<TitleBossZombie type="B02" position={[-1.99, 0.18, -3.7]} scale={0.93} delay={0.9} />')
-    expect(source).toContain('<TitleBossZombie type="B03" position={[0.02, 0.4, -4.04]} scale={1.344} delay={1.35} />')
     expect(source).toContain('<TitleBossZombie type="B01" position={[-0.86, 0.34, -1.12]} scale={1.02} />')
+    expect(source).toContain('<TitleZombie idleId="zombieE01" position={[-1.95, 0.22, -1.55]} delay={0.2} scale={0.7} type="E01" />')
+    expect(source).toContain('<TitleZombie idleId="zombieE02" position={[1.56, 0.2, -2.08]} delay={1.0} scale={0.62} type="E02" />')
     expect(source).toContain('<TitleZombie idleId="zombieE03" position={[-0.92, 0.18, -2.72]} delay={2.1} scale={0.52} type="E03" />')
-    expect(source).toContain('<ClassroomDesk')
-    expect(source).toContain('<ClassroomChair')
-    expect(source).toContain('<UnconsciousStudent')
+    expect(source).toContain('<TitleMatildaPursuer position={[1.45, 0.36, -2.92]} delay={1.8} scale={1.44} />')
+    expect(source).toContain('<TitleIdleDoge idleId="dogeTwist" position={[-1.27, 0.0, 1.55]} dance="twist"')
     expect(source).not.toContain('function LargeZombieSilhouette')
     expect(source).not.toContain('function ZombieHeadSilhouette')
     expect(source).not.toContain('function SchoolSign')
   })
 
-  it('scales title classroom furniture 3x and Matilda 2x from the previous title layout', () => {
+  it('removes the other bosses, far zombies, second Doge, duck, Chibiko, Zomlonbisk and Starlink from the list', () => {
     const source = readFileSync(new URL('./TitleScene3D.jsx', import.meta.url), 'utf8')
 
-    expect(source).toContain('rotation={[0, 0.42, -0.06]} scale={0.72}')
-    expect(source).toContain('rotation={[0, -0.36, 0.04]} scale={1.02}')
-    expect(source).toContain('rotation={[0, 0.9, 0]} scale={0.84}')
-    expect(source).toContain('rotation={[0, -0.78, 0]} scale={0.84}')
-    expect(source).toContain('<TitleMatildaPursuer position={[1.45, 0.36, -2.92]} delay={1.8} scale={1.44} />')
+    expect(source).not.toContain('<TitleBossZombie type="B02"')
+    expect(source).not.toContain('<TitleBossZombie type="B03"')
+    expect(source).not.toContain('zombieE03Far')
+    expect(source).not.toContain('zombieE02Far')
+    expect(source).not.toContain('dogeDisco')
+    expect(source).not.toContain('CompassBladeModel')
+    expect(source).not.toContain('ChibikoModel')
+    expect(source).not.toContain('TitleCompanions')
+    expect(source).not.toContain('StarlinkSatelliteModel')
+    expect(source).not.toContain('ZomlonbiskModel')
+    expect(source).not.toContain('TitleFarBackgroundStory')
+    expect(source).not.toContain('title-crashed-starlink')
   })
 
-  it('places the real duck potty and Chibiko models in the title foreground', () => {
+  it('frames the whole reduced stage with one title-only outer group and no render gate', () => {
     const source = readFileSync(new URL('./TitleScene3D.jsx', import.meta.url), 'utf8')
 
-    expect(source).toContain("import { CompassBladeModel } from './Weapons/CompassBlade.jsx'")
-    expect(source).toContain("import { ChibikoModel } from './Weapons/Chibiko.jsx'")
-    expect(source).toContain('duckRef.current.scale.set(1.05, 1.05 * (1 + breath), 1.05)')
-    expect(source).toContain('Math.sin(clock.elapsedTime * 1.7) * 0.014')
-    expect(source).toContain('ref={duckRef} position={[-0.22, 0.2, 0.82]}')
-    expect(source).toContain('position={[-0.22, 0.2, 0.82]}')
-    expect(source).toContain('<CompassBladeModel />')
-    expect(source).toContain('<ChibikoModel attackPhaseRef={chibikoAttackPhaseRef} />')
-    expect(source).toContain('<TitleCompanions />')
+    expect(TITLE_STAGE_FRAME).toEqual({ pivot: [0.44, -0.27, 0.42], scale: 0.78, lift: [-0.1, 0.3, 0] })
+    const framePosition = getTitleStageFramePosition()
+    expect(framePosition[0]).toBeCloseTo(0.44 * 0.22 - 0.1)
+    expect(framePosition[1]).toBeCloseTo(-0.27 * 0.22 + 0.3)
+    expect(framePosition[2]).toBeCloseTo(0.42 * 0.22)
+
+    const frameStart = source.indexOf('<group position={getTitleStageFramePosition()} scale={TITLE_STAGE_FRAME.scale}>')
+    const studioBranch = source.indexOf('{studioMode ? (', frameStart)
+    const snapshotEnd = source.indexOf('</StudioTuningSnapshotProvider>', frameStart)
+    const frameEnd = source.indexOf('</group>', snapshotEnd)
+    expect(frameStart).toBeGreaterThan(-1)
+    expect(studioBranch).toBeGreaterThan(frameStart)
+    expect(snapshotEnd).toBeGreaterThan(studioBranch)
+    expect(frameEnd).toBeGreaterThan(snapshotEnd)
+    // 출연진은 목록에서 지운 것이다 — 조건부 숨김 게이트가 아니다.
+    expect(source.slice(frameStart, frameEnd)).not.toMatch(/&&\s*</)
   })
 
-  it('poses three shared student models upright across the visible foreground floor', () => {
-    const source = readFileSync(new URL('./TitleScene3D.jsx', import.meta.url), 'utf8')
-    const students = [...source.matchAll(/\{ position: \[([^\]]+)\], rotationY: ([^ }]+) \}/g)]
-
-    expect(students).toHaveLength(3)
-    expect(source).toContain('rotation={[0, rotationY, 0]}')
-    expect(source).toContain('<group rotation={[-Math.PI / 2, 0, 0]}>')
-    expect(source).toContain('<UnconsciousStudent variant="faceUp" />')
-    expect(source).not.toContain('<UnconsciousStudent variant="sideLeft" />')
-    expect(source).toContain('scale={0.4}')
-
-    students.forEach(([, positionText, rotationYText]) => {
-      const [, y] = positionText.split(',').map(Number)
-      const heading = Number(rotationYText)
-      const composedRotation = new THREE.Matrix4()
-        .makeRotationFromEuler(new THREE.Euler(0, heading, 0))
-        .multiply(new THREE.Matrix4().makeRotationX(-Math.PI / 2))
-        .multiply(new THREE.Matrix4().makeRotationX(Math.PI / 2))
-      const up = new THREE.Vector3(0, 1, 0).applyMatrix4(composedRotation)
-
-      expect(up.x).toBeCloseTo(0)
-      expect(up.y).toBeCloseTo(1)
-      expect(up.z).toBeCloseTo(0)
-      expect(y - (0.9 * 0.4)).toBeCloseTo(0.01)
-    })
-  })
-
-  it('restores the far-background models below the blue and purple lights', () => {
+  it('shrinks the exit door and its glow panel onto the ground with one outer group, leaving the floor pool size alone', () => {
     const source = readFileSync(new URL('./TitleScene3D.jsx', import.meta.url), 'utf8')
 
-    expect(source).toContain("import { StarlinkSatelliteModel, ZomlonbiskModel } from './Weapons/StarlinkSatellite.jsx'")
-    expect(source).toContain('function TitleFarBackgroundStory({ reducedEffects })')
-    expect(source).toContain('<StarlinkSatelliteModel studioItemId="title-crashed-starlink" />')
-    expect(source).toContain('<ZomlonbiskModel running={false} />')
-    expect(source).toContain('<TitleFarBackgroundStory reducedEffects={reducedEffects} />')
-  })
-
-  it('restores the far Zomlonbisk animation and keeps both DancingDoges', () => {
-    const source = readFileSync(new URL('./TitleScene3D.jsx', import.meta.url), 'utf8')
-
-    expect(source).toContain('const zomlonbiskRef = useRef()')
-    expect(source).toContain('zomlonbiskRef.current.position.y = 0.68 + Math.abs(s) * 0.05')
-    expect(source).toContain('<TitleIdleDoge idleId="dogeTwist" position={[-1.27, 0.0, 1.55]} dance="twist"')
-    expect(source).toContain('<TitleIdleDoge idleId="dogeDisco" position={[1.97, 0.0, 1.5]} dance="disco"')
+    expect(TITLE_EXIT_DOOR_FRAME).toEqual({ pivot: [0, 0, -4.62], scale: 0.5, drop: -0.32 })
+    const doorFrame = getTitleExitDoorFramePosition()
+    expect(doorFrame[0]).toBeCloseTo(0)
+    expect(doorFrame[1]).toBeCloseTo(-0.32)
+    expect(doorFrame[2]).toBeCloseTo(-4.62 * 0.5)
+    const wrapper = '<group position={getTitleExitDoorFramePosition()} scale={TITLE_EXIT_DOOR_FRAME.scale}>'
+    expect(source.split(wrapper)).toHaveLength(3)
+    const doorIndex = source.indexOf('position={[0, 1.3, -4.62]} material={doorMat}')
+    const panelIndex = source.indexOf('<mesh ref={ref} position={[0, 1.35, -4.35]} material={mat}>')
+    expect(source.lastIndexOf(wrapper, doorIndex)).toBeGreaterThan(-1)
+    expect(source.lastIndexOf(wrapper, panelIndex)).toBeGreaterThan(-1)
+    const poolIndex = source.indexOf('<mesh ref={poolRef}')
+    const panelWrapperEnd = source.indexOf('</group>', panelIndex)
+    expect(poolIndex).toBeGreaterThan(panelWrapperEnd)
   })
 
   it('keeps far-background story models behind the title board', () => {
@@ -516,12 +502,14 @@ describe('TitleScene3D direction', () => {
 
     expect(wrapperStart).toBeGreaterThan(-1)
     expect(wrapperEnd).toBeGreaterThan(wrapperStart)
-    expect(characterSource).toContain('<TitleFarBackgroundStory reducedEffects={reducedEffects} />')
-    expect(characterSource.match(/<TitleBossZombie/g)).toHaveLength(3)
-    expect(characterSource.match(/<TitleZombie/g)).toHaveLength(5)
-    expect(characterSource).toContain('<TitleMatildaPursuer')
-    expect(characterSource.match(/<TitleIdleDoge /g)).toHaveLength(2)
-    expect(characterSource).toContain('<TitleCompanions />')
+    // 2026-11-08 결정 1: 외곽선 그룹 안 출연진 6 (B01 1 + 일반 좀비 3 + 마틸다 1 + 도지 1) + 바깥 로자리 1 = 7.
+    expect(characterSource.match(/<TitleBossZombie/g)).toHaveLength(1)
+    expect(characterSource.match(/<TitleZombie /g)).toHaveLength(3)
+    expect(characterSource.match(/<TitleMatildaPursuer/g)).toHaveLength(1)
+    expect(characterSource.match(/<TitleIdleDoge /g)).toHaveLength(1)
+    expect(characterSource.match(/<Title(BossZombie|Zombie|MatildaPursuer|IdleDoge) /g)).toHaveLength(6)
+    expect(characterSource).not.toContain('<TitleFarBackgroundStory')
+    expect(characterSource).not.toContain('<TitleCompanions')
     expect(characterSource).not.toContain('<TitleClassroomProps />')
     expect(characterSource).not.toContain('<SpeedStreak')
     expect(characterSource).not.toContain('<WarningLight')

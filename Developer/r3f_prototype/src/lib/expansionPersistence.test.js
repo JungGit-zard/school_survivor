@@ -8,9 +8,15 @@ import { load, incrementRecord, setBestIfHigher } from './playerRecords.js'
 import { getZombieTypeLabel, isKnownZombieType, normalizeZombieEncounterMap, recordZombieEncounter } from './zombieEncyclopedia.js'
 import { getRankingScorePolicy, getStagePriority, getRankingScore, getBossClearBonus } from './rankingScorePolicy.js'
 import { ALLOWED_STAGE_IDS, SERVER_STAGE_BONUS, expectedScore, normalizeRun } from '../../functions/src/ranking.js'
+import { EXPANSION_ENEMIES, EXPANSION_BOSSES } from './expansionContent.js'
+import { EXPANSION_PART2_LIBRARY_ARCHIVE } from './expansionPart2Archive.js'
 
 const contract = JSON.parse(readFileSync(resolve('../../Planner/expansion_20261016/content_data.json'), 'utf8'))
 const actors = [...contract.enemies, ...contract.bosses]
+// 2026-11-08 Stage 6 운동장 교체: E19/E20/E21/B05는 금서 도서관 원안 라벨 대신 운동장 라벨을 쓴다.
+// 라벨 정본은 런타임 저작 데이터(expansionContent), 도서관 원안은 2부 보존 데이터(expansionPart2Archive)에 남는다.
+const STAGE6_REPLACED_IDS = ['E19', 'E20', 'E21', 'B05']
+const authoredLabel = (id) => (EXPANSION_ENEMIES[id] ?? EXPANSION_BOSSES[id]).nameKo
 const user = { uid: 'expansion-unit-fixture' }
 const snapshot = (progress = {}) => ({ schemaVersion: 1, profile: { uid: user.uid, displayName: 'Fixture', nickname: '' }, progress: { goldTotal: 42, weaponUnlockSchemaVersion: 2, ...progress } })
 
@@ -64,10 +70,21 @@ describe('expansion persistence contract', () => {
     expect(progress.bossPassiveUnlocks).toEqual({ b01SetSquare: true })
   })
 
+  it('keeps the Stage 6 library originals of E19/E20/E21/B05 in the Part 2 archive while runtime uses the schoolyard labels', () => {
+    const archive = EXPANSION_PART2_LIBRARY_ARCHIVE
+    const archived = Object.fromEntries([...archive.enemies, archive.boss].map((actor) => [actor.id, actor.nameKo]))
+    expect(archived).toEqual({ E19: '서가운반 좀비', E20: '색인질주 좀비', E21: '반납투척 좀비', B05: '금서관장' })
+    for (const id of STAGE6_REPLACED_IDS) {
+      expect(contract.enemies.concat(contract.bosses).find((actor) => actor.id === id).nameKo).toBe(archived[id])
+      expect(authoredLabel(id)).not.toBe(archived[id])
+    }
+    expect(STAGE6_REPLACED_IDS.map(authoredLabel)).toEqual(['조회 줄서기 좀비', '국민체조 좀비', '계주 바통 좀비', '교장 선생님 좀비'])
+  })
+
   it.each(actors)('records $id with its exact authored label without waiting for runtime pool registration', ({ id, nameKo }) => {
     applyCloudProgressSnapshot(snapshot({ encounteredZombieTypes: { E01: 1 } }), user)
     expect(isKnownZombieType(id)).toBe(true)
-    expect(getZombieTypeLabel(id)).toBe(nameKo)
+    expect(getZombieTypeLabel(id)).toBe(STAGE6_REPLACED_IDS.includes(id) ? authoredLabel(id) : nameKo)
     expect(recordZombieEncounter(id)).toBe(true)
     expect(recordZombieEncounter(id)).toBe(false)
     const saved = buildCloudProgressSnapshot()
@@ -76,7 +93,7 @@ describe('expansion persistence contract', () => {
   })
 
   it('keeps unknown encounter IDs and malformed values out of both normalizers', () => {
-    const invalid = { E18: 1, E71: 1, B10: 1, E19: '1', E20: 2, B05: false }
+    const invalid = { E18: 1, E71: 1, B11: 1, E19: '1', E20: 2, B05: false }
     expect(normalizeZombieEncounterMap(invalid)).toEqual({})
     applyCloudProgressSnapshot(snapshot({ encounteredZombieTypes: invalid }), user)
     expect(buildCloudProgressSnapshot().progress.encounteredZombieTypes).toEqual({})

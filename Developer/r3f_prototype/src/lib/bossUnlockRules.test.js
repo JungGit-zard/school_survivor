@@ -30,8 +30,11 @@ describe('existing ledger wire contract and baseline Firebase Rules', () => {
   // 클라이언트가 셋 다 쓰므로(progress·titleSettings·공개 항목 모두 $other:false) 이 Rules를 먼저 배포해야 한다.
   // 2026-11-07: f969eedf에서 encounteredZombieTypes 화이트리스트에 E46~E70(투사체 좀비 1·2차 25종)만 추가(509c9e29…).
   // 클라이언트(firebaseProgress ZOMBIE_ENCOUNTER_TYPES·도감)가 이 조우를 저장하므로 이 Rules를 클라이언트보다 먼저 배포해야 한다.
-  it('pins the reviewed Rules bytes: a9 plus the E34-E45 and E46-E70 encounter whitelist, the rosari appearance, the wardrobe playerOutfit, the run-ledger summary and the outfit unlocks/ranking outfitId (deploy Rules before the client)', () => {
-    expect(createHash('sha256').update(bytes).digest('hex')).toBe('509c9e2902041e3a82fe882252fc247bcf6e3486af4a4c656a0b5d50dd304e87')
+  // 2026-11-08: 509c9e29에서 Stage 5·6 보상 키만 추가(5b46c44d…): encounteredZombieTypes에 B10(교감 좀비),
+  // bossPassiveUnlocks에 b10ApprovalStamp·b05PrincipalMic, outfitUnlocks·titleSettings.playerOutfit·공개 랭킹 outfitId에
+  // prefect·sportsDay. 기존 허용값은 하나도 빠지지 않았다. 클라이언트가 이 키를 저장하므로 Rules를 먼저 배포해야 한다.
+  it('pins the reviewed Rules bytes: a9 plus the E34-E45, E46-E70 and B10 encounter whitelist, the rosari appearance, the wardrobe playerOutfit, the run-ledger summary, the outfit unlocks/ranking outfitId incl. Stage 5/6 prefect and sportsDay, and the B10/B05 boss passives (deploy Rules before the client)', () => {
+    expect(createHash('sha256').update(bytes).digest('hex')).toBe('5b46c44d7a4e73455aee1cb60b34e2bdef0d7fdbf5f98924f02bd220f6e5b7fe')
   })
   it.each([1,2,3,4,5,6,7,8,9,10])('stage %i virtual key uses existing numeric run-row validator, not progress schema additions', n => {
     const key=`stage${n}BossDefeats`

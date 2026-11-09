@@ -184,6 +184,43 @@ export const ROSARI_OUTFITS = Object.freeze([
     accessories: Object.freeze(['capCrown', 'capBoard', 'capTassel']),
     models: Object.freeze(['rosari']),
   }),
+  // ── Stage 5·6 클리어 의상 임시안 (2026-11-08, spec56 B §9 · C-9-4) ──────────────────────
+  // Same rule as the S6 four: no approved 2D concept yet, palette on the existing garment slots
+  // plus <=100 triangles of low-poly detail. Replace when the 2D art lands.
+  Object.freeze({
+    // 선도부 교복: navy blazer and skirt over the white shirt, a red tie, a red "선도" armband on
+    // the upper sleeve and white gloves. The armband and gloves are the 20px identity cues.
+    id: 'prefect',
+    label: '선도부 교복',
+    note: '선도부 교복 임시안이에요. 원화가 나오면 다시 다듬을 거예요.',
+    colors: Object.freeze({
+      blazer: '#1f2a4d',
+      shirt: '#fffaf4',
+      collar: '#fffaf4',
+      tie: '#b3202c',
+      skirt: '#2a3558',
+    }),
+    accessories: Object.freeze(['prefectArmband', 'gloveLeft', 'gloveRight']),
+    models: Object.freeze(['rosari', 'v9']),
+  }),
+  Object.freeze({
+    // 운동회 반티: yellow class tee (#F2C94C) with navy sports shorts and a red headband. Like
+    // 체육복 the tie is hidden (a tee has none); legs stay bare because the shorts end at the hem.
+    id: 'sportsDay',
+    label: '운동회 반티',
+    note: '운동회 반티 임시안이에요. 원화가 나오면 다시 다듬을 거예요.',
+    colors: Object.freeze({
+      blazer: '#f2c94c',
+      shirt: '#f2c94c',
+      collar: '#f2c94c',
+      tie: '#f2c94c', // v9 decal only: paints the drawn tie into the tee
+      buttons: '#f2c94c', // v9 decal only
+      skirt: '#23305e',
+    }),
+    hide: Object.freeze(['yellow_tie_knot', 'yellow_tie_long_drop']),
+    accessories: Object.freeze(['headband']),
+    models: Object.freeze(['rosari', 'v9']),
+  }),
 ])
 
 export const ROSARI_OUTFIT_IDS = Object.freeze(ROSARI_OUTFITS.map((outfit) => outfit.id))
@@ -342,6 +379,41 @@ function buildCapTassel() {
   return geometry
 }
 
+// 선도부 armband: an uncapped 8-sided ring around the upper sleeve, in the sleeve mesh's own
+// space (left_upper_sleeve_continuous_to_white_cuff local bounds x −0.214..0.154,
+// y −0.349..0.284, z −0.071..0.325 → axis x −0.03, z 0.127, half width ≤ 0.198).
+function buildPrefectArmband() {
+  const geometry = new THREE.CylinderGeometry(0.215, 0.215, 0.1, 8, 1, true)
+  geometry.translate(-0.03, -0.12, 0.127)
+  return geometry
+}
+
+// White gloves: a box shell just outside each mitten hand, in the hand mesh's own space.
+// Mitten local bounds — left x −0.192..0.043, y 0.153..0.373, z −0.040..0.281;
+// right x 0.000..0.212, y 0.128..0.354, z −0.085..0.234. Shell = bounds + 0.015 per side.
+function buildGloveShell(min, max) {
+  const pad = 0.015
+  const geometry = new THREE.BoxGeometry(max[0] - min[0] + pad * 2, max[1] - min[1] + pad * 2, max[2] - min[2] + pad * 2)
+  geometry.translate((min[0] + max[0]) / 2, (min[1] + max[1]) / 2, (min[2] + max[2]) / 2)
+  return geometry
+}
+
+function buildGloveLeft() {
+  return buildGloveShell([-0.192, 0.153, -0.04], [0.043, 0.373, 0.281])
+}
+
+function buildGloveRight() {
+  return buildGloveShell([0, 0.128, -0.085], [0.212, 0.354, 0.234])
+}
+
+// 운동회 headband: an uncapped 10-sided band around the bob, below the crown and above the
+// face line (bob radius 0.666 at y 0.9 → 0.549 at y 1.1), tapered to hug it.
+function buildHeadband() {
+  const geometry = new THREE.CylinderGeometry(0.6, 0.69, 0.13, 10, 1, true)
+  geometry.translate(HAIR_AXIS_X, 0.98, HAIR_AXIS_Z)
+  return geometry
+}
+
 export const ROSARI_OUTFIT_TORSO_NODE = 'simple_closed_lego_torso_exterior_one_piece'
 export const ROSARI_OUTFIT_HAIR_NODE = 'removable_hair_pivot'
 
@@ -358,6 +430,10 @@ const ACCESSORY_BUILDERS = Object.freeze({
   capCrown: { build: buildCapCrown, color: '#1d1d26', attach: ROSARI_OUTFIT_HAIR_NODE },
   capBoard: { build: buildCapBoard, color: '#1d1d26', attach: ROSARI_OUTFIT_HAIR_NODE },
   capTassel: { build: buildCapTassel, color: '#d4a53a', attach: ROSARI_OUTFIT_HAIR_NODE },
+  prefectArmband: { build: buildPrefectArmband, color: '#c8202f', attach: 'left_upper_sleeve_continuous_to_white_cuff' },
+  gloveLeft: { build: buildGloveLeft, color: '#fbfbf7', attach: 'left_simple_lowpoly_hand_mitten' },
+  gloveRight: { build: buildGloveRight, color: '#fbfbf7', attach: 'right_simple_lowpoly_hand_mitten' },
+  headband: { build: buildHeadband, color: '#d1242f', attach: ROSARI_OUTFIT_HAIR_NODE },
 })
 
 export const ROSARI_OUTFIT_ACCESSORY_IDS = Object.freeze(Object.keys(ACCESSORY_BUILDERS))
@@ -382,9 +458,11 @@ export function getRosariOutfitAccessoryAttachNode(accessoryId) {
 export function applyRosariOutfit(root, outfitId, makeMaterial) {
   const outfit = resolveRosariOutfit(outfitId)
   const anchors = new Map()
+  const anchorNames = new Set([ROSARI_OUTFIT_TORSO_NODE, ROSARI_OUTFIT_HAIR_NODE])
+  for (const id of outfit.accessories) if (ACCESSORY_BUILDERS[id]?.attach) anchorNames.add(ACCESSORY_BUILDERS[id].attach)
   const hide = new Set(outfit.hide || [])
   root.traverse((node) => {
-    if (node.name === ROSARI_OUTFIT_TORSO_NODE || node.name === ROSARI_OUTFIT_HAIR_NODE) {
+    if (anchorNames.has(node.name)) {
       if (!anchors.has(node.name)) anchors.set(node.name, node)
     }
     if (hide.has(node.name)) node.visible = false

@@ -20,6 +20,7 @@ const STUDENT_POOLS = Object.freeze({
   stage2: 'investigation.student.stage2',
   stage3: 'investigation.student.stage3',
   stage4: 'investigation.student.stage4',
+  stage5: 'investigation.student.stage5',
 })
 
 export function getInvestigationDialogue(stageId, type, { random } = {}) {

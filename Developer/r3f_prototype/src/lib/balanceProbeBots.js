@@ -152,6 +152,19 @@ export function threatEscape(telegraph, player, out) {
     out.z += dz / distance
     return true
   }
+  // annulus(2026-11-08, S6 훈화 고리·B05 훈화 고리): 띠 [inner, outer] 안이면 가까운 가장자리 쪽 반지름 방향으로 벗어난다.
+  if (telegraph.kind === 'annulus') {
+    const dx = player.x - telegraph.x
+    const dz = player.z - telegraph.z
+    const distance = Math.hypot(dx, dz)
+    if (distance < telegraph.inner - THREAT_MARGIN || distance > telegraph.outer + THREAT_MARGIN) return false
+    const ux = distance < 1e-4 ? 1 : dx / distance
+    const uz = distance < 1e-4 ? 0 : dz / distance
+    const outward = (telegraph.outer - distance) <= (distance - telegraph.inner) || telegraph.inner <= 0 ? 1 : -1
+    out.x += ux * outward
+    out.z += uz * outward
+    return true
+  }
   // line: 시작점(x,z) + 방향(dirX,dirZ) × length, 반폭 halfWidth
   const px = player.x - telegraph.x
   const pz = player.z - telegraph.z

@@ -103,8 +103,8 @@ describe('바닥 색 구역 굽기 — stageLightingProfile 정본에서 유도'
         expect(half).toBeGreaterThanOrEqual(Math.abs(lx) + light.distance)
         expect(half).toBeGreaterThanOrEqual(Math.abs(lz) + light.distance)
       }
-      // e6b93e7c added stage6-stage10 expansion profiles.
-      expect(stageId).toMatch(/^stage(?:[1-4]|[6-9]|10)$/)
+      // e6b93e7c added stage6-stage10 expansion profiles; Stage 5 교무실 profile joined 2026-11-08.
+      expect(stageId).toMatch(/^stage(?:[1-9]|10)$/)
     }
   })
 

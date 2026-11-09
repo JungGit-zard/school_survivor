@@ -1,31 +1,29 @@
 import ClassroomFloor from './ClassroomFloor.jsx'
+import Stage5StaffroomDecor from './Stage5StaffroomDecor.jsx'
+import Stage5CallLaneGroundWarning from './StageObjects/Stage5CallLaneGroundWarning.jsx'
+import B10StampDeathMarkLayer from './B10StampDeathMark.jsx'
 import StudioTunedGroup from './StudioTunedGroup.jsx'
-import { getStageBounds, getStageConfig } from '../lib/stageConfig.js'
 
-// Reuse approved gym art only. Prop render/physics/sight queries must retain
-// stage5 identity in Floor; aliasing Stage3 furniture here would hide blockers
-// from gameplay's Stage5 placement queries.
+// Stage 5 교무실(스펙 Part B §3-3): 절차적 리놀륨 바닥 + 벽 비주얼만 그린다.
+// 프랍·콜라이더·자판기는 Floor가 stage5 정체성 그대로 마운트한다(StageObjectLayer · StageObjectColliderLayer).
+// 체육관 바닥 재사용은 폐기했다. 바닥이 맵 경계에 정확히 맞으므로 보정 스케일이 없다.
+
+// Floor.jsx 가드 호환 함수. 리놀륨 바닥은 stage5 경계로 직접 그려서 항상 [1, 1, 1]이다.
 export function getStage5EnvironmentScale() {
-  if (getStageConfig('stage5').id !== 'stage5') return null
-  const stage5 = getStageBounds('stage5')
-  const gym = getStageBounds('stage3')
-  if (![stage5.halfX, stage5.halfZ, gym.halfX, gym.halfZ]
-    .every((value) => Number.isFinite(value) && value > 0)) return null
-  return [stage5.halfX / gym.halfX, 1, stage5.halfZ / gym.halfZ]
+  return [1, 1, 1]
 }
 
 export default function Stage5Environment() {
-  const scale = getStage5EnvironmentScale()
-  if (!scale) return null
-
   return (
-    <group name="stage5-environment" scale={scale}>
-      {/* Reuse the existing approved floor identity, never create a Studio item.
-          Wood, painted lines, boundary walls and baked colour zones stay shared.
-          The combat collider and vending placement remain Stage5-owned. */}
-      <StudioTunedGroup itemId="stage-floor-stage3" materialTuning={false}>
-        <ClassroomFloor stageId="stage3" />
+    <group name="stage5-environment">
+      <StudioTunedGroup itemId="stage-floor-stage5" materialTuning={false}>
+        <ClassroomFloor stageId="stage5" />
       </StudioTunedGroup>
+      <Stage5StaffroomDecor />
+      {/* 전교 호출 레인 바닥 표시 — 호출 상태가 없으면 숨김. 씬에 portal해 월드 좌표로 그린다. */}
+      <Stage5CallLaneGroundWarning />
+      {/* B10 사망 시 바닥에 남는 "決" 도장 자국(1.5s). */}
+      <B10StampDeathMarkLayer />
     </group>
   )
 }

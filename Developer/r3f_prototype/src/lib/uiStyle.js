@@ -42,6 +42,20 @@ export function paperSticker(tiltDeg = 0) {
   }
 }
 
+// 타이틀 주 CTA(START) — 화면에서 유일하게 채워진 색 버튼(2026-11-08 타이틀 정리 1단계).
+// 새 색 없이 sunnyPalette만 쓴다. line/orange 대비 약 5.2:1.
+export function sunnyCta() {
+  return {
+    border: `2.5px solid ${sunnyPalette.line}`,
+    borderRadius: 6,
+    background: sunnyPalette.orange,
+    color: sunnyPalette.line,
+    boxShadow: `3px 5px 0 ${sunnyPalette.line}`,
+    fontWeight: uiType.weightStrong,
+    cursor: 'pointer',
+  }
+}
+
 export const uiBorders = {
   strong: `2px solid ${uiPalette.ink}`,
   hairline: '1.5px solid rgba(5, 2, 9, 0.72)',

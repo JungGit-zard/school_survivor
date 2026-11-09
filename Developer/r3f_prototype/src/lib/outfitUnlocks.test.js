@@ -75,6 +75,18 @@ describe('account outfit ownership (progress.outfitUnlocks)', () => {
     expect(resolveRunOutfitId()).toBe('gym')
   })
 
+  it('Stage 5·6 outfits (looks added 2026-11-08): granted by their clears and worn once owned', () => {
+    expect(grantOutfitUnlocksFromRecords({ stage5Clears: 1 })).toEqual(['prefect'])
+    expect(isOutfitUnlocked('prefect')).toBe(true)
+    expect(isOutfitUnlocked('sportsDay')).toBe(false)
+    expect(syncOutfitUnlocksFromRecords({ stage5Clears: 1, stage6Clears: 1 })).toEqual(['sportsDay'])
+    expect(readFirebasePlayerProgressOrDefault().outfitUnlocks).toEqual({ prefect: 1, sportsDay: 1 })
+    expect(buildCloudProgressSnapshot().progress.outfitUnlocks).toEqual({ prefect: 1, sportsDay: 1 })
+    saveTitleSettings({ playerOutfit: 'prefect' })
+    expect(readFirebasePlayerProgressOrDefault().titleSettings.playerOutfit).toBe('prefect')
+    expect(resolveRunOutfitId()).toBe('prefect')
+  })
+
   it('grant from run evalInput returns first-time unlocks only', () => {
     expect(grantOutfitUnlocksFromRecords({ stage2Clears: 1 })).toEqual(['raincoat'])
     expect(grantOutfitUnlocksFromRecords({ stage2Clears: 2 })).toEqual([])

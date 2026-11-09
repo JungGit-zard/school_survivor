@@ -6,7 +6,9 @@
 // firebaseProgressRules.test.js assert the rule strings match this list exactly.
 // A rule that is missing an id silently rejects the whole progress save or the whole
 // six-bucket ranking write, so deploy the rules before any client that emits a new id.
-export const PLAYER_OUTFIT_IDS = Object.freeze(['default', 'winter', 'raincoat', 'gym', 'apron', 'grad'])
+// 'prefect'(Stage 5 clear) and 'sportsDay'(Stage 6 clear) were added 2026-11-08 with provisional looks in
+// rosariOutfits.js; outfitCatalog.js lists them and grants them on the matching stage clear.
+export const PLAYER_OUTFIT_IDS = Object.freeze(['default', 'winter', 'raincoat', 'gym', 'apron', 'grad', 'prefect', 'sportsDay'])
 
 export const DEFAULT_PLAYER_OUTFIT = 'default'
 

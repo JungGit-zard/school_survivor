@@ -1,4 +1,5 @@
 import { EXPANSION_STAGES, EXPANSION_ENEMIES, EXPANSION_BOSSES } from './expansionContent.js'
+import { AUTHORED_ATTACK_BOSSES } from './stage5ViceBoss.js'
 import { getStageObjectSightObstacles, isStageObjectSightBlocked, obstacleCosY, obstacleSinY } from '../components/StageObjects/stageObjectColliders.js'
 
 // Gameplay geometry only. 1 block = 4 units. Radius .192/.048 blocks;
@@ -34,8 +35,9 @@ export function expansionPolygonContains(poly,x,z,pad=0){
  return inside || min<=pad*pad+EPS
 }
 export function expansionSafetyContext(type,a){
- const definition=EXPANSION_ENEMIES[type]??EXPANSION_BOSSES[type]
- const stageId=a.stageId??Object.values(EXPANSION_STAGES).find(s=>s.bossId===type||s.enemyIds.includes(type))?.id
+ // a.stageId(호출측이 넘긴 현재 스테이지)가 우선. B10 같은 authored-attack 보스는 확장 스테이지 표에 없으므로 레코드의 stageId로 폴백.
+ const definition=EXPANSION_ENEMIES[type]??EXPANSION_BOSSES[type]??AUTHORED_ATTACK_BOSSES[type]
+ const stageId=a.stageId??Object.values(EXPANSION_STAGES).find(s=>s.bossId===type||s.enemyIds.includes(type))?.id??AUTHORED_ATTACK_BOSSES[type]?.stageId
  const stage=EXPANSION_STAGES[stageId]
  return {stageId,halfX:a.halfX??stage?.mapHalfXUnits??7.5,halfZ:a.halfZ??stage?.mapHalfZUnits??19.2,obstacles:a.obstacles??(definition?getStageObjectSightObstacles(stageId):[])}
 }
@@ -53,10 +55,15 @@ export function expansionAuthoredPolygons(s){
   if(inner>0)for(let i=0;i<n;i++)out.push(ccw([point(yaw-angle/2+i*angle/n,inner,ox,oz),arc[i],arc[i+1],point(yaw-angle/2+(i+1)*angle/n,inner,ox,oz)]))
   else out.push(ccw(angle<TAU?[[x+ox,z+oz],...arc]:arc.slice(0,-1)))
  }
+ const ringAt=(outer,inner)=>{
+  const n=128,at=(angle,radius)=>[x+Math.sin(angle)*radius,z+Math.cos(angle)*radius]
+  for(let i=0;i<n;i++){const a0=-Math.PI+i*TAU/n,a1=-Math.PI+(i+1)*TAU/n;out.push(ccw([at(a0,inner),at(a0,outer),at(a1,outer),at(a1,inner)]))}
+ }
  switch(s.shape){
  case 'disk':circle();break
  case 'three_disks':s.offsetsUnits.forEach(([ox,oz])=>circle(ox,oz));break
- case 'annulus':circle(0,0,Math.max(0,r-w));break
+ // R3: 2페이즈 B05 훈화 고리는 같은 스냅샷에 바깥 고리(외반경 r+o, 폭 w)를 더 그린다. 각 고리는 128분할 사다리꼴.
+ case 'annulus':circle(0,0,Math.max(0,r-w));for(const o of s.extraRingOffsetsUnits??[])ringAt(r+o,Math.max(0,r+o-w));break
  case 'sector':circle(0,0,0,(s.angleDeg??60)*Math.PI/180,Math.atan2(s.directionXZ?.[0]??Math.sin(s.yaw??0),s.directionXZ?.[1]??Math.cos(s.yaw??0)));break
  case 'line':line(s.yaw??0);break
  case 'cross':{const a=(s.angleDeg??0)*Math.PI/180;line(a,0,0,true);line(a+Math.PI/2,0,0,true);break}

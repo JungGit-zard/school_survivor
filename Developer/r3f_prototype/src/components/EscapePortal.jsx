@@ -1,4 +1,4 @@
-import { useEffect, useRef, useMemo, useState } from 'react'
+import { useEffect, useRef, useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import { clearPortalTarget, playerPos, publishPortalTarget } from '../lib/refs.js'
@@ -92,7 +92,10 @@ export default function EscapePortal({ stageId }) {
   const glowMaterialRef = useRef()
   const portalLightRef = useRef()
   // Decided once per portal life so the light count never flips while mounted.
-  const [usesSceneLight] = useState(() => portalSceneLight.hosts > 0)
+  // Held in a ref (no React state in this frame-driven component), initialised on first render only.
+  const usesSceneLightRef = useRef(null)
+  if (usesSceneLightRef.current === null) usesSceneLightRef.current = portalSceneLight.hosts > 0
+  const usesSceneLight = usesSceneLightRef.current
   const spinRef = useRef({ ringY: 0, glowY: 0 })
   const suckingRef      = useRef(false)
   const suctionClockRef = useRef(null)

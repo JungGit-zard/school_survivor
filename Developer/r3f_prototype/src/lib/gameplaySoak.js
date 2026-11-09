@@ -78,6 +78,23 @@ import {
 } from './burstEvents.js'
 import { ENEMY_STATS } from '../components/Enemy.jsx'
 import { useGameStore } from '../store/useGameStore.js'
+import { buildExpansionBurstBatch } from '../components/Enemies.jsx'
+import { STAGE5_CALL_LANE_FORMATION } from './burstEvents.js'
+import { createStage5CallLanePulses, getStage5CallLaneVisual, laneIndexForX, STAGE5_CALL_STAGE_ID, stage5CallLanePulseOffset } from './stage5CallLane.js'
+import { AUTHORED_ATTACK_BOSSES, b10SummonRingPositions, createB10SummonState, isAuthoredAttackBoss, isB10EnrageTransitionDone, stepB10SummonTriggers } from './stage5ViceBoss.js'
+import {
+  clearExpansionAttacks,
+  createExpansionAttackState,
+  expansionAttackSnapshots,
+  resetExpansionPoolAttacks,
+  stepExpansionAttack,
+  stepExpansionHazardSnapshots,
+} from './expansionAttackRuntime.js'
+import { createBossSummonState, stepBossSummon } from './expansionBossSummons.js'
+import { advanceAssemblySpeech, createAssemblySpeechState, emitAssemblySpeechRing } from './stage6AssemblySpeech.js'
+import { isRangedPropBlockStage } from './stageRangedBlockers.js'
+import { EXPANSION_BOSSES, getExpansionStageHazards, isExpansionBoss, isExpansionStage } from './expansionContent.js'
+import { probeFixedSpawnPos, updateScreenBounds } from './stageRuntimeProbe.js'
 
 // 출시 스테이지 1~5만 돈다. 6~10은 미출시 초안이라 소크 대상이 아니다.
 export const SOAK_STAGES = ['stage1', 'stage2', 'stage3', 'stage4', 'stage5']
@@ -96,6 +113,10 @@ const SATURATION_BATCH = 6
 const MAX_OVERLAP_FRAMES = 30
 // 스턱 회복(1.2초)의 4배를 넘겨도 못 빠져나오면 영구 스턱으로 본다.
 const MAX_STUCK_MS = ENEMY_STUCK_RECOVERY_MS * 4
+// 2026-11-08 Stage 5/6: 소크에는 보스 몸(React/Rapier)이 없다. 대신 '가상 보스'(위치·이동·확장 공격 스냅샷·소환)를
+// 돌린다. HP는 등장 후 이 시간에 걸쳐 선형으로 0이 된다고 가정한다(스펙 처치 목표 25~55초의 중간값) —
+// B10 소집 트리거(85/50/25%)·격노 전환·B05 격노 소환이 모두 런 안에서 한 번씩 지나가게 하려는 값이다.
+const VIRTUAL_BOSS_KILL_SEC = 40
 
 function mulberry32(seed) {
   let state = seed >>> 0
@@ -159,7 +180,20 @@ function enqueueBurst(spawnDrain, evt, context, stats) {
   const push = (entry) => {
     if (!enqueuePooledEnemySpawn(spawnDrain, entry, context.spawnToken)) stats.drainDropped += 1
   }
+  // 확장 스테이지(6~): Enemies.jsx 확장 분기 그대로 buildExpansionBurstBatch(조회 줄·트랙·확장 링). 보스 자리는 가상 보스가 쓴다.
+  if (isExpansionStage(context.stageId)) {
+    const batch = buildExpansionBurstBatch(context.expansionCache, evt, { pooledActive: enemyPool.activeCount, specialActive: context.virtualBoss?.alive ? 1 : 0, pooledQueued: spawnDrain.count })
+    for (const entry of batch) {
+      if (isExpansionBoss(entry.type)) { startVirtualBoss(context, entry.type, entry.pos, stats); continue }
+      push({ type: entry.type, pos: entry.pos, statOverride: entry.statOverride })
+    }
+    return
+  }
   if (isBossType(evt.type)) {
+    if (isAuthoredAttackBoss(evt.type)) {
+      const pos = randomSpawnPos(evt.type, context.spawnBounds, [], Math.random, context.obstacles)
+      if (pos) startVirtualBoss(context, evt.type, pos, stats)
+    }
     const escortSize = bossEscortSize(context.stageId, context.phases, evt.sec)
     if (escortSize <= 0) return
     const bossPhase = context.phases.findLast((phase) => evt.sec >= phase.start) ?? context.phases[0]
@@ -196,6 +230,105 @@ function enqueueBurst(spawnDrain, evt, context, stats) {
     if (!pos) continue
     taken.push(pos)
     push({ type: evt.type, pos, statOverride: stageHpOverride(evt.type, context.stageId) })
+  }
+}
+
+function startVirtualBoss(context, type, pos, stats) {
+  const stat = ENEMY_STATS[type]
+  context.virtualBoss = {
+    type, x: pos[0], z: pos[2], alive: true, spawnSec: context.sec, speed: stat?.speed ?? 0.5,
+    contactDist: (stat?.contactDist ?? 0.4) * ENEMY_SIZE_MULTIPLIER, damage: stat?.damage ?? 20,
+    attack: createExpansionAttackState(type, `soak:${type}:${context.spawnToken}`, context.spawnToken),
+    summon: EXPANSION_BOSSES[type]?.summon ? createBossSummonState(EXPANSION_BOSSES[type].summon) : null,
+    b10Summon: isAuthoredAttackBoss(type) ? createB10SummonState() : null,
+    prevRatio: 1, stopMs: 0, contactCooldownMs: 0,
+  }
+  stats.virtualBosses += 1
+}
+
+// 가상 보스 1프레임: Enemy.jsx 확장·authored 보스 분기(stepExpansionAttack·격노 정지·소환·접촉 500ms)와 같은 배선.
+function stepVirtualBoss(context, spawnDrain, stats, args) {
+  const boss = context.virtualBoss
+  if (!boss?.alive) return
+  const ratio = Math.max(0, 1 - (context.sec - boss.spawnSec) / VIRTUAL_BOSS_KILL_SEC)
+  const a = args
+  a.deltaMs = SOAK_FRAME_DELTA * 1000
+  a.playing = true
+  a.alive = ratio > 0
+  a.gameKey = context.spawnToken
+  a.x = boss.x
+  a.z = boss.z
+  a.playerX = playerPos.x
+  a.playerZ = playerPos.z
+  a.hpRatio = ratio
+  if (isAuthoredAttackBoss(boss.type)) { a.stageId = context.stageId; a.halfX = context.halfX; a.halfZ = context.halfZ } else { a.stageId = undefined; a.halfX = undefined; a.halfZ = undefined }
+  const before = boss.attack.snapshot
+  const attack = stepExpansionAttack(boss.attack, a)
+  if (boss.attack.snapshot && boss.attack.snapshot !== before) stats.bossAttacks += 1
+  if (attack.damage > 0) { stats.bossPatternHits += 1; applyStoreContactDamage(attack.damage, stats) }
+  const summonQueue = []
+  if (boss.summon) {
+    const summon = stepBossSummon(boss.summon, EXPANSION_BOSSES[boss.type].summon, { deltaMs: a.deltaMs, playing: true, enraged: boss.attack.enraged, enrageDone: !(boss.attack.enrageRemainingMs > 0) })
+    if (summon.fire) summonQueue.push('expansion')
+  }
+  let stop = attack.stop
+  if (boss.b10Summon) {
+    const count = stepB10SummonTriggers(boss.b10Summon, boss.prevRatio, ratio, isB10EnrageTransitionDone(boss.attack))
+    boss.prevRatio = ratio
+    for (let i = 0; i < count; i += 1) summonQueue.push('b10')
+    if (count > 0) boss.stopMs = AUTHORED_ATTACK_BOSSES[boss.type].summon.stopMs
+    if (boss.stopMs > 0) { boss.stopMs -= a.deltaMs; stop = true }
+  }
+  for (const kind of summonQueue) {
+    stats.bossSummons += 1
+    const counts = { pooledActive: enemyPool.activeCount, specialActive: 1, pooledQueued: spawnDrain.count }
+    if (kind === 'expansion') {
+      const summon = EXPANSION_BOSSES[boss.type].summon
+      const batch = buildExpansionBurstBatch(context.expansionCache, { type: summon.type, count: summon.count, formation: summon.formation }, counts)
+      for (const entry of batch) {
+        if (enqueuePooledEnemySpawn(spawnDrain, { type: entry.type, pos: entry.pos, statOverride: entry.statOverride }, context.spawnToken)) stats.bossSummonSpawns += 1
+        else stats.drainDropped += 1
+      }
+    } else {
+      const ring = b10SummonRingPositions(boss.x, boss.z, playerPos.x, playerPos.z)
+      const count = clampZombieSpawnRequest(ring.length, counts)
+      const taken = []
+      for (let index = 0; index < count; index += 1) {
+        const pos = probeFixedSpawnPos(ring[index].type, ring[index].x, ring[index].z, context.spawnBounds, context.obstacles, taken)
+        if (!pos) continue
+        taken.push(pos)
+        if (enqueuePooledEnemySpawn(spawnDrain, { type: ring[index].type, pos, statOverride: stageHpOverride(ring[index].type, context.stageId) }, context.spawnToken)) stats.bossSummonSpawns += 1
+        else stats.drainDropped += 1
+      }
+    }
+  }
+  if (ratio <= 0) { boss.alive = false; return }
+  const dx = playerPos.x - boss.x
+  const dz = playerPos.z - boss.z
+  const dist = Math.hypot(dx, dz)
+  if (!stop && dist > 1e-4) {
+    boss.x = Math.max(-context.halfX, Math.min(context.halfX, boss.x + (dx / dist) * boss.speed * SOAK_FRAME_DELTA))
+    boss.z = Math.max(-context.halfZ, Math.min(context.halfZ, boss.z + (dz / dist) * boss.speed * SOAK_FRAME_DELTA))
+  }
+  if (boss.contactCooldownMs > 0) boss.contactCooldownMs -= a.deltaMs
+  if (Math.hypot(playerPos.x - boss.x, playerPos.z - boss.z) <= boss.contactDist && boss.contactCooldownMs <= 0) {
+    applyStoreContactDamage(boss.damage, stats)
+    boss.contactCooldownMs = 500
+  }
+}
+
+// Stage 5 전교 호출 펄스(Enemies.jsx spawnStage5CallLanePulse): 동시 천장으로 자른 뒤 레인 양끝 고정 좌표.
+function spawnCallLanePulse(spawnDrain, pulse, context, stats) {
+  const count = clampZombieSpawnRequest(pulse.spawns.length, { pooledActive: enemyPool.activeCount, pooledQueued: spawnDrain.count })
+  const taken = []
+  stats.callLanePulses += 1
+  stats.callLaneRequested += pulse.spawns.length
+  for (let index = 0; index < count; index += 1) {
+    const pos = probeFixedSpawnPos(pulse.type, pulse.spawns[index].x, pulse.spawns[index].z, context.spawnBounds, context.obstacles, taken)
+    if (!pos) continue
+    taken.push(pos)
+    if (enqueuePooledEnemySpawn(spawnDrain, { type: pulse.type, pos, statOverride: stageHpOverride(pulse.type, context.stageId) }, context.spawnToken)) stats.callLaneAdmitted += 1
+    else stats.drainDropped += 1
   }
 }
 
@@ -333,6 +466,22 @@ export function runGameplaySoak({
     repeatAdmitted: 0,
     repeatMaxRequested: 0,
     capClampedRequests: 0,
+    // 2026-11-08 Stage 5/6 기믹(해당 스테이지 런에서만 증가).
+    callLaneTicks: 0,
+    callLanePulses: 0,
+    callLaneRequested: 0,
+    callLaneAdmitted: 0,
+    virtualBosses: 0,
+    bossAttacks: 0,
+    bossPatternHits: 0,
+    bossSummons: 0,
+    bossSummonSpawns: 0,
+    speechAttempts: 0,
+    speechCertFailures: 0,
+    speechEmitted: 0,
+    speechSkipped: 0,
+    speechRingDamage: 0,
+    maxExpansionSnapshots: 0,
   }
   let weapons = buildSoakWeapons()
   let playerLevel = 1
@@ -366,7 +515,18 @@ export function runGameplaySoak({
     obstacles: null,
     obstacleCount: 0,
     sightBlocked: enemySightBlocked,
+    sec: 0,
+    virtualBoss: null,
+    expansionCache: null,
+    callLane: { cycle: -1, laneIndex: -1 },
+    callPulses: [],
+    callVisual: { chiming: false, calling: false, cycle: -1 },
+    speechHazards: [],
+    speechStates: [],
+    previousSec: 0,
   }
+  const bossArgs = { deltaMs: 0, playing: true, alive: true, gameKey: 0, x: 0, z: 0, playerX: 0, playerZ: 0, hpRatio: 1 }
+  const hazardArgs = { deltaMs: SOAK_FRAME_DELTA * 1000, playing: true, playerX: 0, playerZ: 0, gameKey: 0 }
   const spawnDrain = createPooledEnemySpawnDrainQueue()
   let failure = null
   let executed = 0
@@ -384,6 +544,8 @@ export function runGameplaySoak({
         stats.runs += 1
         if (!stats.stagesCovered.includes(stageId)) stats.stagesCovered.push(stageId)
         resetRuntimeRefs()
+        clearExpansionAttacks()
+        resetExpansionPoolAttacks(enemyPool)
         resetPooledEnemySpawnDrainQueue(spawnDrain)
         installHitDispatcher(stats)
         useGameStore.setState({ currentStageId: stageId, phase: 'playing' })
@@ -394,6 +556,10 @@ export function runGameplaySoak({
         context.halfZ = bounds.halfZ
         context.obstacles = getStageObjectSightObstacles(stageId)
         context.obstacleCount = context.obstacles.length
+        // 게임(Enemies.jsx)과 같은 규칙: Stage 5만 solid 프롭이 E04 사선·원거리 탄을 막는다(wave 4).
+        context.rangedSightObstacles = isRangedPropBlockStage(stageId) && context.obstacleCount > 0 ? context.obstacles : null
+        enemyProjectilePool.setPropBlockers(context.rangedSightObstacles)
+        projectileZombieShotPool.setPropBlockers(context.rangedSightObstacles)
         context.spawnBounds = bounds
         context.phases = getWavePhasesForStage(stageId)
         context.lastEnd = context.phases.at(-1)?.end ?? 0
@@ -401,6 +567,14 @@ export function runGameplaySoak({
         context.spawnToken = stats.runs
         context.moveBounds = getPlayerMovementBounds(stageId)
         context.burstEvents = getRuntimeBurstEventsForStage(stageId)
+        context.expansionCache = { id: stageId, bounds, obstacles: context.obstacles }
+        context.virtualBoss = null
+        context.callLane.cycle = -1
+        context.callLane.laneIndex = -1
+        context.callPulses.length = 0
+        context.speechHazards = getExpansionStageHazards(stageId)
+        context.speechStates = context.speechHazards.map(() => createAssemblySpeechState(stats.runs))
+        context.previousSec = 0
         // 홀수 런(1,3,5…)은 풀 포화까지 밀어붙이는 스트레스 런, 짝수 런은 실제 웨이브만 쓴다.
         // 첫 런을 포화로 두는 이유: 기본 프레임 수(12,000 = 1런)만 돌려도 포화·접촉 경로가 커버된다.
         context.saturate = saturateRuns === 'all' || (saturateRuns === 'odd' && stats.runs % 2 === 1)
@@ -419,6 +593,50 @@ export function runGameplaySoak({
         invulnerableMs = 0
       }
       const sec = runFrame * SOAK_FRAME_DELTA
+      context.sec = sec
+      // 확장 줄 대형(assembly_row)은 화면 사각형을 읽는다 — 프로브와 같은 식으로 갱신한다(S1~S5는 읽지 않는다).
+      if (isExpansionStage(context.stageId)) updateScreenBounds(context.stageId, context.halfX, context.halfZ)
+
+      // 0) S6 조회대 스피커 '훈화 말씀'(Game.jsx 고정 스텝 배선): 스케줄 → 스냅샷 발신(안전 기하·탈출 인증, 재시도) → 진행·피해.
+      if (context.speechHazards.length > 0) {
+        for (let h = 0; h < context.speechHazards.length; h += 1) {
+          const hazard = context.speechHazards[h]
+          const state = context.speechStates[h]
+          const emittedBefore = state.emitted
+          const skippedBefore = state.skipped
+          advanceAssemblySpeech(state, hazard, context.previousSec, sec, (entry) => {
+            stats.speechAttempts += 1
+            // Game.jsx와 같은 공용 발신(2번째 고리 = 동심 물결, wave 4).
+            const snapshot = emitAssemblySpeechRing(state, hazard, entry, {
+              gameKey: stats.runs, playerX: playerPos.x, playerZ: playerPos.z, stageId: context.stageId, halfX: context.halfX, halfZ: context.halfZ,
+            })
+            if (!snapshot) stats.speechCertFailures += 1
+            return Boolean(snapshot)
+          }, null)
+          stats.speechEmitted += state.emitted - emittedBefore
+          stats.speechSkipped += state.skipped - skippedBefore
+        }
+        hazardArgs.playerX = playerPos.x
+        hazardArgs.playerZ = playerPos.z
+        hazardArgs.gameKey = stats.runs
+        const hazardStep = stepExpansionHazardSnapshots(hazardArgs)
+        if (hazardStep.damage > 0) { stats.speechRingDamage += 1; applyStoreContactDamage(hazardStep.damage, stats) }
+      }
+      context.previousSec = sec
+
+      // 0b) S5 전교 호출: 차임 진입 프레임에 플레이어 레인을 스냅샷하고, 시각이 된 펄스를 낸다(소크는 캐치업이 없어 스폰 시계 = sec).
+      if (context.stageId === STAGE5_CALL_STAGE_ID) {
+        const visual = getStage5CallLaneVisual(sec * 1000, context.stageId, 'playing', context.callVisual)
+        if (visual.cycle >= 0 && (context.callLane.cycle !== visual.cycle || context.callLane.laneIndex < 0)) {
+          context.callLane.cycle = visual.cycle
+          context.callLane.laneIndex = laneIndexForX(playerPos.x)
+        }
+        for (let index = 0; index < context.callPulses.length;) {
+          if (context.callPulses[index].atMs > sec * 1000) { index += 1; continue }
+          const [pulse] = context.callPulses.splice(index, 1)
+          spawnCallLanePulse(spawnDrain, pulse, context, stats)
+        }
+      }
 
       // 1) 시야 갱신 — 실제 런타임처럼 12프레임에 걸쳐 분산한다.
       const sightSlot = frame % 12
@@ -482,6 +700,30 @@ export function runGameplaySoak({
       for (let burstIndex = 0; burstIndex < context.burstEvents.length; burstIndex += 1) {
         const evt = context.burstEvents[burstIndex]
         // 반복 버스트는 tick마다 발화하고, 개방 후 회차는 +10%씩 늘린 뒤 동시 천장으로 자른다(Enemies.jsx와 같은 정본 함수).
+        if (isRepeatingBurstEvent(evt) && evt.formation === STAGE5_CALL_LANE_FORMATION) {
+          // 전교 호출 descriptor: 레인 양끝 2초 펄스로 펼친다(Enemies.jsx SCHEDULE_BURST 호출 분기).
+          const lastTick = repeatingBurstTickAt(evt, sec)
+          if (lastTick === null || lastTick === undefined) continue
+          const firstPulse = stage5CallLanePulseOffset(context.burstEvents, burstIndex, STAGE5_CALL_LANE_FORMATION)
+          for (let tick = repeatTicks[burstIndex] + 1; tick <= lastTick; tick += 1) {
+            const tickSec = repeatingBurstSecAtTick(evt, tick)
+            if (tickSec === null) continue
+            stats.callLaneTicks += 1
+            stats.repeatBurstTicks += 1
+            stats.bursts += 1
+            const count = postExitWaveCount(evt.count ?? 1, postExitRepeatWaveIndex(evt, tick, context.portalSec))
+            if (context.callLane.cycle !== tick || context.callLane.laneIndex < 0) {
+              context.callLane.cycle = tick
+              context.callLane.laneIndex = laneIndexForX(playerPos.x)
+            }
+            for (const pulse of createStage5CallLanePulses({ type: evt.type, count }, context.callLane.laneIndex, tickSec, firstPulse)) {
+              if (pulse.atMs <= sec * 1000) spawnCallLanePulse(spawnDrain, pulse, context, stats)
+              else context.callPulses.push(pulse)
+            }
+          }
+          repeatTicks[burstIndex] = lastTick
+          continue
+        }
         if (isRepeatingBurstEvent(evt)) {
           const lastTick = repeatingBurstTickAt(evt, sec)
           if (lastTick === null || lastTick === undefined) continue
@@ -530,6 +772,10 @@ export function runGameplaySoak({
         return false
       })
       stats.spawns += drained.spawned
+
+      // 3b) 가상 보스(B10 / 확장 보스): 확장 공격 스냅샷·격노·소환·접촉.
+      stepVirtualBoss(context, spawnDrain, stats, bossArgs)
+      if (expansionAttackSnapshots.size > stats.maxExpansionSnapshots) stats.maxExpansionSnapshots = expansionAttackSnapshots.size
 
       // 4) 이동 — 입력 변경 → 속도 정규화 → 적분 → 스테이지 경계 클램프.
       if (frame % INPUT_CHANGE_FRAMES === 0) {
@@ -649,6 +895,10 @@ export function runGameplaySoak({
     }
   } finally {
     Math.random = originalRandom
+    enemyProjectilePool.setPropBlockers(null)
+    projectileZombieShotPool.setPropBlockers(null)
+    clearExpansionAttacks()
+    resetExpansionPoolAttacks(enemyPool)
     enemyPool.setGlobalHitDispatcher(null)
     useGameStore.setState({ currentStageId: originalStageId, phase: originalPhase, player: originalPlayer })
     resetRuntimeRefs()
@@ -730,4 +980,28 @@ function checkFrameInvariants(frame, seed, sec, context, stats, overlapFrames, o
     return { reason: `플레이어가 이동 경계를 벗어났다 (${playerPos.x}, ${playerPos.z})`, ...where }
   }
   return null
+}
+
+// 이름 붙은 소크 시나리오. balanceqa 수용 기준이 이름으로 부른다.
+// stage5-full-run(2026-11-08 Stage 5 교무실 스펙 Part B §14-3): 교무실 맵(책상 섬 solid·레인)·B10·전교 호출 반복
+//   descriptor·12초 E04를 포화 없이 실제 밀도로 0~300초 끝까지 돈다(탈출 후 증원 경로 포함).
+//   수용 기준은 시드 36 × 봇 2(SOAK_SCENARIO_SEEDS 환경변수로 늘린다)에서 크래시 0·스턱 0·150 상한 초과 0이다.
+// stage6-default(2026-11-08 Stage 6 운동장 스펙 Part C C-14-3): 확장 배치(조회 줄·트랙)·훈화 고리(H06)·가상 B05(고리·교가 제창·
+//   운동장 10바퀴 소환)를 자연 밀도로 0~300초 돈다. 수용 기준은 크래시 0·동시 적 ≤150·해저드 인증 실패율 < 5%.
+export const SOAK_SCENARIOS = Object.freeze({
+  'stage5-full-run': Object.freeze({ stages: Object.freeze(['stage5']), runSeconds: SOAK_RUN_SECONDS, saturateRuns: 'none', runs: 1 }),
+  'stage6-default': Object.freeze({ stages: Object.freeze(['stage6']), runSeconds: SOAK_RUN_SECONDS, saturateRuns: 'none', runs: 1 }),
+})
+
+export function runSoakScenario(name, { seed = 1, runs } = {}) {
+  const scenario = SOAK_SCENARIOS[name]
+  if (!scenario) throw new Error(`unknown soak scenario: ${name}`)
+  const runCount = Math.max(1, Math.floor(runs ?? scenario.runs))
+  return runGameplaySoak({
+    frames: Math.round(scenario.runSeconds / SOAK_FRAME_DELTA) * runCount,
+    seed,
+    stages: [...scenario.stages],
+    runSeconds: scenario.runSeconds,
+    saturateRuns: scenario.saturateRuns,
+  })
 }

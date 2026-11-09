@@ -1,3 +1,4 @@
+import { isPointInsideRangedBlockers } from './stageRangedBlockers.js'
 // 신규 투사체 좀비 15종(E46~E60)의 탄·바닥 표식 고정 슬롯 풀. 렌더/물리/저장소에 의존하지 않는다.
 //
 // 왜 E04 풀(enemyProjectilePool.js)과 따로 두나:
@@ -198,6 +199,7 @@ export function createShotSpec() {
 
 export class ProjectileZombieShotPool {
   constructor(capacity = MAX_PROJECTILE_ZOMBIE_SHOTS) {
+    this._propBlockers = null
     this.capacity = capacity
     this.active = new Uint8Array(capacity)
     this.generation = new Uint16Array(capacity)
@@ -342,6 +344,19 @@ export class ProjectileZombieShotPool {
    * @param arena {halfX, halfZ} 맵 반폭(반사용, 선택)
    * @param impulseState createPlayerImpulseState() 결과(선택, E63 끌림)
    */
+  // solid 프롭이 탄을 막는 스테이지(Stage 5 교무실)에서만 장애물을 건다. null이면 기존 동작.
+  // 날아가는 탄(직진·유도·반사·부메랑·사인·분열·퓨즈 이동·공전)만 막는다. 포물선(LOB)은 위로 넘어가고,
+  // 바닥 지대·표식(ZONE/DECAL)은 날아가는 탄이 아니라 해당 없다.
+  setPropBlockers(obstacles) {
+    this._propBlockers = obstacles && obstacles.length > 0 ? obstacles : null
+  }
+
+  _blockedByProps(i) {
+    if (!this._propBlockers || !isPointInsideRangedBlockers(this.posX[i], this.posZ[i], this.hitRadius[i], this._propBlockers)) return false
+    this.despawnIndex(i)
+    return true
+  }
+
   step(delta, playerX, playerZ, onHit, bounds = null, slowState = null, arena = null, impulseState = null) {
     if (!finite(delta) || delta < 0 || !finite(playerX) || !finite(playerZ)) return false
     const dt = Math.min(delta, 1 / 30)
@@ -380,6 +395,7 @@ export class ProjectileZombieShotPool {
           const angle = this.p3[i] + this.p1[i] * age / 1000
           this.posX[i] = this.baseX[i] + Math.sin(angle) * this.p0[i]
           this.posZ[i] = this.baseZ[i] + Math.cos(angle) * this.p0[i]
+          if (this._blockedByProps(i)) continue
           this._contact(i, playerX, playerZ, onHit, slowState)
           if (this.active[i] && age >= this.lifeMs[i]) this.despawnIndex(i)
           continue
@@ -433,6 +449,7 @@ export class ProjectileZombieShotPool {
           this.posX[i] += this.velX[i] * dt
           this.posZ[i] += this.velZ[i] * dt
           if (next <= 1e-4) { this.velX[i] = 0; this.velZ[i] = 0; this.p3[i] = age }
+          if (this._blockedByProps(i)) continue
           this._contact(i, playerX, playerZ, onHit, slowState)
         } else if (age - this.p3[i] >= this.p1[i]) {
           this._blast(i, this.posX[i], this.posZ[i], this.p2[i], playerX, playerZ, onHit, slowState)
@@ -472,6 +489,7 @@ export class ProjectileZombieShotPool {
 
       if (motion === SHOT_MOTION.BOUNCE && this.bounces[i] > 0) this._reflect(i, bounds, arena)
 
+      if (this._blockedByProps(i)) continue
       this._contact(i, playerX, playerZ, onHit, slowState)
       if (this.active[i] && age >= this.lifeMs[i]) {
         this._spawnEndZone(i)

@@ -8,6 +8,8 @@ import { GoogleAccountPanelView } from './GoogleAccountPanel.jsx'
 import { setLocale, useLocaleStore } from '../lib/i18n.js'
 import { applyLanguage } from '../lib/titleSettings.js'
 import { fitTitleFontSize } from './TitleScreen.jsx'
+import ReadyGameAppSource from './ReadyGameApp.jsx?raw'
+import { sunnyCta, sunnyPalette } from '../lib/uiStyle.js'
 
 
 afterEach(() => {
@@ -27,19 +29,44 @@ describe('guest sign-in collapses on the title', () => {
     expect(html).toContain('>로그인<')
   })
 
-  it('keeps the full status display once signed in', () => {
+  // 2026-11-08 타이틀 정리 1단계: 로그인 후에도 큰 카드 대신 44px 칩(아바타 + 이름 1줄, 최대 120px 말줄임).
+  it('shows a 44px avatar chip with a one-line name once signed in', () => {
     const html = renderToStaticMarkup(
       <GoogleAccountPanelView compact status="signedIn" user={{ uid: 'u1', displayName: 'Tester' }} signingIn={false} onSignIn={() => {}} onSignOut={() => {}} />,
     )
-    expect(html).not.toContain('data-account-compact')
+    expect(html).toContain('data-account-chip')
+    expect(html).not.toContain('google-account-panel')
+    expect(html).toContain('Tester')
+    expect(html).toContain('height:44px')
+    expect(html).toContain('max-width:120px')
+    expect(html).toContain('text-overflow:ellipsis')
+    expect(html).toContain('rotate(0deg)')
+  })
+
+  it('keeps the full card outside the title (non-compact)', () => {
+    const html = renderToStaticMarkup(
+      <GoogleAccountPanelView status="signedIn" user={{ uid: 'u1', displayName: 'Tester' }} signingIn={false} onSignIn={() => {}} onSignOut={() => {}} />,
+    )
     expect(html).toContain('google-account-panel')
     expect(html).toContain('Tester')
   })
 
-  it('uses the compact panel on the title and keeps the homepage as a text link', () => {
+  it('uses the compact panel on the title and moves the homepage link into the ≡ sheet', () => {
     expect(TitleScreenSource).toContain('<GoogleAccountPanel compact />')
-    expect(TitleScreenSource).toContain('data-title-homepage style={styles.homepageLink}')
-    expect(TitleScreenSource).not.toContain('styles.homepageButton')
+    expect(TitleScreenSource).toContain('<TitleMoreSheet')
+    expect(TitleScreenSource).not.toContain('styles.homepageLink')
+    expect(TitleScreenSource).not.toContain('ConsentGate')
+    expect(TitleScreenSource).not.toContain('nicknameOpen')
+  })
+
+  it('builds the START style from the palette orange only', () => {
+    expect(sunnyCta().background).toBe(sunnyPalette.orange)
+    expect(sunnyCta().color).toBe(sunnyPalette.line)
+  })
+
+  it('keeps the cream desktop gutter for the title only; the dark lobby gets the dark gutter', () => {
+    expect(ReadyGameAppSource).toContain("const CREAM_GUTTER_SCREENS = new Set(['title'])")
+    expect(ReadyGameAppSource).toContain("const DARK_GUTTER = '#0a0810'")
   })
 
   it('caps the headline font size by the game frame width', () => {

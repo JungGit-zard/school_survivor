@@ -62,9 +62,12 @@ describe('post-exit periodic wave growth', () => {
       }
     }
     // Stage 5 20초 반복(160~240)은 개방 후 220초 1회만 해당 — n=0이라 기존과 같다.
-    for (const evt of getBurstEventsForStage('stage5').filter(isRepeatingBurstEvent)) {
+    // 전교 호출 60초 반복(73·133·193, 2026-11-08 교무실)은 전부 개방 전이라 성장하지 않는다.
+    const stage5Repeats = getBurstEventsForStage('stage5').filter(isRepeatingBurstEvent)
+    expect(stage5Repeats).toHaveLength(4)
+    for (const evt of stage5Repeats) {
       const post = Array.from({ length: repeatingBurstTickCount(evt) }, (_, t) => postExitRepeatWaveIndex(evt, t, ESCAPE_PORTAL_OPEN_SEC))
-      expect(post).toEqual([-1, -1, -1, 0])
+      expect(post).toEqual(evt.repeatIntervalSec === 60 ? [-1, -1, -1] : [-1, -1, -1, 0])
     }
   })
 

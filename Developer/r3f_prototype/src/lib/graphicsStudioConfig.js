@@ -184,10 +184,10 @@ export const GRAPHICS_STUDIO_CATALOG = Object.freeze([
   },
   // RZL/RZC(스테이지3 런좀비 크루)는 ZombieMesh.jsx에서 이미 StudioTunedGroup으로 감싸여
   // 게임 런타임 배선이 E01과 동일하다. 이 배열에서 빠져 있어 스튜디오에서 선택만 불가능했다.
-  ...['E01', 'E02', 'E03', 'E04', 'E05', 'E06', 'RZL', 'RZC', 'RZT', 'RZG', 'B01', 'B02', 'B03', 'B04', ...POSED_ZOMBIE_STUDIO_TYPES].map((type) => ({
+  ...['E01', 'E02', 'E03', 'E04', 'E05', 'E06', 'RZL', 'RZC', 'RZT', 'RZG', 'B01', 'B02', 'B03', 'B04', 'B10', ...POSED_ZOMBIE_STUDIO_TYPES].map((type) => ({
     id: getStudioZombieItemId(type),
     category: 'enemy',
-    label: POSED_ZOMBIE_STUDIO_LABELS[type] ?? (type === 'B02' ? 'Stage 2 Boss' : type === 'B03' ? 'Boss B03 · 몸짱 체육교사' : type === 'B04' ? 'Boss B04 · 주방장 좀비' : type === 'RZL' ? 'Run Zombie · 리더' : type === 'RZC' ? 'Run Zombie · 크루' : type === 'RZT' ? 'Stage 2 Chase · 바바리맨' : type === 'RZG' ? 'Stage 2 Chase · 경비원' : `Zombie ${type}`),
+    label: POSED_ZOMBIE_STUDIO_LABELS[type] ?? (type === 'B02' ? 'Stage 2 Boss' : type === 'B03' ? 'Boss B03 · 몸짱 체육교사' : type === 'B04' ? 'Boss B04 · 주방장 좀비' : type === 'B10' ? 'Boss B10 · 교감 좀비' : type === 'RZL' ? 'Run Zombie · 리더' : type === 'RZC' ? 'Run Zombie · 크루' : type === 'RZT' ? 'Stage 2 Chase · 바바리맨' : type === 'RZG' ? 'Stage 2 Chase · 경비원' : `Zombie ${type}`),
     source: 'components/ZombieMesh.jsx',
     previewKind: 'zombie',
     runtimePreviewSource: 'components/Enemy.jsx',
@@ -195,7 +195,9 @@ export const GRAPHICS_STUDIO_CATALOG = Object.freeze([
     zombieType: type,
     applyTargets: POSED_ZOMBIE_STUDIO_LABELS[type]
       ? ['components/ZombieMesh.jsx', 'components/ZombieInstanceLayer.jsx', 'components/Enemy.jsx', 'lib/toon.js']
-      : ['components/ZombieMesh.jsx', 'components/Enemy.jsx', 'lib/toon.js'],
+      : type === 'B10'
+        ? ['components/ZombieMesh.jsx', 'components/B10ViceBossMesh.jsx', 'components/Enemy.jsx', 'lib/toon.js']
+        : ['components/ZombieMesh.jsx', 'components/Enemy.jsx', 'lib/toon.js'],
   })),
   {
     id: 'zombie-procedural-face-test',
@@ -648,6 +650,64 @@ export const GRAPHICS_STUDIO_CATALOG = Object.freeze([
     objectType: 'kitchenClutter',
     variant: 'trays',
     applyTargets: ['components/StageObjects/KitchenProps.jsx', 'components/StageObjects/stageObjectPlacements.js', 'lib/toon.js'],
+  },
+  // ── 교무실(stage5) 프랍 6종. id는 StaffroomProps.jsx의 StudioTunedGroup itemId와 정확히 일치해야 한다. ──
+  {
+    id: 'stage-object-staffroom-desk-island',
+    category: 'stageObject',
+    label: "Staff Room Desk Island",
+    source: 'components/StageObjects/StaffroomProps.jsx',
+    previewKind: 'stageObject',
+    objectType: 'staffroomDeskIsland',
+    variant: 'long',
+    applyTargets: ['components/StageObjects/StaffroomProps.jsx', 'components/StageObjects/stageObjectPlacements.js', 'lib/toon.js'],
+  },
+  {
+    id: 'stage-object-staffroom-vice-desk',
+    category: 'stageObject',
+    label: "Vice Principal's Desk",
+    source: 'components/StageObjects/StaffroomProps.jsx',
+    previewKind: 'stageObject',
+    objectType: 'staffroomViceDesk',
+    applyTargets: ['components/StageObjects/StaffroomProps.jsx', 'components/StageObjects/stageObjectPlacements.js', 'lib/toon.js'],
+  },
+  {
+    id: 'stage-object-staffroom-copier',
+    category: 'stageObject',
+    label: "Staff Room Copier",
+    source: 'components/StageObjects/StaffroomProps.jsx',
+    previewKind: 'stageObject',
+    objectType: 'staffroomCopier',
+    variant: 'jammed',
+    applyTargets: ['components/StageObjects/StaffroomProps.jsx', 'components/StageObjects/stageObjectPlacements.js', 'lib/toon.js'],
+  },
+  {
+    id: 'stage-object-staffroom-entrance-door',
+    category: 'stageObject',
+    label: "Main Entrance Door",
+    source: 'components/StageObjects/StaffroomProps.jsx',
+    previewKind: 'stageObject',
+    objectType: 'staffroomEntranceDoor',
+    applyTargets: ['components/StageObjects/StaffroomProps.jsx', 'components/StageObjects/stageObjectPlacements.js', 'lib/toon.js'],
+  },
+  {
+    id: 'stage-object-staffroom-speaker',
+    category: 'stageObject',
+    label: "PA Speaker",
+    source: 'components/StageObjects/StaffroomProps.jsx',
+    previewKind: 'stageObject',
+    objectType: 'staffroomSpeaker',
+    applyTargets: ['components/StageObjects/StaffroomProps.jsx', 'components/StageObjects/stageObjectPlacements.js', 'lib/toon.js'],
+  },
+  {
+    id: 'stage-object-staffroom-clutter',
+    category: 'stageObject',
+    label: "Approval Papers",
+    source: 'components/StageObjects/StaffroomProps.jsx',
+    previewKind: 'stageObject',
+    objectType: 'staffroomClutter',
+    variant: 'papers',
+    applyTargets: ['components/StageObjects/StaffroomProps.jsx', 'components/StageObjects/stageObjectPlacements.js', 'lib/toon.js'],
   },
   {
     id: 'stage-object-pressure-cauldron',

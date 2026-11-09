@@ -12,6 +12,8 @@ import {
   getStageBounds,
   getStageConfig,
   getStageDurationSec,
+  isSolidPropStage,
+  PART1_FINAL_STAGE_ID,
   isStageUnlocked,
   rollBossSpawnSec,
 } from './stageConfig.js'
@@ -145,24 +147,29 @@ describe('stage configuration registry', () => {
     expect(isStageUnlocked('stage5', { stage4BossDefeats: 1 })).toBe(true)
   })
 
-  it('keeps the lobby list at Stage 1-4 while unlock records stay separate', () => {
+  it('lists Stage 1-6 in the lobby (2026-11-08 release) while unlock records stay separate', () => {
     expect(isStageUnlocked('stage1', {})).toBe(true)
     expect(Object.keys(STAGE_CONFIGS)).toEqual(Array.from({ length: 10 }, (_, i) => `stage${i + 1}`))
     expect(LOBBY_STAGE_IDS).toBe(VISIBLE_STAGE_IDS)
-    expect(LOBBY_STAGE_IDS).toEqual(['stage1', 'stage2', 'stage3', 'stage4'])
+    expect(LOBBY_STAGE_IDS).toEqual(['stage1', 'stage2', 'stage3', 'stage4', 'stage5', 'stage6'])
+    for (const id of ['stage7', 'stage8', 'stage9', 'stage10']) expect(LOBBY_STAGE_IDS).not.toContain(id)
+    // 노출과 해금은 별개: 신규 기록에서는 5·6 모두 잠김, 이전 스테이지 보스 처치로만 하나씩 열린다.
+    expect(isStageUnlocked('stage5', {})).toBe(false)
+    expect(isStageUnlocked('stage6', {})).toBe(false)
     expect(isStageUnlocked('stage5', { stage4BossDefeats: 1 })).toBe(true)
-    expect(LOBBY_STAGE_IDS).not.toContain('stage5')
+    expect(isStageUnlocked('stage6', { stage4BossDefeats: 1 })).toBe(false)
+    expect(isStageUnlocked('stage6', { stage5BossDefeats: 1 })).toBe(true)
   })
 
-  it('maps portal progression stage 1 -> stage 2 -> stage 3 -> stage 4, then ends', () => {
+  it('maps portal progression stage 1 -> 2 -> 3 -> 4 -> 5 -> 6, then ends at the Part 1 finale', () => {
     expect(getNextStageId('stage1')).toBe('stage2')
     expect(getNextStageId('stage2')).toBe('stage3')
-    // stage4가 playable로 해제되어 stage3 클리어→stage4 경로가 열렸다.
     expect(getNextStageId('stage3')).toBe('stage4')
-    // 계약 §3 + 릴리스 경계: Stage4가 종착이다. 포탈은 목록에 없는 Stage5로 보내지 않는다.
-    // 해금 기록(stage4BossDefeats)은 그대로 남고, 진입만 닫혀 있다.
-    expect(getNextStageId('stage4')).toBeNull()
-    expect(getNextStageId('stage5')).toBeNull()
+    // 2026-11-08 릴리스: Stage 5·6 공개. Stage 6(PART1_FINAL)이 종착이고 비노출 7로는 보내지 않는다.
+    expect(getNextStageId('stage4')).toBe('stage5')
+    expect(getNextStageId('stage5')).toBe('stage6')
+    expect(getNextStageId('stage6')).toBeNull()
+    expect(getNextStageId('stage7')).toBeNull()
     expect(getNextStageId('stage10')).toBeNull()
     expect(isStageUnlocked('stage5', { stage4BossDefeats: 1 })).toBe(true)
   })
@@ -182,6 +189,41 @@ describe('stage configuration registry', () => {
     expect(milestones.map((m) => m.gold)).toEqual([4, 6, 9, 18])
     expect(milestones.map((m) => m.atMs)).toEqual([48_000, 144_000, 192_000, 240_000])
     expect(milestones.every((m) => typeof m.label === 'string' && m.label.length > 0)).toBe(true)
+  })
+
+  it('wires Stage 5 staff room (B10 vice principal) config, bounds, portal anchor and milestones', () => {
+    expect(getStageConfig('stage5')).toMatchObject({
+      title: '교무실 최종 돌파',
+      bossType: 'B10',
+      e04IntroSec: 12,
+      mapHalfX: 9.36,
+      mapHalfZ: 16,
+      portalAnchor: { x: 0, z: -11.4 },
+      escapePortalSec: 210,
+      matildaWarningSec: 205,
+      matildaSec: 210,
+      bossWarningSec: 150,
+    })
+    expect(getStageBossType('stage5')).toBe('B10')
+    expect(getStageBounds('stage5')).toEqual({ halfX: 9.36, halfZ: 16 })
+    const milestones = getStageConfig('stage5').survivalMilestones
+    expect(milestones.map((m) => m.gold)).toEqual([5, 7, 11, 22])
+    expect(milestones.map((m) => m.atMs)).toEqual([48_000, 144_000, 192_000, 240_000])
+    expect(milestones.map((m) => m.label)).toEqual([
+      '교무실 적응 보너스', '레인 돌파 보너스', '교감 조우 보너스', '현관 탈출 보너스',
+    ])
+    expect(isStageUnlocked('stage5', { stage4Clears: 1 })).toBe(false)
+    expect(isStageUnlocked('stage5', { stage4BossDefeats: 1 })).toBe(true)
+    // 출시 게이트: 2026-11-08 Stage 5 공개.
+    expect(VISIBLE_STAGE_IDS).toContain('stage5')
+  })
+
+  it('marks Stage 4 and Stage 5 as solid-prop stages only', () => {
+    expect(isSolidPropStage('stage4')).toBe(true)
+    expect(isSolidPropStage('stage5')).toBe(true)
+    for (const id of ['stage1', 'stage2', 'stage3', 'stage6', 'stage10', undefined]) {
+      expect(isSolidPropStage(id)).toBe(false)
+    }
   })
 
   it('keeps Stage 1 classroom vertical length at the 20 percent reduced layout', () => {
@@ -211,5 +253,22 @@ describe('stage configuration registry', () => {
     expect(getStageDurationSec('stage1')).toBe(180)
     expect(stage.durationSec).toBe(180)
     expect(stage.survivalMilestones.map((milestone) => milestone.gold)).toEqual([2, 6, 8, 16])
+  })
+
+  it('Stage 6 운동장: 1부 마지막이라 getNextStageId는 항상 null, 해금 증거는 stage5 보스 처치뿐', () => {
+    expect(PART1_FINAL_STAGE_ID).toBe('stage6')
+    expect(getNextStageId('stage6')).toBeNull()
+    expect(isStageUnlocked('stage6', { stage5BossDefeats: 1 })).toBe(true)
+    expect(isStageUnlocked('stage6', { stage5Clears: 3 })).toBe(false)
+    expect(getStageConfig('stage6')).toMatchObject({
+      title: '운동장 최후의 조회', bossType: 'B05', e04IntroSec: 8, mapHalfX: 12, mapHalfZ: 20,
+      escapePortalSec: 210, matildaWarningSec: 205, matildaSec: 210, bossWarningSec: 150,
+      description: '끝나지 않는 훈화 고리를 넘어, 열린 정문으로 탈출하세요.',
+    })
+    expect(getStageBounds('stage6')).toEqual({ halfX: 12, halfZ: 20 })
+    // 원본 표(관리자 골드 배율 적용 전). 앞선 테스트가 배율을 바꿔 둘 수 있어 STAGE_CONFIGS를 본다.
+    expect(STAGE_CONFIGS.stage6.survivalMilestones.map((m) => m.gold)).toEqual([6, 8, 13, 22])
+    expect(VISIBLE_STAGE_IDS).toContain('stage6')
+    expect(VISIBLE_STAGE_IDS).not.toContain('stage7')
   })
 })

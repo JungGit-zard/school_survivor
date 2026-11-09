@@ -114,6 +114,44 @@ describe('신규 좀비 12종 도감 라벨', () => {
   })
 })
 
+// 2026-11-08: Stage 5 보스 B10은 게임 풀 등록보다 먼저 저장 id(도감·조우 허용 목록)로 고정한다.
+describe('B10 교감 좀비 도감 id', () => {
+  it('is a known encyclopedia type with ko/en/ja names', () => {
+    expect(ZOMBIE_ENCYCLOPEDIA_TYPES).toContain('B10')
+    expect(isKnownZombieType('B10')).toBe(true)
+    expect(normalizeZombieEncounterMap({ B10: 1, B11: 1 })).toEqual({ B10: 1 })
+    const expected = { ko: '교감 좀비', en: 'Vice Principal Zombie', ja: '教頭ゾンビ' }
+    for (const locale of ['ko', 'en', 'ja']) {
+      setLocale(locale)
+      expect(getZombieTypeLabel('B10'), locale).toBe(expected[locale])
+    }
+  })
+
+  it('does not register an E59 mini type', () => {
+    expect(isKnownZombieType('E59M')).toBe(false)
+  })
+})
+
+// 2026-11-08: Stage 6 「운동장 최후의 조회」(spec56 C-4-1·C-6-1). 같은 id(E19~E21·B05)에 이름만 운동장 판으로 바꾼다.
+describe('Stage 6 운동장 로스터 도감 표시명', () => {
+  const EXPECTED_S6 = {
+    E19: { ko: '조회 줄서기 좀비', en: 'Assembly Line Zombie', ja: '朝礼整列ゾンビ' },
+    E20: { ko: '국민체조 좀비', en: 'Calisthenics Zombie', ja: 'ラジオ体操ゾンビ' },
+    E21: { ko: '계주 바통 좀비', en: 'Relay Baton Zombie', ja: 'リレーバトンゾンビ' },
+    B05: { ko: '교장 선생님 좀비', en: 'Principal Zombie', ja: '校長先生ゾンビ' },
+  }
+
+  it('shows the schoolyard names (not the old forbidden-library names) in all three locales', () => {
+    for (const locale of ['ko', 'en', 'ja']) {
+      setLocale(locale)
+      for (const [id, names] of Object.entries(EXPECTED_S6)) {
+        expect(isKnownZombieType(id), id).toBe(true)
+        expect(getZombieTypeLabel(id), `${locale}/${id}`).toBe(names[locale])
+      }
+    }
+  })
+})
+
 // 2026-11-07: 투사체 좀비 E46~E60이 도감에서 통째로 빠져 있었다(라벨 표가 E45에서 멈춤). 같은 일이 다시 생기지 않게
 // 게임에 등록된 모든 적 코드(ENEMY_TYPE_NAMES)가 세 언어 모두 진짜 표시명을 갖는지 묶는다.
 // ko는 도감 표(zombieEncyclopedia.js)가 정본이고, en/ja는 사전 키가 있어야 한다(없으면 i18n이 조용히 한국어로 폴백한다).

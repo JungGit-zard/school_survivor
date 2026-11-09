@@ -757,6 +757,72 @@ export const STAGE_OBJECT_PLACEMENTS = {
       props: { variant: 'sideLeft' },
     },
   ],
+  // stage5: 1층 교무실 + 중앙 현관(mapHalfX 9.36 · mapHalfZ 16). 스펙 Part B §3-4.
+  // 책상 섬 3열(X −4.2 / 0 / +4.2, 폭 2.0)이 세로 레인 4개를, 섬 4줄(R1~R4)이 가로 통로를 만든다.
+  // solid 20개(섬 12 + 교감 책상 1 + 복사기 2 + 사물함 5) + 비주얼 14개(현관 문 1 + 스피커 8 + 서류 3 + 학생 2).
+  // 사물함 x는 ±8.25(footprint 끝 ±8.52, 경계 여백 0.84 ≥ 0.8). 벽면 rotation Y — 북 0 / 남 π / 서 +π/2 / 동 −π/2.
+  stage5: [
+    // ── 책상 섬 R1(z −8.1, long) ──
+    { id: 'stage5-desk-r1-west', type: 'staffroomDeskIsland', position: [-4.2, 0, -8.1], rotation: [0, 0, 0], scale: 1, props: { variant: 'long' } },
+    { id: 'stage5-desk-r1-center', type: 'staffroomDeskIsland', position: [0, 0, -8.1], rotation: [0, 0, 0], scale: 1, props: { variant: 'long' } },
+    { id: 'stage5-desk-r1-east', type: 'staffroomDeskIsland', position: [4.2, 0, -8.1], rotation: [0, 0, 0], scale: 1, props: { variant: 'long' } },
+    // ── 책상 섬 R2(z −3.1, short) ──
+    { id: 'stage5-desk-r2-west', type: 'staffroomDeskIsland', position: [-4.2, 0, -3.1], rotation: [0, 0, 0], scale: 1, props: { variant: 'short' } },
+    { id: 'stage5-desk-r2-center', type: 'staffroomDeskIsland', position: [0, 0, -3.1], rotation: [0, 0, 0], scale: 1, props: { variant: 'short' } },
+    { id: 'stage5-desk-r2-east', type: 'staffroomDeskIsland', position: [4.2, 0, -3.1], rotation: [0, 0, 0], scale: 1, props: { variant: 'short' } },
+    // ── 책상 섬 R3(z +3.7, long) ──
+    { id: 'stage5-desk-r3-west', type: 'staffroomDeskIsland', position: [-4.2, 0, 3.7], rotation: [0, 0, 0], scale: 1, props: { variant: 'long' } },
+    { id: 'stage5-desk-r3-center', type: 'staffroomDeskIsland', position: [0, 0, 3.7], rotation: [0, 0, 0], scale: 1, props: { variant: 'long' } },
+    { id: 'stage5-desk-r3-east', type: 'staffroomDeskIsland', position: [4.2, 0, 3.7], rotation: [0, 0, 0], scale: 1, props: { variant: 'long' } },
+    // ── 책상 섬 R4(z +9.5, long) ──
+    { id: 'stage5-desk-r4-west', type: 'staffroomDeskIsland', position: [-4.2, 0, 9.5], rotation: [0, 0, 0], scale: 1, props: { variant: 'long' } },
+    { id: 'stage5-desk-r4-center', type: 'staffroomDeskIsland', position: [0, 0, 9.5], rotation: [0, 0, 0], scale: 1, props: { variant: 'long' } },
+    { id: 'stage5-desk-r4-east', type: 'staffroomDeskIsland', position: [4.2, 0, 9.5], rotation: [0, 0, 0], scale: 1, props: { variant: 'long' } },
+    // ── 북쪽 벽 띠(z −16 ~ −12, 플레이어 진입 불가): 교감 책상 · 복사기 2 ──
+    { id: 'stage5-vice-desk-north', type: 'staffroomViceDesk', position: [-5.4, 0, -13.0], rotation: [0, 0, 0], scale: 1 },
+    { id: 'stage5-copier-north-center-east', type: 'staffroomCopier', position: [4.4, 0, -13.4], rotation: [0, 0, 0], scale: 1, props: { variant: 'normal' } },
+    { id: 'stage5-copier-north-east', type: 'staffroomCopier', position: [6.0, 0, -13.4], rotation: [0, 0, 0], scale: 1, props: { variant: 'jammed' } },
+    // ── 교사용 사물함(재사용) — 서벽 3 · 동벽 2 ──
+    { id: 'stage5-lockers-west-1', type: 'corridorLockerBank', position: [-8.25, 0, 2.4], rotation: [0, Math.PI / 2, 0], scale: 1 },
+    { id: 'stage5-lockers-west-2', type: 'corridorLockerBank', position: [-8.25, 0, 3.8], rotation: [0, Math.PI / 2, 0], scale: 1 },
+    // 퀘스트 Q2 완료 지점 '방송 단자함'.
+    { id: 'stage5-lockers-west-3', type: 'corridorLockerBank', position: [-8.25, 0, 5.2], rotation: [0, Math.PI / 2, 0], scale: 1 },
+    { id: 'stage5-lockers-east-1', type: 'corridorLockerBank', position: [8.25, 0, 12.0], rotation: [0, -Math.PI / 2, 0], scale: 1 },
+    { id: 'stage5-lockers-east-2', type: 'corridorLockerBank', position: [8.25, 0, 13.4], rotation: [0, -Math.PI / 2, 0], scale: 1 },
+    // ── 비주얼 전용(콜라이더·시야 차단 없음) ──
+    // 중앙 현관 유리 이중문. 탈출구가 열리면 문짝이 바깥(−Z)으로 열린다(비주얼만).
+    { id: 'stage5-entrance-door-north', type: 'staffroomEntranceDoor', position: [0, 0, -15.75], rotation: [0, 0, 0], scale: 1, blocking: false },
+    // 교내 방송 스피커 — 레인 L1~L4의 북·남 끝. 장착 높이 y 2.4는 컴포넌트가 정한다(남쪽은 낮은 남벽 앞 기둥형).
+    { id: 'stage5-speaker-n-l1', type: 'staffroomSpeaker', position: [-7.0, 0, -15.85], rotation: [0, 0, 0], scale: 1, blocking: false, props: { lane: 'L1' } },
+    { id: 'stage5-speaker-n-l2', type: 'staffroomSpeaker', position: [-2.1, 0, -15.85], rotation: [0, 0, 0], scale: 1, blocking: false, props: { lane: 'L2' } },
+    { id: 'stage5-speaker-n-l3', type: 'staffroomSpeaker', position: [2.1, 0, -15.85], rotation: [0, 0, 0], scale: 1, blocking: false, props: { lane: 'L3' } },
+    { id: 'stage5-speaker-n-l4', type: 'staffroomSpeaker', position: [7.0, 0, -15.85], rotation: [0, 0, 0], scale: 1, blocking: false, props: { lane: 'L4' } },
+    { id: 'stage5-speaker-s-l1', type: 'staffroomSpeaker', position: [-7.0, 0, 15.85], rotation: [0, Math.PI, 0], scale: 1, blocking: false, props: { lane: 'L1', mount: 'stand' } },
+    { id: 'stage5-speaker-s-l2', type: 'staffroomSpeaker', position: [-2.1, 0, 15.85], rotation: [0, Math.PI, 0], scale: 1, blocking: false, props: { lane: 'L2', mount: 'stand' } },
+    { id: 'stage5-speaker-s-l3', type: 'staffroomSpeaker', position: [2.1, 0, 15.85], rotation: [0, Math.PI, 0], scale: 1, blocking: false, props: { lane: 'L3', mount: 'stand' } },
+    { id: 'stage5-speaker-s-l4', type: 'staffroomSpeaker', position: [7.0, 0, 15.85], rotation: [0, Math.PI, 0], scale: 1, blocking: false, props: { lane: 'L4', mount: 'stand' } },
+    // 바닥 서류·바인더(통과 가능 — BLOCKING 집합에 넣지 않는다).
+    { id: 'stage5-papers-x2-l3', type: 'staffroomClutter', position: [2.1, 0, 6.6], rotation: [0, 0.35, 0], scale: 1, blocking: false, props: { variant: 'papers' } },
+    { id: 'stage5-papers-plaza-west', type: 'staffroomClutter', position: [-6.0, 0, 0.8], rotation: [0, -0.5, 0], scale: 1, blocking: false, props: { variant: 'papers' } },
+    { id: 'stage5-papers-plaza-east', type: 'staffroomClutter', position: [6.2, 0, -0.8], rotation: [0, 0.8, 0], scale: 1, blocking: false, props: { variant: 'binders' } },
+    // ── 학생 NPC(퀘스트 의뢰인) ──
+    {
+      id: 'stage5-student-called-southwest',
+      type: 'unconsciousStudent',
+      position: [-6.2, 0, 13.0],
+      rotation: [0, 0, 0],
+      scale: UNCONSCIOUS_STUDENT_PLAYER_SCALE,
+      props: { variant: 'sideRight' },
+    },
+    {
+      id: 'stage5-student-broadcast-east',
+      type: 'unconsciousStudent',
+      position: [6.4, 0, 0.9],
+      rotation: [0, 0, 0],
+      scale: UNCONSCIOUS_STUDENT_PLAYER_SCALE,
+      props: { variant: 'sideLeft' },
+    },
+  ],
 }
 
 const STAGE4_LEGACY_CENTER_PREP_TABLE_IDS = new Set([

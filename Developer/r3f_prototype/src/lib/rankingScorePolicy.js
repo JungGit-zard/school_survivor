@@ -1,4 +1,5 @@
 import { getAdminRankingSeasonConfig } from './adminConfig.js'
+import { EXPANSION_STAGES } from './expansionContent.js'
 
 export const SCORE_TYPE = 'survival_v1'
 // 탈출구로 탈출하면 기본 점수(생존 초 + 스테이지 보너스)의 15%를 보너스로 받는다.
@@ -13,11 +14,10 @@ export const STAGE_BONUS = {
   stage3: 120,
   stage4: 180,
   stage5: 240,
-  stage6: 300,
-  stage7: 360,
-  stage8: 420,
-  stage9: 480,
-  stage10: 540,
+  // 확장 스테이지(6~10)는 데이터 scoreStageBonus가 정본이다(2026-11-08: 예전에는 그 필드를 읽지 않았다).
+  // 값은 300/360/420/480/540 그대로 — 서버 SERVER_STAGE_BONUS(functions/src/ranking.js)와 같아야 하며
+  // rankingScorePolicy.test.js가 둘의 일치를 단언한다.
+  ...Object.fromEntries(Object.values(EXPANSION_STAGES).map((stage) => [stage.id, stage.scoreStageBonus])),
 }
 
 const STAGE_PRIORITY = {

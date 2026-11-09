@@ -10,7 +10,7 @@ export const STAGE_PROP_PLACEMENTS_STORAGE_KEY = 'escape-zombie-school.stageProp
 export const STAGE_PROP_PLACEMENTS_EVENT = 'escape-zombie-school.stagePropPlacements.changed'
 
 // 편집 가능한 스테이지 목록.
-export const STAGE_PROP_STAGE_IDS = Object.freeze(['stage1', 'stage2', 'stage3', 'stage4'])
+export const STAGE_PROP_STAGE_IDS = Object.freeze(['stage1', 'stage2', 'stage3', 'stage4', 'stage5'])
 
 // StageObjectLayer의 STAGE_OBJECT_COMPONENTS 매핑과 반드시 동기 유지.
 // (stagePropPlacements.test.js의 동기화 단언 테스트가 드리프트를 자동 감지한다.)
@@ -44,6 +44,13 @@ export const STAGE_PROP_TYPES = Object.freeze([
   'kitchenCrateStack',
   'kitchenClutter',
   'pressureCauldron',
+  // 교무실(stage5) 프랍 6종
+  'staffroomDeskIsland',
+  'staffroomViceDesk',
+  'staffroomCopier',
+  'staffroomEntranceDoor',
+  'staffroomSpeaker',
+  'staffroomClutter',
 ])
 
 const STAGE_PROP_TYPE_SET = new Set(STAGE_PROP_TYPES)
@@ -89,6 +96,9 @@ function normalizeProps(props) {
   if (typeof props.damaged === 'boolean') result.damaged = props.damaged
   if (typeof props.knockedOver === 'boolean') result.knockedOver = props.knockedOver
   if (typeof props.open === 'boolean') result.open = props.open
+  // stage5 교내 방송 스피커: 호출 레인(L1~L4)과 장착 방식(벽 / 남쪽 기둥).
+  if (typeof props.lane === 'string' && /^L[1-4]$/.test(props.lane)) result.lane = props.lane
+  if (props.mount === 'wall' || props.mount === 'stand') result.mount = props.mount
   if (Number.isInteger(props.uniformColor) && props.uniformColor >= 0 && props.uniformColor <= 0xffffff) {
     result.uniformColor = props.uniformColor
   }

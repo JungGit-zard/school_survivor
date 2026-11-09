@@ -104,6 +104,14 @@ export const SOUND_MAP = {
   inuconBark:         '/sfx/enemies/inuconBark.ogg',   // 주인공 대신 피해(대리 피격) 신호
   inuconHeal:         '/sfx/enemies/inuconHeal.ogg',
 
+  // ── 보스 패턴·이동 (2026-11-08) ─────────────────────────────────────────────
+  // B10 교감 좀비 패턴 3종(lib/stage5ViceBoss.js B10_SFX)과 B03 셔틀런 착지 '쿵'.
+  // 전부 scripts/generate_sfx.mjs 자체 합성.
+  b10StampSlam:       '/sfx/enemies/b10StampSlam.ogg',    // 결재 도장 active 진입
+  b10LedgerSwing:     '/sfx/enemies/b10LedgerSwing.ogg',  // 출석부 휘두르기 active 진입
+  b10MeetingBell:     '/sfx/enemies/b10MeetingBell.ogg',  // 교무회의 소집 정지 시작
+  b03ShuttleStomp:    '/sfx/enemies/b03ShuttleStomp.ogg', // 셔틀런 홉 착지마다 1회
+
   // ── UI ───────────────────────────────────────────────────────────────────────
   buttonClick:    '/sfx/ui/buttonClick.ogg',
   coinCollect:    '/sfx/ui/coinCollect.ogg',
@@ -128,6 +136,18 @@ export const SOUND_MAP = {
   textbookLand:       '/sfx/events/textbookLand.ogg',
   rzlWhistle:         '/sfx/events/rzlWhistle.ogg',
   stage2GuardWhistle: '/sfx/events/stage2GuardWhistle.ogg',
+
+  // ── Stage 5 전교 호출 방송 (B_stage5 §11-2) ──────────────────────────────────
+  stage5CallChime:    '/sfx/events/stage5CallChime.ogg',   // 딩-동-댕-동 경고 1.6s
+  stage5CallStart:    '/sfx/events/stage5CallStart.ogg',   // 마이크 '삑' 호출 시작 0.4s
+
+  // ── Stage 6 운동장 최후의 조회 (C_stage6 C-11-2) ─────────────────────────────
+  stage6MicFeedback:     '/sfx/events/stage6MicFeedback.ogg',     // 훈화 preCue·보스 등장 하울링
+  stage6SpeechRingPulse: '/sfx/events/stage6SpeechRingPulse.ogg', // 고리 active 진입(고리당 1회)
+  stage6SchoolChime:     '/sfx/events/stage6SchoolChime.ogg',     // 첫 훈화 튜토리얼 학교 종
+  stage6RelayWhistle:    '/sfx/events/stage6RelayWhistle.ogg',    // 소환 warn·계주 대열 호루라기
+  stage6AnthemSting:     '/sfx/events/stage6AnthemSting.ogg',     // 교가 제창 windup 스팅
+  stage6GateOpen:        '/sfx/events/stage6GateOpen.ogg',        // 정문 개방 '드르륵…쿵'
 }
 
 export const DEFAULT_SFX_TUNING = {
@@ -157,6 +177,11 @@ export const PROTECTED_DANGER_SFX = Object.freeze([
   'zombieRangedShoot',
   'zombieChargeRoar',
   'zombieGiantThud',
+  // 보스 패턴 신호는 회피 정보라 전투 캡으로 버리지 않는다(2026-11-08).
+  'b10StampSlam',
+  'b10LedgerSwing',
+  'b10MeetingBell',
+  'b03ShuttleStomp',
 ])
 const _protectedDangerSfx = new Set(PROTECTED_DANGER_SFX)
 export const SFX_VOICE_CLASS = Object.freeze(Object.fromEntries(
@@ -311,6 +336,22 @@ export const POLYPHONY_COOLDOWN = Object.freeze({
   // 소멸음은 선이 여러 개일 때 동시 만료가 가능하다. 음원 0.22초보다 긴 260ms로
   // 겹침을 원천 차단한다 — 가장 조용해야 할 소리가 겹쳐서 커지면 설계가 무너진다.
   lineDrawExpire: 260,
+  // Stage 5·6·보스 신호(2026-11-08). 전부 120ms 이상(B_stage5 §11-2), 대개 음원 길이 이상으로 잡아
+  // 같은 신호가 자기 위에 겹쳐 음량이 튀지 않게 한다.
+  stage5CallChime:       1600,
+  stage5CallStart:       400,
+  b10StampSlam:          350,
+  b10LedgerSwing:        300,
+  b10MeetingBell:        500,
+  stage6MicFeedback:     500,
+  // 훈화 고리는 같은 회차에 0.8초 간격 2개(30, 30.8초…)라 음원(0.25s)보다만 길면 된다.
+  stage6SpeechRingPulse: 250,
+  stage6SchoolChime:     1600,
+  stage6RelayWhistle:    600,
+  stage6AnthemSting:     900,
+  stage6GateOpen:        900,
+  // 착지 간격은 홉 1회(목표 500ms, 최소 약 333ms)다. 음원 0.22s보다 길고 홉보다 짧게.
+  b03ShuttleStomp:       250,
 })
 
 const AUTH_OVERLAY_ALLOWED_SFX = new Set([

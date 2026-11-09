@@ -5,8 +5,8 @@ import { EXPANSION_STAGES, getExpansionStageConfig } from './expansionContent.js
 export const DEFAULT_STAGE_ID = 'stage1'
 
 // Release entry boundary only; all content definitions and saved boss evidence remain intact.
-export const VISIBLE_STAGE_IDS = Object.freeze(['stage1', 'stage2', 'stage3', 'stage4'])
-// Lobby-list alias (contract 2026-10-24 §3: Stage1-4 exposure stays fixed; unlock records are separate).
+export const VISIBLE_STAGE_IDS = Object.freeze(['stage1', 'stage2', 'stage3', 'stage4', 'stage5', 'stage6'])
+// Lobby-list alias. 2026-11-08 Terry: Stage 5·6 released (Stage 7-10 stay hidden); unlock still needs previous-stage boss evidence.
 export const LOBBY_STAGE_IDS = VISIBLE_STAGE_IDS
 export function isStageVisible(stageId) {
   return VISIBLE_STAGE_IDS.includes(stageId)
@@ -134,21 +134,27 @@ export const STAGE_CONFIGS = {
   },
 }
 
+// Stage 5 「교무실 최종 돌파」(2026-11-08 스펙 Part B §2-1). 1층 교무실 + 중앙 현관.
+// 책상 섬 12개가 레인 4개를 만드는 solid 가구 스테이지(isSolidPropStage). 보스 = B10 교감 좀비.
 STAGE_CONFIGS.stage5 = {
-  id: 'stage5', label: 'Stage 5', title: '학교 최종 돌파',
-  description: '3분 30초 후 열린 마지막 탈출구로 탈출하기',
+  id: 'stage5', label: 'Stage 5', title: '교무실 최종 돌파',
+  description: '3분 30초 후 열린 탈출구로 탈출하기',
   durationSec: STAGE_DURATION_SEC,
   clearRecordKey: 'stage5Clears', bestRecordKey: 'stage5BestSurvivalSec',
-  bossWarningSec: BOSS_SPAWN_CENTER_SEC, bossType: 'B03', e04IntroSec: 72,
+  bossWarningSec: BOSS_SPAWN_CENTER_SEC, bossType: 'B10',
+  // 원거리 E04 도입 추세 72→34→18→12. 실발사 게이트도 12(stage2ProjectileRules.getE04IntroSec).
+  e04IntroSec: 12,
   escapePortalSec: ESCAPE_PORTAL_OPEN_SEC,
   matildaWarningSec: MATILDA_WARNING_SEC, matildaSec: MATILDA_SPAWN_SEC,
-  // Stage3 경계 재사용: 반폭 1.875블록 / 반길이 4.8블록.
-  mapHalfX: 7.5, mapHalfZ: 19.2,
+  // Stage 4와 같은 폭: 반폭 2.34블록 / 반길이 4.0블록.
+  mapHalfX: 9.36, mapHalfZ: 16,
+  // 탈출구 고정 앵커: 중앙 현관 문 앞(−Z가 화면 위). portalPlacement가 앵커 후보부터 검사한다.
+  portalAnchor: Object.freeze({ x: 0, z: -11.4 }),
   survivalMilestones: [
-    { atMs: 48_000, gold: 5, label: '최종 돌파 적응 보너스' },
-    { atMs: 144_000, gold: 7, label: '최종 방어선 돌파 보너스' },
-    { atMs: 192_000, gold: 11, label: '체육교사 재대결 보너스' },
-    { atMs: 240_000, gold: 20, label: '최종 탈출 보너스' },
+    { atMs: 48_000, gold: 5, label: '교무실 적응 보너스' },
+    { atMs: 144_000, gold: 7, label: '레인 돌파 보너스' },
+    { atMs: 192_000, gold: 11, label: '교감 조우 보너스' },
+    { atMs: 240_000, gold: 22, label: '현관 탈출 보너스' },
   ],
 }
 
@@ -163,12 +169,23 @@ const NEXT_STAGE_BY_STAGE = {
   stage5: 'stage6',
 }
 
+// 1부 「좀비학교 탈출」의 마지막 스테이지(운동장 → 정문). 이 스테이지에서는 "다음 스테이지 계속"이 없다 —
+// stage7을 VISIBLE에 넣더라도 1부 엔딩이 깨지지 않게 getNextStageId 첫 줄에서 막는다(스펙 Part C C-2-3).
+// NEXT_STAGE_BY_STAGE의 stage6 → stage7은 해금 증거 경로(stage6BossDefeats)라 그대로 둔다.
+export const PART1_FINAL_STAGE_ID = 'stage6'
+
+// Stage 4·5는 solid 대형 가구(콜라이더·시야 차단)를 쓰는 스테이지다.
+export function isSolidPropStage(stageId) {
+  return stageId === 'stage4' || stageId === 'stage5'
+}
+
 export function getStageConfig(stageId = DEFAULT_STAGE_ID) {
   const base = STAGE_CONFIGS[stageId] ?? STAGE_CONFIGS[DEFAULT_STAGE_ID]
   return applyAdminStageOverrides(base)
 }
 
 export function getNextStageId(stageId = DEFAULT_STAGE_ID) {
+  if (stageId === PART1_FINAL_STAGE_ID) return null
   if (!isStageVisible(stageId)) return null
   const next = NEXT_STAGE_BY_STAGE[stageId] ?? null
   if (!isStageVisible(next)) return null

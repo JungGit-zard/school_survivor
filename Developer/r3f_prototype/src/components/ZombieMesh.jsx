@@ -1,19 +1,15 @@
 import { useLayoutEffect, useRef } from 'react'
-import { useFrame, useLoader } from '@react-three/fiber'
+import { useFrame } from '@react-three/fiber'
 import { runWithTitleIdleRig } from '../lib/titleIdleRig.js'
-import * as THREE from 'three'
 import { inflateScale, getCachedBoxGeo, getCachedChamferedBoxGeo, getCachedToonMat, getSharedOutlineMat, getFlashMat } from '../lib/toon.js'
 import { getStudioZombieItemId } from '../lib/graphicsStudioConfig.js'
-import boss01FaceUrl from '../assets/faces/b01_math_teacher_face.webp'
-import boss02FaceUrl from '../assets/faces/b02_stage2_boss_face.webp'
-import boss03FaceUrl from '../assets/faces/b03_pe_teacher_face.webp'
-import boss04FaceUrl from '../assets/faces/b04_chef_boss_face.webp'
 import ExpansionZombieMesh from './expansion/ExpansionZombieMesh.jsx'
 import { getExpansionVisual } from '../lib/expansionVisuals.js'
 import MatildaMesh from './MatildaMesh.jsx'
 import ProceduralFaceTestZombie from './ProceduralFaceTestZombie.jsx'
+import B10ViceBossMesh from './B10ViceBossMesh.jsx'
 import StudioTunedGroup, { composeStudioPartPosition, composeStudioPartRotation, composeStudioPartScale } from './StudioTunedGroup.jsx'
-import BossFacePartsOverlay from './BossFacePartsOverlay.jsx'
+import BossProceduralFace from './BossProceduralFace.jsx'
 import { PROJECTILE_ZOMBIE_PALETTE_ENTRIES } from '../lib/projectileZombieVisuals.js'
 
 const disableRaycast = () => null
@@ -40,6 +36,8 @@ export const ZOMBIE_PALETTE = {
   // 폴백되던 사망 파편 색을 각 메시의 실제 색으로 맞춘다.
   E07: { body: 0x486d9b, skin: 0x568a55, eye: 0xffedae },
   B04: { body: 0xf2efe2, skin: 0x7fa65a, eye: 0x101010 },
+  // B10 교감 좀비(Stage 5 보스, B10ViceBossMesh 전용 분기). 사망 파편 색 조회용.
+  B10: { body: 0x4b5d7a, skin: 0x9dbf8a, eye: 0x101010 },
   // 신규 일반 좀비 12종. 제한된 평면 색만 쓰고 mark는 표식 박스 하나의 색이다.
   E34: { body: 0x4f5a22, skin: 0x8a9452, eye: 0xff2020, mark: 0xd8dca0 },
   E35: { body: 0x1d3a38, skin: 0x5c7b72, eye: 0xff2020, mark: 0x9fc4b4 },
@@ -79,7 +77,7 @@ export const B01_BOSS_VISUAL_PALETTE = {
 export const B01_BOSS_VISUAL_PARTS = [
   'blockHead',
   'raggedHair',
-  'faceTexture',
+  'proceduralFace',
   'suitJacket',
   'whiteShirt',
   'redTie',
@@ -88,13 +86,6 @@ export const B01_BOSS_VISUAL_PARTS = [
   'forwardArms',
   'raggedTears',
 ]
-
-export const B01_BOSS_FACE = {
-  size: [0.58, 0.50],
-  position: [0, 0, 0.251],
-  repeat: [1, 1],
-  offset: [0, 0],
-}
 
 export const B01_MATH_SET_SQUARE_LAYOUT = {
   bodyColor: 0xf6c844,
@@ -159,7 +150,7 @@ export const B04_CHEF_PALETTE = {
 export const B04_CHEF_PARTS = [
   'hat',
   'head',
-  'faceTexture',
+  'proceduralFace',
   'body',
   'neckerchief',
   'armL',
@@ -170,13 +161,6 @@ export const B04_CHEF_PARTS = [
   'legR',
 ]
 
-export const B04_CHEF_FACE = {
-  size: [0.66, 0.48],
-  position: [0, 0, 0.271],
-  repeat: [1, 1],
-  offset: [0, 0],
-}
-
 export const B03_PE_TEACHER_FACE_LAYOUT = {
   leftEye: { size: [0.12, 0.08, 0.045], position: [-0.14, 0.04, 0.245] },
   rightEye: { size: [0.12, 0.08, 0.045], position: [0.14, 0.04, 0.245] },
@@ -185,24 +169,6 @@ export const B03_PE_TEACHER_FACE_LAYOUT = {
   nose: { size: [0.10, 0.13, 0.06], position: [0, -0.04, 0.265] },
   mouth: { size: [0.26, 0.10, 0.045], position: [0, -0.17, 0.25] },
   tooth: { size: [0.07, 0.04, 0.035], position: [-0.05, -0.14, 0.28] },
-}
-
-// B03 얼굴 데칼 — 노출 얼굴면 cover-fit.
-// 텍스처 자체에 빨간 줄무늬 머리띠·목의 빨간 끈+호루라기가 그려져 있으므로,
-// 3D로 모델링됐던 이목구비/머리띠/호루라기 파츠는 제거하고 이 한 장으로 대체한다.
-// 노출 얼굴면 실측: 헤드 박스 [0.56,0.48,0.44] 앞면(z=0.22) 전체가 노출된다(0.56×0.48,
-// center y=0). 상단 헤어 블록(y 0.215~0.345, front z=0.215)은 앞면보다 뒤라 가리지 않는다.
-// UV 윈도(cover-fit): 앞면 종횡비 7:6(0.56/0.48)에 맞춰 정사각 텍스처(1254px)의 상단
-// 14.3%를 크롭(repeat.y=0.857) — 헤드밴드 위 빈 피부 여백(상단 8%)과 헤드밴드 상단
-// 흰 줄 일부만 잘리고, 하단 호루라기(이미지 맨 아래까지 그려짐)는 온전히 보존된다.
-// 이전 플레인 [0.58,0.58]은 앞면 높이(0.48)보다 커서 하단이 몸통 위로 삐져나와
-// 스티커처럼 보였다 → 노출 앞면과 정확히 일치시킨다.
-// z는 헤드 앞면(0.22)에서 +0.01만 띄워(0.23) 패럴랙스를 최소화.
-export const B03_PE_TEACHER_FACE = {
-  size: [0.56, 0.48],
-  position: [0, 0, 0.23],
-  repeat: [1, 0.857],
-  offset: [0, 0],
 }
 
 export const RUN_ZOMBIE_VISUAL = {
@@ -729,7 +695,7 @@ export const B02_STAGE2_BOSS_PALETTE = {
 }
 
 export const B02_STAGE2_BOSS_PARTS = [
-  'blockHeadWithTextureFace',
+  'blockHeadWithProceduralFace',
   'brownBobAndBunHair',
   'redTornBlazer',
   'whiteShirtTieLanyard',
@@ -738,13 +704,6 @@ export const B02_STAGE2_BOSS_PARTS = [
   'blackShoes',
   'slightB02Walk',
 ]
-
-export const B02_STAGE2_BOSS_FACE = {
-  size: [0.58, 0.50],
-  position: [0, 0, 0.251],
-  repeat: [1, 1],
-  offset: [0, 0],
-}
 
 // boxScale은 베이스 지오메트리에만 곱하는 비균등 비례다. 새 그룹을 만들지 않으므로
 // 기존 파츠의 Studio 숫자 자식 경로가 바뀌지 않고, 고정풀 인스턴스 경로가 인스턴스
@@ -809,32 +768,17 @@ function B01MathSetSquare({ hitFlash }) {
   )
 }
 
-function B01MathTeacherFaceTexture() {
-  const texture = useLoader(THREE.TextureLoader, boss01FaceUrl)
-  texture.colorSpace = THREE.SRGBColorSpace
-  texture.anisotropy = 4
-  texture.repeat.set(...B01_BOSS_FACE.repeat)
-  texture.offset.set(...B01_BOSS_FACE.offset)
-
-  return (
-    <mesh name="b01MathTeacherFaceTexture" position={B01_BOSS_FACE.position} renderOrder={4} userData={{ studioNonFocusable: true }}>
-      <planeGeometry args={B01_BOSS_FACE.size} />
-      <meshBasicMaterial map={texture} transparent toneMapped={false} depthTest={false} depthWrite={false} />
-    </mesh>
-  )
-}
-
 function B01BossZombieMesh({ hitFlash, reg, bossFaceRecipe }) {
   const pal = B01_BOSS_VISUAL_PALETTE
 
   return (
     <group>
       <group ref={reg('head')} position={[0, 0.88, 0]}>
-        <ZBlock size={[0.58, 0.50, 0.48]} position={[0, 0, 0]} color={pal.skin} emissive={0.08} outlineScale={1.08} flash={hitFlash} />
+        {/* 얼굴은 머리 블록 앞면에 직접 그리는 절차적(SDF) 얼굴 — 머리 블록의 자식이라 실루엣을 넘지 않는다 */}
+        <ZBlock size={[0.58, 0.50, 0.48]} position={[0, 0, 0]} color={pal.skin} emissive={0.08} outlineScale={1.08} flash={hitFlash}>
+          <BossProceduralFace bossType="B01" recipe={bossFaceRecipe} />
+        </ZBlock>
         <ZBlock size={[0.60, 0.18, 0.56]} position={[-0.02, 0.25, -0.02]} rotation={[0.06, 0, -0.08]} color={pal.hair} emissive={0.04} outlineScale={1.06} flash={hitFlash} />
-        {/* 눈·눈썹·입·치아·볼 그림자 등 모델링 이목구비 대신 사용자 제공 수학선생 얼굴 텍스처 데칼 사용 */}
-        <B01MathTeacherFaceTexture />
-        <BossFacePartsOverlay bossType="B01" recipe={bossFaceRecipe} />
       </group>
 
       <group ref={reg('body')} position={[0, 0.26, 0]}>
@@ -877,32 +821,17 @@ function B01BossZombieMesh({ hitFlash, reg, bossFaceRecipe }) {
   )
 }
 
-function B03PeTeacherFaceTexture() {
-  const texture = useLoader(THREE.TextureLoader, boss03FaceUrl)
-  texture.colorSpace = THREE.SRGBColorSpace
-  texture.anisotropy = 4
-  texture.repeat.set(...B03_PE_TEACHER_FACE.repeat)
-  texture.offset.set(...B03_PE_TEACHER_FACE.offset)
-
-  return (
-    <mesh name="b03PeTeacherFaceTexture" position={B03_PE_TEACHER_FACE.position} renderOrder={4} userData={{ studioNonFocusable: true }}>
-      <planeGeometry args={B03_PE_TEACHER_FACE.size} />
-      <meshBasicMaterial map={texture} transparent toneMapped={false} depthTest={false} depthWrite={false} />
-    </mesh>
-  )
-}
-
 function B03PhysicalEducationBossMesh({ hitFlash, reg, bossFaceRecipe }) {
   const pal = B03_PE_TEACHER_PALETTE
 
   return (
     <group>
       <group name="b01PeTeacherHeadRig" ref={reg('head')} position={[0, 0.88, 0]}>
-        <ZBlock name="b01Head" size={[0.56, 0.48, 0.44]} position={[0, 0, 0]} color={pal.skin} emissive={0.07} outlineScale={1.08} flash={hitFlash} />
+        {/* 머리띠·눈썹·눈·입·볼 핏자국·목끈+호루라기는 머리 블록 앞면의 절차적(SDF) 얼굴로 그린다 */}
+        <ZBlock name="b01Head" size={[0.56, 0.48, 0.44]} position={[0, 0, 0]} color={pal.skin} emissive={0.07} outlineScale={1.08} flash={hitFlash}>
+          <BossProceduralFace bossType="B03" recipe={bossFaceRecipe} />
+        </ZBlock>
         <ZBlock name="b01SportHair" size={[0.58, 0.13, 0.45]} position={[0, 0.28, -0.01]} color={pal.hair} emissive={0.03} outlineScale={1.04} flash={hitFlash} />
-        {/* 눈·눈썹·코·입·이빨 등 모델링 이목구비 대신 사용자 제공 얼굴 텍스처 데칼 사용 */}
-        <B03PeTeacherFaceTexture />
-        <BossFacePartsOverlay bossType="B03" recipe={bossFaceRecipe} />
       </group>
 
       <group name="b01PeTeacherBodyRig" ref={reg('body')} position={[0, 0.28, 0]}>
@@ -912,7 +841,7 @@ function B03PhysicalEducationBossMesh({ hitFlash, reg, bossFaceRecipe }) {
         <ZBlock name="b01ChestR" size={[0.30, 0.22, 0.09]} position={[0.18, 0.15, 0.27]} color={pal.jerseyShadow} emissive={0.04} outlineScale={1.02} flash={hitFlash} />
         <group name="b01JerseyVLeft" />
         <group name="b01JerseyVRight" />
-        {/* 목의 빨간 끈+호루라기는 얼굴 텍스처에 포함되어 중복되므로 3D 호루라기 파츠 제거 */}
+        {/* 목의 빨간 끈+호루라기는 절차적 얼굴에 그려지므로 3D 호루라기 파츠는 두지 않는다 */}
       </group>
 
       <ZBlock name="b01Shorts" groupRef={reg('shorts')} size={[0.68, 0.28, 0.44]} position={[0, -0.17, 0]} color={pal.shorts} emissive={0.05} outlineScale={1.07} flash={hitFlash} />
@@ -950,36 +879,6 @@ function B03PhysicalEducationBossMesh({ hitFlash, reg, bossFaceRecipe }) {
   )
 }
 
-function B02Stage2BossFaceTexture() {
-  const texture = useLoader(THREE.TextureLoader, boss02FaceUrl)
-  texture.colorSpace = THREE.SRGBColorSpace
-  texture.anisotropy = 4
-  texture.repeat.set(...B02_STAGE2_BOSS_FACE.repeat)
-  texture.offset.set(...B02_STAGE2_BOSS_FACE.offset)
-
-  return (
-    <mesh name="b02Stage2BossFaceTexture" position={B02_STAGE2_BOSS_FACE.position} renderOrder={4} userData={{ studioNonFocusable: true }}>
-      <planeGeometry args={B02_STAGE2_BOSS_FACE.size} />
-      <meshBasicMaterial map={texture} transparent toneMapped={false} depthTest={false} depthWrite={false} />
-    </mesh>
-  )
-}
-
-function B04ChefBossFaceTexture() {
-  const texture = useLoader(THREE.TextureLoader, boss04FaceUrl)
-  texture.colorSpace = THREE.SRGBColorSpace
-  texture.anisotropy = 4
-  texture.repeat.set(...B04_CHEF_FACE.repeat)
-  texture.offset.set(...B04_CHEF_FACE.offset)
-
-  return (
-    <mesh name="chefFaceTexture" position={B04_CHEF_FACE.position} renderOrder={4} userData={{ studioNonFocusable: true }}>
-      <planeGeometry args={B04_CHEF_FACE.size} />
-      <meshBasicMaterial map={texture} transparent toneMapped={false} depthTest={false} depthWrite={false} />
-    </mesh>
-  )
-}
-
 function B04ChefBossMesh({ hitFlash, reg, bossFaceRecipe }) {
   const pal = B04_CHEF_PALETTE
 
@@ -995,9 +894,11 @@ function B04ChefBossMesh({ hitFlash, reg, bossFaceRecipe }) {
       </group>
 
       <group name="chefHeadRig" ref={reg('head')} position={[0, 0.93, 0]}>
-        <ZBlock name="chefHead" size={[0.66, 0.48, 0.52]} position={[0, 0, 0]} color={pal.skin} emissive={0.07} outlineScale={1.08} flash={hitFlash} />
-        <B04ChefBossFaceTexture />
-        <BossFacePartsOverlay bossType="B04" recipe={bossFaceRecipe} />
+        <ZBlock name="chefHead" size={[0.66, 0.48, 0.52]} position={[0, 0, 0]} color={pal.skin} emissive={0.07} outlineScale={1.08} flash={hitFlash}>
+          <BossProceduralFace bossType="B04" recipe={bossFaceRecipe} />
+        </ZBlock>
+        {/* 예전 얼굴 평면 자리. 귀가 Studio 숫자 경로 2·3번을 그대로 유지하도록 빈 슬롯으로 둔다. */}
+        <group name="chefFaceSlot" />
         <ZBlock name="chefEarL" size={[0.13, 0.22, 0.16]} position={[-0.39, -0.01, 0]} color={pal.skinShadow} emissive={0.05} outlineScale={1.04} flash={hitFlash} />
         <ZBlock name="chefEarR" size={[0.13, 0.22, 0.16]} position={[0.39, -0.01, 0]} color={pal.skinShadow} emissive={0.05} outlineScale={1.04} flash={hitFlash} />
       </group>
@@ -1070,14 +971,14 @@ function B02Stage2BossMesh({ hitFlash, reg, bossFaceRecipe }) {
   return (
     <group>
       <group name="b02HeadRig" ref={reg('head')} position={[0, 0.88, 0]}>
-        <ZBlock name="b02Head" size={[0.58, 0.50, 0.48]} position={[0, 0, 0]} color={pal.skin} emissive={0.08} outlineScale={1.08} flash={hitFlash} />
+        <ZBlock name="b02Head" size={[0.58, 0.50, 0.48]} position={[0, 0, 0]} color={pal.skin} emissive={0.08} outlineScale={1.08} flash={hitFlash}>
+          <BossProceduralFace bossType="B02" recipe={bossFaceRecipe} />
+        </ZBlock>
         <ZBlock name="b02FrontHair" size={[0.62, 0.18, 0.60]} position={[-0.03, 0.26, -0.01]} rotation={[0.02, 0, -0.04]} color={pal.hair} emissive={0.035} outlineScale={1.05} flash={hitFlash} />
         <ZBlock name="b02LeftSideHair" size={[0.12, 0.46, 0.18]} position={[-0.34, 0.02, -0.03]} color={pal.hairShadow} emissive={0.025} outlineScale={1.04} flash={hitFlash} />
         <ZBlock name="b02RightSideHair" size={[0.12, 0.46, 0.18]} position={[0.34, 0.02, -0.03]} color={pal.hairShadow} emissive={0.025} outlineScale={1.04} flash={hitFlash} />
         <ZBlock name="b02BackHair" size={[0.58, 0.44, 0.18]} position={[0.02, 0.06, -0.30]} color={pal.hair} emissive={0.03} outlineScale={1.05} flash={hitFlash} />
         <ZBlock name="b02HairBun" size={[0.24, 0.22, 0.22]} position={[0.24, 0.33, -0.24]} rotation={[0.05, 0, 0.08]} color={pal.hair} emissive={0.03} outlineScale={1.05} flash={hitFlash} />
-        <B02Stage2BossFaceTexture />
-        <BossFacePartsOverlay bossType="B02" recipe={bossFaceRecipe} />
       </group>
 
       <group name="b02BodyRig" ref={reg('body')} position={[0, 0.28, 0]}>
@@ -1544,6 +1445,16 @@ export default function ZombieMesh({ type = 'E01', animPhase = 'normal', hitFlas
     return (
       <StudioTunedGroup itemId={getStudioZombieItemId('B04')}>
         <B04ChefBossMesh hitFlash={hitFlash} reg={reg} bossFaceRecipe={bossFaceRecipe} />
+      </StudioTunedGroup>
+    )
+  }
+
+  // B10 교감 좀비: 자체 포즈 애니메이션(normal/warn/stun)을 돌린다. reg를 넘기지 않으므로
+  // 위 공용 stepZombieFrame은 legL이 없어 즉시 반환한다.
+  if (type === 'B10') {
+    return (
+      <StudioTunedGroup itemId={getStudioZombieItemId('B10')}>
+        <B10ViceBossMesh animPhase={animPhase} hitFlash={hitFlash} staticPose={staticPose} />
       </StudioTunedGroup>
     )
   }

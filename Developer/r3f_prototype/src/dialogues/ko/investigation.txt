@@ -306,6 +306,9 @@ investigation.student.stage3.001	호루라기가 보여. 삑 불면 체육 시�
 investigation.student.stage3.002	농구공이 옆에 붙어 있어. 친구인지 공범인지 아직 모르겠어.
 investigation.student.stage4.001	쟁반이 너무 공손해. 밥 기다리는 자세 같아서 괜히 짠해.
 investigation.student.stage4.002	수저가 가지런해. 이렇게 예의 바른 공포는 처음이야.
+investigation.student.stage5.001	교무실 의자에 반듯이 앉아 있어. 혼나는 자세가 몸에 밴 것 같아.
+investigation.student.stage5.002	손에 반성문을 꼭 쥐고 있어. 세 줄째에서 멈췄네.
+investigation.student.stage5.003	"교감 선생님 오시면 깨워 줘"라고 쓴 포스트잇이 이마에 붙어 있어.
 investigation.classroomDesk.001	연필이 손등을 콕 찔렀어. 책상도 좀비 편인 줄 알았네.
 investigation.classroomDesk.002	“급식 최고” 낙서라니. 나 지금 배가 먼저 놀라잖아.
 investigation.classroomDesk.003	책상 흠집이 지도로 보여, 그 안에 숨을 수 있을 것 같아.
@@ -431,3 +434,33 @@ investigation.pressureCauldron.002	열기가 얼굴까지 와. 난 여기서 더
 investigation.pressureCauldron.003	하얀 증기가 내 앞을 가려. 난 옆으로 비켜야겠어.
 investigation.pressureCauldron.004	뚜껑이 덜컹대서 난 손을 주머니에 꼭 숨겼어.
 investigation.pressureCauldron.005	뜨거운 솥과는 거리 두기. 난 구경만 하고 지나갈래.
+investigation.staffroomDeskIsland.001	모니터에 "수행평가 채점 중"이 3주째 떠 있어.
+investigation.staffroomDeskIsland.002	커피잔이 다섯 개. 전부 반쯤 남았어.
+investigation.staffroomDeskIsland.003	칸막이에 "업무 중 말 걸지 마시오"가 붙어 있어. 좀비가 돼도 지키는 중.
+investigation.staffroomDeskIsland.004	서랍 안에 압수한 게임기가 잔뜩이야. 돌려줄 생각은 없었나 봐.
+investigation.staffroomDeskIsland.005	달력에 "방학까지 D-37"이 동그라미 쳐져 있어.
+investigation.staffroomViceDesk.001	결재판이 산처럼 쌓였어. 맨 위 서류 제목이 "결재 서류 정리 계획서"야.
+investigation.staffroomViceDesk.002	명패를 보니 "교감"이라는 글자만 반짝반짝 닦여 있어.
+investigation.staffroomViceDesk.003	도장함이 비어 있어. 그 도장… 지금 누가 들고 있는지 알 것 같아.
+investigation.staffroomViceDesk.004	의자가 혼자 빙글 돌았어. 아직 온기가 남아 있어.
+investigation.staffroomViceDesk.005	메모에 "회의는 짧게(3시간)"라고 적혀 있어.
+investigation.staffroomCopier.001	복사기가 "용지 걸림"이래. 아마 영원히.
+investigation.staffroomCopier.002	출력 트레이에 시험지가 한 장 걸려 있어. 정답은 안 보여. 아쉽다.
+investigation.staffroomCopier.003	아직 따뜻해. 방금 누가 2,000장을 뽑았나 봐.
+investigation.staffroomCopier.004	"개인 용도 복사 금지" 아래에 내 얼굴 낙서가 있어. 누구야.
+investigation.staffroomCopier.005	버튼을 눌렀더니 "삐" 소리만 났어. 방송 차임이랑 음이 같아.
+investigation.staffroomEntranceDoor.001	유리문 너머로 운동장이 보여. 저기까지만 가면 돼.
+investigation.staffroomEntranceDoor.002	현관 매트에 "어서 오세요"라고 적혀 있어. 나가는 사람한테는 아무 말도 없네.
+investigation.staffroomEntranceDoor.003	문고리에 출석부가 걸려 있어. 오늘 결석자: 전교생.
+investigation.staffroomEntranceDoor.004	신발장에 내 운동화가 그대로 있어. 갈아 신을 시간은 없어, 이대로 뛰어나갈래.
+investigation.staffroomEntranceDoor.005	문틈으로 바람이 들어와. 밖은 아직 평범한 오후 냄새야.
+investigation.staffroomSpeaker.001	스피커에서 "지지직…" 소리만 나. 다음 호출 전이야.
+investigation.staffroomSpeaker.002	볼륨 손잡이가 "최대"에 테이프로 고정돼 있어.
+investigation.staffroomSpeaker.003	"방송 중에는 조용히"라고 적혀 있어. 제일 시끄러운 게 방송인데.
+investigation.staffroomSpeaker.004	전선을 따라가 보니 교감 책상까지 이어져 있어.
+investigation.staffroomSpeaker.005	스피커 그물망에 껌이 붙어 있어. 누가 막아 보려고 했나 봐.
+investigation.staffroomClutter.001	결재 서류 맨 위에 "긴급"이 다섯 번 찍혀 있어.
+investigation.staffroomClutter.002	반성문 더미야. 맨 위 글씨가 낯익어… 내 거다.
+investigation.staffroomClutter.003	가정통신문이 잔뜩이야. 아무도 집에 안 가져갔네.
+investigation.staffroomClutter.004	서류 사이에 압수된 만화책이 끼어 있어. 3권만 없어.
+investigation.staffroomClutter.005	클립이 산더미야. 좀비가 돼도 서류 정리는 하나 봐.

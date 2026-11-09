@@ -30,8 +30,9 @@ afterEach(() => {
   globalThis.IS_REACT_ACT_ENVIRONMENT = previousAct
 })
 
-describe('actual Lobby Stage1–4 release list', () => {
-  it.each([false, true])('lists exactly 1,2,3,4 without bypassing account locks with developer unlock=%s', async (devAllStagesUnlocked) => {
+// 2026-11-08 Terry: Stage 5·6 공개, 7~10 비노출. 5·6은 이전 스테이지 보스 처치 전까지 잠김.
+describe('actual Lobby Stage1–6 release list', () => {
+  it.each([false, true])('lists exactly 1-6 without bypassing account locks with developer unlock=%s', async (devAllStagesUnlocked) => {
     globalThis.IS_REACT_ACT_ENVIRONMENT = true
     vi.useFakeTimers()
     host = document.createElement('div')
@@ -40,11 +41,16 @@ describe('actual Lobby Stage1–4 release list', () => {
     const onStartStage = vi.fn()
     await act(async () => root.render(<Lobby devAllStagesUnlocked={devAllStagesUnlocked} onStartStage={onStartStage} />))
     const cards = [...host.querySelectorAll('section[aria-label^="Stage "]')]
-    expect(cards.map(card => card.getAttribute('aria-label').match(/^Stage (\d+) /)?.[1])).toEqual(['1', '2', '3', '4'])
+    expect(cards.map(card => card.getAttribute('aria-label').match(/^Stage (\d+) /)?.[1])).toEqual(['1', '2', '3', '4', '5', '6'])
     for (const card of cards.slice(1)) {
       expect([...card.querySelectorAll('button')].every(button => button.disabled)).toBe(true)
     }
-    for (let i = 5; i <= 10; i++) expect(host.querySelector(`section[aria-label^="Stage ${i} "]`)).toBeNull()
+    for (let i = 7; i <= 10; i++) expect(host.querySelector(`section[aria-label^="Stage ${i} "]`)).toBeNull()
+    // 신규 계정: Stage 5·6 카드는 이전 보스 처치 조건 문구를 보이고, 탭해도 런이 시작되지 않는다.
+    expect(cards[4].textContent).toContain('Stage 4 보스 처치 시 열림')
+    expect(cards[5].textContent).toContain('Stage 5 보스 처치 시 열림')
+    for (const card of cards.slice(4)) act(() => { card.dispatchEvent(new MouseEvent('click', { bubbles: true })) })
+    act(() => { vi.advanceTimersByTime(2_000) })
     expect(onStartStage).not.toHaveBeenCalled()
   })
 })

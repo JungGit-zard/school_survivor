@@ -84,4 +84,14 @@ describe('Dominance Swarm Respawn', () => {
     expect(plan.every((entry) => ['E01', 'E02'].includes(entry.type))).toBe(true)
     expect(plan.every((entry) => entry.source === 'dominance-swarm')).toBe(true)
   })
+
+  it('Stage 5 교무실은 S3·S4와 같은 E01/E02/E05 풀을 쓰고 S1 풀로 떨어지지 않는다', () => {
+    const seq = [0, 0.4, 0.8, 0.99]
+    let n = 0
+    const plan = createDominanceSwarmSpawnPlan({ spawnCount: 4 }, { stageId: 'stage5' }, () => seq[n++ % seq.length])
+    expect(plan.map((entry) => entry.type)).toEqual(['E01', 'E02', 'E05', 'E05'])
+    let m = 0
+    const stage4 = createDominanceSwarmSpawnPlan({ spawnCount: 4 }, { stageId: 'stage4' }, () => seq[m++ % seq.length])
+    expect(plan.map((entry) => entry.type)).toEqual(stage4.map((entry) => entry.type))
+  })
 })

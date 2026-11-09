@@ -221,6 +221,14 @@ export function getB03ShuttleStompRing(state) {
   return { x, z: state.laneZ, progress: hopElapsedMs / B03_SHUTTLE_STOMP_RING_MS }
 }
 
+// 착지 '쿵' SFX 엣지(2026-11-08 soundmini). 링은 착지마다 progress 0에서 새로 시작하므로
+// 직전 프레임에 링이 없었거나 progress가 줄었으면 이번 프레임이 새 착지다. 히치로 링 사이 공백을
+// 건너뛰어도(progress 감소) 잡힌다. 출발 도약은 링이 없어 소리도 없다. 움직임은 건드리지 않는다.
+export function isB03ShuttleNewLanding(previousProgress, ring) {
+  if (!ring) return false
+  return previousProgress == null || ring.progress < previousProgress
+}
+
 // 몸통 좌표를 목표 쪽으로 최대 maxStep만큼만 옮긴다(XZ 거리 기준). 순간이동 차단의 마지막 방어선.
 export function stepB03ShuttleBodyToward(currentX, currentZ, targetX, targetZ, maxStep) {
   const dx = targetX - currentX

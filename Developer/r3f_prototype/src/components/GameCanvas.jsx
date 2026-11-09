@@ -12,6 +12,7 @@ import ProceduralFaceZombieLayer from './ProceduralFaceZombieLayer.jsx'
 import PooledEnemyProjectileLayer from './PooledEnemyProjectileLayer.jsx'
 import StageEntryRuntimeDiagnostics from './StageEntryRuntimeDiagnostics.jsx'
 import { useGameStore } from '../store/useGameStore.js'
+import { EXPANSION_STAGE_VISUALS } from '../lib/expansionVisuals.js'
 
 // ponytail: dev-only QA handle. window.gameThree.getState() lets QA read gameplay materials
 // directly instead of inferring colors from tone-mapped pixels. Live store, not a snapshot.
@@ -53,6 +54,8 @@ function RedrawFrozenOnResize({ active }) {
 export default function GameCanvas({ gameKey, phase }) {
   const deathCause = useGameStore((state) => state.deathCause)
   const isMatildaContactDeath = phase === 'gameover' && deathCause === 'matilda'
+  // 야외 스테이지는 맵 밖 바닥 너머를 잔디색으로 칠한다(Stage 6 운동장). 실내 스테이지는 기존 회색.
+  const canvasBackground = useGameStore((state) => EXPANSION_STAGE_VISUALS[state.currentStageId]?.canvasBackground ?? '#c8c4bc')
 
   return (
     <Canvas
@@ -64,7 +67,7 @@ export default function GameCanvas({ gameKey, phase }) {
       shadows
       gl={{ stencil: true }}
       frameloop={isMatildaContactDeath ? 'never' : 'always'}
-      style={{ width: '100%', height: '100%', background: '#c8c4bc', display: 'block', filter: isMatildaContactDeath ? 'grayscale(1)' : 'none' }}
+      style={{ width: '100%', height: '100%', background: canvasBackground, display: 'block', filter: isMatildaContactDeath ? 'grayscale(1)' : 'none' }}
     >
       {import.meta.env.DEV && <DevQaHandle />}
       <RedrawFrozenOnResize active={isMatildaContactDeath} />

@@ -29,7 +29,6 @@ const bosses = ['B05', 'B06', 'B07', 'B08', 'B09']
 // complete; card-level checks cover released stages and the per-card flow re-enables once 6-10 ship.
 const visibleIds = ids.filter(isStageVisible)
 const LAST = Number(VISIBLE_STAGE_IDS.at(-1).slice(5))
-const itWhenExpansionReleased = visibleIds.length === ids.length ? it : it.skip
 let container, root
 beforeEach(() => {
   globalThis.IS_REACT_ACT_ENVIRONMENT = true
@@ -83,7 +82,8 @@ describe('expansion lobby UI', () => {
     for (let n = 1; n <= Math.min(5, LAST); n++) expect(card(`stage${n}`).querySelector('[id$="-description"]')).toBeNull()
   })
 
-  itWhenExpansionReleased.each(ids.map((id, i) => [id, i]))('%s stays locked until the previous stage is cleared; opens only its own stage after showtime', (id, i) => {
+  // 2026-11-08: Stage 6 released — run the per-card flow for every released expansion card (7-10 join when visible).
+  it.each(ids.map((id, i) => [id, i]).filter(([id]) => isStageVisible(id)))('%s stays locked until the previous stage is cleared; opens only its own stage after showtime', (id, i) => {
     vi.useFakeTimers()
     const onStartStage = vi.fn()
     render({ onStartStage })

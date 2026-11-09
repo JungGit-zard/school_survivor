@@ -1823,6 +1823,246 @@
       "licenseEvidence": "project-generated-procedural"
     },
     {
+      "logicalId": "stage5CallChime",
+      "category": "events",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/events/stage5CallChime.ogg",
+          "bytes": 13808,
+          "sha256": "21538e176e2d23b7ced65abf847b5462c7a3a2654b7d13fe231042a233ef33ff"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/events/stage5CallChime.mp3",
+          "bytes": 13418,
+          "sha256": "22e9405a2f62b9def885d7c4c353768331db464fa5f30aa0e06e756d81d0aed7"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis, recipe 'events/stage5CallChime'; OGG libvorbis q2 / MP3 64k 44.1kHz mono via --encode with @ffmpeg-installer/ffmpeg)",
+      "notes": "2026-11-08 soundmini. Stage 5 전교 호출 경고 차임 1.6s: 4음 G5-E5-C5-G4 지수감쇠 사인 종 + 약한 스퀘어 (strike/synth). Project procedural SFX asset; no external samples, no third-party or real-world melody copied.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "stage5CallStart",
+      "category": "events",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/events/stage5CallStart.ogg",
+          "bytes": 6590,
+          "sha256": "d40f65d9d6ae9bb638b38a3d1c5bdfd214178c63ef6d25d9604f7ecb5c710a77"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/events/stage5CallStart.mp3",
+          "bytes": 3805,
+          "sha256": "a4da95a806ed311c2d2e0fec59872a3c1a26e6693f1835e43cff026243923406"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis, recipe 'events/stage5CallStart'; OGG libvorbis q2 / MP3 64k 44.1kHz mono via --encode with @ffmpeg-installer/ffmpeg)",
+      "notes": "2026-11-08 soundmini. Stage 5 호출 시작 0.4s: 1kHz 사인/스퀘어 블립 0.13s + 5.2k→2.4k 대역 노이즈 히스 꼬리 (synth/sweptNoise). Project procedural SFX asset; no external samples, no third-party or real-world melody copied.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "b10StampSlam",
+      "category": "enemies",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/b10StampSlam.ogg",
+          "bytes": 5767,
+          "sha256": "fdf362488e7cc085aeea3ae8e5c3ea4ecf9f9803a501c49df078efd3b359698b"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/b10StampSlam.mp3",
+          "bytes": 2969,
+          "sha256": "be3d165943edf90c5448d867647532eb3fe5f07f1bfdfd51bb033997c8c14697"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis, recipe 'enemies/b10StampSlam'; OGG libvorbis q2 / MP3 64k 44.1kHz mono via --encode with @ffmpeg-installer/ffmpeg)",
+      "notes": "2026-11-08 soundmini. B10 결재 도장 0.30s: 120→48Hz 지수감쇠 쿵 + 240→150Hz 몸통 + 6k→3k 노이즈 착 (strike/sweptNoise). Project procedural SFX asset; no external samples, no third-party or real-world melody copied.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "b10LedgerSwing",
+      "category": "enemies",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/b10LedgerSwing.ogg",
+          "bytes": 5650,
+          "sha256": "017d1154e93ae517deeeeca077b24f576d049b784fa4da35f5a7aa0a0401e40e"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/b10LedgerSwing.mp3",
+          "bytes": 2969,
+          "sha256": "882f27e87517100733ac770a7aa6bee2bd0851536aaf95714b04d4fbfd92e904"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis, recipe 'enemies/b10LedgerSwing'; OGG libvorbis q2 / MP3 64k 44.1kHz mono via --encode with @ffmpeg-installer/ffmpeg)",
+      "notes": "2026-11-08 soundmini. B10 출석부 휘두르기 0.3s: 420→3200Hz 상승 노이즈 스윕 + 끝 3k→1.5k 팍 + 180Hz 타격 (sweptNoise/strike). Project procedural SFX asset; no external samples, no third-party or real-world melody copied.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "b10MeetingBell",
+      "category": "enemies",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/b10MeetingBell.ogg",
+          "bytes": 4855,
+          "sha256": "79dc787dcdc4242ae99f50f337a56cbcec2facc4a530b0ed02e608a32408cc49"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/b10MeetingBell.mp3",
+          "bytes": 4641,
+          "sha256": "b78193de8cd02bc31309ca899b468b263eb05c86be1753d9f9d675f8efc6ff3d"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis, recipe 'enemies/b10MeetingBell'; OGG libvorbis q2 / MP3 64k 44.1kHz mono via --encode with @ffmpeg-installer/ffmpeg)",
+      "notes": "2026-11-08 soundmini. B10 교무회의 탁상 종 0.5s: 1568Hz + 1.004/2.76/5.4 비조화 부분음 지수감쇠 (strike). Project procedural SFX asset; no external samples, no third-party or real-world melody copied.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "stage6MicFeedback",
+      "category": "events",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/events/stage6MicFeedback.ogg",
+          "bytes": 7543,
+          "sha256": "565c1c3dd94221c22f4fd2332be78db304c5b5890b25db295224d63b7a8fc50e"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/events/stage6MicFeedback.mp3",
+          "bytes": 4641,
+          "sha256": "c99547805b76df4e6b974e4fa60aec1d4516a10ea97451e08969c84f97e3918a"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis, recipe 'events/stage6MicFeedback'; OGG libvorbis q2 / MP3 64k 44.1kHz mono via --encode with @ffmpeg-installer/ffmpeg)",
+      "notes": "2026-11-08 soundmini. Stage 6 훈화 마이크 하울링 0.5s: 사인 2.4k→3.1kHz, vib 7Hz/25Hz, noise 0.05, 끝 50ms 페이드 (synth). Project procedural SFX asset; no external samples, no third-party or real-world melody copied.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "stage6SpeechRingPulse",
+      "category": "events",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/events/stage6SpeechRingPulse.ogg",
+          "bytes": 4932,
+          "sha256": "49f99d456dd615bc25c412f76d6bbcfbed6a81aa249f584feb24a61f2f7e58d5"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/events/stage6SpeechRingPulse.mp3",
+          "bytes": 2551,
+          "sha256": "a2d5a153e6b04696ef7a04b6a85f61d3620e4b2cdeabdf140fb64cf93afc6c57"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis, recipe 'events/stage6SpeechRingPulse'; OGG libvorbis q2 / MP3 64k 44.1kHz mono via --encode with @ffmpeg-installer/ffmpeg)",
+      "notes": "2026-11-08 soundmini. Stage 6 훈화 고리 0.25s: 120→95Hz 저역 펄스 + 125Hz 톱니 250~900Hz 대역 웅 포먼트 (strike/synth+filters). Project procedural SFX asset; no external samples, no third-party or real-world melody copied.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "stage6SchoolChime",
+      "category": "events",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/events/stage6SchoolChime.ogg",
+          "bytes": 15823,
+          "sha256": "ff2912d39e4a218253a6772b14b7ea15972a4162d981f0a7508d5666b74e8196"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/events/stage6SchoolChime.mp3",
+          "bytes": 13418,
+          "sha256": "947245d7138bfc122c5959fd19ab4fa1d5fb958de0b1c61a393e724da80fecf5"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis, recipe 'events/stage6SchoolChime'; OGG libvorbis q2 / MP3 64k 44.1kHz mono via --encode with @ffmpeg-installer/ffmpeg)",
+      "notes": "2026-11-08 soundmini. Stage 6 학교 종 1.6s: 자작 4음 D5-G5-A5-D6 사각파 LP 3.2k + 한 옥타브 아래 사인 (synth/lowpass). 실존 교내 차임 선율 아님. Project procedural SFX asset; no external samples, no third-party or real-world melody copied.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "stage6RelayWhistle",
+      "category": "events",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/events/stage6RelayWhistle.ogg",
+          "bytes": 7340,
+          "sha256": "16a714a128f2c908a1328f76a2a875da8693a6cb6edc4d115d3608e2cab36cd5"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/events/stage6RelayWhistle.mp3",
+          "bytes": 5059,
+          "sha256": "d8e16fd2e138a2f19337cf9ddff2659f23ed22f0e00266dd2d66eb6035055393"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis, recipe 'events/stage6RelayWhistle'; OGG libvorbis q2 / MP3 64k 44.1kHz mono via --encode with @ffmpeg-installer/ffmpeg)",
+      "notes": "2026-11-08 soundmini. Stage 6 계주 호루라기 0.56s: 3.2kHz 사인 2회, 30Hz/170Hz 트릴 (synth). Project procedural SFX asset; no external samples, no third-party or real-world melody copied.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "stage6AnthemSting",
+      "category": "events",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/events/stage6AnthemSting.ogg",
+          "bytes": 10661,
+          "sha256": "605b3163b02d6e522f3ba2916b79cba23e7375f0e315059f76600ef7e88f2e61"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/events/stage6AnthemSting.mp3",
+          "bytes": 7776,
+          "sha256": "d99e53bc7ff8fa4874c274569103a1641ee42771e5b1df485f70c878f5dd7443"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis, recipe 'events/stage6AnthemSting'; OGG libvorbis q2 / MP3 64k 44.1kHz mono via --encode with @ffmpeg-installer/ffmpeg)",
+      "notes": "2026-11-08 soundmini. Stage 6 교가 제창 스팅 0.9s: 자작 3음 G4-C5-E5 톱니+반옥타브 스퀘어 LP 2.8k 금관풍 칩튠 (synth/lowpass). 국가·실존 교가 선율 아님. Project procedural SFX asset; no external samples, no third-party or real-world melody copied.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "stage6GateOpen",
+      "category": "events",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/events/stage6GateOpen.ogg",
+          "bytes": 9938,
+          "sha256": "fc1c26226e8018cb816e4ae59fac8261d18d30a8a3ba75676e65816370684eca"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/events/stage6GateOpen.mp3",
+          "bytes": 7776,
+          "sha256": "153272c22a5269a4c397066c912a3a8edca99930cd8885f455a02d50bf6d804e"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis, recipe 'events/stage6GateOpen'; OGG libvorbis q2 / MP3 64k 44.1kHz mono via --encode with @ffmpeg-installer/ffmpeg)",
+      "notes": "2026-11-08 soundmini. Stage 6 정문 개방 0.9s: 1.8k→0.9k 대역 노이즈 22Hz AM 드르륵 + 0.7s 95→45Hz 쿵 + 620Hz 금속 울림 (sweptNoise/strike). Project procedural SFX asset; no external samples, no third-party or real-world melody copied.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "b03ShuttleStomp",
+      "category": "enemies",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/b03ShuttleStomp.ogg",
+          "bytes": 4130,
+          "sha256": "2e65d905644d679282417dd667954483861325a297a07c5c1def8dcac7442c43"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/b03ShuttleStomp.mp3",
+          "bytes": 2342,
+          "sha256": "790cc69ff8b497e4723a39e6102b0366a13e33cbeb5449d07b0b62efa4c91ea2"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis, recipe 'enemies/b03ShuttleStomp'; OGG libvorbis q2 / MP3 64k 44.1kHz mono via --encode with @ffmpeg-installer/ffmpeg)",
+      "notes": "2026-11-08 soundmini. B03 셔틀런 착지 쿵 0.22s: 95→42Hz 지수감쇠 + 180→110Hz 몸통(폰 스피커용) + 900→300Hz 바닥 트랜지언트 (strike/sweptNoise). Project procedural SFX asset; no external samples, no third-party or real-world melody copied.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
       "logicalId": "titleBgm",
       "category": "bgm",
       "paths": [

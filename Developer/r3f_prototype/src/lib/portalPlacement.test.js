@@ -1,9 +1,9 @@
 import { beforeAll, describe, expect, it } from 'vitest'
 import * as THREE from 'three'
 import RAPIER from '@dimforge/rapier3d-compat'
-import { getPortalApproachPath, getPortalBlockers, getPortalPlacementBounds, isPortalSegmentClear, pickPortalPosition } from './portalPlacement.js'
+import { getPortalApproachPath, getPortalBlockers, getPortalPlacementBounds, getPortalSideLaneDetour, isPortalSegmentClear, pickPortalPosition } from './portalPlacement.js'
 import { getPlayerMovementBounds, clampPlayerPosition } from './playerMovementBounds.js'
-import { getStageBounds } from './stageConfig.js'
+import { getStageBounds, getStageConfig } from './stageConfig.js'
 import { getStageObjectColliders } from '../components/StageObjects/stageObjectColliders.js'
 import { clampGameplayCameraFocus, getGameplayGroundReach, keepPlayerInsideCameraX } from './gameCameraFraming.js'
 import { PLAYER_MESH_WORLD_HALF_WIDTH, PLAYER_MESH_WORLD_HEIGHT } from './characterVisualScale.js'
@@ -118,5 +118,64 @@ describe('portal reachability against the real movement/collider contract', () =
     const target = { x: pos[0], z: pos[2] }
     expect(Math.hypot(target.x, target.z)).toBeGreaterThanOrEqual(5)
     expect(getPortalApproachPath(player, target, getPortalBlockers('stage1'))).not.toBeNull()
+  })
+  // Stage 5 「중앙 현관 문 앞」 고정 앵커(스펙 §3-6). 앵커 → 왼쪽(−2.5u) → 오른쪽(+2.5u) 순서로 기존 acceptable()을 통과한
+  // 첫 후보를 쓴다. 플레이어 위치는 책상 섬 프롭이 있든 없든(threemini 배치 병행 작업) 같은 결과가 나오는 통로를 고른다:
+  // 서쪽 벽 레인 x −7 → 앞 통로 z −11.4로 꺾는 L자 경로, 앞 통로 위 좌우 이동.
+  describe('Stage 5 portal anchor', () => {
+    const neverRandom = () => { throw new Error('anchor must win before random sampling') }
+
+    it('places the exit on the main-entrance anchor (0, −11.4) when the player is far away', () => {
+      expect(getStageConfig('stage5').portalAnchor).toEqual({ x: 0, z: -11.4 })
+      const player = { x: -7, z: 12 }
+      const pos = pickPortalPosition('stage5', player, neverRandom)
+      expect(pos).toEqual([0, 0.05, -11.4])
+      expect(getPortalApproachPath(player, { x: 0, z: -11.4 }, getPortalBlockers('stage5'))).not.toBeNull()
+    })
+
+    it('falls back to the left side candidate when the anchor is within 5u of the player', () => {
+      // (4, −11.4)에서 앵커까지 4u < 5u → 탈락, 왼쪽 (−2.5, −11.4)까지 6.5u → 채택.
+      expect(pickPortalPosition('stage5', { x: 4, z: -11.4 }, neverRandom)).toEqual([-2.5, 0.05, -11.4])
+    })
+
+    it('falls back to the right side candidate when anchor and left are both too close', () => {
+      // (−4, −11.4): 앵커 4u, 왼쪽 1.5u 탈락 → 오른쪽 (2.5, −11.4) 6.5u 채택.
+      expect(pickPortalPosition('stage5', { x: -4, z: -11.4 }, neverRandom)).toEqual([2.5, 0.05, -11.4])
+    })
+
+    it('keeps the anchor inside the portal placement rectangle', () => {
+      const b = getPortalPlacementBounds('stage5')
+      expect(-11.4).toBeGreaterThanOrEqual(b.minZ)
+      expect(-11.4).toBeLessThanOrEqual(b.maxZ)
+      expect(-2.5).toBeGreaterThanOrEqual(b.minX)
+      expect(2.5).toBeLessThanOrEqual(b.maxX)
+    })
+
+    it('leaves anchor-less stages on the old random path', () => {
+      expect(getStageConfig('stage4').portalAnchor).toBeUndefined()
+      let calls = 0
+      pickPortalPosition('stage4', { x: 0, z: 0 }, () => { calls += 1; return 0.5 })
+      expect(calls).toBeGreaterThan(0)
+    })
+  })
+
+  // Stage 6 정문(+Z 아래 끝) 고정 앵커: 플레이어 최소 거리 규칙 없이 접근 경로만 본다. stage7~10은 무작위 그대로.
+  describe('Stage 6 gate anchor', () => {
+    it('플레이어가 어디 있든(경로가 있으면) 정문 안쪽 (0, 16.5)에 연다', () => {
+      expect(pickPortalPosition('stage6', { x: 0, z: -10 }, () => { throw new Error('no random') })).toEqual([0, 0.05, 16.5])
+      expect(pickPortalPosition('stage6', { x: 1, z: 15 }, () => { throw new Error('no random') })).toEqual([0, 0.05, 16.5])
+      const b = getPortalPlacementBounds('stage6')
+      expect(16.5).toBeLessThanOrEqual(b.maxZ)
+      // (0, −10)은 두 골대와 일직선이라 L자 경로가 막힌다 → 좌우 끝 세로 통로 우회로 인증한다.
+      const blockers = getPortalBlockers('stage6')
+      expect(getPortalApproachPath({ x: 0, z: -10 }, { x: 0, z: 16.5 }, blockers)).toBeNull()
+      expect(getPortalSideLaneDetour({ x: 0, z: -10 }, { x: 0, z: 16.5 }, blockers, b)).toHaveLength(4)
+    })
+
+    it('stage7은 앵커 좌표가 있어도 portalMode가 없어 무작위 배치를 쓴다', () => {
+      let calls = 0
+      pickPortalPosition('stage7', { x: 0, z: 0 }, () => { calls += 1; return 0.37 })
+      expect(calls).toBeGreaterThan(0)
+    })
   })
 })

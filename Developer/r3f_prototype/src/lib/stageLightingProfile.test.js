@@ -46,10 +46,10 @@ describe('Stage 1~4 baked lighting profiles', () => {
     }
   })
 
-  // e6b93e7c added stage6-stage10 expansion profiles alongside Stage 1~4.
+  // e6b93e7c added stage6-stage10 expansion profiles alongside Stage 1~4; Stage 5 교무실 joined 2026-11-08.
   it('has only the playable and expansion stage profiles, each with exactly three static baked light zones', () => {
     expect(Object.keys(STAGE_LIGHTING_PROFILES)).toEqual([
-      'stage1', 'stage2', 'stage3', 'stage4', 'stage6', 'stage7', 'stage8', 'stage9', 'stage10',
+      'stage1', 'stage2', 'stage3', 'stage4', 'stage5', 'stage6', 'stage7', 'stage8', 'stage9', 'stage10',
     ])
     expect(Object.isFrozen(STAGE_LIGHTING_PROFILES)).toBe(true)
     for (const profile of Object.values(STAGE_LIGHTING_PROFILES)) {

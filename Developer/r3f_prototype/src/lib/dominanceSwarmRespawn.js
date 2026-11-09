@@ -19,6 +19,8 @@ const STAGE_WEAK_SWARM_TYPES = Object.freeze({
   stage2: Object.freeze(['E01', 'E01', 'E02', 'E02']),
   stage3: Object.freeze(['E01', 'E02', 'E05']),
   stage4: Object.freeze(['E01', 'E02', 'E05']),
+  // Stage 5(교무실)는 S3·S4와 같은 풀. 없으면 S1 풀(E01 3 : E02 1)로 떨어진다.
+  stage5: Object.freeze(['E01', 'E02', 'E05']),
 })
 
 function pruneWindow(events, nowMs, windowMs) {

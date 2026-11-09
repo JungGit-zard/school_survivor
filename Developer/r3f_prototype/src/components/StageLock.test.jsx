@@ -7,8 +7,8 @@ import { STAGE_LOCK_STUDIO_ITEM_ID } from '../lib/graphicsStudioConfig.js'
 import { StageLockModel, StageLockPreview } from './StageLock.jsx'
 
 vi.mock('@react-three/fiber', () => ({
-  Canvas: ({ children, camera }) => (
-    <div data-testid="stage-lock-preview-canvas" data-camera-position={camera?.position?.join(',')}>
+  Canvas: ({ children, camera, frameloop }) => (
+    <div data-testid="stage-lock-preview-canvas" data-camera-position={camera?.position?.join(',')} data-frameloop={frameloop}>
       {children}
     </div>
   ),
@@ -89,5 +89,11 @@ describe('StageLockModel', () => {
     expect(canvas).toBeTruthy()
     expect(canvas.dataset.cameraPosition).toBe('1.8,1.55,2.8')
     expect(container.querySelector('[name="body"]')).toBeTruthy()
+  })
+
+  it('draws the static lobby lock on demand instead of every frame', () => {
+    render(<StageLockPreview />)
+
+    expect(container.querySelector('[data-testid="stage-lock-preview-canvas"]').dataset.frameloop).toBe('demand')
   })
 })

@@ -28,6 +28,15 @@ import {
   KitchenTrashBins,
   KitchenTrayRack,
 } from './KitchenProps.jsx'
+import {
+  StaffroomClutter,
+  StaffroomCopier,
+  StaffroomDeskIsland,
+  StaffroomDeskIslandBatch,
+  StaffroomEntranceDoor,
+  StaffroomSpeaker,
+  StaffroomViceDesk,
+} from './StaffroomProps.jsx'
 import { getStageObjectPlacements } from './stageObjectPlacements.js'
 import { useStagePropPlacementsVersion } from '../../lib/stagePropPlacements.js'
 
@@ -59,6 +68,18 @@ const STAGE_OBJECT_COMPONENTS = {
   kitchenTrashBins: KitchenTrashBins,
   kitchenCrateStack: KitchenCrateStack,
   kitchenClutter: KitchenClutter,
+  staffroomDeskIsland: StaffroomDeskIsland,
+  staffroomViceDesk: StaffroomViceDesk,
+  staffroomCopier: StaffroomCopier,
+  staffroomEntranceDoor: StaffroomEntranceDoor,
+  staffroomSpeaker: StaffroomSpeaker,
+  staffroomClutter: StaffroomClutter,
+}
+
+// 같은 박스 파츠를 공유하는 타입은 배치 전부를 한 컴포넌트에 모아 InstancedMesh로 그린다
+// (stage5 책상 섬 12개 → 6 드로우콜). 단일 컴포넌트는 스튜디오·테스트용으로 남긴다.
+const STAGE_OBJECT_BATCH_COMPONENTS = {
+  staffroomDeskIsland: StaffroomDeskIslandBatch,
 }
 
 // 배치 파이프라인이 렌더 가능한 전체 타입 목록(단일 정본).
@@ -69,10 +90,15 @@ export default function StageObjectLayer({ stageId = 'stage1' }) {
   // 스튜디오 Apply 시 오버라이드가 바뀌면 version이 증가해 재계산·리렌더된다.
   const version = useStagePropPlacementsVersion()
   const placements = useMemo(() => getStageObjectPlacements(stageId), [stageId, version])
+  const batches = useMemo(() => Object.entries(STAGE_OBJECT_BATCH_COMPONENTS)
+    .map(([type, Component]) => [type, Component, placements.filter((placement) => placement.type === type)])
+    .filter(([, , items]) => items.length > 0), [placements])
 
   return (
     <group name={`stage-object-layer-${stageId}`}>
+      {batches.map(([type, Component, items]) => <Component key={`batch:${type}`} placements={items} />)}
       {placements.map(({ id, type, position, rotation = [0, 0, 0], scale = 1, props = {} }) => {
+        if (STAGE_OBJECT_BATCH_COMPONENTS[type]) return null
         const Component = STAGE_OBJECT_COMPONENTS[type]
         if (!Component) return null
 

@@ -68,7 +68,7 @@
             "$weaponId": { ".validate": "newData.val() === 1" }
           },
           "outfitUnlocks": {
-            "$outfitId": { ".validate": "newData.val() === 1 && ($outfitId === 'winter' || $outfitId === 'raincoat' || $outfitId === 'gym' || $outfitId === 'apron' || $outfitId === 'grad')" }
+            "$outfitId": { ".validate": "newData.val() === 1 && ($outfitId === 'winter' || $outfitId === 'raincoat' || $outfitId === 'gym' || $outfitId === 'apron' || $outfitId === 'grad' || $outfitId === 'prefect' || $outfitId === 'sportsDay')" }
           },
           "weaponPermanentUpgrades": {
             "$weaponId": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 10 && newData.val() % 1 === 0" }
@@ -81,10 +81,12 @@
             "b02CorridorPass": { ".validate": "newData.isBoolean() && newData.val() === true" },
             "b03GymWhistle": { ".validate": "newData.isBoolean() && newData.val() === true" },
             "b04ServingLadle": { ".validate": "newData.isBoolean() && newData.val() === true" },
+            "b10ApprovalStamp": { ".validate": "newData.isBoolean() && newData.val() === true" },
+            "b05PrincipalMic": { ".validate": "newData.isBoolean() && newData.val() === true" },
             "$other": { ".validate": false }
           },
           "encounteredZombieTypes": {
-            "$zombieType": { ".validate": "newData.val() === 1 && ($zombieType === 'E01' || $zombieType === 'E02' || $zombieType === 'E03' || $zombieType === 'E04' || $zombieType === 'E05' || $zombieType === 'E06' || $zombieType === 'E07' || $zombieType === 'E08' || $zombieType === 'RZL' || $zombieType === 'RZC' || $zombieType === 'RZT' || $zombieType === 'RZG' || $zombieType === 'B01' || $zombieType === 'B02' || $zombieType === 'B03' || $zombieType === 'B04' || $zombieType === 'E19' || $zombieType === 'E20' || $zombieType === 'E21' || $zombieType === 'E22' || $zombieType === 'E23' || $zombieType === 'E24' || $zombieType === 'E25' || $zombieType === 'E26' || $zombieType === 'E27' || $zombieType === 'E28' || $zombieType === 'E29' || $zombieType === 'E30' || $zombieType === 'E31' || $zombieType === 'E32' || $zombieType === 'E33' || $zombieType === 'B05' || $zombieType === 'B06' || $zombieType === 'B07' || $zombieType === 'B08' || $zombieType === 'B09' || $zombieType === 'E34' || $zombieType === 'E35' || $zombieType === 'E36' || $zombieType === 'E37' || $zombieType === 'E38' || $zombieType === 'E39' || $zombieType === 'E40' || $zombieType === 'E41' || $zombieType === 'E42' || $zombieType === 'E43' || $zombieType === 'E44' || $zombieType === 'E45' || $zombieType === 'E46' || $zombieType === 'E47' || $zombieType === 'E48' || $zombieType === 'E49' || $zombieType === 'E50' || $zombieType === 'E51' || $zombieType === 'E52' || $zombieType === 'E53' || $zombieType === 'E54' || $zombieType === 'E55' || $zombieType === 'E56' || $zombieType === 'E57' || $zombieType === 'E58' || $zombieType === 'E59' || $zombieType === 'E60' || $zombieType === 'E61' || $zombieType === 'E62' || $zombieType === 'E63' || $zombieType === 'E64' || $zombieType === 'E65' || $zombieType === 'E66' || $zombieType === 'E67' || $zombieType === 'E68' || $zombieType === 'E69' || $zombieType === 'E70')" }
+            "$zombieType": { ".validate": "newData.val() === 1 && ($zombieType === 'E01' || $zombieType === 'E02' || $zombieType === 'E03' || $zombieType === 'E04' || $zombieType === 'E05' || $zombieType === 'E06' || $zombieType === 'E07' || $zombieType === 'E08' || $zombieType === 'RZL' || $zombieType === 'RZC' || $zombieType === 'RZT' || $zombieType === 'RZG' || $zombieType === 'B01' || $zombieType === 'B02' || $zombieType === 'B03' || $zombieType === 'B04' || $zombieType === 'E19' || $zombieType === 'E20' || $zombieType === 'E21' || $zombieType === 'E22' || $zombieType === 'E23' || $zombieType === 'E24' || $zombieType === 'E25' || $zombieType === 'E26' || $zombieType === 'E27' || $zombieType === 'E28' || $zombieType === 'E29' || $zombieType === 'E30' || $zombieType === 'E31' || $zombieType === 'E32' || $zombieType === 'E33' || $zombieType === 'B05' || $zombieType === 'B06' || $zombieType === 'B07' || $zombieType === 'B08' || $zombieType === 'B09' || $zombieType === 'B10' || $zombieType === 'E34' || $zombieType === 'E35' || $zombieType === 'E36' || $zombieType === 'E37' || $zombieType === 'E38' || $zombieType === 'E39' || $zombieType === 'E40' || $zombieType === 'E41' || $zombieType === 'E42' || $zombieType === 'E43' || $zombieType === 'E44' || $zombieType === 'E45' || $zombieType === 'E46' || $zombieType === 'E47' || $zombieType === 'E48' || $zombieType === 'E49' || $zombieType === 'E50' || $zombieType === 'E51' || $zombieType === 'E52' || $zombieType === 'E53' || $zombieType === 'E54' || $zombieType === 'E55' || $zombieType === 'E56' || $zombieType === 'E57' || $zombieType === 'E58' || $zombieType === 'E59' || $zombieType === 'E60' || $zombieType === 'E61' || $zombieType === 'E62' || $zombieType === 'E63' || $zombieType === 'E64' || $zombieType === 'E65' || $zombieType === 'E66' || $zombieType === 'E67' || $zombieType === 'E68' || $zombieType === 'E69' || $zombieType === 'E70')" }
           },
           "missions": {
             ".validate": "newData.hasChildren(['schemaVersion', 'catalogVersion', 'updatedAt'])",
@@ -151,7 +153,7 @@
           },
           "titleSettings": {
             "playerAppearance": { ".validate": "newData.isString() && (newData.val() === 'v9' || newData.val() === 'legacy' || newData.val() === 'rosari')" },
-            "playerOutfit": { ".validate": "newData.isString() && (newData.val() === 'default' || newData.val() === 'winter' || newData.val() === 'raincoat' || newData.val() === 'gym' || newData.val() === 'apron' || newData.val() === 'grad')" },
+            "playerOutfit": { ".validate": "newData.isString() && (newData.val() === 'default' || newData.val() === 'winter' || newData.val() === 'raincoat' || newData.val() === 'gym' || newData.val() === 'apron' || newData.val() === 'grad' || newData.val() === 'prefect' || newData.val() === 'sportsDay')" },
             ".validate": "newData.hasChildren(['vibration', 'reducedEffects', 'unlockAllWeaponsCheat', 'unlockAllStagesCheat'])",
             "language": { ".validate": "newData.val() == null || (newData.isString() && (newData.val() === 'ko' || newData.val() === 'en' || newData.val() === 'ja'))" },
             "vibration": { ".validate": "newData.isBoolean()" },
@@ -260,7 +262,7 @@
                       "stageId": { ".validate": "newData.isString() && (newData.val() === 'stage1' || newData.val() === 'stage2' || newData.val() === 'stage3' || newData.val() === 'stage4' || newData.val() === 'stage5' || newData.val() === 'stage6' || newData.val() === 'stage7' || newData.val() === 'stage8' || newData.val() === 'stage9' || newData.val() === 'stage10')" },
                       "submittedAt": { ".validate": "newData.isNumber() && newData.val() >= 0" },
                       "lastPlayedAt": { ".validate": "newData.isNumber() && newData.val() >= 0 && (!data.exists() || newData.val() >= data.val())" },
-                      "outfitId": { ".validate": "newData.isString() && (newData.val() === 'default' || newData.val() === 'winter' || newData.val() === 'raincoat' || newData.val() === 'gym' || newData.val() === 'apron' || newData.val() === 'grad')" },
+                      "outfitId": { ".validate": "newData.isString() && (newData.val() === 'default' || newData.val() === 'winter' || newData.val() === 'raincoat' || newData.val() === 'gym' || newData.val() === 'apron' || newData.val() === 'grad' || newData.val() === 'prefect' || newData.val() === 'sportsDay')" },
                       "$other": { ".validate": false }
                     }
                   }
@@ -285,7 +287,7 @@
                         "stageId": { ".validate": "newData.isString() && (newData.val() === 'stage1' || newData.val() === 'stage2' || newData.val() === 'stage3' || newData.val() === 'stage4' || newData.val() === 'stage5' || newData.val() === 'stage6' || newData.val() === 'stage7' || newData.val() === 'stage8' || newData.val() === 'stage9' || newData.val() === 'stage10')" },
                         "submittedAt": { ".validate": "newData.isNumber() && newData.val() >= 0" },
                         "lastPlayedAt": { ".validate": "newData.isNumber() && newData.val() >= 0 && (!data.exists() || newData.val() >= data.val())" },
-                        "outfitId": { ".validate": "newData.isString() && (newData.val() === 'default' || newData.val() === 'winter' || newData.val() === 'raincoat' || newData.val() === 'gym' || newData.val() === 'apron' || newData.val() === 'grad')" },
+                        "outfitId": { ".validate": "newData.isString() && (newData.val() === 'default' || newData.val() === 'winter' || newData.val() === 'raincoat' || newData.val() === 'gym' || newData.val() === 'apron' || newData.val() === 'grad' || newData.val() === 'prefect' || newData.val() === 'sportsDay')" },
                         "$other": { ".validate": false }
                       }
                     }

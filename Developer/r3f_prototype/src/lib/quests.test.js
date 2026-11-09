@@ -8,7 +8,7 @@ import {
 } from './quests.js'
 
 describe('stage quest definitions', () => {
-  it('exposes the eight planned quests as two independent quests per stage', () => {
+  it('exposes the ten planned quests as two independent quests per stage', () => {
     expect(QUEST_DEFINITIONS.map(({ id }) => id)).toEqual([
       'stage1-talk-book',
       'stage1-attendance',
@@ -18,10 +18,14 @@ describe('stage quest definitions', () => {
       'stage3-scoreboard-fuse',
       'stage4-allergy-list',
       'stage4-gas-valve',
+      'stage5-late-slip',
+      'stage5-pa-key',
     ])
-    for (const stageId of ['stage1', 'stage2', 'stage3', 'stage4']) {
+    for (const stageId of ['stage1', 'stage2', 'stage3', 'stage4', 'stage5']) {
       expect(getStageQuestDefinitions(stageId)).toHaveLength(2)
     }
+    // Stage 5 퀘스트는 stageId로만 묶여 다른 스테이지로 새지 않는다. 초안 스테이지 6은 퀘스트가 없다.
+    expect(getStageQuestDefinitions('stage6')).toEqual([])
     expect(getQuestDefinition('missing-quest')).toBeNull()
     expect(createStageQuestProgress('stage2')).toEqual({
       'stage2-bandage': { status: 'undiscovered', itemHeld: false },

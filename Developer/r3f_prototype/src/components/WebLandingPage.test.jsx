@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import React, { act } from 'react'
 import { createRoot } from 'react-dom/client'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import WebLandingPage, { LANDING_FEATURE_VIDEO_URL, LANDING_HERO_VIDEO_URL } from './WebLandingPage.jsx'
 import { LANDING_COPY, LANDING_LANGUAGES } from './webLandingCopy.js'
 import webLandingSource from './WebLandingPage.jsx?raw'
@@ -27,9 +27,63 @@ function renderLanding() {
   return { container, unmount: () => act(() => { root.unmount(); container.remove() }) }
 }
 
-afterEach(() => { vi.restoreAllMocks(); vi.unstubAllGlobals(); document.body.innerHTML = '' })
+function setBrowserLanguages(languages) {
+  Object.defineProperty(navigator, 'language', { configurable: true, value: languages[0] })
+  Object.defineProperty(navigator, 'languages', { configurable: true, value: languages })
+}
+
+afterEach(() => {
+  vi.restoreAllMocks(); vi.unstubAllGlobals(); document.body.innerHTML = ''
+  delete navigator.language; delete navigator.languages
+  window.history.replaceState(null, '', '/')
+})
+
+describe('WebLandingPage browser language default', () => {
+  const gameHrefs = (container) => Array.from(container.querySelectorAll('a[href^="/game"]'), (link) => link.getAttribute('href'))
+
+  it.each([
+    [['en-US', 'en'], 'en'],
+    [['ja-JP', 'ja'], 'ja'],
+    [['ko-KR', 'ko'], 'ko'],
+    [['fr-FR', 'fr'], 'en'],
+    [['fr-FR', 'ja'], 'ja'],
+    [['zh-TW'], 'zh-CN'],
+    [['vi-VN'], 'vi'],
+    [['id-ID'], 'id'],
+  ])('with no ?lang, browser %j opens the homepage and the game in %s', (languages, expected) => {
+    setBrowserLanguages(languages)
+    window.history.replaceState(null, '', '/landing')
+    const view = renderLanding()
+    expect(view.container.querySelector('main.web-landing').getAttribute('lang')).toBe(expected)
+    expect(view.container.querySelector('#web-landing-language').value).toBe(expected)
+    const hrefs = gameHrefs(view.container)
+    expect(hrefs.length).toBeGreaterThan(0)
+    for (const href of hrefs) expect(href).toBe(`/game?lang=${expected}`)
+    view.unmount()
+  })
+
+  it('lets an explicit ?lang beat the browser language', () => {
+    setBrowserLanguages(['en-US', 'en'])
+    window.history.replaceState(null, '', '/landing?lang=ko')
+    const view = renderLanding()
+    expect(view.container.querySelector('main.web-landing').getAttribute('lang')).toBe('ko')
+    for (const href of gameHrefs(view.container)) expect(href).toBe('/game?lang=ko')
+    view.unmount()
+  })
+
+  it('falls back to the browser language when ?lang is unsupported', () => {
+    setBrowserLanguages(['ja-JP'])
+    window.history.replaceState(null, '', '/landing?lang=xx')
+    const view = renderLanding()
+    expect(view.container.querySelector('main.web-landing').getAttribute('lang')).toBe('ja')
+    view.unmount()
+  })
+})
 
 describe('WebLandingPage', () => {
+  // 아래 기존 테스트는 한국어 브라우저 기준이다(?lang 없으면 브라우저 언어를 따른다).
+  beforeEach(() => setBrowserLanguages(['ko-KR', 'ko']))
+
   it('shows the sticky game link only after passing the hero actions and hides it when returning', () => {
     let onVisibility
     const disconnect = vi.fn()

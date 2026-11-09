@@ -8,7 +8,7 @@ import {
   runStageMultiHzParity,
 } from './stageMultiHzParity.js'
 
-describe('Stage 1~4 deterministic multi-Hz parity (pure simulation harness)', () => {
+describe('Stage 1~5 deterministic multi-Hz parity (pure simulation harness)', () => {
   it('runs the same seeded 240 second input log at 30/60/120 Hz with exact fixed-step checkpoints', () => {
     const startedAt = performance.now()
     const result = runStageMultiHzParity()

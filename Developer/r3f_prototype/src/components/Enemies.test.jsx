@@ -403,7 +403,8 @@ describe('boss runtime spawn routes', () => {
     const enemySource = readFileSync(new URL('./Enemy.jsx', import.meta.url), 'utf8')
     const zombieMeshSource = readFileSync(new URL('./ZombieMesh.jsx', import.meta.url), 'utf8')
 
-    expect(BOSS_BURST_TYPES).toEqual([...bossStages.map(([, type]) => type), 'B05','B06','B07','B08','B09'])
+    // B10(Stage 5 교감 좀비, 2026-11-08)은 확장 DATA.bosses 밖의 authored-attack 보스라 끝에 붙는다.
+    expect(BOSS_BURST_TYPES).toEqual([...bossStages.map(([, type]) => type), 'B05','B06','B07','B08','B09','B10'])
     expect(pooledRendererSource).toContain('type>=1&&type<=8)||type===13||type===14')
     expect(enemySource).toContain('!useInstanced && <ZombieMesh')
     const previousPlayerPosition = { x: playerPos.x, z: playerPos.z }
@@ -1051,8 +1052,10 @@ describe('all zombie HP follows the cumulative 1.2x-per-stage curve', () => {
       'E46', 'E47', 'E48', 'E49', 'E50', 'E51', 'E52', 'E53', 'E54', 'E55', 'E56', 'E57', 'E58', 'E59', 'E60',
       // 2차 10종(2026-11-07, typeCode 65~74).
       'E61', 'E62', 'E63', 'E64', 'E65', 'E66', 'E67', 'E68', 'E69', 'E70',
+      // Stage 5 보스 B10 교감 좀비(2026-11-08). B01~B04처럼 같은 누적 곡선을 탄다(stage5 실효 3,241).
+      'B10',
     ])
-    const stageMultipliers = { stage1: 1, stage2: 1.2, stage3: 1.44, stage4: 1.728 }
+    const stageMultipliers = { stage1: 1, stage2: 1.2, stage3: 1.44, stage4: 1.728, stage5: 1.2 ** 4 }
     for (const [stageId, multiplier] of Object.entries(stageMultipliers)) {
       for (const [type, stats] of Object.entries(ENEMY_STATS).filter(([id])=>!/^E(?:19|2[0-9]|3[0-3])$|^B0[5-9]$/.test(id))) {
         const expectedHp = Math.round(stats.hp * multiplier)
@@ -1113,7 +1116,7 @@ describe('jarmob expected total keeps density separate from the user HP curve', 
   })
 
   it('keeps the fixed HP curve separate from the existing density calculation', () => {
-    expect(STAGE_JARMOB_HP_MULTIPLIER).toEqual({ stage2: 1.2, stage3: 1.44, stage4: 1.728 })
+    expect(STAGE_JARMOB_HP_MULTIPLIER).toEqual({ stage2: 1.2, stage3: 1.44, stage4: 1.728, stage5: 1.2 ** 4 })
     // 2026-08-17 1.3배 사다리 재설계로 이 파생값이 움직였다. 원인은 명확하다:
     // 밀도 솔버는 (웨이브 base × m² + 버스트 잡몹 base × m + 크루 확정 HP = 앵커 × factor)를 풀어 m을 낸다.
     // 스2 버스트 잡몹 base가 크게 줄자 같은 factor를 맞추려고 웨이브 몫 m이 커졌고(0.64 → 0.92),
@@ -1128,8 +1131,10 @@ describe('jarmob expected total keeps density separate from the user HP curve', 
       stage2: 0.8766327815877557,
       stage3: 1.205324260259222,
       stage4: 1.1939640195114065,
+      // 2026-11-08 Stage 5 교무실: _STAGE_BLEND_IDS에 들어와 분석용 밀도 배율이 생겼다(factor 1.1^5).
+      stage5: 1.311356742058439,
     })
-    for (const stageId of ['stage2', 'stage3', 'stage4']) {
+    for (const stageId of ['stage2', 'stage3', 'stage4', 'stage5']) {
       expect(STAGE_DENSITY_MULTIPLIER[stageId]).toBeGreaterThan(0)
       expect(STAGE_DENSITY_MULTIPLIER[stageId]).not.toBe(STAGE_JARMOB_HP_MULTIPLIER[stageId])
     }
