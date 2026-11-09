@@ -123,6 +123,36 @@ describe('firebaseRanking submitRun — direct RTDB write (Spark, no Cloud Funct
     expect(existing.mod.set).not.toHaveBeenCalled()
   })
 
+  // 2026-11-10 Terry: every stage start writes a 0-point entry before the run's real end write.
+  it('a stage-entry 0-point write never lowers a higher best (all-time, daily, weekly) and the later end score still lands', async () => {
+    const { client, mod, writes } = makeFakeClient({ existingScore: 500 })
+    mod.get.mockImplementation(async ref => {
+      const row = writes[ref.path] ?? { uid: 'me', displayName: 'Me', score: 500, timeMs: 1000, stageId: 'stage1', cleared: false, submittedAt: 1, lastPlayedAt: 1 }
+      return { exists: () => true, val: () => structuredClone(row), child: key => ({ val: () => row?.[key] }) }
+    })
+    _setFirebaseRankingClientForTests(client)
+
+    await submitRun({ uid: 'me', displayName: 'Me' }, { stageId: 'stage1', score: 0, stageScore: 0, timeMs: 0, globalTimeMs: 0, cleared: false })
+    const paths = Object.keys(writes)
+    expect(paths).toHaveLength(6)
+    expect(paths.some(path => path.includes('/allTime/'))).toBe(true)
+    expect(paths.some(path => path.includes('/daily/'))).toBe(true)
+    for (const entry of Object.values(writes)) expect(entry).toMatchObject({ score: 500, timeMs: 1000 })
+
+    await submitRun({ uid: 'me', displayName: 'Me' }, { stageId: 'stage1', score: 800, stageScore: 800, timeMs: 90000, globalTimeMs: 90000, cleared: false })
+    for (const entry of Object.values(writes)) expect(entry).toMatchObject({ score: 800, timeMs: 90000 })
+  })
+
+  it('a stage-entry 0-point write on an empty board is then replaced by the real end score', async () => {
+    const { client, writes } = makeFakeClient()
+    _setFirebaseRankingClientForTests(client)
+    await submitRun({ uid: 'me' }, { stageId: 'stage1', score: 0, timeMs: 0, cleared: false })
+    expect(Object.values(writes)).toHaveLength(6)
+    for (const entry of Object.values(writes)) expect(entry).toMatchObject({ score: 0, timeMs: 0, cleared: false })
+    await submitRun({ uid: 'me' }, { stageId: 'stage1', score: 42, timeMs: 30000, cleared: false })
+    for (const entry of Object.values(writes)) expect(entry).toMatchObject({ score: 42, timeMs: 30000 })
+  })
+
   it('uses the isolated anonymous client and chosen nickname for guest zero-score registration', async () => {
     const { client, writes } = makeFakeClient()
     _setFirebaseRankingClientForTests(null)

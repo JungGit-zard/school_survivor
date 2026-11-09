@@ -1727,6 +1727,21 @@ export const useGameStore = create(
         missionKillKeys: [],
         missionSpecialEnemySpawns: [],
       }))
+      // 2026-11-10 Terry: "0점이라도 스테이지에 진입했으면 누적랭킹에 남겨 — 그 순간에 무조건 기록해."
+      // 스테이지가 시작되는 바로 이 순간 0점 엔트리를 무조건 쓴다(점수·로그인·중복 조건 없음).
+      // 런 끝/pagehide 쓰기만 믿으면 탭을 닫은 게스트가 익명 로그인 중에 페이지가 내려가 끝내 등록되지
+      // 않았다(11-09 실게임 로드 5, 랭킹 0). 게스트 익명 유저는 이 fire-and-forget 안에서 기다려 만들고,
+      // 그래서 뒤의 pagehide 쓰기는 비동기 로그인 없이 바로 나간다. 버킷별 최고점 병합(submitRun)이
+      // 기존 더 높은 기록을 지키고, rankingRun.written을 건드리지 않아 런 끝 쓰기는 그대로 나간다.
+      // 런 종료가 아니므로 GA4 run_end도 보내지 않는다.
+      try {
+        const entered = get()
+        const { run: entryRun } = buildRankingRunSnapshot(entered, 0, 'playing')
+        const priorStages = (entered.rankingRun?.stages ?? []).filter(stage => stage.stageId !== entryRun.stageId)
+        void get().submitRunToRanking(useAuthStore.getState().user, priorStages.length > 0 ? [...priorStages, entryRun] : entryRun)
+      } catch (error) {
+        if (typeof console !== 'undefined') console.warn('[ranking] stage entry write failed to start', error)
+      }
       get().recordMissionEvent({ type: 'stage_started', stageId: nextStageId })
       if (!preserveContinuousScore) trackRunStart(nextStageId, get())
       recordRuntimePlayActivity(nextStageId)

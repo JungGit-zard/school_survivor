@@ -36,7 +36,10 @@ describe('GA4 run events', () => {
     expect(ends).toHaveLength(1)
     expect(ends[0]).toMatchObject({ stage_id: 'stage1', result: 'quit', level: 1 })
     expect(Object.keys(ends[0]).sort()).toEqual(['duration_sec', 'level', 'outfit_id', 'result', 'score', 'stage_id'])
-    await vi.waitFor(() => expect(mocks.submit).toHaveBeenCalledTimes(1))
+    // 2026-11-10 Terry: the stage-entry 0-point write plus the one run-end write. The entry write is
+    // not a run end, so it adds no run_end event (checked above: exactly one).
+    await vi.waitFor(() => expect(mocks.submit).toHaveBeenCalledTimes(2))
+    expect(mocks.submit.mock.calls[0][1]).toMatchObject({ stageId: 'stage1', score: 0, timeMs: 0, cleared: false })
   })
 
   it('death: run_end(dead) once; the next run gets its own run_start/run_end', () => {
@@ -143,7 +146,8 @@ describe('GA4 run events', () => {
     expect(events('run_end')).toEqual([expect.objectContaining({ result: 'dead', outfit_id: 'gym' })])
     // beforeEach's cleanup of the previous test's run can also land here asynchronously; pick this run's call.
     const submittedRun = () => mocks.submit.mock.calls.map(([, run]) => run).filter((run) => run?.stageId === 'stage1')
-    await vi.waitFor(() => expect(submittedRun().some((run) => run.outfitId === 'gym')).toBe(true))
+    // This run writes twice with its outfit: the stage-entry 0-point write and the run-end write.
+    await vi.waitFor(() => expect(submittedRun().filter((run) => run.outfitId === 'gym')).toHaveLength(2))
     const before = mocks.submit.mock.calls.length
 
     // Defensive: a non-canonical run outfit never reaches GA4 or the ranking payload.
@@ -152,7 +156,8 @@ describe('GA4 run events', () => {
     useGameStore.getState().killPlayer('test')
     useGameStore.getState().finishRankingRun('end')
     expect(events('run_end')[1]).toMatchObject({ outfit_id: 'default' })
-    await vi.waitFor(() => expect(mocks.submit.mock.calls.length).toBe(before + 1))
+    // stage-entry 0-point write + the run-end write (2026-11-10 Terry)
+    await vi.waitFor(() => expect(mocks.submit.mock.calls.length).toBe(before + 2))
     expect(mocks.submit.mock.calls.at(-1)[1]).not.toHaveProperty('outfitId')
   })
 })
