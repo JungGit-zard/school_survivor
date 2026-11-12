@@ -4,10 +4,8 @@ import { isProjectMaster } from '../lib/projectAdmin.js'
 import { paperSticker, schoolButton, schoolPanel, sunnyPalette, uiBorders, uiPalette, uiShadows, uiType } from '../lib/uiStyle.js'
 import { t, useT } from '../lib/i18n.js'
 
-// compact: 타이틀 상단 줄용. 로그인 전에는 큰 상태 카드 대신 작은 보조 버튼 하나만 둔다
-// (2026-11-03 신규 방문자 감사: 360x640에서 카드가 "ESCAPE!" 헤드라인을 가렸다).
-// 2026-11-08 타이틀 정리 1단계: 로그인 후에도 큰 카드 대신 높이 44px 칩(아바타 + 이름 1줄)으로 상단 줄 높이를 맞춘다.
-// 타이틀의 로그아웃은 ≡ 시트로 옮겼다. compact 패널은 부모(타이틀 상단 줄 flex) 흐름 안에 놓인다.
+// compact: 타이틀 게스트용. 로그인 전에는 큰 상태 카드 대신 작은 보조 버튼 하나만 둔다
+// (2026-11-03 신규 방문자 감사: 360x640에서 카드가 "ESCAPE!" 헤드라인을 가렸다). 로그인 후 표시는 같다.
 export default function GoogleAccountPanel({ compact = false }) {
   const status = useAuthStore((s) => s.status)
   const user = useAuthStore((s) => s.user)
@@ -55,21 +53,6 @@ export function GoogleAccountPanelView({ status, user, error, signingIn, onSignI
         >
           <span>{signingIn ? t('account.signingIn') : t('account.signInShort')}</span>
         </button>
-      </section>
-    )
-  }
-
-  if (compact) {
-    return (
-      <section className="google-account-compact" data-account-compact data-account-chip style={styles.compactPanel} aria-label="Google account">
-        <div style={styles.chip} title={user.email || undefined}>
-          {user.photoURL ? (
-            <img src={user.photoURL} alt="" style={styles.avatar} />
-          ) : (
-            <span aria-hidden="true" style={styles.avatarFallback}>G</span>
-          )}
-          <strong data-account-chip-name style={styles.chipName}>{user.displayName || t('account.google')}</strong>
-        </div>
       </section>
     )
   }
@@ -154,51 +137,26 @@ function getPanelDetail(status, error) {
 
 const styles = {
   compactPanel: {
-    position: 'relative',
-    minWidth: 0,
-    flex: '0 1 auto',
-    display: 'flex',
+    position: 'absolute',
+    top: 'max(14px, calc(env(safe-area-inset-top, 0px) + 8px))',
+    left: 'max(12px, calc(env(safe-area-inset-left, 0px) + 8px))',
+    zIndex: 3,
     pointerEvents: 'auto',
   },
-  // 타이틀 종이 스티커(2026-11-03 밝은 타이틀). 2026-11-08: 기울기 0°, 높이 44, 글자 14px.
+  // 타이틀 종이 스티커(2026-11-03 밝은 타이틀). 크기·동작은 그대로.
   compactButton: {
-    ...paperSticker(0),
+    ...paperSticker(-2),
     minWidth: 44,
-    height: 44,
     minHeight: 44,
-    padding: '0 12px',
+    padding: '6px 12px',
     boxSizing: 'border-box',
     display: 'flex',
     alignItems: 'center',
     gap: 6,
     fontFamily: uiType.family,
-    fontSize: 14,
-    fontWeight: uiType.weightStrong,
+    fontSize: 12,
     lineHeight: 1,
     whiteSpace: 'nowrap',
-  },
-  chip: {
-    ...paperSticker(0),
-    cursor: 'default',
-    minWidth: 44,
-    height: 44,
-    maxWidth: '100%',
-    padding: '0 12px 0 7px',
-    boxSizing: 'border-box',
-    display: 'flex',
-    alignItems: 'center',
-    gap: 7,
-    fontFamily: uiType.family,
-  },
-  chipName: {
-    minWidth: 0,
-    maxWidth: 120,
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-    whiteSpace: 'nowrap',
-    fontSize: 14,
-    lineHeight: 1,
-    fontWeight: uiType.weightStrong,
   },
   panel: {
     ...schoolPanel('paper'),

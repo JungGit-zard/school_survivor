@@ -74,36 +74,13 @@ afterEach(() => {
 })
 
 describe('TitleScreen lobby entry', () => {
-  // 2026-11-08 타이틀 정리 1단계: START 아래에는 아무 링크도 없다. 홈페이지는 ≡ 시트 안에 있다.
-  it('keeps nothing below game start and puts the homepage link in the ≡ sheet', () => {
+  it('renders a homepage link alongside game start', () => {
     const { container, cleanup } = renderTitleScreen()
-    expect(container.querySelector('a[data-title-homepage]')).toBeNull()
-    expect(container.querySelector('a[href^="/landing"]')).toBeNull()
-    const start = container.querySelector('button.title-main-action')
-    expect(start?.textContent).toBe('게임 시작')
-    expect(start.parentElement.children).toHaveLength(1)
-
-    act(() => container.querySelector('[data-title-more-button]').click())
     const homepage = container.querySelector('a[data-title-homepage]')
     expect(homepage?.getAttribute('href')).toMatch(/^\/landing\?lang=(ko|en|ja)$/)
     expect(homepage?.textContent).toBe('홈페이지로')
-    expect(homepage?.style.minHeight).toBe('52px')
-    cleanup()
-  })
-
-  it('makes START the single orange-filled button and drops the tape and chalk tray', () => {
-    const { container, cleanup } = renderTitleScreen()
-    const start = container.querySelector('button.title-main-action')
-    expect(start.style.background).toBe('rgb(255, 138, 55)')
-    expect(start.style.height).toBe('64px')
-    expect(start.style.fontSize).toBe('22px')
-    const filled = [...container.querySelectorAll('button')].filter((button) => button.style.background === 'rgb(255, 138, 55)')
-    expect(filled).toEqual([start])
-    const css = container.querySelector('style[data-title-intro-css]').textContent
-    expect(css).toContain('.title-start-tag { transform: rotate(-1.6deg)')
-    expect(css).toContain('.title-start-tag::after')
-    expect(css).not.toContain('.title-start-tag::before')
-    expect(container.querySelector('[data-title-service-name]')).toBeNull()
+    expect(homepage?.style.minHeight).toBe('44px')
+    expect(container.querySelector('button.title-main-action')?.textContent).toBe('게임 시작')
     cleanup()
   })
   it('renders the game-start action without gameplay guide text', () => {
@@ -145,7 +122,7 @@ describe('TitleScreen lobby entry', () => {
     expect(title.querySelector('[data-title-emoji]')).toBeNull()
     expect(scene.classList.contains('title-intro-scene')).toBe(true)
     expect(scene.style.animationDelay).toBe('1500ms')
-    expect(container.querySelector('[data-title-service-name]')).toBeNull()
+    expect(container.querySelector('[data-title-service-name]').getAttribute('aria-hidden')).toBe('true')
 
     const motionCss = container.querySelector('style[data-title-intro-css]').textContent
     expect(motionCss).toContain('@keyframes titleChalkWrite')
@@ -166,6 +143,7 @@ describe('TitleScreen lobby entry', () => {
 
     expect(heading.textContent).toBe('탈출!좀비학교')
     expect(/\p{Extended_Pictographic}/u.test(board.textContent)).toBe(false)
+    expect(/\p{Extended_Pictographic}/u.test(container.querySelector('[data-title-service-name]').textContent)).toBe(false)
 
     const introCss = container.querySelector('style[data-title-intro-css]').textContent
     const reducedIntro = introCss.slice(introCss.indexOf('@media (prefers-reduced-motion: reduce)'))
@@ -196,7 +174,7 @@ describe('TitleScreen lobby entry', () => {
     expect(container.querySelector('[data-title-emoji]')).toBeNull()
     expect(document.documentElement.dataset.reducedEffects).toBeUndefined()
     expect(container.querySelector('h1').style.textShadow).not.toBe('none')
-    expect(Array.from(container.querySelectorAll('button')).find((button) => button.textContent === '게임 시작')?.style.fontSize).toBe('22px')
+    expect(Array.from(container.querySelectorAll('button')).find((button) => button.textContent === '게임 시작')?.style.fontSize).toBe('21px')
 
     cleanup()
     expect(document.documentElement.dataset.reducedEffects).toBe('true')

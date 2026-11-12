@@ -85,41 +85,27 @@ describe('language setting', () => {
 
     const toggle = view.container.querySelector('[data-title-language] button[aria-haspopup]')
     expect(toggle).not.toBeNull()
-    // 타이틀 정리 1단계(2026-11-08): 버튼은 글자 없는 44x44 지구본 아이콘이다. 현재 언어는 aria-label과
-    // 메뉴의 aria-pressed로만 알린다.
-    expect(toggle.textContent.trim()).toBe('')
-    expect(toggle.getAttribute('aria-label')).toBe('언어 선택 (현재: 한국어)')
+    expect(toggle.textContent).toContain('KO')
     expect(toggle.getAttribute('aria-expanded')).toBe('false')
 
     await act(async () => { toggle.dispatchEvent(new MouseEvent('click', { bubbles: true })) })
     expect(toggle.getAttribute('aria-expanded')).toBe('true')
-    expect(pressedLanguage(view.container)).toBe('ko')
 
     await clickButtonByText(view.container, 'English')
     expect(view.container.textContent).toContain('START GAME')
     expect(titleChars(view.container)).toBe('ESCAPE!ZOMBIE SCHOOL')
-    expect(toggle.getAttribute('aria-label')).toBe('Select language (current: English)')
+    expect(toggle.textContent).toContain('EN')
     expect(toggle.getAttribute('aria-expanded')).toBe('false')
-    expect(useLocaleStore.getState().locale).toBe('en')
     expect(loadTitleSettings().language).toBe('en')
 
     await act(async () => { toggle.dispatchEvent(new MouseEvent('click', { bubbles: true })) })
-    expect(pressedLanguage(view.container)).toBe('en')
     await clickButtonByText(view.container, '日本語')
     expect(view.container.textContent).toContain('ゲーム開始')
-    expect(toggle.getAttribute('aria-label')).toBe('言語を選択（現在: 日本語）')
-    expect(useLocaleStore.getState().locale).toBe('ja')
     expect(loadTitleSettings().language).toBe('ja')
 
     view.unmount()
   })
 })
-
-function pressedLanguage(container) {
-  const pressed = Array.from(container.querySelectorAll('[data-title-language] button[aria-pressed="true"]'))
-  expect(pressed).toHaveLength(1)
-  return pressed[0].getAttribute('lang')
-}
 
 function titleChars(container) {
   return Array.from(container.querySelectorAll('[data-title-char]'))
