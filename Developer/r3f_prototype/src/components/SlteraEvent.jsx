@@ -1,7 +1,8 @@
 // Sltera 돌진 이벤트 런타임(S1~S5 매 판). 스케줄·경로·판정 정본은 lib/slteraEvent.js.
 // 예고 없음(Terry 스펙 "갑자기 나타나"): 예정 시각이 되면 화면 한 모서리 바로 밖에서 튀어나와 반대편
-// 모서리 쪽으로 사선을 따라 지그재그로 비틀거리며(2.8u/s, 핸들 발작·떨림) 화면을 오래 지나간다.
-// 크기는 11-07판의 1/3(비주얼 그룹 scale = 판정 배율 SLTERA_SIZE_SCALE). 차는 늘 진행 방향을 본다.
+// 모서리 쪽으로 사선을 따라 지그재그로 비틀거리며(4.2u/s, 핸들 발작·떨림) 화면을 지나간다.
+// 크기는 11-07판의 2/3(11-13 Terry: 11-08판의 2배, 속도 1.5배 — 비주얼 그룹 scale = 판정 배율 SLTERA_SIZE_SCALE).
+// 스테이지 프랍(책상·사물함 등, 좀비와 같은 장애물 OBB)에 부딪히면 뒤로 밀렸다가 방향을 바꿔 다시 달린다.
 // 지나가는 길의 좀비를 무작위로 치고, 로자리와 겹치면 질주당 1회 최대 HP 15% 피해.
 // 오너 치트 '슬테라 즉시 출현'(lib/slteraInstantSpawn.js)이 이 판의 수신기를 통해 질주를 바로 시작시킨다.
 // 매 프레임 할당 없음: pass·스크래치·충돌 impact 객체를 전부 ref로 재사용한다.
@@ -13,6 +14,7 @@ import { getRuntimeElapsedMs } from '../lib/gameRuntimeTime.js'
 import { emitSfx } from '../lib/sfxEvents.js'
 import { createWeaponTargetScratch, resolveWeaponTarget, scanOrientedBoxEnemiesInto } from '../lib/weaponTargeting.js'
 import { applyEnemyHit } from '../lib/weaponCollision.js'
+import { getStageObjectSightObstacles } from './StageObjects/stageObjectColliders.js'
 import {
   SLTERA_DAMAGE_SOURCE, SLTERA_IMPACT_BACK, SLTERA_KNOCKBACK, SLTERA_KNOCKBACK_MS, SLTERA_PHASE, SLTERA_SIZE_SCALE,
   beginSlteraPass, checkSlteraPlayerHit, claimSlteraThud, consumeSlteraPassStart, createSlteraRunState, getSlteraSweepBox,
@@ -46,7 +48,9 @@ export default function SlteraEvent({ stageId, gameKey }) {
     if (pass.phase === SLTERA_PHASE.DONE) {
       // 예정 시각이 지났거나(이미 지나간 예정은 건너뛰지 않고 지금 바로 한 번) 즉시 출현 요청이 있으면 시작.
       if (!consumeSlteraPassStart(s.run, stageId, gameKey, elapsedMs)) return
-      beginSlteraPass(pass, { bounds: screenBounds, playerX: playerPos.x, playerZ: playerPos.z })
+      beginSlteraPass(pass, {
+        bounds: screenBounds, playerX: playerPos.x, playerZ: playerPos.z, obstacles: getStageObjectSightObstacles(stageId),
+      })
       const car = carRef.current
       if (car) {
         car.rotation.y = pass.heading
@@ -58,7 +62,7 @@ export default function SlteraEvent({ stageId, gameKey }) {
       emitSfx({ id: 'sharkFire', volume: 0.55, rate: 1.25 })
     }
 
-    stepSlteraPass(pass, delta * 1000)
+    stepSlteraPass(pass, delta * 1000, playerPos.x, playerPos.z)
 
     // 좀비 치기 — 차 중심이 화면 안일 때, 이번 프레임 쓸고 간 회전 사각형 안의 적마다 질주당 한 번만 굴린다.
     const box = s.box
