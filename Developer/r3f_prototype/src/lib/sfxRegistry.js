@@ -291,7 +291,10 @@ export const POLYPHONY_COOLDOWN = Object.freeze({
   playerStep:       140,
   zombieSpawn:      110,
   matildaDash:      400,
-  matildaLaugh:     700,
+  // 웃음은 돌진이 끝날 때마다 울린다(대략 2~6초 간격, 돌진마다 3%씩 빨라짐). 700ms는 사실상 아무것도
+  // 거르지 않아 짧은 돌진이 이어지면 키득거림이 연달아 붙었다. 2500ms면 연달아 붙는 경우만 건너뛰고
+  // 보통 간격의 웃음 신호는 그대로 남는다(2026-11-14 마틸다 여아 음성 교체).
+  matildaLaugh:     2500,
   coinCollect:      40,
   textbookCollect:  55,
   textbookLand:     120,

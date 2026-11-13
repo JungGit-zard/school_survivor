@@ -1088,19 +1088,19 @@
       "paths": [
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/matildaSpawn.ogg",
-          "bytes": 7133,
-          "sha256": "e5a19f7955f34680817304d120cc1247fea58718ed675dfebc0cfcc68ac134af"
+          "bytes": 4907,
+          "sha256": "83f558127161b0c5b843c62552ffa7783c7a5e67c2b7257a9682562c5baf1dd0"
         },
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/matildaSpawn.mp3",
-          "bytes": 7149,
-          "sha256": "4eac667f37d6e2952c025c5518c7ec91b90a4cf38d153537a7888f263a4d663f"
+          "bytes": 2944,
+          "sha256": "f2a81170e42a69b15f2bb856c05975298eb3dfe7f4b63cb3aa4939ad78f4a4e3"
         }
       ],
-      "provenanceType": "generated",
-      "source": "soundmini final source-owner handoff: Developer/agent_room/git_consolidation_20261019/soundmini-final-handoff.json",
-      "notes": "User-selected C; Exact supplied audition selection. Project-generated procedural audio; no new generation. Supersession: matilda-supersession.json; experimental generator excluded.",
-      "licenseEvidence": "project-generated-procedural"
+      "provenanceType": "cc0-recording-derived",
+      "source": "BigSoundBank (Joseph SARDIN) CC0 recording #1660 Laughter of children (https://bigsoundbank.com/laughter-of-children-s1660.html, sha256 6d39b48d...412d1), excerpt 2.83-3.10s; processed by Developer/r3f_prototype/scripts/generate_matilda_girl_voice.mjs (candidate A: trim/resample/envelope/breath noise/loudness; OGG/MP3 via @ffmpeg-installer/ffmpeg, bitexact)",
+      "notes": "2026-11-14 Terry: replace Matilda voice completely with a cute little-girl voice. Real child voice (author-recorded 4.5-year-old girl; #1660 also contains a 2.5-year-old boy). Non-verbal only (no localisation). Supersedes the 2026-10-19 user-selected procedural Spawn C / Laugh original / Death C. No attribution required; credit optional: \"Sounds: BigSoundBank.com (Joseph SARDIN), CC0\".",
+      "licenseEvidence": "CC0-1.0 public-domain dedication per https://bigsoundbank.com/licenses.html (commercial use, modification and redistribution allowed without attribution); source bytes pinned by SHA-256 in generate_matilda_girl_voice.mjs"
     },
     {
       "logicalId": "matildaDash",
@@ -1128,19 +1128,19 @@
       "paths": [
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/matildaLaugh.ogg",
-          "bytes": 5709,
-          "sha256": "dab2f2a8aaeb3f946d9434adb34f456251aaf1d58df2fc23267007ae1e2289fc"
+          "bytes": 7265,
+          "sha256": "74ddfa682cb26b5c85ebb8a04d21bc50cdf9189dbf0e292be7980dd273b0414c"
         },
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/matildaLaugh.mp3",
-          "bytes": 4641,
-          "sha256": "322ef0812fd87cda83a628751bda7d49966a4721f8a9b84030a2e3f1be9d4fbe"
+          "bytes": 6079,
+          "sha256": "6ddd9c31bc7fdefd6f67f2a1fd01a2dd3941b501f713efd9c6a2e874aab72f7b"
         }
       ],
-      "provenanceType": "generated",
-      "source": "soundmini final source-owner handoff: Developer/agent_room/git_consolidation_20261019/soundmini-final-handoff.json",
-      "notes": "User-selected original; post-charge refreshed original, not old READY315 bytes. Project-generated procedural audio; no new generation. Supersession: matilda-supersession.json; experimental generator excluded.",
-      "licenseEvidence": "project-generated-procedural"
+      "provenanceType": "cc0-recording-derived",
+      "source": "BigSoundBank (Joseph SARDIN) CC0 recording #1660 Laughter of children (https://bigsoundbank.com/laughter-of-children-s1660.html, sha256 6d39b48d...412d1), laugh syllables 0.70-0.86s and 3.25-3.45s; processed by Developer/r3f_prototype/scripts/generate_matilda_girl_voice.mjs (candidate A: trim/resample/envelope/breath noise/loudness; OGG/MP3 via @ffmpeg-installer/ffmpeg, bitexact)",
+      "notes": "2026-11-14 Terry: replace Matilda voice completely with a cute little-girl voice. Real child voice (author-recorded 4.5-year-old girl; #1660 also contains a 2.5-year-old boy). Non-verbal only (no localisation). Supersedes the 2026-10-19 user-selected procedural Spawn C / Laugh original / Death C. No attribution required; credit optional: \"Sounds: BigSoundBank.com (Joseph SARDIN), CC0\".",
+      "licenseEvidence": "CC0-1.0 public-domain dedication per https://bigsoundbank.com/licenses.html (commercial use, modification and redistribution allowed without attribution); source bytes pinned by SHA-256 in generate_matilda_girl_voice.mjs"
     },
     {
       "logicalId": "zombieDeathGrunt",
@@ -1268,19 +1268,19 @@
       "paths": [
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/matildaDeath.ogg",
-          "bytes": 6599,
-          "sha256": "f345745d2be112f16c8be6b875b27e94fd68eded93814659ef02be3074361b98"
+          "bytes": 5709,
+          "sha256": "938bb77c27c96605eb84efa0cfd60b9666f268866befdf5c04204fded56c8bba"
         },
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/matildaDeath.mp3",
-          "bytes": 6104,
-          "sha256": "3d4021d55d80693a6a7aa924be079b1597725702ec3b8ccb790d0ad1f1b478ae"
+          "bytes": 4407,
+          "sha256": "a75585a8e3e5139f1bdb5b2e3bc2940ce6b4518727495d8d03bc8ef113ea20f7"
         }
       ],
-      "provenanceType": "generated",
-      "source": "soundmini final source-owner handoff: Developer/agent_room/git_consolidation_20261019/soundmini-final-handoff.json",
-      "notes": "User-selected C; Exact supplied audition selection. Project-generated procedural audio; no new generation. Supersession: matilda-supersession.json; experimental generator excluded.",
-      "licenseEvidence": "project-generated-procedural"
+      "provenanceType": "cc0-recording-derived",
+      "source": "BigSoundBank (Joseph SARDIN) CC0 recording #1663 Howling of a girl #2 (https://bigsoundbank.com/howling-of-a-girl-2-s1663.html, sha256 c7daae35...096d3), onset 0.07-0.50s; processed by Developer/r3f_prototype/scripts/generate_matilda_girl_voice.mjs (candidate A: trim/resample/envelope/breath noise/loudness; OGG/MP3 via @ffmpeg-installer/ffmpeg, bitexact)",
+      "notes": "2026-11-14 Terry: replace Matilda voice completely with a cute little-girl voice. Real child voice (author-recorded 4.5-year-old girl; #1660 also contains a 2.5-year-old boy). Non-verbal only (no localisation). Supersedes the 2026-10-19 user-selected procedural Spawn C / Laugh original / Death C. No attribution required; credit optional: \"Sounds: BigSoundBank.com (Joseph SARDIN), CC0\".",
+      "licenseEvidence": "CC0-1.0 public-domain dedication per https://bigsoundbank.com/licenses.html (commercial use, modification and redistribution allowed without attribution); source bytes pinned by SHA-256 in generate_matilda_girl_voice.mjs"
     },
     {
       "logicalId": "dogeDeath",

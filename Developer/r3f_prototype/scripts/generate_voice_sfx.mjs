@@ -135,18 +135,10 @@ const VOICE_SFX = {
     { t: 0, v: 'aa', amp: 0, voice: 1, noise: 0.3 }, { t: 0.05, v: 'aa', amp: 1, voice: 1, noise: 0.18 }, { t: 0.42, v: 'aw', amp: 0.95, voice: 1, noise: 0.19 }, { t: 0.72, v: 'oh', amp: 0.55, voice: 1, noise: 0.25 }, { t: 0.9, v: 'ng', amp: 0.3, voice: 1, noise: 0.28 }, { t: 1, v: 'ng', amp: 0, voice: 1, noise: 0.3 },
   ] }) },
 
-  // 마틸다
-  matildaSpawn: { dir: 'enemies', synth: () => voice({ dur: 0.62, targetLoudness: 0.18, seed: 0x6301, hold: 1, bits: 8, drive: 1.35, pitchScale: CUTE_FEMALE_VOICE_PITCH_SCALE, f0: [[0, 230], [0.32, 255], [1, 190]], vib: { rate: 6.5, depth: 0.035 }, jitter: 0.012, frames: [
-    { t: 0, v: 'aa', amp: 0, voice: 1, noise: 0.12 }, { t: 0.08, v: 'aa', amp: 0.7, voice: 1, noise: 0.08 }, { t: 0.38, v: 'ee', amp: 0.78, voice: 1, noise: 0.06 }, { t: 0.7, v: 'aa', amp: 0.55, voice: 1, noise: 0.1 }, { t: 1, v: 'ng', amp: 0, voice: 1, noise: 0.14 },
-  ] }) },
-  matildaLaugh: { dir: 'enemies', synth: () => voice({ dur: 0.7, targetLoudness: 0.18, seed: 0x6302, hold: 1, bits: 8, drive: 1.45, pitchScale: CUTE_FEMALE_VOICE_PITCH_SCALE, f0: [[0, 260], [0.25, 315], [0.5, 245], [0.72, 310], [1, 230]], vib: { rate: 8.5, depth: 0.055 }, jitter: 0.018, frames: [
-    { t: 0, v: 'aa', amp: 0, voice: 0, noise: 0.5 }, { t: 0.04, v: 'aa', amp: 0.8, voice: 1, noise: 0.12 }, { t: 0.22, v: 'aa', amp: 0.15, voice: 1, noise: 0.12 }, { t: 0.3, v: 'ee', amp: 0.78, voice: 1, noise: 0.1 }, { t: 0.48, v: 'ee', amp: 0.12, voice: 1, noise: 0.12 }, { t: 0.58, v: 'aa', amp: 0.74, voice: 1, noise: 0.12 }, { t: 1, v: 'aa', amp: 0, voice: 1, noise: 0.18 },
-  ] }) },
+  // 마틸다 — matildaSpawn/matildaLaugh/matildaDeath는 2026-11-14부터 scripts/generate_matilda_girl_voice.mjs
+  // (CC0 실제 아이 목소리 녹음 가공)가 만든다. 여기서 다시 만들면 옛 합성음으로 덮어쓰니 넣지 마라.
   matildaDash: { dir: 'enemies', synth: () => voice({ dur: 0.22, targetLoudness: 0.18, seed: 0x6303, hold: 1, bits: 8, drive: 1.55, pitchScale: CUTE_FEMALE_VOICE_PITCH_SCALE, f0: [[0, 310], [0.3, 360], [1, 250]], jitter: 0.014, frames: [
     { t: 0, v: 'aa', amp: 0, voice: 0, noise: 0.8 }, { t: 0.05, v: 'aa', amp: 0.9, voice: 1, noise: 0.22 }, { t: 0.42, v: 'ee', amp: 0.75, voice: 1, noise: 0.15 }, { t: 1, v: 'ee', amp: 0, voice: 1, noise: 0.18 },
-  ] }) },
-  matildaDeath: { dir: 'enemies', synth: () => voice({ dur: 0.5, targetLoudness: 0.2, seed: 0x6304, hold: 1, bits: 8, drive: 1.65, pitchScale: CUTE_FEMALE_VOICE_PITCH_SCALE, f0: [[0, 250], [0.24, 330], [1, 170]], vib: { rate: 9, depth: 0.05 }, ring: { rate: 38, depth: 0.16 }, jitter: 0.02, frames: [
-    { t: 0, v: 'ee', amp: 0, voice: 0, noise: 0.7 }, { t: 0.04, v: 'ee', amp: 0.85, voice: 1, noise: 0.12 }, { t: 0.24, v: 'aa', amp: 1, voice: 1, noise: 0.1 }, { t: 0.58, v: 'aw', amp: 0.45, voice: 1, noise: 0.18 }, { t: 1, v: 'ng', amp: 0, voice: 1, noise: 0.22 },
   ] }) },
 
   // 주인공

@@ -624,28 +624,8 @@ const sounds = {
     synth({ wave:'noise', freq:1, dur:0.8, vol:0.4, attack:0.03, decay:0.15, sustain:0.35, release:0.3 }),
     synth({ wave:'sine', freq:50, freqEnd:30, dur:0.7, vol:0.4, attack:0.02, decay:0.15, sustain:0.2, release:0.35 }),
   ),
-  // 여자 웃음소리 "후-후-후-하-하" — 마틸다 등장 (2026-07-04 교체).
-  // 음절 5개가 하강 피치로 이어지는 스타카토. sawtooth+배음 = 목소리 버즈,
-  // 비브라토 + 약한 숨소리 노이즈로 사람 웃음 질감. 마지막 음절만 길게 끌며 마무리.
-  'enemies/matildaSpawn': () => (() => {
-    const f0s = [620, 580, 545, 505, 465]  // 여성 음역 하강 시퀀스
-    const layers = f0s.map((f, i) => {
-      const last = i === f0s.length - 1
-      const dur = last ? 0.34 : 0.14
-      const voiced = mix(
-        synth({ wave:'sawtooth', freq:f, freqEnd:f*0.82, dur, vol:0.62, attack:0.012, decay:0.06,
-          sustain:0.4, release: last ? 0.22 : 0.06, vibRate:5.5, vibDepth:14, noiseAmt:0.10,
-          overtones:[{ratio:2,amp:0.45},{ratio:3,amp:0.22},{ratio:4,amp:0.10}] }),
-        synth({ wave:'sine', freq:f*2, freqEnd:f*1.64, dur, vol:0.28, attack:0.012, decay:0.05,
-          sustain:0.3, release: last ? 0.2 : 0.05 }),
-      )
-      const offset = Math.floor(i * 0.205 * SR)
-      const padded = new Float32Array(voiced.length + offset)
-      padded.set(voiced, offset)
-      return padded
-    })
-    return mix(...layers)
-  })(),
+  // 마틸다 Spawn/Death/Laugh는 2026-11-14부터 scripts/generate_matilda_girl_voice.mjs(CC0 실제 아이 목소리 가공)가 만든다.
+  // 여기 합성 프리셋을 되살리면 --encode 때 옛 기계음으로 덮어쓰니 넣지 마라.
 
   // ── 적 사망음 ────────────────────────────────────────────────────────────────
   // 좀비 사망음은 여기서 빠졌다 — 노이즈+톱니 버스트라 "음성"이 아니었다.
@@ -656,36 +636,11 @@ const sounds = {
     synth({ wave:'sawtooth', freq:200, freqEnd:50, dur:0.9, vol:0.4, attack:0.001, decay:0.2, sustain:0.1, release:0.55 }),
     synth({ wave:'noise', freq:1, dur:0.5, vol:0.4, attack:0.001, decay:0.15, sustain:0.05, release:0.3 }),
   ),
-  'enemies/matildaDeath': () => mix(
-    synth({ wave:'sawtooth', freq:300, freqEnd:800, dur:0.8, vol:0.65, attack:0.001, decay:0.2, sustain:0.2, release:0.45,
-      noiseAmt:0.25, vibRate:8, vibDepth:30 }),
-    synth({ wave:'sine', freq:400, freqEnd:1200, dur:0.6, vol:0.35, attack:0.001, decay:0.15, sustain:0.1, release:0.4 }),
-    synth({ wave:'noise', freq:1, dur:0.4, vol:0.3, attack:0.001, decay:0.12, sustain:0.05, release:0.25 }),
-  ),
   'enemies/matildaDash': () => mix(
     synth({ wave:'noise', freq:1, dur:0.48, vol:0.7, attack:0.005, decay:0.10, sustain:0.18, release:0.28 }),
     synth({ wave:'sine', freq:780, freqEnd:170, dur:0.42, vol:0.34, attack:0.005, decay:0.08, sustain:0.12, release:0.25 }),
     synth({ wave:'triangle', freq:260, freqEnd:90, dur:0.34, vol:0.28, attack:0.005, decay:0.08, sustain:0.08, release:0.20 }),
   ),
-  // Sound_Mini Animalese method: three short "o-ho-ho" machine-voice tokens.
-  // This follows the project rule of using tiny synthesized syllable tokens,
-  // not a copied game sample or real-person voice imitation.
-  'enemies/matildaLaugh': () => (() => {
-    const syllables = [620, 540, 660].map((freq, index) => {
-      const voice = mix(
-        synth({ wave:'sawtooth', freq, freqEnd:freq*0.9, dur:0.22, vol:0.46, attack:0.006, decay:0.04,
-          sustain:0.25, release:0.08, vibRate:7, vibDepth:14, noiseAmt:0.08,
-          overtones:[{ratio:2,amp:0.32},{ratio:3,amp:0.12}] }),
-        synth({ wave:'triangle', freq:freq*1.5, freqEnd:freq*1.25, dur:0.18, vol:0.2, attack:0.004,
-          decay:0.04, sustain:0.18, release:0.07 }),
-      )
-      const offset = Math.floor(index * 0.16 * SR)
-      const padded = new Float32Array(voice.length + offset)
-      padded.set(voice, offset)
-      return padded
-    })
-    return mix(...syllables)
-  })(),
 
   // ── UI ────────────────────────────────────────────────────────────────────────
   'ui/buttonClick': () => synth({
