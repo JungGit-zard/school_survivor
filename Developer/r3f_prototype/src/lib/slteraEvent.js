@@ -16,7 +16,7 @@
 //   예: 예고 205초면 193초 이후 시작분). consumeSlteraPassStart / isSlteraNaturalStartAllowed.
 //   오너 치트 '슬테라 즉시 출현'(lib/slteraInstantSpawn.js)은 이 일정과 별개로 한 번 더 달리게 한다.
 // 한 번의 질주(예고 없음 — "갑자기 나타나"):
-//   화면 한 모서리 근처 바로 밖(여유 1.5u)에서 출발해 반대편 모서리 근처 바로 밖까지 '사선'으로 지나간다.
+//   화면 한 모서리 근처 바로 밖(여유 ≈1.08u — 차 귀퉁이 거리 + 0.11u)에서 출발해 반대편 모서리 근처 바로 밖까지 '사선'으로 지나간다.
 //   직진하지 않는다: 사선 위에 불규칙한 지그재그 경유점(좌우 폭 0.5~1.8u, 간격 1.0~2.6u, 15%는 같은 쪽
 //   연속)을 깔고 핸들을 꺾어 쫓아가며(초당 5.4rad), 0.33~1.07초마다 핸들이 갑자기 확 돌아가는 '발작'
 //   (0.05~0.11초 동안 초당 15rad)이 끼어든다. 핸들 떨림(±0.15~0.3rad, 1.8~3Hz)도 늘 있다.
@@ -24,16 +24,16 @@
 //   세로 화면에서 화면 안 좌우 꺾임(0.35u 이상 되돌아옴) 중앙값 5번, 꺾임 폭 중앙값 2.1u.
 //   핸들은 사선 방향에서 70°까지만 꺾이고 떨림을 얹어도 87°를 넘지 않아 늘 앞으로 나아가므로 질주는 반드시 끝난다.
 //   경유점은 화면이 보는 바닥(사다리꼴) 가장자리에서 0.8u 안쪽에만 둔다 — 화면 안에서 오래 비틀거린다.
-//   속도 4.2u/s(11-07판 14u/s의 3/10 = 11-08판 2.8u/s의 1.5배), 크기 2/3(11-08판 1/3의 2배 — 판정 길이 2.47u·
-//   폭 1.27u, 비주얼도 2/3). 세로 화면(390×844)·로자리 정지·장애물 없음 기준 화면 체류 중앙값 ≈6.6초
+//   속도 4.2u/s(11-07판 14u/s의 3/10 = 11-08판 2.8u/s의 1.5배), 크기 7/15(11-08판 1/3의 1.4배 — 판정 길이 1.73u·
+//   폭 0.89u, 비주얼도 7/15). 세로 화면(390×844)·로자리 정지·장애물 없음 기준 화면 체류 중앙값 ≈6.4초
 //   (11-08판 ≈9.2초, 11-07판 가로 직진 ≈0.75초). 장애물 있는 실제 S1~S5에서 질주 중앙값 ≈5~6초.
 //   사선은 출발 순간 화면에 맞춘 월드 경로라 로자리가 멀리 달아나면 그만큼 일찍 화면에서 사라진다.
 //   11-13부터 차(4.2u/s)가 로자리 기본 속도(3.0u/s)보다 빠르다 — 뒤쫓기면 따라잡힐 수 있다(경로가 로자리를 쫓지는 않는다).
 //   로자리를 노리지 않는다 — 사선이 화면 가운데(로자리)를 지나므로 로자리 근처 경유점은 반대쪽으로 비킨다
-//   (SLTERA_ROSARI_*, 여유는 차 반폭이 커진 만큼 넓혔다). 가만히 선 로자리가 맞는 질주 ≈22%(장애물 없음) /
-//   실제 S1~S5 ≈14~20%(11-08판 ≈7%, 11-07판 ≈14% — 발작·떨림·큰 차체로 맞는다).
+//   (SLTERA_ROSARI_*, 여유는 차 반폭이 커진 만큼 넓혔다). 가만히 선 로자리가 맞는 질주 ≈5%(장애물 없음) /
+//   실제 S1~S5 프랍 위 ≈8~14%(11-08판 ≈7%, 2배판 ≈22% — 발작·떨림·튕김으로 맞는다).
 // 치기:
-//   차체 판정박스(길이 2.47u, 폭 1.27u, 차가 보는 방향으로 회전)를 이번 프레임 이동만큼 늘린 영역 안의 적마다
+//   차체 판정박스(길이 1.73u, 폭 0.89u, 차가 보는 방향으로 회전)를 이번 프레임 이동만큼 늘린 영역 안의 적마다
 //   한 번만 굴림 — 65% 확률로 치어 60 피해 + 넉백, 35%는 아슬아슬하게 비켜 간다(무작위 치기).
 //   보스·마틸다는 20만. 차 중심이 화면 밖(진입·이탈 여유 구간)일 때는 치지 않는다.
 //   로자리와 겹치면 질주당 1회 최대 HP의 15% 피해(일반 무적 규칙을 따른다 — 무적 중이면 무시).
@@ -51,24 +51,27 @@ export const SLTERA_REPEAT_MS = 85_000
 
 // 크기·속도 배율. 11-07판 값을 기준으로 곱한다 — 비주얼(SlteraEvent의 그룹 scale)과 판정 사각형이 같은 배율을 쓴다.
 //   11-08 Terry: 크기 1/3, 속도 1/5.  11-13 Terry: "슬테라 크기 2배, 속도 1.5배" → 크기 2/3, 속도 3/10.
-export const SLTERA_SIZE_SCALE = 2 / 3 // 11-08판(1/3)의 2배
+//   11-13 Terry 이어서: "슬테라 크기 다시 30퍼센트 줄여" → 크기 2/3 × 0.7 = 7/15(11-08판의 1.4배), 속도는 그대로.
+export const SLTERA_SIZE_SCALE = (2 / 3) * 0.7 // ≈0.467
 export const SLTERA_SPEED_SCALE = 3 / 10 // 11-08판(1/5)의 1.5배
 export const SLTERA_BASE_SPEED = 14 // 11-07판 직진 속도(u/s)
 export const SLTERA_SPEED = SLTERA_BASE_SPEED * SLTERA_SPEED_SCALE // 4.2u/s — 실제 주행 경로를 따라 잰 속도
 export const SLTERA_BASE_HALF_LENGTH = 1.85 // 11-07판 차 길이 3.7u의 절반
 export const SLTERA_BASE_HALF_WIDTH = 0.95 // 11-07판 차 폭 1.9u의 절반
-// 판정박스(차체 OBB, 진행 방향=차가 보는 방향으로 회전): 길이 ≈2.47u × 폭 ≈1.27u. 장애물 충돌·좀비 치기·로자리
+// 판정박스(차체 OBB, 진행 방향=차가 보는 방향으로 회전): 길이 ≈1.73u × 폭 ≈0.89u. 장애물 충돌·좀비 치기·로자리
 // 피격이 모두 이 한 상자를 쓴다(getSlteraBodyBox / getSlteraSweepBox).
-export const SLTERA_HALF_LENGTH = SLTERA_BASE_HALF_LENGTH * SLTERA_SIZE_SCALE // ≈1.233u(길이 2.47u)
-export const SLTERA_HALF_WIDTH = SLTERA_BASE_HALF_WIDTH * SLTERA_SIZE_SCALE // ≈0.633u(폭 1.27u)
+export const SLTERA_HALF_LENGTH = SLTERA_BASE_HALF_LENGTH * SLTERA_SIZE_SCALE // ≈0.863u(길이 1.73u)
+export const SLTERA_HALF_WIDTH = SLTERA_BASE_HALF_WIDTH * SLTERA_SIZE_SCALE // ≈0.443u(폭 0.89u)
 export const SLTERA_PLAYER_RADIUS = 0.3 // 로자리 몸통 판정 반경
 
-// 사선 경로: 출발·도착은 화면 바로 밖 여유(u). 차 중심→귀퉁이 거리 hypot(1.23, 0.63) ≈ 1.39u보다 커서
-// 차 전체가 화면 밖에서 출발한다(11-13 크기 2배로 1 → 1.5).
-export const SLTERA_EDGE_MARGIN = 1.5
+// 차 중심→귀퉁이 거리(≈0.97u). 화면 밖 여유들은 이 값에서 뽑는다 — 크기를 바꾸면 함께 따라간다.
+export const SLTERA_BODY_CORNER = Math.hypot(SLTERA_HALF_LENGTH, SLTERA_HALF_WIDTH)
+// 사선 경로: 출발·도착은 화면 바로 밖 여유(u). 귀퉁이 거리보다 0.11u 커서 차 전체가 화면 밖에서 출발한다
+// (≈1.08u. 2배판은 1.39+0.11 = 1.5u였다).
+export const SLTERA_EDGE_MARGIN = SLTERA_BODY_CORNER + 0.11
 // 끝: 도착점을 지나고 차 전체가 (출발 순간의) 화면 밖으로 나가야 사라진다 — 차 중심이 화면에서 이만큼 밖.
-// 차 귀퉁이까지 거리 ≈1.39u보다 크게. 도착점을 4u 넘게 지나면 무조건 끝(안전장치).
-export const SLTERA_OFFSCREEN_PAD = 1.45
+// 차 귀퉁이까지 거리보다 0.06u 크게(≈1.03u. 2배판 1.45u). 도착점을 4u 넘게 지나도 아직 보이면 계속 달린다.
+export const SLTERA_OFFSCREEN_PAD = SLTERA_BODY_CORNER + 0.06
 export const SLTERA_EXIT_OVERRUN = 4
 // 모서리 근처 출발·도착점: 이 확률로 위/아래 변 바깥(나머지는 옆 변 바깥).
 export const SLTERA_CORNER_END_EDGE_SHARE = 0.6
@@ -87,8 +90,8 @@ export const SLTERA_MAX_WAYPOINTS = 48
 // 로자리에서 좌우 1.3u 선과 그보다 바깥(화면 가장자리 0.4u 안쪽까지)을 번갈아 오가며 계속 비틀거린다.
 // 로자리가 움직여 차 앞으로 들어오면 그대로 맞는다(노리지도, 봐주지도 않는다).
 export const SLTERA_ROSARI_SPAN = 3
-// 11-13 차 폭 2배: 차 옆면과 로자리 사이 여유를 11-08판(1.3u − 반폭 0.317u)과 같게 지키도록 늘어난 반폭만큼 더한다
-// (≈1.62u). 노리지 않는다는 설계를 지키는 보정이지 크기·속도 하향이 아니다.
+// 차 옆면과 로자리 사이 여유를 11-08판(1.3u − 반폭 0.317u)과 같게 지키도록 늘어난 반폭만큼 더한다
+// (지금 ≈1.43u, 2배판 ≈1.62u). 노리지 않는다는 설계를 지키는 보정이지 크기·속도 하향이 아니다.
 export const SLTERA_ROSARI_CLEARANCE = 1.3 + (SLTERA_HALF_WIDTH - SLTERA_BASE_HALF_WIDTH / 3)
 export const SLTERA_ROSARI_ZONE_INSET = 0.4
 // 운전 박자: 11-13 속도 1.5배에서 지그재그 경로 '모양'(꺾는 반경·떨림 파장·발작 간격을 거리로 잰 값)이 11-08판과
@@ -153,6 +156,14 @@ export const SLTERA_OBSTACLE_MAX_SEC = 20
 export const SLTERA_EXIT_MODE_SEC = 7 // 튕긴 질주는 7초부터 가장 가까운 화면 밖으로 퇴장(더 안 튕김)
 export const SLTERA_MAX_PASS_SEC = 30 // 최종 안전장치(정상 질주는 닿지 않는다)
 export const SLTERA_STUCK_SEC = 0.35
+// 끼임(Terry 11-13 라이브: "책상 사이에 끼어서 제자리만 맴돌다가 사라진다") 조기 감지 — 둘 중 하나면 곧바로 탈출:
+//   ① 새 튕김 자리 반경 1u 안에 이전 튕김이 이미 2번 이상 → 세 번째로 튀지 않는다.
+//   ② 단단한 상태로 1.2초 넘게 반경 1u 안을 못 벗어남(정상 튕김은 ≈0.7초 안에 빠진다).
+// 탈출 = 장애물 판정을 끄고(뚫고 지나감) 퇴장 모드로 핸들 ±70° 안에서 화면을 가장 빨리 벗어나는 쪽으로 곧장 달려
+// 나간다 — 제자리에서 돌지 않고, 화면 안에서 사라지지 않는다(끝은 늘 차 전체가 화면 밖일 때).
+export const SLTERA_WEDGE_RADIUS = 1
+export const SLTERA_WEDGE_BOUNCES = 2
+export const SLTERA_WEDGE_SEC = 1.2
 const OBSTACLE_RESOLVE_ITERATIONS = 8
 const OBSTACLE_SKIN = 1e-4
 
@@ -274,7 +285,11 @@ export function createSlteraPass() {
     solid: false, // 화면에 들어와 장애물과 안 겹친 뒤부터 true — 그때부터 부딪힌다
     brokeThrough: false, // 끼임 안전장치로 장애물 판정을 끈 질주
     blockedSec: 0, // 면에 막혀 거의 못 나아간 연속 시간
-    exiting: false, // 퇴장 모드(튕긴 질주 7초 이후)
+    exiting: false, // 퇴장 모드(튕긴 질주 7초 이후, 또는 끼임 탈출)
+    bounceAtX: new Float64Array(SLTERA_MAX_BOUNCES), // 튕긴 자리(끼임 감지)
+    bounceAtZ: new Float64Array(SLTERA_MAX_BOUNCES),
+    escapePending: false, // 튕기는 중에 끼임 판정 — 튕김이 끝나면 퇴장 모드로
+    anchorX: 0, anchorZ: 0, anchorMs: 0, // 반경 1u 체류 감시 기준점
     bounces: 0, // 이번 질주 튕김 횟수(SLTERA_MAX_BOUNCES까지)
     bounceLeftSec: 0, // >0이면 튕겨 밀리는 중
     bounceDirX: 0, bounceDirZ: 0, // 밀리는 방향(단위벡터)
@@ -434,6 +449,10 @@ export function beginSlteraPass(pass, { bounds, playerX = NaN, playerZ = NaN, ob
   pass.brokeThrough = false
   pass.blockedSec = 0
   pass.exiting = false
+  pass.escapePending = false
+  pass.anchorX = pass.x
+  pass.anchorZ = pass.z
+  pass.anchorMs = 0
   pass.bounces = 0
   pass.bounceLeftSec = 0
   pass.contactNX = 0
@@ -458,7 +477,6 @@ function clampAbs(value, limit) {
 
 const obstacleCos = (o) => (o.cosY !== undefined ? o.cosY : o.rotationY ? Math.cos(o.rotationY) : 1)
 const obstacleSin = (o) => (o.sinY !== undefined ? o.sinY : o.rotationY ? Math.sin(o.rotationY) : 0)
-const SLTERA_BODY_RADIUS = Math.hypot(SLTERA_HALF_LENGTH, SLTERA_HALF_WIDTH)
 const _contact = { nx: 0, nz: 0, depth: 0 }
 const _probe = { nx: 0, nz: 0, depth: 0 }
 
@@ -471,7 +489,7 @@ function slteraObstacleOverlap(cx, cz, heading, o, out) {
   if (!o || !Number.isFinite(o.x) || !Number.isFinite(o.z) || !Number.isFinite(o.halfX) || !Number.isFinite(o.halfZ)) return 0
   const dx = cx - o.x
   const dz = cz - o.z
-  const reach = SLTERA_BODY_RADIUS + Math.hypot(o.halfX, o.halfZ)
+  const reach = SLTERA_BODY_CORNER + Math.hypot(o.halfX, o.halfZ)
   if (dx * dx + dz * dz > reach * reach) return 0
   const fx = Math.sin(heading); const fz = Math.cos(heading) // 차 앞(halfLength 축)
   const rx = fz; const rz = -fx // 차 옆(halfWidth 축)
@@ -581,6 +599,10 @@ function startSlteraBounce(pass, nx, nz) {
   pass.bounceFromHeading = pass.heading
   pass.bounceToHeading = wrapAngle(bestHeading)
   pass.bounceLeftSec = SLTERA_BOUNCE_SEC
+  if (pass.bounces < SLTERA_MAX_BOUNCES) {
+    pass.bounceAtX[pass.bounces] = pass.x
+    pass.bounceAtZ[pass.bounces] = pass.z
+  }
   pass.bounces += 1
   pass.jerkLeftSec = 0 // 튕기는 동안 발작은 멈춘다(예정분은 튕김 뒤 이어진다)
 }
@@ -675,15 +697,47 @@ function collideSlteraWithObstacles(pass, h, beforeX, beforeZ, beforeHeading) {
   const fz = Math.cos(pass.heading)
   const approach = fx * hitNX + fz * hitNZ
   if (approach < -SLTERA_BOUNCE_MIN_APPROACH) {
-    // 튕김을 다 썼거나 퇴장 모드인데 또 들이받으면 그대로 밀고 지나간다(갇혀 계속 튀지 않게).
-    if (pass.bounces >= SLTERA_MAX_BOUNCES || pass.exiting) breakSlteraThrough(pass)
+    // 튕김을 다 썼거나 퇴장 모드이거나 같은 자리에서 또 튀려 하면(끼임) 곧장 뚫고 빠져나간다.
+    if (pass.bounces >= SLTERA_MAX_BOUNCES || pass.exiting || countSlteraBouncesNear(pass) >= SLTERA_WEDGE_BOUNCES) escapeSltera(pass)
     else startSlteraBounce(pass, hitNX, hitNZ)
     return
   }
   // 면을 따라 미끄러지는 중: 앞으로 거의 못 나아가는 상태가 이어지면(틈에 낌) 밀고 지나간다.
   const moved = (pass.x - beforeX) * fx + (pass.z - beforeZ) * fz
   pass.blockedSec = moved < SLTERA_SPEED * h * 0.25 ? pass.blockedSec + h : 0
-  if (pass.blockedSec >= SLTERA_STUCK_SEC) breakSlteraThrough(pass)
+  if (pass.blockedSec >= SLTERA_STUCK_SEC) escapeSltera(pass)
+}
+
+// 지금 자리 반경 SLTERA_WEDGE_RADIUS 안에서 이미 튕긴 횟수.
+function countSlteraBouncesNear(pass) {
+  let near = 0
+  const n = Math.min(pass.bounces, SLTERA_MAX_BOUNCES)
+  for (let i = 0; i < n; i += 1) {
+    const dx = pass.bounceAtX[i] - pass.x
+    const dz = pass.bounceAtZ[i] - pass.z
+    if (dx * dx + dz * dz <= SLTERA_WEDGE_RADIUS * SLTERA_WEDGE_RADIUS) near += 1
+  }
+  return near
+}
+
+// 끼임 탈출: 장애물 판정을 끄고 퇴장 모드로 곧장 화면 밖으로(튕기는 중이면 튕김이 끝난 뒤).
+function escapeSltera(pass) {
+  breakSlteraThrough(pass)
+  if (pass.bounceLeftSec > 0) pass.escapePending = true
+  else startSlteraExit(pass)
+}
+
+// 반경 1u 체류 감시: 단단한 상태로 1.2초 넘게 제자리 근처면 끼임.
+function watchSlteraWedge(pass) {
+  const dx = pass.x - pass.anchorX
+  const dz = pass.z - pass.anchorZ
+  if (!pass.solid || dx * dx + dz * dz > SLTERA_WEDGE_RADIUS * SLTERA_WEDGE_RADIUS) {
+    pass.anchorX = pass.x
+    pass.anchorZ = pass.z
+    pass.anchorMs = pass.elapsedMs
+    return
+  }
+  if (pass.elapsedMs - pass.anchorMs > SLTERA_WEDGE_SEC * 1000) escapeSltera(pass)
 }
 
 // 끼임 안전장치: 장애물 판정을 끄고 원래 고장 난 운전대로 화면을 빠져나간다(질주는 늘 끝난다).
@@ -722,7 +776,14 @@ function driveSlteraSubstep(pass, h) {
   if (pass.bounceLeftSec > 0) {
     const done = bounceSlteraSubstep(pass, h, t)
     collideSlteraWithObstacles(pass, h, beforeX, beforeZ, beforeHeading)
-    if (done) replanSlteraAfterBounce(pass)
+    if (done) {
+      replanSlteraAfterBounce(pass)
+      if (pass.escapePending) {
+        pass.escapePending = false
+        startSlteraExit(pass)
+      }
+    }
+    if (!pass.brokeThrough) watchSlteraWedge(pass)
     return
   }
   if (!pass.exiting && pass.bounces > 0 && pass.elapsedMs >= SLTERA_EXIT_MODE_SEC * 1000) startSlteraExit(pass)
@@ -754,6 +815,7 @@ function driveSlteraSubstep(pass, h) {
   pass.z += Math.cos(heading) * SLTERA_SPEED * h
   pass.distance += SLTERA_SPEED * h
   collideSlteraWithObstacles(pass, h, beforeX, beforeZ, beforeHeading)
+  if (!pass.brokeThrough) watchSlteraWedge(pass)
   if (pass.bounceLeftSec > 0) return // 방금 부딪혔다 — 끝 판정은 튕김 뒤 새 경로로
   pass.progress = (pass.x - pass.entryX) * pass.dirX + (pass.z - pass.entryZ) * pass.dirZ
   while (pass.waypoint < pass.waypointCount && pass.progress >= pass.wpU[pass.waypoint]) pass.waypoint += 1
@@ -898,7 +960,7 @@ export function consumeSlteraPassStart(run, stageId, gameKey, elapsedMs) {
 }
 
 // 자연 질주가 탈출구·마틸다 예고(getSlteraDeadlineMs)와 겹치지 않게 비우는 간격. 세로 화면 질주 최대보다 길게:
-// 11-13(크기 2배·속도 1.5배·장애물 튕김) 실제 S1~S5 프랍 위 질주 최대 ≈11.4초(2,000회 프로브, 튕긴 질주는 7초부터
+// 11-13(크기 7/15·속도 1.5배·장애물 튕김) 실제 S1~S6 프랍 위 질주 최대 ≈9.8초(S6 운동장 프랍 포함 2,400회 프로브, 튕긴 질주는 7초부터
 // 퇴장 모드 — SLTERA_EXIT_MODE_SEC). 장애물 없는 질주는 ≈8초 이하. slteraEvent.test.js가 12초 미만을 지킨다.
 // balanceqa 11-08: 3번째 질주(185~195초 시작)가 205초 예고와 겹칠 수 있었다.
 export const SLTERA_DEADLINE_CLEAR_MS = 12_000

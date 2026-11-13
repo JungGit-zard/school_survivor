@@ -119,20 +119,28 @@ describe('Sltera run schedule — appears in every Stage 1-5 run (unchanged by t
   })
 })
 
-describe('Sltera size and speed (Terry 11-13: 2x the 11-08 size, 1.5x the 11-08 speed)', () => {
+describe('Sltera size and speed (Terry 11-13: 2x then -30% = 1.4x the 11-08 size, 1.5x the 11-08 speed)', () => {
   // 11-08판: 크기 1/3(판정 길이 1.23u·폭 0.63u), 속도 1/5(2.8u/s).
   const OLD_HALF_LENGTH = SLTERA_BASE_HALF_LENGTH / 3
   const OLD_HALF_WIDTH = SLTERA_BASE_HALF_WIDTH / 3
   const OLD_SPEED = SLTERA_BASE_SPEED / 5
 
-  it('doubles the hit box and the visual together (판정박스 2.47u x 1.27u)', () => {
-    expect(SLTERA_SIZE_SCALE).toBeCloseTo(2 / 3, 12)
+  it('scales the hit box and the visual together to 0.7x the 2x car (판정박스 1.73u x 0.89u)', () => {
+    expect(SLTERA_SIZE_SCALE).toBeCloseTo((2 / 3) * 0.7, 12)
     expect(SLTERA_BASE_HALF_LENGTH * 2).toBeCloseTo(3.7, 9)
     expect(SLTERA_BASE_HALF_WIDTH * 2).toBeCloseTo(1.9, 9)
-    expect(SLTERA_HALF_LENGTH).toBeCloseTo(OLD_HALF_LENGTH * 2, 12)
-    expect(SLTERA_HALF_WIDTH).toBeCloseTo(OLD_HALF_WIDTH * 2, 12)
-    expect(SLTERA_HALF_LENGTH * 2).toBeCloseTo(2.4667, 3)
-    expect(SLTERA_HALF_WIDTH * 2).toBeCloseTo(1.2667, 3)
+    // 2배판(길이 2.47u·폭 1.27u)의 0.7배 = 11-08판(1.23u·0.63u)의 1.4배.
+    expect(SLTERA_HALF_LENGTH).toBeCloseTo(OLD_HALF_LENGTH * 2 * 0.7, 12)
+    expect(SLTERA_HALF_WIDTH).toBeCloseTo(OLD_HALF_WIDTH * 2 * 0.7, 12)
+    expect(SLTERA_HALF_LENGTH).toBeCloseTo(OLD_HALF_LENGTH * 1.4, 12)
+    expect(SLTERA_HALF_WIDTH).toBeCloseTo(OLD_HALF_WIDTH * 1.4, 12)
+    expect(SLTERA_HALF_LENGTH * 2).toBeCloseTo(1.7267, 3)
+    expect(SLTERA_HALF_WIDTH * 2).toBeCloseTo(0.8867, 3)
+    // 크기에 묶인 화면 밖 여유들은 차 귀퉁이 거리에서 뽑는다(2배판 1.5u·1.45u → ≈1.08u·≈1.03u).
+    const corner = Math.hypot(SLTERA_HALF_LENGTH, SLTERA_HALF_WIDTH)
+    expect(SLTERA_EDGE_MARGIN).toBeCloseTo(corner + 0.11, 12)
+    expect(SLTERA_OFFSCREEN_PAD).toBeCloseTo(corner + 0.06, 12)
+    expect(SLTERA_ROSARI_CLEARANCE).toBeCloseTo(1.3 + (SLTERA_HALF_WIDTH - OLD_HALF_WIDTH), 12)
     const src = readFileSync(new URL('../components/SlteraEvent.jsx', import.meta.url), 'utf8')
     expect(src).toContain('<group ref={carRef} visible={false} scale={SLTERA_SIZE_SCALE}>')
     // 차체 판정박스 = 지금 위치·방향의 OBB.
@@ -140,14 +148,16 @@ describe('Sltera size and speed (Terry 11-13: 2x the 11-08 size, 1.5x the 11-08 
     for (let i = 0; i < 300; i += 1) stepSlteraPass(pass, STEP_MS)
     const body = getSlteraBodyBox(pass, {})
     expect(body).toEqual({ centerX: pass.x, centerZ: pass.z, yaw: pass.heading, halfWidth: SLTERA_HALF_WIDTH, halfDepth: SLTERA_HALF_LENGTH })
-    // 판정도 실제로 커졌다: 차 중심선에서 옆으로 0.5u인 좀비는 11-08판(반폭 0.317)이면 안 치였지만 이제는 친다.
+    // 판정 폭: 차 중심선에서 옆으로 0.4u인 좀비는 11-08판(반폭 0.317)이면 안 치였지만 이제는 친다. 0.5u는 안 친다
+    // (2배판 반폭 0.633이면 쳤다).
     const box = {}
     getSlteraSweepBox(pass, box)
     const sideX = Math.cos(box.yaw); const sideZ = -Math.sin(box.yaw)
     expect(box.halfWidth).toBeCloseTo(SLTERA_HALF_WIDTH, 9)
-    expect(isPointInOrientedBox2D(box.centerX, box.centerZ, box.yaw, box.halfWidth, box.halfDepth, box.centerX + sideX * 0.5, box.centerZ + sideZ * 0.5)).toBe(true)
-    expect(isPointInOrientedBox2D(box.centerX, box.centerZ, box.yaw, OLD_HALF_WIDTH, box.halfDepth, box.centerX + sideX * 0.5, box.centerZ + sideZ * 0.5)).toBe(false)
-    expect(isPointInOrientedBox2D(box.centerX, box.centerZ, box.yaw, box.halfWidth, box.halfDepth, box.centerX + sideX * 0.7, box.centerZ + sideZ * 0.7)).toBe(false)
+    expect(isPointInOrientedBox2D(box.centerX, box.centerZ, box.yaw, box.halfWidth, box.halfDepth, box.centerX + sideX * 0.4, box.centerZ + sideZ * 0.4)).toBe(true)
+    expect(isPointInOrientedBox2D(box.centerX, box.centerZ, box.yaw, OLD_HALF_WIDTH, box.halfDepth, box.centerX + sideX * 0.4, box.centerZ + sideZ * 0.4)).toBe(false)
+    expect(isPointInOrientedBox2D(box.centerX, box.centerZ, box.yaw, box.halfWidth, box.halfDepth, box.centerX + sideX * 0.5, box.centerZ + sideZ * 0.5)).toBe(false)
+    expect(isPointInOrientedBox2D(box.centerX, box.centerZ, box.yaw, OLD_HALF_WIDTH * 2, box.halfDepth, box.centerX + sideX * 0.5, box.centerZ + sideZ * 0.5)).toBe(true)
   })
 
   it('drives at 1.5x the 11-08 speed (4.2u/s) along its actual (zigzag) path', () => {
@@ -312,8 +322,8 @@ describe('Sltera path: diagonal, zigzag, broken-car chaos (Terry 11-08)', () => 
       }
       runPass(pass, (p) => { if (checkSlteraPlayerHit(p, 0, 0, 100) > 0) hits += 1 })
     }
-    // 11-07판(무작위 가로 차선)은 가만히 선 로자리를 질주당 ≈14% 쳤다. 11-08판 ≈7%. 11-13 크기 2배·속도 1.5배로 ≈22%
-    // (비키기 여유는 늘어난 반폭만큼 넓혔다 — 그대로 두면 ≈45%). 여전히 정통으로 노리지는 않는다.
+    // 11-07판(무작위 가로 차선)은 가만히 선 로자리를 질주당 ≈14% 쳤다. 11-08판 ≈7%. 2배판 ≈22%, 지금(1.4배·속도 1.5배)
+    // ≈5%(비키기 여유는 늘어난 반폭만큼 넓혔다). 여전히 정통으로 노리지는 않는다.
     expect(hits / N).toBeGreaterThan(0.03)
     expect(hits / N).toBeLessThan(0.25)
   })
@@ -549,7 +559,7 @@ describe('Sltera obstacle physics (Terry 11-13: bounce back off obstacles, then 
     expect(inside).toBe(0)
     expect(solidSteps).toBeGreaterThan(10_000)
     expect(bounced).toBeGreaterThan(100) // 이 방에서는 대부분의 질주가 한 번 이상 튕긴다
-    expect(brokeThrough / 300).toBeLessThan(0.05) // 끼임 안전장치는 드물게만
+    expect(brokeThrough / 300).toBeLessThan(0.15) // 끼임 안전장치(조기 탈출 포함)는 드물게만
   })
 
   it('does not collide while still off screen (props just outside the view cannot swallow a pass)', () => {
@@ -563,9 +573,9 @@ describe('Sltera obstacle physics (Terry 11-13: bounce back off obstacles, then 
     expect(pass.bounces).toBe(0)
   })
 
-  it('on the real Stage 1-5 props: never sits inside a prop while solid, always finishes, rarely needs the stuck escape', () => {
+  it('on the real Stage 1-6 props: never sits inside a prop while solid, always finishes, rarely needs the stuck escape', () => {
     const rand = lcg(2611)
-    for (const stageId of SLTERA_STAGE_IDS) {
+    for (const stageId of PROP_STAGE_IDS) {
       const obstacles = getStageObjectSightObstacles(stageId)
       expect(obstacles.length).toBeGreaterThan(0)
       const xs = obstacles.map((o) => o.x); const zs = obstacles.map((o) => o.z)
@@ -590,20 +600,21 @@ describe('Sltera obstacle physics (Terry 11-13: bounce back off obstacles, then 
         if (pass.bounces > 0) bounced += 1
       }
       expect(inside).toBe(0)
-      expect(bounced).toBeGreaterThan(N * 0.3) // 실제 교실·복도·체육관·급식실·교무실에서 부딪혀 튕긴다
-      // 교무실(S5) 책상 섬 사이 통로(≈2.2u)는 2.47u 차체에 좁아 가끔 끼임 안전장치로 뚫고 나간다.
-      expect(brokeThrough / N).toBeLessThan(stageId === 'stage5' ? 0.2 : 0.08)
+      expect(bounced).toBeGreaterThan(N * 0.3) // 실제 교실·복도·체육관·급식실·교무실·운동장에서 부딪혀 튕긴다
+      // 교무실(S5) 책상 섬 사이 통로(≈2.2u)는 1.73u 차체에도 넉넉하지 않아 가끔 끼임 안전장치로 뚫고 나간다.
+      // 끼임 조기 탈출(같은 자리 세 번째 튕김·1.2초 제자리)도 뚫고 나가기로 센다.
+      expect(brokeThrough / N).toBeLessThan(stageId === 'stage5' ? 0.25 : 0.12)
     }
   })
 
-  it('on the real Stage 1-5 props: never ends while still visible, and every run fits the Matilda-warning clear window', () => {
+  it('on the real Stage 1-6 props: never ends while still visible, and every run fits the Matilda-warning clear window', () => {
     // balanceqa 11-13: 화면 가장자리에서 튕긴 뒤 경로가 1.5u로 잘려 화면 안에서 끝나(사라져) 버리던 회귀.
-    // 차 귀퉁이까지 ≈1.39u — 끝날 때 차 중심이 화면에서 그보다 밖이어야 차 전체가 안 보인다.
+    // 차 귀퉁이까지 ≈0.97u — 끝날 때 차 중심이 화면에서 그보다 밖이어야 차 전체가 안 보인다.
     const corner = Math.hypot(SLTERA_HALF_LENGTH, SLTERA_HALF_WIDTH)
-    expect(corner).toBeLessThan(1.39)
+    expect(corner).toBeCloseTo(0.97, 2)
     const rand = lcg(777)
     let maxRunMs = 0
-    for (const stageId of SLTERA_STAGE_IDS) {
+    for (const stageId of PROP_STAGE_IDS) {
       const obstacles = getStageObjectSightObstacles(stageId)
       const xs = obstacles.map((o) => o.x); const zs = obstacles.map((o) => o.z)
       const minX = Math.min(...xs); const maxX = Math.max(...xs); const minZ = Math.min(...zs); const maxZ = Math.max(...zs)
@@ -619,13 +630,68 @@ describe('Sltera obstacle physics (Terry 11-13: bounce back off obstacles, then 
         const dt = k % 4 === 0 ? 50 : STEP_MS
         for (let steps = 0; steps < 5_000 && pass.phase !== SLTERA_PHASE.DONE; steps += 1) stepSlteraPass(pass, dt, px, pz)
         expect(pass.phase).toBe(SLTERA_PHASE.DONE)
-        if (isSlteraPointOnScreen(view, pass.x, pass.z, -1.39)) visibleEnds += 1
+        if (isSlteraPointOnScreen(view, pass.x, pass.z, -corner)) visibleEnds += 1
         maxRunMs = Math.max(maxRunMs, pass.elapsedMs)
       }
       expect(visibleEnds).toBe(0)
     }
     expect(maxRunMs).toBeLessThan(SLTERA_DEADLINE_CLEAR_MS)
     expect(SLTERA_EXIT_MODE_SEC * 1000).toBeLessThan(SLTERA_DEADLINE_CLEAR_MS)
+  })
+
+  it('never circles in place: Stage 6 props and a desk corridor/pocket narrower than the car (Terry 11-13 live report)', () => {
+    // 라이브: "책상 사이에 끼어서 제자리만 맴돌다가 사라진다". 반경 1u 안 튕김 수, 화면 안 반경 1u 체류 시간,
+    // 끝 위치(차 전체가 화면 밖)를 질주마다 본다.
+    const corner = Math.hypot(SLTERA_HALF_LENGTH, SLTERA_HALF_WIDTH)
+    const gap = 1.3 // 차 폭 0.89u < 통로 1.3u < 차 길이 1.73u
+    expect(gap).toBeLessThan(SLTERA_HALF_LENGTH * 2)
+    expect(gap).toBeGreaterThan(SLTERA_HALF_WIDTH * 2)
+    const rand = lcg(6606)
+    const stage6 = getStageObjectSightObstacles('stage6')
+    let escaped = 0
+    const runs = []
+    for (let k = 0; k < 240; k += 1) {
+      const scene = k % 3 // 0: 사선 위 좁은 통로, 1: 끝이 막힌 좁은 주머니, 2: 운동장(S6) 프랍
+      const pass = beginSlteraPass(createSlteraPass(), { bounds, playerX: 0, playerZ: 0, obstacles: stage6, rand })
+      let view = bounds
+      if (scene === 2) {
+        const o = stage6[k % stage6.length]
+        view = { minX: o.x + bounds.minX, maxX: o.x + bounds.maxX, minZ: o.z + bounds.minZ, maxZ: o.z + bounds.maxZ }
+        beginSlteraPass(pass, { bounds: view, playerX: o.x, playerZ: o.z, obstacles: stage6, rand })
+      } else {
+        // 화면 가운데를 지나는 사선을 따라 양쪽 벽(길이 7u) — 지그재그 차가 통로 안에서 계속 벽에 닿는다.
+        const a = pass.diagHeading
+        const nX = Math.cos(a); const nZ = -Math.sin(a)
+        const midU = pass.length / 2
+        const cX = pass.entryX + pass.dirX * midU; const cZ = pass.entryZ + pass.dirZ * midU
+        const walls = [-1, 1].map((side) => ({
+          x: cX + nX * side * (gap / 2 + 0.3), z: cZ + nZ * side * (gap / 2 + 0.3), halfX: 0.3, halfZ: 3.5, rotationY: a,
+        }))
+        if (scene === 1) walls.push({ x: cX + pass.dirX * 3.8, z: cZ + pass.dirZ * 3.8, halfX: gap / 2 + 0.6, halfZ: 0.3, rotationY: a })
+        pass.obstacles = walls
+      }
+      const at = []
+      let prevBounces = 0
+      let anchorX = pass.x; let anchorZ = pass.z; let anchorMs = 0; let maxDwellMs = 0
+      for (let steps = 0; steps < 5_000 && pass.phase !== SLTERA_PHASE.DONE; steps += 1) {
+        stepSlteraPass(pass, STEP_MS, 0, 0)
+        if (pass.bounces > prevBounces) { at.push([pass.x, pass.z]); prevBounces = pass.bounces }
+        if (isSlteraPointOnScreen(view, pass.x, pass.z) && Math.hypot(pass.x - anchorX, pass.z - anchorZ) <= 1) {
+          maxDwellMs = Math.max(maxDwellMs, pass.elapsedMs - anchorMs)
+        } else { anchorX = pass.x; anchorZ = pass.z; anchorMs = pass.elapsedMs }
+      }
+      const maxNear = Math.max(0, ...at.map(([x, z]) => at.filter(([u, v]) => Math.hypot(u - x, v - z) <= 1).length))
+      runs.push({ scene, maxNear, maxDwellMs, done: pass.phase === SLTERA_PHASE.DONE, visibleEnd: isSlteraPointOnScreen(view, pass.x, pass.z, -corner) })
+      if (pass.brokeThrough && pass.exiting) escaped += 1
+    }
+    for (const r of runs) {
+      expect(r.done).toBe(true)
+      expect(r.visibleEnd).toBe(false) // 화면 안에서 사라지지 않는다
+      expect(r.maxNear).toBeLessThanOrEqual(3) // 같은 자리에서 핀볼처럼 계속 튀지 않는다
+      expect(r.maxDwellMs).toBeLessThan(2_500) // 반경 1u 안에 2.5초 넘게 머무르지 않는다(계속 나아간다)
+    }
+    expect(runs.some((r) => r.scene !== 2 && r.maxNear >= 2)).toBe(true) // 통로·주머니에서 실제로 끼일 뻔했다
+    expect(escaped).toBeGreaterThan(0) // 끼임 탈출이 실제로 일어났다
   })
 
   it('is wired: SlteraEvent hands the stage prop obstacles and Rosari position to the car', () => {
@@ -636,3 +702,5 @@ describe('Sltera obstacle physics (Terry 11-13: bounce back off obstacles, then 
 })
 
 function lerpTest(a, b, t) { return a + (b - a) * t }
+// 슬테라 질주 스테이지(S1~S5) + 운동장(S6) 프랍 — S6은 지금 질주 대상이 아니지만 라이브 '끼임' 보고 대비로 함께 본다.
+const PROP_STAGE_IDS = Object.freeze([...SLTERA_STAGE_IDS, 'stage6'])
