@@ -189,6 +189,7 @@ export default function TitleScreen({
 }) {
   const t = useT()
   const locale = useLocale()
+  const currentLocaleLabel = (LOCALE_OPTIONS.find((option) => option.id === (locale || 'ko')) || LOCALE_OPTIONS[0]).label
   const [cheatOpen, setCheatOpen] = useState(false)
   const [languageMenuOpen, setLanguageMenuOpen] = useState(false)
   const authUser = useAuthStore((s) => s.user)
@@ -367,7 +368,7 @@ export default function TitleScreen({
         <button
           type="button"
           className="title-language-action title-sticker"
-          aria-label={t('settings.languageAria')}
+          aria-label={t('title.languageCurrent', { language: currentLocaleLabel })}
           aria-haspopup="true"
           aria-expanded={languageMenuOpen}
           style={styles.languageButton}

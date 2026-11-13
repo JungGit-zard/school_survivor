@@ -8,6 +8,8 @@ import { GoogleAccountPanelView } from './GoogleAccountPanel.jsx'
 import { setLocale, useLocaleStore } from '../lib/i18n.js'
 import { applyLanguage } from '../lib/titleSettings.js'
 import { fitTitleFontSize } from './TitleScreen.jsx'
+import ReadyGameAppSource from './ReadyGameApp.jsx?raw'
+import { sunnyCta, sunnyPalette } from '../lib/uiStyle.js'
 
 
 afterEach(() => {
@@ -43,6 +45,16 @@ describe('guest sign-in collapses on the title', () => {
     // 타이틀의 동의/닉네임 모달은 한 번도 열리지 않던 죽은 코드라 롤백 후에도 되살리지 않는다.
     expect(TitleScreenSource).not.toContain('ConsentGate')
     expect(TitleScreenSource).not.toContain('nicknameOpen')
+  })
+
+  it('builds the START style from the palette orange only', () => {
+    expect(sunnyCta().background).toBe(sunnyPalette.orange)
+    expect(sunnyCta().color).toBe(sunnyPalette.line)
+  })
+
+  it('keeps the cream desktop gutter for the title only; the dark lobby gets the dark gutter', () => {
+    expect(ReadyGameAppSource).toContain("const CREAM_GUTTER_SCREENS = new Set(['title'])")
+    expect(ReadyGameAppSource).toContain("const DARK_GUTTER = '#0a0810'")
   })
 
   it('caps the headline font size by the game frame width', () => {

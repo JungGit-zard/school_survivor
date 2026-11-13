@@ -8,7 +8,7 @@ import { ZOMBIE_BOARD_COPY } from './zombieBoardCopy.js'
 
 globalThis.IS_REACT_ACT_ENVIRONMENT = true
 const state = vi.hoisted(() => ({ locale: 'ko' }))
-vi.mock('../lib/i18n.js', () => ({ useLocale: () => state.locale, useT: () => (key) => key, t: (key) => key }))
+vi.mock('../lib/i18n.js', () => ({ useLocale: () => state.locale, useT: () => (key) => key, t: (key) => key, LOCALE_OPTIONS: [{ id: 'ko', label: '한국어' }] }))
 vi.mock('../store/useAuthStore.js', () => ({ useAuthStore: (selector) => selector({ user: null }) }))
 vi.mock('./GoogleAccountPanel.jsx', () => ({ default: () => <div className="google-account-panel" /> }))
 vi.mock('./TitleSceneCanvas.jsx', () => ({ default: () => <div data-testid="original-title-scene" /> }))
