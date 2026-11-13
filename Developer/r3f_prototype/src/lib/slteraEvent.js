@@ -39,9 +39,17 @@
 //   로자리와 겹치면 질주당 1회 최대 HP의 15% 피해(일반 무적 규칙을 따른다 — 무적 중이면 무시).
 //   치기 쿵 소리(zombieGiantThud)는 게임 시간 150ms에 한 번만 — 무리를 쓸고 가면 연속 프레임마다 쳐서
 //   쿵이 겹쳐 쌓이고 클리핑했다(보호 등급 소리라 동시 재생 캡에도 안 걸린다). claimSlteraThud 참고.
+// 등장 점프(11-14 Terry: "슬테라는 점프한 뒤 옆으로 1회전하고 쿵, 바닥에 떨어져야 한다" — 등장할 때):
+//   질주마다 정확히 한 번. 차 전체(판정박스 네 귀퉁이)가 화면이 보는 바닥 안에 처음 들어온 뒤, 꼭대기(떠 보이는
+//   자리)와 착지점까지 화면 안인 순간에 뛴다(0.6초 기다려도 그런 자리가 안 나오면 차 전체가 화면 안이기만 하면 뛴다).
+//   튕겨 밀리는 중에는 뛰지 않는다. 체공 0.8초, 높이 차 길이의 1.25배(≈2.16u) 포물선, 그동안 뛰기 직전 방향 그대로
+//   주행 속도로 직진(≈3.36u)하며 진행축(차 앞뒤 축)으로 옆 1회전(2π, smoothstep). 착지 순간 쿵(치기 쿵과 같은
+//   150ms 간격 제한) + 짧은 눌림. 공중에서는 장애물 충돌·튕김 없음(프랍 위를 넘어간다), 좀비 치기·로자리 피격 없음.
+//   착지한 step부터 평소 판정 — 좀비·로자리 위에 떨어지면 평소처럼 맞는다(로자리는 여전히 질주당 1회).
+//   착지 자리가 프랍과 겹치면 출발 때 규칙처럼 겹침이 풀릴 때까지 통과한다. 상태는 전부 pass에 있고 dt로만 진행한다.
 import { getStageConfig } from './stageConfig.js'
 import { isBossType } from './burstEvents.js'
-import { getGameplayGroundReach } from './gameCameraFraming.js'
+import { GAME_CAMERA_BACK, GAME_CAMERA_HEIGHT, getGameplayGroundReach } from './gameCameraFraming.js'
 import { isPointInOrientedBox2D } from './weaponCollision.js'
 
 export const SLTERA_STAGE_IDS = Object.freeze(['stage1', 'stage2', 'stage3', 'stage4', 'stage5'])
@@ -164,6 +172,17 @@ export const SLTERA_STUCK_SEC = 0.35
 export const SLTERA_WEDGE_RADIUS = 1
 export const SLTERA_WEDGE_BOUNCES = 2
 export const SLTERA_WEDGE_SEC = 1.2
+// 등장 점프(11-14). 높이는 fov 30·45° 내려다보는 카메라에서 차가 화면 위쪽으로 차 길이 1.4배쯤 떠 보이는 값.
+export const SLTERA_CAR_LENGTH = SLTERA_HALF_LENGTH * 2 // ≈1.73u
+export const SLTERA_JUMP_HEIGHT = SLTERA_CAR_LENGTH * 1.25 // ≈2.16u(꼭대기 차 바닥 높이)
+export const SLTERA_JUMP_AIR_SEC = 0.8
+export const SLTERA_JUMP_ROLL_RAD = Math.PI * 2 // 옆 1회전
+export const SLTERA_JUMP_DISTANCE = SLTERA_SPEED * SLTERA_JUMP_AIR_SEC // 공중 직진 ≈3.36u
+export const SLTERA_JUMP_PATIENCE_SEC = 0.6 // 차 전체가 화면 안인데 꼭대기·착지점이 화면 밖이면 이만큼까지 기다린다
+export const SLTERA_JUMP_TOP = 1.1 * SLTERA_SIZE_SCALE // 차 지붕(운전자 머리) 높이(u) — 꼭대기에서 떠 보이는 자리 판정
+export const SLTERA_LANDING_SQUASH = 0.25 // 착지 눌림: 세로 최대 25% 눌리고 가로는 그 절반만큼 퍼진다
+export const SLTERA_LANDING_SQUASH_SEC = 0.22
+export const SLTERA_JUMP_STATE = Object.freeze({ READY: 0, AIR: 1, LANDED: 2 })
 const OBSTACLE_RESOLVE_ITERATIONS = 8
 const OBSTACLE_SKIN = 1e-4
 
@@ -298,6 +317,22 @@ export function createSlteraPass() {
     playerX: NaN, playerZ: NaN, // 최근 로자리 위치(튕긴 뒤 경유점을 다시 깔 때 로자리 비키기용)
     rngState: 0, // 튕긴 뒤 다시 깔기용 결정론 난수 상태(질주 시작 때 rand로 시드)
     rng: null,
+    // 등장 점프(11-14).
+    jumpState: SLTERA_JUMP_STATE.READY,
+    airborne: false,
+    jumps: 0, // 이번 질주에서 뛴 횟수(늘 0 또는 1)
+    jumpSec: 0, // 뛴 뒤 흐른 시간(초)
+    jumpProgress: 0, // 체공 진행도 0..1
+    jumpHeight: 0, // 지금 차 바닥 높이(u)
+    jumpRoll: 0, // 지금까지 돈 각(0 → 2π, 착지 뒤 2π 유지 = 똑바로)
+    jumpRollSign: 1, // 회전 방향(±1)
+    jumpWaitSec: 0, // 차 전체가 화면 안인데 꼭대기·착지점이 안 보여 기다린 시간
+    jumpUrgent: false, // 차 전체가 보이는데 프랍에 막혔다 — 기다리지 않고 바로 뛴다
+    jumpTakeoffMs: NaN,
+    jumpTakeoffX: NaN, jumpTakeoffZ: NaN,
+    landedMs: -Infinity, // 착지 시각(질주 시계 ms)
+    landingThudPending: false, // 착지 쿵을 아직 안 냈다
+    jumpView: null, // 뛸 자리 판정에 쓰는 화면(런타임은 지금 화면, 없으면 출발 순간 화면)
   }
 }
 
@@ -461,6 +496,23 @@ export function beginSlteraPass(pass, { bounds, playerX = NaN, playerZ = NaN, ob
   pass.playerZ = playerZ
   pass.rngState = Math.floor(rand() * 4294967296) >>> 0
   if (!pass.rng) pass.rng = () => nextSlteraRandom(pass)
+  // 등장 점프 상태(rand를 더 쓰지 않는다 — 기존 경로 난수 순서 그대로).
+  pass.jumpState = SLTERA_JUMP_STATE.READY
+  pass.airborne = false
+  pass.jumps = 0
+  pass.jumpSec = 0
+  pass.jumpProgress = 0
+  pass.jumpHeight = 0
+  pass.jumpRoll = 0
+  pass.jumpRollSign = 1
+  pass.jumpWaitSec = 0
+  pass.jumpUrgent = false
+  pass.jumpTakeoffMs = NaN
+  pass.jumpTakeoffX = NaN
+  pass.jumpTakeoffZ = NaN
+  pass.landedMs = -Infinity
+  pass.landingThudPending = false
+  pass.jumpView = pass.view
   return pass
 }
 
@@ -661,9 +713,15 @@ function collideSlteraWithObstacles(pass, h, beforeX, beforeZ, beforeHeading) {
     return
   }
   const onScreen = isSlteraPointOnScreen(pass.view, pass.x, pass.z)
+  // 등장 점프 전(11-14): 차 전체가 화면에 보이기 전에는 프랍을 통과하고(입구 옆 프랍에 튕겨 안 보이는 채 사라지지
+  // 않게), 차 전체가 보인 뒤 프랍에 막히면 튕기는 대신 그 자리에서 뛰어 넘는다(jumpUrgent).
+  const jumpReady = pass.jumpState === SLTERA_JUMP_STATE.READY
+  const carShown = jumpReady && isSlteraCarOnScreen(pass.jumpView || pass.view, pass.x, pass.z, pass.heading)
   if (!pass.solid) {
+    if (jumpReady && !carShown) return
     // 화면에 들어오고 아무것과도 안 겹친 순간부터 단단해진다(화면 밖 출발·출발 지점 프랍 겹침 대비).
     if (onScreen && findDeepestSlteraContact(pass, contact) <= 0) pass.solid = true
+    else if (jumpReady) pass.jumpUrgent = true
     return
   }
   // 화면을 벗어나는 중이면 화면 밖 프랍은 무시한다 — 안 보이는 데서 튕겨 되돌아와 질주가 길어지지 않게.
@@ -697,6 +755,7 @@ function collideSlteraWithObstacles(pass, h, beforeX, beforeZ, beforeHeading) {
   const fz = Math.cos(pass.heading)
   const approach = fx * hitNX + fz * hitNZ
   if (approach < -SLTERA_BOUNCE_MIN_APPROACH) {
+    if (carShown) { pass.jumpUrgent = true; return } // 아직 안 뛰었다 — 튕기지 않고 뛰어 넘는다
     // 튕김을 다 썼거나 퇴장 모드이거나 같은 자리에서 또 튀려 하면(끼임) 곧장 뚫고 빠져나간다.
     if (pass.bounces >= SLTERA_MAX_BOUNCES || pass.exiting || countSlteraBouncesNear(pass) >= SLTERA_WEDGE_BOUNCES) escapeSltera(pass)
     else startSlteraBounce(pass, hitNX, hitNZ)
@@ -767,8 +826,148 @@ function bounceSlteraSubstep(pass, h, t) {
   return done
 }
 
+// ── 등장 점프(11-14) ─────────────────────────────────────────────────────────────
+
+/** 체공 진행도 p(0..1)의 차 바닥 높이 — 포물선, 처음·끝 0, 가운데(p=0.5) 꼭대기 SLTERA_JUMP_HEIGHT. */
+export function getSlteraJumpHeight(p) {
+  if (!(p > 0) || p >= 1) return 0
+  return 4 * SLTERA_JUMP_HEIGHT * p * (1 - p)
+}
+
+/** 체공 진행도 p(0..1)까지 돈 각 — smoothstep으로 0 → 2π(단조 증가, p=1에서 정확히 2π). */
+export function getSlteraJumpRoll(p) {
+  if (!(p > 0)) return 0
+  if (p >= 1) return SLTERA_JUMP_ROLL_RAD
+  return SLTERA_JUMP_ROLL_RAD * p * p * (3 - 2 * p)
+}
+
+/** 착지 눌림 세기(1 = 막 착지, 0 = 없음). 눌렸다가(1→0) 살짝 되튀고(음수, 작게) 가라앉는다. */
+export function getSlteraLandingSquash(pass) {
+  const since = (pass.elapsedMs - pass.landedMs) / 1000
+  if (!(since >= 0) || since >= SLTERA_LANDING_SQUASH_SEC) return 0
+  const u = since / SLTERA_LANDING_SQUASH_SEC
+  return (1 - u) * (1 - u) * Math.cos(1.5 * Math.PI * u)
+}
+
+// 화면 초점(카메라가 내려다보는 바닥 점)은 보이는 바닥 세로 범위의 이 비율 자리다(줌과 무관 — 위·아래 도달 거리가 같이 준다).
+const SLTERA_VIEW_FOCUS_FRACTION = (() => {
+  const reach = getGameplayGroundReach(30, 1)
+  return reach.reachUp / (reach.reachUp + reach.reachDown)
+})()
+
+/**
+ * 높이 h(u)에 뜬 점 (x,z)가 화면에서 겹쳐 보이는 바닥 자리(out.x, out.z). 게임 카메라는 화면 초점 위 17u·뒤 17u에서
+ * 내려다본다 — 뜬 물체는 화면 위쪽(먼 쪽, -z)으로 밀려 보인다(화면 가운데에서 높이만큼 남짓, 먼 가장자리에서 그 이상).
+ */
+export function getSlteraApparentGroundPoint(view, x, z, h, out) {
+  const focusX = (view.minX + view.maxX) / 2
+  const cameraZ = view.minZ + (view.maxZ - view.minZ) * SLTERA_VIEW_FOCUS_FRACTION + GAME_CAMERA_BACK
+  const s = GAME_CAMERA_HEIGHT / Math.max(1e-3, GAME_CAMERA_HEIGHT - h)
+  out.x = focusX + (x - focusX) * s
+  out.z = cameraZ + (z - cameraZ) * s
+  return out
+}
+
+/** 차 전체(판정박스 네 귀퉁이)가 view가 보는 바닥 안인가. */
+export function isSlteraCarOnScreen(view, x, z, heading) {
+  const fx = Math.sin(heading); const fz = Math.cos(heading)
+  for (let a = -1; a <= 1; a += 2) {
+    for (let b = -1; b <= 1; b += 2) {
+      const cx = x + fx * SLTERA_HALF_LENGTH * a + fz * SLTERA_HALF_WIDTH * b
+      const cz = z + fz * SLTERA_HALF_LENGTH * a - fx * SLTERA_HALF_WIDTH * b
+      if (!isSlteraPointOnScreen(view, cx, cz)) return false
+    }
+  }
+  return true
+}
+
+const _apparent = { x: 0, z: 0 }
+
+// 지금 뛰면 꼭대기에서 떠 보이는 차(지붕까지)와 착지한 차가 모두 화면 안인가.
+function isSlteraJumpReadable(pass, view) {
+  const fx = Math.sin(pass.heading); const fz = Math.cos(pass.heading)
+  const half = SLTERA_JUMP_DISTANCE / 2
+  getSlteraApparentGroundPoint(view, pass.x + fx * half, pass.z + fz * half, SLTERA_JUMP_HEIGHT + SLTERA_JUMP_TOP, _apparent)
+  if (!isSlteraPointOnScreen(view, _apparent.x, _apparent.z, SLTERA_BODY_CORNER)) return false
+  return isSlteraCarOnScreen(view, pass.x + fx * SLTERA_JUMP_DISTANCE, pass.z + fz * SLTERA_JUMP_DISTANCE, pass.heading)
+}
+
+// 땅 위 substep 끝: 아직 안 뛰었고 차 전체가 화면 안이면 뛴다(꼭대기·착지점까지 보이는 자리를 0.6초까지 기다린다).
+function tryStartSlteraJump(pass, h) {
+  if (pass.jumpState !== SLTERA_JUMP_STATE.READY || pass.bounceLeftSec > 0) return false
+  const view = pass.jumpView || pass.view
+  if (!isSlteraCarOnScreen(view, pass.x, pass.z, pass.heading)) return false
+  if (!pass.jumpUrgent && !isSlteraJumpReadable(pass, view)) {
+    pass.jumpWaitSec += h
+    if (pass.jumpWaitSec < SLTERA_JUMP_PATIENCE_SEC) return false
+  }
+  pass.jumpUrgent = false
+  pass.jumpState = SLTERA_JUMP_STATE.AIR
+  pass.airborne = true
+  pass.jumps += 1
+  pass.jumpSec = 0
+  pass.jumpProgress = 0
+  pass.jumpHeight = 0
+  pass.jumpRoll = 0
+  pass.jumpRollSign = pass.rngState & 1 ? 1 : -1 // 시드에서 뽑아 rand 순서를 건드리지 않는다
+  pass.jumpTakeoffMs = pass.elapsedMs
+  pass.jumpTakeoffX = pass.x
+  pass.jumpTakeoffZ = pass.z
+  pass.blockedSec = 0
+  pass.solid = false // 공중에서는 프랍과 부딪히지 않는다(넘어간다)
+  return true
+}
+
+// 공중 substep: 뛰기 직전 방향 그대로 주행 속도로 직진, 높이·회전만 진행도에 따라. 장애물·핸들·발작 없음.
+function airSlteraSubstep(pass, h) {
+  pass.jumpSec += h
+  const p = pass.jumpSec >= SLTERA_JUMP_AIR_SEC ? 1 : pass.jumpSec / SLTERA_JUMP_AIR_SEC
+  pass.x += Math.sin(pass.heading) * SLTERA_SPEED * h
+  pass.z += Math.cos(pass.heading) * SLTERA_SPEED * h
+  pass.distance += SLTERA_SPEED * h
+  pass.jumpProgress = p
+  pass.jumpHeight = getSlteraJumpHeight(p)
+  pass.jumpRoll = getSlteraJumpRoll(p)
+  pass.progress = (pass.x - pass.entryX) * pass.dirX + (pass.z - pass.entryZ) * pass.dirZ
+  while (pass.waypoint < pass.waypointCount && pass.progress >= pass.wpU[pass.waypoint]) pass.waypoint += 1
+  if (p >= 1) landSltera(pass)
+}
+
+// 착지: 똑바로(2π) 내려앉고 쿵을 걸어 둔다. 핸들 떨림·발작 일정은 체공 시간만큼 미뤄 차 방향이 착지 순간 튀지 않게 한다.
+function landSltera(pass) {
+  const airSec = pass.jumpSec
+  pass.airborne = false
+  pass.jumpState = SLTERA_JUMP_STATE.LANDED
+  pass.jumpProgress = 1
+  pass.jumpHeight = 0
+  pass.jumpRoll = SLTERA_JUMP_ROLL_RAD
+  pass.landedMs = pass.elapsedMs
+  pass.landingThudPending = true
+  pass.wobblePhase -= pass.wobbleRadPerSec * airSec
+  for (let i = pass.jerk; i < pass.jerkCount; i += 1) pass.jerkAt[i] += airSec
+  // 착지 자리가 프랍과 겹칠 수 있다 — 출발 때처럼 화면 안에서 안 겹친 뒤부터 다시 부딪힌다(solid는 뛸 때 이미 false).
+  pass.anchorX = pass.x
+  pass.anchorZ = pass.z
+  pass.anchorMs = pass.elapsedMs
+}
+
+/**
+ * 착지 쿵 소리. 착지한 뒤 한 번만 true — 치기 쿵과 같은 150ms 간격 제한(claimSlteraThud)을 거친다(막히면 다음 프레임에 다시).
+ * nowMs = 런 시계(ms).
+ */
+export function consumeSlteraLandingThud(pass, nowMs) {
+  if (!pass.landingThudPending) return false
+  if (!claimSlteraThud(pass, nowMs)) return false
+  pass.landingThudPending = false
+  return true
+}
+
 function driveSlteraSubstep(pass, h) {
   pass.elapsedMs += h * 1000
+  if (pass.airborne) {
+    airSlteraSubstep(pass, h)
+    return
+  }
   const t = pass.elapsedMs / 1000
   const beforeX = pass.x
   const beforeZ = pass.z
@@ -819,6 +1018,7 @@ function driveSlteraSubstep(pass, h) {
   if (pass.bounceLeftSec > 0) return // 방금 부딪혔다 — 끝 판정은 튕김 뒤 새 경로로
   pass.progress = (pass.x - pass.entryX) * pass.dirX + (pass.z - pass.entryZ) * pass.dirZ
   while (pass.waypoint < pass.waypointCount && pass.progress >= pass.wpU[pass.waypoint]) pass.waypoint += 1
+  if (tryStartSlteraJump(pass, h)) return // 차 전체가 화면 안 — 끝날 리 없다
   // 끝: 도착점을 지났고 차 전체가 화면 밖일 때만. 도착점을 4u 넘게 지나도 아직 보이면(화면 가장자리를 따라
   // 비스듬히 가는 중) 사라지지 않고 계속 달린다 — 사선 ±87° 안으로만 가므로 결국 화면을 벗어난다.
   // 최종 안전장치 SLTERA_MAX_PASS_SEC(정상 질주는 닿지 않는다).
@@ -830,15 +1030,18 @@ function driveSlteraSubstep(pass, h) {
 
 /**
  * dtMs만큼 진행. 반환 = 현재 단계. swept=true면 (prevX,prevZ)→(x,z)가 이번 step에 쓸고 간 구간이다.
+ * step 끝에 차가 공중이면 swept=false — 그 step은 좀비 치기·로자리 피격이 없다(착지한 step부터 다시 판정).
  * playerX/Z(선택) = 지금 로자리 위치 — 장애물에 튕겨 경로를 다시 깔 때 로자리 근처 경유점을 비키는 데만 쓴다.
+ * screen(선택) = 지금 화면이 보는 바닥 — 등장 점프를 화면에 보이는 자리에서 뛰게 한다(없으면 출발 순간 화면).
  */
-export function stepSlteraPass(pass, dtMs, playerX = NaN, playerZ = NaN) {
+export function stepSlteraPass(pass, dtMs, playerX = NaN, playerZ = NaN, screen = null) {
   pass.swept = false
   if (pass.phase === SLTERA_PHASE.DONE) return pass.phase
   if (Number.isFinite(playerX) && Number.isFinite(playerZ)) {
     pass.playerX = playerX
     pass.playerZ = playerZ
   }
+  pass.jumpView = screen || pass.view
   let left = Math.max(0, Number.isFinite(dtMs) ? dtMs : 0) / 1000
   pass.prevX = pass.x
   pass.prevZ = pass.z
@@ -847,7 +1050,7 @@ export function stepSlteraPass(pass, dtMs, playerX = NaN, playerZ = NaN) {
     left -= h
     driveSlteraSubstep(pass, h)
   }
-  pass.swept = true
+  pass.swept = !pass.airborne
   return pass.phase
 }
 
@@ -902,6 +1105,11 @@ export function rollSlteraRunOver(pass, index, generation, special, type, rand =
   return isBossType(type) ? SLTERA_BOSS_DAMAGE : SLTERA_RUN_OVER_DAMAGE
 }
 
+/** 이 적을 이번 질주에서 이미 굴렸나(치기 성공·실패 모두). 다시 닿으면 밀려나기만 한다. */
+export function hasSlteraRolled(pass, index, generation, special) {
+  return special ? pass.rolledSpecial.has(special) : pass.rolledPool.has(index * 65536 + (generation ?? 0))
+}
+
 /**
  * 치기 쿵 소리 간격 제한. 직전 쿵에서 SLTERA_THUD_GAP_MS 이상 지났으면 이번 시각을 기록하고 true.
  * nowMs = 게임 시간(런 시계, 일시정지 제외 — 벽시계 아님). 같은 시각에 다시 물으면 false.
@@ -926,6 +1134,270 @@ export function checkSlteraPlayerHit(pass, playerX, playerZ, maxHp) {
   if (!isPointInOrientedBox2D(box.centerX, box.centerZ, box.yaw, box.halfWidth + r, box.halfDepth + r, playerX, playerZ)) return 0
   pass.playerHit = true
   return Math.max(0, maxHp) * SLTERA_PLAYER_DAMAGE_RATIO
+}
+
+// ── 치여 날아가기·단단한 차체(11-14 Terry) ─────────────────────────────────────────
+// "슬테라에 치인 주인공이나 좀비는 물리 먹고 치이면서 뒤로 날아가야 한다", "슬테라랑 겹치는 일 없어".
+//   차체 판정박스는 단단하다: 땅 위의 차와 닿은 좀비·로자리는 같은 step에 판정박스 바깥(최소 침투 면 법선 쪽)으로
+//   밀려나고(pushOutOfSlteraBody), 그 뒤 날아간다. 공중 점프 중인 차만 예외(위로 넘어간다).
+//   날아가는 방향 = 차가 실제로 움직인 방향과 밀려난 면 법선을 섞은 쪽(늘 차에서 멀어지는 쪽, getSlteraLaunchDirInto).
+//   거리는 그 방향으로 프랍·플레이필드·탈출구 흡입 원에 닿기 전까지로 줄인다(planSlteraLaunchDistance) — 착지점은 늘
+//   플레이필드 안·프랍 밖이고, 차 박스 바깥에서 바깥쪽으로 출발하므로 지금 차 박스 안에도 안 떨어진다.
+//   수평 이동은 기존 넉백 경로(풀 좀비 applyHitIndex 넉백 속도·시간, 특수 적 _enemyHit 넉백, 로자리 _applyKnockback)를
+//   그대로 쓴다 — 매 step 기존 프랍·경계 충돌이 함께 막는다. 높이(포물선)는 비주얼 높이만 올린다.
+//   좀비(치기 굴림 65% 성공): 3.2u를 0.55초에 날아가며 꼭대기 1.2u, 피해 60은 착지 순간에 들어간다 — 죽는 좀비도 날아간
+//     뒤 착지 자리에서 부서진다. 굴림 실패(35%): 피해 없이 1u 밀쳐지며 0.25u 들썩(차가 무리를 헤치고 지나가 보이게).
+//   보스: 무겁다 — 피해 20(굴림 그대로)에 0.3u만 밀리고 뜨지 않는다. 차가 보스를 장애물처럼 들이받고 튕긴다.
+//   특수 적(물리 몸체가 따로 있는 적): 차가 들이받고 튕기며, 치기 성공이면 기존 넉백 경로로 좀비만큼 수평으로 밀린다.
+//   로자리: 질주당 첫 접촉에 2u를 0.4초 동안 날아가며 꼭대기 0.8u — 그동안 조작 정지·차에 다시 맞지 않는다. 피해 규칙
+//     그대로(최대 HP 15%, 질주당 1회, 무적이면 무시). 뒤이은 접촉은 피해·비행 없이 밀려나기만 한다.
+export const SLTERA_LAUNCH_HEADING_WEIGHT = 0.6
+export const SLTERA_LAUNCH_MIN_AWAY = 0.3 // 섞은 방향이 면 법선과 이만큼도 안 맞으면 법선 쪽으로 날린다
+export const SLTERA_ZOMBIE_LAUNCH_DISTANCE = 3.2
+export const SLTERA_ZOMBIE_LAUNCH_SEC = 0.55
+export const SLTERA_ZOMBIE_LAUNCH_PEAK = 1.2
+export const SLTERA_SHOVE_DISTANCE = 1
+export const SLTERA_SHOVE_SEC = 0.25
+export const SLTERA_SHOVE_PEAK = 0.25
+export const SLTERA_BOSS_SHOVE_DISTANCE = 0.3
+export const SLTERA_BOSS_SHOVE_SEC = 0.2
+export const SLTERA_PLAYER_LAUNCH_DISTANCE = 2
+export const SLTERA_PLAYER_LAUNCH_SEC = 0.4
+export const SLTERA_PLAYER_LAUNCH_PEAK = 0.8
+export const SLTERA_ZOMBIE_RADIUS = 0.28 // 풀 좀비 몸통 반경(E01 접촉 거리)
+export const SLTERA_SPECIAL_RADIUS = 0.45 // 물리 몸체 특수 적
+export const SLTERA_BOSS_RADIUS = 0.8
+export const SLTERA_PORTAL_AVOID_RADIUS = 1.5 // 탈출구 링 반경 — 흡입 원(0.6u)보다 넉넉히 비켜 날린다
+export const SLTERA_PUSH_SKIN = 0.02
+const LAUNCH_PLAN_STEP = 0.1
+
+/**
+ * 원(x,z,radius)이 땅 위 차체 판정박스와 겹치면 박스 바깥(최소 침투 면, 반경+여유만큼)으로 민 자리를 out.x/z에,
+ * 그 면 법선을 out.nx/nz에 넣고 true. 안 겹치면 out.x/z = 그대로, 법선 = 차에서 그 점 쪽 면, false.
+ */
+export function pushOutOfSlteraBody(pass, x, z, radius, out) {
+  const fx = Math.sin(pass.heading); const fz = Math.cos(pass.heading)
+  const rx = fz; const rz = -fx
+  const dx = x - pass.x; const dz = z - pass.z
+  const lw = dx * rx + dz * rz // 옆(폭) 축
+  const ll = dx * fx + dz * fz // 앞뒤(길이) 축
+  const ew = SLTERA_HALF_WIDTH + radius
+  const el = SLTERA_HALF_LENGTH + radius
+  const sideGap = ew - Math.abs(lw)
+  const endGap = el - Math.abs(ll)
+  const sideward = sideGap / ew < endGap / el
+  const sw = lw < 0 ? -1 : 1
+  const sl = ll < 0 ? -1 : 1
+  out.nx = sideward ? rx * sw : fx * sl
+  out.nz = sideward ? rz * sw : fz * sl
+  out.x = x
+  out.z = z
+  if (!(sideGap > 0 && endGap > 0)) return false
+  const nw = sideward ? sw * (ew + SLTERA_PUSH_SKIN) : lw
+  const nl = sideward ? ll : sl * (el + SLTERA_PUSH_SKIN)
+  out.x = pass.x + rx * nw + fx * nl
+  out.z = pass.z + rz * nw + fz * nl
+  return true
+}
+
+/** 원(x,z,radius)이 차체 판정박스와 겹치나(원-OBB 최근접점). 테스트·진단용. */
+export function isCircleInSlteraBody(pass, x, z, radius) {
+  const fx = Math.sin(pass.heading); const fz = Math.cos(pass.heading)
+  const dx = x - pass.x; const dz = z - pass.z
+  const lw = dx * fz - dz * fx
+  const ll = dx * fx + dz * fz
+  const cw = lw - clampAbs(lw, SLTERA_HALF_WIDTH)
+  const cl = ll - clampAbs(ll, SLTERA_HALF_LENGTH)
+  return cw * cw + cl * cl < radius * radius - 1e-9
+}
+
+/** 날아가는 방향(단위벡터 out.x/z): 차가 이번 step 실제로 움직인 방향(없으면 보는 방향)과 면 법선(nx,nz)을 섞는다. */
+export function getSlteraLaunchDirInto(pass, nx, nz, out) {
+  let mx = pass.x - pass.prevX; let mz = pass.z - pass.prevZ
+  const ml = Math.hypot(mx, mz)
+  if (ml > 1e-6) { mx /= ml; mz /= ml } else { mx = Math.sin(pass.heading); mz = Math.cos(pass.heading) }
+  let x = mx * SLTERA_LAUNCH_HEADING_WEIGHT + nx * (1 - SLTERA_LAUNCH_HEADING_WEIGHT)
+  let z = mz * SLTERA_LAUNCH_HEADING_WEIGHT + nz * (1 - SLTERA_LAUNCH_HEADING_WEIGHT)
+  const l = Math.hypot(x, z)
+  if (l < 1e-6 || (x * nx + z * nz) / l < SLTERA_LAUNCH_MIN_AWAY) { x = nx; z = nz } else { x /= l; z /= l }
+  out.x = x
+  out.z = z
+  return out
+}
+
+function circleHitsObstacle(x, z, radius, o) {
+  if (!o || !Number.isFinite(o.x) || !Number.isFinite(o.z)) return false
+  const dx = x - o.x; const dz = z - o.z
+  const c = obstacleCos(o); const s = obstacleSin(o)
+  const lx = dx * c - dz * s
+  const lz = dx * s + dz * c
+  const px = lx - clampAbs(lx, o.halfX)
+  const pz = lz - clampAbs(lz, o.halfZ)
+  return px * px + pz * pz < radius * radius
+}
+
+/**
+ * (x,z)에서 (dirX,dirZ)로 distance만큼 날릴 때, 반경 radius 몸이 프랍(obstacles)·플레이필드(bounds: minX..maxZ)·
+ * 피할 원(avoid: {active,x,z}, SLTERA_PORTAL_AVOID_RADIUS)에 닿기 직전까지로 줄인 거리. 0.1u 단위로 걸어 본다.
+ */
+export function planSlteraLaunchDistance(x, z, dirX, dirZ, distance, radius, obstacles = null, bounds = null, avoid = null) {
+  const avoidOn = !!avoid?.active && Number.isFinite(avoid.x) && Number.isFinite(avoid.z)
+  const avoidR = SLTERA_PORTAL_AVOID_RADIUS + radius
+  let ok = 0
+  for (let d = LAUNCH_PLAN_STEP; d <= distance + 1e-9; d += LAUNCH_PLAN_STEP) {
+    const px = x + dirX * d; const pz = z + dirZ * d
+    if (bounds && (px - radius < bounds.minX || px + radius > bounds.maxX || pz - radius < bounds.minZ || pz + radius > bounds.maxZ)) break
+    if (avoidOn && Math.hypot(px - avoid.x, pz - avoid.z) < avoidR) break
+    let blocked = false
+    if (obstacles) for (let i = 0; i < obstacles.length; i += 1) if (circleHitsObstacle(px, pz, radius, obstacles[i])) { blocked = true; break }
+    if (blocked) break
+    ok = d
+  }
+  return Math.min(ok, distance)
+}
+
+/** 날아가는 포물선 높이: 진행도 p(0..1), 꼭대기 peak. 처음·끝 0. */
+export function getSlteraLaunchHeight(p, peak) {
+  if (!(p > 0) || p >= 1) return 0
+  return 4 * peak * p * (1 - p)
+}
+
+/** 땅 위(공중 점프 중 아님) 차체가 지금 몸을 밀어낼 수 있나. */
+export function isSlteraBodySolid(pass) {
+  return pass.phase !== SLTERA_PHASE.DONE && !pass.airborne
+}
+
+/**
+ * 물리 몸체(보스·특수 적, 반경 radius)와 겹친 땅 위 차를 장애물처럼 밀어내고, 그 몸 쪽으로 달려들었으면 튕긴다
+ * (아직 안 뛰었고 차 전체가 보이면 튕기지 않고 그 자리에서 뛰어 넘는다). 겹쳤으면 true.
+ */
+export function bumpSlteraOffBody(pass, bx, bz, radius) {
+  if (!isSlteraBodySolid(pass)) return false
+  const contact = _bodyContact
+  if (!pushOutOfSlteraBody(pass, bx, bz, radius, contact)) return false
+  // 몸이 아니라 차를 반대로 민다: 몸이 박스 밖 자리로 간 만큼 차가 거꾸로 물러난다.
+  pass.x -= contact.x - bx
+  pass.z -= contact.z - bz
+  const nx = -contact.nx; const nz = -contact.nz // 몸 → 차 쪽 법선
+  if (pass.bounceLeftSec > 0) return true
+  const approach = Math.sin(pass.heading) * nx + Math.cos(pass.heading) * nz
+  if (approach < -SLTERA_BOUNCE_MIN_APPROACH) {
+    if (pass.jumpState === SLTERA_JUMP_STATE.READY && isSlteraCarOnScreen(pass.jumpView || pass.view, pass.x, pass.z, pass.heading)) {
+      pass.jumpUrgent = true
+    } else if (pass.obstacles && pass.bounces < SLTERA_MAX_BOUNCES && !pass.exiting && !pass.brokeThrough) {
+      pass.contactNX = nx
+      pass.contactNZ = nz
+      startSlteraBounce(pass, nx, nz)
+    }
+  }
+  return true
+}
+const _bodyContact = { x: 0, z: 0, nx: 0, nz: 0 }
+
+// 풀 좀비 비행 표(SlteraEvent가 판마다 하나). 할당은 만들 때 한 번 — 매 프레임 0.
+export const SLTERA_LAUNCH_CAPACITY = 64
+
+export function createSlteraLaunchTable(capacity = SLTERA_LAUNCH_CAPACITY) {
+  return {
+    count: 0,
+    index: new Int32Array(capacity),
+    generation: new Int32Array(capacity),
+    baseY: new Float32Array(capacity),
+    elapsed: new Float32Array(capacity),
+    sec: new Float32Array(capacity),
+    peak: new Float32Array(capacity),
+    damage: new Float32Array(capacity), // 착지 때 줄 피해(0 = 밀치기)
+    height: new Float32Array(capacity), // 이번 step 높이(비주얼)
+    done: new Uint8Array(capacity),
+  }
+}
+
+/** 비행 하나를 건다(같은 좀비가 이미 날고 있으면 그 칸을 새로 쓴다). 표가 가득 차면 -1(호출측이 피해를 바로 준다). */
+export function addSlteraLaunch(table, index, generation, baseY, sec, peak, damage) {
+  let slot = -1
+  for (let i = 0; i < table.count; i += 1) if (table.index[i] === index) { slot = i; break }
+  if (slot < 0) {
+    if (table.count >= table.index.length) return -1
+    slot = table.count
+    table.count += 1
+  } else if (table.generation[slot] === generation) {
+    baseY = table.baseY[slot] // 날던 중이면 원래 바닥 높이를 지킨다
+    damage = Math.max(damage, table.damage[slot])
+  }
+  table.index[slot] = index
+  table.generation[slot] = generation
+  table.baseY[slot] = baseY
+  table.elapsed[slot] = 0
+  table.sec[slot] = sec
+  table.peak[slot] = peak
+  table.damage[slot] = damage
+  table.height[slot] = 0
+  table.done[slot] = 0
+  return slot
+}
+
+/** 모든 비행을 dt만큼 진행: height(포물선)·done(착지)을 채운다. */
+export function stepSlteraLaunchTable(table, dtSec) {
+  for (let i = 0; i < table.count; i += 1) {
+    table.elapsed[i] += dtSec
+    const p = table.sec[i] > 0 ? table.elapsed[i] / table.sec[i] : 1
+    table.height[i] = getSlteraLaunchHeight(p, table.peak[i])
+    table.done[i] = p >= 1 ? 1 : 0
+  }
+}
+
+/** i번째 비행을 지운다(마지막 칸을 당겨 채운다 — 뒤에서부터 돌며 지울 것). */
+export function removeSlteraLaunchAt(table, i) {
+  const last = table.count - 1
+  if (i !== last) {
+    table.index[i] = table.index[last]
+    table.generation[i] = table.generation[last]
+    table.baseY[i] = table.baseY[last]
+    table.elapsed[i] = table.elapsed[last]
+    table.sec[i] = table.sec[last]
+    table.peak[i] = table.peak[last]
+    table.damage[i] = table.damage[last]
+    table.height[i] = table.height[last]
+    table.done[i] = table.done[last]
+  }
+  table.count = Math.max(0, last)
+}
+
+// 로자리 비행 상태(모듈 하나 — 로자리는 한 명). SlteraEvent가 걸고, Player.jsx가 자기 고정 step에서 시간을 흘리며
+// 비주얼 높이·조작 정지(넉백)를 쓴다. Player가 내려가면(판 끝) 초기화한다.
+export const slteraPlayerLaunch = { active: false, elapsed: 0, sec: 0, peak: 0, vx: 0, vz: 0, body: null }
+
+export function startSlteraPlayerLaunch(state, dirX, dirZ, distance, sec = SLTERA_PLAYER_LAUNCH_SEC, peak = SLTERA_PLAYER_LAUNCH_PEAK) {
+  state.active = true
+  state.elapsed = 0
+  state.sec = sec
+  state.peak = peak
+  state.vx = sec > 0 ? (dirX * distance) / sec : 0
+  state.vz = sec > 0 ? (dirZ * distance) / sec : 0
+  return state
+}
+
+/** 로자리 비행 시간을 흘린다. 반환 = 지금 비주얼 높이(u). 착지하면 active=false(조작 복귀). */
+export function stepSlteraPlayerLaunch(state, dtSec) {
+  if (!state.active) return 0
+  state.elapsed += dtSec
+  const p = state.sec > 0 ? state.elapsed / state.sec : 1
+  if (p >= 1) { state.active = false; return 0 }
+  return getSlteraLaunchHeight(p, state.peak)
+}
+
+export function getSlteraPlayerLaunchHeight(state) {
+  if (!state.active) return 0
+  return getSlteraLaunchHeight(state.sec > 0 ? state.elapsed / state.sec : 1, state.peak)
+}
+
+export function resetSlteraPlayerLaunch(state) {
+  state.active = false
+  state.elapsed = 0
+  state.sec = 0
+  state.peak = 0
+  state.vx = 0
+  state.vz = 0
 }
 
 // ── 런 단위 스케줄 상태(SlteraEvent가 판마다 하나) ──────────────────────────────

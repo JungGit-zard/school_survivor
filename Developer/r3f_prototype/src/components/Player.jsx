@@ -4,6 +4,7 @@ import { Html } from '@react-three/drei'
 import { RigidBody, CuboidCollider } from '@react-three/rapier'
 import { useGameStore } from '../store/useGameStore.js'
 import { bagSwingState, playerArmActionState, playerFacing, playerPos, joystickDir, playerSlow, playerImpulse } from '../lib/refs.js'
+import { resetSlteraPlayerLaunch, slteraPlayerLaunch, stepSlteraPlayerLaunch } from '../lib/slteraEvent.js'
 import { clearPlayerArmAction } from '../lib/playerArmAction.js'
 import { consumePlayerImpulse, consumePlayerSlow } from '../lib/projectileZombieShotPool.js'
 import { moveKeys } from '../lib/keyboardInput.js'
@@ -241,6 +242,7 @@ export default function Player() {
   const rb        = useRef()
   const gameplayClockRef = useRef(null)
   const meshGroup = useRef()
+  const launchLiftRef = useRef(null) // Sltera에 치여 날아갈 때 비주얼 높이(바깥 그룹만)
   const movingRef = useRef(false)
   const [comparisonModel, setComparisonModel] = useState(null)
   // 게스트는 이번 접속 메모리의 선택을 쓴다. 로그인했지만 아직 계정 진행도가 오기 전이면 기본값.
@@ -296,7 +298,12 @@ export default function Player() {
       knockbackVel.current = { x: vx, z: vz }
       knockbackRemainingMs.current = ms
     }
+    slteraPlayerLaunch.body = rb.current // Sltera 차체 밀어내기·날리기(lib/slteraEvent.js)
   })
+  useEffect(() => () => {
+    slteraPlayerLaunch.body = null
+    resetSlteraPlayerLaunch(slteraPlayerLaunch)
+  }, [])
 
   useFrame((_, delta) => {
     if (!rb.current) return
@@ -315,7 +322,8 @@ export default function Player() {
       // 이 피격이 끌림(E63 마이크줄)을 걸었으면 끌림이 이 피격의 넉백이다. 일반 넉백(0.16초)을 걸면 끌림 0.25초를
       // 먹어 1.4u가 0.5u로 줄었다. 끌림은 피해가 들어간 명중에만 걸리고 뒤이은 무적(0.52초) 동안 일반 피격은 없으니 지금 끌림은 이 피격의 것이다.
       // 예외: 무적을 뚫는 피해(B01 삼각자·S4 압력솥)가 끌림 0.25초 안에 들어오면 그 넉백도 생략된다. S1-5에선 E63(S2)과 겹치지 않는다.
-      if (!(playerImpulse.ms > 0)) {
+      // Sltera에 치여 날아가는 중이면 그 비행(_applyKnockback)이 이 피격의 넉백이다 — 짧은 일반 넉백으로 덮지 않는다.
+      if (!(playerImpulse.ms > 0) && !slteraPlayerLaunch.active) {
         knockbackRemainingMs.current = PLAYER_HIT_KNOCKBACK_MS
         knockbackVel.current = null // 피격 넉백은 항상 facing 기준
       }
@@ -323,6 +331,9 @@ export default function Player() {
 
     const { up, down, left, right } = moveKeys
     const beingKnockedBack = knockbackRemainingMs.current > 0
+    // STUDIO_OUTER_MOTION_ONLY — Sltera 비행 높이는 PlayerVisual을 감싼 바깥 그룹에만 준다(모델 파츠·물리 몸체 높이 불변).
+    const launchLift = stepSlteraPlayerLaunch(slteraPlayerLaunch, dt)
+    if (launchLiftRef.current) launchLiftRef.current.position.y = launchLift
 
     if (beingKnockedBack) {
       const knockback = knockbackVel.current ?? resolvePlayerHitKnockback(playerFacing)
@@ -425,7 +436,9 @@ export default function Player() {
       colliders={false}
     >
       <CuboidCollider args={[0.136, 0.32, 0.136]} />
-      <PlayerVisual meshGroup={meshGroup} movingRef={movingRef} hp={hp} maxHp={maxHp} hitFlashToken={hitFlashToken} healFlashToken={healFlashToken} visualPose={visualPose} comparisonModel={comparisonModel ?? savedAppearance} outfit={savedOutfit} gameplay />
+      <group ref={launchLiftRef}>
+        <PlayerVisual meshGroup={meshGroup} movingRef={movingRef} hp={hp} maxHp={maxHp} hitFlashToken={hitFlashToken} healFlashToken={healFlashToken} visualPose={visualPose} comparisonModel={comparisonModel ?? savedAppearance} outfit={savedOutfit} gameplay />
+      </group>
       {import.meta.env.DEV && comparisonModel && (
         <Html position={[0, 1.12, 0]} center style={{ pointerEvents: 'none', whiteSpace: 'nowrap', fontSize: 12, color: '#fff', background: '#111c', padding: '3px 6px', borderRadius: 4 }}>
           F8 · {PLAYER_APPEARANCE_LABELS[resolvePlayerAppearance(comparisonModel)]}
