@@ -131,6 +131,31 @@ export default function RosariWardrobeBody({ currentOutfitId, onSelect, saveFail
   )
 }
 
+// Wardrobe view mode angle bar: 앞 / 3/4 / 옆 / 뒤 presets plus the drag/arrow-key hint.
+export const WARDROBE_VIEW_ANGLE_NAMES = ['front', 'threeQuarter', 'side', 'back']
+export function WardrobeAngleControls({ active, onChoose, style }) {
+  const t = useT()
+  return (
+    <div data-wardrobe-angle-bar style={{ ...styles.angleBar, ...style }}>
+      <div role="group" aria-label={t('outfit.wardrobe.angleAria')} style={styles.angleButtons}>
+        {WARDROBE_VIEW_ANGLE_NAMES.map((name) => (
+          <button
+            key={name}
+            type="button"
+            data-view-angle={name}
+            aria-pressed={active === name}
+            style={active === name ? styles.angleButtonActive : styles.angleButton}
+            onClick={() => onChoose(name)}
+          >
+            {t(`outfit.wardrobe.angle.${name}`)}
+          </button>
+        ))}
+      </div>
+      <p style={styles.angleHint}>{t('outfit.wardrobe.rotateHint')}</p>
+    </div>
+  )
+}
+
 // The feature-table device: an always-visible button in the wardrobe header.
 export function OutfitTableButton({ buttonRef, onOpen }) {
   const t = useT()
@@ -200,6 +225,11 @@ const badgeBase = { display: 'inline-flex', alignItems: 'center', gap: 3, margin
 
 const styles = {
   nowrap: { whiteSpace: 'nowrap' },
+  angleBar: { display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 3, pointerEvents: 'none' },
+  angleButtons: { display: 'flex', flexWrap: 'wrap', gap: 4, pointerEvents: 'auto' },
+  angleButton: { ...buttonBase, minWidth: 48, padding: '6px 10px', border: '2px solid #7c416e', background: 'rgba(255,247,251,0.94)', color: '#5f2d58', fontSize: 15, fontWeight: 900 },
+  angleButtonActive: { ...buttonBase, minWidth: 48, padding: '6px 10px', border: '3px solid #7c416e', background: '#ffacd0', color: '#4e2449', fontSize: 15, fontWeight: 1000 },
+  angleHint: { margin: 0, padding: '1px 8px', borderRadius: 999, background: 'rgba(255,247,230,0.88)', color: '#5f2d58', fontSize: 12, fontWeight: 800, lineHeight: 1.4 },
   currentOutfit: { padding: 8, border: '2px solid #8a4a73', borderRadius: 12, background: '#fff3fa', fontWeight: 1000, lineHeight: 1.3 },
   currentEffect: { display: 'block', marginTop: 2, fontSize: 12, fontWeight: 800, color: '#6d4f66' },
   outfitList: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(96px, 1fr))', gap: 6, marginTop: 8 },

@@ -3,7 +3,7 @@
 import React, { act } from 'react'
 import { createRoot } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import RosariWardrobeBody, { OutfitFeatureTable, OutfitTableButton } from './RosariWardrobePanel.jsx'
+import RosariWardrobeBody, { OutfitFeatureTable, OutfitTableButton, WardrobeAngleControls } from './RosariWardrobePanel.jsx'
 import { OUTFIT_IDS, getOutfit, getOutfitAbilities, listOutfits } from '../lib/outfitCatalog.js'
 import { _resetGuestOutfitUnlocksForTests, grantOutfitUnlocksFromRecords } from '../lib/outfitUnlocks.js'
 import { _resetFirebaseProgressForTests, _seedHydratedFirebaseProgressForTests } from '../lib/firebaseProgress.js'
@@ -137,5 +137,25 @@ describe('outfit feature table', () => {
     for (const fragment of ['Outfit chart', 'Lunch Duty Apron', 'Escape all of Stages 1–4', 'XP gain +8%', 'Damage taken +8%', 'Locked', 'Owned']) {
       expect(text).toContain(fragment)
     }
+  })
+})
+
+describe('wardrobe view angle bar', () => {
+  it.each([
+    ['ko', ['앞', '3/4', '옆', '뒤'], '보는 각도', '←/→'],
+    ['en', ['Front', '3/4', 'Side', 'Back'], 'View angle', '←/→'],
+    ['ja', ['前', '3/4', '横', '後ろ'], '見る角度', '←/→'],
+  ])('labels the four angles and the turn hint in %s', (locale, labels, groupLabel, hintFragment) => {
+    setLocale(locale)
+    const onChoose = vi.fn()
+    act(() => root.render(<WardrobeAngleControls active="side" onChoose={onChoose} />))
+    const group = container.querySelector(`[role="group"][aria-label="${groupLabel}"]`)
+    const buttons = [...group.querySelectorAll('button')]
+    expect(buttons.map((node) => node.textContent)).toEqual(labels)
+    expect(buttons.map((node) => node.getAttribute('aria-pressed'))).toEqual(['false', 'false', 'true', 'false'])
+    for (const node of buttons) expect(node.style.minHeight).toBe('44px')
+    expect(container.textContent).toContain(hintFragment)
+    click(buttons[3])
+    expect(onChoose).toHaveBeenCalledWith('back')
   })
 })

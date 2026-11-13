@@ -68,8 +68,15 @@ export function getRosariWardrobeProximity(position) {
   return Math.hypot(dx, dz)
 }
 
+// The wardrobe opens only from its front side. Its mesh front face is z -1.0 (centre -1.35, depth
+// 0.7); a strip behind it (back face -1.70, wall -2.99) is walkable, and opening from there would put
+// the wardrobe between Rosari and the +z view-mode camera. Front face minus 0.35 m = the box centre,
+// so standing beside its front half still works.
+export const WARDROBE_FRONT_FACE_Z = -1.0
+export const WARDROBE_OPEN_MIN_Z = WARDROBE_FRONT_FACE_Z - 0.35
+
 export function isRosariNearWardrobe(position) {
-  return getRosariWardrobeProximity(position) <= WARDROBE_INTERACT_MARGIN
+  return position.z >= WARDROBE_OPEN_MIN_Z && getRosariWardrobeProximity(position) <= WARDROBE_INTERACT_MARGIN
 }
 
 // Floating-joystick (analog, magnitude 0..1) wins over keys while a finger is down.

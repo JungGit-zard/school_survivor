@@ -13,7 +13,7 @@ import { DEFAULT_ROSARI_OUTFIT_ID, applyRosariOutfit, resolveRosariOutfit } from
 import { loadPlayerOutfit, savePlayerOutfit } from '../lib/titleSettings.js'
 import { getOwnedOutfitIds } from '../lib/outfitUnlocks.js'
 import { t as translate, useT } from '../lib/i18n.js'
-import RosariWardrobeBody, { OutfitFeatureTable, OutfitTableButton } from './RosariWardrobePanel.jsx'
+import RosariWardrobeBody, { OutfitFeatureTable, OutfitTableButton, WardrobeAngleControls } from './RosariWardrobePanel.jsx'
 import { joystickDir } from '../lib/refs.js'
 import VirtualJoystick from './VirtualJoystick.jsx'
 
@@ -24,6 +24,11 @@ const OUTLINE_WIDTH_PX = 2
 const OUTLINE_COLOR = 0x050209
 const MOVE_SPEED = 1.85
 const EMPTY_KEYS = Object.freeze({ up: false, down: false, left: false, right: false })
+// Wardrobe view mode: Rosari turns on the spot (yaw only) in front of a fixed close-up camera.
+// 0 = facing the camera. Positive yaw turns her front toward screen right, same as a rightward drag.
+export const ROSARI_VIEW_ANGLES = Object.freeze({ front: 0, threeQuarter: Math.PI / 4, side: Math.PI / 2, back: Math.PI })
+export const ROSARI_VIEW_KEY_STEP = Math.PI / 12
+export const ROSARI_VIEW_DRAG_RAD_PER_PX = 0.012
 
 export default function RosariRoom({ onBack }) {
   const t = useT()
@@ -67,10 +72,27 @@ export default function RosariRoom({ onBack }) {
   const padKeyboard = useRef(new Map())
   const [roomSize, setRoomSize] = useState({ width: 0, height: 0 })
   const layout = getRosariRoomLayout(roomSize)
+  // Wardrobe view mode yaw target. A ref, not state: a drag updates it every pointermove and the
+  // scene reads it per frame, so the room does not re-render on every pixel.
+  const viewYawRef = useRef(0)
+  const [viewAngle, setViewAngle] = useState('front')
+  const viewDragRef = useRef(null)
+  const rotateView = useCallback((amount) => {
+    viewYawRef.current += amount
+    setViewAngle(null)
+  }, [])
+  const chooseViewAngle = useCallback((name) => {
+    viewYawRef.current = nearestRosariYaw(viewYawRef.current, ROSARI_VIEW_ANGLES[name])
+    setViewAngle(name)
+  }, [])
 
   useEffect(() => {
     if (wasWardrobeOpen.current && !wardrobeOpen) {
       setFeatureTableOpen(false)
+      // Every opening starts from the front view.
+      viewYawRef.current = 0
+      viewDragRef.current = null
+      setViewAngle('front')
       wardrobeButtonRef.current?.focus()
     }
     wasWardrobeOpen.current = wardrobeOpen
@@ -125,6 +147,13 @@ export default function RosariRoom({ onBack }) {
         else onBack?.()
         return
       }
+      // While the wardrobe is open, the left/right arrows turn Rosari instead of walking her.
+      const viewStep = wardrobeOpen && !featureTableOpen ? rosariViewKeyStep(event) : 0
+      if (viewStep) {
+        rotateView(viewStep)
+        event.preventDefault()
+        return
+      }
       applyKey(event, true)
     }
     const up = (event) => applyKey(event, false)
@@ -143,7 +172,7 @@ export default function RosariRoom({ onBack }) {
       window.removeEventListener('pointercancel', clearAllKeys)
       clearAllKeys()
     }
-  }, [onBack, wardrobeOpen, featureTableOpen, closeFeatureTable])
+  }, [onBack, wardrobeOpen, featureTableOpen, closeFeatureTable, rotateView])
 
   const clearMobileKeys = useCallback(() => {
     for (const [id, held] of heldPointers.current) {
@@ -197,6 +226,12 @@ export default function RosariRoom({ onBack }) {
     }
   }, [clearMobileKeys, refreshMobileKeys, wardrobeOpen, pressedKeys])
   const canUseWardrobeButton = canRosariWardrobeToggle({ wardrobeOpen, nearWardrobe })
+  const bottomSheet = layout.wardrobeSheet === 'bottom'
+  const endViewDrag = (event) => {
+    if (viewDragRef.current?.id !== event.pointerId) return
+    viewDragRef.current = null
+    if (event.currentTarget.hasPointerCapture?.(event.pointerId)) event.currentTarget.releasePointerCapture?.(event.pointerId)
+  }
 
   return (
     <main ref={rootRef} style={{ ...styles.root, gridTemplateColumns: layout.sideRail ? 'minmax(0, 1fr) 158px' : 'minmax(0, 1fr)', gridTemplateRows: layout.sideRail ? 'auto minmax(0, 1fr)' : styles.root.gridTemplateRows }} aria-label={t('rosariRoom.title')}>
@@ -221,6 +256,8 @@ export default function RosariRoom({ onBack }) {
               keyboardKeysRef={keyboardKeysRef}
               mobileKeysRef={mobileKeysRef}
               wardrobeOpen={wardrobeOpen}
+              wardrobeSheet={layout.wardrobeSheet}
+              viewYawRef={viewYawRef}
               outfitId={currentOutfit.id}
               onNearWardrobeChange={setNearWardrobe}
               onWardrobeToggle={() => setWardrobeOpen((open) => !open)}
@@ -230,9 +267,55 @@ export default function RosariRoom({ onBack }) {
         </RoomErrorBoundary>
         {/* Same floating joystick as gameplay: touch the 3D scene anywhere and drag. */}
         <VirtualJoystick enabled={!wardrobeOpen} phase="playing" playAreaRef={stageRef} />
-        <button type="button" aria-pressed={overview} style={styles.cameraButton} onClick={() => setOverview((value) => !value)}>{t(overview ? 'rosariRoom.followCamera' : 'rosariRoom.overviewCamera')}</button>
+        {!wardrobeOpen && <button type="button" aria-pressed={overview} style={styles.cameraButton} onClick={() => setOverview((value) => !value)}>{t(overview ? 'rosariRoom.followCamera' : 'rosariRoom.overviewCamera')}</button>}
         {wardrobeOpen && (
-          <section role="dialog" aria-modal="false" aria-label={t('outfit.wardrobe.dialogAria')} style={styles.wardrobePanel} onKeyDown={(event) => { if (event.key !== 'Escape') event.stopPropagation() }}>
+          // Drag/swipe anywhere on the scene to turn Rosari. Pointer-only; the angle buttons and the
+          // arrow keys are the keyboard/screen-reader route, so this layer stays out of the a11y tree.
+          <div
+            aria-hidden="true"
+            data-wardrobe-rotate-surface
+            style={styles.rotateSurface}
+            onPointerDown={(event) => {
+              if (event.button !== 0 || viewDragRef.current) return
+              event.preventDefault()
+              viewDragRef.current = { id: event.pointerId, x: event.clientX }
+              event.currentTarget.setPointerCapture?.(event.pointerId)
+            }}
+            onPointerMove={(event) => {
+              const drag = viewDragRef.current
+              if (!drag || drag.id !== event.pointerId) return
+              const dx = event.clientX - drag.x
+              drag.x = event.clientX
+              if (dx !== 0) rotateView(dx * ROSARI_VIEW_DRAG_RAD_PER_PX)
+            }}
+            onPointerUp={endViewDrag}
+            onPointerCancel={endViewDrag}
+            onLostPointerCapture={endViewDrag}
+          />
+        )}
+        {wardrobeOpen && (
+          <WardrobeAngleControls
+            active={viewAngle}
+            onChoose={chooseViewAngle}
+            style={bottomSheet ? styles.angleBarTop : styles.angleBarSide}
+          />
+        )}
+        {wardrobeOpen && (
+          <section
+            role="dialog"
+            aria-modal="false"
+            aria-label={t('outfit.wardrobe.dialogAria')}
+            data-wardrobe-sheet={layout.wardrobeSheet}
+            style={bottomSheet ? styles.wardrobeSheet : styles.wardrobePanel}
+            onKeyDown={(event) => {
+              const step = rosariViewKeyStep(event)
+              if (step) {
+                rotateView(step)
+                event.preventDefault()
+              }
+              if (event.key !== 'Escape') event.stopPropagation()
+            }}
+          >
             <div style={styles.wardrobeHeader}>
               <h2 style={styles.wardrobeTitle}>{t('outfit.wardrobe.title')}</h2>
               <div style={styles.wardrobeHeaderActions}>
@@ -312,6 +395,111 @@ export function getRosariRoomLayout(size) {
   return {
     sideRail: size.width >= 500 && size.width > size.height * 1.25,
     compact: size.width > 0 && size.width < 280,
+    // Portrait (or narrow) rooms put the outfit list in a bottom sheet so Rosari stays visible above it.
+    wardrobeSheet: size.height > size.width || size.width < 560 ? 'bottom' : 'side',
+  }
+}
+
+// Shortest-way target: the preset angle's equivalent closest to the current yaw.
+export function nearestRosariYaw(current, preset) {
+  const turn = Math.PI * 2
+  return preset + Math.round((current - preset) / turn) * turn
+}
+
+export function rosariViewKeyStep(event) {
+  if (isRosariTextEntryTarget(event.target)) return 0
+  if (event.key === 'ArrowRight') return ROSARI_VIEW_KEY_STEP
+  if (event.key === 'ArrowLeft') return -ROSARI_VIEW_KEY_STEP
+  return 0
+}
+
+// Stage pixels the wardrobe UI covers in view mode. Mirrors styles.wardrobeSheet / wardrobePanel and
+// the angle bar: bottom sheet at most 40% (+ gap); side panel min(292px, 100% - 8px) (+ gap).
+export const ROSARI_VIEW_ANGLE_BAR_PX = 76
+export function getRosariWardrobeViewInsets(size, sheet) {
+  const { width, height } = getRosariOutlineViewport(size)
+  return {
+    top: Math.min(ROSARI_VIEW_ANGLE_BAR_PX, height * 0.2),
+    right: sheet === 'side' ? Math.min(292, width - 8) + 8 : 0,
+    bottom: sheet === 'bottom' ? height * 0.4 + 8 : 0,
+    left: 0,
+  }
+}
+
+// Close-up full-body framing of Rosari, centred in the part of the stage the wardrobe UI leaves free.
+// The view offset slides the projection centre into that free area; the near plane sits just in front
+// of her so furniture between the camera and Rosari can never hide her.
+export function getRosariWardrobeViewLayout(size, { position = { x: 0, z: 0.65 }, sheet = 'side' } = {}) {
+  const { width, height } = getRosariOutlineViewport(size)
+  const insets = getRosariWardrobeViewInsets(size, sheet)
+  const visibleWidth = Math.max(1, width - insets.left - insets.right)
+  const visibleHeight = Math.max(1, height - insets.top - insets.bottom)
+  const fov = 38
+  const tanY = Math.tan(THREE.MathUtils.degToRad(fov / 2))
+  // Body is 1.32 tall and hats/hoods rise above it: fit 1.6 into ~88% of the free height, and
+  // ~1.0 (arms, any yaw) into ~85% of the free width.
+  const byHeight = (1.6 / 0.88) * height / (visibleHeight * 2 * tanY)
+  const byWidth = (1.0 / 0.85) * width / (visibleWidth * 2 * tanY * (width / height))
+  const distance = Math.max(1.6, Math.min(12, Math.max(byHeight, byWidth)))
+  const target = new THREE.Vector3(position.x, 0.72, position.z)
+  const direction = new THREE.Vector3(0, 0.2, 1).normalize()
+  const centerX = insets.left + visibleWidth / 2
+  const centerY = insets.top + visibleHeight / 2
+  return {
+    position: target.clone().addScaledVector(direction, distance).toArray(),
+    target: target.toArray(),
+    fov,
+    near: Math.max(0.1, distance - 0.9),
+    viewOffset: { fullWidth: width, fullHeight: height, x: width / 2 - centerX, y: height / 2 - centerY, width, height },
+  }
+}
+
+// Enter view mode on a live camera; the returned function puts back the exact previous camera.
+export function enterRosariWardrobeView(camera, layout) {
+  const snapshot = {
+    position: camera.position.clone(),
+    quaternion: camera.quaternion.clone(),
+    fov: camera.fov,
+    near: camera.near,
+    view: camera.view ? { ...camera.view } : null,
+  }
+  camera.position.set(...layout.position)
+  camera.fov = layout.fov
+  camera.near = layout.near
+  const offset = layout.viewOffset
+  camera.setViewOffset(offset.fullWidth, offset.fullHeight, offset.x, offset.y, offset.width, offset.height)
+  camera.lookAt(...layout.target)
+  camera.updateProjectionMatrix()
+  return () => {
+    camera.position.copy(snapshot.position)
+    camera.quaternion.copy(snapshot.quaternion)
+    camera.fov = snapshot.fov
+    camera.near = snapshot.near
+    if (snapshot.view?.enabled) {
+      const v = snapshot.view
+      camera.setViewOffset(v.fullWidth, v.fullHeight, v.offsetX, v.offsetY, v.width, v.height)
+    } else camera.clearViewOffset()
+    camera.updateProjectionMatrix()
+  }
+}
+
+// Per-frame facing in view mode. The first open frame remembers Rosari's facing; while open her yaw
+// eases toward the target; the first closed frame puts the remembered facing back exactly.
+export function updateRosariViewFacing(root, state, { wardrobeOpen, targetYaw, delta }) {
+  if (!root) return
+  if (wardrobeOpen) {
+    if (state.savedFacing === null) {
+      state.savedFacing = root.rotation.y
+      // Start from her current facing (the equivalent next to the target) so she turns to the camera.
+      state.displayYaw = nearestRosariYaw(targetYaw, root.rotation.y)
+    }
+    state.displayYaw += (targetYaw - state.displayYaw) * (1 - Math.exp(-delta * 10))
+    if (Math.abs(targetYaw - state.displayYaw) < 1e-4) state.displayYaw = targetYaw
+    root.rotation.y = state.displayYaw
+  } else if (state.savedFacing !== null) {
+    root.rotation.y = state.savedFacing
+    state.savedFacing = null
+    state.displayYaw = 0
   }
 }
 
@@ -340,7 +528,7 @@ export function getRosariCameraLayout(size, { overview = true, position = { x: 0
   return { position: target.clone().addScaledVector(backward, distance).toArray(), target: target.toArray(), fov }
 }
 
-function RoomScene({ keyboardKeysRef, mobileKeysRef, wardrobeOpen, overview, outfitId, onNearWardrobeChange, onWardrobeToggle }) {
+function RoomScene({ keyboardKeysRef, mobileKeysRef, wardrobeOpen, wardrobeSheet = 'side', viewYawRef, overview, outfitId, onNearWardrobeChange, onWardrobeToggle }) {
   const characterRef = useRef(null)
   const positionRef = useRef({ x: 0, z: 0.65 })
   const walkTimeRef = useRef(0)
@@ -348,6 +536,7 @@ function RoomScene({ keyboardKeysRef, mobileKeysRef, wardrobeOpen, overview, out
   const lastNearWardrobeRef = useRef(false)
   const canToggleWardrobeRef = useRef(false)
   const moveVectorRef = useRef({ x: 0, z: 0 })
+  const viewFacingRef = useRef({ savedFacing: null, displayYaw: 0 })
   const { camera, size } = useThree()
 
   // ponytail: dev-only QA handle. rosari-room-visual-qa.js calls window.rosariThree.getState();
@@ -366,6 +555,14 @@ function RoomScene({ keyboardKeysRef, mobileKeysRef, wardrobeOpen, overview, out
     camera.updateProjectionMatrix()
     camera.lookAt(...layout.target)
   }, [camera, size.height, size.width, overview])
+
+  // Wardrobe view mode camera. Declared after the room camera effect: on a resize while open, React
+  // runs this cleanup (restore), then the room layout for the new size, then a fresh snapshot here.
+  useEffect(() => {
+    if (!wardrobeOpen) return undefined
+    const layout = getRosariWardrobeViewLayout(size, { position: positionRef.current, sheet: wardrobeSheet })
+    return enterRosariWardrobeView(camera, layout)
+  }, [camera, size.height, size.width, wardrobeOpen, wardrobeSheet])
 
   useFrame((_, rawDelta) => {
     const delta = capRosariFrameDelta(rawDelta)
@@ -387,7 +584,7 @@ function RoomScene({ keyboardKeysRef, mobileKeysRef, wardrobeOpen, overview, out
       walkTimeRef.current += delta * 8
     }
     const root = characterRef.current
-    if (!overview && root) {
+    if (!overview && !wardrobeOpen && root) {
       // Translation-only follow retains the framing/orientation calculated on resize.
       camera.position.x += positionRef.current.x - root.position.x
       camera.position.z += positionRef.current.z - root.position.z
@@ -397,6 +594,7 @@ function RoomScene({ keyboardKeysRef, mobileKeysRef, wardrobeOpen, overview, out
       if (moving) root.rotation.y = Math.atan2(vector.x, vector.z)
       animateNamedLimbs(limbRefs.current, moving ? walkTimeRef.current : 0, moving)
     }
+    updateRosariViewFacing(root, viewFacingRef.current, { wardrobeOpen, targetYaw: viewYawRef?.current ?? 0, delta })
     updateOutlineUniforms(root, size)
     const nearWardrobe = isRosariNearWardrobe(positionRef.current)
     canToggleWardrobeRef.current = canRosariWardrobeToggle({ wardrobeOpen, nearWardrobe })
@@ -962,6 +1160,11 @@ const styles = {
   wardrobeButton: { width: '100%', minHeight: 44, border: '3px solid #7c416e', borderRadius: 14, background: '#ffacd0', color: '#4e2449', fontWeight: 1000, cursor: 'pointer', touchAction: 'manipulation', userSelect: 'none' },
   wardrobeButtonDisabled: { width: '100%', minHeight: 44, border: '3px solid #b991ab', borderRadius: 14, background: '#eadfe7', color: '#8b7286', fontWeight: 900, cursor: 'not-allowed', touchAction: 'manipulation', userSelect: 'none' },
   wardrobePanel: { ...panel, position: 'absolute', zIndex: 4, top: 4, right: 4, width: 'min(292px, calc(100% - 8px))', maxHeight: 'calc(100% - 8px)', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', overflow: 'hidden', padding: 6, touchAction: 'pan-y' },
+  // Portrait: the list is a bottom sheet capped at 40% of the stage so Rosari stays visible above it.
+  wardrobeSheet: { ...panel, position: 'absolute', zIndex: 4, left: 4, right: 4, bottom: 4, maxHeight: '40%', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', overflow: 'hidden', padding: 6, touchAction: 'pan-y' },
+  rotateSurface: { position: 'absolute', inset: 0, zIndex: 1, cursor: 'grab', touchAction: 'none', userSelect: 'none' },
+  angleBarTop: { position: 'absolute', zIndex: 3, top: 6, left: 6, right: 6 },
+  angleBarSide: { position: 'absolute', zIndex: 3, top: 6, left: 6, right: 'calc(min(292px, 100% - 8px) + 12px)' },
   wardrobeBody: { minHeight: 0, overflowY: 'auto', touchAction: 'pan-y', overscrollBehavior: 'contain', overflowWrap: 'anywhere' },
   wardrobeHeader: { display: 'flex', flexWrap: 'wrap', flexShrink: 0, alignItems: 'center', justifyContent: 'space-between', gap: 6, marginBottom: 6 },
   wardrobeTitle: { flex: '1 0 auto', margin: 0, fontSize: 24, lineHeight: 1, fontWeight: 1000 },
