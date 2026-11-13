@@ -20,7 +20,9 @@ import {
   getSlteraLandingSquash, getSlteraLaunchDirInto, getSlteraLaunchHeight, hasSlteraRolled, isCircleInSlteraBody,
   isSlteraBodySolid, isSlteraCarOnScreen, planSlteraLaunchDistance, pushOutOfSlteraBody, removeSlteraLaunchAt,
   resetSlteraPlayerLaunch, startSlteraPlayerLaunch, stepSlteraLaunchTable, stepSlteraPlayerLaunch,
+  planSlteraLaunchInto, pushOutOfSlteraBodyWithin, SLTERA_JUMP_STATE, SLTERA_MAX_PASS_SEC,
 } from './slteraEvent.js'
+import { getPlayerMovementBounds } from './playerMovementBounds.js'
 import { isPointInOrientedBox2D } from './weaponCollision.js'
 import { getStageObjectSightObstacles } from '../components/StageObjects/stageObjectColliders.js'
 
@@ -999,11 +1001,11 @@ describe('Sltera knock-flying and solid body (Terry 11-14)', () => {
         const r = SLTERA_ZOMBIE_RADIUS
         let x = 0; let z = 0
         for (let t = 0; t < 50; t += 1) {
-          x = lerpTest(field.minX + r, field.maxX - r, rand()); z = lerpTest(field.minZ + r, field.maxZ - r, rand())
-          if (!obstacles.some((o) => circleInObstacle(x, z, r, o)) && Math.hypot(x - portal.x, z - portal.z) >= SLTERA_PORTAL_AVOID_RADIUS + r) break
+          x = lerpTest(field.minX, field.maxX, rand()); z = lerpTest(field.minZ, field.maxZ, rand())
+          if (!obstacles.some((o) => circleInObstacle(x, z, r, o)) && Math.hypot(x - portal.x, z - portal.z) >= SLTERA_PORTAL_AVOID_RADIUS) break
         }
         if (obstacles.some((o) => circleInObstacle(x, z, r, o))) continue
-        if (Math.hypot(x - portal.x, z - portal.z) < SLTERA_PORTAL_AVOID_RADIUS + r) continue
+        if (Math.hypot(x - portal.x, z - portal.z) < SLTERA_PORTAL_AVOID_RADIUS) continue
         const a = rand() * Math.PI * 2
         const dx = Math.sin(a); const dz = Math.cos(a)
         const d = planSlteraLaunchDistance(x, z, dx, dz, SLTERA_ZOMBIE_LAUNCH_DISTANCE, r, obstacles, field, portal)
@@ -1014,8 +1016,9 @@ describe('Sltera knock-flying and solid body (Terry 11-14)', () => {
         for (let s2 = 0.1; s2 <= d + 1e-9; s2 += 0.1) {
           const lx = x + dx * s2; const lz = z + dz * s2
           expect(obstacles.some((o) => circleInObstacle(lx, lz, r, o))).toBe(false)
-          expect(lx - r >= field.minX && lx + r <= field.maxX && lz - r >= field.minZ && lz + r <= field.maxZ).toBe(true)
-          expect(Math.hypot(lx - portal.x, lz - portal.z)).toBeGreaterThanOrEqual(SLTERA_PORTAL_AVOID_RADIUS + r)
+          // bounds = 몸 중심 한계(로자리 이동 한계와 같은 뜻)
+          expect(lx >= field.minX - 1e-9 && lx <= field.maxX + 1e-9 && lz >= field.minZ - 1e-9 && lz <= field.maxZ + 1e-9).toBe(true)
+          expect(Math.hypot(lx - portal.x, lz - portal.z)).toBeGreaterThanOrEqual(SLTERA_PORTAL_AVOID_RADIUS - 1e-9)
         }
       }
       expect(shortened).toBeGreaterThan(0) // 실제로 프랍·벽·탈출구 앞에서 줄였다
@@ -1152,12 +1155,155 @@ describe('Sltera knock-flying and solid body (Terry 11-14)', () => {
     expect(src).toContain('applyEnemyHit(enemyPool.proxies[index], generation, damage, s.landingImpact)')
     expect(src).toContain('bumpSlteraOffBody(pass, t.x, t.z, radius)')
     expect(src).toContain('body?._applyKnockback?.(slteraPlayerLaunch.vx, slteraPlayerLaunch.vz, SLTERA_PLAYER_LAUNCH_SEC * 1000)')
-    expect(src).toContain('planSlteraLaunchDistance(contact.x, contact.z, dir.x, dir.z, SLTERA_PLAYER_LAUNCH_DISTANCE, SLTERA_PLAYER_RADIUS, pass.obstacles, s.playerBounds, portalTarget)')
+    expect(src).toContain('planSlteraLaunchInto(pass, contact.x, contact.z, contact.nx, contact.nz, SLTERA_PLAYER_LAUNCH_DISTANCE, SLTERA_PLAYER_RADIUS, pass.obstacles, s.playerBounds, portalTarget, dir)')
+    // 로자리·풀 좀비는 플레이필드(중심 한계) 안에서만 밀려난다 — 벽과 차 사이에 끼면 벽을 따라 옆으로.
+    expect(src).toContain('pushOutOfSlteraBodyWithin(pass, playerPos.x, playerPos.z, SLTERA_PLAYER_RADIUS, s.playerBounds, contact)')
+    expect(src).toContain('pushOutOfSlteraBodyWithin(pass, x, z, SLTERA_ZOMBIE_RADIUS, s.arena, contact)')
     const player = readFileSync(new URL('../components/Player.jsx', import.meta.url), 'utf8')
     expect(player).toContain('slteraPlayerLaunch.body = rb.current')
     expect(player).toContain('if (!(playerImpulse.ms > 0) && !slteraPlayerLaunch.active) {')
     expect(player).toContain('const launchLift = stepSlteraPlayerLaunch(slteraPlayerLaunch, dt)')
     // PlayerVisual(Studio 미리보기와 공유) 자체는 그대로 — 바깥 그룹만 감싼다.
     expect(player).toMatch(/<group ref=\{launchLiftRef\}>\s*<PlayerVisual /)
+  })
+})
+
+// ── balanceqa 11-14 회귀: 보스 앞 정지(퇴장 모드·끼임 탈출·프랍 없는 판), 가장자리·탈출구 옆 비행 0, 벽-차 사이 끼임 ──
+
+describe('Sltera vs standing bodies and playfield edges (balanceqa 11-14 regressions)', () => {
+  // 착지 뒤 조금 더 달린 땅 위 질주에 선 보스(1.5u 앞)를 두고, 매 step 런타임처럼 부딪힌다.
+  function runIntoStandingBoss(rand, k, { obstacles, mode }) {
+    const pass = beginSlteraPass(createSlteraPass(), { bounds, playerX: 0, playerZ: 0, obstacles, rand })
+    let i = 0
+    while (pass.phase !== SLTERA_PHASE.DONE && pass.jumpState !== SLTERA_JUMP_STATE.LANDED && i < 5000) { stepSlteraPass(pass, STEP_MS, NaN, NaN, bounds); i += 1 }
+    if (pass.phase === SLTERA_PHASE.DONE) return null
+    for (let j = 0; j < 10 + (k % 30); j += 1) stepSlteraPass(pass, STEP_MS, NaN, NaN, bounds)
+    if (pass.phase === SLTERA_PHASE.DONE || pass.bounceLeftSec > 0) return null
+    if (mode === 'exit') pass.exiting = true
+    if (mode === 'broke') { pass.brokeThrough = true; pass.solid = false }
+    if (mode === 'spent') pass.bounces = SLTERA_MAX_BOUNCES
+    const bx = pass.x + Math.sin(pass.heading) * 1.5; const bz = pass.z + Math.cos(pass.heading) * 1.5
+    let contacts = 0
+    for (let g = 0; g < 60 * 40 && pass.phase !== SLTERA_PHASE.DONE; g += 1) {
+      stepSlteraPass(pass, STEP_MS, NaN, NaN, bounds)
+      if (isSlteraBodySolid(pass) && bumpSlteraOffBody(pass, bx, bz, SLTERA_BOSS_RADIUS)) contacts += 1
+    }
+    return { pass, contacts }
+  }
+
+  it('never stalls in front of a standing boss: exit mode, broken-through, spent bounces, no props — every run ends off-screen under 12 s', () => {
+    const corner = Math.hypot(SLTERA_HALF_LENGTH, SLTERA_HALF_WIDTH)
+    const dummy = [{ x: 999, z: 999, halfX: 0.1, halfZ: 0.1, rotationY: 0 }]
+    for (const [mode, obstacles] of [['exit', dummy], ['broke', dummy], ['spent', dummy], ['normal', dummy], ['normal', null], ['exit', null]]) {
+      const rand = lcg(4242)
+      let runs = 0; let maxMs = 0; let touched = 0
+      for (let k = 0; k < 150; k += 1) {
+        const r = runIntoStandingBoss(rand, k, { obstacles, mode })
+        if (!r) continue
+        runs += 1
+        if (r.contacts > 0) touched += 1
+        expect(r.pass.phase).toBe(SLTERA_PHASE.DONE)
+        expect(isSlteraPointOnScreen(bounds, r.pass.x, r.pass.z, -corner)).toBe(false)
+        maxMs = Math.max(maxMs, r.pass.elapsedMs)
+      }
+      expect(runs).toBeGreaterThan(100)
+      expect(maxMs).toBeLessThan(SLTERA_DEADLINE_CLEAR_MS)
+      expect(maxMs).toBeLessThan(SLTERA_MAX_PASS_SEC * 1000)
+      // 퇴장·탈출 중에는 몸이 장애물이 아니다(밀려나지 않고 지나간다). 평소에는 실제로 부딪혔다.
+      if (mode === 'exit' || mode === 'broke') expect(touched).toBe(0)
+      else expect(touched).toBeGreaterThan(runs * 0.5)
+    }
+  })
+
+  it('a body the car keeps ramming makes it break through after its bounces are spent, like props', () => {
+    const pass = beginSlteraPass(createSlteraPass(), { bounds, playerX: 0, playerZ: 0, obstacles: null, rand: lcg(8) })
+    while (pass.jumpState !== SLTERA_JUMP_STATE.LANDED && pass.phase !== SLTERA_PHASE.DONE) stepSlteraPass(pass, STEP_MS)
+    pass.bounces = SLTERA_MAX_BOUNCES
+    const bx = pass.x + Math.sin(pass.heading) * 1.2; const bz = pass.z + Math.cos(pass.heading) * 1.2
+    expect(bumpSlteraOffBody(pass, bx, bz, SLTERA_BOSS_RADIUS)).toBe(true)
+    expect(pass.brokeThrough).toBe(true)
+    expect(pass.exiting).toBe(true)
+    expect(bumpSlteraOffBody(pass, bx, bz, SLTERA_BOSS_RADIUS)).toBe(false) // 이제 지나간다
+  })
+
+  it('launches off a playfield edge in every non-wall direction (and only blocks moving into the wall)', () => {
+    const b = getPlayerMovementBounds('stage1')
+    const R = SLTERA_PLAYER_RADIUS; const D = SLTERA_PLAYER_LAUNCH_DISTANCE
+    const edges = [
+      { at: [b.minX, 0], out: [-1, 0] }, { at: [b.maxX, 0], out: [1, 0] },
+      { at: [0, b.minZ], out: [0, -1] }, { at: [0, b.maxZ], out: [0, 1] },
+    ]
+    for (const { at, out } of edges) {
+      for (const inset of [0, 0.05, 0.1, 0.2]) {
+        const x = at[0] - out[0] * inset; const z = at[1] - out[1] * inset
+        for (let a = 0; a < 16; a += 1) {
+          const dx = Math.sin((a / 16) * Math.PI * 2); const dz = Math.cos((a / 16) * Math.PI * 2)
+          const toward = dx * out[0] + dz * out[1]
+          const d = planSlteraLaunchDistance(x, z, dx, dz, D, R, null, b, null)
+          const lx = x + dx * d; const lz = z + dz * d
+          expect(lx >= b.minX - 1e-9 && lx <= b.maxX + 1e-9 && lz >= b.minZ - 1e-9 && lz <= b.maxZ + 1e-9).toBe(true)
+          if (toward <= 1e-9) expect(d).toBeGreaterThan(D * 0.9) // 벽에서 멀어지거나 벽을 따라: 거의 끝까지
+          else expect(d).toBeLessThanOrEqual(inset / toward + 1e-9) // 벽 쪽: 벽 앞까지만
+        }
+      }
+    }
+    // 섞은 방향이 벽에 막히면 면 법선으로 다시 재어 제자리 비행(0)을 피한다.
+    const pass = straightPass()
+    for (let i = 0; i < 200; i += 1) stepSlteraPass(pass, STEP_MS)
+    const fx = Math.sin(pass.heading); const fz = Math.cos(pass.heading)
+    const wall = { minX: -50, maxX: 50, minZ: -50, maxZ: 50 }
+    // 차 앞이 곧 벽인 상황: 앞 방향 한계를 차 코앞에 둔다.
+    if (Math.abs(fx) > Math.abs(fz)) { if (fx > 0) wall.maxX = pass.x + 1.3; else wall.minX = pass.x - 1.3 } else if (fz > 0) wall.maxZ = pass.z + 1.3; else wall.minZ = pass.z - 1.3
+    const c = {}; const dir = {}
+    pushOutOfSlteraBodyWithin(pass, pass.x + fz * 0.5, pass.z - fx * 0.5, SLTERA_PLAYER_RADIUS, wall, c)
+    planSlteraLaunchInto(pass, c.x, c.z, c.nx, c.nz, D, R, null, wall, null, dir)
+    expect(dir.distance).toBeGreaterThan(D * 0.5)
+  })
+
+  it('launches away from the exit portal even when it starts 1.0 u from it, never toward it', () => {
+    const portal = { active: true, x: 0, z: 0 }
+    const D = SLTERA_PLAYER_LAUNCH_DISTANCE
+    for (let a = 0; a < 16; a += 1) {
+      const ang = (a / 16) * Math.PI * 2
+      const x = Math.sin(ang) * 1.0; const z = Math.cos(ang) * 1.0
+      // 정반대(바깥) 방향: 끝까지 간다.
+      expect(planSlteraLaunchDistance(x, z, Math.sin(ang), Math.cos(ang), D, SLTERA_PLAYER_RADIUS, null, null, portal)).toBeCloseTo(D, 9)
+      // 탈출구 쪽: 한 걸음도 못 간다(흡입 원으로 날려 보내지 않는다).
+      expect(planSlteraLaunchDistance(x, z, -Math.sin(ang), -Math.cos(ang), D, SLTERA_PLAYER_RADIUS, null, null, portal)).toBe(0)
+    }
+    // 바깥에서 출발해 탈출구를 가로지르는 비행은 링 앞에서 멈춘다.
+    const d = planSlteraLaunchDistance(-3, 0, 1, 0, 4, SLTERA_PLAYER_RADIUS, null, null, portal)
+    expect(-3 + d).toBeLessThanOrEqual(-SLTERA_PORTAL_AVOID_RADIUS + 1e-9)
+  })
+
+  it('Rosari pinned between the car and the bottom edge slides out sideways — no overlap at any step, never out of bounds', () => {
+    for (const stageId of ['stage1', 'stage3', 'stage5']) {
+      const b = getPlayerMovementBounds(stageId)
+      for (const [heading, px] of [[0, 0.05], [0, -0.2], [Math.PI / 6, 0.05], [-Math.PI / 8, 0.3], [0.02, 0]]) {
+        // 차가 아래(+z) 가장자리 쪽으로 나가고, 로자리는 그 앞 가장자리에 붙어 서 있다(조작 없음).
+        const pass = { x: px, z: b.maxZ - 3, heading, prevX: 0, prevZ: 0, phase: SLTERA_PHASE.DRIVE, airborne: false }
+        let rx = px; let rz = b.maxZ
+        const c = {}; const dir = {}
+        let launches = 0
+        for (let f = 0; f < 120; f += 1) {
+          pass.prevX = pass.x; pass.prevZ = pass.z
+          pass.x += Math.sin(heading) * SLTERA_SPEED / 60; pass.z += Math.cos(heading) * SLTERA_SPEED / 60
+          if (pushOutOfSlteraBodyWithin(pass, rx, rz, SLTERA_PLAYER_RADIUS, b, c)) {
+            if (launches === 0) {
+              planSlteraLaunchInto(pass, c.x, c.z, c.nx, c.nz, SLTERA_PLAYER_LAUNCH_DISTANCE, SLTERA_PLAYER_RADIUS, null, b, null, dir)
+              expect(dir.distance).toBeGreaterThan(0.5) // 제자리 비행 아님
+              launches += 1
+            }
+            rx = c.x; rz = c.z
+          }
+          // Player의 고정 step clamp(이동 한계).
+          rx = Math.min(b.maxX, Math.max(b.minX, rx)); rz = Math.min(b.maxZ, Math.max(b.minZ, rz))
+          expect(isCircleInSlteraBody(pass, rx, rz, SLTERA_PLAYER_RADIUS)).toBe(false)
+        }
+        // 정면이면 꼭 한 번 맞아 날아간다(비스듬한 차는 비켜 갈 수도 있다).
+        if (Math.abs(heading) < 0.1) expect(launches).toBe(1)
+        else expect(launches).toBeLessThanOrEqual(1)
+      }
+    }
   })
 })

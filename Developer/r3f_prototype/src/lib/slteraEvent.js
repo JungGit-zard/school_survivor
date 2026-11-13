@@ -605,6 +605,7 @@ function slteraClearRun(pass, x, z, heading) {
   const dx = Math.sin(heading)
   const dz = Math.cos(heading)
   const obstacles = pass.obstacles
+  if (!obstacles) return SLTERA_BOUNCE_CLEAR_ENOUGH // 프랍 없는 판(보스 몸에 튕길 때)
   for (let d = CLEAR_RUN_STEP; d <= SLTERA_BOUNCE_CLEAR_ENOUGH + 1e-9; d += CLEAR_RUN_STEP) {
     const cx = x + dx * d
     const cz = z + dz * d
@@ -1225,35 +1226,126 @@ export function getSlteraLaunchDirInto(pass, nx, nz, out) {
   return out
 }
 
-function circleHitsObstacle(x, z, radius, o) {
-  if (!o || !Number.isFinite(o.x) || !Number.isFinite(o.z)) return false
+// 원(반경 radius)이 장애물 OBB 안으로 파고든 깊이(0 = 안 닿음). 중심이 상자 안이면 반경 + 안쪽 깊이.
+function obstaclePenetration(x, z, radius, o) {
+  if (!o || !Number.isFinite(o.x) || !Number.isFinite(o.z)) return 0
   const dx = x - o.x; const dz = z - o.z
   const c = obstacleCos(o); const s = obstacleSin(o)
   const lx = dx * c - dz * s
   const lz = dx * s + dz * c
   const px = lx - clampAbs(lx, o.halfX)
   const pz = lz - clampAbs(lz, o.halfZ)
-  return px * px + pz * pz < radius * radius
+  if (px === 0 && pz === 0) return radius + Math.min(o.halfX - Math.abs(lx), o.halfZ - Math.abs(lz))
+  return Math.max(0, radius - Math.hypot(px, pz))
+}
+
+// 몸 중심이 플레이필드(중심 한계) 밖으로 나간 거리(0 = 안).
+function boundsViolation(bounds, x, z) {
+  if (!bounds) return 0
+  return Math.max(0, bounds.minX - x, x - bounds.maxX, bounds.minZ - z, z - bounds.maxZ)
 }
 
 /**
- * (x,z)에서 (dirX,dirZ)로 distance만큼 날릴 때, 반경 radius 몸이 프랍(obstacles)·플레이필드(bounds: minX..maxZ)·
- * 피할 원(avoid: {active,x,z}, SLTERA_PORTAL_AVOID_RADIUS)에 닿기 직전까지로 줄인 거리. 0.1u 단위로 걸어 본다.
+ * (x,z)에서 (dirX,dirZ)로 distance만큼 날릴 때 갈 수 있는 거리. 0.1u 단위로 걸으며 멈추는 곳:
+ *   프랍(obstacles, 반경 radius 몸이 파고듦) · 플레이필드(bounds = 몸 '중심'이 있을 수 있는 한계) ·
+ *   피할 원(avoid: {active,x,z} — 탈출구, 중심이 SLTERA_PORTAL_AVOID_RADIUS 안).
+ * 출발점이 이미 어떤 한계를 넘어 있으면(벽에 붙음·탈출구 옆) 그 한계는 '더 나빠지는' 걸음에서만 막는다 —
+ * 벗어나는 쪽이나 따라가는 쪽으로는 날아갈 수 있다(balanceqa 11-14: 가장자리·탈출구 옆에서 늘 0이 되던 회귀).
  */
 export function planSlteraLaunchDistance(x, z, dirX, dirZ, distance, radius, obstacles = null, bounds = null, avoid = null) {
   const avoidOn = !!avoid?.active && Number.isFinite(avoid.x) && Number.isFinite(avoid.z)
-  const avoidR = SLTERA_PORTAL_AVOID_RADIUS + radius
+  const avoidV = (px, pz) => (avoidOn ? Math.max(0, SLTERA_PORTAL_AVOID_RADIUS - Math.hypot(px - avoid.x, pz - avoid.z)) : 0)
+  const obstacleV = (px, pz) => {
+    let worst = 0
+    if (obstacles) for (let i = 0; i < obstacles.length; i += 1) worst = Math.max(worst, obstaclePenetration(px, pz, radius, obstacles[i]))
+    return worst
+  }
+  const EPS = 1e-9
+  let lastB = boundsViolation(bounds, x, z)
+  let lastA = avoidV(x, z)
+  let lastO = obstacleV(x, z)
   let ok = 0
-  for (let d = LAUNCH_PLAN_STEP; d <= distance + 1e-9; d += LAUNCH_PLAN_STEP) {
+  for (let d = LAUNCH_PLAN_STEP; d <= distance + EPS; d += LAUNCH_PLAN_STEP) {
     const px = x + dirX * d; const pz = z + dirZ * d
-    if (bounds && (px - radius < bounds.minX || px + radius > bounds.maxX || pz - radius < bounds.minZ || pz + radius > bounds.maxZ)) break
-    if (avoidOn && Math.hypot(px - avoid.x, pz - avoid.z) < avoidR) break
-    let blocked = false
-    if (obstacles) for (let i = 0; i < obstacles.length; i += 1) if (circleHitsObstacle(px, pz, radius, obstacles[i])) { blocked = true; break }
-    if (blocked) break
+    const b = boundsViolation(bounds, px, pz)
+    if (b > EPS && b > lastB + EPS) break
+    const a = avoidV(px, pz)
+    if (a > EPS && a > lastA + EPS) break
+    const o = obstacleV(px, pz)
+    if (o > EPS && o > lastO + EPS) break
+    lastB = b; lastA = a; lastO = o
     ok = d
   }
   return Math.min(ok, distance)
+}
+
+/**
+ * 날아갈 방향·거리(out.x/z = 방향, out.distance). 섞은 방향(getSlteraLaunchDirInto)이 벽·프랍·탈출구에 막혀
+ * 절반도 못 가면 밀려난 면 법선 쪽도 재 보고 더 멀리 가는 쪽을 쓴다(가장자리에 끼어 제자리에서만 뛰지 않게).
+ */
+export function planSlteraLaunchInto(pass, x, z, nx, nz, distance, radius, obstacles, bounds, avoid, out) {
+  getSlteraLaunchDirInto(pass, nx, nz, out)
+  let d = planSlteraLaunchDistance(x, z, out.x, out.z, distance, radius, obstacles, bounds, avoid)
+  if (d < distance * 0.5) {
+    const dn = planSlteraLaunchDistance(x, z, nx, nz, distance, radius, obstacles, bounds, avoid)
+    if (dn > d) { out.x = nx; out.z = nz; d = dn }
+  }
+  if (d < distance * 0.5 && bounds) {
+    // 벽에 붙어 있으면 법선의 벽 바깥쪽 성분을 지워 벽을 따라 미끄러지게 날린다.
+    let tx = nx; let tz = nz
+    if ((x >= bounds.maxX - 1e-6 && tx > 0) || (x <= bounds.minX + 1e-6 && tx < 0)) tx = 0
+    if ((z >= bounds.maxZ - 1e-6 && tz > 0) || (z <= bounds.minZ + 1e-6 && tz < 0)) tz = 0
+    const tl = Math.hypot(tx, tz)
+    if (tl > 1e-6 && (tx !== nx || tz !== nz)) {
+      tx /= tl; tz /= tl
+      const dt = planSlteraLaunchDistance(x, z, tx, tz, distance, radius, obstacles, bounds, avoid)
+      if (dt > d) { out.x = tx; out.z = tz; d = dt }
+    }
+  }
+  out.distance = d
+  return out
+}
+
+const _faceW = new Float64Array(4)
+const _faceL = new Float64Array(4)
+
+/**
+ * pushOutOfSlteraBody + 플레이필드: 밀어낸 자리가 bounds(몸 중심 한계) 밖이면(차와 벽 사이에 낌) 차 박스 네 면 중
+ * 플레이필드 안에서 가장 조금 옮기는 면으로 민다 — 보통 벽을 따라 옆으로 빠진다. 차 박스 안에 남기지 않고 밖으로
+ * 밀지도 않는다(넷 다 안 되면 — 차가 구석을 꽉 채움 — 한계 안으로 당긴 가장 가까운 자리). 겹쳤으면 true.
+ */
+export function pushOutOfSlteraBodyWithin(pass, x, z, radius, bounds, out) {
+  if (!pushOutOfSlteraBody(pass, x, z, radius, out)) return false
+  if (!bounds || boundsViolation(bounds, out.x, out.z) <= 1e-9) return true
+  const fx = Math.sin(pass.heading); const fz = Math.cos(pass.heading)
+  const rx = fz; const rz = -fx
+  const dx = x - pass.x; const dz = z - pass.z
+  const lw = dx * rx + dz * rz
+  const ll = dx * fx + dz * fz
+  const ew = SLTERA_HALF_WIDTH + radius + SLTERA_PUSH_SKIN
+  const el = SLTERA_HALF_LENGTH + radius + SLTERA_PUSH_SKIN
+  _faceW[0] = ew; _faceL[0] = ll
+  _faceW[1] = -ew; _faceL[1] = ll
+  _faceW[2] = lw; _faceL[2] = el
+  _faceW[3] = lw; _faceL[3] = -el
+  let best = -1; let bestCost = Infinity; let bestX = out.x; let bestZ = out.z
+  let fallback = -1; let fallbackCost = Infinity; let fbX = 0; let fbZ = 0
+  for (let i = 0; i < 4; i += 1) {
+    let cx = pass.x + rx * _faceW[i] + fx * _faceL[i]
+    let cz = pass.z + rz * _faceW[i] + fz * _faceL[i]
+    cx = Math.min(bounds.maxX, Math.max(bounds.minX, cx))
+    cz = Math.min(bounds.maxZ, Math.max(bounds.minZ, cz))
+    const cost = Math.hypot(cx - x, cz - z)
+    if (!isCircleInSlteraBody(pass, cx, cz, radius)) {
+      if (cost < bestCost) { best = i; bestCost = cost; bestX = cx; bestZ = cz }
+    } else if (cost < fallbackCost) { fallback = i; fallbackCost = cost; fbX = cx; fbZ = cz }
+  }
+  const pick = best >= 0 ? best : fallback
+  out.x = best >= 0 ? bestX : fbX
+  out.z = best >= 0 ? bestZ : fbZ
+  out.nx = pick <= 1 ? rx * Math.sign(_faceW[pick]) : fx * Math.sign(_faceL[pick])
+  out.nz = pick <= 1 ? rz * Math.sign(_faceW[pick]) : fz * Math.sign(_faceL[pick])
+  return true
 }
 
 /** 날아가는 포물선 높이: 진행도 p(0..1), 꼭대기 peak. 처음·끝 0. */
@@ -1272,7 +1364,9 @@ export function isSlteraBodySolid(pass) {
  * (아직 안 뛰었고 차 전체가 보이면 튕기지 않고 그 자리에서 뛰어 넘는다). 겹쳤으면 true.
  */
 export function bumpSlteraOffBody(pass, bx, bz, radius) {
-  if (!isSlteraBodySolid(pass)) return false
+  // 퇴장 모드·끼임 탈출 중에는 몸도 프랍처럼 장애물이 아니다 — 뚫고 지나가 화면 밖으로(balanceqa 11-14: 퇴장 중
+  // 선 보스 앞에서 매 프레임 밀려나기만 하다 30초 안전장치까지 서 있던 회귀. 질주는 늘 12초 안에 끝난다).
+  if (!isSlteraBodySolid(pass) || pass.exiting || pass.brokeThrough) return false
   const contact = _bodyContact
   if (!pushOutOfSlteraBody(pass, bx, bz, radius, contact)) return false
   // 몸이 아니라 차를 반대로 민다: 몸이 박스 밖 자리로 간 만큼 차가 거꾸로 물러난다.
@@ -1284,10 +1378,12 @@ export function bumpSlteraOffBody(pass, bx, bz, radius) {
   if (approach < -SLTERA_BOUNCE_MIN_APPROACH) {
     if (pass.jumpState === SLTERA_JUMP_STATE.READY && isSlteraCarOnScreen(pass.jumpView || pass.view, pass.x, pass.z, pass.heading)) {
       pass.jumpUrgent = true
-    } else if (pass.obstacles && pass.bounces < SLTERA_MAX_BOUNCES && !pass.exiting && !pass.brokeThrough) {
+    } else if (pass.bounces >= SLTERA_MAX_BOUNCES || countSlteraBouncesNear(pass) >= SLTERA_WEDGE_BOUNCES) {
+      escapeSltera(pass) // 프랍과 같은 끼임 규칙: 튕김을 다 썼거나 같은 자리에서 또 튀려 하면 뚫고 빠져나간다
+    } else {
       pass.contactNX = nx
       pass.contactNZ = nz
-      startSlteraBounce(pass, nx, nz)
+      startSlteraBounce(pass, nx, nz) // 프랍 없는 판에서도 튕긴다(멈춰 서 밀리기만 하지 않게)
     }
   }
   return true

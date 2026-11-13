@@ -27,8 +27,8 @@ import {
   SLTERA_SHOVE_PEAK, SLTERA_SHOVE_SEC, SLTERA_SIZE_SCALE, SLTERA_SPECIAL_RADIUS, SLTERA_ZOMBIE_LAUNCH_DISTANCE,
   SLTERA_ZOMBIE_LAUNCH_PEAK, SLTERA_ZOMBIE_LAUNCH_SEC, SLTERA_ZOMBIE_RADIUS, addSlteraLaunch, beginSlteraPass,
   bumpSlteraOffBody, checkSlteraPlayerHit, claimSlteraThud, consumeSlteraLandingThud, consumeSlteraPassStart,
-  createSlteraLaunchTable, createSlteraRunState, getSlteraLandingSquash, getSlteraLaunchDirInto, getSlteraSweepBox,
-  hasSlteraRolled, isSlteraBodySolid, isSlteraPointOnScreen, planSlteraLaunchDistance, pushOutOfSlteraBody,
+  createSlteraLaunchTable, createSlteraRunState, getSlteraLandingSquash, getSlteraSweepBox,
+  hasSlteraRolled, isSlteraBodySolid, isSlteraPointOnScreen, planSlteraLaunchInto, pushOutOfSlteraBody, pushOutOfSlteraBodyWithin,
   removeSlteraLaunchAt, requestSlteraInstantPassOn, rollSlteraRunOver, slteraPlayerLaunch, startSlteraPlayerLaunch,
   stepSlteraLaunchTable, stepSlteraPass,
 } from '../lib/slteraEvent.js'
@@ -37,7 +37,7 @@ import SlteraCar from './SlteraCar.jsx'
 
 // 등장 점프의 옆 1회전 축 높이(차량 로컬 단위 — 차체 몸통 가운데, 바닥 0.2 ~ 지붕 0.77). 바깥 그룹만 돌린다.
 const SLTERA_ROLL_PIVOT_Y = 0.45
-const ARENA_WALL_INSET = 0.6 // 좀비 착지 플레이필드 = 스테이지 경계에서 벽 두께만큼 안쪽
+const ARENA_WALL_INSET = 0.6 // 좀비 플레이필드 = 스테이지 경계에서 벽 두께만큼 안쪽(아래 arena는 몸 반경까지 뺀 '중심' 한계)
 
 // 넉백 경로용 impact: 맞는 자리에서 dir 반대쪽 1u를 source로 두면 기존 경로가 dir 방향으로 민다.
 function setImpactToward(impact, x, z, dirX, dirZ, distance, sec) {
@@ -64,10 +64,14 @@ export default function SlteraEvent({ stageId, gameKey }) {
       impact: { source: { x: 0, z: 0 }, knockback: 0, knockbackMs: 0, ignoreSightBlock: true },
       landingImpact: { source: { x: 0, z: 0 }, knockback: 0, knockbackMs: 0, ignoreSightBlock: true },
       contact: { x: 0, z: 0, nx: 0, nz: 0 },
-      dir: { x: 0, z: 0 },
+      dir: { x: 0, z: 0, distance: 0 },
       playerT: { x: 0, y: 0, z: 0 },
       launches: createSlteraLaunchTable(),
-      arena: { minX: -halfX + ARENA_WALL_INSET, maxX: halfX - ARENA_WALL_INSET, minZ: -halfZ + ARENA_WALL_INSET, maxZ: halfZ - ARENA_WALL_INSET },
+      // 밀어내기·날리기 한계는 모두 몸 '중심'이 있을 수 있는 범위다. 로자리는 이동 한계(Player의 clamp)가 이미 중심 한계.
+      arena: {
+        minX: -halfX + ARENA_WALL_INSET + SLTERA_ZOMBIE_RADIUS, maxX: halfX - ARENA_WALL_INSET - SLTERA_ZOMBIE_RADIUS,
+        minZ: -halfZ + ARENA_WALL_INSET + SLTERA_ZOMBIE_RADIUS, maxZ: halfZ - ARENA_WALL_INSET - SLTERA_ZOMBIE_RADIUS,
+      },
       playerBounds: getPlayerMovementBounds(stageId),
     }
   }
@@ -166,11 +170,10 @@ export default function SlteraEvent({ stageId, gameKey }) {
           const fresh = onScreen && !hasSlteraRolled(pass, index, generation, special)
           const damage = fresh ? rollSlteraRunOver(pass, index, generation, special, type) : 0
           if (damage > 0) {
-            getSlteraLaunchDirInto(pass, contact.nx, contact.nz, dir)
             const distance = boss ? SLTERA_BOSS_SHOVE_DISTANCE : SLTERA_ZOMBIE_LAUNCH_DISTANCE
             const sec = boss ? SLTERA_BOSS_SHOVE_SEC : SLTERA_ZOMBIE_LAUNCH_SEC
-            const planned = planSlteraLaunchDistance(t.x, t.z, dir.x, dir.z, distance, radius, pass.obstacles, s.arena)
-            if (applyEnemyHit(rb, generation, damage, setImpactToward(s.impact, t.x, t.z, dir.x, dir.z, planned, sec))) ranOver = true
+            planSlteraLaunchInto(pass, t.x, t.z, contact.nx, contact.nz, distance, radius, pass.obstacles, s.arena, null, dir)
+            if (applyEnemyHit(rb, generation, damage, setImpactToward(s.impact, t.x, t.z, dir.x, dir.z, dir.distance, sec))) ranOver = true
           }
           // 물리 몸체는 차가 대신 밀려난다(몸을 순간이동시키지 않는다).
           bumpSlteraOffBody(pass, t.x, t.z, radius)
@@ -179,7 +182,7 @@ export default function SlteraEvent({ stageId, gameKey }) {
         const x = enemyPool.posX[index]
         const z = enemyPool.posZ[index]
         if (!isPointInOrientedBox2D(box.centerX, box.centerZ, box.yaw, box.halfWidth + SLTERA_ZOMBIE_RADIUS, box.halfDepth + SLTERA_ZOMBIE_RADIUS, x, z)) continue
-        if (pushOutOfSlteraBody(pass, x, z, SLTERA_ZOMBIE_RADIUS, contact)) {
+        if (pushOutOfSlteraBodyWithin(pass, x, z, SLTERA_ZOMBIE_RADIUS, s.arena, contact)) {
           enemyPool.posX[index] = contact.x
           enemyPool.posZ[index] = contact.z
           moved = true
@@ -187,10 +190,10 @@ export default function SlteraEvent({ stageId, gameKey }) {
         if (!onScreen || hasSlteraRolled(pass, index, generation, null)) continue
         const damage = rollSlteraRunOver(pass, index, generation, null, type)
         const hit = damage > 0
-        getSlteraLaunchDirInto(pass, contact.nx, contact.nz, dir)
         const distance = hit ? SLTERA_ZOMBIE_LAUNCH_DISTANCE : SLTERA_SHOVE_DISTANCE
         const sec = hit ? SLTERA_ZOMBIE_LAUNCH_SEC : SLTERA_SHOVE_SEC
-        const planned = planSlteraLaunchDistance(contact.x, contact.z, dir.x, dir.z, distance, SLTERA_ZOMBIE_RADIUS, pass.obstacles, s.arena)
+        planSlteraLaunchInto(pass, contact.x, contact.z, contact.nx, contact.nz, distance, SLTERA_ZOMBIE_RADIUS, pass.obstacles, s.arena, null, dir)
+        const planned = dir.distance
         // 수평 이동 = 기존 넉백 경로(속도·시간, 매 step 프랍·경계 충돌). 피해 0으로 걸고 피해는 착지 때.
         enemySimulationRuntime.applyHitIndex(enemyPool, index, generation, 0, dir.x * planned / sec, dir.z * planned / sec, sec * 1000)
         const slot = addSlteraLaunch(launches, index, generation, enemyPool.posY[index], sec, hit ? SLTERA_ZOMBIE_LAUNCH_PEAK : SLTERA_SHOVE_PEAK, damage)
@@ -215,7 +218,8 @@ export default function SlteraEvent({ stageId, gameKey }) {
       const wasHit = pass.playerHit
       const hit = checkSlteraPlayerHit(pass, playerPos.x, playerPos.z, live.player?.maxHp ?? 0)
       const contact = s.contact
-      const pushed = pushOutOfSlteraBody(pass, playerPos.x, playerPos.z, SLTERA_PLAYER_RADIUS, contact)
+      // 차와 벽 사이에 끼면 벽을 따라 옆으로 빠진다(이동 한계 밖으로 밀면 Player의 clamp가 차 안으로 되돌린다).
+      const pushed = pushOutOfSlteraBodyWithin(pass, playerPos.x, playerPos.z, SLTERA_PLAYER_RADIUS, s.playerBounds, contact)
       const body = slteraPlayerLaunch.body
       if (pushed) {
         playerPos.x = contact.x
@@ -228,9 +232,8 @@ export default function SlteraEvent({ stageId, gameKey }) {
       }
       if (!wasHit && pass.playerHit) {
         const dir = s.dir
-        getSlteraLaunchDirInto(pass, contact.nx, contact.nz, dir)
-        const planned = planSlteraLaunchDistance(contact.x, contact.z, dir.x, dir.z, SLTERA_PLAYER_LAUNCH_DISTANCE, SLTERA_PLAYER_RADIUS, pass.obstacles, s.playerBounds, portalTarget)
-        startSlteraPlayerLaunch(slteraPlayerLaunch, dir.x, dir.z, planned)
+        planSlteraLaunchInto(pass, contact.x, contact.z, contact.nx, contact.nz, SLTERA_PLAYER_LAUNCH_DISTANCE, SLTERA_PLAYER_RADIUS, pass.obstacles, s.playerBounds, portalTarget, dir)
+        startSlteraPlayerLaunch(slteraPlayerLaunch, dir.x, dir.z, dir.distance)
         body?._applyKnockback?.(slteraPlayerLaunch.vx, slteraPlayerLaunch.vz, SLTERA_PLAYER_LAUNCH_SEC * 1000)
       }
       if (hit > 0) live.damagePlayer(hit, { source: SLTERA_DAMAGE_SOURCE })
