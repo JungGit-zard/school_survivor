@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from 'vitest'
 // Isolate timetable elapsedMs=0 and existing catch-up only; no detector,
 // schedule queue, batch builder, cap, addEnemies or pool behavior is mocked.
 describe('owner population priority in every accepted stage', () => {
-  it.each(Array.from({ length: 10 }, (_, i) => `stage${i + 1}`))('%s spawns the whole E07-tier x10 + E01-tier x10 batch (roster-mixed) in one drain after ten active low-density seconds', async (stageId) => {
+  it.each(Array.from({ length: 10 }, (_, i) => `stage${i + 1}`))('%s spawns the whole E07x10+E01x10 batch in one drain after ten active low-density seconds', async (stageId) => {
     const React = await import('react')
     vi.resetModules()
     const refs = [], effects = [], cleanups = [], rafs = []
@@ -53,17 +53,10 @@ describe('owner population priority in every accepted stage', () => {
       expect(pool.activeCount).toBe(20)
       expect(new Set(ticks).size).toBe(1)
       const entries = spy.mock.calls.map(([, entry]) => entry)
-      // 2026-11-14 Terry "정규 리스폰 웨이브에도 골고루 섞어": E07 계층 10 + E01 계층 10은 그대로이고,
-      // 기한이 지난 스테이지 로스터 종이 같은 HP host 자리를 1:1로 대신할 수 있다(lib/stageRosterRotation.js).
-      const { ENEMY_STATS } = await import('./Enemy.jsx')
-      const { getStageRotationRoster } = await import('../lib/stageRosterRotation.js')
-      const roster = getStageRotationRoster(stageId)
-      expect(entries.every(entry => entry.type === 'E07' || entry.type === 'E01' || roster.includes(entry.type))).toBe(true)
-      expect(entries.filter(entry => ENEMY_STATS[entry.type].hp === ENEMY_STATS.E07.hp)).toHaveLength(10)
-      expect(entries.filter(entry => ENEMY_STATS[entry.type].hp === ENEMY_STATS.E01.hp)).toHaveLength(10)
+      expect(entries.filter(entry => entry.type === 'E07')).toHaveLength(10)
+      expect(entries.filter(entry => entry.type === 'E01')).toHaveLength(10)
       expect(entries.every(entry => entry.hp > 0 && entry.maxHp === entry.hp)).toBe(true)
-      const allowedCodes = new Set(['E07', 'E01', ...roster].map(enemyTypeToCode))
-      expect(Array.from(pool.type).filter((code, i) => pool.active[i] && allowedCodes.has(code))).toHaveLength(20)
+      for (const type of ['E07', 'E01']) expect(Array.from(pool.type).filter((code, i) => pool.active[i] && code === enemyTypeToCode(type))).toHaveLength(10)
       frame(20); flush(); expect(spy).toHaveBeenCalledTimes(20)
       // Queued regular waves reserve the existing cap: 19 remaining slots
       // cannot produce a partial reinforcement batch. Queue helpers are real.

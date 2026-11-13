@@ -183,14 +183,7 @@ describe('Team A low-density runtime integration', () => {
         expect(pool.hp[index]).toBe(stageHpOverride(type, 'stage1')?.hp ?? ENEMY_STATS[type].hp)
         expect(pool.maxHp[index]).toBe(pool.hp[index])
       }
-      // 2026-11-14 Terry "정규 리스폰 웨이브에도 골고루 섞어": 리필 20마리는 E07 계층 10 + E01 계층 10 그대로이고,
-      // 그중 기한이 지난 스테이지 로스터 종이 같은 HP host 자리를 1:1로 대신할 수 있다(lib/stageRosterRotation.js).
-      const { getStageRotationRoster } = await import('../lib/stageRosterRotation.js')
-      const roster = getStageRotationRoster('stage1')
-      const tier = (hp) => Object.entries(counts).filter(([type]) => ENEMY_STATS[type].hp === hp).reduce((n, [, c]) => n + c, 0)
-      expect(Object.keys(counts).every((type) => type === 'E07' || type === 'E01' || roster.includes(type))).toBe(true)
-      expect(tier(ENEMY_STATS.E07.hp)).toBe(10)
-      expect(tier(ENEMY_STATS.E01.hp)).toBe(10)
+      expect(counts).toEqual({ E07: 10, E01: 10 })
       frame(0.001) // >=4 resets
       clearPool()
       frame(9.999)
@@ -230,8 +223,7 @@ describe('Team A low-density runtime integration', () => {
         const type = enemyTypeFromCode(pool.type[index])
         restartedCounts[type] = (restartedCounts[type] ?? 0) + 1
       }
-      // 새 런은 로스터 순환 기한도 새로 시작한다 — 첫 리필에 다시 오프닝 순서의 첫 종(스1 E34, hp = E01)이 섞인다.
-      expect(restartedCounts).toEqual({ E07: 10, E01: 9, E34: 1 })
+      expect(restartedCounts).toEqual({ E07: 10, E01: 10 })
     } finally {
       for (const cleanup of cleanups.reverse()) cleanup()
       clearPool()
