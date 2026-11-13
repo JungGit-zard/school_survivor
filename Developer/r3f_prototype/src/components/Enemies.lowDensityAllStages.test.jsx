@@ -53,6 +53,8 @@ describe('owner population priority in every accepted stage', () => {
       expect(pool.activeCount).toBe(20)
       expect(new Set(ticks).size).toBe(1)
       const entries = spy.mock.calls.map(([, entry]) => entry)
+      // 시계 0초(elapsedMs 고정): 로스터 순환은 데뷔 + 간격 전에는 기한이 오지 않으므로 리필은 정확히 E07×10 + E01×10이다.
+      // 기한이 온 뒤의 섞임은 stageRosterRotation.test.js가 시계를 고정해 단언한다.
       expect(entries.filter(entry => entry.type === 'E07')).toHaveLength(10)
       expect(entries.filter(entry => entry.type === 'E01')).toHaveLength(10)
       expect(entries.every(entry => entry.hp > 0 && entry.maxHp === entry.hp)).toBe(true)

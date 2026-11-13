@@ -47,6 +47,7 @@ import { logKill } from '../lib/playtestLogger.js'
 import { getStageObjectSightObstacles, isStageObjectEnemyTrackingBlocked } from './StageObjects/stageObjectColliders.js'
 import { createEnemyHitEventQueue } from '../lib/enemyHitEventQueue.js'
 import { getRuntimeElapsedMs } from '../lib/gameRuntimeTime.js'
+import { createRosterRotation, noteRosterRotationSpawn, pickRosterRotationType } from '../lib/stageRosterRotation.js'
 import { advanceMatildaEntryGrace, canSpawnMatildaEntry, cancelMatildaEntryGrace, createMatildaEntryGrace } from '../lib/matildaEntryGrace.js'
 import { matildaHpFromWeapons } from '../lib/playerDpsEstimate.js'
 import { getPooledEnemyRenderTier, shouldRefreshEnemySight } from './PooledEnemyVisuals.js'
@@ -1349,13 +1350,28 @@ export function countAliveSpecialZombies(entries, pendingRemovals = [], bodies =
   return count
 }
 
+// 스테이지 로스터 순환(lib/stageRosterRotation.js) — 정규 경로의 host 1마리를 기한 지난 신규 종으로 1:1로 맞바꾼다.
+// cache.rosterRotation이 없으면(테스트가 만든 맨 캐시) 그대로 돌려준다. 시계는 실제 경과 시간이고,
+// 헤드리스 프로브처럼 스토어 시계를 쓰지 않는 곳은 cache.rosterRotationClock()으로 자기 시계를 넘긴다.
+const rosterRotationHpOf = (type) => ENEMY_STATS[type]?.hp ?? 0
+export function createStageRosterRotation(stageId) {
+  return createRosterRotation(stageId, { hpOf: rosterRotationHpOf })
+}
+function rosterRotationNowSec() {
+  return getRuntimeElapsedMs(useGameStore.getState().elapsedMs) / 1000
+}
+export function rotateRegularSpawnType(cache, type, sec = cache?.rosterRotationClock ? cache.rosterRotationClock() : rosterRotationNowSec()) {
+  return pickRosterRotationType(cache?.rosterRotation, type, sec)
+}
+
 export function buildLowDensityReinforcementBatch(cache, count = 20, random = Math.random) {
   const batch = []
   const taken = []
   const wanted = Math.min(20, Math.max(0, Math.floor(count) || 0))
   for (const entry of LOW_DENSITY_REINFORCEMENT_ENTRIES) {
     for (let index = 0; index < entry.count && batch.length < wanted; index += 1) {
-      const type = entry.type
+      // 정규 리스폰(저밀도 리필)도 스테이지 로스터를 섞는다(2026-11-14 Terry "정규 리스폰 웨이브에도 골고루 섞어").
+      const type = rotateRegularSpawnType(cache, entry.type)
       // 기존 링/장애물 검사를 먼저 사용. 링 밀집으로 실패해도 안전한 기존 formation 탐색으로 보충한다.
       const pos = spawnPosForBurstType(type, cache.bounds, taken, random, cache.obstacles)
         ?? findNearestFreeFormationPosition(
@@ -1386,7 +1402,9 @@ export function buildExpansionBurstBatch(cache,evt,counts,random=Math.random) {
     return batch
   }
   for(let index=0;index<count;index++) {
-    const type=evt.mixedTypes?evt.mixedTypes[index%evt.mixedTypes.length]:evt.type
+    const authoredType=evt.mixedTypes?evt.mixedTypes[index%evt.mixedTypes.length]:evt.type
+    // 형태 없는 정규 행만 로스터 순환을 탄다. 보스·코인은 host가 아니라 그대로다.
+    const type=evt.formation?authoredType:rotateRegularSpawnType(cache,authoredType)
     const pos=expansionSpawnPosition(type,cache.id,playerPos,cache.bounds,taken,cache.obstacles,random,ENEMY_STATS[type]?.scale)
     if(!pos)continue
     taken.push(pos)
@@ -1523,6 +1541,8 @@ export default function Enemies() {
       obstacles: stageObstacles,
       rangedBlockers,
       stageConfig: getStageConfig(currentStageId),
+      // 런마다 새로 만든다 — 스테이지 로스터 순환 기한(lib/stageRosterRotation.js).
+      rosterRotation: createStageRosterRotation(currentStageId),
     }
     firedBurstsRef.current.fill(0)
     scheduledRepeatBurstTicksRef.current.fill(-1)
@@ -1751,9 +1771,13 @@ export default function Enemies() {
 
   const addEnemies = useCallback((newList, deferPooled = false, stageToken = stageSpawnTokenRef.current) => {
     let specialAdded = false
+    const rosterRotation = stageRuntimeCacheRef.current?.rosterRotation
+    const rosterSec = rosterRotation ? rosterRotationNowSec() : 0
     for (let entryIndex = 0; entryIndex < newList.length; entryIndex += 1) {
       const entry = newList[entryIndex]
       if (clampZombieSpawnRequest(1, totalZombieCounts()) <= 0) break
+      // 작성된 행·형태·소환으로 나온 로스터 종도 순환 기한을 다시 잡는다(최근에 나온 종을 더 끼워 넣지 않게).
+      noteRosterRotationSpawn(rosterRotation, entry.type, rosterSec)
       if (!isPooledEnemyType(entry.type)) {
         // pooled numeric generation-id와 legacy special body key가 충돌하지 않도록 namespace를 분리한다.
         if (enemiesRef.current.length < MAX_SPECIAL_ENEMIES) {
@@ -1870,7 +1894,7 @@ export default function Enemies() {
       const entries = createDominanceSwarmSpawnPlan({ spawnCount: count }, { stageId: cache.id }, Math.random)
       const batch = []
       for (let spawnIndex = 0; spawnIndex < entries.length; spawnIndex += 1) {
-        const type = entries[spawnIndex].type
+        const type = rotateRegularSpawnType(cache, entries[spawnIndex].type)
         const taken = batch.map((enemy) => enemy.pos)
         const pos = spawnPosForBurstType(type, cache.bounds, taken, Math.random, cache.obstacles)
         if (!pos) continue
@@ -1886,7 +1910,8 @@ export default function Enemies() {
       const entries = buildOvertimeMixedReinforcementEntries(cache.id, Math.random, count)
       const batch = []
       for (let spawnIndex = 0; spawnIndex < entries.length; spawnIndex += 1) {
-        const type = entries[spawnIndex].type
+        // 탈출 뒤 오버타임도 로스터를 섞는다 — 1:1 교체라 +10%/회차 마릿수 성장은 그대로다.
+        const type = rotateRegularSpawnType(cache, entries[spawnIndex].type)
         const taken = batch.map((enemy) => enemy.pos)
         const pos = spawnPosForBurstType(type, cache.bounds, taken, Math.random, cache.obstacles)
         if (!pos) continue
@@ -2003,9 +2028,11 @@ export default function Enemies() {
           const count = repeatingBurstSpawnCountForTick(evt, tick, getStageConfig(cache.id).escapePortalSec, totalZombieCounts())
           for (let spawnIndex = 0; spawnIndex < count; spawnIndex += 1) {
             const taken = batch.map((enemy) => enemy.pos)
-            const pos = spawnPosForBurstType(evt.type, cache.bounds, taken, Math.random, cache.obstacles)
+            // 반복 증원(스3 25초·보스 구간, 스5 보스 구간)도 정규 웨이브다 — 로스터 순환을 탄다.
+            const type = rotateRegularSpawnType(cache, evt.type)
+            const pos = spawnPosForBurstType(type, cache.bounds, taken, Math.random, cache.obstacles)
             if (!pos) continue
-            batch.push({ id: ++_uid, type: evt.type, pos, statOverride: stageHpOverride(evt.type, cache.id) })
+            batch.push({ id: ++_uid, type, pos, statOverride: stageHpOverride(type, cache.id) })
           }
           recordMissionBurstSpawns(store, batch, cache.id, missionSpawnSec)
           addEnemies(batch, true, cache.spawnToken)
@@ -2050,7 +2077,9 @@ export default function Enemies() {
       const batch = []
       for (let spawnIndex = 0; spawnIndex < count; spawnIndex += 1) {
         const taken = batch.map((enemy) => enemy.pos)
-        const type = mixedTypes ? mixedTypes[spawnIndex] : evt.type
+        const authoredType = mixedTypes ? mixedTypes[spawnIndex] : evt.type
+        // 형태 버스트(ring/pincer/swarm…)는 작성 그대로, 정규 행만 로스터 순환을 탄다.
+        const type = positions ? authoredType : rotateRegularSpawnType(cache, authoredType)
         const pos = positions ? positions[spawnIndex] : spawnPosForBurstType(type, cache.bounds, taken, Math.random, cache.obstacles)
         if (!pos) continue
         batch.push({ id: ++_uid, type, pos, statOverride: stageHpOverride(type, cache.id) })

@@ -158,12 +158,14 @@ import { createBossSummonState, stepBossSummon } from './expansionBossSummons.js
 import { advanceAssemblySpeech, createAssemblySpeechState, emitAssemblySpeechRing } from './stage6AssemblySpeech.js'
 import { isRangedPropBlockStage } from './stageRangedBlockers.js'
 import { EXPANSION_BOSSES, getExpansionStageHazards, isExpansionBoss, isExpansionStage } from './expansionContent.js'
+import { noteRosterRotationSpawn } from './stageRosterRotation.js'
 import { getPooledEnemyRenderTier, shouldRefreshEnemySight } from '../components/PooledEnemyVisuals.js'
 import {
   buildExpansionBurstBatch,
   buildLowDensityReinforcementBatch,
   buildOvertimeMixedReinforcementEntries,
   clampZombieSpawnRequest,
+  createStageRosterRotation,
   createRunZombieCrewEntries,
   createStage2GuardChaseEntries,
   ELITE_BONUS,
@@ -177,6 +179,7 @@ import {
   pickMixedReinforcementTypes,
   randomSpawnPos,
   repeatingBurstSpawnCountForTick,
+  rotateRegularSpawnType,
   sameTypeZombieHpForStage,
   shouldDropTextbook,
   shouldScheduleBurst,
@@ -397,7 +400,8 @@ export function runStageRuntimeProbe({
   const e04IntroSec = getE04IntroSec(stageId)
   // 게임(Enemies.jsx)과 같은 규칙: Stage 5만 solid 프롭이 E04 사선·원거리 탄을 막는다(wave 4).
   const rangedBlockers = isRangedPropBlockStage(stageId) && obstacles.length > 0 ? obstacles : null
-  const cache = { id: stageId, bounds, obstacles }
+  // 2026-11-14 스테이지 로스터 순환 — Enemies.jsx와 같은 규칙을 프로브 자기 시계(sec)로 돌린다.
+  const cache = { id: stageId, bounds, obstacles, rosterRotation: createStageRosterRotation(stageId), rosterRotationClock: () => sec }
   const pencilBase = WEAPON_CATALOG.pencilThrow.base
   const effectiveBuild = build && startDamageMultiplierOverride !== null
     ? { ...build, startDamageMultiplier: { ...build.startDamageMultiplier, [stageId]: startDamageMultiplierOverride } }
@@ -490,6 +494,8 @@ export function runStageRuntimeProbe({
   let spawnHash = 0x811c9dc5
   let spawnCount = 0
   const spawnCountBySource = {}
+  // 스테이지 로스터 순환 검증용: 타입별 스폰 시각(정수 초, 같은 초 중복 제거).
+  const spawnSecsByType = {}
   // C5: 실시간 30s 구간별·출처별 스폰 HP 합(§1.1 분석표를 대신할 실측 유입표). 출처: burst, burst-repeat, overtime,
   // lowDensity, dominance, boss, matilda.
   const spawnHpBins = Math.ceil(maxSec / SPAWN_HP_BIN_SEC)
@@ -591,6 +597,9 @@ export function runStageRuntimeProbe({
     const bySource = spawnHpByBin[hpBin]
     bySource[source] = (bySource[source] ?? 0) + hp
     spawnCountBySource[source] = (spawnCountBySource[source] ?? 0) + 1
+    const secs = spawnSecsByType[type] ?? (spawnSecsByType[type] = [])
+    const whole = Math.floor(sec)
+    if (secs[secs.length - 1] !== whole) secs.push(whole)
     if (sec < spawnHashUntilSec) {
       spawnHash = fnv1aUpdate(spawnHash, `${Math.round(sec * 60)}|${type}|${x.toFixed(3)}|${z.toFixed(3)};`)
     }
@@ -742,6 +751,7 @@ export function runStageRuntimeProbe({
   function addEnemies(batch, deferPooled, source) {
     for (const entry of batch) {
       if (clampZombieSpawnRequest(1, totalZombieCounts()) <= 0) { droppedSpawns += 1; break }
+      noteRosterRotationSpawn(cache.rosterRotation, entry.type, sec)
       if (!isPooledEnemyType(entry.type)) {
         if (specials.filter((s) => s.alive).length < 3) spawnSpecial(entry, source)
         continue
@@ -802,9 +812,10 @@ export function runStageRuntimeProbe({
         spawnRequests.push({ kind: 'repeat', eventIndex, tick, requested, spawned: count, sec })
         for (let i = 0; i < count; i += 1) {
           const taken = batch.map((enemy) => enemy.pos)
-          const pos = spawnPosForBurstType(evt.type, bounds, taken, Math.random, obstacles)
+          const type = rotateRegularSpawnType(cache, evt.type)
+          const pos = spawnPosForBurstType(type, bounds, taken, Math.random, obstacles)
           if (!pos) continue
-          batch.push({ type: evt.type, pos, statOverride: stageHpOverride(evt.type, stageId) })
+          batch.push({ type, pos, statOverride: stageHpOverride(type, stageId) })
         }
         addEnemies(batch, true, 'burst-repeat')
       }
@@ -836,7 +847,8 @@ export function runStageRuntimeProbe({
     const batch = []
     for (let i = 0; i < count; i += 1) {
       const taken = batch.map((enemy) => enemy.pos)
-      const type = mixedTypes ? mixedTypes[i] : evt.type
+      const authoredType = mixedTypes ? mixedTypes[i] : evt.type
+      const type = positions ? authoredType : rotateRegularSpawnType(cache, authoredType)
       const pos = positions ? positions[i] : spawnPosForBurstType(type, bounds, taken, Math.random, obstacles)
       if (!pos) continue
       batch.push({ type, pos, statOverride: stageHpOverride(type, stageId) })
@@ -854,9 +866,10 @@ export function runStageRuntimeProbe({
     const batch = []
     for (const entry of entries) {
       const taken = batch.map((enemy) => enemy.pos)
-      const pos = spawnPosForBurstType(entry.type, bounds, taken, Math.random, obstacles)
+      const type = rotateRegularSpawnType(cache, entry.type)
+      const pos = spawnPosForBurstType(type, bounds, taken, Math.random, obstacles)
       if (!pos) continue
-      batch.push({ type: entry.type, pos, statOverride: overtimeHpStatOverride(entry.type, stageId, overtimeTick) })
+      batch.push({ type, pos, statOverride: overtimeHpStatOverride(type, stageId, overtimeTick) })
     }
     addEnemies(batch, true, 'overtime')
   }
@@ -868,9 +881,10 @@ export function runStageRuntimeProbe({
     const batch = []
     for (const entry of entries) {
       const taken = batch.map((enemy) => enemy.pos)
-      const pos = spawnPosForBurstType(entry.type, bounds, taken, Math.random, obstacles)
+      const type = rotateRegularSpawnType(cache, entry.type)
+      const pos = spawnPosForBurstType(type, bounds, taken, Math.random, obstacles)
       if (!pos) continue
-      batch.push({ type: entry.type, pos, statOverride: stageHpOverride(entry.type, stageId) })
+      batch.push({ type, pos, statOverride: stageHpOverride(type, stageId) })
     }
     addEnemies(batch, true, 'dominance')
   }
@@ -1555,6 +1569,7 @@ export function runStageRuntimeProbe({
     xpCollected,
     spawnCount,
     spawnCountBySource,
+    spawnSecsByType,
     spawnHpByBin,
     spawnRequests,
     alive210: alive210 ?? false,

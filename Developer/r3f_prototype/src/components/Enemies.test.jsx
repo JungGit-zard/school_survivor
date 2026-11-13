@@ -183,6 +183,8 @@ describe('Team A low-density runtime integration', () => {
         expect(pool.hp[index]).toBe(stageHpOverride(type, 'stage1')?.hp ?? ENEMY_STATS[type].hp)
         expect(pool.maxHp[index]).toBe(pool.hp[index])
       }
+      // 시계 0초: 로스터 순환은 데뷔(작성된 첫 등장) + 간격 전에는 어떤 종도 기한이 오지 않으므로(lib/stageRosterRotation.js)
+      // 리필은 정확히 E07×10 + E01×10이다. 기한이 온 뒤의 섞임은 stageRosterRotation.test.js가 시계를 고정해 단언한다.
       expect(counts).toEqual({ E07: 10, E01: 10 })
       frame(0.001) // >=4 resets
       clearPool()
@@ -223,6 +225,7 @@ describe('Team A low-density runtime integration', () => {
         const type = enemyTypeFromCode(pool.type[index])
         restartedCounts[type] = (restartedCounts[type] ?? 0) + 1
       }
+      // 새 런은 로스터 순환 기한도 데뷔 게이트부터 새로 시작한다 — 시계 0초 리필은 기본 구성 그대로다.
       expect(restartedCounts).toEqual({ E07: 10, E01: 10 })
     } finally {
       for (const cleanup of cleanups.reverse()) cleanup()
