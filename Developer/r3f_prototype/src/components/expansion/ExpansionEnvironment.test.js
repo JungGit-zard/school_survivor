@@ -57,12 +57,18 @@ describe('five elaborate bounded expansion sets',()=>{
    const obstacles=EXPANSION_STAGES.stage6.layout.obstacles
    expect(root.userData.obstacleVisualIds).toEqual(obstacles.map(o=>o.id))
    expect(root.userData.obstacleVisualIds).toEqual(['exp_s6_goal_north','exp_s6_goal_south'])
-   const solids=[];root.traverse(n=>{if(n.isInstancedMesh&&n.name.endsWith('-solid'))solids.push(n)})
-   const goalWhite=solids.find(n=>n.name.includes('#FFFFFF'))
-   expect(goalWhite).toBeDefined()
-   const m=new THREE.Matrix4(),p=new THREE.Vector3(),zs=[]
-   for(let i=0;i<goalWhite.count;i++){goalWhite.getMatrixAt(i,m);p.setFromMatrixPosition(m);zs.push(p.z)}
-   for(const o of obstacles)expect(zs.some(z=>Math.abs(z-o.zUnits)<=o.halfZUnits+1e-6),o.id).toBe(true)
+   // The hand-built goal frames (schoolyardProps.js) fill each collider rectangle and never spill out of it.
+   const goals=root.getObjectByName('schoolyard-prop-goals-solid')
+   expect(goals?.isMesh).toBe(true)
+   const pos=goals.geometry.attributes.position,v=new THREE.Vector3()
+   for(const o of obstacles) {
+     const inside=new THREE.Box3()
+     for(let i=0;i<pos.count;i++){v.fromBufferAttribute(pos,i);if(Math.abs(v.z-o.zUnits)<=o.halfZUnits+1e-6)inside.expandByPoint(v)}
+     expect(inside.isEmpty(),o.id).toBe(false)
+     expect(inside.min.x).toBeCloseTo(o.xUnits-o.halfXUnits,1)
+     expect(inside.max.x).toBeCloseTo(o.xUnits+o.halfXUnits,1)
+     expect(inside.max.y).toBeGreaterThan(1.3)
+   }
    // Gate leaves slide ±2.6u over 1s once the escape portal opens; reduced motion snaps open.
    const [left,right]=root.userData.gateLeaves
    animateExpansionEnvironment(root,0,false,{gateOpen:false})

@@ -4,6 +4,7 @@ import { EXPANSION_STAGES } from '../../lib/expansionContent.js'
 import { getCachedToonMat, getCachedOutlineMat, inflateScale } from '../../lib/toon.js'
 import { getExpansionGeometry } from './expansionRig.js'
 import { captureStudioPartBaseTransforms, composeStudioPartPosition, composeStudioPartRotation, disposeStudioOwnedMaterials } from '../StudioTunedGroup.jsx'
+import { createSchoolyardProps, animateSchoolyardProps, disposeSchoolyardProps } from './schoolyardProps.js'
 
 // Static scenery is geometry/material batched. It is decoration, not a second
 // collider registry: every raised prop footprint is outside the playable bounds.
@@ -213,12 +214,18 @@ export function createExpansionEnvironment(stageId,{halfX=7.5,halfZ=19.2}={}) {
 }
 // Static records -> one solid + one outline InstancedMesh per shape/color/emissive (shared by every set).
 // `outline:false` records (flat paint: track, lines, grass) get no hull, so ground paint never rims.
-function bakeStaticRecords(root,records,theme) {
+// `keyOrder` pins the child order of batches that existed before (Studio part keys are numeric
+// child paths): a pinned key with no records left keeps its slot(s) as empty "retired" groups.
+function bakeStaticRecords(root,records,theme,keyOrder=[]) {
  const staticRoot=new THREE.Group();staticRoot.name='authored-static-volumes';root.add(staticRoot)
- const batches=new Map()
+ const batches=new Map(keyOrder.map(key=>[key,[]]))
  for(const record of records){const key=`${record.shape}:${record.color}:${record.emissive}${record.outline===false?':flat':''}`;if(!batches.has(key))batches.set(key,[]);batches.get(key).push(record)}
  const matrix=new THREE.Matrix4(),p=new THREE.Vector3(),q=new THREE.Quaternion(),s=new THREE.Vector3(),e=new THREE.Euler()
  for(const [key,items]of batches) {
+   if(!items.length) {
+     for(const slot of key.endsWith(':flat')?['solid']:['solid','outline']){const retired=new THREE.Group();retired.name=`${theme}-${key}-retired-${slot}`;staticRoot.add(retired)}
+     continue
+   }
    const first=items[0],geometry=getExpansionGeometry(first.shape)
    const solid=new THREE.InstancedMesh(geometry,getCachedToonMat(first.color,first.emissive),items.length)
    solid.name=`${theme}-${key}-solid`;solid.frustumCulled=false
@@ -241,6 +248,16 @@ function bakeStaticRecords(root,records,theme) {
 // The gate leaves slide open when the escape portal activates (animateExpansionEnvironment gateOpen).
 export const SCHOOLYARD_GATE_OPEN_SLIDE = 2.6
 export const SCHOOLYARD_GATE_OPEN_SECONDS = 1.0
+// Static batch order before the hand-built props (2026-11-14). Batches whose records moved into
+// schoolyardProps.js keep their child slots as empty retired groups, so saved Studio numeric part
+// paths under `authored-static-volumes` keep resolving to the same batch (or to nothing).
+export const SCHOOLYARD_STATIC_BATCH_ORDER = Object.freeze([
+ 'box:#D8B57A:0.04:flat','box:#7DBF68:0.04:flat','box:#C9673F:0.04:flat','box:#F7F4EA:0.04:flat',
+ 'box:#FFFFFF:0.06','box:#DADDE0:0.06','box:#C8CDD2:0.06','box:#EFE3C6:0.06','box:#7FB7D9:0.06','box:#6B4F3A:0.06',
+ 'ring:#FFF4D6:0.06','box:#A7A9AC:0.06','box:#7A5A3C:0.06','cylinder:#8C9399:0.06','orb:#2B2B2B:0.06','cone:#E8E8E8:0.06',
+ 'cylinder:#C9CDD1:0.06','orb:#F2C94C:0.06','box:#2F5FA8:0.06','box:#F2C94C:0.06','box:#E04B4B:0.06','box:#B9B2A6:0.06',
+ 'cylinder:#7A5A3C:0.06','orb:#5DAA4F:0.06','cylinder:#4C7FB8:0.06','box:#4C7FB8:0.06','box:#8C8478:0.06','box:#3E6B4E:0.06','box:#F2E6C9:0.06',
+])
 function createSchoolyardEnvironment(stageId,art,{halfX,halfZ}) {
  const root=new THREE.Group();root.name=`${stageId}-${art.theme}-environment`
  const records=[],bounds=[]
@@ -249,10 +266,12 @@ function createSchoolyardEnvironment(stageId,art,{halfX,halfZ}) {
  const paint=(n,s,p,c,r)=>add(n,'box',s,p,c,r,.04,false)
  const cyl=(n,s,p,c,r)=>add(n,'cylinder',s,p,c,r)
  const orb=(n,s,p,c)=>add(n,'orb',s,p,c)
- const cone=(n,s,p,c,r)=>add(n,'cone',s,p,c,r)
  const ring=(n,s,p,c,r)=>add(n,'ring',s,p,c,r)
  const claim=(x,z,hx,hz)=>bounds.push({minX:x-hx,maxX:x+hx,minZ:z-hz,maxZ:z+hz})
- const C={track:'#C9673F',line:'#F7F4EA',grass:'#7DBF68',wall:'#EFE3C6',window:'#7FB7D9',door:'#6B4F3A',stone:'#B9B2A6',cap:'#8C8478',podium:'#A7A9AC',wood:'#7A5A3C',steel:'#8C9399',horn:'#E8E8E8',pole:'#C9CDD1',leaf:'#5DAA4F',bars:'#4C7FB8',gate:'#3E6B4E',plate:'#F2E6C9',goal:'#FFFFFF',net:'#DADDE0',netFace:'#C8CDD2'}
+ const C={track:'#C9673F',line:'#F7F4EA',grass:'#7DBF68',wall:'#EFE3C6',window:'#7FB7D9',door:'#6B4F3A',stone:'#B9B2A6',cap:'#8C8478',podium:'#A7A9AC',wood:'#7A5A3C',steel:'#8C9399',horn:'#E8E8E8',pole:'#C9CDD1',leaf:'#5DAA4F',bars:'#4C7FB8',gate:'#3E6B4E',plate:'#F2E6C9',goal:'#FFFFFF',net:'#DADDE0',netFace:'#C8CDD2',
+  // hand-built props (schoolyardProps.js)
+  goalBase:'#C9CDD1',netStrand:'#F4F6F8',rail:'#F7F4EA',woodLight:'#A57A4F',mic:'#2B2B2B',paBox:'#D9D4C7',hornMouth:'#3A3F45',rope:'#FFFDF5',
+  gymPost:'#E04B4B',gymX:'#F2C94C',gymZ:'#4C7FB8',seatA:'#2F5FA8',seatB:'#F2C94C'}
 
  // ── Ground: sand slab, grass beyond the side and top edges (flat paint, no hulls) ──
  paint('arena-slab',[halfX*2,.30,halfZ*2],[0,-.17,0],art.floor)
@@ -280,17 +299,8 @@ function createSchoolyardEnvironment(stageId,art,{halfX,halfZ}) {
    for(const side of [-1,1])paint('pitch-penalty-box',[.08,.012,3],[goal.xUnits+side*3,-.003,front+f*1.5],C.line)
  }
 
- // ── Soccer goals = the solid layout obstacles, drawn at their collider coordinates ──
- const obstacleVisualIds=[]
- for(const goal of goals) {
-   const {xUnits:x,zUnits:z,halfXUnits:hx,halfZUnits:hz}=goal,f=z<0?1:-1,mouth=z+f*hz,back=z-f*hz,H=1.4
-   for(const side of [-1,1])box('goal-post',[.12,H,.12],[x+side*hx,H/2,mouth],C.goal)
-   box('goal-crossbar',[hx*2,.12,.12],[x,H,mouth],C.goal)
-   box('goal-net-top',[hx*2,.06,hz*2],[x,H,z],C.net)
-   for(const side of [-1,1])box('goal-net-side',[.06,H,hz*2],[x+side*hx,H/2,z],C.net)
-   box('goal-net-back',[hx*2-.1,H-.1,.03],[x,(H-.1)/2,back],C.netFace)
-   obstacleVisualIds.push(goal.id)
- }
+ // ── Soccer goals = the solid layout obstacles; schoolyardProps.js draws them inside their collider rectangles ──
+ const obstacleVisualIds=goals.map(goal=>goal.id)
 
  // ── Top (−Z): school facade, assembly podium, PA poles, flag poles ──
  {
@@ -303,44 +313,22 @@ function createSchoolyardEnvironment(stageId,art,{halfX,halfZ}) {
    box('school-entrance-door',[3,2.4,.05],[0,1.2,z+.53],C.door)
    ring('school-clock',[1.1,1.1,.15],[0,5.3,z+.6],art.light)
  }
- {
-   const z=-halfZ-1.8;claim(0,z,3,1.2)
-   box('assembly-podium',[6,1.0,2.4],[0,.5,z],C.podium)
-   box('assembly-podium-step',[3,.67,.3],[0,.335,-halfZ-.45],C.podium)
-   box('assembly-podium-step',[3,.34,.3],[0,.17,-halfZ-.15],C.podium)
-   box('assembly-lectern',[1.2,1.1,.6],[0,1.55,z+.4],C.wood)
-   cyl('assembly-mic-stand',[.04,.5,.04],[.32,2.35,z+.65],C.steel)
-   orb('assembly-mic',[.12,.12,.12],[.32,2.62,z+.7],'#2B2B2B')
-   for(const side of [-1,1]) {
-     const px=side*3.4,pz=-halfZ-1.2;claim(px,pz,.35,.35)
-     cyl('pa-speaker-pole',[.12,4.2,.12],[px,2.1,pz],C.steel)
-     for(const y of [3.4,3.95])cone('pa-speaker-horn',[.5,.6,.5],[px,y,pz+.25],C.horn,[Math.PI/2,0,0])
-   }
-   const flags=['#2F5FA8','#F2C94C','#E04B4B']
-   ;[-6.5,-8.0,-9.5].forEach((fx,i)=>{
-     const fz=-halfZ-1.5;claim(fx,fz,.6,.2)
-     cyl('flag-pole',[.08,5.5,.08],[fx,2.75,fz],C.pole)
-     orb('flag-pole-finial',[.18,.18,.18],[fx,5.55,fz],art.trim)
-     box('flag',[1.0,.6,.03],[fx+.52,5.0,fz],flags[i])
-   })
- }
+ // Assembly podium, PA horn poles and flagpoles are hand-built in schoolyardProps.js; the claims
+ // (decoration footprints) stay exactly where the old box versions were.
+ claim(0,-halfZ-1.8,3,1.2)
+ for(const side of [-1,1])claim(side*3.4,-halfZ-1.2,.35,.35)
+ for(const fx of [-6.5,-8.0,-9.5])claim(fx,-halfZ-1.5,.6,.2)
 
- // ── Sides: three-tier stands and plane trees; bottom-right climbing frame ──
+ // ── Sides: bleachers (schoolyardProps.js) and plane trees; bottom-right jungle gym ──
  for(const side of [-1,1]) {
    claim(side*(halfX+2.75),0,1.25,12)
-   for(let tier=0;tier<3;tier++)box('grandstand-tier',[.83,.4*(tier+1),24],[side*(halfX+1.92+tier*.83),.2*(tier+1),0],C.stone)
    for(const tz of [-15,-5,5,15]) {
      const tx=side*(halfX+5);claim(tx,tz,1.2,1.2)
      cyl('plane-tree-trunk',[.35,2.6,.35],[tx,1.3,tz],C.wood)
      orb('plane-tree-canopy',[2.4,2.0,2.4],[tx,3.3,tz],C.leaf)
    }
  }
- {
-   const gx=halfX+2.5,gz=halfZ-4;claim(gx,gz,.8,.8)
-   for(const dx of [-.6,.6])for(const dz of [-.6,.6])cyl('climbing-frame-post',[.08,1.7,.08],[gx+dx,.85,gz+dz],C.bars)
-   for(const dz of [-.6,.6])box('climbing-frame-rail',[1.3,.08,.08],[gx,1.7,gz+dz],C.bars)
-   for(let rung=0;rung<5;rung++)box('climbing-frame-rung',[.06,.06,1.25],[gx-.5+rung*.25,1.7,gz],C.bars)
- }
+ claim(halfX+2.5,halfZ-4,.8,.8)
 
  // ── Bottom (+Z): gate pillars, name plate, fence (the sliding leaves are built below) ──
  const gateZ=halfZ+.6
@@ -353,7 +341,7 @@ function createSchoolyardEnvironment(stageId,art,{halfX,halfZ}) {
  }
  box('school-name-plate',[.7,.9,.05],[-3.4,2.0,gateZ+.48],C.plate)
 
- bakeStaticRecords(root,records,art.theme)
+ bakeStaticRecords(root,records,art.theme,SCHOOLYARD_STATIC_BATCH_ORDER)
 
  // Gate leaves: two sliding groups (6 bars + 2 rails each), outside the static batch so they can move.
  const gate=new THREE.Group();gate.name='stage6-gate-doors';gate.position.set(0,0,halfZ+.4);root.add(gate)
@@ -386,6 +374,11 @@ function createSchoolyardEnvironment(stageId,art,{halfX,halfZ}) {
  }
 
  root.userData.staticPartCount=records.length;root.userData.decorationBounds=bounds;root.userData.spectacle=spectacle;root.userData.expansionStageId=stageId
+
+ // Hand-built props (goals, podium, flagpoles + waving flags, PA horns, jungle gym, bleachers): root child 3,
+ // after the static batch / gate / spectacle slots so existing Studio numeric part paths do not move.
+ const props=createSchoolyardProps({art,C,goals,halfX,halfZ});root.add(props)
+ root.userData.schoolyardProps=props
  root.userData.obstacleVisualIds=obstacleVisualIds;root.userData.gateLeaves=leaves;root.userData.gateOpenness=0
  captureStudioPartBaseTransforms(root)
  return root
@@ -412,6 +405,7 @@ export function animateExpansionEnvironment(root,time=0,reducedMotion=false,{gat
    root.userData.gateLastTime=t
    stepSchoolyardGate(root,gateOpen,Number.isFinite(last)?t-last:0,reducedMotion)
  }
+ if(root.userData.schoolyardProps)animateSchoolyardProps(root.userData.schoolyardProps,t,reducedMotion)
  const spectacle=root.userData.spectacle;spectacle.visible=!reducedMotion
  if(reducedMotion)return
  for(const node of spectacle.children) {
@@ -428,6 +422,7 @@ export function animateExpansionEnvironment(root,time=0,reducedMotion=false,{gat
 }
 export function disposeExpansionEnvironment(root) {
  disposeStudioOwnedMaterials(root)
+ if(root?.userData.schoolyardProps)disposeSchoolyardProps(root.userData.schoolyardProps)
  root?.traverse(node=>{if(node.isInstancedMesh)node.dispose()})
  // Shared unit geometry/cached materials are not disposed on floor switches.
 }
