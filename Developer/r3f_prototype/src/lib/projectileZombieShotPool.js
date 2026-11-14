@@ -11,6 +11,8 @@ import { isPointInsideRangedBlockers } from './stageRangedBlockers.js'
 //
 // 거리 단위는 월드 유닛. 1 블록 = 4 유닛.
 import { PLAYER_CONTACT_HALF_EXTENT } from './enemyProjectilePool.js'
+// 착지·폭발 신호음(2026-11-14). 소리 선택·간격·거리 감쇠는 enemyAbilitySfx.js가 소유하고 throw하지 않는다.
+import { cueShotImpactSfx } from './enemyAbilitySfx.js'
 
 export const MAX_PROJECTILE_ZOMBIE_SHOTS = 48
 
@@ -329,6 +331,8 @@ export class ProjectileZombieShotPool {
   }
 
   _blast(i, x, z, radius, playerX, playerZ, onHit, slowState) {
+    // 물 철퍽·배구공 퍽·우유갑 펑·분필 풀썩·도미노 딱·술래 짝. 표에 없는 kind는 무음.
+    cueShotImpactSfx(this.kind[i], x, z, playerX, playerZ)
     const dx = x - playerX
     const dz = z - playerZ
     const reach = radius + PLAYER_CONTACT_HALF_EXTENT

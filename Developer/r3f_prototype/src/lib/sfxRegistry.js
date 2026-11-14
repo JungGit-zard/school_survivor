@@ -112,6 +112,31 @@ export const SOUND_MAP = {
   b10MeetingBell:     '/sfx/enemies/b10MeetingBell.ogg',  // 교무회의 소집 정지 시작
   b03ShuttleStomp:    '/sfx/enemies/b03ShuttleStomp.ogg', // 셔틀런 홉 착지마다 1회
 
+  // ── 신규 좀비 행동·사망 개그 (21 ID, 2026-11-14) ─────────────────────────────
+  // 배정(종별 피치 포함)·간격·거리 감쇠 정본은 lib/enemyAbilitySfx.js. 전부 scripts/generate_sfx.mjs 자체 합성.
+  // /enemies/ 경로라 'combat' 클래스 = 전투 보이스 상한(6, 사망 발성 예약 2) 안에서만 울린다.
+  gagWindup:          '/sfx/enemies/gagWindup.ogg',          // 용수철 '뾰잉' 예고
+  gagSwoosh:          '/sfx/enemies/gagSwoosh.ogg',          // 돌진·휘두르기 '휙'
+  gagSneakerSqueak:   '/sfx/enemies/gagSneakerSqueak.ogg',   // 운동화 '끽'
+  gagWahWah:          '/sfx/enemies/gagWahWah.ogg',          // 슬픈 트롬본(근접 신규 사망 개그)
+  gagToss:            '/sfx/enemies/gagToss.ogg',            // 던지기 '휙'
+  gagSplash:          '/sfx/enemies/gagSplash.ogg',          // 물 '철퍽'
+  gagBallThwack:      '/sfx/enemies/gagBallThwack.ogg',      // 공 '퍽-뵹'
+  gagChoirLa:         '/sfx/enemies/gagChoirLa.ogg',         // 합창 '라'
+  gagPotionBlorp:     '/sfx/enemies/gagPotionBlorp.ogg',     // 물약 '뽀글'
+  gagPaintSplat:      '/sfx/enemies/gagPaintSplat.ogg',      // 물감 '철썩'
+  gagMegaphone:       '/sfx/enemies/gagMegaphone.ogg',       // 확성기 '뿌왕'
+  gagBuffSparkle:     '/sfx/enemies/gagBuffSparkle.ogg',     // 적 회복·방패 반짝
+  gagCardFlick:       '/sfx/enemies/gagCardFlick.ogg',       // 종이 '착'
+  gagRopeWhirr:       '/sfx/enemies/gagRopeWhirr.ogg',       // 줄·회전 '휘리릭'
+  gagTrayClatter:     '/sfx/enemies/gagTrayClatter.ogg',     // 식판 '쨍그랑'
+  gagChalkPuff:       '/sfx/enemies/gagChalkPuff.ogg',       // 분필가루 '풀썩'
+  gagSplitSquelch:    '/sfx/enemies/gagSplitSquelch.ogg',    // 플라나리아 '쭈왑-뽁'
+  gagDominoClack:     '/sfx/enemies/gagDominoClack.ogg',     // 도미노 '딱'
+  gagBlinkPop:        '/sfx/enemies/gagBlinkPop.ogg',        // 순간이동 '뿅'
+  gagCartonPop:       '/sfx/enemies/gagCartonPop.ogg',       // 우유갑 '펑'
+  gagPropClatter:     '/sfx/enemies/gagPropClatter.ogg',     // 소품 '와르르'
+
   // ── UI ───────────────────────────────────────────────────────────────────────
   buttonClick:    '/sfx/ui/buttonClick.ogg',
   coinCollect:    '/sfx/ui/coinCollect.ogg',
@@ -355,6 +380,36 @@ export const POLYPHONY_COOLDOWN = Object.freeze({
   stage6GateOpen:        900,
   // 착지 간격은 홉 1회(목표 500ms, 최소 약 333ms)다. 음원 0.22s보다 길고 홉보다 짧게.
   b03ShuttleStomp:       250,
+  // 풀 경로에서 처음 울리게 된 기존 좀비 음원(2026-11-14). E04 발사·E03 등장·앰비언트 신음은
+  // 웨이브 단위로 몰려 나오므로 자기 위에 겹치지 않게 음원 길이 이상으로 잡는다.
+  zombieRangedShoot:     300,
+  zombieRunnerScreech:   900,
+  zombieTankGroan:      1200,
+  zombieGroan:          2500,
+  // 신규 좀비 행동·사망 개그 21종. 대부분 음원 길이 근처 — 같은 소리가 자기 위에 쌓여 음량이 튀지 않게.
+  // 예외 셋: 도미노는 0.16초 간격 연쇄를 다 들려줘야 해서 100, 출석카드는 0.18초 3연발이라 90,
+  // 합창 '라'는 0.3초 3연발이라 140. 앞단 간격·창 예산은 enemyAbilitySfx.js가 한 번 더 건다.
+  gagWindup:        160,
+  gagSwoosh:        140,
+  gagSneakerSqueak: 120,
+  gagWahWah:        450,
+  gagToss:          120,
+  gagSplash:        220,
+  gagBallThwack:    150,
+  gagChoirLa:       140,
+  gagPotionBlorp:   200,
+  gagPaintSplat:    140,
+  gagMegaphone:     260,
+  gagBuffSparkle:   300,
+  gagCardFlick:      90,
+  gagRopeWhirr:     220,
+  gagTrayClatter:   260,
+  gagChalkPuff:     220,
+  gagSplitSquelch:  260,
+  gagDominoClack:   100,
+  gagBlinkPop:      160,
+  gagCartonPop:     200,
+  gagPropClatter:   240,
 })
 
 const AUTH_OVERLAY_ALLOWED_SFX = new Set([

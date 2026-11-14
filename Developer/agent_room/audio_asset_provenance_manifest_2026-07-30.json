@@ -2178,6 +2178,426 @@
       "source": "CC0 recording Freesound #166345 \"Elise laughing, Oct 1, 2012, v2\" by Electron John (https://freesound.org/people/Electron%20John/sounds/166345/; HQ preview https://cdn.freesound.org/previews/166/166345_1315778-hq.mp3, sha256 25ee0bef47e9dc28bbda4fd91efe96a93ec7ea5cdf54a04edd4d7f897dd73026), 80 ms syllable grain at the onset nearest 3.14s; processed by Developer/r3f_prototype/scripts/generate_matilda_girl_voice.mjs (light cleanup only: trim, 150 Hz high-pass, 9 kHz one-pole low-pass, 3 ms fade-in/20 ms fade-out, linear RMS gain to -20 dBFS; no pitch/rate change; OGG/MP3 via @ffmpeg-installer/ffmpeg, bitexact)",
       "notes": "2026-11-14 Terry: \"마틸다 여자아이 목소리 엄수해\" / \"100퍼센트 완전히 바꿔\". Matilda dialogue per-glyph voice grain, rotated by src/lib/dialogueVoice.js; replaces the oscillator bleep (triangle + square overtone + 10 Hz vibrato). Same girl and session as the Matilda SFX cues. Non-verbal syllable only. No attribution required; credit optional: \"Sounds: Electron John via Freesound, CC0\".",
       "licenseEvidence": "CC0-1.0 public-domain dedication shown on the Freesound sound page (http://creativecommons.org/publicdomain/zero/1.0/), checked 2026-11-14; source bytes pinned by SHA-256 in generate_matilda_girl_voice.mjs"
+    },
+    {
+      "logicalId": "gagWindup",
+      "category": "enemies",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/gagWindup.ogg",
+          "bytes": 5022,
+          "sha256": "0eeaf5d6094b970ed7348fceacc3979e0df31b344739246f0c0f13e68fa89f86"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/gagWindup.mp3",
+          "bytes": 2133,
+          "sha256": "cce96836efcdac662f7c9b08ef25d2dd351a6f363b491b8b1a9cff502923f535"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis, recipe 'enemies/gagWindup'; OGG libvorbis q2 / MP3 64k 44.1kHz mono via --encode with @ffmpeg-installer/ffmpeg)",
+      "notes": "2026-11-14 soundmini. 신규 좀비 행동·사망 개그(lib/enemyAbilitySfx.js). 용수철 '뾰잉' 0.2s 예고음: 삼각파 200→520Hz + 사인 400→1040Hz, 26Hz 비브라토(스프링 떨림). Project procedural SFX asset; no external samples, no third-party or real-world melody copied.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "gagSwoosh",
+      "category": "enemies",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/gagSwoosh.ogg",
+          "bytes": 5300,
+          "sha256": "4ea67d2ea5031a9961bdd310b7a832e086d893c5b60dfe5cb40fc29d2a2e9307"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/gagSwoosh.mp3",
+          "bytes": 2551,
+          "sha256": "af0a4044bcba8300097beac08fd8a447badea278b382447d17cc861973885433"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis, recipe 'enemies/gagSwoosh'; OGG libvorbis q2 / MP3 64k 44.1kHz mono via --encode with @ffmpeg-installer/ffmpeg)",
+      "notes": "2026-11-14 soundmini. 신규 좀비 행동·사망 개그(lib/enemyAbilitySfx.js). 돌진·휘두르기 '휙' 0.24s: 대역 노이즈 500→2800Hz 스윕 + 320→150Hz 몸통 사인. Project procedural SFX asset; no external samples, no third-party or real-world melody copied.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "gagSneakerSqueak",
+      "category": "enemies",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/gagSneakerSqueak.ogg",
+          "bytes": 4637,
+          "sha256": "4a58af51a32e2002f65a944a47cdb0004e76d3d736f7238d93b1951a8db2624c"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/gagSneakerSqueak.mp3",
+          "bytes": 1715,
+          "sha256": "8e2e4016b039375657bc0fb41fd27e36b554728f15b0885491f44a57202a5ebc"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis, recipe 'enemies/gagSneakerSqueak'; OGG libvorbis q2 / MP3 64k 44.1kHz mono via --encode with @ffmpeg-installer/ffmpeg)",
+      "notes": "2026-11-14 soundmini. 신규 좀비 행동·사망 개그(lib/enemyAbilitySfx.js). 운동화 '끽' 0.14s: 사인/사각 1750→2300Hz, 45Hz 비브라토 + 고무 마찰 노이즈. Project procedural SFX asset; no external samples, no third-party or real-world melody copied.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "gagWahWah",
+      "category": "enemies",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/gagWahWah.ogg",
+          "bytes": 8291,
+          "sha256": "0d08e9cc7e157b28c440ea6e11f93004c943333e18ba86f8082203bd89f18dd3"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/gagWahWah.mp3",
+          "bytes": 5477,
+          "sha256": "cc5fef8be5a876ecaa3df89f6d9c5419282d3e02eac7e395913f93d85bd052c6"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis, recipe 'enemies/gagWahWah'; OGG libvorbis q2 / MP3 64k 44.1kHz mono via --encode with @ffmpeg-installer/ffmpeg)",
+      "notes": "2026-11-14 soundmini. 신규 좀비 행동·사망 개그(lib/enemyAbilitySfx.js). 슬픈 트롬본 0.62s(신규 근접 좀비 사망 개그): 톱니+사각 2음 294Hz → 262→196Hz 슬라이드, 6Hz 비브라토, LP 1.6kHz. 자작 2음, 실존 멜로디 미사용. Project procedural SFX asset; no external samples, no third-party or real-world melody copied.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "gagToss",
+      "category": "enemies",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/gagToss.ogg",
+          "bytes": 4796,
+          "sha256": "375e34caf17765ab8bfba70b2ead0bc1d68e8c537bcfbaab72af7175e0c2da48"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/gagToss.mp3",
+          "bytes": 1924,
+          "sha256": "f8722a36ea93c8b2d09a2643743a28eb2473dffc66d76b0affded32ab22aab99"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis, recipe 'enemies/gagToss'; OGG libvorbis q2 / MP3 64k 44.1kHz mono via --encode with @ffmpeg-installer/ffmpeg)",
+      "notes": "2026-11-14 soundmini. 신규 좀비 행동·사망 개그(lib/enemyAbilitySfx.js). 던지기 '휙' 0.16s: 노이즈 900→3500Hz + 600→1200Hz 사인. Project procedural SFX asset; no external samples, no third-party or real-world melody copied.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "gagSplash",
+      "category": "enemies",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/gagSplash.ogg",
+          "bytes": 5894,
+          "sha256": "656a15127a3ade79add3734ab94f5e7bcea6d5f6c92294ab250f4e6fc1852e17"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/gagSplash.mp3",
+          "bytes": 3178,
+          "sha256": "a8d17d0a8191e0c121122c962b7443790b5e014689c104e62d1dcab0a7738773"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis, recipe 'enemies/gagSplash'; OGG libvorbis q2 / MP3 64k 44.1kHz mono via --encode with @ffmpeg-installer/ffmpeg)",
+      "notes": "2026-11-14 soundmini. 신규 좀비 행동·사망 개그(lib/enemyAbilitySfx.js). 물 '철퍽' 0.32s: 노이즈 3200→600Hz(30Hz AM) + 420→140Hz 사인. Project procedural SFX asset; no external samples, no third-party or real-world melody copied.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "gagBallThwack",
+      "category": "enemies",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/gagBallThwack.ogg",
+          "bytes": 4207,
+          "sha256": "68e6ec72151e418dccc81827c40db56eba706a40a6bbf4b3b393ee24763db5c4"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/gagBallThwack.mp3",
+          "bytes": 1924,
+          "sha256": "27143fb97441cc79af7632d049fedda133760a5defd164e8b62c6551655c5a77"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis, recipe 'enemies/gagBallThwack'; OGG libvorbis q2 / MP3 64k 44.1kHz mono via --encode with @ffmpeg-installer/ffmpeg)",
+      "notes": "2026-11-14 soundmini. 신규 좀비 행동·사망 개그(lib/enemyAbilitySfx.js). 공 '퍽-뵹' 0.2s: 180→90Hz 타격 + 고역 트랜지언트 + 300→520Hz 튕김. Project procedural SFX asset; no external samples, no third-party or real-world melody copied.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "gagChoirLa",
+      "category": "enemies",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/gagChoirLa.ogg",
+          "bytes": 5204,
+          "sha256": "4ad9b3a801189ad35b784f5a037906f46f8af52c53255bdaab4ab8f03bc95204"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/gagChoirLa.mp3",
+          "bytes": 2342,
+          "sha256": "a030a78d34babe9915fe299b1aa87f0eb161a2e95f8a281f85d4856fee8453a0"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis, recipe 'enemies/gagChoirLa'; OGG libvorbis q2 / MP3 64k 44.1kHz mono via --encode with @ffmpeg-installer/ffmpeg)",
+      "notes": "2026-11-14 soundmini. 신규 좀비 행동·사망 개그(lib/enemyAbilitySfx.js). 합창 '라' 0.22s 의사 음성: 톱니 480→523Hz를 /a/ 포먼트 대역(650–1300, 1050–1500Hz)으로 필터. 실존 인물 음성 아님. Project procedural SFX asset; no external samples, no third-party or real-world melody copied.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "gagPotionBlorp",
+      "category": "enemies",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/gagPotionBlorp.ogg",
+          "bytes": 4227,
+          "sha256": "7b848e4268a0abb69f6424126d8f7c9f186fb4de19f8da92db58fc4360b86f13"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/gagPotionBlorp.mp3",
+          "bytes": 2342,
+          "sha256": "84834498c63ec83e551221eac10e49a6c6e31b1d443cea9a1cd712fa0c44ab26"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis, recipe 'enemies/gagPotionBlorp'; OGG libvorbis q2 / MP3 64k 44.1kHz mono via --encode with @ffmpeg-installer/ffmpeg)",
+      "notes": "2026-11-14 soundmini. 신규 좀비 행동·사망 개그(lib/enemyAbilitySfx.js). 물약 '뽀글' 0.26s: 빠른 상승 사인 기포 3방울. Project procedural SFX asset; no external samples, no third-party or real-world melody copied.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "gagPaintSplat",
+      "category": "enemies",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/gagPaintSplat.ogg",
+          "bytes": 4981,
+          "sha256": "c59af5c9fd8ee5217be2cfe1d260053343837c7ad58e257711204d74871cda75"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/gagPaintSplat.mp3",
+          "bytes": 2133,
+          "sha256": "122c40a4d3c5b50983a4ab1bc612a57495a4e0a5e9127bb40b842c5f9644bbc6"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis, recipe 'enemies/gagPaintSplat'; OGG libvorbis q2 / MP3 64k 44.1kHz mono via --encode with @ffmpeg-installer/ffmpeg)",
+      "notes": "2026-11-14 soundmini. 신규 좀비 행동·사망 개그(lib/enemyAbilitySfx.js). 물감 '철썩' 0.2s: 노이즈 2500→400Hz + 140→70Hz 타격. Project procedural SFX asset; no external samples, no third-party or real-world melody copied.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "gagMegaphone",
+      "category": "enemies",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/gagMegaphone.ogg",
+          "bytes": 5807,
+          "sha256": "a2100b75a56c456c96b6d229730c46525934c6d7a40ee0a146986bf9885a942f"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/gagMegaphone.mp3",
+          "bytes": 3178,
+          "sha256": "19393a3deeab2db866398256f004298998614bca5c511cd93cf8a94bf4f75a3a"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis, recipe 'enemies/gagMegaphone'; OGG libvorbis q2 / MP3 64k 44.1kHz mono via --encode with @ffmpeg-installer/ffmpeg)",
+      "notes": "2026-11-14 soundmini. 신규 좀비 행동·사망 개그(lib/enemyAbilitySfx.js). 확성기 '뿌왕' 0.32s: 사각 233→208Hz + 톱니 옥타브, 대역 500–2600Hz, 버즈 노이즈(카주풍). Project procedural SFX asset; no external samples, no third-party or real-world melody copied.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "gagBuffSparkle",
+      "category": "enemies",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/gagBuffSparkle.ogg",
+          "bytes": 4882,
+          "sha256": "1898246be4dcf6cfd6aef52a8d5aecef8686e84935112bc48017405af8db6a4f"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/gagBuffSparkle.mp3",
+          "bytes": 2969,
+          "sha256": "032677e59b0f58fcbf17f8b6a6102865ce28a27a55c5c863f4a3d1c385f5deb2"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis, recipe 'enemies/gagBuffSparkle'; OGG libvorbis q2 / MP3 64k 44.1kHz mono via --encode with @ffmpeg-installer/ffmpeg)",
+      "notes": "2026-11-14 soundmini. 신규 좀비 행동·사망 개그(lib/enemyAbilitySfx.js). 적 회복·방패 반짝 0.3s: C6-E6-G6-C7 지수감쇠 핑 4음 상행. Project procedural SFX asset; no external samples, no third-party or real-world melody copied.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "gagCardFlick",
+      "category": "enemies",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/gagCardFlick.ogg",
+          "bytes": 3925,
+          "sha256": "6ba3bf076871f2f341ffee395bf25a7cd53f03e47b5781f74b4b6b254fb19d82"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/gagCardFlick.mp3",
+          "bytes": 1088,
+          "sha256": "353d67570ef55777ab4193162976b819d57738b09e5e816881783018deca0979"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis, recipe 'enemies/gagCardFlick'; OGG libvorbis q2 / MP3 64k 44.1kHz mono via --encode with @ffmpeg-installer/ffmpeg)",
+      "notes": "2026-11-14 soundmini. 신규 좀비 행동·사망 개그(lib/enemyAbilitySfx.js). 종이 '착' 0.09s: 노이즈 6000→2500Hz + 1.5kHz 클릭. Project procedural SFX asset; no external samples, no third-party or real-world melody copied.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "gagRopeWhirr",
+      "category": "enemies",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/gagRopeWhirr.ogg",
+          "bytes": 5773,
+          "sha256": "10190dd30bcf4e9f123626b82d7f84d77d03593c14a8cc93935f28298ba0beb8"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/gagRopeWhirr.mp3",
+          "bytes": 2969,
+          "sha256": "9171841ab0369b81eb572e24be3556c66dd87d8c4feae76de7d260b4070bf07f"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis, recipe 'enemies/gagRopeWhirr'; OGG libvorbis q2 / MP3 64k 44.1kHz mono via --encode with @ffmpeg-installer/ffmpeg)",
+      "notes": "2026-11-14 soundmini. 신규 좀비 행동·사망 개그(lib/enemyAbilitySfx.js). 줄·회전 '휘리릭' 0.3s: 노이즈 800→1900Hz, 18Hz AM. Project procedural SFX asset; no external samples, no third-party or real-world melody copied.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "gagTrayClatter",
+      "category": "enemies",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/gagTrayClatter.ogg",
+          "bytes": 5014,
+          "sha256": "61315e8b3f1277d96f5e6d8efa315a22ed4ea9b748fa88d3656b3819b11f3692"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/gagTrayClatter.mp3",
+          "bytes": 2969,
+          "sha256": "e306eb150950be401eb565d9609ff82c582081e7ed7ee97e79dc5938cb74d152"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis, recipe 'enemies/gagTrayClatter'; OGG libvorbis q2 / MP3 64k 44.1kHz mono via --encode with @ffmpeg-installer/ffmpeg)",
+      "notes": "2026-11-14 soundmini. 신규 좀비 행동·사망 개그(lib/enemyAbilitySfx.js). 식판 '쨍그랑' 0.32s: 비조화 금속 부분음(1/2.76/5.4/8.9) 3타 + 고역 노이즈. Project procedural SFX asset; no external samples, no third-party or real-world melody copied.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "gagChalkPuff",
+      "category": "enemies",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/gagChalkPuff.ogg",
+          "bytes": 5525,
+          "sha256": "2a1bef08541586f1be6ba428fd9390dbfd6f32448675ce15c84338c5ae679a63"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/gagChalkPuff.mp3",
+          "bytes": 2551,
+          "sha256": "ec8aae5e023c047167dae36efa9fcd58f158c7a20c8dea16287191eabf9fe1a9"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis, recipe 'enemies/gagChalkPuff'; OGG libvorbis q2 / MP3 64k 44.1kHz mono via --encode with @ffmpeg-installer/ffmpeg)",
+      "notes": "2026-11-14 soundmini. 신규 좀비 행동·사망 개그(lib/enemyAbilitySfx.js). 분필가루 '풀썩' 0.26s: 노이즈 1800→500Hz + 110Hz 저역 타격. Project procedural SFX asset; no external samples, no third-party or real-world melody copied.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "gagSplitSquelch",
+      "category": "enemies",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/gagSplitSquelch.ogg",
+          "bytes": 5243,
+          "sha256": "06b5c0b90ad68be475dbe56efa68e99060461e3a112158eb1b994ee5fa23b2c0"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/gagSplitSquelch.mp3",
+          "bytes": 2969,
+          "sha256": "f9a0ad2dc1b7230d73580a2d908d49379ffe5f2fd4d7073546a0c8c197acb3bb"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis, recipe 'enemies/gagSplitSquelch'; OGG libvorbis q2 / MP3 64k 44.1kHz mono via --encode with @ffmpeg-installer/ffmpeg)",
+      "notes": "2026-11-14 soundmini. 신규 좀비 행동·사망 개그(lib/enemyAbilitySfx.js). 플라나리아 '쭈왑-뽁' 0.3s: 사인 180→520Hz(30Hz 비브라토) + AM 노이즈 + 끝 팝. Project procedural SFX asset; no external samples, no third-party or real-world melody copied.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "gagDominoClack",
+      "category": "enemies",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/gagDominoClack.ogg",
+          "bytes": 3906,
+          "sha256": "4df5840b84b3d2a9d347336df8559d22c615ef269567fde5131beef4edfca08e"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/gagDominoClack.mp3",
+          "bytes": 1297,
+          "sha256": "efe33349f8d7181aac7ac2ae7d2ad94abb32f7e6d79b032fca557cbeb105790b"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis, recipe 'enemies/gagDominoClack'; OGG libvorbis q2 / MP3 64k 44.1kHz mono via --encode with @ffmpeg-installer/ffmpeg)",
+      "notes": "2026-11-14 soundmini. 신규 좀비 행동·사망 개그(lib/enemyAbilitySfx.js). 도미노 '딱' 0.08s: 1.1kHz 나무 타격(부분음 2.3) + 짧은 노이즈. Project procedural SFX asset; no external samples, no third-party or real-world melody copied.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "gagBlinkPop",
+      "category": "enemies",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/gagBlinkPop.ogg",
+          "bytes": 4662,
+          "sha256": "affbd3bd58571deeac83b6a466b2fab5b067ebb723a3efd95f43defd7a4ab361"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/gagBlinkPop.mp3",
+          "bytes": 1924,
+          "sha256": "24ca32f3e61535205b7da9fe6d96009f725989b291507982bb844f4d3d9090d6"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis, recipe 'enemies/gagBlinkPop'; OGG libvorbis q2 / MP3 64k 44.1kHz mono via --encode with @ffmpeg-installer/ffmpeg)",
+      "notes": "2026-11-14 soundmini. 신규 좀비 행동·사망 개그(lib/enemyAbilitySfx.js). 순간이동 '뿅' 0.18s: 사인 400→1600Hz + 사각 서브 + 1.6kHz 핑. Project procedural SFX asset; no external samples, no third-party or real-world melody copied.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "gagCartonPop",
+      "category": "enemies",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/gagCartonPop.ogg",
+          "bytes": 5252,
+          "sha256": "f313248003bfbc710338683c0c61a88306dfa3e9dc1f77a67db23a596c1e0220"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/gagCartonPop.mp3",
+          "bytes": 2342,
+          "sha256": "123baaf209363c7be4d01db89d161b93a1bfc47ecaf0ab1dbbf6329fb0c8a885"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis, recipe 'enemies/gagCartonPop'; OGG libvorbis q2 / MP3 64k 44.1kHz mono via --encode with @ffmpeg-installer/ffmpeg)",
+      "notes": "2026-11-14 soundmini. 신규 좀비 행동·사망 개그(lib/enemyAbilitySfx.js). 우유갑 '펑' 0.25s: 220→80Hz 타격 + 노이즈 버스트 + 물 튐 꼬리. Project procedural SFX asset; no external samples, no third-party or real-world melody copied.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "gagPropClatter",
+      "category": "enemies",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/gagPropClatter.ogg",
+          "bytes": 5293,
+          "sha256": "48eb71a8aba03173d4d1df33a3427e9d1d9ab04b7882fb551ebd4a3e81cd199b"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/gagPropClatter.mp3",
+          "bytes": 2551,
+          "sha256": "12206ad5371b9f34ab87278f323d7b776ebebcef10ee7459e5bef80087617107"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis, recipe 'enemies/gagPropClatter'; OGG libvorbis q2 / MP3 64k 44.1kHz mono via --encode with @ffmpeg-installer/ffmpeg)",
+      "notes": "2026-11-14 soundmini. 신규 좀비 행동·사망 개그(lib/enemyAbilitySfx.js). 소품 '와르르' 0.32s: 900/1300/700/1100Hz 짧은 타격 4개 + 노이즈 틱. Project procedural SFX asset; no external samples, no third-party or real-world melody copied.",
+      "licenseEvidence": "project-generated-procedural"
     }
   ]
 }

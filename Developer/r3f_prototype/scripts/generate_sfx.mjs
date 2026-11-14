@@ -847,6 +847,130 @@ const sounds = {
     strike({ freq: 180, freqEnd: 110, dur: 0.1, vol: 0.5, tau: 0.035, partials: [[1, 1], [2, 0.35, 0.6]] }),
     sweptNoise({ dur: 0.04, from: 900, to: 300, vol: 0.35, attack: 0.001, release: 0.03 }),
   ), 0.22), 0.9),
+
+  // ── 신규 좀비 행동·사망 개그 21종 (2026-11-14 soundmini, Terry "각종 재미있는 효과음 모두 적용해") ──
+  // 전부 자체 합성(용수철·휙·끽·슬픈 트롬본·소품 소리). 기존 게임/만화 음원·실존 멜로디 복제 없음.
+  // 런타임 배정·간격 정본: src/lib/enemyAbilitySfx.js. 한 음원을 종마다 다른 피치(rate)로 나눠 쓴다.
+  // 용수철 '뾰잉' 0.2s — 예고(신규 근접 12종·E55·E58). 빠른 비브라토가 스프링 떨림이다.
+  'enemies/gagWindup': () => peakTo(trimTo(mix(
+    synth({ wave: 'triangle', freq: 200, freqEnd: 520, dur: 0.2, vol: 0.6, attack: 0.004, decay: 0.06, sustain: 0.6, release: 0.08, vibRate: 26, vibDepth: 45 }),
+    synth({ wave: 'sine', freq: 400, freqEnd: 1040, dur: 0.16, vol: 0.2, attack: 0.004, decay: 0.05, sustain: 0.4, release: 0.06, vibRate: 26, vibDepth: 80 }),
+  ), 0.2), 0.8),
+  // 휙 0.24s — 돌진·휘두르기. 상승 노이즈 스윕 + 아래로 떨어지는 몸통 사인.
+  'enemies/gagSwoosh': () => peakTo(trimTo(mix(
+    sweptNoise({ dur: 0.24, from: 500, to: 2800, vol: 0.7, attack: 0.1, release: 0.1 }),
+    synth({ wave: 'sine', freq: 320, freqEnd: 150, dur: 0.2, vol: 0.12, attack: 0.05, decay: 0.05, sustain: 0.5, release: 0.08 }),
+  ), 0.24), 0.8),
+  // 운동화 '끽' 0.14s — 옆걸음·셔틀런. 2kHz대 떨리는 고음 + 고무 마찰 노이즈.
+  'enemies/gagSneakerSqueak': () => peakTo(trimTo(mix(
+    synth({ wave: 'sine', freq: 1750, freqEnd: 2300, dur: 0.14, vol: 0.5, attack: 0.01, decay: 0.03, sustain: 0.8, release: 0.04, vibRate: 45, vibDepth: 120 }),
+    synth({ wave: 'square', freq: 1750, freqEnd: 2300, dur: 0.14, vol: 0.06, attack: 0.01, decay: 0.03, sustain: 0.6, release: 0.04, vibRate: 45, vibDepth: 120 }),
+    sweptNoise({ dur: 0.12, from: 3500, to: 2500, vol: 0.12, attack: 0.01, release: 0.05 }),
+  ), 0.14), 0.75),
+  // 슬픈 트롬본 0.62s — 신규 근접 12종 사망 개그. 두 음(D4 → C4가 G3까지 미끄러짐), 마지막 음 떨림.
+  'enemies/gagWahWah': () => (() => {
+    const horn = (freq, freqEnd, dur, vib) => lowpass(mix(
+      synth({ wave: 'sawtooth', freq, freqEnd, dur, vol: 0.5, attack: 0.03, decay: 0.06, sustain: 0.75, release: 0.08, vibRate: vib ? 6 : 0, vibDepth: vib ? 7 : 0 }),
+      synth({ wave: 'square', freq: freq / 2, freqEnd: freqEnd / 2, dur, vol: 0.12, attack: 0.03, decay: 0.06, sustain: 0.6, release: 0.08 }),
+    ), 1600)
+    return peakTo(trimTo(mix(
+      horn(294, 290, 0.2, false),
+      at(horn(262, 196, 0.4, true), 0.22),
+    ), 0.62), 0.8)
+  })(),
+  // 던지기 '휙' 0.16s — 지우개·우유갑·분필 투척.
+  'enemies/gagToss': () => peakTo(trimTo(mix(
+    sweptNoise({ dur: 0.16, from: 900, to: 3500, vol: 0.6, attack: 0.03, release: 0.08 }),
+    synth({ wave: 'sine', freq: 600, freqEnd: 1200, dur: 0.12, vol: 0.12, attack: 0.01, decay: 0.03, sustain: 0.5, release: 0.05 }),
+  ), 0.16), 0.75),
+  // 물 '철퍽' 0.32s — 양동이·배수구·물덩이 착지.
+  'enemies/gagSplash': () => peakTo(trimTo(mix(
+    sweptNoise({ dur: 0.32, from: 3200, to: 600, vol: 0.6, attack: 0.004, release: 0.22, am: 30, amDepth: 0.5 }),
+    synth({ wave: 'sine', freq: 420, freqEnd: 140, dur: 0.12, vol: 0.3, attack: 0.002, decay: 0.04, sustain: 0.4, release: 0.06 }),
+  ), 0.32), 0.8),
+  // 공 '퍽-뵹' 0.2s — 배구·야구·술래 터치.
+  'enemies/gagBallThwack': () => peakTo(trimTo(mix(
+    strike({ freq: 180, freqEnd: 90, dur: 0.12, vol: 0.8, tau: 0.035 }),
+    sweptNoise({ dur: 0.04, from: 4000, to: 1500, vol: 0.35, attack: 0.001, release: 0.03 }),
+    at(synth({ wave: 'sine', freq: 300, freqEnd: 520, dur: 0.12, vol: 0.18, attack: 0.005, decay: 0.04, sustain: 0.4, release: 0.06, vibRate: 22, vibDepth: 30 }), 0.05),
+  ), 0.2), 0.8),
+  // 합창 '라' 0.22s — 의사 음성(포먼트 /a/ 대역). E51 음표·E70 술래 부르기.
+  'enemies/gagChoirLa': () => peakTo(trimTo(mix(
+    peakTo(bandpass(synth({ wave: 'sawtooth', freq: 480, freqEnd: 523, dur: 0.22, vol: 0.6, attack: 0.025, decay: 0.05, sustain: 0.75, release: 0.08, vibRate: 5.5, vibDepth: 6 }), 650, 1300), 0.6),
+    peakTo(bandpass(synth({ wave: 'sawtooth', freq: 480, freqEnd: 523, dur: 0.22, vol: 0.4, attack: 0.025, decay: 0.05, sustain: 0.7, release: 0.08 }), 1050, 1500), 0.25),
+    synth({ wave: 'sine', freq: 523, dur: 0.22, vol: 0.15, attack: 0.025, decay: 0.05, sustain: 0.7, release: 0.08 }),
+  ), 0.22), 0.75),
+  // 물약 '뽀글' 0.26s — 기포 세 방울(빠른 상승 사인).
+  'enemies/gagPotionBlorp': () => peakTo(trimTo(mix(
+    synth({ wave: 'sine', freq: 300, freqEnd: 900, dur: 0.05, vol: 0.6, attack: 0.002, decay: 0.02, sustain: 0.6, release: 0.02 }),
+    at(synth({ wave: 'sine', freq: 380, freqEnd: 1100, dur: 0.045, vol: 0.5, attack: 0.002, decay: 0.02, sustain: 0.6, release: 0.02 }), 0.08),
+    at(synth({ wave: 'sine', freq: 260, freqEnd: 800, dur: 0.06, vol: 0.55, attack: 0.002, decay: 0.02, sustain: 0.6, release: 0.025 }), 0.17),
+  ), 0.26), 0.75),
+  // 물감 '철썩' 0.2s.
+  'enemies/gagPaintSplat': () => peakTo(trimTo(mix(
+    sweptNoise({ dur: 0.2, from: 2500, to: 400, vol: 0.6, attack: 0.001, release: 0.15 }),
+    strike({ freq: 140, freqEnd: 70, dur: 0.1, vol: 0.4, tau: 0.03 }),
+  ), 0.2), 0.8),
+  // 확성기 '뿌왕' 0.32s — 카주풍 부저(사각파 + 대역 필터 + 버즈 노이즈).
+  'enemies/gagMegaphone': () => peakTo(trimTo(bandpass(mix(
+    synth({ wave: 'square', freq: 233, freqEnd: 208, dur: 0.32, vol: 0.5, attack: 0.015, decay: 0.05, sustain: 0.8, release: 0.08, vibRate: 6, vibDepth: 8, noiseAmt: 0.1 }),
+    synth({ wave: 'sawtooth', freq: 466, freqEnd: 416, dur: 0.32, vol: 0.2, attack: 0.015, decay: 0.05, sustain: 0.7, release: 0.08, vibRate: 6, vibDepth: 16 }),
+  ), 500, 2600), 0.32), 0.75),
+  // 반짝 상승 4음 0.3s — 보건실 회복·학생회 방패(적 버프).
+  'enemies/gagBuffSparkle': () => peakTo(trimTo(mix(
+    ...[1047, 1319, 1568, 2093].map((f, k) => at(strike({ freq: f, dur: 0.14, vol: 0.45, tau: 0.05, partials: [[1, 1], [2, 0.2, 0.5]] }), k * 0.05)),
+  ), 0.3), 0.7),
+  // 종이 '착' 0.09s — 출석카드·시험지·종이비행기.
+  'enemies/gagCardFlick': () => peakTo(trimTo(mix(
+    sweptNoise({ dur: 0.06, from: 6000, to: 2500, vol: 0.6, attack: 0.001, release: 0.04 }),
+    strike({ freq: 1500, dur: 0.03, vol: 0.2, tau: 0.008 }),
+  ), 0.09), 0.7),
+  // 줄 '휘리릭' 0.3s — 줄넘기·부메랑 자·지구본 회전(진폭 18Hz 흔들림).
+  'enemies/gagRopeWhirr': () => peakTo(trimTo(
+    sweptNoise({ dur: 0.3, from: 800, to: 1900, vol: 0.6, attack: 0.04, release: 0.1, am: 18, amDepth: 0.8 }),
+  0.3), 0.75),
+  // 식판 '쨍그랑' 0.32s — 비조화 금속 부분음 세 번.
+  'enemies/gagTrayClatter': () => peakTo(trimTo(mix(
+    strike({ freq: 620, dur: 0.3, vol: 0.5, tau: 0.07, partials: [[1, 1], [2.76, 0.6, 0.6], [5.4, 0.4, 0.4], [8.9, 0.2, 0.3]] }),
+    at(strike({ freq: 540, dur: 0.2, vol: 0.4, tau: 0.05, partials: [[1, 1], [2.76, 0.5, 0.6], [5.4, 0.3, 0.4]] }), 0.09),
+    at(strike({ freq: 700, dur: 0.14, vol: 0.25, tau: 0.04, partials: [[1, 1], [2.76, 0.5, 0.6]] }), 0.17),
+    sweptNoise({ dur: 0.06, from: 5000, to: 2500, vol: 0.25, attack: 0.001, release: 0.05 }),
+  ), 0.32), 0.75),
+  // 분필가루 '풀썩' 0.26s.
+  'enemies/gagChalkPuff': () => peakTo(trimTo(mix(
+    sweptNoise({ dur: 0.26, from: 1800, to: 500, vol: 0.6, attack: 0.02, release: 0.18 }),
+    strike({ freq: 110, freqEnd: 70, dur: 0.1, vol: 0.25, tau: 0.04 }),
+  ), 0.26), 0.75),
+  // 플라나리아 '쭈왑-뽁' 0.3s — 끈적한 상승음 + 끝에 팝.
+  'enemies/gagSplitSquelch': () => peakTo(trimTo(mix(
+    synth({ wave: 'sine', freq: 180, freqEnd: 520, dur: 0.22, vol: 0.45, attack: 0.01, decay: 0.05, sustain: 0.7, release: 0.05, vibRate: 30, vibDepth: 40 }),
+    lowpass(sweptNoise({ dur: 0.22, from: 900, to: 1400, vol: 0.35, attack: 0.02, release: 0.06, am: 30, amDepth: 0.7 }), 1800),
+    at(strike({ freq: 700, freqEnd: 300, dur: 0.07, vol: 0.5, tau: 0.02 }), 0.22),
+  ), 0.3), 0.8),
+  // 도미노 '딱' 0.08s — 나무 패. 연쇄로 여러 번 울린다.
+  'enemies/gagDominoClack': () => peakTo(trimTo(mix(
+    strike({ freq: 1100, dur: 0.08, vol: 0.6, tau: 0.012, partials: [[1, 1], [2.3, 0.4, 0.6]] }),
+    sweptNoise({ dur: 0.02, from: 4000, to: 2500, vol: 0.3, attack: 0.001, release: 0.015 }),
+  ), 0.08), 0.75),
+  // 순간이동 '뿅' 0.18s.
+  'enemies/gagBlinkPop': () => peakTo(trimTo(mix(
+    synth({ wave: 'sine', freq: 400, freqEnd: 1600, dur: 0.12, vol: 0.6, attack: 0.003, decay: 0.04, sustain: 0.6, release: 0.05 }),
+    synth({ wave: 'square', freq: 200, freqEnd: 800, dur: 0.12, vol: 0.08, attack: 0.003, decay: 0.04, sustain: 0.5, release: 0.05 }),
+    at(strike({ freq: 1600, dur: 0.06, vol: 0.2, tau: 0.02 }), 0.11),
+  ), 0.18), 0.75),
+  // 우유갑 '펑' 0.25s — 터짐 + 짧은 물 튐 꼬리.
+  'enemies/gagCartonPop': () => peakTo(trimTo(mix(
+    strike({ freq: 220, freqEnd: 80, dur: 0.12, vol: 0.7, tau: 0.05 }),
+    sweptNoise({ dur: 0.06, from: 3500, to: 800, vol: 0.45, attack: 0.001, release: 0.05 }),
+    at(sweptNoise({ dur: 0.15, from: 2000, to: 700, vol: 0.18, attack: 0.01, release: 0.12 }), 0.08),
+  ), 0.25), 0.8),
+  // 소품 '와르르 딸그락' 0.32s — 학용품이 떨어지는 작은 딸깍 네 번.
+  'enemies/gagPropClatter': () => peakTo(trimTo(mix(
+    ...[[900, 0], [1300, 0.06], [700, 0.13], [1100, 0.2]].map(([f, t]) => at(mix(
+      strike({ freq: f, dur: 0.06, vol: 0.5, tau: 0.016, partials: [[1, 1], [2.4, 0.35, 0.5]] }),
+      sweptNoise({ dur: 0.015, from: 4500, to: 2500, vol: 0.18, attack: 0.001, release: 0.01 }),
+    ), t)),
+  ), 0.32), 0.75),
 }
 
 function encodeDeployPair(wavPath) {

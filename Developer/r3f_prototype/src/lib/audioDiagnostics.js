@@ -10,8 +10,9 @@ import { TITLE_BGM_URL as titleBgmUrl } from './titleBgm.js'
 // 2026-08-22: 87 → 90 (playerHeal/inuconBite/inuconHeal 음성형 SFX 추가).
 // 2026-10-31: 90 → 91 (inuconBark 대리 피격 짖음 추가).
 // 2026-11-08: 91 → 103 (Stage 5 호출 2종, B10 패턴 3종, Stage 6 6종, B03 셔틀런 착지 1종).
-export const AUDIO_DIAGNOSTIC_SFX_COUNT = 103
-export const AUDIO_DIAGNOSTIC_EXPECTED_COUNT = 104
+// 2026-11-14: 103 → 124 (신규 좀비 행동·사망 개그 21종, lib/enemyAbilitySfx.js).
+export const AUDIO_DIAGNOSTIC_SFX_COUNT = 124
+export const AUDIO_DIAGNOSTIC_EXPECTED_COUNT = 125
 
 // This is intentionally derived from the runtime SFX authority plus the
 // shared title BGM CDN URL. It is not a second audio manifest.

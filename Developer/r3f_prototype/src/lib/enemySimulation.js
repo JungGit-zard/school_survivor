@@ -73,6 +73,7 @@ import {
   NOVEL_TYPE_MAX,
   isNovelZombieType,
   isNovelAttackState,
+  isNovelTelegraphState,
   ENEMY_STATE_NOVEL_APPROACH,
   createNovelBehaviorResult,
   stepNovelZombieBehavior,
@@ -90,6 +91,17 @@ import {
   stepProjectileZombieBehavior,
 } from './projectileZombieBehavior.js'
 import { PROJECTILE_ZOMBIE_TYPES, PROJECTILE_ZOMBIE_TYPE_CODES } from './projectileZombieVisuals.js'
+// 행동 신호음(2026-11-14). 시뮬레이션은 "무슨 일이 일어났다"만 알리고 소리 선택·간격·거리 감쇠는
+// enemyAbilitySfx.js가 소유한다. 그 모듈은 throw하지 않고 Math.random을 쓰지 않는다(결정성 유지).
+import {
+  advanceAmbientGroan,
+  cueAmbientGroanSfx,
+  cueEnemyAttackSfx,
+  cueEnemyDeathSfx,
+  cueEnemySpawnSfx,
+  cueEnemyTelegraphSfx,
+  deferAmbientGroan,
+} from './enemyAbilitySfx.js'
 const expansionRows = Object.values(EXPANSION_ENEMIES)
 
 // Track B 신규 12종(E34~E45 = typeCode 37~48)의 런타임 수치. Enemy.jsx의 NOVEL_ZOMBIE_STATS와
@@ -710,6 +722,11 @@ export class EnemySimulationRuntime {
     if (delta < 0) return this._isolateAll(pool)
     cleanupExpansionPoolAttacks(pool)
     const deltaMs = delta * 1000
+    // 앰비언트 신음: 만기 프레임이면 이번 step에서 가장 가까운 일반 좀비 하나가 신음한다.
+    const groanDue = advanceAmbientGroan(deltaMs)
+    let groanBestDistance = Infinity
+    let groanX = 0
+    let groanZ = 0
     // 플레이어 이동 단위벡터(E38 전용). 정지 프레임은 0으로 두어 "방향을 못 읽었다"가 되게 한다.
     if (Number.isFinite(this._prevPlayerX) && Number.isFinite(this._prevPlayerZ)) {
       const moveX = playerX - this._prevPlayerX
@@ -767,6 +784,8 @@ export class EnemySimulationRuntime {
 
       const type = pool.type[index]
       const generation = pool.generation[index]
+      // 풀 스폰 직후 첫 step(spawnTimer 0)에서 등장음. 타입별 등장음이 없으면 작은 공용 '펑'.
+      if (pool.spawnTimer[index] === 0) cueEnemySpawnSfx(type, pool.posX[index], pool.posZ[index], playerX, playerZ)
       pool.spawnTimer[index] += deltaMs
       pool.hitFlashTimer[index] = Math.max(0, pool.hitFlashTimer[index] - deltaMs)
       pool.hitCooldown[index] = Math.max(0, pool.hitCooldown[index] - deltaMs)
@@ -825,6 +844,11 @@ export class EnemySimulationRuntime {
       let moving = false
       let preserveFacing = false
       let expansionAttack = null
+      if (groanDue && distance < groanBestDistance && type !== 16 && !isScreenRunner(type)) {
+        groanBestDistance = distance
+        groanX = posX
+        groanZ = posZ
+      }
 
       if (isScreenRunner(type)) {
         velocityX = pool.runDirX[index] * ENEMY_RUNTIME_SPEED[type]
@@ -847,6 +871,7 @@ export class EnemySimulationRuntime {
           if (this.events.push(ENEMY_EVENT_RANGED_FIRE, index, generation, posX, pool.posY[index], posZ, nx, nz)) {
             stepProjectileCount += 1
             pool.attackCooldown[index] = E04_FIRE_COOLDOWN_MS
+            cueEnemyAttackSfx(type, posX, posZ, playerX, playerZ)
             if (context.onRangedFire) context.onRangedFire(index, generation, posX, pool.posY[index], posZ, nx, nz)
           }
         }
@@ -872,8 +897,15 @@ export class EnemySimulationRuntime {
         moving = pz.moving
         preserveFacing = pz.state !== PZ_STATE.APPROACH
         if (pz.hasYaw) pool.yaw[index] = pz.yaw
-        if (pz.telegraph) this.events.push(ENEMY_EVENT_PROJECTILE_ZOMBIE_TELEGRAPH, index, generation, posX, pool.posY[index], posZ, pool.runDirX[index], pool.runDirZ[index])
-        if (pz.fire) this.events.push(ENEMY_EVENT_PROJECTILE_ZOMBIE_FIRE, index, generation, posX, pool.posY[index], posZ, pool.runDirX[index], pool.runDirZ[index])
+        if (pz.telegraph) {
+          this.events.push(ENEMY_EVENT_PROJECTILE_ZOMBIE_TELEGRAPH, index, generation, posX, pool.posY[index], posZ, pool.runDirX[index], pool.runDirZ[index])
+          cueEnemyTelegraphSfx(type, posX, posZ, playerX, playerZ)
+        }
+        if (pz.fire) {
+          this.events.push(ENEMY_EVENT_PROJECTILE_ZOMBIE_FIRE, index, generation, posX, pool.posY[index], posZ, pool.runDirX[index], pool.runDirZ[index])
+          // salvo는 탄마다 fire가 온다. knockbackY = 이번까지 쏜 탄 수(1부터) — E51 합창 음정 사다리.
+          cueEnemyAttackSfx(type, posX, posZ, playerX, playerZ, pool.knockbackY[index])
+        }
         if (pz.damage > 0) {
           pool.hitCooldown[index] = ENEMY_CONTACT_COOLDOWN_MS
           pool.lastContactX[index] = playerX
@@ -905,6 +937,9 @@ export class EnemySimulationRuntime {
           && (pool.state[index] === ENEMY_STATE_NOVEL_RECOVER || pool.state[index] === ENEMY_STATE_NOVEL_RECOVER_ALT)) {
           pool.attackCooldown[index] += getNovelCyclePhaseOffsetMs(index)
         }
+        const novelNextState = pool.state[index]
+        if (isNovelTelegraphState(novelNextState) && !isNovelTelegraphState(novelPrevState)) cueEnemyTelegraphSfx(type, posX, posZ, playerX, playerZ)
+        else if (isNovelAttackState(novelNextState) && !isNovelAttackState(novelPrevState)) cueEnemyAttackSfx(type, posX, posZ, playerX, playerZ)
         velocityX = novel.velocityX
         velocityZ = novel.velocityZ
         moving = novel.moving
@@ -929,6 +964,7 @@ export class EnemySimulationRuntime {
           state = ENEMY_STATE_WARN
           pool.state[index] = state
           pool.stateTimer[index] = E05_WARN_MS
+          cueEnemyTelegraphSfx(type, posX, posZ, playerX, playerZ)
         }
         if (state === ENEMY_STATE_WARN && pool.stateTimer[index] <= 0) {
           state = ENEMY_STATE_CHARGE
@@ -1082,6 +1118,10 @@ export class EnemySimulationRuntime {
       }
     }
     if (spatialChanged) pool.markSpatialChanged()
+    if (groanDue) {
+      if (groanBestDistance < Infinity) cueAmbientGroanSfx(groanX, groanZ, playerX, playerZ)
+      else deferAmbientGroan()
+    }
     const comparisonCount = this.grid.comparisonCount
     this.grid.rebuild(pool, gridHalfX, gridHalfZ)
     this.grid.comparisonCount = comparisonCount
@@ -1102,6 +1142,8 @@ export class EnemySimulationRuntime {
     pool.knockbackZ[index] = knockbackZ
     pool.knockbackTimer[index] = knockbackMs
     if (pool.hp[index] > 0) return true
+    // 신규 좀비 사망 개그(소품·몸개그 한 겹). 사망 발성 랜덤 풀은 호출측(Enemies.jsx)이 그대로 낸다.
+    cueEnemyDeathSfx(pool.type[index], pool.posX[index], pool.posZ[index], this._prevPlayerX, this._prevPlayerZ)
     this._despawn(pool, index, ENEMY_EVENT_DEATH, damage, null)
     return true
   }

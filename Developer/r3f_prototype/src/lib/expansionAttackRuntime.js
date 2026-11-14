@@ -1,6 +1,7 @@
 import { EXPANSION_ENEMIES, EXPANSION_BOSSES, EXPANSION_BEHAVIORS, EXPANSION_LIMITS } from './expansionContent.js'
 import { AUTHORED_ATTACK_BOSSES } from './stage5ViceBoss.js'
 import { getStageObjectSightObstacles } from '../components/StageObjects/stageObjectColliders.js'
+import { cueExpansionBehaviorSfx } from './enemyAbilitySfx.js'
 import { expansionAuthoredPolygons, expansionPolygonContains, expansionSafetyContext, buildExpansionSafetyGeometry, certifyExpansionEscape, EXPANSION_PLAYER_RADIUS, EXPANSION_SAFETY_LIMITS, EXPANSION_SAFE_WIDTH } from './expansionAttackSafety.js'
 // Gameplay-owned snapshots; visuals consume the identical locked geometry used by damage.
 export const expansionAttackSnapshots = new Map()
@@ -108,11 +109,15 @@ export function stepExpansionAttack(state,a) {
   if(!s.safetyPolygons.length || !s.escapeChannel)return out
   state.patternIndex++;state.snapshot=s;state.hit=false
   expansionAttackSnapshots.set(state.key,s)
+  // 일반 확장 적(E20 국민체조·E21 계주 등) 특수행동 예고음. 보스 패턴은 Enemy.jsx가 따로 낸다.
+  if(enemy && !boss) cueExpansionBehaviorSfx(enemy.behaviorId,'windup',a.x,a.z,a.playerX,a.playerZ)
   state.nextMs=state.ageMs+(boss?(state.enraged?p.phase2CooldownMs:p.cooldownMs):p.cooldownMs)
   return out
  }
  const total=snapshotTotalMs(s)
+ const prevPhase=s.phase
  const damage=advanceSnapshotPhase(s,a)
+ if(enemy && !boss && prevPhase==='windup' && s.phase!=='windup') cueExpansionBehaviorSfx(enemy.behaviorId,'active',a.x,a.z,a.playerX,a.playerZ)
  if(damage>0){out.damage=damage;state.hit=true}
  const behavior=enemy?.behaviorId
  if(behavior==='dash' || behavior==='hop' || behavior==='sidestep'){
