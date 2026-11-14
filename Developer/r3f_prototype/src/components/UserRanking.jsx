@@ -179,7 +179,7 @@ export default function UserRanking({ onBack, entries }) {
         <RankingRow row={myRow} testId="ranking-my-row" />
       </ol>}
 
-      <button type="button" style={styles.backButton} onClick={onBack}>
+      <button type="button" data-ui-sfx="close" style={styles.backButton} onClick={onBack}>
         {t('ranking.goBack')}
       </button>
     </div>

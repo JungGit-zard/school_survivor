@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { subscribeSfx } from '../lib/sfxEvents.js'
 import { applySfxMasterVolume, playSfx } from '../lib/sfxRegistry.js'
+import { installUiSfxListener } from '../lib/uiSfx.js'
 import { useAuthStore } from '../store/useAuthStore.js'
 
 // sfxEvents 구독 → Howler 재생. null 렌더링이므로 Canvas 밖 어디든 마운트 가능.
@@ -10,11 +11,14 @@ export default function SfxLayer() {
   useEffect(() => { applySfxMasterVolume() }, [])
 
   useEffect(
-    () => subscribeSfx(({ id, volume, rate }) => {
+    () => subscribeSfx(({ id, volume, rate, ui }) => {
       const authOverlayActive = useAuthStore.getState().signingIn
-      playSfx(id, volume, { rate, authOverlayActive })
+      playSfx(id, volume, ui === true ? { rate, authOverlayActive, ui: true } : { rate, authOverlayActive })
     }),
     [],
   )
+
+  // 모든 UI 조작(버튼·탭·토글·슬라이더)의 개그 효과음 — 문서 루트 위임 리스너 하나. 종류 정본은 lib/uiSfx.js.
+  useEffect(() => installUiSfxListener(document), [])
   return null
 }

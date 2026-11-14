@@ -348,6 +348,7 @@ export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onO
             type="button"
             className="lobby-press lobby-rosari-btn"
             data-testid="lobby-rosari-room"
+            data-ui-sfx="open"
             style={styles.rosariRoomButton}
             onClick={() => {
               if (showtimeStageId) return
@@ -370,7 +371,7 @@ export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onO
           >
             ≡
           </button>
-          <button type="button" aria-label={t('lobby.openSettings')} style={styles.gearButton} onClick={() => !showtimeStageId && setModal('settings')}>
+          <button type="button" data-ui-sfx="open" aria-label={t('lobby.openSettings')} style={styles.gearButton} onClick={() => !showtimeStageId && setModal('settings')}>
             ⚙
           </button>
         </div>
@@ -382,6 +383,7 @@ export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onO
               role="menuitem"
               className="lobby-press lobby-menu-item"
               data-testid="lobby-menu-music-room"
+              data-ui-sfx="open"
               style={styles.menuItem}
               onClick={() => {
                 setMenuOpen(false)
@@ -447,13 +449,13 @@ export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onO
       </div>
 
       <nav aria-label={t('lobby.menuAria')} style={styles.bottomNav}>
-        <button type="button" className="lobby-press" style={styles.bottomNavButton} onClick={() => { if (!showtimeStageId) { setWeaponModalInitialId(null); setModal('weapon') } }}>
+        <button type="button" className="lobby-press" data-ui-sfx="open" style={styles.bottomNavButton} onClick={() => { if (!showtimeStageId) { setWeaponModalInitialId(null); setModal('weapon') } }}>
           {t('lobby.weapons')}
           {newlyUnlockedWeaponIds?.length > 0 && <span data-testid="weapon-nav-new-badge" style={styles.weaponNewBadge}>NEW</span>}
         </button>
-        <button type="button" className="lobby-press" style={styles.bottomNavButtonAccent} onClick={() => !showtimeStageId && onOpenRanking?.()}>{t('lobby.ranking')}</button>
-        <button type="button" className="lobby-press" style={styles.bottomNavButtonReward} onClick={() => !showtimeStageId && onOpenCoinShop?.()}>{t('lobby.shop')}</button>
-        <button type="button" className="lobby-press" style={styles.bottomNavButton} onClick={() => !showtimeStageId && onOpenMissionCenter?.()}>{t('lobby.missions')}</button>
+        <button type="button" className="lobby-press" data-ui-sfx="open" style={styles.bottomNavButtonAccent} onClick={() => !showtimeStageId && onOpenRanking?.()}>{t('lobby.ranking')}</button>
+        <button type="button" className="lobby-press" data-ui-sfx="open" style={styles.bottomNavButtonReward} onClick={() => !showtimeStageId && onOpenCoinShop?.()}>{t('lobby.shop')}</button>
+        <button type="button" className="lobby-press" data-ui-sfx="open" style={styles.bottomNavButton} onClick={() => !showtimeStageId && onOpenMissionCenter?.()}>{t('lobby.missions')}</button>
       </nav>
 
       {modal === 'weapon' && <WeaponModal onClose={closeWeaponModal} initialWeaponId={weaponModalInitialId} newlyUnlockedWeaponIds={newlyUnlockedWeaponIds} playerRecords={records} recordsStatus={progressStatus} onRetryRecords={() => { void useAuthStore.getState().retryCloudProgress?.() }} />}
@@ -490,6 +492,9 @@ function StageCard({ index = 0, stageId, recommended = false, stage, unlocked, c
   const playable = stage.playable !== false || devAllStagesUnlocked
   const unlockUnknown = recordsPending && !devAllStagesUnlocked && stageId !== 'stage1'
   const canStart = unlocked && playable && !unlockUnknown
+  // 카드 탭 소리: 시작 가능하면 보스 쇼타임 큐가 따로 울리므로 무음, 기록 확인 중이면 무음(잠시 비활성),
+  // 그 밖(잠김·준비 중)은 거절 트롬본. 카드 안 비활성 버튼도 같은 값을 쓴다(lib/uiSfx.js).
+  const cardUiSfx = canStart || unlockUnknown ? 'none' : 'denied'
   const bestRecordValue = bestSurvivalSec == null
     ? t('loading.game')
     : (hasBestRecord ? formatSurvivalTime(bestSurvivalSec) : t('lobby.noRecord'))
@@ -542,6 +547,7 @@ function StageCard({ index = 0, stageId, recommended = false, stage, unlocked, c
       }}
       aria-label={`${stage.label} ${localizedStageTitle}`}
       aria-describedby={isExpansionStage ? `${stageId}-description` : undefined}
+      data-ui-sfx={cardUiSfx}
       onClick={handleCardClick}
       onPointerEnter={() => preloadStageEntryAssets(stageId)}
       onFocus={() => preloadStageEntryAssets(stageId)}
@@ -566,6 +572,7 @@ function StageCard({ index = 0, stageId, recommended = false, stage, unlocked, c
             <>
               <button
                 type="button"
+                data-ui-sfx="none"
                 className="lobby-press lobby-anim"
                 style={recommended ? { ...styles.previewEnterButton, animation: 'lobbyCtaPulse 1600ms ease-in-out infinite' } : styles.previewEnterButton}
                 onClick={(event) => {
@@ -573,7 +580,7 @@ function StageCard({ index = 0, stageId, recommended = false, stage, unlocked, c
                   queueStart()
                 }}
               >{t('lobby.enter')}</button>
-              <button type="button" className="lobby-press" style={styles.rankingButton} onClick={(event) => {
+              <button type="button" className="lobby-press" data-ui-sfx="open" style={styles.rankingButton} onClick={(event) => {
                 event.stopPropagation()
                 if (!showtimeStageId) onRanking()
               }}>{t('lobby.scoreRecord')}</button>
@@ -583,12 +590,14 @@ function StageCard({ index = 0, stageId, recommended = false, stage, unlocked, c
               <button
                 type="button"
                 style={{ ...styles.previewEnterButton, ...styles.previewDisabledButton }}
+                data-ui-sfx={cardUiSfx}
                 disabled
                 onClick={(event) => event.stopPropagation()}
               >{unlockUnknown ? t('loading.game') : t('lobby.comingSoon')}</button>
               <button
                 type="button"
                 style={{ ...styles.rankingButton, ...styles.previewDisabledButton }}
+                data-ui-sfx={cardUiSfx}
                 disabled
                 onClick={(event) => event.stopPropagation()}
               >{t('lobby.scoreRecord')}</button>
@@ -616,12 +625,14 @@ function StageCard({ index = 0, stageId, recommended = false, stage, unlocked, c
           <button
             type="button"
             style={{ ...styles.previewEnterButton, ...styles.previewDisabledButton, ...styles.lockedHintEntryButton }}
+            data-ui-sfx={cardUiSfx}
             disabled
             onClick={(event) => event.stopPropagation()}
           >{t(STAGE_UNLOCK_HINT_KEYS[stageId] ?? 'lobby.lockedDefault')}</button>
           <button
             type="button"
             style={{ ...styles.rankingButton, ...styles.previewDisabledButton }}
+            data-ui-sfx={cardUiSfx}
             disabled
             onClick={(event) => event.stopPropagation()}
           >{t('lobby.scoreRecord')}</button>

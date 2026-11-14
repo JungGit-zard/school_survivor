@@ -31,6 +31,7 @@ export function SlteraInstantSpawnToggle({ style }) {
     <button
       type="button"
       data-testid="sltera-instant-toggle"
+      data-ui-sfx={enabled ? 'toggleOff' : 'toggleOn'}
       aria-pressed={enabled}
       style={style}
       onClick={() => setSlteraInstantSpawnEnabled(!enabled)}
@@ -60,6 +61,8 @@ export default function SlteraInstantSpawnButton({ phase }) {
     <button
       type="button"
       data-testid="sltera-instant-spawn"
+      // 누르면 슬테라 질주(엔진음)가 바로 시작된다 — 그 소리가 피드백이라 UI 탭음은 겹치지 않게 뺀다.
+      data-ui-sfx="none"
       aria-label={t('sltera.spawnAria')}
       title={t('sltera.spawnAria')}
       style={styles.button}

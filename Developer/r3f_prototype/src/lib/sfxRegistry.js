@@ -470,12 +470,15 @@ export function playSfx(id, volume = 1, options = {}) {
     if (performance.now() < _failed.get(id)) return
     _failed.delete(id)
   }
-  if (!isSfxAllowedForAuthOverlay(id, options.authOverlayActive)) return
+  // UI 조작음(options.ui, src/lib/uiSfx.js)은 로그인 오버레이 중에도 울리고 전투 보이스 상한에 걸리지 않는다.
+  // 개그음 파일을 좀비와 함께 쓰지만(/enemies/ 경로 = combat 클래스) UI 재생은 전투 소리가 아니다.
+  const uiSfx = options.ui === true
+  if (!uiSfx && !isSfxAllowedForAuthOverlay(id, options.authOverlayActive)) return
   const tuning = normalizeSfxTuning(options.tuningOverride ?? loadOptionalSfxTunings()[id])
   const tunedVolume = clamp(volume * tuning.volume, 0, 1)
   const minimumRate = id === 'stunGunHit' ? 0.25 : 0.5
   const tunedRate = clamp((options.rate ?? 1) * tuning.rate, minimumRate, 2)
-  const protectedSfx = isProtectedSfx(id)
+  const protectedSfx = uiSfx || isProtectedSfx(id)
 
   if (!protectedSfx && _activeCombatVoices.size >= combatVoiceCapFor(id)) return
 

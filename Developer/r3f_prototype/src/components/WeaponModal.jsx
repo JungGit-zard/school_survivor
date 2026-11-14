@@ -173,7 +173,7 @@ export default function WeaponModal({ onClose, initialWeaponId = null, newlyUnlo
 
   return (
     <div style={styles.overlay}>
-      <button type="button" aria-label={t('weaponModal.closeAria')} style={styles.scrim} onClick={onClose} />
+      <button type="button" data-ui-sfx="close" aria-label={t('weaponModal.closeAria')} style={styles.scrim} onClick={onClose} />
       <section role="dialog" aria-modal="true" aria-labelledby="lobby-weapon-heading" style={styles.modal}>
         <div style={styles.header}>
           <div>
@@ -237,7 +237,7 @@ export default function WeaponModal({ onClose, initialWeaponId = null, newlyUnlo
           </>
         )}
 
-        <button type="button" style={styles.closeBtn} onClick={onClose}>{t('common.close')}</button>
+        <button type="button" data-ui-sfx="close" style={styles.closeBtn} onClick={onClose}>{t('common.close')}</button>
       </section>
     </div>
   )
@@ -250,7 +250,7 @@ function WeaponRow({ entry, unlocked, combination, records, isNew, onOpen }) {
 
   return (
     <li data-testid={`weapon-row-${entry.id}`} style={{ ...styles.row, ...(combination || unlocked ? styles.rowUnlocked : styles.rowLocked) }}>
-      <button type="button" style={styles.rowButton} onClick={onOpen} aria-label={translate('weaponModal.openDetail', { name: weaponLabel(entry.id, entry.label) }, `${weaponLabel(entry.id, entry.label)} 상세 보기`)}>
+      <button type="button" data-ui-sfx="open" style={styles.rowButton} onClick={onOpen} aria-label={translate('weaponModal.openDetail', { name: weaponLabel(entry.id, entry.label) }, `${weaponLabel(entry.id, entry.label)} 상세 보기`)}>
         <WeaponIconFrame entry={entry} visible={unlocked || combination} style={!unlocked && !combination ? styles.silhouetteLocked : null} />
         <span style={styles.rowCopy}>
           <span style={styles.rowTop}>
@@ -322,7 +322,7 @@ function WeaponDetail({ entry, unlocked, combination, records, isNew, onBack }) 
           <div style={styles.detailText}>{translate('weaponModal.appearAtLevel', { level: entry.minLevelToAppear }, `레벨 ${entry.minLevelToAppear} 이상에서 카드로 등장`)}</div>
         </div>
       )}
-      <button type="button" data-testid="weapon-detail-back" style={styles.backBtn} onClick={onBack}>{translate('weaponModal.backToList', null, '목록으로')}</button>
+      <button type="button" data-testid="weapon-detail-back" data-ui-sfx="close" style={styles.backBtn} onClick={onBack}>{translate('weaponModal.backToList', null, '목록으로')}</button>
     </div>
   )
 }

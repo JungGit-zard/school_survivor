@@ -41,7 +41,7 @@ export default function RosariRoomSignInPopup({ onClose }) {
 
   return (
     <div style={styles.overlay}>
-      <button type="button" tabIndex={-1} aria-hidden="true" style={styles.scrim} onClick={onClose} />
+      <button type="button" tabIndex={-1} aria-hidden="true" data-ui-sfx="close" style={styles.scrim} onClick={onClose} />
       <section
         role="dialog"
         aria-modal="true"
@@ -65,7 +65,7 @@ export default function RosariRoomSignInPopup({ onClose }) {
         >
           {busy ? t('lobby.rosariRoomGate.signingIn') : t('lobby.rosariRoomGate.signIn')}
         </button>
-        <button type="button" data-testid="rosari-room-signin-cancel" style={styles.cancelButton} onClick={onClose}>
+        <button type="button" data-testid="rosari-room-signin-cancel" data-ui-sfx="close" style={styles.cancelButton} onClick={onClose}>
           {t('lobby.rosariRoomGate.close')}
         </button>
       </section>

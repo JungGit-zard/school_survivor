@@ -383,6 +383,7 @@ export default function TitleScreen({
               type="button"
               aria-label={t('common.close')}
               tabIndex={-1}
+              data-ui-sfx="close"
               style={styles.languageScrim}
               onClick={() => setLanguageMenuOpen(false)}
             />
@@ -451,6 +452,7 @@ export default function TitleScreen({
           <button
             type="button"
             className="title-main-action title-start-tag"
+            data-ui-sfx="confirm"
             style={mainActionStyle}
             disabled={mainActionBusy}
             aria-busy={mainActionBusy ? 'true' : undefined}
@@ -466,11 +468,11 @@ export default function TitleScreen({
 
       {cheatOpen && cheatMenuButtonVisible && (
         <div style={styles.modalLayer}>
-          <button type="button" aria-label={t('title.cheatCloseAria')} style={styles.modalScrim} onClick={closeCheat} />
+          <button type="button" data-ui-sfx="close" aria-label={t('title.cheatCloseAria')} style={styles.modalScrim} onClick={closeCheat} />
           <section role="dialog" aria-modal="true" aria-labelledby="title-cheat-heading" style={styles.cheatModal}>
             <div style={styles.modalHeader}>
               <h2 id="title-cheat-heading" style={styles.modalTitle}>{t('title.cheatHeading')}</h2>
-              <button type="button" aria-label={t('common.close')} style={styles.closeButton} onClick={closeCheat}>
+              <button type="button" data-ui-sfx="close" aria-label={t('common.close')} style={styles.closeButton} onClick={closeCheat}>
                 ×
               </button>
             </div>

@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import './StageVendingPrompt.css'
 import { useGameStore } from '../store/useGameStore.js'
+import { emitUiSfx } from '../lib/uiSfx.js'
 import { useAuthStore } from '../store/useAuthStore.js'
 import { playerPos } from '../lib/refs.js'
 import { useLocale } from '../lib/i18n.js'
@@ -207,6 +208,7 @@ export default function StageVendingPrompt() {
       stageId: currentStageId,
       gameKey,
     })
+    emitUiSfx(result.ok ? 'purchase' : 'denied')
     if (result.ok) {
       // 스토어가 구매와 함께 vending 일시정지를 풀어 팝업이 즉시 닫힌다.
       setDismissed(true)
@@ -241,6 +243,7 @@ export default function StageVendingPrompt() {
     <>
     <div
       data-testid="stage-vending-backdrop"
+      data-ui-sfx="close"
       aria-hidden="true"
       style={styles.backdrop}
       onPointerDown={(event) => event.stopPropagation()}
@@ -276,6 +279,8 @@ export default function StageVendingPrompt() {
         <button
           type="button"
           data-testid="stage-vending-buy"
+          // 결과음은 onPurchase가 낸다. 골드 부족은 비활성이어도 거절음, 그 밖의 비활성(만피·구매 완료)은 무음.
+          data-ui-sfx={state === 'insufficient' ? 'denied' : disabled ? undefined : 'none'}
           onClick={onPurchase}
           disabled={disabled}
           style={{ ...styles.button, ...(disabled ? styles.buttonDisabled : styles.buttonEnabled) }}
@@ -285,6 +290,7 @@ export default function StageVendingPrompt() {
         <button
           type="button"
           data-testid="stage-vending-close"
+          data-ui-sfx="close"
           onClick={onBackdropClick}
           style={{ ...styles.button, ...styles.buttonClose }}
         >

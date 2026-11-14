@@ -21,6 +21,7 @@ import { getOwnedOutfitIds } from '../lib/outfitUnlocks.js'
 import { t as translate, useT } from '../lib/i18n.js'
 import RosariWardrobeBody, { OutfitFeatureTable, OutfitTableButton, WardrobeAngleControls } from './RosariWardrobePanel.jsx'
 import { joystickDir } from '../lib/refs.js'
+import { emitUiSfx } from '../lib/uiSfx.js'
 import VirtualJoystick from './VirtualJoystick.jsx'
 
 const ROSARI_GLB_URL = '/assets/rosari-room/PLAYER_wholebody_refined_t_efe49b7c.glb'
@@ -257,7 +258,7 @@ export default function RosariRoom({ onBack }) {
   return (
     <main ref={rootRef} style={{ ...styles.root, gridTemplateColumns: layout.sideRail ? 'minmax(0, 1fr) 158px' : 'minmax(0, 1fr)', gridTemplateRows: layout.sideRail ? 'auto minmax(0, 1fr)' : styles.root.gridTemplateRows }} aria-label={t('rosariRoom.title')}>
       <div style={styles.header}>
-        <button type="button" style={styles.backButton} onClick={onBack}>{t('rosariRoom.back')}</button>
+        <button type="button" data-ui-sfx="close" style={styles.backButton} onClick={onBack}>{t('rosariRoom.back')}</button>
         <div style={styles.titleBlock}>
           <h1 style={{ ...styles.title, ...(layout.compact ? { fontSize: 16 } : {}) }}>{t('rosariRoom.title')}</h1>
           <p hidden={layout.compact} style={styles.subtitle}>{t('rosariRoom.subtitle')}</p>
@@ -407,7 +408,7 @@ function PadButton({ direction, style, handlers, children }) {
   const t = useT()
   const label = t(`rosariRoom.dir.${direction}`, null, direction)
   return (
-    <button type="button" style={{ ...style, ...(handlers['aria-pressed'] ? { background: '#b94f85', color: '#fff', boxShadow: 'inset 0 2px 4px #67315c' } : {}), ...(handlers.disabled ? { opacity: 0.55, cursor: 'not-allowed' } : {}) }} aria-label={t('rosariRoom.moveAria', { direction: label })} {...handlers}>
+    <button type="button" data-ui-sfx="none" style={{ ...style, ...(handlers['aria-pressed'] ? { background: '#b94f85', color: '#fff', boxShadow: 'inset 0 2px 4px #67315c' } : {}), ...(handlers.disabled ? { opacity: 0.55, cursor: 'not-allowed' } : {}) }} aria-label={t('rosariRoom.moveAria', { direction: label })} {...handlers}>
       {children}
     </button>
   )
@@ -751,7 +752,11 @@ function RosariBedroom({ wardrobeOpen, canToggleWardrobeRef, onWardrobeToggle })
         position={[wardrobe.x, 0.96, wardrobe.z]}
         onClick={(event) => {
           event.stopPropagation()
-          if (canRosariWardrobeToggle({ wardrobeOpen, nearWardrobe: canToggleWardrobeRef.current })) onWardrobeToggle?.()
+          if (canRosariWardrobeToggle({ wardrobeOpen, nearWardrobe: canToggleWardrobeRef.current })) {
+            // 3D 옷장 탭은 버튼이 아니라 캔버스 레이캐스트라 루트 UI 리스너가 못 본다 — 옷장 버튼과 같은 소리를 직접 낸다.
+            emitUiSfx(wardrobeOpen ? 'close' : 'open')
+            onWardrobeToggle?.()
+          }
         }}
       >
         <boxGeometry args={[1.48, 1.92, 0.78]} />

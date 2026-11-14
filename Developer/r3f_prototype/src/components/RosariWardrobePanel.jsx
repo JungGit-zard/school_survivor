@@ -91,6 +91,7 @@ export default function RosariWardrobeBody({ currentOutfitId, onSelect, saveFail
                 type="button"
                 data-outfit-id={outfit.id}
                 data-outfit-locked="true"
+                data-ui-sfx="denied"
                 aria-disabled="true"
                 aria-label={t('outfit.lockedAria', { name: outfitName(outfit.id), condition: outfitUnlockText(outfit.id) })}
                 style={previewId === outfit.id ? styles.outfitButtonLockedFocused : styles.outfitButtonLocked}
@@ -160,7 +161,7 @@ export function WardrobeAngleControls({ active, onChoose, style }) {
 export function OutfitTableButton({ buttonRef, onOpen }) {
   const t = useT()
   return (
-    <button ref={buttonRef} type="button" data-outfit-table-open style={styles.tableButton} onClick={onOpen}>
+    <button ref={buttonRef} type="button" data-outfit-table-open data-ui-sfx="open" style={styles.tableButton} onClick={onOpen}>
       <OutfitTableIcon />{t('outfit.table.open')}
     </button>
   )

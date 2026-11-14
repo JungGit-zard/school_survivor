@@ -41,6 +41,32 @@ describe('SfxLayer', () => {
     act(() => root.unmount())
   })
 
+  it('forwards the ui flag for UI gag sounds and plays them for root-level button clicks', () => {
+    const container = document.createElement('div')
+    document.body.appendChild(container)
+    const root = createRoot(container)
+
+    act(() => root.render(<SfxLayer />))
+    const button = document.createElement('button')
+    button.type = 'button'
+    button.setAttribute('data-ui-sfx', 'close')
+    document.body.appendChild(button)
+    act(() => { button.click() })
+
+    expect(playSfx).toHaveBeenCalledWith(
+      'gagSwoosh',
+      0.3,
+      { rate: 1.25, authOverlayActive: true, ui: true },
+    )
+
+    act(() => root.unmount())
+    playSfx.mockClear()
+    button.click()
+    expect(playSfx).not.toHaveBeenCalled()
+    button.remove()
+    container.remove()
+  })
+
   it('applies the master headroom once on mount', () => {
     // 이게 없으면 Howler 마스터가 1.0으로 남고, 거의 풀스케일인 음원들이
     // 겹치는 순간 destination에서 하드 클리핑한다.

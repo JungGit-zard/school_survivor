@@ -11,6 +11,7 @@ import { getAccountUnlockableWeaponIds, WEAPON_CATALOG } from '../lib/weaponCata
 import { isUnlocked as isWeaponUnlocked } from '../lib/weaponUnlocks.js'
 import { buildPlaytestSummary, sendPlaytestSummaryToAssistant } from '../lib/playtestLogger.js'
 import { emitSfx } from '../lib/sfxEvents.js'
+import { emitUiSfx } from '../lib/uiSfx.js'
 import { playDialogueVoice, stopDialogueVoice } from '../lib/dialogueVoice.js'
 import { PART1_FINAL_STAGE_ID, getClearContinuationStageId, getNextStageId, getStageConfig } from '../lib/stageConfig.js'
 import { STAGE2_SPAWN_TELEGRAPHS, STAGE3_SPAWN_TELEGRAPHS, STAGE4_SPAWN_TELEGRAPHS, STAGE5_SPAWN_TELEGRAPHS, STAGE6_SPAWN_TELEGRAPHS } from '../lib/waveTimelines.js'
@@ -168,7 +169,6 @@ function summonCoinJingleZombieCheat() {
     visualScale: stats.scale * ENEMY_SIZE_MULTIPLIER,
     yaw: Math.atan2(nx, nz) + Math.PI,
   })
-  if (spawned) emitSfx({ id: 'buttonClick' })
   return spawned
 }
 
@@ -1371,7 +1371,7 @@ export default function HUD({
   }
 
   const handleCheatAcquireWeapon = (id) => {
-    if (cheatAcquireWeapon(id)) emitSfx({ id: 'buttonClick' })
+    cheatAcquireWeapon(id)
   }
 
   // CSS 키프레임 주입. 최초 1회만 추가한다.
@@ -1625,7 +1625,7 @@ export default function HUD({
               aria-controls="quest-inventory-panel"
               ref={questBagButtonRef}
               style={styles.questBagButton}
-              onClick={() => { emitSfx({ id: 'buttonClick' }); toggleQuestInventory() }}
+              onClick={() => { toggleQuestInventory() }}
             >
               <QuestBagIcon />
               {newQuestItemIds?.length > 0 && <span aria-label={t('hud.newQuestItemAria')} style={styles.questNewBadge}>!</span>}
@@ -1641,7 +1641,7 @@ export default function HUD({
                 <button type="button" style={styles.weaponCheatToggleBtn} onClick={() => setWeaponCheatOpen((open) => !open)} aria-label={t('hud.weaponCheat')} title={t('hud.weaponCheat')}>
                   W
                 </button>
-                <button type="button" style={styles.weaponCheatToggleBtn} onClick={() => { emitSfx({ id: 'buttonClick' }); dispatchStarlinkCheatCrash() }} aria-label={t('hud.starlinkCheatAria')} title={t('hud.starlinkCheatTitle')}>
+                <button type="button" style={styles.weaponCheatToggleBtn} onClick={() => { dispatchStarlinkCheatCrash() }} aria-label={t('hud.starlinkCheatAria')} title={t('hud.starlinkCheatTitle')}>
                   S
                 </button>
                 <button type="button" style={styles.coinJingleCheatBtn} onClick={() => { summonCoinJingleZombieCheat() }} aria-label="코인 몬스터 소환" title="코인 몬스터 소환">
@@ -1650,7 +1650,7 @@ export default function HUD({
               </>
             )}
           </div>
-          <button data-testid="bottom-right-pause" type="button" className="hud-pause-button" aria-label={phase === 'paused' ? t('hud.resumeAria') : t('hud.pauseAria')} style={styles.pauseButton} onClick={() => { emitSfx({ id: 'buttonClick' }); togglePause() }}>
+          <button data-testid="bottom-right-pause" type="button" className="hud-pause-button" data-ui-sfx={phase === 'paused' ? 'confirm' : 'open'} aria-label={phase === 'paused' ? t('hud.resumeAria') : t('hud.pauseAria')} style={styles.pauseButton} onClick={() => { togglePause() }}>
             {phase === 'paused' ? '▶' : 'Ⅱ'}
           </button>
         </>
@@ -1727,6 +1727,7 @@ export default function HUD({
                 <button
                   key={`${levelUpChoiceSerial}-${c.key}`}
                   data-testid="levelup-upgrade-choice"
+                  data-ui-sfx={levelupChoicesReady ? 'cardPick' : 'none'}
                   className="levelup-upgrade-choice"
                   aria-label={`${getUpgradeChoiceLabel(c, weapons)}: ${getUpgradeChoiceDesc(c) ?? ''}`}
                   style={{
@@ -1768,6 +1769,7 @@ export default function HUD({
                       data-testid="weapon-replacement-choice"
                       data-replacement-weapon={id}
                       data-replacement-choice="true"
+                      data-ui-sfx="cardPick"
                       style={styles.levelupReplacementOption}
                       onClick={() => confirmWeaponReplacement(id)}
                     >
@@ -1775,8 +1777,8 @@ export default function HUD({
                     </button>
                   ))}
                 </div>
-                <button type="button" data-testid="weapon-replacement-discard-new" style={styles.levelupReplacementCancel} onClick={discardPendingWeapon}>{t('hud.weaponReplaceDiscardNew')}</button>
-                <button type="button" data-testid="weapon-replacement-cancel" style={styles.levelupReplacementCancel} onClick={cancelWeaponReplacement}>{t('common.cancel')}</button>
+                <button type="button" data-testid="weapon-replacement-discard-new" data-ui-sfx="close" style={styles.levelupReplacementCancel} onClick={discardPendingWeapon}>{t('hud.weaponReplaceDiscardNew')}</button>
+                <button type="button" data-testid="weapon-replacement-cancel" data-ui-sfx="close" style={styles.levelupReplacementCancel} onClick={cancelWeaponReplacement}>{t('common.cancel')}</button>
               </div>
             )}
           </div>
@@ -1819,17 +1821,17 @@ export default function HUD({
                 ))}
                 <div style={styles.newlyUnlockedHint}>{t('hud.newWeaponHint')}</div>
                 {onOpenWeaponEncyclopedia && (
-                  <button type="button" style={styles.weaponEncyclopediaBtn} onClick={() => onOpenWeaponEncyclopedia(newlyUnlockedWeaponIds[0])}>
+                  <button type="button" data-ui-sfx="open" style={styles.weaponEncyclopediaBtn} onClick={() => onOpenWeaponEncyclopedia(newlyUnlockedWeaponIds[0])}>
                     {t('hud.weaponEncyclopedia', null, '무기 도감 보기')}
                   </button>
                 )}
               </div>
             )}
             <div data-testid="result-primary-actions" style={styles.resultButtons}>
-              <button style={{ ...styles.restartBtn, ...styles.resultActionBtn }} onClick={() => resetGame(currentStageId)}>{t('hud.restart')}</button>
-              <button style={{ ...styles.titleBtn, ...styles.resultActionBtn }} onClick={onGoToLobby ?? onGoToTitle}>{t('hud.toLobby')}</button>
-              <button style={{ ...styles.shopBtn, ...styles.resultActionBtn }} onClick={onOpenCoinShop}>{t('hud.coinShop')}</button>
-              {onGoToRanking && <button style={{ ...styles.rankingBtn, ...styles.resultActionBtn }} onClick={onGoToRanking}>{t('hud.ranking')}</button>}
+              <button data-ui-sfx="confirm" style={{ ...styles.restartBtn, ...styles.resultActionBtn }} onClick={() => resetGame(currentStageId)}>{t('hud.restart')}</button>
+              <button data-ui-sfx="close" style={{ ...styles.titleBtn, ...styles.resultActionBtn }} onClick={onGoToLobby ?? onGoToTitle}>{t('hud.toLobby')}</button>
+              <button data-ui-sfx="open" style={{ ...styles.shopBtn, ...styles.resultActionBtn }} onClick={onOpenCoinShop}>{t('hud.coinShop')}</button>
+              {onGoToRanking && <button data-ui-sfx="open" style={{ ...styles.rankingBtn, ...styles.resultActionBtn }} onClick={onGoToRanking}>{t('hud.ranking')}</button>}
             </div>
           </div>
           {resultDevTools}
@@ -1971,10 +1973,10 @@ export default function HUD({
                 <h2 style={styles.modalTitle}>{t('hud.confirmLobbyHeading')}</h2>
                 <p style={styles.pauseMessage}>{t('hud.confirmLobbyBody')}</p>
                 <div style={styles.modalButtons}>
-                  <button style={styles.pauseCancelBtn} onClick={() => setIsTitleReturnConfirmOpen(false)}>
+                  <button data-ui-sfx="close" style={styles.pauseCancelBtn} onClick={() => setIsTitleReturnConfirmOpen(false)}>
                     {t('common.cancel')}
                   </button>
-                  <button style={styles.pauseTitleReturnBtn} onClick={confirmLobbyReturn}>
+                  <button data-ui-sfx="confirm" style={styles.pauseTitleReturnBtn} onClick={confirmLobbyReturn}>
                     {t('hud.goBack')}
                   </button>
                 </div>
@@ -1991,14 +1993,14 @@ export default function HUD({
                   {t('outfit.pauseLine', { name: outfitName(runOutfitId), effects: outfitEffectSummary(runOutfitId) })}
                 </p>
                 <div style={styles.pauseActions}>
-                  <button style={styles.restartBtn} onClick={resumeGame}>
+                  <button data-ui-sfx="confirm" style={styles.restartBtn} onClick={resumeGame}>
                     {pauseSource === 'auto' ? t('hud.resumeAway') : t('hud.resume')}
                   </button>
-                  <button type="button" style={styles.titleBtn} onClick={() => setIsPauseSettingsOpen(true)}>
+                  <button type="button" data-ui-sfx="open" style={styles.titleBtn} onClick={() => setIsPauseSettingsOpen(true)}>
                     {t('hud.settings')}
                   </button>
-                  {onGoToRanking && <button type="button" style={styles.titleBtn} onClick={onGoToRanking}>{t('hud.ranking')}</button>}
-                  <button style={styles.titleBtn} onClick={() => setIsTitleReturnConfirmOpen(true)}>
+                  {onGoToRanking && <button type="button" data-ui-sfx="open" style={styles.titleBtn} onClick={onGoToRanking}>{t('hud.ranking')}</button>}
+                  <button data-ui-sfx="open" style={styles.titleBtn} onClick={() => setIsTitleReturnConfirmOpen(true)}>
                     {t('hud.backToLobby')}
                   </button>
                 </div>
@@ -2026,14 +2028,14 @@ export default function HUD({
               <OutfitUnlockCard outfitIds={newlyUnlockedOutfitIds} />
               <div data-testid="result-primary-actions" style={styles.escapeActions}>
                 {continuationStageId && !isPart1Finale && (
-                  <button type="button" data-testid="escape-continue-next-stage" style={styles.escapeContinueBtn} onClick={continueToNextStage}>
+                  <button type="button" data-testid="escape-continue-next-stage" data-ui-sfx="confirm" style={styles.escapeContinueBtn} onClick={continueToNextStage}>
                     {t('hud.continueNextStage')}
                   </button>
                 )}
                 <button type="button" style={styles.escapeChoiceBtn} onClick={onGoToLobby ?? onGoToTitle}>{t('hud.chooseOtherStage')}</button>
                 <button type="button" style={styles.escapeChoiceBtn} onClick={onGoToLobby ?? onGoToTitle}>{t('hud.restInLobby')}</button>
               </div>
-              {onGoToRanking && <button type="button" style={styles.escapeRankingBtn} onClick={onGoToRanking}>{t('hud.rankingTrophy')}</button>}
+              {onGoToRanking && <button type="button" data-ui-sfx="open" style={styles.escapeRankingBtn} onClick={onGoToRanking}>{t('hud.rankingTrophy')}</button>}
               <details style={styles.escapeDetails}>
                 <summary style={styles.escapeDetailsLabel}>{t('hud.escapeRewards')}</summary>
             <p style={{ color: '#ccc', marginBottom: 8 }}>{t('hud.clearTime', { time: runClock })}</p>
@@ -2054,7 +2056,7 @@ export default function HUD({
                 ))}
                 <div style={styles.newlyUnlockedHint}>{t('hud.newWeaponHint')}</div>
                 {onOpenWeaponEncyclopedia && (
-                  <button type="button" style={styles.weaponEncyclopediaBtn} onClick={() => onOpenWeaponEncyclopedia(newlyUnlockedWeaponIds[0])}>
+                  <button type="button" data-ui-sfx="open" style={styles.weaponEncyclopediaBtn} onClick={() => onOpenWeaponEncyclopedia(newlyUnlockedWeaponIds[0])}>
                     {t('hud.weaponEncyclopedia', null, '무기 도감 보기')}
                   </button>
                 )}
@@ -2074,7 +2076,7 @@ export default function HUD({
                 </div>
               </div>
             )}
-              <button style={{ ...styles.shopBtn, ...styles.resultActionBtn }} onClick={onOpenCoinShop}>{t('hud.coinShop')}</button>
+              <button data-ui-sfx="open" style={{ ...styles.shopBtn, ...styles.resultActionBtn }} onClick={onOpenCoinShop}>{t('hud.coinShop')}</button>
               </details>
             </div>
           </section>
@@ -2090,7 +2092,7 @@ export default function HUD({
             ? { ...styles.dialogueCatcher, ...styles.questDialogueCatcher }
             : styles.dialogueCatcher}
           onPointerDown={() => {
-            emitSfx({ id: 'buttonClick' })
+            emitUiSfx('advance')
             if (questDialoguePopup) clearQuestToast()
             closeStudentDialogue()
           }}
@@ -2114,7 +2116,7 @@ export default function HUD({
               onPointerDown={(event) => event.stopPropagation()}
               onClick={(event) => {
                 if (event.target?.closest?.('button, a, input, select, textarea')) return
-                emitSfx({ id: 'buttonClick' })
+                emitUiSfx('advance')
                 clearQuestToast()
                 closeStudentDialogue()
               }}
@@ -2134,7 +2136,7 @@ export default function HUD({
                   <strong style={{ ...styles.questDialogueNotice, ...(questStarted ? styles.questAcceptanceNotice : null) }}>{questToastMessage}</strong>
                   {questPopupNextAction && <small style={{ ...styles.questDialogueNextAction, ...(questStarted ? styles.questAcceptanceAction : null) }}>{questPopupNextAction}</small>}
                 </div>
-                <button type="button" style={{ ...styles.questDialogueHint, minHeight: 44, cursor: 'pointer', border: '1px solid #c9b98d', borderRadius: 8, background: '#181d28', touchAction: 'manipulation' }} onClick={() => { emitSfx({ id: 'buttonClick' }); clearQuestToast(); closeStudentDialogue() }}>{t('hud.tapToContinue')}</button>
+                <button type="button" data-ui-sfx="advance" style={{ ...styles.questDialogueHint, minHeight: 44, cursor: 'pointer', border: '1px solid #c9b98d', borderRadius: 8, background: '#181d28', touchAction: 'manipulation' }} onClick={() => { clearQuestToast(); closeStudentDialogue() }}>{t('hud.tapToContinue')}</button>
               </div>
             </div>
             </div>
@@ -2172,14 +2174,15 @@ export default function HUD({
         <div
           data-testid="part1-ending-catcher"
           style={styles.introCatcher}
-          onPointerDown={() => { emitSfx({ id: 'buttonClick' }); advancePart1Ending() }}
+          onPointerDown={() => { emitUiSfx('advance'); advancePart1Ending() }}
         >
           <button
             type="button"
             data-testid="part1-ending-skip"
+            data-ui-sfx="close"
             style={styles.introSkipButton}
             onPointerDown={(event) => event.stopPropagation()}
-            onClick={() => { emitSfx({ id: 'buttonClick' }); closePart1Ending() }}
+            onClick={() => { closePart1Ending() }}
           >
             {t('hud.skipIntro')}
           </button>
@@ -2204,15 +2207,16 @@ export default function HUD({
         <div
           data-testid="stage-intro-catcher"
           style={styles.introCatcher}
-          onPointerDown={() => { emitSfx({ id: 'buttonClick' }); advanceIntro() }}
+          onPointerDown={() => { emitUiSfx('advance'); advanceIntro() }}
         >
           {/* 건너뛰기 — 마지막 대사 탭과 같은 종료 전이(skipIntro). pointerdown을 막아 한 장 넘김이 겹치지 않게 한다. */}
           <button
             type="button"
             data-testid="stage-intro-skip"
+            data-ui-sfx="close"
             style={styles.introSkipButton}
             onPointerDown={(event) => event.stopPropagation()}
-            onClick={() => { emitSfx({ id: 'buttonClick' }); skipIntro() }}
+            onClick={() => { skipIntro() }}
           >
             {t('hud.skipIntro')}
           </button>
@@ -2250,7 +2254,7 @@ function MissionResultSummary({ summary, onOpenMissionCenter }) {
       <strong>{t('missions.summaryTitle')}</strong>
       <span>{representative ? `${missionTitle(representative.mission)} ${representative.counter}/${representative.target}` : t('missions.summaryEmpty', { count: Object.keys(MISSION_BY_ID).length })}</span>
       {summary.completed.length > 0 && <span>{t('missions.summaryCompleted', { count: summary.completed.length })}</span>}
-      {onOpenMissionCenter && <button type="button" style={styles.missionCenterBtn} onClick={onOpenMissionCenter}>{t('missions.title')}</button>}
+      {onOpenMissionCenter && <button type="button" data-ui-sfx="open" style={styles.missionCenterBtn} onClick={onOpenMissionCenter}>{t('missions.title')}</button>}
     </section>
   )
 }

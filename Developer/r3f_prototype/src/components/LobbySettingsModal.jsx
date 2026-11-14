@@ -280,7 +280,7 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
 
   return (
     <div style={styles.overlay}>
-      <button type="button" aria-label={t('settings.closeBackdropAria')} style={styles.scrim} onClick={onClose} disabled={appearanceBusy || nicknameBusy} />
+      <button type="button" data-ui-sfx="close" aria-label={t('settings.closeBackdropAria')} style={styles.scrim} onClick={onClose} disabled={appearanceBusy || nicknameBusy} />
       <section ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="lobby-settings-heading" style={styles.modal}>
         <div style={styles.modalHeader}>
           <h2 id="lobby-settings-heading" style={styles.modalTitle}>{t('settings.title')}</h2>
@@ -310,8 +310,8 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
               {nicknameError || t('settings.nicknameHint')}
             </p>
             <div style={styles.nicknameActions}>
-              <button type="button" style={styles.nicknameCancel} onClick={() => setNicknameOpen(false)} disabled={nicknameBusy}>{t('common.cancel')}</button>
-              <button type="submit" style={styles.nicknameSave} disabled={nicknameBusy}>{t('common.save')}</button>
+              <button type="button" data-ui-sfx="close" style={styles.nicknameCancel} onClick={() => setNicknameOpen(false)} disabled={nicknameBusy}>{t('common.cancel')}</button>
+              <button type="submit" data-ui-sfx="confirm" style={styles.nicknameSave} disabled={nicknameBusy}>{t('common.save')}</button>
             </div>
           </form>
         ) : deleteStage !== 'idle' ? (
@@ -329,6 +329,7 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
               <div style={styles.nicknameActions}>
                 <button
                   type="button"
+                  data-ui-sfx="close"
                   style={styles.nicknameCancel}
                   onClick={cancelDelete}
                   disabled={deleteStage === 'deleting' || reauthBusy}
@@ -348,6 +349,7 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
               <div style={styles.nicknameActions}>
                 <button
                   type="button"
+                  data-ui-sfx="close"
                   style={styles.nicknameCancel}
                   onClick={cancelDelete}
                   disabled={deleteStage === 'deleting'}
@@ -356,6 +358,7 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
                 </button>
                 <button
                   type="button"
+                  data-ui-sfx="confirm"
                   style={styles.dangerConfirmButton}
                   onClick={runDelete}
                   disabled={deleteStage === 'deleting'}
@@ -388,7 +391,7 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
 
             {!inGame && <>
             <div style={styles.sectionLabel}>{t('settings.profile')}</div>
-            <button type="button" style={styles.settingRow} onClick={openNicknameEditor} disabled={!!authUser && !remoteSettingsReady}>
+            <button type="button" data-ui-sfx="open" style={styles.settingRow} onClick={openNicknameEditor} disabled={!!authUser && !remoteSettingsReady}>
               <span style={styles.rowText}>
                 <strong style={styles.rowTitle}>{t('settings.nickname')}</strong>
                 <span style={styles.rowDescription}>{(authUser ? getSavedNickname(authUser) || authUser.displayName : guestNickname) || t('settings.notSet')}</span>
@@ -444,6 +447,7 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
               type="button"
               aria-label={settings.vibration ? t('settings.vibrationOff') : t('settings.vibrationOn')}
               style={styles.settingRow}
+              data-ui-sfx={settings.vibration ? 'toggleOff' : 'toggleOn'}
               onClick={() => toggleSetting('vibration')}
             >
               <span style={styles.rowText}>
@@ -459,6 +463,7 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
               type="button"
               aria-label={settings.reducedEffects ? t('settings.reducedEffectsOff') : t('settings.reducedEffectsOn')}
               style={styles.settingRow}
+              data-ui-sfx={settings.reducedEffects ? 'toggleOff' : 'toggleOn'}
               onClick={() => toggleSetting('reducedEffects')}
             >
               <span style={styles.rowText}>
@@ -474,6 +479,7 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
               type="button"
               aria-label={settings.hitCameraShake ? t('settings.hitShakeOff') : t('settings.hitShakeOn')}
               style={styles.settingRow}
+              data-ui-sfx={settings.hitCameraShake ? 'toggleOff' : 'toggleOn'}
               onClick={() => toggleSetting('hitCameraShake')}
             >
               <span style={styles.rowText}>
@@ -489,6 +495,7 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
               type="button"
               aria-label={settings.scientificNotation ? t('settings.scientificOff') : t('settings.scientificOn')}
               style={styles.settingRow}
+              data-ui-sfx={settings.scientificNotation ? 'toggleOff' : 'toggleOn'}
               onClick={() => toggleSetting('scientificNotation')}
             >
               <span style={styles.rowText}>
@@ -501,7 +508,7 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
             </button>
 
             <div style={styles.sectionLabel}>{t('settings.help')}</div>
-            <button type="button" style={styles.settingRow} onClick={() => setControlsOpen((v) => !v)}>
+            <button type="button" data-ui-sfx={controlsOpen ? 'close' : 'open'} style={styles.settingRow} onClick={() => setControlsOpen((v) => !v)}>
               <span style={styles.rowText}>
                 <strong style={styles.rowTitle}>{t('settings.controls')}</strong>
                 <span style={styles.rowDescription}>{t('settings.controlsDesc')}</span>
@@ -520,6 +527,7 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
             <button
               type="button"
               style={styles.settingRow}
+              data-ui-sfx={legalOpenId === 'terms' ? 'close' : 'open'}
               onClick={() => toggleLegal('terms')}
             >
               <span style={styles.rowText}>
@@ -536,6 +544,7 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
             <button
               type="button"
               style={styles.settingRow}
+              data-ui-sfx={legalOpenId === 'privacy' ? 'close' : 'open'}
               onClick={() => toggleLegal('privacy')}
             >
               <span style={styles.rowText}>
@@ -556,7 +565,7 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
               {t('settings.logout')}
             </button>
             {logoutError && <p role="alert" style={styles.deleteErrorText}>{t('settings.logoutSaveFailed')}</p>}
-            <button type="button" style={accountActionStyle(styles.deleteAccountButton, !authUser?.uid || appearanceBusy || nicknameBusy)} onClick={openDeleteConfirm} disabled={!authUser?.uid || appearanceBusy || nicknameBusy}>
+            <button type="button" data-ui-sfx="open" style={accountActionStyle(styles.deleteAccountButton, !authUser?.uid || appearanceBusy || nicknameBusy)} onClick={openDeleteConfirm} disabled={!authUser?.uid || appearanceBusy || nicknameBusy}>
               {t('settings.deleteAccount')}
             </button>
             </>}

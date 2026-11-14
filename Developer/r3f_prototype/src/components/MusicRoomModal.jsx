@@ -67,7 +67,7 @@ export default function MusicRoomModal({ onClose, stageIds = VISIBLE_STAGE_IDS }
     <div style={styles.overlay}>
       <style>{MUSIC_ROOM_CSS}</style>
       <MusicRoomBgm trackId={selectedId} />
-      <button type="button" tabIndex={-1} aria-label={t('musicRoom.closeAria')} data-testid="music-room-backdrop" style={styles.scrim} onClick={onClose} />
+      <button type="button" tabIndex={-1} aria-label={t('musicRoom.closeAria')} data-testid="music-room-backdrop" data-ui-sfx="close" style={styles.scrim} onClick={onClose} />
       <section
         ref={dialogRef}
         role="dialog"

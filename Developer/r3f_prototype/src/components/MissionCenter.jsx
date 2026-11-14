@@ -6,6 +6,7 @@ import { schoolButton, schoolPanel, uiBorders, uiPalette, uiShadows, uiType } fr
 import { missionObjective, missionTitle, useT } from '../lib/i18n.js'
 import { useAuthStore } from '../store/useAuthStore.js'
 import { useGameStore } from '../store/useGameStore.js'
+import { emitUiSfx } from '../lib/uiSfx.js'
 import { useGameNumber } from '../lib/numberFormat.js'
 
 const FILTERS = ['recommended', 'progress', 'completed', 'all']
@@ -49,12 +50,14 @@ export default function MissionCenter({ onBack }) {
     return entries
   }, [filter, missionProgress])
 
-  const handlePin = async (missionId) => {
+  const handlePin = async (missionId, wasPinned = false) => {
     setNotice('')
     if (!togglePinnedMission(missionId)) {
+      emitUiSfx('denied')
       setNotice(t('missions.pinLimit'))
       return
     }
+    emitUiSfx(wasPinned ? 'toggleOff' : 'toggleOn')
     const saved = await saveMissionProgress()
     if (!saved.ok) setNotice(t('missions.pinSaveFailed'))
   }
@@ -65,6 +68,7 @@ export default function MissionCenter({ onBack }) {
     setClaimingMissionId(missionId)
     const result = await claimMissionReward(missionId)
     setClaimingMissionId('')
+    emitUiSfx(result.ok ? 'purchase' : 'denied')
     if (result.ok) return
     setNotice(t(CLAIM_ERROR_KEYS[result.reason] ?? 'missions.claimError.saveFailed'))
   }
@@ -110,13 +114,13 @@ function MissionCard({ entry, pinned, onPin, onClaim, claiming, t }) {
       <div style={styles.cardHead}>
         <span data-panel-state={state} style={{ ...styles.status, ...styles.statusByState(state) }}>{state === 'claimed' ? '✓ ' : state === 'completed_unclaimed' ? '★ ' : '… '}{status}</span>
         <strong style={styles.cardTitle}>{mission.sourceNumber}. {title}</strong>
-        <button type="button" style={styles.pinButton} aria-pressed={pinned} aria-label={t(pinned ? 'missions.unpinAria' : 'missions.pinAria', { title })} onClick={() => onPin(mission.id)}>{pinned ? t('missions.pinned') : t('missions.pin')}</button>
+        <button type="button" data-ui-sfx="none" style={styles.pinButton} aria-pressed={pinned} aria-label={t(pinned ? 'missions.unpinAria' : 'missions.pinAria', { title })} onClick={() => onPin(mission.id, pinned)}>{pinned ? t('missions.pinned') : t('missions.pin')}</button>
       </div>
       <p style={styles.objective}>{missionObjective(mission)}</p>
       <div style={styles.progressRow}><div style={styles.progressTrack}><div style={{ ...styles.progressFill, width: `${progress}%` }} /></div><span>{formatNumber(counter)}/{formatNumber(target)}</span></div>
       <div style={styles.rewardRow}>
         <span style={styles.rewardChip}>{t('missions.reward', { amount: formatNumber(mission.rewardProposal.amount) })}</span>
-        {state === 'completed_unclaimed' && <button type="button" disabled={claiming} style={{ ...styles.claimButton, ...(claiming ? styles.pendingButton : null) }} onClick={() => onClaim(mission.id)}>{claiming ? t('missions.claiming') : t('missions.claim')}</button>}
+        {state === 'completed_unclaimed' && <button type="button" data-ui-sfx="none" disabled={claiming} style={{ ...styles.claimButton, ...(claiming ? styles.pendingButton : null) }} onClick={() => onClaim(mission.id)}>{claiming ? t('missions.claiming') : t('missions.claim')}</button>}
       </div>
     </article>
   )

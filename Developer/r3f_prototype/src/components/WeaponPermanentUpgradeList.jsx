@@ -1,4 +1,5 @@
 import { useGameStore } from '../store/useGameStore.js'
+import { emitUiSfx } from '../lib/uiSfx.js'
 import {
   getWeaponPermanentUpgradeLevel,
   getWeaponPermanentUpgradePlan,
@@ -85,7 +86,7 @@ export default function WeaponPermanentUpgradeList({ style, onOpenUnlockDetails 
             isMax={isMax}
             price={price}
             canAfford={canAfford}
-            onBuy={() => purchaseWeaponPermanentUpgrade(id)}
+            onBuy={() => emitUiSfx(purchaseWeaponPermanentUpgrade(id)?.ok ? 'purchase' : 'denied')}
             onOpenUnlockDetails={onOpenUnlockDetails}
           />
         )
@@ -158,6 +159,8 @@ function WeaponPermanentCard({ plan, unlocked, currentLevel, isMax, price, canAf
         <button
           type="button"
           data-weapon-unlock-details={!unlocked ? plan.id : undefined}
+          // 구매 결과음은 onBuy가 낸다. 잠김(상세 없음)·코인 부족은 비활성이어도 거절음, MAX는 무음.
+          data-ui-sfx={!unlocked ? (onOpenUnlockDetails ? 'open' : 'denied') : isMax ? undefined : canAfford ? 'none' : 'denied'}
           style={buttonStyle}
           onClick={() => (unlocked ? onBuy() : onOpenUnlockDetails?.(plan.id))}
           disabled={disabled}

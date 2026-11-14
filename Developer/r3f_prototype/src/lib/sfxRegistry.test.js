@@ -597,6 +597,26 @@ describe('playSfx', () => {
     expect(isProtectedSfx('matildaDash')).toBe(true)
     expect(howlPlay).toHaveBeenCalledTimes(weaponCap + 5)
   })
+
+  // UI 조작음(lib/uiSfx.js)은 좀비 개그음 파일(/enemies/ = combat)을 같이 쓰지만 전투 소리가 아니다.
+  it('plays ui-flagged gag sounds past the combat cap and during the auth overlay, with the given rate', async () => {
+    const { combatVoiceCapFor, playSfx } = await import('./sfxRegistry.js')
+    const weaponCap = combatVoiceCapFor('pencilFire')
+    howlPlay.mockImplementation((() => {
+      let id = 0
+      return () => ++id
+    })())
+
+    for (let index = 0; index < weaponCap; index++) playSfx('pencilFire')
+    playSfx('gagBlinkPop', 0.36, { rate: 1.15, ui: true, authOverlayActive: true })
+    // Same gag file without the ui flag stays a combat voice: dropped at the cap and muted by the overlay.
+    playSfx('gagSwoosh', 0.3, { rate: 1.25 })
+    playSfx('gagCardFlick', 0.4, { authOverlayActive: true })
+
+    expect(howlPlay).toHaveBeenCalledTimes(weaponCap + 1)
+    expect(howlConfigs.at(-1).src).toEqual(['/sfx/enemies/gagBlinkPop.ogg', '/sfx/enemies/gagBlinkPop.mp3'])
+    expect(howlRate).toHaveBeenLastCalledWith(1.15, weaponCap + 1)
+  })
 })
 
 // 2026-11-08 Stage 5·6 배치 + B03 셔틀런 착지. 게임플레이 코드가 이미 이 id로 emit하므로,

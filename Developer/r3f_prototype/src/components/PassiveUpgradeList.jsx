@@ -1,6 +1,7 @@
 // 패시브 강화 카드 리스트. 코인상점(CoinShop)과 로비 능력치 모달(Lobby)이 공유한다.
 // 강화 로직 단일 소스: useGameStore.purchasePassive. 종류 수·maxLevel·가격은 passiveCatalog가 정한다(UI는 가정하지 않음).
 import { useGameStore } from '../store/useGameStore.js'
+import { emitUiSfx } from '../lib/uiSfx.js'
 import { PASSIVE_CATALOG, getMvpPassiveIds, getPriceFor, formatEffectLabel } from '../lib/passiveCatalog.js'
 import { getLevel } from '../lib/passiveUpgrades.js'
 import { schoolButton, uiBorders, uiPalette, uiShadows, uiType } from '../lib/uiStyle.js'
@@ -55,7 +56,7 @@ export default function PassiveUpgradeList({ style }) {
             isMax={isMax}
             price={price}
             canAfford={canAfford}
-            onBuy={() => purchasePassive(id)}
+            onBuy={() => emitUiSfx(purchasePassive(id)?.ok ? 'purchase' : 'denied')}
           />
         )
       })}
@@ -106,7 +107,8 @@ function PassiveCard({ index, entry, currentLevel, isMax, price, canAfford, onBu
       </div>
       <div className="shop-card-price" style={styles.cardPriceCol}>
         <div style={styles.cardPrice(isMax)}>{isMax ? translate('common.done') : translate('common.coinPrice', { price })}</div>
-        <button type="button" style={buttonStyle} onClick={onBuy} disabled={disabled}>
+        {/* 구매 결과음은 onBuy가 낸다(성공 반짝·실패 트롬본). 코인 부족은 비활성이어도 거절음, MAX는 무음. */}
+        <button type="button" data-ui-sfx={isMax ? undefined : canAfford ? 'none' : 'denied'} style={buttonStyle} onClick={onBuy} disabled={disabled}>
           {buttonLabel}
         </button>
       </div>

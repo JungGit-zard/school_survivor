@@ -75,7 +75,7 @@ export default function StageRanking({ stageId = 'stage1', onBack }) {
           <div style={styles.eyebrow}>{stage.label} · {stageTitle(stageId, stage.title)}</div>
           <h1 style={styles.title}>{t('ranking.stageTitle')}</h1>
         </div>
-        <button type="button" style={styles.backTop} onClick={onBack}>{t('common.back')}</button>
+        <button type="button" data-ui-sfx="close" style={styles.backTop} onClick={onBack}>{t('common.back')}</button>
       </header>
 
       <RankingWindowTabs

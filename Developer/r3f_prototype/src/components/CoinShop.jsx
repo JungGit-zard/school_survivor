@@ -77,7 +77,7 @@ export default function CoinShop({ onBack, backLabel, onOpenWeaponDetails }) {
         ? <PassiveUpgradeList style={styles.list} />
         : <WeaponPermanentUpgradeList style={styles.list} onOpenUnlockDetails={onOpenWeaponDetails} />}
 
-      <button type="button" className="coinshop-back" style={styles.backButton} onClick={onBack}>
+      <button type="button" className="coinshop-back" data-ui-sfx="close" style={styles.backButton} onClick={onBack}>
         {backLabel ?? t('back.toResult')}
       </button>
     </div>

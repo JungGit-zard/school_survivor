@@ -87,6 +87,7 @@ function RadioBody({ onClose, sheet }) {
         <button
           type="button"
           data-room-radio-toggle={radioOn ? 'stop' : 'play'}
+          data-ui-sfx={radioOn ? 'toggleOff' : 'toggleOn'}
           style={radioOn ? styles.toggleOn : styles.toggleOff}
           onClick={togglePlay}
         >
