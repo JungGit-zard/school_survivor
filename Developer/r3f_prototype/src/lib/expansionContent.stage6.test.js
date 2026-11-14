@@ -44,11 +44,16 @@ describe('stage6 운동장 — 같은 id·기록 키·typeCode, 내용만 교체
   // 둘 다 사다리 목표 3,710 × 1.3^5 = 13,775의 ±2% 안.
   // 2026-11-13 2차(levelmini, balanceqa 노트): 52초 E01 8 → 10. 오프닝 1,256 → 1,296(S5의 1.56배), 60초 계단 2.13배 → 2.0배.
   // 일반 적 190마리·HP 8,910, 총 HP 13,608(소환 3회)·13,824(4회).
-  // 2026-11-14 블록 좀비 4종(16초 E79·52초 E71·108초 E73·200초 E76)은 같은 초의 E01·E01·E04·E05 1기씩을 같은 hp로 맞바꿨다 —
-  // 마릿수 190·HP 8,910 그대로. 200초 E05는 1기뿐이라 그 행이 E76으로 바뀌어 38 → 41행(통합 트리 병합, 2026-11-14).
-  it('이벤트 41행, 보스 1행(150초), 마지막 일반 이벤트 228초, 반복 버스트 없음, 일반 적 190마리·HP 8,910', () => {
+  // 2026-11-14 블록 좀비 4행(16초 E79·52초 E71·108초 E73·120초 E76)은 같은 초의 E01·E01·E04·E05 1기씩을 같은 hp로 맞바꿨다 —
+  // 38 → 42행, 마릿수 190·HP 8,910 그대로. E76은 vend 최신안대로 120초(E05 2 → 1 + E76)에만 있고, 200초는 E05 1기 그대로다
+  // (Terry 승인 2026-11-14: 200초 E76 행 폐기).
+  it('이벤트 42행, 보스 1행(150초), 마지막 일반 이벤트 228초, 반복 버스트 없음, 일반 적 190마리·HP 8,910', () => {
     const events = getBurstEventsForStage('stage6')
-    expect(events).toHaveLength(41)
+    expect(events).toHaveLength(42)
+    // 블록 좀비 4종은 각각 정확히 한 행·한 마리이고, E76은 120초 E05 옆에만 있다.
+    expect(events.filter((e) => ['E79', 'E71', 'E73', 'E76'].includes(e.type)).map((e) => [e.sec, e.type, e.count]))
+      .toEqual([[16, 'E79', 1], [52, 'E71', 1], [108, 'E73', 1], [120, 'E76', 1]])
+    expect(events.filter((e) => e.type === 'E05').map((e) => [e.sec, e.count])).toEqual([[84, 2], [120, 1], [200, 1]])
     expect(events.filter((e) => isBossType(e.type))).toEqual([{ sec: 150, type: 'B05', count: 1 }])
     expect(Math.max(...events.filter((e) => !isBossType(e.type)).map((e) => e.sec))).toBe(228)
     expect(events.some((e) => e.repeatIntervalSec)).toBe(false)

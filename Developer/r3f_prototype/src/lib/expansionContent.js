@@ -183,7 +183,12 @@ const DATA = {
         {
           "sec": 120,
           "type": "E05",
-          "count": 2
+          "count": 1
+        },
+        {
+          "sec": 120,
+          "type": "E76",
+          "count": 1
         },
         {
           "sec": 124,
@@ -257,7 +262,7 @@ const DATA = {
         },
         {
           "sec": 200,
-          "type": "E76",
+          "type": "E05",
           "count": 1
         },
         {
