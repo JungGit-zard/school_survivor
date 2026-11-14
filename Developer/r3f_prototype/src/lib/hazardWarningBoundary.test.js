@@ -90,7 +90,9 @@ describe('stage4 가마솥 경고 경계 — 단일 world 링', () => {
     expect(GROUND_WARNING_SOURCE).toMatch(/<\/group>,\s*scene,\s*\)/)
     expect(GROUND_WARNING_SOURCE).toContain('const radius = PRESSURE_CAULDRON_DAMAGE_RADIUS')
     expect(GROUND_WARNING_SOURCE).toContain('name="pressure-cauldron-world-boundary"')
-    expect(GROUND_WARNING_SOURCE).toContain('<ringGeometry args={[radius - 0.19, radius, 64]} />')
+    // 2026-11-14 Terry: 테두리 링 대신 피해 반경 그대로의 채움 원 하나.
+    expect(GROUND_WARNING_SOURCE).toContain('<circleGeometry args={[radius, 64]} />')
+    expect(GROUND_WARNING_SOURCE).not.toContain('ringGeometry')
     // 표시 구간은 이 모듈의 정본과 같다: boiling || bursting.
     expect(GROUND_WARNING_SOURCE).toContain('root.current.visible = visual.boiling || visual.bursting')
   })

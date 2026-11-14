@@ -2318,7 +2318,7 @@ const styles = {
     borderRadius: 10,
     padding: '14px 18px',
     boxShadow: `${uiShadows.press}, ${uiShadows.glowDanger}`,
-    animation: 'bossPulse 0.8s ease-in-out infinite',
+    animation: 'bossPulse 1.6s ease-in-out infinite',  // 2026-11-14 Terry: 경고 크기 맥동 절반 속도(0.8s → 1.6s)
     pointerEvents: 'none',
   },
   bossWarningLabel: {
@@ -2345,7 +2345,7 @@ const styles = {
     borderRadius: 10,
     padding: '11px 16px',
     boxShadow: `${uiShadows.press}, 0 0 20px rgba(84, 224, 200, 0.35)`,
-    animation: 'bossPulse 0.8s ease-in-out infinite',
+    animation: 'bossPulse 1.6s ease-in-out infinite',  // 2026-11-14 Terry: 경고 크기 맥동 절반 속도(0.8s → 1.6s)
     pointerEvents: 'none',
   },
   projectileWarningLabel: {
@@ -2372,7 +2372,7 @@ const styles = {
     borderRadius: 10,
     padding: '14px 18px',
     boxShadow: `${uiShadows.press}, 0 0 24px rgba(180, 0, 255, 0.5)`,
-    animation: 'bossPulse 0.5s ease-in-out infinite',
+    animation: 'bossPulse 1.0s ease-in-out infinite',  // 2026-11-14 Terry: 경고 크기 맥동 절반 속도(0.5s → 1.0s)
     pointerEvents: 'none',
   },
   matildaWarningLabel: {
@@ -2491,7 +2491,7 @@ const styles = {
     borderRadius: 10,
     padding: '11px 18px',
     boxShadow: `${uiShadows.press}, 0 0 22px rgba(255, 168, 48, 0.45)`,
-    animation: 'bossPulse 0.7s ease-in-out infinite',
+    animation: 'bossPulse 1.4s ease-in-out infinite',  // 2026-11-14 Terry: 경고 크기 맥동 절반 속도(0.7s → 1.4s)
     pointerEvents: 'none',
   },
   formationWarningLabel: {

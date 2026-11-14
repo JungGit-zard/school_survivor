@@ -34,7 +34,6 @@ import {
   getB03ShuttleRunVisualState,
   getB04SoupBlastVisualState,
   getB04SoupFillProgress,
-  getB04SoupEdgeEmphasis,
   hasB03ShuttleRunVisualChanged,
   getEnemySpawnSfx,
   getMatildaBodyHalfExtents,
@@ -54,7 +53,7 @@ import {
 } from '../lib/b04SoupBlast.js'
 
 describe('B02 corridor blockade visual states', () => {
-  it('uses cyan surfaces and dark outlines, and lights every boss-ring line at once', () => {
+  it('uses borderless cyan fills (no dark outline/shadow bands), and lights every boss-ring line at once', () => {
     // 순차 점등을 없앴다 — 보스를 두르는 선은 활성 구간 내내 전부 같은 상태로 켜져 있다.
     expect(getB02CorridorBlockadeLineVisualState({ phase: 'telegraph' })).toBe('telegraph')
     expect(getB02CorridorBlockadeLineVisualState({ phase: 'active' })).toBe('active')
@@ -66,18 +65,17 @@ describe('B02 corridor blockade visual states', () => {
 
     for (const visual of Object.values(B02_CORRIDOR_BLOCKADE_VISUALS)) {
       expect(visual.surface).toMatch(/^#(0|1|2)[0-9a-f]{5}$/i)
-      expect(visual.outline).toMatch(/^#0[0-9a-f]{5}$/i)
-      expect(visual.shadow).toMatch(/^#0[0-9a-f]{5}$/i)
       expect(visual.surfaceOpacity).toBeGreaterThan(0)
-      expect(visual.outlineOpacity).toBeGreaterThan(0)
-      expect(visual.shadowOpacity).toBeGreaterThan(0)
-      expect(visual.shadowOpacity).toBeLessThan(visual.outlineOpacity)
+      expect(visual).not.toHaveProperty('outline')
+      expect(visual).not.toHaveProperty('shadow')
     }
 
     const source = readFileSync(new URL('./Enemy.jsx', import.meta.url), 'utf8')
     expect(source).toContain('userData={{ blockadeLineState: visualState }}')
-    expect(source).toContain('color={visual.shadow}')
-    expect(source).toContain('B02_BLOCKADE_LINE_WIDTH + 0.42')
+    expect(source).not.toContain('color={visual.shadow}')
+    expect(source).not.toContain('color={visual.outline}')
+    expect(source).not.toContain('B02_BLOCKADE_LINE_WIDTH + 0.42')
+    expect(source).toContain('args={[halfX * 2, 0.024, B02_BLOCKADE_LINE_WIDTH]}')
     expect(source).toContain("if (!shouldRenderB02CorridorBlockadeVisual({ phase, lineZs })) return null")
   })
 })
@@ -102,15 +100,16 @@ describe('B03 shuttle run visual states', () => {
       { phase: 'active', laneZ: 4, passIndex: 1, startX: 0, endX: 6.6 },
       { phase: 'active', laneZ: 4, passIndex: 1, startX: 0, endX: 6.6 },
     )).toBe(false)
+    // 2026-11-14: lane is a borderless fill exactly the lane width — no wider outline slab.
     for (const visual of Object.values(B03_SHUTTLE_RUN_VISUALS)) {
-      expect(visual.outline).toMatch(/^#[0-9a-f]{6}$/i)
       expect(visual.surfaceOpacity).toBeGreaterThan(0)
-      expect(visual.outlineOpacity).toBeGreaterThan(0)
+      expect(visual).not.toHaveProperty('outline')
     }
 
     const source = readFileSync(new URL('./Enemy.jsx', import.meta.url), 'utf8')
     expect(source).toContain('userData={{ shuttleRunState: visualState }}')
-    expect(source).toContain('B03_SHUTTLE_LANE_WIDTH + 0.18')
+    expect(source).not.toContain('B03_SHUTTLE_LANE_WIDTH + 0.18')
+    expect(source).not.toContain('outlineMatRef')
     expect(source).toContain('hasB03ShuttleRunVisualChanged(previous, state) ? { ...state } : previous')
   })
 
@@ -167,21 +166,20 @@ describe('B03 shuttle run visual states', () => {
 })
 
 describe('B04 soup blast visual states', () => {
-  it('uses three outlined orange circles for the warning and concurrent blast', () => {
+  it('uses three borderless orange discs (area + growing fill) for the warning and concurrent blast', () => {
     expect(getB04SoupBlastVisualState('telegraph')).toBe('telegraph')
     expect(getB04SoupBlastVisualState('explode')).toBe('explode')
     expect(B04_SOUP_BLAST_VISUALS.explode.surfaceOpacity).toBeGreaterThan(B04_SOUP_BLAST_VISUALS.telegraph.surfaceOpacity)
     for (const visual of Object.values(B04_SOUP_BLAST_VISUALS)) {
       expect(visual.surface).toMatch(/^#[0-9a-f]{6}$/i)
-      expect(visual.outline).toMatch(/^#[0-9a-f]{6}$/i)
+      expect(visual).not.toHaveProperty('outline')
     }
 
     const source = readFileSync(new URL('./Enemy.jsx', import.meta.url), 'utf8')
     expect(source).toContain('userData={{ soupBlastState: visualState }}')
     expect(source).toContain('name="B04 국물 대폭발 원형 표식"')
     expect(source).not.toContain('name="B04 급식 국자 원형 표식"')
-    // The accepted marker stays inside each supplied damage radius; the old
-    // radius + 0.18 cylinder was replaced by eight separated rim arcs.
+    // 2026-11-14 Terry: no rim arcs, bowl or steam strokes — only filled discs at the exact damage radius.
     const circles = [{ x: -2, z: 1, radius: 1.1 }, { x: 0, z: -3, radius: 1.1 }, { x: 4, z: 2, radius: 1.1 }]
     const children = (node) => [node.props.children].flat(Infinity).filter(Boolean)
     for (const phase of ['telegraph', 'explode']) {
@@ -192,31 +190,18 @@ describe('B04 soup blast visual states', () => {
       marks.forEach((mark, index) => {
         const circle = circles[index]
         expect(mark.props.position).toEqual([circle.x, 0, circle.z])
-        const meshes = children(mark)
-        const segments = meshes.filter((mesh) => mesh.props.name === 'b04-soup-segment')
-        expect(segments).toHaveLength(8)
-        segments.forEach((segment, segmentIndex) => {
-          const [geometry, material] = children(segment)
-          expect(geometry.type).toBe('ringGeometry')
-          const [inner, outer, , , start, sweep] = geometry.props.args
-          expect(inner).toBeCloseTo(circle.radius - 0.18)
-          expect(outer).toBe(circle.radius)
-          expect(start).toBeCloseTo(segmentIndex * Math.PI / 4)
-          expect(sweep).toBeGreaterThan(0)
-          expect(sweep).toBeLessThan(Math.PI / 4)
-          expect(material.props.color).toBe(B04_SOUP_BLAST_VISUALS[phase].outline)
+        const meshes = children(mark).filter((node) => node.type === 'mesh')
+        expect(meshes.map((mesh) => mesh.props.name)).toEqual(phase === 'telegraph' ? ['b04-soup-area', 'b04-soup-fill'] : ['b04-soup-fill'])
+        meshes.forEach((mesh) => {
+          const [geometry, material] = children(mesh)
+          expect(geometry.type).toBe('circleGeometry')
+          expect(geometry.props.args[0]).toBe(circle.radius)
+          expect(material.props.color).toBe(B04_SOUP_BLAST_VISUALS[phase].surface)
         })
-        const fill = meshes.find((mesh) => children(mesh)[0]?.type === 'cylinderGeometry')
-        const [geometry, material] = children(fill)
-        expect(geometry.props.args.slice(0, 2)).toEqual([circle.radius - 0.22, circle.radius - 0.22])
-        expect(material.props.color).toBe(B04_SOUP_BLAST_VISUALS[phase].surface)
-        expect(material.props.opacity).toBe(B04_SOUP_BLAST_VISUALS[phase].surfaceOpacity)
-        // Bowl and three steam strokes distinguish soup from the solid cauldron rim.
-        const bowl = meshes.find((mesh) => mesh.props.name !== 'b04-soup-segment' && children(mesh)[0]?.type === 'ringGeometry')
-        expect(children(bowl)[0].props.args).toEqual([0.32, 0.42, 16, 1, Math.PI, Math.PI])
-        const steam = meshes.filter((mesh) => children(mesh)[0]?.type === 'boxGeometry')
-        expect(steam).toHaveLength(3)
-        steam.forEach((mesh) => expect(children(mesh)[0].props.args[2]).toBe(phase === 'explode' ? 0.48 : 0.24))
+        const fill = meshes.find((mesh) => mesh.props.name === 'b04-soup-fill')
+        expect(children(fill)[1].props.opacity).toBe(B04_SOUP_BLAST_VISUALS[phase].surfaceOpacity)
+        if (phase === 'telegraph') expect(children(meshes[0])[1].props.opacity).toBe(B04_SOUP_BLAST_VISUALS.telegraph.areaOpacity)
+        expect(children(mark).some((node) => node.type === 'mesh' && children(node)[0]?.type === 'ringGeometry')).toBe(false)
       })
     }
     expect(B04SoupBlastVisual({ phase: 'idle', circles })).toBeNull()
@@ -241,12 +226,6 @@ describe('B04 soup telegraph fill progress (P6)', () => {
     expect(getB04SoupFillProgress(5000)).toBe(1)
   })
 
-  it('emphasizes the rim arcs only in the last 300ms of the 1200ms telegraph', () => {
-    expect(getB04SoupEdgeEmphasis(500)).toBe(false)
-    expect(getB04SoupEdgeEmphasis(899)).toBe(false)
-    expect(getB04SoupEdgeEmphasis(900)).toBe(true)
-    expect(getB04SoupEdgeEmphasis(1000)).toBe(true)
-  })
 })
 
 describe('B04 soup blast boundary radius contract', () => {

@@ -134,9 +134,11 @@ describe('PooledEnemyProjectileLayer projectile zombie shots', () => {
     shots.shotBodies.forEach((m, v) => expect(shots.shotOutlines[v].count).toBe(m.count))
     // count 0인 외형은 그리지 않는다(드로콜 없음).
     const drawn = shots.all.filter((m) => m.visible).length
-    expect(drawn).toBe(5 * 2 + 4 + 2 * 2)
+    // 데칼 3종(채움·웅덩이·조준선) — 2026-11-14부터 착탄 예정 원에 테두리 링을 그리지 않는다.
+    expect(drawn).toBe(5 * 2 + 3 + 2 * 2)
 
-    expect(shots.decals[DECAL_VISUAL.RING].count).toBe(1)
+    expect(shots.decals[DECAL_VISUAL.RING].count).toBe(0)
+    expect(shots.decals[DECAL_VISUAL.RING].visible).toBe(false)
     expect(shots.decals[DECAL_VISUAL.MARKER_FILL].count).toBe(1)
     expect(shots.decals[DECAL_VISUAL.LINE].count).toBe(1)
     expect(shots.decals[DECAL_VISUAL.PUDDLE_FILL].count).toBe(1)

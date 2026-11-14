@@ -23,6 +23,7 @@ import { ENEMY_PROJECTILE_KIND_COUNT, MAX_ENEMY_PROJECTILES } from '../lib/enemy
 import { createChefIngredientGeometries } from '../lib/chefIngredientGeometry.js'
 import { applyChefIngredientSpin } from '../lib/chefIngredientSpin.js'
 import { getToonGradient } from '../lib/toon.js'
+import { PROJECTILE_DECAL_PULSE_RAD_PER_MS } from '../lib/warningPulse.js'
 import { getFirebaseStudioRuntimeState } from '../lib/studioRuntimeState.js'
 import { GRAPHICS_STUDIO_TUNING_EVENT, loadStudioTunings } from '../lib/graphicsStudioConfig.js'
 import { getStudioTransformProps } from './StudioTunedGroup.jsx'
@@ -63,8 +64,9 @@ function mesh(geometry, material, capacity = MAX_ENEMY_PROJECTILES) {
   return result
 }
 
-// 표식 재질 불투명도: ring(경고 테두리) / markerFill(옅은 경고 원) / puddleFill(웅덩이) / line(조준선).
-export const DECAL_OPACITY = Object.freeze([0.85, 0.22, 0.5, 0.6])
+// 표식 재질 불투명도: ring(경고 테두리 — 2026-11-14부터 그리지 않음) / markerFill(경고 원) / puddleFill(웅덩이) / line(조준선).
+// 테두리를 없앤 대신 markerFill을 0.22 → 0.34로 올려 밝은 바닥에서도 원이 읽히게 한다.
+export const DECAL_OPACITY = Object.freeze([0.85, 0.34, 0.5, 0.6])
 
 /** 투사체 좀비 탄·표식·매복 소품 InstancedMesh 묶음. 재질은 호출자가 넘긴다(테스트는 canvas 없이 만든다). */
 export function createProjectileZombieShotMeshes({ bodyMat, outMat, decalMats }) {
@@ -106,8 +108,9 @@ export function writeProjectileZombieShotFrame(shots, pool, enemies, bounds, pla
     if (motion === SHOT_MOTION.DECAL || motion === SHOT_MOTION.ZONE) {
       const radius = pool.p0[i]
       const length = motion === SHOT_MOTION.DECAL ? pool.p1[i] : 0
-      // 표식은 살짝 맥동한다(확정됐다는 신호). 지대는 맥동하지 않는다.
-      const pulse = motion === SHOT_MOTION.DECAL ? 0.92 + 0.08 * Math.sin(pool.ageMs[i] * 0.025) : 1
+      // 표식은 살짝 맥동한다(확정됐다는 신호). 지대는 맥동하지 않는다. 최대 배율 1.0 = 실제 반경을 넘지 않는다.
+      // 2026-11-14 Terry: 맥동 속도 절반(0.025 → 0.0125 rad/ms).
+      const pulse = motion === SHOT_MOTION.DECAL ? 0.92 + 0.08 * Math.sin(pool.ageMs[i] * PROJECTILE_DECAL_PULSE_RAD_PER_MS) : 1
       const visuals = getDecalVisuals(kind, motion, length)
       for (let v = 0; v < visuals.length; v += 1) {
         const visual = visuals[v]

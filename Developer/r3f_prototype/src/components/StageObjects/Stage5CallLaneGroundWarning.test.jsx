@@ -58,34 +58,30 @@ const lampHexes = (scene) => {
 }
 
 describe('Stage 5 call-lane ground warning (spec Part B §7-2 · §12-3)', () => {
-  it('covers each lane rectangle over the full map depth, with 0.08u edges kept inside the lane', () => {
+  // 2026-11-14 Terry: no dashed/solid border — the lane is one borderless fill over the exact lane rectangle.
+  it('covers each lane rectangle over the full map depth with a single borderless fill', () => {
     for (const lane of STAGE5_CALL_LANES) {
       const quads = getStage5CallLaneQuads(lane, 16)
-      expect(quads.fill).toEqual([[(lane.minX + lane.maxX) / 2, 0, lane.maxX - lane.minX, 32]])
-      expect(quads.solid).toHaveLength(4)
-      for (const [cx, cz, w, d] of [...quads.solid, ...quads.dashed]) {
-        expect(cx - w / 2).toBeGreaterThanOrEqual(lane.minX - 1e-9)
-        expect(cx + w / 2).toBeLessThanOrEqual(lane.maxX + 1e-9)
-        expect(Math.abs(cz) + d / 2).toBeLessThanOrEqual(16 + 1e-9)
-        expect(Math.min(w, d)).toBeCloseTo(STAGE5_CALL_LANE_WARNING.edgeWidth, 9)
-      }
-      expect(quads.dashed.length).toBeGreaterThan(40)
+      expect(quads).toEqual({ fill: [[(lane.minX + lane.maxX) / 2, 0, lane.maxX - lane.minX, 32]] })
     }
+    expect(STAGE5_CALL_LANE_WARNING).not.toHaveProperty('edge')
+    expect(STAGE5_CALL_LANE_WARNING).not.toHaveProperty('edgeWidth')
   })
 
-  it('blinks at 2Hz while chiming, pulses at 1Hz while calling and fades out after the stream', () => {
-    expect(getStage5CallLaneWarningIntensity('chiming', 0.1)).toBe(1)
-    expect(getStage5CallLaneWarningIntensity('chiming', 0.3)).toBe(0.25)
-    expect(getStage5CallLaneWarningIntensity('calling', 0.25)).toBeCloseTo(1, 6)
-    expect(getStage5CallLaneWarningIntensity('calling', 0.75)).toBeCloseTo(0.5, 6)
+  it('blinks at 1Hz while chiming, pulses at 0.5Hz while calling (half the old 2Hz/1Hz) and fades out after the stream', () => {
+    expect(STAGE5_CALL_LANE_WARNING.chimingHz).toBe(1)
+    expect(STAGE5_CALL_LANE_WARNING.callingHz).toBe(0.5)
+    expect(getStage5CallLaneWarningIntensity('chiming', 0.2)).toBe(1)
+    expect(getStage5CallLaneWarningIntensity('chiming', 0.6)).toBe(0.25)
+    expect(getStage5CallLaneWarningIntensity('calling', 0.5)).toBeCloseTo(1, 6)
+    expect(getStage5CallLaneWarningIntensity('calling', 1.5)).toBeCloseTo(0.5, 6)
     expect(getStage5CallLaneWarningIntensity('fading', 0, 0.5)).toBeCloseTo(0.5, 6)
     expect(getStage5CallLaneWarningIntensity('idle', 0)).toBe(0)
     // Lane tint is the inflow blue, never the damage telegraph yellow/red.
     expect(STAGE5_CALL_LANE_WARNING.fill).toBe('#5B8CFF')
-    expect(STAGE5_CALL_LANE_WARNING.edge).toBe('#CFE0FF')
   })
 
-  it('shows only the called lane (dashed while chiming, solid while calling) and lights only its two speakers', async () => {
+  it('shows only the called lane as a borderless fill and lights only its two speakers', async () => {
     const state = await mount(<><StageObjectLayer stageId="stage5" /><Stage5CallLaneGroundWarning /></>)
     const warning = state.scene.getObjectByName('stage5-call-lane-ground-warning')
     const before = lampHexes(state.scene)
@@ -98,8 +94,7 @@ describe('Stage 5 call-lane ground warning (spec Part B §7-2 · §12-3)', () =>
     const visibleLanes = STAGE5_CALL_LANES.filter(({ id }) => state.scene.getObjectByName(`stage5-call-lane-${id}`).visible).map(({ id }) => id)
     expect(visibleLanes).toEqual(['L2'])
     const l2 = state.scene.getObjectByName('stage5-call-lane-L2')
-    expect(l2.getObjectByName('lane-edge-dashed').visible).toBe(true)
-    expect(l2.getObjectByName('lane-edge-solid').visible).toBe(false)
+    expect(l2.children.map((child) => child.name)).toEqual(['lane-fill'])
     const lit = lampHexes(state.scene)
     expect(lit.L2).toHaveLength(2)
     expect(lit.L2.every((material) => material.isMeshBasicMaterial)).toBe(true)
@@ -107,8 +102,9 @@ describe('Stage 5 call-lane ground warning (spec Part B §7-2 · §12-3)', () =>
 
     publishStage5CallLaneState(7, 0, 1, 'calling')
     await act(async () => state.advance(0.4))
-    expect(l2.getObjectByName('lane-edge-solid').visible).toBe(true)
-    expect(l2.getObjectByName('lane-edge-dashed').visible).toBe(false)
+    expect(l2.visible).toBe(true)
+    expect(l2.getObjectByName('lane-edge-solid')).toBeUndefined()
+    expect(l2.getObjectByName('lane-edge-dashed')).toBeUndefined()
 
     // Stream end: 300ms fade, then hidden and the speaker lamps restored.
     publishStage5CallLaneState(7, 0, 1, 'idle')

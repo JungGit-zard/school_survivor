@@ -3,9 +3,10 @@ const tau=Math.PI*2
 export const EXPANSION_PATTERN_SHAPES=Object.freeze({b05_p1:'annulus',b05_p2:'cross',b06_p1:'disk',b06_p2:'three_disks',b07_p1:'three_lines',b07_p2:'annulus',b08_p1:'cross',b08_p2:'sector',b09_p1:'grid',b09_p2:'annulus',b10_p1:'disk',b10_p2:'sector'})
 export const EXPANSION_TELEGRAPH_CAPACITY=32
 // B10 결재 도장(b10_p1) disk 중심 "決" 도장 무늬 데칼(스펙 Part B §12-3).
-// windup 중 opacity 0→0.6, active 순간 0.9. 텍스처는 모듈 수명 동안 하나만 만든다(캔버스가 없으면 생략).
+// 2026-11-14 Terry: 경고는 원형 색상만 — windup(경고) 중에는 도장 무늬를 띄우지 않는다(windupMaxOpacity 0).
+// active(타격) 순간에만 0.9로 찍힌다. 텍스처는 모듈 수명 동안 하나만 만든다(캔버스가 없으면 생략).
 export const B10_STAMP_PATTERN_ID='b10_p1'
-export const B10_STAMP_DECAL=Object.freeze({color:'#d7263d',windupMaxOpacity:.6,activeOpacity:.9,radiusScale:.82})
+export const B10_STAMP_DECAL=Object.freeze({color:'#d7263d',windupMaxOpacity:0,activeOpacity:.9,radiusScale:.82})
 let b10StampTexture
 export function getB10StampTexture() {
  if(b10StampTexture!==undefined)return b10StampTexture
@@ -33,74 +34,17 @@ function addB10StampDecal(root,d,radius) {
  root.add(mesh);root.userData.stampMat=material
 }
 const positive=v=>Number.isFinite(v)&&v>0&&v<=64
-// World-space diagonal hatch: normal spacing .28 units (.07 blocks), width
-// .045 units (.01125 blocks). Clip each stripe to the authoritative convex piece.
-const hatchSpacing=.28,hatchWidth=.045,sqrt2=Math.SQRT2
-function clipWarningStripe(p,bound,keepAbove) {
- const out=[]
- for(let i=0;i<p.length;i++){
-   const a=p[i],b=p[(i+1)%p.length],da=(a[0]+a[1])/sqrt2-bound,db=(b[0]+b[1])/sqrt2-bound
-   const ia=keepAbove?da>=0:da<=0,ib=keepAbove?db>=0:db<=0
-   if(ia)out.push(a)
-   if(ia!==ib){const t=da/(da-db);out.push([a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t])}
- }
- return out
-}
-function addWarningCues(root,parent,polygons,x,z) {
- if(!polygons.length)return
- const hatch=[],centers=[],offsets=[],inner=[]
- for(const p of polygons){
-   if(p.length<3)continue
-   const projections=p.map(v=>(v[0]+v[1])/sqrt2),lo=Math.min(...projections),hi=Math.max(...projections)
-   for(let k=Math.ceil((lo-hatchWidth)/hatchSpacing);k*hatchSpacing<=hi;k++){
-     const clipped=clipWarningStripe(clipWarningStripe(p,k*hatchSpacing,true),k*hatchSpacing+hatchWidth,false)
-     for(let i=1;i+1<clipped.length;i++)for(const v of [clipped[0],clipped[i],clipped[i+1]])hatch.push(v[0]-x,.004,v[1]-z)
-   }
-   // Convex pieces are contracted about their own interior centroid. Scaling
-   // the whole authored shape could cross a wall shadow or fill an annulus hole.
-   const cx=p.reduce((n,v)=>n+v[0],0)/p.length,cz=p.reduce((n,v)=>n+v[1],0)/p.length
-   for(let i=0;i<p.length;i++){
-     const a=p[i],b=p[(i+1)%p.length]
-     for(const [v,isInner]of [[a,0],[b,0],[b,1],[a,0],[b,1],[a,1]]){
-       centers.push(cx-x,cz-z);offsets.push(v[0]-cx,v[1]-cz);inner.push(isInner)
-     }
-   }
- }
- if(!offsets.length)return
- if(!root.userData.hatchMat){
-   const options={transparent:true,opacity:.92,side:THREE.DoubleSide,depthWrite:false,toneMapped:false}
-   root.userData.hatchMat=new THREE.MeshBasicMaterial({...options,color:'#171717'})
-   root.userData.shrinkMat=new THREE.MeshBasicMaterial({...options,color:'#ffffff'})
-   root.userData.warningCues=[]
- }
- const hatchGeometry=new THREE.BufferGeometry();hatchGeometry.setAttribute('position',new THREE.Float32BufferAttribute(hatch,3))
- const hatchMesh=new THREE.Mesh(hatchGeometry,root.userData.hatchMat);hatchMesh.userData.warningCue='hatch';hatchMesh.renderOrder=4;parent.add(hatchMesh)
- const geometry=new THREE.BufferGeometry(),positions=new THREE.BufferAttribute(new Float32Array(inner.length*3),3);positions.setUsage(THREE.DynamicDrawUsage);geometry.setAttribute('position',positions)
- const mesh=new THREE.Mesh(geometry,root.userData.shrinkMat);mesh.userData.warningCue='shrink';mesh.renderOrder=5
- // Positions contract in-place. Avoid stale bounding-sphere frustum/raycast
- // caches; vertex count/buffers stay constant for the entire warning.
- mesh.frustumCulled=false;parent.add(mesh)
- root.userData.warningCues.push({mesh,centers,offsets,inner})
-}
+// 2026-11-14 Terry "경고그래픽 굵은테두리 없애고 원형 색상만": 바닥 경고는 경고색 반투명 채움 하나뿐이다.
+// 테두리(edge band/stroke)·흑백 사선 해치·흰 수축 카운트다운은 그리지 않는다. 채움은 실제 피해 기하
+// (safetyPolygons 또는 authored 반경)와 정확히 같고, 남은 시간은 채움 불투명도 상승으로만 읽힌다.
+export const EXPANSION_TELEGRAPH_FILL=Object.freeze({color:'#f5ce69',activeColor:'#f88578',windupOpacity:.4,windupOpacityGain:.18,activeOpacity:.55})
 export function updateExpansionTelegraphVisual(root,event) {
  if(!root)return
  const raw=event.windupMs>0?event.elapsedMs/event.windupMs:event.progress??0
  const progress=Number.isFinite(raw)?Math.max(0,Math.min(1,raw)):0
- root.userData.fillMat.opacity=event.phase==='active'?.30:.12+progress*.08
+ const F=EXPANSION_TELEGRAPH_FILL
+ root.userData.fillMat.opacity=event.phase==='active'?F.activeOpacity:F.windupOpacity+progress*F.windupOpacityGain
  if(root.userData.stampMat)root.userData.stampMat.opacity=event.phase==='active'?B10_STAMP_DECAL.activeOpacity:progress*B10_STAMP_DECAL.windupMaxOpacity
- if(root.userData.warningProgress===progress)return
- root.userData.warningProgress=progress
- const outer=.96*(1-progress),inside=outer*.84
- for(const cue of root.userData.warningCues??[]){
-   const a=cue.mesh.geometry.attributes.position,array=a.array
-   for(let i=0;i<cue.inner.length;i++){
-     const scale=cue.inner[i]?inside:outer
-     array[i*3]=cue.centers[i*2]+cue.offsets[i*2]*scale
-     array[i*3+1]=.006
-     array[i*3+2]=cue.centers[i*2+1]+cue.offsets[i*2+1]*scale
-   }
-   a.needsUpdate=true;cue.mesh.geometry.boundingSphere=null;cue.mesh.geometry.boundingBox=null
- }
 }
 // This is a read-only view of locked gameplay geometry. No attack timer or damage
 // lookup exists here; all dimensions/offsets/angles come from the actual snapshot.
@@ -120,10 +64,9 @@ export function createExpansionTelegraphVisual(event) {
  if(shape==='three_lines'&&(!Array.isArray(d.anglesDeg)||d.anglesDeg.length>8||!d.anglesDeg.every(Number.isFinite)))return null
  if(shape==='grid'&&(!Array.isArray(d.lineOffsetsUnits)||d.lineOffsetsUnits.length>8||!d.lineOffsetsUnits.every(Number.isFinite)))return null
  const root=new THREE.Group();root.name=`expansion-${shape}-${d.phase??'telegraph'}`;root.position.set(x,.035,z)
- const active=d.phase==='active',color=active?'#f88578':'#f5ce69',edge=active?'#c1f6eb':'#fff0b5'
- const fillMat=new THREE.MeshBasicMaterial({color,transparent:true,opacity:active?.30:.12,side:THREE.DoubleSide,depthWrite:false,toneMapped:false,polygonOffset:true,polygonOffsetFactor:-2})
- const edgeMat=new THREE.MeshBasicMaterial({color:edge,transparent:true,opacity:.88,side:THREE.DoubleSide,depthWrite:false,toneMapped:false})
- root.userData.fillMat=fillMat;root.userData.edgeMat=edgeMat
+ const active=d.phase==='active',F=EXPANSION_TELEGRAPH_FILL
+ const fillMat=new THREE.MeshBasicMaterial({color:active?F.activeColor:F.color,transparent:true,opacity:active?F.activeOpacity:F.windupOpacity,side:THREE.DoubleSide,depthWrite:false,toneMapped:false,polygonOffset:true,polygonOffsetFactor:-2})
+ root.userData.fillMat=fillMat
  function groundMesh(parent,geometry,mat,px=0,pz=0) {
    const mesh=new THREE.Mesh(geometry,mat);mesh.rotation.x=-Math.PI/2;mesh.position.set(px,.003,pz);mesh.renderOrder=3;parent.add(mesh);return mesh
  }
@@ -133,22 +76,10 @@ export function createExpansionTelegraphVisual(event) {
    const chunks=Array.from({length:shape==='three_disks'?d.offsetsUnits.length:1},()=>[])
    d.safetyPolygons.forEach(p=>chunks[p.sourceIndex??0].push(p))
    for(const polygons of chunks){
-     const fill=[],stroke=[]
-     for(const p of polygons){
-       for(let i=1;i+1<p.length;i++)for(const v of [p[0],p[i],p[i+1]])fill.push(v[0]-x,0,v[1]-z)
-       for(let i=0;i<p.length;i++){
-         const a=p[i],b=p[(i+1)%p.length],dx=b[0]-a[0],dz=b[1]-a[1],l=Math.hypot(dx,dz)
-         if(l<1e-7)continue
-         const nx=-dz/l*.012,nz=dx/l*.012
-         const v=[[a[0],a[1]],[b[0],b[1]],[b[0]+nx,b[1]+nz],[a[0]+nx,a[1]+nz]]
-         for(const j of [0,1,2,0,2,3])stroke.push(v[j][0]-x,.001,v[j][1]-z)
-       }
-     }
-     for(const [vertices,material]of [[fill,fillMat],[stroke,edgeMat]]){
-       const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(vertices,3))
-       const mesh=new THREE.Mesh(geometry,material);mesh.renderOrder=3;root.add(mesh)
-       if(material===fillMat&&!active)addWarningCues(root,mesh,polygons,x,z)
-     }
+     const fill=[]
+     for(const p of polygons)for(let i=1;i+1<p.length;i++)for(const v of [p[0],p[i],p[i+1]])fill.push(v[0]-x,0,v[1]-z)
+     const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(fill,3))
+     const mesh=new THREE.Mesh(geometry,fillMat);mesh.renderOrder=3;root.add(mesh)
    }
    if(shape==='disk')addB10StampDecal(root,d,radius)
    root.userData.expansionSnapshot=d
@@ -158,23 +89,11 @@ export function createExpansionTelegraphVisual(event) {
  function circle(px,pz,inner=0,outer=radius,angle=tau) {
    if(outer<=inner||inner<0)return
    groundMesh(root,inner===0?new THREE.CircleGeometry(outer,48,-Math.PI/2-angle/2,angle):new THREE.RingGeometry(inner,outer,48,1,-Math.PI/2-angle/2,angle),fillMat,px,pz)
-   const band=Math.min(.055,outer*.08)
-   groundMesh(root,new THREE.RingGeometry(Math.max(inner,outer-band),outer,48,1,-Math.PI/2-angle/2,angle),edgeMat,px,pz)
-   if(inner>0)groundMesh(root,new THREE.RingGeometry(inner,Math.min(outer,inner+band),48,1,-Math.PI/2-angle/2,angle),edgeMat,px,pz)
-   if(angle<tau)for(const sign of [-1,1]){
-     const a=sign*angle/2,l=outer-inner
-     const line=new THREE.Group();line.rotation.y=a;line.position.set(px,0,pz)
-     groundMesh(line,new THREE.PlaneGeometry(.045,l),edgeMat,0,inner+l*.5);root.add(line)
-   }
  }
  function line(angle,offsetX=0,offsetZ=0,both=false) {
    const group=new THREE.Group();group.rotation.y=angle;group.position.set(offsetX,0,offsetZ)
-   const l=both?length*2:length,z=both?0:l/2,stroke=Math.min(.045,width*.12)
+   const l=both?length*2:length,z=both?0:l/2
    groundMesh(group,new THREE.PlaneGeometry(width,l),fillMat,0,z)
-   groundMesh(group,new THREE.PlaneGeometry(stroke,l),edgeMat,-width/2+stroke/2,z)
-   groundMesh(group,new THREE.PlaneGeometry(stroke,l),edgeMat,width/2-stroke/2,z)
-   groundMesh(group,new THREE.PlaneGeometry(width,stroke),edgeMat,0,z-l/2+stroke/2)
-   groundMesh(group,new THREE.PlaneGeometry(width,stroke),edgeMat,0,z+l/2-stroke/2)
    root.add(group)
  }
  switch(shape) {
@@ -201,7 +120,6 @@ export function createExpansionTelegraphVisual(event) {
 export function disposeExpansionTelegraphVisual(root) {
  if(!root)return
  root.traverse(n=>{if(n.isMesh)n.geometry.dispose()})
- root.userData.fillMat?.dispose();root.userData.edgeMat?.dispose()
- root.userData.hatchMat?.dispose();root.userData.shrinkMat?.dispose()
+ root.userData.fillMat?.dispose()
  root.userData.stampMat?.dispose()
 }

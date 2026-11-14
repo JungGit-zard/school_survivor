@@ -34,8 +34,9 @@ describe('projectile zombie shot kind → geometry mapping', () => {
 
   it('maps ground markers to flat ring/fill/puddle/line decals', () => {
     expect(getDecalVisuals(SHOT_KIND.DECAL_AIM_LINE, SHOT_MOTION.DECAL, 3)).toEqual([DECAL_VISUAL.LINE])
-    expect(getDecalVisuals(SHOT_KIND.DECAL_MARKER, SHOT_MOTION.DECAL, 0)).toEqual([DECAL_VISUAL.RING, DECAL_VISUAL.MARKER_FILL])
-    expect(getDecalVisuals(SHOT_KIND.DECAL_HEAL, SHOT_MOTION.DECAL, 0)).toEqual([DECAL_VISUAL.RING, DECAL_VISUAL.MARKER_FILL])
+    // 2026-11-14 Terry: 착탄 예정 원은 테두리 링 없이 채움 원 하나.
+    expect(getDecalVisuals(SHOT_KIND.DECAL_MARKER, SHOT_MOTION.DECAL, 0)).toEqual([DECAL_VISUAL.MARKER_FILL])
+    expect(getDecalVisuals(SHOT_KIND.DECAL_HEAL, SHOT_MOTION.DECAL, 0)).toEqual([DECAL_VISUAL.MARKER_FILL])
     expect(getDecalVisuals(SHOT_KIND.ZONE_WATER, SHOT_MOTION.ZONE, 0)).toEqual([DECAL_VISUAL.PUDDLE_FILL])
     expect(getDecalVisuals(SHOT_KIND.ZONE_PAINT, SHOT_MOTION.ZONE, 0)).toEqual([DECAL_VISUAL.PUDDLE_FILL])
   })

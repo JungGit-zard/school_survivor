@@ -3,7 +3,7 @@ import {afterEach,describe,expect,it} from 'vitest'
 import * as THREE from 'three'
 import {EXPANSION_BOSSES,EXPANSION_ENEMIES} from '../../lib/expansionContent.js'
 import {createExpansionAttackState,stepExpansionAttack,expansionAttackSnapshots,expansionAttackContains,clearExpansionAttacks} from '../../lib/expansionAttackRuntime.js'
-import {createExpansionTelegraphVisual,disposeExpansionTelegraphVisual,EXPANSION_PATTERN_SHAPES} from './expansionTelegraphs.js'
+import {createExpansionTelegraphVisual,disposeExpansionTelegraphVisual,EXPANSION_PATTERN_SHAPES,EXPANSION_TELEGRAPH_FILL} from './expansionTelegraphs.js'
 import {syncExpansionTelegraphs} from './ExpansionHazardLayer.jsx'
 const args={x:1.31,z:-2.17,playerX:2.1,playerZ:-1.1,alive:true,playing:true,deltaMs:1,gameKey:0,hpRatio:1}
 function snapshot(type,index=0){clearExpansionAttacks();const state=createExpansionAttackState(type,`${type}:${index}`);state.patternIndex=index;state.nextMs=0;stepExpansionAttack(state,{...args,playerX:args.x+.05,playerZ:args.z+.07});return state.snapshot}
@@ -18,9 +18,10 @@ describe('authoritative snapshot damage / rendered triangle coverage',()=>{
  it('updates the same mutable map snapshots across phases and removes recovery/deleted attacks',()=>{
    const s=snapshot('B06',1),group=new THREE.Group(),cache=new Map()
    syncExpansionTelegraphs(group,cache,expansionAttackSnapshots);expect(group.children.length).toBe(1)
-   expect(group.children[0].children.length).toBe(6)
+   // three_disks → one borderless fill mesh per disk (2026-11-14: no edge stroke meshes).
+   expect(group.children[0].children.length).toBe(3)
    s.phase='active';syncExpansionTelegraphs(group,cache,expansionAttackSnapshots)
-   expect(group.children[0].userData.fillMat.opacity).toBe(.30)
+   expect(group.children[0].userData.fillMat.opacity).toBe(EXPANSION_TELEGRAPH_FILL.activeOpacity)
    s.phase='recovery';syncExpansionTelegraphs(group,cache,expansionAttackSnapshots);expect(group.children.length).toBe(0)
    s.phase='windup';syncExpansionTelegraphs(group,cache,expansionAttackSnapshots);expect(group.children.length).toBe(1)
    expansionAttackSnapshots.clear();syncExpansionTelegraphs(group,cache,expansionAttackSnapshots);expect(cache.size).toBe(0)

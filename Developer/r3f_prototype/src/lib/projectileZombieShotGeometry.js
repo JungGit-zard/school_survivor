@@ -280,7 +280,9 @@ export function getDecalVisuals(kind, motion, lengthU) {
 }
 const LINE_ONLY = Object.freeze([DECAL_VISUAL.LINE])
 const PUDDLE_ONLY = Object.freeze([DECAL_VISUAL.PUDDLE_FILL])
-const RING_AND_FILL = Object.freeze([DECAL_VISUAL.RING, DECAL_VISUAL.MARKER_FILL])
+// 2026-11-14 Terry "굵은테두리 없애고 원형 색상만": 착탄 예정 원은 테두리 링 없이 채움 원 하나다.
+// (RING 지오메트리·재질 슬롯은 인덱스 호환을 위해 남겨 두지만 어떤 표식도 그리지 않는다.)
+const RING_AND_FILL = Object.freeze([DECAL_VISUAL.MARKER_FILL])
 
 // ── 매복 소품(E58 줄넘기 똬리, E60 배수구) ────────────────────────────────────
 // 몸이 반쯤 가라앉은 동안 발밑에 둔다. 가운데 검은 구멍이 몸이 바닥을 뚫는 단면을 덮어

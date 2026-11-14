@@ -83,6 +83,7 @@ import { queueB10StampDeathMark } from './B10StampDeathMark.jsx'
 import { B10_SFX, STAGE5_BOSS_STATS, createB10SummonState, isAuthoredAttackBoss, isB10EnrageTransitionDone, stepB10SummonTriggers, AUTHORED_ATTACK_BOSSES } from '../lib/stage5ViceBoss.js'
 import { pushBossSummon } from '../lib/bossSummonQueue.js'
 import MiniHealthBar from './MiniHealthBar.jsx'
+import { CHARGE_CUE_PULSE_RAD_PER_SEC } from '../lib/warningPulse.js'
 import {
   MATH_TEACHER_SWING_RADIUS,
   MATH_TEACHER_SWING_RECOVERY_MS,
@@ -593,7 +594,8 @@ function ChargeToonCue({ y }) {
   useFrame((state) => {
     if (!ref.current) return
     const t = performance.now() * 0.001
-    const pulse = 1 + Math.sin(t * 12) * CHARGE_CUE_LAYOUT.pulseScale
+    // 2026-11-14 Terry: 경고 맥동 속도 절반(12 → 6 rad/s). 진폭(pulseScale)은 그대로다.
+    const pulse = 1 + Math.sin(t * CHARGE_CUE_PULSE_RAD_PER_SEC) * CHARGE_CUE_LAYOUT.pulseScale
     ref.current.scale.set(pulse, pulse, pulse)
     ref.current.lookAt(state.camera.position)
   })
@@ -687,10 +689,12 @@ export function isBigSpawnSmoke(visualScale) {
 // 0.55를 곱하면 1.68배로, 빌보드보다 아주 조금 크다. 부피감은 남고 몬스터는 가려지지 않는다.
 export const BIG_SPAWN_SMOKE_SIZE = 0.55
 
+// 2026-11-14 Terry: 바닥 경고는 굵은 테두리 없이 색 채움만. 어두운 외곽선·그림자 띠를 없애고 띠 폭은
+// 실제 봉쇄선 폭(B02_BLOCKADE_LINE_WIDTH) 그대로다.
 export const B02_CORRIDOR_BLOCKADE_VISUALS = Object.freeze({
-  telegraph: Object.freeze({ surface: '#22cbd2', surfaceOpacity: 0.48, outline: '#063b46', outlineOpacity: 0.82, shadow: '#021c24', shadowOpacity: 0.34 }),
-  active: Object.freeze({ surface: '#24edf0', surfaceOpacity: 0.9, outline: '#052f39', outlineOpacity: 0.96, shadow: '#021923', shadowOpacity: 0.46 }),
-  completed: Object.freeze({ surface: '#0d6570', surfaceOpacity: 0.22, outline: '#063b46', outlineOpacity: 0.5, shadow: '#021923', shadowOpacity: 0.18 }),
+  telegraph: Object.freeze({ surface: '#22cbd2', surfaceOpacity: 0.48 }),
+  active: Object.freeze({ surface: '#24edf0', surfaceOpacity: 0.9 }),
+  completed: Object.freeze({ surface: '#0d6570', surfaceOpacity: 0.22 }),
 })
 
 // 선은 이제 보스를 두르는 고정 경계라 순차 점등이 없다 — 활성 중에는 전부 같은 상태다.
@@ -712,14 +716,6 @@ export function B02CorridorBlockadeVisual({ phase, lineZs, halfX }) {
         const visual = B02_CORRIDOR_BLOCKADE_VISUALS[visualState]
         return (
           <group key={`${index}:${z}`} userData={{ blockadeLineState: visualState }}>
-            <mesh position={[0, 0.012, z]}>
-              <boxGeometry args={[halfX * 2, 0.016, B02_BLOCKADE_LINE_WIDTH + 0.42]} />
-              <meshBasicMaterial color={visual.shadow} transparent opacity={visual.shadowOpacity} depthWrite={false} toneMapped={false} />
-            </mesh>
-            <mesh position={[0, 0.026, z]}>
-              <boxGeometry args={[halfX * 2, 0.028, B02_BLOCKADE_LINE_WIDTH + 0.16]} />
-              <meshBasicMaterial color={visual.outline} transparent opacity={visual.outlineOpacity} depthWrite={false} toneMapped={false} />
-            </mesh>
             <mesh position={[0, 0.047, z]}>
               <boxGeometry args={[halfX * 2, 0.024, B02_BLOCKADE_LINE_WIDTH]} />
               <meshBasicMaterial color={visual.surface} transparent opacity={visual.surfaceOpacity} depthWrite={false} toneMapped={false} />
@@ -731,16 +727,19 @@ export function B02CorridorBlockadeVisual({ phase, lineZs, halfX }) {
   )
 }
 
+// 2026-11-14 Terry: 레인은 테두리 없이 색 채움만(폭 = 실제 레인 폭 B03_SHUTTLE_LANE_WIDTH).
 export const B03_SHUTTLE_RUN_VISUALS = Object.freeze({
-  telegraph: Object.freeze({ surface: '#f5b83d', surfaceOpacity: 0.44, outline: '#6b4308', outlineOpacity: 0.82 }),
-  outbound: Object.freeze({ surface: '#ffd34e', surfaceOpacity: 0.82, outline: '#6b4308', outlineOpacity: 0.96 }),
-  returning: Object.freeze({ surface: '#e6a81f', surfaceOpacity: 0.86, outline: '#5d3906', outlineOpacity: 0.98 }),
-  stun: Object.freeze({ surface: '#c99a43', surfaceOpacity: 0.2, outline: '#5d451d', outlineOpacity: 0.42 }),
+  telegraph: Object.freeze({ surface: '#f5b83d', surfaceOpacity: 0.5 }),
+  outbound: Object.freeze({ surface: '#ffd34e', surfaceOpacity: 0.82 }),
+  returning: Object.freeze({ surface: '#e6a81f', surfaceOpacity: 0.86 }),
+  stun: Object.freeze({ surface: '#c99a43', surfaceOpacity: 0.2 }),
 })
 
+// 2026-11-14 Terry: 경고는 굵은 테두리 없이 원형 색상만. 실제 피해 반경 그대로의 옅은 원(area)과,
+// 텔레그래프 1200ms 동안 0 → 피해 반경까지 자라는 진한 원(fill) 두 장의 채움뿐이다(테두리 호·그릇 아이콘 없음).
 export const B04_SOUP_BLAST_VISUALS = Object.freeze({
-  telegraph: Object.freeze({ surface: '#f4ad32', surfaceOpacity: 0.46, outline: '#663507', outlineOpacity: 0.86 }),
-  explode: Object.freeze({ surface: '#ff6b1f', surfaceOpacity: 0.92, outline: '#751a05', outlineOpacity: 1 }),
+  telegraph: Object.freeze({ surface: '#f4ad32', surfaceOpacity: 0.5, areaOpacity: 0.32 }),
+  explode: Object.freeze({ surface: '#ff6b1f', surfaceOpacity: 0.85 }),
 })
 
 export function getB04SoupBlastVisualState(phase) {
@@ -766,22 +765,10 @@ function getB04SoupFillScale(stateRef) {
   return stateRef?.current ? Math.max(0.001, getB04SoupFillProgress(stateRef.current.elapsedMs)) : 1
 }
 
-// P6: the last 300ms of the telegraph steps the rim arcs from dark outline to the bright soup tint.
-export const B04_SOUP_EDGE_EMPHASIS_MS = 300
-export function getB04SoupEdgeEmphasis(elapsedMs) {
-  return (elapsedMs || 0) >= B04_SOUP_BLAST_TELEGRAPH_MS - B04_SOUP_EDGE_EMPHASIS_MS
-}
-
 function B04SoupFillDriver({ fill, stateRef }) {
   useFrame(() => {
     const scale = getB04SoupFillScale(stateRef)
-    fill.mesh?.scale.set(scale, 1, scale)
-    const emphasis = Boolean(stateRef?.current) && getB04SoupEdgeEmphasis(stateRef.current.elapsedMs)
-    if (emphasis !== Boolean(fill.emphasis)) {
-      fill.emphasis = emphasis
-      const { outline, surface } = B04_SOUP_BLAST_VISUALS.telegraph
-      fill.segments.forEach((segment) => segment?.material.color.set(emphasis ? surface : outline))
-    }
+    fill.mesh?.scale.set(scale, scale, 1)
   })
   return null
 }
@@ -795,30 +782,19 @@ export function B04SoupBlastVisual({ phase, circles, stateRef }) {
   return (
     <group name="B04 국물 대폭발 원형 표식" userData={{ soupBlastState: visualState }}>
       {circles.map((circle, index) => {
-        const fill = { segments: [] }
+        const fill = {}
         return (
         <group key={`${index}:${circle.x}:${circle.z}`} position={[circle.x, 0, circle.z]}>
-          {Array.from({ length: 8 }, (_, segment) => (
-            <mesh key={segment} name="b04-soup-segment" ref={(mesh) => { fill.segments[segment] = mesh }} position={[0, 0.06, 0]} rotation={[-Math.PI / 2, 0, 0]} renderOrder={9}>
-              <ringGeometry args={[circle.radius - 0.18, circle.radius, 48, 1, segment * Math.PI / 4, Math.PI / 4 - 0.13]} />
-              <meshBasicMaterial color={visual.outline} depthWrite={false} toneMapped={false} />
+          {telegraph && (
+            <mesh name="b04-soup-area" position={[0, 0.045, 0]} rotation={[-Math.PI / 2, 0, 0]} renderOrder={8}>
+              <circleGeometry args={[circle.radius, 48]} />
+              <meshBasicMaterial color={visual.surface} transparent opacity={visual.areaOpacity} depthWrite={false} toneMapped={false} />
             </mesh>
-          ))}
-          <mesh name="b04-soup-fill" ref={(mesh) => { fill.mesh = mesh }} position={[0, 0.047, 0]} scale={[fillScale, 1, fillScale]}>
-            <cylinderGeometry args={[circle.radius - 0.22, circle.radius - 0.22, 0.024, 32]} />
+          )}
+          <mesh name="b04-soup-fill" ref={(mesh) => { fill.mesh = mesh }} position={[0, 0.047, 0]} rotation={[-Math.PI / 2, 0, 0]} scale={[fillScale, fillScale, 1]} renderOrder={9}>
+            <circleGeometry args={[circle.radius, 48]} />
             <meshBasicMaterial color={visual.surface} transparent opacity={visual.surfaceOpacity} depthWrite={false} toneMapped={false} />
           </mesh>
-          {/* Bowl + rising steam identifies soup without relying on its color. */}
-          <mesh position={[0, 0.075, 0]} rotation={[-Math.PI / 2, 0, 0]} renderOrder={10}>
-            <ringGeometry args={[0.32, 0.42, 16, 1, Math.PI, Math.PI]} />
-            <meshBasicMaterial color="#fff4d4" depthWrite={false} toneMapped={false} />
-          </mesh>
-          {[-0.18, 0, 0.18].map((x) => (
-            <mesh key={x} position={[x, 0.075, -0.19]} rotation={[0, 0.25, 0]} renderOrder={10}>
-              <boxGeometry args={[0.06, 0.02, visualState === 'explode' ? 0.48 : 0.24]} />
-              <meshBasicMaterial color="#fff4d4" depthWrite={false} toneMapped={false} />
-            </mesh>
-          ))}
           {telegraph && <B04SoupFillDriver fill={fill} stateRef={stateRef} />}
         </group>
         )
@@ -845,7 +821,6 @@ export const B03_SHUTTLE_STOMP_RING_VISUAL = Object.freeze({
 })
 
 function B03ShuttleRunVisual({ phase, passIndex, laneZ, startX, endX, stateRef }) {
-  const outlineMatRef = useRef()
   const surfaceMatRef = useRef()
   const stompRingRef = useRef()
   const telegraphMsRef = useRef(0)
@@ -869,18 +844,15 @@ function B03ShuttleRunVisual({ phase, passIndex, laneZ, startX, endX, stateRef }
         ringMesh.material.opacity = opacity * (1 - ring.progress)
       }
     }
-    const outlineMaterial = outlineMatRef.current
     const surfaceMaterial = surfaceMatRef.current
-    if (!outlineMaterial || !surfaceMaterial) return
+    if (!surfaceMaterial) return
     if (phase !== 'telegraph') {
       telegraphMsRef.current = 0
-      outlineMaterial.opacity = visual.outlineOpacity
       surfaceMaterial.opacity = visual.surfaceOpacity
       return
     }
     telegraphMsRef.current += delta * 1000
     const blink = getB03ShuttleTelegraphBlinkFactor(telegraphMsRef.current)
-    outlineMaterial.opacity = visual.outlineOpacity * blink
     surfaceMaterial.opacity = visual.surfaceOpacity * blink
   })
   if (phase === 'idle') return null
@@ -888,10 +860,6 @@ function B03ShuttleRunVisual({ phase, passIndex, laneZ, startX, endX, stateRef }
   const { centerX, length } = getB03ShuttleRunLaneGeometry(startX, endX)
   return (
     <group name="B03 왕복 오래달리기 레인" userData={{ shuttleRunState: visualState }}>
-      <mesh position={[centerX, 0.024, laneZ]}>
-        <boxGeometry args={[length + 0.18, 0.028, B03_SHUTTLE_LANE_WIDTH + 0.18]} />
-        <meshBasicMaterial ref={outlineMatRef} color={visual.outline} transparent opacity={visual.outlineOpacity} depthWrite={false} toneMapped={false} />
-      </mesh>
       <mesh position={[centerX, 0.047, laneZ]}>
         <boxGeometry args={[length, 0.024, B03_SHUTTLE_LANE_WIDTH]} />
         <meshBasicMaterial ref={surfaceMatRef} color={visual.surface} transparent opacity={visual.surfaceOpacity} depthWrite={false} toneMapped={false} />

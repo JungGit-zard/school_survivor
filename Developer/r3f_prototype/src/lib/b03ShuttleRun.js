@@ -18,8 +18,9 @@ export const B03_SHUTTLE_STUN_MS = 1_200
 export const B03_SHUTTLE_LANE_WIDTH = 1.2
 // 반환 지점을 벽에 딱 붙이지 않기 위한 여유. 레인 끝을 halfX에서 이만큼 안쪽으로 당긴다.
 export const B03_SHUTTLE_LANE_EDGE_INSET = 0.9
-// 예고선 깜빡임: 텔레그래프 1.25초 동안 밝기가 3번 오르내린다("바닥에 예상루트가 깜빡인후").
-export const B03_SHUTTLE_TELEGRAPH_BLINKS = 3
+// 예고선 깜빡임: 텔레그래프 1.25초 동안 밝기가 1.5번 오르내린다("바닥에 예상루트가 깜빡인후").
+// 2026-11-14 Terry "커졌다,작아지는 속도를 절반으로": 3회(2.4Hz) → 1.5회(1.2Hz). 텔레그래프 길이는 그대로.
+export const B03_SHUTTLE_TELEGRAPH_BLINKS = 1.5
 export const B03_SHUTTLE_TELEGRAPH_BLINK_MIN = 0.25
 
 export function getB03ShuttleRunPlayerDamage(currentHp) {

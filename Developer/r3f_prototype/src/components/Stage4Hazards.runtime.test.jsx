@@ -84,8 +84,10 @@ describe('Stage4 actual hazard frame paths (not GPU visual acceptance)', () => {
       const warning = state.scene.getObjectByName('pressure-cauldron-world-warning')
       expect(warning, 'real mounted warning').toBeTruthy()
       expect(warning.visible).toBe(true)
+      // 2026-11-14: the boundary is a borderless filled disc whose radius IS the 3.2 damage radius.
       const edge = state.scene.getObjectByName('pressure-cauldron-world-boundary')
-      expect(edge.geometry.parameters.outerRadius).toBe(3.2)
+      expect(edge.geometry.type).toBe('CircleGeometry')
+      expect(edge.geometry.parameters.radius).toBe(3.2)
       expect(edge.getWorldPosition(new THREE.Vector3()).toArray()).toEqual([0, 0.035, 0])
       expect(edge.getWorldScale(new THREE.Vector3()).toArray()).toEqual([1, 1, 1])
       expect(warning.userData.progress).toBeCloseTo((ms - 12000) / 3000)
@@ -169,16 +171,21 @@ describe('Stage4 actual hazard frame paths (not GPU visual acceptance)', () => {
     expect(original.emissiveIntensity).toBe(originalRest)
   })
 
-  it('renders soup as separated bowl-rim arcs with unchanged exact centers and radius, not a second cauldron circle', async () => {
+  it('renders soup as borderless filled discs with unchanged exact centers and radius', async () => {
     const circles = [{ x: -3.2, z: 7, radius: 1.1 }, { x: 3.2, z: 7, radius: 1.1 }]
     const { state, render } = await mount(<B04SoupBlastVisual phase="telegraph" circles={circles} />)
-    const arcs = []
-    state.scene.traverse(o => { if (o.name === 'b04-soup-segment') arcs.push(o) })
-    expect(arcs).toHaveLength(16)
-    for (const arc of arcs) {
-      expect(arc.geometry.parameters.outerRadius).toBe(1.1)
-      expect(arc.geometry.parameters.thetaLength).toBeLessThan(Math.PI / 4)
-      expect(arc.getWorldPosition(new THREE.Vector3()).x).toBeOneOf([-3.2, 3.2])
+    const discs = []
+    let rings = 0
+    state.scene.traverse(o => {
+      if (o.name === 'b04-soup-area' || o.name === 'b04-soup-fill') discs.push(o)
+      if (o.isMesh && o.geometry.type === 'RingGeometry') rings += 1
+    })
+    expect(rings).toBe(0)
+    expect(discs).toHaveLength(4)
+    for (const disc of discs) {
+      expect(disc.geometry.type).toBe('CircleGeometry')
+      expect(disc.geometry.parameters.radius).toBe(1.1)
+      expect(disc.getWorldPosition(new THREE.Vector3()).x).toBeOneOf([-3.2, 3.2])
     }
     await render(<B04SoupBlastVisual phase="done" circles={circles} />)
     expect(state.scene.children.some(o => o.name.includes('B04'))).toBe(false)
@@ -194,22 +201,23 @@ describe('Stage4 actual hazard frame paths (not GPU visual acceptance)', () => {
     await frame(state, 150002)
     const soup = () => state.scene.getObjectByName('B04 국물 대폭발 원형 표식')
     expect(soup()?.userData.soupBlastState).toBe('telegraph')
-    // P6: fill grows 0 -> 1 over the 1200ms game-time telegraph; never wider than radius - 0.22.
+    // P6: fill grows 0 -> 1 over the 1200ms game-time telegraph; at full size it is exactly the 1.1 damage radius.
     const fills = () => { const out = []; soup()?.traverse(o => { if (o.name === 'b04-soup-fill') out.push(o) }); return out }
     expect(fills().length).toBeGreaterThan(0)
     for (const fill of fills()) {
       expect(fill.scale.x).toBeLessThan(0.01)
-      expect(fill.geometry.parameters.radiusTop).toBeCloseTo(1.1 - 0.22)
+      expect(fill.scale.y).toBe(fill.scale.x)
+      expect(fill.geometry.parameters.radius).toBe(1.1)
     }
-    const rimColors = () => { const out = new Set(); soup()?.traverse(o => { if (o.name === 'b04-soup-segment') out.add(o.material.color.getHexString()) }); return [...out] }
+    // 2026-11-14: no rim arcs at all — only the static area disc and the growing fill disc.
+    const rims = () => { let n = 0; soup()?.traverse(o => { if (o.name === 'b04-soup-segment') n += 1 }); return n }
+    expect(rims()).toBe(0)
     await frame(state, 150602, 0.6)
     for (const fill of fills()) expect(fill.scale.x).toBeCloseTo(0.5, 1)
-    expect(rimColors()).toEqual(['663507'])
     await frame(state, 151201, 0.599)
     expect(soup()?.userData.soupBlastState).toBe('telegraph')
     for (const fill of fills()) expect(fill.scale.x).toBeGreaterThan(0.99)
-    // P6: last 300ms steps the rim arcs to the bright soup tint (same material, no new mesh).
-    expect(rimColors()).toEqual(['f4ad32'])
+    expect(rims()).toBe(0)
     await setGame({ phase: 'paused' }); await frame(state, 151201, 30)
     expect(soup()?.userData.soupBlastState).toBe('telegraph')
     const pausedScale = fills()[0].scale.x

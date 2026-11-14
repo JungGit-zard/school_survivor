@@ -2,8 +2,10 @@
 //
 // 호출 레인 직사각형 x[minX, maxX] × z[−halfZ, +halfZ]를 바닥에 칠한다. 피해 텔레그래프 색(노랑·빨강)이 아니라
 // 유입 경고 전용 파랑을 쓴다 — 이 레인은 피해 지대가 아니라 스폰 지대다.
-//   chiming(경고 3s): 테두리 0.08u 점선 #CFE0FF + 채움 #5B8CFF α 0.12, 2Hz 깜빡임
-//   calling(호출 10s): 실선 테두리 + 채움 α 0.22, 1Hz 맥동
+//   chiming(경고 3s): 채움 #5B8CFF α 0.20, 1Hz 깜빡임
+//   calling(호출 10s): 채움 α 0.30, 0.5Hz 맥동
+//   2026-11-14 Terry "굵은테두리 없애고 … 속도를 절반으로": 점선·실선 테두리를 없애고 채움만 남겼다.
+//   깜빡임·맥동은 이전(2Hz/1Hz)의 절반이고, 테두리가 빠진 만큼 채움 α를 0.12/0.22 → 0.20/0.30으로 올렸다.
 //   스트림 종료: 300ms 페이드아웃. 게임오버·클리어·gameKey 변경은 즉시 숨김.
 // 같은 레인의 교내 방송 스피커 2개(userData.stage5CallLaneLamp)의 램프도 같은 리듬으로 파랗게 켠다.
 //
@@ -19,16 +21,11 @@ import { getStage5CallLaneState } from '../../lib/stage5CallLaneRuntime.js'
 
 export const STAGE5_CALL_LANE_WARNING = Object.freeze({
   fill: '#5B8CFF',
-  edge: '#CFE0FF',
   lamp: '#5B8CFF',
-  chimingFillOpacity: 0.12,
-  callingFillOpacity: 0.22,
-  edgeOpacity: 0.9,
-  edgeWidth: 0.08,
-  dashLength: 0.5,
-  dashGap: 0.35,
-  chimingHz: 2,
-  callingHz: 1,
+  chimingFillOpacity: 0.2,
+  callingFillOpacity: 0.3,
+  chimingHz: 1,
+  callingHz: 0.5,
   fadeOutMs: 300,
   y: 0.03,
 })
@@ -50,40 +47,14 @@ export function buildLaneQuadGeometry(quads) {
   return geometry
 }
 
-function dashesAlong(length, dash, gap) {
-  const count = Math.max(1, Math.floor((length + gap) / (dash + gap)))
-  const used = count * dash + (count - 1) * gap
-  const start = -used / 2 + dash / 2
-  return Array.from({ length: count }, (_, index) => start + index * (dash + gap))
-}
-
-// 레인 하나의 채움·실선·점선 사각형. 테두리는 레인 안쪽으로 붙인다.
+// 레인 하나의 채움 사각형(레인 폭 × 맵 전체 깊이). 테두리는 없다.
 export function getStage5CallLaneQuads(lane, halfZ) {
-  const W = STAGE5_CALL_LANE_WARNING
   const width = lane.maxX - lane.minX
   const cx = (lane.minX + lane.maxX) / 2
-  const depth = halfZ * 2
-  const e = W.edgeWidth
-  const solid = [
-    [lane.minX + e / 2, 0, e, depth],
-    [lane.maxX - e / 2, 0, e, depth],
-    [cx, -halfZ + e / 2, width, e],
-    [cx, halfZ - e / 2, width, e],
-  ]
-  const dashed = [
-    ...dashesAlong(depth, W.dashLength, W.dashGap).flatMap((z) => [
-      [lane.minX + e / 2, z, e, W.dashLength],
-      [lane.maxX - e / 2, z, e, W.dashLength],
-    ]),
-    ...dashesAlong(width, W.dashLength, W.dashGap).flatMap((x) => [
-      [cx + x, -halfZ + e / 2, W.dashLength, e],
-      [cx + x, halfZ - e / 2, W.dashLength, e],
-    ]),
-  ]
-  return { fill: [[cx, 0, width, depth]], solid, dashed }
+  return { fill: [[cx, 0, width, halfZ * 2]] }
 }
 
-// 경고 단계와 시간(초)에서 채움·테두리 불투명도 배수(0~1). fade는 스트림 종료 후 페이드 진행(0 → 1).
+// 경고 단계와 시간(초)에서 채움 불투명도 배수(0~1). fade는 스트림 종료 후 페이드 진행(0 → 1).
 export function getStage5CallLaneWarningIntensity(phase, timeSec, fade = 0) {
   const W = STAGE5_CALL_LANE_WARNING
   if (phase === 'chiming') return Math.sin(timeSec * Math.PI * 2 * W.chimingHz) >= 0 ? 1 : 0.25
@@ -102,29 +73,20 @@ export default function Stage5CallLaneGroundWarning() {
 
   const resources = useMemo(() => {
     const fillMat = new THREE.MeshBasicMaterial({ color: W.fill, transparent: true, opacity: 0, depthWrite: false, toneMapped: false, side: THREE.DoubleSide })
-    const edgeMat = new THREE.MeshBasicMaterial({ color: W.edge, transparent: true, opacity: 0, depthWrite: false, toneMapped: false, side: THREE.DoubleSide })
     const lampMat = new THREE.MeshBasicMaterial({ color: W.lamp, toneMapped: false })
     const lanes = STAGE5_CALL_LANES.map((lane) => {
       const quads = getStage5CallLaneQuads(lane, halfZ)
-      return {
-        id: lane.id,
-        fill: buildLaneQuadGeometry(quads.fill),
-        solid: buildLaneQuadGeometry(quads.solid),
-        dashed: buildLaneQuadGeometry(quads.dashed),
-      }
+      return { id: lane.id, fill: buildLaneQuadGeometry(quads.fill) }
     })
-    return { fillMat, edgeMat, lampMat, lanes }
-  }, [W.fill, W.edge, W.lamp, halfZ])
+    return { fillMat, lampMat, lanes }
+  }, [W.fill, W.lamp, halfZ])
 
   useEffect(() => () => {
     restoreLamps(view.current)
     resources.fillMat.dispose()
-    resources.edgeMat.dispose()
     resources.lampMat.dispose()
     for (const lane of resources.lanes) {
       lane.fill.dispose()
-      lane.solid.dispose()
-      lane.dashed.dispose()
     }
   }, [resources])
 
@@ -185,13 +147,8 @@ export default function Stage5CallLaneGroundWarning() {
     laneRefs.current.forEach((lane, index) => {
       if (!lane) return
       lane.visible = index === visibleLane
-      const solid = lane.getObjectByName('lane-edge-solid')
-      const dashed = lane.getObjectByName('lane-edge-dashed')
-      if (solid) solid.visible = mode !== 'chiming'
-      if (dashed) dashed.visible = mode === 'chiming'
     })
     resources.fillMat.opacity = (mode === 'chiming' ? W.chimingFillOpacity : W.callingFillOpacity) * intensity
-    resources.edgeMat.opacity = W.edgeOpacity * intensity
 
     // 스피커 램프: 호출 레인 2개만 켜고, 점멸 위상은 바닥과 같다.
     const lampLaneId = (mode === 'chiming' || mode === 'calling') ? resources.lanes[v.laneIndex].id : null
@@ -217,8 +174,6 @@ export default function Stage5CallLaneGroundWarning() {
           ref={(node) => { laneRefs.current[index] = node }}
         >
           <mesh name="lane-fill" geometry={lane.fill} material={resources.fillMat} renderOrder={8} />
-          <mesh name="lane-edge-solid" geometry={lane.solid} material={resources.edgeMat} renderOrder={9} position={[0, 0.002, 0]} />
-          <mesh name="lane-edge-dashed" geometry={lane.dashed} material={resources.edgeMat} renderOrder={9} position={[0, 0.002, 0]} visible={false} />
         </group>
       ))}
     </group>,

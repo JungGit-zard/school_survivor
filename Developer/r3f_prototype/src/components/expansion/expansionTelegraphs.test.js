@@ -24,7 +24,7 @@ describe('B10 telegraph shapes (spec Part B §6-1 · §12-3)', () => {
     disposeExpansionTelegraphVisual(root)
   })
 
-  it('draws the 決 stamp decal on the b10_p1 disk: windup opacity 0→0.6, active 0.9', () => {
+  it('keeps the b10_p1 windup a plain disc (stamp hidden) and stamps 決 only on the hit: windup 0, active 0.9', () => {
     const fillText = vi.fn()
     vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockImplementation(() => ({
       clearRect() {}, beginPath() {}, arc() {}, stroke() {}, fillText, set strokeStyle(_) {}, set fillStyle(_) {},
@@ -38,10 +38,12 @@ describe('B10 telegraph shapes (spec Part B §6-1 · §12-3)', () => {
     expect(decal.geometry.parameters.width).toBeCloseTo(1.6 * B10_STAMP_DECAL.radiusScale * 2, 6)
     updateExpansionTelegraphVisual(root, { ...event, elapsedMs: 0 })
     expect(root.userData.stampMat.opacity).toBe(0)
+    // 2026-11-14 Terry: 경고(windup)는 원형 색상만 — 도장 무늬는 windup 내내 보이지 않는다.
+    expect(B10_STAMP_DECAL.windupMaxOpacity).toBe(0)
     updateExpansionTelegraphVisual(root, { ...event, elapsedMs: 650 })
-    expect(root.userData.stampMat.opacity).toBeCloseTo(0.3, 6)
+    expect(root.userData.stampMat.opacity).toBe(0)
     updateExpansionTelegraphVisual(root, { ...event, elapsedMs: 1300 })
-    expect(root.userData.stampMat.opacity).toBeCloseTo(0.6, 6)
+    expect(root.userData.stampMat.opacity).toBe(0)
     const dispose = vi.spyOn(root.userData.stampMat, 'dispose')
     disposeExpansionTelegraphVisual(root)
     expect(dispose).toHaveBeenCalled()

@@ -127,22 +127,23 @@ describe('B03 왕복 오래달리기', () => {
   })
 
   // 원인 4: 사용자 원 사양 "바닥에 예상루트가 깜빡인후". 예고선이 한 번도 깜빡이지 않았다.
-  it('예고선은 텔레그래프 1.25초 동안 정확히 3번 깜빡인다', () => {
-    expect(B03_SHUTTLE_TELEGRAPH_BLINKS).toBe(3)
+  // 2026-11-14 Terry "커졌다,작아지는 속도를 절반으로": 3회 → 1.5회(같은 1.25초). 밝기 골짜기는 1번.
+  it('예고선은 텔레그래프 1.25초 동안 1.5번(이전 3번의 절반 속도) 깜빡인다', () => {
+    expect(B03_SHUTTLE_TELEGRAPH_BLINKS).toBe(1.5)
     expect(getB03ShuttleTelegraphBlinkFactor(0)).toBeCloseTo(1, 10)
     const cycleMs = B03_SHUTTLE_TELEGRAPH_MS / B03_SHUTTLE_TELEGRAPH_BLINKS
-    for (let cycle = 0; cycle < B03_SHUTTLE_TELEGRAPH_BLINKS; cycle += 1) {
+    for (let cycle = 0; cycle < Math.floor(B03_SHUTTLE_TELEGRAPH_BLINKS); cycle += 1) {
       expect(getB03ShuttleTelegraphBlinkFactor(cycle * cycleMs)).toBeCloseTo(1, 10)
       expect(getB03ShuttleTelegraphBlinkFactor((cycle + 0.5) * cycleMs)).toBeCloseTo(B03_SHUTTLE_TELEGRAPH_BLINK_MIN, 10)
     }
-    // 60fps 샘플링으로 실제 밝기 골짜기 개수를 세어 3회를 확인한다.
+    // 60fps 샘플링으로 실제 밝기 골짜기 개수를 센다(1.5주기 = 내부 골짜기 1개, 끝점은 다시 어두워지는 중).
     const samples = []
     for (let ms = 0; ms <= B03_SHUTTLE_TELEGRAPH_MS; ms += FRAME_MS) samples.push(getB03ShuttleTelegraphBlinkFactor(ms))
     let dips = 0
     for (let i = 1; i < samples.length - 1; i += 1) {
       if (samples[i] < samples[i - 1] && samples[i] <= samples[i + 1]) dips += 1
     }
-    expect(dips).toBe(B03_SHUTTLE_TELEGRAPH_BLINKS)
+    expect(dips).toBe(Math.floor(B03_SHUTTLE_TELEGRAPH_BLINKS))
     // 완전히 사라지지도, 원래 밝기를 넘지도 않는다.
     for (const factor of samples) {
       expect(factor).toBeGreaterThanOrEqual(B03_SHUTTLE_TELEGRAPH_BLINK_MIN - 1e-9)

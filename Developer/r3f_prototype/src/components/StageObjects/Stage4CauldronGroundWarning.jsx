@@ -12,12 +12,16 @@ import {
 // Game's blast consumer measures distance from WORLD (0, 0), not from the
 // Studio-authored vessel. Portal out of all prop/model scale, shiver and yaw.
 // No audio here: the single fixed-step Game owner owns the cauldron cue edges.
+// The filled disc radius IS the damage radius (3.2 units / 0.8 blocks) and never pulses.
+export const STAGE4_CAULDRON_GROUND_FILL = Object.freeze({
+  warningColor: '#ffe576', warningOpacity: 0.3, warningOpacityGain: 0.18,
+  fireColor: '#ff6b24', fireOpacity: 0.55,
+})
 export default function Stage4CauldronGroundWarning() {
   const scene = useThree((state) => state.scene)
   const root = useRef()
-  const warning = useRef()
+  const fill = useRef()
   const fire = useRef()
-  const ticks = useRef([])
   useFrame(() => {
     const state = useGameStore.getState()
     if (!root.current) return
@@ -34,34 +38,23 @@ export default function Stage4CauldronGroundWarning() {
     root.current.visible = visual.boiling || visual.bursting
     root.current.userData.progress = progress
     root.current.userData.hazardState = visual.bursting ? 'fire' : visual.boiling ? 'warning' : 'idle'
-    warning.current.visible = visual.boiling
+    // 2026-11-14 Terry: 테두리·눈금 없이 원형 색상 하나. 남은 시간은 채움이 점점 진해지는 것으로만 읽힌다(맥동 없음).
+    const material = fill.current?.material
+    if (material) {
+      const W = STAGE4_CAULDRON_GROUND_FILL
+      material.color.set(visual.bursting ? W.fireColor : W.warningColor)
+      material.opacity = visual.bursting ? W.fireOpacity : W.warningOpacity + W.warningOpacityGain * Math.min(1, Math.max(0, progress))
+    }
     fire.current.visible = visual.bursting
-    ticks.current.forEach((tick, index) => { if (tick) tick.visible = index < Math.ceil(progress * 12) })
   })
   const radius = PRESSURE_CAULDRON_DAMAGE_RADIUS
   return createPortal(
     <group ref={root} name="pressure-cauldron-world-warning" visible={false} userData={{ studioRenderOutline: false }}>
-      <mesh name="pressure-cauldron-world-boundary" position={[0, 0.035, 0]} rotation={[-Math.PI / 2, 0, 0]} renderOrder={8}>
-        <ringGeometry args={[radius - 0.19, radius, 64]} />
-        <meshBasicMaterial color="#211610" depthWrite={false} toneMapped={false} />
+      <mesh ref={fill} name="pressure-cauldron-world-boundary" position={[0, 0.035, 0]} rotation={[-Math.PI / 2, 0, 0]} renderOrder={8}>
+        <circleGeometry args={[radius, 64]} />
+        <meshBasicMaterial color={STAGE4_CAULDRON_GROUND_FILL.warningColor} transparent opacity={STAGE4_CAULDRON_GROUND_FILL.warningOpacity} depthWrite={false} toneMapped={false} />
       </mesh>
-      <group ref={warning}>
-        <mesh position={[0, 0.039, 0]} rotation={[-Math.PI / 2, 0, 0]} renderOrder={9}>
-          <ringGeometry args={[radius - 0.14, radius - 0.045, 64]} />
-          <meshBasicMaterial color="#ffe576" depthWrite={false} toneMapped={false} />
-        </mesh>
-        {Array.from({ length: 12 }, (_, index) => (
-          <mesh key={index} ref={(node) => { ticks.current[index] = node }} position={[0, 0.043, 0]} rotation={[-Math.PI / 2, 0, 0]} renderOrder={10}>
-            <ringGeometry args={[radius - 0.38, radius - 0.24, 64, 1, index * Math.PI / 6, Math.PI / 6 - 0.05]} />
-            <meshBasicMaterial color="#ffe576" depthWrite={false} toneMapped={false} />
-          </mesh>
-        ))}
-      </group>
       <group ref={fire} visible={false} name="pressure-cauldron-world-fire">
-        <mesh position={[0, 0.042, 0]} rotation={[-Math.PI / 2, 0, 0]} renderOrder={9}>
-          <ringGeometry args={[radius - 0.42, radius - 0.04, 64]} />
-          <meshBasicMaterial color="#ff6b24" depthWrite={false} toneMapped={false} />
-        </mesh>
         {Array.from({ length: 8 }, (_, index) => {
           const angle = index * Math.PI / 4
           return <mesh key={index} position={[Math.sin(angle) * (radius - 0.72), 0.055, Math.cos(angle) * (radius - 0.72)]} rotation={[0, angle, 0]} renderOrder={10}>

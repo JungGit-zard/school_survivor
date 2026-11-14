@@ -8,6 +8,7 @@ import { subscribeVfx } from '../lib/vfxEvents.js'
 import { VFX_COLORS } from '../lib/vfxPalette.js'
 import { fadeAlpha } from '../lib/vfxMath.js'
 import { getChargeWarningArrowConfig } from '../lib/vfxGeometry.js'
+import { CHARGE_WARNING_LINE_BLINK_HALF_TURNS } from '../lib/warningPulse.js'
 import { useGameStore } from '../store/useGameStore.js'
 import StudioTunedGroup from './StudioTunedGroup.jsx'
 
@@ -158,7 +159,8 @@ export function ChargeWarningLine({ event, onDone, anchored = false }) {
     if (age >= LIFE) { onDone(event.id); return }
     const t = age / LIFE
     // 깜빡이며 알파 감쇠 → 다급함 표현
-    const blink = 0.55 + 0.30 * Math.sin(t * Math.PI * 6)
+    // 2026-11-14 Terry: 경고 맥동 절반 — 수명 동안 sin(t·π·6) → sin(t·π·3).
+    const blink = 0.55 + 0.30 * Math.sin(t * Math.PI * CHARGE_WARNING_LINE_BLINK_HALF_TURNS)
     setLiveOpacity(meshRef.current, blink * fadeAlpha(t, 0.05, 0.25))
   })
 
