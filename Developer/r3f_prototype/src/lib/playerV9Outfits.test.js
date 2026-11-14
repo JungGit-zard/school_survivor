@@ -191,11 +191,17 @@ describe('v9 player outfit (S6 placeholders)', () => {
     }
   })
 
-  it('raincoat keeps the skirt and legs; gym turns the skirt and legs navy', () => {
+  it('raincoat turns the skirt into the coat hem and keeps the legs; gym turns the skirt and legs navy; sports day gives navy shorts over bare legs', () => {
     const raincoat = buildV9LikeScene()
-    const before = raincoat.getObjectByName('Skirt_simple_closed_A_line').material.color.getHex()
+    const legBefore = raincoat.getObjectByName('Leg_L_thigh').material.color.getHex()
     applyPlayerV9Outfit(raincoat, 'raincoat')
-    expect(raincoat.getObjectByName('Skirt_simple_closed_A_line').material.color.getHex()).toBe(before)
+    // Approved redesign (Terry 2026-11-14): one long mustard coat, its hem a step darker.
+    expect(`#${raincoat.getObjectByName('Skirt_simple_closed_A_line').material.color.getHexString()}`).toBe('#b8931f')
+    expect(raincoat.getObjectByName('Leg_L_thigh').material.color.getHex()).toBe(legBefore)
+    const sportsDay = buildV9LikeScene()
+    applyPlayerV9Outfit(sportsDay, 'sportsDay')
+    expect(`#${sportsDay.getObjectByName('Skirt_simple_closed_A_line').material.color.getHexString()}`).toBe('#1f2a4d')
+    expect(sportsDay.getObjectByName('Leg_L_thigh').material.color.getHex()).toBe(legBefore)
     const gym = buildV9LikeScene()
     applyPlayerV9Outfit(gym, 'gym')
     expect(`#${gym.getObjectByName('Skirt_simple_closed_A_line').material.color.getHexString()}`).toBe('#1b3f8c')

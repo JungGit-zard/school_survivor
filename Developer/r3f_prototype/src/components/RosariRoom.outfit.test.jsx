@@ -95,6 +95,11 @@ describe('mountRosariModel outfit lifecycle', () => {
     bob.name = 'continuous_fitted_reference_bob'
     hairPivot.add(bob)
     source.add(hairPivot)
+    // The right mitten (GLB local bounds x 0..0.212, y 0.128..0.354, z -0.085..0.234): the
+    // raincoat umbrella and the lunch-duty ladle are held in it.
+    const rightHand = new THREE.Mesh(new THREE.BoxGeometry(0.212, 0.226, 0.319).translate(0.106, 0.241, 0.0745), new THREE.MeshStandardMaterial({ name: 'skin.003' }))
+    rightHand.name = 'right_simple_lowpoly_hand_mitten'
+    source.add(rightHand)
     const cachedDisposed = vi.fn()
     geometry.addEventListener('dispose', cachedDisposed)
     material.addEventListener('dispose', cachedDisposed)
@@ -142,11 +147,16 @@ describe('mountRosariModel outfit lifecycle', () => {
     ids.forEach((id, i) => expect(scales[i], id).toBeCloseTo(scales[0], 6))
   })
 
+  // Approved redesign (Terry 2026-11-14). Order is the clone's traversal order: torso, hair pivot, right hand.
+  const HAND = 'right_simple_lowpoly_hand_mitten'
   it.each([
-    ['raincoat', ['removable_hair_pivot']],
+    // placket on the torso, hood on the hair, umbrella handle/canopy/strap/tip in the hand
+    ['raincoat', [ROSARI_OUTFIT_TORSO_NODE, 'removable_hair_pivot', HAND, HAND, HAND, HAND]],
     ['gym', [ROSARI_OUTFIT_TORSO_NODE]],
-    ['apron', [ROSARI_OUTFIT_TORSO_NODE, 'removable_hair_pivot']],
-    ['grad', ['removable_hair_pivot', 'removable_hair_pivot', 'removable_hair_pivot']],
+    // kerchief + nape knot on the hair, ladle handle + bowl in the hand
+    ['apron', ['removable_hair_pivot', 'removable_hair_pivot', HAND, HAND]],
+    // crown, board, tassel and the tassel cord
+    ['grad', ['removable_hair_pivot', 'removable_hair_pivot', 'removable_hair_pivot', 'removable_hair_pivot']],
   ])('%s details get toon materials + outline hulls and are fully disposed on cleanup', (outfitId, parents) => {
     const f = fixture()
     const parent = new THREE.Group()
@@ -166,6 +176,7 @@ describe('mountRosariModel outfit lifecycle', () => {
       }
     }
     expect(f.source.getObjectByName('removable_hair_pivot').children).toHaveLength(1)
+    expect(f.source.getObjectByName(HAND).children).toHaveLength(0)
     cleanup()
     expect(owned.every((resource) => disposed.has(resource))).toBe(true)
     expect(f.cachedDisposed).not.toHaveBeenCalled()

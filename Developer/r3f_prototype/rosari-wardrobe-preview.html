@@ -1,0 +1,11 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>로자리 옷장 미리보기 (로컬)</title><style>html,body{margin:0;width:100%;height:100%;overflow:hidden}#room-host{position:relative;width:100%;height:100%}</style></head><body><div id="room-host"></div><script type="module">
+// ponytail: local-only preview, never committed. Guest session = memory-only unlocks, nothing saved.
+import React from 'react'
+import { createRoot } from 'react-dom/client'
+import RosariRoom from './src/components/RosariRoom.jsx'
+import { setOutfitUnlocked } from './src/lib/outfitUnlocks.js'
+import { UNLOCKABLE_OUTFIT_IDS } from './src/lib/playerOutfitIds.js'
+for (const id of UNLOCKABLE_OUTFIT_IDS) setOutfitUnlocked(id)
+createRoot(document.getElementById('room-host')).render(React.createElement(RosariRoom, { onBack: () => {} }))
+</script></body></html>

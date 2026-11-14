@@ -138,8 +138,11 @@ export const ROSARI_OUTFITS = Object.freeze([
       collar: '#c9a227',
       tie: '#8f6f1c',
       buttons: '#8f6f1c', // v9 decal only (rosari has no button slot)
+      skirt: '#b8931f', // coat hem: the body reads as one long coat, not a blazer over a skirt
     }),
-    accessories: Object.freeze(['hood']),
+    // A raincoat has no tie: the dark placket strip replaces it as the front closure.
+    hide: Object.freeze(['yellow_tie_knot', 'yellow_tie_long_drop']),
+    accessories: Object.freeze(['hood', 'coatPlacket', 'umbrellaHandle', 'umbrellaCanopy', 'umbrellaStrap', 'umbrellaTip']),
     models: Object.freeze(['rosari', 'v9']),
   }),
   Object.freeze({
@@ -164,14 +167,22 @@ export const ROSARI_OUTFITS = Object.freeze([
     models: Object.freeze(['rosari', 'v9']),
   }),
   Object.freeze({
-    // 급식 당번복: the default uniform with a white head scarf (삼각건) over the bob and a white
-    // bib apron on the chest. The tie knot stays above the bib; the long drop is hidden under it.
+    // 급식 당번복 (Terry 2026-11-14: 흰 가운): the white lunch-duty smock (給食当番の白衣) worn over
+    // the uniform — a long white coat over the jacket, white sleeves, and its hem covering the
+    // skirt (the skirt shell becomes the coat's lower part). The tie is hidden under the closed
+    // smock. Crown-only white kerchief with a nape knot, and a steel soup ladle (국자) in the right
+    // hand, parented to the hand so it swings with the arm.
     id: 'apron',
     label: '급식 당번복',
     note: '급식 당번복 임시안이에요. 원화가 나오면 다시 다듬을 거예요.',
-    colors: Object.freeze({}),
-    hide: Object.freeze(['yellow_tie_long_drop']),
-    accessories: Object.freeze(['headScarf', 'apronBib']),
+    colors: Object.freeze({
+      blazer: '#f4f4f0',
+      shirt: '#f4f4f0',
+      collar: '#f4f4f0',
+      skirt: '#ecece6', // smock hem, a step darker so the waist line still reads
+    }),
+    hide: Object.freeze(['yellow_tie_knot', 'yellow_tie_long_drop']),
+    accessories: Object.freeze(['headScarf', 'scarfKnot', 'ladleHandle', 'ladleBowl']),
     models: Object.freeze(['rosari']),
   }),
   Object.freeze({
@@ -181,7 +192,7 @@ export const ROSARI_OUTFITS = Object.freeze([
     label: '졸업',
     note: '졸업 임시안이에요. 원화가 나오면 다시 다듬을 거예요.',
     colors: Object.freeze({}),
-    accessories: Object.freeze(['capCrown', 'capBoard', 'capTassel']),
+    accessories: Object.freeze(['capCrown', 'capBoard', 'capTassel', 'capCord']),
     models: Object.freeze(['rosari']),
   }),
   // ── Stage 5·6 클리어 의상 임시안 (2026-11-08, spec56 B §9 · C-9-4) ──────────────────────
@@ -204,21 +215,30 @@ export const ROSARI_OUTFITS = Object.freeze([
     models: Object.freeze(['rosari', 'v9']),
   }),
   Object.freeze({
-    // 운동회 반티: yellow class tee (#F2C94C) with navy sports shorts and a red headband. Like
-    // 체육복 the tie is hidden (a tee has none); legs stay bare because the shorts end at the hem.
+    // 운동회 반티 (Terry 2026-11-14: 일본 중학교 체육복 + 부르마). White short-sleeve gym T-shirt
+    // with navy trim at the collar and sleeve hems, a white name patch (zekken) with a navy border,
+    // navy buruma as plain athletic shorts, bare legs with the GLB's white socks, and a plain red
+    // hachimaki band (no tail pieces at the back). The spec56 yellow (#F2C94C) no longer applies (Terry override).
+    // The jacket mesh runs shoulder to wrist, so short sleeves are a skin-colored shell over the
+    // forearm half of each sleeve (built from the sleeve's own vertex rings) under a navy hem band;
+    // the wrist cuff turns skin too. The skirt is hidden and the buruma box fills hem to upper thigh.
     id: 'sportsDay',
     label: '운동회 반티',
     note: '운동회 반티 임시안이에요. 원화가 나오면 다시 다듬을 거예요.',
     colors: Object.freeze({
-      blazer: '#f2c94c',
-      shirt: '#f2c94c',
-      collar: '#f2c94c',
-      tie: '#f2c94c', // v9 decal only: paints the drawn tie into the tee
-      buttons: '#f2c94c', // v9 decal only
-      skirt: '#23305e',
+      blazer: '#f2f2ee', // white gym T-shirt
+      shirt: '#ffe0c9', // wrist cuff band = bare wrist
+      collar: '#1f2a4d', // navy neck trim
+      tie: '#f2f2ee', // v9 decal only: paints the drawn tie into the tee
+      buttons: '#f2f2ee', // v9 decal only
+      skirt: '#1f2a4d', // v9 only (the rosari skirt is hidden under the buruma)
     }),
-    hide: Object.freeze(['yellow_tie_knot', 'yellow_tie_long_drop']),
-    accessories: Object.freeze(['headband']),
+    hide: Object.freeze(['yellow_tie_knot', 'yellow_tie_long_drop', 'reference_tapered_pleated_skirt_shell', 'left_white_cuff_band_at_wrist', 'right_white_cuff_band_at_wrist']),
+    accessories: Object.freeze([
+      'burumaHips', 'burumaWaistband', 'burumaLegLeft', 'burumaLegRight', 'zekkenBorder', 'zekken',
+      'forearmLeft', 'forearmRight', 'sleeveHemLeft', 'sleeveHemRight',
+      'headband',
+    ]),
     models: Object.freeze(['rosari', 'v9']),
   }),
 ])
@@ -299,6 +319,262 @@ function buildZipper() {
   return extrudedTriangle([[-0.014, 1.25], [0.014, 1.25], [0.014, 1.8], [-0.014, 1.8]], SHIRT_V_Z)
 }
 
+// 비옷 placket: same strip as the 체육복 zipper, in the dark coat color, where the hidden tie was.
+function buildCoatPlacket() {
+  return buildZipper()
+}
+
+// 운동회 zekken (name patch): a flat white rectangle on the chest over a slightly larger navy one,
+// which shows as a thin border. Flat shapes (2 tris each): the chest front is the only view.
+function flatRect(x0, y0, x1, y1, z) {
+  const shape = new THREE.Shape([new THREE.Vector2(x0, y0), new THREE.Vector2(x1, y0), new THREE.Vector2(x1, y1), new THREE.Vector2(x0, y1)])
+  const geometry = new THREE.ShapeGeometry(shape, 1)
+  geometry.translate(0, 0, z)
+  return geometry
+}
+
+function buildZekkenBorder() {
+  return flatRect(-0.15, 1.41, 0.15, 1.66, SHIRT_V_Z + 0.006)
+}
+
+function buildZekken() {
+  return flatRect(-0.13, 1.43, 0.13, 1.64, SHIRT_V_Z + 0.009)
+}
+
+// 운동회 buruma, shaped as ordinary athletic shorts with the same coverage as before (torso hem
+// down to y 0.82 on the upper thigh):
+//  - hips: a static open 6-sided prism from y 0.92 to 1.20 around the pelvis; its widest faces
+//    sit mid-depth so the hips read slightly rounded, and it tapers 5% toward the bottom.
+//    It encloses the torso hem box (x −0.401..0.427, z −0.22..0.326).
+//  - waistband: a darker, 4% wider ring of the same hexagon at y 1.18–1.26, over the torso hem.
+//  - legs: one open 4-sided tube per thigh, parented to the thigh mesh so it swings with the
+//    leg, from just above the thigh top down to y ≈0.82. The hips stop at 0.92, so between the
+//    two tubes there is a visible crotch split instead of a skirt-like box.
+const BURUMA_HEX = [[-0.47, 0.05], [-0.42, 0.38], [0.45, 0.38], [0.5, 0.05], [0.45, -0.27], [-0.42, -0.27]]
+const BURUMA_CENTER = [0.015, 0.055]
+
+function hexRing(scaleTop, yTop, scaleBottom, yBottom) {
+  const at = ([x, z], k, y) => [BURUMA_CENTER[0] + (x - BURUMA_CENTER[0]) * k, y, BURUMA_CENTER[1] + (z - BURUMA_CENTER[1]) * k]
+  const positions = []
+  for (let j = 0; j < BURUMA_HEX.length; j += 1) {
+    const a = BURUMA_HEX[j]; const b = BURUMA_HEX[(j + 1) % BURUMA_HEX.length]
+    const a0 = at(a, scaleTop, yTop); const b0 = at(b, scaleTop, yTop)
+    const a1 = at(a, scaleBottom, yBottom); const b1 = at(b, scaleBottom, yBottom)
+    // Hexagon points run clockwise seen from above (+y), so this winding faces outward.
+    positions.push(...a0, ...a1, ...b0, ...b0, ...a1, ...b1)
+  }
+  const geometry = new THREE.BufferGeometry()
+  geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3))
+  geometry.computeVertexNormals()
+  return geometry
+}
+
+function buildBurumaHips() {
+  return hexRing(1, 1.2, 0.95, 0.92)
+}
+
+function buildBurumaWaistband() {
+  return hexRing(1.04, 1.26, 1.04, 1.18)
+}
+
+// Thigh mesh local bounds (relative to its hip pivot + 0.01): left x −0.157..0.164,
+// z −0.126..0.152; right x −0.142..0.179, z −0.118..0.161; top at y −0.069. The tube clears the
+// thigh by 0.03 per side and spans y +0.02 (inside the hips) to −0.15 (model y ≈0.82).
+function burumaLegTube(minX, maxX, minZ, maxZ) {
+  const geometry = new THREE.CylinderGeometry(1, 1, 1, 4, 1, true)
+  geometry.rotateY(Math.PI / 4)
+  geometry.scale((maxX - minX) / 2 / Math.SQRT1_2 + 0.03 / Math.SQRT1_2, 0.17, (maxZ - minZ) / 2 / Math.SQRT1_2 + 0.03 / Math.SQRT1_2)
+  geometry.translate((minX + maxX) / 2, -0.065, (minZ + maxZ) / 2)
+  return geometry
+}
+
+const buildBurumaLegLeft = () => burumaLegTube(-0.157, 0.164, -0.126, 0.152)
+const buildBurumaLegRight = () => burumaLegTube(-0.142, 0.179, -0.118, 0.161)
+
+// Short sleeves on a sleeve mesh that runs shoulder to wrist. The sleeve is a 6-sided prism with
+// three vertex rings (shoulder, mid, wrist) in its own space; the shell reads those rings from the
+// parent geometry and wraps the mid→wrist half, pushed out from each ring's center by `expand`.
+function readSleeveRings(parent) {
+  const position = parent?.geometry?.attributes?.position
+  if (!position) return null
+  const unique = new Map()
+  for (let i = 0; i < position.count; i += 1) {
+    const v = [position.getX(i), position.getY(i), position.getZ(i)]
+    unique.set(v.map((n) => n.toFixed(4)).join(','), v)
+  }
+  const points = [...unique.values()].sort((a, b) => a[1] - b[1])
+  if (points.length !== 18) return null
+  const rings = [points.slice(0, 6), points.slice(6, 12), points.slice(12, 18)] // wrist, mid, shoulder
+  return rings.map((ring) => {
+    const c = ring.reduce((acc, v) => [acc[0] + v[0] / 6, acc[1] + v[1] / 6, acc[2] + v[2] / 6], [0, 0, 0])
+    const sorted = [...ring].sort((a, b) => Math.atan2(a[2] - c[2], a[0] - c[0]) - Math.atan2(b[2] - c[2], b[0] - c[0]))
+    return { c, verts: sorted }
+  })
+}
+
+// `bodyDir` (+1 / −1) is the sleeve-local x direction toward the torso; `skip` drops that many
+// faces nearest the body (ranked toward the body first, then toward the back), which sit against
+// the torso and are not seen, to keep the outfit inside its triangle budget.
+function sleeveBand(parent, fromT, toT, expand, bodyDir = 0, skip = 0) {
+  const rings = readSleeveRings(parent)
+  if (!rings) return new THREE.BufferGeometry()
+  const [wrist, mid] = rings
+  const at = (t, j) => {
+    const a = mid.verts[j]; const b = wrist.verts[j]
+    const ca = mid.c; const cb = wrist.c
+    const c = [ca[0] + (cb[0] - ca[0]) * t, ca[1] + (cb[1] - ca[1]) * t, ca[2] + (cb[2] - ca[2]) * t]
+    const v = [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t]
+    return { v: [c[0] + (v[0] - c[0]) * expand, v[1], c[2] + (v[2] - c[2]) * expand], c }
+  }
+  const faceScore = (j) => {
+    const k = (j + 1) % 6
+    const ox = (mid.verts[j][0] + mid.verts[k][0]) / 2 - mid.c[0]
+    const oz = (mid.verts[j][2] + mid.verts[k][2]) / 2 - mid.c[2]
+    return bodyDir * ox - 0.3 * oz
+  }
+  const skipped = new Set([0, 1, 2, 3, 4, 5].sort((a, b) => faceScore(b) - faceScore(a)).slice(0, skip))
+  const positions = []
+  for (let j = 0; j < 6; j += 1) {
+    if (skipped.has(j)) continue
+    const k = (j + 1) % 6
+    const quad = [at(fromT, j), at(fromT, k), at(toT, k), at(toT, j)]
+    for (const [a, b, c] of [[quad[0], quad[1], quad[2]], [quad[0], quad[2], quad[3]]]) {
+      // Wind every triangle outward (away from the ring center).
+      const e1 = [b.v[0] - a.v[0], b.v[1] - a.v[1], b.v[2] - a.v[2]]
+      const e2 = [c.v[0] - a.v[0], c.v[1] - a.v[1], c.v[2] - a.v[2]]
+      const n = [e1[1] * e2[2] - e1[2] * e2[1], e1[2] * e2[0] - e1[0] * e2[2], e1[0] * e2[1] - e1[1] * e2[0]]
+      const out = [a.v[0] - a.c[0], 0, a.v[2] - a.c[2]]
+      const tri = n[0] * out[0] + n[2] * out[2] >= 0 ? [a, b, c] : [a, c, b]
+      for (const p of tri) positions.push(...p.v)
+    }
+  }
+  const geometry = new THREE.BufferGeometry()
+  geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3))
+  geometry.computeVertexNormals()
+  return geometry
+}
+
+// Bare forearm (mid ring → wrist ring) and the navy hem band at the mid ring. The left sleeve
+// hangs at −x, so the torso is +x in its space; the right sleeve mirrors that.
+const buildForearmLeft = (parent) => sleeveBand(parent, 0.08, 1, 1.05, 1, 1)
+const buildForearmRight = (parent) => sleeveBand(parent, 0.08, 1, 1.05, -1, 1)
+const buildSleeveHemLeft = (parent) => sleeveBand(parent, -0.06, 0.1, 1.1, 1, 2)
+const buildSleeveHemRight = (parent) => sleeveBand(parent, -0.06, 0.1, 1.1, -1, 2)
+
+// 비옷 folded umbrella (Terry's reference), held like the ladle in right_simple_lowpoly_hand_mitten's
+// own space: a dark J-hook rises out of the fist and curls outward; right under the hand the
+// furled canopy is at its widest (the gathered, flared fabric edge), a white strap wraps it just
+// below that, and it tapers steadily to a thin dark tip near the ankle. 5-sided, so the flared
+// top reads blocky like the reference. Navy, not the reference's orange: next to the mustard
+// coat navy is the strongest value contrast at phone size, while orange would melt into the coat.
+// Budget: hook 18 + canopy 20 + strap 10 + tip 3 = 51 (the hood dropped to 34 to make room).
+
+// A 3-sided tube along a polyline (open ends), for the hook.
+function polyTube(points, radius) {
+  const rings = points.map((p, i) => {
+    const a = points[Math.max(0, i - 1)]; const b = points[Math.min(points.length - 1, i + 1)]
+    const t = new THREE.Vector3(b[0] - a[0], b[1] - a[1], b[2] - a[2]).normalize()
+    const n = new THREE.Vector3(0, 0, 1).cross(t)
+    if (n.lengthSq() < 1e-6) n.set(1, 0, 0)
+    n.normalize()
+    const m = new THREE.Vector3().crossVectors(t, n)
+    return [0, 1, 2].map((k) => {
+      const ang = (k / 3) * Math.PI * 2
+      return new THREE.Vector3(...p).addScaledVector(n, Math.cos(ang) * radius).addScaledVector(m, Math.sin(ang) * radius)
+    })
+  })
+  const positions = []
+  for (let i = 0; i < rings.length - 1; i += 1) {
+    for (let k = 0; k < 3; k += 1) {
+      const a = rings[i][k]; const b = rings[i][(k + 1) % 3]; const c = rings[i + 1][k]; const d = rings[i + 1][(k + 1) % 3]
+      positions.push(...a.toArray(), ...b.toArray(), ...c.toArray(), ...b.toArray(), ...d.toArray(), ...c.toArray())
+    }
+  }
+  const geometry = new THREE.BufferGeometry()
+  geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3))
+  geometry.computeVertexNormals()
+  return geometry
+}
+
+// Hand y 0.128..0.354, x 0..0.212 (+x is the outer side; +y runs up into the forearm). The shaft
+// runs from the canopy top up through the fist, then the J curls out past the hand's outer side
+// and down, so the hook shows beside the fist instead of disappearing into the sleeve.
+function buildUmbrellaHandle() {
+  return polyTube([[0.106, 0.06, 0.075], [0.106, 0.3, 0.075], [0.3, 0.38, 0.075], [0.38, 0.2, 0.075]], 0.045)
+}
+
+const UMBRELLA_SEGMENTS = 5
+function umbrellaRing(r, y, j) {
+  const a = (j / UMBRELLA_SEGMENTS) * Math.PI * 2
+  return [0.106 + r * Math.sin(a), y, 0.075 + r * Math.cos(a)]
+}
+
+// Profile [radius, y]: flare out from under the hand to the widest edge, then one long taper.
+const UMBRELLA_PROFILE = [[0.15, 0.08], [0.22, -0.03], [0.03, -0.8]]
+function buildUmbrellaCanopy() {
+  const positions = []
+  for (let i = 0; i < UMBRELLA_PROFILE.length - 1; i += 1) {
+    const [r0, y0] = UMBRELLA_PROFILE[i]; const [r1, y1] = UMBRELLA_PROFILE[i + 1]
+    for (let j = 0; j < UMBRELLA_SEGMENTS; j += 1) {
+      const a = umbrellaRing(r0, y0, j); const b = umbrellaRing(r0, y0, j + 1)
+      const c = umbrellaRing(r1, y1, j); const d = umbrellaRing(r1, y1, j + 1)
+      positions.push(...a, ...c, ...b, ...b, ...c, ...d)
+    }
+  }
+  const geometry = new THREE.BufferGeometry()
+  geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3))
+  geometry.computeVertexNormals()
+  return geometry
+}
+
+// The strap just below the widest edge (canopy r ≈0.21 → 0.195 over y −0.07..−0.13), same
+// 5 corners as the canopy and slightly outside it.
+function buildUmbrellaStrap() {
+  const geometry = new THREE.CylinderGeometry(0.228, 0.212, 0.06, UMBRELLA_SEGMENTS, 1, true)
+  geometry.translate(0.106, -0.1, 0.075)
+  return geometry
+}
+
+// An open cone as a plain triangle fan (one triangle per side). three.js ConeGeometry keeps a
+// degenerate apex row, which doubles the count for the same shape.
+function fanCone(radius, topY, apexY, segments, x, z) {
+  const positions = []
+  for (let j = 0; j < segments; j += 1) {
+    const a0 = (j / segments) * Math.PI * 2
+    const a1 = ((j + 1) / segments) * Math.PI * 2
+    positions.push(
+      x + radius * Math.sin(a0), topY, z + radius * Math.cos(a0),
+      x, apexY, z,
+      x + radius * Math.sin(a1), topY, z + radius * Math.cos(a1),
+    )
+  }
+  const geometry = new THREE.BufferGeometry()
+  geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3))
+  geometry.computeVertexNormals()
+  return geometry
+}
+
+// Thin dark ferrule closing the taper at the bottom.
+function buildUmbrellaTip() {
+  return fanCone(0.03, -0.8, -0.9, 3, 0.106, 0.075)
+}
+
+// 급식 국자 (soup ladle) in right_simple_lowpoly_hand_mitten's own space (local bounds
+// x 0..0.212, y 0.128..0.354, z −0.085..0.234; its axes are within 18° of model axes at rest).
+// The handle runs through the fist from just above the hand down past it; the bowl hangs at the
+// bottom end, a little forward so the handle meets its back rim, opening upward.
+function buildLadleHandle() {
+  const geometry = new THREE.BoxGeometry(0.035, 0.62, 0.035)
+  geometry.translate(0.106, 0.11, 0.075)
+  return geometry
+}
+
+function buildLadleBowl() {
+  const geometry = new THREE.SphereGeometry(0.13, 5, 2, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2)
+  geometry.translate(0.106, -0.18, 0.195)
+  return geometry
+}
+
 // 급식 당번복 bib: on the belly/chest, narrow at the top so it stays inside the backpack
 // straps (x ±0.167). Ends at the torso hem y 1.24 (never lower: legs swing below it).
 function buildApronBib() {
@@ -348,14 +624,26 @@ function buildHeadShell(rings, apexY, { segments = 10, openBelowY = -Infinity, o
   return geometry
 }
 
-// 비옷 hood: covers the whole bob down to its hem, face window open up to the forehead.
+// 비옷 hood: stops above the bob hem (y 0.35) so the pink hair shows below it all around, and the
+// face window is the whole front half below the forehead so pink side hair frames the face —
+// a full mustard shell over the bob read as blonde hair at gameplay size.
+// 8 sides and 3 rings (34 tris) to leave room for the umbrella. Checked against every bob
+// vertex (all 408-tri bob positions vs the octagon edge at that height and angle): nothing pokes
+// out above the face window; the top ring sits at r 0.6 (a 0.52 ring let the crown corners
+// through by 0.03). The face window is the front three segments below y 0.9.
 function buildHood() {
-  return buildHeadShell([[0.06, 0.81], [0.55, 0.82], [0.95, 0.76], [1.15, 0.62], [1.3, 0.3]], 1.35, { openBelowY: 0.95 })
+  return buildHeadShell([[0.35, 0.815], [0.9, 0.78], [1.2, 0.6]], 1.38, { segments: 8, openBelowY: 1.0, openSegments: 1 })
 }
 
-// 급식 당번복 삼각건: same shape but stops above the bob hem, so the pink tips still show.
+// 급식 당번복 삼각건: a crown-only kerchief (from the brow line up), so the pink bob shows at the
+// sides and back. The face window stays open on the lowest row.
 function buildHeadScarf() {
-  return buildHeadShell([[0.3, 0.8], [0.62, 0.81], [0.95, 0.75], [1.15, 0.62], [1.3, 0.3]], 1.34, { openBelowY: 0.95 })
+  return buildHeadShell([[0.75, 0.72], [0.95, 0.75], [1.15, 0.62], [1.3, 0.3]], 1.34, { openBelowY: 0.95 })
+}
+
+// The kerchief's knot tail: a flat triangle pointing down at the nape, just behind the shell.
+function buildScarfKnot() {
+  return extrudedTriangle([[HAIR_AXIS_X - 0.18, 0.86], [HAIR_AXIS_X + 0.18, 0.86], [HAIR_AXIS_X, 0.5]], HAIR_AXIS_Z - 0.8)
 }
 
 // 졸업 mortarboard: an open 8-sided crown sitting on the top of the bob, a flat square board on
@@ -370,6 +658,14 @@ function buildCapCrown() {
 function buildCapBoard() {
   const geometry = new THREE.BoxGeometry(1.24, 0.04, 1.24)
   geometry.translate(HAIR_AXIS_X, 1.32, HAIR_AXIS_Z)
+  return geometry
+}
+
+// Cord on top of the board from its center to the tassel corner (direction (0.6, 0, 0.3)).
+function buildCapCord() {
+  const geometry = new THREE.BoxGeometry(0.67, 0.02, 0.025)
+  geometry.rotateY(-Math.atan2(0.3, 0.6))
+  geometry.translate(HAIR_AXIS_X + 0.3, 1.35, HAIR_AXIS_Z + 0.15)
   return geometry
 }
 
@@ -406,11 +702,13 @@ function buildGloveRight() {
   return buildGloveShell([0, 0.128, -0.085], [0.212, 0.354, 0.234])
 }
 
-// 운동회 headband: an uncapped 10-sided band around the bob, below the crown and above the
-// face line (bob radius 0.666 at y 0.9 → 0.549 at y 1.1), tapered to hug it.
+// 운동회 hachimaki: an uncapped 10-sided band on the forehead line, just above the bangs' edge
+// (bob radius ≈0.703 at y 0.75 → 0.666 at y 0.9). Radii are set so the 10-gon's inradius clears
+// the bob (0.745·cos18° = 0.709, 0.71·cos18° = 0.675): it hugs without corners poking through,
+// and it sits below the crown's rounding, so no edge sticks out sideways above the hair.
 function buildHeadband() {
-  const geometry = new THREE.CylinderGeometry(0.6, 0.69, 0.13, 10, 1, true)
-  geometry.translate(HAIR_AXIS_X, 0.98, HAIR_AXIS_Z)
+  const geometry = new THREE.CylinderGeometry(0.71, 0.745, 0.15, 10, 1, true)
+  geometry.translate(HAIR_AXIS_X, 0.825, HAIR_AXIS_Z)
   return geometry
 }
 
@@ -419,21 +717,43 @@ export const ROSARI_OUTFIT_HAIR_NODE = 'removable_hair_pivot'
 
 // `attach` names the node the accessory is parented to (default: the torso shell, whose world
 // transform is identity so its local space is model space).
+// `doubleSided` marks open shells (uncapped rings, head shells with a face window). Single-sided,
+// their inside is culled and the black outline hull behind it shows through the opening as black
+// slabs; drawn from both sides, the inner surface writes the outline stencil and hides the hull.
 const ACCESSORY_BUILDERS = Object.freeze({
   shirtV: { build: buildShirtV, slot: 'shirt' },
   lapels: { build: buildLapels, color: '#5e1627' },
   buttons: { build: buildButtons, color: '#e6b04a' },
   zipper: { build: buildZipper, color: '#1b3f8c' },
+  coatPlacket: { build: buildCoatPlacket, color: '#8f6f1c' },
   apronBib: { build: buildApronBib, color: '#fbfbf7' },
-  hood: { build: buildHood, color: '#c9a227', attach: ROSARI_OUTFIT_HAIR_NODE },
-  headScarf: { build: buildHeadScarf, color: '#fbfbf7', attach: ROSARI_OUTFIT_HAIR_NODE },
-  capCrown: { build: buildCapCrown, color: '#1d1d26', attach: ROSARI_OUTFIT_HAIR_NODE },
+  ladleHandle: { build: buildLadleHandle, color: '#b8bec8', attach: 'right_simple_lowpoly_hand_mitten' },
+  umbrellaHandle: { build: buildUmbrellaHandle, color: '#2a2a30', attach: 'right_simple_lowpoly_hand_mitten', doubleSided: true },
+  umbrellaCanopy: { build: buildUmbrellaCanopy, color: '#1f2a4d', attach: 'right_simple_lowpoly_hand_mitten', doubleSided: true },
+  umbrellaStrap: { build: buildUmbrellaStrap, color: '#e9edf5', attach: 'right_simple_lowpoly_hand_mitten', doubleSided: true },
+  umbrellaTip: { build: buildUmbrellaTip, color: '#2a2a30', attach: 'right_simple_lowpoly_hand_mitten', doubleSided: true },
+  ladleBowl: { build: buildLadleBowl, color: '#b8bec8', attach: 'right_simple_lowpoly_hand_mitten', doubleSided: true },
+  zekkenBorder: { build: buildZekkenBorder, color: '#1f2a4d' },
+  zekken: { build: buildZekken, color: '#fbfbf7' },
+  burumaHips: { build: buildBurumaHips, color: '#1f2a4d', doubleSided: true },
+  burumaWaistband: { build: buildBurumaWaistband, color: '#141c36', doubleSided: true },
+  burumaLegLeft: { build: buildBurumaLegLeft, color: '#1f2a4d', attach: 'left_upper_leg_tapered_thigh_to_knee', doubleSided: true },
+  burumaLegRight: { build: buildBurumaLegRight, color: '#1f2a4d', attach: 'right_upper_leg_tapered_thigh_to_knee', doubleSided: true },
+  forearmLeft: { build: buildForearmLeft, color: '#ffe0c9', attach: 'left_upper_sleeve_continuous_to_white_cuff' },
+  forearmRight: { build: buildForearmRight, color: '#ffe0c9', attach: 'right_upper_sleeve_continuous_to_white_cuff' },
+  sleeveHemLeft: { build: buildSleeveHemLeft, color: '#1f2a4d', attach: 'left_upper_sleeve_continuous_to_white_cuff' },
+  sleeveHemRight: { build: buildSleeveHemRight, color: '#1f2a4d', attach: 'right_upper_sleeve_continuous_to_white_cuff' },
+  hood: { build: buildHood, color: '#c9a227', attach: ROSARI_OUTFIT_HAIR_NODE, doubleSided: true },
+  headScarf: { build: buildHeadScarf, color: '#fbfbf7', attach: ROSARI_OUTFIT_HAIR_NODE, doubleSided: true },
+  scarfKnot: { build: buildScarfKnot, color: '#fbfbf7', attach: ROSARI_OUTFIT_HAIR_NODE },
+  capCrown: { build: buildCapCrown, color: '#1d1d26', attach: ROSARI_OUTFIT_HAIR_NODE, doubleSided: true },
   capBoard: { build: buildCapBoard, color: '#1d1d26', attach: ROSARI_OUTFIT_HAIR_NODE },
+  capCord: { build: buildCapCord, color: '#d4a53a', attach: ROSARI_OUTFIT_HAIR_NODE },
   capTassel: { build: buildCapTassel, color: '#d4a53a', attach: ROSARI_OUTFIT_HAIR_NODE },
   prefectArmband: { build: buildPrefectArmband, color: '#c8202f', attach: 'left_upper_sleeve_continuous_to_white_cuff' },
   gloveLeft: { build: buildGloveLeft, color: '#fbfbf7', attach: 'left_simple_lowpoly_hand_mitten' },
   gloveRight: { build: buildGloveRight, color: '#fbfbf7', attach: 'right_simple_lowpoly_hand_mitten' },
-  headband: { build: buildHeadband, color: '#d1242f', attach: ROSARI_OUTFIT_HAIR_NODE },
+  headband: { build: buildHeadband, color: '#d1242f', attach: ROSARI_OUTFIT_HAIR_NODE, doubleSided: true },
 })
 
 export const ROSARI_OUTFIT_ACCESSORY_IDS = Object.freeze(Object.keys(ACCESSORY_BUILDERS))
@@ -483,7 +803,9 @@ export function applyRosariOutfit(root, outfitId, makeMaterial) {
     const parent = anchors.get(spec.attach || ROSARI_OUTFIT_TORSO_NODE)
     if (!parent) continue
     const color = spec.color || outfit.colors[spec.slot]
-    const mesh = new THREE.Mesh(spec.build(), makeMaterial(color))
+    const material = makeMaterial(color)
+    if (spec.doubleSided) material.side = THREE.DoubleSide
+    const mesh = new THREE.Mesh(spec.build(parent), material)
     mesh.name = `outfit_${outfit.id}_${id}`
     mesh.userData.ownedGeometry = true
     parent.add(mesh)

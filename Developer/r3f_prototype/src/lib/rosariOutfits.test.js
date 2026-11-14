@@ -18,11 +18,42 @@ import {
 } from './rosariOutfits.js'
 import { resolvePlayerMeshGarmentColor } from './playerMeshOutfits.js'
 
+// The shipped GLB, parsed once. Sleeve geometry is read from it so outfit pieces that are built
+// from their parent mesh's own vertex rings (the 운동회 short sleeves) see the real shape.
+const ROSARI_GLB = (() => {
+  const glb = readFileSync(path.join(process.cwd(), 'src/assets/models/PLAYER_wholebody_refined_t_efe49b7c.glb'))
+  const jsonLength = glb.readUInt32LE(12)
+  return { glb, gltf: JSON.parse(glb.toString('utf8', 20, 20 + jsonLength)), binStart: 20 + jsonLength + 8 }
+})()
+
+function glbVertices(nodeName, materialName) {
+  const { glb, gltf, binStart } = ROSARI_GLB
+  const nodeEntry = gltf.nodes.find((entry) => entry.name === nodeName)
+  const out = []
+  for (const primitive of gltf.meshes[nodeEntry.mesh].primitives) {
+    if (materialName && gltf.materials[primitive.material].name !== materialName) continue
+    const accessor = gltf.accessors[primitive.attributes.POSITION]
+    const view = gltf.bufferViews[accessor.bufferView]
+    const start = binStart + (view.byteOffset || 0) + (accessor.byteOffset || 0)
+    const stride = view.byteStride || 12
+    for (let i = 0; i < accessor.count; i += 1) {
+      out.push(new THREE.Vector3(glb.readFloatLE(start + i * stride), glb.readFloatLE(start + i * stride + 4), glb.readFloatLE(start + i * stride + 8)))
+    }
+  }
+  return out
+}
+
+function glbPositionGeometry(nodeName) {
+  const geometry = new THREE.BufferGeometry()
+  geometry.setAttribute('position', new THREE.Float32BufferAttribute(glbVertices(nodeName).flatMap((v) => v.toArray()), 3))
+  return geometry
+}
+
 // Mirrors the relevant node/material names of PLAYER_wholebody_refined_t_efe49b7c.glb.
 function rosariFixture() {
   const root = new THREE.Group()
-  const add = (parent, name, materialName, color = '#ffffff') => {
-    const mesh = new THREE.Mesh(new THREE.BoxGeometry(), new THREE.MeshToonMaterial({ name: materialName, color }))
+  const add = (parent, name, materialName, color = '#ffffff', geometry = new THREE.BoxGeometry()) => {
+    const mesh = new THREE.Mesh(geometry, new THREE.MeshToonMaterial({ name: materialName, color }))
     mesh.name = name
     parent.add(mesh)
     return mesh
@@ -32,15 +63,19 @@ function rosariFixture() {
   const torso = add(root, ROSARI_OUTFIT_TORSO_NODE, 'jacket.002', '#dc4b5d')
   const meshes = {
     torso,
-    sleeve: add(root, 'left_upper_sleeve_continuous_to_white_cuff', 'jacket.001', '#dc4b5d'),
+    sleeve: add(root, 'left_upper_sleeve_continuous_to_white_cuff', 'jacket.001', '#dc4b5d', glbPositionGeometry('left_upper_sleeve_continuous_to_white_cuff')),
+    rightSleeve: add(root, 'right_upper_sleeve_continuous_to_white_cuff', 'jacket.001', '#dc4b5d', glbPositionGeometry('right_upper_sleeve_continuous_to_white_cuff')),
     cuff: add(root, 'left_white_cuff_band_at_wrist', 'shirt', '#fff2f1'),
+    rightCuff: add(root, 'right_white_cuff_band_at_wrist', 'shirt.001', '#fff2f1'),
     collar: add(root, 'white_collar_left_triangle', 'collar.001', '#f9ddea'),
     tie: add(root, 'yellow_tie_long_drop', 'tie.001', '#ffcc31'),
     skirt: add(root, 'reference_tapered_pleated_skirt_shell', 'skirt', '#255aa0'),
     lowerLeg: add(root, 'left_lower_leg_tapered_knee_to_sock', 'skin.005', '#ffe0c9'),
     upperLeg: add(root, 'right_upper_leg_tapered_thigh_to_knee', 'skin.008', '#ffe0c9'),
+    leftUpperLeg: add(root, 'left_upper_leg_tapered_thigh_to_knee', 'skin.006', '#ffe0c9'),
     sock: add(root, 'left_white_sock_six_ring_column', 'sock', '#fff4fb'),
     hand: add(root, 'left_simple_lowpoly_hand_mitten', 'skin.001', '#ffe0c9'),
+    rightHand: add(root, 'right_simple_lowpoly_hand_mitten', 'skin.003', '#ffe0c9'),
     hair: add(root, 'continuous_fitted_reference_bob', 'hair', '#efafc5'),
     shoe: add(root, 'left_rounded_reference_shoe', 'roundedShoe', '#ffffff'),
     backpack: add(root, 'rounded_square_blue_backpack_body', 'backpack', '#1f59aa'),
@@ -229,33 +264,73 @@ describe('S6 placeholder outfits', () => {
     }
   })
 
+  // Approved redesign (Terry 2026-11-14): 비옷 = mustard coat + hood + dark placket + a furled navy
+  // umbrella in the right hand; 급식 당번복 = white smock + crown kerchief with a nape knot + a steel
+  // ladle in the right hand; 졸업 = mortarboard + gold tassel and its cord; 선도부 unchanged;
+  // 운동회 = white tee with navy trim, navy shorts (buruma), zekken name patch, red hachimaki.
+  // Each entry is [mesh name suffix, parent key, color].
   it.each([
-    ['raincoat', ['outfit_raincoat_hood'], ['hair']],
-    ['gym', ['outfit_gym_zipper'], ['torso']],
-    ['apron', ['outfit_apron_headScarf', 'outfit_apron_apronBib'], ['hair', 'torso']],
-    ['grad', ['outfit_grad_capCrown', 'outfit_grad_capBoard', 'outfit_grad_capTassel'], ['hair', 'hair', 'hair']],
-    // The fixture carries only the left hand, so the right glove is skipped here (it attaches in the GLB).
-    ['prefect', ['outfit_prefect_prefectArmband', 'outfit_prefect_gloveLeft'], ['sleeve', 'hand']],
-    ['sportsDay', ['outfit_sportsDay_headband'], ['hair']],
-  ])('%s attaches its low-poly details (<=100 tris) to the torso, hair pivot, sleeve or hand', (id, names, parents) => {
+    ['raincoat', [
+      ['hood', 'hair', '#c9a227'], ['coatPlacket', 'torso', '#8f6f1c'],
+      ['umbrellaHandle', 'rightHand', '#2a2a30'], ['umbrellaCanopy', 'rightHand', '#1f2a4d'],
+      ['umbrellaStrap', 'rightHand', '#e9edf5'], ['umbrellaTip', 'rightHand', '#2a2a30'],
+    ]],
+    ['gym', [['zipper', 'torso', '#1b3f8c']]],
+    ['apron', [
+      ['headScarf', 'hair', '#fbfbf7'], ['scarfKnot', 'hair', '#fbfbf7'],
+      ['ladleHandle', 'rightHand', '#b8bec8'], ['ladleBowl', 'rightHand', '#b8bec8'],
+    ]],
+    ['grad', [['capCrown', 'hair', '#1d1d26'], ['capBoard', 'hair', '#1d1d26'], ['capTassel', 'hair', '#d4a53a'], ['capCord', 'hair', '#d4a53a']]],
+    ['prefect', [['prefectArmband', 'sleeve', '#c8202f'], ['gloveLeft', 'hand', '#fbfbf7'], ['gloveRight', 'rightHand', '#fbfbf7']]],
+    ['sportsDay', [
+      ['burumaHips', 'torso', '#1f2a4d'], ['burumaWaistband', 'torso', '#141c36'],
+      ['burumaLegLeft', 'leftUpperLeg', '#1f2a4d'], ['burumaLegRight', 'upperLeg', '#1f2a4d'],
+      ['zekkenBorder', 'torso', '#1f2a4d'], ['zekken', 'torso', '#fbfbf7'],
+      ['forearmLeft', 'sleeve', '#ffe0c9'], ['forearmRight', 'rightSleeve', '#ffe0c9'],
+      ['sleeveHemLeft', 'sleeve', '#1f2a4d'], ['sleeveHemRight', 'rightSleeve', '#1f2a4d'],
+      ['headband', 'hair', '#d1242f'],
+    ]],
+  ])('%s attaches its low-poly details (<=100 tris) to the torso, hair pivot, sleeve, thigh or hand', (id, details) => {
     const { root, meshes, pivot } = fixtureWithHairPivot()
     const added = applyRosariOutfit(root, id, makeMaterial)
-    expect(added.map((mesh) => mesh.name)).toEqual(names)
+    expect(added.map((mesh) => mesh.name)).toEqual(details.map(([name]) => `outfit_${id}_${name}`))
     let triangles = 0
     added.forEach((mesh, i) => {
-      expect(mesh.parent, mesh.name).toBe({ hair: pivot, sleeve: meshes.sleeve, hand: meshes.hand }[parents[i]] ?? meshes.torso)
+      const [, parentKey, color] = details[i]
+      expect(mesh.parent, mesh.name).toBe(parentKey === 'hair' ? pivot : meshes[parentKey])
+      expect(hex(mesh), mesh.name).toBe(color)
       expect(mesh.userData.ownedGeometry).toBe(true)
       expect(mesh.material).toBeInstanceOf(THREE.MeshToonMaterial)
       expect(mesh.position.lengthSq()).toBe(0)
+      // Every piece must actually draw something (the sleeve bands are built from the real
+      // GLB sleeve's vertex rings and come back empty if those rings cannot be read).
+      expect(triangleCount(mesh), mesh.name).toBeGreaterThan(0)
       triangles += triangleCount(mesh)
     })
     expect(triangles).toBeLessThanOrEqual(100)
   })
 
-  it('torso details stay on the torso front and never hang below the hem (leg-swing clipping)', () => {
-    for (const id of ['gym', 'apron']) {
+  it('recolors the garment slots to the approved redesign palette', () => {
+    const garments = (id) => {
       const { root, meshes } = fixtureWithHairPivot()
-      for (const mesh of applyRosariOutfit(root, id, makeMaterial).filter((m) => m.parent === meshes.torso)) {
+      applyRosariOutfit(root, id, makeMaterial)
+      return { blazer: hex(meshes.torso), sleeve: hex(meshes.sleeve), collar: hex(meshes.collar), skirt: hex(meshes.skirt), upperLeg: hex(meshes.upperLeg) }
+    }
+    // 비옷: the mustard coat runs down over the skirt (one long coat); legs stay bare.
+    expect(garments('raincoat')).toEqual({ blazer: '#c9a227', sleeve: '#c9a227', collar: '#c9a227', skirt: '#b8931f', upperLeg: '#ffe0c9' })
+    // 급식 당번복: white smock over jacket and collar, its hem a step darker over the skirt.
+    expect(garments('apron')).toEqual({ blazer: '#f4f4f0', sleeve: '#f4f4f0', collar: '#f4f4f0', skirt: '#ecece6', upperLeg: '#ffe0c9' })
+    // 운동회: white tee with a navy collar; the skirt slot is navy (v9 shorts) but hidden on rosari.
+    expect(garments('sportsDay')).toEqual({ blazer: '#f2f2ee', sleeve: '#f2f2ee', collar: '#1f2a4d', skirt: '#1f2a4d', upperLeg: '#ffe0c9' })
+    // 졸업 keeps the default uniform under the cap.
+    expect(garments('grad')).toEqual(garments('default'))
+  })
+
+  it('torso details stay on the torso front and never hang below the hem (leg-swing clipping)', () => {
+    for (const id of ['gym', 'raincoat', 'sportsDay']) {
+      const { root, meshes } = fixtureWithHairPivot()
+      // The buruma are shorts by design: they wrap the hips below the hem and are checked above.
+      for (const mesh of applyRosariOutfit(root, id, makeMaterial).filter((m) => m.parent === meshes.torso && !m.name.includes('buruma'))) {
         mesh.geometry.computeBoundingBox()
         const box = mesh.geometry.boundingBox
         expect(box.min.y, mesh.name).toBeGreaterThanOrEqual(1.233)
@@ -285,17 +360,25 @@ describe('S6 placeholder outfits', () => {
     }
   })
 
-  it('gym hides the whole tie, apron hides only the long drop under the bib, others hide nothing', () => {
+  it('gym, raincoat and apron hide the whole tie; sports day also swaps the skirt and wrist cuffs for shorts and bare wrists; others hide nothing', () => {
     const visibleAfter = (id) => {
       const { root, meshes, knot } = fixtureWithHairPivot()
       applyRosariOutfit(root, id, makeMaterial)
-      return { knot: knot.visible, drop: meshes.tie.visible, skirt: meshes.skirt.visible, hair: meshes.hair.visible }
+      return {
+        knot: knot.visible,
+        drop: meshes.tie.visible,
+        skirt: meshes.skirt.visible,
+        cuffs: meshes.cuff.visible && meshes.rightCuff.visible,
+        hair: meshes.hair.visible,
+      }
     }
-    expect(visibleAfter('gym')).toEqual({ knot: false, drop: false, skirt: true, hair: true })
-    expect(visibleAfter('apron')).toEqual({ knot: true, drop: false, skirt: true, hair: true })
-    expect(visibleAfter('sportsDay')).toEqual({ knot: false, drop: false, skirt: true, hair: true })
-    for (const id of ['default', 'winter', 'raincoat', 'grad', 'prefect']) {
-      expect(visibleAfter(id), id).toEqual({ knot: true, drop: true, skirt: true, hair: true })
+    // A jersey, a raincoat placket and a closed smock all replace the tie.
+    for (const id of ['gym', 'raincoat', 'apron']) {
+      expect(visibleAfter(id), id).toEqual({ knot: false, drop: false, skirt: true, cuffs: true, hair: true })
+    }
+    expect(visibleAfter('sportsDay')).toEqual({ knot: false, drop: false, skirt: false, cuffs: false, hair: true })
+    for (const id of ['default', 'winter', 'grad', 'prefect']) {
+      expect(visibleAfter(id), id).toEqual({ knot: true, drop: true, skirt: true, cuffs: true, hair: true })
     }
   })
 
@@ -309,8 +392,11 @@ describe('S6 placeholder outfits', () => {
     }
   })
 
-  it('skips head details (but keeps torso ones) when the hair pivot is missing', () => {
-    expect(applyRosariOutfit(rosariFixture().root, 'apron', makeMaterial).map((mesh) => mesh.name)).toEqual(['outfit_apron_apronBib'])
+  it('skips head details (but keeps torso and hand ones) when the hair pivot is missing', () => {
+    expect(applyRosariOutfit(rosariFixture().root, 'apron', makeMaterial).map((mesh) => mesh.name)).toEqual(['outfit_apron_ladleHandle', 'outfit_apron_ladleBowl'])
+    expect(applyRosariOutfit(rosariFixture().root, 'raincoat', makeMaterial).map((mesh) => mesh.name)).toEqual([
+      'outfit_raincoat_coatPlacket', 'outfit_raincoat_umbrellaHandle', 'outfit_raincoat_umbrellaCanopy', 'outfit_raincoat_umbrellaStrap', 'outfit_raincoat_umbrellaTip',
+    ])
     expect(applyRosariOutfit(rosariFixture().root, 'grad', makeMaterial)).toEqual([])
   })
 
@@ -343,28 +429,9 @@ describe('S6 placeholder outfits', () => {
   // The design doc's real risk for hoods/scarves (§9-2): a cover sized to the bob's bounding box
   // can still let the curved bob poke through. Check every shipped bob vertex instead.
   it('hood, head scarf and cap crown enclose every bob vertex they span, and leave the face window open', () => {
-    const glb = readFileSync(path.join(process.cwd(), 'src/assets/models/PLAYER_wholebody_refined_t_efe49b7c.glb'))
-    const jsonLength = glb.readUInt32LE(12)
-    const gltf = JSON.parse(glb.toString('utf8', 20, 20 + jsonLength))
-    const binStart = 20 + jsonLength + 8
-    const vertices = (nodeName, materialName) => {
-      const nodeEntry = gltf.nodes.find((entry) => entry.name === nodeName)
-      const out = []
-      for (const primitive of gltf.meshes[nodeEntry.mesh].primitives) {
-        if (materialName && gltf.materials[primitive.material].name !== materialName) continue
-        const accessor = gltf.accessors[primitive.attributes.POSITION]
-        const view = gltf.bufferViews[accessor.bufferView]
-        const start = binStart + (view.byteOffset || 0) + (accessor.byteOffset || 0)
-        const stride = view.byteStride || 12
-        for (let i = 0; i < accessor.count; i += 1) {
-          out.push(new THREE.Vector3(glb.readFloatLE(start + i * stride), glb.readFloatLE(start + i * stride + 4), glb.readFloatLE(start + i * stride + 8)))
-        }
-      }
-      return out
-    }
     // The bob and the face share the hair pivot's space (both identity under head_neck_pivot).
-    const bob = vertices('continuous_fitted_reference_bob')
-    const faceFront = vertices('coherent_head_skull_UV_image_face', 'faceSkin').filter((point) => point.z > 0.25)
+    const bob = glbVertices('continuous_fitted_reference_bob')
+    const faceFront = glbVertices('coherent_head_skull_UV_image_face', 'faceSkin').filter((point) => point.z > 0.25)
     expect(bob.length).toBeGreaterThan(1000)
     const ray = new THREE.Raycaster()
     const shells = [['raincoat', 'outfit_raincoat_hood'], ['apron', 'outfit_apron_headScarf'], ['grad', 'outfit_grad_capCrown']]

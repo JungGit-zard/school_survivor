@@ -78,6 +78,8 @@ const SPINE_SURFACES = [
   ['short_neck_visible_below_complete_skull', 'skin'],
   ['left_simple_lowpoly_hand_mitten', 'skin.001'],
   ['rounded_square_blue_backpack_body', 'backpack'],
+  // 오른손: 비옷 우산과 급식 국자가 이 손 메시에 붙는다 (맨 뒤에 둬서 앞선 인덱스는 그대로다).
+  ['right_simple_lowpoly_hand_mitten', 'skin.003'],
 ]
 const LEG_SURFACES = {
   left: [
@@ -557,11 +559,30 @@ describe('Player rosari gameplay outfit — S6 placeholders', () => {
     expect(hex(model.getObjectByName('continuous_fitted_reference_bob').material)).toBe(ROSARI_BASE_COLORS.hair)
   })
 
+  // Approved redesign (Terry 2026-11-14): umbrella and ladle ride the right hand so they swing
+  // with the arm; the kerchief knot and the tassel cord sit on the hair pivot with the rest of the head.
   it.each([
-    ['raincoat', { outfit_raincoat_hood: 'removable_hair_pivot' }],
+    ['raincoat', {
+      outfit_raincoat_hood: 'removable_hair_pivot',
+      outfit_raincoat_coatPlacket: ROSARI_OUTFIT_TORSO_NODE,
+      outfit_raincoat_umbrellaHandle: 'right_simple_lowpoly_hand_mitten',
+      outfit_raincoat_umbrellaCanopy: 'right_simple_lowpoly_hand_mitten',
+      outfit_raincoat_umbrellaStrap: 'right_simple_lowpoly_hand_mitten',
+      outfit_raincoat_umbrellaTip: 'right_simple_lowpoly_hand_mitten',
+    }],
     ['gym', { outfit_gym_zipper: ROSARI_OUTFIT_TORSO_NODE }],
-    ['apron', { outfit_apron_headScarf: 'removable_hair_pivot', outfit_apron_apronBib: ROSARI_OUTFIT_TORSO_NODE }],
-    ['grad', { outfit_grad_capCrown: 'removable_hair_pivot', outfit_grad_capBoard: 'removable_hair_pivot', outfit_grad_capTassel: 'removable_hair_pivot' }],
+    ['apron', {
+      outfit_apron_headScarf: 'removable_hair_pivot',
+      outfit_apron_scarfKnot: 'removable_hair_pivot',
+      outfit_apron_ladleHandle: 'right_simple_lowpoly_hand_mitten',
+      outfit_apron_ladleBowl: 'right_simple_lowpoly_hand_mitten',
+    }],
+    ['grad', {
+      outfit_grad_capCrown: 'removable_hair_pivot',
+      outfit_grad_capBoard: 'removable_hair_pivot',
+      outfit_grad_capTassel: 'removable_hair_pivot',
+      outfit_grad_capCord: 'removable_hair_pivot',
+    }],
   ])('%s details use game toon materials, stencil 3 and their own outline hull', (id, parents) => {
     const { model } = renderPlayer({ outfit: id, gameplay: true })
     const details = outfitDetails(model)
@@ -581,7 +602,7 @@ describe('Player rosari gameplay outfit — S6 placeholders', () => {
     expect(triangles).toBeLessThanOrEqual(100)
   })
 
-  it('gym hides the tie with its outline hull; apron hides only the long drop; raincoat and grad hide nothing', () => {
+  it('gym, raincoat and apron hide the whole tie with its outline hull; grad hides nothing', () => {
     const tieState = (id) => {
       const { model } = renderPlayer({ outfit: id, gameplay: true })
       const knot = model.getObjectByName('yellow_tie_knot')
@@ -590,21 +611,20 @@ describe('Player rosari gameplay outfit — S6 placeholders', () => {
       expect(knot.children.some((child) => child.userData.studioRenderOutline)).toBe(true)
       return [knot.visible, drop.visible]
     }
-    expect(tieState('gym')).toEqual([false, false])
-    expect(tieState('apron')).toEqual([true, false])
-    for (const id of ['default', 'winter', 'raincoat', 'grad']) expect(tieState(id), id).toEqual([true, true])
+    for (const id of ['gym', 'raincoat', 'apron']) expect(tieState(id), id).toEqual([false, false])
+    for (const id of ['default', 'winter', 'grad']) expect(tieState(id), id).toEqual([true, true])
   })
 
   it('appends head details to the hair pivot in authoring order (after the bob in the real GLB), so saved part paths do not shift', () => {
     const { model } = renderPlayer({ outfit: 'grad', gameplay: true })
     const pivot = model.getObjectByName('removable_hair_pivot')
-    expect(pivot.children.map((child) => child.name)).toEqual(['outfit_grad_capCrown', 'outfit_grad_capBoard', 'outfit_grad_capTassel'])
+    expect(pivot.children.map((child) => child.name)).toEqual(['outfit_grad_capCrown', 'outfit_grad_capBoard', 'outfit_grad_capTassel', 'outfit_grad_capCord'])
   })
 
   it('releases every S6 detail geometry and material on unmount', () => {
     const { model } = renderPlayer({ outfit: 'apron', gameplay: true })
     const details = outfitDetails(model)
-    expect(details).toHaveLength(2)
+    expect(details).toHaveLength(4)
     const spies = details.flatMap((detail) => [
       vi.spyOn(detail.geometry, 'dispose'),
       vi.spyOn(detail.userData.rosariOutfitMaterial, 'dispose'),
