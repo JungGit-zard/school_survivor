@@ -228,18 +228,18 @@
       "paths": [
         {
           "path": "Developer/r3f_prototype/public/sfx/weapons/starlinkExplosion.ogg",
-          "bytes": 10151,
-          "sha256": "2caf7477d3b931d5755acba0265456c28e81884e94a6c8c27270e0435bd65836"
+          "bytes": 9954,
+          "sha256": "6695028cb5a206432619167edc575e539adba39f66f7490a69c1eb504d8efd47"
         },
         {
           "path": "Developer/r3f_prototype/public/sfx/weapons/starlinkExplosion.mp3",
-          "bytes": 7341,
-          "sha256": "62779317a2714e5132c64a25daca727fa365d4613f619ba31c92551ad615c5e3"
+          "bytes": 7567,
+          "sha256": "e2009af162bcbed8c5346150479a18f4993cf8ee22c719cbb2be0361d7c12646"
         }
       ],
       "provenanceType": "generated",
-      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
-      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "source": "Re-encode of the previous project-generated starlinkExplosion.ogg (no exportable recipe in scripts/generate_sfx.mjs): ffmpeg volume=3.5dB, OGG libvorbis q2 / MP3 64k 44.1kHz mono via @ffmpeg-installer/ffmpeg",
+      "notes": "2026-11-14 soundmini, Terry 청취 지시 \"볼륨 1.5배\": 재생 볼륨이 이미 1.0이라 음원 자체를 +3.5dB(×1.5) 재인코딩. 평균 -24.3 → -21.0dBFS, 피크 -11.7 → -8.3dBFS(리미터 불필요). 이전 원본 48kHz 80kb/s → 프로젝트 인코더 설정 44.1kHz q2로 통일. Project procedural SFX asset; no external samples, no third-party or real-world melody copied.",
       "licenseEvidence": "project-generated-procedural"
     },
     {
@@ -328,18 +328,18 @@
       "paths": [
         {
           "path": "Developer/r3f_prototype/public/sfx/weapons/sharkFire.ogg",
-          "bytes": 8576,
-          "sha256": "28fcb189a0c4944aabc71884109e26f03439557aa0b701b769119a808d3e6cb6"
+          "bytes": 6017,
+          "sha256": "aa08e4d7a30276bc7dfa06ba6da12e2ae60f0494471daf9575a5fa022f412e5d"
         },
         {
           "path": "Developer/r3f_prototype/public/sfx/weapons/sharkFire.mp3",
-          "bytes": 4210,
-          "sha256": "00553ea74898fb919341bfb1da013359a90a2434f0ed2e6097fff8c123447e53"
+          "bytes": 3596,
+          "sha256": "f2958ea7e8e8a48f0edc215a2c6a7117d0c773c37eddceebad1f0e6a49dd5511"
         }
       ],
       "provenanceType": "generated",
-      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
-      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis, recipe 'weapons/sharkFire'; OGG libvorbis q2 / MP3 64k 44.1kHz mono via --encode with @ffmpeg-installer/ffmpeg)",
+      "notes": "2026-11-14 soundmini, Terry 청취 지시 \"상어 컨셉에 맞는 완전히 다른 소리\". 0.39s: 상승 대역 노이즈 물보라(700→3800Hz, 34Hz AM) + 110→240Hz 돌진 사인 → 0.22s '콱' 물기(170→70Hz 턱 충격 strike + 1.9kHz 비정수 배음 이빨 딸깍 + 노이즈) → 0.31s 되물기 '착'. 옛 톱니파 상승음은 slteraRush로 이전. Project procedural SFX asset; no external samples, no third-party or real-world melody copied.",
       "licenseEvidence": "project-generated-procedural"
     },
     {
@@ -348,18 +348,18 @@
       "paths": [
         {
           "path": "Developer/r3f_prototype/public/sfx/weapons/lanternFire.ogg",
-          "bytes": 6611,
-          "sha256": "2a070de7acc20a4d55a84af16b90c9da249cc454c12158cf825e1970131cc974"
+          "bytes": 5953,
+          "sha256": "49a2e921e119994752a671c1697ac844fad64aa0a2b9101c0227447d46977d91"
         },
         {
           "path": "Developer/r3f_prototype/public/sfx/weapons/lanternFire.mp3",
-          "bytes": 2910,
-          "sha256": "95f58c956baff894839c53e15470be31662b406aef22d5ac0a960d474648ba02"
+          "bytes": 3178,
+          "sha256": "301bd2041d3aba708aab09b385e042a7275d8f12ace553e7ffc8165499a2154c"
         }
       ],
       "provenanceType": "generated",
-      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
-      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis, recipe 'weapons/lanternFire'; OGG libvorbis q2 / MP3 64k 44.1kHz mono via --encode with @ffmpeg-installer/ffmpeg)",
+      "notes": "2026-11-14 soundmini, Terry 청취 지시 \"랜턴 무기에 맞는 다른 소리\". 0.32s: 1.5kHz 쇠고리 '팅' + 3.1kHz 유리 갓 '찡' strike → 250→1500Hz 불꽃 노이즈 스웰(22Hz AM) + 85→150Hz 몸통. 피크 0.08(옛 음원과 비슷한 작은 음량, 평균 -35.8dBFS). Project procedural SFX asset; no external samples, no third-party or real-world melody copied.",
       "licenseEvidence": "project-generated-procedural"
     },
     {
@@ -368,18 +368,18 @@
       "paths": [
         {
           "path": "Developer/r3f_prototype/public/sfx/weapons/bikittyCutterFire.ogg",
-          "bytes": 4877,
-          "sha256": "0a30f3acbf3bfb8f32ddb2451b8d99d1aa61dfaa76c3382446941ba800883223"
+          "bytes": 3898,
+          "sha256": "a28d837a2c544a4048536ecf04a71e790d8fd671b030b7260a110ec28301280f"
         },
         {
           "path": "Developer/r3f_prototype/public/sfx/weapons/bikittyCutterFire.mp3",
-          "bytes": 1612,
-          "sha256": "de76ee4cc094ed236a4b2caf2661fc59dd033e6ff13be14495503f90b7f36148"
+          "bytes": 1088,
+          "sha256": "6492ac91fee263d03021d22ae8fc891fcac8b9539bee21157a6bf681d2eba5c9"
         }
       ],
       "provenanceType": "generated",
-      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
-      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis, recipe 'weapons/bikittyCutterFire'; OGG libvorbis q2 / MP3 64k 44.1kHz mono via --encode with @ffmpeg-installer/ffmpeg)",
+      "notes": "2026-11-14 soundmini, Terry 청취 지시 \"볼륨 2배\": 같은 레시피에 louden(gain 2.3, tanh 소프트 리미터 ceiling 0.97) 적용 후 재합성. 평균 -19.8 → -13.9dBFS(+5.9dB), 피크 -0.7dBFS, 하드 클리핑 없음. Project procedural SFX asset; no external samples, no third-party or real-world melody copied.",
       "licenseEvidence": "project-generated-procedural"
     },
     {
@@ -408,18 +408,18 @@
       "paths": [
         {
           "path": "Developer/r3f_prototype/public/sfx/weapons/bikittyCutterReload.ogg",
-          "bytes": 13959,
-          "sha256": "851bae0c9784b6d01abee7ba186af9ecdb587d56d3d77a08ce0a788017cd37ab"
+          "bytes": 4558,
+          "sha256": "6d0c3446ac18d1e0cffa5444abc1ec7a9b466656fda768e5db99c84cf475c43d"
         },
         {
           "path": "Developer/r3f_prototype/public/sfx/weapons/bikittyCutterReload.mp3",
-          "bytes": 12270,
-          "sha256": "689472a12e5141a1f968afd572f2963c9a360efb86d243673b18a5c84324bb92"
+          "bytes": 1715,
+          "sha256": "a3b677234c5720d2e7d925c8e8b8b1411c44b2fa23b4fc9b9e445d7c890b5559"
         }
       ],
       "provenanceType": "generated",
-      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
-      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis, recipe 'weapons/bikittyCutterReload'; OGG libvorbis q2 / MP3 64k 44.1kHz mono via --encode with @ffmpeg-installer/ffmpeg)",
+      "notes": "2026-11-14 soundmini, Terry 청취 지시 \"철컥 같은 소리\". 0.15s 금속 두 타: '철' 820Hz 비정수 배음 strike + 금속 노이즈 + 210Hz 몸통 → 85ms 뒤 '컥' 1.65kHz 걸쇠 strike. 옛 0.95s '스륵' 마찰음 레시피는 삭제. Project procedural SFX asset; no external samples, no third-party or real-world melody copied.",
       "licenseEvidence": "project-generated-procedural"
     },
     {
@@ -868,18 +868,18 @@
       "paths": [
         {
           "path": "Developer/r3f_prototype/public/sfx/player/playerDeath.ogg",
-          "bytes": 6016,
-          "sha256": "eefd5cb17aeab25897a795d2e87f38e529c495d9a0b4666905f409784bc592f4"
+          "bytes": 6049,
+          "sha256": "47df609e548ce9fed65c91eb0e8a0d74c4196e0a1beb126240ef514faf65d395"
         },
         {
           "path": "Developer/r3f_prototype/public/sfx/player/playerDeath.mp3",
           "bytes": 5477,
-          "sha256": "9c04c112398f689e81e9f637100a0dbca7b16360edbf136cd3939cbaac7e8b9a"
+          "sha256": "1209c7c21d92cfb3a70678a32a59192a101f6e6d8df2b6152cc8eee4eadf1d83"
         }
       ],
       "provenanceType": "generated",
-      "source": "scripts/generate_zombie_death_voices.mjs / scripts/generate_voice_sfx.mjs (project procedural source-filter voice synthesis; OGG/MP3 conversion via @ffmpeg-installer/ffmpeg)",
-      "notes": "Project-generated voice-like procedural SFX; no external samples or third-party audio assets used.",
+      "source": "scripts/generate_voice_sfx.mjs (VOICE_SFX.playerDeath, seeded source-filter voice synthesis; OGG/MP3 via @ffmpeg-installer/ffmpeg)",
+      "notes": "2026-11-14 soundmini, Terry 청취 지시 \"피치 올려\": pitchScale 1.8 → 1.8×2^(5/12)≈2.403(+5반음) 재합성. 실측 F0 501/469/394Hz → 668/630/525Hz(×1.33). 길이 0.58s 유지, 런타임 rate 변경 없음. Project-generated voice-like procedural SFX; no external samples or third-party audio assets used.",
       "licenseEvidence": "project-generated-procedural"
     },
     {
@@ -1820,6 +1820,26 @@
       "provenanceType": "generated",
       "source": "scripts/generate_zombie_death_voices.mjs / scripts/generate_voice_sfx.mjs (project procedural source-filter voice synthesis; OGG/MP3 conversion via @ffmpeg-installer/ffmpeg)",
       "notes": "Project-generated voice-like procedural SFX; no external samples or third-party audio assets used.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "slteraRush",
+      "category": "events",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/events/slteraRush.ogg",
+          "bytes": 8576,
+          "sha256": "28fcb189a0c4944aabc71884109e26f03439557aa0b701b769119a808d3e6cb6"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/events/slteraRush.mp3",
+          "bytes": 4210,
+          "sha256": "00553ea74898fb919341bfb1da013359a90a2434f0ed2e6097fff8c123447e53"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "Byte-identical copy of the previous project-generated weapons/sharkFire.ogg/.mp3 (scripts/generate_sfx.mjs recipe now kept as 'events/slteraRush')",
+      "notes": "2026-11-14 soundmini. 슬테라 등장 돌진음 — sharkFire가 상어 물기로 교체되면서 슬테라가 빌려 쓰던 옛 sharkFire 바이트(ogg sha 28fcb189…, mp3 sha 00553ea7…)를 그대로 이 키로 옮겼다. Project procedural SFX asset; no external samples, no third-party or real-world melody copied.",
       "licenseEvidence": "project-generated-procedural"
     },
     {

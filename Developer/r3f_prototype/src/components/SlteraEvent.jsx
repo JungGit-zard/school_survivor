@@ -126,9 +126,9 @@ export default function SlteraEvent({ stageId, gameKey }) {
         car.scale.setScalar(SLTERA_SIZE_SCALE)
         car.visible = true
       }
-      // 튀어나오는 순간의 돌진음(전용 엔진음 없음 — soundmini 검토 대상). 차가 화면 바로 밖에서 출발하므로
-      // 사전 예고가 아니라 등장음이다.
-      emitSfx({ id: 'sharkFire', volume: 0.55, rate: 1.25 })
+      // 튀어나오는 순간의 돌진음. 차가 화면 바로 밖에서 출발하므로 사전 예고가 아니라 등장음이다.
+      // 2026-11-14: 빌려 쓰던 sharkFire가 상어 물기 소리로 바뀌어, 옛 sharkFire 바이트를 slteraRush로 옮겨 그대로 쓴다.
+      emitSfx({ id: 'slteraRush', volume: 0.55, rate: 1.25 })
     }
 
     stepSlteraPass(pass, delta * 1000, playerPos.x, playerPos.z, screenBounds)

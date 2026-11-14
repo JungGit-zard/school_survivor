@@ -161,6 +161,8 @@ export const SOUND_MAP = {
   textbookLand:       '/sfx/events/textbookLand.ogg',
   rzlWhistle:         '/sfx/events/rzlWhistle.ogg',
   stage2GuardWhistle: '/sfx/events/stage2GuardWhistle.ogg',
+  // 슬테라 등장 돌진음 — 2026-11-14까지 sharkFire를 빌려 쓰던 바이트 그대로(sharkFire는 상어 물기로 교체됨).
+  slteraRush:         '/sfx/events/slteraRush.ogg',
 
   // ── Stage 5 전교 호출 방송 (B_stage5 §11-2) ──────────────────────────────────
   stage5CallChime:    '/sfx/events/stage5CallChime.ogg',   // 딩-동-댕-동 경고 1.6s

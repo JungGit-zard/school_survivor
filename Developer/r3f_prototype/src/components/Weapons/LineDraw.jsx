@@ -434,7 +434,8 @@ export function LineDrawWeapon() {
       critChance: w.critChance,
       critMultiplier: w.critMultiplier,
       onCut: ({ x, z, line }) => {
-        emitSfx({ id: 'lineDrawCross', volume: 0.5, rate: 0.95 + Math.random() * 0.12 })
+        // 2026-11-14 Terry 청취 지시 "볼륨 2배": 0.5 → 1.0(+6dB). 음원 피크 -9.8dBFS라 클리핑 여유가 있다.
+        emitSfx({ id: 'lineDrawCross', volume: 1, rate: 0.95 + Math.random() * 0.12 })
         trailRefs.current.get(line.id)?.flashAt(x, z, now)
       },
     })

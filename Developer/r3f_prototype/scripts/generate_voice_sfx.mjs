@@ -21,6 +21,9 @@ const PI2 = Math.PI * 2
 export const VOICE_PITCH_SCALE = 1.26
 // 주인공/마틸다는 괴물톤이 아니라 귀여운 여성 음성으로 들려야 해서 별도 고음 스케일을 쓴다.
 export const CUTE_FEMALE_VOICE_PITCH_SCALE = 1.8
+// 2026-11-14 Terry 청취 지시 "playerDeath 피치를 올려" — 주인공 사망 비명만 +5반음(×2^(5/12) ≈ 1.335) 더 올린다.
+// 런타임 rate가 아니라 음원 자체를 다시 합성하므로 재생 속도·길이(0.58s)는 그대로다.
+export const PLAYER_DEATH_PITCH_SCALE = CUTE_FEMALE_VOICE_PITCH_SCALE * 2 ** (5 / 12)
 
 function writeWav(filepath, samples) {
   const len = samples.length
@@ -151,7 +154,7 @@ const VOICE_SFX = {
   playerHit: { dir: 'player', synth: () => voice({ dur: 0.2, targetLoudness: 0.18, seed: 0x6401, hold: 1, bits: 8, drive: 1.25, pitchScale: CUTE_FEMALE_VOICE_PITCH_SCALE, f0: [[0, 265], [0.18, 330], [1, 210]], jitter: 0.01, frames: [
     { t: 0, v: 'aa', amp: 0, voice: 0, noise: 0.35 }, { t: 0.04, v: 'aa', amp: 0.95, voice: 1, noise: 0.1 }, { t: 0.45, v: 'uh', amp: 0.65, voice: 1, noise: 0.1 }, { t: 1, v: 'uh', amp: 0, voice: 1, noise: 0.12 },
   ] }) },
-  playerDeath: { dir: 'player', synth: () => voice({ dur: 0.58, targetLoudness: 0.18, seed: 0x6402, hold: 1, bits: 8, drive: 1.3, pitchScale: CUTE_FEMALE_VOICE_PITCH_SCALE, f0: [[0, 245], [0.28, 285], [1, 135]], vib: { rate: 5.4, depth: 0.035 }, jitter: 0.012, frames: [
+  playerDeath: { dir: 'player', synth: () => voice({ dur: 0.58, targetLoudness: 0.18, seed: 0x6402, hold: 1, bits: 8, drive: 1.3, pitchScale: PLAYER_DEATH_PITCH_SCALE, f0: [[0, 245], [0.28, 285], [1, 135]], vib: { rate: 5.4, depth: 0.035 }, jitter: 0.012, frames: [
     { t: 0, v: 'aa', amp: 0, voice: 1, noise: 0.18 }, { t: 0.06, v: 'aa', amp: 0.9, voice: 1, noise: 0.1 }, { t: 0.34, v: 'aw', amp: 0.78, voice: 1, noise: 0.12 }, { t: 0.75, v: 'uh', amp: 0.35, voice: 1, noise: 0.18 }, { t: 1, v: 'uh', amp: 0, voice: 1, noise: 0.24 },
   ] }) },
   playerHeal: { dir: 'player', synth: () => voice({ dur: 0.36, targetLoudness: 0.14, seed: 0x6403, hold: 1, bits: 8, drive: 1.05, pitchScale: CUTE_FEMALE_VOICE_PITCH_SCALE, f0: [[0, 220], [1, 175]], vib: { rate: 4.2, depth: 0.018 }, jitter: 0.006, frames: [

@@ -220,6 +220,19 @@ function trimTo(samples, sec) {
   return samples.slice(0, Math.min(samples.length, Math.floor(sec * SR)))
 }
 
+// 2026-11-14 Terry 청취 지시(soundmini) 값.
+// 바이키티 커터칼 딸깍 ×2(+6dB). 합성 피크가 0.77이라 그대로 2배면 클리핑 → louden()의 tanh가 피크만 누른다.
+// 리미터가 피크를 깎는 만큼 명목 이득은 2.3(+7.2dB)으로 잡았다 — 배포 음원 실측 평균 -19.8 → -13.9dBFS(+5.9dB).
+const BIKITTY_FIRE_GAIN = 2.3
+// 랜턴 발사는 자주 울리는 소리라 옛 음원(피크 -20.7dBFS, 평균 -36.9dBFS)과 비슷한 작은 음량에 맞춘다(새 음원 실측 평균 -35.8).
+const LANTERN_FIRE_PEAK = 0.08
+
+// 소프트 리미터: gain을 곱한 뒤 tanh로 ceiling 안에 둔다. 작은 신호는 거의 선형이라 체감 음량은 gain만큼 오르고,
+// 하드 클리핑 없이 피크만 둥글게 눌린다.
+function louden(samples, gain, ceiling = 0.97) {
+  return samples.map((v) => ceiling * Math.tanh((gain * v) / ceiling))
+}
+
 // ── 사운드 정의 ────────────────────────────────────────────────────────────────
 const sounds = {
 
@@ -286,11 +299,30 @@ const sounds = {
     wave:'square', freq:1400, freqEnd:700, dur:0.12, vol:0.4,
     attack:0.001, decay:0.04, sustain:0.1, release:0.06,
   }),
-  'weapons/sharkFire': () => mix(
-    synth({ wave:'sawtooth', freq:80, freqEnd:400, dur:0.4, vol:0.8,
-      attack:0.005, decay:0.12, sustain:0.5, release:0.2, noiseAmt:0.3 }),
-    synth({ wave:'noise', freq:1, dur:0.4, vol:0.4, attack:0.005, decay:0.1, sustain:0.4, release:0.15 }),
-  ),
+  // 상어 발사 — 2026-11-14 Terry 청취 지시 "상어 컨셉에 맞는 완전히 다른 소리" (soundmini).
+  // 지느러미가 물을 가르는 '촤아-' 돌진 → 만화풍 '콱!' 물기 + 짧은 되물기 '착'. 0.42s, 자체 합성.
+  // 옛 톱니파 상승음은 슬테라 돌진음(events/slteraRush)으로만 남는다 — 여기로 되살리지 않는다.
+  'weapons/sharkFire': () => peakTo(trimTo(mix(
+    // 물보라 — 상승 대역 노이즈 + 34Hz 거품 흔들림
+    sweptNoise({ dur: 0.24, from: 700, to: 3800, vol: 0.5, attack: 0.06, release: 0.06, am: 34, amDepth: 0.55 }),
+    // 돌진 몸통 '우웅'
+    synth({ wave:'sine', freq:110, freqEnd:240, dur:0.22, vol:0.25, attack:0.03, decay:0.06, sustain:0.6, release:0.06 }),
+    // '콱' — 턱 충격(저역) + 이빨 딸깍(비정수 배음) + 물 튐
+    at(strike({ freq: 170, freqEnd: 70, dur: 0.12, vol: 0.85, tau: 0.035 }), 0.22),
+    at(strike({ freq: 1900, dur: 0.05, vol: 0.45, tau: 0.008, partials: [[1, 1], [2.63, 0.5, 0.6], [4.1, 0.25, 0.4]] }), 0.22),
+    at(sweptNoise({ dur: 0.03, from: 5000, to: 2000, vol: 0.4, attack: 0.001, release: 0.02 }), 0.22),
+    // '착' — 짧은 되물기
+    at(strike({ freq: 2300, dur: 0.04, vol: 0.32, tau: 0.007, partials: [[1, 1], [2.63, 0.45, 0.6]] }), 0.31),
+    at(strike({ freq: 140, freqEnd: 80, dur: 0.08, vol: 0.45, tau: 0.03 }), 0.31),
+  ), 0.42), 0.9),
+  // 랜턴 발사 — 2026-11-14 Terry "랜턴 무기에 맞는 다른 소리". 손잡이 쇠고리 '팅' + 유리 갓 '찡' →
+  // 불꽃이 확 붙는 '화륵(풕)'. 0.34s. 자주 쏘는 무기라 이전 음원과 비슷한 작은 음량으로 둔다.
+  'weapons/lanternFire': () => peakTo(trimTo(mix(
+    strike({ freq: 1500, dur: 0.06, vol: 0.35, tau: 0.012, partials: [[1, 1], [2.76, 0.4, 0.5]] }),
+    at(strike({ freq: 3100, dur: 0.09, vol: 0.22, tau: 0.02, partials: [[1, 1], [2.4, 0.3, 0.6]] }), 0.012),
+    at(sweptNoise({ dur: 0.3, from: 250, to: 1500, vol: 0.7, attack: 0.07, release: 0.16, am: 22, amDepth: 0.35 }), 0.02),
+    at(synth({ wave:'sine', freq:85, freqEnd:150, dur:0.22, vol:0.3, attack:0.04, decay:0.06, sustain:0.5, release:0.1 }), 0.02),
+  ), 0.34), LANTERN_FIRE_PEAK),
 
   // ── 무기 타격음 ──────────────────────────────────────────────────────────────
   'weapons/pencilHit': () => synth({
@@ -360,7 +392,8 @@ const sounds = {
   // 1) 딸깍 — 날을 한 칸 밀어내는 래칫 디텐트. 건조하게 끊고, 잔향을 남기지 않는다.
   //    8연타 대비: 유효 길이 ~0.07초. 로직이 rate 0.8~1.6으로 단수 피치를 올린다.
   //    의도된 최고 성분이 2.6kHz라 rate 1.6에서도 4.2kHz — 하시(harsh) 영역에 닿지 않는다.
-  'weapons/bikittyCutterFire': () => (() => {
+  // 2026-11-14 Terry "볼륨 2배" — 아래 합성 결과에 BIKITTY_FIRE_GAIN을 걸고 피크만 tanh 소프트 리미터로 누른다(louden).
+  'weapons/bikittyCutterFire': () => louden((() => {
     const at = (samples, seconds) => {
       const offset = Math.floor(seconds * SR)
       const padded = new Float32Array(samples.length + offset)
@@ -387,7 +420,7 @@ const sounds = {
       at(lowpass(synth({ wave:'noise', freq:1, dur:0.022, vol:0.16,
         attack:0.0004, decay:0.008, sustain:0.0, release:0.012 }), 3400), 0.026),
     )
-  })(),
+  })(), BIKITTY_FIRE_GAIN),
 
   // 2) 챙 — 8단째 날이 톡 부러지고 조각이 부채꼴로 튀는 파열음. 세 소리 중 최대.
   //    비정수 배음(2.74, 4.2)으로 '두들긴 금속'을 만든다. 정수배음이면 종/악기처럼 들린다.
@@ -431,37 +464,18 @@ const sounds = {
     )
   })(),
 
-  // 3) 스륵 — 새 날을 밀어 넣는 마찰음. 1.2초 재장전 대비 실측 ~0.93초로
-  //    끝을 남겨 두어 재무장 순간의 첫 딸깍과 겹치지 않는다.
-  //    필터가 없는 엔진이라 noiseAmt로 sine을 착색해 '색이 있는 마찰 노이즈'를 만든다.
-  'weapons/bikittyCutterReload': () => (() => {
-    const at = (samples, seconds) => {
-      const offset = Math.floor(seconds * SR)
-      const padded = new Float32Array(samples.length + offset)
-      padded.set(samples, offset)
-      return padded
-    }
-    return mix(
-      // 마찰 베드 — 700~4200Hz 대역통과. 백색 노이즈 그대로면 '스륵'이 아니라
-      // 라디오 잡음처럼 들린다. 이 대역이 실제 금속 슬라이드 마찰이 사는 곳이다.
-      // 무장해제 구간의 배경 텍스처라 챙보다 확실히 작게 유지한다.
-      at(bandpass(synth({ wave:'sine', freq:380, freqEnd:640, dur:0.95, vol:0.62,
-        attack:0.07, decay:0.20, sustain:0.55, release:0.28,
-        vibRate:11, vibDepth:45, noiseAmt:0.68 }), 700, 4200), 0),
-      // 금속 레일 shimmer — 날 등이 가이드에 긁히는 고역
-      at(lowpass(synth({ wave:'triangle', freq:2600, freqEnd:3300, dur:0.85, vol:0.11,
-        attack:0.09, decay:0.18, sustain:0.5, release:0.26,
-        vibRate:7, vibDepth:90, noiseAmt:0.20 }), 6500), 0),
-      // 레일 저역 rumble — 큰 공업용 커터라는 체급감. 밝기를 눌러 주는 역할도 한다.
-      at(synth({ wave:'triangle', freq:150, freqEnd:110, dur:0.90, vol:0.30,
-        attack:0.08, decay:0.20, sustain:0.45, release:0.30 }), 0),
-      // 안착 "톡" — 재무장 예고 신호. 0.84초 지점이라 1.2초 안에 확실히 끝난다.
-      at(lowpass(synth({ wave:'noise', freq:1, dur:0.09, vol:0.40,
-        attack:0.0005, decay:0.025, sustain:0.0, release:0.04 }), 3800), 0.84),
-      at(synth({ wave:'triangle', freq:1500, freqEnd:900, dur:0.07, vol:0.26,
-        attack:0.0005, decay:0.022, sustain:0.0, release:0.035 }), 0.84),
-    )
-  })(),
+  // 3) 철컥 — 새 날 홀더가 레일 끝에 '철' 부딪히고 걸쇠가 '컥' 잠기는 금속 두 타.
+  //    2026-11-14 Terry "철컥 같은 소리로" — 옛 0.95초 '스륵' 마찰음을 대체했다(되살리지 않는다). 0.24s.
+  'weapons/bikittyCutterReload': () => peakTo(trimTo(mix(
+    // '철' — 비정수 배음 = 두들긴 쇠, 짧은 금속 노이즈, 하우징 저역
+    strike({ freq: 820, dur: 0.12, vol: 0.7, tau: 0.025, partials: [[1, 1], [2.41, 0.55, 0.6], [4.7, 0.3, 0.35]] }),
+    sweptNoise({ dur: 0.03, from: 6000, to: 2500, vol: 0.45, attack: 0.0005, release: 0.02 }),
+    strike({ freq: 210, freqEnd: 120, dur: 0.07, vol: 0.4, tau: 0.02 }),
+    // '컥' — 85ms 뒤 걸쇠 잠김. 더 높고 짧게
+    at(strike({ freq: 1650, dur: 0.07, vol: 0.6, tau: 0.012, partials: [[1, 1], [2.63, 0.5, 0.5], [5.1, 0.25, 0.3]] }), 0.085),
+    at(sweptNoise({ dur: 0.02, from: 7000, to: 3500, vol: 0.4, attack: 0.0005, release: 0.015 }), 0.085),
+    at(strike({ freq: 300, freqEnd: 160, dur: 0.05, vol: 0.3, tau: 0.015 }), 0.085),
+  ), 0.24), 0.85),
 
   // ── 선긋기 (lineDraw) 3종 ──────────────────────────────────────────────────
   // 30cm 자 + 커터칼. 자를 대고 그은 직선이 2초간 남고, 그 선을 '가로지르는' 적만 잘린다.
@@ -577,11 +591,8 @@ const sounds = {
     synth({ wave:'noise', freq:1, dur:0.2, vol:0.6, attack:0.001, decay:0.07, sustain:0.05, release:0.12 }),
     synth({ wave:'sine', freq:300, freqEnd:150, dur:0.18, vol:0.3, attack:0.001, decay:0.06, sustain:0.0, release:0.1 }),
   ),
-  'player/playerDeath': () => mix(
-    synth({ wave:'noise', freq:1, dur:0.6, vol:0.7, attack:0.001, decay:0.2, sustain:0.15, release:0.35 }),
-    synth({ wave:'sine', freq:250, freqEnd:60, dur:0.7, vol:0.5, attack:0.01, decay:0.2, sustain:0.1, release:0.4 }),
-    synth({ wave:'sine', freq:400, freqEnd:100, dur:0.5, vol:0.3, attack:0.001, decay:0.15, sustain:0.05, release:0.3 }),
-  ),
+  // player/playerDeath는 scripts/generate_voice_sfx.mjs(VOICE_SFX.playerDeath)가 정본이다. 여기 있던 옛 노이즈+사인
+  // 프리셋은 `generate_sfx.mjs player --encode`로 실행하면 정본 음성을 덮어써서 2026-11-14에 지웠다.
   'player/playerStep': () => synth({
     wave:'noise', freq:1, dur:0.1, vol:0.3,
     attack:0.001, decay:0.04, sustain:0.0, release:0.055,
@@ -839,6 +850,14 @@ const sounds = {
       strike({ freq: 620, dur: 0.18, vol: 0.18, tau: 0.05, partials: [[1, 1], [2.7, 0.4, 0.5]] }),
     ), 0.7),
   ), 0.9), 0.9),
+
+  // 슬테라 돌진음 — 2026-11-14 sharkFire가 상어 물기로 바뀌면서, 슬테라가 빌려 쓰던 옛 sharkFire 톱니파 상승음을
+  // 이 이름으로 옮겼다. 배포 음원은 옛 sharkFire.ogg/mp3 바이트를 그대로 복사했다(Math.random 노이즈라 재생성하면 달라짐).
+  'events/slteraRush': () => mix(
+    synth({ wave:'sawtooth', freq:80, freqEnd:400, dur:0.4, vol:0.8,
+      attack:0.005, decay:0.12, sustain:0.5, release:0.2, noiseAmt:0.3 }),
+    synth({ wave:'noise', freq:1, dur:0.4, vol:0.4, attack:0.005, decay:0.1, sustain:0.4, release:0.15 }),
+  ),
 
   // ── B03 셔틀런 착지 '쿵' (2026-11-08 Terry "쿵쿵쿵") ───────────────────────────────
   // 0.22s. 저역 쿵(95→42Hz) + 폰 스피커용 180Hz 몸통 + 짧은 바닥 트랜지언트. 홉 간격(≥0.33s)보다 짧다.
