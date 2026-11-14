@@ -256,10 +256,13 @@ describe('wardrobe close and scrolling', () => {
 
 describe('room radio wiring', () => {
   const radioButton = () => container.querySelector('[data-room-radio-open]')
-  it('enables the radio button only near the radio and closes the panel (not the music) when walking away', () => {
+  it('opens the radio panel on approach, lets the player close it, and closes it (not the music) when walking away', () => {
     expect(radioButton().disabled).toBe(true)
     act(() => scene.props.onNearRadioChange(true))
     expect(radioButton().disabled).toBe(false)
+    expect(radioButton().getAttribute('aria-expanded')).toBe('true')
+    fire(radioButton(), 'click')
+    expect(radioButton().getAttribute('aria-expanded')).toBe('false')
     fire(radioButton(), 'click')
     expect(radioButton().getAttribute('aria-expanded')).toBe('true')
     const stop = vi.spyOn(roomRadio, 'stop')
@@ -271,7 +274,6 @@ describe('room radio wiring', () => {
   })
   it('keeps the wardrobe and the radio panel mutually exclusive', () => {
     act(() => scene.props.onNearRadioChange(true))
-    fire(radioButton(), 'click')
     expect(radioButton().getAttribute('aria-expanded')).toBe('true')
     act(() => scene.props.onWardrobeToggle())
     expect(container.querySelector('[role="dialog"]')).not.toBe(null)
@@ -284,7 +286,6 @@ describe('room radio wiring', () => {
     const onBack = vi.fn()
     act(() => root.render(<RosariRoom onBack={onBack} />))
     act(() => scene.props.onNearRadioChange(true))
-    fire(radioButton(), 'click')
     fire(window, 'keydown', { key: 'Escape' })
     expect(radioButton().getAttribute('aria-expanded')).toBe('false')
     expect(onBack).not.toHaveBeenCalled()

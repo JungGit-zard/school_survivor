@@ -238,7 +238,6 @@ export function describeRosariBedroomParts() {
   // ---- heart rug (walkable floor decal) ----------------------------------------------------------
   prop = 'rug'
   at = [F.rug.x, 0, F.rug.z]
-  decal('outline', floorHeart(1.72, 0.008), [0, 0.006, 0.0])
   decal('rug', floorHeart(1.62, 0.008), [0, 0.009, -0.01])
   decal('rugInner', floorHeart(1.05, 0.002), [0, 0.017, -0.03])
 

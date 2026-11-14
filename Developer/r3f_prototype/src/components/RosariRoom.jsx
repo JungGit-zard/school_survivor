@@ -76,7 +76,8 @@ export default function RosariRoom({ onBack }) {
   // Leaving the room always hands the music back to the room/lobby track.
   useEffect(() => () => { roomRadio.stop() }, [])
   // Walking away closes only the panel; the song keeps playing.
-  useEffect(() => { if (!nearRadio) setRadioOpen(false) }, [nearRadio])
+  // Walking up to the radio opens the music panel; walking away closes it.
+  useEffect(() => { setRadioOpen(nearRadio) }, [nearRadio])
   // The wardrobe and the radio panel share the same screen area: one at a time.
   useEffect(() => { if (wardrobeOpen) setRadioOpen(false) }, [wardrobeOpen])
   useEffect(() => { if (radioOpen) setWardrobeOpen(false) }, [radioOpen])
