@@ -58,10 +58,16 @@ describe('EnemyEntityPool', () => {
       // 2차 10종(2026-11-07, typeCode 65~74). 64는 E59 미니 예약이라 빈 슬롯이다.
       'E61', 'E62', 'E63', 'E64', 'E65', 'E66', 'E67', 'E68', 'E69', 'E70',
       // Stage 5 보스 B10 교감 좀비(2026-11-08, typeCode 75). 스펙 초안의 65는 2차 10종이 먼저 차지했다.
-      'B10'])
+      'B10',
+      // 블록 좀비 18종(2026-11-14, typeCode 76~93, Kenney Blocky Characters CC0).
+      'E71', 'E72', 'E73', 'E74', 'E75', 'E76', 'E77', 'E78', 'E79', 'E80', 'E81', 'E82', 'E83', 'E84', 'E85', 'E86', 'E87', 'E88'])
     expect(enemyTypeToCode('B10')).toBe(75)
     expect(enemyTypeFromCode(75)).toBe('B10')
-    expect(ENEMY_TYPE_NAMES).toHaveLength(76)
+    expect(enemyTypeToCode('E71')).toBe(76)
+    expect(enemyTypeToCode('E88')).toBe(93)
+    expect(enemyTypeFromCode(93)).toBe('E88')
+    expect(enemyTypeFromCode(94)).toBe(null)
+    expect(ENEMY_TYPE_NAMES).toHaveLength(94)
     expect(enemyTypeToCode('E60')).toBe(63)
     expect(enemyTypeToCode('E59M')).toBe(0)
     expect(enemyTypeToCode('E61')).toBe(65)

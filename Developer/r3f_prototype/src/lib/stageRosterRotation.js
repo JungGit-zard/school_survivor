@@ -33,6 +33,7 @@
 import { getBurstEventsForStage, isBossType } from './burstEvents.js'
 import { EXPANSION_STAGES } from './expansionContent.js'
 import { PROJECTILE_ZOMBIE_BEHAVIORS } from './projectileZombieBehavior.js'
+import { isBlockyZombieType } from './blockyZombieRoster.js'
 
 // 탄을 쏘는 종(사수): E04 + 투사체 좀비 중 shot이 있는 종(E56 보건실·E61 급식판·E62 셔틀런·E66 플라나리아·E67 방패는 아님).
 export const ROSTER_ROTATION_SHOOTER_TYPES = Object.freeze(new Set([
@@ -59,7 +60,8 @@ const NON_ROSTER_TYPE = /^(E0[1-8]|RZ[A-Z])$/
 
 const debutCache = new Map()
 
-// 스테이지에 배분된 순환 대상 종과 각 종의 작성된 첫 등장(초). 스6 등 확장 스테이지는 enemyIds만.
+// 스테이지에 배분된 순환 대상 종과 각 종의 작성된 첫 등장(초). 스6 등 확장 스테이지는 enemyIds만 —
+// 2026-11-14부터 그 표에 작성된 블록 좀비(E71~E88)도 더한다(enemyIds는 확장 데이터 정본이라 건드리지 않는다).
 export function getStageRotationDebuts(stageId) {
   if (debutCache.has(stageId)) return debutCache.get(stageId)
   const expansion = EXPANSION_STAGES[stageId]
@@ -67,7 +69,7 @@ export function getStageRotationDebuts(stageId) {
   for (const evt of getBurstEventsForStage(stageId) ?? []) {
     for (const type of [evt.type, ...(evt.mixedTypes ?? [])]) {
       if (!type || isBossType(type)) continue
-      if (expansion ? !expansion.enemyIds.includes(type) : NON_ROSTER_TYPE.test(type)) continue
+      if (expansion ? !(expansion.enemyIds.includes(type) || isBlockyZombieType(type)) : NON_ROSTER_TYPE.test(type)) continue
       if (!firstSec.has(type) || evt.sec < firstSec.get(type)) firstSec.set(type, evt.sec)
     }
   }

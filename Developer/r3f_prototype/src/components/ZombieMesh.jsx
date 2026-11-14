@@ -11,6 +11,7 @@ import B10ViceBossMesh from './B10ViceBossMesh.jsx'
 import StudioTunedGroup, { composeStudioPartPosition, composeStudioPartRotation, composeStudioPartScale } from './StudioTunedGroup.jsx'
 import BossProceduralFace from './BossProceduralFace.jsx'
 import { PROJECTILE_ZOMBIE_PALETTE_ENTRIES } from '../lib/projectileZombieVisuals.js'
+import { BLOCKY_ZOMBIE_PALETTE_ENTRIES } from '../lib/blockyZombieRoster.js'
 
 const disableRaycast = () => null
 export const ZOMBIE_CHARACTER_CHAMFER_STEPS = 1
@@ -53,6 +54,8 @@ export const ZOMBIE_PALETTE = {
   E45: { body: 0x1b3d44, skin: 0x567f85, eye: 0xffe3a0, mark: 0xf2e8cc },
   // 신규 투사체 좀비 15종(E46~E60). 정본은 lib/projectileZombieVisuals.js의 팔레트다.
   ...PROJECTILE_ZOMBIE_PALETTE_ENTRIES,
+  // 블록 좀비 18종(E71~E88). 몸통은 아틀라스 텍스처라 이 색은 사망 파편·팔레트 조회용 대표색이다.
+  ...BLOCKY_ZOMBIE_PALETTE_ENTRIES,
 }
 
 // 공용 박스 좀비의 신발 색. 공유 박스 트리와 신규 포즈형이 같은 상수를 쓴다.

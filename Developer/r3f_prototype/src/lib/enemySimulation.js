@@ -91,6 +91,7 @@ import {
   stepProjectileZombieBehavior,
 } from './projectileZombieBehavior.js'
 import { PROJECTILE_ZOMBIE_TYPES, PROJECTILE_ZOMBIE_TYPE_CODES } from './projectileZombieVisuals.js'
+import { BLOCKY_ZOMBIE_TYPES, BLOCKY_ZOMBIE_TYPE_CODES } from './blockyZombieRoster.js'
 // 행동 신호음(2026-11-14). 시뮬레이션은 "무슨 일이 일어났다"만 알리고 소리 선택·간격·거리 감쇠는
 // enemyAbilitySfx.js가 소유한다. 그 모듈은 throw하지 않고 Math.random을 쓰지 않는다(결정성 유지).
 import {
@@ -132,6 +133,8 @@ const extendRuntime = (values, key, novelKey) => {
   for (let i = 0; i < NOVEL_RUNTIME_ROWS.length; i += 1) table[NOVEL_TYPE_MIN + i] = NOVEL_RUNTIME_ROWS[i][novelKey]
   // 65~74 = 2차 10종(E61~E70). 64는 E59 미니 예약이라 0으로 남는다.
   for (let i = 0; i < PROJECTILE_ZOMBIE_TYPES.length; i += 1) table[PROJECTILE_ZOMBIE_TYPE_CODES[PROJECTILE_ZOMBIE_TYPES[i]]] = PROJECTILE_ZOMBIE_STATS[PROJECTILE_ZOMBIE_TYPES[i]][novelKey]
+  // 76~93 = 블록 좀비 18종(E71~E88). 75(B10)는 보스라 0으로 남는다. 수치 정본은 같은 PROJECTILE_ZOMBIE_STATS다.
+  for (let i = 0; i < BLOCKY_ZOMBIE_TYPES.length; i += 1) table[BLOCKY_ZOMBIE_TYPE_CODES[BLOCKY_ZOMBIE_TYPES[i]]] = PROJECTILE_ZOMBIE_STATS[BLOCKY_ZOMBIE_TYPES[i]][novelKey]
   return table
 }
 

@@ -73,7 +73,12 @@ const DATA = {
         {
           "sec": 16,
           "type": "E01",
-          "count": 6
+          "count": 5
+        },
+        {
+          "sec": 16,
+          "type": "E79",
+          "count": 1
         },
         {
           "sec": 24,
@@ -95,7 +100,12 @@ const DATA = {
         {
           "sec": 52,
           "type": "E01",
-          "count": 10
+          "count": 9
+        },
+        {
+          "sec": 52,
+          "type": "E71",
+          "count": 1
         },
         {
           "sec": 52,
@@ -148,7 +158,12 @@ const DATA = {
         {
           "sec": 108,
           "type": "E04",
-          "count": 2
+          "count": 1
+        },
+        {
+          "sec": 108,
+          "type": "E73",
+          "count": 1
         },
         {
           "sec": 108,
@@ -242,7 +257,7 @@ const DATA = {
         },
         {
           "sec": 200,
-          "type": "E05",
+          "type": "E76",
           "count": 1
         },
         {

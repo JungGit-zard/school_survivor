@@ -1,0 +1,240 @@
+{
+  "asset": "Kenney Blocky Characters 2.0 — 18 characters as Escape! zombie school blocky zombies (E71-E88)",
+  "source": {
+    "url": "https://kenney.nl/assets/blocky-characters",
+    "pack": "Blocky Characters (2.0)",
+    "author": "Kenney (www.kenney.nl)",
+    "created": "2025-06-10",
+    "downloaded": "2026-11-14",
+    "zip": {
+      "file": "pack.zip",
+      "bytes": 2148510,
+      "sha256": "5e123859aa0c1598342b600c6db197024a1d63eb9ec531398b310725f589887e"
+    }
+  },
+  "license": {
+    "id": "CC0-1.0",
+    "url": "http://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "not required; credit \"Kenney (www.kenney.nl), CC0\" given here and in License.txt",
+    "file": "License.txt (verbatim from the pack)"
+  },
+  "membersUsed": [
+    {
+      "member": "Models/GLB format/Textures/texture-a.png",
+      "bytes": 20171,
+      "sha256": "257e944c582ce7cda206fbd8ceb717be648f9721756baf377a36478c11c0059a"
+    },
+    {
+      "member": "Models/GLB format/Textures/texture-b.png",
+      "bytes": 15606,
+      "sha256": "c614148428fbf63ab701ab95e2ebe0b6103ea0e2e6212c986d8931899bad7692"
+    },
+    {
+      "member": "Models/GLB format/Textures/texture-c.png",
+      "bytes": 12829,
+      "sha256": "582a62eae6ca086f65e6bfdde16d0d1d15a95fdaf484c0def4769d5a47ba1c8e"
+    },
+    {
+      "member": "Models/GLB format/Textures/texture-d.png",
+      "bytes": 13151,
+      "sha256": "c61bc29ec4d96229b979fc9196500afac13c2b448bbab1085832354fb4ef849a"
+    },
+    {
+      "member": "Models/GLB format/Textures/texture-e.png",
+      "bytes": 14509,
+      "sha256": "6bbdb4f76b8d2ba7feb1ad8e4a341ca87afd655a4f061c77a86c400ad3125049"
+    },
+    {
+      "member": "Models/GLB format/Textures/texture-f.png",
+      "bytes": 15886,
+      "sha256": "54404f22588bac5a7f8df09c2aac0520e101a6f32944ce4070f550d7ad80c6f7"
+    },
+    {
+      "member": "Models/GLB format/Textures/texture-g.png",
+      "bytes": 16069,
+      "sha256": "cce3f8d545625998c27e91016672366eb84f21bbc520f8227022c23d0dd557fc"
+    },
+    {
+      "member": "Models/GLB format/Textures/texture-h.png",
+      "bytes": 16215,
+      "sha256": "7d908f3f12ac56b3debc5036dd962e2151c151f7a379cb37fe757a6ab4147536"
+    },
+    {
+      "member": "Models/GLB format/Textures/texture-i.png",
+      "bytes": 14496,
+      "sha256": "2c721b0a8837836ab0bf0eb0de12ca14e5d518ccba7420b8c673ed4600dc6b63"
+    },
+    {
+      "member": "Models/GLB format/Textures/texture-j.png",
+      "bytes": 17576,
+      "sha256": "11b6625d2d3119c9340fe93095374c45687be00fc7d1256c1f8db7d78cd7b531"
+    },
+    {
+      "member": "Models/GLB format/Textures/texture-k.png",
+      "bytes": 17437,
+      "sha256": "4e063c40b02955bab6cb177268f56d8837346cb9661c4022ac79310bd80774fc"
+    },
+    {
+      "member": "Models/GLB format/Textures/texture-l.png",
+      "bytes": 22764,
+      "sha256": "437c06e18a41def8449afb84c843b819927c7f8b423e653cd669c1f60c3e0741"
+    },
+    {
+      "member": "Models/GLB format/Textures/texture-m.png",
+      "bytes": 19343,
+      "sha256": "ee5652737837e662a756d66828218b2b784a6990eeee8c4e1e95a1f70d1af994"
+    },
+    {
+      "member": "Models/GLB format/Textures/texture-n.png",
+      "bytes": 16824,
+      "sha256": "b4af32a544b70da2ba99c6a142f33f0c5ee50a06b71ca71f8ac928bb5a15bb64"
+    },
+    {
+      "member": "Models/GLB format/Textures/texture-o.png",
+      "bytes": 21064,
+      "sha256": "782e0873431934fc39d8ebd48a3283085619863a7477508099a66c3734a6b479"
+    },
+    {
+      "member": "Models/GLB format/Textures/texture-p.png",
+      "bytes": 18000,
+      "sha256": "29176841e85fa8547322cf74ea34051c2b531039867de317f51728c4e54eef88"
+    },
+    {
+      "member": "Models/GLB format/Textures/texture-q.png",
+      "bytes": 16102,
+      "sha256": "bf220bbc945072a4fce31118b6585207445ddac1c2836b350d10fe0d49fed5ca"
+    },
+    {
+      "member": "Models/GLB format/Textures/texture-r.png",
+      "bytes": 13909,
+      "sha256": "fd29fd9fc745ca7b4231d704830b7508a3ec6894c54eeacc6cff722e851d9236"
+    },
+    {
+      "member": "Models/GLB format/character-a.glb",
+      "bytes": 113596,
+      "sha256": "8ee5dae167ec589863f6bba222467eb90ace8be357a4c5abfcab289290181616",
+      "use": "geometry (identical in all 18, verified)"
+    },
+    {
+      "member": "Models/GLB format/character-b.glb",
+      "bytes": 113596,
+      "sha256": "30ed390a741a1b285f587544819aa8a02c8f7f270e552ed742eb84785034f62a",
+      "use": "geometry identity check only"
+    },
+    {
+      "member": "Models/GLB format/character-c.glb",
+      "bytes": 113580,
+      "sha256": "ad2425ba0da5d9adff791b949bd62389ddcb09963ff89265930eab0d6484398c",
+      "use": "geometry identity check only"
+    },
+    {
+      "member": "Models/GLB format/character-d.glb",
+      "bytes": 113596,
+      "sha256": "bd7cbf0d45e58f6809e3249a84502ce629ac53bfa13bc39fb0a83d171faf84bf",
+      "use": "geometry identity check only"
+    },
+    {
+      "member": "Models/GLB format/character-e.glb",
+      "bytes": 113596,
+      "sha256": "9a12684981bc7763aebeceaffed82abfcc458d27b1ed3e169b92bebcc4870675",
+      "use": "geometry identity check only"
+    },
+    {
+      "member": "Models/GLB format/character-f.glb",
+      "bytes": 113592,
+      "sha256": "04223c1c6cdce5da6fe9c9729a24e1aa9c765dec93af952379112f7da24a828a",
+      "use": "geometry identity check only"
+    },
+    {
+      "member": "Models/GLB format/character-g.glb",
+      "bytes": 113596,
+      "sha256": "e3249ffc0aaa55eba973696ba4b36a204b35a10574b373e9945b56d918e8c9fd",
+      "use": "geometry identity check only"
+    },
+    {
+      "member": "Models/GLB format/character-h.glb",
+      "bytes": 113596,
+      "sha256": "f62fcf774dc6d61d64a3616803bc3a71176e1aee252020dd3ef680ef0a95d588",
+      "use": "geometry identity check only"
+    },
+    {
+      "member": "Models/GLB format/character-i.glb",
+      "bytes": 113532,
+      "sha256": "2b566d3b6261faa3e151b352396d823a285834f039ff6476db248ec6da902fe8",
+      "use": "geometry identity check only"
+    },
+    {
+      "member": "Models/GLB format/character-j.glb",
+      "bytes": 113584,
+      "sha256": "5bae1cabb44a719fba8e18a8c519f45c92531bc02a2a1324cd316ffa5903e311",
+      "use": "geometry identity check only"
+    },
+    {
+      "member": "Models/GLB format/character-k.glb",
+      "bytes": 113596,
+      "sha256": "1b0f9b218eda8444e68e988b1b87786ca058928a6c091bc3e44986363fefbc3b",
+      "use": "geometry identity check only"
+    },
+    {
+      "member": "Models/GLB format/character-l.glb",
+      "bytes": 113596,
+      "sha256": "ac3d350aba9311cf522f6b5ef56e1838fd8cd6bd3fb61795db4416dd2cc73a3d",
+      "use": "geometry identity check only"
+    },
+    {
+      "member": "Models/GLB format/character-m.glb",
+      "bytes": 113596,
+      "sha256": "5289ed1e5f79a93c28d1bb0e4b8afda6fce298ab53a04fb2cc1f8f77cf661ccc",
+      "use": "geometry identity check only"
+    },
+    {
+      "member": "Models/GLB format/character-n.glb",
+      "bytes": 113596,
+      "sha256": "1ea5a0cb0c65f51d6a1b40caa15a27f625365d341f33392a2bd926b0bf695394",
+      "use": "geometry identity check only"
+    },
+    {
+      "member": "Models/GLB format/character-o.glb",
+      "bytes": 113596,
+      "sha256": "a5033b736d13be3434fbf31e8b222d1e3767e532baa5f10ae8ba7cb1b059c148",
+      "use": "geometry identity check only"
+    },
+    {
+      "member": "Models/GLB format/character-p.glb",
+      "bytes": 113584,
+      "sha256": "50e18edd3003eeeca60c215a12f2c8230f9d12bc07e656eb06c3727ab0dba6cd",
+      "use": "geometry identity check only"
+    },
+    {
+      "member": "Models/GLB format/character-q.glb",
+      "bytes": 113596,
+      "sha256": "9193d03bc9ee1cfb080a1d561522f45806fe0b522b9807ef2b7c451b77547999",
+      "use": "geometry identity check only"
+    },
+    {
+      "member": "Models/GLB format/character-r.glb",
+      "bytes": 113596,
+      "sha256": "b880654e0bcf4cfda119750d1ae0842ccfb73ae22f7844ab95015122b746808a",
+      "use": "geometry identity check only"
+    },
+    {
+      "member": "License.txt",
+      "bytes": 706,
+      "sha256": "610fec89c16826112e9d6b80497b726c43fea0e42c9cd9d7cb081f8ad550c0ec"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "src/assets/models/kenney_blocky/kenney_blocky_zombie_atlas.png",
+      "bytes": 69836,
+      "sha256": "15a4088c2c5a4dc1f66150593f485492b5a7e0f7a7b1c418991b38705812f8b6",
+      "note": "18 textures box-downsampled 1024->192, zombie bake (desaturate 30% + sickly tint; warm skin hues in head/arm/torso UV regions -> grey-green), packed 6x3 with 2px edge-clamped gutters, RGB PNG"
+    },
+    {
+      "path": "src/lib/kenneyBlockyGeometry.js",
+      "note": "part pivots/positions (head 0.1 node scale baked)/normals/fract(uv)/indices of character-a.glb; animations not used"
+    }
+  ],
+  "generator": "scripts/build_kenney_blocky_zombies.mjs",
+  "modifications": "Textures recoloured as zombies and downscaled; no brand names or real-person likeness added."
+}

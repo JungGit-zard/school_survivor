@@ -6,7 +6,8 @@ import { ENEMY_TYPE_CODES } from './enemyEntityPool.js'
 import { getBurstEventsForStage, isBossType } from './burstEvents.js'
 
 const S6 = EXPANSION_STAGES.stage6
-const S6_HP = { E19: 30, E20: 64, E21: 36, E01: 20, E02: 174, E04: 80, E05: 174, E06: 796, E07: 40 }
+// 2026-11-14 블록 좀비(같은 hp 맞교환): E79·E71 = E01(8 → 20), E73 = E04(32 → 80), E76 = E05(70 → 174).
+const S6_HP = { E19: 30, E20: 64, E21: 36, E01: 20, E02: 174, E04: 80, E05: 174, E06: 796, E07: 40, E79: 20, E71: 20, E73: 80, E76: 174 }
 
 describe('stage6 운동장 — 같은 id·기록 키·typeCode, 내용만 교체', () => {
   it('정체·경계 12×20·e04 8초·오버타임 240초·1부 데이터', () => {
@@ -43,9 +44,11 @@ describe('stage6 운동장 — 같은 id·기록 키·typeCode, 내용만 교체
   // 둘 다 사다리 목표 3,710 × 1.3^5 = 13,775의 ±2% 안.
   // 2026-11-13 2차(levelmini, balanceqa 노트): 52초 E01 8 → 10. 오프닝 1,256 → 1,296(S5의 1.56배), 60초 계단 2.13배 → 2.0배.
   // 일반 적 190마리·HP 8,910, 총 HP 13,608(소환 3회)·13,824(4회).
-  it('이벤트 38행, 보스 1행(150초), 마지막 일반 이벤트 228초, 반복 버스트 없음, 일반 적 190마리·HP 8,910', () => {
+  // 2026-11-14 블록 좀비 4종(16초 E79·52초 E71·108초 E73·200초 E76)은 같은 초의 E01·E01·E04·E05 1기씩을 같은 hp로 맞바꿨다 —
+  // 마릿수 190·HP 8,910 그대로. 200초 E05는 1기뿐이라 그 행이 E76으로 바뀌어 38 → 41행(통합 트리 병합, 2026-11-14).
+  it('이벤트 41행, 보스 1행(150초), 마지막 일반 이벤트 228초, 반복 버스트 없음, 일반 적 190마리·HP 8,910', () => {
     const events = getBurstEventsForStage('stage6')
-    expect(events).toHaveLength(38)
+    expect(events).toHaveLength(41)
     expect(events.filter((e) => isBossType(e.type))).toEqual([{ sec: 150, type: 'B05', count: 1 }])
     expect(Math.max(...events.filter((e) => !isBossType(e.type)).map((e) => e.sec))).toBe(228)
     expect(events.some((e) => e.repeatIntervalSec)).toBe(false)
@@ -68,7 +71,7 @@ describe('stage6 운동장 — 같은 id·기록 키·typeCode, 내용만 교체
     // 110초 전통 증원(E07 3 + E02 3) 유지.
     expect(events.filter((e) => e.sec === 110).map((e) => [e.type, e.count])).toEqual([['E07', 3], ['E02', 3]])
     // 개방 운동장은 시야 차단물이 없다 — 원거리 E04는 0~60초 동시 3기(8초 2 + 52초 1)로 묶는다(포화점 4.13기 미만).
-    expect(events.filter((e) => e.type === 'E04').map((e) => [e.sec, e.count])).toEqual([[8, 2], [52, 1], [108, 2], [132, 1], [216, 2]])
+    expect(events.filter((e) => e.type === 'E04').map((e) => [e.sec, e.count])).toEqual([[8, 2], [52, 1], [108, 1], [132, 1], [216, 2]])
   })
 
   // 30초 창별 유입 HP(일반 적 + B05 시간 소환 162·192·222초). 곡선 모양을 못박는다.

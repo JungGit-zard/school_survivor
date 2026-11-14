@@ -83,6 +83,27 @@ export const ENEMY_ABILITY_SFX = Object.freeze({
   E68: Object.freeze({ attack: cue('gagRopeWhirr', 0.75), death: cue('gagPropClatter', 0.6) }),
   E69: Object.freeze({ attack: cue('gagDominoClack', 1.3), death: cue('gagDominoClack', 0.7) }),
   E70: Object.freeze({ telegraph: cue('gagChoirLa', 0.75, 0.4), attack: cue('gagBlinkPop', 1.0), death: cue('gagBlinkPop', 0.6) }),
+
+  // ── 블록 좀비 18종(E71~E88, 2026-11-14): 새 음원 없이 기존 개그 21종을 종마다 다른 (id, 피치)로 건다 ──
+  // 근접형은 예고 '뾰잉'(gagWindup)을 함께 낸다. 사망 개그는 발성 랜덤 풀 위에 얹는 한 겹(2026-08-22 규칙 그대로).
+  E71: Object.freeze({ telegraph: cue('gagSwoosh', 1.6, 0.36), attack: cue('gagBlinkPop', 1.25), death: cue('gagBlinkPop', 0.8) }),
+  E72: Object.freeze({ attack: cue('gagMegaphone', 1.2, 0.4), death: cue('gagMegaphone', 0.8) }),
+  E73: Object.freeze({ attack: cue('gagToss', 1.15), death: cue('gagPropClatter', 0.75) }),
+  E74: Object.freeze({ attack: Object.freeze({ ...cue('gagBlinkPop', 1.5, 0.4, 90), rates: Object.freeze([1.4, 1.5, 1.6]) }), death: cue('gagPropClatter', 1.4) }),
+  E75: Object.freeze({ attack: cue('gagTrayClatter', 1.3, 0.45), death: cue('gagTrayClatter', 1.1) }),
+  E76: Object.freeze({ telegraph: cue('gagWindup', 0.6, 0.4), attack: cue('gagSwoosh', 0.5, 0.48), death: cue('gagWahWah', 0.6, 0.38) }),
+  E77: Object.freeze({ telegraph: cue('gagWindup', 1.5, 0.32), attack: cue('gagSneakerSqueak', 1.5, 0.4), death: cue('gagPropClatter', 1.05) }),
+  E78: Object.freeze({ attack: cue('gagBuffSparkle', 0.85, 0.4), death: cue('gagBuffSparkle', 0.5) }),
+  E79: Object.freeze({ attack: cue('gagCardFlick', 1.2, 0.42, 90), death: cue('gagCardFlick', 0.9) }),
+  E80: Object.freeze({ attack: cue('gagSwoosh', 1.45, 0.42), death: cue('gagChoirLa', 0.8) }),
+  E81: Object.freeze({ attack: Object.freeze({ ...cue('gagBlinkPop', 1.35, 0.4, 90), rates: Object.freeze([1.2, 1.35, 1.5]) }), death: cue('gagDominoClack', 1.0) }),
+  E82: Object.freeze({ telegraph: cue('gagWindup', 0.65, 0.34), attack: cue('gagBallThwack', 0.9, 0.48), death: cue('gagWahWah', 0.52, 0.38) }),
+  E83: Object.freeze({ telegraph: cue('gagWindup', 1.35, 0.32), attack: cue('gagSneakerSqueak', 1.05, 0.4), death: cue('gagWahWah', 1.4, 0.36) }),
+  E84: Object.freeze({ attack: cue('gagBuffSparkle', 1.3, 0.4), death: cue('gagPotionBlorp', 0.9) }),
+  E85: Object.freeze({ telegraph: cue('gagWindup', 1.15, 0.32), attack: cue('gagBallThwack', 1.25, 0.45), death: cue('gagTrayClatter', 0.9) }),
+  E86: Object.freeze({ attack: cue('gagDominoClack', 0.85, 0.42), death: cue('gagCardFlick', 1.15) }),
+  E87: Object.freeze({ telegraph: cue('gagWindup', 1.25, 0.32), attack: cue('gagSneakerSqueak', 0.95, 0.4), death: cue('gagSneakerSqueak', 0.8) }),
+  E88: Object.freeze({ telegraph: cue('gagWindup', 1.45, 0.32), attack: cue('gagSwoosh', 1.25, 0.42), death: cue('gagSneakerSqueak', 1.15) }),
 })
 
 // 투사체 좀비 탄의 착지·폭발 순간(projectileZombieShotPool._blast). 도미노는 0.16초 간격 연쇄라 간격을 짧게.

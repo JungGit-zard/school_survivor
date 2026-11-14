@@ -26,10 +26,12 @@ import {
   projectileZombieIndex,
 } from './projectileZombieVisuals.js'
 import { SHOT_KIND, SHOT_MOTION, createShotSpec } from './projectileZombieShotPool.js'
+import { BLOCKY_ZOMBIE_LAST_TYPE_CODE, blockyZombieTelegraphMs, isBlockyZombieTypeCode } from './blockyZombieRoster.js'
 
 export const PZ_STATE = PROJECTILE_ZOMBIE_STATE
 export const PZ_TYPE_MIN = PROJECTILE_ZOMBIE_FIRST_TYPE_CODE
-export const PZ_TYPE_MAX = PROJECTILE_ZOMBIE_LAST_TYPE_CODE
+// 2026-11-14 블록 좀비 18종(E71~E88 = 76~93, lib/blockyZombieRoster.js)도 이 공용 경로를 탄다. 75(B10)는 행동표에 없어 제외된다.
+export const PZ_TYPE_MAX = Math.max(PROJECTILE_ZOMBIE_LAST_TYPE_CODE, BLOCKY_ZOMBIE_LAST_TYPE_CODE)
 export const PZ_MIN_LOCK_TO_FIRE_MS = 500
 export const PZ_SCREEN_INSET = 0.5
 export const PZ_SHOT_CAP = 14
@@ -71,6 +73,27 @@ export const PROJECTILE_ZOMBIE_STATS = Object.freeze({
   E68: Object.freeze({ hp: 10, speed: 0.56, damage: 6,  scale: 1.00, xp: 5,  contactDist: 0.26, projectileZombie: true }),
   E69: Object.freeze({ hp: 16, speed: 0.58, damage: 6,  scale: 1.00, xp: 8,  contactDist: 0.26, projectileZombie: true }),
   E70: Object.freeze({ hp: 10, speed: 0.60, damage: 6,  scale: 0.95, xp: 5,  contactDist: 0.24, projectileZombie: true }),
+  // 블록 좀비 18종(2026-11-14, typeCode 76~93, Kenney Blocky Characters CC0). hp/xp = 버스트 표에서 자리를 넘겨준 host와 같다.
+  //   hp 8 ← E01 · hp 10 ← E03 · hp 16 ← E07 · hp 32 ← E04(E73 해적, 스6) · hp 70 ← E05(E76 오크 하나뿐 — 고체력 종을 더 쌓지 않는다).
+  //   빠른 종(E71·E77·E87·E88)은 대신 체력이 낮다.
+  E71: Object.freeze({ hp: 8,  speed: 0.68, damage: 6,  scale: 0.95, xp: 4,  contactDist: 0.24, projectileZombie: true }),
+  E72: Object.freeze({ hp: 16, speed: 0.58, damage: 6,  scale: 1.00, xp: 8,  contactDist: 0.26, projectileZombie: true }),
+  E73: Object.freeze({ hp: 32, speed: 0.54, damage: 7,  scale: 1.05, xp: 10, contactDist: 0.28, projectileZombie: true }),
+  E74: Object.freeze({ hp: 8,  speed: 0.58, damage: 5,  scale: 0.95, xp: 4,  contactDist: 0.24, projectileZombie: true }),
+  E75: Object.freeze({ hp: 16, speed: 0.60, damage: 6,  scale: 1.00, xp: 8,  contactDist: 0.26, projectileZombie: true }),
+  E76: Object.freeze({ hp: 70, speed: 0.50, damage: 10, scale: 1.20, xp: 15, contactDist: 0.32, projectileZombie: true }),
+  E77: Object.freeze({ hp: 8,  speed: 0.85, damage: 5,  scale: 0.92, xp: 4,  contactDist: 0.24, projectileZombie: true }),
+  E78: Object.freeze({ hp: 8,  speed: 0.40, damage: 4,  scale: 0.95, xp: 4,  contactDist: 0.24, projectileZombie: true }),
+  E79: Object.freeze({ hp: 8,  speed: 0.56, damage: 5,  scale: 1.00, xp: 4,  contactDist: 0.26, projectileZombie: true }),
+  E80: Object.freeze({ hp: 10, speed: 0.58, damage: 5,  scale: 0.95, xp: 5,  contactDist: 0.24, projectileZombie: true }),
+  E81: Object.freeze({ hp: 8,  speed: 0.56, damage: 5,  scale: 0.95, xp: 4,  contactDist: 0.24, projectileZombie: true }),
+  E82: Object.freeze({ hp: 16, speed: 0.55, damage: 8,  scale: 1.10, xp: 8,  contactDist: 0.30, projectileZombie: true }),
+  E83: Object.freeze({ hp: 10, speed: 0.62, damage: 6,  scale: 1.00, xp: 5,  contactDist: 0.26, projectileZombie: true }),
+  E84: Object.freeze({ hp: 8,  speed: 0.48, damage: 4,  scale: 0.95, xp: 4,  contactDist: 0.24, projectileZombie: true }),
+  E85: Object.freeze({ hp: 8,  speed: 0.58, damage: 7,  scale: 1.00, xp: 4,  contactDist: 0.26, projectileZombie: true }),
+  E86: Object.freeze({ hp: 8,  speed: 0.46, damage: 4,  scale: 1.00, xp: 4,  contactDist: 0.26, projectileZombie: true }),
+  E87: Object.freeze({ hp: 8,  speed: 0.62, damage: 6,  scale: 0.95, xp: 4,  contactDist: 0.24, projectileZombie: true }),
+  E88: Object.freeze({ hp: 10, speed: 0.80, damage: 5,  scale: 0.92, xp: 5,  contactDist: 0.24, projectileZombie: true }),
 })
 
 // ── 행동표 ───────────────────────────────────────────────────────────────────
@@ -279,6 +302,107 @@ export const PROJECTILE_ZOMBIE_BEHAVIORS = Object.freeze({
     blink: Object.freeze({ fuseMs: 400, radius: 0.75 }),
     telegraphDecal: 'ring', decalSize: 0.75, cooldownMs: 5600, recoverMs: 600,
     shot: shot({ kind: SHOT_KIND.TAG_MARK, motion: SHOT_MOTION.FUSE, speed: 0, damage: 6, lifeMs: 1200, hitRadius: 0.1 }) }),
+
+  // ── 블록 좀비 18종(2026-11-14, typeCode 76~93, lib/blockyZombieRoster.js). ─────────────────────────
+  // Terry "난이도보다 구현이 우선". 새 행동 체계를 만들지 않고 위 원형(돌진·순간이동·부채꼴·연발·포물선·회복·방패)을
+  // 다른 수치로 다시 쓴다. 근접형은 move 'chase'(늘 다가온다) + 짧은 몸 돌진(0.35~0.7초)이라 돌진 한 번에 접촉 쿨다운
+  // (500ms) 안쪽으로 한 번만 닿는다. 스1에 들어가는 셋(E77·E78·E82)은 탄이 없다(스1 원거리 금지).
+  // E71 학예회 닌자: E70 술래 문법. 예고 시작 때 플레이어 자리에 원(0.7u)을 찍고 0.9초 웅크렸다가 그 자리로 순간이동,
+  //   0.45초 뒤 수리검 터치(피해 6). 원이 보이는 1.35초 안에 원 밖으로 나가면 된다.
+  76: Object.freeze({ ...base, id: 'E71', name: '학예회 닌자',
+    prefDist: 4.0, minDist: 2.0, fireRange: 5.0, minFireDist: 1.5, target: 'player', volley: 'blink', count: 1,
+    blink: Object.freeze({ fuseMs: 450, radius: 0.7 }),
+    telegraphDecal: 'ring', decalSize: 0.7, cooldownMs: 6000, recoverMs: 600,
+    shot: shot({ kind: SHOT_KIND.TAG_MARK, motion: SHOT_MOTION.FUSE, speed: 0, damage: 6, lifeMs: 1200, hitRadius: 0.1 }) }),
+  // E72 교통지도: E54 확성기 문법을 줄였다. 0.7초 호루라기 예고 뒤 ±20° 부채꼴 음파 3발(사거리 5.4u).
+  77: Object.freeze({ ...base, id: 'E72', name: '교통지도',
+    prefDist: 4.5, minDist: 2.2, fireRange: 5.5, volley: 'spread', count: 3, spreadDeg: 20,
+    telegraphDecal: 'line', decalSize: 3.5, cooldownMs: 4400, recoverMs: 600,
+    shot: shot({ kind: SHOT_KIND.SOUND_WAVE, motion: SHOT_MOTION.STRAIGHT, speed: 1.8, damage: 4, lifeMs: 3000, hitRadius: 0.13 }) }),
+  // E73 해적 분장: E50 배구 문법. 예고 시작 때 플레이어 자리로 "대포알" 공을 포물선으로 던진다(착지점 원 0.8u, 1초 비행, 피해 5, 튀지 않음).
+  78: Object.freeze({ ...base, id: 'E73', name: '해적 분장',
+    prefDist: 4.5, minDist: 2.5, fireRange: 6.0, target: 'player', telegraphDecal: 'ring', decalSize: 0.8,
+    cooldownMs: 5000, recoverMs: 500,
+    shot: shot({ kind: SHOT_KIND.VOLLEYBALL, motion: SHOT_MOTION.LOB, speed: 1, damage: 5, lifeMs: 3500, hitRadius: 0,
+      p2: 1000, p3: 0.8, p4: 0, bounces: 0 }) }),
+  // E74 로봇부 번개: E57 연발 문법. 조준선 뒤 0.22초 간격 직선탄 3발(피해 3). 옆으로 한 걸음이면 전부 빈다.
+  79: Object.freeze({ ...base, id: 'E74', name: '로봇부 번개',
+    prefDist: 4.5, minDist: 2.5, fireRange: 5.5, volley: 'salvo', count: 3, intervalMs: 220,
+    telegraphDecal: 'line', decalSize: 4.5, cooldownMs: 4400, recoverMs: 500,
+    shot: shot({ kind: SHOT_KIND.BASEBALL, motion: SHOT_MOTION.STRAIGHT, speed: 3.2, damage: 3, lifeMs: 1800, hitRadius: 0.09 }) }),
+  // E75 로봇부 하트: E62 셔틀런 문법. 0.7초 웅크린 뒤 4.2u/s로 0.6초 달리고 같은 선으로 되돌아온다(닿으면 7).
+  //   2.4u 밖에서만 출발한다(E62와 같은 이유 — 한 번 돌진에 두 번 맞지 않게). 사거리는 E62처럼 머무는 거리(3.0)보다 길다.
+  80: Object.freeze({ ...base, id: 'E75', name: '로봇부 하트',
+    prefDist: 3.0, minDist: 1.8, fireRange: 3.2, minFireDist: 2.4,
+    volley: 'charge', chargeSpeed: 4.2, chargeMs: 600, chargeLegs: 2, chargeDamage: 7,
+    telegraphDecal: 'line', decalSize: 2.6, cooldownMs: 4400, recoverMs: 700, shot: null }),
+  // E76 연극부 오크: E05 돌진의 오크판. 늘 다가오다 3.8u 안에서 0.8초 웅크린 뒤 4.6u/s로 0.7초 돌진(닿으면 11), 1초 숨을 고른다(취약).
+  //   유일한 hp 70 종이다(고체력 종을 더 쌓지 않는다).
+  81: Object.freeze({ ...base, id: 'E76', name: '연극부 오크',
+    move: 'chase', fireRange: 3.8, minFireDist: 1.6,
+    volley: 'charge', chargeSpeed: 4.6, chargeMs: 700, chargeLegs: 1, chargeDamage: 11,
+    telegraphDecal: 'line', decalSize: 3.2, cooldownMs: 4400, recoverMs: 1000, shot: null }),
+  // E77 충돌실험 인형: 빠르게 쫓아오다 2.8u 안에서 0.5초 뒤 4.8u/s로 0.45초 들이받고, 1.4초 옆으로 굴러 넘어져 있다(취약).
+  82: Object.freeze({ ...base, id: 'E77', name: '충돌실험 인형',
+    move: 'chase', fireRange: 2.8, minFireDist: 1.0,
+    volley: 'charge', chargeSpeed: 4.8, chargeMs: 450, chargeLegs: 1, chargeDamage: 6,
+    telegraphDecal: 'line', decalSize: 2.2, cooldownMs: 3600, recoverMs: 1400, shot: null }),
+  // E78 텃밭 할아버지: E67 방패 문법의 느린 지원형. 무리 뒤에 머물다 주변(2.4u) 아군 최대 3기에게 추가 체력 +4(평생 16).
+  83: Object.freeze({ ...base, id: 'E78', name: '텃밭 할아버지',
+    move: 'support', prefDist: 5.0, minDist: 3.5, fireRange: 9.0, minFireDist: 0, volley: 'shield',
+    shield: Object.freeze({ radius: 2.4, armor: 4, maxTargets: 3, lifeBudget: 16 }),
+    telegraphDecal: 'self', decalSize: 2.4, cooldownMs: 6000, recoverMs: 600, shot: null }),
+  // E79 학부모회장: 명함 2장을 0.2초 간격으로 같은 선에 날린다(피해 4).
+  84: Object.freeze({ ...base, id: 'E79', name: '학부모회장',
+    prefDist: 4.2, minDist: 2.2, fireRange: 5.5, volley: 'salvo', count: 2, intervalMs: 200,
+    telegraphDecal: 'line', decalSize: 5.0, cooldownMs: 4000, recoverMs: 500,
+    shot: shot({ kind: SHOT_KIND.ATTENDANCE_CARD, motion: SHOT_MOTION.STRAIGHT, speed: 3.2, damage: 4, lifeMs: 1800, hitRadius: 0.10 }) }),
+  // E80 축제 부채: 부채를 휘둘러 ±25° 부채꼴 종이 바람 3장(피해 4, 사거리 4.8u).
+  85: Object.freeze({ ...base, id: 'E80', name: '축제 부채',
+    prefDist: 4.0, minDist: 2.2, fireRange: 5.0, volley: 'spread', count: 3, spreadDeg: 25,
+    telegraphDecal: 'line', decalSize: 3.0, cooldownMs: 4200, recoverMs: 600,
+    shot: shot({ kind: SHOT_KIND.EXAM_PAPER, motion: SHOT_MOTION.STRAIGHT, speed: 2.2, damage: 4, lifeMs: 2200, hitRadius: 0.11 }) }),
+  // E81 PC방 게이머: 3점사. 0.7초 조준 뒤 0.12초 간격 직선탄 3발(피해 3). 2u 밖에서만 쏜다.
+  86: Object.freeze({ ...base, id: 'E81', name: 'PC방 게이머',
+    prefDist: 4.8, minDist: 2.8, fireRange: 6.0, minFireDist: 2.0, volley: 'salvo', count: 3, intervalMs: 120,
+    telegraphDecal: 'line', decalSize: 5.5, cooldownMs: 4600, recoverMs: 500,
+    shot: shot({ kind: SHOT_KIND.ERASER, motion: SHOT_MOTION.STRAIGHT, speed: 3.0, damage: 3, lifeMs: 1900, hitRadius: 0.10 }) }),
+  // E82 씨름부: 늘 다가오다 2.2u 안에서 0.6초 두 팔을 들었다가 3.6u/s로 0.4초 몸통 박치기(닿으면 9).
+  87: Object.freeze({ ...base, id: 'E82', name: '씨름부',
+    move: 'chase', fireRange: 2.2, minFireDist: 0.6,
+    volley: 'charge', chargeSpeed: 3.6, chargeMs: 400, chargeLegs: 1, chargeDamage: 9,
+    telegraphDecal: 'line', decalSize: 1.6, cooldownMs: 3400, recoverMs: 800, shot: null }),
+  // E83 응원단장: 늘 다가오다 2u 안에서 0.5초 다리를 뒤로 뺐다가 4u/s로 0.35초 날아차기(닿으면 7).
+  88: Object.freeze({ ...base, id: 'E83', name: '응원단장',
+    move: 'chase', fireRange: 2.0, minFireDist: 0.5,
+    volley: 'charge', chargeSpeed: 4.0, chargeMs: 350, chargeLegs: 1, chargeDamage: 7,
+    telegraphDecal: 'line', decalSize: 1.5, cooldownMs: 3000, recoverMs: 600, shot: null }),
+  // E84 영양사: E56 보건실 문법. 무리 뒤에 머물다 다친 아군(2.4u)을 최대 체력의 20%(최대 5) 회복, 평생 30.
+  89: Object.freeze({ ...base, id: 'E84', name: '영양사',
+    move: 'support', prefDist: 5.0, minDist: 3.5, fireRange: 9.0, minFireDist: 0, volley: 'heal',
+    telegraphDecal: 'self', decalSize: 2.4, cooldownMs: 5000, recoverMs: 500,
+    heal: Object.freeze({ radius: 2.4, ratio: 0.2, maxPerTarget: 5, lifeBudget: 30 }),
+    shot: null }),
+  // E85 매점 아저씨: 늘 다가오다 2.1u 안에서 0.55초 주먹을 당겼다가 3.8u/s로 0.38초 내지른다(닿으면 8).
+  90: Object.freeze({ ...base, id: 'E85', name: '매점 아저씨',
+    move: 'chase', fireRange: 2.1, minFireDist: 0.5,
+    volley: 'charge', chargeSpeed: 3.8, chargeMs: 380, chargeLegs: 1, chargeDamage: 8,
+    telegraphDecal: 'line', decalSize: 1.6, cooldownMs: 3200, recoverMs: 700, shot: null }),
+  // E86 장학사: 도장 방패. 주변(2.8u) 아군 최대 4기에게 추가 체력 +3(평생 18).
+  91: Object.freeze({ ...base, id: 'E86', name: '장학사',
+    move: 'support', prefDist: 4.8, minDist: 3.2, fireRange: 9.0, minFireDist: 0, volley: 'shield',
+    shield: Object.freeze({ radius: 2.8, armor: 3, maxTargets: 4, lifeBudget: 18 }),
+    telegraphDecal: 'self', decalSize: 2.8, cooldownMs: 5600, recoverMs: 500, shot: null }),
+  // E87 오리엔티어링부: E53 문법의 빠른 접근(화면 안 1.6u/s 대시)으로 1.6u까지 붙어 4.4u/s로 0.38초 찌르고(닿으면 7) 뒤로 빠진다.
+  92: Object.freeze({ ...base, id: 'E87', name: '오리엔티어링부',
+    move: 'dash', prefDist: 1.6, minDist: 0.6, fireRange: 2.4, minFireDist: 0.8,
+    volley: 'charge', chargeSpeed: 4.4, chargeMs: 380, chargeLegs: 1, chargeDamage: 7,
+    telegraphDecal: 'line', decalSize: 1.7, cooldownMs: 3400, recoverMs: 900, recoverMove: 'retreat', shot: null }),
+  // E88 육상부: 빠르게 쫓아오다 2.6u 안에서 0.5초 출발 자세 뒤 5u/s로 0.3초 스타트 대시(닿으면 6). 1.2u 밖에서만 출발한다.
+  93: Object.freeze({ ...base, id: 'E88', name: '육상부',
+    move: 'chase', fireRange: 2.6, minFireDist: 1.2,
+    volley: 'charge', chargeSpeed: 5.0, chargeMs: 300, chargeLegs: 1, chargeDamage: 6,
+    telegraphDecal: 'line', decalSize: 1.5, cooldownMs: 3600, recoverMs: 800, shot: null }),
 })
 
 export function isProjectileZombieType(typeCode) {
@@ -290,6 +414,7 @@ export function projectileZombieBehavior(typeCode) {
 }
 
 export function projectileZombieTelegraphMs(typeCode) {
+  if (isBlockyZombieTypeCode(typeCode)) return blockyZombieTelegraphMs(typeCode)
   const id = PROJECTILE_ZOMBIE_TYPES[projectileZombieIndex(typeCode) - 1]
   return PROJECTILE_ZOMBIE_VISUALS[id]?.telegraphMs ?? 500
 }
@@ -315,10 +440,11 @@ export function ambushSinkDepth(visualScale) {
 // ── 회복(E56) ────────────────────────────────────────────────────────────────
 // 회복하지 않는 타입: 0, E06(6), 크루(7/8/13/14), 보스(9~12, 32~36), 코인(16), 확장(17~31), 보건실 자신(59),
 // 예약 64, 학생회 방패(71). 2차 10종(65~74)은 나머지 전부 회복·방패 대상이다.
+// 블록 좀비(76~93)도 대상이다. 단 지원형 셋(83 텃밭 할아버지·89 영양사·91 장학사)은 서로를 키우지 않게 뺀다. 75(B10)는 보스다.
 export function isHealableTypeCode(typeCode) {
-  if (typeCode === 59 || typeCode === 71) return false
+  if (typeCode === 59 || typeCode === 71 || typeCode === 83 || typeCode === 89 || typeCode === 91) return false
   return typeCode === 1 || typeCode === 2 || typeCode === 3 || typeCode === 4 || typeCode === 5 || typeCode === 15
-    || (typeCode >= 37 && typeCode <= 63) || (typeCode >= 65 && typeCode <= 74)
+    || (typeCode >= 37 && typeCode <= 63) || (typeCode >= 65 && typeCode <= 74) || isBlockyZombieTypeCode(typeCode)
 }
 
 const healBudget = new Float32Array(256)

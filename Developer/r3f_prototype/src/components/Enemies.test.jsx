@@ -438,7 +438,9 @@ describe('boss runtime spawn routes', () => {
     expect(stage2).toContainEqual({ sec: 60, type: 'E07', count: 4 })
     // 2026-10-25 Track B: 108초 E07×6 중 3마리를 신규 E39(선끝접기형)가 대체한다.
     // hp(E39)=hp(E07)=16이라 이 슬롯의 총 HP·마릿수는 그대로다.
-    expect(stage2).toContainEqual({ sec: 108, type: 'E07', count: 2 })
+    // 2026-11-14 블록 좀비: 108초 E07 1기 → E72(교통지도, hp 16).
+    expect(stage2).toContainEqual({ sec: 108, type: 'E07', count: 1 })
+    expect(stage2).toContainEqual({ sec: 108, type: 'E72', count: 1 })
     expect(stage2).toContainEqual({ sec: 108, type: 'E39', count: 3 })
     expect(isPooledEnemyType('E07')).toBe(true)
     expect(ENEMY_STATS.E07).toBeDefined()
@@ -512,7 +514,8 @@ describe('stage 2 mixed timed reinforcements', () => {
       .filter((event) => event.reinforcement === STAGE2_MIXED_REINFORCEMENT)
     expect(reinforcements.map((event) => event.sec)).toEqual([150, 216])
     // 2026-11-04 분산 재배치: 8 → 5, 10 → 6. 덜어 낸 7마리는 같은 hp 8의 E37/E34 단발 행으로 옮겼다.
-    expect(reinforcements.map((event) => event.count)).toEqual([5, 6])
+    // 2026-11-14 블록 좀비: 150초 5 → 4(1마리는 E81 PC방 게이머 단발 행, hp 8).
+    expect(reinforcements.map((event) => event.count)).toEqual([4, 6])
 
     for (const event of reinforcements) {
       expect(event.mixedTypes.length).toBeGreaterThan(1)
@@ -777,7 +780,9 @@ describe('late zombie spawn relief', () => {
 
   it('reduces burst zombie counts after 90 seconds without removing boss events', () => {
     // 2026-11-04 분산 재배치: 108초 혼합 E01×6 중 3마리를 E36(같은 hp 8) 첫 등장으로 옮겼다.
-    expect(getBurstEventsForStage('stage1').find((event) => event.sec === 108 && event.type === 'E01').count).toBe(3)
+    // 2026-11-14 블록 좀비: 108초 혼합 E01×3 중 1마리를 E77(충돌실험 인형, hp 8) 첫 등장으로 옮겼다.
+    expect(getBurstEventsForStage('stage1').find((event) => event.sec === 108 && event.type === 'E01').count).toBe(2)
+    expect(getBurstEventsForStage('stage1').find((event) => event.sec === 108 && event.type === 'E77').count).toBe(1)
     expect(getBurstEventsForStage('stage1').find((event) => event.sec === 108 && event.type === 'E36').count).toBe(3)
     // 2026-11-04 투사체 좀비: 216초 E05×3 중 1마리를 E56(보건실 복습, hp 70)이 대체한다.
     expect(getBurstEventsForStage('stage1').find((event) => event.sec === 216 && event.type === 'E05').count).toBe(2)
@@ -1055,6 +1060,8 @@ describe('all zombie HP follows the cumulative 1.2x-per-stage curve', () => {
       'E46', 'E47', 'E48', 'E49', 'E50', 'E51', 'E52', 'E53', 'E54', 'E55', 'E56', 'E57', 'E58', 'E59', 'E60',
       // 2차 10종(2026-11-07, typeCode 65~74).
       'E61', 'E62', 'E63', 'E64', 'E65', 'E66', 'E67', 'E68', 'E69', 'E70',
+      // 블록 좀비 18종(2026-11-14, typeCode 76~93)도 같은 곡선을 타는 잡몹이다.
+      'E71', 'E72', 'E73', 'E74', 'E75', 'E76', 'E77', 'E78', 'E79', 'E80', 'E81', 'E82', 'E83', 'E84', 'E85', 'E86', 'E87', 'E88',
       // Stage 5 보스 B10 교감 좀비(2026-11-08). B01~B04처럼 같은 누적 곡선을 탄다(stage5 실효 3,241).
       'B10',
     ])

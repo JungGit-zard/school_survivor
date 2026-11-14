@@ -124,7 +124,7 @@ export const STAGE1_40SEC_GREEN_SMILING_REINFORCEMENT_EVENTS = [
 // 이제 목적은 "후반 템포 유지"뿐이므로 경량대(E01 8hp·E03 10hp)만 남긴다.
 export const STAGE2_MIXED_REINFORCEMENT_EVENTS = [
   // 2026-11-04: 8 → 5, 10 → 6. 덜어 낸 7마리는 STAGE2_BURST_EVENTS의 E37/E34(hp 8) 행으로 옮겼다.
-  { sec: 150, type: 'E01', count:  5, mixedTypes: LIGHT_MOB_MIX, reinforcement: STAGE2_MIXED_REINFORCEMENT },
+  { sec: 150, type: 'E01', count:  4, mixedTypes: LIGHT_MOB_MIX, reinforcement: STAGE2_MIXED_REINFORCEMENT },  // 2026-11-14 블록 좀비: 5 → 4, 한 마리는 STAGE2_BURST_EVENTS의 E81 행
   { sec: 216, type: 'E01', count:  6, mixedTypes: LIGHT_MOB_MIX, reinforcement: STAGE2_MIXED_REINFORCEMENT },
 ]
 
@@ -141,13 +141,15 @@ export const BURST_EVENTS = [
   // 24초에 배운 E34를 다시 보여주는 복습 슬롯으로 바꾸고, E36 첫 등장은 108초로 옮겼다. hp 8 = E01.
   { sec:  60, type: 'E34', count:  3 },  // 박자접기형 복습
   // 2026-11-07 2차 10종: 스1은 원거리 금지라 탄이 없는 두 종만 넣는다(E66 분열·E62 몸 돌진). 같은 hp 맞교환.
-  { sec:  60, type: 'E07', count:  5 },  // 60초 웃는좀비 추가 고정 스폰
+  { sec:  60, type: 'E07', count:  4 },  // 60초 웃는좀비 추가 고정 스폰
+  { sec:  60, type: 'E82', count:  1 },  // 2026-11-14 블록 좀비 씨름부 첫 등장(짧은 몸통 박치기, 탄 없음). hp 16 = E07 (E07 5 → 4 + 1)
   { sec:  60, type: 'E66', count:  1 },  // 플라나리아 첫 등장(반피에 둘로 갈라짐, 탄 없음). hp 16 = E07
   { sec:  60, type: 'E02', count:  2 },  // 탱커 첫 등장 신호 — 60초 총 2마리로 조정
   // 러너 슬롯(E03×2, hp 10)을 모서리비껴형으로 전량 교체한다. hp(E35)=10이라 총 HP 불변.
   // Stage 1에 원거리는 여전히 0이다 — E35는 선회 접촉만 한다.
   { sec:  72, type: 'E35', count:  2 },  // 모서리비껴형 첫 등장 (옛 E03×2 자리)
-  { sec: 108, type: 'E01', count:  3, mixedTypes: LIGHT_MOB_MIX },  // 90–108초 완화 구간 이후 잡몹 러시 — 경량대 랜덤 구성
+  { sec: 108, type: 'E01', count:  2, mixedTypes: LIGHT_MOB_MIX },  // 90–108초 완화 구간 이후 잡몹 러시 — 경량대 랜덤 구성
+  { sec: 108, type: 'E77', count:  1 },  // 2026-11-14 블록 좀비 충돌실험 인형 첫 등장(빠른 돌진 뒤 넘어짐, 탄 없음). hp 8 = E01 (3 → 2 + 1)
   { sec: 108, type: 'E36', count:  3 },  // 반걸음되짚기형 첫 등장(2026-11-04: 60초 → 108초, 단독 도입). hp 8 = E01
   { sec: 108, type: 'E02', count:  3 },
   ...ALL_STAGES_110SEC_SMILING_TANKER_REINFORCEMENT_EVENTS,
@@ -160,7 +162,8 @@ export const BURST_EVENTS = [
   { sec: 144, type: 'E56', count:  1 },  // 보건실 첫 등장(공격 없음, 다친 아군 회복). hp 70 = E05
   ...STAGE1_150SEC_SMILING_GREEN_REINFORCEMENT_EVENTS,
   { sec: 168, type: 'E06', count:  1 },  // 거대 첫 등장
-  { sec: 184, type: 'E01', count:  2, mixedTypes: LIGHT_MOB_MIX },  // 마지막 러시 — 경량대 랜덤 구성
+  { sec: 184, type: 'E01', count:  1, mixedTypes: LIGHT_MOB_MIX },  // 마지막 러시 — 경량대 랜덤 구성
+  { sec: 184, type: 'E78', count:  1 },  // 2026-11-14 블록 좀비 텃밭 할아버지 첫 등장(아군 방패, 공격 없음). hp 8 = E01 (2 → 1 + 1)
   { sec: 184, type: 'E34', count:  2 },  // 2026-11-04: 후반 조합 — 스1에서 배운 근접 패턴 둘을 함께 다시 보여준다
   { sec: 184, type: 'E36', count:  2 },  //   (E34 사선 밀기 + E36 되짚기). 둘 다 hp 8 = E01
   { sec: 184, type: 'E02', count:  2 },
@@ -182,7 +185,8 @@ export const BURST_EVENTS = [
 export const STAGE2_BURST_EVENTS = [
   { sec:   5, type: 'E01', count:  7 },                       // 오프닝 밀도 — 5마리를 E37로 교체
   { sec:   5, type: 'E37', count:  5 },                       // 빗금엇갈림형(복도 축 교차). hp 8 = E01
-  { sec:  24, type: 'E03', count:  3 },                       // 러너 첫 등장 — 이동 압박 시작
+  { sec:  24, type: 'E03', count:  2 },                       // 러너 첫 등장 — 이동 압박 시작
+  { sec:  24, type: 'E83', count:  1 },                       // 2026-11-14 블록 좀비 응원단장 첫 등장(날아차기). hp 10 = E03 (3 → 2 + 1)
   { sec:  24, type: 'E38', count:  3 },                       // 빈칸반응형(플레이어 이동 읽기). hp 10 = E03
   // 2026-11-04 투사체 좀비 배치: 첫 등장 60(E47)·144(E51)·184(E46) — 기존 신규 종 첫 등장(5·24·108)과 30초 이상.
   // 60·108·120·216은 같은 행 맞교환, 144·184 새 행은 같은 분(150초 E37, 216초 E34)에서 한 마리씩 옮겼다.
@@ -190,7 +194,8 @@ export const STAGE2_BURST_EVENTS = [
   { sec:  60, type: 'E47', count:  1 },                       // 종이비행기 첫 등장(느린 약유도 탄). hp 16 = E07
   { sec:  72, type: 'E04', count:  1 },                       // 원거리 첫 등장 — 발사 게이트(e04IntroSec 72)와 동시
   { sec:  72, type: 'E63', count:  1 },                       // 2026-11-07 마이크줄 첫 등장(맞으면 끌려감). hp 32 = E04
-  { sec: 108, type: 'E07', count:  2 },                       // 웃는좀비 러시 — 절반을 E39로 교체
+  { sec: 108, type: 'E07', count:  1 },                       // 웃는좀비 러시 — 절반을 E39로 교체
+  { sec: 108, type: 'E72', count:  1 },                       // 2026-11-14 블록 좀비 교통지도 첫 등장(호루라기 음파 3발). hp 16 = E07 (2 → 1 + 1)
   { sec: 108, type: 'E47', count:  1 },                       // 종이비행기 복습. hp 16 = E07
   { sec: 108, type: 'E39', count:  3 },                       // 선끝접기형(열린 쪽 신호). hp 16 = E07
   { sec: 120, type: 'E05', count:  1 },                       // 차저 첫 등장 (보스 등장과 동시각)
@@ -206,6 +211,7 @@ export const STAGE2_BURST_EVENTS = [
   // 2026-11-04 분산 재배치: 108초 이후 신규 패턴이 전혀 없던 후반부에 패턴 복습을 넣는다.
   // 경량 혼합 보강(STAGE2_MIXED_REINFORCEMENT_EVENTS)의 E01 몫을 덜어 같은 hp 8 타입으로 바꾼 것이다.
   { sec: 150, type: 'E37', count:  2 },                       // 빗금엇갈림형 복습(보스전 아래 경량)
+  { sec: 150, type: 'E81', count:  1 },                       // 2026-11-14 블록 좀비 PC방 게이머 첫 등장(3점사). hp 8 — 150초 혼합 보강 E01에서 옮김
   { sec: 216, type: 'E37', count:  1 },                       // 탈출 스프린트 조합 — 빗금엇갈림형
   { sec: 216, type: 'E51', count:  1 },                       //   + 합창지휘 복습
   { sec: 216, type: 'E34', count:  1 },                       //   + 스1 박자접기형 (전부 hp 8 = E01)
@@ -250,11 +256,14 @@ export const STAGE2_BURST_EVENTS = [
 export const STAGE3_BURST_EVENTS = [
   ...STAGE3_25_SECOND_GREEN_SMILING_REINFORCEMENT_EVENTS,
   ...STAGE3_BOSS_PHASE_GREEN_SMILING_REINFORCEMENT_EVENTS,
-  { sec:   5, type: 'E01', count:  6 },                         // 온보딩 초기 밀도
+  { sec:   5, type: 'E01', count:  4 },                         // 온보딩 초기 밀도
+  { sec:   5, type: 'E85', count:  1 },                         // 2026-11-14 블록 좀비 매점 아저씨 첫 등장(주먹 내지르기). hp 8 = E01 (6 → 4 + 1 + 1)
+  { sec:   5, type: 'E74', count:  1 },                         // 2026-11-14 블록 좀비 로봇부 번개 첫 등장(직선 3연발). hp 8 = E01
   { sec:   5, type: 'E64', count:  1 },                         // 2026-11-07 분필가루 첫 등장(머물면 아픈 가루 구름). hp 8 = E01
   { sec:   5, type: 'E37', count:  2 },                         // 2026-11-04: 스2 빗금엇갈림형 복습(오프닝 3마리 교체). hp 8 = E01
   { sec:   5, type: 'E46', count:  1 },                         // 스2 지우개튕김 복습. hp 8 = E01
-  { sec:  24, type: 'E03', count:  2 },                         // 러너 조기 압박 — 절반을 E41로 교체
+  { sec:  24, type: 'E03', count:  1 },                         // 러너 조기 압박 — 절반을 E41로 교체
+  { sec:  24, type: 'E80', count:  1 },                         // 2026-11-14 블록 좀비 축제 부채 첫 등장(부채꼴 종이 바람 3장). hp 10 = E03 (2 → 1 + 1)
   { sec:  24, type: 'E41', count:  2 },                         // 쌍박자교대형(낮은 팔/높은 팔). hp 10 = E03
   { sec:  40, type: 'E04', count:  1 },                         // 원거리 조기 등장 신호(e04IntroSec 34 이후)
   // 2026-11-04 투사체 좀비: 스3 단발 행은 반복 증원이 대부분이라 첫 등장 자리가 72초 하나뿐이다
@@ -322,7 +331,8 @@ export const STAGE3_BURST_EVENTS = [
 export const STAGE4_BURST_EVENTS = [
   // 2026-11-04 투사체 좀비: 첫 등장 5(E58)·72(E50)·184(E59) — 기존 첫 등장(40·108·150)과 30초 이상.
   // 72초 새 행은 108초 E44×2 중 1기, 184초 새 행은 216초 E05×4 중 1기를 같은 분 안에서 옮긴 것이다.
-  { sec:   5, type: 'E01', count:  6 },                        // 온보딩 초기 밀도
+  { sec:   5, type: 'E01', count:  5 },                        // 온보딩 초기 밀도
+  { sec:   5, type: 'E87', count:  1 },                        // 2026-11-14 블록 좀비 오리엔티어링부 첫 등장(빠른 접근 찌르기, 탄 없음). hp 8 = E01 (6 → 5 + 1)
   { sec:   5, type: 'E58', count:  1 },                        // 줄넘기 매복 첫 등장(숨어 기다리다 줄 채찍). hp 8 = E01
   { sec:   5, type: 'E37', count:  3 },                        // 스2 빗금엇갈림형 복습. hp 8 = E01
   { sec:  24, type: 'E04', count:  4 },                        // 원거리 조기 등장(발사 게이트 18s 이후) — 포화점 4기
@@ -334,8 +344,10 @@ export const STAGE4_BURST_EVENTS = [
   { sec: 144, type: 'E04', count:  4 },                        // 보스 구간 원거리 벽 1 — 포화점 4기
   { sec: 144, type: 'E61', count:  1 },                        // 2026-11-07 급식판 첫 등장(일직선 돌진 + 국물 웅덩이) — 옛 E57 복습 자리. hp 70
   { sec: 144, type: 'E43', count:  1 },                        // 엇높이교차형(낮은/높은 분리 스윕). hp 70 = E02
-  { sec: 150, type: 'E05', count:  3 },                        // 보스 등장 동시 차저 — 2026-08-19 옛 E04×6 자리
-  { sec: 150, type: 'E03', count:  3 },                        // 러너로 카이팅 차단(원거리 사선 유지용 몰이)
+  { sec: 150, type: 'E05', count:  2 },                        // 보스 등장 동시 차저 — 2026-08-19 옛 E04×6 자리
+  { sec: 150, type: 'E76', count:  1 },                        // 2026-11-14 블록 좀비 연극부 오크 첫 등장(돌진). hp 70 = E05 (3 → 2 + 1)
+  { sec: 150, type: 'E03', count:  2 },                        // 러너로 카이팅 차단(원거리 사선 유지용 몰이)
+  { sec: 150, type: 'E88', count:  1 },                        // 2026-11-14 블록 좀비 육상부 첫 등장(스타트 대시). hp 10 = E03 (3 → 2 + 1)
   { sec: 150, type: 'E45', count:  3 },                        // 무게중심넘김형(발 옮기고 넘김). hp 10 = E03
   { sec: 168, type: 'E69', count:  1 },                        // 2026-11-07 도미노 첫 등장(줄지어 차례로 터짐) — 옛 속공 E07×1 자리. hp 16
   { sec: 168, type: 'E47', count:  1 },                        //   스2 종이비행기 복습. hp 16 = E07
@@ -371,7 +383,10 @@ export const STAGE5_CALL_LANE_FORMATION = 'stage5CallLane'
 export const STAGE5_CALL_LANE_REINFORCEMENT = 'stage5CallLane'
 export const STAGE5_BURST_EVENTS = [
   // 0:05 오프닝 — E01 9 + 사수 2(12초부터 발사 = "레인이 곧 사선") + 물감뿌림 첫 노출
-  { sec:   5, type: 'E01', count: 9 },
+  // 2026-11-14 블록 좀비: 스5는 사수가 이미 12종이라(한 웨이브 순환 사수 상한 4) 탄 없는 셋(E84·E86·E75)만 넣는다 —
+  //   사수를 더하면 184초 데뷔 E55가 240초 전에 순환으로 다시 못 나온다(stageRosterRotation.test).
+  { sec:   5, type: 'E01', count: 8 },
+  { sec:   5, type: 'E84', count: 1 },                           // 2026-11-14 블록 좀비 영양사 첫 등장(다친 아군 회복, 공격 없음). hp 8 = E01 (9 → 8 + 1)
   { sec:   5, type: 'E04', count: 2 },
   { sec:   5, type: 'E53', count: 1 },                           // 물감뿌림(미술 교사) 첫 등장. hp 10
   // 0:24 러너로 이동 강제 + 사수 4기 포화 + 첫 교사형 엘리트
@@ -399,13 +414,15 @@ export const STAGE5_BURST_EVENTS = [
   { sec: 144, type: 'E54', count: 1 },                           // 확성기방송(방송 담당 교사) 첫 등장. hp 32
   // 2:30 교감 좀비 B10 등장 — 보스 구간 파생 기준
   { sec: 150, type: 'B10', count: 1 },
-  { sec: 150, type: 'E01', count: 4 },
+  { sec: 150, type: 'E01', count: 3 },
+  { sec: 150, type: 'E86', count: 1 },                           // 2026-11-14 블록 좀비 장학사 첫 등장(도장 방패). hp 8 = E01 (4 → 3 + 1)
   { sec: 150, type: 'E65', count: 1 },                           // 2026-11-07 스2 복습: 시험감독. hp 8 = E01 (E01 5 → 4 + 1)
   { sec: 150, type: 'E58', count: 1 },                           // 스4 복습: 줄넘기 매복. hp 8
   { sec: 150, type: 'E37', count: 1 },                           // 스2 복습: 빗금엇갈림형. hp 8
   { sec: 150, type: 'E51', count: 1 },                           // 합창지휘. hp 8
   // 2:48 근접 속공(보스 구간이라 E04는 쏘지 못한다) + 배구스파이크 복습
-  { sec: 168, type: 'E07', count: 5 },
+  { sec: 168, type: 'E07', count: 4 },
+  { sec: 168, type: 'E75', count: 1 },                           // 2026-11-14 블록 좀비 로봇부 하트 첫 등장(왕복 돌진). hp 16 = E07 (5 → 4 + 1)
   { sec: 168, type: 'E50', count: 1 },                           // hp 16
   // 3:04 강속구 야구부 첫 등장(같은 초 pincer는 형태 블록)
   { sec: 184, type: 'E55', count: 1 },                           // hp 70

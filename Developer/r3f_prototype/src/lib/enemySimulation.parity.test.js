@@ -61,7 +61,9 @@ describe('ENEMY_STATS ↔ ENEMY_RUNTIME_* 수치 패리티', () => {
     }
     // 49~63 = 투사체 좀비 15종(2026-11-04), 64 = E59 미니 예약(빈칸), 65~74 = 2차 10종(2026-11-07).
     // 표 길이는 마지막 typeCode 74 + 1이고 예약 슬롯 64는 0으로 남는다.
-    expect(ENEMY_RUNTIME_HP.length).toBe(75)
+    // 2026-11-14: 75 = B10(보스, 0으로 남는다), 76~93 = 블록 좀비 18종 → 길이 94.
+    expect(ENEMY_RUNTIME_HP.length).toBe(94)
+    expect(ENEMY_RUNTIME_HP[75]).toBe(0)
     expect(ENEMY_RUNTIME_HP[64]).toBe(0)
     expect(ENEMY_RUNTIME_SPEED[64]).toBe(0)
   })

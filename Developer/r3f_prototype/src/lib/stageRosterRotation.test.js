@@ -145,7 +145,8 @@ describe('스테이지 로스터 = 버스트 표에 배분된 신규 종 + 작�
         expect(hpOf(type), `${stageId} ${type} hp`).toBeGreaterThan(0)
       }
     }
-    expect(getStageRotationRoster('stage6')).toEqual(['E19', 'E20', 'E21'])
+    // 스6: 확장 데이터 enemyIds(E19~E21) + 2026-11-14 표에 작성된 블록 좀비(E79·E71·E73 첫 등장, E76 스4 복습).
+    expect(getStageRotationRoster('stage6')).toEqual(['E19', 'E79', 'E20', 'E21', 'E71', 'E73', 'E76'])
     expect(getStageRotationRoster('stage1')).not.toContain('E04')
     expect(getStageRotationDebuts('stage2')).toMatchObject({ E37: 5, E47: 60, E63: 72, E51: 144, E46: 184 })
     expect(getStageRotationDebuts('stage5')).toMatchObject({ E53: 5, E57: 24, E55: 184, E40: 216 })
@@ -175,9 +176,13 @@ describe.each(STAGES)('%s — 스테이지 전체 시간표 시뮬레이션', (s
   })
 
   // 스6(E19~E21)은 원래 표가 이미 데뷔 뒤 3등분마다 세 종을 다 냈다 — 순환은 거의 손대지 않는 안전망이다.
+  // (2026-11-14 블록 좀비는 스6에서도 한 행씩만 작성돼 순환 전에는 빠진다 — 그 재현은 다른 스테이지와 같다.)
   it('순환 전(작성된 표 + 리필)에는 데뷔 뒤 3등분에서 빠지는 신규 종이 있었다 — 고친 문제의 재현(스6 제외)', () => {
     const missing = missingThirdsAfterDebut(stageId, simulate(stageId, { rotation: false }).spawns)
-    if (stageId === 'stage6') expect(missing).toEqual([])
+    if (stageId === 'stage6') {
+      expect(missing.filter((cell) => /^E(19|20|21)@/.test(cell))).toEqual([])
+      expect(missing.length, 'stage6 블록 좀비 순환 전 누락').toBeGreaterThan(0)
+    }
     else expect(missing.length, `${stageId} 순환 전 누락`).toBeGreaterThan(0)
   })
 
@@ -461,9 +466,9 @@ describe('저밀도 리필(정규 리스폰) 묶음 — 시계를 고정한 결�
 
   it('스1 150초: 기한이 온 신규 종이 한 묶음에 여러 종 섞이고 마릿수는 20 그대로다', () => {
     const { batch } = build('stage1', 150)
-    // 데뷔+20초(70hp E62·E56은 +30초)가 지난 종: E34(24) E66(60) E35(72) E36(108) E62(120→150) — 기한 순으로 E07 자리 1~5.
-    // E56(144 데뷔, 기한 174)은 기한 전이지만 10번째 자리(다채로움 몫, 5번째마다)로 들어간다. E49(184)는 데뷔 전.
-    expect(count(batch)).toEqual({ E07: 4, E34: 1, E66: 1, E35: 1, E36: 1, E62: 1, E56: 1, E01: 10 })
+    // 데뷔+20초(70hp E62·E56은 +30초)가 지난 종: E34(24) E66·E82(60) E35(72) E36·E77(108) E62(120→150) — 기한 순으로 E07 자리 1~7.
+    // E56(144 데뷔, 기한 174)은 기한 전이지만 10번째 자리(다채로움 몫, 5번째마다)로 들어간다. E49·E78(184)는 데뷔 전.
+    expect(count(batch)).toEqual({ E07: 2, E34: 1, E66: 1, E82: 1, E35: 1, E36: 1, E77: 1, E62: 1, E56: 1, E01: 10 })
   })
 
   it('리필 묶음을 버리면(20마리 미만 등) 시계가 그대로라 다음 리필에 같은 종이 다시 섞인다', () => {
@@ -471,7 +476,7 @@ describe('저밀도 리필(정규 리스폰) 묶음 — 시계를 고정한 결�
     const again = buildLowDensityReinforcementBatch(first.cache, 20, () => 0.25) // 같은 캐시·같은 시각, 확정(note) 없음
     expect(count(again)).toEqual({ E07: 10, E01: 10 }) // 같은 시각엔 예약이 남아 중복 섞지 않는다
     first.cache.rosterRotationClock = () => 151
-    expect(count(buildLowDensityReinforcementBatch(first.cache, 20, () => 0.25))).toEqual({ E07: 4, E34: 1, E66: 1, E35: 1, E36: 1, E62: 1, E56: 1, E01: 10 })
+    expect(count(buildLowDensityReinforcementBatch(first.cache, 20, () => 0.25))).toEqual({ E07: 2, E34: 1, E66: 1, E82: 1, E35: 1, E36: 1, E77: 1, E62: 1, E56: 1, E01: 10 })
   })
 })
 

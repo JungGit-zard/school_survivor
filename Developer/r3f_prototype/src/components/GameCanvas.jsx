@@ -9,6 +9,7 @@ import ExpansionZombieInstanceLayer from './expansion/ExpansionZombieInstanceLay
 import ExpansionHazardLayer from './expansion/ExpansionHazardLayer.jsx'
 import { expansionAttackSnapshots } from '../lib/expansionAttackRuntime.js'
 import ProceduralFaceZombieLayer from './ProceduralFaceZombieLayer.jsx'
+import BlockyZombieLayer from './BlockyZombieLayer.jsx'
 import PooledEnemyProjectileLayer from './PooledEnemyProjectileLayer.jsx'
 import StageEntryRuntimeDiagnostics from './StageEntryRuntimeDiagnostics.jsx'
 import { useGameStore } from '../store/useGameStore.js'
@@ -85,6 +86,8 @@ export default function GameCanvas({ gameKey, phase }) {
       {/* E07 웃는얼굴 좀비 몸통(셰이더 얼굴이라 인스턴싱 대상이 아님). 그림자·체력바·
           스폰 연기는 위 ZombieInstanceLayer가 그대로 담당한다. */}
       <ProceduralFaceZombieLayer />
+      {/* 블록 좀비 18종(E71~E88, Kenney CC0) 몸통. 그림자·체력바·스폰 연기는 ZombieInstanceLayer가 담당한다. */}
+      <BlockyZombieLayer resetKey={gameKey} />
       <PooledEnemyProjectileLayer resetKey={gameKey} />
       <ExpansionHazardLayer events={expansionAttackSnapshots} resetKey={gameKey} />
       <StageEntryRuntimeDiagnostics gameKey={gameKey} />

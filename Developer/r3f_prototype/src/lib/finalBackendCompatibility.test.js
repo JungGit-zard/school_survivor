@@ -26,7 +26,7 @@ describe('final minimal backend and Stage5 compatibility',()=>{
   for(const e of [...Object.values(EXPANSION_ENEMIES),...Object.values(EXPANSION_BOSSES)])expect(accept(e.id),e.id).toBe(true)
   // B10 = Stage 5 교감 좀비 (2026-11-08). 'E59M' 미니는 도감·조우 대상이 아니다.
   expect(accept('B10')).toBe(true)
-  for(const type of ['E71','B11','E59M','unknown'])expect(accept(type)).toBe(false)
+  for(const type of ['E89','B11','E59M','unknown'])expect(accept(type)).toBe(false)
   expect(accept('E19',2)).toBe(false)
  })
  it('retains the accepted Stage5 east-wall vending position inside its stage bounds',()=>{
