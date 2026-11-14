@@ -112,7 +112,8 @@ const _fireDir = new THREE.Vector3()
 const _vel = { x: 0, y: 0, z: 0 }
 const _sightBlockedVelocity = { x: 0, z: 0 }
 const MATILDA_DASH_SFX = Object.freeze({ id: 'matildaDash', volume: 0.76 })
-const MATILDA_DASH_REVERSE_SFX = Object.freeze({ id: 'matildaDash', volume: 0.52, rate: 0.88 })
+// 2026-11-14 Terry "마틸다 여자아이 목소리 엄수": 반사 돌진도 원래 높이로 낸다(rate 0.88 = 2반음 낮춤이 아이 목소리를 둔하게 만들었다).
+const MATILDA_DASH_REVERSE_SFX = Object.freeze({ id: 'matildaDash', volume: 0.52 })
 const MATILDA_LAUGH_SFX = Object.freeze({ id: 'matildaLaugh', volume: 0.82 })
 // 0 = 몸통에 닿는 그 프레임에 즉사. 유예 없음(2026-08-13 사용자 지시).
 // 예전 1000ms 유지 조건은 스쳐 지나가면 안 죽는 구멍이었다.

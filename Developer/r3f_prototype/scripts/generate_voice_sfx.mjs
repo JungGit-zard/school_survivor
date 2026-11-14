@@ -135,11 +135,10 @@ const VOICE_SFX = {
     { t: 0, v: 'aa', amp: 0, voice: 1, noise: 0.3 }, { t: 0.05, v: 'aa', amp: 1, voice: 1, noise: 0.18 }, { t: 0.42, v: 'aw', amp: 0.95, voice: 1, noise: 0.19 }, { t: 0.72, v: 'oh', amp: 0.55, voice: 1, noise: 0.25 }, { t: 0.9, v: 'ng', amp: 0.3, voice: 1, noise: 0.28 }, { t: 1, v: 'ng', amp: 0, voice: 1, noise: 0.3 },
   ] }) },
 
-  // 마틸다 — matildaSpawn/matildaLaugh/matildaDeath는 2026-11-14부터 scripts/generate_matilda_girl_voice.mjs
-  // (CC0 실제 아이 목소리 녹음 가공)가 만든다. 여기서 다시 만들면 옛 합성음으로 덮어쓰니 넣지 마라.
-  matildaDash: { dir: 'enemies', synth: () => voice({ dur: 0.22, targetLoudness: 0.18, seed: 0x6303, hold: 1, bits: 8, drive: 1.55, pitchScale: CUTE_FEMALE_VOICE_PITCH_SCALE, f0: [[0, 310], [0.3, 360], [1, 250]], jitter: 0.014, frames: [
-    { t: 0, v: 'aa', amp: 0, voice: 0, noise: 0.8 }, { t: 0.05, v: 'aa', amp: 0.9, voice: 1, noise: 0.22 }, { t: 0.42, v: 'ee', amp: 0.75, voice: 1, noise: 0.15 }, { t: 1, v: 'ee', amp: 0, voice: 1, noise: 0.18 },
-  ] }) },
+  // 마틸다 — 목소리 큐 전부(matildaSpawn/Dash/Laugh/Death/CountdownEnd)는 2026-11-14부터
+  // scripts/generate_matilda_girl_voice.mjs(CC0 실제 4살 여자아이 웃음 녹음, 자르기·정리만)가 만든다.
+  // Terry: "마틸다 여자아이 목소리 엄수해". 여기 다시 넣으면 옛 합성음으로 덮어쓰고
+  // src/lib/matildaGirlVoice.test.js가 실패한다.
 
   // 주인공
   playerHit: { dir: 'player', synth: () => voice({ dur: 0.2, targetLoudness: 0.18, seed: 0x6401, hold: 1, bits: 8, drive: 1.25, pitchScale: CUTE_FEMALE_VOICE_PITCH_SCALE, f0: [[0, 265], [0.18, 330], [1, 210]], jitter: 0.01, frames: [
@@ -176,9 +175,7 @@ const VOICE_SFX = {
   // 휘파람/호출 계열
   rzlWhistle: { dir: 'events', synth: () => synthWhistle({ seed: 0x6601, dur: 0.42, f0: [[0, 1300], [0.32, 2250], [0.6, 1850], [1, 2500]], vibRate: 8, vibDepth: 30, noise: 0.012 }) },
   stage2GuardWhistle: { dir: 'events', synth: () => synthWhistle({ seed: 0x6602, dur: 0.5, f0: [[0, 1700], [0.18, 2600], [0.5, 2600], [0.68, 1900], [1, 2350]], vibRate: 11, vibDepth: 24, noise: 0.01, chirp: true }) },
-  matildaCountdownEnd: { dir: 'events', synth: () => voice({ dur: 0.42, targetLoudness: 0.17, seed: 0x6603, hold: 1, bits: 8, drive: 1.45, pitchScale: CUTE_FEMALE_VOICE_PITCH_SCALE, f0: [[0, 280], [0.22, 360], [1, 190]], vib: { rate: 10, depth: 0.05 }, ring: { rate: 42, depth: 0.14 }, jitter: 0.018, frames: [
-    { t: 0, v: 'ee', amp: 0, voice: 0, noise: 0.7 }, { t: 0.05, v: 'ee', amp: 0.72, voice: 1, noise: 0.15 }, { t: 0.3, v: 'aa', amp: 0.8, voice: 1, noise: 0.12 }, { t: 0.78, v: 'ng', amp: 0.28, voice: 1, noise: 0.18 }, { t: 1, v: 'ng', amp: 0, voice: 1, noise: 0.2 },
-  ] }) },
+  // matildaCountdownEnd는 generate_matilda_girl_voice.mjs가 만든다(위 마틸다 주석 참고).
 }
 
 if (process.argv[1] && process.argv[1].endsWith('generate_voice_sfx.mjs')) {

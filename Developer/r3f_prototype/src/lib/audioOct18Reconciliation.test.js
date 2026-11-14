@@ -7,16 +7,16 @@ import vm from 'node:vm'
 const file = (path) => readFileSync(new URL(`../../${path}`, import.meta.url))
 const sha = (bytes) => createHash('sha256').update(bytes).digest('hex')
 const selectedBytes = {
-  // 2026-11-14 Terry "귀여운 여자아이 목소리로 완전히 바꿔라" — Spawn/Death/Laugh는
-  // scripts/generate_matilda_girl_voice.mjs 후보 A(CC0 실제 아이 목소리 가공) 바이트로 교체됐다.
-  'enemies/matildaSpawn.ogg': '83f558127161b0c5b843c62552ffa7783c7a5e67c2b7257a9682562c5baf1dd0',
-  'enemies/matildaSpawn.mp3': 'f2a81170e42a69b15f2bb856c05975298eb3dfe7f4b63cb3aa4939ad78f4a4e3',
-  'enemies/matildaDeath.ogg': '938bb77c27c96605eb84efa0cfd60b9666f268866befdf5c04204fded56c8bba',
-  'enemies/matildaDeath.mp3': 'a75585a8e3e5139f1bdb5b2e3bc2940ce6b4518727495d8d03bc8ef113ea20f7',
+  // 2026-11-14 Terry "마틸다 음성은 지금 괴기스러우니까 100퍼센트 완전히 바꿔" — Spawn/Death/Laugh는
+  // scripts/generate_matilda_girl_voice.mjs(CC0 실제 4살 여자아이 녹음, 자르기·정리만) 바이트로 교체됐다.
+  'enemies/matildaSpawn.ogg': '02fd745e83aac72ede8b4ce4f76b35adfb12d74fd5cc0cf5a110bb5d81bd92dd',
+  'enemies/matildaSpawn.mp3': '34f231f6c2fb4a52a179949e2c67e1de622dbb9c7ab47cc462414f50fd754dba',
+  'enemies/matildaDeath.ogg': '43331dfc00800e401e9bc43028ff489f984ce82c78478d58f10403c6d14299aa',
+  'enemies/matildaDeath.mp3': '1302f49076631ffbf248e854ef111007af318b0c24dc2592e8ec95fbc7ee40b2',
   'events/matildaWarningTick.ogg': '0bb56c645ad13da9e721d292f4c64e3b92928c6db9b730da3c85b420ff0b7cd3',
   'events/matildaWarningTick.mp3': 'f0ffdfbb952b85fba284da02503d7d1f141bdc10d0a31b03f5ebff2a0997ed8d',
-  'enemies/matildaLaugh.ogg': '74ddfa682cb26b5c85ebb8a04d21bc50cdf9189dbf0e292be7980dd273b0414c',
-  'enemies/matildaLaugh.mp3': '6ddd9c31bc7fdefd6f67f2a1fd01a2dd3941b501f713efd9c6a2e874aab72f7b',
+  'enemies/matildaLaugh.ogg': 'a4e048a9aa252e984317b84682bdfd29d6202409ddf4b603ac7ee627710158d2',
+  'enemies/matildaLaugh.mp3': '838f16bbdf08e1a16ced5cee5fb4c7513f154fe199aa0df0797dacb6d7288edc',
 }
 const redo = {
   A: 'f2e93b0eabb4d76a53ff4628ceb1b5b674d1975f4d12b8c52e525e7388f0484b',

@@ -1088,19 +1088,19 @@
       "paths": [
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/matildaSpawn.ogg",
-          "bytes": 4907,
-          "sha256": "83f558127161b0c5b843c62552ffa7783c7a5e67c2b7257a9682562c5baf1dd0"
+          "bytes": 4747,
+          "sha256": "02fd745e83aac72ede8b4ce4f76b35adfb12d74fd5cc0cf5a110bb5d81bd92dd"
         },
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/matildaSpawn.mp3",
-          "bytes": 2944,
-          "sha256": "f2a81170e42a69b15f2bb856c05975298eb3dfe7f4b63cb3aa4939ad78f4a4e3"
+          "bytes": 2735,
+          "sha256": "34f231f6c2fb4a52a179949e2c67e1de622dbb9c7ab47cc462414f50fd754dba"
         }
       ],
       "provenanceType": "cc0-recording-derived",
-      "source": "BigSoundBank (Joseph SARDIN) CC0 recording #1660 Laughter of children (https://bigsoundbank.com/laughter-of-children-s1660.html, sha256 6d39b48d...412d1), excerpt 2.83-3.10s; processed by Developer/r3f_prototype/scripts/generate_matilda_girl_voice.mjs (candidate A: trim/resample/envelope/breath noise/loudness; OGG/MP3 via @ffmpeg-installer/ffmpeg, bitexact)",
-      "notes": "2026-11-14 Terry: replace Matilda voice completely with a cute little-girl voice. Real child voice (author-recorded 4.5-year-old girl; #1660 also contains a 2.5-year-old boy). Non-verbal only (no localisation). Supersedes the 2026-10-19 user-selected procedural Spawn C / Laugh original / Death C. No attribution required; credit optional: \"Sounds: BigSoundBank.com (Joseph SARDIN), CC0\".",
-      "licenseEvidence": "CC0-1.0 public-domain dedication per https://bigsoundbank.com/licenses.html (commercial use, modification and redistribution allowed without attribution); source bytes pinned by SHA-256 in generate_matilda_girl_voice.mjs"
+      "source": "CC0 recording Freesound #166345 \"Elise laughing, Oct 1, 2012, v2\" by Electron John (https://freesound.org/people/Electron%20John/sounds/166345/; HQ preview https://cdn.freesound.org/previews/166/166345_1315778-hq.mp3, sha256 25ee0bef47e9dc28bbda4fd91efe96a93ec7ea5cdf54a04edd4d7f897dd73026), excerpt 10.92-11.16s (\"hehe\"); processed by Developer/r3f_prototype/scripts/generate_matilda_girl_voice.mjs (light cleanup only: trim, 150 Hz high-pass, 9 kHz one-pole low-pass, -12 dB gentle gap gate, 6 ms fade-in/short fade-out, linear RMS gain; no pitch/rate change, no distortion/bitcrush/ring-mod/reverb/jitter; OGG/MP3 via @ffmpeg-installer/ffmpeg, bitexact)",
+      "notes": "2026-11-14 Terry: \"마틸다 여자아이 목소리 엄수해\" / \"마틸다 음성은 지금 괴기스러우니까 100퍼센트 완전히 바꿔\". Real 4-year-old girl laughing and squealing while being tickled by her father (uploader description); one recording session for every Matilda vocal cue so all cues are the same girl. Non-verbal only (no localisation). Supersedes ea3a5395 (BigSoundBank #1660/#1662/#1663/#1677, resampled/breath-noise/pitch-glide processing, judged creepy) and, for matildaDash/matildaCountdownEnd, the procedural source-filter synthesis from generate_voice_sfx.mjs. No attribution required; credit optional: \"Sounds: Electron John via Freesound, CC0\".",
+      "licenseEvidence": "CC0-1.0 public-domain dedication shown on the Freesound sound page (http://creativecommons.org/publicdomain/zero/1.0/), checked 2026-11-14; source bytes pinned by SHA-256 in generate_matilda_girl_voice.mjs"
     },
     {
       "logicalId": "matildaDash",
@@ -1108,19 +1108,19 @@
       "paths": [
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/matildaDash.ogg",
-          "bytes": 4703,
-          "sha256": "e4cd5d9fb7115afe9080b172f35e05731f994abea801fe2823519522daef9ee1"
+          "bytes": 4554,
+          "sha256": "573bd990485f214e88b420cb63a0b015f02a9ddf7a2df3b017e90f017d228b2a"
         },
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/matildaDash.mp3",
-          "bytes": 2551,
-          "sha256": "e99929eb8bb1d9833e108e8c7f946d0b91936b62618c5f96eeeaac19f3567abb"
+          "bytes": 2317,
+          "sha256": "f62dbab3b7a6500adc73615056c3fa041c43417bec28d7063597a59c7a40c1cb"
         }
       ],
-      "provenanceType": "generated",
-      "source": "scripts/generate_zombie_death_voices.mjs / scripts/generate_voice_sfx.mjs (project procedural source-filter voice synthesis; OGG/MP3 conversion via @ffmpeg-installer/ffmpeg)",
-      "notes": "Project-generated voice-like procedural SFX; no external samples or third-party audio assets used.",
-      "licenseEvidence": "project-generated-procedural"
+      "provenanceType": "cc0-recording-derived",
+      "source": "CC0 recording Freesound #166345 \"Elise laughing, Oct 1, 2012, v2\" by Electron John (https://freesound.org/people/Electron%20John/sounds/166345/; HQ preview https://cdn.freesound.org/previews/166/166345_1315778-hq.mp3, sha256 25ee0bef47e9dc28bbda4fd91efe96a93ec7ea5cdf54a04edd4d7f897dd73026), excerpt 11.16-11.36s (\"hah!\"); processed by Developer/r3f_prototype/scripts/generate_matilda_girl_voice.mjs (light cleanup only: trim, 150 Hz high-pass, 9 kHz one-pole low-pass, -12 dB gentle gap gate, 6 ms fade-in/short fade-out, linear RMS gain; no pitch/rate change, no distortion/bitcrush/ring-mod/reverb/jitter; OGG/MP3 via @ffmpeg-installer/ffmpeg, bitexact)",
+      "notes": "2026-11-14 Terry: \"마틸다 여자아이 목소리 엄수해\" / \"마틸다 음성은 지금 괴기스러우니까 100퍼센트 완전히 바꿔\". Real 4-year-old girl laughing and squealing while being tickled by her father (uploader description); one recording session for every Matilda vocal cue so all cues are the same girl. Non-verbal only (no localisation). Supersedes ea3a5395 (BigSoundBank #1660/#1662/#1663/#1677, resampled/breath-noise/pitch-glide processing, judged creepy) and, for matildaDash/matildaCountdownEnd, the procedural source-filter synthesis from generate_voice_sfx.mjs. No attribution required; credit optional: \"Sounds: Electron John via Freesound, CC0\".",
+      "licenseEvidence": "CC0-1.0 public-domain dedication shown on the Freesound sound page (http://creativecommons.org/publicdomain/zero/1.0/), checked 2026-11-14; source bytes pinned by SHA-256 in generate_matilda_girl_voice.mjs"
     },
     {
       "logicalId": "matildaLaugh",
@@ -1128,19 +1128,19 @@
       "paths": [
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/matildaLaugh.ogg",
-          "bytes": 7265,
-          "sha256": "74ddfa682cb26b5c85ebb8a04d21bc50cdf9189dbf0e292be7980dd273b0414c"
+          "bytes": 7089,
+          "sha256": "a4e048a9aa252e984317b84682bdfd29d6202409ddf4b603ac7ee627710158d2"
         },
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/matildaLaugh.mp3",
-          "bytes": 6079,
-          "sha256": "6ddd9c31bc7fdefd6f67f2a1fd01a2dd3941b501f713efd9c6a2e874aab72f7b"
+          "bytes": 6706,
+          "sha256": "838f16bbdf08e1a16ced5cee5fb4c7513f154fe199aa0df0797dacb6d7288edc"
         }
       ],
       "provenanceType": "cc0-recording-derived",
-      "source": "BigSoundBank (Joseph SARDIN) CC0 recording #1660 Laughter of children (https://bigsoundbank.com/laughter-of-children-s1660.html, sha256 6d39b48d...412d1), laugh syllables 0.70-0.86s and 3.25-3.45s; processed by Developer/r3f_prototype/scripts/generate_matilda_girl_voice.mjs (candidate A: trim/resample/envelope/breath noise/loudness; OGG/MP3 via @ffmpeg-installer/ffmpeg, bitexact)",
-      "notes": "2026-11-14 Terry: replace Matilda voice completely with a cute little-girl voice. Real child voice (author-recorded 4.5-year-old girl; #1660 also contains a 2.5-year-old boy). Non-verbal only (no localisation). Supersedes the 2026-10-19 user-selected procedural Spawn C / Laugh original / Death C. No attribution required; credit optional: \"Sounds: BigSoundBank.com (Joseph SARDIN), CC0\".",
-      "licenseEvidence": "CC0-1.0 public-domain dedication per https://bigsoundbank.com/licenses.html (commercial use, modification and redistribution allowed without attribution); source bytes pinned by SHA-256 in generate_matilda_girl_voice.mjs"
+      "source": "CC0 recording Freesound #166345 \"Elise laughing, Oct 1, 2012, v2\" by Electron John (https://freesound.org/people/Electron%20John/sounds/166345/; HQ preview https://cdn.freesound.org/previews/166/166345_1315778-hq.mp3, sha256 25ee0bef47e9dc28bbda4fd91efe96a93ec7ea5cdf54a04edd4d7f897dd73026), excerpts 2.30-2.73s + 3.12-3.44s joined with 12 ms crossfade (\"hahaha-haha\"); processed by Developer/r3f_prototype/scripts/generate_matilda_girl_voice.mjs (light cleanup only: trim, 150 Hz high-pass, 9 kHz one-pole low-pass, -12 dB gentle gap gate, 6 ms fade-in/short fade-out, linear RMS gain; no pitch/rate change, no distortion/bitcrush/ring-mod/reverb/jitter; OGG/MP3 via @ffmpeg-installer/ffmpeg, bitexact)",
+      "notes": "2026-11-14 Terry: \"마틸다 여자아이 목소리 엄수해\" / \"마틸다 음성은 지금 괴기스러우니까 100퍼센트 완전히 바꿔\". Real 4-year-old girl laughing and squealing while being tickled by her father (uploader description); one recording session for every Matilda vocal cue so all cues are the same girl. Non-verbal only (no localisation). Supersedes ea3a5395 (BigSoundBank #1660/#1662/#1663/#1677, resampled/breath-noise/pitch-glide processing, judged creepy) and, for matildaDash/matildaCountdownEnd, the procedural source-filter synthesis from generate_voice_sfx.mjs. No attribution required; credit optional: \"Sounds: Electron John via Freesound, CC0\".",
+      "licenseEvidence": "CC0-1.0 public-domain dedication shown on the Freesound sound page (http://creativecommons.org/publicdomain/zero/1.0/), checked 2026-11-14; source bytes pinned by SHA-256 in generate_matilda_girl_voice.mjs"
     },
     {
       "logicalId": "zombieDeathGrunt",
@@ -1268,19 +1268,19 @@
       "paths": [
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/matildaDeath.ogg",
-          "bytes": 5709,
-          "sha256": "938bb77c27c96605eb84efa0cfd60b9666f268866befdf5c04204fded56c8bba"
+          "bytes": 5243,
+          "sha256": "43331dfc00800e401e9bc43028ff489f984ce82c78478d58f10403c6d14299aa"
         },
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/matildaDeath.mp3",
-          "bytes": 4407,
-          "sha256": "a75585a8e3e5139f1bdb5b2e3bc2940ce6b4518727495d8d03bc8ef113ea20f7"
+          "bytes": 3989,
+          "sha256": "1302f49076631ffbf248e854ef111007af318b0c24dc2592e8ec95fbc7ee40b2"
         }
       ],
       "provenanceType": "cc0-recording-derived",
-      "source": "BigSoundBank (Joseph SARDIN) CC0 recording #1663 Howling of a girl #2 (https://bigsoundbank.com/howling-of-a-girl-2-s1663.html, sha256 c7daae35...096d3), onset 0.07-0.50s; processed by Developer/r3f_prototype/scripts/generate_matilda_girl_voice.mjs (candidate A: trim/resample/envelope/breath noise/loudness; OGG/MP3 via @ffmpeg-installer/ffmpeg, bitexact)",
-      "notes": "2026-11-14 Terry: replace Matilda voice completely with a cute little-girl voice. Real child voice (author-recorded 4.5-year-old girl; #1660 also contains a 2.5-year-old boy). Non-verbal only (no localisation). Supersedes the 2026-10-19 user-selected procedural Spawn C / Laugh original / Death C. No attribution required; credit optional: \"Sounds: BigSoundBank.com (Joseph SARDIN), CC0\".",
-      "licenseEvidence": "CC0-1.0 public-domain dedication per https://bigsoundbank.com/licenses.html (commercial use, modification and redistribution allowed without attribution); source bytes pinned by SHA-256 in generate_matilda_girl_voice.mjs"
+      "source": "CC0 recording Freesound #166344 \"Elise laughing, Oct 1, 2012\" by Electron John (https://freesound.org/people/Electron%20John/sounds/166344/; HQ preview https://cdn.freesound.org/previews/166/166344_1315778-hq.mp3, sha256 8ab6607a3c39a854784ed73021e407acaaea471991f2a5c9437e6c3c78e985e3), excerpt 2.93-3.34s (delighted squeal); processed by Developer/r3f_prototype/scripts/generate_matilda_girl_voice.mjs (light cleanup only: trim, 150 Hz high-pass, 9 kHz one-pole low-pass, -12 dB gentle gap gate, 6 ms fade-in/short fade-out, linear RMS gain; no pitch/rate change, no distortion/bitcrush/ring-mod/reverb/jitter; OGG/MP3 via @ffmpeg-installer/ffmpeg, bitexact)",
+      "notes": "2026-11-14 Terry: \"마틸다 여자아이 목소리 엄수해\" / \"마틸다 음성은 지금 괴기스러우니까 100퍼센트 완전히 바꿔\". Real 4-year-old girl laughing and squealing while being tickled by her father (uploader description); one recording session for every Matilda vocal cue so all cues are the same girl. Non-verbal only (no localisation). Supersedes ea3a5395 (BigSoundBank #1660/#1662/#1663/#1677, resampled/breath-noise/pitch-glide processing, judged creepy) and, for matildaDash/matildaCountdownEnd, the procedural source-filter synthesis from generate_voice_sfx.mjs. No attribution required; credit optional: \"Sounds: Electron John via Freesound, CC0\".",
+      "licenseEvidence": "CC0-1.0 public-domain dedication shown on the Freesound sound page (http://creativecommons.org/publicdomain/zero/1.0/), checked 2026-11-14; source bytes pinned by SHA-256 in generate_matilda_girl_voice.mjs"
     },
     {
       "logicalId": "dogeDeath",
@@ -1648,19 +1648,19 @@
       "paths": [
         {
           "path": "Developer/r3f_prototype/public/sfx/events/matildaCountdownEnd.ogg",
-          "bytes": 5481,
-          "sha256": "2c767032a348e86a661bc99fedd0c40a48ba90ce70fd41eeaabf96d0aa964dda"
+          "bytes": 5221,
+          "sha256": "6cf786a387ac67f43d34b00c2e3c5558ce5388e1167651f64b53e0fdce581346"
         },
         {
           "path": "Developer/r3f_prototype/public/sfx/events/matildaCountdownEnd.mp3",
-          "bytes": 4223,
-          "sha256": "76988921fc0224b1cd7d6d5839c64870438f43ddeba0083132dacab061b0ffa8"
+          "bytes": 3989,
+          "sha256": "254652bde17831741dad0d2f94f1916fe8a50905d28ad510e176333f8a5e2efc"
         }
       ],
-      "provenanceType": "generated",
-      "source": "scripts/generate_zombie_death_voices.mjs / scripts/generate_voice_sfx.mjs (project procedural source-filter voice synthesis; OGG/MP3 conversion via @ffmpeg-installer/ffmpeg)",
-      "notes": "Project-generated voice-like procedural SFX; no external samples or third-party audio assets used.",
-      "licenseEvidence": "project-generated-procedural"
+      "provenanceType": "cc0-recording-derived",
+      "source": "CC0 recording Freesound #166345 \"Elise laughing, Oct 1, 2012, v2\" by Electron John (https://freesound.org/people/Electron%20John/sounds/166345/; HQ preview https://cdn.freesound.org/previews/166/166345_1315778-hq.mp3, sha256 25ee0bef47e9dc28bbda4fd91efe96a93ec7ea5cdf54a04edd4d7f897dd73026), excerpt 11.37-11.78s (rising delighted squeal); processed by Developer/r3f_prototype/scripts/generate_matilda_girl_voice.mjs (light cleanup only: trim, 150 Hz high-pass, 9 kHz one-pole low-pass, -12 dB gentle gap gate, 6 ms fade-in/short fade-out, linear RMS gain; no pitch/rate change, no distortion/bitcrush/ring-mod/reverb/jitter; OGG/MP3 via @ffmpeg-installer/ffmpeg, bitexact)",
+      "notes": "2026-11-14 Terry: \"마틸다 여자아이 목소리 엄수해\" / \"마틸다 음성은 지금 괴기스러우니까 100퍼센트 완전히 바꿔\". Real 4-year-old girl laughing and squealing while being tickled by her father (uploader description); one recording session for every Matilda vocal cue so all cues are the same girl. Non-verbal only (no localisation). Supersedes ea3a5395 (BigSoundBank #1660/#1662/#1663/#1677, resampled/breath-noise/pitch-glide processing, judged creepy) and, for matildaDash/matildaCountdownEnd, the procedural source-filter synthesis from generate_voice_sfx.mjs. No attribution required; credit optional: \"Sounds: Electron John via Freesound, CC0\".",
+      "licenseEvidence": "CC0-1.0 public-domain dedication shown on the Freesound sound page (http://creativecommons.org/publicdomain/zero/1.0/), checked 2026-11-14; source bytes pinned by SHA-256 in generate_matilda_girl_voice.mjs"
     },
     {
       "logicalId": "escapePortalClear",

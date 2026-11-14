@@ -624,8 +624,9 @@ const sounds = {
     synth({ wave:'noise', freq:1, dur:0.8, vol:0.4, attack:0.03, decay:0.15, sustain:0.35, release:0.3 }),
     synth({ wave:'sine', freq:50, freqEnd:30, dur:0.7, vol:0.4, attack:0.02, decay:0.15, sustain:0.2, release:0.35 }),
   ),
-  // 마틸다 Spawn/Death/Laugh는 2026-11-14부터 scripts/generate_matilda_girl_voice.mjs(CC0 실제 아이 목소리 가공)가 만든다.
-  // 여기 합성 프리셋을 되살리면 --encode 때 옛 기계음으로 덮어쓰니 넣지 마라.
+  // 마틸다 목소리 큐(Spawn/Dash/Laugh/Death/CountdownEnd)는 2026-11-14부터 scripts/generate_matilda_girl_voice.mjs
+  // (CC0 실제 4살 여자아이 녹음, 자르기·정리만)가 만든다. 여기 합성 프리셋을 되살리면 --encode 때 옛 기계음으로
+  // 덮어쓰고 src/lib/matildaGirlVoice.test.js가 실패한다. 목소리가 아닌 events/matildaWarningTick 비프만 여기 남는다.
 
   // ── 적 사망음 ────────────────────────────────────────────────────────────────
   // 좀비 사망음은 여기서 빠졌다 — 노이즈+톱니 버스트라 "음성"이 아니었다.
@@ -635,11 +636,6 @@ const sounds = {
     synth({ wave:'sine', freq:80, freqEnd:20, dur:1.1, vol:0.7, attack:0.001, decay:0.25, sustain:0.15, release:0.65 }),
     synth({ wave:'sawtooth', freq:200, freqEnd:50, dur:0.9, vol:0.4, attack:0.001, decay:0.2, sustain:0.1, release:0.55 }),
     synth({ wave:'noise', freq:1, dur:0.5, vol:0.4, attack:0.001, decay:0.15, sustain:0.05, release:0.3 }),
-  ),
-  'enemies/matildaDash': () => mix(
-    synth({ wave:'noise', freq:1, dur:0.48, vol:0.7, attack:0.005, decay:0.10, sustain:0.18, release:0.28 }),
-    synth({ wave:'sine', freq:780, freqEnd:170, dur:0.42, vol:0.34, attack:0.005, decay:0.08, sustain:0.12, release:0.25 }),
-    synth({ wave:'triangle', freq:260, freqEnd:90, dur:0.34, vol:0.28, attack:0.005, decay:0.08, sustain:0.08, release:0.20 }),
   ),
 
   // ── UI ────────────────────────────────────────────────────────────────────────
@@ -715,11 +711,6 @@ const sounds = {
   'events/matildaWarningTick': () => mix(
     synth({ wave:'sine', freq:660, dur:0.15, vol:0.6, attack:0.001, decay:0.04, sustain:0.3, release:0.07 }),
     synth({ wave:'square', freq:330, dur:0.15, vol:0.3, attack:0.001, decay:0.04, sustain:0.2, release:0.07 }),
-  ),
-  'events/matildaCountdownEnd': () => mix(
-    synth({ wave:'square', freq:220, dur:0.5, vol:0.7, attack:0.001, decay:0.1, sustain:0.5, release:0.2,
-      noiseAmt:0.1 }),
-    synth({ wave:'sawtooth', freq:110, dur:0.5, vol:0.5, attack:0.001, decay:0.1, sustain:0.4, release:0.2 }),
   ),
   'events/escapePortalClear': () => (() => {
     const notes = [784, 988, 1175, 1568, 1976]
