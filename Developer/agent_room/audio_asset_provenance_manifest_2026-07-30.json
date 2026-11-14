@@ -2078,6 +2078,106 @@
       "source": "Owner-mandated canonical inclusion; this manifest makes no rights or source verification claim.",
       "notes": "출처·권리 근거를 이 매니페스트가 확인했다는 주장은 하지 않는다. 2026-07-30 절차 생성 타이틀 교체는 2026-07-31 사용자 명시 지시로 무효화됐다. 권리·출처·품질·최적화·비평 점수는 이 정본을 교체하거나 제외할 사유가 아니다.",
       "inclusionPolicy": "owner-mandated permanent canonical inclusion in every development run, build, and AAB; do not delete, replace, convert, or redirect playback. Only a new explicit user instruction may change it."
+    },
+    {
+      "logicalId": "matildaGrain1",
+      "category": "dialogue",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/dialogue/matildaGrain1.ogg",
+          "bytes": 3952,
+          "sha256": "95a195e3fc874f27a5632408ec872630983cbe8513bf75c6e313183d17b3f99c"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/dialogue/matildaGrain1.mp3",
+          "bytes": 1481,
+          "sha256": "d23954a3aa1a59ca7270b9736ea5ec2439f12f0a5b65ecba38cf88488de100f8"
+        }
+      ],
+      "provenanceType": "cc0-recording-derived",
+      "source": "CC0 recording Freesound #166345 \"Elise laughing, Oct 1, 2012, v2\" by Electron John (https://freesound.org/people/Electron%20John/sounds/166345/; HQ preview https://cdn.freesound.org/previews/166/166345_1315778-hq.mp3, sha256 25ee0bef47e9dc28bbda4fd91efe96a93ec7ea5cdf54a04edd4d7f897dd73026), 80 ms syllable grain at the onset nearest 2.32s; processed by Developer/r3f_prototype/scripts/generate_matilda_girl_voice.mjs (light cleanup only: trim, 150 Hz high-pass, 9 kHz one-pole low-pass, 3 ms fade-in/20 ms fade-out, linear RMS gain to -20 dBFS; no pitch/rate change; OGG/MP3 via @ffmpeg-installer/ffmpeg, bitexact)",
+      "notes": "2026-11-14 Terry: \"마틸다 여자아이 목소리 엄수해\" / \"100퍼센트 완전히 바꿔\". Matilda dialogue per-glyph voice grain, rotated by src/lib/dialogueVoice.js; replaces the oscillator bleep (triangle + square overtone + 10 Hz vibrato). Same girl and session as the Matilda SFX cues. Non-verbal syllable only. No attribution required; credit optional: \"Sounds: Electron John via Freesound, CC0\".",
+      "licenseEvidence": "CC0-1.0 public-domain dedication shown on the Freesound sound page (http://creativecommons.org/publicdomain/zero/1.0/), checked 2026-11-14; source bytes pinned by SHA-256 in generate_matilda_girl_voice.mjs"
+    },
+    {
+      "logicalId": "matildaGrain2",
+      "category": "dialogue",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/dialogue/matildaGrain2.ogg",
+          "bytes": 3960,
+          "sha256": "ca8413a30014b622af289d22c54a4110e23cea45b5aab3c964585e702d5eea5a"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/dialogue/matildaGrain2.mp3",
+          "bytes": 1481,
+          "sha256": "f22501087237549eb9e532782bf7d8be0d5eaf3eed6d4a920624b1086e6a8045"
+        }
+      ],
+      "provenanceType": "cc0-recording-derived",
+      "source": "CC0 recording Freesound #166345 \"Elise laughing, Oct 1, 2012, v2\" by Electron John (https://freesound.org/people/Electron%20John/sounds/166345/; HQ preview https://cdn.freesound.org/previews/166/166345_1315778-hq.mp3, sha256 25ee0bef47e9dc28bbda4fd91efe96a93ec7ea5cdf54a04edd4d7f897dd73026), 80 ms syllable grain at the onset nearest 10.98s; processed by Developer/r3f_prototype/scripts/generate_matilda_girl_voice.mjs (light cleanup only: trim, 150 Hz high-pass, 9 kHz one-pole low-pass, 3 ms fade-in/20 ms fade-out, linear RMS gain to -20 dBFS; no pitch/rate change; OGG/MP3 via @ffmpeg-installer/ffmpeg, bitexact)",
+      "notes": "2026-11-14 Terry: \"마틸다 여자아이 목소리 엄수해\" / \"100퍼센트 완전히 바꿔\". Matilda dialogue per-glyph voice grain, rotated by src/lib/dialogueVoice.js; replaces the oscillator bleep (triangle + square overtone + 10 Hz vibrato). Same girl and session as the Matilda SFX cues. Non-verbal syllable only. No attribution required; credit optional: \"Sounds: Electron John via Freesound, CC0\".",
+      "licenseEvidence": "CC0-1.0 public-domain dedication shown on the Freesound sound page (http://creativecommons.org/publicdomain/zero/1.0/), checked 2026-11-14; source bytes pinned by SHA-256 in generate_matilda_girl_voice.mjs"
+    },
+    {
+      "logicalId": "matildaGrain3",
+      "category": "dialogue",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/dialogue/matildaGrain3.ogg",
+          "bytes": 3949,
+          "sha256": "85a989d428121ed8b98e84eb90da57adb8fda1a40135e54c45bcbfcf4ba2b541"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/dialogue/matildaGrain3.mp3",
+          "bytes": 1481,
+          "sha256": "3b50e1c545d4af690dedda54e99e3c7edbcc4aeedac08723b8506fb352067a46"
+        }
+      ],
+      "provenanceType": "cc0-recording-derived",
+      "source": "CC0 recording Freesound #166345 \"Elise laughing, Oct 1, 2012, v2\" by Electron John (https://freesound.org/people/Electron%20John/sounds/166345/; HQ preview https://cdn.freesound.org/previews/166/166345_1315778-hq.mp3, sha256 25ee0bef47e9dc28bbda4fd91efe96a93ec7ea5cdf54a04edd4d7f897dd73026), 80 ms syllable grain at the onset nearest 2.50s; processed by Developer/r3f_prototype/scripts/generate_matilda_girl_voice.mjs (light cleanup only: trim, 150 Hz high-pass, 9 kHz one-pole low-pass, 3 ms fade-in/20 ms fade-out, linear RMS gain to -20 dBFS; no pitch/rate change; OGG/MP3 via @ffmpeg-installer/ffmpeg, bitexact)",
+      "notes": "2026-11-14 Terry: \"마틸다 여자아이 목소리 엄수해\" / \"100퍼센트 완전히 바꿔\". Matilda dialogue per-glyph voice grain, rotated by src/lib/dialogueVoice.js; replaces the oscillator bleep (triangle + square overtone + 10 Hz vibrato). Same girl and session as the Matilda SFX cues. Non-verbal syllable only. No attribution required; credit optional: \"Sounds: Electron John via Freesound, CC0\".",
+      "licenseEvidence": "CC0-1.0 public-domain dedication shown on the Freesound sound page (http://creativecommons.org/publicdomain/zero/1.0/), checked 2026-11-14; source bytes pinned by SHA-256 in generate_matilda_girl_voice.mjs"
+    },
+    {
+      "logicalId": "matildaGrain4",
+      "category": "dialogue",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/dialogue/matildaGrain4.ogg",
+          "bytes": 3967,
+          "sha256": "6d8135ef8376bd4edd3e3e2f87c3ac6df134035413a8ada69ea97d1f62c2ac64"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/dialogue/matildaGrain4.mp3",
+          "bytes": 1481,
+          "sha256": "e158ef8e835fc546391aa56777357b5ab9e86b06ce7f186c1da7e937e8b765fd"
+        }
+      ],
+      "provenanceType": "cc0-recording-derived",
+      "source": "CC0 recording Freesound #166345 \"Elise laughing, Oct 1, 2012, v2\" by Electron John (https://freesound.org/people/Electron%20John/sounds/166345/; HQ preview https://cdn.freesound.org/previews/166/166345_1315778-hq.mp3, sha256 25ee0bef47e9dc28bbda4fd91efe96a93ec7ea5cdf54a04edd4d7f897dd73026), 80 ms syllable grain at the onset nearest 11.17s; processed by Developer/r3f_prototype/scripts/generate_matilda_girl_voice.mjs (light cleanup only: trim, 150 Hz high-pass, 9 kHz one-pole low-pass, 3 ms fade-in/20 ms fade-out, linear RMS gain to -20 dBFS; no pitch/rate change; OGG/MP3 via @ffmpeg-installer/ffmpeg, bitexact)",
+      "notes": "2026-11-14 Terry: \"마틸다 여자아이 목소리 엄수해\" / \"100퍼센트 완전히 바꿔\". Matilda dialogue per-glyph voice grain, rotated by src/lib/dialogueVoice.js; replaces the oscillator bleep (triangle + square overtone + 10 Hz vibrato). Same girl and session as the Matilda SFX cues. Non-verbal syllable only. No attribution required; credit optional: \"Sounds: Electron John via Freesound, CC0\".",
+      "licenseEvidence": "CC0-1.0 public-domain dedication shown on the Freesound sound page (http://creativecommons.org/publicdomain/zero/1.0/), checked 2026-11-14; source bytes pinned by SHA-256 in generate_matilda_girl_voice.mjs"
+    },
+    {
+      "logicalId": "matildaGrain5",
+      "category": "dialogue",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/dialogue/matildaGrain5.ogg",
+          "bytes": 3966,
+          "sha256": "f54efaf0a4a822d913f68c76e77b92278dd8d17071f494a5159372219a3ca938"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/dialogue/matildaGrain5.mp3",
+          "bytes": 1481,
+          "sha256": "2d21c9b027eb9ed9de7024ef23bc19619562f7ba62c472cb520aff84d1688833"
+        }
+      ],
+      "provenanceType": "cc0-recording-derived",
+      "source": "CC0 recording Freesound #166345 \"Elise laughing, Oct 1, 2012, v2\" by Electron John (https://freesound.org/people/Electron%20John/sounds/166345/; HQ preview https://cdn.freesound.org/previews/166/166345_1315778-hq.mp3, sha256 25ee0bef47e9dc28bbda4fd91efe96a93ec7ea5cdf54a04edd4d7f897dd73026), 80 ms syllable grain at the onset nearest 3.14s; processed by Developer/r3f_prototype/scripts/generate_matilda_girl_voice.mjs (light cleanup only: trim, 150 Hz high-pass, 9 kHz one-pole low-pass, 3 ms fade-in/20 ms fade-out, linear RMS gain to -20 dBFS; no pitch/rate change; OGG/MP3 via @ffmpeg-installer/ffmpeg, bitexact)",
+      "notes": "2026-11-14 Terry: \"마틸다 여자아이 목소리 엄수해\" / \"100퍼센트 완전히 바꿔\". Matilda dialogue per-glyph voice grain, rotated by src/lib/dialogueVoice.js; replaces the oscillator bleep (triangle + square overtone + 10 Hz vibrato). Same girl and session as the Matilda SFX cues. Non-verbal syllable only. No attribution required; credit optional: \"Sounds: Electron John via Freesound, CC0\".",
+      "licenseEvidence": "CC0-1.0 public-domain dedication shown on the Freesound sound page (http://creativecommons.org/publicdomain/zero/1.0/), checked 2026-11-14; source bytes pinned by SHA-256 in generate_matilda_girl_voice.mjs"
     }
   ]
 }

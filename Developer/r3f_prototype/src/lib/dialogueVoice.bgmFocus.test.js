@@ -4,7 +4,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 const { mockHowler, makeContext } = vi.hoisted(() => {
-  const param = () => ({ setValueAtTime: () => {}, exponentialRampToValueAtTime: () => {} })
+  const param = () => ({ setValueAtTime: () => {}, exponentialRampToValueAtTime: () => {}, linearRampToValueAtTime: () => {} })
   const makeContext = () => {
     const ctx = new EventTarget()
     Object.assign(ctx, {
@@ -19,6 +19,14 @@ const { mockHowler, makeContext } = vi.hoisted(() => {
         const osc = { connect() {}, disconnect() {}, start() {}, stop() {}, frequency: param(), detune: param() }
         ctx.oscillators.push(osc)
         return osc
+      },
+      // Matilda's voice is recorded grains (2026-11-14): buffer sources instead of oscillators.
+      sources: [],
+      decodeAudioData: () => Promise.resolve({ duration: 0.08, sampleRate: 22050, getChannelData: () => new Float32Array(8).fill(0.1) }),
+      createBufferSource: () => {
+        const src = { connect() {}, disconnect() {}, start() {}, stop() {} }
+        ctx.sources.push(src)
+        return src
       },
     })
     return ctx
@@ -45,6 +53,7 @@ beforeEach(() => {
   contextCtor = vi.fn(function FakeAudioContext() { return makeContext() })
   vi.stubGlobal('AudioContext', contextCtor)
   vi.stubGlobal('webkitAudioContext', contextCtor)
+  vi.stubGlobal('fetch', vi.fn(() => Promise.resolve({ ok: true, arrayBuffer: () => Promise.resolve(new ArrayBuffer(8)) })))
 })
 afterEach(() => {
   stopDialogueVoice()
@@ -69,7 +78,7 @@ describe('dialogue voice keeps the stage BGM (audio focus)', () => {
     await vi.advanceTimersByTimeAsync(3000)
 
     expect(contextCtor).not.toHaveBeenCalled()
-    expect(mockHowler.ctx.oscillators.length).toBeGreaterThan(0)
+    expect(mockHowler.ctx.sources.length).toBeGreaterThan(0)
     expect(getSharedAudioContext()).toBe(mockHowler.ctx)
     expect(mockHowler.autoSuspend).toBe(false)
     expect(bgm.pause).not.toHaveBeenCalled()

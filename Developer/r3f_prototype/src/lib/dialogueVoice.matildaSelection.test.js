@@ -1,36 +1,26 @@
 import { describe, expect, it } from 'vitest'
 import { DIALOGUE_VOICE_PROFILES, getDialogueVoiceProfile, getDialogueGlyphDelay } from './dialogueVoice.js'
 
-// soundmini t_92589769 final handoff: applied A is 610 Hz / 76 ms,
-// not the historical audition-label copy. Do not infer a new voice choice.
-const selectedMatildaA = {
-  waveform: 'triangle',
-  overtoneWaveform: 'square',
-  overtoneGain: 0.25,
-  baseFrequency: 610,
-  semitonePattern: [0, 4, 2, 5, -2, 0, -1, 2],
-  detuneCents: 20,
+// 2026-11-14 Terry "마틸다 여자아이 목소리 엄수해" / "100퍼센트 완전히 바꿔" supersedes the
+// soundmini t_92589769 selection A (610 Hz triangle + square overtone + vibrato bleep).
+// Matilda now rotates recorded little-girl syllable grains; glyph timing is unchanged.
+const matildaGrainVoice = {
+  grainUrls: [1, 2, 3, 4, 5].map((n) => `/sfx/dialogue/matildaGrain${n}`),
+  grainPattern: [0, 3, 1, 4, 2, 1, 3, 0],
+  grainGain: 0.028,
   glyphMs: 76,
-  durationMs: 64,
-  gain: 0.043,
-  attackMs: 2,
   releaseMs: 16,
-  filterType: 'bandpass',
-  filterFrequency: 1800,
-  filterQ: 1.4,
   punctuationPauseMs: 120,
   sentencePauseMs: 185,
-  vibratoRate: 10,
-  vibratoDepthCents: 18,
 }
 
-describe('Matilda source-owner final selection', () => {
-  it('uses every parameter of the actually selected A runtime profile', () => {
-    expect(DIALOGUE_VOICE_PROFILES.matilda).toEqual(selectedMatildaA)
-    expect(getDialogueVoiceProfile('matilda', '오호호호!')).toEqual(selectedMatildaA)
+describe('Matilda dialogue voice selection', () => {
+  it('uses the recorded girl grain profile', () => {
+    expect(DIALOGUE_VOICE_PROFILES.matilda).toEqual(matildaGrainVoice)
+    expect(getDialogueVoiceProfile('matilda', '오호호호!')).toEqual(matildaGrainVoice)
   })
 
-  it('applies selected glyph and sentence timing through the runtime helper', () => {
+  it('keeps the previous glyph and sentence timing', () => {
     const profile = getDialogueVoiceProfile('matilda', '오호!')
     expect(getDialogueGlyphDelay('오', profile)).toBe(76)
     expect(getDialogueGlyphDelay('!', profile)).toBe(185)

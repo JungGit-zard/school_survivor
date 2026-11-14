@@ -20,9 +20,10 @@ describe('dialogueVoice', () => {
     const urgent = getDialogueVoiceProfile('protagonistIntro', '난 여기서 빠져나가야겠어, 여긴… 좀비학교다!')
     const matilda = getDialogueVoiceProfile('matilda', '오호호호! 떡하나주면 안잡아먹지!')
 
-    expect(protagonist.baseFrequency).toBeLessThan(matilda.baseFrequency)
     expect(urgent.baseFrequency).toBeGreaterThan(protagonist.baseFrequency)
-    expect(matilda.overtoneWaveform).toBe('square')
-    expect(matilda.vibratoRate).toBeGreaterThan(0)
+    // 2026-11-14: Matilda speaks with recorded little-girl syllable grains, not an oscillator.
+    expect(protagonist.waveform).toBeTruthy()
+    expect(matilda.grainUrls.length).toBeGreaterThanOrEqual(3)
+    expect(matilda.waveform).toBeUndefined()
   })
 })

@@ -1,8 +1,9 @@
 // Animalese-style dialogue voice synthesis for ESZS.
 //
 // This intentionally does not copy or sample Animal Crossing / Nintendo audio.
-// It uses short original WebAudio oscillator bleeps scheduled per Korean grapheme,
-// following soundmini's handoff: protagonist = lower/tense, Matilda = high/mocking.
+// The protagonist uses short original WebAudio oscillator bleeps scheduled per Korean
+// grapheme. Matilda (2026-11-14) instead rotates tiny syllable grains cut from a CC0
+// recording of a real little girl laughing (Freesound #166345), one grain per glyph.
 //
 // Audio focus (2026-10-28): the voice runs on the app's ONE shared AudioContext
 // (Howler's) instead of creating its own. A second context resuming on iOS
@@ -49,25 +50,20 @@ export const DIALOGUE_VOICE_PROFILES = Object.freeze({
     punctuationPauseMs: 115,
     sentencePauseMs: 190,
   }),
+  // 2026-11-14 Terry "마틸다 여자아이 목소리 엄수해" / "100퍼센트 완전히 바꿔": 삼각파+사각파 배음+10 Hz 비브라토
+  // 블립(괴기스럽게 들렸다)을 버리고, 실제 4살 여자아이 웃음 녹음(CC0)에서 자른 80 ms 음절 그레인을 글자마다
+  // 돌려 쓴다. 그레인은 scripts/generate_matilda_girl_voice.mjs가 만든다. 피치/속도는 바꾸지 않는다.
+  // 글자 간격(76 ms)과 쉼표/문장 쉼은 이전 그대로다. 그레인 파일은 -20 dBFS RMS로 정규화돼 있고,
+  // grainGain 0.028(-31 dB)은 이전 블립의 글자당 에너지(시뮬레이션 약 -53 dBFS RMS)보다 약 2 dB 높게 둔다
+  // (1.8 kHz 대역통과 블립은 같은 에너지에서 귀에 더 크게 들렸다).
   matilda: Object.freeze({
-    waveform: 'triangle',
-    overtoneWaveform: 'square',
-    overtoneGain: 0.25,
-    baseFrequency: 610,
-    semitonePattern: [0, 4, 2, 5, -2, 0, -1, 2],
-    detuneCents: 20,
+    grainUrls: Object.freeze([1, 2, 3, 4, 5].map((n) => `/sfx/dialogue/matildaGrain${n}`)),
+    grainPattern: Object.freeze([0, 3, 1, 4, 2, 1, 3, 0]),
+    grainGain: 0.028,
     glyphMs: 76,
-    durationMs: 64,
-    gain: 0.043,
-    attackMs: 2,
     releaseMs: 16,
-    filterType: 'bandpass',
-    filterFrequency: 1800,
-    filterQ: 1.4,
     punctuationPauseMs: 120,
     sentencePauseMs: 185,
-    vibratoRate: 10,
-    vibratoDepthCents: 18,
   }),
 })
 
@@ -123,19 +119,25 @@ export function playDialogueVoice(text, profileName = 'protagonistIntro', option
           ACTIVE_TIMERS.delete(timer)
           if (generation !== utteranceGeneration || context.state !== 'running') return
           if (getSfxVolumeScale() <= 0) return
-          try { playGlyphBleep(context, profile, glyph, index, volume) } catch { cancel() }
+          try {
+            if (profile.grainUrls) playGlyphGrain(context, profile, index, volume)
+            else playGlyphBleep(context, profile, glyph, index, volume)
+          } catch { cancel() }
         }, cursorMs)
         ACTIVE_TIMERS.add(timer)
       }
       cursorMs += delayMs
     })
   }
+  // Grain voices (Matilda) wait for their few tiny clips before the glyph schedule
+  // starts, so the first line is delayed by the load instead of losing glyphs.
+  const start = () => (profile.grainUrls ? loadGrainBuffers(context, profile).then(schedule) : schedule())
   // Resume must still be invoked synchronously within the user's gesture. Only
   // the glyph schedule waits; rejection is optional silent feedback, not a game error.
   try {
     if (context.state === 'suspended' || context.state === 'interrupted') {
-      Promise.resolve(context.resume?.()).then(schedule).catch(cancel)
-    } else schedule()
+      Promise.resolve(context.resume?.()).then(start).catch(cancel)
+    } else Promise.resolve(start()).catch(cancel)
   } catch { cancel() }
   return cancel
 }
@@ -149,6 +151,82 @@ export function stopDialogueVoice() {
     try { node.disconnect?.() } catch {}
   })
   ACTIVE_NODES.clear()
+}
+
+// ── Recorded syllable grains (Matilda) ───────────────────────────────────────
+const GRAIN_CACHE = new WeakMap() // context -> Map(profile -> Promise<grain[]>)
+
+function grainExtension() {
+  try {
+    if (typeof Audio !== 'undefined' && new Audio().canPlayType('audio/ogg; codecs="vorbis"')) return 'ogg'
+  } catch { /* fall through */ }
+  return 'mp3'
+}
+
+function decode(context, bytes) {
+  return new Promise((resolve, reject) => {
+    const result = context.decodeAudioData(bytes, resolve, reject)
+    if (result && typeof result.then === 'function') result.then(resolve, reject)
+  })
+}
+
+// MP3 decoders may keep the encoder's leading padding; skip it so every grain starts on its syllable.
+function leadingSilenceSeconds(buffer) {
+  try {
+    const data = buffer.getChannelData(0)
+    let i = 0
+    while (i < data.length && Math.abs(data[i]) < 1e-4) i += 1
+    return i < data.length ? i / buffer.sampleRate : 0
+  } catch { return 0 }
+}
+
+export function loadGrainBuffers(context, profile) {
+  let byProfile = GRAIN_CACHE.get(context)
+  if (!byProfile) { byProfile = new Map(); GRAIN_CACHE.set(context, byProfile) }
+  if (!byProfile.has(profile)) {
+    const ext = grainExtension()
+    const promise = Promise.all(profile.grainUrls.map(async (base) => {
+      const response = await fetch(`${base}.${ext}`)
+      if (!response.ok) throw new Error(`grain ${response.status}`)
+      const buffer = await decode(context, await response.arrayBuffer())
+      return { buffer, offset: leadingSilenceSeconds(buffer) }
+    }))
+    promise.then((grains) => { promise.grains = grains }, () => byProfile.delete(profile)) // failed load retries next line
+    byProfile.set(profile, promise)
+  }
+  return byProfile.get(profile)
+}
+
+function playGlyphGrain(context, profile, index, volume) {
+  const grains = GRAIN_CACHE.get(context)?.get(profile)?.grains
+  if (!grains?.length) return
+  const pattern = profile.grainPattern ?? [0]
+  const grain = grains[pattern[index % pattern.length] % grains.length]
+  const now = context.currentTime
+  const length = Math.max(0.01, grain.buffer.duration - grain.offset)
+  const release = (profile.releaseMs ?? 16) / 1000
+  // Voices connect straight to context.destination, past Howler's master gain, so the
+  // player's SFX slider (voices count as SFX) is applied here — same as the bleeps.
+  const gainAmount = (profile.grainGain ?? 0.03) * volume * getSfxVolumeScale()
+
+  const source = context.createBufferSource()
+  const gain = context.createGain()
+  ACTIVE_NODES.add(gain)
+  source.buffer = grain.buffer
+  gain.gain.setValueAtTime(gainAmount, now)
+  gain.gain.setValueAtTime(gainAmount, now + Math.max(0, length - release))
+  gain.gain.linearRampToValueAtTime?.(0, now + length)
+  source.connect(gain)
+  gain.connect(context.destination)
+  ACTIVE_NODES.add(source)
+  source.onended = () => {
+    ACTIVE_NODES.delete(source)
+    ACTIVE_NODES.delete(gain)
+    try { source.disconnect?.() } catch {}
+    try { gain.disconnect?.() } catch {}
+  }
+  source.start(now, grain.offset)
+  source.stop(now + length + 0.01)
 }
 
 function playGlyphBleep(context, profile, glyph, index, volume) {

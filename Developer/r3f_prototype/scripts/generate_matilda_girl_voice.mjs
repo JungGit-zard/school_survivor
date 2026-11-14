@@ -76,6 +76,20 @@ export const MATILDA_VOICE_CUES = Object.freeze({
   matildaCountdownEnd: { dir: 'events', parts: [['elise166345', 11.37, 11.78]], fadeOut: 0.06, targetRmsDb: -18.6, character: '곧 나온다: 올라가는 "꺄아~!"' },
 })
 
+// 대사 블립용 음절 그레인(2026-11-14 추가, 같은 아이·같은 녹음). 대화창에서 마틸다 대사가 한 글자 나올 때마다
+// 하나씩 돌려 쓴다(src/lib/dialogueVoice.js matilda 프로필). 피치/속도는 건드리지 않는다.
+// at = 음절 근처 시각(초). 실제 시작점은 그 근처 5 ms RMS가 음절 최대의 20%를 처음 넘는 곳 - 3 ms로 맞춘다.
+export const DIALOGUE_GRAIN_SEC = 0.08
+export const MATILDA_DIALOGUE_GRAINS = Object.freeze([
+  { id: 'matildaGrain1', source: 'elise166345', at: 2.32 }, // "하" ≈400 Hz
+  { id: 'matildaGrain2', source: 'elise166345', at: 10.98 }, // "헤" ≈560 Hz
+  { id: 'matildaGrain3', source: 'elise166345', at: 2.50 }, // "하" ≈410 Hz
+  { id: 'matildaGrain4', source: 'elise166345', at: 11.17 }, // "햐" ≈600 Hz
+  { id: 'matildaGrain5', source: 'elise166345', at: 3.14 }, // "하" ≈415 Hz
+])
+export const DIALOGUE_GRAIN_DIR = 'dialogue'
+const DIALOGUE_GRAIN_RMS_DB = -20
+
 // ── 원본 확보 ────────────────────────────────────────────────────────────────
 async function ffmpegPath() {
   if (process.env.FFMPEG_BINARY) return process.env.FFMPEG_BINARY
@@ -180,6 +194,30 @@ export function buildCue(spec, S) {
   return normalize(x, spec.targetRmsDb)
 }
 
+function onsetNear(x, at) {
+  const hop = sec(0.002), win = sec(0.005)
+  const lo = sec(at - 0.03), hi = sec(at + 0.1)
+  const env = []
+  for (let i = lo; i + win <= hi; i += hop) {
+    let s = 0
+    for (let j = 0; j < win; j++) s += x[i + j] * x[i + j]
+    env.push([i, Math.sqrt(s / win)])
+  }
+  const max = Math.max(...env.map(([, r]) => r))
+  const first = env.find(([, r]) => r >= max * 0.2)
+  return first[0] - sec(0.003)
+}
+
+export function buildDialogueGrain(grain, S) {
+  const x = S[grain.source]
+  const a = onsetNear(x, grain.at)
+  const g = Float32Array.from(x.subarray(a, a + sec(DIALOGUE_GRAIN_SEC)))
+  highpass(g, 150)
+  lowpass(g, 9000)
+  fades(g, 0.003, 0.02)
+  return normalize(g, DIALOGUE_GRAIN_RMS_DB)
+}
+
 // ── 출력 ─────────────────────────────────────────────────────────────────────
 function writeWav(filepath, samples) {
   const len = samples.length
@@ -213,6 +251,13 @@ if (process.argv[1] && process.argv[1].endsWith('generate_matilda_girl_voice.mjs
     encode(FFMPEG, x, base, join(tmp, `${cue}.wav`))
     if (auditionDir) writeWav(`${base}.wav`, x)
     console.log(`ok ${cue} ${(x.length / SR).toFixed(2)}s -> ${auditionDir ? base : `public/sfx/${spec.dir}/${cue}`}.{ogg,mp3} — ${spec.character}`)
+  }
+  for (const grain of MATILDA_DIALOGUE_GRAINS) {
+    const x = buildDialogueGrain(grain, S)
+    const base = auditionDir ? join(auditionDir, grain.id) : join(ROOT, 'public/sfx', DIALOGUE_GRAIN_DIR, grain.id)
+    encode(FFMPEG, x, base, join(tmp, `${grain.id}.wav`))
+    if (auditionDir) writeWav(`${base}.wav`, x)
+    console.log(`ok ${grain.id} ${(x.length / SR).toFixed(3)}s -> ${auditionDir ? base : `public/sfx/${DIALOGUE_GRAIN_DIR}/${grain.id}`}.{ogg,mp3} (대사 블립)`)
   }
   rmSync(tmp, { recursive: true, force: true })
 }
