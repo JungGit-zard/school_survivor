@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto'
 import { existsSync, readFileSync, statSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { DIALOGUE_GRAIN_DIR, MATILDA_DIALOGUE_GRAINS } from './generate_matilda_girl_voice.mjs'
 
 const scriptDirectory = dirname(fileURLToPath(import.meta.url))
 const workspaceRoot = resolve(scriptDirectory, '../../..')
@@ -60,12 +61,18 @@ if (!existsSync(manifestPath)) {
         `Developer/r3f_prototype/public${oggPath.replace(/\.ogg$/, '.mp3')}`,
       ])
     }
+    const sfxLogicalIdCount = expectedPathsByLogicalId.size - bgmPathsByLogicalId.size
+    const sfxFallbackFileCount = [...expectedPathsByLogicalId.values()].flat().length
+      - [...bgmPathsByLogicalId.values()].flat().length
+    // 마틸다 대사 블립 그레인(2026-11-14)은 Howler 레지스트리가 아니라 dialogueVoice.js가 직접
+    // 읽는 녹음 조각이다. 목록의 정본은 그레인을 만드는 생성기다.
+    for (const { id } of MATILDA_DIALOGUE_GRAINS) {
+      const base = `Developer/r3f_prototype/public/sfx/${DIALOGUE_GRAIN_DIR}/${id}`
+      expectedPathsByLogicalId.set(id, [`${base}.ogg`, `${base}.mp3`])
+    }
     const expectedLogicalIds = new Set(expectedPathsByLogicalId.keys())
     const expectedPaths = new Set([...expectedPathsByLogicalId.values()].flat())
-    const sfxLogicalIdCount = expectedLogicalIds.size - bgmPathsByLogicalId.size
-    const sfxFallbackFileCount = expectedPaths.size
-      - [...bgmPathsByLogicalId.values()].flat().length
-    verifiedSummary = `${sfxLogicalIdCount} SFX IDs, ${sfxFallbackFileCount} fallback files, canonical title BGM`
+    verifiedSummary = `${sfxLogicalIdCount} SFX IDs, ${sfxFallbackFileCount} fallback files, ${MATILDA_DIALOGUE_GRAINS.length} dialogue grains, canonical title BGM`
 
     if (!Array.isArray(manifest.assets)) {
       fail('manifest assets must be an array')
