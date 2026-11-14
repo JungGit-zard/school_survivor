@@ -410,12 +410,12 @@ function TitleCompanions() {
 
   return (
     <>
-      <group ref={duckRef} position={[-0.22, 0.2, 0.82]} rotation={[0, 0.28, -0.03]} scale={1.05}>
+      <group ref={duckRef} position={[-0.04, 0.2, 0.92]} rotation={[0, 0.28, -0.03]} scale={1.05}>
         <group ref={duckIdleRef}>
           <CompassBladeModel />
         </group>
       </group>
-      <group position={[1.36, 0.27, 0.76]} rotation={[0, -0.38, 0.02]} scale={0.42}>
+      <group position={[1.22, 0.27, 0.5]} rotation={[0, -0.38, 0.02]} scale={0.42}>
         <group ref={chibikoIdleRef}>
           <ChibikoModel attackPhaseRef={chibikoAttackPhaseRef} />
         </group>
@@ -712,17 +712,17 @@ export default function TitleScene3D({
 
       <TitleCharacterOutlineGroup>
         <TitleFarBackgroundStory reducedEffects={reducedEffects} />
-        <TitleBossZombie type="B02" position={[-1.99, 0.18, -3.7]} scale={0.93} delay={0.9} />
-        <TitleBossZombie type="B03" position={[0.02, 0.4, -4.04]} scale={1.344} delay={1.35} />
-        <TitleBossZombie type="B01" position={[-0.86, 0.34, -1.12]} scale={1.02} />
-        <TitleZombie idleId="zombieE03Far" position={[-3.3, 0.22, -3.42]} delay={0.4} scale={0.58} type="E03" />
-        <TitleZombie idleId="zombieE02Far" position={[2.0, 0.2, -3.18]} delay={1.6} scale={0.52} type="E02" />
-        <TitleZombie idleId="zombieE01" position={[-1.95, 0.22, -1.55]} delay={0.2} scale={0.7} type="E01" />
-        <TitleZombie idleId="zombieE02" position={[1.56, 0.2, -2.08]} delay={1.0} scale={0.62} type="E02" />
-        <TitleZombie idleId="zombieE03" position={[-0.92, 0.18, -2.72]} delay={2.1} scale={0.52} type="E03" />
-        <TitleMatildaPursuer position={[1.45, 0.36, -2.92]} delay={1.8} scale={1.44} />
-        <TitleIdleDoge idleId="dogeTwist" position={[-1.27, 0.0, 1.55]} dance="twist" delay={0} scale={0.92} yaw={0.42} paused={reducedEffects} />
-        <TitleIdleDoge idleId="dogeDisco" position={[1.97, 0.0, 1.5]} dance="disco" delay={1.15} scale={0.92} yaw={-0.5} paused={reducedEffects} />
+        <TitleBossZombie type="B02" position={[-1.56, 0.18, -2.23]} scale={0.93} delay={0.9} />
+        <TitleBossZombie type="B03" position={[0.3, 0.4, -3.3]} scale={1.344} delay={1.35} />
+        <TitleBossZombie type="B01" position={[-0.35, 0.34, -1.01]} scale={1.02} />
+        <TitleZombie idleId="zombieE03Far" position={[-2.45, 0.22, -1.38]} delay={0.4} scale={0.58} type="E03" />
+        <TitleZombie idleId="zombieE02Far" position={[1.52, 0.2, -1.9]} delay={1.6} scale={0.52} type="E02" />
+        <TitleZombie idleId="zombieE01" position={[-1.5, 0.22, -0.83]} delay={0.2} scale={0.7} type="E01" />
+        <TitleZombie idleId="zombieE02" position={[1.4, 0.2, -1.12]} delay={1.0} scale={0.62} type="E02" />
+        <TitleZombie idleId="zombieE03" position={[-0.5, 0.18, -1.9]} delay={2.1} scale={0.52} type="E03" />
+        <TitleMatildaPursuer position={[1.04, 0.36, -1.89]} delay={1.8} scale={1.44} />
+        <TitleIdleDoge idleId="dogeTwist" position={[-0.9, 0.0, 0.88]} dance="twist" delay={0} scale={0.92} yaw={0.42} paused={reducedEffects} />
+        <TitleIdleDoge idleId="dogeDisco" position={[1.74, 0.0, 1.18]} dance="disco" delay={1.15} scale={0.92} yaw={-0.5} paused={reducedEffects} />
         <TitleCompanions />
       </TitleCharacterOutlineGroup>
     </group>

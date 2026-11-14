@@ -141,10 +141,10 @@ describe('TitleScene3D direction', () => {
     expect(source).toContain("import UnconsciousStudent from './StageObjects/UnconsciousStudent.jsx'")
     expect(source).not.toContain("from './StageObjects/index.js'")
     expect(source).toContain('<ZombieMesh type={type} animPhase="charge" idleRig={idleRig} />')
-    expect(source).toContain('<TitleBossZombie type="B02" position={[-1.99, 0.18, -3.7]} scale={0.93} delay={0.9} />')
-    expect(source).toContain('<TitleBossZombie type="B03" position={[0.02, 0.4, -4.04]} scale={1.344} delay={1.35} />')
-    expect(source).toContain('<TitleBossZombie type="B01" position={[-0.86, 0.34, -1.12]} scale={1.02} />')
-    expect(source).toContain('<TitleZombie idleId="zombieE03" position={[-0.92, 0.18, -2.72]} delay={2.1} scale={0.52} type="E03" />')
+    expect(source).toContain('<TitleBossZombie type="B02" position={[-1.56, 0.18, -2.23]} scale={0.93} delay={0.9} />')
+    expect(source).toContain('<TitleBossZombie type="B03" position={[0.3, 0.4, -3.3]} scale={1.344} delay={1.35} />')
+    expect(source).toContain('<TitleBossZombie type="B01" position={[-0.35, 0.34, -1.01]} scale={1.02} />')
+    expect(source).toContain('<TitleZombie idleId="zombieE03" position={[-0.5, 0.18, -1.9]} delay={2.1} scale={0.52} type="E03" />')
     expect(source).toContain('<ClassroomDesk')
     expect(source).toContain('<ClassroomChair')
     expect(source).toContain('<UnconsciousStudent')
@@ -160,7 +160,7 @@ describe('TitleScene3D direction', () => {
     expect(source).toContain('rotation={[0, -0.36, 0.04]} scale={1.02}')
     expect(source).toContain('rotation={[0, 0.9, 0]} scale={0.84}')
     expect(source).toContain('rotation={[0, -0.78, 0]} scale={0.84}')
-    expect(source).toContain('<TitleMatildaPursuer position={[1.45, 0.36, -2.92]} delay={1.8} scale={1.44} />')
+    expect(source).toContain('<TitleMatildaPursuer position={[1.04, 0.36, -1.89]} delay={1.8} scale={1.44} />')
   })
 
   it('places the real duck potty and Chibiko models in the title foreground', () => {
@@ -170,8 +170,8 @@ describe('TitleScene3D direction', () => {
     expect(source).toContain("import { ChibikoModel } from './Weapons/Chibiko.jsx'")
     expect(source).toContain('duckRef.current.scale.set(1.05, 1.05 * (1 + breath), 1.05)')
     expect(source).toContain('Math.sin(clock.elapsedTime * 1.7) * 0.014')
-    expect(source).toContain('ref={duckRef} position={[-0.22, 0.2, 0.82]}')
-    expect(source).toContain('position={[-0.22, 0.2, 0.82]}')
+    expect(source).toContain('ref={duckRef} position={[-0.04, 0.2, 0.92]}')
+    expect(source).toContain('position={[-0.04, 0.2, 0.92]}')
     expect(source).toContain('<CompassBladeModel />')
     expect(source).toContain('<ChibikoModel attackPhaseRef={chibikoAttackPhaseRef} />')
     expect(source).toContain('<TitleCompanions />')
@@ -219,8 +219,8 @@ describe('TitleScene3D direction', () => {
 
     expect(source).toContain('const zomlonbiskRef = useRef()')
     expect(source).toContain('zomlonbiskRef.current.position.y = 0.68 + Math.abs(s) * 0.05')
-    expect(source).toContain('<TitleIdleDoge idleId="dogeTwist" position={[-1.27, 0.0, 1.55]} dance="twist"')
-    expect(source).toContain('<TitleIdleDoge idleId="dogeDisco" position={[1.97, 0.0, 1.5]} dance="disco"')
+    expect(source).toContain('<TitleIdleDoge idleId="dogeTwist" position={[-0.9, 0.0, 0.88]} dance="twist"')
+    expect(source).toContain('<TitleIdleDoge idleId="dogeDisco" position={[1.74, 0.0, 1.18]} dance="disco"')
   })
 
   it('keeps far-background story models behind the title board', () => {
