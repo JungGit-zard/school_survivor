@@ -47,7 +47,7 @@ import { logKill } from '../lib/playtestLogger.js'
 import { getStageObjectSightObstacles, isStageObjectEnemyTrackingBlocked } from './StageObjects/stageObjectColliders.js'
 import { createEnemyHitEventQueue } from '../lib/enemyHitEventQueue.js'
 import { getRuntimeElapsedMs } from '../lib/gameRuntimeTime.js'
-import { createRosterRotation, noteRosterRotationSpawn, pickRosterRotationType } from '../lib/stageRosterRotation.js'
+import { createRosterRotation, noteRosterRotationSpawn, pickRosterRotationType, pickRosterTankType } from '../lib/stageRosterRotation.js'
 import { advanceMatildaEntryGrace, canSpawnMatildaEntry, cancelMatildaEntryGrace, createMatildaEntryGrace } from '../lib/matildaEntryGrace.js'
 import { matildaHpFromWeapons } from '../lib/playerDpsEstimate.js'
 import { getPooledEnemyRenderTier, shouldRefreshEnemySight } from './PooledEnemyVisuals.js'
@@ -1363,6 +1363,10 @@ function rosterRotationNowSec() {
 export function rotateRegularSpawnType(cache, type, sec = cache?.rosterRotationClock ? cache.rosterRotationClock() : rosterRotationNowSec()) {
   return pickRosterRotationType(cache?.rosterRotation, type, sec)
 }
+// 형태 버스트(ring/pincer…): 위치·타입은 작성 그대로, E05 탱커 감축 계수(5번째마다 신규 종)만 탄다.
+export function rotateFormationSpawnType(cache, type, sec = cache?.rosterRotationClock ? cache.rosterRotationClock() : rosterRotationNowSec()) {
+  return pickRosterTankType(cache?.rosterRotation, type, sec)
+}
 
 export function buildLowDensityReinforcementBatch(cache, count = 20, random = Math.random) {
   const batch = []
@@ -1404,7 +1408,7 @@ export function buildExpansionBurstBatch(cache,evt,counts,random=Math.random) {
   for(let index=0;index<count;index++) {
     const authoredType=evt.mixedTypes?evt.mixedTypes[index%evt.mixedTypes.length]:evt.type
     // 형태 없는 정규 행만 로스터 순환을 탄다. 보스·코인은 host가 아니라 그대로다.
-    const type=evt.formation?authoredType:rotateRegularSpawnType(cache,authoredType)
+    const type=evt.formation?rotateFormationSpawnType(cache,authoredType):rotateRegularSpawnType(cache,authoredType)
     const pos=expansionSpawnPosition(type,cache.id,playerPos,cache.bounds,taken,cache.obstacles,random,ENEMY_STATS[type]?.scale)
     if(!pos)continue
     taken.push(pos)
@@ -2079,7 +2083,7 @@ export default function Enemies() {
         const taken = batch.map((enemy) => enemy.pos)
         const authoredType = mixedTypes ? mixedTypes[spawnIndex] : evt.type
         // 형태 버스트(ring/pincer/swarm…)는 작성 그대로, 정규 행만 로스터 순환을 탄다.
-        const type = positions ? authoredType : rotateRegularSpawnType(cache, authoredType)
+        const type = positions ? rotateFormationSpawnType(cache, authoredType) : rotateRegularSpawnType(cache, authoredType)
         const pos = positions ? positions[spawnIndex] : spawnPosForBurstType(type, cache.bounds, taken, Math.random, cache.obstacles)
         if (!pos) continue
         batch.push({ id: ++_uid, type, pos, statOverride: stageHpOverride(type, cache.id) })

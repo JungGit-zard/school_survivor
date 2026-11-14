@@ -179,6 +179,7 @@ import {
   pickMixedReinforcementTypes,
   randomSpawnPos,
   repeatingBurstSpawnCountForTick,
+  rotateFormationSpawnType,
   rotateRegularSpawnType,
   sameTypeZombieHpForStage,
   shouldDropTextbook,
@@ -496,6 +497,9 @@ export function runStageRuntimeProbe({
   const spawnCountBySource = {}
   // 스테이지 로스터 순환 검증용: 타입별 스폰 시각(정수 초, 같은 초 중복 제거).
   const spawnSecsByType = {}
+  // 타입별 정확한 스폰 마릿수와, 출구 개방 시각의 2/3 지점·런 끝에 살아 있는 풀 좀비 타입별 마릿수.
+  const spawnCountByType = {}
+  const aliveByTypeAt = { twoThirds: null, end: null }
   // C5: 실시간 30s 구간별·출처별 스폰 HP 합(§1.1 분석표를 대신할 실측 유입표). 출처: burst, burst-repeat, overtime,
   // lowDensity, dominance, boss, matilda.
   const spawnHpBins = Math.ceil(maxSec / SPAWN_HP_BIN_SEC)
@@ -597,12 +601,23 @@ export function runStageRuntimeProbe({
     const bySource = spawnHpByBin[hpBin]
     bySource[source] = (bySource[source] ?? 0) + hp
     spawnCountBySource[source] = (spawnCountBySource[source] ?? 0) + 1
+    spawnCountByType[type] = (spawnCountByType[type] ?? 0) + 1
     const secs = spawnSecsByType[type] ?? (spawnSecsByType[type] = [])
     const whole = Math.floor(sec)
     if (secs[secs.length - 1] !== whole) secs.push(whole)
     if (sec < spawnHashUntilSec) {
       spawnHash = fnv1aUpdate(spawnHash, `${Math.round(sec * 60)}|${type}|${x.toFixed(3)}|${z.toFixed(3)};`)
     }
+  }
+
+  function aliveByTypeNow() {
+    const counts = {}
+    for (let index = 0; index <= enemyPool.highestActive; index += 1) {
+      if (!enemyPool.active[index]) continue
+      const typeName = enemyTypeFromCode(enemyPool.type[index]) ?? 'unknown'
+      counts[typeName] = (counts[typeName] ?? 0) + 1
+    }
+    return counts
   }
 
   function totalZombieCounts() {
@@ -848,7 +863,7 @@ export function runStageRuntimeProbe({
     for (let i = 0; i < count; i += 1) {
       const taken = batch.map((enemy) => enemy.pos)
       const authoredType = mixedTypes ? mixedTypes[i] : evt.type
-      const type = positions ? authoredType : rotateRegularSpawnType(cache, authoredType)
+      const type = positions ? rotateFormationSpawnType(cache, authoredType) : rotateRegularSpawnType(cache, authoredType)
       const pos = positions ? positions[i] : spawnPosForBurstType(type, bounds, taken, Math.random, obstacles)
       if (!pos) continue
       batch.push({ type, pos, statOverride: stageHpOverride(type, stageId) })
@@ -1531,9 +1546,11 @@ export function runStageRuntimeProbe({
       }
 
       survivedFrames = frame + 1
+      if (aliveByTypeAt.twoThirds === null && sec >= escapePortalSec * 2 / 3) aliveByTypeAt.twoThirds = aliveByTypeNow()
       if (onFrame) onFrame({ frame, sec, hp, level, mode: world.lastMode, invulnerableMs, portal, telegraphs: world.telegraphs, specials })
       if (died || cleared) break
     }
+    aliveByTypeAt.end = aliveByTypeNow()
   } finally {
     Math.random = originalRandom
     enemyProjectilePool.setPropBlockers(null)
@@ -1570,6 +1587,8 @@ export function runStageRuntimeProbe({
     spawnCount,
     spawnCountBySource,
     spawnSecsByType,
+    spawnCountByType,
+    aliveByTypeAt,
     spawnHpByBin,
     spawnRequests,
     alive210: alive210 ?? false,

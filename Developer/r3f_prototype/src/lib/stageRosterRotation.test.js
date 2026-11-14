@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { ENEMY_STATS } from '../components/Enemy.jsx'
+import { ZOMBIE_PALETTE } from '../components/ZombieMesh.jsx'
 import { buildLowDensityReinforcementBatch, createStageRosterRotation } from '../components/Enemies.jsx'
 import {
   getRuntimeSpawnEventsForStage,
@@ -19,21 +20,25 @@ import { getStageBounds, getStageConfig } from './stageConfig.js'
 import { playerPos } from './refs.js'
 import {
   ROSTER_ROTATION_SHOOTER_TYPES,
-  ROSTER_ROTATION_CROSS_TIER_COOLDOWN_SEC,
   ROSTER_ROTATION_HEAVY_INTERVAL_SEC,
   ROSTER_ROTATION_INTERVAL_SEC,
-  ROSTER_ROTATION_TIER_GRACE_SEC,
+  ROSTER_ROTATION_MAX_SHOOTERS_PER_WAVE,
+  ROSTER_ROTATION_TANK_REPLACE_EVERY,
+  ROSTER_ROTATION_TANK_TYPE,
   createRosterRotation,
   getStageRotationDebuts,
   getStageRotationRoster,
   noteRosterRotationSpawn,
   pickRosterRotationType,
+  pickRosterTankType,
 } from './stageRosterRotation.js'
 
 // 2026-11-14 Terry: "스테이지에 배분된 좀비들이 골고루 분포되게" + "정규 리스폰 웨이브에도 골고루 섞어".
-// 2차(balanceqa BLOCK 반영): 데뷔 게이트 + 같은 HP 계층 교체 + 계층 밖 교체는 유예 20초·스테이지 전체 30초 쿨다운.
+// 3차(v3): "어려워져도 되니까 다 분포시켜" / "다채롭게 웨이브에 모두 섞어. 난이도보다 구현이 우선" — 사수 포함 전 종이
+// 데뷔 뒤 계속 돌아오고, 붉은 고체력 탱커(E05)는 80%로 줄여 그 자리를 신규 종에 준다.
 // 런타임(Enemies.jsx)과 같은 규칙으로 스테이지 전체 시간표를 결정론적으로 돌린다:
-//   - 스케줄 웨이브: 버스트 표 단발 행 + 반복 증원 tick(탈출 뒤 +10% 성장 포함). 형태·크루·보스·보상 행은 작성 그대로.
+//   - 스케줄 웨이브: 버스트 표 단발 행 + 반복 증원 tick(탈출 뒤 +10% 성장 포함). 크루·보스·보상 행은 작성 그대로,
+//     형태 버스트는 E05 탱커 계수만 탄다.
 //   - 리스폰 웨이브: 저밀도 리필(E07×10 + E01×10)을 REFILL_EVERY_SEC마다 한 번.
 // 정규 행의 host 1마리씩이 pickRosterRotationType을 거치고, 실제로 낸 개체만 noteRosterRotationSpawn으로 확정한다.
 
@@ -42,11 +47,15 @@ const DURATION_SEC = 240
 const THIRDS = [[0, 80], [80, 160], [160, 240]]
 const REFILL_EVERY_SEC = 25
 const hpOf = (type) => ENEMY_STATS[type]?.hp ?? 0
-// 데뷔 뒤 최대 공백 상한: 무거운 간격 55 + 계층 밖 유예 20 + 스테이지 전체 쿨다운 30 = 105초(+host 대기 여유 5초).
-const MAX_GAP_AFTER_DEBUT_SEC = ROSTER_ROTATION_HEAVY_INTERVAL_SEC + ROSTER_ROTATION_TIER_GRACE_SEC + ROSTER_ROTATION_CROSS_TIER_COOLDOWN_SEC + 5
+// 데뷔 뒤 최대 공백 상한(리필 포함): 무거운 간격 30 + 리필 주기 25 + 여유 15.
+const MAX_GAP_AFTER_DEBUT_SEC = ROSTER_ROTATION_HEAVY_INTERVAL_SEC + REFILL_EVERY_SEC + 15
 
 function isRotatableRow(evt) {
   return !evt.formation && !evt.rewardEvent && !isBossType(evt.type)
+}
+
+function isTankCountedFormationRow(evt) {
+  return Boolean(evt.formation) && !evt.rewardEvent && !isBossType(evt.type)
 }
 
 function scheduledMoments(stageId, durationSec) {
@@ -77,8 +86,9 @@ function refillMoments(durationSec, everySec) {
   return moments
 }
 
-function simulate(stageId, { rotation = true, scheduled = true, refillEverySec = REFILL_EVERY_SEC, durationSec = DURATION_SEC } = {}) {
-  const state = rotation ? createRosterRotation(stageId, { hpOf }) : null
+// options = createRosterRotation 옵션(예: tankReplaceEvery: 0 = 탱커 감축 끔).
+function simulate(stageId, { rotation = true, scheduled = true, refillEverySec = REFILL_EVERY_SEC, durationSec = DURATION_SEC, options = {} } = {}) {
+  const state = rotation ? createRosterRotation(stageId, { hpOf, ...options }) : null
   const moments = [
     ...(scheduled ? scheduledMoments(stageId, durationSec) : []),
     ...refillMoments(durationSec, refillEverySec),
@@ -87,9 +97,11 @@ function simulate(stageId, { rotation = true, scheduled = true, refillEverySec =
   for (const { sec, evt, count } of moments) {
     for (let index = 0; index < count; index += 1) {
       const authored = evt.mixedTypes ? evt.mixedTypes[index % evt.mixedTypes.length] : evt.type
-      const type = isRotatableRow(evt) ? pickRosterRotationType(state, authored, sec) : authored
+      const type = isRotatableRow(evt)
+        ? pickRosterRotationType(state, authored, sec)
+        : isTankCountedFormationRow(evt) ? pickRosterTankType(state, authored, sec) : authored
       noteRosterRotationSpawn(state, type, sec)
-      spawns.push({ sec, type, formation: evt.formation ?? null })
+      spawns.push({ sec, type, authored, formation: evt.formation ?? null, refill: Boolean(evt.refill) })
     }
   }
   return { spawns, state }
@@ -99,23 +111,10 @@ function typesInThird(spawns, [from, to]) {
   return new Set(spawns.filter((s) => s.sec >= from && s.sec < to).map((s) => s.type))
 }
 
-function totalHp(spawns) {
-  return spawns.reduce((sum, s) => sum + hpOf(s.type), 0)
-}
-
-// 예외(정당화): 사수는 같은 HP host로만 돌아온다(계층 밖 교체 금지 — 스5 프로브 실측 근거는 stageRosterRotation.js 머리말).
-// 리스폰 리필 host가 E01(8)·E07(16)이라 8·16hp 사수는 항상 돌아오지만, 10·32·70hp 사수는 그 스테이지 표에
-// E03·E04·E02·E05 정규 행이 있을 때만 돌아온다. 이 종들은 "순환 전보다 덜 나오지 않는다"만 단언한다.
-//   현재 대상: 스2 E63(32) · 스3 E68(10)·E57(70) · 스4 E70(10)·E59(70) · 스5 E53·E70(10)·E52·E54(32)·E57·E55(70) 등.
-function exactHostOnlyShooter(type) {
-  const hp = hpOf(type)
-  return ROSTER_ROTATION_SHOOTER_TYPES.has(type) && hp !== hpOf('E01') && hp !== hpOf('E07')
-}
-
 // 데뷔(작성된 첫 등장) 이후에 시작하는 3등분마다 그 종이 나왔는지. 빠진 칸을 "E37@80"처럼 돌려준다.
-function missingThirdsAfterDebut(stageId, spawns) {
+function missingThirdsAfterDebut(stageId, spawns, filter = () => true) {
   const debuts = getStageRotationDebuts(stageId)
-  return Object.keys(debuts).filter((type) => !exactHostOnlyShooter(type)).flatMap((type) => THIRDS
+  return Object.keys(debuts).filter(filter).flatMap((type) => THIRDS
     .filter((third) => third[0] >= debuts[type] && !typesInThird(spawns, third).has(type))
     .map((third) => `${type}@${third[0]}`))
 }
@@ -124,7 +123,6 @@ function maxGapAfterDebut(stageId, spawns) {
   const debuts = getStageRotationDebuts(stageId)
   let worst = { gap: 0, type: null }
   for (const [type, debut] of Object.entries(debuts)) {
-    if (exactHostOnlyShooter(type)) continue
     const secs = [...new Set(spawns.filter((s) => s.type === type && s.sec >= debut).map((s) => s.sec))]
     let prev = debut
     for (const sec of [...secs, DURATION_SEC]) {
@@ -134,6 +132,8 @@ function maxGapAfterDebut(stageId, spawns) {
   }
   return worst
 }
+
+const countType = (spawns, type) => spawns.filter((s) => s.type === type).length
 
 describe('스테이지 로스터 = 버스트 표에 배분된 신규 종 + 작성된 첫 등장(데뷔)', () => {
   it('S1~S6 모두 순환 대상이 비어 있지 않고 기본 E01~E08·보스·크루를 넣지 않는다', () => {
@@ -150,12 +150,21 @@ describe('스테이지 로스터 = 버스트 표에 배분된 신규 종 + 작�
     expect(getStageRotationDebuts('stage2')).toMatchObject({ E37: 5, E47: 60, E63: 72, E51: 144, E46: 184 })
     expect(getStageRotationDebuts('stage5')).toMatchObject({ E53: 5, E57: 24, E55: 184, E40: 216 })
   })
+
+  it('감축 대상 탱커 = E05: 기본 잡몹 중 붉은 몸통(진홍 0x9a1818) + 고체력(70)인 정규 스폰 종', () => {
+    expect(ROSTER_ROTATION_TANK_TYPE).toBe('E05')
+    expect(ROSTER_ROTATION_TANK_REPLACE_EVERY).toBe(5)
+    expect(ZOMBIE_PALETTE.E05.body).toBe(0x9a1818)
+    expect(hpOf('E05')).toBe(70)
+    // 같은 70hp인 E02는 보라색이다(붉은 계열이 아니다).
+    expect(ZOMBIE_PALETTE.E02.body).toBe(0x7a28b8)
+  })
 })
 
 describe.each(STAGES)('%s — 스테이지 전체 시간표 시뮬레이션', (stageId) => {
   const debuts = getStageRotationDebuts(stageId)
 
-  it('데뷔 게이트: 어떤 종도 작성된 첫 등장보다 먼저 나오지 않는다(리필 포함)', () => {
+  it('데뷔 게이트: 어떤 종도 작성된 첫 등장보다 먼저 나오지 않는다(리필·탱커 교체 포함)', () => {
     for (const refillEverySec of [0, REFILL_EVERY_SEC]) {
       const { spawns } = simulate(stageId, { refillEverySec })
       for (const [type, debut] of Object.entries(debuts)) {
@@ -172,73 +181,104 @@ describe.each(STAGES)('%s — 스테이지 전체 시간표 시뮬레이션', (s
     else expect(missing.length, `${stageId} 순환 전 누락`).toBeGreaterThan(0)
   })
 
-  it('스케줄 웨이브 + 리스폰 리필: 배분된 모든 종(같은 HP host만 쓰는 사수 제외)이 데뷔 뒤 시작하는 3등분마다 다시 나온다', () => {
+  it('스케줄 웨이브 + 리스폰 리필: 배분된 모든 종(사수 포함)이 데뷔 뒤 시작하는 3등분마다 다시 나온다', () => {
     expect(missingThirdsAfterDebut(stageId, simulate(stageId).spawns), stageId).toEqual([])
   })
 
-  it('같은 HP host만 쓰는 사수도 순환 전보다 덜 나오지 않는다', () => {
-    for (const refillEverySec of [0, REFILL_EVERY_SEC]) {
-      const before = simulate(stageId, { rotation: false, refillEverySec }).spawns
-      const after = simulate(stageId, { refillEverySec }).spawns
-      for (const type of getStageRotationRoster(stageId).filter(exactHostOnlyShooter)) {
-        const n = (list) => list.filter((s) => s.type === type).length
-        expect(n(after), `${stageId} ${type}`).toBeGreaterThanOrEqual(n(before))
-      }
+  it('사수(탄을 쏘는 종)도 데뷔 뒤 3등분마다 돌아오고, 데뷔 뒤 순환으로 최소 1번은 다시 나온다', () => {
+    const { spawns } = simulate(stageId)
+    const shooters = getStageRotationRoster(stageId).filter((type) => ROSTER_ROTATION_SHOOTER_TYPES.has(type))
+    expect(missingThirdsAfterDebut(stageId, spawns, (type) => ROSTER_ROTATION_SHOOTER_TYPES.has(type))).toEqual([])
+    // 데뷔 + 간격 뒤에 정규 웨이브가 한 번 이상 남은 사수만(스1 E49·스4 E59·스5 E55처럼 184초 데뷔 종은 240초 전에 끝난다).
+    for (const type of shooters.filter((t) => debuts[t] + ROSTER_ROTATION_HEAVY_INTERVAL_SEC + REFILL_EVERY_SEC <= DURATION_SEC)) {
+      const rotated = spawns.filter((s) => s.type === type && s.authored !== type)
+      expect(rotated.length, `${stageId} ${type}`).toBeGreaterThan(0)
     }
   })
 
-  // 스케줄 웨이브만(리필 없음): S1·S3·S6은 정규 행 host가 충분해 전부 덮는다. S2·S4·S5는 버스트 표의 대부분이 형태 버스트·
-  // E04 벽·크루·전교 호출이라(손대지 않는 특수 이벤트) 맞바꿀 정규 host가 부족하다 — 예: 스4 160~240초 정규 host는 E05×2뿐.
-  // 이 셋은 빈칸이 순환 전보다 확실히 줄었는지만 본다(실제 판은 리필·지배 스웜·반복 증원이 나머지를 채운다).
-  it('스케줄 웨이브만(리필 없음): host가 충분한 스테이지는 전부, 나머지도 빈칸이 순환 전보다 준다', () => {
-    const after = missingThirdsAfterDebut(stageId, simulate(stageId, { refillEverySec: 0 }).spawns)
-    if (['stage1', 'stage3', 'stage6'].includes(stageId)) {
-      expect(after, stageId).toEqual([])
-    } else {
-      const before = missingThirdsAfterDebut(stageId, simulate(stageId, { rotation: false, refillEverySec: 0 }).spawns)
-      expect(after.length, `${stageId} ${after.join(' ')}`).toBeLessThan(before.length)
-    }
-  })
-
-  it(`데뷔 뒤 어떤 종도 ${MAX_GAP_AFTER_DEBUT_SEC}초(무거운 간격 + 유예 + 계층 밖 쿨다운) 넘게 비지 않는다 — 리필 포함`, () => {
+  it(`데뷔 뒤 어떤 종도 ${MAX_GAP_AFTER_DEBUT_SEC}초 넘게 비지 않는다 — 리필 포함`, () => {
     const worst = maxGapAfterDebut(stageId, simulate(stageId).spawns)
     expect(worst.gap, `${stageId} ${worst.type} from ${worst.from}s`).toBeLessThanOrEqual(MAX_GAP_AFTER_DEBUT_SEC)
   })
 
-  it('총 스폰 마릿수는 순환 전과 같다(1:1 교체), 총 HP 변화는 ±5% 안', () => {
+  it('총 스폰 마릿수는 순환 전과 같다(1:1 교체)', () => {
     for (const refillEverySec of [0, REFILL_EVERY_SEC]) {
       const before = simulate(stageId, { rotation: false, refillEverySec })
       const after = simulate(stageId, { refillEverySec })
       expect(after.spawns.length).toBe(before.spawns.length)
-      const delta = totalHp(after.spawns) / totalHp(before.spawns) - 1
-      expect(Math.abs(delta), `${stageId} refill=${refillEverySec} HP delta ${(delta * 100).toFixed(1)}%`).toBeLessThanOrEqual(0.05)
     }
   })
 
-  it('계층 밖 교체는 스테이지 전체에서 30초에 한 번을 넘지 않는다', () => {
-    for (const refillEverySec of [0, REFILL_EVERY_SEC]) {
-      const { state } = simulate(stageId, { refillEverySec })
-      expect(state.crossTierSubstitutions).toBeLessThanOrEqual(Math.ceil(DURATION_SEC / ROSTER_ROTATION_CROSS_TIER_COOLDOWN_SEC))
+  it(`한 웨이브(같은 시각)에 순환으로 들어간 사수는 ${ROSTER_ROTATION_MAX_SHOOTERS_PER_WAVE}마리를 넘지 않는다`, () => {
+    const { spawns } = simulate(stageId)
+    const bySec = new Map()
+    for (const s of spawns) {
+      if (s.type === s.authored || !ROSTER_ROTATION_SHOOTER_TYPES.has(s.type)) continue
+      bySec.set(s.sec, (bySec.get(s.sec) ?? 0) + 1)
     }
+    for (const [sec, n] of bySec) expect(n, `${stageId} ${sec}s`).toBeLessThanOrEqual(ROSTER_ROTATION_MAX_SHOOTERS_PER_WAVE)
   })
 
-  it('형태 버스트·보스·코인·E06·크루는 순환이 건드리지 않고, E04는 32hp 원거리 신규 종으로만 바뀐다', () => {
+  it('형태 버스트의 위치·타입은 그대로(E05만 탱커 계수로 신규 종), 보스·코인·E06·크루는 그대로다', () => {
     const before = simulate(stageId, { rotation: false })
     const after = simulate(stageId)
     const keep = (s) => s.type === 'E06' || s.type === 'E08' || isBossType(s.type) || /^RZ/.test(s.type)
     const count = (list, pred) => list.spawns.filter(pred).length
     expect(count(after, keep)).toBe(count(before, keep))
-    const ranged32 = (s) => s.type === 'E04' || (hpOf(s.type) === hpOf('E04') && s.type !== 'E04')
-    expect(count(after, ranged32)).toBeGreaterThanOrEqual(count(before, (s) => s.type === 'E04'))
-    const formationTypes = (list) => list.spawns.filter((s) => s.formation).map((s) => s.type).join(',')
-    expect(formationTypes(after)).toBe(formationTypes(before))
+    const formationBefore = before.spawns.filter((s) => s.formation)
+    const formationAfter = after.spawns.filter((s) => s.formation)
+    expect(formationAfter.length).toBe(formationBefore.length)
+    formationAfter.forEach((s, index) => {
+      if (formationBefore[index].type === ROSTER_ROTATION_TANK_TYPE) {
+        expect(s.type === ROSTER_ROTATION_TANK_TYPE || getStageRotationRoster(stageId).includes(s.type), `${stageId} ${s.sec}s ${s.type}`).toBe(true)
+      } else {
+        expect(s.type).toBe(formationBefore[index].type)
+      }
+    })
+  })
+
+  it('탱커 감축: E05는 감축을 끈 같은 판의 80%(±1), 총 마릿수 그대로, 바뀐 자리는 전부 데뷔한 신규 종', () => {
+    for (const refillEverySec of [0, REFILL_EVERY_SEC]) {
+      const noCut = simulate(stageId, { refillEverySec, options: { tankReplaceEvery: 0 } })
+      const cut = simulate(stageId, { refillEverySec })
+      expect(cut.spawns.length).toBe(noCut.spawns.length)
+      const baseline = countType(noCut.spawns, 'E05')
+      const after = countType(cut.spawns, 'E05')
+      expect(Math.abs(after - baseline * 0.8), `${stageId} refill=${refillEverySec} E05 ${baseline} → ${after}`).toBeLessThanOrEqual(1)
+      // 계수: 탱커 자리 = E05로 낸 것 + 바꾼 것, 바꾼 것 = 자리 / 5(내림) — 데뷔한 종이 없던 자리는 E05로 남는다.
+      expect(cut.state.tankSlots).toBe(after + cut.state.tankReplacements)
+      expect(cut.state.tankReplacements).toBeLessThanOrEqual(Math.floor(cut.state.tankSlots / 5))
+      const replaced = cut.spawns.filter((s) => s.authored === 'E05' && s.type !== 'E05')
+      for (const s of replaced) {
+        expect(getStageRotationRoster(stageId), `${stageId} ${s.sec}s ${s.type}`).toContain(s.type)
+        expect(s.sec, `${stageId} ${s.type}`).toBeGreaterThanOrEqual(debuts[s.type])
+      }
+    }
+  })
+})
+
+describe('다채로운 웨이브 — 데뷔한 신규 종이 여럿이면 한 정규 웨이브에 여러 종이 섞인다', () => {
+  it.each(['stage1', 'stage2', 'stage3', 'stage4', 'stage5'])('%s: 120초 이후 10마리 이상 정규 웨이브(리필·반복 증원·정규 행)마다 서로 다른 신규 종 2종 이상', (stageId) => {
+    const { spawns } = simulate(stageId)
+    const roster = new Set(getStageRotationRoster(stageId))
+    const waves = new Map()
+    for (const s of spawns) {
+      if (s.sec < 120 || s.formation || !['E01', 'E02', 'E03', 'E04', 'E05', 'E07'].includes(s.authored)) continue
+      const wave = waves.get(s.sec) ?? { slots: 0, types: new Set() }
+      wave.slots += 1
+      if (roster.has(s.type) && s.type !== s.authored) wave.types.add(s.type)
+      waves.set(s.sec, wave)
+    }
+    const big = [...waves].filter(([, wave]) => wave.slots >= 10)
+    expect(big.length, stageId).toBeGreaterThan(0)
+    for (const [sec, wave] of big) expect(wave.types.size, `${stageId} ${sec}s ${[...wave.types].join(',')}`).toBeGreaterThanOrEqual(2)
   })
 })
 
 describe('스2·스3 오프닝 전용이던 E37(가까이 가면 사선으로 들이받는 좀비)', () => {
   // 순환 전: 스3은 5초 오프닝 2기가 전부였다. 스2는 5초 5기 + 보스전 150초 2기 + 탈출구 개방 뒤 216초 1기.
   const moments = (spawns) => [...new Set(spawns.filter((s) => s.type === 'E37').map((s) => s.sec))]
-  it.each(['stage2', 'stage3'])('%s: 리스폰 포함 시 데뷔 뒤 약 40초마다(최대 공백 60초 이하) 다시 나온다', (stageId) => {
+  it.each(['stage2', 'stage3'])('%s: 리스폰 포함 시 데뷔 뒤 약 20~30초마다(최대 공백 60초 이하) 다시 나온다', (stageId) => {
     const before = simulate(stageId, { rotation: false, refillEverySec: 0 })
     if (stageId === 'stage3') expect(moments(before.spawns)).toEqual([5])
     const after = moments(simulate(stageId).spawns)
@@ -249,7 +289,7 @@ describe('스2·스3 오프닝 전용이던 E37(가까이 가면 사선으로 �
       prev = sec
     }
   })
-  it('스3은 스케줄 웨이브만으로도(25초·10초 반복 증원) 약 40~50초마다 다시 나온다', () => {
+  it('스3은 스케줄 웨이브만으로도(25초·10초 반복 증원) 다시 나온다', () => {
     const after = moments(simulate('stage3', { refillEverySec: 0 }).spawns)
     expect(after.length).toBeGreaterThanOrEqual(5)
   })
@@ -279,8 +319,8 @@ describe('탈출 뒤(오버타임 포함) 리스폰도 계속 섞인다', () => 
 })
 
 describe('순환 규칙 단위', () => {
-  const fresh = (stageId) => {
-    const state = createRosterRotation(stageId, { hpOf })
+  const fresh = (stageId, options = {}) => {
+    const state = createRosterRotation(stageId, { hpOf, ...options })
     state.due.fill(Infinity)
     return state
   }
@@ -288,68 +328,56 @@ describe('순환 규칙 단위', () => {
   it('host가 아닌 타입(E06·E08·보스·크루)은 절대 바꾸지 않는다', () => {
     const state = createRosterRotation('stage5', { hpOf })
     for (const type of ['E06', 'E08', 'B10', 'RZT']) expect(pickRosterRotationType(state, type, 999)).toBe(type)
+    for (const type of ['E06', 'E08', 'B10', 'E01']) expect(pickRosterTankType(state, type, 999)).toBe(type)
   })
 
-  it('데뷔 게이트: 첫 기한 = 작성된 첫 등장 + 간격', () => {
+  it('데뷔 게이트: 첫 기한 = 작성된 첫 등장 + 간격(20초, 32hp 이상 30초)', () => {
     const state = createRosterRotation('stage2', { hpOf })
     const at = (type) => state.due[state.types.indexOf(type)]
     expect(at('E37')).toBe(5 + ROSTER_ROTATION_INTERVAL_SEC)
     expect(at('E63')).toBe(72 + ROSTER_ROTATION_HEAVY_INTERVAL_SEC)
-    expect(pickRosterRotationType(state, 'E01', 44)).toBe('E01')
-    expect(pickRosterRotationType(state, 'E01', 45)).toBe('E37')
+    expect(pickRosterRotationType(state, 'E01', 24)).toBe('E01')
+    expect(pickRosterRotationType(state, 'E01', 25)).toBe('E37')
   })
 
-  it('정확히 같은 HP host를 먼저 쓰고, 유예 전에는 HP가 다른 host로 바꾸지 않는다', () => {
+  it('기한이 가장 이른 종부터(같은 HP는 동률일 때만 우선), HP가 다른 host로도 바로 바꾼다(유예·쿨다운 없음)', () => {
     const state = fresh('stage2')
     const e37 = state.types.indexOf('E37') // hp 8
     state.due[e37] = 10
-    expect(pickRosterRotationType(state, 'E02', 12)).toBe('E02') // 70hp host, 유예 전
-    expect(pickRosterRotationType(state, 'E03', 12)).toBe('E03') // 10hp host도 유예 전엔 아니다(8 ≠ 10)
-    expect(pickRosterRotationType(state, 'E01', 12)).toBe('E37') // 8hp host = 같은 HP
-    noteRosterRotationSpawn(state, 'E37', 12)
-    expect(state.due[e37]).toBe(12 + ROSTER_ROTATION_INTERVAL_SEC)
-    state.due[e37] = 10
-    expect(pickRosterRotationType(state, 'E02', 10 + ROSTER_ROTATION_TIER_GRACE_SEC)).toBe('E37') // 유예 뒤 계층 밖
+    expect(pickRosterRotationType(state, 'E02', 12)).toBe('E37') // 70hp host도 바로
+    const tie = fresh('stage2')
+    tie.due[tie.types.indexOf('E37')] = 10
+    tie.due[tie.types.indexOf('E38')] = 10 // 10hp
+    expect(pickRosterRotationType(tie, 'E01', 12)).toBe('E37') // 동률이면 8hp host = 같은 HP 우선
+    const older = fresh('stage2')
+    older.due[older.types.indexOf('E37')] = 10
+    older.due[older.types.indexOf('E38')] = 9 // 더 오래 기다림
+    expect(pickRosterRotationType(older, 'E01', 12)).toBe('E38') // 굶는 종이 없게 기한 순이 먼저
+    noteRosterRotationSpawn(older, 'E38', 12)
+    expect(older.due[older.types.indexOf('E38')]).toBe(12 + ROSTER_ROTATION_INTERVAL_SEC)
   })
 
-  it('사수(탄을 쏘는 종)는 계층 밖 교체를 절대 받지 않고 같은 HP host로만 돌아온다', () => {
+  it('사수도 HP가 다른 host로 바로 돌아온다(2차의 계층 밖 금지 해제)', () => {
     const state = fresh('stage5')
-    const e57 = state.types.indexOf('E57') // 70hp 사수(출석부 카드)
-    const e70 = state.types.indexOf('E70') // 10hp 사수(술래)
-    const e40 = state.types.indexOf('E40') // 70hp 근접
+    const e57 = state.types.indexOf('E57') // 70hp 사수
+    const e70 = state.types.indexOf('E70') // 10hp 사수
     state.due[e57] = 0
     state.due[e70] = 0
-    expect(pickRosterRotationType(state, 'E01', 100)).toBe('E01') // 유예·쿨다운이 다 지나도
-    expect(pickRosterRotationType(state, 'E05', 100)).toBe('E57') // 같은 HP(70) host면 돌아온다
-    expect(pickRosterRotationType(state, 'E03', 100)).toBe('E70') // 같은 HP(10) host면 돌아온다
-    state.due[e40] = 0
-    expect(pickRosterRotationType(state, 'E01', 100)).toBe('E40') // 근접은 계층 밖 교체 가능
+    expect(pickRosterRotationType(state, 'E05', 100)).toBe('E57') // 같은 HP 우선
+    expect(pickRosterRotationType(state, 'E01', 100)).toBe('E70') // 다른 HP host도 받는다
   })
 
-  it('계층 밖 교체는 스테이지 전체에서 쿨다운당 1회 — 같은 묶음 안에서도 1회', () => {
+  it(`한 웨이브(같은 시각)에 사수는 ${ROSTER_ROTATION_MAX_SHOOTERS_PER_WAVE}마리까지, 같은 종은 한 번만`, () => {
     const state = fresh('stage5')
-    const e40 = state.types.indexOf('E40') // 70hp 근접
-    const e42 = state.types.indexOf('E42') // 70hp 근접
-    state.due[e40] = 0
-    state.due[e42] = 0
-    expect(pickRosterRotationType(state, 'E01', 100)).toBe('E40')
-    expect(pickRosterRotationType(state, 'E01', 100)).toBe('E01') // 같은 시각 두 번째 계층 밖 교체 금지
-    noteRosterRotationSpawn(state, 'E40', 100)
-    expect(pickRosterRotationType(state, 'E01', 100 + ROSTER_ROTATION_CROSS_TIER_COOLDOWN_SEC - 1)).toBe('E01')
-    expect(pickRosterRotationType(state, 'E01', 100 + ROSTER_ROTATION_CROSS_TIER_COOLDOWN_SEC)).toBe('E42')
-  })
-
-  it('E04 host는 같은 32hp 원거리 신규 종(E63 등)하고만 바뀌고, 유예가 지나도 다른 종은 받지 않는다', () => {
-    const state = fresh('stage2')
-    const e37 = state.types.indexOf('E37')
-    const e63 = state.types.indexOf('E63')
-    expect(hpOf('E63')).toBe(hpOf('E04'))
-    state.due[e37] = 0
-    expect(pickRosterRotationType(state, 'E04', 100)).toBe('E04')
-    state.due[e63] = 0
-    expect(pickRosterRotationType(state, 'E04', 100)).toBe('E63')
-    noteRosterRotationSpawn(state, 'E63', 100)
-    expect(state.due[e63]).toBe(100 + ROSTER_ROTATION_HEAVY_INTERVAL_SEC)
+    const shooters = state.types.filter((type) => ROSTER_ROTATION_SHOOTER_TYPES.has(type))
+    expect(shooters.length).toBeGreaterThan(ROSTER_ROTATION_MAX_SHOOTERS_PER_WAVE)
+    for (const type of shooters) state.due[state.types.indexOf(type)] = 0
+    const picks = Array.from({ length: shooters.length * 2 }, () => pickRosterRotationType(state, 'E01', 100))
+    const shot = picks.filter((type) => ROSTER_ROTATION_SHOOTER_TYPES.has(type))
+    expect(shot.length).toBe(ROSTER_ROTATION_MAX_SHOOTERS_PER_WAVE)
+    expect(new Set(shot).size).toBe(ROSTER_ROTATION_MAX_SHOOTERS_PER_WAVE)
+    // 다음 웨이브는 상한이 풀린다.
+    expect(shooters).toContain(pickRosterRotationType(state, 'E01', 101))
   })
 
   it('실제로 스폰되지 않은 선택(자리 없음·묶음 폐기·천장)은 시계를 소모하지 않는다', () => {
@@ -373,6 +401,47 @@ describe('순환 규칙 단위', () => {
     noteRosterRotationSpawn(state, 'E37', 5)
     expect(pickRosterRotationType(state, 'E01', 20)).toBe('E01')
   })
+
+  // 탱커 계수만 따로 본다(다채로움 몫 끔). 둘을 함께 켠 판은 위 스테이지 시뮬레이션이 본다.
+  it('탱커 계수: 순환 뒤 E05로 남은 정규 스폰 5번째마다 1마리가 데뷔한 신규 종(가장 오래 안 나온 종)으로', () => {
+    const state = fresh('stage4', { varietyEvery: 0 })
+    // 한 웨이브(같은 시각)에 10마리: 먼저 다 고르고(예약) 실제 스폰 때 확정한다(Enemies.jsx addEnemies 순서).
+    const seq = Array.from({ length: 10 }, () => pickRosterRotationType(state, 'E05', 200))
+    for (const type of seq) noteRosterRotationSpawn(state, type, 200)
+    expect(seq.filter((type) => type === 'E05').length).toBe(8)
+    expect(seq[4]).not.toBe('E05')
+    expect(seq[9]).not.toBe('E05')
+    expect(seq[4]).not.toBe(seq[9]) // 같은 웨이브에서 같은 종을 두 번 쓰지 않는다
+    expect(state.tankSlots).toBe(10)
+    expect(state.tankReplacements).toBe(2)
+  })
+
+  it('탱커 계수: 데뷔한 신규 종이 없으면 E05 그대로, 스폰 안 된 선택은 계수를 소모하지 않는다', () => {
+    const early = fresh('stage1', { varietyEvery: 0 })
+    for (let n = 0; n < 10; n += 1) {
+      const type = pickRosterRotationType(early, 'E05', 10) // 스1 첫 데뷔는 24초
+      expect(type).toBe('E05')
+      noteRosterRotationSpawn(early, type, 10)
+    }
+    expect(early.tankReplacements).toBe(0)
+    const state = fresh('stage4', { varietyEvery: 0 })
+    for (let n = 0; n < 4; n += 1) noteRosterRotationSpawn(state, pickRosterRotationType(state, 'E05', 200), 200)
+    expect(pickRosterRotationType(state, 'E05', 201)).not.toBe('E05') // 5번째 — 버려짐(확정 안 함)
+    expect(pickRosterRotationType(state, 'E05', 202)).not.toBe('E05') // 다음 시각에도 여전히 5번째 자리
+  })
+
+  it('탱커 계수: 형태 버스트 E05도 같은 계수를 탄다(pickRosterTankType), tankReplaceEvery 0이면 끈다', () => {
+    const state = fresh('stage4')
+    const seq = Array.from({ length: 5 }, () => {
+      const type = pickRosterTankType(state, 'E05', 120)
+      noteRosterRotationSpawn(state, type, 120)
+      return type
+    })
+    expect(seq.slice(0, 4)).toEqual(['E05', 'E05', 'E05', 'E05'])
+    expect(seq[4]).not.toBe('E05')
+    const off = fresh('stage4', { tankReplaceEvery: 0 })
+    for (let n = 0; n < 10; n += 1) expect(pickRosterTankType(off, 'E05', 120)).toBe('E05')
+  })
 })
 
 describe('저밀도 리필(정규 리스폰) 묶음 — 시계를 고정한 결정론 검사', () => {
@@ -390,20 +459,19 @@ describe('저밀도 리필(정규 리스폰) 묶음 — 시계를 고정한 결�
     expect(count(build('stage1', 0).batch)).toEqual({ E07: 10, E01: 10 })
   })
 
-  it('스1 100초: 기한이 온 종만 1마리씩 섞이고 마릿수는 20 그대로다', () => {
-    const { batch } = build('stage1', 100)
-    // 데뷔+40초가 지난 종: E66(60→100, 16hp = E07 자리, 같은 HP), E34(24→64, 36초 지나 유예 20초를 넘김).
-    // E07 묶음이 먼저 만들어지므로 E34는 HP가 다른 E07 자리로 계층 밖 교체된다(스테이지 전체 30초 쿨다운 1회 소비).
-    // E35(72→112)·E36(108→148)은 아직 기한 전이다.
-    expect(count(batch)).toEqual({ E07: 8, E66: 1, E34: 1, E01: 10 })
+  it('스1 150초: 기한이 온 신규 종이 한 묶음에 여러 종 섞이고 마릿수는 20 그대로다', () => {
+    const { batch } = build('stage1', 150)
+    // 데뷔+20초(70hp E62·E56은 +30초)가 지난 종: E34(24) E66(60) E35(72) E36(108) E62(120→150) — 기한 순으로 E07 자리 1~5.
+    // E56(144 데뷔, 기한 174)은 기한 전이지만 10번째 자리(다채로움 몫, 5번째마다)로 들어간다. E49(184)는 데뷔 전.
+    expect(count(batch)).toEqual({ E07: 4, E34: 1, E66: 1, E35: 1, E36: 1, E62: 1, E56: 1, E01: 10 })
   })
 
   it('리필 묶음을 버리면(20마리 미만 등) 시계가 그대로라 다음 리필에 같은 종이 다시 섞인다', () => {
-    const first = build('stage1', 100)
+    const first = build('stage1', 150)
     const again = buildLowDensityReinforcementBatch(first.cache, 20, () => 0.25) // 같은 캐시·같은 시각, 확정(note) 없음
     expect(count(again)).toEqual({ E07: 10, E01: 10 }) // 같은 시각엔 예약이 남아 중복 섞지 않는다
-    first.cache.rosterRotationClock = () => 101
-    expect(count(buildLowDensityReinforcementBatch(first.cache, 20, () => 0.25))).toEqual({ E07: 8, E66: 1, E34: 1, E01: 10 })
+    first.cache.rosterRotationClock = () => 151
+    expect(count(buildLowDensityReinforcementBatch(first.cache, 20, () => 0.25))).toEqual({ E07: 4, E34: 1, E66: 1, E35: 1, E36: 1, E62: 1, E56: 1, E01: 10 })
   })
 })
 
