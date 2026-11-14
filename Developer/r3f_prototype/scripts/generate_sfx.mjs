@@ -225,7 +225,7 @@ function trimTo(samples, sec) {
 // 리미터가 피크를 깎는 만큼 명목 이득은 2.3(+7.2dB)으로 잡았다 — 배포 음원 실측 평균 -19.8 → -13.9dBFS(+5.9dB).
 const BIKITTY_FIRE_GAIN = 2.3
 // 랜턴 발사는 자주 울리는 소리라 옛 음원(피크 -20.7dBFS, 평균 -36.9dBFS)과 비슷한 작은 음량에 맞춘다(새 음원 실측 평균 -35.8).
-const LANTERN_FIRE_PEAK = 0.08
+const LANTERN_FIRE_PEAK = 0.24
 
 // 소프트 리미터: gain을 곱한 뒤 tanh로 ceiling 안에 둔다. 작은 신호는 거의 선형이라 체감 음량은 gain만큼 오르고,
 // 하드 클리핑 없이 피크만 둥글게 눌린다.

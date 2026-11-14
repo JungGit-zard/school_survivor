@@ -348,18 +348,18 @@
       "paths": [
         {
           "path": "Developer/r3f_prototype/public/sfx/weapons/lanternFire.ogg",
-          "bytes": 5953,
-          "sha256": "49a2e921e119994752a671c1697ac844fad64aa0a2b9101c0227447d46977d91"
+          "bytes": 6006,
+          "sha256": "05d0a059e48073e1bf5ecd1a29d591df8fd2957cc536ab2399c2829af942ead6"
         },
         {
           "path": "Developer/r3f_prototype/public/sfx/weapons/lanternFire.mp3",
           "bytes": 3178,
-          "sha256": "301bd2041d3aba708aab09b385e042a7275d8f12ace553e7ffc8165499a2154c"
+          "sha256": "502add3dbda04902ec436353964c77e67e62615d2dda2c159417d7ffbc6b4d5c"
         }
       ],
       "provenanceType": "generated",
       "source": "scripts/generate_sfx.mjs (procedural WAV synthesis, recipe 'weapons/lanternFire'; OGG libvorbis q2 / MP3 64k 44.1kHz mono via --encode with @ffmpeg-installer/ffmpeg)",
-      "notes": "2026-11-14 soundmini, Terry 청취 지시 \"랜턴 무기에 맞는 다른 소리\". 0.32s: 1.5kHz 쇠고리 '팅' + 3.1kHz 유리 갓 '찡' strike → 250→1500Hz 불꽃 노이즈 스웰(22Hz AM) + 85→150Hz 몸통. 피크 0.08(옛 음원과 비슷한 작은 음량, 평균 -35.8dBFS). Project procedural SFX asset; no external samples, no third-party or real-world melody copied.",
+      "notes": "2026-11-14 soundmini, Terry 청취 지시 \"랜턴 무기에 맞는 다른 소리\". 0.32s: 1.5kHz 쇠고리 '팅' + 3.1kHz 유리 갓 '찡' strike → 250→1500Hz 불꽃 노이즈 스웰(22Hz AM) + 85→150Hz 몸통. 피크 0.08(옛 음원과 비슷한 작은 음량, 평균 -35.8dBFS). Project procedural SFX asset; no external samples, no third-party or real-world melody copied. 2026-11-14 Terry: \"랜턴은 볼륨 3배\" — LANTERN_FIRE_PEAK 0.08 → 0.24, 같은 레시피 재생성.",
       "licenseEvidence": "project-generated-procedural"
     },
     {
