@@ -18,6 +18,10 @@ quest.stage5-late-slip.start	지각 확인서를 복사기에 두고 왔어… �
 quest.stage5-late-slip.completion	찾았다! 이제 당당하게 지각생으로 탈출할 수 있어.
 quest.stage5-pa-key.start	저 호출 방송, 교감 선생님 열쇠로만 끌 수 있어. 책상 서랍에 있을 거야!
 quest.stage5-pa-key.completion	볼륨이 한 칸 줄었다… 완전히 꺼지진 않네. 그래도 귀는 살았다!
+quest.stage6-relay-baton.start	마지막 바퀴였는데… 바통을 북쪽 골대 뒤에 떨어뜨렸어. 그거 없으면 못 끝내!
+quest.stage6-relay-baton.completion	바통 받았다! 이번엔 진짜 결승선이야… 정문까지 같이 달리자!
+quest.stage6-assembly-roll.start	다들 운동장에 나왔는지 확인해야 해. 명렬표가 남쪽 골대 쪽으로 날아갔어.
+quest.stage6-assembly-roll.completion	빈칸투성이네… 그래도 빠져나간 애들은 다 체크했어. 우리도 정문으로 가자!
 matilda.entry	오호호호! 떡하나주면 안잡아먹지!
 matilda.death	오호호호!!!!! 맛있게 먹을께!!!!
 matilda.gameover	마틸다 에게 영혼을 뺴앗겨 버렸다!!

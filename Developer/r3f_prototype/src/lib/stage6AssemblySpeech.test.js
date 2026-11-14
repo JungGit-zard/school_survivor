@@ -17,7 +17,7 @@ describe('H06 데이터', () => {
     expect(getExpansionStageHazards('stage6').map((h) => h.id)).toEqual(['H06'])
     expect(getExpansionStageHazards('stage7')).toEqual([])
     expect(H06).toMatchObject({ originUnits: [0, -19], firstSec: 30, intervalSec: 30, endExclusiveSec: 150, ringDelaysMs: [0, 800], preCueLeadMs: 1000, retryMs: 250, maxRetries: 4 })
-    expect(H06.pattern).toMatchObject({ shape: 'annulus', windupMs: 1600, activeMs: 350, recoveryMs: 600, widthUnits: 1.2, damage: 12,
+    expect(H06.pattern).toMatchObject({ shape: 'annulus', windupMs: 1600, activeMs: 350, recoveryMs: 600, widthUnits: 1.2, damage: 9,
       radiusMode: 'player_distance', radiusPaddingUnits: 0.6, minRangeUnits: 2, maxRangeUnits: 40, ignoresSightBlockers: true, maxHitsPerTarget: 1 })
   })
 })

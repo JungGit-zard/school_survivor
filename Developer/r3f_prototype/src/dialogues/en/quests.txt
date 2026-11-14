@@ -19,6 +19,10 @@ quest.stage5-late-slip.start	I left my late slip at the copier… I can't leave 
 quest.stage5-late-slip.completion	Got it! Now I can escape as an official latecomer.
 quest.stage5-pa-key.start	Only the Vice Principal's key can cut that PA call. It's in the desk drawer!
 quest.stage5-pa-key.completion	The volume dropped a notch… not off, but my ears are saved!
+quest.stage6-relay-baton.start	It was the last lap… and I dropped the baton behind the north goal. I can't finish without it!
+quest.stage6-relay-baton.completion	Got the baton! This time it's the real finish line… let's race to the gate together!
+quest.stage6-assembly-roll.start	I have to check who made it out to the field. The roll sheet blew over to the south goal.
+quest.stage6-assembly-roll.completion	So many blanks… but everyone who got out is checked. Let's head for the gate too!
 matilda.entry	Ohohoho! Give me a rice cake and I won't eat you!
 matilda.death	Ohohoho!!!!! You look delicious!!!!
 matilda.gameover	Matilda took your soul!!

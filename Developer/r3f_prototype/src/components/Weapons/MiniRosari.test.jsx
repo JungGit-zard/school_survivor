@@ -19,8 +19,11 @@ describe('MiniRosariWeapon projectile visual (mini protagonist)', () => {
   // 슬롯 풀로 바꿨다. 모델은 슬롯마다 1번만 만들고 재사용한다(발사마다 복제하지 않음).
   it('reuses pooled mini player instances instead of cloning a model per shot, with no one-at-a-time gate', () => {
     expect(source.match(/<MiniRosariModel animateRef=\{slot\.activeRef\} \/>/g)).toHaveLength(1)
-    expect(source).toContain('visualRef={slotsRef.current[p.slotIndex].ref}')
+    // 2026-11-13: 발사체 컴포넌트 없이 무기 루프가 슬롯 group을 직접 움직인다.
+    expect(source).toContain('writeMiniRosariPose(entry, slots[entry.slotIndex], camera)')
+    expect(source).toContain('slotIndex: claimMiniRosariSlot(slots, launch.id)')
     expect(source).not.toContain('if (projRef.current.length > 0) return')
+    expect(source).not.toContain('swarm.entries.length >=')
   })
 
   it('skips the hidden mini player pose work while a slot has no projectile in flight', async () => {
@@ -48,10 +51,66 @@ describe('MiniRosariWeapon projectile visual (mini protagonist)', () => {
     expect(slots).toHaveLength(4)
   })
 
+  // 2026-11-13: 풀이 늘기만 하던 것을, 끝난 분신 슬롯이 오래 비면 끝에서부터 내려놓도록 바꿨다.
+  it('shrinks the clone pool from the tail once finished clones stay idle, never moving a live clone', async () => {
+    const {
+      claimMiniRosariSlot, releaseMiniRosariSlot, trimIdleMiniRosariSlots,
+      MINI_ROSARI_SLOT_IDLE_MS, MINI_ROSARI_WARM_SLOTS,
+    } = await import('./MiniRosari.jsx')
+    const slots = []
+    for (let id = 1; id <= 6; id += 1) claimMiniRosariSlot(slots, id)
+    expect(slots).toHaveLength(6)
+    const liveSlot = slots[1]
+
+    // 1번(인덱스 0)과 3~6번이 끝났다. 2번(인덱스 1)은 아직 떠서 기다린다.
+    for (const id of [1, 3, 4, 5, 6]) releaseMiniRosariSlot(slots, id)
+    expect(trimIdleMiniRosariSlots(slots, 1000)).toBe(0) // 막 끝난 슬롯은 바로 버리지 않는다
+    expect(slots).toHaveLength(6)
+    expect(trimIdleMiniRosariSlots(slots, 1000 + MINI_ROSARI_SLOT_IDLE_MS - 1)).toBe(0)
+
+    expect(trimIdleMiniRosariSlots(slots, 1000 + MINI_ROSARI_SLOT_IDLE_MS)).toBe(4)
+    expect(slots).toHaveLength(2) // 살아 있는 인덱스 1 뒤의 빈 슬롯만 빠졌다
+    expect(slots[1]).toBe(liveSlot)
+    expect(slots[1].ownerId).toBe(2)
+    expect(slots[1].activeRef.current).toBe(true)
+
+    // 마지막 분신도 끝나고 충분히 지나면 따뜻한 슬롯 1개만 남는다.
+    releaseMiniRosariSlot(slots, 2)
+    trimIdleMiniRosariSlots(slots, 10_000)
+    expect(trimIdleMiniRosariSlots(slots, 10_000 + MINI_ROSARI_SLOT_IDLE_MS)).toBe(1)
+    expect(slots).toHaveLength(MINI_ROSARI_WARM_SLOTS)
+
+    // 다시 던지면 남은 슬롯을 재사용하고(복제 없음), 바쁘면 그때 다시 는다.
+    expect(claimMiniRosariSlot(slots, 7)).toBe(0)
+    expect(claimMiniRosariSlot(slots, 8)).toBe(1)
+    expect(slots).toHaveLength(2)
+  })
+
+  it('a reused slot restarts its idle clock', async () => {
+    const { claimMiniRosariSlot, releaseMiniRosariSlot, trimIdleMiniRosariSlots, MINI_ROSARI_SLOT_IDLE_MS } = await import('./MiniRosari.jsx')
+    const slots = []
+    claimMiniRosariSlot(slots, 1)
+    claimMiniRosariSlot(slots, 2)
+    releaseMiniRosariSlot(slots, 2)
+    trimIdleMiniRosariSlots(slots, 0) // 인덱스 1 비기 시작 = 0
+    claimMiniRosariSlot(slots, 3) // 빈 슬롯은 인덱스 1뿐 → 재사용
+    releaseMiniRosariSlot(slots, 3)
+    trimIdleMiniRosariSlots(slots, MINI_ROSARI_SLOT_IDLE_MS - 10) // 다시 비기 시작
+    expect(trimIdleMiniRosariSlots(slots, MINI_ROSARI_SLOT_IDLE_MS + 10)).toBe(0)
+    expect(slots).toHaveLength(2)
+  })
+
+  it('the weapon trims idle slots every playing frame and re-renders when the pool shrinks', () => {
+    const weaponSource = source.slice(source.indexOf('export function MiniRosariWeapon'))
+    expect(weaponSource).toContain('if (trimIdleMiniRosariSlots(slots, now) > 0) setSlotVersion((v) => v + 1)')
+    expect(weaponSource.indexOf('trimIdleMiniRosariSlots(')).toBeLessThan(weaponSource.indexOf('if (now - lastFireRef.current >= w.cooldown)'))
+  })
+
   it('hops toward the target and bounces with the shared flight stepper', () => {
     expect(source).toContain('MINI_ROSARI_HOP_HEIGHT')
     expect(source).toContain("rotation.set(0.18, Math.atan2(flight.dirX, flight.dirZ), 0, 'YXZ')")
-    expect(source).toContain('stepOnigiriFlight(flight, delta, MINI_ROSARI_SPEED)')
+    expect(source).toContain('createProjectileSwarm({ speed: MINI_ROSARI_SPEED')
+    expect(source).toContain('stepProjectileSwarm(swarm, delta, { onHit: hitMiniRosariTarget, onRetire: retireRef.current })')
     expect(source).toContain('applyEnemyHit(flight.hitTarget.rb, flight.hitTarget.generation')
     expect(source).not.toContain('enemyBodies.forEach')
   })
@@ -80,17 +139,19 @@ describe('MiniRosariWeapon projectile visual (mini protagonist)', () => {
 // 그 자리에서 다음 적을 찾거나 깡충거리며 기다린다(동작 검증은 lib/onigiri.test.js flight rules).
 describe('MiniRosari launch origin and flight wiring (2026-11-02)', () => {
   const source = readFileSync(new URL('./MiniRosari.jsx', import.meta.url), 'utf8')
-  const projectileSource = source.slice(source.indexOf('function MiniRosariProjectile'), source.indexOf('export function MiniRosariWeapon'))
+  const projectileSource = source.slice(source.indexOf('function writeMiniRosariPose'), source.indexOf('function createMiniRosariSlot'))
   const weaponSource = source.slice(source.indexOf('export function MiniRosariWeapon'))
 
   it('never ends early to relaunch from the player', () => {
     expect(projectileSource).not.toMatch(/onDone\(id, \{/)
     expect(projectileSource).not.toContain('playerPos')
+    // 코드에서 playerPos는 새 투척의 출발점으로만 쓴다(주석 제외).
+    expect(weaponSource.split('\n').filter((line) => !line.trim().startsWith('//') && line.includes('playerPos'))).toEqual(['        origin: playerPos,'])
     expect(source).not.toContain('relaunch')
   })
 
   it('every new clone starts from the current playerPos through the shared frame planner', () => {
-    expect(source).toContain("import { FLIGHT_DONE, createOnigiriFlight, planOnigiriFrame, stepOnigiriFlight } from '../../lib/onigiri.js'")
+    expect(source).toMatch(/import \{[^}]*planOnigiriFrame[^}]*stepProjectileSwarm[^}]*\} from '..\/..\/lib\/onigiri.js'/)
     expect(weaponSource).not.toContain('start:')
     expect(weaponSource).not.toContain('createOnigiriLaunch')
     expect(weaponSource.match(/planOnigiriFrame\(/g)).toHaveLength(1)
@@ -101,12 +162,13 @@ describe('MiniRosari launch origin and flight wiring (2026-11-02)', () => {
 // balanceqa M1 (2026-11-01): 표적을 잃은 프레임과 바운스를 다 쓴 프레임에 분신이 공중에 멈춘 채 1~2프레임 보였다.
 describe('MiniRosari clone hides on the frame it ends (balanceqa M1)', () => {
   const source = readFileSync(new URL('./MiniRosari.jsx', import.meta.url), 'utf8')
-  const projectileSource = source.slice(source.indexOf('function MiniRosariProjectile'), source.indexOf('export function MiniRosariWeapon'))
+  const projectileSource = source.slice(source.indexOf('function writeMiniRosariPose'), source.indexOf('function createMiniRosariSlot'))
 
   it('hides the clone right before it ends, and keeps the owner-checked unmount safety net', () => {
-    expect(projectileSource).toContain('doneRef.current = true; hideMiniRosariClone(groupRef.current, id); onDone(id); return')
-    expect(projectileSource).not.toMatch(/doneRef\.current = true;?\s+onDone\(id/)
-    expect(projectileSource).toMatch(/useEffect\(\(\) => \(\) => \{\s+hideMiniRosariClone\(groupRef\.current, id\)/)
+    // 바운스를 다 쓴 분신은 무리 스텝이 끝내는 그 스텝에 숨기고 슬롯을 놓는다(발사체 컴포넌트 없음).
+    expect(source).toMatch(/if \(reason === RETIRE_DONE\) \{\s+hideMiniRosariClone\(slot\?\.ref\.current, entry\.id\)\s+releaseMiniRosariSlot\(slotsRef\.current, entry\.id\)/)
+    // 무기 해제·리셋 때도 주인 확인 숨김으로 정리한다.
+    expect(source).toMatch(/clearProjectileSwarm\(swarmRef\.current, \(entry\) => \{\s+hideMiniRosariClone\(slotsRef\.current\[entry\.slotIndex\]\?\.ref\.current, entry\.id\)/)
     expect(projectileSource).toMatch(/group\.userData\.miniRosariOwnerId = id\s+group\.visible = shown/)
   })
 
@@ -130,7 +192,7 @@ describe('MiniRosari clone hides on the frame it ends (balanceqa M1)', () => {
 // 그림자 끔 + 화면 밖에서 기다리는 분신은 숨기고 포즈 계산을 건너뛴다. 탐색·피격은 그대로 돈다.
 describe('MiniRosari waiting clone render cost (balanceqa F2)', () => {
   const source = readFileSync(new URL('./MiniRosari.jsx', import.meta.url), 'utf8')
-  const projectileSource = source.slice(source.indexOf('function MiniRosariProjectile'), source.indexOf('export function MiniRosariWeapon'))
+  const projectileSource = source.slice(source.indexOf('function writeMiniRosariPose'), source.indexOf('function createMiniRosariSlot'))
 
   async function makeCamera() {
     const THREE = await import('three')
@@ -160,17 +222,16 @@ describe('MiniRosari waiting clone render cost (balanceqa F2)', () => {
   })
 
   it('wires visibility to both the clone group and its pose switch, after the gameplay step', () => {
-    expect(projectileSource).toContain('const shown = shouldRenderMiniRosariClone(state, camera, flight.x, y, flight.z)')
+    expect(projectileSource).toContain('const shown = shouldRenderMiniRosariClone(entry.state, camera, flight.x, y, flight.z)')
     expect(projectileSource).toContain('group.visible = shown')
-    expect(projectileSource).toContain('if (animateRef) animateRef.current = shown')
-    // 탐색·피격(stepOnigiriFlight, applyEnemyHit)은 표시 판단보다 먼저, 조건 없이 돈다.
-    const stepAt = projectileSource.indexOf('stepOnigiriFlight(flight, delta, MINI_ROSARI_SPEED)')
-    const hitAt = projectileSource.indexOf('applyEnemyHit(')
-    const showAt = projectileSource.indexOf('const shown =')
+    expect(projectileSource).toContain('slot.activeRef.current = shown')
+    // 탐색·피격(무리 스텝)은 표시 판단(자세 쓰기)보다 먼저, 조건 없이 돈다.
+    const weaponSource = source.slice(source.indexOf('export function MiniRosariWeapon'))
+    const stepAt = weaponSource.indexOf('stepProjectileSwarm(swarm, delta')
+    const showAt = weaponSource.indexOf('writeMiniRosariPose(entry')
     expect(stepAt).toBeGreaterThan(-1)
-    expect(hitAt).toBeGreaterThan(stepAt)
-    expect(showAt).toBeGreaterThan(hitAt)
-    expect(source).toContain('animateRef={slotsRef.current[p.slotIndex].activeRef}')
+    expect(showAt).toBeGreaterThan(stepAt)
+    expect(source).toContain('<MiniRosariModel animateRef={slot.activeRef} />')
   })
 
   it('turns off shadow casting on every mesh of the clone, once per slot', async () => {

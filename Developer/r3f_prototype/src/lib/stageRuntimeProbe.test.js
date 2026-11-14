@@ -254,3 +254,59 @@ describe('T-P7 클리어 = 210s 이후 포탈 진입', () => {
     expect(maxEnemies).toBeGreaterThan(0)
   }, LONG)
 })
+
+// 2026-11-13 levelmini: Enemies.jsx와 같은 B05 시간 소환 미루기. 동시 천장(150)에 잘린 몫은 버리지 않고,
+// 보스가 살아 있는 동안 자리가 나면 한 소환 크기(6)씩 다시 낸다. 보스 처치 시 폐기. 천장은 그대로 지킨다.
+describe('S6 B05 시간 소환: 천장에 잘린 몫은 미뤘다가 자리가 나면 낸다', () => {
+  const REFUSE = { kind: 'KITE', radius: 4, direction: 1, portalMode: 'refuse' }
+  const E21_CODE = 19
+  // 테스트 전용 처치 흉내: 소환체(E21)가 아닌 풀 적을 n마리 치운다.
+  const freePooled = (n) => {
+    let freed = 0
+    for (let i = 0; i <= enemyPool.highestActive && freed < n; i += 1) {
+      if (enemyPool.active[i] && enemyPool.type[i] !== E21_CODE) { enemyPool.despawnIndex(i, enemyPool.generation[i]); freed += 1 }
+    }
+  }
+  // 마틸다는 원래 천장 밖에서 등장한다(210초, 기존 규칙) — 소환이 지키는 천장(풀 + 보스)만 센다.
+  const aliveSpecials = (specials) => specials.filter((s) => s.alive && !s.isMatilda).length
+
+  it('레벨 1 프로브: 192·222초 소환이 천장에 막혀도 225초에 자리가 나면 12마리 모두 도착, 동시 적 ≤ 150', () => {
+    let freedAt = null
+    let maxTotal = 0
+    const run = runStageRuntimeProbe({ stageId: 'stage6', seed: 1, bot: REFUSE, immortal: true, maxSec: 232, onFrame: ({ sec, specials }) => {
+      maxTotal = Math.max(maxTotal, enemyPool.activeCount + aliveSpecials(specials))
+      if (freedAt === null && sec >= 225) { freedAt = sec; freePooled(30) }
+    } })
+    expect(run.level).toBe(1)
+    const summons = run.spawnRequests.filter((q) => q.kind === 'bossSummon')
+    const original = summons.filter((q) => !q.retry && q.sec >= 190)
+    // 시간표 그대로 192·222초에 요청이 나오고, 그 순간에는 천장에 막혀 0마리.
+    expect(original.map((q) => [Math.round(q.sec), q.spawned, q.requested])).toEqual([[192, 0, 6], [222, 0, 6]])
+    // 미룬 몫은 재시도로 나오고, 합계가 요청 수(12)와 같다 — 버려지지도, 더 나오지도 않는다.
+    const delivered = summons.filter((q) => q.sec >= 190).reduce((n, q) => n + q.spawned, 0)
+    expect(delivered).toBe(12)
+    expect(summons.filter((q) => q.retry && q.sec >= freedAt).length).toBeGreaterThan(0)
+    expect(run.stageMechanics.bosses[0].killSec).toBeNull()
+    expect(maxTotal).toBeLessThanOrEqual(150)
+    expect(run.maxActiveEnemies).toBeLessThanOrEqual(150)
+  }, LONG)
+
+  it('보스가 죽으면 미룬 몫은 폐기된다 — 처치 뒤에 자리가 나도 소환체가 나오지 않는다', () => {
+    let freedAt = null
+    // 외부 DPS 90: B05(4,050)가 150초 등장 후 약 45초 뒤 처치 — 격노 소환(175초)이 천장에 막혀 미뤄진 다음이다.
+    const run = runStageRuntimeProbe({ stageId: 'stage6', seed: 1, bot: REFUSE, immortal: true, maxSec: 232, bossExternalDps: 90, onFrame: ({ sec, specials }) => {
+      const boss = specials.find((s) => s.type === 'B05')
+      if (freedAt === null && boss && !boss.alive) { freedAt = sec; freePooled(30) }
+    } })
+    const killSec = run.stageMechanics.bosses[0].killSec
+    expect(killSec).toBeGreaterThan(175)
+    const summons = run.spawnRequests.filter((q) => q.kind === 'bossSummon')
+    // 처치 순간 아직 못 나온 몫이 남아 있었다(요청 합 − 도착 합 > 0).
+    const requestedBeforeKill = summons.filter((q) => !q.retry).reduce((n, q) => n + q.requested, 0)
+    const deliveredBeforeKill = summons.reduce((n, q) => n + q.spawned, 0)
+    expect(requestedBeforeKill - deliveredBeforeKill).toBeGreaterThan(0)
+    // 처치 뒤에는 자리가 30칸 나도 소환 요청·재시도가 하나도 없다.
+    expect(summons.filter((q) => q.sec > killSec)).toEqual([])
+    expect(freedAt).not.toBeNull()
+  }, LONG)
+})

@@ -39,8 +39,8 @@ vi.mock('../Player.jsx', () => ({
   resolvePlayerAppearance: (v) => v,
 }))
 
-import { OnigiiriWeapon } from './Onigiri.jsx'
-import { MiniRosariWeapon } from './MiniRosari.jsx'
+import { OnigiiriWeapon, getOnigiriWeaponStats } from './Onigiri.jsx'
+import { MiniRosariWeapon, getMiniRosariWeaponStats } from './MiniRosari.jsx'
 import { WEAPON_CATALOG } from '../../lib/weaponCatalog.js'
 import { enemyPool, playerPos } from '../../lib/refs.js'
 import { useGameStore } from '../../store/useGameStore.js'
@@ -107,9 +107,14 @@ afterEach(() => {
 })
 
 describe.each([
-  ['onigiri', OnigiiriWeapon, (c) => c.querySelectorAll(':scope > group').length],
-  // 꼬마 로자리는 발사체마다 분신 슬롯 그룹 1개를 그린다(발사체 자신은 DOM이 없다).
-  ['miniRosari', MiniRosariWeapon, (c) => c.querySelectorAll(':scope > group').length],
+  // 2026-11-13: 두 무기 모두 무기 루프가 발사체를 소유한다(발사체 DOM 없음). 오니기리는 살아 있는 주먹밥 수 +
+  // 그려지는 인스턴스 수가 같아야 하고, 꼬마 로자리는 소유된 분신 슬롯 수(= 그려질 수 있는 분신)를 센다.
+  ['onigiri', OnigiiriWeapon, () => {
+    const stats = getOnigiriWeaponStats()
+    expect(stats.bodyInstances).toBeLessThanOrEqual(stats.bodyCapacity)
+    return stats.projectiles
+  }],
+  ['miniRosari', MiniRosariWeapon, () => getMiniRosariWeaponStats().ownedSlots],
 ])('%s drop -> re-acquire in the same stage (balanceqa F1)', (id, Weapon, countProjectiles) => {
   it('shows only new throws after re-acquiring; projectiles hovering before the drop are gone', () => {
     const weapon = WEAPON_CATALOG[id].base

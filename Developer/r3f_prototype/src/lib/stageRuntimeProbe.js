@@ -538,6 +538,9 @@ export function runStageRuntimeProbe({
   const callPulses = []
   const callCycles = []
   const bossSummonRequests = []
+  // 동시 천장(150)에 잘려 미뤄 둔 확장 보스 소환 몫(Enemies.jsx queue.summonDeferred*와 같은 규칙).
+  // 보스가 살아 있는 동안 자리가 나면 한 소환 크기씩 다시 낸다. 보스 처치 시 폐기, 런(스테이지)마다 새로 만든다.
+  const deferredSummon = { boss: null, count: 0 }
   const bossLog = []
   const speechHazards = getExpansionStageHazards(stageId)
   const speechStates = speechHazards.map(() => createAssemblySpeechState(1))
@@ -745,8 +748,24 @@ export function runStageRuntimeProbe({
     if (request.expansionType) {
       const summon = EXPANSION_BOSSES[request.expansionType]?.summon
       if (!summon || !expansionStage) return
-      const batch = buildExpansionBurstBatch(cache, { type: summon.type, count: summon.count, formation: summon.formation }, totalZombieCounts())
-      spawnRequests.push({ kind: 'bossSummon', boss: request.expansionType, requested: summon.count, spawned: batch.length, sec })
+      // retryCount > 0: 천장에 잘려 미뤄 둔 몫의 재시도. 보스가 이미 죽었으면 폐기한다.
+      const retry = request.retryCount > 0
+      if (retry && !isBossAlive(request.expansionType)) { deferredSummon.count = 0; return }
+      const requested = retry ? request.retryCount : summon.count
+      const counts = totalZombieCounts()
+      // 좌표는 소환 전체 크기(트랙 6지점)에서 고른 뒤 이번에 낼 수만큼 자른다(Enemies.jsx와 같다).
+      const batch = buildExpansionBurstBatch(cache, { type: summon.type, count: summon.count, formation: summon.formation }, counts)
+        .slice(0, clampZombieSpawnRequest(requested, counts))
+      // 이번에 못 낸 몫(천장 또는 좌표 실패)은 미룬다. 합계 도착 수 = 요청 수.
+      const shortfall = requested - batch.length
+      if (shortfall > 0) {
+        if (deferredSummon.count > 0 && deferredSummon.boss !== request.expansionType) deferredSummon.count = 0
+        deferredSummon.boss = request.expansionType
+        deferredSummon.count += shortfall
+      }
+      const logEntry = { kind: 'bossSummon', boss: request.expansionType, requested, spawned: batch.length, sec }
+      if (retry) logEntry.retry = true
+      spawnRequests.push(logEntry)
       if (batch.length > 0) addEnemies(batch, true, 'bossSummon')
       return
     }
@@ -760,6 +779,21 @@ export function runStageRuntimeProbe({
     }
     spawnRequests.push({ kind: 'bossSummon', boss: 'B10', requested: ring.length, spawned: batch.length, sec })
     if (batch.length > 0) addEnemies(batch, true, 'bossSummon')
+  }
+
+  function isBossAlive(type) {
+    for (const special of specials) if (special.alive && special.type === type) return true
+    return false
+  }
+
+  // 미뤄 둔 확장 보스 소환 재시도(Enemies.jsx 프레임 루프 블록): 보스 처치면 폐기, 자리가 1칸이라도 나면 한 소환 크기까지 낸다.
+  function retryDeferredSummon() {
+    if (deferredSummon.count <= 0) return
+    if (!isBossAlive(deferredSummon.boss)) { deferredSummon.count = 0; return }
+    if (clampZombieSpawnRequest(1, totalZombieCounts()) <= 0) return
+    const chunk = Math.min(deferredSummon.count, EXPANSION_BOSSES[deferredSummon.boss].summon.count)
+    deferredSummon.count -= chunk
+    processBossSummon({ expansionType: deferredSummon.boss, retryCount: chunk })
   }
 
   // Enemies.addEnemies: special(보스)은 동시 3기, 풀 적은 drain 큐(deferred) 또는 즉시.
@@ -1426,6 +1460,7 @@ export function runStageRuntimeProbe({
       }
       // 보스 소환 요청(지난 프레임 보스 단계에서 쌓임) → 스폰.
       while (bossSummonRequests.length > 0) processBossSummon(bossSummonRequests.shift())
+      retryDeferredSummon()
       for (let index = 0; index < spawnEvents.length; index += 1) {
         const evt = spawnEvents[index]
         const eventSpawnSec = isBossType(evt.type) ? sec : spawnSec

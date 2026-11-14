@@ -1006,12 +1006,27 @@ export function computeDefaultStageObjectPlacements(stageId = 'stage1') {
   return authored.map(withMixedUnconsciousStudentFacing)
 }
 
+// Stage 6 운동장 퀘스트 의뢰 학생 2명(2026-11-13). 쓰러진 학생은 BLOCKING_STAGE_OBJECT_TYPES 밖이라 콜라이더·시야
+// 장애물·스폰 장애물이 되지 않는다(골대 2개만 solid 그대로). 위치(월드 유닛, 1블록 = 4u):
+//   계주 선수 (8.0, −3.0) = (2.0, −0.75블록): 동쪽 트랙 위. 트랙 계주 스폰점(±9, −6/0/6)과 1u 이상 떨어진다.
+//   반장     (−7.6, −1.5) = (−1.9, −0.375블록): 서쪽 스탠드 앞. 매점 자판기(−10.5, 6)와 7.5u 떨어진다.
+// 둘 다 플레이어 이동 범위(|x| ≤ 10, |z| ≤ 18) 안이고 정문 앵커(0, 16.5)·보스 앵커(0, −17)와 겹치지 않는다.
+const EXPANSION_STAGE_STUDENTS = Object.freeze({
+  stage6: Object.freeze([
+    Object.freeze({ id: 'stage6-student-relay-east', type: 'unconsciousStudent', position: [8.0, 0, -3.0], rotation: [0, 0, 0], scale: UNCONSCIOUS_STUDENT_PLAYER_SCALE, props: { variant: 'sideLeft' } }),
+    Object.freeze({ id: 'stage6-student-roll-west', type: 'unconsciousStudent', position: [-7.6, 0, -1.5], rotation: [0, 0, 0], scale: UNCONSCIOUS_STUDENT_PLAYER_SCALE, props: { variant: 'sideRight' } }),
+  ]),
+})
+
 // 게임 런타임이 소비하는 배치. 사용자 오버라이드가 있으면 그것을 정본으로,
 // 없으면 기본 파이프라인(computeDefaultStageObjectPlacements)을 반환한다.
 // 오버라이드 항목에도 학생 방향 다양화(withMixedUnconsciousStudentFacing)는 유지한다.
 export function getStageObjectPlacements(stageId = 'stage1') {
   const expansion=EXPANSION_STAGES[stageId]
-  if(expansion) return expansion.layout.obstacles.map(o=>({id:o.id,type:'expansionObstacle',position:[o.xUnits,0,o.zUnits],rotation:[0,0,0],scale:1,blocking:true,props:{halfX:o.halfXUnits,halfZ:o.halfZUnits}}))
+  if(expansion) return [
+    ...expansion.layout.obstacles.map(o=>({id:o.id,type:'expansionObstacle',position:[o.xUnits,0,o.zUnits],rotation:[0,0,0],scale:1,blocking:true,props:{halfX:o.halfXUnits,halfZ:o.halfZUnits}})),
+    ...(EXPANSION_STAGE_STUDENTS[stageId] ?? []).map(withMixedUnconsciousStudentFacing),
+  ]
   const override = getStagePropOverride(stageId)
   const placements = override
     ? (stageId === 'stage4' ? withStage4CurrentWidthOverrideCoordinates(override) : override)

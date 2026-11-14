@@ -85,8 +85,12 @@ export function createPaperPlanePool(capacity = 16) {
   }
 }
 
+// 안전망(2026-11-13): 풀은 두 배씩 늘되 이 수를 넘지 않는다. 정상 플레이의 동시 비행기 수는 이보다 훨씬 적다.
+// 꽉 찬 상태에서 새 비행기는 만들지 않는다(spawnPaperPlane → -1). 한 대도 못 냈으면 쿨다운이 그대로라 자리가 나는 대로 다시 쏜다.
+export const PAPER_PLANE_MAX_CAPACITY = 64
+
 function growPool(pool) {
-  const cap = pool.capacity * 2
+  const cap = Math.min(PAPER_PLANE_MAX_CAPACITY, pool.capacity * 2)
   for (const key of ['active', 'posX', 'posZ', 'velX', 'velZ', 'ageMs', 'lifeMs', 'damage', 'critChance', 'critMultiplier', 'turnLeft', 'hitsLeft', 'hitCount', 'targetGeneration']) {
     pool[key] = growTyped(pool[key].constructor, pool[key], cap)
   }
@@ -113,7 +117,8 @@ export function clearPaperPlanePool(pool) {
   pool.highest = -1
 }
 
-// 비행기 1대를 슬롯에 넣는다. 빈 슬롯이 없으면 풀을 두 배로 늘린다(상한 없음).
+// 비행기 1대를 슬롯에 넣는다. 빈 슬롯이 없으면 풀을 두 배로 늘린다(PAPER_PLANE_MAX_CAPACITY까지).
+// 상한까지 꽉 차 있으면 넣지 않고 -1을 돌려준다.
 // 좀비 탄처럼 발사 지점(x, z)에서 (dirX, dirZ) 방향으로 E47 속도로 출발한다. pierce = 맞힐 수 있는 적 수(기본 1).
 export function spawnPaperPlane(pool, { x, z, dirX, dirZ, damage, pierce = 1, critChance = 0, critMultiplier = 1.5, lifeMs = PAPER_PLANE_LIFETIME_MS, targetIndex = -1, targetGeneration = 0, targetSpecial = null }) {
   let slot = -1
@@ -121,6 +126,7 @@ export function spawnPaperPlane(pool, { x, z, dirX, dirZ, damage, pierce = 1, cr
     if (!pool.active[i]) { slot = i; break }
   }
   if (slot < 0) {
+    if (pool.capacity >= PAPER_PLANE_MAX_CAPACITY) return -1
     slot = pool.capacity
     growPool(pool)
   }
@@ -297,7 +303,7 @@ export function launchPaperPlanes(pool, { originX, originZ, weapon, scratch, tar
     const share = Math.floor(p / targetCount)
     const fan = share === 0 ? 0 : (share % 2 === 1 ? 1 : -1) * Math.ceil(share / 2) * PAPER_PLANE_LAUNCH_SPREAD
     const base = Math.atan2(t.x - originX, t.z - originZ) + fan
-    spawnPaperPlane(pool, {
+    const slot = spawnPaperPlane(pool, {
       x: originX,
       z: originZ,
       dirX: Math.sin(base),
@@ -310,6 +316,7 @@ export function launchPaperPlanes(pool, { originX, originZ, weapon, scratch, tar
       targetGeneration: generation,
       targetSpecial: special,
     })
+    if (slot < 0) break // 풀 상한(안전망)까지 찼다
     launched += 1
   }
   return launched

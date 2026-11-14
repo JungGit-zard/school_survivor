@@ -309,6 +309,9 @@ investigation.student.stage4.002	箸とスプーンが整ってる。私だけ�
 investigation.student.stage5.001	職員室の椅子にきちんと座ってる。怒られる姿勢が体に染みついてるみたい。
 investigation.student.stage5.002	反省文をぎゅっと握ってる。三行目で止まってる。
 investigation.student.stage5.003	おでこに「教頭先生が来たら起こして」の付箋が貼ってある。
+investigation.student.stage6.001	体操服のままトラックで倒れてる。スタートの姿勢のままだ。
+investigation.student.stage6.002	おでこにあせもができてる。訓話、本当に長かったんだな。
+investigation.student.stage6.003	「前へならえ」のまま眠っちゃったみたい。
 investigation.classroomDesk.001	机の脚で腕をつつかれた。私ももうゾンビ側？
 investigation.classroomDesk.002	『昼は最高』と書いてある。胃だけが先に悲鳴。
 investigation.classroomDesk.003	傷跡は地図みたい。ここに隠れられる。

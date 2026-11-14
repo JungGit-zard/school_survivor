@@ -56,9 +56,11 @@ describe('expansion real integrations',()=>{
  it('keeps actual physical/sight blockers on every new map (4 + clear centre for 7-10, 2 goals for the stage6 schoolyard)',()=>{
   for(const stage of Object.values(EXPANSION_STAGES)){
    const count=stage.id==='stage6'?2:4
-   const placements=getStageObjectPlacements(stage.id);expect(placements).toHaveLength(count)
+   // stage6은 퀘스트 의뢰 학생 2명(비 solid)이 배치에 더해진다(2026-11-13). solid·시야 장애물 수는 골대 2개 그대로.
+   const placements=getStageObjectPlacements(stage.id).filter(p=>p.type==='expansionObstacle');expect(placements).toHaveLength(count)
    expect(getStageObjectColliders(stage.id)).toHaveLength(count);expect(getStageObjectSightObstacles(stage.id)).toHaveLength(count)
-   if(stage.id==='stage6'){expect(placements.map(p=>[p.position[0],p.position[2]])).toEqual([[0,-11],[0,11]]);continue}
+   if(stage.id==='stage6'){expect(placements.map(p=>[p.position[0],p.position[2]])).toEqual([[0,-11],[0,11]]);expect(getStageObjectPlacements(stage.id).filter(p=>p.type==='unconsciousStudent').map(p=>p.id)).toEqual(['stage6-student-relay-east','stage6-student-roll-west']);continue}
+   expect(getStageObjectPlacements(stage.id)).toHaveLength(count)
    for(const p of placements)expect(Math.abs(p.position[0])-p.props.halfX).toBeGreaterThanOrEqual(2)
   }
  })
@@ -66,7 +68,9 @@ describe('expansion real integrations',()=>{
   for(const e of Object.values(EXPANSION_ENEMIES)){
    const c=e.typeCode;expect(ENEMY_STATS[e.id].hp).toBe(e.hp);expect(stageHpOverride(e.id,e.stageId)).toBeUndefined()
    expect(ENEMY_RUNTIME_DAMAGE[c]).toBe(e.contactDamage);expect(ENEMY_RUNTIME_CONTACT_DIST[c]).toBeCloseTo(e.contactDistUnits);expect(ENEMY_RUNTIME_SCALE[c]).toBeCloseTo(e.scale);expect(ENEMY_RUNTIME_XP[c]).toBe(e.xpPerTextbook)
-   expect(shouldDropTextbook({type:e.id,xp:e.xpPerTextbook},.299,0)).toBe(true);expect(shouldDropTextbook({type:e.id,xp:e.xpPerTextbook},.3,0)).toBe(false)
+   // 평시(120초 이후) 30%. 초반 2분은 전 스테이지 공통 ×2 부스트(2026-08-24)를 확장 적도 똑같이 받는다 → 60%.
+   expect(shouldDropTextbook({type:e.id,xp:e.xpPerTextbook},.299,120)).toBe(true);expect(shouldDropTextbook({type:e.id,xp:e.xpPerTextbook},.3,120)).toBe(false)
+   expect(shouldDropTextbook({type:e.id,xp:e.xpPerTextbook},.599,0)).toBe(true);expect(shouldDropTextbook({type:e.id,xp:e.xpPerTextbook},.6,0)).toBe(false)
   }
   // 보스 보상은 데이터 그대로(B05 교장 4권 × 45 XP, 골드 10 / B06~B09 3 × 40).
   for(const b of Object.values(EXPANSION_BOSSES)){expect(ELITE_BONUS[b.id]).toEqual({gold:b.gold,textbook:b.textbooks,textbookXp:b.textbookXp});expect(getEliteBonusTextbookXp(b.id,0)).toBe(b.textbookXp)}

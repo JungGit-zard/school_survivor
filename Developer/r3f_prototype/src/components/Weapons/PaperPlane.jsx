@@ -18,7 +18,7 @@ import { clearPaperPlanePool, createPaperPlanePool, launchPaperPlanes, stepPaper
 // 동작·수치 정본: lib/paperPlane.js(E47 탄 스펙 + 공용 선회) + weaponCatalog.js paperPlane.base(피해·쿨·대수).
 // 렌더: 좀비 탄 레이어(PooledEnemyProjectileLayer)와 같은 메시·재질·크기·높이·기울기(bank) 규칙을 쓰고,
 // 외곽선 헐 색만 민트다. 몸체 + 외곽선 InstancedMesh 한 쌍. 풀 용량이 늘 때만 메시를 다시 만들고,
-// 매 프레임 할당은 없다.
+// 매 프레임 할당은 없다. 풀은 16에서 시작해 두 배씩, 안전망 상한 PAPER_PLANE_MAX_CAPACITY(64)까지만 는다.
 export const PAPER_PLANE_VISUAL = getShotVisualIndex(SHOT_KIND.PAPER_PLANE, SHOT_MOTION.HOMING)
 export const PAPER_PLANE_VISUAL_SCALE = SHOT_KIND_INFO[SHOT_KIND.PAPER_PLANE].size // 좀비 탄과 같은 1.35
 // 좀비 탄과의 유일한 차이: 외곽선. E04 청록 탄(#34D6B8)보다 밝고 초록 쪽인 민트.

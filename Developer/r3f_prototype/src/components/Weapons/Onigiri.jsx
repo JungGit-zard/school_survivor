@@ -1,4 +1,6 @@
-import { useRef, useState, useCallback, useEffect, useMemo } from 'react'
+import { useRef, useCallback, useEffect, useMemo } from 'react'
+import * as THREE from 'three'
+import { useFrame } from '@react-three/fiber'
 import { usePlayingFrame } from '../../lib/usePlayingFrame.js'
 import { emitSfx } from '../../lib/sfxEvents.js'
 import { playerPos } from '../../lib/refs.js'
@@ -6,8 +8,12 @@ import { useGameStore } from '../../store/useGameStore.js'
 import { outlineMat, toonMat, inflateScale } from '../../lib/toon.js'
 import { findClosestEnemy } from '../../lib/weaponTargeting.js'
 import { applyEnemyHit } from '../../lib/weaponCollision.js'
-import { FLIGHT_DONE, createOnigiriBurstGrains, createOnigiriFlight, planOnigiriFrame, stepOnigiriFlight } from '../../lib/onigiri.js'
+import {
+  ONIGIRI_HOVER_CAP, ONIGIRI_HOVER_TIMEOUT_MS, addSwarmProjectile, clearProjectileSwarm, countHoveringProjectiles, maxHoverMs,
+  createOnigiriBurstGrains, createProjectileSwarm, planOnigiriFrame, stepProjectileSwarm,
+} from '../../lib/onigiri.js'
 import StudioTunedGroup from '../StudioTunedGroup.jsx'
+import { ONIGIRI_BURST_GRAINS, ONIGIRI_BURST_LIFE_MS, createOnigiriBodyLayer, createOnigiriGrainLayer } from '../../lib/onigiriInstanceLayer.js'
 
 let _onigiiriId  = 0
 const nextOnigiriId = () => ++_onigiiriId
@@ -59,194 +65,192 @@ export function OnigiiriModel() {
   )
 }
 
-function OnigiriBurstGrain({ grain, startMs }) {
-  const groupRef = useRef(null)
-  const riceRef = useRef(null)
-  const riceMat = useMemo(() => {
-    const mat = toonMat(0xfffbef, 0.2)
-    mat.transparent = true
-    mat.opacity = 1
-    mat.depthWrite = false
-    mat.toneMapped = false
-    return mat
-  }, [])
+// 2026-11-13 렌더 비용 완화 + Terry "대기 시간+안전 상한":
+// - 주먹밥·쌀알은 InstancedMesh 층(lib/onigiriInstanceLayer.js)이 한 번에 그린다. 모양은 아래 무기가 1벌만
+//   두는 Studio 튜닝 템플릿(<OnigiiriModel />)에서 그대로 가져온다.
+// - 무기 1개가 자기 주먹밥 전부를 한 루프(stepProjectileSwarm)로 진행한다: 던진 순서대로 비행·피격 → 이번
+//   스텝 최신 대기 상태로 안전 상한(ONIGIRI_HOVER_CAP) → 대기 시간(ONIGIRI_HOVER_TIMEOUT_MS)·상한으로
+//   끝난 주먹밥은 바운스를 다 쓴 것과 같은 쌀알 터짐으로 사라진다. 대기 시간은 게임 시간(고정 스텝)이다.
+const SPEED = 11 / 8
+const _pose = new THREE.Vector3()
+const _rot = new THREE.Euler()
 
-  usePlayingFrame(({ clock }) => {
-    const age = clock.elapsedTime * 1000 - startMs - grain.delayMs
-    if (age < 0 || !groupRef.current) return
-
-    const t = Math.min(1, age / 360)
-    const pop = Math.sin(t * Math.PI)
-    const dist = grain.speed * t
-    const fade = Math.max(0, 1 - t)
-
-    groupRef.current.position.set(
-      grain.x + Math.cos(grain.angle) * dist,
-      0.12 + pop * grain.lift,
-      grain.z + Math.sin(grain.angle) * dist,
-    )
-    groupRef.current.rotation.set(t * grain.spin, grain.angle, t * grain.spin * 0.6)
-    groupRef.current.scale.setScalar(1 + pop * 0.35)
-    if (riceRef.current) riceRef.current.material.opacity = fade
-  })
-
-  return (
-    <group ref={groupRef} position={[grain.x, 0.12, grain.z]}>
-      <mesh ref={riceRef} material={riceMat} scale={[grain.size * 1.65, grain.size * 0.9, grain.size]} renderOrder={7}>
-        <sphereGeometry args={[1, 8, 5]} />
-      </mesh>
-    </group>
-  )
+// 예전 발사체 group과 같은 자세: 제자리에서 통통 튀며 돈다(표적이 없으면 수평 위치 그대로).
+export function writeOnigiriPose(bodyLayer, entry) {
+  const spin = entry.spin
+  _pose.set(entry.flight.x, entry.start[1] + 0.25 + Math.abs(Math.sin(spin * 0.45)) * 0.22, entry.flight.z)
+  _rot.set(Math.sin(spin * 0.8) * 0.35, spin, Math.cos(spin * 0.6) * 0.25)
+  bodyLayer.write(entry.slot, _pose, _rot)
 }
 
-function OnigiriBurst({ id, x, z, startMs, onDone }) {
-  const doneRef = useRef(false)
-  const grains = useMemo(() => createOnigiriBurstGrains({ id, x, z, count: 16 }), [id, x, z])
-
-  usePlayingFrame(({ clock }) => {
-    if (doneRef.current) return
-    if (clock.elapsedTime * 1000 - startMs >= 430) {
-      doneRef.current = true
-      onDone(id)
-    }
+function hitOnigiriTarget(entry) {
+  const { flight, maxBounces, damage, critChance, critMultiplier } = entry
+  const hitIndex = maxBounces - flight.bouncesLeft - 1
+  const hit = applyEnemyHit(flight.hitTarget.rb, flight.hitTarget.generation, damage, {
+    source: { x: flight.hitFromX, z: flight.hitFromZ },
+    knockback: 3.2, knockbackMs: 90,
+    critChance,
+    critMultiplier,
   })
-
-  return (
-    <group>
-      {grains.map((grain) => (
-        <OnigiriBurstGrain key={grain.key} grain={grain} startMs={startMs} />
-      ))}
-    </group>
-  )
-}
-
-function OnigiiriProjectile({ id, start, initialTarget, hitIds, maxBounces, damage, bounceRange, critChance, critMultiplier, onDone, onBurst }) {
-  const groupRef   = useRef()
-  // 비행 상태는 공용 진행기(stepOnigiriFlight)가 소유한다. 바운스가 남아 있으면 사라지지 않고,
-  // 맞힌 자리·표적을 잃은 자리에서 bounceRange 안 다음 적을 찾고, 없으면 제자리에 떠서 기다린다.
-  const flightRef  = useRef(null)
-  if (flightRef.current === null) {
-    flightRef.current = createOnigiriFlight({ start, initialTarget, hitIds, maxBounces, bounceRange })
+  if (hit) {
+    emitSfx({
+      id: 'onigiriHit',
+      volume: 0.50,
+      rate: 0.96 + Math.min(hitIndex, 2) * 0.06,
+    })
   }
-  const spinRef    = useRef(0)
-  const doneRef    = useRef(false)
-  const SPEED      = 11 / 8
+}
 
-  usePlayingFrame(({ clock }, delta) => {
-    if (doneRef.current || !groupRef.current) return
-
-    spinRef.current += delta * 15
-    const flight = flightRef.current
-    const state = stepOnigiriFlight(flight, delta, SPEED)
-
-    if (flight.hitTarget) {
-      const hitIndex = maxBounces - flight.bouncesLeft - 1
-      const hit = applyEnemyHit(flight.hitTarget.rb, flight.hitTarget.generation, damage, {
-        source: { x: flight.hitFromX, z: flight.hitFromZ },
-        knockback: 3.2, knockbackMs: 90,
-        critChance,
-        critMultiplier,
-      })
-      if (hit) {
-        emitSfx({
-          id: 'onigiriHit',
-          volume: 0.50,
-          rate: 0.96 + Math.min(hitIndex, 2) * 0.06,
-        })
-      }
-    }
-
-    if (state === FLIGHT_DONE) {
-      onBurst(flight.x, flight.z, clock.elapsedTime * 1000)
-      doneRef.current = true; onDone(id); return
-    }
-
-    // 표적이 없으면(FLIGHT_HOVERING) 수평 위치는 그대로 두고 제자리에서 통통 튀며 돈다.
-    groupRef.current.position.set(
-      flight.x,
-      start[1] + 0.25 + Math.abs(Math.sin(spinRef.current * 0.45)) * 0.22,
-      flight.z,
-    )
-    groupRef.current.rotation.y  = spinRef.current
-    groupRef.current.rotation.x  = Math.sin(spinRef.current * 0.8) * 0.35
-    groupRef.current.rotation.z  = Math.cos(spinRef.current * 0.6) * 0.25
-  })
-
-  return (
-    <group ref={groupRef} position={[start[0], start[1] + 0.25, start[2]]}>
-      <OnigiiriModel />
-    </group>
-  )
+// 테스트·진단용: 지금 마운트된 오니기리 무기의 풀 크기(없으면 null).
+let _live = null
+export function getOnigiriWeaponStats() {
+  if (!_live) return null
+  const { swarm, layers, bursts } = _live
+  return {
+    projectiles: swarm.entries.length,
+    hovering: countHoveringProjectiles(swarm),
+    maxHoverMs: maxHoverMs(swarm),
+    bodyLiveSlots: layers.body.liveSlots,
+    bodyInstances: layers.body.count,
+    bodyCapacity: layers.body.capacity,
+    bursts: bursts.length,
+    grainInstances: layers.grains.count,
+    grainCapacity: layers.grains.capacity,
+  }
 }
 
 export function OnigiiriWeapon() {
-  const [projectiles, setProjectiles] = useState([])
-  const [bursts, setBursts]           = useState([])
-  const projRef      = useRef([])
   const lastFireRef  = useRef(0)
   const burstIdRef   = useRef(0)
+  const nowRef       = useRef(0)
+  // 쌀알 터짐은 React 상태가 아니라 이 목록에 두고, 430ms가 지나면 제자리에서 빼낸다(매 프레임 할당 없음).
+  const burstsRef    = useRef([])
+  const templateRef  = useRef(null)
+  const layersRef    = useRef(null)
+  if (layersRef.current === null) {
+    layersRef.current = { body: createOnigiriBodyLayer(16), grains: createOnigiriGrainLayer() }
+  }
+  const swarmRef = useRef(null)
+  if (swarmRef.current === null) {
+    swarmRef.current = createProjectileSwarm({ speed: SPEED, hoverTimeoutMs: ONIGIRI_HOVER_TIMEOUT_MS, hoverCap: ONIGIRI_HOVER_CAP })
+  }
+  const layers  = layersRef.current
   const phase   = useGameStore((s) => s.phase)
   const weapons = useGameStore((s) => s.weapons)
-
-  const expire = useCallback((id) => {
-    projRef.current = projRef.current.filter((p) => p.id !== id)
-    setProjectiles([...projRef.current])
-  }, [])
+  const gameKey = useGameStore((s) => s.gameKey)
 
   const addBurst = useCallback((x, z, startMs) => {
-    setBursts((prev) => [...prev, { id: ++burstIdRef.current, x, z, startMs }])
+    const id = ++burstIdRef.current
+    burstsRef.current.push({ id, x, z, startMs, grains: createOnigiriBurstGrains({ id, x, z, count: ONIGIRI_BURST_GRAINS }) })
+    layersRef.current.grains.writeBursts(burstsRef.current, startMs)
   }, [])
 
-  const removeBurst = useCallback((id) => {
-    setBursts((prev) => prev.filter((burst) => burst.id !== id))
+  // 끝난 주먹밥(바운스 소진·대기 시간·안전 상한): 그 자리에서 쌀알 터짐 → 인스턴스 슬롯을 놓는다.
+  const retireRef = useRef(null)
+  if (retireRef.current === null) {
+    retireRef.current = (entry) => {
+      addBurst(entry.flight.x, entry.flight.z, nowRef.current)
+      layersRef.current.body.release(entry.slot)
+      entry.slot = -1
+    }
+  }
+
+  // 남은 주먹밥·쌀알·슬롯·대기 시간을 전부 비운다(무기 해제·교체, 판 리셋·스테이지 이동·사망 후 재시작).
+  const resetAll = useCallback(() => {
+    const body = layersRef.current.body
+    clearProjectileSwarm(swarmRef.current, (entry) => { body.release(entry.slot); entry.slot = -1 })
+    if (burstsRef.current.length > 0) {
+      burstsRef.current.length = 0
+      layersRef.current.grains.writeBursts(burstsRef.current, 0)
+    }
   }, [])
+
+  useEffect(() => {
+    _live = { swarm: swarmRef.current, layers: layersRef.current, bursts: burstsRef.current }
+    return () => {
+      if (_live?.swarm === swarmRef.current) _live = null
+      resetAll()
+      layersRef.current.body.dispose()
+      layersRef.current.grains.dispose()
+    }
+  }, [resetAll])
 
   // balanceqa F1 (2026-11-02): 교체 카드로 무기가 빠지는 순간 떠 있던 주먹밥과 쌀알 연출은 끝난다.
   // 목록을 비우지 않으면 같은 판에서 다시 얻었을 때 옛 주먹밥이 처음 던진 자리에서 바운스가 꽉 찬 채 되살아난다.
   const active = !!weapons.onigiri?.active
   useEffect(() => {
-    if (active) return
-    if (projRef.current.length > 0) {
-      projRef.current = []
-      setProjectiles([])
-    }
-    setBursts((prev) => (prev.length > 0 ? [] : prev))
-  }, [active])
+    if (!active) resetAll()
+  }, [active, resetAll])
+  // 판이 새로 시작되면(gameKey) 쿨다운·주먹밥·쌀알을 모두 처음 상태로.
+  useEffect(() => {
+    resetAll()
+    lastFireRef.current = 0
+  }, [gameKey, resetAll])
 
-  usePlayingFrame(({ clock }) => {
+  // 템플릿(Studio 튜닝된 주먹밥 1벌)의 모양을 인스턴스 층에 맞춘다. 일시정지 중에도 돈다 — 멈춘 동안 한
+  // Studio Apply도 바로 보인다(할당 없음). 아래 게임 루프보다 먼저 등록돼 같은 프레임에서 먼저 돈다.
+  useFrame(() => {
+    if (weapons.onigiri?.active) layers.body.syncTemplate(templateRef.current)
+  })
+
+  usePlayingFrame(({ clock }, delta) => {
     const w = weapons.onigiri
     if (phase !== 'playing' || !w?.active) return
     const now = clock.elapsedTime * 1000
-    // 쿨다운 전에는 아무것도 만들지 않는다(balanceqa F3: 매 프레임 할당 없음).
-    if (now - lastFireRef.current < w.cooldown) return
+    nowRef.current = now
+    const swarm = swarmRef.current
 
+    const bursts = burstsRef.current
+    if (bursts.length > 0) {
+      let kept = 0
+      for (let i = 0; i < bursts.length; i += 1) {
+        if (now - bursts[i].startMs < ONIGIRI_BURST_LIFE_MS) bursts[kept++] = bursts[i]
+      }
+      bursts.length = kept
+      layers.grains.writeBursts(bursts, now)
+    }
+
+    // 쿨다운이 차면 1발(balanceqa F3: 쿨다운 전에는 아무것도 만들지 않는다).
     // 2026-11-02 Terry: "화면상 오니기리가 몇 개 있더라도 늘려" — 이미 날거나 떠 있는 주먹밥 수로
     // 새 투척을 막거나 늦추지 않는다. 새 투척은 언제나 이번 프레임의 주인공 몸(playerPos)에서 출발한다.
-    const launch = planOnigiriFrame({
-      now,
-      lastFireAt: lastFireRef.current,
-      weapon: w,
-      origin: playerPos,
-      findFreshTarget: findClosestEnemy,
-      nextId: nextOnigiriId,
-    })
-    if (!launch) return
-    lastFireRef.current = now
-    emitSfx({ id: 'onigiriFire' })
-    projRef.current = [...projRef.current, launch]
-    setProjectiles([...projRef.current])
+    if (now - lastFireRef.current >= w.cooldown) {
+      const launch = planOnigiriFrame({
+        now,
+        lastFireAt: lastFireRef.current,
+        weapon: w,
+        origin: playerPos,
+        findFreshTarget: findClosestEnemy,
+        nextId: nextOnigiriId,
+      })
+      if (launch) {
+        lastFireRef.current = now
+        emitSfx({ id: 'onigiriFire' })
+        const entry = addSwarmProjectile(swarm, launch, { slot: layers.body.claim(), spin: 0 })
+        _pose.set(launch.start[0], launch.start[1] + 0.25, launch.start[2])
+        _rot.set(0, 0, 0)
+        layers.body.write(entry.slot, _pose, _rot)
+      }
+    }
+
+    stepProjectileSwarm(swarm, delta, { onHit: hitOnigiriTarget, onRetire: retireRef.current })
+    for (let i = 0; i < swarm.entries.length; i += 1) {
+      const entry = swarm.entries[i]
+      if (entry.state === null) continue // 이번 스텝에 막 던졌다 — 처음 자세 그대로
+      entry.spin += delta * 15
+      writeOnigiriPose(layers.body, entry)
+    }
   })
 
   if (!weapons.onigiri?.active) return null
 
   return (
     <>
-      {projectiles.map((p) => (
-        <OnigiiriProjectile key={p.id} {...p} onDone={expire} onBurst={addBurst} />
-      ))}
-      {bursts.map((burst) => (
-        <OnigiriBurst key={burst.id} {...burst} onDone={removeBurst} />
-      ))}
+      {/* Studio 튜닝 템플릿 1벌 — 보이지 않고, 모든 주먹밥 인스턴스가 이 모양·재질을 그대로 쓴다. */}
+      <group ref={templateRef} visible={false}>
+        <OnigiiriModel />
+      </group>
+      <primitive object={layers.body.group} />
+      <primitive object={layers.grains.group} />
     </>
   )
 }

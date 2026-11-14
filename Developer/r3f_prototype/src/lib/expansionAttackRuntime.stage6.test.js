@@ -63,16 +63,16 @@ describe('R4 + 해저드 발신(훈화 말씀)', () => {
     hazardId: 'H06', pattern: H06.pattern, originXZ: H06.originUnits, key, gameKey: 1, playerX, playerZ, stageId: 'stage6', halfX: 12, halfZ: 20,
   })
 
-  it('고리 띠가 플레이어를 지나고, active에서 12 피해 1회, 다음 프레임 0', () => {
+  it('고리 띠가 플레이어를 지나고, active에서 9 피해 1회(B05 고리와 같다), 다음 프레임 0', () => {
     const s = emit(0, 0)
     expect(s).not.toBeNull()
-    expect(s).toMatchObject({ hazard: true, shape: 'annulus', damage: 12 })
+    expect(s).toMatchObject({ hazard: true, shape: 'annulus', damage: 9 })
     expect(s.rangeUnits).toBeCloseTo(19.6, 9)
     expect(expansionAttackSnapshots.get('H06:1:0:0')).toBe(s)
     const a = { deltaMs: 1599, playing: true, playerX: 0, playerZ: 0, gameKey: 1 }
     expect(stepExpansionHazardSnapshots(a).damage).toBe(0)
     const hit = stepExpansionHazardSnapshots({ ...a, deltaMs: 10 })
-    expect(hit.damage).toBe(12)
+    expect(hit.damage).toBe(9)
     expect(hit.activeStarts).toBe(1)
     expect(stepExpansionHazardSnapshots({ ...a, deltaMs: 10 }).damage).toBe(0)
     // recovery까지 끝나면 지운다.

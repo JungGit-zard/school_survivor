@@ -124,6 +124,24 @@ describe('인게임 플레이 소크', () => {
     }, 10 * 60 * 1000)
   }
 
+  // 2026-11-13 levelmini: B05 '운동장 10바퀴' 소환 미루기(Enemies.jsx와 같은 규칙). 포화 런에서는 소환 순간 천장(150)이 차 있어
+  // 몫이 잘리는데, 버리지 않고 미뤘다가 자리가 나면 한 소환 크기(6)씩 다시 낸다. 요청 수 = 도착 수, 동시 적 ≤ 150.
+  it('stage6 포화 런 · 천장에 잘린 B05 소환은 미뤘다가 전부 도착한다(동시 적 ≤150)', () => {
+    const result = runGameplaySoak({ frames: Math.round(SOAK_RUN_SECONDS * 60), seed: 1, stages: ['stage6'], runSeconds: SOAK_RUN_SECONDS, saturateRuns: 'all' })
+    console.log('[soak:stage6-summon-defer]', JSON.stringify({ requested: result.stats.bossSummonRequested, spawned: result.stats.bossSummonSpawns, deferred: result.stats.bossSummonDeferred, retries: result.stats.bossSummonRetries, dropped: result.stats.bossSummonDropped }))
+    expect(result.failure, JSON.stringify(result.failure)).toBeNull()
+    expect(result.stats.saturationRuns).toBe(1)
+    expect(result.stats.bossSummons).toBeGreaterThan(0)
+    // 천장에 막혀 실제로 미뤄졌고, 재시도로 다시 나왔다.
+    expect(result.stats.bossSummonDeferred).toBeGreaterThan(0)
+    expect(result.stats.bossSummonRetries).toBeGreaterThan(0)
+    // 버려지지도, 더 나오지도 않는다 — 원래 요청 마릿수와 도착 마릿수가 같다.
+    expect(result.stats.bossSummonSpawns).toBe(result.stats.bossSummonRequested)
+    expect(result.stats.bossSummonDropped).toBe(0)
+    expect(result.stats.drainDropped).toBe(0)
+    expect(result.stats.maxActive).toBeLessThanOrEqual(150)
+  }, 10 * 60 * 1000)
+
   // 수용 판정(SOAK_ACCEPTANCE=1): 위 시드 묶음 전체에서 건너뛴 훈화 고리 < 10%. 인증 시도 실패율은 정보로만 출력한다.
   it('stage6-default · 시드 묶음 전체 훈화 고리 건너뜀 < 10%(수용 측정), 인증 시도 실패율은 정보', () => {
     const rings = speechTotals.emitted + speechTotals.skipped

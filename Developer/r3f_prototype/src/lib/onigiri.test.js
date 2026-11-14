@@ -1,11 +1,11 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
   FLIGHT_DONE, FLIGHT_FLYING, FLIGHT_HIT, FLIGHT_HOVERING,
-  createOnigiriBurstGrains, createOnigiriFlight, pickNextOnigiriTarget, planOnigiriFrame, stepOnigiriFlight,
+  createOnigiriBurstGrains, createOnigiriFlight, findNearestUnhitEnemy, pickNextOnigiriTarget, planOnigiriFrame, stepOnigiriFlight,
 } from './onigiri.js'
 import { WEAPON_CATALOG } from './weaponCatalog.js'
-import { enemyBodies as globalEnemyBodies, enemyPool } from './refs.js'
-import { applyEnemyHit } from './weaponCollision.js'
+import { enemyBodies as globalEnemyBodies, enemyPool, enemySimulationRuntime } from './refs.js'
+import { applyEnemyHit, captureEnemyGeneration, isEnemyHitLive } from './weaponCollision.js'
 
 function rb(x, z, alive = true) {
   return {
@@ -18,6 +18,7 @@ function rb(x, z, alive = true) {
 afterEach(() => {
   globalEnemyBodies.clear()
   enemyPool.reset()
+  enemySimulationRuntime.grid.reset()
 })
 
 function spawnPooledEnemy(x, z, hit = vi.fn()) {
@@ -254,5 +255,126 @@ describe.each(['onigiri', 'miniRosari'])('%s confirmed flight rules (2026-11-02)
     expect(hitIds).toHaveLength(weapon.bounces)
     expect(new Set(hitIds).size).toBe(weapon.bounces)
     expect(stepOnigiriFlight(flight, DT, SPEED)).toBe(FLIGHT_DONE)
+  })
+})
+
+// 2026-11-13 성능 완화: 다음 표적 찾기가 풀 150칸 전체 대신 적 시뮬레이션의 공간 격자(사거리 상자 안 셀)만
+// 본다. 고르는 적은 예전 전체 순회와 **완전히 같아야** 한다 — 아래는 예전 구현을 그대로 옮긴 기준 함수다.
+function referenceFindNearestUnhitEnemy(enemyBodies, fromX, fromZ, hitSet, range) {
+  let poolIndex = -1
+  let minDSq = range * range
+  for (let index = 0; index <= enemyPool.highestActive; index += 1) {
+    if (!enemyPool.active[index]) continue
+    if (hitSet.has(enemyPool.proxies[index]._enemyId)) continue
+    const dx = enemyPool.posX[index] - fromX
+    const dz = enemyPool.posZ[index] - fromZ
+    const dSq = dx * dx + dz * dz
+    if (dSq < minDSq) { minDSq = dSq; poolIndex = index }
+  }
+  let special = null
+  enemyBodies.forEach((rb, enemyId) => {
+    if (Number.isInteger(rb?.index) && enemyPool.proxies[rb.index] === rb) return
+    if (hitSet.has(enemyId) || !isEnemyHitLive(rb)) return
+    const t = rb.translation()
+    const dx = t.x - fromX
+    const dz = t.z - fromZ
+    const dSq = dx * dx + dz * dz
+    if (dSq < minDSq) { minDSq = dSq; special = { rb, enemyId } }
+  })
+  if (special) return { ...special, generation: captureEnemyGeneration(special.rb) }
+  if (poolIndex < 0) return null
+  const rbHit = enemyPool.proxies[poolIndex]
+  return { rb: rbHit, enemyId: rbHit._enemyId, generation: enemyPool.generation[poolIndex] }
+}
+
+describe('onigiri / mini rosari next-target search through the enemy spatial grid (2026-11-13)', () => {
+  function seeded(seed) {
+    let state = seed >>> 0
+    return () => {
+      state = (state * 1664525 + 1013904223) >>> 0
+      return state / 0x100000000
+    }
+  }
+
+  function buildFixture() {
+    const rand = seeded(20261113)
+    // 맵 안쪽 무리 + 격자 밖(overflow) 몇 마리 + 같은 거리 동점 쌍(인덱스가 작은 쪽이 이겨야 한다).
+    for (let i = 0; i < 110; i += 1) spawnPooledEnemy((rand() - 0.5) * 30, (rand() - 0.5) * 30)
+    for (const [x, z] of [[70, 0], [-70, 3], [0, 75]]) spawnPooledEnemy(x, z)
+    for (const [x, z] of [[2, 0], [-2, 0], [0, 2], [0, -2], [1.5, 1.5], [-1.5, -1.5]]) spawnPooledEnemy(10 + x, -6 + z)
+    // 3칸 비워 슬롯 재사용·highestActive 경계도 섞는다.
+    for (const index of [5, 40, 77]) enemyPool.despawn({ index, generation: enemyPool.generation[index] })
+    globalEnemyBodies.set('boss', rb(9.2, -6.1))
+    globalEnemyBodies.set('deadBoss', rb(10, -6, false))
+  }
+
+  function queries() {
+    const rand = seeded(7)
+    const out = [
+      { x: 10, z: -6, range: 4.5 }, { x: 10, z: -6, range: 3.0 }, // 동점 무리 한가운데
+      { x: 0, z: 0, range: Number.POSITIVE_INFINITY },
+      { x: 68, z: 1, range: 4.5 }, // overflow 적
+    ]
+    for (let i = 0; i < 160; i += 1) {
+      out.push({ x: (rand() - 0.5) * 40, z: (rand() - 0.5) * 40, range: i % 2 === 0 ? 4.5 : 3.0 })
+    }
+    return out.map((q, i) => {
+      const hitSet = new Set()
+      if (i % 3 === 0) {
+        for (let k = 0; k < 20; k += 1) {
+          const index = Math.floor(rand() * (enemyPool.highestActive + 1))
+          if (enemyPool.active[index]) hitSet.add(enemyPool.proxies[index]._enemyId)
+        }
+        if (i % 6 === 0) hitSet.add('boss')
+      }
+      return { ...q, hitSet }
+    })
+  }
+
+  it('picks exactly the same enemy as the old full scan, for ranges 4.5 (onigiri) and 3.0 (mini rosari)', () => {
+    buildFixture()
+    const grid = enemySimulationRuntime.grid
+    grid.rebuild(enemyPool, 54, 54)
+    expect(grid.isCurrentFor(enemyPool)).toBe(true) // 격자 경로를 실제로 탄다
+    expect(grid.overflowHead).toBeGreaterThanOrEqual(0)
+
+    let found = 0
+    for (const q of queries()) {
+      const expected = referenceFindNearestUnhitEnemy(globalEnemyBodies, q.x, q.z, q.hitSet, q.range)
+      const actual = findNearestUnhitEnemy(globalEnemyBodies, q.x, q.z, q.hitSet, q.range)
+      if (expected === null) {
+        expect(actual).toBeNull()
+        continue
+      }
+      found += 1
+      expect(actual.rb).toBe(expected.rb)
+      expect(actual.enemyId).toBe(expected.enemyId)
+      expect(actual.generation).toBe(expected.generation)
+    }
+    expect(found).toBeGreaterThan(40)
+    expect(grid.isCurrentFor(enemyPool)).toBe(true)
+  })
+
+  it('breaks exact distance ties toward the lower pool index, like the old scan', () => {
+    const far = spawnPooledEnemy(-3, 0) // index 0
+    const near = spawnPooledEnemy(3, 0) // index 1, 같은 거리
+    enemySimulationRuntime.grid.rebuild(enemyPool, 54, 54)
+    // 격자는 x가 큰 셀을 나중에 돌지만, 동점이면 인덱스 0이 이겨야 한다(예전 순회와 동일).
+    const pick = findNearestUnhitEnemy(new Map(), 0, 0, new Set(), 4.5)
+    expect(pick.rb).toBe(enemyPool.get(far.handle))
+    expect(near.handle.index).toBe(1)
+  })
+
+  it('falls back to the full scan when the grid is stale, with the same answers', () => {
+    buildFixture()
+    enemySimulationRuntime.grid.rebuild(enemyPool, 54, 54)
+    spawnPooledEnemy(10.1, -6.05) // 격자 rebuild 뒤 스폰 → 격자가 낡았다
+    expect(enemySimulationRuntime.grid.isCurrentFor(enemyPool)).toBe(false)
+    for (const q of queries()) {
+      const expected = referenceFindNearestUnhitEnemy(globalEnemyBodies, q.x, q.z, q.hitSet, q.range)
+      const actual = findNearestUnhitEnemy(globalEnemyBodies, q.x, q.z, q.hitSet, q.range)
+      expect(actual?.rb ?? null).toBe(expected?.rb ?? null)
+      expect(actual?.enemyId ?? null).toBe(expected?.enemyId ?? null)
+    }
   })
 })

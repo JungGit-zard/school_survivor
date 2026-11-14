@@ -6,7 +6,7 @@ import { UPGRADE_EFFECTS, applyUpgradeToWeapon, isUpgradeAvailable } from './upg
 import { estimatePlayerDps } from './playerDpsEstimate.js'
 import {
   E47_PAPER_PLANE_SHOT, PAPER_PLANE_CONTACT_RADIUS, PAPER_PLANE_LIFETIME_MS, PAPER_PLANE_SPEED,
-  PAPER_PLANE_TURN_BUDGET, PAPER_PLANE_TURN_RATE, countActivePaperPlanes, createPaperPlanePool,
+  PAPER_PLANE_MAX_CAPACITY, PAPER_PLANE_TURN_BUDGET, PAPER_PLANE_TURN_RATE, countActivePaperPlanes, createPaperPlanePool,
   launchPaperPlanes, spawnPaperPlane, stepPaperPlanes,
 } from './paperPlane.js'
 import { PROJECTILE_ZOMBIE_BEHAVIORS } from './projectileZombieBehavior.js'
@@ -348,6 +348,30 @@ describe('paper plane flight = the E47 zombie paper plane (2026-11-08 Terry)', (
     for (let i = 0; i < 9; i += 1) spawnPaperPlane(pool, { x: 0, z: 0, dirX: 1, dirZ: 0, damage: 1 })
     expect(countActivePaperPlanes(pool)).toBe(9)
     expect(pool.capacity).toBeGreaterThanOrEqual(9)
+  })
+
+  // 2026-11-13 안전망: 풀은 16에서 시작해 두 배씩 늘되 64를 넘지 않는다(그 아래 동작은 그대로).
+  it('caps the pool at the 64-plane safety ceiling and refuses spawns beyond it', () => {
+    expect(PAPER_PLANE_MAX_CAPACITY).toBe(64)
+    const pool = createPaperPlanePool(16)
+    const slots = []
+    for (let i = 0; i < 70; i += 1) slots.push(spawnPaperPlane(pool, { x: 0, z: 0, dirX: 1, dirZ: 0, damage: 1 }))
+    expect(pool.capacity).toBe(64)
+    expect(countActivePaperPlanes(pool)).toBe(64)
+    expect(slots.slice(0, 64)).toEqual(Array.from({ length: 64 }, (_, i) => i))
+    expect(slots.slice(64)).toEqual([-1, -1, -1, -1, -1, -1])
+
+    // 꽉 찬 풀에서 발사 계획은 실제로 만든 수(0)만 돌려준다 → 컴포넌트는 쿨다운을 소비하지 않는다.
+    const scratch = { special: [null], indices: [0], generations: [1] }
+    const target = { translation: () => ({ x: 3, y: 0, z: 0 }) }
+    const weapon = { damage: 1, projectileCount: 2 }
+    expect(launchPaperPlanes(pool, { originX: 0, originZ: 0, weapon, scratch, targetCount: 1, resolveTarget: () => target })).toBe(0)
+
+    // 한 자리가 비면 그 자리를 다시 쓴다.
+    pool.active[10] = 0
+    expect(launchPaperPlanes(pool, { originX: 0, originZ: 0, weapon, scratch, targetCount: 1, resolveTarget: () => target })).toBe(1)
+    expect(pool.active[10]).toBe(1)
+    expect(pool.capacity).toBe(64)
   })
 
   it('steady-state stepping does not grow the pool or reallocate its arrays', () => {

@@ -309,6 +309,9 @@ investigation.student.stage4.002	수저가 가지런해. 이렇게 예의 바른
 investigation.student.stage5.001	교무실 의자에 반듯이 앉아 있어. 혼나는 자세가 몸에 밴 것 같아.
 investigation.student.stage5.002	손에 반성문을 꼭 쥐고 있어. 세 줄째에서 멈췄네.
 investigation.student.stage5.003	"교감 선생님 오시면 깨워 줘"라고 쓴 포스트잇이 이마에 붙어 있어.
+investigation.student.stage6.001	체육복 차림으로 트랙 위에 쓰러져 있어. 출발 자세가 그대로네.
+investigation.student.stage6.002	이마에 땀띠가 났어. 훈화가 정말 길었나 봐.
+investigation.student.stage6.003	"앞으로 나란히"를 하다 그대로 잠든 것 같아.
 investigation.classroomDesk.001	연필이 손등을 콕 찔렀어. 책상도 좀비 편인 줄 알았네.
 investigation.classroomDesk.002	“급식 최고” 낙서라니. 나 지금 배가 먼저 놀라잖아.
 investigation.classroomDesk.003	책상 흠집이 지도로 보여, 그 안에 숨을 수 있을 것 같아.

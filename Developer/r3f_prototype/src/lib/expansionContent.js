@@ -61,7 +61,7 @@ const DATA = {
         {
           "sec": 5,
           "type": "E19",
-          "count": 12,
+          "count": 10,
           "formation": "assembly_row",
           "side": "top"
         },
@@ -73,17 +73,17 @@ const DATA = {
         {
           "sec": 16,
           "type": "E01",
-          "count": 10
+          "count": 6
         },
         {
           "sec": 24,
           "type": "E20",
-          "count": 2
+          "count": 1
         },
         {
           "sec": 36,
           "type": "E19",
-          "count": 14,
+          "count": 10,
           "formation": "assembly_row",
           "side": "bottom"
         },
@@ -95,12 +95,12 @@ const DATA = {
         {
           "sec": 52,
           "type": "E01",
-          "count": 12
+          "count": 10
         },
         {
           "sec": 52,
           "type": "E04",
-          "count": 2
+          "count": 1
         },
         {
           "sec": 64,
@@ -179,14 +179,14 @@ const DATA = {
         {
           "sec": 132,
           "type": "E19",
-          "count": 14,
+          "count": 12,
           "formation": "assembly_row",
           "side": "auto"
         },
         {
           "sec": 132,
           "type": "E04",
-          "count": 2
+          "count": 1
         },
         {
           "sec": 144,
@@ -199,14 +199,34 @@ const DATA = {
           "count": 1
         },
         {
+          "sec": 150,
+          "type": "E01",
+          "count": 8
+        },
+        {
+          "sec": 150,
+          "type": "E07",
+          "count": 2
+        },
+        {
           "sec": 168,
           "type": "E20",
-          "count": 1
+          "count": 2
         },
         {
           "sec": 168,
           "type": "E21",
           "count": 3
+        },
+        {
+          "sec": 168,
+          "type": "E07",
+          "count": 1
+        },
+        {
+          "sec": 168,
+          "type": "E01",
+          "count": 8
         },
         {
           "sec": 184,
@@ -216,14 +236,14 @@ const DATA = {
         {
           "sec": 192,
           "type": "E19",
-          "count": 14,
+          "count": 12,
           "formation": "assembly_row",
           "side": "gate"
         },
         {
           "sec": 200,
           "type": "E05",
-          "count": 2
+          "count": 1
         },
         {
           "sec": 216,
@@ -2151,7 +2171,7 @@ const DATA = {
         "radiusPaddingUnits": 0.6,
         "minRangeUnits": 2,
         "maxRangeUnits": 40,
-        "damage": 12,
+        "damage": 9,
         "maxHitsPerTarget": 1,
         "ignoresSightBlockers": true,
         "targetLockedAtWindupStart": true

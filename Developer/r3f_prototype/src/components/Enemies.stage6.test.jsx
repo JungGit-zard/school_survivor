@@ -115,6 +115,42 @@ describe('Stage6 production enemy runtime', () => {
       expect(summoned.map((e) => [e.x, e.z])).toEqual([[-9, -6], [9, -6], [-9, 0], [9, 0], [-9, 6], [9, 6]])
       expect(summoned.every((e) => e.hp === 36)).toBe(true)
       expect(summonQueue.getBossSummonQueueCount()).toBe(0)
+
+      // 천장(150)이 꽉 찬 순간의 B05 시간 소환은 버리지 않고 미뤘다가 자리가 나면 나온다. 총 도착 수 = 요청 수(6).
+      // 천장은 그대로 지킨다 — 빈 자리만큼만 나온다.
+      state.bossAliveCount = 1
+      const fillPool = () => { clearPool(); for (let i = 0; i < 150; i += 1) pool.spawn({ type: 'E01', x: -11 + (i % 20) * 1.1, z: -15 + Math.floor(i / 20) * 1.1, hp: 20, maxHp: 20, spawnTimer: 300 }) }
+      const freeSlots = (n) => { let freed = 0; for (let i = 0; i <= pool.highestActive && freed < n; i += 1) if (pool.active[i] && pool.type[i] !== 19) { pool.despawnIndex(i, pool.generation[i]); freed += 1 } }
+      const arrivedE21 = () => spy.mock.calls.filter(([, e]) => e.type === 'E21').length
+      fillPool(); spy.mockClear()
+      summonQueue.pushBossSummon(state.gameKey, 0, -17, 32)
+      frame(0.016); flush()
+      expect(arrivedE21()).toBe(0)
+      frame(0.016); flush()
+      expect(arrivedE21()).toBe(0)
+      freeSlots(2)
+      frame(0.016); flush()
+      expect(arrivedE21()).toBe(2)
+      freeSlots(10)
+      frame(0.016); flush()
+      expect(arrivedE21()).toBe(6)
+      for (let i = 0; i < 5; i += 1) { frame(0.016); flush() }
+      expect(arrivedE21()).toBe(6)
+      expect(spy.mock.calls.length).toBe(6)
+
+      // 보스가 죽으면 미뤄 둔 몫은 폐기된다 — 처치 뒤에 자리가 나도 아무것도 나오지 않는다.
+      fillPool(); spy.mockClear()
+      summonQueue.pushBossSummon(state.gameKey, 0, -17, 32)
+      frame(0.016); flush()
+      expect(arrivedE21()).toBe(0)
+      state.bossAliveCount = 0
+      clearPool()
+      for (let i = 0; i < 5; i += 1) { frame(0.016); flush() }
+      expect(arrivedE21()).toBe(0)
+      // 보스가 다시 살아 있어도(다음 판 보스가 아니라 같은 판 재검사) 이미 버린 몫은 되살아나지 않는다.
+      state.bossAliveCount = 1
+      frame(0.016); flush()
+      expect(arrivedE21()).toBe(0)
     } finally {
       for (const cleanup of cleanups.reverse()) cleanup()
       spy?.mockRestore(); clearPool()

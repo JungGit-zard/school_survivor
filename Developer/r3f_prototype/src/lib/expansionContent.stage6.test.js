@@ -37,27 +37,58 @@ describe('stage6 운동장 — 같은 id·기록 키·typeCode, 내용만 교체
     expect(s7.survivalMilestones[0].label).toBe(`${EXPANSION_STAGES.stage7.nameKo} 생존 보너스`)
   })
 
-  // 2026-11-08 wave 5(S6 난이도): E20 13 → 7마리(−384 HP), E19 +9(줄 5개 +2/+2/+2/+2/+1, +270 HP). 일반 적 HP 9,338 → 9,224,
-  // 총 HP 13,820 → 13,706(−0.82%, ±2% 사다리 안).
-  it('이벤트 34행, 보스 1행(150초), 마지막 일반 이벤트 228초, 반복 버스트 없음, 일반 적 190마리·HP 9,224', () => {
+  // 2026-11-13 S6 재조정(levelmini): 오프닝 0~60초 HP 1,740 → 1,256(S5 832의 2.09배 → 1.51배), 보스 창 150~180초
+  // 388 → 892(스테이지에서 가장 한산했던 30초 해소), 180~210초 1,780 → 1,546. 60~120초·탈출 이후 210~240초는 그대로.
+  // 일반 적 190 → 188마리, HP 9,224 → 8,870. 총 HP(B05 4,050 + 시간 소환 3회 648) 13,568, 격노 소환까지 4회면 13,784 —
+  // 둘 다 사다리 목표 3,710 × 1.3^5 = 13,775의 ±2% 안.
+  // 2026-11-13 2차(levelmini, balanceqa 노트): 52초 E01 8 → 10. 오프닝 1,256 → 1,296(S5의 1.56배), 60초 계단 2.13배 → 2.0배.
+  // 일반 적 190마리·HP 8,910, 총 HP 13,608(소환 3회)·13,824(4회).
+  it('이벤트 38행, 보스 1행(150초), 마지막 일반 이벤트 228초, 반복 버스트 없음, 일반 적 190마리·HP 8,910', () => {
     const events = getBurstEventsForStage('stage6')
-    expect(events).toHaveLength(34)
+    expect(events).toHaveLength(38)
     expect(events.filter((e) => isBossType(e.type))).toEqual([{ sec: 150, type: 'B05', count: 1 }])
     expect(Math.max(...events.filter((e) => !isBossType(e.type)).map((e) => e.sec))).toBe(228)
     expect(events.some((e) => e.repeatIntervalSec)).toBe(false)
     const normal = events.filter((e) => !isBossType(e.type))
     expect(normal.reduce((n, e) => n + e.count, 0)).toBe(190)
-    expect(normal.reduce((n, e) => n + e.count * S6_HP[e.type], 0)).toBe(9224)
-    const total = normal.reduce((n, e) => n + e.count * S6_HP[e.type], 0) + 4050 + 432
-    expect(Math.abs(total / 13820 - 1)).toBeLessThanOrEqual(0.02)
+    expect(normal.reduce((n, e) => n + e.count * S6_HP[e.type], 0)).toBe(8910)
+    const summonHp = EXPANSION_BOSSES.B05.summon.count * S6_HP.E21
+    const target = Math.round(3710 * 1.3 ** 5)
+    expect(target).toBe(13775)
+    for (const summons of [3, 4]) {
+      const total = normal.reduce((n, e) => n + e.count * S6_HP[e.type], 0) + 4050 + summons * summonHp
+      expect(Math.abs(total / target - 1), `${summons} summons`).toBeLessThanOrEqual(0.02)
+    }
     const countOf = (type) => normal.filter((e) => e.type === type).reduce((n, e) => n + e.count, 0)
-    expect([countOf('E19'), countOf('E20'), countOf('E21')]).toEqual([115, 7, 18])
-    expect(events.filter((e) => e.type === 'E20').map((e) => [e.sec, e.count])).toEqual([[24, 2], [72, 2], [108, 2], [168, 1]])
-    expect(events.filter((e) => e.formation === 'assembly_row').map((e) => [e.sec, e.side]))
-      .toEqual([[5, 'top'], [36, 'bottom'], [64, 'top'], [64, 'bottom'], [96, 'top'], [96, 'bottom'], [132, 'auto'], [192, 'gate'], [216, 'gate']])
+    expect([countOf('E19'), countOf('E20'), countOf('E21')]).toEqual([105, 7, 18])
+    expect(events.filter((e) => e.type === 'E20').map((e) => [e.sec, e.count])).toEqual([[24, 1], [72, 2], [108, 2], [168, 2]])
+    expect(events.filter((e) => e.formation === 'assembly_row').map((e) => [e.sec, e.side, e.count]))
+      .toEqual([[5, 'top', 10], [36, 'bottom', 10], [64, 'top', 12], [64, 'bottom', 12], [96, 'top', 12], [96, 'bottom', 12], [132, 'auto', 12], [192, 'gate', 12], [216, 'gate', 13]])
     expect(events.filter((e) => e.formation === 'track_lanes')).toEqual([{ sec: 124, type: 'E21', count: 6, formation: 'track_lanes' }])
     // 110초 전통 증원(E07 3 + E02 3) 유지.
     expect(events.filter((e) => e.sec === 110).map((e) => [e.type, e.count])).toEqual([['E07', 3], ['E02', 3]])
+    // 개방 운동장은 시야 차단물이 없다 — 원거리 E04는 0~60초 동시 3기(8초 2 + 52초 1)로 묶는다(포화점 4.13기 미만).
+    expect(events.filter((e) => e.type === 'E04').map((e) => [e.sec, e.count])).toEqual([[8, 2], [52, 1], [108, 2], [132, 1], [216, 2]])
+  })
+
+  // 30초 창별 유입 HP(일반 적 + B05 시간 소환 162·192·222초). 곡선 모양을 못박는다.
+  it('난이도 곡선: 150초까지 오르막, 보스 창이 오프닝보다 붐빈다, 탈출 이후 구간은 그대로', () => {
+    const events = getBurstEventsForStage('stage6').filter((e) => !isBossType(e.type))
+    const summonHp = EXPANSION_BOSSES.B05.summon.count * S6_HP.E21
+    const windows = [0, 30, 60, 90, 120, 150, 180, 210].map((from) => events
+      .filter((e) => e.sec >= from && e.sec < from + 30).reduce((n, e) => n + e.count * S6_HP[e.type], 0)
+      + [162, 192, 222].filter((sec) => sec >= from && sec < from + 30).length * summonHp)
+    expect(windows).toEqual([644, 652, 1304, 1650, 1800, 892, 1546, 1070])
+    // 60~150초 단조 증가(보스 직전이 정점), 오프닝 60초 합 ≤ 1,300.
+    expect(windows[2] < windows[3] && windows[3] < windows[4]).toBe(true)
+    expect(windows[0] + windows[1]).toBeLessThanOrEqual(1300)
+    // 보스 창(150~240초)의 어느 30초도 오프닝 30초 창보다 한산하지 않다.
+    expect(Math.min(...windows.slice(5))).toBeGreaterThan(Math.max(windows[0], windows[1]))
+  })
+
+  it('훈화 고리(H06) 피해는 같은 고리를 쓰는 교장 B05 훈화 고리와 같다(튜토리얼 기믹이 보스판보다 아프지 않게)', () => {
+    expect(EXPANSION_HAZARDS.H06.pattern.damage).toBe(9)
+    expect(EXPANSION_HAZARDS.H06.pattern.damage).toBe(EXPANSION_BOSSES.B05.patterns[0].damage)
   })
 
   it('E19~E21·B05 typeCode 17·18·19·32 유지, 이름·수치·행동 교체', () => {

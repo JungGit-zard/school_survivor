@@ -878,3 +878,36 @@ describe('expansion bonusEvents runtime', () => {
     expect(getRuntimeSpawnEventsForStage('stage4').slice(-2)).toEqual([...COIN_MONSTER_RUNTIME_EVENTS])
   })
 })
+
+// 2026-11-13 Stage 6 재조정(levelmini): 1부 피날레는 가장 어려워야 하지만 S5에서 한 계단만 올라야 한다.
+// 총량은 S5 실측 10,604의 1.3배 사다리 근처, 오프닝 60초는 예전 2.09배 급등 대신 ≤ 1.6배로 묶는다.
+describe('Stage 5 → Stage 6 한 계단 상승', () => {
+  const S5_MULT = 1.2 ** 4
+  const S5_HP = { E01: 8, E02: 70, E03: 10, E04: 32, E05: 70, E06: 320, E07: 16, ...NOVEL_BASE_HP, B10: 1563 }
+  const s5Hp = (event) => Math.round(S5_HP[event.type] * S5_MULT) * (event.count ?? 1)
+    * (isRepeatingBurstEvent(event) ? repeatingBurstTickCount(event) : 1)
+
+  it('S6 총 HP(B05 + 시간 소환 3~4회)는 S5의 1.25~1.33배, 오프닝 60초는 1.0~1.6배', async () => {
+    const { EXPANSION_STAGES, EXPANSION_ENEMIES, EXPANSION_BOSSES } = await import('./expansionContent.js')
+    const s6Mult = EXPANSION_STAGES.stage6.existingEnemyHpMultiplier
+    const s6Hp = (event) => (EXPANSION_ENEMIES[event.type]?.hp ?? EXPANSION_BOSSES[event.type]?.hp
+      ?? Math.round(S5_HP[event.type] * s6Mult)) * (event.count ?? 1)
+    const s5Total = STAGE5_BURST_EVENTS.reduce((sum, event) => sum + s5Hp(event), 0) + STAGE5_B10_SUMMON_FIXED_HP
+    expect(s5Total).toBe(10604)
+    const summon = EXPANSION_BOSSES.B05.summon
+    const summonHp = summon.count * EXPANSION_ENEMIES[summon.type].hp
+    const s6Events = getBurstEventsForStage('stage6')
+    const s6Base = s6Events.reduce((sum, event) => sum + s6Hp(event), 0)
+    for (const summons of [3, 4]) {
+      const ratio = (s6Base + summons * summonHp) / s5Total
+      expect(ratio, `${summons} summons`).toBeGreaterThanOrEqual(1.25)
+      expect(ratio, `${summons} summons`).toBeLessThanOrEqual(1.33)
+    }
+    const opening = (events, hp) => events.filter((event) => event.sec < 60 && !isBossType(event.type)).reduce((sum, event) => sum + hp(event), 0)
+    const s5Opening = opening(STAGE5_BURST_EVENTS, s5Hp)
+    const s6Opening = opening(s6Events, s6Hp)
+    expect([s5Opening, s6Opening]).toEqual([832, 1296])
+    expect(s6Opening / s5Opening).toBeGreaterThanOrEqual(1)
+    expect(s6Opening / s5Opening).toBeLessThanOrEqual(1.6)
+  })
+})

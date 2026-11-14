@@ -973,7 +973,6 @@ export default {
   'quest.stage3-scoreboard-fuse.itemName': '掲示板の予備ヒューズ',
   'quest.stage3-scoreboard-fuse.itemDesc': '「スコアボード用」と太く書かれた黄色いヒューズ。',
   'quest.stage3-scoreboard-fuse.giver': '体育部 施設担当の学生',
-  'quest.stage3-scoreboard-fuse.target': '北のスコアボード',
   'quest.stage3-scoreboard-fuse.target': '北の電光掲示板',
   'quest.stage4-allergy-list.title': '給食アレルギーの確認',
   'quest.stage4-allergy-list.objective': '東の調理台で給食アレルギー名簿を見つけて当番の学生に返そう。',
@@ -987,7 +986,6 @@ export default {
   'quest.stage4-gas-valve.itemDesc': '油まみれの十字型をした赤い金属ハンドル。',
   'quest.stage4-gas-valve.giver': '調理部の学生',
   'quest.stage4-gas-valve.target': '北のクックライン',
-  'quest.stage4-gas-valve.target': '北のクックライン',
   'quest.stage5-late-slip.title': '消えた遅刻届',
   'quest.stage5-late-slip.objective': '北東のコピー機で遅刻届を見つけ、呼び出された生徒に返そう。',
   'quest.stage5-late-slip.itemName': '遅刻届',
@@ -1000,6 +998,18 @@ export default {
   'quest.stage5-pa-key.itemDesc': '「教頭専用」と書かれた黄色いタグ付きの鍵。',
   'quest.stage5-pa-key.giver': '放送部の生徒',
   'quest.stage5-pa-key.target': '放送端子箱',
+  'quest.stage6-relay-baton.title': '最終走者のバトン',
+  'quest.stage6-relay-baton.objective': '北のゴールの裏でリレーのバトンを見つけ、最終走者に返そう。',
+  'quest.stage6-relay-baton.itemName': 'リレーのバトン',
+  'quest.stage6-relay-baton.itemDesc': '黄色いテープを巻いたリレー用バトン。使い込まれてつるつるだ。',
+  'quest.stage6-relay-baton.giver': '最終走者',
+  'quest.stage6-relay-baton.target': '最終走者',
+  'quest.stage6-assembly-roll.title': '朝礼の名簿',
+  'quest.stage6-assembly-roll.objective': '南のゴールの裏で朝礼の名簿を見つけ、学級委員に返そう。',
+  'quest.stage6-assembly-roll.itemName': '朝礼の名簿',
+  'quest.stage6-assembly-roll.itemDesc': '「全校生徒 運動場集合」と書かれた名簿。空欄が多すぎる。',
+  'quest.stage6-assembly-roll.giver': '学級委員',
+  'quest.stage6-assembly-roll.target': '学級委員',
 
   // ─── 調査セリフ ───
   'dialogue.studentName': 'ゾンビになった学生',
@@ -1356,7 +1366,7 @@ export default {
   'mission.hanako_cheer.title': '花子の応援',
   'mission.hanako_cheer.objective': '花子の回復を1回受ける',
   'mission.boss_hunter.title': 'ボスハンター',
-  'mission.boss_hunter.objective': 'B01〜B04のボスをどれか1体倒す',
+  'mission.boss_hunter.objective': 'ステージ1〜6のボスをどれか1体倒す',
 
   // ─── 로자리의 방 화면 ───
   'rosariRoom.title': "ロザリの部屋",

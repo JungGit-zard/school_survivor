@@ -1,4 +1,5 @@
 import { MISSION_BY_ID, MISSION_CATALOG, MISSION_CATALOG_VERSION, MISSION_REWARD_APPROVED } from './missionCatalog.js'
+import { isStageVisible } from './stageConfig.js'
 
 const MAX_COUNTER_VALUE = 1_000_000
 
@@ -125,6 +126,8 @@ function readToken(value) {
   return /^[A-Za-z0-9_-]{1,64}$/.test(token) ? token : ''
 }
 
+// 출시 스테이지(VISIBLE_STAGE_IDS)만 스테이지별 카운터를 만든다. 예전 하드코딩 목록은 stage5에서 멈춰 있어
+// 2026-11-08에 출시된 Stage 6의 생존·클리어·처치 카운터가 통째로 버려졌다. 초안 Stage 7~10은 계속 막힌다.
 function readStageId(value) {
-  return ['stage1', 'stage2', 'stage3', 'stage4', 'stage5'].includes(value) ? value : ''
+  return typeof value === 'string' && isStageVisible(value) ? value : ''
 }

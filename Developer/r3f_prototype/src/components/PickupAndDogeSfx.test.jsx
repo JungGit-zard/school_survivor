@@ -7,7 +7,7 @@ describe('additional gameplay SFX coverage', () => {
 
     expect(source).toContain("emitSfx({ id: 'textbookLand'")
     expect(source).toContain("emitSfx({ id: 'textbookCollect'")
-    expect(source).toContain('gainXp(value)')
+    expect(source).toContain('gainXp(item.value)')
   })
 
   it('uses Doge-specific escape and death cues instead of reusing zombie death audio', () => {

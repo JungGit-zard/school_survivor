@@ -10,7 +10,7 @@ import EnemyDeathCollapse from './EnemyDeathCollapse.jsx'
 import { ZOMBIE_PALETTE } from './ZombieMesh.jsx'
 import { purifiedStudentPool, spawnPurifiedStudent } from '../lib/purifiedStudentPool.js'
 import GoldCoin from './GoldCoin.jsx'
-import XpTextbook from './XpTextbook.jsx'
+import { XpTextbookLayer } from './XpTextbook.jsx'
 import DancingDogeEvent from './DancingDogeEvent.jsx'
 import TreasureChest from './TreasureChest.jsx'
 import { emitRztLunchFoodDrop } from './LunchItems.jsx'
@@ -115,8 +115,14 @@ export function getEliteBonusTextbookXp(type, fallbackXp) {
   return bonus.textbookXp ?? fallbackXp
 }
 
+// 확장 적(E19~)의 textbookChance는 기본 드랍률(0.30)을 대신하는 값이다. 초반 2분 ×2 부스트(2026-08-24 사용자 지시,
+// 전 스테이지 공통)는 그 위에 똑같이 얹는다 — 예전에는 확장 적만 부스트를 건너뛰어 Stage 6 오프닝 XP가 절반이었다.
 export function shouldDropTextbook(dropData, roll = Math.random(), elapsedSec = Infinity) {
-  return (dropData?.xp ?? 0) > 0 && roll < (EXPANSION_ENEMIES[dropData?.type]?.textbookChance ?? getTextbookDropRate(elapsedSec))
+  const expansionChance = EXPANSION_ENEMIES[dropData?.type]?.textbookChance
+  const rate = Number.isFinite(expansionChance)
+    ? Math.min(1, expansionChance * (getTextbookDropRate(elapsedSec) / TEXTBOOK_DROP_RATE))
+    : getTextbookDropRate(elapsedSec)
+  return (dropData?.xp ?? 0) > 0 && roll < rate
 }
 
 // 부서짐 뒤 '정화된 학생' 연출(순수 시각). 일반 좀비 전원(신규 15종 포함)이 이 한 함수를 거친다.
@@ -1530,6 +1536,7 @@ export default function Enemies() {
     queue.lastSpawnMs = 0
     resetStage5CallLaneState()
     resetBossSummonQueue()
+    queue.summonDeferredCount = 0
     const stageObstacles = getStageObjectSightObstacles(currentStageId)
     // Stage 5 교무실만: solid 프롭(책상 섬·교감 책상·복사기·사물함)이 E04 사선과 원거리 탄을 막는다.
     // 그 외 스테이지는 null → 기존 동작(S4 기준선 보존). 런/스테이지가 바뀔 때마다 다시 건다.
@@ -1959,9 +1966,31 @@ export default function Enemies() {
       spawnStage5CallLanePulse(cache, Math.trunc(a))
     } else if (kind === SCHEDULE_EXPANSION_SUMMON) {
       // 확장 보스 소환(B05 '운동장 10바퀴'): 보스 데이터의 summon(type·count·formation)을 확장 배치 경로로 낸다.
-      const summon = EXPANSION_BOSSES[enemyTypeFromCode(Math.trunc(a))]?.summon
+      // b = 0이면 새 소환(summon.count), b > 0이면 동시 천장(150)에 잘려 미뤄 둔 몫의 재시도 마릿수.
+      // 이번에 못 낸 몫은 버리지 않고 미뤄 뒀다가 자리가 나면 프레임 루프가 다시 올린다(보스전 B01/B05 등장 재시도와 같은 방식).
+      // 천장 자체는 그대로 지킨다 — 한 번에 내는 수는 늘 clampZombieSpawnRequest로 잘린다.
+      const typeCode = Math.trunc(a)
+      const summon = EXPANSION_BOSSES[enemyTypeFromCode(typeCode)]?.summon
       if (!summon || !isExpansionStage(cache.id)) return
-      const batch = buildExpansionBurstBatch(cache, { type: summon.type, count: summon.count, formation: summon.formation }, totalZombieCounts())
+      const retry = b > 0
+      // 보스가 이미 죽었으면 미룬 몫은 폐기한다(처치 뒤에는 아무것도 나오지 않는다).
+      if (retry && !(store.bossAliveCount > 0)) { queue.summonDeferredCount = 0; return }
+      const requested = retry ? Math.trunc(b) : summon.count
+      const counts = totalZombieCounts()
+      // 좌표는 소환 전체 크기(트랙 6지점)에서 고른 뒤 이번에 낼 수만큼 자른다 — 재시도가 앞 N지점만 쓰면
+      // 플레이어 근처 지점에 걸려 몫이 빠진다. 천장(150)은 build 안의 clamp와 이 slice가 함께 지킨다.
+      const batch = buildExpansionBurstBatch(cache, { type: summon.type, count: summon.count, formation: summon.formation }, counts)
+        .slice(0, clampZombieSpawnRequest(requested, counts))
+      // 이번에 못 낸 몫(천장 또는 좌표 실패)은 미룬다. 합계 도착 수 = 요청 수.
+      const shortfall = requested - batch.length
+      if (shortfall > 0) {
+        if (queue.summonDeferredCount > 0 && queue.summonDeferredTypeCode !== typeCode) queue.summonDeferredCount = 0
+        queue.summonDeferredTypeCode = typeCode
+        queue.summonDeferredChunk = summon.count
+        queue.summonDeferredGameKey = cache.gameKey
+        queue.summonDeferredStageId = cache.id
+        queue.summonDeferredCount = (queue.summonDeferredCount ?? 0) + shortfall
+      }
       if (batch.length > 0) {
         recordMissionBurstSpawns(store, batch, cache.id, getRuntimeElapsedMs(store.elapsedMs) / 1000)
         addEnemies(batch, true, cache.spawnToken)
@@ -2345,6 +2374,17 @@ export default function Enemies() {
       if (summonBossType && EXPANSION_BOSSES[summonBossType]?.summon) enqueueScheduled(SCHEDULE_EXPANSION_SUMMON, summonScratch.bossTypeCode, 0)
       else enqueueScheduled(SCHEDULE_BOSS_SUMMON, summonScratch.x, summonScratch.z)
     }
+    // 천장(150)이나 좌표 실패로 미뤄 둔 B05 시간 소환 몫: 보스가 살아 있고 자리가 나면 한 소환 크기씩 다시 올린다.
+    // 판·스테이지가 바뀌었거나 보스가 죽었으면 조용히 버린다. 경고·호루라기는 원래 소환 시각에 이미 울렸으니 다시 내지 않는다.
+    if (runtimeQueue.summonDeferredCount > 0) {
+      if (runtimeQueue.summonDeferredGameKey !== stageRuntime.gameKey || runtimeQueue.summonDeferredStageId !== stageRuntime.id
+        || !(useGameStore.getState().bossAliveCount > 0)) {
+        runtimeQueue.summonDeferredCount = 0
+      } else if (clampZombieSpawnRequest(1, totalZombieCounts()) > 0) {
+        const chunk = Math.min(runtimeQueue.summonDeferredCount, runtimeQueue.summonDeferredChunk)
+        if (enqueueScheduled(SCHEDULE_EXPANSION_SUMMON, runtimeQueue.summonDeferredTypeCode, chunk)) runtimeQueue.summonDeferredCount -= chunk
+      }
+    }
 
     // 버스트 스케줄 발화.
     // 모든 일반 좀비와 보스는 명시 BURST_EVENTS/STAGE2/3/4_BURST_EVENTS에서만 발화한다.
@@ -2382,9 +2422,8 @@ export default function Enemies() {
       {specialEnemies.map((e) => (
         <Enemy key={e.id} id={e.id} type={e.type} spawnPos={e.pos} onDeath={onDeath} statOverride={e.statOverride} isMatilda={e.isMatilda} runCrewDir={e.runCrewDir} />
       ))}
-      {textbooks.map((d) => (
-        <XpTextbook key={d.id} id={d.id} pos={d.pos} value={d.value} onCollect={onTextbookCollect} />
-      ))}
+      {/* 교과서 전부를 Studio 튜닝 템플릿 1벌 + InstancedMesh로 그린다(2026-11-13, 동작 변화 없음). */}
+      <XpTextbookLayer textbooks={textbooks} onCollect={onTextbookCollect} />
       {goldCoins.map((c) => (
         <GoldCoin key={c.id} id={c.id} pos={c.pos} value={c.value} onCollect={onCoinCollect} />
       ))}

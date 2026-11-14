@@ -8,7 +8,7 @@ describe('OnigiiriWeapon pool targeting', () => {
     expect(source).not.toContain('enemyBodies.forEach')
     expect(source).not.toContain('enemyBodies.get')
     expect(source).toContain('applyEnemyHit(flight.hitTarget.rb, flight.hitTarget.generation')
-    expect(source).toContain('stepOnigiriFlight')
+    expect(source).toContain('stepProjectileSwarm')
     // 표적 생존 확인·다음 표적 찾기는 공용 진행기가 {rb, generation}으로 한다.
     const lib = readFileSync(new URL('../../lib/onigiri.js', import.meta.url), 'utf8')
     expect(lib).toContain('isEnemyHitLive(current.rb, current.generation)')
@@ -21,9 +21,14 @@ describe('OnigiiriWeapon pool targeting', () => {
 describe('Onigiri projectile visual (2026-10-30: back to the rice ball)', () => {
   const source = readFileSync(new URL('./Onigiri.jsx', import.meta.url), 'utf8')
 
-  it('each projectile renders the rice-ball model, not a player model', () => {
-    const projectileSource = source.slice(source.indexOf('function OnigiiriProjectile'), source.indexOf('export function OnigiiriWeapon'))
-    expect(projectileSource).toContain('<OnigiiriModel />')
+  // 2026-11-13: 주먹밥은 Studio 튜닝된 OnigiiriModel 템플릿 1벌을 InstancedMesh로 그린다(발사체마다 모델을
+  // 만들지 않음). 모양은 여전히 주먹밥 모델 그 자체이고, 발사체는 자기 자세를 인스턴스 슬롯에 쓴다.
+  it('every projectile is drawn from the one rice-ball model template, not a player model', () => {
+    const weaponSource = source.slice(source.indexOf('export function OnigiiriWeapon'))
+    expect(weaponSource.match(/<OnigiiriModel \/>/g)).toHaveLength(1)
+    expect(weaponSource).toContain('layers.body.syncTemplate(templateRef.current)')
+    expect(weaponSource).not.toContain('<mesh')
+    expect(weaponSource).toContain('writeOnigiriPose(layers.body, entry)')
     for (const playerModel of ['PlayerV9Model', 'PlayerRosariModel', 'PlayerMesh', 'loadSavedPlayerAppearance']) {
       expect(source).not.toContain(playerModel)
     }
@@ -31,9 +36,25 @@ describe('Onigiri projectile visual (2026-10-30: back to the rice ball)', () => 
   })
 
   it('keeps the tumbling rice-ball flight and the rice-grain burst', () => {
-    const projectileSource = source.slice(source.indexOf('function OnigiiriProjectile'), source.indexOf('export function OnigiiriWeapon'))
-    expect(projectileSource).toContain('groupRef.current.rotation.y  = spinRef.current')
-    expect(source).toContain('<OnigiriBurst key={burst.id} {...burst} onDone={removeBurst} />')
+    // 예전 group과 같은 자세: 회전 (sin(spin·0.8)·0.35, spin, cos(spin·0.6)·0.25), 통통 높이.
+    expect(source).toContain('_rot.set(Math.sin(spin * 0.8) * 0.35, spin, Math.cos(spin * 0.6) * 0.25)')
+    expect(source).toContain('entry.spin += delta * 15')
+    // 끝난 주먹밥(바운스 소진·대기 시간·상한)은 그 자리에서 쌀알 터짐.
+    expect(source).toContain('addBurst(entry.flight.x, entry.flight.z, nowRef.current)')
+    expect(source).toContain('createOnigiriBurstGrains({ id, x, z, count: ONIGIRI_BURST_GRAINS })')
+    expect(source).toContain('now - bursts[i].startMs < ONIGIRI_BURST_LIFE_MS')
+  })
+
+  // 리뷰 F2: 일시정지 중 한 Studio Apply도 바로 보이도록 템플릿 동기화는 게임 루프(usePlayingFrame) 밖에서 돈다.
+  it('syncs the Studio template outside the playing gate, before the game loop', () => {
+    const weaponSource = source.slice(source.indexOf('export function OnigiiriWeapon'))
+    const syncAt = weaponSource.indexOf('layers.body.syncTemplate(templateRef.current)')
+    const ungatedFrameAt = weaponSource.indexOf('useFrame(() => {')
+    const playingAt = weaponSource.indexOf('usePlayingFrame(')
+    expect(ungatedFrameAt).toBeGreaterThan(-1)
+    expect(syncAt).toBeGreaterThan(ungatedFrameAt)
+    expect(syncAt).toBeLessThan(playingAt)
+    expect(weaponSource.match(/syncTemplate\(/g)).toHaveLength(1)
   })
 
   it('still exports the rice-ball model for the Graphics Studio preview', async () => {
@@ -46,11 +67,14 @@ describe('Onigiri projectile visual (2026-10-30: back to the rice ball)', () => 
 // 공용 진행기(stepOnigiriFlight)로 그 자리에서 다음 적을 찾거나 떠서 기다린다(동작 검증은 lib/onigiri.test.js).
 describe('Onigiri launch origin and flight wiring (2026-11-02)', () => {
   const source = readFileSync(new URL('./Onigiri.jsx', import.meta.url), 'utf8')
-  const projectileSource = source.slice(source.indexOf('function OnigiiriProjectile'), source.indexOf('export function OnigiiriWeapon'))
+  const projectileSource = source.slice(source.indexOf('function hitOnigiriTarget'), source.indexOf('export function OnigiiriWeapon'))
   const weaponSource = source.slice(source.indexOf('export function OnigiiriWeapon'))
 
   it('the projectile follows the shared flight stepper and never ends early to relaunch from the player', () => {
-    expect(projectileSource).toContain('stepOnigiriFlight(flight, delta, SPEED)')
+    expect(source).toContain('createProjectileSwarm({ speed: SPEED')
+    expect(weaponSource).toContain('stepProjectileSwarm(swarm, delta, { onHit: hitOnigiriTarget, onRetire: retireRef.current })')
+    // 코드에서 playerPos는 새 투척의 출발점으로만 쓴다(주석 제외).
+    expect(weaponSource.split('\n').filter((line) => !line.trim().startsWith('//') && line.includes('playerPos'))).toEqual(['        origin: playerPos,'])
     expect(projectileSource).not.toMatch(/onDone\(id, \{/)
     expect(projectileSource).not.toContain('playerPos')
     expect(source).not.toContain('relaunch')
@@ -66,6 +90,7 @@ describe('Onigiri launch origin and flight wiring (2026-11-02)', () => {
   // 2026-11-02 Terry: "화면상 오니기리가 몇 개 있더라도 늘려" — 날거나 떠 있는 주먹밥 수로 투척을 막지 않는다.
   it('has no one-at-a-time gate: alive projectiles never block the cooldown throw', () => {
     expect(weaponSource).not.toContain('if (projRef.current.length > 0) return')
-    expect(weaponSource).toContain('projRef.current = [...projRef.current, launch]')
+    expect(weaponSource).not.toContain('swarm.entries.length >=')
+    expect(weaponSource).toContain('const entry = addSwarmProjectile(swarm, launch, { slot: layers.body.claim(), spin: 0 })')
   })
 })

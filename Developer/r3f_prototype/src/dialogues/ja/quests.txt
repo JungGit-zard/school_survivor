@@ -19,6 +19,10 @@ quest.stage5-late-slip.start	遅刻届をコピー機に置いてきちゃった
 quest.stage5-late-slip.completion	あった！これで堂々と遅刻者として脱出できる。
 quest.stage5-pa-key.start	あの呼び出し放送は教頭先生の鍵でしか止められない。机の引き出しにあるはず！
 quest.stage5-pa-key.completion	音量が一段下がった…完全には消えないけど、耳は助かった！
+quest.stage6-relay-baton.start	最後の一周だったのに…バトンを北のゴールの裏に落としちゃった。あれがないと終われない！
+quest.stage6-relay-baton.completion	バトン受け取った！今度こそ本当のゴールだ…正門まで一緒に走ろう！
+quest.stage6-assembly-roll.start	みんな運動場に出られたか確認しなきゃ。名簿が南のゴールの方へ飛んでいっちゃった。
+quest.stage6-assembly-roll.completion	空欄だらけ…でも外に出た子はみんなチェックした。私たちも正門へ行こう！
 matilda.entry	オホホホ！お餅を一つくれたら食べないよ！
 matilda.death	オホホホ！！！！！おいしくいただくわ！！！！
 matilda.gameover	マチルダに魂を奪われてしまった！！

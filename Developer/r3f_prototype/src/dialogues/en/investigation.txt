@@ -309,6 +309,9 @@ investigation.student.stage4.002	The spoon and chopsticks are perfectly lined up
 investigation.student.stage5.001	Sitting perfectly upright in a staff room chair. The "about to get scolded" posture is muscle memory now.
 investigation.student.stage5.002	Clutching a letter of apology. It stops on line three.
 investigation.student.stage5.003	A sticky note on the forehead: "Wake me when the Vice Principal comes."
+investigation.student.stage6.001	Collapsed on the track in a gym uniform, still frozen in a starting crouch.
+investigation.student.stage6.002	A heat rash on the forehead. That speech must have gone on forever.
+investigation.student.stage6.003	Looks like they fell asleep mid "arms forward, line up."
 investigation.classroomDesk.001	A pencil jabbed the back of my hand. So the desk is on the zombies’ side too.
 investigation.classroomDesk.002	"Lunch is the best" is carved here. Now my stomach is the one that panicked.
 investigation.classroomDesk.003	The desk's scratches form a map. I can hide in it.

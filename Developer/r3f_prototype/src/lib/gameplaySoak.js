@@ -242,8 +242,25 @@ function startVirtualBoss(context, type, pos, stats) {
     summon: EXPANSION_BOSSES[type]?.summon ? createBossSummonState(EXPANSION_BOSSES[type].summon) : null,
     b10Summon: isAuthoredAttackBoss(type) ? createB10SummonState() : null,
     prevRatio: 1, stopMs: 0, contactCooldownMs: 0,
+    // 천장(150)이나 좌표 실패로 미뤄 둔 확장 소환 몫(Enemies.jsx queue.summonDeferred*와 같은 규칙).
+    summonDeferred: 0,
   }
   stats.virtualBosses += 1
+}
+
+// 확장 보스 소환 1회(Enemies.jsx SCHEDULE_EXPANSION_SUMMON과 같은 규칙): 좌표는 소환 전체 크기(트랙 6지점)에서 고른 뒤
+// 이번에 낼 수만큼 자르고(천장 150은 build 안의 clamp와 slice가 지킨다), 못 낸 몫은 보스에 미뤄 둔다.
+function spawnExpansionSummon(context, spawnDrain, stats, boss, requested) {
+  const summon = EXPANSION_BOSSES[boss.type].summon
+  const counts = { pooledActive: enemyPool.activeCount, specialActive: 1, pooledQueued: spawnDrain.count }
+  const batch = buildExpansionBurstBatch(context.expansionCache, { type: summon.type, count: summon.count, formation: summon.formation }, counts)
+    .slice(0, clampZombieSpawnRequest(requested, counts))
+  for (const entry of batch) {
+    if (enqueuePooledEnemySpawn(spawnDrain, { type: entry.type, pos: entry.pos, statOverride: entry.statOverride }, context.spawnToken)) stats.bossSummonSpawns += 1
+    else stats.drainDropped += 1
+  }
+  const shortfall = requested - batch.length
+  if (shortfall > 0) { boss.summonDeferred += shortfall; stats.bossSummonDeferred += shortfall }
 }
 
 // 가상 보스 1프레임: Enemy.jsx 확장·authored 보스 분기(stepExpansionAttack·격노 정지·소환·접촉 500ms)와 같은 배선.
@@ -283,12 +300,9 @@ function stepVirtualBoss(context, spawnDrain, stats, args) {
     stats.bossSummons += 1
     const counts = { pooledActive: enemyPool.activeCount, specialActive: 1, pooledQueued: spawnDrain.count }
     if (kind === 'expansion') {
-      const summon = EXPANSION_BOSSES[boss.type].summon
-      const batch = buildExpansionBurstBatch(context.expansionCache, { type: summon.type, count: summon.count, formation: summon.formation }, counts)
-      for (const entry of batch) {
-        if (enqueuePooledEnemySpawn(spawnDrain, { type: entry.type, pos: entry.pos, statOverride: entry.statOverride }, context.spawnToken)) stats.bossSummonSpawns += 1
-        else stats.drainDropped += 1
-      }
+      const summonCount = EXPANSION_BOSSES[boss.type].summon.count
+      stats.bossSummonRequested += summonCount
+      spawnExpansionSummon(context, spawnDrain, stats, boss, summonCount)
     } else {
       const ring = b10SummonRingPositions(boss.x, boss.z, playerPos.x, playerPos.z)
       const count = clampZombieSpawnRequest(ring.length, counts)
@@ -302,7 +316,16 @@ function stepVirtualBoss(context, spawnDrain, stats, args) {
       }
     }
   }
-  if (ratio <= 0) { boss.alive = false; return }
+  // 미뤄 둔 소환 몫: 보스가 살아 있고 자리가 1칸이라도 나면 한 소환 크기(6)까지 다시 낸다(Enemies.jsx 프레임 루프 블록).
+  if (ratio > 0 && boss.summonDeferred > 0
+    && clampZombieSpawnRequest(1, { pooledActive: enemyPool.activeCount, specialActive: 1, pooledQueued: spawnDrain.count }) > 0) {
+    const chunk = Math.min(boss.summonDeferred, EXPANSION_BOSSES[boss.type].summon.count)
+    boss.summonDeferred -= chunk
+    stats.bossSummonRetries += 1
+    spawnExpansionSummon(context, spawnDrain, stats, boss, chunk)
+  }
+  // 보스 처치: 미뤄 둔 몫은 폐기한다(처치 뒤에는 아무것도 나오지 않는다).
+  if (ratio <= 0) { stats.bossSummonDropped += boss.summonDeferred; boss.summonDeferred = 0; boss.alive = false; return }
   const dx = playerPos.x - boss.x
   const dz = playerPos.z - boss.z
   const dist = Math.hypot(dx, dz)
@@ -476,6 +499,11 @@ export function runGameplaySoak({
     bossPatternHits: 0,
     bossSummons: 0,
     bossSummonSpawns: 0,
+    // 확장 보스 소환(B05) 미루기: 원래 요청 마릿수, 천장·좌표로 미룬 몫, 재시도 횟수, 처치·런 리셋으로 버린 몫.
+    bossSummonRequested: 0,
+    bossSummonDeferred: 0,
+    bossSummonRetries: 0,
+    bossSummonDropped: 0,
     speechAttempts: 0,
     speechCertFailures: 0,
     speechEmitted: 0,
@@ -568,6 +596,8 @@ export function runGameplaySoak({
         context.moveBounds = getPlayerMovementBounds(stageId)
         context.burstEvents = getRuntimeBurstEventsForStage(stageId)
         context.expansionCache = { id: stageId, bounds, obstacles: context.obstacles }
+        // 런 리셋: 이전 런 보스의 미뤄 둔 소환 몫은 버린다.
+        if (context.virtualBoss?.summonDeferred > 0) stats.bossSummonDropped += context.virtualBoss.summonDeferred
         context.virtualBoss = null
         context.callLane.cycle = -1
         context.callLane.laneIndex = -1
@@ -894,6 +924,8 @@ export function runGameplaySoak({
       executed = frame + 1
     }
   } finally {
+    // 마지막 런이 끝날 때 남은 미룬 소환 몫도 런 종료로 버린 것으로 센다(요청 = 도착 + 버림 + 드레인 탈락).
+    if (context.virtualBoss?.summonDeferred > 0) { stats.bossSummonDropped += context.virtualBoss.summonDeferred; context.virtualBoss.summonDeferred = 0 }
     Math.random = originalRandom
     enemyProjectilePool.setPropBlockers(null)
     projectileZombieShotPool.setPropBlockers(null)

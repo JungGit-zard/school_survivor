@@ -78,7 +78,7 @@ describe('Game stage6 assembly speech hazard', () => {
     run(29_100, 30_100)
     expect([...expansionAttackSnapshots.values()].filter((s) => s.hazard)).toHaveLength(1)
     run(30_100, 31_800)
-    expect(h.state.damagePlayer).toHaveBeenCalledWith(12, { source: 'stage6AssemblySpeech' })
+    expect(h.state.damagePlayer).toHaveBeenCalledWith(9, { source: 'stage6AssemblySpeech' })
     expect(ids()).toContain('stage6SpeechRingPulse')
     // 두 번째 고리(30.8초)는 같은 원점의 동심 물결(외반경 +1.8u)이라 가만히 선 플레이어는 지나치지 않는다 — 발신은 된다.
     expect([...expansionAttackSnapshots.keys()].filter((k) => k.startsWith('H06:1:0:'))).toHaveLength(2)
@@ -91,7 +91,7 @@ describe('Game stage6 assembly speech hazard', () => {
     run(29_900, 30_900)
     playerPos.z = 1.4
     run(30_900, 34_000)
-    expect(h.state.damagePlayer).toHaveBeenCalledExactlyOnceWith(12, { source: 'stage6AssemblySpeech' })
+    expect(h.state.damagePlayer).toHaveBeenCalledExactlyOnceWith(9, { source: 'stage6AssemblySpeech' })
   })
 
   it('고리가 발신된 뒤 안쪽으로 1.5u 들어가 있으면 맞지 않는다', () => {

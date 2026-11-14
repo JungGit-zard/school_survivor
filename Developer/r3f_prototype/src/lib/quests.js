@@ -192,6 +192,45 @@ export const QUEST_DEFINITIONS = Object.freeze([
     completionDialogueId: 'quest.stage5-pa-key.completion',
     rewardGold: 2,
   },
+  // Stage 6 「운동장 최후의 조회」 퀘스트 2개(2026-11-13). 운동장 solid는 축구 골대 2개뿐이라 물건은 골대 뒤에 둔다.
+  // 북쪽 골대(z −11)는 조회대·교장 쪽(위험), 남쪽 골대(z +11)는 정문 쪽(탈출 동선) — 두 퀘스트가 맵 양끝을 한 번씩 훑게 한다.
+  // 보상은 다른 스테이지와 같은 골드 2. 게임 기믹(훈화·정문)은 바꾸지 않는다.
+  {
+    id: 'stage6-relay-baton',
+    stageId: 'stage6',
+    title: '마지막 주자의 바통',
+    startDialogueId: 'quest.stage6-relay-baton.start',
+    objective: '북쪽 골대 뒤에서 계주 바통을 찾아 마지막 주자에게 돌려주자.',
+    item: {
+      id: 'relay-baton',
+      name: '계주 바통',
+      description: '노란 테이프를 감은 계주 바통. 손때가 반질반질하다.',
+      visualKind: 'fuse',
+    },
+    giver: { placementId: 'stage6-student-relay-east', name: '마지막 주자' },
+    itemTarget: { placementId: 'exp_s6_goal_north', type: 'expansionObstacle' },
+    completion: { kind: 'return', placementId: 'stage6-student-relay-east', name: '마지막 주자' },
+    completionDialogueId: 'quest.stage6-relay-baton.completion',
+    rewardGold: 2,
+  },
+  {
+    id: 'stage6-assembly-roll',
+    stageId: 'stage6',
+    title: '조회 명렬표',
+    startDialogueId: 'quest.stage6-assembly-roll.start',
+    objective: '남쪽 골대 뒤에서 조회 명렬표를 찾아 반장에게 돌려주자.',
+    item: {
+      id: 'assembly-roll',
+      name: '조회 명렬표',
+      description: '"전교생 운동장 집합"이라고 적힌 명렬표. 빈칸이 너무 많다.',
+      visualKind: 'list',
+    },
+    giver: { placementId: 'stage6-student-roll-west', name: '반장' },
+    itemTarget: { placementId: 'exp_s6_goal_south', type: 'expansionObstacle' },
+    completion: { kind: 'return', placementId: 'stage6-student-roll-west', name: '반장' },
+    completionDialogueId: 'quest.stage6-assembly-roll.completion',
+    rewardGold: 2,
+  },
 ])
 
 const QUESTS_BY_ID = new Map(QUEST_DEFINITIONS.map((quest) => [quest.id, quest]))
