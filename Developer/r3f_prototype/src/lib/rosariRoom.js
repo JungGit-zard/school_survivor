@@ -10,12 +10,47 @@ export const ROSARI_MAX_FRAME_DELTA = 1 / 30
 export const ROSARI_MAX_MOVE_STEP = ROSARI_RADIUS * 0.5
 export const WARDROBE_INTERACT_MARGIN = 0.5
 
+// Room shell (world units). Walls are 0.12 thick boxes; these are their inner faces.
+// The floor slab runs past the side walls' front ends to a lip at frontZ so the follow camera has floor
+// under its bottom edge when Rosari stands at the front.
+export const ROSARI_ROOM_SHELL = Object.freeze({
+  floorTop: 0.01,
+  backZ: -2.99,
+  sideX: 3.99,
+  wallTop: 3.025,
+  frontZ: 3.75,
+})
+
+// Furniture placement, shared by the meshes (RosariRoom.jsx / rosariBedroomMesh.js) and the colliders
+// below so a collider can never drift away from what is drawn. Floor props stand on the floor; the
+// wardrobe, bed and nightstand sit 1.5-3 cm off the back wall (no hide-behind strip, no z-fighting).
+export const ROSARI_ROOM_FURNITURE = Object.freeze({
+  wardrobe: Object.freeze({ x: -3.2, z: -2.62, width: 1.35, depth: 0.7 }),
+  bed: Object.freeze({ x: 2.88, z: -1.94, width: 2.0, depth: 1.75, headboardWidth: 2.18, headboardDepth: 0.16 }),
+  nightstand: Object.freeze({ x: 1.45, z: -2.75, width: 0.5, depth: 0.42, top: 0.52 }),
+  vanity: Object.freeze({ x: -2.8, z: 1.45, width: 1.28, depth: 0.55 }),
+  plush: Object.freeze({ x: 3.15, z: 2.3 }),
+  pouf: Object.freeze({ x: -3.25, z: 2.45, radius: 0.36 }),
+  rug: Object.freeze({ x: 0, z: 0.75 }),
+  window: Object.freeze({ x: 2.88, y: 1.78 }),
+  art: Object.freeze({ x: -0.75, y: 1.75 }),
+})
+
+const F = ROSARI_ROOM_FURNITURE
+// Every collider is the visible floor footprint of its prop (+<=2 cm). Flat wall decor (window,
+// curtains, picture) and the rug have no collider: nothing stands on the floor there.
 export const ROSARI_ROOM_COLLIDERS = Object.freeze([
-  { id: 'wardrobe', x: -2.85, z: -1.35, halfX: 0.78, halfZ: 0.68 },
-  { id: 'bed', x: 2.25, z: -1.1, halfX: 1.02, halfZ: 1.02 },
-  { id: 'vanity', x: -2.8, z: 1.45, halfX: 0.72, halfZ: 0.58 },
-  { id: 'curtain-window', x: 1.2, z: -2.45, halfX: 0.9, halfZ: 0.25 },
-])
+  // body + doors + knobs (the crown overhang is above her head)
+  { id: 'wardrobe', x: F.wardrobe.x, z: F.wardrobe.z + 0.04, halfX: 0.69, halfZ: 0.4 },
+  { id: 'bed', x: F.bed.x, z: F.bed.z, halfX: 1.05, halfZ: 0.885 },
+  { id: 'bed-headboard', x: F.bed.x, z: F.bed.z - 0.955, halfX: 1.1, halfZ: 0.09 },
+  // top slab + drawer knob; the radio sits inside the top
+  { id: 'nightstand', x: F.nightstand.x, z: F.nightstand.z + 0.0225, halfX: 0.28, halfZ: 0.245 },
+  // desk + drawer knobs
+  { id: 'vanity', x: F.vanity.x, z: F.vanity.z + 0.0275, halfX: 0.66, halfZ: 0.305 },
+  { id: 'plush', x: F.plush.x - 0.24, z: F.plush.z + 0.03, halfX: 0.48, halfZ: 0.22 },
+  { id: 'pouf', x: F.pouf.x, z: F.pouf.z, halfX: F.pouf.radius + 0.01, halfZ: F.pouf.radius + 0.01 },
+].map((collider) => Object.freeze(collider)))
 
 export function clampRosariRoomPosition(position) {
   return {
@@ -68,15 +103,30 @@ export function getRosariWardrobeProximity(position) {
   return Math.hypot(dx, dz)
 }
 
-// The wardrobe opens only from its front side. Its mesh front face is z -1.0 (centre -1.35, depth
-// 0.7); a strip behind it (back face -1.70, wall -2.99) is walkable, and opening from there would put
-// the wardrobe between Rosari and the +z view-mode camera. Front face minus 0.35 m = the box centre,
-// so standing beside its front half still works.
-export const WARDROBE_FRONT_FACE_Z = -1.0
+// The wardrobe opens only from its front side. It stands against the back wall (back face -2.97,
+// front face -2.27), so nothing is behind it; standing beside its back half (z behind the box centre)
+// is refused too, which keeps the +z view-mode camera from looking at it from the side.
+export const WARDROBE_FRONT_FACE_Z = F.wardrobe.z + F.wardrobe.depth / 2
 export const WARDROBE_OPEN_MIN_Z = WARDROBE_FRONT_FACE_Z - 0.35
 
 export function isRosariNearWardrobe(position) {
   return position.z >= WARDROBE_OPEN_MIN_Z && getRosariWardrobeProximity(position) <= WARDROBE_INTERACT_MARGIN
+}
+
+// Retro radio on the nightstand (left of the bed). World position of the radio body's centre.
+export const ROSARI_RADIO_POSITION = Object.freeze({ x: F.nightstand.x, y: F.nightstand.top + 0.1, z: F.nightstand.z - 0.02 })
+export const RADIO_INTERACT_MARGIN = 0.5
+
+// Distance from Rosari's centre to the nightstand footprint (0 when touching it).
+export function getRosariRadioProximity(position) {
+  const stand = ROSARI_ROOM_COLLIDERS.find((candidate) => candidate.id === 'nightstand')
+  const dx = Math.max(Math.abs(position.x - stand.x) - stand.halfX, 0)
+  const dz = Math.max(Math.abs(position.z - stand.z) - stand.halfZ, 0)
+  return Math.hypot(dx, dz)
+}
+
+export function isNearRosariRadio(position) {
+  return getRosariRadioProximity(position) <= RADIO_INTERACT_MARGIN
 }
 
 // Floating-joystick (analog, magnitude 0..1) wins over keys while a finger is down.

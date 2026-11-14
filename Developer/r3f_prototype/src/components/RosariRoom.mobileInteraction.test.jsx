@@ -13,6 +13,8 @@ vi.mock('@react-three/fiber', () => ({
 }))
 vi.mock('@react-three/drei', () => ({ Html: ({ children }) => children, useGLTF: Object.assign(vi.fn(), { preload: vi.fn(), clear: vi.fn() }) }))
 import RosariRoom, { RosariModel, RoomErrorBoundary, getRosariCameraLayout, getRosariRoomLayout } from './RosariRoom.jsx'
+import { ROSARI_ROOM_FRAME_CORNERS } from '../lib/rosariRoomCamera.js'
+import { roomRadio } from '../lib/roomRadio.js'
 
 let container, root
 const button = (label) => container.querySelector(`[aria-label="${label}"]`)
@@ -55,7 +57,9 @@ describe('Rosari actual room container layout', () => {
     expect(Math.abs(head.x)).toBeLessThan(0.95)
     expect(Math.abs(head.y)).toBeLessThan(0.95)
     expect(Math.abs(foot.y)).toBeLessThan(0.95)
-    expect(layout.target).toEqual([position.x,0.66,position.z])
+    // The aim is clamped to keep the view inside the room, never off Rosari's floor height.
+    expect(layout.target[1]).toBe(0.66)
+    expect(Math.hypot(layout.target[0]-position.x, layout.target[2]-position.z)).toBeLessThan(2)
   })
   it('uses a compact single-line heading without the tall subtitle in a 219x390 parent', () => {
     act(() => scene.resize([{ contentRect: { width: 219, height: 390 } }]))
@@ -80,8 +84,9 @@ describe('Rosari actual room container layout', () => {
     const layout = getRosariCameraLayout({ width, height })
     const camera = new THREE.PerspectiveCamera(layout.fov, width / height, 0.1, 1000)
     camera.position.set(...layout.position); camera.lookAt(...layout.target); camera.updateMatrixWorld()
-    for (const x of [-4.2, 4.2]) for (const y of [-0.07, 3.025]) for (const z of [-3.15, 3.15]) {
-      const projected = new THREE.Vector3(x, y, z).project(camera)
+    expect(ROSARI_ROOM_FRAME_CORNERS.length).toBe(12)
+    for (const corner of ROSARI_ROOM_FRAME_CORNERS) {
+      const projected = new THREE.Vector3(...corner).project(camera)
       expect(Math.abs(projected.x)).toBeLessThanOrEqual(0.95)
       expect(Math.abs(projected.y)).toBeLessThanOrEqual(0.95)
       expect(projected.z).toBeGreaterThan(-1)
@@ -246,5 +251,51 @@ describe('wardrobe close and scrolling', () => {
     fire(button('옷장 닫기'), 'keydown', { key: 'Escape' })
     expect(container.querySelector('[role="dialog"]')).toBe(null)
     expect(document.activeElement).toBe(toggle)
+  })
+})
+
+describe('room radio wiring', () => {
+  const radioButton = () => container.querySelector('[data-room-radio-open]')
+  it('enables the radio button only near the radio and closes the panel (not the music) when walking away', () => {
+    expect(radioButton().disabled).toBe(true)
+    act(() => scene.props.onNearRadioChange(true))
+    expect(radioButton().disabled).toBe(false)
+    fire(radioButton(), 'click')
+    expect(radioButton().getAttribute('aria-expanded')).toBe('true')
+    const stop = vi.spyOn(roomRadio, 'stop')
+    act(() => scene.props.onNearRadioChange(false))
+    expect(radioButton().getAttribute('aria-expanded')).toBe('false')
+    expect(radioButton().disabled).toBe(true)
+    expect(stop).not.toHaveBeenCalled()
+    stop.mockRestore()
+  })
+  it('keeps the wardrobe and the radio panel mutually exclusive', () => {
+    act(() => scene.props.onNearRadioChange(true))
+    fire(radioButton(), 'click')
+    expect(radioButton().getAttribute('aria-expanded')).toBe('true')
+    act(() => scene.props.onWardrobeToggle())
+    expect(container.querySelector('[role="dialog"]')).not.toBe(null)
+    expect(radioButton().getAttribute('aria-expanded')).toBe('false')
+    fire(radioButton(), 'click')
+    expect(radioButton().getAttribute('aria-expanded')).toBe('true')
+    expect(container.querySelector('[role="dialog"][aria-label]')?.getAttribute('data-wardrobe-sheet') ?? null).toBe(null)
+  })
+  it('closes the radio panel on Escape before returning to the title', () => {
+    const onBack = vi.fn()
+    act(() => root.render(<RosariRoom onBack={onBack} />))
+    act(() => scene.props.onNearRadioChange(true))
+    fire(radioButton(), 'click')
+    fire(window, 'keydown', { key: 'Escape' })
+    expect(radioButton().getAttribute('aria-expanded')).toBe('false')
+    expect(onBack).not.toHaveBeenCalled()
+    fire(window, 'keydown', { key: 'Escape' })
+    expect(onBack).toHaveBeenCalledTimes(1)
+  })
+  it('hands the music back to the room track when the room unmounts', () => {
+    const stop = vi.spyOn(roomRadio, 'stop')
+    act(() => root.unmount())
+    expect(stop).toHaveBeenCalled()
+    stop.mockRestore()
+    root = createRoot(container)
   })
 })

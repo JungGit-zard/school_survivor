@@ -124,3 +124,61 @@ describe('RosariRoom screen-space outline CSS pixel math', () => {
     expect(offset.y).toBeCloseTo(-(2 * ROSARI_OUTLINE_WIDTH_CSS_PX / viewport.height) * 0.5, 10)
   })
 })
+
+describe('RosariRoom bedroom props: toon ramp and outlines', () => {
+  const OUTLINED_PROPS = ['room', 'wardrobe', 'bed', 'nightstand', 'radio', 'vanity', 'pouf', 'plush', 'window', 'art']
+  // Only true flat decals / inner panels skip the hull; each sits on an outlined parent.
+  const FLAT_TOON = ['canvas', 'mirrorFrame', 'cream']
+  it('outlines every real prop and keeps all room meshes to 4 draw calls', () => {
+    const room = Room.createRosariBedroom(() => ({ width: 640, height: 480 }))
+    try {
+      const meshes = room.group.children
+      expect(meshes.map((m) => m.name)).toEqual(['rosari_bedroom_toon', 'rosari_bedroom_unlit', 'rosari_bedroom_shadows', 'rosari_bedroom_outline'])
+      for (const prop of OUTLINED_PROPS) {
+        expect(room.parts.some((part) => part.prop === prop && part.outline), prop).toBe(true)
+      }
+      for (const part of room.parts) {
+        if (part.layer === 'toon' && !part.outline) expect(FLAT_TOON, `${part.prop}/${part.color}`).toContain(part.color)
+        if (part.layer === 'shadow') expect(part.outline).toBe(false)
+      }
+      // Every toon prop body is outlined: the hull holds exactly the outlined parts' vertices.
+      const hull = room.group.getObjectByName('rosari_bedroom_outline')
+      const outlinedVertexCount = room.parts.filter((part) => part.outline).reduce((sum, part) => {
+        const g = part.geometry
+        return sum + (g.index ? g.index.count : g.attributes.position.count)
+      }, 0)
+      expect(hull.geometry.attributes.position.count).toBe(outlinedVertexCount)
+      expect(hull.geometry.attributes.outlineNormal).toBeTruthy()
+      expect(hull.userData.isOutline).toBe(true)
+      expect(hull.material.side).toBe(THREE.BackSide)
+    } finally { room.dispose() }
+  })
+
+  it('uses the ARCHIVE 5-step toon ramp, no tone mapping, and never touches the outline stencil', () => {
+    const room = Room.createRosariBedroom()
+    try {
+      const toon = room.group.getObjectByName('rosari_bedroom_toon').material
+      expect(toon.isMeshToonMaterial).toBe(true)
+      expect(toon.gradientMap).toBeTruthy()
+      expect(Array.from(toon.gradientMap.image.data.filter((_, i) => i % 4 === 0))).toEqual([45, 105, 170, 225, 255])
+      expect(toon.vertexColors).toBe(true)
+      for (const mesh of room.group.children) {
+        // Rosari's surfaces own stencil ref 3; the room must not write it (her hull must still draw
+        // over furniture behind her) and the room hull must not test it (a prop in front of her keeps
+        // its outline across her).
+        expect(mesh.material.stencilWrite, mesh.name).toBe(false)
+        if (mesh.name !== 'rosari_bedroom_outline') expect(mesh.material.toneMapped, mesh.name).toBe(false)
+      }
+    } finally { room.dispose() }
+  })
+
+  it('builds hulls only from closed shapes (no open circles or planes get a BackSide hull)', () => {
+    const room = Room.createRosariBedroom()
+    try {
+      for (const part of room.parts.filter((p) => p.outline)) {
+        const type = part.geometry.type
+        expect(['CircleGeometry', 'PlaneGeometry'], `${part.prop}/${part.color}`).not.toContain(type)
+      }
+    } finally { room.dispose() }
+  })
+})

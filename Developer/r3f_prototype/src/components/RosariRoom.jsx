@@ -3,12 +3,18 @@ import { Canvas, useFrame, useStore, useThree } from '@react-three/fiber'
 import { Html, useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
 import {
+  ROSARI_ROOM_FURNITURE,
   capRosariFrameDelta,
+  isNearRosariRadio,
   isRosariNearWardrobe,
   isRosariTextEntryTarget,
   moveRosariRoomPosition,
   resolveRosariMoveVector,
 } from '../lib/rosariRoom.js'
+import { buildRosariBedroom } from '../lib/rosariBedroomMesh.js'
+import { ROSARI_FOLLOW_TARGET_Y, clampRosariFollowTarget, getRosariCameraLayout } from '../lib/rosariRoomCamera.js'
+import RosariRadioPanel, { RosariRadioButton } from './RosariRadioPanel.jsx'
+import { roomRadio } from '../lib/roomRadio.js'
 import { DEFAULT_ROSARI_OUTFIT_ID, applyRosariOutfit, resolveRosariOutfit } from '../lib/rosariOutfits.js'
 import { loadPlayerOutfit, savePlayerOutfit } from '../lib/titleSettings.js'
 import { getOwnedOutfitIds } from '../lib/outfitUnlocks.js'
@@ -24,6 +30,9 @@ const OUTLINE_WIDTH_PX = 2
 const OUTLINE_COLOR = 0x050209
 const MOVE_SPEED = 1.85
 const EMPTY_KEYS = Object.freeze({ up: false, down: false, left: false, right: false })
+// Rosari's soles sit on the floor top (y 0.01), not 1 cm inside it.
+const ROSARI_FLOOR_Y = 0.012
+export { getRosariCameraLayout }
 // Wardrobe view mode: Rosari turns on the spot (yaw only) in front of a fixed close-up camera.
 // 0 = facing the camera. Positive yaw turns her front toward screen right, same as a rightward drag.
 export const ROSARI_VIEW_ANGLES = Object.freeze({ front: 0, threeQuarter: Math.PI / 4, side: Math.PI / 2, back: Math.PI })
@@ -59,6 +68,17 @@ export default function RosariRoom({ onBack }) {
     })
   }
   const [nearWardrobe, setNearWardrobe] = useState(false)
+  // Room radio (music logic + panel live in roomRadio.js / RosariRadioPanel.jsx).
+  const [radioOpen, setRadioOpen] = useState(false)
+  const [nearRadio, setNearRadio] = useState(false)
+  const radioButtonRef = useRef(null)
+  // Leaving the room always hands the music back to the room/lobby track.
+  useEffect(() => () => { roomRadio.stop() }, [])
+  // Walking away closes only the panel; the song keeps playing.
+  useEffect(() => { if (!nearRadio) setRadioOpen(false) }, [nearRadio])
+  // The wardrobe and the radio panel share the same screen area: one at a time.
+  useEffect(() => { if (wardrobeOpen) setRadioOpen(false) }, [wardrobeOpen])
+  useEffect(() => { if (radioOpen) setWardrobeOpen(false) }, [radioOpen])
   const [overview, setOverview] = useState(false)
   const [pressedKeys, setPressedKeys] = useState(EMPTY_KEYS)
   const mobileKeysRef = useRef({ ...EMPTY_KEYS })
@@ -144,6 +164,7 @@ export default function RosariRoom({ onBack }) {
         if (event.repeat) return
         if (featureTableOpen) closeFeatureTable()
         else if (wardrobeOpen) setWardrobeOpen(false)
+        else if (radioOpen) setRadioOpen(false)
         else onBack?.()
         return
       }
@@ -172,7 +193,7 @@ export default function RosariRoom({ onBack }) {
       window.removeEventListener('pointercancel', clearAllKeys)
       clearAllKeys()
     }
-  }, [onBack, wardrobeOpen, featureTableOpen, closeFeatureTable, rotateView])
+  }, [onBack, wardrobeOpen, radioOpen, featureTableOpen, closeFeatureTable, rotateView])
 
   const clearMobileKeys = useCallback(() => {
     for (const [id, held] of heldPointers.current) {
@@ -260,6 +281,7 @@ export default function RosariRoom({ onBack }) {
               viewYawRef={viewYawRef}
               outfitId={currentOutfit.id}
               onNearWardrobeChange={setNearWardrobe}
+              onNearRadioChange={setNearRadio}
               onWardrobeToggle={() => setWardrobeOpen((open) => !open)}
             />
           </Suspense>
@@ -293,6 +315,7 @@ export default function RosariRoom({ onBack }) {
             onLostPointerCapture={endViewDrag}
           />
         )}
+        <RosariRadioPanel open={radioOpen} onClose={() => { setRadioOpen(false); radioButtonRef.current?.focus() }} sheet={layout.wardrobeSheet} />
         {wardrobeOpen && (
           <WardrobeAngleControls
             active={viewAngle}
@@ -341,7 +364,7 @@ export default function RosariRoom({ onBack }) {
           <PadButton direction="right" style={styles.padButton} handlers={makePadHandlers('right')}>▶</PadButton>
         </div>
         <div style={styles.actionPanel}>
-          <p style={styles.hint} title={t('rosariRoom.hintTitle')}>{t(nearWardrobe ? 'rosariRoom.hintNear' : 'rosariRoom.hintFar')}{!layout.compact && <><br />{t('rosariRoom.hintKeys')}</>}</p>
+          <p style={styles.hint} title={t('rosariRoom.hintTitle')}>{t(nearRadio && !nearWardrobe ? 'roomRadio.hintNear' : nearWardrobe ? 'rosariRoom.hintNear' : 'rosariRoom.hintFar')}{!layout.compact && <><br />{t('rosariRoom.hintKeys')}</>}</p>
           <button
             ref={wardrobeButtonRef}
             type="button"
@@ -352,6 +375,9 @@ export default function RosariRoom({ onBack }) {
           >
             {t(wardrobeOpen ? 'rosariRoom.wardrobeClose' : 'rosariRoom.wardrobeOpen')}
           </button>
+          <div style={styles.radioButtonSlot}>
+            <RosariRadioButton near={nearRadio} open={radioOpen} buttonRef={radioButtonRef} onToggle={() => { if (radioOpen || nearRadio) setRadioOpen((open) => !open) }} />
+          </div>
         </div>
       </div>
       {wardrobeOpen && featureTableOpen && <OutfitFeatureTable onClose={closeFeatureTable} />}
@@ -503,37 +529,17 @@ export function updateRosariViewFacing(root, state, { wardrobeOpen, targetYaw, d
   }
 }
 
-// Fit the authored floor and wall bounds, not guessed camera distances.
-export function getRosariCameraLayout(size, { overview = true, position = { x: 0, z: 0.65 } } = {}) {
-  const { width, height } = getRosariOutlineViewport(size)
-  const fov = 48
-  const target = new THREE.Vector3(0, 1, 0)
-  const backward = new THREE.Vector3(0, 0.7, 0.8).normalize()
-  if (!overview) {
-    // Readable inspection view; the overview toggle still fits every authored corner.
-    // Only the camera follows. Approved model size and furniture/collisions stay fixed.
-    target.set(position.x, 0.66, position.z)
-    const distance = Math.max(3, Math.min(8, height * 0.95 / (2 * Math.tan(THREE.MathUtils.degToRad(fov / 2)) * 72)))
-    return { position: target.clone().addScaledVector(backward, distance).toArray(), target: target.toArray(), fov }
-  }
-  const right = new THREE.Vector3(1, 0, 0)
-  const up = new THREE.Vector3().crossVectors(backward, right)
-  const tanY = Math.tan(THREE.MathUtils.degToRad(fov / 2))
-  const tanX = tanY * width / height
-  let distance = 0
-  for (const x of [-4.2, 4.2]) for (const y of [-0.07, 3.025]) for (const z of [-3.15, 3.15]) {
-    const corner = new THREE.Vector3(x, y, z).sub(target)
-    distance = Math.max(distance, corner.dot(backward) + Math.max(Math.abs(corner.dot(right)) / tanX, Math.abs(corner.dot(up)) / tanY) / 0.94)
-  }
-  return { position: target.clone().addScaledVector(backward, distance).toArray(), target: target.toArray(), fov }
-}
-
-function RoomScene({ keyboardKeysRef, mobileKeysRef, wardrobeOpen, wardrobeSheet = 'side', viewYawRef, overview, outfitId, onNearWardrobeChange, onWardrobeToggle }) {
+function RoomScene({ keyboardKeysRef, mobileKeysRef, wardrobeOpen, wardrobeSheet = 'side', viewYawRef, overview, outfitId, onNearWardrobeChange, onNearRadioChange, onWardrobeToggle }) {
   const characterRef = useRef(null)
   const positionRef = useRef({ x: 0, z: 0.65 })
   const walkTimeRef = useRef(0)
   const limbRefs = useRef({})
   const lastNearWardrobeRef = useRef(false)
+  const lastNearRadioRef = useRef(false)
+  const blobRef = useRef(null)
+  const followRef = useRef(null)
+  const followAimRef = useRef({ x: NaN, z: NaN })
+  const followScratch = useRef({ x: 0, z: 0 })
   const canToggleWardrobeRef = useRef(false)
   const moveVectorRef = useRef({ x: 0, z: 0 })
   const viewFacingRef = useRef({ savedFacing: null, displayYaw: 0 })
@@ -554,6 +560,8 @@ function RoomScene({ keyboardKeysRef, mobileKeysRef, wardrobeOpen, wardrobeSheet
     camera.fov = layout.fov
     camera.updateProjectionMatrix()
     camera.lookAt(...layout.target)
+    followRef.current = layout.follow ?? null
+    followAimRef.current = { x: layout.target[0], z: layout.target[2] }
   }, [camera, size.height, size.width, overview])
 
   // Wardrobe view mode camera. Declared after the room camera effect: on a resize while open, React
@@ -584,18 +592,35 @@ function RoomScene({ keyboardKeysRef, mobileKeysRef, wardrobeOpen, wardrobeSheet
       walkTimeRef.current += delta * 8
     }
     const root = characterRef.current
-    if (!overview && !wardrobeOpen && root) {
-      // Translation-only follow retains the framing/orientation calculated on resize.
-      camera.position.x += positionRef.current.x - root.position.x
-      camera.position.z += positionRef.current.z - root.position.z
+    const follow = followRef.current
+    if (!overview && !wardrobeOpen && follow) {
+      // Translation-only follow keeps the orientation set on resize. The aim is clamped so the view
+      // stays inside the room; the camera moves only when the aim does (an idle frame leaves it be).
+      const aim = clampRosariFollowTarget(follow, positionRef.current, followScratch.current)
+      const last = followAimRef.current
+      if (Math.abs(aim.x - last.x) > 1e-6 || Math.abs(aim.z - last.z) > 1e-6) {
+        camera.position.set(aim.x + follow.offset.x, ROSARI_FOLLOW_TARGET_Y + follow.offset.y, aim.z + follow.offset.z)
+        last.x = aim.x
+        last.z = aim.z
+      }
+    }
+    const blob = blobRef.current
+    if (blob) {
+      blob.position.x = positionRef.current.x
+      blob.position.z = positionRef.current.z
     }
     if (root) {
-      root.position.set(positionRef.current.x, (moving ? Math.sin(walkTimeRef.current * 2) * 0.015 : 0), positionRef.current.z)
+      root.position.set(positionRef.current.x, ROSARI_FLOOR_Y + (moving ? Math.sin(walkTimeRef.current * 2) * 0.015 : 0), positionRef.current.z)
       if (moving) root.rotation.y = Math.atan2(vector.x, vector.z)
       animateNamedLimbs(limbRefs.current, moving ? walkTimeRef.current : 0, moving)
     }
     updateRosariViewFacing(root, viewFacingRef.current, { wardrobeOpen, targetYaw: viewYawRef?.current ?? 0, delta })
     updateOutlineUniforms(root, size)
+    const nearRadio = isNearRosariRadio(positionRef.current)
+    if (nearRadio !== lastNearRadioRef.current) {
+      lastNearRadioRef.current = nearRadio
+      onNearRadioChange?.(nearRadio)
+    }
     const nearWardrobe = isRosariNearWardrobe(positionRef.current)
     canToggleWardrobeRef.current = canRosariWardrobeToggle({ wardrobeOpen, nearWardrobe })
     if (nearWardrobe !== lastNearWardrobeRef.current) {
@@ -606,11 +631,17 @@ function RoomScene({ keyboardKeysRef, mobileKeysRef, wardrobeOpen, wardrobeSheet
 
   return (
     <>
-      <color attach="background" args={[wardrobeOpen ? '#ffe7ef' : '#fff1f4']} />
-      <ambientLight intensity={1.15} />
-      <directionalLight position={[-2.5, 5.5, 3.5]} intensity={2.1} />
-      <pointLight position={[1.9, 2.3, 1.6]} color="#ffd6a6" intensity={2.5} distance={6} />
+      <color attach="background" args={[wardrobeOpen ? '#ffe7ef' : '#f4e2ef']} />
+      {/* Same key light direction and fill Rosari always had; the warm point light (floor banding) is
+          gone. The room itself is unlit / vertex-coloured toon and not tone-mapped, so it keeps its colours. */}
+      <ambientLight intensity={1.2} />
+      <directionalLight position={[-2.5, 5.5, 3.5]} intensity={2.15} />
       <RosariBedroom wardrobeOpen={wardrobeOpen} canToggleWardrobeRef={canToggleWardrobeRef} onWardrobeToggle={onWardrobeToggle} />
+      {/* Fake contact shadow under Rosari (no shadow map). */}
+      <mesh ref={blobRef} position={[0, 0.021, 0.65]} rotation={[-Math.PI / 2, 0, 0]} scale={[1, 0.8, 1]} renderOrder={2}>
+        <circleGeometry args={[0.3, 20]} />
+        <meshBasicMaterial color="#4a2142" transparent opacity={0.26} depthWrite={false} toneMapped={false} />
+      </mesh>
       <RosariModel refObject={characterRef} limbRefs={limbRefs} outfitId={outfitId} />
     </>
   )
@@ -629,15 +660,13 @@ export function RosariModel({ refObject, limbRefs, outfitId = DEFAULT_ROSARI_OUT
   // The resource-free primitive boundary keeps R3F from dismantling the clone
   // before passive cleanup can release its materials/hulls on true unmount.
   useEffect(() => mountRosariModel(container, gltf.scene, limbRefs.current, gl, outfitId), [container, gltf.scene, limbRefs, gl, outfitId])
-  return <group ref={refObject} position={[0, 0, 0.65]}><primitive object={container} /></group>
+  return <group ref={refObject} position={[0, ROSARI_FLOOR_Y, 0.65]}><primitive object={container} /></group>
 }
 
 export function mountRosariModel(parent, source, limbs, gl, outfitId = DEFAULT_ROSARI_OUTFIT_ID) {
   const cloned = source.clone(true)
   cloned.traverse((node) => {
     if (!node.isMesh) return
-    node.castShadow = true
-    node.receiveShadow = true
     if (node.material) node.material = Array.isArray(node.material)
       ? node.material.map((mat) => makeArchiveToonMaterial(mat))
       : makeArchiveToonMaterial(node.material)
@@ -646,7 +675,6 @@ export function mountRosariModel(parent, source, limbs, gl, outfitId = DEFAULT_R
   // Outfit recolors only this clone's fresh materials; accessories are room-owned meshes
   // that go through the same stencil/outline/dispose path as the GLB surfaces.
   for (const accessory of applyRosariOutfit(cloned, outfitId, makeOutfitAccessoryMaterial)) {
-    accessory.castShadow = true
     markSurfaceMaterial(accessory)
   }
   applyPixelOutlines(cloned, () => gl.getSize(new THREE.Vector2()))
@@ -698,139 +726,54 @@ export function disposeRosariModel(root) {
   for (const material of materials) material.dispose()
 }
 
+// The room is built once from rosariBedroomMesh.js: 4 merged meshes (toon, unlit, contact shadows,
+// outline hulls). Room surfaces never write the stencil: Rosari's surfaces own stencil 3, and her hull
+// must still draw over furniture behind her. Room hulls likewise skip the stencil test so a prop in
+// front of Rosari keeps its outline across her.
 function RosariBedroom({ wardrobeOpen, canToggleWardrobeRef, onWardrobeToggle }) {
+  const { size } = useThree()
+  const sizeRef = useRef(size)
+  sizeRef.current = size
+  const [room] = useState(() => createRosariBedroom(() => sizeRef.current))
+  useEffect(() => room.dispose, [room])
+  useFrame(() => {
+    const uniforms = room.hullMaterial.userData.outlineUniforms
+    if (!uniforms) return
+    const viewport = getRosariOutlineViewport(sizeRef.current)
+    uniforms.outlineViewport.value.set(viewport.width, viewport.height)
+  })
+  const wardrobe = ROSARI_ROOM_FURNITURE.wardrobe
   return (
     <group>
-      <mesh position={[0, -0.03, 0]} receiveShadow>
-        <boxGeometry args={[8.3, 0.08, 6.3]} />
-        <meshToonMaterial color="#fff1db" />
+      <primitive object={room.group} />
+      {/* Invisible click target for the merged wardrobe (raycast only, never drawn). */}
+      <mesh
+        position={[wardrobe.x, 0.96, wardrobe.z]}
+        onClick={(event) => {
+          event.stopPropagation()
+          if (canRosariWardrobeToggle({ wardrobeOpen, nearWardrobe: canToggleWardrobeRef.current })) onWardrobeToggle?.()
+        }}
+      >
+        <boxGeometry args={[1.48, 1.92, 0.78]} />
+        <meshBasicMaterial visible={false} />
       </mesh>
-      <mesh position={[0, 1.5, -3.05]}>
-        <boxGeometry args={[8.4, 3.05, 0.12]} />
-        <meshToonMaterial color="#ffd7e7" />
-      </mesh>
-      <mesh position={[-4.05, 1.5, 0]}>
-        <boxGeometry args={[0.12, 3.05, 6.3]} />
-        <meshToonMaterial color="#eadcff" />
-      </mesh>
-      <mesh position={[4.05, 1.5, 0]}>
-        <boxGeometry args={[0.12, 3.05, 6.3]} />
-        <meshToonMaterial color="#f7d5ff" />
-      </mesh>
-      <Wardrobe wardrobeOpen={wardrobeOpen} canToggleWardrobeRef={canToggleWardrobeRef} onOpen={onWardrobeToggle} />
-      <Bed />
-      <Vanity />
-      <HeartRug />
-      <WindowCurtains />
-      <PlushToys />
-      <FramedArt />
     </group>
   )
 }
 
-function Wardrobe({ wardrobeOpen, canToggleWardrobeRef, onOpen }) {
-  return (
-    <group
-      position={[-2.85, 0, -1.35]}
-      onClick={(event) => {
-        event.stopPropagation()
-        if (canRosariWardrobeToggle({ wardrobeOpen, nearWardrobe: canToggleWardrobeRef.current })) onOpen?.()
-      }}
-    >
-      <mesh position={[0, 0.9, 0]}>
-        <boxGeometry args={[1.35, 1.8, 0.7]} />
-        <meshToonMaterial color="#f8cfe0" />
-      </mesh>
-      <mesh position={[0, 1.84, 0]}>
-        <boxGeometry args={[1.48, 0.16, 0.78]} />
-        <meshToonMaterial color="#fff0c9" />
-      </mesh>
-      <mesh position={[-0.35, 0.94, 0.38]}><boxGeometry args={[0.05, 1.54, 0.04]} /><meshToonMaterial color="#fff6ef" /></mesh>
-      <mesh position={[0.35, 0.94, 0.38]}><boxGeometry args={[0.05, 1.54, 0.04]} /><meshToonMaterial color="#fff6ef" /></mesh>
-      <mesh position={[-0.18, 0.92, 0.44]}><sphereGeometry args={[0.045, 12, 12]} /><meshToonMaterial color="#c77ab8" /></mesh>
-      <mesh position={[0.18, 0.92, 0.44]}><sphereGeometry args={[0.045, 12, 12]} /><meshToonMaterial color="#c77ab8" /></mesh>
-    </group>
-  )
+export function createRosariBedroom(getSize = () => null) {
+  return buildRosariBedroom({
+    gradientMap: ARCHIVE_TOON_GRADIENT(),
+    hullMaterial: makeRoomOutlineMaterial(getSize),
+    weldOutlineNormals: computeWeldedOutlineNormals,
+  })
 }
 
-function Bed() {
-  return (
-    <group position={[2.25, 0, -1.1]}>
-      <mesh position={[0, 0.45, -0.96]}><boxGeometry args={[2.18, 0.9, 0.16]} /><meshToonMaterial color="#d889b0" /></mesh>
-      <mesh position={[0, 0.25, 0]}><boxGeometry args={[2.0, 0.5, 1.75]} /><meshToonMaterial color="#f8c7dc" /></mesh>
-      <mesh position={[0, 0.58, -0.18]}><boxGeometry args={[1.95, 0.28, 1.2]} /><meshToonMaterial color="#fff4c8" /></mesh>
-      <mesh position={[-0.48, 0.82, -0.65]}><boxGeometry args={[0.74, 0.25, 0.42]} /><meshToonMaterial color="#efd9ff" /></mesh>
-      <mesh position={[0.48, 0.82, -0.65]}><boxGeometry args={[0.74, 0.25, 0.42]} /><meshToonMaterial color="#ffe1ec" /></mesh>
-      <mesh position={[0, 0.95, -0.2]} rotation={[0, 0, Math.PI / 4]}><boxGeometry args={[0.42, 0.08, 0.08]} /><meshToonMaterial color="#de75ab" /></mesh>
-      <mesh position={[0, 0.95, -0.2]} rotation={[0, 0, -Math.PI / 4]}><boxGeometry args={[0.42, 0.08, 0.08]} /><meshToonMaterial color="#de75ab" /></mesh>
-      <mesh position={[-0.86, 0.78, -0.88]}><sphereGeometry args={[0.07, 12, 12]} /><meshToonMaterial color="#fff1c2" /></mesh>
-      <mesh position={[0.86, 0.78, -0.88]}><sphereGeometry args={[0.07, 12, 12]} /><meshToonMaterial color="#fff1c2" /></mesh>
-    </group>
-  )
-}
-
-function Vanity() {
-  return (
-    <group position={[-2.8, 0, 1.45]}>
-      <mesh position={[0, 0.45, 0]}><boxGeometry args={[1.28, 0.35, 0.55]} /><meshToonMaterial color="#fff0d1" /></mesh>
-      <mesh position={[0, 1.0, -0.06]}><torusGeometry args={[0.38, 0.035, 12, 32]} /><meshToonMaterial color="#d89bd8" /></mesh>
-      <mesh position={[0, 1.0, -0.07]}><circleGeometry args={[0.32, 32]} /><meshBasicMaterial color="#e9f7ff" /></mesh>
-      <mesh position={[-0.42, 0.18, 0.15]}><boxGeometry args={[0.12, 0.36, 0.12]} /><meshToonMaterial color="#e8b7d5" /></mesh>
-      <mesh position={[0.42, 0.18, 0.15]}><boxGeometry args={[0.12, 0.36, 0.12]} /><meshToonMaterial color="#e8b7d5" /></mesh>
-      <mesh position={[-0.35, 0.72, 0.22]} rotation={[0, 0.25, 0]}><boxGeometry args={[0.28, 0.06, 0.2]} /><meshToonMaterial color="#7bc3ff" /></mesh>
-      <mesh position={[-0.06, 0.74, 0.22]} rotation={[0, 0.2, 0]}><boxGeometry args={[0.26, 0.06, 0.2]} /><meshToonMaterial color="#ffd36b" /></mesh>
-      <mesh position={[0.35, 0.78, 0.2]}><cylinderGeometry args={[0.06, 0.04, 0.24, 12]} /><meshToonMaterial color="#b7e28b" /></mesh>
-      <mesh position={[0.35, 0.93, 0.2]}><sphereGeometry args={[0.12, 12, 12]} /><meshToonMaterial color="#ff9abf" /></mesh>
-    </group>
-  )
-}
-
-function HeartRug() {
-  return (
-    <group position={[0.35, 0.025, 1.25]} rotation={[-Math.PI / 2, 0, 0]}>
-      <mesh position={[-0.22, 0.17, 0]}><circleGeometry args={[0.42, 32]} /><meshToonMaterial color="#ee8fbb" /></mesh>
-      <mesh position={[0.22, 0.17, 0.001]}><circleGeometry args={[0.42, 32]} /><meshToonMaterial color="#ee8fbb" /></mesh>
-      <mesh position={[0, -0.13, 0.002]} rotation={[0, 0, Math.PI / 4]}><planeGeometry args={[0.85, 0.85]} /><meshToonMaterial color="#ee8fbb" /></mesh>
-    </group>
-  )
-}
-
-function WindowCurtains() {
-  return (
-    <group position={[1.2, 1.45, -2.92]}>
-      <mesh position={[0, 0, 0]}><boxGeometry args={[1.45, 0.82, 0.05]} /><meshBasicMaterial color="#fffbe8" /></mesh>
-      <mesh position={[-0.92, 0, 0.08]}><boxGeometry args={[0.33, 1.32, 0.09]} /><meshToonMaterial color="#e6b7f5" /></mesh>
-      <mesh position={[0.92, 0, 0.08]}><boxGeometry args={[0.33, 1.32, 0.09]} /><meshToonMaterial color="#e6b7f5" /></mesh>
-    </group>
-  )
-}
-
-function PlushToys() {
-  return (
-    <group position={[3.12, 0.18, 1.65]}>
-      <mesh position={[0, 0.26, 0]}><sphereGeometry args={[0.22, 16, 16]} /><meshToonMaterial color="#fff5d5" /></mesh>
-      <mesh position={[-0.14, 0.47, 0]}><sphereGeometry args={[0.09, 12, 12]} /><meshToonMaterial color="#fff5d5" /></mesh>
-      <mesh position={[0.14, 0.47, 0]}><sphereGeometry args={[0.09, 12, 12]} /><meshToonMaterial color="#fff5d5" /></mesh>
-      <mesh position={[-0.55, 0.22, 0.05]}><sphereGeometry args={[0.18, 16, 16]} /><meshToonMaterial color="#ffd4ea" /></mesh>
-      <mesh position={[-0.55, 0.44, 0.04]}><sphereGeometry args={[0.13, 16, 16]} /><meshToonMaterial color="#ffd4ea" /></mesh>
-      <mesh position={[-0.07, 0.3, 0.2]}><sphereGeometry args={[0.025, 8, 8]} /><meshToonMaterial color="#4f2c33" /></mesh>
-      <mesh position={[0.07, 0.3, 0.2]}><sphereGeometry args={[0.025, 8, 8]} /><meshToonMaterial color="#4f2c33" /></mesh>
-      <mesh position={[0, 0.23, 0.22]}><sphereGeometry args={[0.028, 8, 8]} /><meshToonMaterial color="#7d4b38" /></mesh>
-      <mesh position={[-0.2, 0.54, 0.02]} rotation={[0, 0, 0.55]}><coneGeometry args={[0.1, 0.16, 3]} /><meshToonMaterial color="#ff7eb3" /></mesh>
-      <mesh position={[-0.07, 0.54, 0.02]} rotation={[0, 0, -0.55]}><coneGeometry args={[0.1, 0.16, 3]} /><meshToonMaterial color="#ff7eb3" /></mesh>
-    </group>
-  )
-}
-
-function FramedArt() {
-  return (
-    <group position={[3.0, 1.65, -2.97]}>
-      <mesh position={[0, 0, 0]}><boxGeometry args={[0.9, 0.62, 0.06]} /><meshToonMaterial color="#b77ac8" /></mesh>
-      <mesh position={[0, 0, 0.04]}><boxGeometry args={[0.72, 0.44, 0.04]} /><meshToonMaterial color="#fff7d7" /></mesh>
-      <mesh position={[-0.16, -0.03, 0.08]}><circleGeometry args={[0.12, 16]} /><meshToonMaterial color="#ff94bd" /></mesh>
-      <mesh position={[0.13, 0.04, 0.08]}><circleGeometry args={[0.16, 16]} /><meshToonMaterial color="#9bd9ff" /></mesh>
-    </group>
-  )
+export function makeRoomOutlineMaterial(getSize) {
+  const material = makeOutlineMaterial(getSize)
+  material.name = 'rosari_bedroom_outline'
+  material.stencilWrite = false
+  return material
 }
 
 function keyToDirection(key) {
@@ -1157,6 +1100,7 @@ const styles = {
   padButton: { width: 44, minWidth: 44, height: 44, minHeight: 44, border: '2px solid #894d82', borderRadius: 12, background: '#ffd4e4', color: '#67315c', fontWeight: 1000, cursor: 'pointer', touchAction: 'none', userSelect: 'none' },
   actionPanel: { ...panel, justifySelf: 'stretch', padding: 4, minWidth: 0, boxSizing: 'border-box', overflowWrap: 'anywhere' },
   hint: { margin: '0 0 4px', fontSize: 14, fontWeight: 900, lineHeight: 1.3 },
+  radioButtonSlot: { marginTop: 4 },
   wardrobeButton: { width: '100%', minHeight: 44, border: '3px solid #7c416e', borderRadius: 14, background: '#ffacd0', color: '#4e2449', fontWeight: 1000, cursor: 'pointer', touchAction: 'manipulation', userSelect: 'none' },
   wardrobeButtonDisabled: { width: '100%', minHeight: 44, border: '3px solid #b991ab', borderRadius: 14, background: '#eadfe7', color: '#8b7286', fontWeight: 900, cursor: 'not-allowed', touchAction: 'manipulation', userSelect: 'none' },
   wardrobePanel: { ...panel, position: 'absolute', zIndex: 4, top: 4, right: 4, width: 'min(292px, calc(100% - 8px))', maxHeight: 'calc(100% - 8px)', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', overflow: 'hidden', padding: 6, touchAction: 'pan-y' },
