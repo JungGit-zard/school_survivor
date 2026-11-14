@@ -928,13 +928,13 @@
       "paths": [
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/zombieGroan.ogg",
-          "bytes": 6486,
-          "sha256": "fae714d45f32ed5b6dc350937f74db24887ef70b2eae3b464fc67eb8808189e1"
+          "bytes": 6065,
+          "sha256": "67a9a970f1fcbe8b94d0254863ec1fa01358e6afb802bd5cbfe782a93726b068"
         },
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/zombieGroan.mp3",
           "bytes": 5477,
-          "sha256": "4e7836e7e6e5a41b10679a743a67c11f630d5a9ad646af78c5b57a0625e9a5d1"
+          "sha256": "1f77935bcb8709c164912e6e60197a29399b0954a817f691aab81b49ec756186"
         }
       ],
       "provenanceType": "generated",
@@ -948,13 +948,13 @@
       "paths": [
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/zombieSpawn.ogg",
-          "bytes": 5174,
-          "sha256": "c2732183dcf9e747d454028e5a0c4e955dcd8761fee02370747e7ca71e93f55c"
+          "bytes": 5038,
+          "sha256": "61db4dbc572224972488653f22b708d3cde03b27b3ce95692cf3cf474e02496b"
         },
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/zombieSpawn.mp3",
           "bytes": 3596,
-          "sha256": "70b817202ff9757d2d46404e8a13d4112dede471bb7a29b564f94af47183d1db"
+          "sha256": "eecc2adaed8815375911ac2abe1d24e6b0eef9da5536051b018b6c31df29f00b"
         }
       ],
       "provenanceType": "generated",
@@ -968,13 +968,13 @@
       "paths": [
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/zombieTankGroan.ogg",
-          "bytes": 7269,
-          "sha256": "6ad3fdebd0750bcf65a555823c81c5149cc1fb9904ab421fe5aa1a8d621c4e7e"
+          "bytes": 6772,
+          "sha256": "24583cdca74d253aea6bd854750cf3c3ee8b0efe493948678483be47c47ee644"
         },
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/zombieTankGroan.mp3",
           "bytes": 6940,
-          "sha256": "352b4a297b4ca427e12e964efbb251e9d06fb2b575f4d508c889d007c05dff73"
+          "sha256": "2be3ede0e49f9f128f65d272a8a5ad157df058099ba6af387155e5c42e1f1b47"
         }
       ],
       "provenanceType": "generated",
@@ -1008,13 +1008,13 @@
       "paths": [
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/zombieRangedShoot.ogg",
-          "bytes": 4948,
-          "sha256": "422ff392f3b0ff5887c8c131c9a788d4db7ea171eba75d828ee9b77213e895b1"
+          "bytes": 4919,
+          "sha256": "e697f5be4d360f7c9c6194f546489fd659a02cfc810120dd4c900f1f3e50ae09"
         },
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/zombieRangedShoot.mp3",
           "bytes": 2760,
-          "sha256": "931fd69d9220cb284e01601228460f16cfe9edac2039308745051e1c60cda57e"
+          "sha256": "820c527e376fb151e68ef6f23149fa8c0b1b0d25b40d0d593db450f6245d5e7b"
         }
       ],
       "provenanceType": "generated",
@@ -1028,13 +1028,13 @@
       "paths": [
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/zombieChargeRoar.ogg",
-          "bytes": 5921,
-          "sha256": "e1f24e9e7d25b05e93d85fa50bf522d4edb7d49e87c525489e99ac876fa3d5a1"
+          "bytes": 5839,
+          "sha256": "7426d17a2fc6529c79e1f1f22a71bf6b360db31fe15a4b81cc57d546f4e45cec"
         },
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/zombieChargeRoar.mp3",
           "bytes": 4850,
-          "sha256": "431ae3938f6a7080e7e3d37709621e2b8275718294d09c32dd5bd5028304c595"
+          "sha256": "b53b57aee10dd04a781dc11283a2b0cf107b7f46036a774a1aaf46bb9f921932"
         }
       ],
       "provenanceType": "generated",
@@ -1068,13 +1068,13 @@
       "paths": [
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/bossRoar.ogg",
-          "bytes": 7829,
-          "sha256": "b1d0c350c007c61ed3847f653874cbb902615c786cbf0cbf9e4425529b260b5e"
+          "bytes": 7348,
+          "sha256": "19b68c2b5907c8997c534999b3d1e302cad4883f889e5e16294d7f22407fe38a"
         },
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/bossRoar.mp3",
           "bytes": 7567,
-          "sha256": "120819bcde7f6e7c0721c30b5f726efe9b057c175da46fc52cd84f0ce3a355e9"
+          "sha256": "c971b3c0855262ca6abdd996b2b3c9f157cb37ca0eef710299617ad4a127e1ad"
         }
       ],
       "provenanceType": "generated",
@@ -1148,13 +1148,13 @@
       "paths": [
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/zombieDeathGrunt.ogg",
-          "bytes": 5294,
-          "sha256": "daf7774abb13470aa077de22234d25b6a7164ad1d680a284356e51d112456cfb"
+          "bytes": 5155,
+          "sha256": "423c073bd43e3654732c21161dc4f5c704872d739dcd18cceb7d46e5130fd4e8"
         },
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/zombieDeathGrunt.mp3",
           "bytes": 3596,
-          "sha256": "cc69b56f0c46b8096a4ce7ec224bb1b04d7ff195e1687a5554c8111515bc98ef"
+          "sha256": "5804b867662c1ce9018acf14a41061bd30ce2022389bb9ff7bfcdc586a50f6a6"
         }
       ],
       "provenanceType": "generated",
@@ -1168,13 +1168,13 @@
       "paths": [
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/zombieDeathHeavy.ogg",
-          "bytes": 6693,
-          "sha256": "4b106352cb38a8d4f57bd5283abb12764178c2963bcdf845f9f6ed873bbf0456"
+          "bytes": 6268,
+          "sha256": "331ec9dfabd642118c5ca1cc9b2c735c78b67c422a97296327cdea84d84bf7da"
         },
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/zombieDeathHeavy.mp3",
           "bytes": 5477,
-          "sha256": "ee35af3835402919748094756fbb08f8c0164e201af9651521e434d682e72d50"
+          "sha256": "a8eb5c588550026263de682dc47e074a1dac6c1cc0726a65d8329ce68704cc20"
         }
       ],
       "provenanceType": "generated",
@@ -1208,13 +1208,13 @@
       "paths": [
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/zombieDeathGurgle.ogg",
-          "bytes": 6029,
-          "sha256": "6ed5836158258197787718713ba293395c492084b6b1436d8c2415ad54fd4d93"
+          "bytes": 5971,
+          "sha256": "23548ae13f30123747ad6d8a9ea3b40eda379bd750ea8765cca3f03d289557f3"
         },
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/zombieDeathGurgle.mp3",
           "bytes": 4641,
-          "sha256": "9545fe6e7ed13b64399f9b13cf7038ea5e5addb80a79bc3d27873e9567e807c9"
+          "sha256": "69992ee68be62d48fb3c49cccb34a85a2f30117f16f4ba250a13b29a60a3493a"
         }
       ],
       "provenanceType": "generated",
@@ -1228,13 +1228,13 @@
       "paths": [
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/zombieDeathBellow.ogg",
-          "bytes": 7716,
-          "sha256": "84f0120f0c3f2ac110cd0c84e69df6f8f41ae86a2a4d66be04da5388665d5c52"
+          "bytes": 7154,
+          "sha256": "d5121500d6ecfe425d006fce2d3e134a58067f32c3927ee73a8947a1d69ff94e"
         },
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/zombieDeathBellow.mp3",
           "bytes": 7358,
-          "sha256": "768db5588145df6d1695def87cf3bbc219551f43aeaa86a9fbb952131c0e3b4f"
+          "sha256": "b7bdf55a2d916736f7e9fd9b29cd784a46880dde78932d13997e48a6a292b96e"
         }
       ],
       "provenanceType": "generated",
@@ -1248,13 +1248,13 @@
       "paths": [
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/bossDeath.ogg",
-          "bytes": 8315,
-          "sha256": "274bb88bfd479a7a72940ff1232a731ab25e70af640422edef6fc40156daec46"
+          "bytes": 7746,
+          "sha256": "5db06261bbe80825ebac3cc5268cd0d70e97fe0f9526b4f945a7d31d7473172a"
         },
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/bossDeath.mp3",
           "bytes": 8403,
-          "sha256": "78bc10b08eb89a0f413ec174bc72c3a0b680b918c6fa8b9c4515631028013cc3"
+          "sha256": "3e71f63fd23efb0d06043e15d590d9c9eeb4b1d9e086d424aacd13dbe7c4d38a"
         }
       ],
       "provenanceType": "generated",
@@ -1568,13 +1568,13 @@
       "paths": [
         {
           "path": "Developer/r3f_prototype/public/sfx/events/bossSpawn.ogg",
-          "bytes": 7212,
-          "sha256": "d8c0e25bbb74999e89bb9bf63b6c1d0e17d844ab4b53b9329a43dc4ef368f6a0"
+          "bytes": 6660,
+          "sha256": "34dbdf343927c9fa722c0ca9dd64118d24b2d86a7d0cd3d2389a8f856c2b6f0e"
         },
         {
           "path": "Developer/r3f_prototype/public/sfx/events/bossSpawn.mp3",
           "bytes": 6522,
-          "sha256": "457b2bdbe6a02a2d14a4f1af0ad0a63e3d91bc018867969d9b80a670f4d4af02"
+          "sha256": "f8b34b9ccaeaa5b7ec81081a9fec8b044170b6db02d85b80f0c60f250b9cea5c"
         }
       ],
       "provenanceType": "generated",

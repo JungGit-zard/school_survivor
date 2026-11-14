@@ -37,6 +37,22 @@ const PI2 = Math.PI * 2
 // 전체 F0를 약 +5반음 올려 좀비/괴물 질감은 유지하되 둔탁한 남성 저음을 줄인다.
 export const ZOMBIE_DEATH_PITCH_SCALE = 1.33
 
+// 2026-11-14 Terry: "너무 너무 저음이거나 무거운 좀비 목소리 다 바꿔".
+// 좀비/보스 발성 공통 하한·상한. 카툰 학교 좀비라 공포영화식 저음 그르렁은 금지다.
+//   minF0Hz  — 실효 F0(윤곽 최저값 × pitchScale × (1 - 비브라토 깊이))의 바닥. 보스도 이 아래로 못 내려간다.
+//   minHpHz  — 저역 컷(서브베이스 제거) 하한.
+//   maxDrive / maxRingDepth / maxHold / minBits — 찌그러짐·덜덜거림·뭉갬(무거움)의 상한.
+// 실측 판정 기준(디코드 파일): 중앙 F0 < 180Hz, 250Hz 아래 에너지 > 15%, 150Hz 아래 > 5% 중 하나라도면 "저음/무거움".
+// scripts/zombie-voice-pitch-floor.test.js가 이 값을 지킨다.
+export const ZOMBIE_VOICE_RULES = Object.freeze({
+  minF0Hz: 160,
+  minHpHz: 100,
+  maxDrive: 1.5,
+  maxRingDepth: 0.12,
+  maxHold: 2,
+  minBits: 7,
+})
+
 // ── 모음 포먼트 표 ────────────────────────────────────────────────────────────
 // [F1, F2, F3, BW1, BW2, BW3, A1, A2, A3]
 // 남성 화자 기준값에서 출발해 좀비용으로 F1을 조금 낮췄다(목이 눌린 소리).
@@ -199,6 +215,28 @@ export function synthVoice(spec) {
     out[i] = Math.tanh(v * (spec.drive ?? 1.6)) * 0.85
   }
 
+  // ── 저역 컷(선택) ───────────────────────────────────────────────────────────
+  // 2026-11-14 Terry "너무 저음이거나 무거운 좀비 목소리 다 바꿔": 좀비/보스 발성은
+  // hpHz 아래 웅웅거림(서브베이스)을 2-pole 하이패스(RBJ biquad, Q=0.707)로 걷어낸다.
+  // hpHz가 없으면 건너뛰므로 도지/주인공 등 다른 음성은 바이트 단위로 그대로다.
+  if (spec.hpHz) {
+    const w = PI2 * spec.hpHz / SR
+    const alpha = Math.sin(w) / (2 * Math.SQRT1_2)
+    const cw = Math.cos(w)
+    const a0 = 1 + alpha
+    const b0 = (1 + cw) / 2 / a0
+    const b1 = -(1 + cw) / a0
+    const a1 = -2 * cw / a0
+    const a2 = (1 - alpha) / a0
+    let x1 = 0, x2 = 0, y1 = 0, y2 = 0
+    for (let i = 0; i < n; i++) {
+      const x = out[i]
+      const y = b0 * x + b1 * x1 + b0 * x2 - a1 * y1 - a2 * y2
+      x2 = x1; x1 = x; y2 = y1; y1 = y
+      out[i] = y
+    }
+  }
+
   // ── 8비트 질감: sample-and-hold 다운샘플 + 비트 양자화 ──────────────────────
   const hold = spec.hold ?? 1
   if (hold > 1) {
@@ -304,11 +342,13 @@ export const VOICES = {
     seed: 0x1001,
     hold: 2,
     bits: 7,
-    drive: 1.7,
+    drive: 1.45,
+    hpHz: 140,
+    // 2026-11-14: 실효 181→122Hz → 279→200Hz(×1.33). 카툰 "으윽".
     f0: [
-      [0, 136],
-      [0.7, 112],
-      [1, 92],
+      [0, 210],
+      [0.7, 180],
+      [1, 150],
     ],
     jitter: 0.012,
     frames: [
@@ -324,18 +364,20 @@ export const VOICES = {
     ],
   },
 
-  // "우어억" — 뚱뚱한 탱커/차저(E02/E05/RZT). 낮고 길고 축 늘어진 웨블.
+  // "우어억" — 뚱뚱한 탱커/차저(E02/E05/RZT). 길고 축 늘어진 웨블(2026-11-14부터 저음 아님).
   zombieDeathHeavy: {
     dur: 0.6,
     targetLoudness: 0.21,
     seed: 0x2002,
-    hold: 3,
-    bits: 6,
-    drive: 1.9,
+    hold: 2,
+    bits: 7,
+    drive: 1.45,
+    hpHz: 130,
+    // 2026-11-14: 실효 122→74Hz → 265→190Hz(×1.33). 통통한 카툰 톤, 둔탁한 저음 제거.
     f0: [
-      [0, 92],
-      [0.5, 74],
-      [1, 56],
+      [0, 199],
+      [0.5, 171],
+      [1, 143],
     ],
     vib: { rate: 5.2, depth: 0.062 },
     jitter: 0.018,
@@ -386,12 +428,14 @@ export const VOICES = {
     targetLoudness: 0.2,
     seed: 0x4004,
     hold: 2,
-    bits: 6,
-    drive: 1.8,
+    bits: 7,
+    drive: 1.5,
+    hpHz: 140,
+    // 2026-11-14: 실효 202→133Hz → 290→210Hz(×1.33). 가르랑 진동음은 유지.
     f0: [
-      [0, 152],
-      [0.6, 124],
-      [1, 100],
+      [0, 218],
+      [0.6, 188],
+      [1, 158],
     ],
     trill: { rate: 26, depth: 0.58 },
     jitter: 0.03,
@@ -409,21 +453,23 @@ export const VOICES = {
     ],
   },
 
-  // "끄아아앙" — 거대 좀비(E06) 단독. 최저 피치 + 링모드 부화음 + 비음 받침으로 끝.
+  // "끄아아앙" — 거대 좀비(E06) 단독. 좀비 중 가장 큰 덩치지만 저음은 아니다 + 비음 받침으로 끝.
+  // 2026-11-14: 실효 98→60Hz(링모드 0.3, 7.35kHz 뭉갬) → 262→204Hz, 링 0.1, hold 2.
   zombieDeathBellow: {
     dur: 0.82,
     targetLoudness: 0.23,
     seed: 0x5005,
-    hold: 3,
-    bits: 6,
-    drive: 2.0,
+    hold: 2,
+    bits: 7,
+    drive: 1.5,
+    hpHz: 120,
     f0: [
-      [0, 74],
-      [0.35, 63],
-      [1, 45],
+      [0, 197],
+      [0.35, 179],
+      [1, 153],
     ],
     vib: { rate: 4.2, depth: 0.05 },
-    ring: { rate: 31, depth: 0.3 },
+    ring: { rate: 31, depth: 0.1 },
     jitter: 0.015,
     frames: [
       { t: 0.0, v: 'eu', amp: 0.0, voice: 0, noise: 1.0 },

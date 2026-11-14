@@ -588,41 +588,13 @@ const sounds = {
   }),
 
   // ── 적 그로울 ────────────────────────────────────────────────────────────────
-  'enemies/zombieGroan': () => mix(
-    synth({ wave:'sawtooth', freq:120, dur:0.4, vol:0.5, attack:0.05, decay:0.1, sustain:0.5, release:0.2,
-      noiseAmt:0.3, vibRate:4, vibDepth:8 }),
-  ),
-  'enemies/zombieTankGroan': () => mix(
-    synth({ wave:'sawtooth', freq:80, dur:0.5, vol:0.6, attack:0.06, decay:0.15, sustain:0.5, release:0.25,
-      noiseAmt:0.4, vibRate:3, vibDepth:6 }),
-  ),
-  'enemies/zombieSpawn': () => mix(
-    synth({ wave:'noise', freq:1, dur:0.32, vol:0.72, attack:0.001, decay:0.07, sustain:0.08, release:0.22 }),
-    synth({ wave:'sine', freq:150, freqEnd:58, dur:0.30, vol:0.52, attack:0.001, decay:0.06, sustain:0.08, release:0.22 }),
-    synth({ wave:'triangle', freq:480, freqEnd:190, dur:0.18, vol:0.24, attack:0.001, decay:0.05, sustain:0.04, release:0.12 }),
-  ),
-  'enemies/zombieRunnerScreech': () => synth({
-    wave:'sawtooth', freq:400, freqEnd:600, dur:0.3, vol:0.55,
-    attack:0.01, decay:0.08, sustain:0.4, release:0.15, noiseAmt:0.2, vibRate:10, vibDepth:20,
-  }),
-  'enemies/zombieRangedShoot': () => synth({
-    wave:'triangle', freq:300, freqEnd:150, dur:0.25, vol:0.45,
-    attack:0.02, decay:0.07, sustain:0.2, release:0.1, noiseAmt:0.15,
-  }),
-  'enemies/zombieChargeRoar': () => mix(
-    synth({ wave:'sawtooth', freq:100, freqEnd:200, dur:0.5, vol:0.7, attack:0.02, decay:0.15, sustain:0.5, release:0.2,
-      noiseAmt:0.35 }),
-    synth({ wave:'noise', freq:1, dur:0.5, vol:0.3, attack:0.02, decay:0.1, sustain:0.3, release:0.15 }),
-  ),
+  // 좀비/보스 발성(zombieGroan/TankGroan/Spawn/RunnerScreech/RangedShoot/ChargeRoar, bossRoar/bossDeath,
+  // events/bossSpawn)은 scripts/generate_voice_sfx.mjs(VOICE_SFX, 포먼트 발성)가 정본이다.
+  // 여기 있던 옛 톱니/사인 프리셋(최저 20~80Hz)은 2026-11-14 Terry "너무 저음이거나 무거운 좀비 목소리
+  // 다 바꿔"로 삭제했다 — 되살리면 이 스크립트 재실행 때 저음 그르렁으로 덮어쓴다.
   'enemies/zombieGiantThud': () => mix(
     synth({ wave:'sine', freq:60, freqEnd:20, dur:0.5, vol:0.8, attack:0.001, decay:0.15, sustain:0.1, release:0.3 }),
     synth({ wave:'noise', freq:1, dur:0.4, vol:0.5, attack:0.001, decay:0.12, sustain:0.05, release:0.25 }),
-  ),
-  'enemies/bossRoar': () => mix(
-    synth({ wave:'sawtooth', freq:70, freqEnd:120, dur:0.8, vol:0.75, attack:0.03, decay:0.2, sustain:0.5, release:0.3,
-      noiseAmt:0.4, vibRate:5, vibDepth:15 }),
-    synth({ wave:'noise', freq:1, dur:0.8, vol:0.4, attack:0.03, decay:0.15, sustain:0.35, release:0.3 }),
-    synth({ wave:'sine', freq:50, freqEnd:30, dur:0.7, vol:0.4, attack:0.02, decay:0.15, sustain:0.2, release:0.35 }),
   ),
   // 마틸다 목소리 큐(Spawn/Dash/Laugh/Death/CountdownEnd)는 2026-11-14부터 scripts/generate_matilda_girl_voice.mjs
   // (CC0 실제 4살 여자아이 녹음, 자르기·정리만)가 만든다. 여기 합성 프리셋을 되살리면 --encode 때 옛 기계음으로
@@ -631,12 +603,6 @@ const sounds = {
   // ── 적 사망음 ────────────────────────────────────────────────────────────────
   // 좀비 사망음은 여기서 빠졌다 — 노이즈+톱니 버스트라 "음성"이 아니었다.
   // 포먼트가 들리는 발성 5종으로 대체 → scripts/generate_zombie_death_voices.mjs
-  'enemies/bossDeath': () => mix(
-    synth({ wave:'noise', freq:1, dur:1.0, vol:0.9, attack:0.001, decay:0.3, sustain:0.2, release:0.5 }),
-    synth({ wave:'sine', freq:80, freqEnd:20, dur:1.1, vol:0.7, attack:0.001, decay:0.25, sustain:0.15, release:0.65 }),
-    synth({ wave:'sawtooth', freq:200, freqEnd:50, dur:0.9, vol:0.4, attack:0.001, decay:0.2, sustain:0.1, release:0.55 }),
-    synth({ wave:'noise', freq:1, dur:0.5, vol:0.4, attack:0.001, decay:0.15, sustain:0.05, release:0.3 }),
-  ),
 
   // ── UI ────────────────────────────────────────────────────────────────────────
   'ui/buttonClick': () => synth({
@@ -690,12 +656,6 @@ const sounds = {
   'events/bossWarning': () => mix(
     synth({ wave:'square', freq:440, dur:0.3, vol:0.5, attack:0.001, decay:0.05, sustain:0.6, release:0.1 }),
     synth({ wave:'square', freq:550, dur:0.3, vol:0.3, attack:0.001, decay:0.05, sustain:0.5, release:0.1 }),
-  ),
-  'events/bossSpawn': () => mix(
-    synth({ wave:'sawtooth', freq:60, freqEnd:200, dur:0.8, vol:0.8, attack:0.001, decay:0.2, sustain:0.4, release:0.35,
-      noiseAmt:0.3 }),
-    synth({ wave:'noise', freq:1, dur:0.5, vol:0.5, attack:0.001, decay:0.15, sustain:0.15, release:0.3 }),
-    synth({ wave:'sine', freq:40, freqEnd:20, dur:0.7, vol:0.5, attack:0.001, decay:0.15, sustain:0.2, release:0.4 }),
   ),
   'events/portalAppear': () => mix(
     synth({ wave:'sine', freq:300, freqEnd:800, dur:0.7, vol:0.6, attack:0.1, decay:0.15, sustain:0.4, release:0.25,

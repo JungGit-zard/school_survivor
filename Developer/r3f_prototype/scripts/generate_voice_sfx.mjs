@@ -103,37 +103,44 @@ function voice(spec) {
   return synthVoice({ ...spec, pitchScale: spec.pitchScale ?? VOICE_PITCH_SCALE })
 }
 
+// 좀비/보스 발성. spec을 노출해 scripts/zombie-voice-pitch-floor.test.js가
+// ZOMBIE_VOICE_RULES(F0 바닥·저역 컷·드라이브 상한)를 검사할 수 있게 한다.
+// 2026-11-14 Terry "너무 저음이거나 무거운 좀비 목소리 다 바꿔": 보스 포함 전부 카툰 음역으로 올렸다.
+function zombieVoice(dir, spec) {
+  return { dir, zombieVoice: true, spec, synth: () => voice(spec) }
+}
+
 const VOICE_SFX = {
   // 좀비 생존/공격 발성
-  zombieSpawn: { dir: 'enemies', synth: () => voice({ dur: 0.34, targetLoudness: 0.18, seed: 0x6101, hold: 2, bits: 7, drive: 1.55, f0: [[0, 118], [0.45, 103], [1, 88]], jitter: 0.018, frames: [
+  zombieSpawn: zombieVoice('enemies', { dur: 0.34, targetLoudness: 0.18, seed: 0x6101, hold: 2, bits: 7, drive: 1.45, hpHz: 140, f0: [[0, 238], [0.45, 206], [1, 179]], jitter: 0.018, frames: [
     { t: 0, v: 'eu', amp: 0, voice: 1, noise: 0.55 }, { t: 0.06, v: 'eu', amp: 0.85, voice: 1, noise: 0.22 }, { t: 0.45, v: 'uh', amp: 0.78, voice: 1, noise: 0.18 }, { t: 0.8, v: 'oh', amp: 0.38, voice: 1, noise: 0.22 }, { t: 1, v: 'oh', amp: 0, voice: 0, noise: 0.8 },
-  ] }) },
-  zombieGroan: { dir: 'enemies', synth: () => voice({ dur: 0.58, targetLoudness: 0.16, seed: 0x6102, hold: 3, bits: 6, drive: 1.7, f0: [[0, 108], [1, 82]], vib: { rate: 5.6, depth: 0.04 }, jitter: 0.018, frames: [
+  ] }),
+  zombieGroan: zombieVoice('enemies', { dur: 0.58, targetLoudness: 0.16, seed: 0x6102, hold: 2, bits: 7, drive: 1.45, hpHz: 140, f0: [[0, 214], [1, 167]], vib: { rate: 5.6, depth: 0.04 }, jitter: 0.018, frames: [
     { t: 0, v: 'eu', amp: 0, voice: 1, noise: 0.3 }, { t: 0.08, v: 'eu', amp: 0.72, voice: 1, noise: 0.18 }, { t: 0.48, v: 'aw', amp: 0.8, voice: 1, noise: 0.16 }, { t: 0.82, v: 'oo', amp: 0.38, voice: 1, noise: 0.25 }, { t: 1, v: 'oo', amp: 0, voice: 1, noise: 0.3 },
-  ] }) },
-  zombieTankGroan: { dir: 'enemies', synth: () => voice({ dur: 0.76, targetLoudness: 0.2, seed: 0x6103, hold: 3, bits: 6, drive: 1.85, f0: [[0, 86], [0.5, 74], [1, 58]], vib: { rate: 4.5, depth: 0.055 }, ring: { rate: 29, depth: 0.18 }, jitter: 0.016, frames: [
+  ] }),
+  zombieTankGroan: zombieVoice('enemies', { dur: 0.76, targetLoudness: 0.2, seed: 0x6103, hold: 2, bits: 7, drive: 1.45, hpHz: 130, f0: [[0, 205], [0.5, 185], [1, 159]], vib: { rate: 4.5, depth: 0.055 }, ring: { rate: 29, depth: 0.1 }, jitter: 0.016, frames: [
     { t: 0, v: 'oo', amp: 0, voice: 1, noise: 0.28 }, { t: 0.07, v: 'oo', amp: 0.88, voice: 1, noise: 0.16 }, { t: 0.35, v: 'aw', amp: 0.98, voice: 1, noise: 0.14 }, { t: 0.78, v: 'oh', amp: 0.54, voice: 1, noise: 0.18 }, { t: 1, v: 'oh', amp: 0, voice: 1, noise: 0.22 },
-  ] }) },
-  zombieRunnerScreech: { dir: 'enemies', synth: () => voice({ dur: 0.32, targetLoudness: 0.17, seed: 0x6104, hold: 1, bits: 8, drive: 1.35, f0: [[0, 270], [0.22, 420], [1, 310]], vib: { rate: 13, depth: 0.05 }, jitter: 0.025, frames: [
+  ] }),
+  zombieRunnerScreech: zombieVoice('enemies', { dur: 0.32, targetLoudness: 0.17, seed: 0x6104, hold: 1, bits: 8, drive: 1.35, f0: [[0, 270], [0.22, 420], [1, 310]], vib: { rate: 13, depth: 0.05 }, jitter: 0.025, frames: [
     { t: 0, v: 'ee', amp: 0, voice: 0, noise: 1 }, { t: 0.04, v: 'ee', amp: 0.78, voice: 0, noise: 1 }, { t: 0.12, v: 'ee', amp: 1, voice: 1, noise: 0.24 }, { t: 0.6, v: 'aa', amp: 0.9, voice: 1, noise: 0.2 }, { t: 1, v: 'aa', amp: 0, voice: 0, noise: 0.7 },
-  ] }) },
-  zombieRangedShoot: { dir: 'enemies', synth: () => voice({ dur: 0.26, targetLoudness: 0.19, seed: 0x6105, hold: 2, bits: 7, drive: 2.0, f0: [[0, 155], [1, 118]], trill: { rate: 30, depth: 0.5 }, jitter: 0.025, frames: [
+  ] }),
+  zombieRangedShoot: zombieVoice('enemies', { dur: 0.26, targetLoudness: 0.19, seed: 0x6105, hold: 2, bits: 7, drive: 1.5, hpHz: 140, f0: [[0, 190], [1, 151]], trill: { rate: 30, depth: 0.5 }, jitter: 0.025, frames: [
     { t: 0, v: 'uh', amp: 0, voice: 0, noise: 1 }, { t: 0.05, v: 'uh', amp: 0.95, voice: 0, noise: 1 }, { t: 0.2, v: 'aw', amp: 0.7, voice: 1, noise: 0.55 }, { t: 0.48, v: 'aa', amp: 0.0, voice: 1, noise: 0.6 }, { t: 0.62, v: 'aa', amp: 0.92, voice: 0, noise: 1 }, { t: 1, v: 'aa', amp: 0, voice: 0, noise: 1 },
-  ] }) },
-  zombieChargeRoar: { dir: 'enemies', synth: () => voice({ dur: 0.52, targetLoudness: 0.22, seed: 0x6106, hold: 2, bits: 7, drive: 1.85, f0: [[0, 130], [0.22, 158], [1, 94]], vib: { rate: 7, depth: 0.05 }, jitter: 0.02, frames: [
+  ] }),
+  zombieChargeRoar: zombieVoice('enemies', { dur: 0.52, targetLoudness: 0.22, seed: 0x6106, hold: 2, bits: 7, drive: 1.45, hpHz: 140, f0: [[0, 206], [0.22, 254], [1, 167]], vib: { rate: 7, depth: 0.05 }, jitter: 0.02, frames: [
     { t: 0, v: 'oo', amp: 0, voice: 1, noise: 0.42 }, { t: 0.06, v: 'oo', amp: 0.9, voice: 1, noise: 0.2 }, { t: 0.35, v: 'aa', amp: 1, voice: 1, noise: 0.18 }, { t: 0.75, v: 'aw', amp: 0.58, voice: 1, noise: 0.24 }, { t: 1, v: 'aw', amp: 0, voice: 0, noise: 0.8 },
-  ] }) },
+  ] }),
 
   // 보스
-  bossSpawn: { dir: 'events', synth: () => voice({ dur: 0.72, targetLoudness: 0.21, seed: 0x6201, hold: 3, bits: 6, drive: 2.0, f0: [[0, 76], [0.35, 64], [1, 52]], ring: { rate: 24, depth: 0.25 }, vib: { rate: 4.1, depth: 0.045 }, jitter: 0.014, frames: [
+  bossSpawn: zombieVoice('events', { dur: 0.72, targetLoudness: 0.21, seed: 0x6201, hold: 2, bits: 7, drive: 1.5, hpHz: 120, f0: [[0, 210], [0.35, 187], [1, 164]], ring: { rate: 24, depth: 0.1 }, vib: { rate: 4.1, depth: 0.045 }, jitter: 0.014, frames: [
     { t: 0, v: 'oo', amp: 0, voice: 1, noise: 0.35 }, { t: 0.06, v: 'oo', amp: 0.85, voice: 1, noise: 0.17 }, { t: 0.36, v: 'aw', amp: 1, voice: 1, noise: 0.16 }, { t: 0.8, v: 'aa', amp: 0.5, voice: 1, noise: 0.22 }, { t: 1, v: 'ng', amp: 0, voice: 1, noise: 0.2 },
-  ] }) },
-  bossRoar: { dir: 'enemies', synth: () => voice({ dur: 0.86, targetLoudness: 0.23, seed: 0x6202, hold: 3, bits: 6, drive: 2.05, f0: [[0, 82], [0.18, 104], [1, 55]], ring: { rate: 27, depth: 0.28 }, vib: { rate: 5, depth: 0.06 }, jitter: 0.018, frames: [
+  ] }),
+  bossRoar: zombieVoice('enemies', { dur: 0.86, targetLoudness: 0.23, seed: 0x6202, hold: 2, bits: 7, drive: 1.5, hpHz: 120, f0: [[0, 184], [0.18, 225], [1, 154]], ring: { rate: 27, depth: 0.1 }, vib: { rate: 5, depth: 0.06 }, jitter: 0.018, frames: [
     { t: 0, v: 'eu', amp: 0, voice: 0, noise: 0.9 }, { t: 0.04, v: 'eu', amp: 0.75, voice: 0, noise: 1 }, { t: 0.12, v: 'aw', amp: 1, voice: 1, noise: 0.16 }, { t: 0.52, v: 'aa', amp: 0.98, voice: 1, noise: 0.14 }, { t: 0.86, v: 'oh', amp: 0.45, voice: 1, noise: 0.22 }, { t: 1, v: 'oh', amp: 0, voice: 1, noise: 0.25 },
-  ] }) },
-  bossDeath: { dir: 'enemies', synth: () => voice({ dur: 0.95, targetLoudness: 0.22, seed: 0x6203, hold: 3, bits: 6, drive: 2.1, f0: [[0, 78], [0.55, 58], [1, 39]], ring: { rate: 22, depth: 0.34 }, vib: { rate: 3.6, depth: 0.06 }, jitter: 0.022, frames: [
+  ] }),
+  bossDeath: zombieVoice('enemies', { dur: 0.95, targetLoudness: 0.22, seed: 0x6203, hold: 2, bits: 7, drive: 1.5, hpHz: 120, f0: [[0, 210], [0.55, 178], [1, 158]], ring: { rate: 22, depth: 0.1 }, vib: { rate: 3.6, depth: 0.06 }, jitter: 0.022, frames: [
     { t: 0, v: 'aa', amp: 0, voice: 1, noise: 0.3 }, { t: 0.05, v: 'aa', amp: 1, voice: 1, noise: 0.18 }, { t: 0.42, v: 'aw', amp: 0.95, voice: 1, noise: 0.19 }, { t: 0.72, v: 'oh', amp: 0.55, voice: 1, noise: 0.25 }, { t: 0.9, v: 'ng', amp: 0.3, voice: 1, noise: 0.28 }, { t: 1, v: 'ng', amp: 0, voice: 1, noise: 0.3 },
-  ] }) },
+  ] }),
 
   // 마틸다 — 목소리 큐 전부(matildaSpawn/Dash/Laugh/Death/CountdownEnd)는 2026-11-14부터
   // scripts/generate_matilda_girl_voice.mjs(CC0 실제 4살 여자아이 웃음 녹음, 자르기·정리만)가 만든다.
