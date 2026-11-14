@@ -4,7 +4,7 @@ import { designCandidate, getSoundEntries, makeSource } from './generate-auditio
 describe('audition generator', () => {
   it('covers every current SOUND_MAP entry without fallback copies', () => {
     const entries = getSoundEntries()
-    expect(entries).toHaveLength(103)
+    expect(entries).toHaveLength(124)
     for (const entry of entries) {
       const source = makeSource(entry)
       expect(source.samples.length, entry.id).toBeGreaterThan(100)
