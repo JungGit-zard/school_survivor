@@ -19,6 +19,7 @@ import {
   shouldRenderInuconCompanion,
   shouldRunInuconSupport,
 } from '../../lib/inucon.js'
+import { subscribeInuconGuard } from '../../lib/inuconGuard.js'
 
 function Part({ size, position, rotation = [0, 0, 0], material, outlineMaterial, outlineScale = 1.07, geometry = null }) {
   const boxGeometry = useMemo(() => new THREE.BoxGeometry(...size), [size.join(',')])
@@ -220,7 +221,7 @@ export function InuconModel({ fainted: faintedProp } = {}) {
         parts.current.root.position.y = composeStudioPartPosition(parts.current.root, 'y', 0, Math.sin(t * 1.6) * INUCON_GHOST_FLOAT_AMPLITUDE)
         parts.current.root.rotation.z = composeStudioPartRotation(parts.current.root, 'z', 0, 0)
       }
-      if (parts.current.tail) parts.current.tail.rotation.z = composeStudioPartRotation(parts.current.tail, 'z', 0, -0.3)
+      if (parts.current.tail) parts.current.tail.rotation.y = composeStudioPartRotation(parts.current.tail, 'y', 0, 0)
       if (parts.current.armR) parts.current.armR.rotation.z = composeStudioPartRotation(parts.current.armR, 'z', 0, 0)
       if (parts.current.armL) parts.current.armL.rotation.z = composeStudioPartRotation(parts.current.armL, 'z', 0, 0)
       if (parts.current.halo) parts.current.halo.position.y = INUCON_HALO_Y + Math.sin(t * 2.4) * 0.03
@@ -233,7 +234,7 @@ export function InuconModel({ fainted: faintedProp } = {}) {
       parts.current.root.position.y = composeStudioPartPosition(parts.current.root, 'y', 0, bob)
       parts.current.root.rotation.z = composeStudioPartRotation(parts.current.root, 'z', 0, Math.sin(t * 3.1) * 0.045)
     }
-    if (parts.current.tail) parts.current.tail.rotation.z = composeStudioPartRotation(parts.current.tail, 'z', 0, -0.3 + wag)
+    if (parts.current.tail) parts.current.tail.rotation.y = composeStudioPartRotation(parts.current.tail, 'y', 0, wag)
     if (parts.current.armR) parts.current.armR.rotation.z = composeStudioPartRotation(parts.current.armR, 'z', 0, wave * 0.5)
     if (parts.current.armL) parts.current.armL.rotation.z = composeStudioPartRotation(parts.current.armL, 'z', 0, -wave * 0.25)
   })
@@ -259,8 +260,11 @@ export function InuconModel({ fainted: faintedProp } = {}) {
         </group>
         <CapsulePart radius={0.06} length={0.22} position={[-0.14, -0.34, 0]} rotation={[0, 0, -0.12]} scale={[1, 1, 0.82]} material={dogShadeMat} outlineMaterial={outline} outlineScale={1.055} />
         <CapsulePart radius={0.06} length={0.22} position={[0.09, -0.34, 0]} rotation={[0, 0, 0.12]} scale={[1, 1, 0.82]} material={dogMat} outlineMaterial={outline} outlineScale={1.055} />
-        <group ref={reg('tail')} position={[-0.23, 0.96, -0.04]}>
-          <CapsulePart radius={0.055} length={0.26} position={[-0.24, 0.02, 0]} rotation={[0, 0, 0.45 + Math.PI / 2]} scale={[1, 1, 0.86]} material={dogMat} outlineMaterial={outline} outlineScale={1.055} />
+        {/* 꼬리: 엉덩이 뒷면(y 0.02, z -0.16) 피벗에서 뒤·위 45°로 뻗고 좌우(y축)로 흔든다.
+            예전 꼬리는 어깨 높이(y 0.96) 몸 정면 평면에서 옆으로 뻗고 z축으로 위아래 흔들려
+            정면에서 "세 번째 팔"처럼 보였다(Terry 2026-11-15 "옛 팔이 남아 있다"). 자식 순서(10번)는 그대로다. */}
+        <group ref={reg('tail')} position={[-0.02, 0.02, -0.16]}>
+          <CapsulePart radius={0.055} length={0.26} position={[0, 0.13, -0.13]} rotation={[-Math.PI / 4, 0, 0]} scale={[0.86, 1, 1]} material={dogMat} outlineMaterial={outline} outlineScale={1.055} />
         </group>
         {/* 기절 시 천사 고리. root의 마지막 자식이라 Studio 숫자 파츠 경로를 밀지 않는다. */}
         {fainted && (
@@ -337,6 +341,138 @@ function InuconPushEffect({ token = 0, radius = 0 }) {
         </mesh>
       ))}
     </group>
+  )
+}
+
+// 가드(대신 맞기) 이펙트 — Terry 2026-11-15 "아주 깔끔하고 단순하게".
+// 메시 2개뿐: 주인공 발밑 링 1장(검은 테두리가 캔버스에 같이 그려진 평면) + 이누콘 머리 위 "멍!멍!" 글자 1장.
+// 평소엔 visible=false라 드로콜 0, 가드 순간에만 최대 2. 무광(MeshBasic)·toneMapped false·파티클·글로우 없음.
+export const INUCON_GUARD_RING_DURATION_MS = 380
+export const INUCON_GUARD_TEXT_DURATION_MS = 650
+export const INUCON_GUARD_BARK_TEXT = '멍!멍!'
+const GUARD_RING_WORLD_SIZE = 1.2
+const GUARD_TEXT_CANVAS_W = 192
+const GUARD_TEXT_CANVAS_H = 72
+const GUARD_TEXT_WORLD_H = 0.34
+const GUARD_TEXT_Y_ABOVE_INUCON = 1.08
+
+function createGuardRingTexture() {
+  const canvas = document.createElement('canvas')
+  canvas.width = 128
+  canvas.height = 128
+  const ctx = canvas.getContext('2d')
+  ctx.beginPath()
+  ctx.arc(64, 64, 52, 0, Math.PI * 2)
+  ctx.lineWidth = 14
+  ctx.strokeStyle = '#140c18'
+  ctx.stroke()
+  ctx.lineWidth = 8
+  ctx.strokeStyle = '#bdf0ff'
+  ctx.stroke()
+  const texture = new THREE.CanvasTexture(canvas)
+  texture.colorSpace = THREE.SRGBColorSpace
+  return texture
+}
+
+// 데미지 숫자(DamageNumbersLayer)와 같은 글자 스타일: 굵은 글꼴 + 진한 테두리 + 밝은 채움.
+function createGuardTextTexture() {
+  const canvas = document.createElement('canvas')
+  canvas.width = GUARD_TEXT_CANVAS_W
+  canvas.height = GUARD_TEXT_CANVAS_H
+  const ctx = canvas.getContext('2d')
+  const fontPx = 40
+  ctx.font = `900 ${fontPx}px "Arial Black", Arial, sans-serif`
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  ctx.lineJoin = 'round'
+  ctx.strokeStyle = 'rgba(24,14,8,0.95)'
+  ctx.lineWidth = fontPx * 0.3
+  ctx.strokeText(INUCON_GUARD_BARK_TEXT, GUARD_TEXT_CANVAS_W / 2, GUARD_TEXT_CANVAS_H / 2 + 1)
+  ctx.fillStyle = '#ffffff'
+  ctx.fillText(INUCON_GUARD_BARK_TEXT, GUARD_TEXT_CANVAS_W / 2, GUARD_TEXT_CANVAS_H / 2 + 1)
+  const texture = new THREE.CanvasTexture(canvas)
+  texture.colorSpace = THREE.SRGBColorSpace
+  return texture
+}
+
+// 순수 프레임 값(jsdom 테스트용). t = 경과 ms.
+export function computeInuconGuardFrame(t) {
+  const ringT = Math.min(1, Math.max(0, t / INUCON_GUARD_RING_DURATION_MS))
+  const textT = Math.min(1, Math.max(0, t / INUCON_GUARD_TEXT_DURATION_MS))
+  const ringEase = 1 - (1 - ringT) * (1 - ringT)
+  return {
+    ringVisible: t < INUCON_GUARD_RING_DURATION_MS,
+    ringScale: 0.72 + 0.28 * ringEase,
+    ringOpacity: ringT < 0.55 ? 1 : Math.max(0, 1 - (ringT - 0.55) / 0.45),
+    textVisible: t < INUCON_GUARD_TEXT_DURATION_MS,
+    textScale: textT < 0.15 ? 0.6 + (textT / 0.15) * 0.5 : textT < 0.25 ? 1.1 - ((textT - 0.15) / 0.1) * 0.1 : 1,
+    textRise: 0.12 * textT,
+    textOpacity: textT < 0.7 ? 1 : Math.max(0, 1 - (textT - 0.7) / 0.3),
+  }
+}
+
+function InuconGuardEffect({ inuconPosRef }) {
+  const ringRef = useRef(null)
+  const textRef = useRef(null)
+  const pendingRef = useRef(false)
+  const stateRef = useRef({ active: false, elapsedMs: 0 })
+  const assets = useMemo(() => {
+    const ringTexture = createGuardRingTexture()
+    const textTexture = createGuardTextTexture()
+    return {
+      ringTexture,
+      textTexture,
+      ringGeometry: new THREE.PlaneGeometry(GUARD_RING_WORLD_SIZE, GUARD_RING_WORLD_SIZE),
+      textGeometry: new THREE.PlaneGeometry(GUARD_TEXT_WORLD_H * (GUARD_TEXT_CANVAS_W / GUARD_TEXT_CANVAS_H), GUARD_TEXT_WORLD_H),
+      ringMaterial: new THREE.MeshBasicMaterial({ map: ringTexture, transparent: true, opacity: 0, depthWrite: false, toneMapped: false }),
+      textMaterial: new THREE.MeshBasicMaterial({ map: textTexture, transparent: true, opacity: 0, depthWrite: false, depthTest: false, toneMapped: false }),
+    }
+  }, [])
+  useEffect(() => () => {
+    Object.values(assets).forEach((resource) => resource.dispose())
+  }, [assets])
+  // store가 inuconBark emit 직후 같은 호출 안에서 알린다 → 다음 프레임에 링·글자가 함께 시작한다.
+  useEffect(() => subscribeInuconGuard(() => { pendingRef.current = true }), [])
+
+  usePlayingFrame(({ camera }, delta) => {
+    const state = stateRef.current
+    if (pendingRef.current) {
+      state.active = true
+      state.elapsedMs = 0
+      pendingRef.current = false
+    }
+    const ring = ringRef.current
+    const text = textRef.current
+    if (!ring || !text) return
+    if (!state.active) {
+      ring.visible = false
+      text.visible = false
+      return
+    }
+    state.elapsedMs += delta * 1000
+    const frame = computeInuconGuardFrame(state.elapsedMs)
+    ring.visible = frame.ringVisible
+    if (frame.ringVisible) {
+      ring.position.set(playerPos.x, 0.05, playerPos.z)
+      ring.scale.setScalar(frame.ringScale)
+      assets.ringMaterial.opacity = frame.ringOpacity
+    }
+    text.visible = frame.textVisible
+    if (text.visible) {
+      const p = inuconPosRef.current
+      text.position.set(p.x, GUARD_TEXT_Y_ABOVE_INUCON + frame.textRise, p.z)
+      text.quaternion.copy(camera.quaternion)
+      text.scale.setScalar(frame.textScale)
+      assets.textMaterial.opacity = frame.textOpacity
+    }
+    if (!frame.ringVisible && !frame.textVisible) state.active = false
+  })
+
+  return (
+    <>
+      <mesh ref={ringRef} visible={false} rotation={[-Math.PI / 2, 0, 0]} geometry={assets.ringGeometry} material={assets.ringMaterial} renderOrder={6} userData={{ studioNonFocusable: true, studioNonTunable: true }} />
+      <mesh ref={textRef} visible={false} geometry={assets.textGeometry} material={assets.textMaterial} renderOrder={1001} frustumCulled={false} userData={{ studioNonFocusable: true, studioNonTunable: true }} />
+    </>
   )
 }
 
@@ -434,6 +570,7 @@ export function InuconWeapon() {
         {!fainted && inuconMaxHp > 0 && <MiniHealthBar current={inuconHp} max={inuconMaxHp} width={0.84} height={0.14} y={2.0} />}
       </group>
       <InuconPushEffect token={pushVfx.token} radius={pushVfx.radius} />
+      <InuconGuardEffect inuconPosRef={posRef} />
     </>
   )
 }

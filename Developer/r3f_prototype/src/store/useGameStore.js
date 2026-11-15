@@ -71,6 +71,7 @@ import { logDamageTaken } from '../lib/playtestLogger.js'
 import { emitSfx } from '../lib/sfxEvents.js'
 import { emitDamageNumber, DAMAGE_NUMBER_COLORS } from '../lib/damageNumbers.js'
 import { INUCON_RESPAWN_MS, resolveInucon } from '../lib/inucon.js'
+import { triggerInuconGuard } from '../lib/inuconGuard.js'
 import {
   advanceRuntimeTime,
   getRuntimeElapsedMs,
@@ -557,6 +558,8 @@ export const useGameStore = create(
         set({ inucon: { ...inucon, hp: Math.max(0, inuconHp), fainted, respawnAtMs: fainted ? getRuntimeElapsedMs(get().elapsedMs) + INUCON_RESPAWN_MS : null } })
         emitDamageNumber({ x: playerPos.x, y: 1.0, z: playerPos.z, amount: absorbed, colorHex: DAMAGE_NUMBER_COLORS.player })
         emitSfx({ id: 'inuconBark' })
+        // 가드 이펙트(링 + "멍!멍!")는 짖음과 같은 순간에 띄운다(Inucon.jsx가 구독).
+        triggerInuconGuard()
         logDamageTaken(absorbed, player.hp)
         amount -= absorbed
         if (amount <= 0) {

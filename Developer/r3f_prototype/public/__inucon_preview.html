@@ -12,6 +12,14 @@
 <body>
   <div class="label">이누콘 R3F 모델 프리뷰 — 세로형 강아지 동반자</div>
   <div id="root"></div>
+  <!-- public/ HTML은 Vite가 변환하지 않아 React Refresh 프리앰블이 없다. 게임 컴포넌트(Inucon.jsx)를 불러오려면 직접 넣는다. -->
+  <script type="module">
+    import RefreshRuntime from '/@react-refresh'
+    RefreshRuntime.injectIntoGlobalHook(window)
+    window.$RefreshReg$ = () => {}
+    window.$RefreshSig$ = () => (type) => type
+    window.__vite_plugin_react_preamble_installed__ = true
+  </script>
   <script type="module" src="/src/inuconPreview.jsx"></script>
 </body>
 </html>

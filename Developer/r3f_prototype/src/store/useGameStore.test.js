@@ -19,6 +19,7 @@ import { _resetFirebaseProgressForTests, _seedHydratedFirebaseProgressForTests }
 import { playerPos, playerFacing, bagSwingState, enemyBodies, joystickDir } from '../lib/refs.js'
 import { advanceRuntimeTime, getRuntimeElapsedMs } from '../lib/gameRuntimeTime.js'
 import { subscribeSfx } from '../lib/sfxEvents.js'
+import { subscribeInuconGuard } from '../lib/inuconGuard.js'
 import { getBossSpawnSec } from '../lib/burstEvents.js'
 import { _resetForTests as resetWeaponUnlocksForTests, setUnlocked } from '../lib/weaponUnlocks.js'
 import { applyChibikoAllWeaponBoost } from '../lib/upgrades.js'
@@ -635,6 +636,18 @@ describe('이누콘 대신 맞기', () => {
     expect(s.player.invulnerable).toBe(true)
     expect(sfx.filter((id) => id === 'inuconBark')).toHaveLength(1)
     expect(sfx).not.toContain('playerHit')
+  })
+
+  it('가드 이펙트는 짖음(inuconBark)과 같은 가드마다 정확히 한 번 뜬다', () => {
+    const order = []
+    const offSfx = subscribeSfx((event) => { if (event.id === 'inuconBark') order.push('bark') })
+    const offGuard = subscribeInuconGuard(() => order.push('vfx'))
+    useGameStore.getState().damagePlayer(1)
+    useGameStore.getState().endInvulnerable()
+    useGameStore.getState().damagePlayer(1)
+    offSfx()
+    offGuard()
+    expect(order).toEqual(['bark', 'vfx', 'bark', 'vfx'])
   })
 
   it('남은 체력보다 큰 피해는 이누콘을 기절시키고 초과분만 주인공에게 간다', () => {
