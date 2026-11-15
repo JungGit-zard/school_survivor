@@ -253,6 +253,7 @@ export function BoxCutterWeapon() {
           knockbackMs: 80,
           critChance: w.critChance,
           critMultiplier: w.critMultiplier,
+          vfxKey: 'boxCutter',
         })
         if (!hit) return
         landedHit = true

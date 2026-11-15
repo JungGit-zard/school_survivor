@@ -1,0 +1,242 @@
+{
+  "asset": "Terry 2026-11-15 VFX picks - textures",
+  "snapshotRoot": "F:/ezs-work/backup/vfx_assets (packs downloaded 2026-11-15)",
+  "processing": "downscaled by trial/prep.py; codemanu_explosion and adfx_heart re-encoded as 256-colour palette PNG; px_hit_spark_48 dark pixels recoloured orange (no-dark-outline rule)",
+  "licenseFile": "License.txt",
+  "files": [
+    {
+      "file": "adfx_heart.png",
+      "bytes": 14095,
+      "sha256": "af90acc4448a162fc891195a30710b64241fbaf8bbe92d445fa982b224eab071",
+      "width": 384,
+      "height": 384,
+      "grid": [
+        4,
+        4
+      ],
+      "frames": 9,
+      "source": "itch_ad-fx_free/x/Free/Sprite Sheet (1024x1024)/1.png",
+      "sourceSize": [
+        1024,
+        1024
+      ],
+      "license": "CC0-1.0"
+    },
+    {
+      "file": "codemanu_explosion.png",
+      "bytes": 50336,
+      "sha256": "caa16a47d1506e52b12e6bc599e2012d9cea6dc92ae305297eb8ff039ef6110f",
+      "width": 576,
+      "height": 480,
+      "grid": [
+        6,
+        5
+      ],
+      "frames": 27,
+      "source": "itch_brackeysgames_brackeys-vfx-bundle/x/brackeys_vfx_bundle/predrawn/explosion_6x5.png",
+      "sourceSize": [
+        2130,
+        1775
+      ],
+      "license": "CC0-1.0 per Brackeys VFX Bundle; credit CodeManu (codemanu.itch.io/vfx-free-pack)"
+    },
+    {
+      "file": "codemanu_impact_white.png",
+      "bytes": 17918,
+      "sha256": "b889244d2801410c3014e8c7f4fb80090874eb106852a687e0677aa0c4fa5664",
+      "width": 445,
+      "height": 384,
+      "grid": [
+        6,
+        4
+      ],
+      "frames": 15,
+      "source": "itch_brackeysgames_brackeys-vfx-bundle/x/brackeys_vfx_bundle/predrawn/impact_white_6x4.png",
+      "sourceSize": [
+        1746,
+        1505
+      ],
+      "license": "CC0-1.0 per Brackeys VFX Bundle; credit CodeManu (codemanu.itch.io/vfx-free-pack)"
+    },
+    {
+      "file": "kenney_circle_02.png",
+      "bytes": 10357,
+      "sha256": "74668942415b3303283ea72d063392ae9257245f0cf095fdc9da53fd356fcf47",
+      "width": 128,
+      "height": 128,
+      "grid": [
+        1,
+        1
+      ],
+      "frames": 1,
+      "source": "kenney_particle-pack/x/PNG (Transparent)/circle_02.png",
+      "sourceSize": [
+        512,
+        512
+      ],
+      "license": "CC0-1.0"
+    },
+    {
+      "file": "kenney_circle_03.png",
+      "bytes": 16783,
+      "sha256": "f841df7cb0a9d507e72a9e8983b6914afd76a8c5d0f3bd57cdbadcb3aeaa32c3",
+      "width": 128,
+      "height": 128,
+      "grid": [
+        1,
+        1
+      ],
+      "frames": 1,
+      "source": "kenney_particle-pack/x/PNG (Transparent)/circle_03.png",
+      "sourceSize": [
+        512,
+        512
+      ],
+      "license": "CC0-1.0"
+    },
+    {
+      "file": "kenney_circle_05.png",
+      "bytes": 8365,
+      "sha256": "ce00a9333cb6bf28b1d8c2a561034683a42363e88c90c4398ab73f7b1c6e2d3d",
+      "width": 128,
+      "height": 128,
+      "grid": [
+        1,
+        1
+      ],
+      "frames": 1,
+      "source": "kenney_particle-pack/x/PNG (Transparent)/circle_05.png",
+      "sourceSize": [
+        512,
+        512
+      ],
+      "license": "CC0-1.0"
+    },
+    {
+      "file": "kenney_magic_03.png",
+      "bytes": 15113,
+      "sha256": "1953beabb763ba2577354da136bb673c26ab03bf59a68388f29f71cd37b2eae1",
+      "width": 128,
+      "height": 128,
+      "grid": [
+        1,
+        1
+      ],
+      "frames": 1,
+      "source": "kenney_particle-pack/x/PNG (Transparent)/magic_03.png",
+      "sourceSize": [
+        512,
+        512
+      ],
+      "license": "CC0-1.0"
+    },
+    {
+      "file": "kenney_star_06.png",
+      "bytes": 6142,
+      "sha256": "44f6a5dbba1d00d79c9aab1a72f630438382964841eb6612ddba5f29541230c2",
+      "width": 128,
+      "height": 128,
+      "grid": [
+        1,
+        1
+      ],
+      "frames": 1,
+      "source": "kenney_particle-pack/x/PNG (Transparent)/star_06.png",
+      "sourceSize": [
+        512,
+        512
+      ],
+      "license": "CC0-1.0"
+    },
+    {
+      "file": "kenney_star_07.png",
+      "bytes": 6081,
+      "sha256": "ed640ad63daa366479ee685725dbf23c25a06cb47aea358440c58a3950b7ea02",
+      "width": 128,
+      "height": 128,
+      "grid": [
+        1,
+        1
+      ],
+      "frames": 1,
+      "source": "kenney_particle-pack/x/PNG (Transparent)/star_07.png",
+      "sourceSize": [
+        512,
+        512
+      ],
+      "license": "CC0-1.0"
+    },
+    {
+      "file": "px_hit_spark_48.png",
+      "bytes": 1942,
+      "sha256": "2f1babfeaa24a8ba5bcbb8f3651fff6317aaacc398710a46cf216d8bf6ad4f40",
+      "width": 384,
+      "height": 48,
+      "grid": [
+        8,
+        1
+      ],
+      "frames": 7,
+      "source": "F:/ezs-work/backup/vfx_assets/itch_cs5475_free-pixel-effects/x/free-pixel-effects/hit-sparks/hit-spark-48.png",
+      "sourceSize": [
+        384,
+        48
+      ],
+      "license": "CC0-1.0"
+    },
+    {
+      "file": "reebo_noise.png",
+      "bytes": 10566,
+      "sha256": "472b06dcfb9620be1a1e777a77700d8e2bce7323e94f0e816c42665139ea7764",
+      "width": 128,
+      "height": 128,
+      "grid": [
+        1,
+        1
+      ],
+      "frames": 1,
+      "source": "github_reebo0/x/godot-stylized-2d-vfx-lite-main/addons/reeboo_fx2d/textures/noise.png",
+      "sourceSize": [
+        128,
+        128
+      ],
+      "license": "MIT (Copyright (c) 2026 REEBOO Labs)"
+    },
+    {
+      "file": "reebo_puff.png",
+      "bytes": 3501,
+      "sha256": "9145c8a6a14971dcc50d43aca274491d5289059c890aa24b3fe36ae12b3237c6",
+      "width": 128,
+      "height": 128,
+      "grid": [
+        1,
+        1
+      ],
+      "frames": 1,
+      "source": "github_reebo0/x/godot-stylized-2d-vfx-lite-main/addons/reeboo_fx2d/textures/puff.png",
+      "sourceSize": [
+        128,
+        128
+      ],
+      "license": "MIT (Copyright (c) 2026 REEBOO Labs)"
+    },
+    {
+      "file": "reebo_twinkle.png",
+      "bytes": 457,
+      "sha256": "b3f06a6d36a87646e91e0bbbafc5672f58dc6ac36dff9978a7bf8b313d68bc8a",
+      "width": 64,
+      "height": 64,
+      "grid": [
+        1,
+        1
+      ],
+      "frames": 1,
+      "source": "github_reebo0/x/godot-stylized-2d-vfx-lite-main/addons/reeboo_fx2d/textures/twinkle.png",
+      "sourceSize": [
+        64,
+        64
+      ],
+      "license": "MIT (Copyright (c) 2026 REEBOO Labs)"
+    }
+  ]
+}

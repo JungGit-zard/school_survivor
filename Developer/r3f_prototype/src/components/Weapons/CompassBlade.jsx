@@ -256,7 +256,7 @@ export function CompassBladeWeapon() {
   const visualRefs = useRef([])
   const lastHitRef = useRef({ times: new Float64Array(200), generations: new Uint16Array(200), special: new Array(3), specialTimes: new Float64Array(3) })
   const targetScratchRef = useRef(createWeaponTargetScratch())
-  const impactRef = useRef({ critChance: 0, critMultiplier: 1 })
+  const impactRef = useRef({ critChance: 0, critMultiplier: 1, vfxKey: 'compassBlade' })
   const orbitXRef = useRef(new Float32Array(3))
   const orbitZRef = useRef(new Float32Array(3))
   // 살아 있는(리스폰 중이 아닌) 요강만 압축해 담는다. scanOrbitEnemiesInto는 궤도체 배열을
@@ -289,6 +289,7 @@ export function CompassBladeWeapon() {
       x: blast.x, z: blast.z, radius: blast.radius, damage: blast.damage,
       knockback: 3.2, knockbackMs: 130,
       canCrit: false, damageType: 'explosive', attackTags: ['radial', 'explosive', 'burst'],
+      vfxKey: 'compassBlade',
     })
 
     requestExplosions([...explosionsRef.current, {

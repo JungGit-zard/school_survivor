@@ -3,13 +3,8 @@ import { bagSwingState, playerArmActionState } from '../lib/refs.js'
 import { getActivePlayerArmAction, startPlayerArmAction } from '../lib/playerArmAction.js'
 import { readFileSync } from 'node:fs'
 import {
-  HEAL_EFFECT_CORE_SCALE,
   HEAL_EFFECT_DURATION_MS,
-  HEAL_EFFECT_MAX_OPACITY,
   HEAL_EFFECT_MIN_INTERVAL_MS,
-  HEAL_EFFECT_RING_RADIUS,
-  HEAL_EFFECT_RING_TUBE_RADIUS,
-  HEAL_EFFECT_SPARK_RADIUS,
   MATILDA_FAINTED_POSE_ROTATION_Z,
   MATILDA_FAINTED_POSE_Y_OFFSET,
   getPlayerVisualPoseTransform,
@@ -34,23 +29,13 @@ describe('player hit knockback', () => {
     expect(source).toContain('invTimer.current += dt * 1000')
   })
 
-  it('renders a token-driven, restrained green heal pulse above the player visual', () => {
+  it('turns heal tokens into the pooled picked heal burst (Kenney toon cut, no outline)', () => {
     const source = readFileSync(new URL('./Player.jsx', import.meta.url), 'utf8')
     expect(source).toContain('function PlayerHealEffect')
     expect(source).toContain('<PlayerHealEffect token={healFlashToken} />')
-    // 2026-10-28 Terry: "회복 시각효과가 지나치다" — still visible, but small, short and translucent.
-    expect(HEAL_EFFECT_RING_RADIUS).toBeGreaterThanOrEqual(0.25)
-    expect(HEAL_EFFECT_RING_RADIUS).toBeLessThanOrEqual(0.4)
-    expect(HEAL_EFFECT_RING_TUBE_RADIUS).toBeGreaterThanOrEqual(0.015)
-    expect(HEAL_EFFECT_RING_TUBE_RADIUS).toBeLessThan(0.038)
-    expect(HEAL_EFFECT_SPARK_RADIUS).toBeLessThan(0.08)
-    expect(HEAL_EFFECT_CORE_SCALE).toBeLessThan(1.24)
-    expect(HEAL_EFFECT_DURATION_MS).toBeGreaterThanOrEqual(300)
-    expect(HEAL_EFFECT_DURATION_MS).toBeLessThan(760)
-    expect(HEAL_EFFECT_MAX_OPACITY).toBeGreaterThanOrEqual(0.4)
-    expect(HEAL_EFFECT_MAX_OPACITY).toBeLessThanOrEqual(0.7)
-    expect(source).toContain('color="#bdffcf"')
-    expect(source).toContain('color="#ffffff"')
+    expect(source).toContain('spawnVfxBurst(VFX_BURST.HEAL, playerPos.x, 0, playerPos.z, 1)')
+    // Terry 2026-11-15 pick: same 0.8 s life as the trial's kenney_toon level-up entry.
+    expect(HEAL_EFFECT_DURATION_MS).toBe(800)
   })
 
   it('does not restart the heal pulse for frequent heals (one effect at a time, minimum interval)', () => {

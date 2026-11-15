@@ -11,7 +11,8 @@ import {
   SHOT_OUTLINE_THICKNESS, SHOT_VISUALS, composeShotQuaternion, createOutlineGeometry,
   createShotBodyMaterial, createShotOutlineMaterial, getShotVisualIndex,
 } from '../../lib/projectileZombieShotGeometry.js'
-import { PAPER_PLANE_FADE_MS, clearPaperPlanePool, createPaperPlanePool, launchPaperPlanes, stepPaperPlanes } from '../../lib/paperPlane.js'
+import { PAPER_PLANE_FADE_MS, PAPER_PLANE_MAX_CAPACITY, clearPaperPlanePool, createPaperPlanePool, launchPaperPlanes, stepPaperPlanes } from '../../lib/paperPlane.js'
+import { createRibbonTrail } from '../../lib/vfxRibbonTrail.js'
 
 // 종이비행기(paperPlane) — 2026-11-07 Terry: E47 종이비행기 좀비의 탄을 로자리 무기로.
 // 2026-11-08 Terry: 좀비 종이비행기와 크기·비행속도·공격 방식까지 완전히 같게, 로자리 것만 민트 테두리.
@@ -78,6 +79,17 @@ export function writePlaneMatrices(pool, body, outline) {
   outline.instanceMatrix.needsUpdate = true
 }
 
+// Terry 2026-11-15 pick: ribbon tail (drei <Trail> style) behind every paper plane, one shared draw call.
+export function writePlaneRibbons(pool, ribbon) {
+  const n = Math.min(pool.capacity, ribbon.capacity)
+  for (let i = 0; i < n; i += 1) {
+    if (!pool.active[i]) { ribbon.release(i); continue }
+    const fade = planeFadeScale(pool.ageMs[i], pool.lifeMs[i])
+    ribbon.update(i, pool.posX[i], SHOT_HEIGHT * (0.6 + 0.4 * fade), pool.posZ[i], pool.ageMs[i])
+  }
+  ribbon.commit()
+}
+
 export function PaperPlaneWeapon() {
   const poolRef = useRef(null)
   if (poolRef.current === null) poolRef.current = createPaperPlanePool(16)
@@ -103,6 +115,8 @@ export function PaperPlaneWeapon() {
   const weapon = useGameStore((s) => s.weapons.paperPlane)
   const active = !!weapon?.active
   const assets = useMemo(() => getPaperPlaneAssets(), [])
+  const ribbon = useMemo(() => createRibbonTrail(PAPER_PLANE_MAX_CAPACITY), [])
+  useEffect(() => () => ribbon.dispose(), [ribbon])
 
   // 무기가 빠지거나(교체 카드) 판이 끝나면 떠 있던 비행기를 지운다.
   const gameKey = useGameStore((s) => s.gameKey)
@@ -110,9 +124,10 @@ export function PaperPlaneWeapon() {
   useEffect(() => {
     if (active && !ended) return
     clearPaperPlanePool(poolRef.current)
+    ribbon.clear()
     if (bodyRef.current && outlineRef.current) writePlaneMatrices(poolRef.current, bodyRef.current, outlineRef.current)
-  }, [active, ended])
-  useEffect(() => { clearPaperPlanePool(poolRef.current); lastFireRef.current = 0; lastHitSfxRef.current = 0 }, [gameKey])
+  }, [active, ended, ribbon])
+  useEffect(() => { clearPaperPlanePool(poolRef.current); ribbon.clear(); lastFireRef.current = 0; lastHitSfxRef.current = 0 }, [gameKey, ribbon])
 
   usePlayingFrame(({ clock }, delta) => {
     if (!active) return
@@ -132,12 +147,14 @@ export function PaperPlaneWeapon() {
     stepPaperPlanes(pool, delta, undefined, onHitRef.current)
     if (pool.capacity !== capacity) { setCapacity(pool.capacity); return }
     if (bodyRef.current && outlineRef.current) writePlaneMatrices(pool, bodyRef.current, outlineRef.current)
+    writePlaneRibbons(pool, ribbon)
   })
 
   if (!active) return null
   // renderOrder: 좀비 탄 레이어와 같다(외곽선 1, 몸체 2).
   return (
     <group>
+      <primitive object={ribbon.mesh} />
       <instancedMesh key={`o${capacity}`} ref={outlineRef} args={[assets.outlineGeo, assets.outlineMat, capacity]} frustumCulled={false} count={0} renderOrder={1} />
       <instancedMesh key={`b${capacity}`} ref={bodyRef} args={[assets.bodyGeo, assets.bodyMat, capacity]} frustumCulled={false} count={0} renderOrder={2} />
     </group>

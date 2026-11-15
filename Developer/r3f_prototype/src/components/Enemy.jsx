@@ -12,6 +12,7 @@ import { useGameStore } from '../store/useGameStore.js'
 import { logKill, logPlaytestEvent } from '../lib/playtestLogger.js'
 import { emitSfx } from '../lib/sfxEvents.js'
 import { emitVfx } from '../lib/vfxEvents.js'
+import { resolveWeaponHitBurst, spawnVfxBurst } from '../lib/vfxBursts.js'
 import { emitDamageNumber, DAMAGE_NUMBER_COLORS } from '../lib/damageNumbers.js'
 import { resolveCriticalHit } from '../lib/criticalHits.js'
 import { emitCriticalHitScreenShake, emitEnemyHitScreenShake } from '../lib/criticalScreenShake.js'
@@ -1244,9 +1245,11 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
       const finalDamage = criticalHit.damage
       const willKill = hpRef.current <= finalDamage
       const strongCritical = criticalHit.isCritical && ((willKill && isBossType(type)) || (Number.isFinite(stats.hp) && stats.hp > 0 && finalDamage >= stats.hp * 0.25))
-      emitVfx(criticalHit.isCritical
-        ? createEnemyCriticalHitBurstEvent({ x: hitPos.x, y: Math.max(0.46, 0.52 * cs), z: hitPos.z, strong: strongCritical })
-        : createEnemyHitSparkEvent({ x: hitPos.x, y: Math.max(0.34, 0.42 * cs), z: hitPos.z }))
+      // Terry 2026-11-15 picks: per-weapon hit effect on every hit; unlisted weapons keep the HitSpark.
+      const hitBurst = resolveWeaponHitBurst(impact)
+      if (criticalHit.isCritical) emitVfx(createEnemyCriticalHitBurstEvent({ x: hitPos.x, y: Math.max(0.46, 0.52 * cs), z: hitPos.z, strong: strongCritical }))
+      else if (!hitBurst) emitVfx(createEnemyHitSparkEvent({ x: hitPos.x, y: Math.max(0.34, 0.42 * cs), z: hitPos.z }))
+      if (hitBurst) spawnVfxBurst(hitBurst, hitPos.x, Math.max(0.34, 0.42 * cs), hitPos.z, 1)
       if (criticalHit.isCritical) emitSfx({ id: 'criticalHit', volume: strongCritical ? 1.8 : 1.52 })
       const screenShake = criticalHit.isCritical ? emitCriticalHitScreenShake : emitEnemyHitScreenShake
       screenShake(

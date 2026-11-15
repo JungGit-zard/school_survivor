@@ -9,13 +9,15 @@ export class EnemyHitEventQueue {
     this.z = new Float32Array(capacity)
     this.amount = new Float32Array(capacity)
     this.critical = new Uint8Array(capacity)
+    // Terry 2026-11-15 picks: per-weapon hit effect kind (lib/vfxBursts.js VFX_BURST, 0 = HitSpark fallback).
+    this.burst = new Uint8Array(capacity)
     this.read = 0
     this.write = 0
     this.count = 0
     this.dropped = 0
   }
 
-  push(x, sparkY, numberY, z, amount, critical = false) {
+  push(x, sparkY, numberY, z, amount, critical = false, burst = 0) {
     if (this.count >= this.capacity || !Number.isFinite(x) || !Number.isFinite(sparkY) || !Number.isFinite(numberY) || !Number.isFinite(z) || !Number.isFinite(amount)) {
       this.dropped += 1
       return false
@@ -23,6 +25,7 @@ export class EnemyHitEventQueue {
     const slot = this.write
     this.x[slot] = x; this.sparkY[slot] = sparkY; this.numberY[slot] = numberY; this.z[slot] = z; this.amount[slot] = amount
     this.critical[slot] = critical ? 1 : 0
+    this.burst[slot] = burst > 0 ? burst : 0
     this.write = (slot + 1) % this.capacity
     this.count += 1
     return true
@@ -33,6 +36,7 @@ export class EnemyHitEventQueue {
     const slot = this.read
     out.x = this.x[slot]; out.sparkY = this.sparkY[slot]; out.numberY = this.numberY[slot]; out.z = this.z[slot]; out.amount = this.amount[slot]
     out.critical = this.critical[slot] === 1
+    out.burst = this.burst[slot]
     this.read = (slot + 1) % this.capacity
     this.count -= 1
     return true

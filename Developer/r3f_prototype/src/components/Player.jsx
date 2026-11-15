@@ -12,6 +12,7 @@ import { clampPlayerPosition } from '../lib/playerMovementBounds.js'
 import { getPlayerStartPosition } from '../lib/playerStartPosition.js'
 import { createGameplayFixedStepClock, runGameplayFixedSteps } from '../lib/gameplayFrameTime.js'
 import { emitSfx } from '../lib/sfxEvents.js'
+import { VFX_BURST, spawnVfxBurst } from '../lib/vfxBursts.js'
 import { isFirebaseProgressHydrated } from '../lib/firebaseProgress.js'
 import { loadGuestSessionSettings, loadTitleSettings } from '../lib/titleSettings.js'
 import { useAuthStore } from '../store/useAuthStore.js'
@@ -65,14 +66,9 @@ export const PLAYER_HIT_KNOCKBACK_MS = 160
 // 2026-10-28 Terry 모바일 피드백: "회복 시각효과가 지나치다". 흡혈·랜턴처럼 회복이 잦아져도
 // 화면을 덮지 않도록 작게·짧게·옅게 줄이고, 재생 중이거나 직전 재생 직후의 회복 토큰은 새로
 // 재생하지 않는다(동시 이펙트 최대 1개, 최소 재생 간격). 그래도 한 번의 회복은 분명히 보인다.
-export const HEAL_EFFECT_DURATION_MS = 480
+// 2026-11-15: the heal visual is now Terry's picked Kenney toon cut (BurstVfxLayer VFX_BURST.HEAL, 0.8 s, trial life).
+export const HEAL_EFFECT_DURATION_MS = 800
 export const HEAL_EFFECT_MIN_INTERVAL_MS = 1200
-export const HEAL_EFFECT_MAX_OPACITY = 0.6
-export const HEAL_EFFECT_RING_RADIUS = 0.34
-export const HEAL_EFFECT_RING_TUBE_RADIUS = 0.022
-export const HEAL_EFFECT_SPARK_RADIUS = 0.05
-export const HEAL_EFFECT_CORE_SCALE = 1
-const HEAL_EFFECT_SPARK_POSITIONS = Object.freeze([[0, 0.6, 0], [0.24, 0.46, 0.12], [-0.24, 0.46, -0.12]])
 
 // 새 회복 토큰을 재생할지. 이전 재생이 끝났고 마지막 재생 시작에서 최소 간격이 지났을 때만 true.
 export function shouldStartHealEffect(nowMs, lastStartMs) {
@@ -114,12 +110,6 @@ export function advancePlayerStep(stepState, moving, speed, dt) {
   return true
 }
 
-function setHealEffectOpacity(object, opacity) {
-  if (!object) return
-  if (object.material) object.material.opacity = opacity
-  for (const child of object.children ?? []) setHealEffectOpacity(child, opacity)
-}
-
 export function resolvePlayerHitKnockback(facing, speed = PLAYER_HIT_KNOCKBACK_SPEED) {
   const len = Math.hypot(facing?.x ?? 0, facing?.z ?? 0)
   const nx = len > 0 ? facing.x / len : 0
@@ -134,83 +124,23 @@ function shortestAngleDiff(target, current) {
   return diff
 }
 
+// Terry 2026-11-15 pick: every HP recovery plays the Kenney magic_03 ground + circle_03 + rising star_07 toon cut
+// (Kenney Particle Pack, CC0; no outline). BurstVfxLayer draws it pooled and keeps it on the player's feet.
+// This component only turns heal tokens into that burst and keeps the 2026-10-28 throttle (one effect at a time,
+// minimum interval) so frequent small heals (lifesteal, lantern, Inucon) never stack.
 function PlayerHealEffect({ token = 0 }) {
-  const groupRef = useRef(null)
-  const ringRef = useRef(null)
   const lastTokenRef = useRef(token)
-  const elapsedMsRef = useRef(HEAL_EFFECT_DURATION_MS)
   const lastStartMsRef = useRef(-Infinity)
-
-  useFrame((_, delta) => {
-    if (token !== lastTokenRef.current) {
-      lastTokenRef.current = token
-      const nowMs = performance.now()
-      // 잦은 소량 회복은 진행 중인 이펙트를 다시 시작하지 않고 흡수한다(깜빡임 누적 방지).
-      if (shouldStartHealEffect(nowMs, lastStartMsRef.current)) {
-        lastStartMsRef.current = nowMs
-        elapsedMsRef.current = 0
-        if (groupRef.current) groupRef.current.visible = true
-      }
+  useEffect(() => {
+    if (token === lastTokenRef.current) return
+    lastTokenRef.current = token
+    const nowMs = performance.now()
+    if (shouldStartHealEffect(nowMs, lastStartMsRef.current)) {
+      lastStartMsRef.current = nowMs
+      spawnVfxBurst(VFX_BURST.HEAL, playerPos.x, 0, playerPos.z, 1)
     }
-
-    const group = groupRef.current
-    if (!group) return
-    if (elapsedMsRef.current >= HEAL_EFFECT_DURATION_MS) {
-      if (group.visible) group.visible = false
-      return
-    }
-    elapsedMsRef.current += delta * 1000
-    const t = Math.min(1, elapsedMsRef.current / HEAL_EFFECT_DURATION_MS)
-    if (t >= 1) {
-      group.visible = false
-      return
-    }
-
-    const rise = t * 0.3
-    const pulse = Math.sin(t * Math.PI)
-    // 빠르게 떠올랐다가(앞 20%) 부드럽게 사라진다. 최고 불투명도는 HEAL_EFFECT_MAX_OPACITY.
-    const opacity = HEAL_EFFECT_MAX_OPACITY * (t < 0.2 ? t / 0.2 : 1 - (t - 0.2) / 0.8)
-    group.position.y = 0.2 + rise
-    group.scale.setScalar(HEAL_EFFECT_CORE_SCALE + pulse * 0.16)
-    setHealEffectOpacity(group, opacity)
-    if (ringRef.current) {
-      ringRef.current.rotation.z += delta * 3.8
-      ringRef.current.scale.setScalar(0.9 + t * 0.4)
-    }
-  })
-
-  return (
-    <group ref={groupRef} visible={false} position={[0, 0.2, 0]}>
-      <mesh ref={ringRef} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.05, 0]}>
-        <torusGeometry args={[HEAL_EFFECT_RING_RADIUS, HEAL_EFFECT_RING_TUBE_RADIUS, 8, 36]} />
-        <meshBasicMaterial color="#bdffcf" transparent opacity={0} depthWrite={false} toneMapped={false} />
-      </mesh>
-      {HEAL_EFFECT_SPARK_POSITIONS.map(([x, y, z], i) => (
-        <group key={i} position={[x, y, z]} rotation={[0, i * 0.55, 0]} scale={i === 0 ? 1 : 0.8}>
-          <mesh position={[-0.034, 0.016, 0]}>
-            <sphereGeometry args={[HEAL_EFFECT_SPARK_RADIUS, 8, 8]} />
-            <meshBasicMaterial color="#bdffcf" transparent opacity={0} depthWrite={false} toneMapped={false} />
-          </mesh>
-          <mesh position={[0.034, 0.016, 0]}>
-            <sphereGeometry args={[HEAL_EFFECT_SPARK_RADIUS, 8, 8]} />
-            <meshBasicMaterial color="#bdffcf" transparent opacity={0} depthWrite={false} toneMapped={false} />
-          </mesh>
-          <mesh position={[0, -0.028, 0]} rotation={[0, 0, Math.PI / 4]}>
-            <boxGeometry args={[0.08, 0.08, 0.016]} />
-            <meshBasicMaterial color="#bdffcf" transparent opacity={0} depthWrite={false} toneMapped={false} />
-          </mesh>
-        </group>
-      ))}
-      <mesh position={[0, 0.36, 0]}>
-        <boxGeometry args={[0.045, 0.2, 0.016]} />
-        <meshBasicMaterial color="#ffffff" transparent opacity={0} depthWrite={false} toneMapped={false} />
-      </mesh>
-      <mesh position={[0, 0.36, 0]}>
-        <boxGeometry args={[0.2, 0.045, 0.016]} />
-        <meshBasicMaterial color="#ffffff" transparent opacity={0} depthWrite={false} toneMapped={false} />
-      </mesh>
-    </group>
-  )
+  }, [token])
+  return null
 }
 
 export function PlayerVisual({ meshGroup, movingRef, hp, maxHp, hitFlashToken = 0, healFlashToken = 0, showHealthBar = true, previewArmAction = null, visualPose = PLAYER_UPRIGHT_POSE, comparisonModel = null, gameplay = false, outfit = 'default' }) {

@@ -3,6 +3,7 @@ import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import { useGameStore } from '../store/useGameStore.js'
 import { emitSfx } from '../lib/sfxEvents.js'
+import { VFX_BURST, spawnVfxBurst } from '../lib/vfxBursts.js'
 import { toonMat, outlineMat, inflateScale } from '../lib/toon.js'
 import { stepMagnetPull } from '../lib/pickup.js'
 import StudioTunedGroup from './StudioTunedGroup.jsx'
@@ -154,6 +155,7 @@ export default function GoldCoin({ id, pos, value, onCollect }) {
     if (result === 'collected') {
       collected.current = true
       emitSfx({ id: 'coinCollect' })
+      spawnVfxBurst(VFX_BURST.PICKUP, p.x, 0, p.z, 1)
       gainGold(value)
       useGameStore.getState().recordMissionEvent({ type: 'pickup_collected', itemType: 'goldCoin' })
       onCollect(id)

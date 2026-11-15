@@ -226,6 +226,7 @@ export function StudentLanternWeapon() {
         length, width, baseWidth, damage: w.damage ?? 0.15,
         critChance: w.critChance,
         critMultiplier: w.critMultiplier,
+        vfxKey: 'studentLantern',
       })
       if (hits > 0) {
         const store = useGameStore.getState()

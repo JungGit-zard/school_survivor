@@ -14,6 +14,7 @@ import SlteraEvent from './SlteraEvent.jsx'
 import { isSlteraStage } from '../lib/slteraEvent.js'
 import LunchItems from './LunchItems.jsx'
 import VFXLayer from './VFXLayer.jsx'
+import BurstVfxLayer from './BurstVfxLayer.jsx'
 import EscapePortal, { EscapePortalSceneLight } from './EscapePortal.jsx'
 import StudentDialogueTrigger from './StudentDialogueTrigger.jsx'
 import QuestWorldLayer from './QuestWorldLayer.jsx'
@@ -332,6 +333,8 @@ export default function Game() {
 
       {/* ── Shared VFX Layer (적 위에 그릴 효과는 이쪽으로) ── */}
       <VFXLayer />
+      {/* ── Terry 2026-11-15 picked VFX: pooled instanced bursts (hits, kill puff, pickup, heal, level-up, explosions) ── */}
+      <BurstVfxLayer />
 
       {/* ── Enemies (AI + physics). Persistent GPU visual pools live beside
           Physics in GameCanvas and are reset in-place by gameKey. ── */}

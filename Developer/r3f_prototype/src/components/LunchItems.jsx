@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import { playerPos } from '../lib/refs.js'
+import { VFX_BURST, spawnVfxBurst } from '../lib/vfxBursts.js'
 import { useGameStore } from '../store/useGameStore.js'
 import { getLunchHealAmount } from '../lib/outfitCatalog.js'
 import { outlineMat, toonMat, inflateScale } from '../lib/toon.js'
@@ -155,6 +156,7 @@ function LunchItem({ item, onCollect }) {
       const removed = onCollect(item.id)
       if (removed) {
         collectedRef.current = true
+        spawnVfxBurst(VFX_BURST.PICKUP, item.pos[0], 0, item.pos[2], 1)
         useGameStore.getState().recordMissionEvent({ type: 'pickup_collected', itemType: 'lunch' })
       }
       return

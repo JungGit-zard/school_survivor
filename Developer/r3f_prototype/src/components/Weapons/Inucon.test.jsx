@@ -93,9 +93,10 @@ describe('Inucon body parts', () => {
 })
 
 describe('Inucon guard effect', () => {
-  it('is a short ring pulse plus a 멍!멍! pop that both end', () => {
+  it('is a short shield-shell pulse plus a 멍!멍! pop that both end', () => {
     expect(INUCON_GUARD_BARK_TEXT).toBe('멍!멍!')
-    expect(INUCON_GUARD_RING_DURATION_MS).toBeLessThanOrEqual(500)
+    // Terry 2026-11-15 pick: Binbun shell, trial life 0.6 s.
+    expect(INUCON_GUARD_RING_DURATION_MS).toBe(600)
     expect(INUCON_GUARD_TEXT_DURATION_MS).toBeLessThanOrEqual(800)
     const start = computeInuconGuardFrame(0)
     expect(start).toMatchObject({ ringVisible: true, textVisible: true, ringOpacity: 1, textOpacity: 1 })
@@ -106,7 +107,9 @@ describe('Inucon guard effect', () => {
   it('uses unlit, non-tone-mapped materials and is wired into the companion', () => {
     const source = readFileSync(new URL('./Inucon.jsx', import.meta.url), 'utf8')
     const effect = source.slice(source.indexOf('function InuconGuardEffect'), source.indexOf('export function InuconWeapon'))
-    expect(effect.match(/new THREE\.MeshBasicMaterial\(\{[^}]*toneMapped: false/g)).toHaveLength(2)
+    // Text stays a MeshBasicMaterial; the guard shell is the Binbun fresnel ShaderMaterial (toneMapped false inside).
+    expect(effect.match(/new THREE\.MeshBasicMaterial\(\{[^}]*toneMapped: false/g)).toHaveLength(1)
+    expect(effect).toContain('createBinbunShellMaterial()')
     expect(effect).not.toMatch(/Points|Sprite|emissive/)
     expect(effect).toContain('subscribeInuconGuard(')
     expect(source).toContain('<InuconGuardEffect inuconPosRef={posRef} />')

@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useRef, useState } from 'react'
 import { usePlayingFrame } from '../../lib/usePlayingFrame.js'
 import { emitSfx } from '../../lib/sfxEvents.js'
+import { VFX_BURST, spawnVfxBurst } from '../../lib/vfxBursts.js'
 import * as THREE from 'three'
 import { playerArmActionState, playerPos, screenBounds } from '../../lib/refs.js'
 import { startPlayerArmAction } from '../../lib/playerArmAction.js'
@@ -272,50 +273,12 @@ function SharkMissileProjectile({ id, start, initialTarget, damage, radius, rang
   )
 }
 
-function SharkExplosion({ id, x, z, radius, onDone }) {
-  const discRef = useRef(null)
-  const ringRef = useRef(null)
-  const ageRef = useRef(0)
-
-  usePlayingFrame((_, delta) => {
-    ageRef.current += delta
-    const t = Math.min(1, ageRef.current / 0.55)
-    if (discRef.current) {
-      discRef.current.scale.setScalar(0.18 + radius * 2.4 * t)
-      discRef.current.material.opacity = 0.48 * (1 - t)
-    }
-    if (ringRef.current) {
-      ringRef.current.scale.setScalar(0.2 + radius * 3.0 * t)
-      ringRef.current.material.opacity = 0.34 * (1 - t)
-    }
-    if (t >= 1) onDone(id)
-  })
-
-  return (
-    <>
-      <mesh ref={discRef} rotation={[-Math.PI / 2, 0, 0]} position={[x, 0.075, z]} renderOrder={4}>
-        <circleGeometry args={[0.5, 56]} />
-        <meshBasicMaterial color={0x23c7ff} transparent opacity={0.48} depthWrite={false} side={THREE.DoubleSide} />
-      </mesh>
-      <mesh ref={ringRef} rotation={[-Math.PI / 2, 0, 0]} position={[x, 0.095, z]} renderOrder={5}>
-        <ringGeometry args={[0.28, 0.54, 56]} />
-        <meshBasicMaterial color={0xff9b2c} transparent opacity={0.34} depthWrite={false} side={THREE.DoubleSide} />
-      </mesh>
-    </>
-  )
-}
-
 export function SharkMissileWeapon() {
   const [missiles, setMissiles] = useState([])
-  const [explosions, setExplosions] = useState([])
   const activeMissilesRef = useRef([])
   const lastFireRef = useRef(0)
   const phase = useGameStore((s) => s.phase)
   const weapons = useGameStore((s) => s.weapons)
-
-  const removeExplosion = useCallback((id) => {
-    setExplosions((prev) => prev.filter((item) => item.id !== id))
-  }, [])
 
   const explode = useCallback((id, blast) => {
     activeMissilesRef.current = activeMissilesRef.current.filter((item) => item.id !== id)
@@ -336,7 +299,9 @@ export function SharkMissileWeapon() {
       attackTags: ['radial', 'explosive', 'missile'],
     })
 
-    setExplosions((prev) => [...prev, { id, x: blast.x, z: blast.z, radius: blast.radius }])
+    // Terry 2026-11-15 pick: CodeManu explosion flipbook (codemanu.itch.io/vfx-free-pack) replaces the
+    // old blue disc + orange ring. Pooled in BurstVfxLayer — no React mount per explosion.
+    spawnVfxBurst(VFX_BURST.SHARK_EXPLOSION, blast.x, 0, blast.z, blast.radius)
   }, [])
 
   usePlayingFrame(({ clock }) => {
@@ -381,9 +346,6 @@ export function SharkMissileWeapon() {
     <>
       {missiles.map((missile) => (
         <SharkMissileProjectile key={missile.id} {...missile} onExplode={explode} />
-      ))}
-      {explosions.map((explosion) => (
-        <SharkExplosion key={explosion.id} {...explosion} onDone={removeExplosion} />
       ))}
     </>
   )

@@ -3,6 +3,7 @@ import { useFrame } from '@react-three/fiber'
 import { usePlayingFrame } from '../../lib/usePlayingFrame.js'
 import { useBeforePhysicsStep } from '@react-three/rapier'
 import { emitSfx } from '../../lib/sfxEvents.js'
+import { VFX_BURST, spawnVfxBurst } from '../../lib/vfxBursts.js'
 import * as THREE from 'three'
 import { enemyBodies, enemyPool, playerPos, screenBounds } from '../../lib/refs.js'
 import { useGameStore } from '../../store/useGameStore.js'
@@ -149,7 +150,9 @@ function setStrikeRingScale(mesh, restScale, flashScale) {
   )
 }
 
-export function StrikeVisual({ x, z, age = 0, ageRef = null }) {
+// groundFlash=false (gameplay): the old white/yellow ground flash + rings stay mounted (Studio part paths) but
+// hidden — Terry 2026-11-15 picked the REEBOO fireball + shock ring + rays (BurstVfxLayer) for the ground impact.
+export function StrikeVisual({ x, z, age = 0, ageRef = null, groundFlash = true }) {
   const boltOuterRef = useRef(null)
   const boltCoreRef = useRef(null)
   const flashCoreRef = useRef(null)
@@ -163,7 +166,7 @@ export function StrikeVisual({ x, z, age = 0, ageRef = null }) {
     const currentAge = ageRef ? ageRef.current : age
     const t = Math.min(1, currentAge / STRIKE_DURATION_MS)
     const boltOpacity = t < 0.55 ? 1 - t / 0.55 : 0
-    const flashOpacity = t >= 0.35 ? Math.max(0, 1 - (t - 0.35) / 0.65) : 0
+    const flashOpacity = groundFlash && t >= 0.35 ? Math.max(0, 1 - (t - 0.35) / 0.65) : 0
     const flashScale = 0.5 + t * 2.4
     setStrikeLayer(boltOuterRef.current, boltOpacity * 0.9)
     setStrikeLayer(boltCoreRef.current, boltOpacity)
@@ -251,11 +254,12 @@ function StrikeWrapper({ id, x, z, damage, radius, critChance, critMultiplier, d
       damageDealtRef.current = true
       const hitCount = applyRadialDamage({ x, z, radius, damage, knockback: 1.4, knockbackMs: 80, critChance, critMultiplier })
       if (hitCount > 0) emitSfx({ id: 'starlinkHit' })
+      spawnVfxBurst(VFX_BURST.STARLINK_IMPACT, x, 0, z, radius)
     }
   })
 
   if (!started) return null
-  return <StrikeVisual x={x} z={z} ageRef={strikeAgeRef} />
+  return <StrikeVisual x={x} z={z} ageRef={strikeAgeRef} groundFlash={false} />
 }
 
 export function StarlinkWeapon() {

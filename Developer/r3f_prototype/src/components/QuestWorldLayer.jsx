@@ -7,6 +7,7 @@ import { getStageBounds } from '../lib/stageConfig.js'
 import { getStageQuestDefinitions } from '../lib/quests.js'
 import { usePlayingFrame } from '../lib/usePlayingFrame.js'
 import { playerPos } from '../lib/refs.js'
+import { VFX_BURST, spawnVfxBurst } from '../lib/vfxBursts.js'
 import { getStageObjectFootprint } from './StageObjects/stageObjectColliders.js'
 import { getStageObjectPlacements } from './StageObjects/stageObjectPlacements.js'
 import StudioTunedGroup, {
@@ -513,6 +514,7 @@ export default function QuestWorldLayer({ stageId }) {
         store.collectQuestItem?.(quest.id, target.sourceId),
       )
       if (collected) {
+        spawnVfxBurst(VFX_BURST.PICKUP, playerPos.x, 0, playerPos.z, 1)
         store.recordMissionEventOnce?.(
           `interaction:${gameKey}:${stageId}:quest-item:${quest.id}:${target.sourceId}`,
           { type: 'interaction_triggered' },

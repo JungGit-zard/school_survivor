@@ -153,7 +153,8 @@ function ChibikoPencilProjectile({ id, position, yaw, damage, speed, targetIndex
   const hitRef = useRef(false)
   const targetRef = useRef({ index: targetIndex, generation: targetGeneration, special: targetSpecial })
   const sweepScratchRef = useRef(createWeaponTargetScratch(1))
-  const impactRef = useRef({ critChance, critMultiplier })
+  // vfxKey: Terry 2026-11-15 pick — Kenney star_06 + circle_02 on every zombie Chibiko's pencil hits.
+  const impactRef = useRef({ critChance, critMultiplier, vfxKey: 'chibiko' })
   const ageRef = useRef(0)
   const positionRef = useRef({ x: position[0], y: position[1], z: position[2] })
 

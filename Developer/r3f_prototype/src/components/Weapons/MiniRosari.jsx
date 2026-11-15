@@ -133,6 +133,7 @@ function hitMiniRosariTarget(entry) {
     knockback: 3.2, knockbackMs: 90,
     critChance,
     critMultiplier,
+    vfxKey: 'miniRosari',
   })
   if (hit) {
     // 전용 효과음이 없어 오니기리 타격음을 공유한다(soundmini 검토 대상).

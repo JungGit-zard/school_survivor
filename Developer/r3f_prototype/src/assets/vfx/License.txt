@@ -1,0 +1,61 @@
+Escape! zombie school — third-party VFX credits (Terry's VFX picks, 2026-11-15)
+==============================================================================
+
+Textures in this folder were downscaled/re-encoded for phones (see PROVENANCE.json).
+Shader ports live in src/lib/vfxShaders.js and src/lib/vfxRibbonTrail.js.
+Every effect was changed to drop its dark outline / ink rim (Terry: no black outline on any effect).
+Not used anywhere: Cartoon Combat VFX sample (gmingassets) — its license forbids redistributing the files.
+
+------------------------------------------------------------------------------
+1) REEBOO godot-stylized-2d-vfx-lite (addons/reeboo_fx2d) — MIT
+   Used: shader ports ring / rays / blob / flash / swirl / pillar (src/lib/vfxShaders.js),
+         textures reebo_noise.png, reebo_twinkle.png, reebo_puff.png.
+   Notice (verbatim from addons/reeboo_fx2d/LICENSE):
+
+MIT License
+
+Copyright (c) 2026 REEBOO Labs
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+------------------------------------------------------------------------------
+2) Kenney Particle Pack (1.1) by Kenney Vleugels (Kenney.nl) — CC0 1.0
+   http://creativecommons.org/publicdomain/zero/1.0/
+   Used: kenney_magic_03.png, kenney_circle_02.png, kenney_circle_03.png, kenney_circle_05.png,
+         kenney_star_06.png, kenney_star_07.png. Credit: Kenney (www.kenney.nl).
+
+------------------------------------------------------------------------------
+3) Binbun3D Battle FX (free) and Hit FX (free) — CC0 1.0 (itch.io binbun3d)
+   Used: shader ports only (fresnel shield shell, 4-way star) in src/lib/vfxShaders.js. Credit: Binbun3D.
+
+------------------------------------------------------------------------------
+4) AD_FX — FREE Hand-Painted VFX Sampler — CC0 1.0 (itch.io ad-fx)
+   Used: adfx_heart.png (sprite sheet 1.png, 9 frames). Credit: AD_FX.
+
+------------------------------------------------------------------------------
+5) cs5475 — Free Pixel Effects (https://cs5475.itch.io) — CC0 1.0
+   Used: px_hit_spark_48.png (hit-sparks/hit-spark-48.png; dark brown pixels recoloured orange). Credit: cs5475.
+
+------------------------------------------------------------------------------
+6) CodeManu VFX Free Pack, via the Brackeys VFX Bundle (bundle license: CC0; pre-drawn spritesheets by CodeManu)
+   Credit: CodeManu (codemanu.itch.io/vfx-free-pack)
+   Used: codemanu_explosion.png (predrawn/explosion_6x5.png), codemanu_impact_white.png (predrawn/impact_white_6x4.png).
+
+------------------------------------------------------------------------------
+7) Paper plane ribbon trail — modelled on @react-three/drei <Trail> (MIT, pmndrs), already a project dependency.

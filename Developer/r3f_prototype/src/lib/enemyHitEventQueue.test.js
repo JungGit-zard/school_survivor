@@ -8,9 +8,9 @@ describe('EnemyHitEventQueue', () => {
     expect(queue.push(1, 2, 3, 4, 5, true)).toBe(true)
     expect(queue.push(6, 7, 8, 9, 10, false)).toBe(true)
     expect(queue.drainInto(out)).toBe(true)
-    expect(out).toEqual({ x: 1, sparkY: 2, numberY: 3, z: 4, amount: 5, critical: true })
+    expect(out).toEqual({ x: 1, sparkY: 2, numberY: 3, z: 4, amount: 5, critical: true, burst: 0 })
     expect(queue.drainInto(out)).toBe(true)
-    expect(out).toEqual({ x: 6, sparkY: 7, numberY: 8, z: 9, amount: 10, critical: false })
+    expect(out).toEqual({ x: 6, sparkY: 7, numberY: 8, z: 9, amount: 10, critical: false, burst: 0 })
     expect(queue.drainInto(out)).toBe(false)
   })
 

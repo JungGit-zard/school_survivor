@@ -3,6 +3,7 @@ import * as THREE from 'three'
 import { useFrame } from '@react-three/fiber'
 import { usePlayingFrame } from '../../lib/usePlayingFrame.js'
 import { emitSfx } from '../../lib/sfxEvents.js'
+import { resetOnigiriTwinkle, shedOnigiriTwinkle } from '../../lib/vfxBursts.js'
 import { playerPos } from '../../lib/refs.js'
 import { useGameStore } from '../../store/useGameStore.js'
 import { outlineMat, toonMat, inflateScale } from '../../lib/toon.js'
@@ -91,6 +92,7 @@ function hitOnigiriTarget(entry) {
     knockback: 3.2, knockbackMs: 90,
     critChance,
     critMultiplier,
+    vfxKey: 'onigiri',
   })
   if (hit) {
     emitSfx({
@@ -226,6 +228,7 @@ export function OnigiiriWeapon() {
         lastFireRef.current = now
         emitSfx({ id: 'onigiriFire' })
         const entry = addSwarmProjectile(swarm, launch, { slot: layers.body.claim(), spin: 0 })
+        resetOnigiriTwinkle(entry.slot)
         _pose.set(launch.start[0], launch.start[1] + 0.25, launch.start[2])
         _rot.set(0, 0, 0)
         layers.body.write(entry.slot, _pose, _rot)
@@ -238,6 +241,8 @@ export function OnigiiriWeapon() {
       if (entry.state === null) continue // 이번 스텝에 막 던졌다 — 처음 자세 그대로
       entry.spin += delta * 15
       writeOnigiriPose(layers.body, entry)
+      // Terry 2026-11-15 pick: REEBOO twinkle stars shed behind the flying rice ball (pooled, BurstVfxLayer).
+      shedOnigiriTwinkle(entry.slot, _pose.x, _pose.y, _pose.z)
     }
   })
 

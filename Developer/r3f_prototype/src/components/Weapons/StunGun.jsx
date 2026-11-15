@@ -209,7 +209,7 @@ function StunBoltProjectile({ id, startX, startZ, sourceEndpoint, targetRb, targ
 
     if (dist < 0.4) {
       doneRef.current = true
-      const hit = applyEnemyHit(targetRb, targetGeneration, damage, { knockback: 2.2, knockbackMs: 80, critChance, critMultiplier })
+      const hit = applyEnemyHit(targetRb, targetGeneration, damage, { knockback: 2.2, knockbackMs: 80, critChance, critMultiplier, vfxKey: 'stunGun' })
       if (hit) {
         emitSfx({
           id: 'stunGunHit',

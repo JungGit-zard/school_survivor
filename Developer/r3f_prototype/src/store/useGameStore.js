@@ -1086,7 +1086,8 @@ export const useGameStore = create(
         saveGoldTotal(nextGold)
         result = { ok: true, itemId: item.id, machineId: placement.id,
           goldSpent: item.priceGold, hpRestored: nextHp - s.player.hp, nextGold }
-        return { player: { ...s.player, hp: nextHp }, goldTotal: nextGold,
+        // healFlashToken: the vending heal plays the same picked heal effect as every other recovery (2026-11-15).
+        return { player: { ...s.player, hp: nextHp, healFlashToken: (s.player.healFlashToken ?? 0) + 1 }, goldTotal: nextGold,
           stageVendingPurchasedItemIds: [...s.stageVendingPurchasedItemIds, item.id],
           // 구매 직후 팝업을 즉시 닫고 진행을 재개한다(Terry 2026-10-28).
           ...(vendingPaused ? { phase: 'playing', pauseSource: null } : {}) }
@@ -1458,6 +1459,8 @@ export const useGameStore = create(
               ...s.player,
               maxHp: s.player.maxHp + 7,
               hp: s.player.hp + 7,
+              // +7 HP is a recovery moment too: play the picked heal effect (2026-11-15).
+              healFlashToken: (s.player.healFlashToken ?? 0) + 1,
             },
             ...finishLevelupState(s),
           }))

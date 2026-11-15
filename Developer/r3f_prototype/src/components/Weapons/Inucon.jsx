@@ -20,6 +20,7 @@ import {
   shouldRunInuconSupport,
 } from '../../lib/inucon.js'
 import { subscribeInuconGuard } from '../../lib/inuconGuard.js'
+import { createBinbunShellMaterial } from '../../lib/vfxShaders.js'
 
 // 외곽선 두께 균일화(Terry 2026-11-15 점검): 예전엔 파츠마다 헐을 x·y·z 같은 배율로 키워서
 // 두께가 파츠 크기에 비례했다(긴 몸통 위아래는 두껍고 가는 팔다리는 거의 안 보임).
@@ -422,37 +423,22 @@ function InuconPushEffect({ token = 0, radius = 0 }) {
   )
 }
 
-// 가드(대신 맞기) 이펙트 — Terry 2026-11-15 "아주 깔끔하고 단순하게".
-// 메시 2개뿐: 주인공 발밑 링 1장(검은 테두리가 캔버스에 같이 그려진 평면) + 이누콘 머리 위 "멍!멍!" 글자 1장.
-// 평소엔 visible=false라 드로콜 0, 가드 순간에만 최대 2. 무광(MeshBasic)·toneMapped false·파티클·글로우 없음.
-export const INUCON_GUARD_RING_DURATION_MS = 380
+// 가드(대신 맞기) 이펙트 — Terry 2026-11-15 "아주 깔끔하고 단순하게", then the same day Terry picked the
+// Binbun3D Battle FX shield shell (fresnel, 3-step toon, CC0) from the VFX trial to replace the canvas ring.
+// Meshes: one open hemisphere shell on the player (no dark rim — Terry's no-outline rule removed the old
+// #140c18 ring stroke) + the "멍!멍!" text above Inucon. visible=false when idle (0 draw calls), 2 at most.
+// Unlit ShaderMaterial / MeshBasicMaterial, toneMapped false, normal blending, no particles or glow.
+export const INUCON_GUARD_RING_DURATION_MS = 600
 export const INUCON_GUARD_TEXT_DURATION_MS = 650
 export const INUCON_GUARD_BARK_TEXT = '멍!멍!'
-const GUARD_RING_WORLD_SIZE = 1.2
+export const INUCON_GUARD_SHELL_RADIUS = 0.62
 const GUARD_TEXT_CANVAS_W = 192
 const GUARD_TEXT_CANVAS_H = 72
 const GUARD_TEXT_WORLD_H = 0.34
 const GUARD_TEXT_Y_ABOVE_INUCON = 1.15
 
-function createGuardRingTexture() {
-  const canvas = document.createElement('canvas')
-  canvas.width = 128
-  canvas.height = 128
-  const ctx = canvas.getContext('2d')
-  ctx.beginPath()
-  ctx.arc(64, 64, 52, 0, Math.PI * 2)
-  ctx.lineWidth = 14
-  ctx.strokeStyle = '#140c18'
-  ctx.stroke()
-  ctx.lineWidth = 8
-  ctx.strokeStyle = '#bdf0ff'
-  ctx.stroke()
-  const texture = new THREE.CanvasTexture(canvas)
-  texture.colorSpace = THREE.SRGBColorSpace
-  return texture
-}
-
-// 데미지 숫자(DamageNumbersLayer)와 같은 글자 스타일: 굵은 글꼴 + 진한 테두리 + 밝은 채움.
+// Damage-number style lettering (bold + stroke + bright fill), but the stroke is the shield blue, not dark ink,
+// per Terry's 2026-11-15 "no black/dark outline on any effect" rule.
 function createGuardTextTexture() {
   const canvas = document.createElement('canvas')
   canvas.width = GUARD_TEXT_CANVAS_W
@@ -463,7 +449,7 @@ function createGuardTextTexture() {
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
   ctx.lineJoin = 'round'
-  ctx.strokeStyle = 'rgba(24,14,8,0.95)'
+  ctx.strokeStyle = '#3aa0ff'
   ctx.lineWidth = fontPx * 0.3
   ctx.strokeText(INUCON_GUARD_BARK_TEXT, GUARD_TEXT_CANVAS_W / 2, GUARD_TEXT_CANVAS_H / 2 + 1)
   ctx.fillStyle = '#ffffff'
@@ -477,11 +463,14 @@ function createGuardTextTexture() {
 export function computeInuconGuardFrame(t) {
   const ringT = Math.min(1, Math.max(0, t / INUCON_GUARD_RING_DURATION_MS))
   const textT = Math.min(1, Math.max(0, t / INUCON_GUARD_TEXT_DURATION_MS))
-  const ringEase = 1 - (1 - ringT) * (1 - ringT)
+  const ringE = Math.min(1, ringT * 2)
+  const ringEase = 1 - (1 - ringE) * (1 - ringE)
   return {
+    // Binbun shell (trial S.guard 'binbun'): scale 0.8 + 0.2·ease(2p), alpha decay after half life.
     ringVisible: t < INUCON_GUARD_RING_DURATION_MS,
-    ringScale: 0.72 + 0.28 * ringEase,
-    ringOpacity: ringT < 0.55 ? 1 : Math.max(0, 1 - (ringT - 0.55) / 0.45),
+    ringScale: 0.8 + 0.2 * ringEase,
+    ringOpacity: ringT < 0.5 ? 1 : Math.max(0, 1 - (ringT - 0.5) * 2),
+    shellDecay: Math.max(0, (ringT - 0.5) * 2),
     textVisible: t < INUCON_GUARD_TEXT_DURATION_MS,
     textScale: textT < 0.15 ? 0.6 + (textT / 0.15) * 0.5 : textT < 0.25 ? 1.1 - ((textT - 0.15) / 0.1) * 0.1 : 1,
     textRise: 0.12 * textT,
@@ -489,20 +478,18 @@ export function computeInuconGuardFrame(t) {
   }
 }
 
-function InuconGuardEffect({ inuconPosRef }) {
+export function InuconGuardEffect({ inuconPosRef }) {
   const ringRef = useRef(null)
   const textRef = useRef(null)
   const pendingRef = useRef(false)
   const stateRef = useRef({ active: false, elapsedMs: 0 })
   const assets = useMemo(() => {
-    const ringTexture = createGuardRingTexture()
     const textTexture = createGuardTextTexture()
     return {
-      ringTexture,
       textTexture,
-      ringGeometry: new THREE.PlaneGeometry(GUARD_RING_WORLD_SIZE, GUARD_RING_WORLD_SIZE),
+      ringGeometry: new THREE.SphereGeometry(INUCON_GUARD_SHELL_RADIUS, 32, 20, 0, Math.PI * 2, 0, Math.PI / 2),
       textGeometry: new THREE.PlaneGeometry(GUARD_TEXT_WORLD_H * (GUARD_TEXT_CANVAS_W / GUARD_TEXT_CANVAS_H), GUARD_TEXT_WORLD_H),
-      ringMaterial: new THREE.MeshBasicMaterial({ map: ringTexture, transparent: true, opacity: 0, depthWrite: false, toneMapped: false }),
+      ringMaterial: createBinbunShellMaterial(),
       textMaterial: new THREE.MeshBasicMaterial({ map: textTexture, transparent: true, opacity: 0, depthWrite: false, depthTest: false, toneMapped: false }),
     }
   }, [])
@@ -531,9 +518,9 @@ function InuconGuardEffect({ inuconPosRef }) {
     const frame = computeInuconGuardFrame(state.elapsedMs)
     ring.visible = frame.ringVisible
     if (frame.ringVisible) {
-      ring.position.set(playerPos.x, 0.05, playerPos.z)
+      ring.position.set(playerPos.x, 0, playerPos.z)
       ring.scale.setScalar(frame.ringScale)
-      assets.ringMaterial.opacity = frame.ringOpacity
+      assets.ringMaterial.uniforms.decay.value = frame.shellDecay
     }
     text.visible = frame.textVisible
     if (text.visible) {
@@ -548,7 +535,7 @@ function InuconGuardEffect({ inuconPosRef }) {
 
   return (
     <>
-      <mesh ref={ringRef} visible={false} rotation={[-Math.PI / 2, 0, 0]} geometry={assets.ringGeometry} material={assets.ringMaterial} renderOrder={6} userData={{ studioNonFocusable: true, studioNonTunable: true }} />
+      <mesh ref={ringRef} visible={false} geometry={assets.ringGeometry} material={assets.ringMaterial} renderOrder={6} userData={{ studioNonFocusable: true, studioNonTunable: true }} />
       <mesh ref={textRef} visible={false} geometry={assets.textGeometry} material={assets.textMaterial} renderOrder={1001} frustumCulled={false} userData={{ studioNonFocusable: true, studioNonTunable: true }} />
     </>
   )

@@ -5,6 +5,7 @@ import { toonMat, outlineMat, inflateScale } from '../lib/toon.js'
 import { computeTextbookLanding } from '../lib/textbookLanding.js'
 import { logPickup } from '../lib/playtestLogger.js'
 import { emitSfx } from '../lib/sfxEvents.js'
+import { VFX_BURST, spawnVfxBurst } from '../lib/vfxBursts.js'
 import { createTemplateInstanceLayer } from '../lib/templateInstanceLayer.js'
 import {
   TEXTBOOK_COLLECTED, TEXTBOOK_FLOOR_Y, TEXTBOOK_LANDED, TEXTBOOK_SCALE, createTextbookItem, stepTextbookItem,
@@ -58,6 +59,8 @@ function playTextbookLand() {
 // 수집 1권: 효과음 → XP → 미션 → 기록(예전 컴포넌트와 같은 순서).
 function collectTextbook(item, gainXp) {
   emitSfx({ id: 'textbookCollect', volume: 0.64, rate: 0.98 + Math.random() * 0.08 })
+  // Terry 2026-11-15 pick: pickup = REEBOO thin ring + twinkle (pooled, BurstVfxLayer).
+  spawnVfxBurst(VFX_BURST.PICKUP, item.position.x, 0, item.position.z, 1)
   gainXp(item.value)
   useGameStore.getState().recordMissionEvent({ type: 'pickup_collected', itemType: 'xpTextbook' })
   logPickup('xp', item.value)

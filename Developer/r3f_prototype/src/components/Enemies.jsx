@@ -39,6 +39,7 @@ import { isNovel2AbsoluteHp, isNovel2ImplementedTypeCode } from '../lib/novelZom
 import { CHIEF_ELITE_BONUS, admitChiefSpawn, createChiefDebutLedger } from '../lib/stageChiefContent.js'
 import { hasProjectileZombieSplit, isProjectileZombieType, spawnProjectileZombieTelegraphDecal, spawnProjectileZombieVolley } from '../lib/projectileZombieBehavior.js'
 import { emitVfx } from '../lib/vfxEvents.js'
+import { VFX_BURST, resolveWeaponHitBurst, spawnVfxBurst } from '../lib/vfxBursts.js'
 import { emitDamageNumber, DAMAGE_NUMBER_COLORS } from '../lib/damageNumbers.js'
 import { resolveCriticalHitInto } from '../lib/criticalHits.js'
 import { emitCriticalHitScreenShake, emitEnemyHitScreenShake } from '../lib/criticalScreenShake.js'
@@ -1207,6 +1208,14 @@ export function pickTypeByWeightExcluding(weights, excludedType) {
 let _uid   = 0
 let _textbookId = 0
 let _coinId = 0
+// Terry 2026-11-15 pick: REEBOO puff x5 flung out on every kill, ADDED on top of the untouched
+// death collapse / shatter (createDeathCollapseEntry above is unchanged). Size follows the body scale.
+function spawnKillPuff(dropData) {
+  const pos = dropData.pos
+  const scale = Math.min(2.5, Math.max(0.8, (dropData.visualScale ?? 0.333) * 3))
+  spawnVfxBurst(VFX_BURST.KILL_PUFF, pos[0], 0, pos[2], scale)
+}
+
 let _collapseId = 0
 let _chestId = 0
 
@@ -1607,9 +1616,11 @@ export default function Enemies() {
       queue.drainPooled?.()
       while (queue.hitQueue.drainInto(queue.hitScratch)) {
         const hit = queue.hitScratch
-        emitVfx(hit.critical
-          ? createEnemyCriticalHitBurstEvent({ x: hit.x, y: Math.max(0.46, hit.sparkY + 0.1), z: hit.z })
-          : createEnemyHitSparkEvent({ x: hit.x, y: Math.max(0.34, hit.sparkY), z: hit.z }))
+        // Terry 2026-11-15 picks: weapons with a picked hit effect draw it on every hit (pooled burst);
+        // the rest keep the old HitSpark. Critical hits keep the existing critical star.
+        if (hit.critical) emitVfx(createEnemyCriticalHitBurstEvent({ x: hit.x, y: Math.max(0.46, hit.sparkY + 0.1), z: hit.z }))
+        else if (!hit.burst) emitVfx(createEnemyHitSparkEvent({ x: hit.x, y: Math.max(0.34, hit.sparkY), z: hit.z }))
+        if (hit.burst) spawnVfxBurst(hit.burst, hit.x, Math.max(0.34, hit.sparkY), hit.z, 1)
         emitDamageNumber({ x: hit.x, y: Math.max(0.8, hit.numberY), z: hit.z, amount: hit.amount, colorHex: hit.critical ? DAMAGE_NUMBER_COLORS.critical : DAMAGE_NUMBER_COLORS.enemy, isCritical: hit.critical })
       }
       // 교과서 부스트 판정용 경과 초. 시체 하나마다 스토어를 읽지 않도록 루프 밖에서 한 번만 읽는다.
@@ -1627,6 +1638,7 @@ export default function Enemies() {
           styleOverride: queue.deathStyle[slot] === 1 ? 'shatter5' : undefined,
         }
         pushBounded(queue.collapses, createDeathCollapseEntry(++_collapseId, dropData), 12)
+        spawnKillPuff(dropData)
         emitPurifiedStudentForDeath(dropData)
         if (type === 'RZT') emitRztLunchFoodDrop(pos)
         const bonus = ELITE_BONUS[type]
@@ -1691,9 +1703,9 @@ export default function Enemies() {
     return true
   }, [scheduleRuntimeFlush])
 
-  const enqueuePooledHit = useCallback((x, sparkY, numberY, z, amount, critical) => {
+  const enqueuePooledHit = useCallback((x, sparkY, numberY, z, amount, critical, burst = 0) => {
     const queue = runtimeQueueRef.current
-    if (!queue.hitQueue.push(x, sparkY, numberY, z, amount, critical)) return false
+    if (!queue.hitQueue.push(x, sparkY, numberY, z, amount, critical, burst)) return false
     scheduleRuntimeFlush()
     return true
   }, [scheduleRuntimeFlush])
@@ -1718,7 +1730,7 @@ export default function Enemies() {
       z - playerPos.z,
       critical.isCritical ? { strong: strongCritical } : undefined,
     )
-    enqueuePooledHit(x, 0.42 * enemyPool.visualScale[index], 0.95 * enemyPool.visualScale[index], z, critical.damage, critical.isCritical)
+    enqueuePooledHit(x, 0.42 * enemyPool.visualScale[index], 0.95 * enemyPool.visualScale[index], z, critical.damage, critical.isCritical, resolveWeaponHitBurst(safeImpact))
     if (safeImpact.sfxId) emitSfx({ id: safeImpact.sfxId, volume: 0.6 })
     const knockbackSpeed = Number.isFinite(safeImpact.knockback) ? safeImpact.knockback : COMMON_ENEMY_HIT_KNOCKBACK.speed
     const knockbackMs = Number.isFinite(safeImpact.knockbackMs) ? safeImpact.knockbackMs : COMMON_ENEMY_HIT_KNOCKBACK.durationMs
@@ -2179,6 +2191,7 @@ export default function Enemies() {
     })
 
     pushBounded(runtimeQueueRef.current.collapses, createDeathCollapseEntry(++_collapseId, dropData), 12)
+    spawnKillPuff(dropData)
     emitPurifiedStudentForDeath(dropData)
     if (dropData.type === 'RZT') emitRztLunchFoodDrop(dropData.pos)
 

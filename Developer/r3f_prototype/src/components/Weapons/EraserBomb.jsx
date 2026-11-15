@@ -1,6 +1,7 @@
 import { useRef, useState, useCallback, useMemo } from 'react'
 import { usePlayingFrame } from '../../lib/usePlayingFrame.js'
 import { emitSfx } from '../../lib/sfxEvents.js'
+import { VFX_BURST, spawnVfxBurst } from '../../lib/vfxBursts.js'
 import * as THREE from 'three'
 import { playerPos } from '../../lib/refs.js'
 import { useGameStore } from '../../store/useGameStore.js'
@@ -136,6 +137,8 @@ export function EraserBombWeapon() {
     applyEraserBombImpact({ x: blast.x, z: blast.z, radius: blast.radius, damage: blast.damage })
 
     setExplosions((prev) => [...prev, { id: eid, x: blast.x, z: blast.z, radius: blast.radius }])
+    // Terry 2026-11-15 pick: AD_FX hand-drawn hearts burst out on top of the existing dust explosion.
+    spawnVfxBurst(VFX_BURST.HEART_BURST, blast.x, 0, blast.z, blast.radius)
   }, [])
 
   usePlayingFrame(({ clock }) => {

@@ -127,6 +127,7 @@ const sharedRadialImpact = {
   critChance: undefined,
   critMultiplier: undefined,
   weaponKey: undefined,
+  vfxKey: undefined,
 }
 const sharedForwardBoxImpact = { source: { x: 0, z: 0 }, knockback: 0, knockbackMs: 0 }
 const sharedForwardConeImpact = {
@@ -135,6 +136,7 @@ const sharedForwardConeImpact = {
   knockbackMs: 0,
   critChance: undefined,
   critMultiplier: undefined,
+  vfxKey: undefined,
 }
 
 // 정렬 삽입도 고정 버퍼에서만 수행한다. 이 함수는 프레임 루프에서 새 배열/객체를 만들지 않는다.
@@ -505,6 +507,8 @@ export function applyRadialDamage({
   critChance,
   critMultiplier,
   weaponKey,
+  // Visual-only hit-effect tag (lib/vfxBursts.js). Unlike weaponKey it never feeds mission kill counters.
+  vfxKey,
 }) {
   if (!Number.isFinite(x) || !Number.isFinite(z) || !Number.isFinite(radius) || radius <= 0 || !Number.isFinite(damage)) return 0
 
@@ -530,6 +534,7 @@ export function applyRadialDamage({
     impact.critChance = critChance
     impact.critMultiplier = critMultiplier
     impact.weaponKey = weaponKey
+    impact.vfxKey = vfxKey
     if (applyEnemyHit(rb, generation, damage, impact)) hits += 1
   }
   return hits
@@ -602,6 +607,7 @@ export function applyForwardConeDamage({
   sightBlocker,
   critChance,
   critMultiplier,
+  vfxKey,
 }) {
   if (!Number.isFinite(damage) || !Number.isFinite(length) || length <= 0) return 0
   let hits = 0
@@ -619,6 +625,7 @@ export function applyForwardConeDamage({
     impact.source.z = originZ
     impact.critChance = critChance
     impact.critMultiplier = critMultiplier
+    impact.vfxKey = vfxKey
     if (applyEnemyHit(rb, generation, damage, impact)) hits += 1
   }
   return hits

@@ -96,7 +96,8 @@ function BellPulse({ id, startMs, radius, onDone }) {
   // 음표별 개별 머티리얼 — 등장 딜레이가 달라 페이드도 개별이어야 한다
   const noteMats = useMemo(() => noteSpecs.map(() => ({
     fill: new THREE.MeshBasicMaterial({ color: 0xffe066, transparent: true, opacity: 0, depthWrite: false, side: THREE.DoubleSide }),
-    out: new THREE.MeshBasicMaterial({ color: 0x4a3208, transparent: true, opacity: 0, depthWrite: false, side: THREE.DoubleSide }),
+    // Terry 2026-11-15: no dark outline on any effect — the note rim was dark brown, now warm orange.
+    out: new THREE.MeshBasicMaterial({ color: 0xff9f2e, transparent: true, opacity: 0, depthWrite: false, side: THREE.DoubleSide }),
   })), [noteSpecs])
 
   usePlayingFrame(({ clock }) => {
@@ -216,6 +217,7 @@ export function BellShockwave() {
       x: playerPos.x, z: playerPos.z, radius, damage: w.damage,
       knockback: BELL_KNOCKBACK, knockbackMs: 180,
       critChance: w.critChance, critMultiplier: w.critMultiplier,
+      vfxKey: 'bell',
     })
     if (hitCount > 0) {
       useGameStore.getState().recordMissionEvent({ type: 'weapon_hit', weaponKey: 'bell', value: hitCount })

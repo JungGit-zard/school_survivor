@@ -13,6 +13,7 @@ import {
   resetPortalSuctionClock,
 } from '../lib/portalSuctionClock.js'
 import { PORTAL_VISUAL_STATE, applyPortalSuctionVisuals } from '../lib/portalVisualState.js'
+import { createReeboMaterial } from '../lib/vfxShaders.js'
 import StudioTunedGroup, {
   composeStudioPartRotation,
   composeStudioPartScale,
@@ -22,6 +23,21 @@ const PORTAL_RADIUS = 1.5
 // 작동(흡입) 히트박스 — 시각 링(PORTAL_RADIUS)과 분리해 중앙 좁은 원으로 제한.
 const PORTAL_TRIGGER_RADIUS = 0.6
 const PORTAL_LIGHT_DISTANCE = 6
+// Terry 2026-11-15 pick: REEBOO swirl + light pillar (godot-stylized-2d-vfx-lite port, MIT, Copyright (c) 2026
+// REEBOO Labs), outline pass dropped. Trial sizes were for a 1.1 ring; scaled to PORTAL_RADIUS here.
+const PORTAL_VFX_COLORS = Object.freeze({ core: 0xffffff, mid: 0x9ff0ff, edge: 0x2f7fe0 })
+const PORTAL_SWIRL_SIZE = (PORTAL_RADIUS * 2) / 0.92
+const PORTAL_PILLAR_SCALE = PORTAL_RADIUS / 1.1
+const PORTAL_SWIRL_SPIN = 0.6
+const PORTAL_SWIRL_SUCTION_SPIN = 2.4
+
+export function createEscapePortalVfx() {
+  const swirl = createReeboMaterial('swirl', { ...PORTAL_VFX_COLORS, billboard: false, u: { arms: 3, twist: 3, spin: PORTAL_SWIRL_SPIN, armW: 0.45, inner: 0.1, outer: 0.92 } })
+  const pillar = createReeboMaterial('pillar', { ...PORTAL_VFX_COLORS, u: { width: 0.55, rise: 0.22, scrollS: 1.0, streaks: 0.45 } })
+  swirl.uniforms.uData.value.set(0, 1, 0, 3.1)
+  pillar.uniforms.uData.value.set(0.3, 1, 0, 3.1)
+  return { swirl, pillar, geometry: new THREE.PlaneGeometry(1, 1) }
+}
 const PORTAL_LIGHT_DECAY = 2
 
 // Mounting a pointLight mid-run changes NUM_POINT_LIGHTS and recompiles every
@@ -97,6 +113,9 @@ export default function EscapePortal({ stageId }) {
   if (usesSceneLightRef.current === null) usesSceneLightRef.current = portalSceneLight.hosts > 0
   const usesSceneLight = usesSceneLightRef.current
   const spinRef = useRef({ ringY: 0, glowY: 0 })
+  const vfx = useMemo(() => createEscapePortalVfx(), [])
+  useEffect(() => () => { vfx.swirl.dispose(); vfx.pillar.dispose(); vfx.geometry.dispose() }, [vfx])
+  const vfxTimeRef = useRef(0)
   const suckingRef      = useRef(false)
   const suctionClockRef = useRef(null)
   const clearedRef      = useRef(false)
@@ -119,6 +138,9 @@ export default function EscapePortal({ stageId }) {
     if (phase !== 'playing' || clearedRef.current) return
 
     const visualDelta = clampGameplayFrameDelta(delta)
+    vfxTimeRef.current += visualDelta
+    vfx.swirl.uniforms.uTime.value = vfxTimeRef.current
+    vfx.pillar.uniforms.uTime.value = vfxTimeRef.current
 
     // Studio 파츠의 회전·스케일은 정본 base/Studio/애니메이션 합성법칙으로만 갱신한다.
     spinRef.current.ringY += visualDelta * 1.2
@@ -157,6 +179,7 @@ export default function EscapePortal({ stageId }) {
       const { elapsed, completedNow } = advancePortalSuctionClock(suctionClockRef.current, delta)
       // scale up glow during suction
       const t = Math.min(elapsed / PORTAL_SUCTION_DURATION, 1)
+      vfx.swirl.uniforms.spin.value = PORTAL_SWIRL_SPIN + PORTAL_SWIRL_SUCTION_SPIN * t
       if (glowRef.current) {
         const scale = 1 + t * 1.5
         glowRef.current.scale.set(
@@ -177,8 +200,8 @@ export default function EscapePortal({ stageId }) {
   return (
     <group position={pos}>
       <StudioTunedGroup itemId="stage-object-escape-portal">
-        {/* outer rotating ring */}
-        <mesh ref={ringRef} rotation={[-Math.PI / 2, 0, 0]}>
+        {/* outer rotating ring — kept mounted (Studio part order, suction state) but hidden: replaced by the swirl */}
+        <mesh ref={ringRef} rotation={[-Math.PI / 2, 0, 0]} visible={false}>
           <ringGeometry args={[PORTAL_RADIUS - 0.12, PORTAL_RADIUS, 48]} />
           <meshStandardMaterial
             ref={ringMaterialRef}
@@ -190,8 +213,8 @@ export default function EscapePortal({ stageId }) {
             side={THREE.DoubleSide}
           />
         </mesh>
-        {/* inner glow disc */}
-        <mesh ref={glowRef} rotation={[-Math.PI / 2, 0, 0]}>
+        {/* inner glow disc — kept mounted but hidden: replaced by the swirl + pillar */}
+        <mesh ref={glowRef} rotation={[-Math.PI / 2, 0, 0]} visible={false}>
           <circleGeometry args={[PORTAL_RADIUS - 0.14, 48]} />
           <meshStandardMaterial
             ref={glowMaterialRef}
@@ -215,6 +238,9 @@ export default function EscapePortal({ stageId }) {
             decay={PORTAL_LIGHT_DECAY}
           />
         )}
+        {/* Terry 2026-11-15 pick: REEBOO swirl on the floor + camera-facing light pillar, no outline */}
+        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.05, 0]} scale={[PORTAL_SWIRL_SIZE, PORTAL_SWIRL_SIZE, 1]} geometry={vfx.geometry} material={vfx.swirl} renderOrder={6} userData={{ studioNonFocusable: true, studioNonTunable: true }} />
+        <mesh position={[0, 1.1 * PORTAL_PILLAR_SCALE, 0]} scale={[2.0 * PORTAL_PILLAR_SCALE, 2.2 * PORTAL_PILLAR_SCALE, 1]} geometry={vfx.geometry} material={vfx.pillar} renderOrder={7} frustumCulled={false} userData={{ studioNonFocusable: true, studioNonTunable: true }} />
       </StudioTunedGroup>
     </group>
   )
