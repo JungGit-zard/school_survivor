@@ -233,6 +233,59 @@ function louden(samples, gain, ceiling = 0.97) {
   return samples.map((v) => ceiling * Math.tanh((gain * v) / ceiling))
 }
 
+// ── 2026-11-15 슬테라 코믹 효과음 전용 헬퍼 (soundmini) ─────────────────────────────
+// 기존 정의는 이 헬퍼를 쓰지 않으므로 기존 음원 출력은 바뀌지 않는다.
+
+// 꺾은선 곡선: [[초, 값], ...] → t => 값. 피치·음량 윤곽을 그릴 때 쓴다.
+function curve(points) {
+  return (t) => {
+    if (t <= points[0][0]) return points[0][1]
+    for (let k = 1; k < points.length; k++) {
+      const [t1, v1] = points[k]
+      if (t <= t1) {
+        const [t0, v0] = points[k - 1]
+        return v0 + (v1 - v0) * ((t - t0) / (t1 - t0 || 1))
+      }
+    }
+    return points[points.length - 1][1]
+  }
+}
+
+// 만화 엔진 '부아앙' 목소리: 톱니파 + 한 옥타브 아래 사각파에, 실린더가 툭툭 터지듯 진폭을 흔드는 AM('부르르').
+// freqAt/ampAt/amRateAt은 시간(초) → 값 함수, vibDepth는 피치 대비 비율. 2단 저역통과로 거친 고역만 깎는다.
+function engineVoice({ dur, freqAt, ampAt, amRateAt = () => 0, amDepth = 0, vibRate = 0, vibDepth = 0, cutoff = 2600, vol = 0.6 }) {
+  const n = Math.floor(SR * dur)
+  const out = new Float32Array(n)
+  let phase = 0
+  let amPhase = 0
+  for (let i = 0; i < n; i++) {
+    const t = i / SR
+    const f = freqAt(t) * (1 + vibDepth * Math.sin(PI2 * vibRate * t))
+    phase += f / SR
+    amPhase += amRateAt(t) / SR
+    const s = 0.7 * osc.sawtooth(phase) + 0.35 * osc.square(phase / 2)
+    const am = 1 - amDepth * (0.5 + 0.5 * Math.sin(PI2 * amPhase))
+    out[i] = s * am * ampAt(t)
+  }
+  return peakTo(lowpass(lowpass(out, cutoff), cutoff * 1.5), vol)
+}
+
+// 슬라이드 휘슬 '휘리릭~': 사인 + 약한 2배음 + 어두운 숨소리. vibDepth는 피치 대비 비율.
+function slideWhistle({ dur, freqAt, ampAt, vibRate = 6, vibDepth = 0.012, breath = 0.12, vol = 0.6 }) {
+  const n = Math.floor(SR * dur)
+  const out = new Float32Array(n)
+  let phase = 0
+  let lp = 0
+  for (let i = 0; i < n; i++) {
+    const t = i / SR
+    const f = freqAt(t) * (1 + vibDepth * Math.sin(PI2 * vibRate * t))
+    phase += f / SR
+    lp += 0.25 * (osc.noise() - lp)
+    out[i] = (Math.sin(PI2 * phase) + 0.18 * Math.sin(PI2 * 2 * phase) + breath * lp) * ampAt(t)
+  }
+  return peakTo(out, vol)
+}
+
 // ── 사운드 정의 ────────────────────────────────────────────────────────────────
 const sounds = {
 
@@ -858,6 +911,77 @@ const sounds = {
       attack:0.005, decay:0.12, sustain:0.5, release:0.2, noiseAmt:0.3 }),
     synth({ wave:'noise', freq:1, dur:0.4, vol:0.4, attack:0.005, decay:0.1, sustain:0.4, release:0.15 }),
   ),
+
+  // ── 슬테라 코믹 효과음 5종 (2026-11-15 Terry "부아아아앙!!! … 모든 효과음은 최대한 코믹하게", soundmini) ──
+  // 전부 자체 합성(만화 엔진·슬라이드 휘슬·용수철·뿅). 실제 자동차 녹음·기존 게임/만화 음원 복제 없음.
+  // 재생 배선 정본: src/components/SlteraEvent.jsx. 재생성은 반드시 ID 하나씩 필터로(slteraRush 바이트 보존).
+  // 등장 '붕 붕 부아아아앙!!' 1.2s — 시동 블립 두 번 → 피치가 치솟는 레브(부르르 AM) → 끝에 '펑' 역화.
+  'events/slteraEngine': () => {
+    const blip = (dur) => engineVoice({
+      dur, freqAt: curve([[0, 85], [dur * 0.4, 150], [dur, 105]]),
+      ampAt: curve([[0, 0], [0.015, 1], [dur * 0.6, 0.8], [dur, 0]]),
+      amRateAt: () => 28, amDepth: 0.5, cutoff: 1800, vol: 0.6,
+    })
+    const rev = engineVoice({
+      dur: 0.86,
+      freqAt: curve([[0, 90], [0.1, 150], [0.45, 330], [0.7, 400], [0.86, 420]]),
+      ampAt: curve([[0, 0], [0.03, 0.85], [0.5, 1], [0.78, 1], [0.86, 0]]),
+      amRateAt: curve([[0, 22], [0.5, 46], [0.86, 60]]), amDepth: 0.45,
+      vibRate: 9, vibDepth: 0.02, cutoff: 2600, vol: 0.8,
+    })
+    return peakTo(trimTo(mix(
+      blip(0.11),
+      at(blip(0.11), 0.15),
+      at(rev, 0.3),
+      at(peakTo(bandpass(rev, 650, 1400), 0.3), 0.3),
+      at(sweptNoise({ dur: 0.86, from: 400, to: 1400, vol: 0.16, attack: 0.08, release: 0.2 }), 0.3),
+      at(mix(
+        strike({ freq: 190, freqEnd: 75, dur: 0.1, vol: 0.55, tau: 0.03 }),
+        sweptNoise({ dur: 0.05, from: 3000, to: 800, vol: 0.35, attack: 0.001, release: 0.04 }),
+      ), 1.1),
+    ), 1.22), 0.7)
+  },
+  // 옆으로 한 바퀴 0.76s — 이륙 '뿅' + 올라갔다 내려오는 슬라이드 휘슬 '휘리릭~' + 11Hz로 도는 바람 '휙휙휙'.
+  'events/slteraFlip': () => peakTo(trimTo(mix(
+    synth({ wave: 'sine', freq: 300, freqEnd: 900, dur: 0.06, vol: 0.4, attack: 0.002, decay: 0.02, sustain: 0.6, release: 0.025 }),
+    at(slideWhistle({
+      dur: 0.72,
+      freqAt: curve([[0, 520], [0.32, 1500], [0.42, 1560], [0.72, 700]]),
+      ampAt: curve([[0, 0], [0.03, 0.9], [0.6, 0.8], [0.72, 0]]),
+      vibRate: 7, vibDepth: 0.015, breath: 0.12, vol: 0.6,
+    }), 0.03),
+    sweptNoise({ dur: 0.7, from: 900, to: 2200, vol: 0.3, attack: 0.05, release: 0.2, am: 11, amDepth: 0.85 }),
+  ), 0.76), 0.5),
+  // 착지 '쾅-보잉' 0.44s — 만화 쿵(130→55Hz) + 폰 스피커용 몸통 + 짧은 바닥 깨짐 + 용수철 '보잉' 꼬리.
+  'events/slteraLand': () => peakTo(trimTo(mix(
+    strike({ freq: 130, freqEnd: 55, dur: 0.25, vol: 0.9, tau: 0.07, partials: [[1, 1], [2, 0.35, 0.5], [3, 0.15, 0.3]] }),
+    strike({ freq: 260, freqEnd: 150, dur: 0.12, vol: 0.55, tau: 0.035, partials: [[1, 1], [2, 0.3, 0.6]] }),
+    sweptNoise({ dur: 0.06, from: 3500, to: 900, vol: 0.4, attack: 0.001, release: 0.045 }),
+    at(synth({ wave: 'triangle', freq: 160, freqEnd: 380, dur: 0.36, vol: 0.35, attack: 0.004, decay: 0.08, sustain: 0.45, release: 0.22, vibRate: 24, vibDepth: 55 }), 0.05),
+    at(synth({ wave: 'sine', freq: 320, freqEnd: 760, dur: 0.3, vol: 0.12, attack: 0.004, decay: 0.06, sustain: 0.4, release: 0.2, vibRate: 24, vibDepth: 110 }), 0.05),
+  ), 0.44), 0.9),
+  // 치기 '뻥-통-삑' 0.24s — 통통 튀는 만화 충돌. 150ms 연타로 겹쳐도 뭉개지지 않게 짧고, 80Hz 아래는 깎았다.
+  'events/slteraCrash': () => peakTo(trimTo(highpass(mix(
+    strike({ freq: 300, freqEnd: 120, dur: 0.12, vol: 0.85, tau: 0.03, partials: [[1, 1], [2.2, 0.35, 0.5]] }),
+    strike({ freq: 150, freqEnd: 90, dur: 0.08, vol: 0.35, tau: 0.025 }),
+    sweptNoise({ dur: 0.05, from: 4200, to: 1200, vol: 0.45, attack: 0.001, release: 0.04 }),
+    at(strike({ freq: 360, freqEnd: 200, dur: 0.08, vol: 0.3, tau: 0.02 }), 0.12),
+    at(synth({ wave: 'sine', freq: 1300, freqEnd: 1900, dur: 0.15, vol: 0.22, attack: 0.004, decay: 0.03, sustain: 0.5, release: 0.07, vibRate: 35, vibDepth: 90 }), 0.08),
+  ), 80), 0.24), 0.85),
+  // 퇴장 급가속 '끼익-쓔우웅—!' 0.95s — 타이어 끽 + 치솟는 레브 + 도플러로 피치·음량이 떨어지며 멀어짐.
+  'events/slteraBoost': () => peakTo(trimTo(mix(
+    synth({ wave: 'sine', freq: 2300, freqEnd: 2600, dur: 0.2, vol: 0.4, attack: 0.005, decay: 0.05, sustain: 0.7, release: 0.08, vibRate: 38, vibDepth: 140 }),
+    sweptNoise({ dur: 0.18, from: 3800, to: 2600, vol: 0.18, attack: 0.005, release: 0.08 }),
+    at(engineVoice({
+      dur: 0.85,
+      freqAt: curve([[0, 140], [0.12, 320], [0.35, 560], [0.45, 580], [0.85, 330]]),
+      ampAt: curve([[0, 0], [0.04, 0.8], [0.35, 1], [0.5, 0.85], [0.85, 0]]),
+      amRateAt: curve([[0, 30], [0.35, 60], [0.85, 40]]), amDepth: 0.35,
+      vibRate: 10, vibDepth: 0.015, cutoff: 3200, vol: 0.8,
+    }), 0.06),
+    at(sweptNoise({ dur: 0.45, from: 900, to: 2600, vol: 0.22, attack: 0.15, release: 0.05 }), 0.08),
+    at(sweptNoise({ dur: 0.42, from: 2600, to: 700, vol: 0.22, attack: 0.02, release: 0.3 }), 0.5),
+  ), 0.95), 0.7),
 
   // ── B03 셔틀런 착지 '쿵' (2026-11-08 Terry "쿵쿵쿵") ───────────────────────────────
   // 0.22s. 저역 쿵(95→42Hz) + 폰 스피커용 180Hz 몸통 + 짧은 바닥 트랜지언트. 홉 간격(≥0.33s)보다 짧다.

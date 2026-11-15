@@ -4,7 +4,8 @@ import { designCandidate, getSoundEntries, makeSource } from './generate-auditio
 describe('audition generator', () => {
   it('covers every current SOUND_MAP entry without fallback copies', () => {
     const entries = getSoundEntries()
-    expect(entries).toHaveLength(125)
+    // 2026-11-15: 125 → 130 (슬테라 코믹 효과음 5종 slteraEngine/Flip/Land/Crash/Boost).
+    expect(entries).toHaveLength(130)
     for (const entry of entries) {
       const source = makeSource(entry)
       expect(source.samples.length, entry.id).toBeGreaterThan(100)

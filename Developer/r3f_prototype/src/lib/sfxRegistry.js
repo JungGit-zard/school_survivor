@@ -163,6 +163,13 @@ export const SOUND_MAP = {
   stage2GuardWhistle: '/sfx/events/stage2GuardWhistle.ogg',
   // 슬테라 등장 돌진음 — 2026-11-14까지 sharkFire를 빌려 쓰던 바이트 그대로(sharkFire는 상어 물기로 교체됨).
   slteraRush:         '/sfx/events/slteraRush.ogg',
+  // 슬테라 코믹 효과음 5종(2026-11-15 Terry "최대한 코믹하게"). scripts/generate_sfx.mjs 자체 합성.
+  // /events/ 경로라 전부 protected 클래스 — 전투 보이스 상한으로 버려지지 않는다(치기·착지는 회피 정보).
+  slteraEngine:       '/sfx/events/slteraEngine.ogg',   // 등장 '붕 붕 부아아아앙!!' 1.2s
+  slteraFlip:         '/sfx/events/slteraFlip.ogg',     // 옆 1회전 '휘리릭~' 0.75s
+  slteraLand:         '/sfx/events/slteraLand.ogg',     // 착지 '쾅-보잉' 0.41s
+  slteraCrash:        '/sfx/events/slteraCrash.ogg',    // 좀비·플레이어 치기 '뻥-통-삑' 0.23s
+  slteraBoost:        '/sfx/events/slteraBoost.ogg',    // 퇴장 급가속 '끼익-쓔우웅' 0.92s
 
   // ── Stage 5 전교 호출 방송 (B_stage5 §11-2) ──────────────────────────────────
   stage5CallChime:    '/sfx/events/stage5CallChime.ogg',   // 딩-동-댕-동 경고 1.6s
@@ -382,6 +389,13 @@ export const POLYPHONY_COOLDOWN = Object.freeze({
   stage6GateOpen:        900,
   // 착지 간격은 홉 1회(목표 500ms, 최소 약 333ms)다. 음원 0.22s보다 길고 홉보다 짧게.
   b03ShuttleStomp:       250,
+  // 슬테라 코믹 효과음(2026-11-15). 등장·회전·착지·급가속은 지나가기 1회라 같은 프레임 중복만 거른다.
+  // 치기는 SlteraEvent가 게임 시간 150ms에 한 번만 보낸다 — 120ms면 그 연타는 전부 통과하고 같은 프레임 중복만 접힌다.
+  slteraEngine:          1000,
+  slteraFlip:             600,
+  slteraLand:             300,
+  slteraCrash:            120,
+  slteraBoost:            800,
   // 풀 경로에서 처음 울리게 된 기존 좀비 음원(2026-11-14). E04 발사·E03 등장·앰비언트 신음은
   // 웨이브 단위로 몰려 나오므로 자기 위에 겹치지 않게 음원 길이 이상으로 잡는다.
   zombieRangedShoot:     300,

@@ -1843,6 +1843,106 @@
       "licenseEvidence": "project-generated-procedural"
     },
     {
+      "logicalId": "slteraEngine",
+      "category": "events",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/events/slteraEngine.ogg",
+          "bytes": 14512,
+          "sha256": "ec9d4a81384fc1923b48974cdd1674832bdd154a9d0db6d434f8d30d45f51525"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/events/slteraEngine.mp3",
+          "bytes": 10075,
+          "sha256": "261336bdc44f0287be930bb526c5fb19f439a831d07a15e49fff2253355cc3c0"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis, recipe 'events/slteraEngine'; OGG libvorbis q2 / MP3 64k 44.1kHz mono via --encode with @ffmpeg-installer/ffmpeg)",
+      "notes": "2026-11-15 Terry: 슬테라 코믹 효과음 5종, 절차 합성. soundmini. 등장 '붕 붕 부아아아앙!!' 1.2s: 만화 엔진 시동 블립 2회(85→150Hz) → 90→420Hz로 치솟는 톱니+서브 사각 레브(22→60Hz '부르르' AM, 9Hz 떨림) + '아' 대역 밝기 + 배기 노이즈 → 끝에 '펑' 역화. Project procedural SFX asset; no external samples, no real car recordings, no third-party game/cartoon audio or real-world melody copied.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "slteraFlip",
+      "category": "events",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/events/slteraFlip.ogg",
+          "bytes": 9521,
+          "sha256": "a513e1d33e2174e5527a7499bfee905d3da049e9d7507075e445e87bd3ee2545"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/events/slteraFlip.mp3",
+          "bytes": 6522,
+          "sha256": "c9aa71dcb7f066312d570b4d165e5b392d871c81722a9bff51e1bba7e4edd4df"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis, recipe 'events/slteraFlip'; OGG libvorbis q2 / MP3 64k 44.1kHz mono via --encode with @ffmpeg-installer/ffmpeg)",
+      "notes": "2026-11-15 Terry: 슬테라 코믹 효과음 5종, 절차 합성. soundmini. 옆 1회전 '휘리릭~' 0.75s: 이륙 '뿅'(300→900Hz) + 520→1560→700Hz로 올라갔다 내려오는 슬라이드 휘슬(사인+2배음+숨소리) + 11Hz AM 회전 바람 노이즈. Project procedural SFX asset; no external samples, no real car recordings, no third-party game/cartoon audio or real-world melody copied.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "slteraLand",
+      "category": "events",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/events/slteraLand.ogg",
+          "bytes": 6405,
+          "sha256": "6eb34c3e1c2535d9c804be03c1f238cf33d378713ffecfd4a39663cc7f5280ea"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/events/slteraLand.mp3",
+          "bytes": 3805,
+          "sha256": "cf526f5339797bf8f5a51e8a8ca6986fff3fadfcedd97d659e2684d08c77cd3a"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis, recipe 'events/slteraLand'; OGG libvorbis q2 / MP3 64k 44.1kHz mono via --encode with @ffmpeg-installer/ffmpeg)",
+      "notes": "2026-11-15 Terry: 슬테라 코믹 효과음 5종, 절차 합성. soundmini. 착지 '쾅-보잉' 0.41s: 130→55Hz 만화 쿵 strike + 260→150Hz 폰 스피커용 몸통 + 짧은 바닥 노이즈 + 160→380Hz 용수철 '보잉'(24Hz 떨림) 꼬리. Project procedural SFX asset; no external samples, no real car recordings, no third-party game/cartoon audio or real-world melody copied.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "slteraCrash",
+      "category": "events",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/events/slteraCrash.ogg",
+          "bytes": 4645,
+          "sha256": "39dffec34b0bacd28c5d7b923e4aad45ee6c35b67d7b6bdf794f7f47649218bc"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/events/slteraCrash.mp3",
+          "bytes": 2342,
+          "sha256": "f1b44ba903a747cb914211e2c4caeeeb1a76aeeb23eb272b55f22681e77d9ac6"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis, recipe 'events/slteraCrash'; OGG libvorbis q2 / MP3 64k 44.1kHz mono via --encode with @ffmpeg-installer/ffmpeg)",
+      "notes": "2026-11-15 Terry: 슬테라 코믹 효과음 5종, 절차 합성. soundmini. 치기 '뻥-통-삑' 0.23s: 300→120Hz 뻥 strike + 퍽 노이즈 + 0.12s 작은 '통' 튐 + 1.3→1.9kHz '삑'. 80Hz 하이패스로 서브베이스 억제, 150ms 연타 겹침 대비 짧게. Project procedural SFX asset; no external samples, no real car recordings, no third-party game/cartoon audio or real-world melody copied.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "slteraBoost",
+      "category": "events",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/events/slteraBoost.ogg",
+          "bytes": 10538,
+          "sha256": "a57d6efd0ab9a60230693607a4ea8f46fee9819981f289ec670b815b6829017d"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/events/slteraBoost.mp3",
+          "bytes": 7985,
+          "sha256": "0f168a95aeb8f08b2abb1dd73df240a6ee3172e9e9a7fbbfa907887f1dffd32e"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis, recipe 'events/slteraBoost'; OGG libvorbis q2 / MP3 64k 44.1kHz mono via --encode with @ffmpeg-installer/ffmpeg)",
+      "notes": "2026-11-15 Terry: 슬테라 코믹 효과음 5종, 절차 합성. soundmini. 퇴장 급가속 '끼익-쓔우웅—!' 0.92s: 2.3kHz 떨리는 타이어 끽 + 140→580Hz 치솟는 엔진 레브 후 330Hz로 떨어지는 도플러 + 상승/하강 바람 노이즈. Project procedural SFX asset; no external samples, no real car recordings, no third-party game/cartoon audio or real-world melody copied.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
       "logicalId": "stage5CallChime",
       "category": "events",
       "paths": [
