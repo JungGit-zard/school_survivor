@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { KaykitPropModel } from './StageObjects/KaykitProps.jsx'
 import { Canvas, useFrame, useLoader, useThree } from '@react-three/fiber'
 import { Html, OrbitControls } from '@react-three/drei'
 import * as THREE from 'three'
@@ -652,6 +653,8 @@ function RenderPreviewItem({ item }) {
   if (item.previewKind === 'stageObject' && item.objectType === 'staffroomEntranceDoor') return <StaffroomEntranceDoor />
   if (item.previewKind === 'stageObject' && item.objectType === 'staffroomSpeaker') return <StaffroomSpeaker />
   if (item.previewKind === 'stageObject' && item.objectType === 'staffroomClutter') return <StaffroomClutter variant={item.variant} />
+  // KayKit Furniture Bits 프랍 — 런타임 묶음과 같은 레시피·Studio 파츠 경로(KaykitProps.jsx).
+  if (item.previewKind === 'kaykitProp') return <KaykitPropModel kind={item.kaykitKind} variant={item.variant} />
   if (item.previewKind === 'pickup') {
     return <PickupPreview type={item.pickupType} />
   }

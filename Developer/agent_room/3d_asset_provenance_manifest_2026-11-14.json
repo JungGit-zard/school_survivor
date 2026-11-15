@@ -1,0 +1,37 @@
+{
+  "manifestVersion": 1,
+  "generatedAt": "2026-11-14",
+  "notes": "Third-party 3D model provenance. Sibling of audio_asset_provenance_manifest_2026-07-30.json.",
+  "assets": [
+    {
+      "logicalId": "kaykitFurnitureBits",
+      "category": "stageProps",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/src/assets/models/kaykit/furniture_kaykit.glb",
+          "bytes": 120824,
+          "sha256": "c3ee80ddbcb7fa94b0facfc56b414ec320e8cb3d3a9a368b4f7773484c66ec87"
+        }
+      ],
+      "provenanceType": "third-party-cc0",
+      "source": "KayKit : Furniture Bits (1.0) FREE by Kay Lousberg, https://kaylousberg.itch.io/furniture-bits (snapshot downloaded 2026-11-14)",
+      "license": "CC0 1.0 Universal (Creative Commons Zero), http://creativecommons.org/publicdomain/zero/1.0/",
+      "licenseText": "KayKit : Furniture Bits (1.0). Created/distributed by Kay Lousberg (www.kaylousberg.com). Creation date: 08/09/2023 09:00. License: (Creative Commons Zero, CC0) http://creativecommons.org/publicdomain/zero/1.0/ This content is free to use in personal, educational and commercial projects. Support me by crediting Kay Lousberg, www.kaylousberg.com (this is not mandatory)",
+      "licenseEvidence": "License.txt shipped inside KayKit_Furniture_Bits_1.0_FREE.zip",
+      "snapshotDate": "2026-11-14",
+      "atlasTexture": {
+        "name": "furniturebits_texture.png",
+        "bytes": 15605,
+        "sha256": "de62db37a80d1801c3d9eb674890ae04b04469e0c149481a51fa250562c628dc",
+        "embedded": "once, inside the GLB"
+      },
+      "conversion": "@gltf-transform/cli 4.5.1: merge (--merge-scenes) -> dedup -> prune -> meshopt (EXT_meshopt_compression + KHR_mesh_quantization). Decoder is the three-stdlib MeshoptDecoder that drei useGLTF already bundles.",
+      "nodes": [
+        "table_small", "chair_A_wood", "chair_B_wood", "table_medium_long", "shelf_B_large", "chair_A", "table_medium", "chair_B",
+        "book_set", "book_single", "pictureframe_large_A", "pictureframe_large_B", "bed_single_A", "bed_single_B", "cabinet_medium",
+        "cabinet_medium_decorated", "cabinet_small", "chair_stool", "pillow_A", "cactus_small_A", "cactus_small_B", "pictureframe_medium"
+      ],
+      "attribution": "Kay Lousberg, www.kaylousberg.com (optional under CC0)"
+    }
+  ]
+}

@@ -6,6 +6,7 @@
 // - 서벽: 게시판 2장.
 // - 남벽: 카메라(+Z 쪽, 45°) 앞을 가리지 않게 낮은 벽(걸레받이 높이 + 0.4)만 둔다.
 // 벽 안쪽 면이 정확히 맵 경계(±halfX / ±halfZ)에 오도록 벽 중심을 두께 절반만큼 바깥에 둔다.
+import { KaykitPropModel } from './StageObjects/KaykitProps.jsx'
 import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import { getStageBounds } from '../lib/stageConfig.js'
@@ -82,11 +83,6 @@ export default function Stage5StaffroomDecor() {
   const wall = getStagePropDepthWritingToonMaterial(D.wall, 0.05)
   const baseboard = getStagePropDepthWritingToonMaterial(D.baseboard, 0.04)
   const frame = getStagePropDepthWritingToonMaterial(D.windowFrame, 0.06)
-  const cork = getStagePropDepthWritingToonMaterial(D.cork, 0.05)
-  const corkFrame = getStagePropDepthWritingToonMaterial(D.corkFrame, 0.04)
-  const paperA = getStagePropDepthWritingToonMaterial(0xf4f1e8, 0.06)
-  const paperB = getStagePropDepthWritingToonMaterial(0xf2d96b, 0.06)
-  const paperC = getStagePropDepthWritingToonMaterial(0xf2b8c6, 0.06)
   // 창밖 풍경은 조명과 무관한 색이어야 해서 unlit MeshBasicMaterial을 이 컴포넌트가 소유한다.
   const sky = useMemo(() => new THREE.MeshBasicMaterial({ color: D.sky, side: THREE.DoubleSide, toneMapped: false }), [D.sky])
   const sand = useMemo(() => new THREE.MeshBasicMaterial({ color: D.sand, side: THREE.DoubleSide, toneMapped: false }), [D.sand])
@@ -136,14 +132,10 @@ export default function Stage5StaffroomDecor() {
       {/* ── 서벽 + 게시판 2장 ── */}
       <Box position={[westX, H / 2, 0]} scale={[t, H, halfZ * 2 + t * 2]} material={wall} outline />
       <Box position={[-halfX + 0.015, bb / 2, 0]} scale={[0.03, bb, halfZ * 2]} material={baseboard} />
+      {/* 게시판 2장 = KayKit 대형 액자(2026-11-14). 비주얼만 — 콜라이더 없음은 그대로. */}
       {D.westBoardZs.map((z) => (
-        <group key={`west-board:${z}`} name="stage5-west-board" position={[-halfX + 0.03, 0, z]}>
-          <Box position={[0.02, 1.55, 0]} scale={[0.06, 1.1, 2.0]} material={corkFrame} outline />
-          <Box position={[0.04, 1.55, 0]} scale={[0.04, 0.96, 1.86]} material={cork} />
-          <Box position={[0.07, 1.72, -0.55]} rotation={[0.06, 0, 0]} scale={[0.01, 0.4, 0.3]} material={paperA} />
-          <Box position={[0.07, 1.48, 0.1]} rotation={[-0.05, 0, 0]} scale={[0.01, 0.34, 0.42]} material={paperB} />
-          <Box position={[0.07, 1.7, 0.62]} rotation={[0.1, 0, 0]} scale={[0.01, 0.3, 0.28]} material={paperC} />
-          <Box position={[0.07, 1.3, -0.4]} rotation={[-0.08, 0, 0]} scale={[0.01, 0.26, 0.34]} material={paperA} />
+        <group key={`west-board:${z}`} name="stage5-west-board" position={[-halfX + 0.03, 1.0, z]}>
+          <KaykitPropModel kind="staffroomBoard" />
         </group>
       ))}
 

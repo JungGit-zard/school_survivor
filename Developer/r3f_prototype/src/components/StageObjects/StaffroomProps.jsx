@@ -347,6 +347,19 @@ function LabelPlane({ texture, position, size, rotation = [0, 0, 0] }) {
   )
 }
 
+// 교감 명패만(2026-11-14 KayKit 교감 책상 위에 얹는다 — 책상·의자는 kaykitPropRecipes.js). 상판 높이 0.81.
+export function StaffroomViceDeskNameplate(props) {
+  const nameplateTexture = useLabelTexture('교감', { background: '#f2e6c9', foreground: '#3a2414' })
+  return (
+    <group {...props}>
+      <group name="staffroom-vice-desk-nameplate">
+        <PropBox name="vice-desk-nameplate" position={[0, 0.87, 0.5]} rotation={[-0.35, 0, 0]} scale={[0.62, 0.14, 0.06]} material={toon(STAFFROOM_PALETTE.nameplate, 0.08)} outline />
+        <LabelPlane texture={nameplateTexture} position={[0, 0.875, 0.536]} rotation={[-0.35, 0, 0]} size={[0.56, 0.12]} />
+      </group>
+    </group>
+  )
+}
+
 export function StaffroomViceDesk(props) {
   const pal = STAFFROOM_PALETTE
   const wood = toon(pal.viceWood, 0.05)

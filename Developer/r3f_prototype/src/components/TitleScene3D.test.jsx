@@ -62,8 +62,7 @@ describe('TitleScene3D direction', () => {
       realForegroundResources: [
         'ZombieMesh',
         'MatildaMesh',
-        'ClassroomDesk',
-        'ClassroomChair',
+        'KaykitPropModel',
         'UnconsciousStudent',
       ],
     })
@@ -136,8 +135,10 @@ describe('TitleScene3D direction', () => {
     const source = readFileSync(new URL('./TitleScene3D.jsx', import.meta.url), 'utf8')
 
     expect(source).toContain("import ZombieMesh from './ZombieMesh.jsx'")
-    expect(source).toContain("import ClassroomChair from './StageObjects/ClassroomChair.jsx'")
-    expect(source).toContain("import ClassroomDesk from './StageObjects/ClassroomDesk.jsx'")
+    // 2026-11-14 Terry: title desks/chairs are the same KayKit components the stages use.
+    expect(source).toContain("import { KaykitPropModel } from './StageObjects/KaykitProps.jsx'")
+    expect(source).not.toContain("import ClassroomDesk from './StageObjects/ClassroomDesk.jsx'")
+    expect(source).not.toContain("import ClassroomChair from './StageObjects/ClassroomChair.jsx'")
     expect(source).toContain("import UnconsciousStudent from './StageObjects/UnconsciousStudent.jsx'")
     expect(source).not.toContain("from './StageObjects/index.js'")
     expect(source).toContain('<ZombieMesh type={type} animPhase="charge" idleRig={idleRig} />')
@@ -145,8 +146,10 @@ describe('TitleScene3D direction', () => {
     expect(source).toContain('<TitleBossZombie type="B03" position={[0.3, 0.4, -3.3]} scale={1.344} delay={1.35} />')
     expect(source).toContain('<TitleBossZombie type="B01" position={[-0.35, 0.34, -1.01]} scale={1.02} />')
     expect(source).toContain('<TitleZombie idleId="zombieE03" position={[-0.5, 0.18, -1.9]} delay={2.1} scale={0.52} type="E03" />')
-    expect(source).toContain('<ClassroomDesk')
-    expect(source).toContain('<ClassroomChair')
+    expect(source).toContain('<KaykitPropModel kind="classroomDesk" variant="overturned" />')
+    expect(source).toContain('<KaykitPropModel kind="classroomDesk" variant="abandoned" />')
+    expect(source).toContain('<KaykitPropModel kind="classroomChair" variant="tilted" />')
+    expect(source).toContain('<KaykitPropModel kind="classroomChair" variant="overturned" />')
     expect(source).toContain('<UnconsciousStudent')
     expect(source).not.toContain('function LargeZombieSilhouette')
     expect(source).not.toContain('function ZombieHeadSilhouette')
