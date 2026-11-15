@@ -8,7 +8,10 @@ import { getBurstEventsForStage, isBossType } from './burstEvents.js'
 const S6 = EXPANSION_STAGES.stage6
 // 2026-11-14 블록 좀비(같은 hp 맞교환): E79·E71 = E01(8 → 20), E73 = E04(32 → 80), E76 = E05(70 → 174).
 // E105(2인3각, 2026-11-14 2차 신규)는 Stage 6 절대 HP 30(E19와 같다).
-const S6_HP = { E19: 30, E20: 64, E21: 36, E01: 20, E02: 174, E04: 80, E05: 174, E06: 796, E07: 40, E79: 20, E71: 20, E73: 80, E76: 174, E105: 30 }
+// 2026-11-16 좀비 배치 총검토(운동회 총출동)로 스1~5에서 옮겨 온 종도 같은 기존 종 배수(×2.488)를 탄다:
+// E87·E78 = round(8 × 2.488) 20, E83·E70·E80·E88 = round(10 × 2.488) 25, E72 = round(16 × 2.488) 40, E55 = round(70 × 2.488) 174.
+const S6_HP = { E19: 30, E20: 64, E21: 36, E01: 20, E02: 174, E04: 80, E05: 174, E06: 796, E07: 40, E79: 20, E71: 20, E73: 80, E76: 174, E105: 30,
+  E87: 20, E78: 20, E83: 25, E70: 25, E80: 25, E88: 25, E72: 40, E55: 174 }
 
 describe('stage6 운동장 — 같은 id·기록 키·typeCode, 내용만 교체', () => {
   it('정체·경계 12×20·e04 8초·오버타임 240초·1부 데이터', () => {
@@ -50,20 +53,27 @@ describe('stage6 운동장 — 같은 id·기록 키·typeCode, 내용만 교체
   // (Terry 승인 2026-11-14: 200초 E76 행 폐기).
   // 2026-11-14 2차 신규: 150초·168초 E01×8 → E01×5 + E105×2(2인3각 한 쌍씩, 블록 좀비가 쓰지 않은 E01 행).
   // E105 절대 30 × 2 = 실효 E01 20 × 3이라 HP·30초 창 곡선이 그대로이고 마릿수만 190 → 188, 행 42 → 44.
-  it('이벤트 44행, 보스 1행(150초), 마지막 일반 이벤트 228초, 반복 버스트 없음, 일반 적 188마리·HP 8,910', () => {
+  // 2026-11-16 좀비 배치 총검토(Terry 승인 "운동회 총출동", balanceqa 판정표 #3·#19·#25·#35·#43·#47·#54·#55·#65·#68·#72~#74):
+  // 스1~5에서 운동장 컨셉 10행을 받는다. 108·132·216초 E04 행 삭제, 8초 E04 2 → 1 + E87(#43 수정 — 스5 → 스6 오프닝 1.6배 한도).
+  // 216초는 판정 #74(2 → 1)에서 한 걸음 더 — 남은 E04 1기도 술래 E70과 맞바꿔 4회 소환 총 HP를 14,057(+2.05%) → 13,977(+1.47%)로
+  // 사다리 ±2% 안에 둔다(코디네이터 결정 2026-11-16). 44 → 51행, 일반 적 188 → 193마리, HP 8,910 → 9,063.
+  it('이벤트 51행, 보스 1행(150초), 마지막 일반 이벤트 228초, 반복 버스트 없음, 일반 적 193마리·HP 9,063', () => {
     const events = getBurstEventsForStage('stage6')
-    expect(events).toHaveLength(44)
-    // 블록 좀비 4종은 각각 정확히 한 행·한 마리이고, E76은 120초 E05 옆에만 있다.
+    expect(events).toHaveLength(51)
+    // 2026-11-14 블록 좀비 4종은 각각 정확히 한 행·한 마리였고, 2026-11-16 E76은 스4 150초에서 200초 행을 하나 더 받았다(#54).
     expect(events.filter((e) => ['E79', 'E71', 'E73', 'E76'].includes(e.type)).map((e) => [e.sec, e.type, e.count]))
-      .toEqual([[16, 'E79', 1], [52, 'E71', 1], [108, 'E73', 1], [120, 'E76', 1]])
+      .toEqual([[16, 'E79', 1], [52, 'E71', 1], [108, 'E73', 1], [120, 'E76', 1], [200, 'E76', 1]])
+    // 2026-11-16 스1~5에서 옮겨 온 운동장 종 — 전부 1마리 행.
+    expect(events.filter((e) => ['E87', 'E83', 'E70', 'E80', 'E88', 'E72', 'E78', 'E55'].includes(e.type)).map((e) => [e.sec, e.type, e.count]))
+      .toEqual([[8, 'E87', 1], [44, 'E83', 1], [84, 'E70', 1], [108, 'E80', 1], [124, 'E88', 1], [132, 'E72', 1], [168, 'E78', 1], [184, 'E55', 1], [216, 'E70', 1]])
     expect(events.filter((e) => e.type === 'E05').map((e) => [e.sec, e.count])).toEqual([[84, 2], [120, 1], [200, 1]])
     expect(events.filter((e) => isBossType(e.type))).toEqual([{ sec: 150, type: 'B05', count: 1 }])
     expect(Math.max(...events.filter((e) => !isBossType(e.type)).map((e) => e.sec))).toBe(228)
     expect(events.some((e) => e.repeatIntervalSec)).toBe(false)
     const normal = events.filter((e) => !isBossType(e.type))
-    expect(normal.reduce((n, e) => n + e.count, 0)).toBe(188)
+    expect(normal.reduce((n, e) => n + e.count, 0)).toBe(193)
     expect(events.filter((e) => e.type === 'E105').map((e) => [e.sec, e.count])).toEqual([[150, 2], [168, 2]])
-    expect(normal.reduce((n, e) => n + e.count * S6_HP[e.type], 0)).toBe(8910)
+    expect(normal.reduce((n, e) => n + e.count * S6_HP[e.type], 0)).toBe(9063)
     const summonHp = EXPANSION_BOSSES.B05.summon.count * S6_HP.E21
     const target = Math.round(3710 * 1.3 ** 5)
     expect(target).toBe(13775)
@@ -79,8 +89,9 @@ describe('stage6 운동장 — 같은 id·기록 키·typeCode, 내용만 교체
     expect(events.filter((e) => e.formation === 'track_lanes')).toEqual([{ sec: 124, type: 'E21', count: 6, formation: 'track_lanes' }])
     // 110초 전통 증원(E07 3 + E02 3) 유지.
     expect(events.filter((e) => e.sec === 110).map((e) => [e.type, e.count])).toEqual([['E07', 3], ['E02', 3]])
-    // 개방 운동장은 시야 차단물이 없다 — 원거리 E04는 0~60초 동시 3기(8초 2 + 52초 1)로 묶는다(포화점 4.13기 미만).
-    expect(events.filter((e) => e.type === 'E04').map((e) => [e.sec, e.count])).toEqual([[8, 2], [52, 1], [108, 1], [132, 1], [216, 2]])
+    // 개방 운동장은 시야 차단물이 없다 — 원거리 E04는 0~60초 동시 2기(8초 1 + 52초 1)로 묶는다(포화점 4.13기 미만).
+    // 2026-11-16: 8초 1기 → E87(#43 수정), 108·132초 E04 → E80·E72(#72·#73), 216초 E04 → E70(#74 + 사다리 ±2%).
+    expect(events.filter((e) => e.type === 'E04').map((e) => [e.sec, e.count])).toEqual([[8, 1], [52, 1]])
   })
 
   // 30초 창별 유입 HP(일반 적 + B05 시간 소환 162·192·222초). 곡선 모양을 못박는다.
@@ -90,7 +101,8 @@ describe('stage6 운동장 — 같은 id·기록 키·typeCode, 내용만 교체
     const windows = [0, 30, 60, 90, 120, 150, 180, 210].map((from) => events
       .filter((e) => e.sec >= from && e.sec < from + 30).reduce((n, e) => n + e.count * S6_HP[e.type], 0)
       + [162, 192, 222].filter((sec) => sec >= from && sec < from + 30).length * summonHp)
-    expect(windows).toEqual([644, 652, 1304, 1650, 1800, 892, 1546, 1070])
+    // 2026-11-16 좀비 배치 총검토: [644, 652, 1304, 1650, 1800, 892, 1546, 1070] → 아래(오프닝 60초 1,296 → 1,261).
+    expect(windows).toEqual([584, 677, 1329, 1595, 1785, 912, 1894, 935])
     // 60~150초 단조 증가(보스 직전이 정점), 오프닝 60초 합 ≤ 1,300.
     expect(windows[2] < windows[3] && windows[3] < windows[4]).toBe(true)
     expect(windows[0] + windows[1]).toBeLessThanOrEqual(1300)

@@ -378,44 +378,67 @@ describe('투사체 좀비 스폰 배치', () => {
     return seen
   }
 
-  it('15종 전부 스1~5에 첫 등장하고 스테이지마다 1~6종이다', () => {
+  // 2026-11-16 좀비 배치 총검토(Terry 승인 "제안대로 모두 적용", balanceqa 판정표 76건): 강속구 E55는 스6 운동장 184초로 옮겨
+  // 스1~5에서는 첫 등장하지 않는다(#68). E49 양동이청소가 스4로 가서(#4) 스1의 투사체 계열 첫 등장은 E56 하나다.
+  const STAGE6_ONLY = ['E55']
+  const MIN_DEBUTS = { stage1: 1, stage3: 1 }
+
+  it('E55를 뺀 14종은 스1~5에 첫 등장하고 스테이지마다 1~6종이다(E55는 스6 전용)', () => {
     const seen = debuts()
-    expect([...seen.keys()].sort()).toEqual([...IDS].sort())
+    expect([...seen.keys()].sort()).toEqual(IDS.filter((id) => !STAGE6_ONLY.includes(id)).sort())
     for (const stage of STAGES) {
       const n = [...seen.values()].filter((d) => d.stage === stage).length
-      expect(n, stage).toBeGreaterThanOrEqual(stage === 'stage3' ? 1 : 2)
+      expect(n, stage).toBeGreaterThanOrEqual(MIN_DEBUTS[stage] ?? 2)
       expect(n, stage).toBeLessThanOrEqual(6)
     }
+    expect(getBurstEventsForStage('stage6').filter((evt) => STAGE6_ONLY.includes(evt.type))).toEqual([{ sec: 184, type: 'E55', count: 1 }])
   })
 
-  it('첫 등장은 1마리 단독이고, 같은 스테이지의 다른 첫 등장(E34~E45 포함)과 30초 이상 떨어진다', () => {
+  // 2026-11-16 좀비 배치 총검토로 승인된 간격 예외. 판정표가 사수 첫 등장 순서(스2 40 E46 → 72 E47 → 120 E49·E65 → 144 E51 → 168 E57)와
+  // 컨셉 이동(스3 150초 E50, 스4 60초 E60·144초 E59, 스5 60초 E53)을 우선했다. 이 목록 밖의 새 위반은 그대로 실패한다.
+  const APPROVED_GAP_EXCEPTIONS_2026_11_16 = [
+    'stage2 40 vs 24', 'stage2 120 vs 108', 'stage2 120 vs 144', 'stage2 144 vs 120', 'stage2 144 vs 168', 'stage2 168 vs 144',
+    'stage3 150 vs 168',
+    'stage4 60 vs 40', 'stage4 144 vs 150',
+    'stage5 60 vs 72', 'stage5 72 vs 60',
+  ]
+  // 보스 등장(150) 정각 첫 등장 예외: 배구스파이크 E50이 스4에서 스3 150초 행으로 옮겨(#39) 그 자리가 전체 첫 등장이 됐다.
+  const APPROVED_BOSS_SEC_DEBUTS_2026_11_16 = ['stage3 E50']
+
+  it('첫 등장은 1마리 단독이고, 같은 스테이지의 다른 첫 등장(E34~E45 포함)과 30초 이상 떨어진다(2026-11-16 승인 예외 제외)', () => {
     const seen = debuts()
+    const gapViolations = []
+    const bossSecDebuts = []
     for (const stage of STAGES) {
       // 기존 첫 등장끼리의 간격(예: 스2 5·24초)은 이번 범위가 아니다. 새 첫 등장 하나하나를 나머지 전부와 비교한다.
       const mine = [...seen.values()].filter((d) => d.stage === stage).map((d) => d.sec)
       const all = [...OLD_DEBUTS[stage], ...mine]
       for (const sec of mine) {
-        for (const other of all) if (other !== sec) expect(Math.abs(other - sec), `${stage} ${sec} vs ${other}`).toBeGreaterThanOrEqual(30)
+        for (const other of all) if (other !== sec && Math.abs(other - sec) < 30) gapViolations.push(`${stage} ${sec} vs ${other}`)
       }
-      for (const d of [...seen.values()].filter((v) => v.stage === stage)) {
+      for (const [type, d] of [...seen.entries()].filter(([, v]) => v.stage === stage)) {
         expect(d.count).toBe(1)
         // 같은 초에 다른 신규 종이 함께 처음 나오지 않는다.
         const sameSec = [...seen.values()].filter((v) => v.stage === stage && v.sec === d.sec)
         expect(sameSec).toHaveLength(1)
-        // 보스 등장(150) 정각과 탈출 뒤(210~)에는 첫 등장시키지 않는다.
-        expect(d.sec).not.toBe(150)
+        // 보스 등장(150) 정각과 탈출 뒤(210~)에는 첫 등장시키지 않는다(150초는 승인 예외만).
+        if (d.sec === 150) bossSecDebuts.push(`${stage} ${type}`)
         expect(d.sec).toBeLessThan(210)
       }
     }
+    expect(gapViolations).toEqual(APPROVED_GAP_EXCEPTIONS_2026_11_16)
+    expect(bossSecDebuts).toEqual(APPROVED_BOSS_SEC_DEBUTS_2026_11_16)
   })
 
   it('스1에는 피해를 주는 사수가 없다(E04 스1 제외 규칙의 정신)', () => {
     const stage1 = getBurstEventsForStage('stage1').filter((evt) => IDS.includes(evt.type)).map((evt) => evt.type)
-    expect(new Set(stage1)).toEqual(new Set(['E56', 'E49']))
+    // 2026-11-16 #4: E49(물웅덩이, 피해 0)는 스4 급식실로 옮겼다. 남은 것은 회복 지원 E56뿐이다.
+    expect(new Set(stage1)).toEqual(new Set(['E56']))
   })
 
-  it('스6~10 초안 표는 건드리지 않았다', () => {
-    for (const stage of ['stage6', 'stage7', 'stage8', 'stage9', 'stage10']) {
+  // 2026-11-16: 스6은 출시 스테이지가 됐고(운동회 총출동으로 E55를 받음 — 위 단언), 7~10 초안 울타리는 그대로 지킨다.
+  it('스7~10 초안 표는 건드리지 않았다', () => {
+    for (const stage of ['stage7', 'stage8', 'stage9', 'stage10']) {
       for (const evt of getBurstEventsForStage(stage)) expect(IDS).not.toContain(evt.type)
     }
   })

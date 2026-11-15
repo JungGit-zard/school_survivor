@@ -190,7 +190,9 @@ describe('Stage5 production enemy runtime', () => {
       effects[effectStart]()
       frame(0.016); flush()
       // 5초 = E01×9 + E04×2 + E53×1(교무실 개편 §5-1: 오프닝 E01 12 → 9, 자리를 사수 2기에 양보).
-      expect(spy.mock.calls).toHaveLength(12)
+      // 2026-11-16 좀비 배치 총검토: E01 1기 자리의 영양사 E84는 스4로(#52), E53은 60초로(#66), 부메랑자 E48이 40 → 5초(#61).
+      // 5초 = E01×8 + E04×2 + E48×1 = 11.
+      expect(spy.mock.calls).toHaveLength(11)
     } finally {
       for (const cleanup of cleanups.reverse()) cleanup()
       spy?.mockRestore(); clearPool()

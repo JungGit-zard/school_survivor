@@ -439,11 +439,11 @@ describe('boss runtime spawn routes', () => {
     expect(stage2).toContainEqual({ sec: 60, type: 'E07', count: 3 })
     // 2026-10-25 Track B: 108초 E07×6 중 3마리를 신규 E39(선끝접기형)가 대체한다.
     // hp(E39)=hp(E07)=16이라 이 슬롯의 총 HP·마릿수는 그대로다.
-    // 2026-11-14 블록 좀비: 108초 E07 1기 → E72(교통지도, hp 16).
+    // 2026-11-14 블록 좀비: 108초 E07 1기 → E72(교통지도, hp 16). 2026-11-16 좀비 배치 총검토: E72는 스6 운동장 132초로 옮겼다(#25).
     expect(stage2).toContainEqual({ sec: 108, type: 'E07', count: 1 })
-    expect(stage2).toContainEqual({ sec: 108, type: 'E72', count: 1 })
-    // 2026-11-14 2차 신규: E94(대걸레 밀기, hp 16)는 60초 E07 1기 자리에서 받는다(108초는 블록 좀비 E72). 풀 경로를 탄다.
-    expect(stage2).toContainEqual({ sec: 60, type: 'E94', count: 1 })
+    expect(stage2.some((event) => event.type === 'E72')).toBe(false)
+    // 2026-11-14 2차 신규: E94(대걸레 밀기, hp 16)는 60초 E07 1기 자리에서 받았다. 2026-11-16 #22(수정): 60 → 110초. 풀 경로를 탄다.
+    expect(stage2).toContainEqual({ sec: 110, type: 'E94', count: 1 })
     expect(isPooledEnemyType('E94')).toBe(true)
     expect(stage2).toContainEqual({ sec: 108, type: 'E39', count: 3 })
     expect(isPooledEnemyType('E07')).toBe(true)
@@ -478,11 +478,12 @@ describe('boss runtime spawn routes', () => {
 
   it('routes the Stage 1 40s E01/E07 fixed reinforcement through the actual scheduled burst consumer', () => {
     const stage1Runtime = getRuntimeBurstEventsForStage('stage1')
-    expect(stage1Runtime).toContainEqual({ sec: 40, type: 'E01', count: 6 })
+    // 2026-11-16 좀비 배치 총검토 #10: 40초 E01 6 → 8(24초 E01 2기를 옮김).
+    expect(stage1Runtime).toContainEqual({ sec: 40, type: 'E01', count: 8 })
     expect(stage1Runtime).toContainEqual({ sec: 40, type: 'E07', count: 3 })
     for (const stageId of ['stage2', 'stage3', 'stage4']) {
       const runtime = getRuntimeBurstEventsForStage(stageId)
-      expect(runtime).not.toContainEqual({ sec: 40, type: 'E01', count: 6 })
+      expect(runtime).not.toContainEqual({ sec: 40, type: 'E01', count: 8 })
       expect(runtime).not.toContainEqual({ sec: 40, type: 'E07', count: 3 })
     }
 
@@ -788,8 +789,10 @@ describe('late zombie spawn relief', () => {
     // 2026-11-04 분산 재배치: 108초 혼합 E01×6 중 3마리를 E36(같은 hp 8) 첫 등장으로 옮겼다.
     // 2026-11-14 블록 좀비: 108초 혼합 E01×3 중 1마리를 E77(충돌실험 인형, hp 8) 첫 등장으로 옮겼다.
     expect(getBurstEventsForStage('stage1').find((event) => event.sec === 108 && event.type === 'E01').count).toBe(2)
-    expect(getBurstEventsForStage('stage1').find((event) => event.sec === 108 && event.type === 'E77').count).toBe(1)
-    expect(getBurstEventsForStage('stage1').find((event) => event.sec === 108 && event.type === 'E36').count).toBe(3)
+    // 2026-11-16 좀비 배치 총검토: 108초는 반장 치프 혼자 주인공 — E77은 120초(#8), E36 첫 등장은 60초(#6)로 옮겼다.
+    expect(getBurstEventsForStage('stage1').find((event) => event.sec === 120 && event.type === 'E77').count).toBe(1)
+    expect(getBurstEventsForStage('stage1').find((event) => event.sec === 60 && event.type === 'E36').count).toBe(3)
+    expect(getBurstEventsForStage('stage1').filter((event) => event.sec === 108).map((event) => event.type)).toEqual(['E01', 'E89'])
     // 2026-11-04 투사체 좀비: 216초 E05×3 중 1마리를 E56(보건실 복습, hp 70)이 대체한다.
     expect(getBurstEventsForStage('stage1').find((event) => event.sec === 216 && event.type === 'E05').count).toBe(2)
     // 2026-08-17: 스2 E04는 발사 게이트와 같은 72초 1건만 남았다(216초 1마리는 예산 감축으로 제거).
@@ -816,7 +819,8 @@ describe('late zombie spawn relief', () => {
   it('aligns stage 1 burst pressure with tutorial and relief windows', () => {
     const stage1Bursts = getBurstEventsForStage('stage1')
 
-    expect(stage1Bursts.filter((event) => event.sec < 40).reduce((sum, event) => sum + event.count, 0)).toBe(19)
+    // 2026-11-16 좀비 배치 총검토 #9·#10: 24초 E01 2기를 40초로 옮겨 첫 40초 고정 스폰이 19 → 17마리.
+    expect(stage1Bursts.filter((event) => event.sec < 40).reduce((sum, event) => sum + event.count, 0)).toBe(17)
     expect(stage1Bursts.some((event) => event.type === 'E02' && event.sec < 60)).toBe(false)
     expect(stage1Bursts.some((event) => event.sec >= 90 && event.sec < 108)).toBe(false)
   })
@@ -1150,12 +1154,13 @@ describe('jarmob expected total keeps density separate from the user HP curve', 
     // 2026-08-19 개정: 스3에서 버스트 잡몹 base 562(110초 E06×1 + 72초 차저 1)를 빼 25초 반복 보강을
     // 상쇄했더니 스3 m이 1.1098 → 1.1460으로 올랐다. 스4는 E04 26→12 회수분을 근접 편성으로 되돌려
     // base 총량이 거의 그대로라 m도 거의 안 움직였다(1.19379 → 1.19396).
+    // 2026-11-16 좀비 배치 총검토(배치만 옮김 — 버스트 잡몹 base가 스2 +60·스3 +30·스4 +10, 스5 행 재배치)로 다시 풀린 값.
     expect(STAGE_DENSITY_MULTIPLIER).toEqual({
-      stage2: 0.8766327815877557,
-      stage3: 1.205324260259222,
-      stage4: 1.1939640195114065,
+      stage2: 0.8731323303525842,
+      stage3: 1.2024716502477741,
+      stage4: 1.1930987008545382,
       // 2026-11-08 Stage 5 교무실: _STAGE_BLEND_IDS에 들어와 분석용 밀도 배율이 생겼다(factor 1.1^5).
-      stage5: 1.311356742058439,
+      stage5: 1.3106328609614584,
     })
     for (const stageId of ['stage2', 'stage3', 'stage4', 'stage5']) {
       expect(STAGE_DENSITY_MULTIPLIER[stageId]).toBeGreaterThan(0)

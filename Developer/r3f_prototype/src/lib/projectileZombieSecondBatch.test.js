@@ -372,38 +372,57 @@ describe('2차 10종 스폰 배치(스1~5)', () => {
   }
 
   // 설계 규칙: 2차 10종의 첫 등장은 스1~4다(스5는 해금 전 계정이 많아 첫 조우 지점으로 쓰지 않는다).
-  it('10종 전부 스1~4에 1마리 단독으로 첫 등장하고, 다른 신규 종과 같은 초에 겹치지 않는다', () => {
+  // 2026-11-16 좀비 배치 총검토(Terry 승인 "제안대로 모두 적용", balanceqa 판정표 76건)로 승인된 예외:
+  //   - 술래 E70은 스6 운동장 전용(84·216초 작성 행, #47·#65).
+  //   - 교사 소품 E64 분필가루·E68 지구본은 스3 체육관에서 스5 교무실로 옮겨(#32·#36) 첫 등장이 스5다.
+  //   - 사수 순서·컨셉 이동으로 같은 초에 다른 신규 종 첫 등장과 겹치는 네 곳(아래 목록).
+  // 이 목록 밖의 새 위반은 그대로 실패한다.
+  const STAGE6_ONLY = ['E70']
+  const APPROVED_STAGE5_DEBUTS_2026_11_16 = ['E64', 'E68']
+  const APPROVED_SAME_SEC_DEBUTS_2026_11_16 = ['E63 stage2 108 E39', 'E65 stage2 120 E49', 'E67 stage2 168 E57', 'E62 stage3 120 E42']
+
+  it('E70을 뺀 9종은 스1~4(승인 예외 E64·E68은 스5)에 1마리 단독으로 첫 등장하고, 다른 신규 종과 같은 초에 겹치지 않는다(승인 예외 제외)', () => {
     const mine = debuts(IDS)
-    expect([...mine.keys()].sort()).toEqual([...IDS].sort())
-    const others = [...debuts(NOVEL).values()]
-    for (const d of mine.values()) {
-      expect(['stage1', 'stage2', 'stage3', 'stage4']).toContain(d.stage)
+    expect([...mine.keys()].sort()).toEqual(IDS.filter((id) => !STAGE6_ONLY.includes(id)).sort())
+    const others = [...debuts(NOVEL).entries()]
+    const stage5Debuts = []
+    const sameSec = []
+    for (const [type, d] of mine) {
+      if (d.stage === 'stage5') stage5Debuts.push(type)
+      else expect(['stage1', 'stage2', 'stage3', 'stage4']).toContain(d.stage)
       expect(d.count).toBe(1)
       expect(d.sec).not.toBe(150)
       expect(d.sec).toBeLessThan(210)
-      expect(others.filter((o) => o.stage === d.stage && o.sec === d.sec)).toEqual([])
+      for (const [other] of others.filter(([, o]) => o.stage === d.stage && o.sec === d.sec)) sameSec.push(`${type} ${d.stage} ${d.sec} ${other}`)
       expect([...mine.values()].filter((o) => o.stage === d.stage && o.sec === d.sec)).toHaveLength(1)
     }
+    expect(stage5Debuts).toEqual(APPROVED_STAGE5_DEBUTS_2026_11_16)
+    expect(sameSec).toEqual(APPROVED_SAME_SEC_DEBUTS_2026_11_16)
+    expect(getBurstEventsForStage('stage6').filter((evt) => STAGE6_ONLY.includes(evt.type)).map((evt) => [evt.sec, evt.type, evt.count]))
+      .toEqual([[84, 'E70', 1], [216, 'E70', 1]])
   })
 
-  it('스테이지마다 1~2종, 총 배치는 소량(스테이지당 3마리 이하)이다', () => {
+  // 소량 배치: 스테이지당 1~3종·3마리 이하가 원칙이다. 2026-11-16 좀비 배치 총검토로 스2(E63·E65 ×2·E67 = 4마리)와
+  // 스5(E66·E64·E68·E65 = 4종·4마리)가 승인 예외가 됐다 — 스테이지별 값을 정확히 못박는다.
+  it('스테이지마다 1~2종, 총 배치는 소량(스테이지당 3마리 이하, 2026-11-16 승인 예외 스2·스5)이다', () => {
+    const EXPECTED = { stage1: [1, 2], stage2: [3, 4], stage3: [1, 1], stage4: [2, 2], stage5: [4, 4] }
     for (const stage of STAGES) {
       const rows = getBurstEventsForStage(stage).filter((evt) => IDS.includes(evt.type))
       const types = new Set(rows.map((evt) => evt.type))
       expect(types.size, stage).toBeGreaterThanOrEqual(1)
-      expect(types.size, stage).toBeLessThanOrEqual(3)
-      expect(rows.reduce((sum, evt) => sum + evt.count, 0), stage).toBeLessThanOrEqual(3)
+      expect([types.size, rows.reduce((sum, evt) => sum + evt.count, 0)], stage).toEqual(EXPECTED[stage])
     }
   })
 
-  it('스1에는 탄을 쏘는 종이 없다(몸 돌진 E62·분열 E66만)', () => {
+  it('스1에는 탄을 쏘는 종이 없다(분열 E66만 — 2026-11-16 셔틀런 E62는 스3 체육관으로)', () => {
     const stage1 = getBurstEventsForStage('stage1').filter((evt) => IDS.includes(evt.type)).map((evt) => evt.type)
-    expect(new Set(stage1)).toEqual(new Set(['E62', 'E66']))
+    expect(new Set(stage1)).toEqual(new Set(['E66']))
     for (const id of stage1) expect(PROJECTILE_ZOMBIE_BEHAVIORS[ENEMY_TYPE_CODES[id]].shot).toBeNull()
   })
 
-  it('스6~10 초안 표는 건드리지 않았다', () => {
-    for (const stage of ['stage6', 'stage7', 'stage8', 'stage9', 'stage10']) {
+  // 2026-11-16: 스6은 출시 스테이지가 됐고(운동회 총출동으로 E70을 받음 — 위 단언), 7~10 초안 울타리는 그대로 지킨다.
+  it('스7~10 초안 표는 건드리지 않았다', () => {
+    for (const stage of ['stage7', 'stage8', 'stage9', 'stage10']) {
       for (const evt of getBurstEventsForStage(stage)) expect(IDS).not.toContain(evt.type)
     }
   })

@@ -145,11 +145,18 @@ describe('스테이지 로스터 = 버스트 표에 배분된 신규 종 + 작�
         expect(hpOf(type), `${stageId} ${type} hp`).toBeGreaterThan(0)
       }
     }
-    // 스6: 확장 데이터 enemyIds(E19~E21) + 2026-11-14 표에 작성된 블록 좀비(E79·E71·E73 첫 등장, E76 스4 복습).
-    expect(getStageRotationRoster('stage6')).toEqual(['E19', 'E79', 'E20', 'E21', 'E71', 'E73', 'E76'])
+    // 스6: 확장 데이터 enemyIds(E19~E21) + 2026-11-14 표에 작성된 블록 좀비(E79·E71·E73 첫 등장, E76 스4 복습)
+    // + 2026-11-16 좀비 배치 총검토(운동회 총출동)로 옮겨 온 블록 좀비 6종(E87·E83·E80·E88·E72·E78). 7 → 13종.
+    // 술래 E70·강속구 E55는 투사체 계열이라 스6에서는 작성 행으로만 나온다(Terry 결정, 순환 코드 수정 없음).
+    expect(getStageRotationRoster('stage6')).toEqual(['E19', 'E87', 'E79', 'E20', 'E21', 'E83', 'E71', 'E73', 'E80', 'E76', 'E88', 'E72', 'E78'])
+    expect(getStageRotationRoster('stage6')).not.toContain('E70')
+    expect(getStageRotationRoster('stage6')).not.toContain('E55')
     expect(getStageRotationRoster('stage1')).not.toContain('E04')
-    expect(getStageRotationDebuts('stage2')).toMatchObject({ E37: 5, E47: 60, E63: 72, E51: 144, E46: 184 })
-    expect(getStageRotationDebuts('stage5')).toMatchObject({ E53: 5, E57: 24, E55: 184, E40: 216 })
+    // 2026-11-16: 스2 사수 첫 등장 순서 40 E46 → 72 E47 → 108 E63 → 120 E65 → 144 E51(#21·#23·#24·#20).
+    expect(getStageRotationDebuts('stage2')).toMatchObject({ E37: 5, E46: 40, E47: 72, E63: 108, E65: 120, E51: 144 })
+    // 2026-11-16: 스5 E53 5 → 60(#66), E57 24 → 168(#62), E55는 스6으로(#68), E64·E68은 스3에서 받음(#32·#36).
+    expect(getStageRotationDebuts('stage5')).toMatchObject({ E48: 5, E64: 40, E53: 60, E68: 108, E57: 168, E40: 216 })
+    expect(getStageRotationDebuts('stage5')).not.toHaveProperty('E55')
   })
 
   it('감축 대상 탱커 = E05: 기본 잡몹 중 붉은 몸통(진홍 0x9a1818) + 고체력(70)인 정규 스폰 종', () => {
@@ -340,7 +347,7 @@ describe('순환 규칙 단위', () => {
     const state = createRosterRotation('stage2', { hpOf })
     const at = (type) => state.due[state.types.indexOf(type)]
     expect(at('E37')).toBe(5 + ROSTER_ROTATION_INTERVAL_SEC)
-    expect(at('E63')).toBe(72 + ROSTER_ROTATION_HEAVY_INTERVAL_SEC)
+    expect(at('E63')).toBe(108 + ROSTER_ROTATION_HEAVY_INTERVAL_SEC) // 2026-11-16 #24: 마이크줄 첫 등장 72 → 108초
     expect(pickRosterRotationType(state, 'E01', 24)).toBe('E01')
     expect(pickRosterRotationType(state, 'E01', 25)).toBe('E37')
   })
@@ -365,11 +372,12 @@ describe('순환 규칙 단위', () => {
   it('사수도 HP가 다른 host로 바로 돌아온다(2차의 계층 밖 금지 해제)', () => {
     const state = fresh('stage5')
     const e57 = state.types.indexOf('E57') // 70hp 사수
-    const e70 = state.types.indexOf('E70') // 10hp 사수
+    // 2026-11-16 좀비 배치 총검토 #65: 술래 E70은 스6으로 옮겼다 — 같은 10hp 사수 E53(물감뿌림)으로 본다.
+    const e53 = state.types.indexOf('E53') // 10hp 사수
     state.due[e57] = 0
-    state.due[e70] = 0
+    state.due[e53] = 0
     expect(pickRosterRotationType(state, 'E05', 100)).toBe('E57') // 같은 HP 우선
-    expect(pickRosterRotationType(state, 'E01', 100)).toBe('E70') // 다른 HP host도 받는다
+    expect(pickRosterRotationType(state, 'E01', 100)).toBe('E53') // 다른 HP host도 받는다
   })
 
   it(`한 웨이브(같은 시각)에 사수는 ${ROSTER_ROTATION_MAX_SHOOTERS_PER_WAVE}마리까지, 같은 종은 한 번만`, () => {
@@ -466,10 +474,11 @@ describe('저밀도 리필(정규 리스폰) 묶음 — 시계를 고정한 결�
 
   it('스1 150초: 기한이 온 신규 종이 한 묶음에 여러 종 섞이고 마릿수는 20 그대로다', () => {
     const { batch } = build('stage1', 150)
-    // 데뷔+20초(70hp E62·E56은 +30초)가 지난 종: E34(24) E66·E82(60) E35(72) E36·E77(108) E62(120→150) — 기한 순으로 E07 자리 1~7.
-    // E56(144 데뷔, 기한 174)은 기한 전이지만 10번째 자리(다채로움 몫, 5번째마다)로 들어간다. E49·E78(184)는 데뷔 전.
-    // 2026-11-15 wave 2: E90(숙제 걷기 당번)이 150초에 데뷔해 15번째 자리(E01, 다채로움 몫)를 받는다. E91(184)은 데뷔 전.
-    expect(count(batch)).toEqual({ E07: 2, E34: 1, E66: 1, E82: 1, E35: 1, E36: 1, E77: 1, E62: 1, E56: 1, E90: 1, E01: 9 })
+    // 2026-11-16 좀비 배치 총검토 뒤 데뷔+20초(70hp E56은 +30초)가 지난 종: E34(24) E35(40) E36(60) E66(72) E77(120) — 기한 순으로 E07 자리 1~5.
+    // E62·E82는 스3, E49는 스4, E78은 스6으로 옮겨 스1 순환에서 빠졌다(순환 풀 12 → 8종).
+    // E56(144 데뷔, 기한 174)은 기한 전이지만 10번째 자리(다채로움 몫, 5번째마다)로 들어간다. E91(184)은 데뷔 전.
+    // 2026-11-15 wave 2: E90(숙제 걷기 당번)이 150초에 데뷔해 15번째 자리(E01, 다채로움 몫)를 받는다.
+    expect(count(batch)).toEqual({ E07: 4, E34: 1, E66: 1, E35: 1, E36: 1, E77: 1, E56: 1, E90: 1, E01: 9 })
   })
 
   it('리필 묶음을 버리면(20마리 미만 등) 시계가 그대로라 다음 리필에 같은 종이 다시 섞인다', () => {
@@ -477,7 +486,7 @@ describe('저밀도 리필(정규 리스폰) 묶음 — 시계를 고정한 결�
     const again = buildLowDensityReinforcementBatch(first.cache, 20, () => 0.25) // 같은 캐시·같은 시각, 확정(note) 없음
     expect(count(again)).toEqual({ E07: 10, E01: 10 }) // 같은 시각엔 예약이 남아 중복 섞지 않는다
     first.cache.rosterRotationClock = () => 151
-    expect(count(buildLowDensityReinforcementBatch(first.cache, 20, () => 0.25))).toEqual({ E07: 2, E34: 1, E66: 1, E82: 1, E35: 1, E36: 1, E77: 1, E62: 1, E56: 1, E90: 1, E01: 9 })
+    expect(count(buildLowDensityReinforcementBatch(first.cache, 20, () => 0.25))).toEqual({ E07: 4, E34: 1, E66: 1, E35: 1, E36: 1, E77: 1, E56: 1, E90: 1, E01: 9 })
   })
 })
 
