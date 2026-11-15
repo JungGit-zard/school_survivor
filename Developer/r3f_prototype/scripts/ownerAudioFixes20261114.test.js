@@ -21,7 +21,10 @@ describe('2026-11-14 owner audio fixes', () => {
     expect(sha('public/sfx/events/slteraRush.ogg')).toBe(OLD_SHARK_OGG)
     expect(sha('public/sfx/events/slteraRush.mp3')).toBe(OLD_SHARK_MP3)
     const sltera = bytes('src/components/SlteraEvent.jsx').toString('utf8')
-    expect(sltera).toContain("id: 'slteraRush'")
+    // 2026-11-15 Terry: 슬테라 등장음은 전용 코믹 엔진음(slteraEngine)으로 바뀌었다 — slteraRush 파일·등록은 남지만
+    // 더는 울리지 않는다. 옛 상어 바이트가 sharkFire로 돌아오지 않는다는 것은 위 해시가 그대로 잡는다.
+    expect(sltera).toContain("id: 'slteraEngine'")
+    expect(sltera).not.toContain("id: 'slteraRush'")
     expect(sltera).not.toContain("id: 'sharkFire'")
   })
 

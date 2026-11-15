@@ -6,6 +6,8 @@
 // 지나가는 길의 좀비를 무작위로 치고, 로자리와 겹치면 질주당 1회 최대 HP 15% 피해.
 // 11-14: 등장하면 한 번 뛰어 옆으로 1회전하고 쿵 떨어진다. 차체는 단단하다 — 닿은 좀비·로자리는 박스 밖으로 밀려나고,
 // 치인 좀비·로자리는 포물선을 그리며 날아간다(규칙·수치는 lib/slteraEvent.js '치여 날아가기' 절).
+// 11-15: 질주 끝은 늘 한 방향 급가속 직선 퇴장(lib '퇴장' 절). 소리는 전부 코믹 전용 큐 — 등장 slteraEngine(부아아앙),
+// 점프 시작 slteraFlip, 착지 slteraLand, 좀비·로자리 치기 slteraCrash, 퇴장 급가속 slteraBoost. 가속 순간 차체가 뒤로 살짝 눕는다.
 // 오너 치트 '슬테라 즉시 출현'(lib/slteraInstantSpawn.js)이 이 판의 수신기를 통해 질주를 바로 시작시킨다.
 // 매 프레임 할당 없음: pass·스크래치·충돌 impact·비행 표 객체를 전부 ref로 재사용한다.
 import { useEffect, useRef } from 'react'
@@ -26,8 +28,9 @@ import {
   SLTERA_PHASE, SLTERA_PLAYER_LAUNCH_DISTANCE, SLTERA_PLAYER_LAUNCH_SEC, SLTERA_PLAYER_RADIUS, SLTERA_SHOVE_DISTANCE,
   SLTERA_SHOVE_PEAK, SLTERA_SHOVE_SEC, SLTERA_SIZE_SCALE, SLTERA_SPECIAL_RADIUS, SLTERA_ZOMBIE_LAUNCH_DISTANCE,
   SLTERA_ZOMBIE_LAUNCH_PEAK, SLTERA_ZOMBIE_LAUNCH_SEC, SLTERA_ZOMBIE_RADIUS, addSlteraLaunch, beginSlteraPass,
-  bumpSlteraOffBody, checkSlteraPlayerHit, claimSlteraThud, consumeSlteraLandingThud, consumeSlteraPassStart,
-  createSlteraLaunchTable, createSlteraRunState, getSlteraLandingSquash, getSlteraSweepBox,
+  bumpSlteraOffBody, checkSlteraPlayerHit, claimSlteraThud, consumeSlteraExitBoost, consumeSlteraJumpStart,
+  consumeSlteraLandingThud, consumeSlteraPassStart, createSlteraLaunchTable, createSlteraRunState, getSlteraExitDashSquat,
+  getSlteraLandingSquash, getSlteraSweepBox,
   hasSlteraRolled, isSlteraBodySolid, isSlteraPointOnScreen, planSlteraLaunchInto, pushOutOfSlteraBody, pushOutOfSlteraBodyWithin,
   removeSlteraLaunchAt, requestSlteraInstantPassOn, rollSlteraRunOver, slteraPlayerLaunch, startSlteraPlayerLaunch,
   stepSlteraLaunchTable, stepSlteraPass,
@@ -37,6 +40,12 @@ import SlteraCar from './SlteraCar.jsx'
 
 // 등장 점프의 옆 1회전 축 높이(차량 로컬 단위 — 차체 몸통 가운데, 바닥 0.2 ~ 지붕 0.77). 바깥 그룹만 돌린다.
 const SLTERA_ROLL_PIVOT_Y = 0.45
+// 급가속 squat: 가속 순간 차체 앞이 들리며(뒤로 눕기) 진행 방향으로 살짝 늘어난다 — 바깥 회전축 그룹만, SlteraCar 안쪽은 그대로.
+const SLTERA_BOOST_PITCH_RAD = 0.14
+const SLTERA_BOOST_STRETCH = 0.12
+// 치기 소리 피치 흔들림(0.92~1.12) — 가벼운 카운터 기반(황금비 수열), 같은 판이면 같은 순서.
+const SLTERA_CRASH_RATE_MIN = 0.92
+const SLTERA_CRASH_RATE_SPAN = 0.2
 const ARENA_WALL_INSET = 0.6 // 좀비 플레이필드 = 스테이지 경계에서 벽 두께만큼 안쪽(아래 arena는 몸 반경까지 뺀 '중심' 한계)
 
 // 넉백 경로용 impact: 맞는 자리에서 dir 반대쪽 1u를 source로 두면 기존 경로가 dir 방향으로 민다.
@@ -73,6 +82,7 @@ export default function SlteraEvent({ stageId, gameKey }) {
         minZ: -halfZ + ARENA_WALL_INSET + SLTERA_ZOMBIE_RADIUS, maxZ: halfZ - ARENA_WALL_INSET - SLTERA_ZOMBIE_RADIUS,
       },
       playerBounds: getPlayerMovementBounds(stageId),
+      crashCount: 0,
     }
   }
 
@@ -126,19 +136,23 @@ export default function SlteraEvent({ stageId, gameKey }) {
         car.scale.setScalar(SLTERA_SIZE_SCALE)
         car.visible = true
       }
-      // 튀어나오는 순간의 돌진음. 차가 화면 바로 밖에서 출발하므로 사전 예고가 아니라 등장음이다.
-      // 2026-11-14: 빌려 쓰던 sharkFire가 상어 물기 소리로 바뀌어, 옛 sharkFire 바이트를 slteraRush로 옮겨 그대로 쓴다.
-      emitSfx({ id: 'slteraRush', volume: 0.55, rate: 1.25 })
+      // 튀어나오는 순간의 스포츠카 엔진음(11-15 Terry: "부아아아앙!!"). 차가 화면 바로 밖에서 출발하므로 사전 예고가 아니라 등장음이다.
+      // (11-14의 slteraRush — 옛 sharkFire 바이트 — 는 등록만 남고 더는 울리지 않는다.)
+      emitSfx({ id: 'slteraEngine', volume: 0.6, rate: 1 })
     }
 
     stepSlteraPass(pass, delta * 1000, playerPos.x, playerPos.z, screenBounds)
 
-    // 등장 점프 착지 — 쿵(치기 쿵과 같은 소리·같은 150ms 간격 제한, 더 무겁게) + 기존 피격 화면 흔들림(감소 모션·
-    // 흔들림 설정을 그대로 따른다). 같은 프레임의 치기 쿵은 간격 제한에 막혀 겹치지 않는다.
+    // 등장 점프 시작 — 옆 1회전 '휘리릭'(질주당 한 번).
+    if (consumeSlteraJumpStart(pass)) emitSfx({ id: 'slteraFlip', volume: 0.6, rate: 1 })
+    // 등장 점프 착지 — 쾅(치기 소리와 같은 150ms 간격 제한) + 기존 피격 화면 흔들림(감소 모션·흔들림 설정을 그대로
+    // 따른다). 같은 프레임의 치기 소리는 간격 제한에 막혀 겹치지 않는다.
     if (consumeSlteraLandingThud(pass, elapsedMs)) {
-      emitSfx({ id: 'zombieGiantThud', volume: 0.8, rate: 0.85 })
+      emitSfx({ id: 'slteraLand', volume: 0.8, rate: 1 })
       if (isSlteraPointOnScreen(screenBounds, pass.x, pass.z)) emitEnemyHitScreenShake(pass.x - playerPos.x, pass.z - playerPos.z)
     }
+    // 퇴장 급가속 시작 — 끼익-쓔우웅(질주당 한 번).
+    if (consumeSlteraExitBoost(pass)) emitSfx({ id: 'slteraBoost', volume: 0.75, rate: 1 })
 
     // 좀비 — 땅 위의 차(공중 점프 중이 아님)는 단단하다. 이번 프레임 쓸고 간 박스(몸 반경만큼 넓힘)에 닿은 적마다:
     //   풀 좀비: 박스 밖으로 밀어내고, 이번 질주에서 처음 닿았으면(차 중심이 화면 안일 때) 치기를 굴려 날린다.
@@ -205,10 +219,14 @@ export default function SlteraEvent({ stageId, gameKey }) {
         if (hit) ranOver = true
       }
       if (moved) enemyPool.markSpatialChanged()
-      // 쿵 소리는 게임 시간 150ms에 한 번 — 무리를 쓸고 가면 연속 프레임마다 쳐서 쿵이 쌓이고 클리핑했다.
+      // 치기 소리는 게임 시간 150ms에 한 번 — 무리를 쓸고 가면 연속 프레임마다 쳐서 소리가 쌓이고 클리핑했다.
       // 런 시계(elapsedMs)로 잰다: 일시정지 중엔 흐르지 않고, 한 렌더 프레임에 몰아 도는 고정 스텝끼리는
-      // 같은 값이라 프레임 끊김 뒤 따라잡기 스텝에서도 한꺼번에 여러 번 울리지 않는다.
-      if (ranOver && claimSlteraThud(pass, elapsedMs)) emitSfx({ id: 'zombieGiantThud', volume: 0.6, rate: 1.1 })
+      // 같은 값이라 프레임 끊김 뒤 따라잡기 스텝에서도 한꺼번에 여러 번 울리지 않는다. 칠 때마다 피치를 살짝 흔든다.
+      if (ranOver && claimSlteraThud(pass, elapsedMs)) {
+        s.crashCount += 1
+        const rate = SLTERA_CRASH_RATE_MIN + SLTERA_CRASH_RATE_SPAN * ((s.crashCount * 0.6180339887498949) % 1)
+        emitSfx({ id: 'slteraCrash', volume: 0.6, rate })
+      }
     }
 
     // 로자리 — 피해는 질주당 1회(무적 판정은 damagePlayer의 일반 규칙). 첫 접촉에 날아가고(조작 정지·다시 안 맞음),
@@ -231,6 +249,8 @@ export default function SlteraEvent({ stageId, gameKey }) {
         }
       }
       if (!wasHit && pass.playerHit) {
+        // 로자리를 친 순간(질주당 한 번) — 좀비 치기보다 크게.
+        emitSfx({ id: 'slteraCrash', volume: 0.85, rate: 0.95 })
         const dir = s.dir
         planSlteraLaunchInto(pass, contact.x, contact.z, contact.nx, contact.nz, SLTERA_PLAYER_LAUNCH_DISTANCE, SLTERA_PLAYER_RADIUS, pass.obstacles, s.playerBounds, portalTarget, dir)
         startSlteraPlayerLaunch(slteraPlayerLaunch, dir.x, dir.z, dir.distance)
@@ -247,11 +267,15 @@ export default function SlteraEvent({ stageId, gameKey }) {
       car.rotation.y = pass.heading // 지그재그로 꺾일 때도 늘 진행 방향을 본다
       // 착지 눌림: 바닥(그룹 원점) 기준으로 세로로 눌리고 가로로 퍼졌다가 가라앉는다.
       const squash = getSlteraLandingSquash(pass) * SLTERA_LANDING_SQUASH
-      car.scale.set(SLTERA_SIZE_SCALE * (1 + squash * 0.5), SLTERA_SIZE_SCALE * (1 - squash), SLTERA_SIZE_SCALE * (1 + squash * 0.5))
+      const boost = getSlteraExitDashSquat(pass)
+      car.scale.set(SLTERA_SIZE_SCALE * (1 + squash * 0.5), SLTERA_SIZE_SCALE * (1 - squash), SLTERA_SIZE_SCALE * (1 + squash * 0.5) * (1 + boost * SLTERA_BOOST_STRETCH))
       if (pass.phase === SLTERA_PHASE.DONE) car.visible = false
     }
     const roll = rollRef.current
-    if (roll) roll.rotation.z = pass.jumpRollSign * pass.jumpRoll // 진행축(차 앞뒤) 옆 1회전, 착지 뒤 2π = 똑바로
+    if (roll) {
+      roll.rotation.z = pass.jumpRollSign * pass.jumpRoll // 진행축(차 앞뒤) 옆 1회전, 착지 뒤 2π = 똑바로
+      roll.rotation.x = -SLTERA_BOOST_PITCH_RAD * getSlteraExitDashSquat(pass) // 급가속 squat: 앞이 들리며 뒤로 눕는다
+    }
   })
 
   return (

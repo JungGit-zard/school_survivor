@@ -22,6 +22,11 @@ import {
   resetSlteraPlayerLaunch, startSlteraPlayerLaunch, stepSlteraLaunchTable, stepSlteraPlayerLaunch,
   planSlteraLaunchInto, pushOutOfSlteraBodyWithin, SLTERA_JUMP_STATE, SLTERA_MAX_PASS_SEC,
 } from './slteraEvent.js'
+import {
+  SLTERA_EXIT_DASH_AFTER_LANDING_SEC, SLTERA_EXIT_DASH_AT_MAX, SLTERA_EXIT_DASH_AT_MIN, SLTERA_EXIT_DASH_EDGE_MIN_PROGRESS,
+  SLTERA_EXIT_DASH_RAMP_SEC, SLTERA_EXIT_DASH_REASON, SLTERA_EXIT_DASH_SPEED, SLTERA_EXIT_DASH_SPEED_MULT, SLTERA_EXIT_DASH_SQUAT_SEC,
+  consumeSlteraExitBoost, consumeSlteraJumpStart, getSlteraExitDashSpeed, getSlteraExitDashSquat,
+} from './slteraEvent.js'
 import { getPlayerMovementBounds } from './playerMovementBounds.js'
 import { isPointInOrientedBox2D } from './weaponCollision.js'
 import { getStageObjectSightObstacles } from '../components/StageObjects/stageObjectColliders.js'
@@ -172,7 +177,7 @@ describe('Sltera size and speed (Terry 11-13: 2x then -30% = 1.4x the 11-08 size
     expect(isPointInOrientedBox2D(box.centerX, box.centerZ, box.yaw, OLD_HALF_WIDTH * 2, box.halfDepth, box.centerX + sideX * 0.5, box.centerZ + sideZ * 0.5)).toBe(true)
   })
 
-  it('drives at 1.5x the 11-08 speed (4.2u/s) along its actual (zigzag) path', () => {
+  it('drives at 1.5x the 11-08 speed (4.2u/s) along its actual (zigzag) path — until the exit dash', () => {
     expect(SLTERA_SPEED_SCALE).toBeCloseTo(3 / 10, 12)
     expect(SLTERA_BASE_SPEED).toBe(14)
     expect(SLTERA_SPEED).toBeCloseTo(OLD_SPEED * 1.5, 12)
@@ -180,9 +185,10 @@ describe('Sltera size and speed (Terry 11-13: 2x then -30% = 1.4x the 11-08 size
     const rand = lcg(4242)
     for (let k = 0; k < 20; k += 1) {
       const pass = beginSlteraPass(createSlteraPass(), { bounds, playerX: 0, playerZ: 0, rand })
-      let path = 0
-      runPass(pass, (p) => { path += Math.hypot(p.x - p.prevX, p.z - p.prevZ) })
-      const speed = path / (pass.elapsedMs / 1000)
+      let path = 0; let ms = 0
+      // 11-15: 퇴장 가속 전(지그재그 주행)만 잰다 — 퇴장 속도는 아래 'exit dash' 절.
+      runPass(pass, (p) => { if (!p.exitDash) { path += Math.hypot(p.x - p.prevX, p.z - p.prevZ); ms += STEP_MS } })
+      const speed = path / (ms / 1000)
       expect(speed).toBeGreaterThan(4.2 * 0.98)
       expect(speed).toBeLessThanOrEqual(4.2 * 1.0001)
     }
@@ -212,11 +218,15 @@ describe('Sltera path: diagonal, zigzag, broken-car chaos (Terry 11-08)', () => 
       }
       expect(nearCorner(pass.entryX, pass.entryZ, su, sv)).toBe(true)
       expect(nearCorner(pass.exitX, pass.exitZ, -su, -sv)).toBe(true)
+      const e0X = pass.entryX; const e0Z = pass.entryZ; const d0X = pass.dirX; const d0Z = pass.dirZ; const len0 = pass.length
       runPass(pass)
-      // 끝: 반대 모서리 쪽 화면 밖까지 가서 사라진다.
+      // 끝: 사선 뒤쪽(반대 모서리 쪽 절반)에서 급가속 직선 퇴장으로 화면 밖까지 가서 사라진다(11-15 — 그 자리에서
+      // 화면을 가장 빨리 벗어나는 쪽이라 반대 모서리 바로 그 변이 아닐 수 있다).
+      expect(pass.exitDashes).toBe(1)
+      expect((pass.exitDashStartX - e0X) * d0X + (pass.exitDashStartZ - e0Z) * d0Z).toBeGreaterThan(len0 * 0.5)
+      expect((pass.x - e0X) * d0X + (pass.z - e0Z) * d0Z).toBeGreaterThan(len0 * 0.5)
       expect(pass.progress).toBeGreaterThanOrEqual(pass.length)
       expect(carVisible(pass)).toBe(false)
-      expect(Math.sign(pass.x - cx)).toBe(-su)
     }
     expect(corners.size).toBe(4) // 네 모서리 모두에서 출발한다
   })
@@ -240,6 +250,8 @@ describe('Sltera path: diagonal, zigzag, broken-car chaos (Terry 11-08)', () => 
       const peaks = []; const peakTimes = []
       let trend = 0; let extreme = NaN; let extremeT = 0; let lo = Infinity; let hi = -Infinity
       runPass(pass, (p) => {
+        // 11-15: 급가속 직선 퇴장은 일부러 곧다 — 지그재그는 퇴장 전 구간만 본다.
+        if (p.exitDash) return
         headings.push(p.heading)
         airborne.push(p.airborne || p.jumpState === 1)
         if (!carVisible(p)) return
@@ -254,9 +266,10 @@ describe('Sltera path: diagonal, zigzag, broken-car chaos (Terry 11-08)', () => 
         if (trend > 0 ? w > extreme : w < extreme) { extreme = w; extremeT = t; return }
         if (Math.abs(w - extreme) > 0.35) { peaks.push(extreme); peakTimes.push(extremeT); trend = -trend; extreme = w; extremeT = t }
       })
-      // 지그재그: 화면 안에서 좌우로 여러 번 꺾는다(질주마다 최소 2번, 아래에서 중앙값 5번 이상).
+      // 지그재그: 화면 안에서 좌우로 여러 번 꺾는다(질주마다 최소 1번, 아래에서 중앙값 3번 이상).
       // 11-13: 11-08판 설정 그대로도 질주 200번 중 ~2%는 2번이었다 — 최소 3번은 특정 난수열에서만 성립했다.
-      expect(peaks.length).toBeGreaterThanOrEqual(2)
+      // 11-15: 사선 65~75% 지점부터 급가속 직선 퇴장이라 화면 안 지그재그 구간이 짧아졌다(중앙값 5번 → 3번, 최소 2 → 1).
+      expect(peaks.length).toBeGreaterThanOrEqual(1)
       reversals.push(peaks.length)
       // 좌우 폭·꺾임 박자는 질주 40번을 모아 아래에서 고르지 않음을 본다(한 질주의 꺾임 2~3번으로는 우연이 크다).
       allSwings.push(...peaks.slice(1).map((v, i) => Math.abs(v - peaks[i])))
@@ -273,7 +286,7 @@ describe('Sltera path: diagonal, zigzag, broken-car chaos (Terry 11-08)', () => 
       expect(maxJerk).toBeGreaterThan(0.5)
     }
     reversals.sort((a, b) => a - b)
-    expect(reversals[Math.floor(reversals.length / 2)]).toBeGreaterThanOrEqual(5)
+    expect(reversals[Math.floor(reversals.length / 2)]).toBeGreaterThanOrEqual(3)
     expect(cv(allSwings)).toBeGreaterThan(0.3)
     expect(cv(allGaps)).toBeGreaterThan(0.3)
   })
@@ -282,7 +295,12 @@ describe('Sltera path: diagonal, zigzag, broken-car chaos (Terry 11-08)', () => 
     const rand = lcg(31337)
     for (let k = 0; k < 30; k += 1) {
       const pass = beginSlteraPass(createSlteraPass(), { bounds, playerX: 0, playerZ: 0, rand })
+      let wasDash = false
       runPass(pass, (p) => {
+        // 퇴장 가속이 시작된 step은 그 step 안에서 방향을 한 번 튼다(±45° 안) — 그 step만 뺀다.
+        const dashStarted = p.exitDash && !wasDash
+        wasDash = p.exitDash
+        if (dashStarted) return
         const travel = Math.atan2(p.x - p.prevX, p.z - p.prevZ)
         expect(Math.abs(wrap(p.heading - travel))).toBeLessThan(0.12)
       })
@@ -291,7 +309,7 @@ describe('Sltera path: diagonal, zigzag, broken-car chaos (Terry 11-08)', () => 
     expect(src).toContain('car.rotation.y = pass.heading')
   })
 
-  it('stays on screen far longer than the 11-07 straight dash (≈0.75s → ≈6.6s median at 390×844 after the 11-13 1.5x speed-up)', () => {
+  it('stays on screen far longer than the 11-07 straight dash (≈0.75s → ≈4.6s median at 390×844 after the 11-15 exit dash)', () => {
     const rand = lcg(808)
     const onScreen = []
     for (let k = 0; k < 400; k += 1) {
@@ -304,12 +322,13 @@ describe('Sltera path: diagonal, zigzag, broken-car chaos (Terry 11-08)', () => 
     // 11-07판: 보이는 가로 폭(가장 넓은 위쪽 8.4u) + 차 길이 3.7u를 14u/s로 — 1초도 안 됐다.
     const oldMaxSec = (bounds.maxX - bounds.minX + SLTERA_BASE_HALF_LENGTH * 2) / SLTERA_BASE_SPEED
     expect(oldMaxSec).toBeLessThan(1)
-    // 11-08판(2.8u/s) 중앙값 ≈9.2초 → 11-13 속도 1.5배(4.2u/s)로 ≈6.6초(최소 ≈5초).
-    expect(onScreen[0]).toBeGreaterThan(4)
+    // 11-08판(2.8u/s) 중앙값 ≈9.2초 → 11-13 속도 1.5배(4.2u/s)로 ≈6.2초(최소 ≈5초) → 11-15 사선 65~75%부터 급가속
+    // 직선 퇴장으로 ≈4.6초(최소 ≈3.3초).
+    expect(onScreen[0]).toBeGreaterThan(3)
     const median = onScreen[Math.floor(onScreen.length / 2)]
-    expect(median).toBeGreaterThan(5.5)
-    expect(median).toBeLessThan(7.5)
-    expect(median / oldMaxSec).toBeGreaterThan(5)
+    expect(median).toBeGreaterThan(4)
+    expect(median).toBeLessThan(5.5)
+    expect(median / oldMaxSec).toBeGreaterThan(4)
   })
 
   it('always finishes, even on a degenerate screen', () => {
@@ -386,12 +405,12 @@ describe('Sltera run-over and Rosari damage', () => {
     // 새 질주는 첫 쿵부터 다시 즉시.
     beginSlteraPass(pass, { bounds, rand: lcg(5) })
     expect(claimSlteraThud(pass, t0 + 310)).toBe(true)
-    // 런타임은 이 게이트를 거쳐서만 쿵을 내고, 음량·피치는 그대로다.
+    // 런타임은 이 게이트를 거쳐서만 치기 소리를 낸다. 11-15: 소리는 전용 코믹 큐 slteraCrash(칠 때마다 피치 0.92~1.12),
+    // 착지는 slteraLand — 둘 다 같은 간격 제한(claimSlteraThud)을 거친다. 옛 zombieGiantThud는 더는 쓰지 않는다.
     const src = readFileSync(new URL('../components/SlteraEvent.jsx', import.meta.url), 'utf8')
-    expect(src).toContain("if (ranOver && claimSlteraThud(pass, elapsedMs)) emitSfx({ id: 'zombieGiantThud', volume: 0.6, rate: 1.1 })")
-    // 쿵은 두 곳 — 치기 쿵과 등장 점프 착지 쿵. 둘 다 같은 간격 제한(claimSlteraThud)을 거친다.
-    expect(src.match(/zombieGiantThud/g)).toHaveLength(2)
-    expect(src).toMatch(/if \(consumeSlteraLandingThud\(pass, elapsedMs\)\) \{\s+emitSfx\(\{ id: 'zombieGiantThud', volume: 0\.8, rate: 0\.85 \}\)/)
+    expect(src).toMatch(/if \(ranOver && claimSlteraThud\(pass, elapsedMs\)\) \{[^}]*emitSfx\(\{ id: 'slteraCrash', volume: 0\.6, rate \}\)/)
+    expect(src).toMatch(/if \(consumeSlteraLandingThud\(pass, elapsedMs\)\) \{\s+emitSfx\(\{ id: 'slteraLand'/)
+    expect(src).not.toContain('zombieGiantThud')
   })
 
   it('has no warning phase and only runs zombies over while the car is on screen', () => {
@@ -406,10 +425,13 @@ describe('Sltera run-over and Rosari damage', () => {
     expect(Math.hypot(pass.x - pass.entryX, pass.z - pass.entryZ)).toBeGreaterThan(0)
     expect(getSlteraSweepBox(pass, box, bounds)).toBe(false)
     let sawOnScreen = false
+    let wasDash = false
     runPass(pass, (p) => {
       const on = getSlteraSweepBox(p, box, bounds)
       expect(on).toBe(isSlteraPointOnScreen(bounds, p.x, p.z))
-      if (!on) return
+      const dashStarted = p.exitDash && !wasDash // 퇴장 방향으로 트는 step은 폭 쪽으로도 늘어난다
+      wasDash = p.exitDash
+      if (!on || dashStarted) return
       sawOnScreen = true
       // 판정박스는 차체 방향 OBB를 이번 step 이동만큼 늘린 상자 — 앞으로 달릴 땐 폭은 거의 그대로.
       expect(box.halfWidth).toBeGreaterThanOrEqual(SLTERA_HALF_WIDTH)
@@ -617,7 +639,8 @@ describe('Sltera obstacle physics (Terry 11-13: bounce back off obstacles, then 
         if (pass.bounces > 0) bounced += 1
       }
       expect(inside).toBe(0)
-      expect(bounced).toBeGreaterThan(N * 0.3) // 실제 교실·복도·체육관·급식실·교무실·운동장에서 부딪혀 튕긴다
+      // 실제 교실·복도·체육관·급식실·교무실·운동장에서 부딪혀 튕긴다(11-15 급가속 퇴장 뒤로는 뚫고 지나가 튕김이 조금 줄었다).
+      expect(bounced).toBeGreaterThan(N * 0.2)
       // 교무실(S5) 책상 섬 사이 통로(≈2.2u)는 1.73u 차체에도 넉넉하지 않아 가끔 끼임 안전장치로 뚫고 나간다.
       // 끼임 조기 탈출(같은 자리 세 번째 튕김·1.2초 제자리)도 뚫고 나가기로 센다.
       expect(brokeThrough / N).toBeLessThan(stageId === 'stage5' ? 0.25 : 0.12)
@@ -1081,12 +1104,14 @@ describe('Sltera knock-flying and solid body (Terry 11-14)', () => {
       const obstacles = [{ x: 999, z: 999, halfX: 0.1, halfZ: 0.1, rotationY: 0 }] // 튕김 로직을 켜는 먼 더미 프랍
       const pass = beginSlteraPass(createSlteraPass(), { bounds, playerX: 0, playerZ: 0, obstacles, rand })
       for (let i = 0; i < 20 + k * 4 && pass.phase !== SLTERA_PHASE.DONE; i += 1) stepSlteraPass(pass, STEP_MS)
-      if (!isSlteraBodySolid(pass) || pass.bounceLeftSec > 0) continue
+      // 급가속 퇴장 중에는 몸이 장애물이 아니다(뚫고 지나간다 — 아래 'standing bodies' 절).
+      if (!isSlteraBodySolid(pass) || pass.bounceLeftSec > 0 || pass.exitDash) continue
       const bx = pass.x + Math.sin(pass.heading) * 1.2; const bz = pass.z + Math.cos(pass.heading) * 1.2
       const beforeBounces = pass.bounces
       const wasReady = pass.jumpState === 0
       expect(bumpSlteraOffBody(pass, bx, bz, SLTERA_BOSS_RADIUS)).toBe(true)
-      expect(isCircleInSlteraBody(pass, bx, bz, SLTERA_BOSS_RADIUS)).toBe(false)
+      // 이 튕김이 차를 화면 밖으로 밀어낼 자리였다면 튕기는 대신 그 자리에서 급가속 퇴장한다(뚫고 지나감).
+      if (!pass.exitDash) expect(isCircleInSlteraBody(pass, bx, bz, SLTERA_BOSS_RADIUS)).toBe(false)
       if (pass.bounces > beforeBounces) bounced += 1
       if (wasReady && pass.jumpUrgent) hopped += 1
     }
@@ -1305,5 +1330,237 @@ describe('Sltera vs standing bodies and playfield edges (balanceqa 11-14 regress
         else expect(launches).toBeLessThanOrEqual(1)
       }
     }
+  })
+})
+
+// ── 11-15 Terry: "퇴장은 반드시 한방향으로 급가속하며 정한방향으로 직선 주행으로 사라지고 속도는 매우 빠르다" ──────────
+
+// 한 질주를 끝까지 돌리며 퇴장 가속을 기록한다. onStep(pass, dashStarted)는 매 step 뒤.
+function runAndTrackDash(pass, { dt = STEP_MS, px = NaN, pz = NaN, onStep } = {}) {
+  const t = { starts: 0, startStepOnScreen: false, heading: NaN, bouncesAtStart: -1, boosts: 0, boostAtStartStep: false, jumpStarts: 0, jumpStartAtTakeoff: false }
+  let wasDash = false; let wasAir = false
+  for (let guard = 0; guard < 100_000 && pass.phase !== SLTERA_PHASE.DONE; guard += 1) {
+    stepSlteraPass(pass, dt, px, pz)
+    const dashStarted = pass.exitDash && !wasDash
+    if (dashStarted) { t.starts += 1; t.heading = pass.heading; t.bouncesAtStart = pass.bounces }
+    if (consumeSlteraExitBoost(pass)) { t.boosts += 1; if (dashStarted) t.boostAtStartStep = true }
+    const tookOff = pass.jumps > 0 && !wasAir && (pass.airborne || pass.jumpState === SLTERA_JUMP_STATE.LANDED) && t.jumpStarts === 0
+    if (consumeSlteraJumpStart(pass)) { t.jumpStarts += 1; if (tookOff) t.jumpStartAtTakeoff = true }
+    onStep?.(pass, dashStarted)
+    wasDash = pass.exitDash
+    wasAir = pass.airborne || pass.jumpState === SLTERA_JUMP_STATE.LANDED
+  }
+  return t
+}
+
+describe('Sltera exit dash (Terry 11-15: one direction, sudden acceleration, dead straight, very fast)', () => {
+  it('uses a very fast top speed reached by a short ease-in', () => {
+    expect(SLTERA_EXIT_DASH_SPEED_MULT).toBeGreaterThanOrEqual(4)
+    expect(SLTERA_EXIT_DASH_SPEED_MULT).toBeLessThanOrEqual(5)
+    expect(SLTERA_EXIT_DASH_SPEED).toBeCloseTo(SLTERA_SPEED * SLTERA_EXIT_DASH_SPEED_MULT, 12) // ≈18.9u/s
+    expect(SLTERA_EXIT_DASH_RAMP_SEC).toBeGreaterThanOrEqual(0.15)
+    expect(SLTERA_EXIT_DASH_RAMP_SEC).toBeLessThanOrEqual(0.25)
+    expect(getSlteraExitDashSpeed(0)).toBeCloseTo(SLTERA_SPEED, 12)
+    expect(getSlteraExitDashSpeed(SLTERA_EXIT_DASH_RAMP_SEC)).toBeCloseTo(SLTERA_EXIT_DASH_SPEED, 12)
+    expect(getSlteraExitDashSpeed(5)).toBeCloseTo(SLTERA_EXIT_DASH_SPEED, 12)
+    // ease-in: 늘 빨라지고, 앞 절반에서 늘어난 속도가 뒤 절반보다 작다(처음엔 천천히, 끝에 확).
+    const vs = Array.from({ length: 21 }, (_, i) => getSlteraExitDashSpeed((i / 20) * SLTERA_EXIT_DASH_RAMP_SEC))
+    for (let i = 1; i < vs.length; i += 1) expect(vs[i]).toBeGreaterThan(vs[i - 1])
+    expect(vs[10] - vs[0]).toBeLessThan(vs[20] - vs[10])
+  })
+
+  it('every pass ends with exactly one exit dash that starts on screen — empty screen and real Stage 1-6 props, bounced runs included', () => {
+    let runs = 0; let bouncedRuns = 0
+    const check = (pass, view, t) => {
+      expect(pass.phase).toBe(SLTERA_PHASE.DONE)
+      expect(pass.exitDashes).toBe(1)
+      expect(t.starts).toBe(1)
+      expect(isSlteraPointOnScreen(view, pass.exitDashStartX, pass.exitDashStartZ)).toBe(true) // 보이는 자리에서 가속
+      expect(Object.values(SLTERA_EXIT_DASH_REASON)).toContain(pass.exitDashReason)
+      expect(pass.exitDashStartMs).toBeLessThanOrEqual(pass.elapsedMs)
+      runs += 1
+      if (pass.bounces > 0) bouncedRuns += 1
+    }
+    const rand = lcg(1115)
+    for (let k = 0; k < 300; k += 1) {
+      const pass = beginSlteraPass(createSlteraPass(), { bounds, playerX: 0, playerZ: 0, rand })
+      check(pass, bounds, runAndTrackDash(pass, { dt: k % 3 === 0 ? 50 : STEP_MS }))
+    }
+    const reasons = new Set()
+    for (const stageId of PROP_STAGE_IDS) {
+      const obstacles = getStageObjectSightObstacles(stageId)
+      const xs = obstacles.map((o) => o.x); const zs = obstacles.map((o) => o.z)
+      const minX = Math.min(...xs); const maxX = Math.max(...xs); const minZ = Math.min(...zs); const maxZ = Math.max(...zs)
+      for (let k = 0; k < 150; k += 1) {
+        let px = 0; let pz = 0
+        for (let t = 0; t < 30; t += 1) {
+          px = lerpTest(minX, maxX, rand()); pz = lerpTest(minZ, maxZ, rand())
+          if (!obstacles.some((o) => Math.abs(px - o.x) < o.halfX + 0.4 && Math.abs(pz - o.z) < o.halfZ + 0.4)) break
+        }
+        const view = { minX: px + bounds.minX, maxX: px + bounds.maxX, minZ: pz + bounds.minZ, maxZ: pz + bounds.maxZ }
+        const pass = beginSlteraPass(createSlteraPass(), { bounds: view, playerX: px, playerZ: pz, obstacles, rand })
+        check(pass, view, runAndTrackDash(pass, { dt: k % 4 === 0 ? 50 : STEP_MS, px, pz }))
+        reasons.add(pass.exitDashReason)
+      }
+    }
+    expect(runs).toBe(300 + 150 * PROP_STAGE_IDS.length)
+    expect(bouncedRuns).toBeGreaterThan(150) // 튕긴 질주도 늘 퇴장 가속으로 끝난다
+    // 정상 질주는 사선 뒤쪽에서, 튕긴 질주는 7초 퇴장 모드·끼임 탈출에서, 그 밖은 가장자리 강제 — 네 갈래 모두 실제로 쓰인다.
+    expect([...reasons].sort()).toEqual(Object.values(SLTERA_EXIT_DASH_REASON).sort())
+  })
+
+  it('a normal pass starts its dash after the landing, 65-75% along its diagonal, and never during a knock-back', () => {
+    const rand = lcg(6575)
+    let progressStarts = 0
+    for (let k = 0; k < 300; k += 1) {
+      const pass = beginSlteraPass(createSlteraPass(), { bounds, playerX: 0, playerZ: 0, rand })
+      expect(pass.exitDashAt).toBeGreaterThanOrEqual(SLTERA_EXIT_DASH_AT_MIN)
+      expect(pass.exitDashAt).toBeLessThanOrEqual(SLTERA_EXIT_DASH_AT_MAX)
+      const e0X = pass.entryX; const e0Z = pass.entryZ; const d0X = pass.dirX; const d0Z = pass.dirZ; const len0 = pass.length
+      let bouncingAtStart = false
+      runAndTrackDash(pass, { onStep: (p, started) => { if (started && p.bounceLeftSec > 0) bouncingAtStart = true } })
+      expect(bouncingAtStart).toBe(false)
+      expect(pass.exitDashStartMs - pass.landedMs).toBeGreaterThanOrEqual(SLTERA_EXIT_DASH_AFTER_LANDING_SEC * 1000 - 1e-6)
+      const frac = ((pass.exitDashStartX - e0X) * d0X + (pass.exitDashStartZ - e0Z) * d0Z) / len0
+      expect(frac).toBeGreaterThan(SLTERA_EXIT_DASH_EDGE_MIN_PROGRESS - 0.05)
+      if (pass.exitDashReason === SLTERA_EXIT_DASH_REASON.PROGRESS) {
+        progressStarts += 1
+        expect(frac).toBeGreaterThanOrEqual(SLTERA_EXIT_DASH_AT_MIN - 0.02)
+        expect(frac).toBeLessThan(SLTERA_EXIT_DASH_AT_MAX + 0.05)
+      }
+    }
+    expect(progressStarts).toBeGreaterThan(300 * 0.8) // 대부분은 정해 둔 지점에서(나머지는 그 전에 가장자리로 나가려 해 강제)
+  })
+
+  it('drives dead straight in one direction once the dash starts — no zigzag, wobble, jerks or bounces, even through props', () => {
+    const rand = lcg(4545)
+    const check = (pass, opts) => {
+      let sx = NaN; let sz = NaN; let heading = NaN; let lastProgress = -Infinity; let bounces = -1; let steps = 0
+      runAndTrackDash(pass, {
+        ...opts,
+        onStep: (p, started) => {
+          if (!p.exitDash) return
+          if (started) { sx = p.exitDashStartX; sz = p.exitDashStartZ; heading = p.heading; bounces = p.bounces; return }
+          steps += 1
+          expect(p.heading).toBe(heading) // 차 방향 한 번도 안 바뀜
+          expect(Math.atan2(p.dirX, p.dirZ)).toBeCloseTo(heading, 12)
+          // 출발점을 지나는 한 직선 위(옆으로 0 이탈), 앞으로만.
+          expect(Math.abs((p.x - sx) * p.dirZ - (p.z - sz) * p.dirX)).toBeLessThan(1e-9)
+          expect(Math.abs(wrap(Math.atan2(p.x - p.prevX, p.z - p.prevZ) - heading))).toBeLessThan(1e-9)
+          expect(p.progress).toBeGreaterThan(lastProgress)
+          lastProgress = p.progress
+          expect(p.bounces).toBe(bounces) // 퇴장 중에는 튕기지 않는다(뚫고 지나간다)
+          expect(p.bounceLeftSec).toBe(0)
+          expect(p.solid).toBe(false)
+          expect(p.airborne).toBe(false)
+        },
+      })
+      return steps
+    }
+    let dashSteps = 0
+    for (let k = 0; k < 100; k += 1) {
+      dashSteps += check(beginSlteraPass(createSlteraPass(), { bounds, playerX: 0, playerZ: 0, rand }), { dt: k % 2 ? STEP_MS : 50 })
+    }
+    for (const stageId of ['stage1', 'stage5']) {
+      const obstacles = getStageObjectSightObstacles(stageId)
+      for (let k = 0; k < 60; k += 1) {
+        const o = obstacles[(k * 7) % obstacles.length]
+        const view = { minX: o.x + 1 + bounds.minX, maxX: o.x + 1 + bounds.maxX, minZ: o.z + 1 + bounds.minZ, maxZ: o.z + 1 + bounds.maxZ }
+        dashSteps += check(beginSlteraPass(createSlteraPass(), { bounds: view, playerX: o.x + 1, playerZ: o.z + 1, obstacles, rand }), { px: o.x + 1, pz: o.z + 1 })
+      }
+    }
+    expect(dashSteps).toBeGreaterThan(500)
+  })
+
+  it('reaches ≈18.9u/s after the ramp and is gone within about a second', () => {
+    const rand = lcg(1890)
+    let maxGoneMs = 0
+    for (let k = 0; k < 200; k += 1) {
+      const pass = beginSlteraPass(createSlteraPass(), { bounds, playerX: 0, playerZ: 0, rand })
+      runAndTrackDash(pass, {
+        onStep: (p, started) => {
+          if (!p.exitDash || started || p.phase === SLTERA_PHASE.DONE) return // 끝난 step은 도중에 멈춘다
+          const v = Math.hypot(p.x - p.prevX, p.z - p.prevZ) / (STEP_MS / 1000)
+          if (p.exitDashSec >= SLTERA_EXIT_DASH_RAMP_SEC + STEP_MS / 1000) expect(v).toBeCloseTo(SLTERA_EXIT_DASH_SPEED, 6)
+          else expect(v).toBeLessThan(SLTERA_EXIT_DASH_SPEED + 1e-6)
+        },
+      })
+      maxGoneMs = Math.max(maxGoneMs, pass.elapsedMs - pass.exitDashStartMs)
+    }
+    expect(maxGoneMs).toBeLessThan(1_200)
+  })
+
+  it('cannot tunnel past Rosari or a zombie at dash speed, even at 4 fps', () => {
+    // 같은 질주(같은 난수)를 60fps로 한 번 돌려 퇴장 직선을 알아낸 뒤, 250ms step(한 step에 최대 4.7u)으로 다시 돌린다
+    // (내부 substep이 1/120초로 같아 두 경로가 같다).
+    for (let k = 0; k < 20; k += 1) {
+      const make = () => beginSlteraPass(createSlteraPass(), { bounds, playerX: 0, playerZ: 0, rand: lcg(9000 + k) })
+      const probe = make()
+      runAndTrackDash(probe)
+      const sx = probe.exitDashStartX; const sz = probe.exitDashStartZ
+      const along = Math.hypot(probe.x - sx, probe.z - sz)
+      // 퇴장 직선 위 40% 지점 로자리, 70% 지점 좀비(좀비 몸 반경).
+      const rx = sx + probe.dirX * along * 0.4; const rz = sz + probe.dirZ * along * 0.4
+      const zx = sx + probe.dirX * along * 0.7; const zz = sz + probe.dirZ * along * 0.7
+      const pass = make()
+      const box = {}
+      let hits = 0; let hitInDash = false; let zombieTouched = false
+      runAndTrackDash(pass, {
+        dt: 250,
+        onStep: (p) => {
+          if (!p.exitDash) return
+          const d = checkSlteraPlayerHit(p, rx, rz, 100)
+          if (d > 0) { hits += 1; hitInDash = true }
+          getSlteraSweepBox(p, box)
+          if (isPointInOrientedBox2D(box.centerX, box.centerZ, box.yaw, box.halfWidth + SLTERA_ZOMBIE_RADIUS, box.halfDepth + SLTERA_ZOMBIE_RADIUS, zx, zz)) zombieTouched = true
+        },
+      })
+      expect(Math.hypot(pass.exitDashStartX - sx, pass.exitDashStartZ - sz)).toBeLessThan(1e-6)
+      expect(hits).toBe(1)
+      expect(hitInDash).toBe(true)
+      expect(zombieTouched).toBe(true)
+    }
+  })
+
+  it('signals the boost and the jump start once each per pass, on the step they happen', () => {
+    const rand = lcg(4040)
+    for (let k = 0; k < 100; k += 1) {
+      const pass = beginSlteraPass(createSlteraPass(), { bounds, playerX: 0, playerZ: 0, rand })
+      expect(consumeSlteraExitBoost(pass)).toBe(false)
+      expect(consumeSlteraJumpStart(pass)).toBe(false)
+      const t = runAndTrackDash(pass, { dt: k % 2 ? STEP_MS : 50 })
+      expect(t.boosts).toBe(1)
+      expect(t.boostAtStartStep).toBe(true)
+      expect(t.jumpStarts).toBe(1)
+      expect(t.jumpStartAtTakeoff).toBe(true)
+      // 다 쓴 플래그는 다시 true가 되지 않고, 새 질주는 처음부터 다시.
+      expect(consumeSlteraExitBoost(pass)).toBe(false)
+      expect(consumeSlteraJumpStart(pass)).toBe(false)
+    }
+  })
+
+  it('leans back briefly at the boost (visual squat only) and settles', () => {
+    const pass = beginSlteraPass(createSlteraPass(), { bounds, playerX: 0, playerZ: 0, rand: lcg(33) })
+    expect(getSlteraExitDashSquat(pass)).toBe(0)
+    const seen = []
+    runAndTrackDash(pass, { onStep: (p) => seen.push(getSlteraExitDashSquat(p)) })
+    expect(Math.max(...seen)).toBeGreaterThan(0.6)
+    for (const v of seen) { expect(v).toBeGreaterThanOrEqual(0); expect(v).toBeLessThanOrEqual(1) }
+    const p2 = beginSlteraPass(createSlteraPass(), { bounds, playerX: 0, playerZ: 0, rand: lcg(33) })
+    while (!p2.exitDash) stepSlteraPass(p2, STEP_MS)
+    for (let i = 0; i < Math.ceil(SLTERA_EXIT_DASH_SQUAT_SEC / (STEP_MS / 1000)) + 1 && p2.phase !== SLTERA_PHASE.DONE; i += 1) stepSlteraPass(p2, STEP_MS)
+    expect(getSlteraExitDashSquat(p2)).toBe(0)
+  })
+
+  it('is wired: SlteraEvent plays the comic Sltera cues (engine, flip, land, crash, Rosari crash, boost) and squats the outer group', () => {
+    const src = readFileSync(new URL('../components/SlteraEvent.jsx', import.meta.url), 'utf8')
+    expect(src).toContain("emitSfx({ id: 'slteraEngine', volume: 0.6, rate: 1 })")
+    expect(src).toMatch(/if \(consumeSlteraJumpStart\(pass\)\) emitSfx\(\{ id: 'slteraFlip'/)
+    expect(src).toMatch(/if \(consumeSlteraExitBoost\(pass\)\) emitSfx\(\{ id: 'slteraBoost'/)
+    expect(src).toMatch(/if \(!wasHit && pass\.playerHit\) \{[^}]*emitSfx\(\{ id: 'slteraCrash', volume: 0\.85/)
+    expect(src.match(/id: 'slteraCrash'/g)).toHaveLength(2) // 좀비 치기 + 로자리 치기
+    expect(src).not.toMatch(/id: 'slteraRush'|zombieGiantThud/)
+    expect(src).toContain('getSlteraExitDashSquat(pass)')
+    expect(src).not.toMatch(/SlteraCar\.jsx'[\s\S]*SlteraCar[^\n]*boost/) // SlteraCar 안쪽 파츠는 건드리지 않는다
   })
 })

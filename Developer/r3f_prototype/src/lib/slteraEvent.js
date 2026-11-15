@@ -25,20 +25,21 @@
 //   핸들은 사선 방향에서 70°까지만 꺾이고 떨림을 얹어도 87°를 넘지 않아 늘 앞으로 나아가므로 질주는 반드시 끝난다.
 //   경유점은 화면이 보는 바닥(사다리꼴) 가장자리에서 0.8u 안쪽에만 둔다 — 화면 안에서 오래 비틀거린다.
 //   속도 4.2u/s(11-07판 14u/s의 3/10 = 11-08판 2.8u/s의 1.5배), 크기 7/15(11-08판 1/3의 1.4배 — 판정 길이 1.73u·
-//   폭 0.89u, 비주얼도 7/15). 세로 화면(390×844)·로자리 정지·장애물 없음 기준 화면 체류 중앙값 ≈6.4초
-//   (11-08판 ≈9.2초, 11-07판 가로 직진 ≈0.75초). 장애물 있는 실제 S1~S5에서 질주 중앙값 ≈5~6초.
+//   폭 0.89u, 비주얼도 7/15). 세로 화면(390×844)·로자리 정지·장애물 없음 기준 화면 체류 중앙값 ≈4.6초
+//   (11-15 급가속 퇴장 전 ≈6.2초, 11-08판 ≈9.2초, 11-07판 가로 직진 ≈0.75초). 장애물 있는 실제 S1~S6에서 질주 중앙값
+//   ≈4.5~4.8초(퇴장 전 ≈5.7~6.6초), 최대 ≈7.7초(퇴장 전 ≈9.7초).
 //   사선은 출발 순간 화면에 맞춘 월드 경로라 로자리가 멀리 달아나면 그만큼 일찍 화면에서 사라진다.
 //   11-13부터 차(4.2u/s)가 로자리 기본 속도(3.0u/s)보다 빠르다 — 뒤쫓기면 따라잡힐 수 있다(경로가 로자리를 쫓지는 않는다).
 //   로자리를 노리지 않는다 — 사선이 화면 가운데(로자리)를 지나므로 로자리 근처 경유점은 반대쪽으로 비킨다
-//   (SLTERA_ROSARI_*, 여유는 차 반폭이 커진 만큼 넓혔다). 가만히 선 로자리가 맞는 질주 ≈5%(장애물 없음) /
-//   실제 S1~S5 프랍 위 ≈8~14%(11-08판 ≈7%, 2배판 ≈22% — 발작·떨림·튕김으로 맞는다).
+//   (SLTERA_ROSARI_*, 여유는 차 반폭이 커진 만큼 넓혔다). 가만히 선 로자리가 맞는 질주 ≈14%(장애물 없음 — 11-14 등장
+//   점프 착지 포함, 11-15 퇴장 전후 같음) / 실제 S1~S6 프랍 위 ≈20~27%(퇴장 전 ≈21~29% — 발작·떨림·튕김·착지로 맞는다).
 // 치기:
 //   차체 판정박스(길이 1.73u, 폭 0.89u, 차가 보는 방향으로 회전)를 이번 프레임 이동만큼 늘린 영역 안의 적마다
 //   한 번만 굴림 — 65% 확률로 치어 60 피해 + 넉백, 35%는 아슬아슬하게 비켜 간다(무작위 치기).
 //   보스·마틸다는 20만. 차 중심이 화면 밖(진입·이탈 여유 구간)일 때는 치지 않는다.
 //   로자리와 겹치면 질주당 1회 최대 HP의 15% 피해(일반 무적 규칙을 따른다 — 무적 중이면 무시).
-//   치기 쿵 소리(zombieGiantThud)는 게임 시간 150ms에 한 번만 — 무리를 쓸고 가면 연속 프레임마다 쳐서
-//   쿵이 겹쳐 쌓이고 클리핑했다(보호 등급 소리라 동시 재생 캡에도 안 걸린다). claimSlteraThud 참고.
+//   치기 소리(11-15부터 코믹 전용 slteraCrash, 전에는 zombieGiantThud)는 게임 시간 150ms에 한 번만 — 무리를 쓸고 가면
+//   연속 프레임마다 쳐서 소리가 겹쳐 쌓이고 클리핑했다. claimSlteraThud 참고.
 // 등장 점프(11-14 Terry: "슬테라는 점프한 뒤 옆으로 1회전하고 쿵, 바닥에 떨어져야 한다" — 등장할 때):
 //   질주마다 정확히 한 번. 차 전체(판정박스 네 귀퉁이)가 화면이 보는 바닥 안에 처음 들어온 뒤, 꼭대기(떠 보이는
 //   자리)와 착지점까지 화면 안인 순간에 뛴다(0.6초 기다려도 그런 자리가 안 나오면 차 전체가 화면 안이기만 하면 뛴다).
@@ -47,6 +48,21 @@
 //   150ms 간격 제한) + 짧은 눌림. 공중에서는 장애물 충돌·튕김 없음(프랍 위를 넘어간다), 좀비 치기·로자리 피격 없음.
 //   착지한 step부터 평소 판정 — 좀비·로자리 위에 떨어지면 평소처럼 맞는다(로자리는 여전히 질주당 1회).
 //   착지 자리가 프랍과 겹치면 출발 때 규칙처럼 겹침이 풀릴 때까지 통과한다. 상태는 전부 pass에 있고 dt로만 진행한다.
+//   뛰는 순간을 consumeSlteraJumpStart(옆 1회전 '휘리릭' 소리)가 질주당 한 번 알린다.
+// 퇴장 — 2026-11-15 Terry: 급가속 직선 퇴장("퇴장은 반드시 한방향으로 급가속하며 정한방향으로 직선 주행으로 사라지고
+//   속도는 매우 빠르다. 이때 순간 급가속 효과음이 나야 한다"):
+//   모든 질주의 끝은 질주당 정확히 한 번의 급가속 직선 퇴장이다. 시작은 늘 차 중심이 화면 안일 때, 공중·튕겨 밀리는 중이 아닐 때:
+//     ① 정상: 착지 0.35초 뒤부터, 지금 사선의 65~75% 지점(질주마다 시드로 정함)을 지나면.
+//     ② 튕긴 질주: 기존 7초 퇴장 모드 시점(SLTERA_EXIT_MODE_SEC). 끼임 탈출(뚫고 나가기)도 곧장 퇴장 가속.
+//     ③ 강제(안전장치): 화면 안쪽(가장자리 0.5u 안)에 들어온 적이 있는 차가, 착지 뒤 첫 사선 절반을 지났거나 튕긴 뒤라면,
+//        앞 0.4u가 화면 밖이 되는 순간. 화면 가장자리 프랍에 튕겨 화면 밖으로 밀려날 자리면 튕기는 대신 그 자리에서 퇴장.
+//   방향: 시작 순간 지금 차 방향 ±45° 안 9방향 중 (출발 순간) 화면을 가장 빨리 벗어나는 쪽 하나로 정하고, 그 뒤로는
+//   그 한 방향 완전 직선 — 경유점·핸들 떨림·발작·튕김이 전부 꺼지고 프랍·보스 몸도 뚫고 지나간다(좀비 치기·로자리 피격은
+//   평소대로, 스윕 박스가 프레임 이동만큼 늘어나 빠른 속도·낮은 프레임에서도 건너뛰지 않는다).
+//   속도: 평소 4.2u/s에서 0.2초 동안 (t/0.2)² ease-in으로 평소의 4.5배 ≈18.9u/s까지(SLTERA_EXIT_DASH_*). 퇴장 시작부터
+//   사라질 때까지 대개 0.5초 안팎. 시작 순간을 consumeSlteraExitBoost(급가속 소리)가 한 번 알리고, 비주얼은 0.35초 동안
+//   차체가 뒤로 살짝 눕는다(getSlteraExitDashSquat). 퇴장 방향 고르기에 로자리 비키기는 넣지 않았다 — 사선 뒤쪽(로자리를
+//   지난 뒤)에서 시작해 가만히 선 로자리 피격률이 퇴장 전과 같다(≈14%).
 import { getStageConfig } from './stageConfig.js'
 import { isBossType } from './burstEvents.js'
 import { GAME_CAMERA_BACK, GAME_CAMERA_HEIGHT, getGameplayGroundReach } from './gameCameraFraming.js'
@@ -145,10 +161,10 @@ export const SLTERA_THUD_GAP_MS = 150 // 치기 쿵 소리 최소 간격(게임 
 //   새 방향 앞 3u가 다른 프랍에 막혀 있으면 반대 비틀기·법선·법선±35°·법선±75°(좁은 통로 따라 빠지기) 중 가장
 //   트인 쪽을 고른다(핀볼 방지). 고른 방향은 늘 장애물 면 바깥쪽(법선과 내적 > 0)이다.
 //   화면 밖으로 나가는 중에는 화면 밖 프랍을 무시한다. 면을 비스듬히 스치면 튕기지 않고 미끄러진다.
-//   끼임 안전장치(장애물 판정을 끄고 원래 운전으로 뚫고 빠져나감 — 질주는 늘 끝나고 화면 한가운데서 사라지지 않는다):
+//   끼임 안전장치(장애물 판정을 끄고 뚫고 빠져나감 — 20초 최종 장치만 원래 운전 그대로, 나머지는 급가속 직선 퇴장 — 질주는 늘 끝나고 화면 한가운데서 사라지지 않는다):
 //   튕김 8번을 다 쓰고 또 들이받을 때, 면에 막혀 0.35초 넘게 거의 못 나아갈 때, 질주 20초(최종).
-//   퇴장 모드: 한 번이라도 튕긴 질주는 7초가 되면 핸들 ±70° 안에서 화면을 가장 빨리 벗어나는 쪽으로 사선을 다시
-//   깔고 더는 튕기지 않는다 — 세로 화면 실제 S1~S5 질주 최대가 예고 비우기 12초 안에 든다.
+//   퇴장 모드: 한 번이라도 튕긴 질주는 7초가 되면(차가 화면 안일 때) 급가속 직선 퇴장을 시작하고 더는 튕기지 않는다
+//   (11-15 — 전에는 핸들 ±70° 안 새 사선으로 지그재그 퇴장) — 세로 화면 실제 S1~S6 질주 최대가 예고 비우기 12초 안에 든다.
 export const SLTERA_BOUNCE_SEC = 0.4
 export const SLTERA_BOUNCE_SPEED = 3.6
 export const SLTERA_BOUNCE_TURN_START = 0.35
@@ -167,7 +183,7 @@ export const SLTERA_STUCK_SEC = 0.35
 // 끼임(Terry 11-13 라이브: "책상 사이에 끼어서 제자리만 맴돌다가 사라진다") 조기 감지 — 둘 중 하나면 곧바로 탈출:
 //   ① 새 튕김 자리 반경 1u 안에 이전 튕김이 이미 2번 이상 → 세 번째로 튀지 않는다.
 //   ② 단단한 상태로 1.2초 넘게 반경 1u 안을 못 벗어남(정상 튕김은 ≈0.7초 안에 빠진다).
-// 탈출 = 장애물 판정을 끄고(뚫고 지나감) 퇴장 모드로 핸들 ±70° 안에서 화면을 가장 빨리 벗어나는 쪽으로 곧장 달려
+// 탈출 = 장애물 판정을 끄고(뚫고 지나감) 급가속 직선 퇴장(11-15)으로 화면을 가장 빨리 벗어나는 쪽으로 곧장 달려
 // 나간다 — 제자리에서 돌지 않고, 화면 안에서 사라지지 않는다(끝은 늘 차 전체가 화면 밖일 때).
 export const SLTERA_WEDGE_RADIUS = 1
 export const SLTERA_WEDGE_BOUNCES = 2
@@ -183,6 +199,19 @@ export const SLTERA_JUMP_TOP = 1.1 * SLTERA_SIZE_SCALE // 차 지붕(운전자 �
 export const SLTERA_LANDING_SQUASH = 0.25 // 착지 눌림: 세로 최대 25% 눌리고 가로는 그 절반만큼 퍼진다
 export const SLTERA_LANDING_SQUASH_SEC = 0.22
 export const SLTERA_JUMP_STATE = Object.freeze({ READY: 0, AIR: 1, LANDED: 2 })
+// 급가속 직선 퇴장(11-15, 파일 머리 주석 '퇴장' 절). 속도는 평소(4.2u/s)의 배수, 가속은 짧은 ease-in.
+export const SLTERA_EXIT_DASH_SPEED_MULT = 4.5
+export const SLTERA_EXIT_DASH_SPEED = SLTERA_SPEED * SLTERA_EXIT_DASH_SPEED_MULT // ≈18.9u/s
+export const SLTERA_EXIT_DASH_RAMP_SEC = 0.2 // 4.2 → 18.9u/s, (t/0.2)² ease-in
+export const SLTERA_EXIT_DASH_AT_MIN = 0.65 // 정상 질주: 사선 진행 65~75% 지점에서(질주마다 다르게)
+export const SLTERA_EXIT_DASH_AT_MAX = 0.75
+export const SLTERA_EXIT_DASH_AFTER_LANDING_SEC = 0.35 // 착지 쿵과 급가속이 붙어 울리지 않게
+export const SLTERA_EXIT_DASH_TURN_RAD = (45 * Math.PI) / 180 // 지금 차 방향에서 ±45° 안에서 퇴장 방향을 고른다
+export const SLTERA_EXIT_DASH_ARM_INSET = 0.5 // 차 중심이 화면 가장자리에서 이만큼 안에 한 번 들어온 뒤부터 강제 퇴장 감시
+export const SLTERA_EXIT_DASH_LOOKAHEAD = 0.4 // 강제 퇴장: 차 앞 0.4u(≈0.1초 거리)가 화면 밖이면 지금 퇴장(지그재그 꺾임은 안 건드린다)
+export const SLTERA_EXIT_DASH_EDGE_MIN_PROGRESS = 0.5 // 강제 퇴장은 첫 사선 절반을 지난 뒤부터(튕긴 질주는 늘)
+export const SLTERA_EXIT_DASH_SQUAT_SEC = 0.35 // 급가속 순간 차체가 뒤로 눕는(squat) 비주얼 길이
+export const SLTERA_EXIT_DASH_REASON = Object.freeze({ PROGRESS: 'progress', EXIT_MODE: 'exitMode', ESCAPE: 'escape', EDGE: 'edge' })
 const OBSTACLE_RESOLVE_ITERATIONS = 8
 const OBSTACLE_SKIN = 1e-4
 
@@ -332,7 +361,18 @@ export function createSlteraPass() {
     jumpTakeoffX: NaN, jumpTakeoffZ: NaN,
     landedMs: -Infinity, // 착지 시각(질주 시계 ms)
     landingThudPending: false, // 착지 쿵을 아직 안 냈다
+    jumpStartPending: false, // 점프(옆 1회전) 시작 소리를 아직 안 냈다
     jumpView: null, // 뛸 자리 판정에 쓰는 화면(런타임은 지금 화면, 없으면 출발 순간 화면)
+    // 급가속 직선 퇴장(11-15).
+    exitDash: false, // 퇴장 질주 중(한 방향 직선, 지그재그·떨림·발작·튕김 없음)
+    exitDashes: 0, // 이번 질주에서 퇴장 가속이 시작된 횟수(늘 0 또는 1)
+    exitDashSec: 0, // 퇴장 가속 시작 뒤 흐른 시간(초)
+    exitDashAt: 0.7, // 정상 질주가 퇴장을 시작하는 사선 진행 비율(0.65~0.75)
+    exitDashArmed: false, // 차 중심이 화면 안쪽(가장자리 0.5u 안)에 들어온 적이 있다 — 강제 퇴장 감시 시작
+    exitDashReason: null, // SLTERA_EXIT_DASH_REASON
+    exitDashStartMs: NaN,
+    exitDashStartX: NaN, exitDashStartZ: NaN,
+    exitBoostPending: false, // 급가속 소리를 아직 안 냈다
   }
 }
 
@@ -512,7 +552,19 @@ export function beginSlteraPass(pass, { bounds, playerX = NaN, playerZ = NaN, ob
   pass.jumpTakeoffZ = NaN
   pass.landedMs = -Infinity
   pass.landingThudPending = false
+  pass.jumpStartPending = false
   pass.jumpView = pass.view
+  // 급가속 퇴장 상태. 퇴장 지점 비율은 시드 비트에서 뽑는다(rand 순서 그대로, 0번 비트는 회전 방향이 쓴다).
+  pass.exitDash = false
+  pass.exitDashes = 0
+  pass.exitDashSec = 0
+  pass.exitDashAt = lerp(SLTERA_EXIT_DASH_AT_MIN, SLTERA_EXIT_DASH_AT_MAX, ((pass.rngState >>> 1) & 1023) / 1023)
+  pass.exitDashArmed = false
+  pass.exitDashReason = null
+  pass.exitDashStartMs = NaN
+  pass.exitDashStartX = NaN
+  pass.exitDashStartZ = NaN
+  pass.exitBoostPending = false
   return pass
 }
 
@@ -617,6 +669,17 @@ function slteraClearRun(pass, x, z, heading) {
   return SLTERA_BOUNCE_CLEAR_ENOUGH
 }
 
+// 이 튕김(면 법선 nx,nz)이 차 중심을 화면 밖으로 밀어내나 — 화면 가장자리 근처 프랍에 부딪혀 퇴장 가속 없이 화면 밖으로
+// 튕겨 사라지지 않게, 그런 자리에서는 튕기는 대신 곧바로 급가속 퇴장한다(11-15). 밀리는 방향은 startSlteraBounce와 같다.
+function slteraBounceLeavesView(pass, nx, nz) {
+  if (!pass.exitDashArmed || pass.airborne) return false
+  let kx = -Math.sin(pass.heading); let kz = -Math.cos(pass.heading)
+  if (kx * nx + kz * nz < 0.25) { kx = nx; kz = nz }
+  const kl = Math.hypot(kx, kz) || 1
+  const d = SLTERA_BOUNCE_DISTANCE + SLTERA_EXIT_DASH_LOOKAHEAD
+  return !isSlteraPointOnScreen(pass.view, pass.x + (kx / kl) * d, pass.z + (kz / kl) * d)
+}
+
 // 튕김 시작: 부딪히기 전 진행 반대쪽으로 밀리고, 끝나면 면에 반사(+비틀기)한 새 방향으로 간다.
 function startSlteraBounce(pass, nx, nz) {
   const fx = Math.sin(pass.heading)
@@ -678,36 +741,128 @@ function replanSlteraAfterBounce(pass) {
   pass.progress = 0
 }
 
-// 퇴장 모드(튕긴 질주가 SLTERA_EXIT_MODE_SEC를 넘김): 지금 핸들에서 ±70° 안의 방향 중 화면을 가장 빨리 벗어나는
-// 쪽을 새 사선으로 깔고, 더는 튕기지 않는다(정면으로 박으면 뚫고 지나감). 튕김이 이어져 질주가 길어져도
-// 마틸다 예고 비우기(SLTERA_DEADLINE_CLEAR_MS) 안에 끝나게 한다. 핸들 제한(사선 ±70°) 안이라 차체가 확 돌지 않는다.
-function startSlteraExit(pass) {
+// 급가속 직선 퇴장(11-15 Terry: "퇴장은 반드시 한방향으로 급가속하며 정한방향으로 직선 주행으로 사라지고 속도는
+// 매우 빠르다"). 모든 퇴장 경로(정상 질주의 사선 65~75% 지점, 튕긴 질주 7초 퇴장 모드, 끼임 탈출, 화면 가장자리 강제)가
+// 여기로 온다 — 질주당 한 번. 지금 차 방향 ±45° 안(9방향)에서 화면(출발 순간 화면)을 가장 빨리 벗어나는 쪽을 고르고,
+// 그 뒤로는 그 한 방향 완전 직선(경유점·핸들 떨림·발작 없음), 장애물·몸에 튕기지 않고 뚫고 지나간다. 좀비 치기·
+// 로자리 피격은 평소대로(늘어난 스윕 박스가 프레임 이동을 덮는다).
+function startSlteraExitDash(pass, reason) {
+  if (pass.exitDash) return
   pass.exiting = true
-  let bestHeading = pass.steer
+  let bestHeading = pass.heading
   let best = Infinity
   for (let k = -4; k <= 4; k += 1) {
-    const heading = pass.steer + (k / 4) * SLTERA_MAX_DEVIATION_RAD
+    const heading = pass.heading + (k / 4) * SLTERA_EXIT_DASH_TURN_RAD
     const d = slteraDistanceToLeaveView(pass.view, pass.x, pass.z, Math.sin(heading), Math.cos(heading))
     if (d < best - 1e-9) { best = d; bestHeading = heading }
   }
+  bestHeading = wrapAngle(bestHeading)
   const dirX = Math.sin(bestHeading)
   const dirZ = Math.cos(bestHeading)
   pass.entryX = pass.x
   pass.entryZ = pass.z
   pass.dirX = dirX
   pass.dirZ = dirZ
-  pass.diagHeading = wrapAngle(bestHeading)
+  pass.diagHeading = bestHeading
+  pass.steer = bestHeading
+  pass.heading = bestHeading
   pass.length = best + SLTERA_EDGE_MARGIN
   pass.exitX = pass.x + dirX * pass.length
   pass.exitZ = pass.z + dirZ * pass.length
-  planSlteraZigzag(pass, pass.view, 0, pass.playerX, pass.playerZ, pass.rng)
+  pass.waypointCount = 0
+  pass.waypoint = 0
   pass.progress = 0
+  pass.jerkLeftSec = 0
+  pass.blockedSec = 0
+  pass.solid = false // 퇴장 중에는 프랍·몸과 부딪히지 않는다(뚫고 지나감)
+  pass.exitDash = true
+  pass.exitDashes += 1
+  pass.exitDashSec = 0
+  pass.exitDashReason = reason
+  pass.exitDashStartMs = pass.elapsedMs
+  pass.exitDashStartX = pass.x
+  pass.exitDashStartZ = pass.z
+  pass.exitBoostPending = true
+}
+
+/** 퇴장 가속 시작 뒤 sec초의 속도(u/s): 평소 속도에서 SLTERA_EXIT_DASH_RAMP_SEC 동안 (t/ramp)² ease-in으로 최고 속도까지. */
+export function getSlteraExitDashSpeed(sec) {
+  const u = !(sec > 0) ? 0 : sec >= SLTERA_EXIT_DASH_RAMP_SEC ? 1 : sec / SLTERA_EXIT_DASH_RAMP_SEC
+  return SLTERA_SPEED + (SLTERA_EXIT_DASH_SPEED - SLTERA_SPEED) * u * u
+}
+
+/** 급가속 squat 세기(0..1): 가속 순간 빠르게 1까지(앞 15%) 올랐다가 SLTERA_EXIT_DASH_SQUAT_SEC 동안 가라앉는다. 비주얼 전용. */
+export function getSlteraExitDashSquat(pass) {
+  if (!pass.exitDash || pass.phase === SLTERA_PHASE.DONE) return 0
+  const u = pass.exitDashSec / SLTERA_EXIT_DASH_SQUAT_SEC
+  if (!(u > 0) || u >= 1) return 0
+  return u < 0.15 ? u / 0.15 : ((1 - u) / 0.85) ** 2
+}
+
+// 지금 퇴장을 시작해야 하나(땅 위 substep 끝, 아직 퇴장 전). 반환 = 이유 또는 null.
+// 차 중심이 화면(출발 순간 화면) 안일 때만 — 퇴장 가속은 늘 보이는 자리에서 시작한다.
+function getSlteraExitDashTrigger(pass) {
+  if (pass.exitDash || pass.airborne || pass.bounceLeftSec > 0) return null
+  const view = pass.view
+  if (!isSlteraPointOnScreen(view, pass.x, pass.z)) return null
+  if (!pass.exitDashArmed && isSlteraPointOnScreen(view, pass.x, pass.z, SLTERA_EXIT_DASH_ARM_INSET)) pass.exitDashArmed = true
+  // ① 정상: 점프·착지가 끝나고(착지 0.35초 뒤) 지금 사선의 65~75% 지점을 지났다(튕겨 다시 깐 사선이면 그 사선 기준).
+  const landed = pass.jumpState === SLTERA_JUMP_STATE.LANDED && pass.elapsedMs - pass.landedMs >= SLTERA_EXIT_DASH_AFTER_LANDING_SEC * 1000
+  if (landed && pass.progress >= pass.exitDashAt * pass.length) return SLTERA_EXIT_DASH_REASON.PROGRESS
+  // ② 튕긴 질주: 7초 퇴장 모드 시점(마틸다 예고 비우기 안에 끝나게).
+  if (pass.bounces > 0 && pass.elapsedMs >= SLTERA_EXIT_MODE_SEC * 1000) return SLTERA_EXIT_DASH_REASON.EXIT_MODE
+  // ③ 강제: 화면 안쪽에 들어온 적이 있는 차가 화면 가장자리로 나가려 한다(앞 0.4u가 화면 밖) — 퇴장 없이 사라지지 않게.
+  //    등장 점프 전에는 보지 않는다 — 차는 늘 화면 안에서 먼저 뛴다(뛰기 전에 화면을 떠나는 질주는 없다). 첫 사선은 절반을
+  //    지난 뒤부터 본다 — 모서리→모서리 사선 앞쪽에서 가장자리로 삐져나간 지그재그는 경유점(화면 안)을 따라 되돌아오므로
+  //    그 꺾임까지 퇴장으로 끊지 않는다. 튕겨 다시 깐 사선은 튕긴 자리에서 곧장 화면 밖으로 향하므로 늘 본다.
+  const edgeWatch = pass.bounces > 0
+    || (pass.jumpState === SLTERA_JUMP_STATE.LANDED && pass.progress >= SLTERA_EXIT_DASH_EDGE_MIN_PROGRESS * pass.length)
+  if (pass.exitDashArmed && edgeWatch) {
+    const lx = pass.x + Math.sin(pass.heading) * SLTERA_EXIT_DASH_LOOKAHEAD
+    const lz = pass.z + Math.cos(pass.heading) * SLTERA_EXIT_DASH_LOOKAHEAD
+    if (!isSlteraPointOnScreen(view, lx, lz)) return SLTERA_EXIT_DASH_REASON.EDGE
+  }
+  return null
+}
+
+// 퇴장 질주 substep: 고른 한 방향으로 직선, 속도만 가속 곡선을 따른다(구간 중간값으로 적분).
+function dashSlteraSubstep(pass, h) {
+  const speed = getSlteraExitDashSpeed(pass.exitDashSec + h / 2)
+  pass.exitDashSec += h
+  pass.x += pass.dirX * speed * h
+  pass.z += pass.dirZ * speed * h
+  pass.distance += speed * h
+  pass.progress = (pass.x - pass.entryX) * pass.dirX + (pass.z - pass.entryZ) * pass.dirZ
+  finishSlteraIfGone(pass)
+}
+
+// 끝: 도착점을 지났고 차 전체가 화면 밖일 때만. 도착점을 4u 넘게 지나도 아직 보이면(화면 가장자리를 따라
+// 비스듬히 가는 중) 사라지지 않고 계속 달린다. 최종 안전장치 SLTERA_MAX_PASS_SEC(정상 질주는 닿지 않는다).
+function finishSlteraIfGone(pass) {
+  const offScreen = !isSlteraPointOnScreen(pass.view, pass.x, pass.z, -SLTERA_OFFSCREEN_PAD)
+  if (pass.progress >= pass.length && offScreen) pass.phase = SLTERA_PHASE.DONE
+  else if (!(pass.progress < pass.length + SLTERA_EXIT_OVERRUN) && offScreen) pass.phase = SLTERA_PHASE.DONE
+  else if (!(pass.elapsedMs < SLTERA_MAX_PASS_SEC * 1000)) pass.phase = SLTERA_PHASE.DONE
+}
+
+/** 퇴장 급가속 소리. 퇴장 가속이 시작된 뒤 한 번만 true. */
+export function consumeSlteraExitBoost(pass) {
+  if (!pass.exitBoostPending) return false
+  pass.exitBoostPending = false
+  return true
+}
+
+/** 점프(옆 1회전) 시작 소리. 뛴 뒤 한 번만 true. */
+export function consumeSlteraJumpStart(pass) {
+  if (!pass.jumpStartPending) return false
+  pass.jumpStartPending = false
+  return true
 }
 
 // 장애물 처리: 겹침은 늘 밀어내고, 장애물 쪽으로 달려들다 부딪혔으면 튕김을 시작한다.
 // 붙어 있는 프랍 사이 틈처럼 밀어내기로 못 빠지는 자리면 이번 substep 이동을 되돌린다(before = 직전의 안 겹친 상태).
 function collideSlteraWithObstacles(pass, h, beforeX, beforeZ, beforeHeading) {
-  if (!pass.obstacles || pass.brokeThrough) return
+  if (!pass.obstacles || pass.brokeThrough || pass.exitDash) return
   const contact = _contact
   if (pass.elapsedMs >= SLTERA_OBSTACLE_MAX_SEC * 1000) {
     breakSlteraThrough(pass) // 최종 안전장치(정상 질주는 여기까지 오지 않는다)
@@ -759,6 +914,7 @@ function collideSlteraWithObstacles(pass, h, beforeX, beforeZ, beforeHeading) {
     if (carShown) { pass.jumpUrgent = true; return } // 아직 안 뛰었다 — 튕기지 않고 뛰어 넘는다
     // 튕김을 다 썼거나 퇴장 모드이거나 같은 자리에서 또 튀려 하면(끼임) 곧장 뚫고 빠져나간다.
     if (pass.bounces >= SLTERA_MAX_BOUNCES || pass.exiting || countSlteraBouncesNear(pass) >= SLTERA_WEDGE_BOUNCES) escapeSltera(pass)
+    else if (slteraBounceLeavesView(pass, hitNX, hitNZ)) startSlteraExitDash(pass, SLTERA_EXIT_DASH_REASON.EDGE)
     else startSlteraBounce(pass, hitNX, hitNZ)
     return
   }
@@ -784,7 +940,7 @@ function countSlteraBouncesNear(pass) {
 function escapeSltera(pass) {
   breakSlteraThrough(pass)
   if (pass.bounceLeftSec > 0) pass.escapePending = true
-  else startSlteraExit(pass)
+  else startSlteraExitDash(pass, SLTERA_EXIT_DASH_REASON.ESCAPE)
 }
 
 // 반경 1u 체류 감시: 단단한 상태로 1.2초 넘게 제자리 근처면 끼임.
@@ -895,7 +1051,7 @@ function isSlteraJumpReadable(pass, view) {
 
 // 땅 위 substep 끝: 아직 안 뛰었고 차 전체가 화면 안이면 뛴다(꼭대기·착지점까지 보이는 자리를 0.6초까지 기다린다).
 function tryStartSlteraJump(pass, h) {
-  if (pass.jumpState !== SLTERA_JUMP_STATE.READY || pass.bounceLeftSec > 0) return false
+  if (pass.jumpState !== SLTERA_JUMP_STATE.READY || pass.bounceLeftSec > 0 || pass.exitDash) return false
   const view = pass.jumpView || pass.view
   if (!isSlteraCarOnScreen(view, pass.x, pass.z, pass.heading)) return false
   if (!pass.jumpUrgent && !isSlteraJumpReadable(pass, view)) {
@@ -916,6 +1072,7 @@ function tryStartSlteraJump(pass, h) {
   pass.jumpTakeoffZ = pass.z
   pass.blockedSec = 0
   pass.solid = false // 공중에서는 프랍과 부딪히지 않는다(넘어간다)
+  pass.jumpStartPending = true
   return true
 }
 
@@ -969,6 +1126,10 @@ function driveSlteraSubstep(pass, h) {
     airSlteraSubstep(pass, h)
     return
   }
+  if (pass.exitDash) {
+    dashSlteraSubstep(pass, h)
+    return
+  }
   const t = pass.elapsedMs / 1000
   const beforeX = pass.x
   const beforeZ = pass.z
@@ -976,17 +1137,17 @@ function driveSlteraSubstep(pass, h) {
   if (pass.bounceLeftSec > 0) {
     const done = bounceSlteraSubstep(pass, h, t)
     collideSlteraWithObstacles(pass, h, beforeX, beforeZ, beforeHeading)
-    if (done) {
+    // 튕김이 끝나는 substep에 충돌 처리가 이미 급가속 퇴장을 시작했으면(끼임 탈출 등) 그 직선을 다시 깔지 않는다.
+    if (done && !pass.exitDash) {
       replanSlteraAfterBounce(pass)
       if (pass.escapePending) {
         pass.escapePending = false
-        startSlteraExit(pass)
+        startSlteraExitDash(pass, SLTERA_EXIT_DASH_REASON.ESCAPE)
       }
     }
-    if (!pass.brokeThrough) watchSlteraWedge(pass)
+    if (!pass.brokeThrough && !pass.exitDash) watchSlteraWedge(pass)
     return
   }
-  if (!pass.exiting && pass.bounces > 0 && pass.elapsedMs >= SLTERA_EXIT_MODE_SEC * 1000) startSlteraExit(pass)
   // 다음 경유점(다 지났으면 도착점 너머)을 향해 핸들(steer)을 꺾는다.
   const k = pass.waypoint
   const beyond = SLTERA_EXIT_OVERRUN
@@ -1015,18 +1176,19 @@ function driveSlteraSubstep(pass, h) {
   pass.z += Math.cos(heading) * SLTERA_SPEED * h
   pass.distance += SLTERA_SPEED * h
   collideSlteraWithObstacles(pass, h, beforeX, beforeZ, beforeHeading)
-  if (!pass.brokeThrough) watchSlteraWedge(pass)
+  if (!pass.brokeThrough && !pass.exitDash) watchSlteraWedge(pass)
   if (pass.bounceLeftSec > 0) return // 방금 부딪혔다 — 끝 판정은 튕김 뒤 새 경로로
   pass.progress = (pass.x - pass.entryX) * pass.dirX + (pass.z - pass.entryZ) * pass.dirZ
   while (pass.waypoint < pass.waypointCount && pass.progress >= pass.wpU[pass.waypoint]) pass.waypoint += 1
   if (tryStartSlteraJump(pass, h)) return // 차 전체가 화면 안 — 끝날 리 없다
-  // 끝: 도착점을 지났고 차 전체가 화면 밖일 때만. 도착점을 4u 넘게 지나도 아직 보이면(화면 가장자리를 따라
-  // 비스듬히 가는 중) 사라지지 않고 계속 달린다 — 사선 ±87° 안으로만 가므로 결국 화면을 벗어난다.
-  // 최종 안전장치 SLTERA_MAX_PASS_SEC(정상 질주는 닿지 않는다).
-  const offScreen = !isSlteraPointOnScreen(pass.view, pass.x, pass.z, -SLTERA_OFFSCREEN_PAD)
-  if (pass.progress >= pass.length && offScreen) pass.phase = SLTERA_PHASE.DONE
-  else if (!(pass.progress < pass.length + SLTERA_EXIT_OVERRUN) && offScreen) pass.phase = SLTERA_PHASE.DONE
-  else if (!(pass.elapsedMs < SLTERA_MAX_PASS_SEC * 1000)) pass.phase = SLTERA_PHASE.DONE
+  // 급가속 직선 퇴장(11-15): 조건이 맞으면 이 substep 끝에서 시작 — 다음 substep부터 한 방향 직선.
+  const dashReason = getSlteraExitDashTrigger(pass)
+  if (dashReason) {
+    startSlteraExitDash(pass, dashReason)
+    return
+  }
+  // 퇴장 전에 끝나는 경우(화면에 한 번도 안 들어온 질주 등) — 사선 ±87° 안으로만 가므로 결국 화면을 벗어난다.
+  finishSlteraIfGone(pass)
 }
 
 /**
@@ -1380,6 +1542,8 @@ export function bumpSlteraOffBody(pass, bx, bz, radius) {
       pass.jumpUrgent = true
     } else if (pass.bounces >= SLTERA_MAX_BOUNCES || countSlteraBouncesNear(pass) >= SLTERA_WEDGE_BOUNCES) {
       escapeSltera(pass) // 프랍과 같은 끼임 규칙: 튕김을 다 썼거나 같은 자리에서 또 튀려 하면 뚫고 빠져나간다
+    } else if (slteraBounceLeavesView(pass, nx, nz)) {
+      startSlteraExitDash(pass, SLTERA_EXIT_DASH_REASON.EDGE) // 화면 밖으로 튕겨 나가는 대신 급가속 퇴장
     } else {
       pass.contactNX = nx
       pass.contactNZ = nz
@@ -1529,7 +1693,8 @@ export function consumeSlteraPassStart(run, stageId, gameKey, elapsedMs) {
 
 // 자연 질주가 탈출구·마틸다 예고(getSlteraDeadlineMs)와 겹치지 않게 비우는 간격. 세로 화면 질주 최대보다 길게:
 // 11-13(크기 7/15·속도 1.5배·장애물 튕김) 실제 S1~S6 프랍 위 질주 최대 ≈9.8초(S6 운동장 프랍 포함 2,400회 프로브, 튕긴 질주는 7초부터
-// 퇴장 모드 — SLTERA_EXIT_MODE_SEC). 장애물 없는 질주는 ≈8초 이하. slteraEvent.test.js가 12초 미만을 지킨다.
+// 퇴장 모드 — SLTERA_EXIT_MODE_SEC). 11-15 급가속 직선 퇴장 뒤로는 최대 ≈7.7초(1,800회), 장애물 없는 질주는 ≈7초 이하.
+// slteraEvent.test.js가 12초 미만을 지킨다.
 // balanceqa 11-08: 3번째 질주(185~195초 시작)가 205초 예고와 겹칠 수 있었다.
 export const SLTERA_DEADLINE_CLEAR_MS = 12_000
 
