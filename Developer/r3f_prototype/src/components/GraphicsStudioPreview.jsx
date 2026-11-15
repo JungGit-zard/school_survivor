@@ -73,7 +73,7 @@ import { EraserModel } from './Weapons/EraserBomb.jsx'
 import { BoxCutterModel } from './Weapons/BoxCutter.jsx'
 import { ChibikoModel } from './Weapons/Chibiko.jsx'
 import { HanakoModel } from './Weapons/Hanako.jsx'
-import { InuconModel } from './Weapons/Inucon.jsx'
+import { INUCON_COMPANION_SCALE, InuconModel } from './Weapons/Inucon.jsx'
 import { SharkMissileModel, FlameTrail } from './Weapons/SharkMissile.jsx'
 import { MissileBody } from './Weapons/Missile.jsx'
 import { StudentLanternVisual } from './Weapons/StudentLantern.jsx'
@@ -397,7 +397,8 @@ function WeaponModelPreview({ type }) {
   }
   if (type === 'inucon') {
     return (
-      <group scale={[0.265, 0.265, 0.265]}>
+      // 게임(InuconWeapon)과 같은 배율. 예전 0.265는 스튜디오에서만 작게 보였다.
+      <group scale={[INUCON_COMPANION_SCALE, INUCON_COMPANION_SCALE, INUCON_COMPANION_SCALE]}>
         <InuconModel />
       </group>
     )

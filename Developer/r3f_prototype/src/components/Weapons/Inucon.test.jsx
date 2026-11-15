@@ -11,6 +11,13 @@ import {
   computeInuconGuardFrame,
   getInuconVisualState,
   selectInuconFainted,
+  computeEvenOutlineScale,
+  INUCON_FACE_Z,
+  INUCON_HEAD_FRONT_Z,
+  INUCON_FOOT_MODEL_Y,
+  INUCON_GROUND_Y,
+  INUCON_GHOST_GRADIENT,
+  INUCON_GHOST_FIRST_PART_INDICES,
 } from './Inucon.jsx'
 
 describe('Inucon companion scale', () => {
@@ -40,7 +47,8 @@ describe('Inucon push VFX', () => {
 
 describe('Inucon fainted ghost visual', () => {
   it('shows a halo with translucent materials only while fainted, read from store inucon.fainted', () => {
-    expect(getInuconVisualState(true)).toEqual({ fainted: true, opacity: 0.45, transparent: true, depthWrite: false, halo: true })
+    // 2026-11-15: 흰 한 덩어리 유령 — 깊이 기록 + 불투명 큐(CustomBlending으로만 반투명), 안쪽 파츠가 비치지 않는다.
+    expect(getInuconVisualState(true)).toEqual({ fainted: true, opacity: 0.72, transparent: false, depthWrite: true, halo: true })
     expect(getInuconVisualState(false)).toEqual({ fainted: false, opacity: 1, transparent: false, depthWrite: true, halo: false })
     expect(selectInuconFainted({})).toBe(false)
     expect(selectInuconFainted({ inucon: { fainted: true } })).toBe(true)
@@ -102,5 +110,64 @@ describe('Inucon guard effect', () => {
     expect(effect).not.toMatch(/Points|Sprite|emissive/)
     expect(effect).toContain('subscribeInuconGuard(')
     expect(source).toContain('<InuconGuardEffect inuconPosRef={posRef} />')
+  })
+})
+
+// Terry 2026-11-15 점검 후속: 얼굴·외곽선·목도리·유령·발 높이·스튜디오 배율.
+describe('Inucon visual fixes (2026-11-15)', () => {
+  const source = readFileSync(new URL('./Inucon.jsx', import.meta.url), 'utf8')
+  const model = source.slice(source.indexOf('export function InuconModel'), source.indexOf('export const INUCON_COMPANION_SCALE'))
+
+  it('keeps the face plane flush with the front of the head', () => {
+    expect(INUCON_FACE_Z - INUCON_HEAD_FRONT_Z).toBeGreaterThan(0)
+    expect(INUCON_FACE_Z - INUCON_HEAD_FRONT_Z).toBeLessThanOrEqual(0.02)
+    expect(source).toContain('position={[0, 1.265, INUCON_FACE_Z]}')
+    expect(source).not.toContain('position={[0, 1.265, 0.525]}')
+  })
+
+  it('gives every part the same outline thickness on every axis', () => {
+    // 길쭉한 몸통(0.21×0.75×0.18)과 가는 팔(0.065×0.265×0.065)이 같은 두께를 받는다.
+    const thickness = (half, scale) => half.map((h, i) => +(h * (scale[i] - 1)).toFixed(6))
+    const body = thickness([0.21, 0.75, 0.18], computeEvenOutlineScale([0.21, 0.75, 0.18]))
+    const arm = thickness([0.065, 0.265, 0.065], computeEvenOutlineScale([0.065, 0.265, 0.065]))
+    expect(new Set([...body, ...arm]).size).toBe(1)
+    // 그룹 scale로 납작하게 누른 축도 월드 두께가 같다.
+    const squashed = computeEvenOutlineScale([0.065, 0.265, 0.065], [1, 1, 0.82])
+    expect(+(0.065 * 0.82 * (squashed[2] - 1)).toFixed(6)).toBe(body[0])
+    expect(model).not.toMatch(/outlineScale=/)
+    expect(source.match(/scale=\{outlineScale\}/g)).toHaveLength(3)
+  })
+
+  it('centres the scarf on the torso and fits its width', () => {
+    const scarf = model.match(/<CapsulePart radius=\{([\d.]+)\} length=\{([\d.]+)\} position=\{\[([^\]]+)\]\} rotation=\{\[0, 0, Math\.PI \/ 2\]\} scale=\{\[([^\]]+)\]\} material=\{scarfMat\}/)
+    expect(scarf).not.toBeNull()
+    const [radius, length] = [Number(scarf[1]), Number(scarf[2])]
+    const [x] = scarf[3].split(',').map(Number)
+    const [, sy] = scarf[4].split(',').map(Number)
+    expect(x).toBe(-0.02) // 몸통 중심
+    const width = (length + radius * 2) * sy
+    expect(width).toBeGreaterThanOrEqual(0.42)
+    expect(width).toBeLessThanOrEqual(0.48)
+  })
+
+  it('draws the ghost bright white with two toon steps, head and body first', () => {
+    expect(INUCON_GHOST_GRADIENT).toHaveLength(2)
+    INUCON_GHOST_GRADIENT.forEach((hex) => expect(parseInt(hex.slice(1, 3), 16)).toBeGreaterThanOrEqual(0xd0))
+    expect(INUCON_GHOST_FIRST_PART_INDICES).toEqual([0, 4])
+    expect(source).toContain('m.blending = THREE.CustomBlending')
+  })
+
+  it('puts the feet on the ground at the lowest bob', () => {
+    const lowest = INUCON_GROUND_Y - 0.025 + (INUCON_FOOT_MODEL_Y - 0.035) * INUCON_COMPANION_SCALE
+    expect(lowest).toBeGreaterThanOrEqual(-0.001)
+    expect(lowest).toBeLessThan(0.02)
+    expect(source).toContain('groupRef.current.position.set(posRef.current.x, INUCON_GROUND_Y + bob, posRef.current.z)')
+  })
+
+  it('shows the Studio preview at the same scale as the game', () => {
+    const studio = readFileSync(new URL('../GraphicsStudioPreview.jsx', import.meta.url), 'utf8')
+    const block = studio.slice(studio.indexOf("if (type === 'inucon')"), studio.indexOf("if (type === 'guidedMissile')"))
+    expect(block).toContain('scale={[INUCON_COMPANION_SCALE, INUCON_COMPANION_SCALE, INUCON_COMPANION_SCALE]}')
+    expect(block).not.toContain('scale={[0.265')
   })
 })
