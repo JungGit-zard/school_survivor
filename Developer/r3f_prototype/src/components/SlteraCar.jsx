@@ -24,7 +24,12 @@ export const SLTERA_COLORS = Object.freeze({
   cockpit: 0x111216,
   seat: 0x1c1c22,
   glass: 0x26323e,
-  driver: 0x2c2c34,
+  // 운전자(양키): 피부 · 흰 코트 · 붉은 머리띠 · 검은 리젠트 머리 · 검은 선글라스
+  skin: 0xf0c29a,
+  coat: 0xf6f6f0,
+  band: 0xd81e28,
+  hair: 0x141418,
+  shades: 0x0c0c12,
   tire: 0x17171a,
   rim: 0x363b42,
   headlight: 0xeaf4ff,
@@ -65,16 +70,61 @@ export const SLTERA_FENDERS = Object.freeze([
 const FENDER_THETA = Math.PI * 0.42
 
 // 검은 칵핏 묶음(한 메시로 병합, 정점색): [key, shape, size, position, rotation, colorKey, outlined]
-// shape: rbox(둥근 상자) | box | capsule([반지름, 길이]) | ball([반지름])
+// shape: rbox(둥근 상자) | box | capsule([반지름, 길이, 캡 분할=2, 둘레=8]) | ball([반지름, 세분=1]) | ellip([rx, ry, rz, 세분=1])
+//        | cyl([윗반지름, 아랫반지름, 높이, 둘레 분할=10])
 export const SLTERA_DARK_PARTS = Object.freeze([
   ['cockpit', 'box', [0.9, 0.08, 1.16], [0, 0.745, -0.24], [0, 0, 0], 'cockpit', false],
   ['windshield', 'box', [1.12, 0.5, 0.035], [0, 0.835, 0.3], [-1.1, 0, 0], 'glass', true],
   ['seatL', 'rbox', [0.36, 0.44, 0.13], [0.22, 0.9, -0.66], [-0.22, 0, 0], 'seat', true],
   ['seatR', 'rbox', [0.36, 0.44, 0.13], [-0.22, 0.9, -0.66], [-0.22, 0, 0], 'seat', true],
-  ['driverBody', 'capsule', [0.13, 0.12], [0.22, 0.88, -0.46], [-0.15, 0, 0], 'driver', true],
-  ['driverHead', 'ball', [0.115], [0.22, 1.11, -0.44], [0, 0, 0], 'driver', true],
+  ['steeringWheel', 'cyl', [0.085, 0.085, 0.02, 8], [0.22, 0.9, -0.2], [-1.0, 0, 0], 'seat', false],
   ['diffuser', 'box', [1.0, 0.1, 0.08], [0, 0.24, -1.76], [0, 0, 0], 'cockpit', false],
 ])
+
+// 팔다리: 두 관절 점(from → to)을 잇는 캡슐 한 줄을 모듈 로드 때 한 번 계산한다.
+function limb(key, from, to, radius, colorKey) {
+  const a = new THREE.Vector3(...from)
+  const b = new THREE.Vector3(...to)
+  const dir = b.clone().sub(a)
+  const length = dir.length()
+  const e = new THREE.Euler().setFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir.normalize()))
+  const c = a.add(b).multiplyScalar(0.5)
+  // 가는 팔이라 캡 분할 1·둘레 6이면 충분하다(삼각형 절약).
+  return Object.freeze([key, 'capsule', [radius, length, 1, 6], [c.x, c.y, c.z], [e.x, e.y, e.z], colorKey, true])
+}
+
+// 운전석의 양키(Terry 2026-11-15): 앞으로 길게 튀어나온 검은 리젠트 + 붉은 머리띠(뒤로 날리는 꼬리 2가닥)
+// + 깃을 세운 긴 흰 코트(자락이 좌석 뒤로 날림) + 선글라스. 한 팔은 핸들, 다른 팔은 문턱에 걸친 건들 자세.
+// 일반적인 양키 스타일만 쓴다(특정 인물·기존 캐릭터 복제 아님). 게임에서는 차가 약 0.47배로 작아지므로
+// 리젠트·머리띠·흰 어깨는 일부러 과장했다. 형식은 SLTERA_DARK_PARTS와 같고 같은 정점색 메시에 병합된다.
+export const SLTERA_DRIVER_PARTS = Object.freeze([
+  // 흰 코트: 넓은 어깨 상체 + 세운 깃 + 좌석 위로 뒤로 날리는 두 갈래 자락
+  ['coatBody', 'ellip', [0.17, 0.16, 0.12], [0.22, 0.9, -0.47], [-0.15, 0, 0], 'coat', true],
+  ['coatCollar', 'cyl', [0.108, 0.09, 0.085, 8], [0.22, 1.035, -0.455], [-0.12, 0, 0], 'coat', true],
+  // 자락은 등받이 꼭대기를 넘어 뒤 데크 위로 비스듬히 떠서 날린다(등받이를 뚫지 않게 꼭대기보다 높게 시작).
+  ['coatTailL', 'box', [0.15, 0.022, 0.42], [0.29, 1.09, -0.83], [-0.4, -0.2, 0], 'coat', true],
+  ['coatTailR', 'box', [0.15, 0.022, 0.4], [0.15, 1.08, -0.82], [-0.46, 0.2, 0], 'coat', true],
+  // 팔: 안쪽 팔은 핸들 10시 방향, 바깥 팔은 문턱 위로 팔꿈치를 걸치고 손을 차 밖으로 늘어뜨린다.
+  limb('armWheel', [0.09, 0.99, -0.45], [0.155, 0.945, -0.185], 0.042, 'coat'),
+  ['handWheel', 'ball', [0.036, 0], [0.155, 0.945, -0.18], [0, 0, 0], 'skin', true],
+  limb('armSillUpper', [0.36, 0.99, -0.47], [0.53, 0.8, -0.44], 0.044, 'coat'),
+  limb('armSillFore', [0.53, 0.8, -0.44], [0.6, 0.77, -0.25], 0.04, 'coat'),
+  ['handSill', 'ball', [0.036, 0], [0.61, 0.765, -0.22], [0, 0, 0], 'skin', true],
+  // 머리: 피부 얼굴 + 선글라스, 뒤·옆을 덮는 검은 머리, 이마 앞으로 길게 뻗어 끝이 위로 말린 리젠트, 짧은 덕테일
+  ['head', 'ball', [0.1], [0.22, 1.11, -0.44], [0, 0, 0], 'skin', true],
+  ['shades', 'box', [0.16, 0.036, 0.03], [0.22, 1.105, -0.348], [0, 0, 0], 'shades', false],
+  ['hairCap', 'ellip', [0.106, 0.085, 0.1], [0.22, 1.16, -0.455], [0, 0, 0], 'hair', true],
+  ['regent', 'ellip', [0.088, 0.072, 0.19], [0.22, 1.22, -0.27], [-0.18, 0, 0], 'hair', true],
+  ['regentCurl', 'ellip', [0.08, 0.06, 0.065], [0.22, 1.27, -0.105], [-0.5, 0, 0], 'hair', true],
+  ['duckTail', 'ellip', [0.06, 0.04, 0.075, 0], [0.22, 1.09, -0.56], [0.45, 0, 0], 'hair', true],
+  // 붉은 머리띠(하치마키): 이마를 두른 띠 + 뒤통수 매듭 + 뒤로 날리는 꼬리 두 가닥(고정 포즈)
+  ['headband', 'cyl', [0.115, 0.115, 0.036, 10], [0.22, 1.15, -0.445], [0, 0, 0], 'band', true],
+  ['headbandKnot', 'ball', [0.032, 0], [0.22, 1.15, -0.565], [0, 0, 0], 'band', true],
+  ['headbandTailUp', 'box', [0.055, 0.014, 0.22], [0.245, 1.175, -0.67], [0.3, -0.3, 0], 'band', true],
+  ['headbandTailDown', 'box', [0.055, 0.014, 0.2], [0.195, 1.125, -0.66], [-0.15, 0.28, 0], 'band', true],
+])
+// 운전자 조각의 외곽선은 차체보다 살짝 얇게(작은 조각이 검은 덩어리로 뭉개지지 않게).
+export const SLTERA_DRIVER_OUTLINE_THICKNESS = 0.02
 
 // 발광 파츠(예고 훅 소유): [key, size, position, rotation, colorKey, glow]
 // 앞: 펜더 앞 경사에 비스듬히 박힌 가는 램프 두 개(실제 차량 램프 형상 복제 아님).
@@ -163,8 +213,10 @@ function buildFenderGeometry([cx, cy, cz], [rx, ry, rz]) {
 
 function darkPartGeometry(shape, size) {
   if (shape === 'rbox') return roundedBoxLite(size)
-  if (shape === 'capsule') return new THREE.CapsuleGeometry(size[0], size[1], 2, 8)
-  if (shape === 'ball') return new THREE.IcosahedronGeometry(size[0], 1)
+  if (shape === 'capsule') return new THREE.CapsuleGeometry(size[0], size[1], size[2] ?? 2, size[3] ?? 8)
+  if (shape === 'ball') return new THREE.IcosahedronGeometry(size[0], size[1] ?? 1)
+  if (shape === 'ellip') return new THREE.IcosahedronGeometry(1, size[3] ?? 1).scale(size[0], size[1], size[2])
+  if (shape === 'cyl') return new THREE.CylinderGeometry(size[0], size[1], size[2], size[3] ?? 10)
   return new THREE.BoxGeometry(size[0], size[1], size[2])
 }
 // 등받이처럼 작은 판은 각만 살짝 굴린 가벼운 상자로 충분하다(RoundedBox보다 삼각형이 적다).
@@ -247,12 +299,16 @@ export function getSlteraGeometries() {
   // 검은 묶음: 칵핏 파츠 + 타이어 + 림(정점색)
   const darkPieces = []
   const darkHullPieces = []
-  const pushDark = (geometry, colorKey, outlined) => {
-    if (outlined) darkHullPieces.push(buildHull(geometry))
+  const pushDark = (geometry, colorKey, outlined, thickness = SLTERA_OUTLINE_THICKNESS) => {
+    if (outlined) darkHullPieces.push(buildHull(geometry, thickness))
     darkPieces.push(withColor(geometry, SLTERA_COLORS[colorKey]))
   }
   for (const [, shape, size, position, rotation, colorKey, outlined] of SLTERA_DARK_PARTS) {
     pushDark(placed(darkPartGeometry(shape, size), position, rotation), colorKey, outlined)
+  }
+  // 운전자도 같은 정점색 메시·같은 외곽선 헐에 병합한다(드로우콜 증가 없음). 차 그룹의 자식이라 점프 옆 1회전을 그대로 따른다.
+  for (const [, shape, size, position, rotation, colorKey, outlined] of SLTERA_DRIVER_PARTS) {
+    pushDark(placed(darkPartGeometry(shape, size), position, rotation), colorKey, outlined, SLTERA_DRIVER_OUTLINE_THICKNESS)
   }
   // 펜더 안쪽 휠하우스: 펜더 캡을 조금 줄여 안쪽을 보게 뒤집은 어두운 면(열린 캡 너머로 외곽선 헐이 비치지 않게).
   for (const [, center, radii] of SLTERA_FENDERS) pushDark(insideOut(buildFenderGeometry(center, radii.map((r) => r * 0.97))), 'cockpit', false)

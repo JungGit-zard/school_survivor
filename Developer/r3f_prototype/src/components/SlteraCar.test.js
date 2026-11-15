@@ -3,8 +3,8 @@ import { readFileSync } from 'node:fs'
 import { getStudioItemById } from '../lib/graphicsStudioConfig.js'
 import { getPreviewFrame } from './GraphicsStudioPreview.jsx'
 import {
-  SLTERA_BODY_PROFILE, SLTERA_COLORS, SLTERA_DARK_PARTS, SLTERA_FENDERS, SLTERA_GLOW_PARTS, SLTERA_LABEL,
-  SLTERA_MAKER_LABEL, SLTERA_TELEGRAPH_MS, SLTERA_WHEELS, getSlteraGeometries, slteraTelegraphGlow,
+  SLTERA_BODY_PROFILE, SLTERA_COLORS, SLTERA_DARK_PARTS, SLTERA_DRIVER_PARTS, SLTERA_FENDERS, SLTERA_GLOW_PARTS,
+  SLTERA_LABEL, SLTERA_MAKER_LABEL, SLTERA_TELEGRAPH_MS, SLTERA_WHEELS, getSlteraGeometries, slteraTelegraphGlow,
 } from './SlteraCar.jsx'
 
 const tris = (g) => (g.index ? g.index.count : g.attributes.position.count) / 3
@@ -63,6 +63,60 @@ describe('Sltera parody car visual', () => {
     expect(SLTERA_COLORS.tailBar >> 16).toBeGreaterThan(0xe0)
   })
 
+  it('seats a yankee driver: forward regent, red headband with two tails, white long coat with a raised collar', () => {
+    const part = (key) => SLTERA_DRIVER_PARTS.find((p) => p[0] === key)
+    const colorOf = (key) => SLTERA_COLORS[part(key)[5]]
+    const head = part('head')
+    const [hx, hy, hz] = head[3]
+    const headR = head[2][0]
+    expect(colorOf('head')).toBe(SLTERA_COLORS.skin)
+    // regent: black, sticks out ahead of the forehead by more than the head's diameter and rises above the head
+    const regent = part('regent'); const curl = part('regentCurl')
+    expect(colorOf('regent')).toBe(SLTERA_COLORS.hair); expect(colorOf('regentCurl')).toBe(SLTERA_COLORS.hair)
+    const regentTipZ = Math.max(regent[3][2] + regent[2][2], curl[3][2] + curl[2][2])
+    expect(regentTipZ - (hz + headR)).toBeGreaterThan(headR * 2)
+    expect(curl[3][1]).toBeGreaterThan(regent[3][1]) // the tip curls upward
+    expect(part('duckTail')[3][2]).toBeLessThan(hz - headR * 0.9) // a short ducktail behind the head
+    // red hachimaki: a band around the forehead plus two tails streaming back from the knot
+    expect(colorOf('headband')).toBe(SLTERA_COLORS.band)
+    expect(SLTERA_COLORS.band >> 16).toBeGreaterThan(0xc0)
+    expect(part('headband')[2][0]).toBeGreaterThan(headR)
+    const tails = SLTERA_DRIVER_PARTS.filter((p) => p[0].startsWith('headbandTail'))
+    expect(tails).toHaveLength(2)
+    for (const t of tails) { expect(SLTERA_COLORS[t[5]]).toBe(SLTERA_COLORS.band); expect(t[3][2]).toBeLessThan(hz - headR) }
+    // white long coat: body, raised collar around the neck, and coat tails flying back over the seat
+    for (const key of ['coatBody', 'coatCollar', 'coatTailL', 'coatTailR', 'armWheel', 'armSillUpper', 'armSillFore']) expect(colorOf(key)).toBe(SLTERA_COLORS.coat)
+    expect(SLTERA_COLORS.coat & 0xff).toBeGreaterThan(0xe8)
+    expect(part('coatCollar')[3][1] + part('coatCollar')[2][2] / 2).toBeGreaterThan(hy - headR) // collar stands up past the jaw
+    const seatZ = SLTERA_DARK_PARTS.find((p) => p[0] === 'seatL')[3][2]
+    for (const key of ['coatTailL', 'coatTailR']) expect(part(key)[3][2]).toBeLessThan(seatZ - 0.1)
+    // one hand on the wheel, the other arm hanging over the door sill
+    const wheel = SLTERA_DARK_PARTS.find((p) => p[0] === 'steeringWheel')[3]
+    expect(Math.hypot(...part('handWheel')[3].map((v, i) => v - wheel[i]))).toBeLessThan(0.11)
+    expect(part('handSill')[3][0]).toBeGreaterThan(0.55)
+    expect(colorOf('handWheel')).toBe(SLTERA_COLORS.skin)
+    expect(colorOf('shades')).toBe(SLTERA_COLORS.shades)
+  })
+
+  it('keeps the driver clear of the windshield and merged into the existing cockpit mesh', () => {
+    // windshield top edge (box half-height rotated about X)
+    const ws = SLTERA_DARK_PARTS.find((p) => p[0] === 'windshield')
+    const half = ws[2][1] / 2; const rx = ws[4][0]
+    const wsTop = { y: ws[3][1] + half * Math.cos(rx), z: ws[3][2] + half * Math.sin(rx) }
+    for (const [, shape, size, [, y, z]] of SLTERA_DRIVER_PARTS) {
+      const reach = shape === 'ellip' ? Math.max(...size) : shape === 'capsule' ? size[0] + size[1] / 2 : Math.max(...size.slice(0, 3))
+      // every driver piece stays behind the windshield's top edge (no hair poking into the glass)
+      expect(z + reach).toBeLessThan(wsTop.z)
+      expect(y).toBeGreaterThan(0.7)
+    }
+    // the whole driver lives in the dark vertex-color mesh: no extra draw calls
+    const { dark } = getSlteraGeometries()
+    const b = box(dark)
+    expect(b.max.y).toBeGreaterThan(1.3) // regent crest is the new top of the car
+    expect(b.max.y).toBeLessThan(1.4)
+    expect(source).not.toMatch(/driverBody|driverHead/)
+  })
+
   it('pulses the light bar and headlights harder as the 1,400 ms telegraph progresses', () => {
     expect(SLTERA_TELEGRAPH_MS).toBe(1400)
     const idle = { ...slteraTelegraphGlow(-1, 0, {}) }
@@ -77,8 +131,9 @@ describe('Sltera parody car visual', () => {
     expect(getSlteraGeometries()).toBe(geos)
     const model = tris(geos.silver) + tris(geos.dark) + tris(geos.head) + tris(geos.tail) + tris(geos.wordmark)
     const rendered = model + tris(geos.silverHull) + tris(geos.darkHull) + tris(geos.tailHull)
-    expect(model).toBeLessThan(3000)
-    expect(rendered).toBeLessThan(3000) // including the outline hulls
+    // 2026-11-15: the yankee driver (regent, headband, white coat) raised the total from ~2.8k to ~4.0k triangles
+    expect(model).toBeLessThan(2500)
+    expect(rendered).toBeLessThan(4200) // including the outline hulls
     // one <mesh> per shared geometry: 4 materials + 3 outline hulls + wordmark
     expect(source.match(/<mesh /g)).toHaveLength(8)
     expect(source).not.toMatch(/<(planeGeometry|boxGeometry|sphereGeometry|cylinderGeometry)/)
