@@ -101,7 +101,7 @@ import {
   isNovel2ExpansionTypeCode,
   isNovel2ImplementedTypeCode,
 } from './novelZombie2Content.js'
-import { E90_CODE, E99_CODE, N2_STATE_TELEGRAPH, createNovel2Result, createNovel2Runtime } from './novelZombie2Behavior.js'
+import { E90_CODE, E91_CODE, E99_CODE, N2_STATE_ATTACK, N2_STATE_TELEGRAPH, createNovel2Result, createNovel2Runtime } from './novelZombie2Behavior.js'
 // 행동 신호음(2026-11-14). 시뮬레이션은 "무슨 일이 일어났다"만 알리고 소리 선택·간격·거리 감쇠는
 // enemyAbilitySfx.js가 소유한다. 그 모듈은 throw하지 않고 Math.random을 쓰지 않는다(결정성 유지).
 import {
@@ -888,6 +888,11 @@ export class EnemySimulationRuntime {
         groanZ = posZ
       }
 
+      // 잠든 E91 미믹(바닥 책)과 예고·돌진 중인 E92 머리는 넉백으로 날아가지 않는다 — 자리가 고정이다.
+      // 미믹은 맞으면 이번 걸음에서 깨어난다(그 뒤로는 넉백을 다시 받는다). 머리의 예고선은 시작 순간 자리·방향으로 그려져 있다.
+      if (pool.knockbackTimer[index] > 0 && (type === E91_CODE && novel2.isDormant(index) || novel2.isTrainLocked(pool, index))) {
+        pool.knockbackTimer[index] = 0
+      }
       if (isScreenRunner(type)) {
         velocityX = pool.runDirX[index] * ENEMY_RUNTIME_SPEED[type]
         velocityZ = pool.runDirZ[index] * ENEMY_RUNTIME_SPEED[type]
@@ -1108,8 +1113,18 @@ export class EnemySimulationRuntime {
         velocityZ = originalX / length * speed * sign
       }
 
+      // 자리 고정(무리 밀어내기·이동·끼임 순간이동을 받지 않는다): 잠든 E91 미믹, 예고 중인 E92 머리.
+      // 예고·돌진 중인 E92 머리(trainCharge)는 밀어내기만 받지 않고, 이동 뒤 도착점이 예고선 밖이면 돌진을 취소한다(아래).
+      const pinned = type === E91_CODE && novel2.isDormant(index)
+        || novel2.isTrainLocked(pool, index) && pool.state[index] === N2_STATE_TELEGRAPH
+      const trainCharge = !pinned && novel2.isTrainLocked(pool, index) && pool.state[index] === N2_STATE_ATTACK
+      if (pinned) {
+        velocityX = 0
+        velocityZ = 0
+        moving = false
+      }
       // 인접 3x3 셀에서 최대 24명만 조사해 밀집 상태도 O(N²)로 악화되지 않게 한다.
-      if (!this.grid.overflow[index]) {
+      if (!pinned && !trainCharge && !this.grid.overflow[index]) {
         let neighbors = 0
         for (let cellZ = this.grid.cellZ[index] - 1; cellZ <= this.grid.cellZ[index] + 1 && neighbors < 24; cellZ += 1) {
           if (cellZ < 0 || cellZ >= this.grid.cellsZ) continue
@@ -1147,7 +1162,10 @@ export class EnemySimulationRuntime {
       let nextX = posX
       let nextZ = posZ
       let moveClear = false
-      if (!ignoreObstacles && obstacleCount > 0 && obstacles) {
+      if (pinned) {
+        // 자리 고정: 움직이지 않는다(아래 끼임 판정도 moving false라 건너뛴다).
+        moveClear = true
+      } else if (!ignoreObstacles && obstacleCount > 0 && obstacles) {
         const tangentSign = pool.detourSign[index] || (((index + generation) & 1) === 0 ? 1 : -1)
         moveClear = moveEnemyWithObstacleSlideInto(this._positionScratch, posX, posZ, velocityX, velocityZ, delta, radius,
           obstacles, obstacleCount, halfX, halfZ, allowOuterBounds, tangentSign)
@@ -1158,11 +1176,23 @@ export class EnemySimulationRuntime {
         nextX = this._positionScratch.x
         nextZ = this._positionScratch.z
       }
+      if (trainCharge) {
+        // E92 돌진: 장애물 미끄러짐·벽 클램프가 경로를 바꿨거나 도착점이 그려진 예고선 밖이면 이번 프레임 이동을 버리고 돌진을 취소한다.
+        // 같은 프레임 안에서 판정하므로 머리 접촉 판정(0.4u)이 폭 1.1u 선 밖으로 나가지 않는다. 끼임 순간이동도 없다.
+        const deviation = Math.hypot(nextX - (posX + velocityX * delta), nextZ - (posZ + velocityZ * delta))
+        if (deviation > 1e-3 || !novel2.trainChargeKeepsLine(pool, index, nextX, nextZ)) {
+          nextX = posX
+          nextZ = posZ
+          novel2.cancelTrainCharge(pool, index)
+        }
+        pool.stuckMs[index] = 0
+        pool.detourMs[index] = 0
+      }
       const movedX = nextX - posX
       const movedZ = nextZ - posZ
       const overlapAfterMove = !ignoreObstacles && obstacleCount > 0 && obstacles
         && !moveClear && collidesEnemyObstacle(nextX, nextZ, radius, obstacles, obstacleCount)
-      if (moving && (velocityX !== 0 || velocityZ !== 0) && (movedX * movedX + movedZ * movedZ < ENEMY_STUCK_MOVE_EPSILON_SQ || overlapAfterMove)) {
+      if (!trainCharge && moving && (velocityX !== 0 || velocityZ !== 0) && (movedX * movedX + movedZ * movedZ < ENEMY_STUCK_MOVE_EPSILON_SQ || overlapAfterMove)) {
         pool.stuckMs[index] += deltaMs
         if (pool.stuckMs[index] >= ENEMY_STUCK_DETOUR_MS) {
           pool.detourSign[index] = ((index + generation) & 1) === 0 ? 1 : -1

@@ -157,7 +157,7 @@ describe('Stage 2 좀비 시간표 Stage 1 앵커 재배열', () => {
   // 혼합 보강 4×17 → 경량 2회가 감축의 대부분이다. 마릿수는 224 → 95로 스1(92)과 나란히 맞췄다.
   it('Stage 2 비보스 좀비 payload·마릿수·적용 HP는 1.3배 사다리 예산에 맞춰 재편성된다', () => {
     // 치프(2026-11-15 E92 기관사)는 사다리 밖 순증이라 여기서 빼고 아래 치프 단언이 따로 못박는다.
-    expect(STAGE2_BURST_EVENTS.filter((event) => isChiefType(event.type))).toEqual([{ sec: 120, type: 'E92', count: 1 }])
+    expect(STAGE2_BURST_EVENTS.filter((event) => isChiefType(event.type))).toEqual([{ sec: 144, type: 'E92', count: 1 }])
     const ordinary = stageZombieEvents(STAGE2_BURST_EVENTS).filter((event) => !isChiefType(event.type))
 
     expect(ordinary.map(payloadWithoutSec)).toEqual([
@@ -775,13 +775,15 @@ describe('스테이지 총체력 1.3배 사다리 (스1 앵커 고정)', () => {
     .filter((event) => !isChiefType(event.type))
     .reduce((sum, event) => sum + eventTotalHp(event, stageId), 0)
 
-  // 2026-11-15: Stage 1 반장(E89)만 base 240(기준 봇 119판 처치 0회 → 초보가 보상에 닿게). 다른 치프는 400 × 배수 그대로.
-  it('치프는 스테이지마다 작성 행 1개·몸 수만큼이고, 순증은 base × 스테이지 배수다(Stage 1 E89 = 240)', () => {
+  // 2026-11-15: 치프 실효 HP는 balanceqa wave 2 권고값 — 스1 E89 120, 스2 E92 머리 120, 스3 E95 몸 40(두 몸 80).
+  it('치프는 스테이지마다 작성 행 1개·몸 수만큼이고, 순증은 base × 스테이지 배수다(E89 120 · E92 120 · E95 몸 40)', () => {
     const chiefRows = (stageId) => getRuntimeBurstEventsForStage(stageId).filter((event) => isChiefType(event.type))
     expect(chiefRows('stage1')).toEqual([{ sec: 108, type: 'E89', count: 1 }])
-    expect(Math.round(NOVEL2_ZOMBIE_STATS.E89.hp * STAGE_HP_MULTIPLIER.stage1)).toBe(240)
-    // 2026-11-15 wave 2: Stage 2 E92 기관사(머리 1 — 객차 E01 6기는 머리가 직접 세운다), Stage 3 E95 줄넘기 듀오(몸 2).
-    expect(chiefRows('stage2')).toEqual([{ sec: 120, type: 'E92', count: 1 }])
+    expect(Math.round(NOVEL2_ZOMBIE_STATS.E89.hp * STAGE_HP_MULTIPLIER.stage1)).toBe(120)
+    expect(Math.round(NOVEL2_ZOMBIE_STATS.E92.hp * STAGE_HP_MULTIPLIER.stage2)).toBe(120)
+    expect(Math.round(NOVEL2_ZOMBIE_STATS.E95.hp * STAGE_HP_MULTIPLIER.stage3)).toBe(40)
+    // 2026-11-15 wave 2: Stage 2 E92 기관사(머리 1 — 객차 E01은 머리가 직접 세운다, 144초 앵커), Stage 3 E95 줄넘기 듀오(몸 2).
+    expect(chiefRows('stage2')).toEqual([{ sec: 144, type: 'E92', count: 1 }])
     expect(chiefRows('stage3')).toEqual([{ sec: 110, type: 'E95', count: 2 }])
     for (const stageId of ['stage2', 'stage3', 'stage4', 'stage5']) {
       const rows = chiefRows(stageId)

@@ -116,7 +116,7 @@ describe('치프 계층', () => {
       expect(isBossType(id)).toBe(false)
     }
     expect(CHIEF_ELITE_BONUS.E89).toEqual({ textbook: 2, textbookXp: 45, gold: 2 })
-    expect(NOVEL2_ZOMBIE_STATS.E89.hp).toBe(240)
+    expect(NOVEL2_ZOMBIE_STATS.E89.hp).toBe(120) // 2026-11-15 balanceqa wave 2 권고(400 → 240 → 120)
     const ledger = createChiefDebutLedger()
     expect(admitChiefSpawn(ledger, 'E89')).toBe(true)
     expect(admitChiefSpawn(ledger, 'E89')).toBe(false)

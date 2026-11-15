@@ -450,6 +450,19 @@ export function isHealableTypeCode(typeCode) {
 const healBudget = new Float32Array(256)
 const healGeneration = new Uint16Array(256)
 
+// 회복·방패를 받지 않는 개체(슬롯 세대 기록, -1 = 없음). 같은 타입이라도 개체 단위로 뺀다 —
+// 2차 신규 E92 기관사의 객차(E01)가 E56·E84 회복과 E67·E78·E86 방패를 받지 않게 한다(치프 기차가 연필을 더 오래 받아 내지 않게).
+// 슬롯이 재사용되면 세대가 달라져 자동으로 풀린다.
+const supportImmuneGeneration = new Int32Array(256).fill(-1)
+
+export function markSupportImmune(pool, index) {
+  if (index >= 0 && index < supportImmuneGeneration.length) supportImmuneGeneration[index] = pool.generation[index]
+}
+
+export function isSupportImmune(pool, index) {
+  return index >= 0 && index < supportImmuneGeneration.length && supportImmuneGeneration[index] === pool.generation[index]
+}
+
 function remainingHealBudget(pool, index, lifeBudget) {
   const gen = pool.generation[index]
   if (healGeneration[index] !== gen) {
@@ -465,7 +478,7 @@ export function hasDamagedAllyNear(pool, index, radius) {
   const z = pool.posZ[index]
   const r2 = radius * radius
   for (let i = 0; i <= pool.highestActive; i += 1) {
-    if (i === index || !pool.active[i] || !isHealableTypeCode(pool.type[i])) continue
+    if (i === index || !pool.active[i] || !isHealableTypeCode(pool.type[i]) || isSupportImmune(pool, i)) continue
     if (!(pool.hp[i] < pool.maxHp[i])) continue
     const dx = pool.posX[i] - x
     const dz = pool.posZ[i] - z
@@ -484,7 +497,7 @@ export function applyProjectileZombieHeal(pool, index, heal) {
   const r2 = heal.radius * heal.radius
   let total = 0
   for (let i = 0; i <= pool.highestActive && budget > 0; i += 1) {
-    if (i === index || !pool.active[i] || !isHealableTypeCode(pool.type[i])) continue
+    if (i === index || !pool.active[i] || !isHealableTypeCode(pool.type[i]) || isSupportImmune(pool, i)) continue
     const missing = pool.maxHp[i] - pool.hp[i]
     if (!(missing > 0) || !(pool.hp[i] > 0)) continue
     const dx = pool.posX[i] - x
@@ -505,6 +518,7 @@ const shieldedGeneration = new Uint16Array(256)
 
 function isUnshieldedAlly(pool, i) {
   return pool.active[i] && isHealableTypeCode(pool.type[i]) && shieldedGeneration[i] !== pool.generation[i] && pool.hp[i] > 0
+    && !isSupportImmune(pool, i)
 }
 
 /** 방패를 줄 대상이 있는지(예고 진입 조건). */
@@ -565,6 +579,7 @@ export function resetProjectileZombieBehaviorState() {
   healBudget.fill(0)
   healGeneration.fill(0)
   shieldedGeneration.fill(0)
+  supportImmuneGeneration.fill(-1)
   splitGeneration.fill(0)
 }
 

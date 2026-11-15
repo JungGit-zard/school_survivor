@@ -14,7 +14,7 @@
 //   E90 숙제 걷기 당번(Stage 1) — 플레이어 자석 범위 + 1u 밖의 바닥 교과서를 주워 가방에 담고(최대 8권) 3u 안이면 지그재그로 도망친다.
 //                               공격 없음. 처치하면 주운 책 전부 + 보너스 1권(8XP)을 떨어뜨린다(lib/textbookTheftBridge.js).
 //   E91 교과서 미믹(Stage 1)   — 바닥 교과서로 위장해 잠잔다(접촉 0·자동조준 제외). 1.4u 안이면 0.6초 예고 뒤 r 1.0u 물기(6), 그 뒤 깡충 추격.
-//   E92 기차놀이 기관사(Stage 2 치프) — 초당 70°까지만 도는 머리 + 경로를 밟는 객차 E01 6기. 6초마다 0.9초 예고선 뒤 확정 방향 돌진 5.76u.
+//   E92 기차놀이 기관사(Stage 2 치프) — 초당 70°까지만 도는 머리 + 경로를 밟는 객차 E01 4기. 9초마다 0.9초 예고선 뒤 확정 방향 돌진 5.76u.
 //                               머리가 죽으면 객차가 1.2초 기절했다가 일반 E01이 된다.
 //   E95 긴줄넘기 듀오(Stage 3 치프, 두 몸) — 플레이어 양옆에 서서 2.0초 주기로 줄(선 공격, 피해 10)을 내려친다. 한 몸이 죽으면 남은 몸이 1.5배 속도로 추격.
 //
@@ -32,6 +32,7 @@ import { NOVEL2_TYPE_CODES, NOVEL2_ZOMBIE_STATS } from './novelZombie2Content.js
 import { isChiefTypeCode } from './stageChiefContent.js'
 import { advanceExpansionSnapshot, emitExpansionHazardSnapshot, expansionAttackSnapshots, expansionChannelFree } from './expansionAttackRuntime.js'
 import { buildExpansionSafetyGeometry, certifyExpansionEscape, novel2NearSafetyObstacles } from './expansionAttackSafety.js'
+import { markSupportImmune } from './projectileZombieBehavior.js'
 import { findStealableTextbookInto, getTextbookTheftMagnetRadius, isStealableTextbook, stealTextbook, textbookPositionInto } from './textbookTheftBridge.js'
 
 export const N2_STATE_APPROACH = 7
@@ -156,12 +157,14 @@ export const E90_THIEF = Object.freeze({
 })
 
 // ── E91 교과서 미믹 ───────────────────────────────────────────────────────────
-// 물기 예고 0.6초: 탈출 인증(1.2u 중앙 통로 + 몸 반경)이 r 1.0u 원을 벗어나려면 1.79u가 필요하다 — 3u/s × 0.6s = 1.8u.
-// (설계안 0.5초 = 1.5u로는 인증이 절대 통과하지 않는다.)
+// 물기 예고 0.85초(원 r 1.0u는 그대로 — 시각 예고와 같다). 정지한 플레이어가 원 밖(1.0u + 몸 반경)으로 나가려면
+// 3u/s로 약 0.4초가 걸린다 → 반응 한계 약 0.45초(기준 반응 0.35초 + 0.1초 여유).
+// 2026-11-15 balanceqa: 0.6초에서는 반응 한계가 0.2초 아래였다(0.2초 반응이면 물렸다) — 서 있는 플레이어에게 사실상 못 피하는 함정.
+// (설계안 0.5초는 탈출 인증(1.2u 중앙 통로 + 몸 반경, 1.79u)이 절대 통과하지 않는다.)
 export const E91_MIMIC = Object.freeze({
   triggerDistance: 1.4,   // 0.35블록
   biteRadius: 1.0,
-  telegraphMs: 600,
+  telegraphMs: 850,
   biteMs: 150,
   biteDamage: 6,
   maxDormant: 4,          // 잠든 미믹이 4기를 넘으면 가장 오래 잔 미믹부터 깨어나 추격한다
@@ -172,8 +175,13 @@ export const E91_MIMIC = Object.freeze({
 // ── E92 복도 기차놀이 기관사(치프) ────────────────────────────────────────────
 // 돌진 예고선 폭 1.1u(반폭 0.55) ≥ 머리 접촉 0.4u + 옆 밀림 허용 0.15u. 길이 6.2u ≥ 돌진 5.76u + 머리 접촉 0.4u.
 // (설계안 폭 0.6u는 머리 접촉 판정 0.8u 폭보다 좁아 선 밖에서도 맞는다.)
+// 2026-11-15 balanceqa 리뷰 후속(스2 기준 봇, 같은 시드 짝비교 — 기관사 있음 vs 없음, 사망률 차. 모두 머리 실효 120·객차 방패/회복 제외):
+//   120초 앵커(240판): 객차 6기 +6.7%p(p=0.007) · 4기 +5.8%p · 3기 +8.3%p · 3기+대시 간격 9초 +5.0%p · 4기+9초 +4.6%p.
+//   객차 수는 판 운 폭(±3%p) 안에서 효과가 없었다. 184초 앵커 +0%p(교전이 거의 없어 치프 의미가 사라짐).
+//   144초 앵커(480판): 4기+간격 6초 +4.0%p(p=0.02) · 4기+간격 9초 +1.9%p(p=0.25).
+//   → 객차 4기(기차 정체성 최소 3기), 대시 간격 9초, 앵커 144초(burstEvents.js). 객차는 방패·회복을 받지 않는다(_buildTrain).
 export const E92_TRAIN = Object.freeze({
-  carCount: 6,
+  carCount: 4,
   carSpacing: 0.7,
   carMaxSpeed: 1.6,
   carBaseHp: 8,           // E01 base. 객차 HP = 8 × (머리 실효 HP ÷ 머리 base HP) — 스테이지 배수를 그대로 탄다
@@ -182,7 +190,7 @@ export const E92_TRAIN = Object.freeze({
   pathCapacity: 128,      // 12.8u
   turnRateRad: 70 * Math.PI / 180,
   firstDelayMs: 2500,
-  cooldownMs: 6000,
+  cooldownMs: 9000,
   triggerDistance: 6.0,
   telegraphMs: 900,
   chargeSpeed: 3.6,
@@ -686,6 +694,8 @@ export class Novel2Runtime {
       source.runDirX = fx; source.runDirZ = fz
       if (!pool.spawnInto(handle, source)) break
       this._claimSlot(pool, handle.index)
+      // 객차는 회복(E56·E84)·방패(E67·E78·E86)를 받지 않는다 — 기차가 연필을 더 오래 받아 내지 않게(스2 120초 E67과 같은 순간에 나온다).
+      markSupportImmune(pool, handle.index)
       this.carHead[handle.index] = headIndex
       this.carHeadGen[handle.index] = pool.generation[headIndex]
       this.carOrder[handle.index] = order
@@ -1270,6 +1280,33 @@ export class Novel2Runtime {
     out.hasYaw = true
     out.yaw = heading
     return out
+  }
+
+  /** E92 머리가 예고·돌진 중이면 true — 자리·방향이 예고 시작에 고정된다(무리 밀어내기·넉백·끼임 순간이동을 받지 않는다). */
+  isTrainLocked(pool, index) {
+    if (pool.type[index] !== E92_CODE) return false
+    const state = pool.state[index]
+    return state === N2_STATE_TELEGRAPH || state === N2_STATE_ATTACK
+  }
+
+  /**
+   * 돌진 중 머리의 이번 프레임 도착점이 그려진 예고선 안인가: 옆 밀림 ≤ 허용치(0.15u — 머리 접촉 0.4u와 합쳐 반폭 0.55u),
+   * 앞쪽 ≤ 선 길이 − 머리 접촉, 뒤로 물러나지 않음. 장애물 미끄러짐·벽 클램프로 선을 벗어나면 false.
+   */
+  trainChargeKeepsLine(pool, index, x, z) {
+    const T = E92_TRAIN
+    const dirX = pool.runDirX[index]
+    const dirZ = pool.runDirZ[index]
+    const relX = x - this.chargeOriginX[index]
+    const relZ = z - this.chargeOriginZ[index]
+    const along = relX * dirX + relZ * dirZ
+    const lateral = relX * -dirZ + relZ * dirX
+    return Math.abs(lateral) <= T.lateralTolerance && along <= T.lineLength - E92_HEAD_CONTACT + 1e-4 && along >= -0.01
+  }
+
+  /** 돌진 취소(막혔거나 선을 벗어나려 했다): 피해 없이 예고선을 지우고 회복 상태로. 순간이동하지 않는다. */
+  cancelTrainCharge(pool, index) {
+    this._endTrainCharge(pool, index, `${TRAIN_LINE_KEY_PREFIX}${index}:${pool.generation[index]}`, this._cancelScratch ??= createNovel2Result())
   }
 
   _endTrainCharge(pool, index, lineKey, out) {

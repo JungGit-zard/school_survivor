@@ -162,7 +162,8 @@ describe('ZombieInstanceLayer body visibility after studio hydrate', () => {
     clearPool(); spawn(type, 1)
     instanceFrame({}, 0.016)
     expect(drawnBodyInstances()).toBe(0)
-    expect(drawnShadowInstances()).toBe(1)
+    // E91 spawns asleep as a floor textbook: no shadow until it wakes (see the mimic block below).
+    expect(drawnShadowInstances()).toBe(type === 'E91' ? 0 : 1)
     miniFrame({}, 0.016)
     const { bodies, outlines } = miniDrawn()
     expect(bodies.length, type).toBeGreaterThanOrEqual(type === 'E91' ? 2 : 6)
@@ -171,6 +172,54 @@ describe('ZombieInstanceLayer body visibility after studio hydrate', () => {
       expect(mesh.count).toBe(1)
       expect(nonZeroInstances(mesh)).toBe(1)
     }
+  })
+
+  // E91 textbook mimic: while asleep it must look like a real dropped textbook (XpTextbook has no blob shadow,
+  // no HP bar, no spawn smoke). From the bite telegraph on it reads like any zombie. Dormant = the same pool
+  // state the mimic pose reads (phase 'normal' = closed book); behaviour states 8/9/10 = telegraph/bite/hop.
+  describe('E91 textbook mimic disguise', () => {
+    const bar = () => meshes.find((mesh) => mesh instanceof THREE.InstancedMesh && mesh.material?.type === 'MeshBasicMaterial' && mesh.material.color.getHex() === 0xd72832)
+    const smoke = () => meshes.find((mesh) => mesh instanceof THREE.InstancedMesh && mesh.material?.map)
+    function mimicAt(state, spawnTimer = 5000) {
+      clearPool(); spawn('E91', 1)
+      const i = enemyPool.highestActive
+      enemyPool.state[i] = state; enemyPool.spawnTimer[i] = spawnTimer
+      instanceFrame({}, 0.016)
+      return i
+    }
+
+    it('asleep (approach state 7 / fresh spawn state): no HP bar, no shadow, no spawn smoke, no instance-layer body', () => {
+      for (const state of [7, 1, 0]) {
+        mimicAt(state)
+        expect(bar().count, `state ${state}`).toBe(0)
+        expect(drawnShadowInstances(), `state ${state}`).toBe(0)
+        expect(drawnBodyInstances()).toBe(0)
+      }
+      mimicAt(7, 100) // inside the spawn-smoke window
+      expect(smoke().count).toBe(0)
+      // The disguise itself (closed book) is still drawn by MiniZombieLayer.
+      mimicAt(7); miniFrame({}, 0.016)
+      expect(miniDrawn().bodies.length).toBeGreaterThanOrEqual(2)
+    })
+
+    it.each([[8, 'bite telegraph'], [9, 'bite'], [10, 'awake hop chase']])('state %i (%s): HP bar and shadow show like any zombie', (state) => {
+      mimicAt(state)
+      expect(bar().count).toBe(1)
+      expect(nonZeroInstances(bar())).toBe(1)
+      expect(drawnShadowInstances()).toBe(1)
+    })
+
+    it('a sleeping mimic hides only itself: other Mini zombies next to it keep their bar and shadow', () => {
+      clearPool(); spawn('E91', 1); spawn('E90', 2); spawn('E89', 3)
+      enemyPool.state[enemyPool.highestActive - 2] = 7
+      instanceFrame({}, 0.016)
+      expect(bar().count).toBe(2)
+      expect(drawnShadowInstances()).toBe(2)
+      // Other Mini types in their own approach state (7) are never treated as disguised.
+      clearPool(); spawn('E90', 2); enemyPool.state[enemyPool.highestActive] = 7; enemyPool.spawnTimer[enemyPool.highestActive] = 100
+      instanceFrame({}, 0.016)
+      expect(smoke().count).toBe(1)
+    })
   })
 
   it('MiniZombieLayer draws nothing for zombies outside 94-111', () => {
