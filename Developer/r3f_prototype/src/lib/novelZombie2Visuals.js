@@ -4,8 +4,10 @@
 // 팔레트(몸·피부·눈·표식)와 크기(ENEMY_STATS.scale)만 바꾼다. 표식(mark) 슬롯이 모자·완장·공 같은 소품 역할이다.
 // 리그를 빌리므로 예고(상태 8)·공격(9)·회복(10)·기절(4) 포즈도 그 리그의 것이 그대로 붙는다.
 //
-// Kenney Mini Characters 2.0(CC0) 몸체 교체 시(threemini): 아래 각 행의 kenney 필드(몸 + 클립)를 쓰는 렌더 경로로
-// placeholderAlias를 대체하면 된다. 행동·스탯·스폰은 visualId만 보므로 손댈 필요가 없다.
+// 2026-11-15부터 몸은 Kenney Mini Characters 2.0(CC0) — components/MiniZombieLayer.jsx가 lib/miniZombieRoster.js
+// (visualId → 몸·리컬러·소품·포즈 정본)로 그린다. 아래 kenney 필드는 그 표의 요약(설명용)이고, placeholderAlias·palette는
+// 지우지 않고 남겨 둔다: 별칭은 더 이상 렌더 경로에 쓰이지 않고(ZombieInstanceLayer MINI_TYPE), palette는 ZOMBIE_PALETTE
+// (사망 파편 색 등)에 계속 펼쳐진다. 행동·스탯·스폰은 visualId만 보므로 손댈 필요가 없다.
 // 이동보조·의료 보조기구(cane·crutch·wheelchair·hearing aid)와 휠체어 클립은 좀비 기믹에 절대 쓰지 않는다.
 import { NOVEL2_ROWS, NOVEL2_TYPE_IDS } from './novelZombie2Content.js'
 
@@ -59,7 +61,7 @@ export const NOVEL2_VISUALS = Object.freeze({
   'n2-textbook-mimic': Object.freeze({
     placeholderAlias: 'E37',
     palette: Object.freeze({ body: 0x2c6fb7, skin: 0xf2efe2, eye: 0xff2020, mark: 0xd62828 }),
-    kenney: null,
+    kenney: null, // Kenney 몸 없음: miniZombieRoster의 절차 교과서 몸(body 'textbook')
   }),
   'n2-train-conductor': Object.freeze({
     placeholderAlias: 'E36',
@@ -69,7 +71,7 @@ export const NOVEL2_VISUALS = Object.freeze({
   'n2-long-rope-duo': Object.freeze({
     placeholderAlias: 'E41',
     palette: Object.freeze({ body: 0xc8102e, skin: 0x8ab060, eye: 0xffe3a0, mark: 0xffffff }),
-    kenney: Object.freeze({ body: 'character-female-c', partnerBody: 'character-male-f', clips: Object.freeze(['walk', 'holding-right', 'interact-right', 'sprint', 'die']) }),
+    kenney: Object.freeze({ body: 'character-female-c', partnerBody: 'character-male-g', clips: Object.freeze(['walk', 'holding-right', 'interact-right', 'sprint', 'die']) }),
   }),
   'n2-big-eater': Object.freeze({
     placeholderAlias: 'E43',
@@ -100,7 +102,7 @@ export const NOVEL2_VISUALS = Object.freeze({
   'n2-cavalry': Object.freeze({
     placeholderAlias: 'E39',
     palette: Object.freeze({ body: 0xf2f2f2, skin: 0x8ab060, eye: 0xff2020, mark: 0x1f5fbf }),
-    kenney: Object.freeze({ body: 'character-female-b', carrierBody: 'character-male-f', clips: Object.freeze(['holding-both', 'attack-melee-right', 'walk']) }),
+    kenney: Object.freeze({ body: 'character-female-b', carrierBody: 'character-male-e', clips: Object.freeze(['holding-both', 'attack-melee-right', 'walk']) }),
   }),
 })
 

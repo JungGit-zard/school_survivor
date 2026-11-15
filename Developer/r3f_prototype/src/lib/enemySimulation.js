@@ -198,7 +198,7 @@ export function ignoresObstacles(type) {
 // Track B 신규 12종(37~48)은 여기서 빠진다. 전부 근접이지만 접촉만으로 상시 피해를 주지 않고
 // 자기 ATTACK 단계 안에서만 1회 판정하므로(novelZombieBehavior.js), 공통 접촉 피해 경로를 타면
 // "예고 중 피해 없음" 불변식이 깨진다. 접근 중 접촉에서 멈추는 처리도 각 루프가 직접 한다.
-// 2차 신규 좀비 구현분(76~93)은 공통 접촉 경로를 탄다. 단 자기 예고(상태 8) 중에는 noContact로 끈다(novelZombie2Behavior 불변식 1).
+// 2차 신규 좀비 구현분(94~111)은 공통 접촉 경로를 탄다. 단 자기 예고(상태 8) 중에는 noContact로 끈다(novelZombie2Behavior 불변식 1).
 function isMelee(type) {
   return type >= 17 && type <= 31 || isNovel2ImplementedTypeCode(type) || type === 1 || type === 2 || type === 3 || type === 5 || type === 6 || type === 7 || type === 8 || type === 13 || type === 14 || type === 15
 }
@@ -808,7 +808,7 @@ export class EnemySimulationRuntime {
       if (!pool.active[index]) continue
       // 유효 타입 = 1~8(E01~E06/RZL/RZC), 13~16(RZT/RZG/E07/E08), 17~31(확장 E19~E33),
       // 37~48(Track B E34~E45), 49~63·65~74(투사체 E46~E70). 9~12와 32~36은 보스라 이 런타임을 타지 않는다.
-      // 76~93 = 2차 신규 좀비 중 구현분(예약 id는 격리).
+      // 76~93 = 블록 좀비 18종(투사체 좀비 공용 경로). 94~111 = 2차 신규 좀비 중 구현분(예약 id는 격리).
       if (pool.type[index] < 1 || pool.type[index] > 8 && pool.type[index] < 13
         || pool.type[index] > 31 && pool.type[index] < NOVEL_TYPE_MIN
         || pool.type[index] > NOVEL_TYPE_MAX && !isProjectileZombieType(pool.type[index]) && !isNovel2ImplementedTypeCode(pool.type[index])
@@ -878,6 +878,8 @@ export class EnemySimulationRuntime {
       let velocityZ = 0
       let moving = false
       let preserveFacing = false
+      // 예고된 공격 이동(돌진·런지 등) 중 preserveFacing으로 표시되지 않는 경로. 지금은 E05 돌진뿐이다.
+      let scriptedMove = false
       let expansionAttack = null
       novel2NoContact = false
       if (groanDue && distance < groanBestDistance && type !== 16 && !isScreenRunner(type)) {
@@ -1049,6 +1051,7 @@ export class EnemySimulationRuntime {
           velocityX = pool.runDirX[index] * 1.7
           velocityZ = pool.runDirZ[index] * 1.7
           moving = true
+          scriptedMove = true
         }
       } else {
         if (distance < contactDistance(type) && isMelee(type)) {
@@ -1071,8 +1074,10 @@ export class EnemySimulationRuntime {
         if(expansionAttack.stop && isNovel2ExpansionTypeCode(type)) novel2NoContact = true
       }
       // E103 커피 셔틀의 "카페인": 받은 일반 좀비의 이동만 ×1.35(5초). 마틸다·보스는 풀 밖, 치프·E08은 대상 선정에서 빠진다.
+      // 일반 걸음에만 곱한다. 예고된 공격 이동(돌진·대시·런지·지휘·넉백)에 곱하면 그려진 예고선 너머까지 닿는다
+      // (불변식: 공격은 예고 밖으로 나가지 않는다). 그런 경로는 전부 preserveFacing을 켜고, 예외인 E05 돌진은 scriptedMove다.
       const novel2SpeedMul = novel2.speedMultiplier(index)
-      if (novel2SpeedMul !== 1) {
+      if (novel2SpeedMul !== 1 && !preserveFacing && !scriptedMove) {
         velocityX *= novel2SpeedMul
         velocityZ *= novel2SpeedMul
       }

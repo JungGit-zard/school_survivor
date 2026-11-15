@@ -10,6 +10,7 @@ import ExpansionHazardLayer from './expansion/ExpansionHazardLayer.jsx'
 import { expansionAttackSnapshots } from '../lib/expansionAttackRuntime.js'
 import ProceduralFaceZombieLayer from './ProceduralFaceZombieLayer.jsx'
 import BlockyZombieLayer from './BlockyZombieLayer.jsx'
+import MiniZombieLayer from './MiniZombieLayer.jsx'
 import PooledEnemyProjectileLayer from './PooledEnemyProjectileLayer.jsx'
 import StageEntryRuntimeDiagnostics from './StageEntryRuntimeDiagnostics.jsx'
 import { useGameStore } from '../store/useGameStore.js'
@@ -88,6 +89,8 @@ export default function GameCanvas({ gameKey, phase }) {
       <ProceduralFaceZombieLayer />
       {/* 블록 좀비 18종(E71~E88, Kenney CC0) 몸통. 그림자·체력바·스폰 연기는 ZombieInstanceLayer가 담당한다. */}
       <BlockyZombieLayer resetKey={gameKey} />
+      {/* 2차 신규 좀비 18종(E89~E106, Kenney Mini Characters CC0) 몸통. 그림자·체력바·스폰 연기는 ZombieInstanceLayer가 담당한다. */}
+      <MiniZombieLayer resetKey={gameKey} />
       <PooledEnemyProjectileLayer resetKey={gameKey} />
       <ExpansionHazardLayer events={expansionAttackSnapshots} resetKey={gameKey} />
       <StageEntryRuntimeDiagnostics gameKey={gameKey} />

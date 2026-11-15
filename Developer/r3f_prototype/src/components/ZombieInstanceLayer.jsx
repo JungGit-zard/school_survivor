@@ -14,7 +14,6 @@ import { getCachedChamferedBoxGeo, getToonGradient } from '../lib/toon.js'
 import { POSED_ZOMBIE_ANIM_BASE_ROTATION, POSED_ZOMBIE_BASE, POSED_ZOMBIE_FIRST_TYPE_CODE, POSED_ZOMBIE_MARK_SLOT, POSED_ZOMBIE_PART_KEYS, POSED_ZOMBIE_PART_OUTLINES, POSED_ZOMBIE_PART_ROLES, POSED_ZOMBIE_TYPES, ZOMBIE_PALETTE, buildPosedZombieParts, buildPosedZombiePartsFromRig, buildPosedZombieStatePose, buildPosedZombieStatePoseFromRig } from './ZombieMesh.jsx'
 import { PROJECTILE_ZOMBIE_TYPE_CODES, PROJECTILE_ZOMBIE_TYPE_NAME_SLOTS, projectileZombieFaceId, PROJECTILE_ZOMBIE_MAX_PROPS, PROJECTILE_ZOMBIE_PROP_PARENTS, PROJECTILE_ZOMBIE_PROP_SHAPES, PROJECTILE_ZOMBIE_STATE_POSE_DELTAS, PROJECTILE_ZOMBIE_TYPES, PROJECTILE_ZOMBIE_VISUALS, getProjectileZombieSlotColors, getProjectileZombieTelegraphProgress, projectileZombieStatePhase } from '../lib/projectileZombieVisuals.js'
 import { NOVEL2_FIRST_TYPE_CODE, NOVEL2_TYPE_IDS } from '../lib/novelZombie2Content.js'
-import { NOVEL2_PLACEHOLDER_ALIASES } from '../lib/novelZombie2Visuals.js'
 import { composePooledFaceMatrix, createProjectileZombieFaceMaterial, getFaceAspect } from '../lib/projectileZombieFace.js'
 import { CHARGE_CUE_PULSE_RAD_PER_SEC } from '../lib/warningPulse.js'
 import { BLOCKY_ZOMBIE_TYPE_NAME_SLOTS, isBlockyZombieTypeCode } from '../lib/blockyZombieRoster.js'
@@ -61,6 +60,10 @@ const NO_INSTANCED_PART_COUNT = 0
 // 1이면 블록 좀비(76-93): 몸통 파트를 이 레이어에서 찍지 않는다.
 const BLOCKY_TYPE = new Uint8Array(TYPE_NAMES.length)
 for (let code = 0; code < TYPE_NAMES.length; code += 1) BLOCKY_TYPE[code] = isBlockyZombieTypeCode(code) ? 1 : 0
+// 1이면 2차 신규 좀비(94-111, E89-E106): 몸통은 MiniZombieLayer(Kenney Mini Characters CC0)가 그리고,
+// 여기서는 블록 좀비처럼 파트 0개로 그림자·체력바·스폰 연기만 붙인다.
+const MINI_TYPE = new Uint8Array(TYPE_NAMES.length)
+NOVEL2_TYPE_IDS.forEach((_, i) => { MINI_TYPE[NOVEL2_FIRST_TYPE_CODE + i] = 1 })
 const TYPE_ITEM_IDS = TYPE_NAMES.map((type) => type ? getStudioZombieItemId(type) : '')
 const TYPE_PALETTES = TYPE_NAMES.map((type) => ZOMBIE_PALETTE[type] || ZOMBIE_PALETTE.E01)
 
@@ -136,11 +139,8 @@ const POSED_STATE_POSE_BY_TYPE = POSED_ZOMBIE_TYPES.map((type) => ({
 // 1-based. 0이면 포즈형이 아니다.
 const POSED_TYPE_INDEX = new Int16Array(TYPE_NAMES.length)
 POSED_ZOMBIE_TYPES.forEach((type, typeIndex) => { POSED_TYPE_INDEX[POSED_ZOMBIE_FIRST_TYPE_CODE + typeIndex] = typeIndex + 1 })
-// 2차 신규 좀비 자리표시: 포즈형 리그 하나를 빌려 쓴다(팔레트·크기는 자기 것). Kenney 몸체로 바꿀 때 이 별칭만 걷어낸다.
-NOVEL2_TYPE_IDS.forEach((id, i) => {
-  const alias = NOVEL2_PLACEHOLDER_ALIASES[id]
-  if (alias) POSED_TYPE_INDEX[NOVEL2_FIRST_TYPE_CODE + i] = POSED_ZOMBIE_TYPES.indexOf(alias) + 1
-})
+// 2차 신규 좀비(94-111)는 2026-11-15부터 이 포즈형 리그 별칭(NOVEL2_PLACEHOLDER_ALIASES)을 타지 않는다 — 몸은
+// MiniZombieLayer가 그린다(MINI_TYPE). 별칭 데이터는 lib/novelZombie2Visuals.js에 그대로 남겨 둔다(Terry 11-15: 만든 것은 지우지 않는다).
 // 신규 투사체 15종: POSED 13슬롯(같은 InstancedMesh)을 그대로 공유하고, 눈 2슬롯과 표식 슬롯은
 // 끈다(얼굴 셰이더가 눈을 그린다). 소품은 아래 형태 클래스 풀, 얼굴은 얼굴 IM 1개가 맡는다.
 // 1-based. 0이면 신규 15종이 아니다.
@@ -359,7 +359,8 @@ export function resolvePooledZombieVisual(typeCode) {
     hidesEyeSlots: proj > 0,
     propCount: proj ? PROJ_PROPS[proj - 1].length : 0,
     blocky: BLOCKY_TYPE[typeCode] === 1,
-    partCount: typeCode === 15 || BLOCKY_TYPE[typeCode] ? NO_INSTANCED_PART_COUNT : proj ? renderParts.length - 3 : renderParts.length,
+    mini: MINI_TYPE[typeCode] === 1,
+    partCount: typeCode === 15 || BLOCKY_TYPE[typeCode] || MINI_TYPE[typeCode] ? NO_INSTANCED_PART_COUNT : proj ? renderParts.length - 3 : renderParts.length,
     partRoles: renderParts.map((part) => part[1]),
     slotBase,
     markKey: posed ? renderParts[POSED_ZOMBIE_MARK_SLOT][0] : null,
@@ -465,8 +466,8 @@ export default function ZombieInstanceLayer({ resetKey }) {
       const active=i<=max&&pool.active[i]===1; if(!active){tiers[i]=0;continue}
       const timer=pool.spawnTimer[i]; const type=pool.type[i]; if(isExpansionNormalCode(type))continue; const e07FaceDrawn=type===15&&isProceduralFaceZombieCandidate(pool,i,screenBounds)&&++e07FaceClaims<=PROCEDURAL_FACE_ZOMBIE_CAPACITY; const tier=getPooledEnemyRenderTier(screenBounds,pool.posX[i],pool.posZ[i],playerPos.x,playerPos.z,tiers[i]); tiers[i]=tier
       if(!tier)continue
-      const bodyVisible=timer>=SPAWN_REVEAL_MS&&((type>=1&&type<=8)||type===13||type===14||type===15||type===COIN_JINGLE_TYPE||POSED_TYPE_INDEX[type]>0||PROJ_TYPE_INDEX[type]>0||BLOCKY_TYPE[type]===1); const smokeVisible=timer>=0&&timer<SPAWN_SMOKE_MS
-      if(bodyVisible){const renderSlot=bodyCount++;const rootMatrix=studio.current.rootMatrices[type]||IDENTITY;const mat=studio.current.material[type];const baseEmissive=studio.current.emissive[type];const scale=(pool.visualScale[i]||1)*.333;const state=phase(pool,i);const time=getPooledEnemyAnimationTime(timer,tier);const pal=TYPE_PALETTES[type];const posed=POSED_TYPE_INDEX[type]||0;const proj=PROJ_TYPE_INDEX[type]||0;const parts=type===13?RZT:type===14?RZG:RUN_TYPES.has(type)?RUN:STANDARD;const renderParts=type===COIN_JINGLE_TYPE?COIN_JINGLE:posed?POSED_BY_TYPE[posed-1]:proj?PROJ_BY_TYPE[proj-1]:parts;const offset=type===13?RZT_OFFSET:type===14?RZG_OFFSET:type===COIN_JINGLE_TYPE?COIN_JINGLE_OFFSET:(posed||proj)?POSED_SLOT_BASE:RUN_TYPES.has(type)?STANDARD.length:0;const partCount=e07FaceDrawn||BLOCKY_TYPE[type]?NO_INSTANCED_PART_COUNT:renderParts.length;const statePose=posed&&state!=='normal'?POSED_STATE_POSE_BY_TYPE[posed-1][state]:proj&&state!=='normal'?PROJ_STATE_POSE_BY_TYPE[proj-1][state]:null;const flashing=pool.hitFlashTimer[i]>0
+      const bodyVisible=timer>=SPAWN_REVEAL_MS&&((type>=1&&type<=8)||type===13||type===14||type===15||type===COIN_JINGLE_TYPE||POSED_TYPE_INDEX[type]>0||PROJ_TYPE_INDEX[type]>0||BLOCKY_TYPE[type]===1||MINI_TYPE[type]===1); const smokeVisible=timer>=0&&timer<SPAWN_SMOKE_MS
+      if(bodyVisible){const renderSlot=bodyCount++;const rootMatrix=studio.current.rootMatrices[type]||IDENTITY;const mat=studio.current.material[type];const baseEmissive=studio.current.emissive[type];const scale=(pool.visualScale[i]||1)*.333;const state=phase(pool,i);const time=getPooledEnemyAnimationTime(timer,tier);const pal=TYPE_PALETTES[type];const posed=POSED_TYPE_INDEX[type]||0;const proj=PROJ_TYPE_INDEX[type]||0;const parts=type===13?RZT:type===14?RZG:RUN_TYPES.has(type)?RUN:STANDARD;const renderParts=type===COIN_JINGLE_TYPE?COIN_JINGLE:posed?POSED_BY_TYPE[posed-1]:proj?PROJ_BY_TYPE[proj-1]:parts;const offset=type===13?RZT_OFFSET:type===14?RZG_OFFSET:type===COIN_JINGLE_TYPE?COIN_JINGLE_OFFSET:(posed||proj)?POSED_SLOT_BASE:RUN_TYPES.has(type)?STANDARD.length:0;const partCount=e07FaceDrawn||BLOCKY_TYPE[type]||MINI_TYPE[type]?NO_INSTANCED_PART_COUNT:renderParts.length;const statePose=posed&&state!=='normal'?POSED_STATE_POSE_BY_TYPE[posed-1][state]:proj&&state!=='normal'?PROJ_STATE_POSE_BY_TYPE[proj-1][state]:null;const flashing=pool.hitFlashTimer[i]>0
         const screenRunnerLift=type===13||type===14?scale*.45:0;p.set(pool.posX[i],pool.posY[i]+screenRunnerLift,pool.posZ[i]);e.set(0,pool.yaw[i],0);q.setFromEuler(e);s.set(scale,scale,scale);m.compose(p,q,s);m.multiply(rootMatrix)
         p.set(pool.posX[i],.018,pool.posZ[i]);s.set(Math.max(.05,scale*(studio.current.rootScaleX[type]||1)*.62),Math.max(.05,scale*(studio.current.rootScaleZ[type]||1)*.34),1);q.setFromEuler(shadowRotation);a.compose(p,q,s);all.shadow.setMatrixAt(renderSlot,a)
         for(let j=0;j<partCount;j++){const part=renderParts[j];const slot=offset+j;if((proj&&PROJ_SKIPPED_SLOT[j])||!shouldRenderPooledEnemyPart(type,(posed||proj)?j:slot,tier)||(part[6]==='leader'&&type!==7))continue;const partRenderSlot=counts[slot]++;const partBase=type*PART_COUNT*PART_STRIDE+slot*PART_STRIDE;const pose=part[7];a.copy(m);translate.makeTranslation(composeStudioPartOffset(part[3][0],studio.current.partTransforms[partBase]),composeStudioPartOffset(part[3][1],studio.current.partTransforms[partBase+1]),composeStudioPartOffset(part[3][2],studio.current.partTransforms[partBase+2]));a.multiply(translate);setPartRotation(e,part[0],time,type,state,posed||proj);e.set(composeStudioPartOffset(e.x,studio.current.partTransforms[partBase+3],(pose?pose[0]:0)+(statePose?statePose[j][0]:0)),composeStudioPartOffset(e.y,studio.current.partTransforms[partBase+4],(pose?pose[1]:0)+(statePose?statePose[j][1]:0)),composeStudioPartOffset(e.z,studio.current.partTransforms[partBase+5],(pose?pose[2]:0)+(statePose?statePose[j][2]:0)));rotate.makeRotationFromEuler(e);a.multiply(rotate);inflate.makeScale(composeStudioPartMultiplier(1,studio.current.partTransforms[partBase+6]),composeStudioPartMultiplier(1,studio.current.partTransforms[partBase+7]),composeStudioPartMultiplier(1,studio.current.partTransforms[partBase+8]));a.multiply(inflate);if(proj&&PROJ_SLOT_TO_PARENT[j]>=0)parentMats[PROJ_SLOT_TO_PARENT[j]].copy(a);translate.makeTranslation(part[4][0],part[4][1],part[4][2]);a.multiply(translate);const box=part[8];if(box){inflate.makeScale(box[0],box[1],box[2]);a.multiply(inflate)}all.body[slot].setMatrixAt(partRenderSlot,a);const mo=j*MATERIAL_STRIDE;if(flashing)color.setHex(0xffffff);else if(mat)color.fromArray(mat,mo);else color.setHex(proj?PROJ_SLOT_COLORS[proj-1][j]:pooledPartHex(type,part[1],pal));all.body[slot].setColorAt(partRenderSlot,color);all.body[slot].userData.instanceEmissive.array[partRenderSlot]=mat?mat[mo+3]:baseEmissive;if(outlineTuned){const ol=all.out[slot].userData.instanceOutline.array;const oo=partRenderSlot*4;const src=mat||DEFAULT_OUTLINE_RGBA;const so=mat?mo+4:0;ol[oo]=src[so];ol[oo+1]=src[so+1];ol[oo+2]=src[so+2];ol[oo+3]=src[so+3]}const outlineScale=(1+(part[5]-1)*2)*(mat?mat[mo+8]:1);inflate.makeScale(outlineScale,outlineScale,outlineScale);a.multiply(inflate);all.out[slot].setMatrixAt(partRenderSlot,a)}

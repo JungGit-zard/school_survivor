@@ -126,7 +126,8 @@ describe('Stage 1 첫 웨이브 5초 게이트', () => {
       // 2026-11-14 블록 좀비(탄 없음, hp 맞교환): 60초 E07×5 → E07×4 + E82, 108초 혼합 E01×3 → ×2 + E77, 184초 혼합 E01×2 → ×1 + E78.
       { sec: 60, type: 'E07', count: 4 }, { sec: 60, type: 'E82', count: 1 }, { sec: 60, type: 'E66', count: 1 }, { sec: 60, type: 'E02', count: 2 },
       { sec: 72, type: 'E35', count: 2 },
-      // 2026-11-14 2차 신규: 108초에 치프 E89 반장 좀비 1기를 더한다(base 400 순증 — 치프만 순증이다, 잡몹 행은 그대로).
+      // 2026-11-14 2차 신규: 108초에 치프 E89 반장 좀비 1기를 더한다(치프만 순증이다, 잡몹 행은 그대로).
+      // 2026-11-15: E89 base 400 → 240(기준 봇 119판 처치 0회). 순증 240.
       { sec: 108, type: 'E01', count: 2 }, { sec: 108, type: 'E77', count: 1 }, { sec: 108, type: 'E36', count: 3 }, { sec: 108, type: 'E02', count: 3 }, { sec: 108, type: 'E89', count: 1 },
       { sec: 110, type: 'E07', count: 3 }, { sec: 110, type: 'E02', count: 3 },
       // 2026-11-04 투사체 좀비: 144초 E05×3 → E05×2 + E56(첫 등장), 184초 E02×3 → E02×2 + E49(첫 등장),
@@ -764,10 +765,11 @@ describe('스테이지 총체력 1.3배 사다리 (스1 앵커 고정)', () => {
     .filter((event) => !isChiefType(event.type))
     .reduce((sum, event) => sum + eventTotalHp(event, stageId), 0)
 
-  it('치프는 스테이지마다 작성 행 1개·1기이고, 순증은 base 400 × 스테이지 배수다(Stage 1 = 400)', () => {
+  // 2026-11-15: Stage 1 반장(E89)만 base 240(기준 봇 119판 처치 0회 → 초보가 보상에 닿게). 다른 치프는 400 × 배수 그대로.
+  it('치프는 스테이지마다 작성 행 1개·1기이고, 순증은 base × 스테이지 배수다(Stage 1 E89 = 240)', () => {
     const chiefRows = (stageId) => getRuntimeBurstEventsForStage(stageId).filter((event) => isChiefType(event.type))
     expect(chiefRows('stage1')).toEqual([{ sec: 108, type: 'E89', count: 1 }])
-    expect(Math.round(NOVEL2_ZOMBIE_STATS.E89.hp * STAGE_HP_MULTIPLIER.stage1)).toBe(400)
+    expect(Math.round(NOVEL2_ZOMBIE_STATS.E89.hp * STAGE_HP_MULTIPLIER.stage1)).toBe(240)
     for (const stageId of ['stage2', 'stage3', 'stage4', 'stage5']) {
       for (const row of chiefRows(stageId)) expect(row.count).toBe(1)
     }

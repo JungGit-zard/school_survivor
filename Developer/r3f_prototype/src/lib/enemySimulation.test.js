@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { createEnemyEntityPool, MAX_ENEMIES } from './enemyEntityPool.js'
+import { createEnemyEntityPool, ENEMY_TYPE_CODES, MAX_ENEMIES } from './enemyEntityPool.js'
+import { PROJECTILE_ZOMBIE_BEHAVIORS, PZ_STATE } from './projectileZombieBehavior.js'
+import { E103_COFFEE, N2_STATE_ATTACK } from './novelZombie2Behavior.js'
 import { createGameplayFixedStepClock, runGameplayFixedSteps } from './gameplayFrameTime.js'
 import {
   E04_FIRE_COOLDOWN_MS,
@@ -353,6 +355,63 @@ describe('EnemySimulation knockback facing', () => {
     expect(pool.velZ[target.index]).toBeCloseTo(0, 6)
     expect(pool.posX[target.index]).toBeGreaterThan(preHitX)
     expect(pool.yaw[target.index]).toBeCloseTo(preHitYaw, 6)
+  })
+})
+
+// E103 커피 버프(×1.35)는 일반 걸음에만 곱한다. 예고된 공격 이동(돌진·왕복 대시·런지)에 곱하면
+// 그려진 예고선 너머까지 닿는다(불변식: 공격은 예고 밖으로 나가지 않는다). 2026-11-15 balanceqa 지적:
+// E75 2.52u → 3.40u(예고 2.6u), E05 2.04u → 2.75u.
+describe('E103 버프는 예고된 공격 이동을 늘리지 않는다', () => {
+  // 공격 상태에 들어간 순간의 자리·확정 방향 기준으로, 공격 상태 동안 방향축으로 나아간 최대 거리.
+  function attackReach(id, startX, isAttack, buffed) {
+    const pool = createEnemyEntityPool()
+    const runtime = createEnemySimulationRuntime()
+    const handle = spawn(pool, id, startX, 0, { hp: 1e9, maxHp: 1e9, spawnTimer: 300 })
+    const i = handle.index
+    let start = null
+    let reach = 0
+    for (let frame = 0; frame < 60 * 30; frame += 1) {
+      if (buffed) {
+        runtime.novel2._claimSlot(pool, i)
+        runtime.novel2.buffMs[i] = 5000
+      }
+      const wasAttack = isAttack(pool.state[i])
+      runtime.step(pool, context())
+      const nowAttack = isAttack(pool.state[i])
+      if (nowAttack && !wasAttack && !start) start = { x: pool.posX[i] - pool.velX[i] / 60, z: pool.posZ[i] - pool.velZ[i] / 60, dx: pool.runDirX[i], dz: pool.runDirZ[i] }
+      if (start && nowAttack) reach = Math.max(reach, (pool.posX[i] - start.x) * start.dx + (pool.posZ[i] - start.z) * start.dz)
+      if (start && !nowAttack) break
+    }
+    expect(start, `${id} attack started`).not.toBeNull()
+    if (buffed) expect(runtime.novel2.speedMultiplier(i)).toBe(E103_COFFEE.buffSpeedMul)
+    return reach
+  }
+
+  const CASES = [
+    // [id, 시작 x, 공격 상태 판정, 그려진 예고 길이(u) — 없으면 null]
+    ['E05', 4.4, (s) => s === ENEMY_STATE_CHARGE, null],
+    ['E75', -2.8, (s) => s === PZ_STATE.FIRE, PROJECTILE_ZOMBIE_BEHAVIORS[ENEMY_TYPE_CODES.E75].decalSize],
+    ['E76', -3.5, (s) => s === PZ_STATE.FIRE, null],
+    ['E96', -4, (s) => s === N2_STATE_ATTACK, null],
+  ]
+
+  it.each(CASES)('%s: 버프 받은 공격 거리 ≤ 버프 없는 공격 거리(그리고 예고 길이)', (id, startX, isAttack, telegraph) => {
+    const plain = attackReach(id, startX, isAttack, false)
+    const buffed = attackReach(id, startX, isAttack, true)
+    expect(plain).toBeGreaterThan(0.5)
+    expect(buffed).toBeLessThanOrEqual(plain + 1e-4)
+    if (telegraph != null) expect(buffed).toBeLessThanOrEqual(telegraph + 1e-4)
+  })
+
+  it('일반 걸음에는 여전히 ×1.35가 붙는다', () => {
+    const pool = createEnemyEntityPool()
+    const runtime = createEnemySimulationRuntime()
+    const handle = spawn(pool, 'E01', 6, 0, { spawnTimer: 300 })
+    runtime.novel2._claimSlot(pool, handle.index)
+    runtime.novel2.buffMs[handle.index] = 5000
+    runtime.step(pool, context())
+    expect(Math.hypot(pool.velX[handle.index], pool.velZ[handle.index]))
+      .toBeCloseTo(ENEMY_RUNTIME_SPEED[ENEMY_TYPE_CODES.E01] * E103_COFFEE.buffSpeedMul, 5)
   })
 })
 

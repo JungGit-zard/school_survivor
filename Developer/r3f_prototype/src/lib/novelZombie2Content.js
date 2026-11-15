@@ -5,14 +5,16 @@
 // expansionAttackRuntime이 모두 이 표를 읽으므로 순환 의존을 만들면 안 된다.
 //
 // 번호 규칙:
-//  - typeCode는 ENEMY_TYPE_NAMES 끝(75 = B10 다음)에만 붙인다. 76 = E89 … 93 = E106. 재배열 금지.
+//  - typeCode는 ENEMY_TYPE_NAMES 끝(75 = B10, 76~93 = 블록 좀비 다음)에만 붙인다. 94 = E89 … 111 = E106. 재배열 금지.
 //  - 확장 DATA.enemies(expansionContent.js)에 행을 넣지 않는다 — 넣으면 typeCode 37~75가 전부 한 칸씩 밀린다.
 //  - 18개 id는 전부 지금 예약한다(조우 기록·Rules 허용 목록이 18개를 한 번에 갖는다). 실제 스폰·행동이 있는 것은
 //    implemented: true인 1차(wave 1) 8종뿐이고, 나머지는 스탯이 없어 스폰되지 않는다(시뮬레이션이 오류로 격리).
 //
 // 수치 규칙:
 //  - 일반 종: 같은 HP의 기본 좀비(host) 1기와 1:1 교체 → 스테이지 총 HP·XP 불변. hp/xp = host.
-//  - 치프: base 400 × 스테이지 배수(Stage 1은 ×1.0 = 400). 보상은 stageChiefContent.js의 엘리트 보상 행.
+//  - 치프: base 400 × 스테이지 배수. 보상은 stageChiefContent.js의 엘리트 보상 행.
+//    예외 E89(Stage 1 반장)는 base 240(×1.0 = 240). 2026-11-15 balanceqa: 기준 봇 119판 중 처치 0회(런 끝 중앙값 300/400 남음),
+//    연필 Lv4 집중 ~57초 — 초보가 보상에 못 닿고 미니 HP바가 런 내내 남았다. 다른 치프는 400 × 배수 설계 그대로.
 //  - hpMode 'absolute'(E105, Stage 6): 기존 종 배수(2.488)를 타지 않고 표의 hp를 그대로 쓴다(E19와 같은 30).
 //
 // 거리 단위는 월드 유닛(u). 1블록 = 4u.
@@ -41,18 +43,18 @@ export const NOVEL2_WAVE1_IDS = Object.freeze(['E89', 'E93', 'E94', 'E96', 'E97'
 // visualId는 lib/novelZombie2Visuals.js가 해석한다. Kenney Mini Characters 몸체가 들어오면 그 표만 바뀐다.
 const ROWS = {
   E89: { stageId: 'stage1', chief: true, visualId: 'n2-class-president', implemented: true,
-    stats: { hp: 400, speed: 0.42, damage: 12, scale: 1.5, xp: 15, contactDist: 0.38 } },
+    stats: { hp: 240, speed: 0.42, damage: 12, scale: 1.5, xp: 15, contactDist: 0.38 } },
   E90: { stageId: 'stage1', chief: false, visualId: 'n2-homework-collector', implemented: false },
   E91: { stageId: 'stage1', chief: false, visualId: 'n2-textbook-mimic', implemented: false },
   E92: { stageId: 'stage2', chief: true, visualId: 'n2-train-conductor', implemented: false },
-  // host E03(hp 10 / xp 5) — Stage 2 24초 러너 행 3기 중 1기.
+  // host E03(hp 10 / xp 5) — Stage 2 60초 포위 러너(ring) 행 6기 중 1기(24초 E03 행은 블록 좀비 E83이 먼저 받았다).
   E93: { stageId: 'stage2', chief: false, visualId: 'n2-shadow-stepper', implemented: true,
     stats: { hp: 10, speed: 0.8, damage: 6, scale: 0.95, xp: 5, contactDist: 0.24 } },
-  // host E07(hp 16 / xp 8) — Stage 2 108초 웃는좀비 행 2기 중 1기. 걸레 직선 = 확장 rootline 행동(피해 9로 덮어쓰기).
+  // host E07(hp 16 / xp 8) — Stage 2 60초 웃는좀비 행 4기 중 1기(108초 E07 행은 블록 좀비 E72가 먼저 받았다). 걸레 직선 = 확장 rootline 행동(피해 9로 덮어쓰기).
   E94: { stageId: 'stage2', chief: false, visualId: 'n2-mop-pusher', implemented: true, behaviorId: 'rootline', attackDamage: 9,
     stats: { hp: 16, speed: 0.55, damage: 8, scale: 1.0, xp: 8, contactDist: 0.26 } },
   E95: { stageId: 'stage3', chief: true, visualId: 'n2-long-rope-duo', implemented: false },
-  // E07 체급(hp 16 / xp 8). Stage 3 5초 E01×2(합 base 16) 자리 — Stage 3에는 단발 E07 행이 없다.
+  // E07 체급(hp 16 / xp 8). Stage 3 40초에 새로 더한 스폰(순증 hp 16) — host 맞교환이 아니다(치프처럼 밀도 동결 밖).
   E96: { stageId: 'stage3', chief: false, visualId: 'n2-dribbler', implemented: true,
     stats: { hp: 16, speed: 1.0, damage: 8, scale: 1.0, xp: 8, contactDist: 0.26 } },
   // host E03(hp 10 / xp 5) — Stage 3 60초 포위 러너 5기 중 1기. 도약 = 확장 hop 행동(착지 피해 9로 덮어쓰기).
@@ -69,7 +71,7 @@ const ROWS = {
   E103: { stageId: 'stage5', chief: false, visualId: 'n2-coffee-runner', implemented: true,
     stats: { hp: 32, speed: 0.5, damage: 6, scale: 1.0, xp: 10, contactDist: 0.26 } },
   E104: { stageId: 'stage6', chief: true, visualId: 'n2-ball-roll-captain', implemented: false },
-  // Stage 6 절대 HP(E19와 같은 30 / xp 6). 52초·168초 E01 3기(실효 20 × 3 = 60) 자리를 한 쌍(30 × 2)이 받는다 — HP 불변.
+  // Stage 6 절대 HP(E19와 같은 30 / xp 6). 150초·168초 E01 3기(실효 20 × 3 = 60) 자리를 한 쌍(30 × 2)씩 받는다 — HP 불변.
   E105: { stageId: 'stage6', chief: false, visualId: 'n2-three-legged', implemented: true, hpMode: 'absolute',
     stats: { hp: 30, speed: 0.9, damage: 10, scale: 0.95, xp: 6, contactDist: 0.26 } },
   E106: { stageId: 'stage6', chief: false, visualId: 'n2-cavalry', implemented: false },

@@ -15,10 +15,13 @@ vi.mock('@react-three/fiber', () => ({
   useThree: () => ({ camera: new THREE.PerspectiveCamera() }),
   useLoader: () => new THREE.Texture(),
 }))
+// MiniZombieLayer(2차 좀비 E89~E106) loads its GLB through drei useGLTF; hand it the real baked file parsed below.
+const miniGltf = vi.hoisted(() => ({ value: null }))
+vi.mock('@react-three/drei', () => { const useGLTF = () => miniGltf.value; useGLTF.preload = () => {}; return { useGLTF } })
 vi.mock('../lib/studioRuntimeState.js', async (orig) => ({ ...(await orig()), getFirebaseStudioRuntimeState: () => ({ datasets: {}, revision: 1 }) }))
 
 globalThis.window = globalThis.window || { addEventListener() {}, removeEventListener() {}, dispatchEvent() { return true } }
-const { default: ZombieInstanceLayer } = await import('./ZombieInstanceLayer.jsx')
+const { default: ZombieInstanceLayer, resolvePooledZombieVisual } = await import('./ZombieInstanceLayer.jsx')
 const { PROCEDURAL_FACE_ZOMBIE_CAPACITY } = await import('./PooledEnemyVisuals.js')
 const { enemyPool, playerPos } = await import('../lib/refs.js')
 const { ENEMY_TYPE_NAMES } = await import('../lib/enemyEntityPool.js')
@@ -43,7 +46,33 @@ const instanceFrame = frameCb
 // Blocky zombies E71-E88 get their bodies from BlockyZombieLayer (GameCanvas mounts both layers).
 const blockyMeshes = collect(BlockyZombieLayer({ resetKey: 0 }))
 const blockyFrame = frameCb
+
+// Novel-2 zombies E89-E106 (typeCode 94-111) get their bodies from MiniZombieLayer (Kenney Mini Characters, CC0).
+const { readFileSync } = await import('node:fs')
+const { GLTFLoader } = await import('three/examples/jsm/loaders/GLTFLoader.js')
+const { MeshoptDecoder } = await import('three/examples/jsm/libs/meshopt_decoder.module.js')
+{
+  const bytes = readFileSync(new URL('../assets/models/kenney_mini/mini_zombies_kenney.glb', import.meta.url))
+  const loader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder)
+  loader.register(() => ({ name: 'test_stub_textures', loadTexture: () => Promise.resolve(new THREE.Texture()) }))
+  await MeshoptDecoder.ready
+  miniGltf.value = await new Promise((resolve, reject) => loader.parse(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength), '', resolve, reject))
+}
+const { default: MiniZombieLayer, pickMiniVariant } = await import('./MiniZombieLayer.jsx')
+const { NOVEL2_TYPE_IDS, NOVEL2_TYPE_CODES } = await import('../lib/novelZombie2Content.js')
+const miniOuter = MiniZombieLayer({ resetKey: 0 })
+const miniInner = miniOuter.props.children.props.children // ErrorBoundary > Suspense > inner
+const miniRoot = miniInner.type(miniInner.props).props.object
+const miniFrame = frameCb
 frameCb = instanceFrame
+function miniDrawn() {
+  const bodies = []; const outlines = []
+  miniRoot.traverse((mesh) => {
+    if (!(mesh instanceof THREE.InstancedMesh) || !mesh.visible || mesh.count <= 0) return
+    ;(mesh.material?.side === THREE.BackSide ? outlines : bodies).push(mesh)
+  })
+  return { bodies, outlines }
+}
 const mm = new THREE.Matrix4()
 
 function clearPool() {
@@ -77,7 +106,9 @@ describe('ZombieInstanceLayer body visibility after studio hydrate', () => {
   // E07은 얼굴 레이어, 17-31은 확장 레이어, 블록 좀비(E71~E88)는 BlockyZombieLayer,
   // 보스(B01~B10)는 보스 전용 컴포넌트가 그린다(풀 경로 아님).
   const blocky = new Set(BLOCKY_ZOMBIE_TYPES)
-  const types = ENEMY_TYPE_NAMES.filter((name, code) => name && !/^B\d+$/.test(name) && name !== 'E07' && !isExpansionNormalCode(code) && !blocky.has(name))
+  // 2차 신규 좀비(E89~E106)는 MiniZombieLayer가 몸을 그린다(아래 블록).
+  const novel2 = new Set(NOVEL2_TYPE_IDS)
+  const types = ENEMY_TYPE_NAMES.filter((name, code) => name && !/^B\d+$/.test(name) && name !== 'E07' && !isExpansionNormalCode(code) && !blocky.has(name) && !novel2.has(name))
 
   it('the pool knows every blocky zombie under its fixed type code', () => {
     expect(BLOCKY_ZOMBIE_TYPES).toHaveLength(18)
@@ -111,6 +142,50 @@ describe('ZombieInstanceLayer body visibility after studio hydrate', () => {
     clearPool(); spawn('E01', 1)
     blockyFrame({}, 0.016)
     for (const mesh of blockyMeshes) expect(mesh.count, mesh.name).toBe(0)
+  })
+
+  it('the pool knows every novel-2 zombie under typeCodes 94-111, and the instance layer reports them as Mini bodies', () => {
+    expect(NOVEL2_TYPE_IDS).toHaveLength(18)
+    NOVEL2_TYPE_IDS.forEach((type, i) => {
+      expect(NOVEL2_TYPE_CODES[type]).toBe(94 + i)
+      expect(ENEMY_TYPE_NAMES[94 + i]).toBe(type)
+      const visual = resolvePooledZombieVisual(94 + i)
+      expect(visual.mini, type).toBe(true)
+      expect(visual.blocky, type).toBe(false)
+      expect(visual.partCount, type).toBe(0)
+      expect(visual.posedIndex, type).toBe(0) // no longer routed through the wave-1 placeholder alias
+    })
+    expect(resolvePooledZombieVisual(93).mini).toBe(false)
+  })
+
+  it.each(NOVEL2_TYPE_IDS)('%s: the instance layer skips the body (shadow only) and MiniZombieLayer draws its Kenney body with outlines', (type) => {
+    clearPool(); spawn(type, 1)
+    instanceFrame({}, 0.016)
+    expect(drawnBodyInstances()).toBe(0)
+    expect(drawnShadowInstances()).toBe(1)
+    miniFrame({}, 0.016)
+    const { bodies, outlines } = miniDrawn()
+    expect(bodies.length, type).toBeGreaterThanOrEqual(type === 'E91' ? 2 : 6)
+    expect(outlines.length, type).toBe(bodies.length)
+    for (const mesh of [...bodies, ...outlines]) {
+      expect(mesh.count).toBe(1)
+      expect(nonZeroInstances(mesh)).toBe(1)
+    }
+  })
+
+  it('MiniZombieLayer draws nothing for zombies outside 94-111', () => {
+    clearPool(); spawn('E01', 1); spawn(BLOCKY_ZOMBIE_TYPES[0], 2)
+    miniFrame({}, 0.016)
+    expect(miniDrawn().bodies).toHaveLength(0)
+  })
+
+  it('E105 pair partners get different bodies from the behaviour partner link; unpaired falls back to slot parity', () => {
+    const partner = new Int16Array(200).fill(-1); partner[4] = 9; partner[9] = 4
+    const runtime = { novel2: { partner } }
+    expect(pickMiniVariant(enemyPool, 4, 'n2-three-legged', 2, runtime)).toBe(0)
+    expect(pickMiniVariant(enemyPool, 9, 'n2-three-legged', 2, runtime)).toBe(1)
+    expect(pickMiniVariant(enemyPool, 7, 'n2-three-legged', 2, runtime)).toBe(1)
+    expect(pickMiniVariant(enemyPool, 7, 'n2-class-president', 1, runtime)).toBe(0)
   })
 
   it.each(types)('%s draws a non-zero body', (type) => {

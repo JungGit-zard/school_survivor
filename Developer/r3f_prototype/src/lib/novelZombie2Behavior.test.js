@@ -23,6 +23,7 @@ import {
 import {
   NOVEL2_CHIEF_IDS,
   NOVEL2_FIRST_TYPE_CODE,
+  NOVEL2_ROWS,
   NOVEL2_TYPE_IDS,
   NOVEL2_WAVE1_IDS,
   NOVEL2_ZOMBIE_STATS,
@@ -31,6 +32,7 @@ import { CHIEF_ELITE_BONUS, admitChiefSpawn, createChiefDebutLedger, isChiefType
 import { isBossType } from './burstEvents.js'
 import { getStageRotationRoster } from './stageRosterRotation.js'
 import { NOVEL2_PLACEHOLDER_ALIASES, NOVEL2_VISUALS } from './novelZombie2Visuals.js'
+import { MINI_ZOMBIE_VISUALS } from './miniZombieRoster.js'
 
 // 2차 신규 좀비 1차 구현분(E89·E93·E94·E96·E97·E99·E103·E105)의 행동 QA.
 // 종마다 못박는 것: (1) 예고 중 피해 0, (2) 예고 때 확정된 방향·자리는 그 뒤 플레이어를 따라가지 않는다,
@@ -81,8 +83,10 @@ describe('2차 신규 좀비 등록', () => {
     expect(Object.keys(NOVEL2_ZOMBIE_STATS).sort()).toEqual([...NOVEL2_WAVE1_IDS].sort())
     for (const id of NOVEL2_WAVE1_IDS) {
       expect(ENEMY_RUNTIME_HP[ENEMY_TYPE_CODES[id]], id).toBe(NOVEL2_ZOMBIE_STATS[id].hp)
-      // 비주얼은 visualId 뒤에 있다(행동은 비주얼을 모른다). 자리표시 모습이 있어야 화면에 몸이 그려진다.
-      expect(NOVEL2_PLACEHOLDER_ALIASES[id], `${id} placeholder`).toMatch(/^E(3[4-9]|4[0-5])$/)
+      // 비주얼은 visualId 뒤에 있다(행동은 비주얼을 모른다). 몸은 Kenney Mini 몸체 표(MiniZombieLayer)가 그린다.
+      // 옛 자리표시 별칭(NOVEL2_PLACEHOLDER_ALIASES)은 데이터로만 남아 있다(렌더 경로에서는 쓰지 않는다).
+      expect(MINI_ZOMBIE_VISUALS[NOVEL2_ROWS[id].visualId]?.id, `${id} Kenney Mini body`).toBe(id)
+      expect(NOVEL2_PLACEHOLDER_ALIASES[id], `${id} placeholder data kept`).toMatch(/^E(3[4-9]|4[0-5])$/)
     }
   })
 
@@ -111,7 +115,7 @@ describe('치프 계층', () => {
       expect(isBossType(id)).toBe(false)
     }
     expect(CHIEF_ELITE_BONUS.E89).toEqual({ textbook: 2, textbookXp: 45, gold: 2 })
-    expect(NOVEL2_ZOMBIE_STATS.E89.hp).toBe(400)
+    expect(NOVEL2_ZOMBIE_STATS.E89.hp).toBe(240)
     const ledger = createChiefDebutLedger()
     expect(admitChiefSpawn(ledger, 'E89')).toBe(true)
     expect(admitChiefSpawn(ledger, 'E89')).toBe(false)
