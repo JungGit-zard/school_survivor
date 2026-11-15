@@ -63,6 +63,17 @@
 //   사라질 때까지 대개 0.5초 안팎. 시작 순간을 consumeSlteraExitBoost(급가속 소리)가 한 번 알리고, 비주얼은 0.35초 동안
 //   차체가 뒤로 살짝 눕는다(getSlteraExitDashSquat). 퇴장 방향 고르기에 로자리 비키기는 넣지 않았다 — 사선 뒤쪽(로자리를
 //   지난 뒤)에서 시작해 가만히 선 로자리 피격률이 퇴장 전과 같다(≈14%).
+// 지금 화면(11-15 balanceqa — 카메라는 로자리를 따라간다): 위의 '화면'은 전부 지금 화면(stepSlteraPass의 screen, 없으면
+//   출발 순간 화면)이다 — 퇴장 시작 조건(차 중심이 지금 화면 안), 강제 퇴장 앞보기, 퇴장 방향(지금 화면을 가장 빨리 벗어나는
+//   쪽), 사라짐(퇴장 중에는 지금 화면 밖으로 완전히 나간 순간). 로자리가 걸어 화면이 움직이면 더해서:
+//     · 들어오는 차는 차 중심이 화면 가장자리 0.5u 안에 들어올 때까지 경로 전체가 화면과 같이 옮겨진다 — 로자리가 달아나도
+//       화면 모서리에서 들어온다(헛질주 없음). 그 뒤로는 월드 경로.
+//     · 강제 퇴장은 점프 전·사선 절반 전에도 — 화면에 대한 상대 이동으로 0.03초 뒤 차 중심이 화면 밖이면.
+//     · 튕겨 밀리는 중에 화면이 차를 지나쳐 가려 하면 튕김을 끊고 퇴장한다.
+//     · 착지할 때의 화면(화면 속도로 옮긴 화면) 밖에 떨어질 자리면 뛰지 않는다.
+//   차 중심이 지금 화면 밖인데 퇴장해야 하는 경우(끼임 탈출 등)는 미뤘다가 화면 안에 들어오면 시작한다 — 안 보이는 차에서
+//   급가속·slteraBoost가 나지 않는다. 남는 예외: 등장 점프 공중(0.8초)에 로자리가 방향을 바꿔 착지 때 차 중심이 이미 화면
+//   밖이면 퇴장 없이 조용히 화면 밖에서 끝난다(무작위 이동 ≈0.2%).
 import { getStageConfig } from './stageConfig.js'
 import { isBossType } from './burstEvents.js'
 import { GAME_CAMERA_BACK, GAME_CAMERA_HEIGHT, getGameplayGroundReach } from './gameCameraFraming.js'
@@ -362,7 +373,12 @@ export function createSlteraPass() {
     landedMs: -Infinity, // 착지 시각(질주 시계 ms)
     landingThudPending: false, // 착지 쿵을 아직 안 냈다
     jumpStartPending: false, // 점프(옆 1회전) 시작 소리를 아직 안 냈다
-    jumpView: null, // 뛸 자리 판정에 쓰는 화면(런타임은 지금 화면, 없으면 출발 순간 화면)
+    jumpView: null, // 뛸 자리 판정에 쓰는 화면(런타임은 지금 화면, 없으면 출발 순간 화면) — liveView와 같다
+    // 지금 화면(11-15 balanceqa): 카메라는 로자리를 따라가므로 출발 순간 화면(view)과 어긋난다. 퇴장 시작·방향·사라짐은
+    // 이 화면으로 본다. liveVX/VZ = 화면이 움직이는 속도(u/s, 직전 step 화면 중심과의 차) — 강제 퇴장 앞보기를 화면 기준으로.
+    liveView: null,
+    liveCX: NaN, liveCZ: NaN, liveVX: 0, liveVZ: 0, liveStepSec: 0,
+    seen: false, // 차가 한 번이라도 지금 화면에 (조금이라도) 보였다 — 그 전까지 경로는 화면을 따라 옮겨진다
     // 급가속 직선 퇴장(11-15).
     exitDash: false, // 퇴장 질주 중(한 방향 직선, 지그재그·떨림·발작·튕김 없음)
     exitDashes: 0, // 이번 질주에서 퇴장 가속이 시작된 횟수(늘 0 또는 1)
@@ -373,6 +389,8 @@ export function createSlteraPass() {
     exitDashStartMs: NaN,
     exitDashStartX: NaN, exitDashStartZ: NaN,
     exitBoostPending: false, // 급가속 소리를 아직 안 냈다
+    exitDashDeferred: null, // 퇴장을 시작하려 했는데 차 중심이 지금 화면 밖이었다 — 화면 안에 들어오면 그 이유로 시작
+    playerCrashPending: false, // 로자리 치기 소리를 아직 못 냈다(150ms 간격 제한에 막히면 다음 프레임에 — 빠지지 않는다)
   }
 }
 
@@ -554,6 +572,13 @@ export function beginSlteraPass(pass, { bounds, playerX = NaN, playerZ = NaN, ob
   pass.landingThudPending = false
   pass.jumpStartPending = false
   pass.jumpView = pass.view
+  pass.liveView = pass.view
+  pass.liveCX = NaN
+  pass.liveCZ = NaN
+  pass.liveVX = 0
+  pass.liveVZ = 0
+  pass.liveStepSec = 0
+  pass.seen = false
   // 급가속 퇴장 상태. 퇴장 지점 비율은 시드 비트에서 뽑는다(rand 순서 그대로, 0번 비트는 회전 방향이 쓴다).
   pass.exitDash = false
   pass.exitDashes = 0
@@ -565,6 +590,8 @@ export function beginSlteraPass(pass, { bounds, playerX = NaN, playerZ = NaN, ob
   pass.exitDashStartX = NaN
   pass.exitDashStartZ = NaN
   pass.exitBoostPending = false
+  pass.exitDashDeferred = null
+  pass.playerCrashPending = false
   return pass
 }
 
@@ -671,13 +698,15 @@ function slteraClearRun(pass, x, z, heading) {
 
 // 이 튕김(면 법선 nx,nz)이 차 중심을 화면 밖으로 밀어내나 — 화면 가장자리 근처 프랍에 부딪혀 퇴장 가속 없이 화면 밖으로
 // 튕겨 사라지지 않게, 그런 자리에서는 튕기는 대신 곧바로 급가속 퇴장한다(11-15). 밀리는 방향은 startSlteraBounce와 같다.
+// 화면은 지금 화면(liveView) — 차 중심이 지금 화면 밖이면 여기서 퇴장하지 않고 평소처럼 튕긴다(퇴장은 늘 보이는 자리에서).
 function slteraBounceLeavesView(pass, nx, nz) {
-  if (!pass.exitDashArmed || pass.airborne) return false
+  const view = pass.liveView || pass.view
+  if (!pass.exitDashArmed || pass.airborne || !isSlteraPointOnScreen(view, pass.x, pass.z)) return false
   let kx = -Math.sin(pass.heading); let kz = -Math.cos(pass.heading)
   if (kx * nx + kz * nz < 0.25) { kx = nx; kz = nz }
   const kl = Math.hypot(kx, kz) || 1
   const d = SLTERA_BOUNCE_DISTANCE + SLTERA_EXIT_DASH_LOOKAHEAD
-  return !isSlteraPointOnScreen(pass.view, pass.x + (kx / kl) * d, pass.z + (kz / kl) * d)
+  return !isSlteraPointOnScreen(view, pass.x + (kx / kl) * d, pass.z + (kz / kl) * d)
 }
 
 // 튕김 시작: 부딪히기 전 진행 반대쪽으로 밀리고, 끝나면 면에 반사(+비틀기)한 새 방향으로 간다.
@@ -749,11 +778,19 @@ function replanSlteraAfterBounce(pass) {
 function startSlteraExitDash(pass, reason) {
   if (pass.exitDash) return
   pass.exiting = true
+  // 화면은 지금 화면(11-15 balanceqa) — 카메라가 로자리를 따라가 출발 순간 화면과 어긋난다. 차 중심이 지금 화면 밖이면
+  // 가속하지 않고 미뤄 둔다(안 보이는 차에서 급가속·소리가 나지 않게) — 화면 안에 들어오는 substep에 그 이유로 시작한다.
+  const view = pass.liveView || pass.view
+  if (!isSlteraPointOnScreen(view, pass.x, pass.z)) {
+    pass.exitDashDeferred = reason
+    return
+  }
+  pass.exitDashDeferred = null
   let bestHeading = pass.heading
   let best = Infinity
   for (let k = -4; k <= 4; k += 1) {
     const heading = pass.heading + (k / 4) * SLTERA_EXIT_DASH_TURN_RAD
-    const d = slteraDistanceToLeaveView(pass.view, pass.x, pass.z, Math.sin(heading), Math.cos(heading))
+    const d = slteraDistanceToLeaveView(view, pass.x, pass.z, Math.sin(heading), Math.cos(heading))
     if (d < best - 1e-9) { best = d; bestHeading = heading }
   }
   bestHeading = wrapAngle(bestHeading)
@@ -803,26 +840,77 @@ export function getSlteraExitDashSquat(pass) {
 // 차 중심이 화면(출발 순간 화면) 안일 때만 — 퇴장 가속은 늘 보이는 자리에서 시작한다.
 function getSlteraExitDashTrigger(pass) {
   if (pass.exitDash || pass.airborne || pass.bounceLeftSec > 0) return null
-  const view = pass.view
+  // 지금 화면(11-15 balanceqa: 출발 순간 화면으로 보면 로자리가 움직일 때 안 보이는 데서 가속하거나 가속 없이 사라졌다).
+  const view = pass.liveView || pass.view
   if (!isSlteraPointOnScreen(view, pass.x, pass.z)) return null
   if (!pass.exitDashArmed && isSlteraPointOnScreen(view, pass.x, pass.z, SLTERA_EXIT_DASH_ARM_INSET)) pass.exitDashArmed = true
+  // 화면 밖이라 미뤄 둔 퇴장(끼임 탈출·튕김 자리 퇴장): 차 중심이 화면에 들어왔으니 지금 시작.
+  if (pass.exitDashDeferred) return pass.exitDashDeferred
   // ① 정상: 점프·착지가 끝나고(착지 0.35초 뒤) 지금 사선의 65~75% 지점을 지났다(튕겨 다시 깐 사선이면 그 사선 기준).
   const landed = pass.jumpState === SLTERA_JUMP_STATE.LANDED && pass.elapsedMs - pass.landedMs >= SLTERA_EXIT_DASH_AFTER_LANDING_SEC * 1000
   if (landed && pass.progress >= pass.exitDashAt * pass.length) return SLTERA_EXIT_DASH_REASON.PROGRESS
   // ② 튕긴 질주: 7초 퇴장 모드 시점(마틸다 예고 비우기 안에 끝나게).
   if (pass.bounces > 0 && pass.elapsedMs >= SLTERA_EXIT_MODE_SEC * 1000) return SLTERA_EXIT_DASH_REASON.EXIT_MODE
   // ③ 강제: 화면 안쪽에 들어온 적이 있는 차가 화면 가장자리로 나가려 한다(앞 0.4u가 화면 밖) — 퇴장 없이 사라지지 않게.
-  //    등장 점프 전에는 보지 않는다 — 차는 늘 화면 안에서 먼저 뛴다(뛰기 전에 화면을 떠나는 질주는 없다). 첫 사선은 절반을
+  //    (화면이 가만히 있으면) 등장 점프 전에는 보지 않는다 — 차는 늘 화면 안에서 먼저 뛴다(뛰기 전에 화면을 떠나는 질주는 없다). 첫 사선은 절반을
   //    지난 뒤부터 본다 — 모서리→모서리 사선 앞쪽에서 가장자리로 삐져나간 지그재그는 경유점(화면 안)을 따라 되돌아오므로
   //    그 꺾임까지 퇴장으로 끊지 않는다. 튕겨 다시 깐 사선은 튕긴 자리에서 곧장 화면 밖으로 향하므로 늘 본다.
-  const edgeWatch = pass.bounces > 0
-    || (pass.jumpState === SLTERA_JUMP_STATE.LANDED && pass.progress >= SLTERA_EXIT_DASH_EDGE_MIN_PROGRESS * pass.length)
-  if (pass.exitDashArmed && edgeWatch) {
-    const lx = pass.x + Math.sin(pass.heading) * SLTERA_EXIT_DASH_LOOKAHEAD
-    const lz = pass.z + Math.cos(pass.heading) * SLTERA_EXIT_DASH_LOOKAHEAD
-    if (!isSlteraPointOnScreen(view, lx, lz)) return SLTERA_EXIT_DASH_REASON.EDGE
+  //    앞보기는 화면에 대한 상대 이동으로 잰다 — 차 앞 0.4u(≈0.1초 거리)에서 그동안 화면이 움직인 만큼을 뺀다(화면이
+  //    가만히 있으면 예전 그대로). 로자리가 달아나 화면 가장자리가 차를 덮쳐 지나가는 경우도 잡는다.
+  //    화면이 움직이는 중(로자리가 걷는 중)이면 점프 전·사선 절반 전이라도 본다 — 경로는 출발 순간 화면에 맞춘 월드 경로라
+  //    화면이 움직이면 그 꺾임이 화면으로 되돌아온다는 보장이 없다. 다만 앞보기를 0.03초로 짧게 — 차 중심이 정말 가장자리를
+  //    넘기 직전에만 끊어 지그재그를 최대한 남긴다(0.1초면 로자리가 걸을 때 화면 체류가 ≈0.2초 줄었다). 가만히 선 로자리면 예전 그대로.
+  if (pass.exitDashArmed) {
+    const vx = Math.sin(pass.heading) * SLTERA_SPEED; const vz = Math.cos(pass.heading) * SLTERA_SPEED
+    const edgeWatch = pass.bounces > 0
+      || (pass.jumpState === SLTERA_JUMP_STATE.LANDED && pass.progress >= SLTERA_EXIT_DASH_EDGE_MIN_PROGRESS * pass.length)
+    const moving = isSlteraScreenMoving(pass)
+    if (edgeWatch || moving) {
+      const base = edgeWatch ? SLTERA_EXIT_DASH_LOOKAHEAD / SLTERA_SPEED : SLTERA_EXIT_DASH_MOVING_AHEAD_SEC
+      if (isSlteraLeavingLiveScreen(pass, view, vx, vz, moving ? Math.max(base, pass.liveStepSec) : base)) return SLTERA_EXIT_DASH_REASON.EDGE
+    }
   }
   return null
+}
+
+// 차(속도 vx,vz u/s)가 ≈0.1초 뒤 화면 밖인가 — 화면에 대한 상대 이동으로(화면 속도를 뺀다). 앞보기 시간은 평소 속도로
+// SLTERA_EXIT_DASH_LOOKAHEAD(0.4u)를 가는 시간 — 화면이 가만히 있고 평소 주행이면 '차 앞 0.4u' 그대로.
+function isSlteraLeavingLiveScreen(pass, view, vx, vz, ahead = SLTERA_EXIT_DASH_LOOKAHEAD / SLTERA_SPEED) {
+  return !isSlteraPointOnScreen(view, pass.x + (vx - pass.liveVX) * ahead, pass.z + (vz - pass.liveVZ) * ahead)
+}
+
+// 튕겨 밀리는 중에 화면이 움직여 차가 지금 화면을 벗어나려 하면(로자리가 걷는 중) 튕김을 끊고 그 자리에서 급가속 퇴장한다 —
+// 밀리는 0.4초 동안 화면이 차를 지나쳐 가 퇴장 없이 사라지지 않게. 화면이 가만히 있으면 예전 그대로(튕김 중엔 퇴장 없음).
+function tryCutSlteraBounceAtEdge(pass) {
+  if (pass.exitDash || pass.bounceLeftSec <= 0 || !pass.exitDashArmed || !isSlteraScreenMoving(pass)) return false
+  const view = pass.liveView || pass.view
+  if (!isSlteraPointOnScreen(view, pass.x, pass.z)) return false
+  const speed = SLTERA_BOUNCE_SPEED * pass.bounceLeftSec / SLTERA_BOUNCE_SEC
+  const ahead = Math.max(SLTERA_EXIT_DASH_LOOKAHEAD / SLTERA_SPEED, pass.liveStepSec)
+  if (!isSlteraLeavingLiveScreen(pass, view, pass.bounceDirX * speed, pass.bounceDirZ * speed, ahead)) return false
+  pass.bounceLeftSec = 0
+  pass.escapePending = false
+  startSlteraExitDash(pass, SLTERA_EXIT_DASH_REASON.EDGE)
+  return true
+}
+
+const _aheadView = { minX: 0, maxX: 0, minZ: 0, maxZ: 0 }
+
+// 화면이 움직이는 중인가(로자리가 걷는 중 — 기본 이동 속도 3u/s의 1/6 넘게). 가만히 선 로자리(화면 고정)는 예전 규칙 그대로.
+export const SLTERA_SCREEN_MOVING_SPEED = 0.5
+// 화면이 움직일 때 사선 절반 전·점프 전 강제 퇴장의 앞보기 시간(초) — 가장자리를 넘기 직전(1/120초 substep 3~4개).
+// 화면은 프레임마다 한 번에 옮겨지므로 앞보기는 늘 이번 프레임 길이(liveStepSec) 이상이다(낮은 프레임에서 놓치지 않게).
+export const SLTERA_EXIT_DASH_MOVING_AHEAD_SEC = 0.03
+function isSlteraScreenMoving(pass) {
+  return Math.hypot(pass.liveVX, pass.liveVZ) > SLTERA_SCREEN_MOVING_SPEED
+}
+
+// view를 화면 속도(liveVX/VZ)로 sec초 뒤로 옮긴 화면(공유 스크래치 — 바로 쓰고 버린다).
+function slteraViewAhead(pass, view, sec) {
+  const dx = pass.liveVX * sec; const dz = pass.liveVZ * sec
+  _aheadView.minX = view.minX + dx; _aheadView.maxX = view.maxX + dx
+  _aheadView.minZ = view.minZ + dz; _aheadView.maxZ = view.maxZ + dz
+  return _aheadView
 }
 
 // 퇴장 질주 substep: 고른 한 방향으로 직선, 속도만 가속 곡선을 따른다(구간 중간값으로 적분).
@@ -838,8 +926,16 @@ function dashSlteraSubstep(pass, h) {
 
 // 끝: 도착점을 지났고 차 전체가 화면 밖일 때만. 도착점을 4u 넘게 지나도 아직 보이면(화면 가장자리를 따라
 // 비스듬히 가는 중) 사라지지 않고 계속 달린다. 최종 안전장치 SLTERA_MAX_PASS_SEC(정상 질주는 닿지 않는다).
+// 화면 밖 = 지금 화면(liveView) 밖. 퇴장 중이 아니면 출발 순간 화면 밖이기도 해야 한다(가만히 선 로자리면 둘이 같다).
+// 퇴장 중에는 지금 화면 밖으로 완전히 나간 순간 끝난다(사선 길이와 무관 — 화면이 차 쪽으로 움직여도 안 보일 때까지 달린다).
 function finishSlteraIfGone(pass) {
-  const offScreen = !isSlteraPointOnScreen(pass.view, pass.x, pass.z, -SLTERA_OFFSCREEN_PAD)
+  const live = pass.liveView || pass.view
+  const offLive = !isSlteraPointOnScreen(live, pass.x, pass.z, -SLTERA_OFFSCREEN_PAD)
+  if (pass.exitDash) {
+    if (offLive || !(pass.elapsedMs < SLTERA_MAX_PASS_SEC * 1000)) pass.phase = SLTERA_PHASE.DONE
+    return
+  }
+  const offScreen = offLive && (live === pass.view || !isSlteraPointOnScreen(pass.view, pass.x, pass.z, -SLTERA_OFFSCREEN_PAD))
   if (pass.progress >= pass.length && offScreen) pass.phase = SLTERA_PHASE.DONE
   else if (!(pass.progress < pass.length + SLTERA_EXIT_OVERRUN) && offScreen) pass.phase = SLTERA_PHASE.DONE
   else if (!(pass.elapsedMs < SLTERA_MAX_PASS_SEC * 1000)) pass.phase = SLTERA_PHASE.DONE
@@ -1040,13 +1136,16 @@ export function isSlteraCarOnScreen(view, x, z, heading) {
 
 const _apparent = { x: 0, z: 0 }
 
-// 지금 뛰면 꼭대기에서 떠 보이는 차(지붕까지)와 착지한 차가 모두 화면 안인가.
+// 지금 뛰면 꼭대기에서 떠 보이는 차(지붕까지)와 착지한 차가 모두 화면 안인가. 화면은 그때의 화면 — 지금 화면을
+// 화면 속도로 꼭대기(0.4초)·착지(0.8초) 시각까지 옮겨 본다(가만히 선 로자리면 지금 화면 그대로).
 function isSlteraJumpReadable(pass, view) {
   const fx = Math.sin(pass.heading); const fz = Math.cos(pass.heading)
   const half = SLTERA_JUMP_DISTANCE / 2
-  getSlteraApparentGroundPoint(view, pass.x + fx * half, pass.z + fz * half, SLTERA_JUMP_HEIGHT + SLTERA_JUMP_TOP, _apparent)
-  if (!isSlteraPointOnScreen(view, _apparent.x, _apparent.z, SLTERA_BODY_CORNER)) return false
-  return isSlteraCarOnScreen(view, pass.x + fx * SLTERA_JUMP_DISTANCE, pass.z + fz * SLTERA_JUMP_DISTANCE, pass.heading)
+  let at = slteraViewAhead(pass, view, SLTERA_JUMP_AIR_SEC / 2)
+  getSlteraApparentGroundPoint(at, pass.x + fx * half, pass.z + fz * half, SLTERA_JUMP_HEIGHT + SLTERA_JUMP_TOP, _apparent)
+  if (!isSlteraPointOnScreen(at, _apparent.x, _apparent.z, SLTERA_BODY_CORNER)) return false
+  at = slteraViewAhead(pass, view, SLTERA_JUMP_AIR_SEC)
+  return isSlteraCarOnScreen(at, pass.x + fx * SLTERA_JUMP_DISTANCE, pass.z + fz * SLTERA_JUMP_DISTANCE, pass.heading)
 }
 
 // 땅 위 substep 끝: 아직 안 뛰었고 차 전체가 화면 안이면 뛴다(꼭대기·착지점까지 보이는 자리를 0.6초까지 기다린다).
@@ -1057,6 +1156,14 @@ function tryStartSlteraJump(pass, h) {
   if (!pass.jumpUrgent && !isSlteraJumpReadable(pass, view)) {
     pass.jumpWaitSec += h
     if (pass.jumpWaitSec < SLTERA_JUMP_PATIENCE_SEC) return false
+  }
+  // 화면이 움직이는 중(로자리가 걷는 중)이면, 다 기다렸거나 프랍에 막혀 급히 뛰는 경우라도 착지할 때의 화면(화면 속도로
+  // 옮긴 화면) 밖에 떨어질 자리면 뛰지 않는다 — 화면 밖에 내려앉으면 퇴장 가속을 보일 수 없다. 그대로 달리다 뛸 만한
+  // 자리에서 뛰거나, 화면을 떠나려 하면 급가속 퇴장한다(프랍에 막혀 못 가면 끼임 탈출). 화면이 가만히 있으면 예전 그대로.
+  if (isSlteraScreenMoving(pass)) {
+    const fx = Math.sin(pass.heading); const fz = Math.cos(pass.heading)
+    const landing = slteraViewAhead(pass, view, SLTERA_JUMP_AIR_SEC)
+    if (!isSlteraPointOnScreen(landing, pass.x + fx * SLTERA_JUMP_DISTANCE, pass.z + fz * SLTERA_JUMP_DISTANCE, SLTERA_BODY_CORNER)) return false
   }
   pass.jumpUrgent = false
   pass.jumpState = SLTERA_JUMP_STATE.AIR
@@ -1137,6 +1244,7 @@ function driveSlteraSubstep(pass, h) {
   if (pass.bounceLeftSec > 0) {
     const done = bounceSlteraSubstep(pass, h, t)
     collideSlteraWithObstacles(pass, h, beforeX, beforeZ, beforeHeading)
+    if (!done && tryCutSlteraBounceAtEdge(pass)) return
     // 튕김이 끝나는 substep에 충돌 처리가 이미 급가속 퇴장을 시작했으면(끼임 탈출 등) 그 직선을 다시 깔지 않는다.
     if (done && !pass.exitDash) {
       replanSlteraAfterBounce(pass)
@@ -1191,11 +1299,36 @@ function driveSlteraSubstep(pass, h) {
   finishSlteraIfGone(pass)
 }
 
+/** 차 판정박스(중심·네 귀퉁이) 중 하나라도 view가 보는 바닥 안인가 — 차가 조금이라도 보이나. */
+export function isSlteraCarPartOnScreen(view, x, z, heading) {
+  if (isSlteraPointOnScreen(view, x, z)) return true
+  const fx = Math.sin(heading); const fz = Math.cos(heading)
+  for (let a = -1; a <= 1; a += 2) {
+    for (let b = -1; b <= 1; b += 2) {
+      if (isSlteraPointOnScreen(view, x + fx * SLTERA_HALF_LENGTH * a + fz * SLTERA_HALF_WIDTH * b, z + fz * SLTERA_HALF_LENGTH * a - fx * SLTERA_HALF_WIDTH * b)) return true
+    }
+  }
+  return false
+}
+
+// 아직 안 보인 질주의 경로·상태를 (dx, dz)만큼 옮긴다(출발 순간 화면도 같이 — 경로가 맞춰진 화면).
+function shiftSlteraPass(pass, dx, dz) {
+  if (!(Math.abs(dx) > 1e-12 || Math.abs(dz) > 1e-12)) return
+  pass.x += dx; pass.z += dz
+  pass.entryX += dx; pass.entryZ += dz
+  pass.exitX += dx; pass.exitZ += dz
+  pass.anchorX += dx; pass.anchorZ += dz
+  for (let i = 0; i < pass.waypointCount; i += 1) { pass.wpX[i] += dx; pass.wpZ[i] += dz }
+  pass.view.minX += dx; pass.view.maxX += dx
+  pass.view.minZ += dz; pass.view.maxZ += dz
+}
+
 /**
  * dtMs만큼 진행. 반환 = 현재 단계. swept=true면 (prevX,prevZ)→(x,z)가 이번 step에 쓸고 간 구간이다.
  * step 끝에 차가 공중이면 swept=false — 그 step은 좀비 치기·로자리 피격이 없다(착지한 step부터 다시 판정).
  * playerX/Z(선택) = 지금 로자리 위치 — 장애물에 튕겨 경로를 다시 깔 때 로자리 근처 경유점을 비키는 데만 쓴다.
- * screen(선택) = 지금 화면이 보는 바닥 — 등장 점프를 화면에 보이는 자리에서 뛰게 한다(없으면 출발 순간 화면).
+ * screen(선택) = 지금 화면이 보는 바닥 — 등장 점프·퇴장 시작·퇴장 방향·사라짐을 지금 화면으로 본다(없으면 출발 순간 화면).
+ *   런타임은 매 프레임 Game.jsx의 screenBounds를 넘긴다(값은 step 안에서만 읽고, 화면 중심만 숫자로 남긴다).
  */
 export function stepSlteraPass(pass, dtMs, playerX = NaN, playerZ = NaN, screen = null) {
   pass.swept = false
@@ -1204,8 +1337,29 @@ export function stepSlteraPass(pass, dtMs, playerX = NaN, playerZ = NaN, screen 
     pass.playerX = playerX
     pass.playerZ = playerZ
   }
-  pass.jumpView = screen || pass.view
+  const live = screen || pass.view
+  pass.jumpView = live
+  pass.liveView = live
   let left = Math.max(0, Number.isFinite(dtMs) ? dtMs : 0) / 1000
+  // 화면이 움직이는 속도(강제 퇴장 앞보기용). 첫 step은 출발 순간 화면에서 잰다.
+  const cx = (live.minX + live.maxX) / 2
+  const cz = (live.minZ + live.maxZ) / 2
+  const fromX = Number.isFinite(pass.liveCX) ? pass.liveCX : (pass.view.minX + pass.view.maxX) / 2
+  const fromZ = Number.isFinite(pass.liveCZ) ? pass.liveCZ : (pass.view.minZ + pass.view.maxZ) / 2
+  if (left > 1e-9) {
+    pass.liveVX = (cx - fromX) / left
+    pass.liveVZ = (cz - fromZ) / left
+    pass.liveStepSec = left
+  }
+  pass.liveCX = cx
+  pass.liveCZ = cz
+  // 들어오는 중인 차(화면 밖 출발 ~ 차 중심이 화면 가장자리 0.5u 안에 들어올 때까지, ≈0.5초)는 경로 전체를 화면과 같이
+  // 옮긴다 — 로자리가 달아나도 출발 순간 화면에 맞춘 사선대로 지금 화면 모서리에서 들어온다(그동안 차는 거의 화면 밖이다).
+  // 차 중심이 화면 안쪽에 들어온 뒤로는 월드 경로(바닥 위를 달린다).
+  if (!pass.seen) {
+    if (isSlteraPointOnScreen(live, pass.x, pass.z, SLTERA_EXIT_DASH_ARM_INSET)) pass.seen = true
+    else shiftSlteraPass(pass, cx - fromX, cz - fromZ)
+  }
   pass.prevX = pass.x
   pass.prevZ = pass.z
   while (left > 1e-9 && pass.phase !== SLTERA_PHASE.DONE) {
@@ -1296,7 +1450,25 @@ export function checkSlteraPlayerHit(pass, playerX, playerZ, maxHp) {
   const r = SLTERA_PLAYER_RADIUS
   if (!isPointInOrientedBox2D(box.centerX, box.centerZ, box.yaw, box.halfWidth + r, box.halfDepth + r, playerX, playerZ)) return 0
   pass.playerHit = true
+  pass.playerCrashPending = true
   return Math.max(0, maxHp) * SLTERA_PLAYER_DAMAGE_RATIO
+}
+
+/**
+ * 로자리 치기 소리(11-15). 로자리를 친 뒤 한 번만 true — 좀비 치기·착지 쿵과 같은 150ms 간격 제한(claimSlteraThud)을
+ * 거친다. 막히면 다음 프레임에 다시 묻는다(최대 150ms 늦을 뿐 빠지지 않는다). 기다리는 동안은 좀비 치기 소리가 끼어들지
+ * 못한다(isSlteraPlayerCrashPending — 로자리 쪽 우선). nowMs = 런 시계(ms).
+ */
+export function consumeSlteraPlayerCrash(pass, nowMs) {
+  if (!pass.playerCrashPending) return false
+  if (!claimSlteraThud(pass, nowMs)) return false
+  pass.playerCrashPending = false
+  return true
+}
+
+/** 로자리 치기 소리가 기다리는 중인가 — 그동안 좀비 치기 소리는 간격 제한을 차지하지 않는다. */
+export function isSlteraPlayerCrashPending(pass) {
+  return pass.playerCrashPending
 }
 
 // ── 치여 날아가기·단단한 차체(11-14 Terry) ─────────────────────────────────────────

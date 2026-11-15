@@ -29,7 +29,7 @@ import {
   SLTERA_SHOVE_PEAK, SLTERA_SHOVE_SEC, SLTERA_SIZE_SCALE, SLTERA_SPECIAL_RADIUS, SLTERA_ZOMBIE_LAUNCH_DISTANCE,
   SLTERA_ZOMBIE_LAUNCH_PEAK, SLTERA_ZOMBIE_LAUNCH_SEC, SLTERA_ZOMBIE_RADIUS, addSlteraLaunch, beginSlteraPass,
   bumpSlteraOffBody, checkSlteraPlayerHit, claimSlteraThud, consumeSlteraExitBoost, consumeSlteraJumpStart,
-  consumeSlteraLandingThud, consumeSlteraPassStart, createSlteraLaunchTable, createSlteraRunState, getSlteraExitDashSquat,
+  consumeSlteraLandingThud, consumeSlteraPassStart, consumeSlteraPlayerCrash, isSlteraPlayerCrashPending, createSlteraLaunchTable, createSlteraRunState, getSlteraExitDashSquat,
   getSlteraLandingSquash, getSlteraSweepBox,
   hasSlteraRolled, isSlteraBodySolid, isSlteraPointOnScreen, planSlteraLaunchInto, pushOutOfSlteraBody, pushOutOfSlteraBodyWithin,
   removeSlteraLaunchAt, requestSlteraInstantPassOn, rollSlteraRunOver, slteraPlayerLaunch, startSlteraPlayerLaunch,
@@ -158,6 +158,7 @@ export default function SlteraEvent({ stageId, gameKey }) {
     //   풀 좀비: 박스 밖으로 밀어내고, 이번 질주에서 처음 닿았으면(차 중심이 화면 안일 때) 치기를 굴려 날린다.
     //   물리 몸체 적(보스·특수 적): 차가 장애물처럼 밀려나 튕기고, 치기 성공이면 기존 넉백 경로로 밀린다.
     const box = s.box
+    let ranOver = false
     if (pass.swept && isSlteraBodySolid(pass)) {
       const onScreen = getSlteraSweepBox(pass, box, screenBounds)
       const scratch = s.scratch
@@ -165,7 +166,6 @@ export default function SlteraEvent({ stageId, gameKey }) {
       const count = scanOrientedBoxEnemiesInto(scratch, box.centerX, box.centerZ, box.yaw, box.halfWidth + SLTERA_BOSS_RADIUS, box.halfDepth + SLTERA_BOSS_RADIUS)
       const contact = s.contact
       const dir = s.dir
-      let ranOver = false
       let moved = false
       for (let i = 0; i < count; i += 1) {
         const special = scratch.special[i]
@@ -219,14 +219,6 @@ export default function SlteraEvent({ stageId, gameKey }) {
         if (hit) ranOver = true
       }
       if (moved) enemyPool.markSpatialChanged()
-      // 치기 소리는 게임 시간 150ms에 한 번 — 무리를 쓸고 가면 연속 프레임마다 쳐서 소리가 쌓이고 클리핑했다.
-      // 런 시계(elapsedMs)로 잰다: 일시정지 중엔 흐르지 않고, 한 렌더 프레임에 몰아 도는 고정 스텝끼리는
-      // 같은 값이라 프레임 끊김 뒤 따라잡기 스텝에서도 한꺼번에 여러 번 울리지 않는다. 칠 때마다 피치를 살짝 흔든다.
-      if (ranOver && claimSlteraThud(pass, elapsedMs)) {
-        s.crashCount += 1
-        const rate = SLTERA_CRASH_RATE_MIN + SLTERA_CRASH_RATE_SPAN * ((s.crashCount * 0.6180339887498949) % 1)
-        emitSfx({ id: 'slteraCrash', volume: 0.6, rate })
-      }
     }
 
     // 로자리 — 피해는 질주당 1회(무적 판정은 damagePlayer의 일반 규칙). 첫 접촉에 날아가고(조작 정지·다시 안 맞음),
@@ -249,14 +241,26 @@ export default function SlteraEvent({ stageId, gameKey }) {
         }
       }
       if (!wasHit && pass.playerHit) {
-        // 로자리를 친 순간(질주당 한 번) — 좀비 치기보다 크게.
-        emitSfx({ id: 'slteraCrash', volume: 0.85, rate: 0.95 })
+        // 로자리를 친 순간(질주당 한 번). 소리는 아래 치기 소리 묶음에서(간격 제한·로자리 우선).
         const dir = s.dir
         planSlteraLaunchInto(pass, contact.x, contact.z, contact.nx, contact.nz, SLTERA_PLAYER_LAUNCH_DISTANCE, SLTERA_PLAYER_RADIUS, pass.obstacles, s.playerBounds, portalTarget, dir)
         startSlteraPlayerLaunch(slteraPlayerLaunch, dir.x, dir.z, dir.distance)
         body?._applyKnockback?.(slteraPlayerLaunch.vx, slteraPlayerLaunch.vz, SLTERA_PLAYER_LAUNCH_SEC * 1000)
       }
       if (hit > 0) live.damagePlayer(hit, { source: SLTERA_DAMAGE_SOURCE })
+    }
+
+    // 치기 소리(좀비·로자리 모두 slteraCrash)는 게임 시간 150ms에 한 번 — 무리를 쓸고 가면 연속 프레임마다 쳐서 소리가 쌓이고
+    // 클리핑했다. 런 시계(elapsedMs)로 잰다: 일시정지 중엔 흐르지 않고, 한 렌더 프레임에 몰아 도는 고정 스텝끼리는 같은 값이라
+    // 프레임 끊김 뒤 따라잡기 스텝에서도 한꺼번에 여러 번 울리지 않는다.
+    // 로자리 쪽이 먼저다(11-15): 로자리를 쳤으면 같은 프레임 좀비 치기 소리 대신 로자리 치기(더 크게)를 내고, 간격 제한에 막히면
+    // 다음 프레임에 다시(최대 150ms 늦을 뿐 빠지지 않는다) — 그동안 좀비 치기 소리는 끼어들지 않는다.
+    if (consumeSlteraPlayerCrash(pass, elapsedMs)) {
+      emitSfx({ id: 'slteraCrash', volume: 0.85, rate: 0.95 })
+    } else if (ranOver && !isSlteraPlayerCrashPending(pass) && claimSlteraThud(pass, elapsedMs)) {
+      s.crashCount += 1 // 칠 때마다 피치를 살짝 흔든다
+      const rate = SLTERA_CRASH_RATE_MIN + SLTERA_CRASH_RATE_SPAN * ((s.crashCount * 0.6180339887498949) % 1)
+      emitSfx({ id: 'slteraCrash', volume: 0.6, rate })
     }
 
     const car = carRef.current

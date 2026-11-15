@@ -26,6 +26,7 @@ import {
   SLTERA_EXIT_DASH_AFTER_LANDING_SEC, SLTERA_EXIT_DASH_AT_MAX, SLTERA_EXIT_DASH_AT_MIN, SLTERA_EXIT_DASH_EDGE_MIN_PROGRESS,
   SLTERA_EXIT_DASH_RAMP_SEC, SLTERA_EXIT_DASH_REASON, SLTERA_EXIT_DASH_SPEED, SLTERA_EXIT_DASH_SPEED_MULT, SLTERA_EXIT_DASH_SQUAT_SEC,
   consumeSlteraExitBoost, consumeSlteraJumpStart, getSlteraExitDashSpeed, getSlteraExitDashSquat,
+  consumeSlteraPlayerCrash, isSlteraCarPartOnScreen, isSlteraPlayerCrashPending,
 } from './slteraEvent.js'
 import { getPlayerMovementBounds } from './playerMovementBounds.js'
 import { isPointInOrientedBox2D } from './weaponCollision.js'
@@ -225,7 +226,8 @@ describe('Sltera path: diagonal, zigzag, broken-car chaos (Terry 11-08)', () => 
       expect(pass.exitDashes).toBe(1)
       expect((pass.exitDashStartX - e0X) * d0X + (pass.exitDashStartZ - e0Z) * d0Z).toBeGreaterThan(len0 * 0.5)
       expect((pass.x - e0X) * d0X + (pass.z - e0Z) * d0Z).toBeGreaterThan(len0 * 0.5)
-      expect(pass.progress).toBeGreaterThanOrEqual(pass.length)
+      // 퇴장 중 끝 = 차 전체가 (지금) 화면 밖(11-15 balanceqa — 퇴장 직선 길이가 아니라 화면 밖으로 완전히 나간 순간).
+      expect(isSlteraPointOnScreen(bounds, pass.x, pass.z, -SLTERA_OFFSCREEN_PAD)).toBe(false)
       expect(carVisible(pass)).toBe(false)
     }
     expect(corners.size).toBe(4) // 네 모서리 모두에서 출발한다
@@ -408,7 +410,7 @@ describe('Sltera run-over and Rosari damage', () => {
     // 런타임은 이 게이트를 거쳐서만 치기 소리를 낸다. 11-15: 소리는 전용 코믹 큐 slteraCrash(칠 때마다 피치 0.92~1.12),
     // 착지는 slteraLand — 둘 다 같은 간격 제한(claimSlteraThud)을 거친다. 옛 zombieGiantThud는 더는 쓰지 않는다.
     const src = readFileSync(new URL('../components/SlteraEvent.jsx', import.meta.url), 'utf8')
-    expect(src).toMatch(/if \(ranOver && claimSlteraThud\(pass, elapsedMs\)\) \{[^}]*emitSfx\(\{ id: 'slteraCrash', volume: 0\.6, rate \}\)/)
+    expect(src).toMatch(/else if \(ranOver && !isSlteraPlayerCrashPending\(pass\) && claimSlteraThud\(pass, elapsedMs\)\) \{[^}]*emitSfx\(\{ id: 'slteraCrash', volume: 0\.6, rate \}\)/)
     expect(src).toMatch(/if \(consumeSlteraLandingThud\(pass, elapsedMs\)\) \{\s+emitSfx\(\{ id: 'slteraLand'/)
     expect(src).not.toContain('zombieGiantThud')
   })
@@ -1557,10 +1559,187 @@ describe('Sltera exit dash (Terry 11-15: one direction, sudden acceleration, dea
     expect(src).toContain("emitSfx({ id: 'slteraEngine', volume: 0.6, rate: 1 })")
     expect(src).toMatch(/if \(consumeSlteraJumpStart\(pass\)\) emitSfx\(\{ id: 'slteraFlip'/)
     expect(src).toMatch(/if \(consumeSlteraExitBoost\(pass\)\) emitSfx\(\{ id: 'slteraBoost'/)
-    expect(src).toMatch(/if \(!wasHit && pass\.playerHit\) \{[^}]*emitSfx\(\{ id: 'slteraCrash', volume: 0\.85/)
+    // 로자리 치기·좀비 치기 모두 150ms 간격 제한을 거치고, 로자리 쪽이 먼저(같은 프레임 좀비 치기 소리 대신).
+    expect(src).toMatch(/if \(consumeSlteraPlayerCrash\(pass, elapsedMs\)\) \{\s*emitSfx\(\{ id: 'slteraCrash', volume: 0\.85/)
+    expect(src).toMatch(/else if \(ranOver && !isSlteraPlayerCrashPending\(pass\) && claimSlteraThud\(pass, elapsedMs\)\)/)
     expect(src.match(/id: 'slteraCrash'/g)).toHaveLength(2) // 좀비 치기 + 로자리 치기
     expect(src).not.toMatch(/id: 'slteraRush'|zombieGiantThud/)
     expect(src).toContain('getSlteraExitDashSquat(pass)')
     expect(src).not.toMatch(/SlteraCar\.jsx'[\s\S]*SlteraCar[^\n]*boost/) // SlteraCar 안쪽 파츠는 건드리지 않는다
+  })
+})
+
+// ── 11-15 balanceqa: 카메라는 로자리를 따라간다 — 퇴장 시작·방향·사라짐은 '지금 화면' 기준 ──────────────────────────
+// 로자리(3.0u/s)를 움직이며 매 step 로자리를 따라가는 지금 화면(screen)을 넘긴다. 시나리오: 무작위 이동(0.4~1.2초마다
+// 방향 바꿈), 직선 도주(차 출발점 반대쪽으로 / 무작위 한 방향으로), 달려듦(차 쪽으로), 가만히 섬.
+const ROSARI_SPEED = 3
+function runOnLiveScreen(scenario, seed, { obstacles = null, origin = [0, 0], dt = STEP_MS } = {}) {
+  const rand = lcg(seed)
+  const walk = lcg(seed * 7 + 3)
+  let px = origin[0]; let pz = origin[1]
+  const screenAt = (x, z) => ({ minX: x + bounds.minX, maxX: x + bounds.maxX, minZ: z + bounds.minZ, maxZ: z + bounds.maxZ })
+  const pass = beginSlteraPass(createSlteraPass(), { bounds: screenAt(px, pz), playerX: px, playerZ: pz, obstacles, rand })
+  let dx = 0; let dz = 0; let turnIn = 0
+  if (scenario === 'flee') { const l = Math.hypot(px - pass.entryX, pz - pass.entryZ) || 1; dx = (px - pass.entryX) / l; dz = (pz - pass.entryZ) / l }
+  if (scenario === 'fleeAny') { const a = walk() * Math.PI * 2; dx = Math.sin(a); dz = Math.cos(a) }
+  const r = {
+    seen: false, dashStarts: 0, dashStartOffScreen: 0, boosts: 0, boostWhileHidden: 0, lastSeenDashing: false,
+    leftWhileAirborne: false, visibleAtEnd: false, done: false, hit: false, hitWithin300: false, firstSeenMs: NaN, seenMs: 0,
+  }
+  let wasDash = false; let wasLanded = false
+  for (let guard = 0; guard < 100_000 && pass.phase !== SLTERA_PHASE.DONE; guard += 1) {
+    if (scenario === 'random') {
+      turnIn -= dt / 1000
+      if (turnIn <= 0) { const a = walk() * Math.PI * 2; dx = Math.sin(a); dz = Math.cos(a); turnIn = lerpTest(0.4, 1.2, walk()) }
+    } else if (scenario === 'charge') {
+      const l = Math.hypot(pass.x - px, pass.z - pz)
+      if (l > 0.1) { dx = (pass.x - px) / l; dz = (pass.z - pz) / l } else { dx = 0; dz = 0 }
+    }
+    if (scenario !== 'still') { px += dx * ROSARI_SPEED * dt / 1000; pz += dz * ROSARI_SPEED * dt / 1000 }
+    const screen = screenAt(px, pz)
+    const before = isSlteraCarPartOnScreen(screen, pass.x, pass.z, pass.heading)
+    stepSlteraPass(pass, dt, px, pz, screen)
+    const visible = isSlteraCarPartOnScreen(screen, pass.x, pass.z, pass.heading)
+    if (pass.exitDash && !wasDash) {
+      r.dashStarts += 1
+      if (!isSlteraPointOnScreen(screen, pass.exitDashStartX, pass.exitDashStartZ)) r.dashStartOffScreen += 1
+    }
+    if (consumeSlteraExitBoost(pass)) { r.boosts += 1; if (!visible && !before) r.boostWhileHidden += 1 }
+    if (pass.phase === SLTERA_PHASE.DONE) { r.visibleAtEnd = visible; r.done = true; break }
+    if (visible) {
+      if (!r.seen) r.firstSeenMs = pass.elapsedMs
+      r.seen = true
+      r.seenMs += dt
+      r.lastSeenDashing = pass.exitDash
+    }
+    // 착지한 step에 차 중심이 이미 지금 화면 밖이었다 — 공중에서 로자리가 방향을 바꿔 화면이 차를 지나쳐 갔다.
+    if (pass.jumpState === SLTERA_JUMP_STATE.LANDED && !wasLanded && !isSlteraPointOnScreen(screen, pass.x, pass.z)) r.leftWhileAirborne = true
+    wasLanded = pass.jumpState === SLTERA_JUMP_STATE.LANDED
+    if (checkSlteraPlayerHit(pass, px, pz, 100) > 0) { r.hit = true; if (!(pass.elapsedMs - r.firstSeenMs >= 300)) r.hitWithin300 = true }
+    wasDash = pass.exitDash
+  }
+  r.dashes = pass.exitDashes
+  r.jumped = pass.jumps > 0
+  r.ms = pass.elapsedMs
+  return r
+}
+
+describe('Sltera on the live screen while Rosari moves (balanceqa 11-15: the camera follows Rosari)', () => {
+  const N = 300
+  const rate = (rs, f) => rs.filter(f).length / rs.length
+  const medianOf = (xs) => { const s = [...xs].sort((a, b) => a - b); return s[Math.floor(s.length / 2)] }
+  const sims = {}
+  const sim = (scenario) => {
+    if (!sims[scenario]) sims[scenario] = Array.from({ length: N }, (_, k) => runOnLiveScreen(scenario, 41_000 + k * 13, { dt: k % 5 === 4 ? 50 : STEP_MS }))
+    return sims[scenario]
+  }
+
+  it('every pass the live screen showed starts exactly one exit dash on screen and vanishes only once fully off the live screen', () => {
+    for (const scenario of ['random', 'flee', 'fleeAny', 'charge', 'still']) {
+      const rs = sim(scenario)
+      for (const r of rs) {
+        expect(r.done).toBe(true)
+        expect(r.dashes).toBeLessThanOrEqual(1) // 질주당 최대 한 번
+        expect(r.dashStarts).toBe(r.dashes)
+        expect(r.dashStartOffScreen).toBe(0) // 화면 밖에서 시작한 퇴장 가속 0건
+        expect(r.boostWhileHidden).toBe(0) // 안 보이는 차에서 급가속 소리 없음
+        expect(r.boosts).toBe(r.dashes)
+        expect(r.visibleAtEnd).toBe(false) // 사라질 때 차는 지금 화면 밖(허용 오차 없음)
+        expect(r.ms).toBeLessThan(SLTERA_DEADLINE_CLEAR_MS) // 예고 비우기 12초 안
+      }
+      // 헛질주 없음: 화면에 들어오기 전 경로가 화면을 따라 옮겨져 모든 질주가 지금 화면에 보인다.
+      expect(rs.every((r) => r.seen)).toBe(true)
+      // 보인 질주는 화면에 보이는 동안 퇴장 가속을 한 번 하고 사라진다. 유일한 예외: 등장 점프 공중(0.8초)에 로자리가 방향을
+      // 바꿔 화면이 차를 지나쳐 가 착지 때 차 중심이 이미 화면 밖인 경우(공중에서는 퇴장을 시작하지 않는다) — 무작위 이동에서만, 1% 이하.
+      const misses = rs.filter((r) => r.seen && !(r.dashes === 1 && r.lastSeenDashing))
+      for (const r of misses) expect(r.leftWhileAirborne).toBe(true)
+      expect(misses.length).toBeLessThanOrEqual(scenario === 'random' ? Math.floor(N * 0.01) : 0)
+    }
+  })
+
+  it('holds at low frame rates too (10 fps and 4 fps, the screen jumps once per frame)', () => {
+    for (const dt of [100, 250]) {
+      let misses = 0
+      for (let k = 0; k < 150; k += 1) {
+        const r = runOnLiveScreen(k % 2 ? 'random' : 'fleeAny', 63_000 + k * 11, { dt })
+        expect(r.done).toBe(true)
+        expect(r.dashes).toBeLessThanOrEqual(1)
+        expect(r.dashStartOffScreen).toBe(0)
+        expect(r.boostWhileHidden).toBe(0)
+        expect(r.visibleAtEnd).toBe(false)
+        // 4fps에선 퇴장(대개 0.5초 안팎)이 한두 프레임에 끝나 '마지막으로 보인 프레임이 퇴장 중'은 못 본다 — 퇴장 횟수로 본다.
+        if (r.seen && r.dashes !== 1) { misses += 1; expect(r.leftWhileAirborne).toBe(true) }
+      }
+      expect(misses).toBeLessThanOrEqual(3)
+    }
+  })
+
+  it('a still Rosari sees the same passes as before (jump once, dash once, ≈4.6 s on screen)', () => {
+    const rs = sim('still')
+    expect(rs.every((r) => r.jumped && r.dashes === 1)).toBe(true)
+    const dwell = medianOf(rs.map((r) => r.seenMs)) / 1000
+    expect(dwell).toBeGreaterThan(4)
+    expect(dwell).toBeLessThan(5.2)
+  })
+
+  it('does not hit a moving Rosari more often, and never within 0.3 s of appearing', () => {
+    expect(rate(sim('still'), (r) => r.hit)).toBeLessThan(0.33) // ≈27%(장애물 없음)
+    expect(rate(sim('random'), (r) => r.hit)).toBeLessThan(0.3) // ≈23%(변경 전 ≈25%)
+    expect(rate(sim('flee'), (r) => r.hit)).toBeLessThan(0.03)
+    for (const scenario of ['random', 'flee', 'fleeAny', 'charge', 'still']) expect(sim(scenario).some((r) => r.hitWithin300)).toBe(false)
+  })
+
+  it('on the real Stage 1/5 props with a wandering Rosari: same guarantees', () => {
+    for (const stageId of ['stage1', 'stage5']) {
+      const obstacles = getStageObjectSightObstacles(stageId)
+      const xs = obstacles.map((o) => o.x); const zs = obstacles.map((o) => o.z)
+      const pick = lcg(stageId.length * 991)
+      let misses = 0; let runs = 0
+      for (let k = 0; k < 120; k += 1) {
+        let ox = 0; let oz = 0
+        for (let t = 0; t < 30; t += 1) {
+          ox = lerpTest(Math.min(...xs), Math.max(...xs), pick()); oz = lerpTest(Math.min(...zs), Math.max(...zs), pick())
+          if (!obstacles.some((o) => Math.abs(ox - o.x) < o.halfX + 0.4 && Math.abs(oz - o.z) < o.halfZ + 0.4)) break
+        }
+        const r = runOnLiveScreen(k % 3 === 0 ? 'fleeAny' : 'random', 77_000 + k * 17, { obstacles, origin: [ox, oz] })
+        runs += 1
+        expect(r.done).toBe(true)
+        expect(r.dashes).toBeLessThanOrEqual(1)
+        expect(r.dashStartOffScreen).toBe(0)
+        expect(r.boostWhileHidden).toBe(0)
+        expect(r.visibleAtEnd).toBe(false)
+        expect(r.ms).toBeLessThan(SLTERA_DEADLINE_CLEAR_MS)
+        if (r.seen && !(r.dashes === 1 && r.lastSeenDashing)) { misses += 1; expect(r.leftWhileAirborne).toBe(true) }
+      }
+      // 예외는 위와 같다(착지 때 이미 화면 밖) — 튕겨 밀리는 중 화면이 지나쳐 가면 튕김을 끊고 퇴장한다.
+      expect(misses).toBeLessThanOrEqual(Math.floor(runs * 0.01))
+    }
+  })
+
+  it('is deterministic with a moving screen (same inputs, same path) and falls back to the start screen without one', () => {
+    const a = runOnLiveScreen('random', 5151)
+    const b = runOnLiveScreen('random', 5151)
+    expect(a).toEqual(b)
+    const p1 = beginSlteraPass(createSlteraPass(), { bounds, playerX: 0, playerZ: 0, rand: lcg(8) })
+    const p2 = beginSlteraPass(createSlteraPass(), { bounds, playerX: 0, playerZ: 0, rand: lcg(8) })
+    runPass(p1)
+    for (let g = 0; g < 100_000 && p2.phase !== SLTERA_PHASE.DONE; g += 1) stepSlteraPass(p2, STEP_MS, 0, 0, { ...bounds })
+    expect(p2.x).toBe(p1.x)
+    expect(p2.z).toBe(p1.z)
+    expect(p2.elapsedMs).toBe(p1.elapsedMs)
+  })
+
+  it('Rosari crash sound goes through the 150 ms thud limit but is never dropped, and beats a zombie crash', () => {
+    const pass = straightPass()
+    pass.swept = true
+    pass.prevX = pass.x; pass.prevZ = pass.z
+    expect(claimSlteraThud(pass, 1000)).toBe(true) // 방금 좀비 치기 쿵
+    expect(checkSlteraPlayerHit(pass, pass.x, pass.z, 100)).toBeGreaterThan(0)
+    expect(isSlteraPlayerCrashPending(pass)).toBe(true)
+    expect(consumeSlteraPlayerCrash(pass, 1050)).toBe(false) // 간격 제한 — 기다린다(빠지지 않는다)
+    expect(isSlteraPlayerCrashPending(pass)).toBe(true)
+    expect(consumeSlteraPlayerCrash(pass, 1150)).toBe(true)
+    expect(consumeSlteraPlayerCrash(pass, 2000)).toBe(false) // 한 번만
+    expect(claimSlteraThud(pass, 1200)).toBe(false) // 로자리 치기가 간격을 차지했다
   })
 })
