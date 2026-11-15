@@ -8,7 +8,7 @@ import { execFileSync } from 'node:child_process'
 import { mkdirSync, writeFileSync, rmSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { synthVoice } from './generate_zombie_death_voices.mjs'
+import { synthVoice, deathTapeArgs } from './generate_zombie_death_voices.mjs'
 
 const __dir = dirname(fileURLToPath(import.meta.url))
 const ROOT = join(__dir, '..')
@@ -201,8 +201,8 @@ if (process.argv[1] && process.argv[1].endsWith('generate_voice_sfx.mjs')) {
     mkdirSync(outDir, { recursive: true })
     const ogg = join(outDir, `${id}.ogg`)
     const mp3 = join(outDir, `${id}.mp3`)
-    execFileSync(FFMPEG, ['-y', '-loglevel', 'error', '-i', wav, '-c:a', 'libvorbis', '-q:a', '2', '-ar', String(SR), ogg])
-    execFileSync(FFMPEG, ['-y', '-loglevel', 'error', '-i', wav, '-c:a', 'libmp3lame', '-b:a', '64k', '-ar', String(SR), mp3])
+    execFileSync(FFMPEG, ['-y', '-loglevel', 'error', '-i', wav, ...(id === 'bossDeath' ? deathTapeArgs(SR) : []), '-c:a', 'libvorbis', '-q:a', '2', '-ar', String(SR), ogg])
+    execFileSync(FFMPEG, ['-y', '-loglevel', 'error', '-i', wav, ...(id === 'bossDeath' ? deathTapeArgs(SR) : []), '-c:a', 'libmp3lame', '-b:a', '64k', '-ar', String(SR), mp3])
     console.log(`ok ${id} -> public/sfx/${spec.dir}/${id}.ogg`)
     made += 1
   }

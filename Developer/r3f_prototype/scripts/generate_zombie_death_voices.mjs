@@ -37,6 +37,12 @@ const PI2 = Math.PI * 2
 // 전체 F0를 약 +5반음 올려 좀비/괴물 질감은 유지하되 둔탁한 남성 저음을 줄인다.
 export const ZOMBIE_DEATH_PITCH_SCALE = 1.33
 
+// 2026-11-15 Terry: "지금 너무 기괴하고 무섭다 — 피치 올리고 속도 빠르게, 캐주얼하게".
+// 모든 좀비 사망 발성(일반 5종 + bossDeath)을 테이프 빨리감기처럼 돌린다: 피치·포먼트·속도가 함께 올라가
+// 공포 신음이 아니라 만화 '꺅/으익'으로 들린다. 인코딩 직전 ffmpeg asetrate로 적용한다.
+export const ZOMBIE_DEATH_TAPE_SPEED = 1.45
+export const deathTapeArgs = (sr) => ['-af', 'asetrate=' + Math.round(sr * ZOMBIE_DEATH_TAPE_SPEED)]
+
 // 2026-11-14 Terry: "너무 너무 저음이거나 무거운 좀비 목소리 다 바꿔".
 // 좀비/보스 발성 공통 하한·상한. 카툰 학교 좀비라 공포영화식 저음 그르렁은 금지다.
 //   minF0Hz  — 실효 F0(윤곽 최저값 × pitchScale × (1 - 비브라토 깊이))의 바닥. 보스도 이 아래로 못 내려간다.
@@ -497,8 +503,8 @@ if (process.argv[1] && process.argv[1].endsWith('generate_zombie_death_voices.mj
     writeWav(wav, synthVoice({ ...spec, pitchScale: spec.pitchScale ?? ZOMBIE_DEATH_PITCH_SCALE }))
     const ogg = join(OUT, `${id}.ogg`)
     const mp3 = join(OUT, `${id}.mp3`)
-    execFileSync(FFMPEG, ['-y', '-loglevel', 'error', '-i', wav, '-c:a', 'libvorbis', '-q:a', '2', '-ar', String(SR), ogg])
-    execFileSync(FFMPEG, ['-y', '-loglevel', 'error', '-i', wav, '-c:a', 'libmp3lame', '-b:a', '64k', '-ar', String(SR), mp3])
+    execFileSync(FFMPEG, ['-y', '-loglevel', 'error', '-i', wav, ...deathTapeArgs(SR), '-c:a', 'libvorbis', '-q:a', '2', '-ar', String(SR), ogg])
+    execFileSync(FFMPEG, ['-y', '-loglevel', 'error', '-i', wav, ...deathTapeArgs(SR), '-c:a', 'libmp3lame', '-b:a', '64k', '-ar', String(SR), mp3])
     console.log(`ok ${id}  (${spec.dur.toFixed(2)}s, ${spec.bits}bit, hold x${spec.hold})`)
     made++
   }
