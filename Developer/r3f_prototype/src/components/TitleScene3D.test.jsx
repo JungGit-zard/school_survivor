@@ -20,6 +20,7 @@ import {
   disposeTitleCharacterOutlines,
   getTitleSceneRootPosition,
   prepareTitleCharactersForStudioUpdate,
+  TITLE_KAYKIT_EXTRA_PROPS,
 } from './TitleScene3D.jsx'
 import { applyStudioTuning } from './StudioTunedGroup.jsx'
 import { sunnyPalette } from '../lib/uiStyle.js'
@@ -62,6 +63,8 @@ describe('TitleScene3D direction', () => {
       realForegroundResources: [
         'ZombieMesh',
         'MatildaMesh',
+        'ClassroomDesk',
+        'ClassroomChair',
         'KaykitPropModel',
         'UnconsciousStudent',
       ],
@@ -135,10 +138,10 @@ describe('TitleScene3D direction', () => {
     const source = readFileSync(new URL('./TitleScene3D.jsx', import.meta.url), 'utf8')
 
     expect(source).toContain("import ZombieMesh from './ZombieMesh.jsx'")
-    // 2026-11-14 Terry: title desks/chairs are the same KayKit components the stages use.
+    // 2026-11-15 Terry: our desks/chairs stay; KayKit pieces are mixed in as extras, never substitutes.
+    expect(source).toContain("import ClassroomChair from './StageObjects/ClassroomChair.jsx'")
+    expect(source).toContain("import ClassroomDesk from './StageObjects/ClassroomDesk.jsx'")
     expect(source).toContain("import { KaykitPropModel } from './StageObjects/KaykitProps.jsx'")
-    expect(source).not.toContain("import ClassroomDesk from './StageObjects/ClassroomDesk.jsx'")
-    expect(source).not.toContain("import ClassroomChair from './StageObjects/ClassroomChair.jsx'")
     expect(source).toContain("import UnconsciousStudent from './StageObjects/UnconsciousStudent.jsx'")
     expect(source).not.toContain("from './StageObjects/index.js'")
     expect(source).toContain('<ZombieMesh type={type} animPhase="charge" idleRig={idleRig} />')
@@ -146,10 +149,12 @@ describe('TitleScene3D direction', () => {
     expect(source).toContain('<TitleBossZombie type="B03" position={[0.3, 0.4, -3.3]} scale={1.344} delay={1.35} />')
     expect(source).toContain('<TitleBossZombie type="B01" position={[-0.35, 0.34, -1.01]} scale={1.02} />')
     expect(source).toContain('<TitleZombie idleId="zombieE03" position={[-0.5, 0.18, -1.9]} delay={2.1} scale={0.52} type="E03" />')
-    expect(source).toContain('<KaykitPropModel kind="classroomDesk" variant="overturned" />')
-    expect(source).toContain('<KaykitPropModel kind="classroomDesk" variant="abandoned" />')
-    expect(source).toContain('<KaykitPropModel kind="classroomChair" variant="tilted" />')
-    expect(source).toContain('<KaykitPropModel kind="classroomChair" variant="overturned" />')
+    expect(source).toContain('<ClassroomDesk variant="overturned" />')
+    expect(source).toContain('<ClassroomDesk variant="abandoned" />')
+    expect(source).toContain('<ClassroomChair variant="tilted" />')
+    expect(source).toContain('<ClassroomChair variant="overturned" />')
+    expect(source).toContain('<KaykitPropModel kind={kind} variant={variant} />')
+    expect(TITLE_KAYKIT_EXTRA_PROPS.map(({ kind }) => kind).sort()).toEqual(['classroomChair', 'classroomDesk'])
     expect(source).toContain('<UnconsciousStudent')
     expect(source).not.toContain('function LargeZombieSilhouette')
     expect(source).not.toContain('function ZombieHeadSilhouette')

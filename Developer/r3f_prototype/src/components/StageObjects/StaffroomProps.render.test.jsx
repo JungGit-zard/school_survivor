@@ -21,7 +21,7 @@ import {
   STAFFROOM_STUDIO_ITEM_IDS,
 } from './StaffroomProps.jsx'
 import { GRAPHICS_STUDIO_CATALOG, saveStudioTunings } from '../../lib/graphicsStudioConfig.js'
-import StageObjectLayer from './StageObjectLayer.jsx'
+import StageObjectLayer, { splitKaykitMix } from './StageObjectLayer.jsx'
 import Stage5StaffroomDecor from '../Stage5StaffroomDecor.jsx'
 import { STAGE_OBJECT_PLACEMENTS } from './stageObjectPlacements.js'
 import { commitFirebaseStudioRuntime } from '../../lib/studioRuntimeState.js'
@@ -89,22 +89,54 @@ describe('Stage 5 staff room prop rendering', () => {
     expect(surfaces.every((mesh) => mesh.material.isMeshToonMaterial)).toBe(true)
   })
 
-  it('draws all 12 islands of the Stage 5 layer as KayKit tables + chairs in four instanced draws', async () => {
+  it('draws the 12 Stage 5 islands mixed: our box-part batch (6 draws) + KayKit tables/chairs (<= 6 draws)', async () => {
     const { state } = await mount(<StageObjectLayer stageId="stage5" />)
+    const islandPlacements = STAGE_OBJECT_PLACEMENTS.stage5.filter(({ type }) => type === 'staffroomDeskIsland')
+    const { ours, kaykit } = splitKaykitMix(islandPlacements)
+    expect(ours.length).toBeGreaterThan(0)
+    expect(kaykit.length).toBeGreaterThan(0)
+    expect(ours.length + kaykit.length).toBe(islandPlacements.length)
+
+    // Ours: the original box-part island batch, exactly as before 33cf3972 (5 materials + 1 outline).
+    const ourIslands = state.scene.getObjectByName('staffroom-desk-islands')
+    expect(ourIslands).toBeDefined()
+    const ourInstanced = []
+    ourIslands.traverse((object) => { if (object.isInstancedMesh) ourInstanced.push(object) })
+    expect(ourInstanced).toHaveLength(6)
+    expect(ourInstanced.every((mesh) => mesh.geometry === STAGE_PROP_UNIT_BOX_GEOMETRY)).toBe(true)
+    const expected = buildStaffroomDeskIslandInstances(ours)
+    const total = Object.values(expected.surface).reduce((sum, list) => sum + list.length, 0)
+    expect(ourInstanced.filter((mesh) => !mesh.userData.stagePropOutline).reduce((sum, mesh) => sum + mesh.count, 0)).toBe(total)
+    expect(ourInstanced.find((mesh) => mesh.userData.stagePropOutline).count).toBe(expected.outline.length)
+    // Our island geometry is never drawn a second time through the per-placement path.
+    let ourBatches = 0
+    state.scene.getObjectByName('stage-object-layer-stage5').traverse((object) => { if (object.name === 'staffroom-desk-islands') ourBatches += 1 })
+    expect(ourBatches).toBe(1)
+
+    // KayKit: long-table, short-table and chair parts, each fill + outline (Terry 11-14 budget: <= 8 draws).
     const islands = state.scene.getObjectByName('kaykit-batch-staffroomDeskIsland')
     expect(islands).toBeDefined()
     const instanced = []
     islands.traverse((object) => { if (object.isInstancedMesh && object.count > 0) instanced.push(object) })
-    // long-table, short-table and chair parts, each fill + outline (Terry 11-14 budget: <= 8 draws)
-    const islandPlacements = STAGE_OBJECT_PLACEMENTS.stage5.filter(({ type }) => type === 'staffroomDeskIsland')
-    const variants = new Set(islandPlacements.map(({ props }) => props?.variant ?? 'long'))
+    const variants = new Set(kaykit.map(({ props }) => props?.variant ?? 'long'))
     expect(instanced).toHaveLength((variants.size + 1) * 2)
     expect(instanced.length).toBeLessThanOrEqual(8)
-    const chairs = islandPlacements.reduce((sum, { props }) => sum + (props?.variant === 'short' ? 2 : 4), 0)
+    const chairs = kaykit.reduce((sum, { props }) => sum + (props?.variant === 'short' ? 2 : 4), 0)
     const fills = instanced.filter((mesh) => mesh.material.isMeshToonMaterial)
-    expect(fills.reduce((sum, mesh) => sum + mesh.count, 0)).toBe(islandPlacements.length + chairs)
-    // The old box-part island batch is no longer drawn by the layer.
-    expect(state.scene.getObjectByName('staffroom-desk-islands')).toBeUndefined()
+    expect(fills.reduce((sum, mesh) => sum + mesh.count, 0)).toBe(kaykit.length + chairs)
+  })
+
+  it('re-bakes our island instances when a Studio Apply changes the original desk island tuning', async () => {
+    const { state } = await mount(<StageObjectLayer stageId="stage5" />)
+    const partition = () => state.scene.getObjectByName('staffroom-desk-island-partition')
+    const before = new THREE.Matrix4()
+    partition().getMatrixAt(0, before)
+    await act(async () => {
+      saveStudioTunings({ 'stage-object-staffroom-desk-island': { positionY: 0.3 } })
+    })
+    const after = new THREE.Matrix4()
+    partition().getMatrixAt(0, after)
+    expect(new THREE.Vector3().setFromMatrixPosition(after).y - new THREE.Vector3().setFromMatrixPosition(before).y).toBeCloseTo(0.3, 6)
   })
 
   it('places island instances at their authored placement (long 3.4u / short 2.2u footprint)', () => {

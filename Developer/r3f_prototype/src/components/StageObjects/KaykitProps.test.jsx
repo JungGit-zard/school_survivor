@@ -21,7 +21,7 @@ import {
 } from '../../lib/kaykitFurniture.js'
 import { getKaykitTestScene } from '../../lib/kaykitFurniture.testUtil.js'
 import { buildKaykitPropInstances, getKaykitPartFit, KAYKIT_PROP_RECIPES, KAYKIT_STAGE_OBJECT_TYPES } from './kaykitPropRecipes.js'
-import StageObjectLayer, { STAGE_OBJECT_BATCH_COMPONENTS } from './StageObjectLayer.jsx'
+import StageObjectLayer, { KAYKIT_MIX_RATIO, splitKaykitMix, STAGE_OBJECT_BATCH_COMPONENTS } from './StageObjectLayer.jsx'
 import { getStageObjectColliderParts } from './stageObjectColliders.js'
 import { getStageObjectPlacements } from './stageObjectPlacements.js'
 import { GRAPHICS_STUDIO_CATALOG } from '../../lib/graphicsStudioConfig.js'
@@ -147,7 +147,8 @@ describe('KayKit stage layers', () => {
     ['stage1', { classroomDesk: 1, classroomChair: 1 }],
     ['stage2', { classroomDesk: 1 }],
     ['stage4', { kitchenPrepTable: 1, kitchenShelfCart: 1 }],
-    ['stage5', { staffroomDeskIsland: 3, staffroomViceDesk: 2, staffroomClutter: 2 }],
+    // The single vice-principal desk stays ours (no KayKit batch); see the mix tests below.
+    ['stage5', { staffroomDeskIsland: 3, staffroomClutter: 2 }],
   ])('%s draws each KayKit part as one fill + one outline InstancedMesh', async (stageId, partsPerType) => {
     const state = await mount(<StageObjectLayer stageId={stageId} />)
     const placements = getStageObjectPlacements(stageId)
@@ -156,7 +157,7 @@ describe('KayKit stage layers', () => {
       expect(batch, type).toBeDefined()
       const instanced = []
       batch.traverse((object) => { if (object.isInstancedMesh && object.count > 0) instanced.push(object) })
-      const expected = buildKaykitPropInstances(type, placements.filter((placement) => placement.type === type))
+      const expected = buildKaykitPropInstances(type, splitKaykitMix(placements.filter((placement) => placement.type === type)).kaykit)
       const drawnParts = expected.filter((part) => part.matrices.length > 0).length
       expect(drawnParts, type).toBeLessThanOrEqual(partCount)
       expect(instanced, type).toHaveLength(drawnParts * 2)
@@ -165,6 +166,82 @@ describe('KayKit stage layers', () => {
       for (const mesh of instanced.filter((candidate) => candidate.material.isMeshToonMaterial)) {
         expect(mesh.material.isMeshToonMaterial).toBe(true)
         expect(mesh.material.map).toBeTruthy()
+      }
+    }
+  })
+})
+
+// 2026-11-15 Terry: "이미 만든 프랍, 에셋들 절대 지우지 마. 무료 에셋과 혼용해라."
+describe('our props mixed with KayKit (Terry 11-15)', () => {
+  const MIXED_STAGES = ['stage1', 'stage2', 'stage4', 'stage5']
+  const samePosition = (a, b) => a.every((value, index) => Math.abs(value - b[index]) < 1e-9)
+
+  it('splits deterministically by authored index, never by Math.random, at the KAYKIT_MIX_RATIO share', () => {
+    const random = vi.spyOn(Math, 'random')
+    for (const stageId of MIXED_STAGES) {
+      const placements = getStageObjectPlacements(stageId)
+      for (const type of KAYKIT_STAGE_OBJECT_TYPES) {
+        const items = placements.filter((placement) => placement.type === type)
+        if (items.length === 0) continue
+        const first = splitKaykitMix(items)
+        const second = splitKaykitMix([...items])
+        expect(second.kaykit.map(({ id }) => id)).toEqual(first.kaykit.map(({ id }) => id))
+        expect(second.ours.map(({ id }) => id)).toEqual(first.ours.map(({ id }) => id))
+        expect(first.ours.length + first.kaykit.length).toBe(items.length)
+        if (items.length === 1) {
+          expect(first.ours).toHaveLength(1) // single placement keeps our original
+          continue
+        }
+        expect(first.ours.length, `${stageId} ${type}`).toBeGreaterThan(0)
+        expect(first.kaykit.length, `${stageId} ${type}`).toBeGreaterThan(0)
+        expect(Math.abs(first.kaykit.length - items.length * KAYKIT_MIX_RATIO)).toBeLessThanOrEqual(1)
+      }
+    }
+    expect(random).not.toHaveBeenCalled()
+    expect(KAYKIT_MIX_RATIO).toBe(0.5)
+  })
+
+  it('keeps both kinds even when the ratio would round one of them away', () => {
+    const items = [{ id: 'a' }, { id: 'b' }]
+    for (const ratio of [0.05, 0.95]) {
+      const { ours, kaykit } = splitKaykitMix(items, ratio)
+      expect(ours).toHaveLength(1)
+      expect(kaykit).toHaveLength(1)
+    }
+    expect(splitKaykitMix([{ id: 'solo' }], 0.95)).toEqual({ ours: [{ id: 'solo' }], kaykit: [] })
+  })
+
+  it.each(MIXED_STAGES)('%s renders BOTH our prop and the KayKit model for every mixed type, each placement once', async (stageId) => {
+    const state = await mount(<StageObjectLayer stageId={stageId} />)
+    const layer = state.scene.getObjectByName(`stage-object-layer-${stageId}`)
+    const placements = getStageObjectPlacements(stageId)
+    for (const type of KAYKIT_STAGE_OBJECT_TYPES) {
+      const items = placements.filter((placement) => placement.type === type)
+      if (items.length === 0) continue
+      const { ours, kaykit } = splitKaykitMix(items)
+
+      // KayKit share: instanced copies == KayKit placements' slots, and nothing for our share.
+      const batch = state.scene.getObjectByName(`kaykit-batch-${type}`)
+      const expectedCopies = buildKaykitPropInstances(type, kaykit).reduce((sum, part) => sum + part.matrices.length, 0)
+      if (kaykit.length === 0) {
+        expect(batch, `${stageId} ${type}`).toBeUndefined()
+      } else {
+        const fills = []
+        batch.traverse((object) => { if (object.isInstancedMesh && object.material.isMeshToonMaterial) fills.push(object) })
+        expect(fills.reduce((sum, mesh) => sum + mesh.count, 0), `${stageId} ${type}`).toBe(expectedCopies)
+      }
+
+      // Our share: the original renderer (island batch, or one top-level group per placement).
+      if (type === 'staffroomDeskIsland') {
+        expect(state.scene.getObjectByName('staffroom-desk-islands')).toBeDefined()
+        continue
+      }
+      const topLevel = layer.children.filter((child) => !child.name.startsWith('kaykit-batch-'))
+      for (const placement of ours) {
+        expect(topLevel.some((child) => samePosition(child.position.toArray(), placement.position)), `${stageId} ${placement.id}`).toBe(true)
+      }
+      for (const placement of kaykit) {
+        expect(topLevel.some((child) => samePosition(child.position.toArray(), placement.position)), `${stageId} ${placement.id} drawn twice`).toBe(false)
       }
     }
   })

@@ -12,6 +12,8 @@ import StudioTunedGroup, {
   StudioTuningRuntimeProvider,
   StudioTuningSnapshotProvider,
 } from './StudioTunedGroup.jsx'
+import ClassroomChair from './StageObjects/ClassroomChair.jsx'
+import ClassroomDesk from './StageObjects/ClassroomDesk.jsx'
 import { KaykitPropModel } from './StageObjects/KaykitProps.jsx'
 import UnconsciousStudent from './StageObjects/UnconsciousStudent.jsx'
 import { CompassBladeModel } from './Weapons/CompassBlade.jsx'
@@ -264,6 +266,8 @@ export const TITLE_SCENE_DIRECTION = {
     realForegroundResources: [
       'ZombieMesh',
       'MatildaMesh',
+      'ClassroomDesk',
+      'ClassroomChair',
       'KaykitPropModel',
       'UnconsciousStudent',
     ],
@@ -544,8 +548,15 @@ function TitleIdleDoge({ idleId, position, ...dogeProps }) {
   )
 }
 
-// 2026-11-14 Terry: 책상 2·의자 2는 KayKit Furniture Bits(CC0) 모델로 교체(게임 스테이지와 같은 컴포넌트).
-// 배치(위치·회전·크기·변형)는 그대로다. 옛 ClassroomDesk/ClassroomChair는 Graphics Studio 전용으로 남는다.
+// 2026-11-15 Terry: "이미 만든 프랍, 에셋들 절대 지우지 마. 무료 에셋과 혼용해라."
+// 우리 책상 2·의자 2는 원래 자리·회전·크기·변형 그대로 두고, KayKit 의자 1·책상 1을 빈 바닥에 덧붙인다.
+export const TITLE_KAYKIT_EXTRA_PROPS = Object.freeze([
+  // 왼쪽: 우리 엎어진 책상(-2.78, 0.95) 뒤, E03Far(-2.45, -1.38)와 우리 의자(-1.72, 0.12) 사이 빈 자리.
+  Object.freeze({ kind: 'classroomChair', variant: 'tilted', position: [-2.95, 0.02, -0.4], rotation: [0, 0.6, 0], scale: 0.8 }),
+  // 오른쪽 뒤: 우리 버려진 책상(2.62, -1.08) 뒤, E02Far(1.52, -1.9)·B03(0.3, -3.3)과 떨어진 빈 자리.
+  Object.freeze({ kind: 'classroomDesk', variant: 'abandoned', position: [2.4, 0.05, -2.9], rotation: [0, -0.5, 0], scale: 0.72 }),
+])
+
 function TitleClassroomProps() {
   const ref = useRef()
   // STUDIO_OUTER_MOTION_ONLY — 이 useFrame은 StudioTunedGroup의 바깥 그룹만 움직인다.
@@ -558,17 +569,22 @@ function TitleClassroomProps() {
   return (
     <group ref={ref}>
       <group position={[-2.78, 0.02, 0.95]} rotation={[0, 0.42, -0.06]} scale={0.72}>
-        <KaykitPropModel kind="classroomDesk" variant="overturned" />
+        <ClassroomDesk variant="overturned" />
       </group>
       <group position={[2.42, 0.02, 0.48]} rotation={[0, -0.36, 0.04]} scale={1.02}>
-        <KaykitPropModel kind="classroomChair" variant="tilted" />
+        <ClassroomChair variant="tilted" />
       </group>
       <group position={[-1.72, 0.02, 0.12]} rotation={[0, 0.9, 0]} scale={0.84}>
-        <KaykitPropModel kind="classroomChair" variant="overturned" />
+        <ClassroomChair variant="overturned" />
       </group>
       <group position={[2.62, 0.05, -1.08]} rotation={[0, -0.78, 0]} scale={0.84}>
-        <KaykitPropModel kind="classroomDesk" variant="abandoned" />
+        <ClassroomDesk variant="abandoned" />
       </group>
+      {TITLE_KAYKIT_EXTRA_PROPS.map(({ kind, variant, position, rotation, scale }) => (
+        <group key={`title-kaykit-${kind}`} position={position} rotation={rotation} scale={scale}>
+          <KaykitPropModel kind={kind} variant={variant} />
+        </group>
+      ))}
       {TITLE_STANDING_STUDENTS.map(({ position, rotationY }, index) => (
         <group
           key={`title-standing-student-${index}`}
