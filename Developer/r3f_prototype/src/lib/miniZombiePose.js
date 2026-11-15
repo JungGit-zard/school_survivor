@@ -22,6 +22,9 @@ export const MINI_POSE_OFFSET = Object.freeze({ legL: 0, legR: 3, torso: 6, armL
 // Kenney Mini는 머리가 몸 절반인 2등신이라, 블록 좀비처럼 고개를 숙이면 게임 카메라(GameCanvas [0,17,17], 45°)에서
 // 얼굴이 아니라 머리 꼭대기만 보인다. 모든 자세의 머리 X에서 이만큼 빼서 얼굴을 플레이어 쪽으로 든다(미믹 제외).
 export const MINI_HEAD_LIFT = 0.3
+// E91 미믹 깡충(초·좀비 로컬 높이). cycle·move는 lib/novelZombie2Behavior.js E91_MIMIC.hopCycleMs/hopMoveMs와 같아야 한다(테스트가 본다).
+// 높이 0.32 = 미믹 몸 두께(로컬 ≈ 0.24)보다 조금 높게 — 월드 ≈ 0.12u.
+export const MINI_MIMIC_HOP = Object.freeze({ cycle: 0.5, move: 0.3, height: 0.32 })
 
 // 블록 좀비 포즈에 이미 있는 문법은 그대로 넘긴다.
 const BLOCKY_STYLES = new Set(['punch', 'kick', 'slam', 'charge', 'tumble', 'throw', 'shoot', 'fan', 'whistle', 'cast', 'blink'])
@@ -65,7 +68,17 @@ export function fillMiniZombiePose(out, style, phase, time, fast = false, seed =
       out[MINI_POSE_ROOT_ROLL] = 0; out[MINI_POSE_BOB] = 0
       if (warn) { set(out, HEAD, -0.32 + Math.sin(t * 30) * 0.08, 0, 0); out[MINI_POSE_ROOT_ROLL] = Math.sin(t * 24) * 0.04 }
       else if (charge) { set(out, HEAD, -1.05, 0, 0); set(out, TORSO, -0.12, 0, 0); out[MINI_POSE_BOB] = 0.05 }
-      else if (stun) set(out, HEAD, -0.2, 0, 0)
+      else if (stun) {
+        // 깨어난 미믹의 깡충 추격(behavior N2_STATE_AWAKE = 회복 상태 번호 → 'stun'). 행동과 같은 박자:
+        // 0.5초 주기 중 앞 0.3초만 움직인다(E91_MIMIC hopCycleMs/hopMoveMs) — 그동안 뛰어오르며 뚜껑을 쩍 벌리고,
+        // 나머지 0.2초는 바닥에 붙어 뚜껑을 탁 닫는다. time = 행동 시계(MiniZombieLayer가 넘긴다, seed 없이).
+        const cycle = ((time % MINI_MIMIC_HOP.cycle) + MINI_MIMIC_HOP.cycle) % MINI_MIMIC_HOP.cycle
+        const s = cycle < MINI_MIMIC_HOP.move ? Math.sin(Math.PI * cycle / MINI_MIMIC_HOP.move) : 0
+        out[MINI_POSE_BOB] = s * MINI_MIMIC_HOP.height
+        set(out, TORSO, -0.22 * s, 0, 0) // 앞(입 쪽)을 들고 뛴다
+        set(out, HEAD, s > 0 ? -0.3 - 0.6 * s : -0.06, 0, 0)
+        out[MINI_POSE_ROOT_ROLL] = s * 0.08 * (Math.floor(time / MINI_MIMIC_HOP.cycle) % 2 === 0 ? 1 : -1) // 깡충마다 좌우로 갸웃
+      }
       break
     }
     case 'stalk': // 그림자밟기: 낮게 웅크려 걷는다(예고 없음 — 따라잡기 상태는 빠른 걸음)

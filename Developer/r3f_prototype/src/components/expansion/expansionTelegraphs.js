@@ -38,6 +38,12 @@ const positive=v=>Number.isFinite(v)&&v>0&&v<=64
 // 테두리(edge band/stroke)·흑백 사선 해치·흰 수축 카운트다운은 그리지 않는다. 채움은 실제 피해 기하
 // (safetyPolygons 또는 authored 반경)와 정확히 같고, 남은 시간은 채움 불투명도 상승으로만 읽힌다.
 export const EXPANSION_TELEGRAPH_FILL=Object.freeze({color:'#f5ce69',activeColor:'#f88578',windupOpacity:.4,windupOpacityGain:.18,activeOpacity:.55})
+// 2차 신규 좀비(novel2) 계열만 색으로 피해 여부를 가른다(2026-11-15 threemini): 피해 0 안내(E89 "차렷!" 원·E103 커피)는
+// 위 노랑 그대로, 피해가 있는 예고는 빨강. E92 기관사 돌진선은 스냅샷 피해가 0(피해는 머리 접촉)이라 contactAttack 표식으로
+// 피해 예고임을 알린다. 보스·확장 적(novel2가 아닌 스냅샷)의 색은 바꾸지 않는다. 불투명도 규칙은 위와 같다.
+export const NOVEL2_DAMAGE_TELEGRAPH_FILL=Object.freeze({color:'#e5333d',activeColor:'#c8102e'})
+export function isNovel2DamageTelegraph(d){return d?.novel2===true&&(d.contactAttack===true||d.damage>0)}
+function telegraphFillColor(d,active){const red=isNovel2DamageTelegraph(d),F=red?NOVEL2_DAMAGE_TELEGRAPH_FILL:EXPANSION_TELEGRAPH_FILL;return active?F.activeColor:F.color}
 export function updateExpansionTelegraphVisual(root,event) {
  if(!root)return
  const raw=event.windupMs>0?event.elapsedMs/event.windupMs:event.progress??0
@@ -65,7 +71,7 @@ export function createExpansionTelegraphVisual(event) {
  if(shape==='grid'&&(!Array.isArray(d.lineOffsetsUnits)||d.lineOffsetsUnits.length>8||!d.lineOffsetsUnits.every(Number.isFinite)))return null
  const root=new THREE.Group();root.name=`expansion-${shape}-${d.phase??'telegraph'}`;root.position.set(x,.035,z)
  const active=d.phase==='active',F=EXPANSION_TELEGRAPH_FILL
- const fillMat=new THREE.MeshBasicMaterial({color:active?F.activeColor:F.color,transparent:true,opacity:active?F.activeOpacity:F.windupOpacity,side:THREE.DoubleSide,depthWrite:false,toneMapped:false,polygonOffset:true,polygonOffsetFactor:-2})
+ const fillMat=new THREE.MeshBasicMaterial({color:telegraphFillColor(d,active),transparent:true,opacity:active?F.activeOpacity:F.windupOpacity,side:THREE.DoubleSide,depthWrite:false,toneMapped:false,polygonOffset:true,polygonOffsetFactor:-2})
  root.userData.fillMat=fillMat
  function groundMesh(parent,geometry,mat,px=0,pz=0) {
    const mesh=new THREE.Mesh(geometry,mat);mesh.rotation.x=-Math.PI/2;mesh.position.set(px,.003,pz);mesh.renderOrder=3;parent.add(mesh);return mesh

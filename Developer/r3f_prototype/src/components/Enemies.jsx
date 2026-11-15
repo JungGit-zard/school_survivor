@@ -35,7 +35,7 @@ import { enemyTypeToCode, enemyTypeFromCode, createEnemyEntityPool, MAX_ENEMIES 
 import { ENEMY_EVENT_CONTACT, ENEMY_EVENT_RANGED_FIRE, ENEMY_EVENT_DEATH, ENEMY_EVENT_DESPAWN, ENEMY_EVENT_ERROR, ENEMY_EVENT_PROJECTILE_ZOMBIE_FIRE, ENEMY_EVENT_PROJECTILE_ZOMBIE_TELEGRAPH, collidesEnemyObstacle, createEnemySimulationRuntime } from '../lib/enemySimulation.js'
 import { createEnemyProjectilePool, MAX_ENEMY_PROJECTILES } from '../lib/enemyProjectilePool.js'
 import { isNovelZombieType } from '../lib/novelZombieBehavior.js'
-import { isNovel2AbsoluteHp, isNovel2ImplementedTypeCode } from '../lib/novelZombie2Content.js'
+import { NOVEL2_DROP_BONUS, isNovel2AbsoluteHp, isNovel2ImplementedTypeCode } from '../lib/novelZombie2Content.js'
 import { CHIEF_ELITE_BONUS, admitChiefSpawn, createChiefDebutLedger } from '../lib/stageChiefContent.js'
 import { hasProjectileZombieSplit, isProjectileZombieType, spawnProjectileZombieTelegraphDecal, spawnProjectileZombieVolley } from '../lib/projectileZombieBehavior.js'
 import { emitVfx } from '../lib/vfxEvents.js'
@@ -110,8 +110,10 @@ export const ELITE_BONUS = {
   B04: { textbook: 3, textbookXp: 40, gold: 5 },
   // B10 교감 좀비(Stage 5, 2026-11-08). 확장 DATA.bosses 밖이라 위 확장 행에서 빠진다 — B01~B04와 같은 보스 공통 보상.
   B10: { textbook: 3, textbookXp: 40, gold: 5 },
-  // 치프(정예) 계층 — E89 반장 등. 교과서 2권 × 45XP + 골드 2(lib/stageChiefContent.js).
+  // 치프(정예) 계층 — E89 반장 등. 교과서 2권 × 45XP + 골드 2(lib/stageChiefContent.js). 두 몸 치프(E95)는 몸마다 절반.
   ...CHIEF_ELITE_BONUS,
+  // 2차 신규 일반 종의 확정 드롭 — E91 교과서 미믹: 진짜 교과서 2권(값 = 자기 xp, 골드 없음).
+  ...NOVEL2_DROP_BONUS,
 }
 
 export function getEliteBonusTextbookXp(type, fallbackXp) {
@@ -923,6 +925,8 @@ export const JARMOB_HP_TYPES = new Set([
   // E105(Stage 6 절대 HP)은 기존 종 배수를 타지 않으므로 넣지 않는다.
   // E96(드리블)은 스3에 같은 hp 자리가 없어 40초 순증으로 들어간다 — 치프처럼 밀도 파생(잡몹 맞교환 예산) 밖에 둔다.
   'E93', 'E94', 'E97', 'E99', 'E103',
+  // 2차 신규 2차분(wave 2, 2026-11-15): 스1 150초 E07 → E90, 184초 혼합 E01 → E91(같은 hp 맞교환). 치프 E92·E95는 순증이라 넣지 않는다.
+  'E90', 'E91',
 ])
 
 // 사용자 정본(2026-08-16): 모든 정적 좀비 타입은 Stage 1 기준 누적 1.2배 HP 곡선을 쓴다.
@@ -1650,6 +1654,8 @@ export default function Enemies() {
         queue.deathRead = (slot + 1) % MAX_RUNTIME_QUEUE
         queue.deathCount -= 1
       }
+      // E90 숙제 걷기 당번이 죽은 자리: 주운 책 전부 + 보너스 1권(lib/novelZombie2Behavior.js queueThiefLoot).
+      enemySimulationRuntime.novel2.drainThiefLoot((x, z, value) => pushBounded(queue.textbooks, { id: ++_textbookId, pos: [x, 0, z], value }))
       if (queue.specialRemovals.length) {
         const removed = new Set(queue.specialRemovals.splice(0, queue.specialRemovals.length))
         enemiesRef.current = enemiesRef.current.filter((enemy) => !removed.has(enemy.id))

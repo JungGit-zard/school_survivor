@@ -71,6 +71,8 @@ function insertPoolTarget(scratch, limit, index, distance, grid) {
 
 function insertClosestPoolTarget(scratch, limit, maxRangeSq, index, sightBlocker, grid) {
   if (!enemyPool.active[index]) return
+  // E91 교과서 미믹은 잠든 동안(바닥 교과서 위장) 자동조준 대상이 아니다. 광역·관통 판정은 그대로 맞는다.
+  if (enemySimulationRuntime?.novel2?.isUntargetable(enemyPool, index)) return
   if (grid) grid.targetComparisonCount += 1
   const x = enemyPool.posX[index]
   const z = enemyPool.posZ[index]

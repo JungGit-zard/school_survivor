@@ -13,6 +13,8 @@ import BlockyZombieLayer from './BlockyZombieLayer.jsx'
 import MiniZombieLayer from './MiniZombieLayer.jsx'
 import MiniHumanLayer from './MiniHumanLayer.jsx'
 import { getMiniHumanPlacements } from '../lib/miniHumanRoster.js'
+import { novel2PickVariant, novel2PropScale } from './miniZombieHooks.js'
+import LongRopeLayer from './LongRopeLayer.jsx'
 import PooledEnemyProjectileLayer from './PooledEnemyProjectileLayer.jsx'
 import StageEntryRuntimeDiagnostics from './StageEntryRuntimeDiagnostics.jsx'
 import { useGameStore } from '../store/useGameStore.js'
@@ -93,7 +95,9 @@ export default function GameCanvas({ gameKey, phase }) {
       {/* 블록 좀비 18종(E71~E88, Kenney CC0) 몸통. 그림자·체력바·스폰 연기는 ZombieInstanceLayer가 담당한다. */}
       <BlockyZombieLayer resetKey={gameKey} />
       {/* 2차 신규 좀비 18종(E89~E106, Kenney Mini Characters CC0) 몸통. 그림자·체력바·스폰 연기는 ZombieInstanceLayer가 담당한다. */}
-      <MiniZombieLayer resetKey={gameKey} />
+      <MiniZombieLayer resetKey={gameKey} pickVariant={novel2PickVariant} propScale={novel2PropScale} />
+      {/* E95 긴줄넘기 줄: 줄 스냅샷의 고정 양끝에 그린다(InstancedMesh 1개 = 드로콜 1개, 줄이 없으면 0). */}
+      <LongRopeLayer resetKey={gameKey} />
       {/* 감염 안 된 사람 구경꾼(Kenney Mini 원래 색). 콜라이더·적 풀 없음, 목록이 비면 null — 지금은 구조만 있다. */}
       <MiniHumanLayer placements={getMiniHumanPlacements(currentStageId)} />
       <PooledEnemyProjectileLayer resetKey={gameKey} />

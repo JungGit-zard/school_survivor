@@ -26,6 +26,7 @@ import {
   NOVEL2_ROWS,
   NOVEL2_TYPE_IDS,
   NOVEL2_WAVE1_IDS,
+  NOVEL2_WAVE2_IDS,
   NOVEL2_ZOMBIE_STATS,
 } from './novelZombie2Content.js'
 import { CHIEF_ELITE_BONUS, admitChiefSpawn, createChiefDebutLedger, isChiefType } from './stageChiefContent.js'
@@ -74,14 +75,14 @@ function stationaryDamage(id, { startX = -3, seconds = 60, stageId = 'stage1' } 
 }
 
 describe('2차 신규 좀비 등록', () => {
-  it('18개 id를 typeCode 94~111에 끝에만 붙여 예약하고, 스탯은 1차 8종만 갖는다', () => {
+  it('18개 id를 typeCode 94~111에 끝에만 붙여 예약하고, 스탯은 1차 8종 + 2차 4종만 갖는다', () => {
     NOVEL2_TYPE_IDS.forEach((id, i) => {
       expect(ENEMY_TYPE_CODES[id]).toBe(NOVEL2_FIRST_TYPE_CODE + i)
       expect(ENEMY_TYPE_NAMES[NOVEL2_FIRST_TYPE_CODE + i]).toBe(id)
     })
     expect(ENEMY_TYPE_CODES.B10).toBe(75)
-    expect(Object.keys(NOVEL2_ZOMBIE_STATS).sort()).toEqual([...NOVEL2_WAVE1_IDS].sort())
-    for (const id of NOVEL2_WAVE1_IDS) {
+    expect(Object.keys(NOVEL2_ZOMBIE_STATS).sort()).toEqual([...NOVEL2_WAVE1_IDS, ...NOVEL2_WAVE2_IDS].sort())
+    for (const id of [...NOVEL2_WAVE1_IDS, ...NOVEL2_WAVE2_IDS]) {
       expect(ENEMY_RUNTIME_HP[ENEMY_TYPE_CODES[id]], id).toBe(NOVEL2_ZOMBIE_STATS[id].hp)
       // 비주얼은 visualId 뒤에 있다(행동은 비주얼을 모른다). 몸은 Kenney Mini 몸체 표(MiniZombieLayer)가 그린다.
       // 옛 자리표시 별칭(NOVEL2_PLACEHOLDER_ALIASES)은 데이터로만 남아 있다(렌더 경로에서는 쓰지 않는다).

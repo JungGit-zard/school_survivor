@@ -97,6 +97,12 @@ export const MINI_PROP_IDS = Object.freeze([
 ])
 export const MINI_PACK_PROPS = Object.freeze({ luggage: 'item-luggage-upright', sunglasses: 'aid-sunglasses' })
 
+// E91 교과서 미믹 크기 단서. 진짜 XP 교과서 월드 가로 = 표지 0.36(components/XpTextbook.jsx) × TEXTBOOK_SCALE 0.8
+// (lib/xpTextbookField.js — 테스트가 두 값을 대조한다). 절차 교과서 몸 표지 가로 = 0.34 Kenney 단위(굽기 스크립트 cover x ±0.17).
+export const MINI_REAL_TEXTBOOK_WIDTH = 0.36 * 0.8
+export const MINI_TEXTBOOK_BODY_WIDTH = 0.34
+export const MINI_MIMIC_SIZE_TELL = 1.15
+
 // ── visualId → 몸체 변형 ─────────────────────────────────────────────────────
 // variant 필드
 //   body      MINI_BODY_IDS 또는 'textbook'
@@ -106,6 +112,7 @@ export const MINI_PACK_PROPS = Object.freeze({ luggage: 'item-luggage-upright', 
 //   loose     [{ prop, anchor:'root'|'hipRight', offset, scale, worldSize, lift, spin, hook }] — 따로 그리는 소품(드로콜 2개 추가).
 //             worldSize면 크기(최대 변)·offset이 월드 단위. hook = MiniZombieLayer propScale 콜백 이름(0이면 숨김).
 // style  = 포즈 문법(lib/miniZombiePose.js), fast = 보폭 빠름, scale = ENEMY_STATS.scale 권장값(치프는 1.5 이상)
+// worldWidth/modelWidth = (선택) 몸 크기를 pool 배율 대신 월드 가로로 고정한다(미믹 = 진짜 교과서 × 1.15). 발 높이는 그대로.
 // pick   = 같은 typeCode 안에서 몸 고르기: 'single' | 'pair'(짝 2몸) | 'formation'(기수 1 + 말 3)
 export const MINI_ZOMBIE_VISUALS = Object.freeze({
   'n2-class-president': { id: 'E89', stage: 1, chief: true, style: 'command', scale: 1.5, pick: 'single', variants: [
@@ -116,9 +123,13 @@ export const MINI_ZOMBIE_VISUALS = Object.freeze({
     { body: 'female-b', skin: 'zOlive', eye: 'eyeRed', recolor: { r3c1: 'bagMustard', r1c1: 'bagBrown' },
       loose: [{ prop: 'luggage', anchor: 'hipRight', offset: [0, 0, 0.02], scale: 0.62, hook: 'bagScale' }] },
   ] },
-  'n2-textbook-mimic': { id: 'E91', stage: 1, style: 'mimic', scale: 1.0, pick: 'single', variants: [
-    { body: 'textbook', eye: 'eyeRed' },
-  ] },
+  // 미믹 단서 2개(설계): ① 진짜 교과서보다 15% 크다 — 몸 크기를 pool 배율 대신 worldWidth(월드 가로)로 고정한다
+  // (MiniZombieLayer). ② 책장 가장자리가 빨갛다 — 책장 블록 전체를 빨강으로(어느 방향을 봐도 옆면이 빨갛고, 뚜껑이 열리면
+  // 빨간 입 안이 된다). 눈은 빨간 입 안에서 보이도록 크림색.
+  'n2-textbook-mimic': { id: 'E91', stage: 1, style: 'mimic', scale: 1.0, pick: 'single',
+    modelWidth: MINI_TEXTBOOK_BODY_WIDTH, worldWidth: MINI_REAL_TEXTBOOK_WIDTH * MINI_MIMIC_SIZE_TELL, variants: [
+      { body: 'textbook', eye: 'eyeCream', recolor: { pagesWhite: 'armRed' } },
+    ] },
   'n2-train-conductor': { id: 'E92', stage: 2, chief: true, style: 'whistle', scale: 1.5, pick: 'single', variants: [
     { body: 'male-c', skin: 'zGreen', eye: 'eyeRed', recolor: { r1c1: 'conductorNavy', r3c1: 'conductorGold' },
       props: [{ prop: 'whistle', part: 'armR', anchor: 'hand', offset: [0, 0.02, 0.05] }] },
@@ -214,3 +225,12 @@ export function miniDefaultVariantIndex(pick, slot, variantCount) {
 
 // 1 = 몸 바닥(발) ~ 머리 위 기준 높이(Kenney 단위). 머리 상자 위 0.661 + 머리카락 평균. 블록 좀비 공용 키 1.69에 맞춘다.
 export const MINI_MODEL_HEIGHT = 0.671
+
+/**
+ * 몸 월드 배율(MiniZombieLayer base 행렬의 배율 — 그 뒤에 MINI_MODEL_FIT = 1.69 / MINI_MODEL_HEIGHT가 곱해진다).
+ * 표에 worldWidth·modelWidth가 있으면(미믹) 렌더 가로가 정확히 worldWidth가 되게 고정, 없으면 pool 배율 그대로.
+ */
+export function miniBodyWorldScale(visual, poolScale) {
+  if (visual?.worldWidth > 0 && visual?.modelWidth > 0) return visual.worldWidth / (visual.modelWidth * (1.69 / MINI_MODEL_HEIGHT))
+  return poolScale
+}

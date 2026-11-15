@@ -32,7 +32,7 @@ import {
 } from './burstEvents.js'
 import { STAGE5_SPAWN_TELEGRAPHS } from './waveTimelines.js'
 import { STAGE5_B10_SUMMON_FIXED_HP } from './stage5ViceBoss.js'
-import { isChiefType } from './stageChiefContent.js'
+import { chiefBodyCount, isChiefType } from './stageChiefContent.js'
 import { NOVEL2_ZOMBIE_STATS, isNovel2AbsoluteHp } from './novelZombie2Content.js'
 
 const allStageBurstTables = [
@@ -58,7 +58,9 @@ const NOVEL_BASE_HP = { E34: 8, E35: 10, E36: 8, E37: 8, E38: 10, E39: 16, E40: 
   // 블록 좀비 18종(2026-11-14) — host와 같은 base hp.
   E71: 8, E72: 16, E73: 32, E74: 8, E75: 16, E76: 70, E77: 8, E78: 8, E79: 8, E80: 10, E81: 8, E82: 16, E83: 10, E84: 8, E85: 8, E86: 8, E87: 8, E88: 10,
   // 2026-11-14 2차 신규 일반 6종(E89~E106 세트) — host와 같은 base hp(lib/novelZombie2Content.js). E105(스6 절대 HP)는 이 표 밖이다.
-  E93: 10, E94: 16, E96: 16, E97: 10, E99: 70, E103: 32 }
+  E93: 10, E94: 16, E96: 16, E97: 10, E99: 70, E103: 32,
+  // 2026-11-15 2차 신규 2차분(wave 2) 일반 2종 — host와 같은 base hp. 치프 E92·E95는 순증이라 이 표 밖이다.
+  E90: 16, E91: 8 }
 const STAGE2_BASE_HP = { E01: 8, E02: 70, E03: 10, E04: 32, E05: 70, E06: 320, E07: 16, RZT: 140, RZG: 48, ...NOVEL_BASE_HP }
 const STAGE2_HP_MULTIPLIER = 1.2
 
@@ -134,9 +136,11 @@ describe('Stage 1 첫 웨이브 5초 게이트', () => {
       // 216초 E05×3 → E05×2 + E56(복습). 스1은 피해를 주지 않는 두 종만 쓴다. 전부 hp 70 맞교환.
       { sec: 120, type: 'E05', count: 2 }, { sec: 120, type: 'E62', count: 1 },
       { sec: 144, type: 'E05', count: 2 }, { sec: 144, type: 'E56', count: 1 },
-      { sec: 150, type: 'E07', count: 6 }, { sec: 150, type: 'E01', count: 6 },
+      // 2026-11-15 2차 신규(wave 2): 150초 E07×6 → ×5 + E90(숙제 걷기 당번), 184초 혼합 E01×1 → E91(교과서 미믹).
+      // 둘 다 탄 없음, 같은 hp 맞교환 — 마릿수·총 HP 3,710 그대로.
+      { sec: 150, type: 'E07', count: 5 }, { sec: 150, type: 'E01', count: 6 }, { sec: 150, type: 'E90', count: 1 },
       { sec: 168, type: 'E06', count: 1 },
-      { sec: 184, type: 'E01', count: 1 }, { sec: 184, type: 'E78', count: 1 }, { sec: 184, type: 'E34', count: 2 }, { sec: 184, type: 'E36', count: 2 },
+      { sec: 184, type: 'E91', count: 1 }, { sec: 184, type: 'E78', count: 1 }, { sec: 184, type: 'E34', count: 2 }, { sec: 184, type: 'E36', count: 2 },
       { sec: 184, type: 'E02', count: 2 }, { sec: 184, type: 'E49', count: 1 }, { sec: 184, type: 'E05', count: 2 },
       { sec: 216, type: 'E05', count: 2 }, { sec: 216, type: 'E56', count: 1 },
     ])
@@ -152,7 +156,9 @@ describe('Stage 2 좀비 시간표 Stage 1 앵커 재배열', () => {
   // 2026-08-17 총체력 사다리(스1 ×1.3^n): 잡몹 예산 9,202 → 3,458. 경비추격 4→2회,
   // 혼합 보강 4×17 → 경량 2회가 감축의 대부분이다. 마릿수는 224 → 95로 스1(92)과 나란히 맞췄다.
   it('Stage 2 비보스 좀비 payload·마릿수·적용 HP는 1.3배 사다리 예산에 맞춰 재편성된다', () => {
-    const ordinary = stageZombieEvents(STAGE2_BURST_EVENTS)
+    // 치프(2026-11-15 E92 기관사)는 사다리 밖 순증이라 여기서 빼고 아래 치프 단언이 따로 못박는다.
+    expect(STAGE2_BURST_EVENTS.filter((event) => isChiefType(event.type))).toEqual([{ sec: 120, type: 'E92', count: 1 }])
+    const ordinary = stageZombieEvents(STAGE2_BURST_EVENTS).filter((event) => !isChiefType(event.type))
 
     expect(ordinary.map(payloadWithoutSec)).toEqual([
       // 2026-10-25 Track B: 5초 E01×12 → E01×7 + E37×5, 24초 E03×6 → E03×3 + E38×3,
@@ -246,8 +252,10 @@ describe('전 스테이지 1:50 웃는좀비·탱커 보강', () => {
 
 describe('Stage 1 2:30 웃는좀비·녹색좀비 보강', () => {
   // 2026-08-13 스폰 +10%: 5→6. E01 쪽은 경량대 랜덤 구성(mixedTypes)이 붙었다.
-  it('stage1만 150초에 E07 6마리와 E01 6마리를 정확히 추가한다', () => {
-    expect(BURST_EVENTS.filter((event) => event.sec === 150 && event.type === 'E07' && event.count === 6)).toHaveLength(1)
+  it('stage1만 150초에 E07 6마리(그중 1기는 같은 hp E90)와 E01 6마리를 정확히 추가한다', () => {
+    // 2026-11-15 2차 신규(wave 2): E07×6 → ×5 + E90(숙제 걷기 당번, hp 16 = E07). 웃는좀비 자리 6마리는 그대로다.
+    expect(BURST_EVENTS.filter((event) => event.sec === 150 && event.type === 'E07' && event.count === 5)).toHaveLength(1)
+    expect(BURST_EVENTS.filter((event) => event.sec === 150 && event.type === 'E90' && event.count === 1)).toHaveLength(1)
     expect(BURST_EVENTS.filter((event) => event.sec === 150 && event.type === 'E01' && event.count === 6)).toHaveLength(1)
   })
 
@@ -418,7 +426,9 @@ describe('stage3 체육교사 B03 단일 보스 + 형태 버스트 런타임 복
   // 2026-08-22: 런좀비 크루는 이전 사용자 정본 단일 RZL@72×13(리더+팔로워 12)으로 되돌린다.
   // 단발 예산은 4,090 → 3,220이고, 반복 525를 더한 잡몹 실측은 3,745다.
   it('단발 비보스 이벤트는 공통 13개 앵커만 쓰며 1.3배 사다리 예산에 맞는 payload·마릿수·실제 HP를 갖는다', () => {
-    const ordinary = singleShotEvents(STAGE3_BURST_EVENTS).filter((event) => !isBossType(event.type))
+    // 치프(2026-11-15 E95 줄넘기 듀오, 몸 2)는 사다리 밖 순증 — 기존 앵커 110초에 두고 여기서는 뺀다.
+    expect(STAGE3_BURST_EVENTS.filter((event) => isChiefType(event.type))).toEqual([{ sec: 110, type: 'E95', count: 2 }])
+    const ordinary = singleShotEvents(STAGE3_BURST_EVENTS).filter((event) => !isBossType(event.type) && !isChiefType(event.type))
     expect(uniqueSeconds(ordinary)).toEqual([5, 24, 40, 60, 72, 110, 120, 150, 168, 184, 216])
     expect(ordinary.map(payloadWithoutSec)).toEqual([
       // 2026-10-25 Track B: 24초 E03×4 → E03×2 + E41×2, 216초 E05×3 → E05×1 + E40×2,
@@ -766,12 +776,17 @@ describe('스테이지 총체력 1.3배 사다리 (스1 앵커 고정)', () => {
     .reduce((sum, event) => sum + eventTotalHp(event, stageId), 0)
 
   // 2026-11-15: Stage 1 반장(E89)만 base 240(기준 봇 119판 처치 0회 → 초보가 보상에 닿게). 다른 치프는 400 × 배수 그대로.
-  it('치프는 스테이지마다 작성 행 1개·1기이고, 순증은 base × 스테이지 배수다(Stage 1 E89 = 240)', () => {
+  it('치프는 스테이지마다 작성 행 1개·몸 수만큼이고, 순증은 base × 스테이지 배수다(Stage 1 E89 = 240)', () => {
     const chiefRows = (stageId) => getRuntimeBurstEventsForStage(stageId).filter((event) => isChiefType(event.type))
     expect(chiefRows('stage1')).toEqual([{ sec: 108, type: 'E89', count: 1 }])
     expect(Math.round(NOVEL2_ZOMBIE_STATS.E89.hp * STAGE_HP_MULTIPLIER.stage1)).toBe(240)
+    // 2026-11-15 wave 2: Stage 2 E92 기관사(머리 1 — 객차 E01 6기는 머리가 직접 세운다), Stage 3 E95 줄넘기 듀오(몸 2).
+    expect(chiefRows('stage2')).toEqual([{ sec: 120, type: 'E92', count: 1 }])
+    expect(chiefRows('stage3')).toEqual([{ sec: 110, type: 'E95', count: 2 }])
     for (const stageId of ['stage2', 'stage3', 'stage4', 'stage5']) {
-      for (const row of chiefRows(stageId)) expect(row.count).toBe(1)
+      const rows = chiefRows(stageId)
+      expect(rows.length).toBeLessThanOrEqual(1)
+      for (const row of rows) expect(row.count).toBe(chiefBodyCount(row.type))
     }
   })
 

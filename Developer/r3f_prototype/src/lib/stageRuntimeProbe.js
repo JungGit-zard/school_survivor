@@ -76,6 +76,7 @@ import { getStageBounds, getStageConfig } from './stageConfig.js'
 import { clampPlayerPosition, getPlayerMovementBounds } from './playerMovementBounds.js'
 import { canE04FireProjectile, getE04IntroSec } from './stage2ProjectileRules.js'
 import { COLLECT_RADIUS_SQ } from './pickup.js'
+import { clearTextbookTheftSource, setTextbookTheftSource } from './textbookTheftBridge.js'
 import { XP_TO_NEXT_START, nextXpThreshold } from './xpCurve.js'
 import { WEAPON_CATALOG } from './weaponCatalog.js'
 import {
@@ -479,6 +480,8 @@ export function runStageRuntimeProbe({
   let kills = 0
   let xpCollected = 0
   const orbs = []
+  // E90 숙제 걷기 당번이 이 바닥 교과서 목록에서 책을 훔쳐 간다(게임의 XpTextbookLayer 등록과 같다).
+  setTextbookTheftSource(orbs)
   const levelAt = {}
   const levelCheckpoints = [180, 210, 240, 270, 300]
 
@@ -1550,7 +1553,11 @@ export function runStageRuntimeProbe({
       }
 
       // ── XP 회수 + REF_BUILD 성장 ──
+      // E90이 죽은 자리: 주운 책 전부 + 보너스 1권(게임은 Enemies.jsx 사망 처리 뒤 같은 함수로 가져간다).
+      enemySimulationRuntime.novel2.drainThiefLoot((x, z, value) => orbs.push({ x, z, value }))
       for (let index = orbs.length - 1; index >= 0; index -= 1) {
+        // E90이 주워 간 책은 XP 없이 바닥에서 사라진다.
+        if (orbs[index].stolen) { orbs.splice(index, 1); continue }
         const dx = playerPos.x - orbs[index].x
         const dz = playerPos.z - orbs[index].z
         if (dx * dx + dz * dz >= COLLECT_RADIUS_SQ) continue
@@ -1587,6 +1594,7 @@ export function runStageRuntimeProbe({
     }
     aliveByTypeAt.end = aliveByTypeNow()
   } finally {
+    clearTextbookTheftSource(orbs)
     Math.random = originalRandom
     enemyProjectilePool.setPropBlockers(null)
     projectileZombieShotPool.setPropBlockers(null)

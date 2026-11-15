@@ -103,6 +103,8 @@ function nearestEnemyInRange(range, specials = null) {
   let bestDistSq = range * range
   for (let index = 0; index <= enemyPool.highestActive; index += 1) {
     if (!enemyPool.active[index]) continue
+    // 게임 자동조준(weaponTargeting)과 같다: 잠든 E91 미믹은 조준하지 않는다.
+    if (enemySimulationRuntime.novel2?.isUntargetable(enemyPool, index)) continue
     const dx = enemyPool.posX[index] - playerPos.x
     const dz = enemyPool.posZ[index] - playerPos.z
     const distSq = dx * dx + dz * dz

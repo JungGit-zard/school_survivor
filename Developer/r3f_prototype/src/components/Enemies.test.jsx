@@ -461,7 +461,9 @@ describe('boss runtime spawn routes', () => {
 
   it('routes the Stage 1 150s E07/E01 reinforcement through runtime pooled spawning only in stage1', () => {
     const stage1Runtime = getRuntimeBurstEventsForStage('stage1')
-    expect(stage1Runtime).toContainEqual({ sec: 150, type: 'E07', count: 6 })
+    // 2026-11-15 2차 신규(wave 2): 150초 E07×6 중 1기가 같은 hp의 E90(숙제 걷기 당번)으로 바뀌었다 — 웃는좀비 자리 6은 그대로.
+    expect(stage1Runtime).toContainEqual({ sec: 150, type: 'E07', count: 5 })
+    expect(stage1Runtime).toContainEqual({ sec: 150, type: 'E90', count: 1 })
     expect(stage1Runtime).toContainEqual(expect.objectContaining({ sec: 150, type: 'E01', count: 6 }))
     for (const stageId of ['stage2', 'stage3', 'stage4']) {
       const runtime = getRuntimeBurstEventsForStage(stageId)
@@ -1030,7 +1032,9 @@ describe('boss entrance escort wave', () => {
   it('keeps the 2:30 B01 burst independent from the fixed general-zombie reinforcement', () => {
     const stage1At150 = getBurstEventsForStage('stage1').filter((event) => event.sec === 150)
     expect(stage1At150).toContainEqual({ sec: 150, type: 'B01', count: 1 })
-    expect(stage1At150).toContainEqual({ sec: 150, type: 'E07', count: 6 })
+    // 2026-11-15 wave 2: E07×6 → ×5 + E90(같은 hp 16).
+    expect(stage1At150).toContainEqual({ sec: 150, type: 'E07', count: 5 })
+    expect(stage1At150).toContainEqual({ sec: 150, type: 'E90', count: 1 })
     expect(stage1At150).toContainEqual({ sec: 150, type: 'E01', count: 6, mixedTypes: ['E01', 'E03'] })
     expect(bossEscortSize('stage1', WAVE_PHASES, 150)).toBe(0)
   })
@@ -1070,7 +1074,8 @@ describe('all zombie HP follows the cumulative 1.2x-per-stage curve', () => {
       'B10',
       // 2026-11-14 2차 신규 1차분: E89 반장(치프, base 400 × 배수)과 일반 6종은 같은 누적 곡선을 탄다.
       // E105(2인3각)은 Stage 6 절대 HP라 아래 루프에서 확장 배우처럼 따로 다룬다.
-      'E89', 'E93', 'E94', 'E96', 'E97', 'E99', 'E103', 'E105',
+      // 2026-11-15 2차분(wave 2): E90·E91(일반, host 같은 hp)·E92·E95(치프, base × 배수)도 같은 곡선을 탄다.
+      'E89', 'E90', 'E91', 'E92', 'E93', 'E94', 'E95', 'E96', 'E97', 'E99', 'E103', 'E105',
     ])
     const stageMultipliers = { stage1: 1, stage2: 1.2, stage3: 1.44, stage4: 1.728, stage5: 1.2 ** 4 }
     for (const [stageId, multiplier] of Object.entries(stageMultipliers)) {

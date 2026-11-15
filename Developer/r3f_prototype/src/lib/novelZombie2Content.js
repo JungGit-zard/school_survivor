@@ -15,6 +15,8 @@
 //  - 치프: base 400 × 스테이지 배수. 보상은 stageChiefContent.js의 엘리트 보상 행.
 //    예외 E89(Stage 1 반장)는 base 240(×1.0 = 240). 2026-11-15 balanceqa: 기준 봇 119판 중 처치 0회(런 끝 중앙값 300/400 남음),
 //    연필 Lv4 집중 ~57초 — 초보가 보상에 못 닿고 미니 HP바가 런 내내 남았다. 다른 치프는 400 × 배수 설계 그대로.
+//    2차(wave 2) 치프 E92·E95는 stageRuntimeProbe 기준 봇 처치율로 HP를 정했다(아래 행 주석).
+//  - 두 몸 치프(E95 긴줄넘기 듀오): 한 행이 몸 bodyCount개를 낸다. 행 hp는 몸 하나 — 치프 합계 = hp × bodyCount.
 //  - hpMode 'absolute'(E105, Stage 6): 기존 종 배수(2.488)를 타지 않고 표의 hp를 그대로 쓴다(E19와 같은 30).
 //
 // 거리 단위는 월드 유닛(u). 1블록 = 4u.
@@ -36,24 +38,45 @@ export const NOVEL2_TYPE_CODES = Object.freeze(Object.fromEntries(NOVEL2_TYPE_ID
 
 export const NOVEL2_CHIEF_IDS = Object.freeze(['E89', 'E92', 'E95', 'E98', 'E101', 'E104'])
 
-// 1차 구현분(wave 1). 나머지 10종은 id·typeCode·조우 기록만 예약돼 있다.
+// 1차 구현분(wave 1).
 export const NOVEL2_WAVE1_IDS = Object.freeze(['E89', 'E93', 'E94', 'E96', 'E97', 'E99', 'E103', 'E105'])
+// 2차 구현분(wave 2, 2026-11-15). 나머지 6종(E98·E100·E101·E102·E104·E106)은 3차 — id·typeCode·조우 기록만 예약돼 있다.
+export const NOVEL2_WAVE2_IDS = Object.freeze(['E90', 'E91', 'E92', 'E95'])
 
 // 행 공통 필드: stageId, chief, visualId(비주얼 교체 키 — 행동은 이 값을 읽지 않는다), implemented.
 // visualId는 lib/novelZombie2Visuals.js가 해석한다. Kenney Mini Characters 몸체가 들어오면 그 표만 바뀐다.
 const ROWS = {
   E89: { stageId: 'stage1', chief: true, visualId: 'n2-class-president', implemented: true,
     stats: { hp: 240, speed: 0.42, damage: 12, scale: 1.5, xp: 15, contactDist: 0.38 } },
-  E90: { stageId: 'stage1', chief: false, visualId: 'n2-homework-collector', implemented: false },
-  E91: { stageId: 'stage1', chief: false, visualId: 'n2-textbook-mimic', implemented: false },
-  E92: { stageId: 'stage2', chief: true, visualId: 'n2-train-conductor', implemented: false },
+  // host E07(hp 16 / xp 8) — Stage 1 150초 웃는좀비 행 6기 중 1기. 공격 없음(피해 0): 떨어진 교과서를 주워 가방에 담고 도망친다.
+  E90: { stageId: 'stage1', chief: false, visualId: 'n2-homework-collector', implemented: true,
+    stats: { hp: 16, speed: 0.95, damage: 0, scale: 0.95, xp: 8, contactDist: 0.26 } },
+  // host E01(hp 8 / xp 4) — Stage 1 184초 혼합 E01 행 1기. 바닥 교과서로 위장했다가 물기(6). 처치하면 진짜 교과서 2권.
+  E91: { stageId: 'stage1', chief: false, visualId: 'n2-textbook-mimic', implemented: true,
+    dropBonus: { textbook: 2 },
+    stats: { hp: 8, speed: 0.75, damage: 6, scale: 1.0, xp: 4, contactDist: 0.24 } },
+  // 치프. 머리 + 객차 E01 6기(실효 10 × 6 = 60, 머리가 첫 걸음에 직접 풀에 세운다 — 객차 HP는 머리 배율을 따른다).
+  // 머리 접촉 0.3 × 4/3 = 0.4u — 돌진 예고선 폭 1.1u(반폭 0.55)가 머리 판정 + 옆 밀림 허용 0.15u를 덮는다.
+  // 머리 HP: 설계 360(base 300) → base 44(실효 53). 2026-11-15 stageRuntimeProbe 기준 봇(KITE r4, REF_BUILD_V1) 60판:
+  //   실효 360 처치 0/60(가한 피해 중앙값 40, 상위 10% 65 — 객차가 앞에서 연필을 받는다), 53 처치 30/60(50%, 처치까지 중앙값 80초),
+  //   40 처치 42/60(70%). 최종값(실제 스탯) 재측정: 15/60(25%, 중앙값 85초), 사망 5/60(치프 없을 때 3/60).
+  //   같은 HP라도 HP를 덮어쓴 측정과 실제 스탯 측정이 30 ↔ 15판으로 갈린다(판 전개가 갈라지는 혼돈) — 처치 몫은 25~50%로 본다.
+  E92: { stageId: 'stage2', chief: true, visualId: 'n2-train-conductor', implemented: true,
+    stats: { hp: 44, speed: 1.1, damage: 12, scale: 1.5, xp: 15, contactDist: 0.3 } },
   // host E03(hp 10 / xp 5) — Stage 2 60초 포위 러너(ring) 행 6기 중 1기(24초 E03 행은 블록 좀비 E83이 먼저 받았다).
   E93: { stageId: 'stage2', chief: false, visualId: 'n2-shadow-stepper', implemented: true,
     stats: { hp: 10, speed: 0.8, damage: 6, scale: 0.95, xp: 5, contactDist: 0.24 } },
   // host E07(hp 16 / xp 8) — Stage 2 60초 웃는좀비 행 4기 중 1기(108초 E07 행은 블록 좀비 E72가 먼저 받았다). 걸레 직선 = 확장 rootline 행동(피해 9로 덮어쓰기).
   E94: { stageId: 'stage2', chief: false, visualId: 'n2-mop-pusher', implemented: true, behaviorId: 'rootline', attackDamage: 9,
     stats: { hp: 16, speed: 0.55, damage: 8, scale: 1.0, xp: 8, contactDist: 0.26 } },
-  E95: { stageId: 'stage3', chief: true, visualId: 'n2-long-rope-duo', implemented: false },
+  // 치프, 두 몸. 줄(선 공격) 피해 10, 접촉 10.
+  // 몸 HP: 설계 288(base 200, 합계 576 = 400 × 1.44) → base 17(실효 24, 합계 48). 2026-11-15 stageRuntimeProbe 기준 봇 60판(스폰 56판):
+  //   몸 288 → 두 몸 처치 0/56(가한 피해 합 중앙값 67), 사망 41/60(치프 없을 때 32/60, 같은 시드 짝비교 +16/−7).
+  //   몸 45 → 0/56(한 몸 19), 35 → 4/56(7%), 25 → 11/56(20%, 한 몸 이상 48/56, 처치까지 중앙값 39초), 사망 29/60(치프 없을 때와 같은 수준).
+  //   최종값(실제 스탯, 몸 24) 재측정: 두 몸 10/56(18%), 한 몸 이상 48/56, 처치까지 중앙값 38초, 사망 30/60.
+  //   느린 두 몸(0.5u/s)이 카이팅 봇에 거의 닿지 못해 처치 몫은 HP보다 교전 시간이 정한다 — 처치가 나오는 가장 높은 값 근처로 둔다.
+  E95: { stageId: 'stage3', chief: true, visualId: 'n2-long-rope-duo', implemented: true, bodyCount: 2,
+    stats: { hp: 17, speed: 0.5, damage: 10, scale: 1.4, xp: 15, contactDist: 0.3 } },
   // E07 체급(hp 16 / xp 8). Stage 3 40초에 새로 더한 스폰(순증 hp 16) — host 맞교환이 아니다(치프처럼 밀도 동결 밖).
   E96: { stageId: 'stage3', chief: false, visualId: 'n2-dribbler', implemented: true,
     stats: { hp: 16, speed: 1.0, damage: 8, scale: 1.0, xp: 8, contactDist: 0.26 } },
@@ -100,6 +123,11 @@ export const NOVEL2_EXPANSION_ENEMIES = deepFreeze(Object.fromEntries(
       const row = NOVEL2_ROWS[id]
       return [id, { id, typeCode: row.typeCode, stageId: row.stageId, behaviorId: row.behaviorId, attackDamage: row.attackDamage, novel2: true }]
     }),
+))
+
+// 처치 보너스 드롭(일반 종). Enemies.jsx ELITE_BONUS에 펼친다 — E91 미믹은 진짜 교과서 2권(값 = 자기 xp).
+export const NOVEL2_DROP_BONUS = deepFreeze(Object.fromEntries(
+  NOVEL2_TYPE_IDS.filter((id) => NOVEL2_ROWS[id].implemented && NOVEL2_ROWS[id].dropBonus).map((id) => [id, { ...NOVEL2_ROWS[id].dropBonus }]),
 ))
 
 export function novel2IdFromCode(typeCode) {

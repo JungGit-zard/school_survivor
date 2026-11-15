@@ -101,7 +101,7 @@ import {
   isNovel2ExpansionTypeCode,
   isNovel2ImplementedTypeCode,
 } from './novelZombie2Content.js'
-import { E99_CODE, N2_STATE_TELEGRAPH, createNovel2Result, createNovel2Runtime } from './novelZombie2Behavior.js'
+import { E90_CODE, E99_CODE, N2_STATE_TELEGRAPH, createNovel2Result, createNovel2Runtime } from './novelZombie2Behavior.js'
 // 행동 신호음(2026-11-14). 시뮬레이션은 "무슨 일이 일어났다"만 알리고 소리 선택·간격·거리 감쇠는
 // enemyAbilitySfx.js가 소유한다. 그 모듈은 throw하지 않고 Math.random을 쓰지 않는다(결정성 유지).
 import {
@@ -906,6 +906,15 @@ export class EnemySimulationRuntime {
         velocityZ = pool.knockbackZ[index]
         moving = true
         preserveFacing = true
+      } else if (novel2.isTrainCar(pool, index) && novel2.stepTrainCar(pool, index, deltaMs, this._novel2Result)) {
+        // E92 기관사 객차(E01): 머리 경로를 0.7u 간격으로 밟는다(최대 1.6u/s). 머리가 죽으면 1.2초 탈선 기절 뒤 일반 E01.
+        // 이동만 대신 정하고 피해는 E01 접촉 그대로. preserveFacing — 버프·디투어가 경로 추종을 늘리거나 꺾지 못한다.
+        const n2 = this._novel2Result
+        velocityX = n2.velocityX
+        velocityZ = n2.velocityZ
+        moving = n2.moving
+        preserveFacing = true
+        if (n2.hasYaw) pool.yaw[index] = n2.yaw
       } else if (type === 4) {
         resolveRangedEnemyVelocityRaw(this._velocityScratch, dirX, dirZ, distance, (index & 1) === 0 ? 1 : -1)
         velocityX = this._velocityScratch.x
@@ -1218,6 +1227,8 @@ export class EnemySimulationRuntime {
     cueEnemyDeathSfx(pool.type[index], pool.posX[index], pool.posZ[index], this._prevPlayerX, this._prevPlayerZ)
     // E99 압력밥솥: 죽은 자리에 1.2초 예고 뒤 r 1.4u 폭발(플레이어만, 피해 12). 상한·탈출 인증 실패면 무해한 김(무동작).
     if (pool.type[index] === E99_CODE) this._novel2.queueDeathBurst(pool.posX[index], pool.posZ[index])
+    // E90 숙제 걷기 당번: 주운 책 전부 + 보너스 1권을 그 자리에 떨어뜨린다(필드가 drainThiefLoot로 가져간다).
+    if (pool.type[index] === E90_CODE) this._novel2.queueThiefLoot(pool, index)
     this._despawn(pool, index, ENEMY_EVENT_DEATH, damage, null)
     return true
   }

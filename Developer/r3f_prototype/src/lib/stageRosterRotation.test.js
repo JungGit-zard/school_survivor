@@ -468,7 +468,8 @@ describe('저밀도 리필(정규 리스폰) 묶음 — 시계를 고정한 결�
     const { batch } = build('stage1', 150)
     // 데뷔+20초(70hp E62·E56은 +30초)가 지난 종: E34(24) E66·E82(60) E35(72) E36·E77(108) E62(120→150) — 기한 순으로 E07 자리 1~7.
     // E56(144 데뷔, 기한 174)은 기한 전이지만 10번째 자리(다채로움 몫, 5번째마다)로 들어간다. E49·E78(184)는 데뷔 전.
-    expect(count(batch)).toEqual({ E07: 2, E34: 1, E66: 1, E82: 1, E35: 1, E36: 1, E77: 1, E62: 1, E56: 1, E01: 10 })
+    // 2026-11-15 wave 2: E90(숙제 걷기 당번)이 150초에 데뷔해 15번째 자리(E01, 다채로움 몫)를 받는다. E91(184)은 데뷔 전.
+    expect(count(batch)).toEqual({ E07: 2, E34: 1, E66: 1, E82: 1, E35: 1, E36: 1, E77: 1, E62: 1, E56: 1, E90: 1, E01: 9 })
   })
 
   it('리필 묶음을 버리면(20마리 미만 등) 시계가 그대로라 다음 리필에 같은 종이 다시 섞인다', () => {
@@ -476,7 +477,7 @@ describe('저밀도 리필(정규 리스폰) 묶음 — 시계를 고정한 결�
     const again = buildLowDensityReinforcementBatch(first.cache, 20, () => 0.25) // 같은 캐시·같은 시각, 확정(note) 없음
     expect(count(again)).toEqual({ E07: 10, E01: 10 }) // 같은 시각엔 예약이 남아 중복 섞지 않는다
     first.cache.rosterRotationClock = () => 151
-    expect(count(buildLowDensityReinforcementBatch(first.cache, 20, () => 0.25))).toEqual({ E07: 2, E34: 1, E66: 1, E82: 1, E35: 1, E36: 1, E77: 1, E62: 1, E56: 1, E01: 10 })
+    expect(count(buildLowDensityReinforcementBatch(first.cache, 20, () => 0.25))).toEqual({ E07: 2, E34: 1, E66: 1, E82: 1, E35: 1, E36: 1, E77: 1, E62: 1, E56: 1, E90: 1, E01: 9 })
   })
 })
 

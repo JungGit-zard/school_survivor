@@ -10,6 +10,7 @@ import { createTemplateInstanceLayer } from '../lib/templateInstanceLayer.js'
 import {
   TEXTBOOK_COLLECTED, TEXTBOOK_FLOOR_Y, TEXTBOOK_LANDED, TEXTBOOK_SCALE, createTextbookItem, stepTextbookItem,
 } from '../lib/xpTextbookField.js'
+import { clearTextbookTheftSource, setTextbookTheftSource } from '../lib/textbookTheftBridge.js'
 import StudioTunedGroup from './StudioTunedGroup.jsx'
 
 // 교과서 모델(Studio 아이템 pickup-xp-textbook). 트리는 예전과 같다: StudioTunedGroup > 메시 6개.
@@ -155,7 +156,11 @@ export function XpTextbookLayer({ textbooks, onCollect }) {
   useEffect(() => {
     const live = { itemsRef, layer }
     _live = live
+    // E90 숙제 걷기 당번이 이 목록에서 책을 훔쳐 간다(lib/textbookTheftBridge.js). 배열 참조는 마운트 동안 그대로다.
+    const items = itemsRef.current
+    setTextbookTheftSource(items)
     return () => {
+      clearTextbookTheftSource(items)
       if (_live === live) _live = null
       for (const item of itemsRef.current) { layer.release(item.slot); item.slot = -1 }
       itemsRef.current.length = 0
@@ -173,6 +178,15 @@ export function XpTextbookLayer({ textbooks, onCollect }) {
     for (let i = 0; i < items.length; i += 1) {
       const item = items[i]
       if (item.collected) continue
+      if (item.stolen) {
+        // E90 도둑이 주워 갔다: XP·효과음·미션 없이 필드에서만 치운다(처치하면 도둑이 그대로 다시 떨어뜨린다).
+        layer.release(item.slot)
+        item.slot = -1
+        item.collected = true
+        const removeStolen = onCollectRef.current
+        removeStolen(item.id)
+        continue
+      }
       const result = stepTextbookItem(item, delta)
       if (result === TEXTBOOK_COLLECTED) {
         layer.release(item.slot)

@@ -109,7 +109,7 @@ export const COIN_MONSTER_RUNTIME_EVENTS = Object.freeze([
 const LIGHT_MOB_MIX = ['E01', 'E03']
 
 export const STAGE1_150SEC_SMILING_GREEN_REINFORCEMENT_EVENTS = [
-  { sec: 150, type: 'E07', count: 6 },
+  { sec: 150, type: 'E07', count: 5 },  // 2026-11-15 2차 신규: 6 → 5, 1기는 BURST_EVENTS의 E90(숙제 걷기 당번, hp 16 = E07)
   { sec: 150, type: 'E01', count: 6, mixedTypes: LIGHT_MOB_MIX },
 ]
 
@@ -165,8 +165,11 @@ export const BURST_EVENTS = [
   { sec: 144, type: 'E05', count:  2 },  // 돌진 압박 강화
   { sec: 144, type: 'E56', count:  1 },  // 보건실 첫 등장(공격 없음, 다친 아군 회복). hp 70 = E05
   ...STAGE1_150SEC_SMILING_GREEN_REINFORCEMENT_EVENTS,
+  // 2026-11-15 2차 신규(wave 2): 150초 E07×6 중 1기 → E90. 공격하지 않는 도둑이라 스1 "진짜 사수 없음" 규칙 그대로다.
+  { sec: 150, type: 'E90', count:  1 },  // 숙제 걷기 당번 첫 등장(떨어진 교과서를 주워 도망, 처치하면 전부 + 1권). hp 16 = E07
   { sec: 168, type: 'E06', count:  1 },  // 거대 첫 등장
-  { sec: 184, type: 'E01', count:  1, mixedTypes: LIGHT_MOB_MIX },  // 마지막 러시 — 경량대 랜덤 구성
+  // 2026-11-15 2차 신규(wave 2): 184초 혼합 E01×1(마지막 러시) → E91. 근접 물기만 한다(탄 없음). hp 8 = E01.
+  { sec: 184, type: 'E91', count:  1 },  // 교과서 미믹 첫 등장(바닥 교과서로 위장, 1.4u 안이면 0.6초 예고 뒤 물기)
   { sec: 184, type: 'E78', count:  1 },  // 2026-11-14 블록 좀비 텃밭 할아버지 첫 등장(아군 방패, 공격 없음). hp 8 = E01 (2 → 1 + 1)
   { sec: 184, type: 'E34', count:  2 },  // 2026-11-04: 후반 조합 — 스1에서 배운 근접 패턴 둘을 함께 다시 보여준다
   { sec: 184, type: 'E36', count:  2 },  //   (E34 사선 밀기 + E36 되짚기). 둘 다 hp 8 = E01
@@ -207,6 +210,9 @@ export const STAGE2_BURST_EVENTS = [
   { sec: 120, type: 'E05', count:  1 },                       // 차저 첫 등장 (보스 등장과 동시각)
   { sec: 120, type: 'E67', count:  1 },                       // 2026-11-07 학생회 방패 첫 등장(아군 추가 체력, 공격 없음). hp 70 = E05
   { sec: 120, type: 'E49', count:  1 },                       // 스1 양동이청소 복습. hp 70 = E05
+  // 2026-11-15 2차 신규(wave 2): 치프 E92 복도 기차놀이 기관사(런마다 데뷔 1회). 치프는 잡몹 사다리 밖의 순증이다 —
+  // 기존 행을 깎지 않는다. 객차 E01 6기는 행이 아니라 머리가 첫 걸음에 풀에 직접 세운다(치프 순증에 포함).
+  { sec: 120, type: 'E92', count:  1 },                       // 기관사(치프) 첫 등장 — 굽이쳐 다가오다 0.9초 예고선 뒤 돌진
   { sec: 144, type: 'E51', count:  1 },                       // 합창지휘 첫 등장(물결 음표 3연). hp 8 — 150초 E37에서 옮김
   { sec: 168, type: 'E06', count:  1 },                       // 거대 첫 등장
   { sec: 184, type: 'E05', count:  3 },                       // 보스 처치 후 차저 재압박
@@ -290,6 +296,9 @@ export const STAGE3_BURST_EVENTS = [
   // ── 런좀비 크루: 리더 1 + 러닝크루 12, 대각선 화면 횡단. 이전 단일 대형 크루 리듬으로 복원.
   { sec:  72, type: 'RZL', count: 13, formation: RUN_ZOMBIE_CREW_FORMATION },
   ...ALL_STAGES_110SEC_SMILING_TANKER_REINFORCEMENT_EVENTS,
+  // 2026-11-15 2차 신규(wave 2): 치프 E95 긴줄넘기 듀오(두 몸, 런마다 데뷔 1회 = 몸 2). 순증. 설계안 96초는 스3 앵커가 아니라
+  // (단발 행 초는 공통 13앵커 안, 스3 앵커 목록 고정) 가장 가까운 기존 스3 앵커 110초에 둔다 — 보스(150)까지 40초.
+  { sec: 110, type: 'E95', count:  2 },                         // 줄넘기 듀오(치프) 첫 등장 — 2.0초 주기 줄 내려치기
   // ── 보스: 체육교사 B03 단일 등장(150). 로비 카드(체육교사)와 실제 전투 일치. ──
   { sec: 150, type: 'B03', count:  1 },
   // ── 형태(formation) 버스트 — 배열 순서 = STAGE3_SPAWN_TELEGRAPHS 순서(60 → 120 → 150 → 184).

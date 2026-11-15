@@ -22,7 +22,7 @@ import { enemyPool, enemySimulationRuntime, playerPos, screenBounds } from '../l
 import { getToonGradient } from '../lib/toon.js'
 import { createOutlineGeometry } from '../lib/projectileZombieShotGeometry.js'
 import { NOVEL2_FIRST_TYPE_CODE, NOVEL2_LAST_TYPE_CODE, NOVEL2_ROWS, novel2IdFromCode } from '../lib/novelZombie2Content.js'
-import { MINI_MODEL_HEIGHT, MINI_ZOMBIE_VISUALS, miniDefaultVariantIndex } from '../lib/miniZombieRoster.js'
+import { MINI_MODEL_HEIGHT, MINI_ZOMBIE_VISUALS, miniBodyWorldScale, miniDefaultVariantIndex } from '../lib/miniZombieRoster.js'
 import { getMiniZombieAssets } from '../lib/miniZombieGeometry.js'
 import { MINI_POSE_BOB, MINI_POSE_LIFT, MINI_POSE_OFFSET, MINI_POSE_PROP_LIFT, MINI_POSE_PROP_SPIN, MINI_POSE_ROOT_ROLL, MINI_POSE_ROOT_YAW, createMiniPose, fillMiniZombiePose } from '../lib/miniZombiePose.js'
 import { phase as pooledPhase } from './ZombieInstanceLayer.jsx'
@@ -105,6 +105,11 @@ function finish(mesh, count, itemSize, attribute) {
 }
 
 const DEFAULT_PROP_SCALE = () => 1
+
+function miniBehaviorClockSec() {
+  const ms = enemySimulationRuntime?.novel2?.clockMs
+  return Number.isFinite(ms) ? ms * 0.001 : 0
+}
 
 // 같은 typeCode 안에서 몸 고르기. E105 2인3각은 행동 런타임의 짝 정보(novelZombie2Behavior.partner)로 짝 두 몸이
 // 반드시 서로 다른 몸이 되게 한다(behavior의 side 규칙 index < partner와 같은 기준). 짝이 아직 없으면 기본 규칙.
@@ -208,10 +213,15 @@ function MiniZombieLayerInner({ resetKey, pickVariant, propScale = DEFAULT_PROP_
         const set = getSet(visualId, Math.min(count - 1, Math.max(0, pick | 0)))
         if (set.count >= set.capacity) continue
         const slot = set.count++
-        const time = getPooledEnemyAnimationTime(timer, tier)
-        fillMiniZombiePose(out, set.style, pooledPhase(pool, i), time, set.fast, (i * 0.6180339887) % 1)
-        const scale = (pool.visualScale[i] || 1) * ENEMY_VISUAL_WORLD_SCALE
-        pos.set(pool.posX[i], pool.posY[i] + out[MINI_POSE_BOB] * scale, pool.posZ[i])
+        const posePhase = pooledPhase(pool, i)
+        // 미믹 깡충(stun = 깨어난 추격)은 행동 시계로 박자를 맞춘다 — 움직이는 0.3초에 뛰고, 서 있는 0.2초에 앉는다.
+        const time = set.style === 'mimic' && posePhase === 'stun'
+          ? miniBehaviorClockSec() : getPooledEnemyAnimationTime(timer, tier)
+        fillMiniZombiePose(out, set.style, posePhase, time, set.fast, (i * 0.6180339887) % 1)
+        const poolScale = (pool.visualScale[i] || 1) * ENEMY_VISUAL_WORLD_SCALE
+        const scale = miniBodyWorldScale(visual, poolScale)
+        // 몸 크기를 월드 가로로 고정한 종(미믹)도 발 높이는 pool 배율 기준 그대로 둔다(바닥에 붙어 있게).
+        pos.set(pool.posX[i], pool.posY[i] + out[MINI_POSE_BOB] * scale + MINI_MODEL_FOOT_Y * (poolScale - scale), pool.posZ[i])
         euler.set(0, pool.yaw[i] + out[MINI_POSE_ROOT_YAW], 0); quat.setFromEuler(euler); scl.set(scale, scale, scale)
         base.compose(pos, quat, scl)
         if (out[MINI_POSE_ROOT_ROLL]) base.multiply(rot.makeRotationZ(out[MINI_POSE_ROOT_ROLL]))

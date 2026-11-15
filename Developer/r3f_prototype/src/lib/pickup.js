@@ -1,4 +1,5 @@
 import { playerPos } from './refs.js'
+import { setTextbookTheftMagnetRadius } from './textbookTheftBridge.js'
 
 // 수집 시작/흡입 반경 0.22 → 0.38 → 1.2 (2026-08-01).
 // 0.38은 E01 접촉 판정 0.373(CONTACT_DIST 0.28 × ENEMY_SIZE_MULTIPLIER 4/3)과 거의 같아서,
@@ -15,6 +16,8 @@ export function setMagnetMultiplier(mult) {
   const m = Number.isFinite(mult) && mult >= 0 ? mult : 1
   _pullRadius = BASE_PULL_RADIUS * m
   _pullRadiusSq = _pullRadius * _pullRadius
+  // E90 도둑은 실제 흡입 반경(기본 반경과 배율 반경 중 큰 쪽) + 1u 밖의 책만 노린다.
+  setTextbookTheftMagnetRadius(Math.max(BASE_PULL_RADIUS, _pullRadius))
 }
 
 export function getPullRadiusSq() {

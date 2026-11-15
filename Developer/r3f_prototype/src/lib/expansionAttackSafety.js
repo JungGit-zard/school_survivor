@@ -44,11 +44,15 @@ export function expansionSafetyContext(type,a){
  let obstacles=a.obstacles??(definition?getStageObjectSightObstacles(stageId):[])
  // 2차 신규 좀비(E94/E97)는 Stage 2·3 맵 전체 장애물(Stage 3 체육관 39개)이 안전 기하 상한(32)을 넘으면 공격을 영원히 못 낸다.
  // 이 종들의 공격은 사거리 3.2u 안이라, 공격자·플레이어 둘레 10u 안의 가까운 장애물 32개만 쓴다(기존 확장 적·보스는 그대로).
- if(NOVEL2_EXPANSION_ENEMIES[type] && obstacles.length>EXPANSION_SAFETY_LIMITS.obstacles && Number.isFinite(a.x+a.z+a.playerX+a.playerZ)){
-  const near=o=>Math.min(Math.hypot(o.x-a.x,o.z-a.z),Math.hypot(o.x-a.playerX,o.z-a.playerZ))
-  obstacles=obstacles.filter(o=>near(o)<=10).sort((p,q)=>near(p)-near(q)).slice(0,EXPANSION_SAFETY_LIMITS.obstacles)
- }
+ if(NOVEL2_EXPANSION_ENEMIES[type]) obstacles=novel2NearSafetyObstacles(obstacles,a.x,a.z,a.playerX,a.playerZ)
  return {stageId,halfX:a.halfX??stage?.mapHalfXUnits??7.5,halfZ:a.halfZ??stage?.mapHalfZUnits??19.2,obstacles}
+}
+// 2차 신규 좀비의 짧은 공격(대걸레·뜀틀·기관사 돌진선·줄넘기 줄·미믹 물기) 전용: 장애물이 상한(32)을 넘는 맵(Stage 3 체육관 39개)에서
+// 공격자·플레이어 둘레 10u 안의 가까운 장애물 32개만 남긴다. 상한 이하면 그대로 돌려준다(기존 판정과 같다).
+export function novel2NearSafetyObstacles(obstacles,ax,az,px,pz){
+ if(!obstacles || obstacles.length<=EXPANSION_SAFETY_LIMITS.obstacles || !Number.isFinite(ax+az+px+pz))return obstacles??[]
+ const near=o=>Math.min(Math.hypot(o.x-ax,o.z-az),Math.hypot(o.x-px,o.z-pz))
+ return obstacles.filter(o=>near(o)<=10).sort((p,q)=>near(p)-near(q)).slice(0,EXPANSION_SAFETY_LIMITS.obstacles)
 }
 // Convex authored pieces, in WORLD XZ. All consumers use this same clipped set.
 export function expansionAuthoredPolygons(s){
