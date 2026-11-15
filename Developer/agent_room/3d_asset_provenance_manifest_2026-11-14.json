@@ -27,11 +27,102 @@
       },
       "conversion": "@gltf-transform/cli 4.5.1: merge (--merge-scenes) -> dedup -> prune -> meshopt (EXT_meshopt_compression + KHR_mesh_quantization). Decoder is the three-stdlib MeshoptDecoder that drei useGLTF already bundles.",
       "nodes": [
-        "table_small", "chair_A_wood", "chair_B_wood", "table_medium_long", "shelf_B_large", "chair_A", "table_medium", "chair_B",
-        "book_set", "book_single", "pictureframe_large_A", "pictureframe_large_B", "bed_single_A", "bed_single_B", "cabinet_medium",
-        "cabinet_medium_decorated", "cabinet_small", "chair_stool", "pillow_A", "cactus_small_A", "cactus_small_B", "pictureframe_medium"
+        "table_small",
+        "chair_A_wood",
+        "chair_B_wood",
+        "table_medium_long",
+        "shelf_B_large",
+        "chair_A",
+        "table_medium",
+        "chair_B",
+        "book_set",
+        "book_single",
+        "pictureframe_large_A",
+        "pictureframe_large_B",
+        "bed_single_A",
+        "bed_single_B",
+        "cabinet_medium",
+        "cabinet_medium_decorated",
+        "cabinet_small",
+        "chair_stool",
+        "pillow_A",
+        "cactus_small_A",
+        "cactus_small_B",
+        "pictureframe_medium"
       ],
       "attribution": "Kay Lousberg, www.kaylousberg.com (optional under CC0)"
+    },
+    {
+      "logicalId": "kenneyMiniCharactersNovel2Zombies",
+      "category": "enemies",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/src/assets/models/kenney_mini/mini_zombies_kenney.glb",
+          "bytes": 94976,
+          "sha256": "736b00e2877367c9160415fdd68e85500c8ca06ff9ccc5adfd947c8677b3439e"
+        },
+        {
+          "path": "Developer/r3f_prototype/src/assets/models/kenney_mini/PROVENANCE.json",
+          "bytes": 5845,
+          "sha256": "6fa36aaec9a9f9bdb1e27e50cd96cd2ce901736947181cfecb46e690aee1b3b6"
+        },
+        {
+          "path": "Developer/r3f_prototype/src/assets/models/kenney_mini/License.txt",
+          "bytes": 677,
+          "sha256": "379715600213eef4104ce85092e8c8d47093d2edcc26f84a4a36e9e840d1979e"
+        }
+      ],
+      "provenanceType": "third-party-cc0",
+      "source": "Kenney Mini Characters (2.0), https://kenney.nl/assets/mini-characters (snapshot downloaded 2026-11-14)",
+      "license": "CC0 1.0 Universal (Creative Commons Zero), http://creativecommons.org/publicdomain/zero/1.0/",
+      "licenseText": "Mini Characters (2.0) Created/distributed by Kenney (www.kenney.nl) Creation date: 07-11-2026 11:14 ------------------------------ License: (Creative Commons Zero, CC0) http://creativecommons.org/publicdomain/zero/1.0/ You can use this content for personal, educational, and commercial purposes. Support by crediting 'Kenney' or 'www.kenney.nl' (this is not a requirement) ------------------------------ • Website : www.kenney.nl • Donate : www.kenney.nl/donate • Patreon : patreon.com/kenney Follow on social media for updates: • Twitter: twitter.com/KenneyNL • BlueSky: kenney.bsky.social • Instagram: instagram.com/kenney_nl",
+      "licenseEvidence": "License.txt shipped inside the pack zip (sha256 above in PROVENANCE.json) + kenney.nl page snapshot 2026-11-14 (\"CC0 licensed\")",
+      "snapshotDate": "2026-11-14",
+      "atlasTexture": {
+        "name": "mini_zombie_colormap (derived from colormap.png)",
+        "bytes": 8697,
+        "sourceSha256": "3aba07b39c13e9fa9a02cba6246fdd9d711bb15702e00e10ad84595b25452f95",
+        "embedded": "once, inside the GLB"
+      },
+      "conversion": "@gltf-transform 4.5.1 (core/functions) + meshoptimizer 1.2.0 + sharp 0.35.5: rigid split by joint -> merge to one primitive (_PART) -> dedup -> weld -> prune -> meshopt (EXT_meshopt_compression + KHR_mesh_quantization). Decoder is the three-stdlib MeshoptDecoder that drei useGLTF already bundles.",
+      "bodies": [
+        "female-a",
+        "female-b",
+        "female-c",
+        "female-d",
+        "female-e",
+        "female-f",
+        "male-a",
+        "male-b",
+        "male-c",
+        "male-d",
+        "male-e",
+        "male-f",
+        "male-g",
+        "worker",
+        "zombie",
+        "textbook"
+      ],
+      "props": [
+        "ankleBand",
+        "armband",
+        "basketball",
+        "bib",
+        "cap",
+        "coffeePot",
+        "copierHead",
+        "giantBall",
+        "headband",
+        "luggage",
+        "mop",
+        "officeChair",
+        "potLid",
+        "ropeHandle",
+        "spoon",
+        "sunglasses",
+        "whistle"
+      ],
+      "attribution": "Kenney, www.kenney.nl (optional under CC0)"
     }
   ]
 }
