@@ -24,7 +24,7 @@ export const PAPER_PLANE_VISUAL_SCALE = SHOT_KIND_INFO[SHOT_KIND.PAPER_PLANE].si
 // 2026-11-15 Terry: "종이비행기 발사체 검정테두리로 바꿔" (이전: 민트 0x5cffc8).
 // 몸체 메시·크기는 좀비 탄과 같고, 검정 헐을 좀비 탄 외곽선(0.013)보다 굵게 둬 폰 화면에서도 테두리가 읽히게 한다.
 export const PAPER_PLANE_OUTLINE_COLOR = 0x000000
-export const PAPER_PLANE_OUTLINE_THICKNESS = SHOT_OUTLINE_THICKNESS * 2.3
+export const PAPER_PLANE_OUTLINE_THICKNESS = SHOT_OUTLINE_THICKNESS * 1.2 // 2026-11-15 Terry: "테두리 더 얇게" (이전 2.3배)
 
 let _paperPlaneAssets = null
 export function getPaperPlaneAssets() {
