@@ -1368,19 +1368,19 @@
       "paths": [
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/inuconBark.ogg",
-          "bytes": 4721,
-          "sha256": "73a3a7e773c8aed0ca4c71bb94ae25231501f5bb5d090af2da9d9bd85e862654"
+          "bytes": 5196,
+          "sha256": "4611bc2a7fd93febcc18c514b63962aae3cd22e016c2009469e63b8e2f5fe436"
         },
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/inuconBark.mp3",
-          "bytes": 2760,
-          "sha256": "738dea66e856a6e516d9ac557577c10ef3942ac42db6290f5c974f94cec05a99"
+          "bytes": 4198,
+          "sha256": "ba8c227898828107f3f3cc2af74d0f9bcbae1a2764b03b655170325e08012bf1"
         }
       ],
-      "provenanceType": "generated",
-      "source": "scripts/generate_voice_sfx.mjs inuconBark (project procedural source-filter voice synthesis; OGG/MP3 conversion via @ffmpeg-installer/ffmpeg); Developer/agent_room/soundmini_inucon_bark_cue_2026-10-31.md",
-      "notes": "Inucon damage-intercept bark added 2026-10-31. Project-generated voice-like procedural SFX; no external samples or third-party audio assets used.",
-      "licenseEvidence": "project-generated-procedural"
+      "provenanceType": "cc0-recording-derived",
+      "source": "CC0 recording Freesound #800278 \"Small Dog Bark\" by SecureSubset (https://freesound.org/people/SecureSubset/sounds/800278/; HQ preview https://cdn.freesound.org/previews/800/800278_16752880-hq.mp3, sha256 f60ad9c3671c3439aa919f388ff2d1d999bdc88ef5fdd9d51de7991d01495dbb), one bark excerpt 0.00-0.20s used twice (second copy at 0.24s, playback rate x1.06 = ~+1 semitone, -1 dB) for a quick double \"woof! woof!\" (0.43s); processed by Developer/r3f_prototype/scripts/generate_inucon_bark.mjs (150 Hz high-pass, 9 kHz one-pole low-pass, 3 ms fade-in/40 ms fade-out, linear RMS gain to -17 dBFS with -1.5 dBFS peak cap; no distortion/bitcrush/reverb/formant shift; OGG q2/MP3 64k at 22.05 kHz via @ffmpeg-installer/ffmpeg, bitexact)",
+      "notes": "2026-11-15: Inucon guard bark (plays when Inucon takes a hit in the player's place) replaced with a cute, bright double bark \"멍!멍!\" from a real chihuahua recording (uploader: \"The sound of a chihuahua barking ... edited for noise reduction and brevity\"). Supersedes the 2026-10-31 procedural source-filter \"왈!\" from generate_voice_sfx.mjs (removed there; Developer/agent_room/soundmini_inucon_bark_cue_2026-10-31.md is history). Non-verbal animal sound, no localisation. No attribution required; credit optional: \"Sounds: SecureSubset via Freesound, CC0\".",
+      "licenseEvidence": "CC0-1.0 public-domain dedication shown on the Freesound sound page (http://creativecommons.org/publicdomain/zero/1.0/), checked 2026-11-15; source bytes pinned by SHA-256 in generate_inucon_bark.mjs"
     },
     {
       "logicalId": "inuconHeal",

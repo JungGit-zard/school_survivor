@@ -101,7 +101,7 @@ export const SOUND_MAP = {
   dogeEscape:         '/sfx/enemies/dogeEscape.ogg',
   dogeYelp:           '/sfx/enemies/dogeYelp.ogg',
   inuconBite:         '/sfx/enemies/inuconBite.ogg',
-  inuconBark:         '/sfx/enemies/inuconBark.ogg',   // 주인공 대신 피해(대리 피격) 신호
+  inuconBark:         '/sfx/enemies/inuconBark.ogg',   // 주인공 대신 피해(대리 피격 = 가드) "멍!멍!" — CC0 강아지 녹음, generate_inucon_bark.mjs
   inuconHeal:         '/sfx/enemies/inuconHeal.ogg',
 
   // ── 보스 패턴·이동 (2026-11-08) ─────────────────────────────────────────────
@@ -309,7 +309,7 @@ export const POLYPHONY_COOLDOWN = Object.freeze({
   dogeDeath:        180,
   dogeEscape:       240,
   inuconBite:       180,
-  inuconBark:       400,  // 음원 0.26s보다 길게(자기 겹침 방지), 피격 최소 간격 532ms(1.88타/초)보다 짧게 — 같은 피격의 중복 emit만 1회로
+  inuconBark:       480,  // 음원 0.43s("멍!멍!")보다 길게(자기 겹침 방지), 대리 피격 후 무적 520ms보다 짧게 — 같은 피격의 중복 emit만 1회로
   inuconHeal:       500,
   playerHit:        80,
   playerHeal:       220,
