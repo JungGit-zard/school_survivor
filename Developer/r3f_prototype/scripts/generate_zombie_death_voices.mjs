@@ -462,6 +462,7 @@ export const VOICES = {
   // "끄아아앙" — 거대 좀비(E06) 단독. 좀비 중 가장 큰 덩치지만 저음은 아니다 + 비음 받침으로 끝.
   // 2026-11-14: 실효 98→60Hz(링모드 0.3, 7.35kHz 뭉갬) → 262→204Hz, 링 0.1, hold 2.
   zombieDeathBellow: {
+    pitchScale: 1.8, // 2026-11-15 Terry: 피치 더 올려 (기본 1.33)
     dur: 0.82,
     targetLoudness: 0.23,
     seed: 0x5005,

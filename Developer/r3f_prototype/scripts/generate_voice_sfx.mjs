@@ -141,7 +141,7 @@ const VOICE_SFX = {
   bossRoar: zombieVoice('enemies', { dur: 0.86, targetLoudness: 0.23, seed: 0x6202, hold: 2, bits: 7, drive: 1.5, hpHz: 120, f0: [[0, 184], [0.18, 225], [1, 154]], ring: { rate: 27, depth: 0.1 }, vib: { rate: 5, depth: 0.06 }, jitter: 0.018, frames: [
     { t: 0, v: 'eu', amp: 0, voice: 0, noise: 0.9 }, { t: 0.04, v: 'eu', amp: 0.75, voice: 0, noise: 1 }, { t: 0.12, v: 'aw', amp: 1, voice: 1, noise: 0.16 }, { t: 0.52, v: 'aa', amp: 0.98, voice: 1, noise: 0.14 }, { t: 0.86, v: 'oh', amp: 0.45, voice: 1, noise: 0.22 }, { t: 1, v: 'oh', amp: 0, voice: 1, noise: 0.25 },
   ] }),
-  bossDeath: zombieVoice('enemies', { dur: 0.95, targetLoudness: 0.22, seed: 0x6203, hold: 2, bits: 7, drive: 1.5, hpHz: 120, f0: [[0, 210], [0.55, 178], [1, 158]], ring: { rate: 22, depth: 0.1 }, vib: { rate: 3.6, depth: 0.06 }, jitter: 0.022, frames: [
+  bossDeath: zombieVoice('enemies', { pitchScale: 1.7, /* 2026-11-15 Terry: 피치 더 올려 (기본 1.26) */ dur: 0.95, targetLoudness: 0.22, seed: 0x6203, hold: 2, bits: 7, drive: 1.5, hpHz: 120, f0: [[0, 210], [0.55, 178], [1, 158]], ring: { rate: 22, depth: 0.1 }, vib: { rate: 3.6, depth: 0.06 }, jitter: 0.022, frames: [
     { t: 0, v: 'aa', amp: 0, voice: 1, noise: 0.3 }, { t: 0.05, v: 'aa', amp: 1, voice: 1, noise: 0.18 }, { t: 0.42, v: 'aw', amp: 0.95, voice: 1, noise: 0.19 }, { t: 0.72, v: 'oh', amp: 0.55, voice: 1, noise: 0.25 }, { t: 0.9, v: 'ng', amp: 0.3, voice: 1, noise: 0.28 }, { t: 1, v: 'ng', amp: 0, voice: 1, noise: 0.3 },
   ] }),
 
