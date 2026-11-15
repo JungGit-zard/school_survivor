@@ -1,5 +1,6 @@
 import { EXPANSION_ENEMIES, EXPANSION_BOSSES, EXPANSION_BEHAVIORS, EXPANSION_LIMITS } from './expansionContent.js'
 import { AUTHORED_ATTACK_BOSSES } from './stage5ViceBoss.js'
+import { NOVEL2_EXPANSION_ENEMIES } from './novelZombie2Content.js'
 import { getStageObjectSightObstacles } from '../components/StageObjects/stageObjectColliders.js'
 import { cueExpansionBehaviorSfx } from './enemyAbilitySfx.js'
 import { expansionAuthoredPolygons, expansionPolygonContains, expansionSafetyContext, buildExpansionSafetyGeometry, certifyExpansionEscape, EXPANSION_PLAYER_RADIUS, EXPANSION_SAFETY_LIMITS, EXPANSION_SAFE_WIDTH } from './expansionAttackSafety.js'
@@ -7,6 +8,9 @@ import { expansionAuthoredPolygons, expansionPolygonContains, expansionSafetyCon
 export const expansionAttackSnapshots = new Map()
 const poolStates = new WeakMap()
 export function clearExpansionAttacks() { expansionAttackSnapshots.clear() }
+// 2차 신규 좀비(E94 대걸레 rootline · E97 뜀틀 hop)는 확장 DATA.enemies 밖(typeCode 94~111)이지만 같은 행동 표를 탄다.
+// 확장 표에 행을 넣으면 typeCode 37~75가 밀리므로 합성 조회로만 붙인다(B10 보스 배선과 같은 방식).
+export function expansionNormalEnemy(type) { return EXPANSION_ENEMIES[type]??NOVEL2_EXPANSION_ENEMIES[type] }
 export function cancelExpansionAttack(state) {
  if(!state)return
  expansionAttackSnapshots.delete(state.key); state.snapshot=null; state.cancelled=true
@@ -24,7 +28,7 @@ function normalPattern(e) {
 function buildSnapshot(state,p,a) {
  const dx=a.playerX-a.x,dz=a.playerZ-a.z,length=Math.hypot(dx,dz)||1
  let tx=a.playerX,tz=a.playerZ
- const e=EXPANSION_ENEMIES[state.type]
+ const e=expansionNormalEnemy(state.type)
  if(e?.behaviorId==='hop' && length>2) {tx=a.x+dx/length*2;tz=a.z+dz/length*2} // 2 units / .5 blocks
  const origin=p.origin==='player_snapshot'?[tx,tz]:[a.x,a.z]
  return {...p,type:state.type,key:state.key,attackId:`${state.key}:${state.patternIndex}`,sourceEntityId:state.key,patternId:p.id,originXZ:origin,targetXZ:[tx,tz],sourceXZ:[a.x,a.z],directionXZ:[dx/length,dz/length],yaw:Math.atan2(dx,dz),phase:'windup',elapsedMs:0,gameKey:state.gameKey,hit:false,rangeUnits:snapshotRangeUnits(p,origin,a.playerX,a.playerZ)}
@@ -61,6 +65,10 @@ export function expansionAttackContains(s,x,z,padding=0) {
  if(s.safetyBounds && (Math.abs(x)>s.safetyBounds.halfX || Math.abs(z)>s.safetyBounds.halfZ))return false
  return (s.safetyPolygons??expansionAuthoredPolygons(s)).some(p=>expansionPolygonContains(p,x,z,padding))
 }
+// 2차 신규 좀비(lib/novelZombie2Behavior.js)의 시각 예고·사망 폭발도 같은 채널 상한을 지킨다.
+export function expansionChannelFree() { return freeChannel() }
+// 스냅샷 하나를 진행시키고 이번 프레임 피해를 돌려준다(2차 신규 좀비가 소유한 스냅샷용).
+export function advanceExpansionSnapshot(s,a) { return advanceSnapshotPhase(s,a) }
 function freeChannel() {
  let windup=0,active=0
  for(const s of expansionAttackSnapshots.values()){if(s.phase==='windup')windup++;if(s.phase==='active')active++}
@@ -71,7 +79,7 @@ export function stepExpansionAttack(state,a) {
  if(!a.alive || state.gameKey!==a.gameKey){cancelExpansionAttack(state);return out}
  if(!a.playing || state.cancelled || !Number.isFinite(a.deltaMs)||a.deltaMs<0)return out
  // B10(Stage 5 교감 좀비)은 확장 DATA.bosses 밖의 authored-attack 보스다 — 같은 런타임을 합성 조회로 탄다.
- const boss=EXPANSION_BOSSES[state.type]??AUTHORED_ATTACK_BOSSES[state.type],enemy=EXPANSION_ENEMIES[state.type]
+ const boss=EXPANSION_BOSSES[state.type]??AUTHORED_ATTACK_BOSSES[state.type],enemy=expansionNormalEnemy(state.type)
  if(!boss && (!enemy || enemy.behaviorId==='chase'))return out
  state.ageMs+=a.deltaMs
  if(boss && a.hpRatio<=boss.enrageHpRatio && !state.enraged && !state.snapshot){
@@ -139,6 +147,7 @@ export function stepExpansionPooledAttack(pool,index,a) {
  if(!state || state.generation!==pool.generation[index]){
   cancelExpansionAttack(state)
   const type=Object.keys(EXPANSION_ENEMIES).find(id=>EXPANSION_ENEMIES[id].typeCode===pool.type[index])
+   ??Object.keys(NOVEL2_EXPANSION_ENEMIES).find(id=>NOVEL2_EXPANSION_ENEMIES[id].typeCode===pool.type[index])
   state=createExpansionAttackState(type,`pool:${index}:${pool.generation[index]}`,0);state.generation=pool.generation[index];states[index]=state
  }
  a.x=pool.posX[index];a.z=pool.posZ[index];a.alive=pool.active[index]===1;a.gameKey=0;a.hpRatio=1

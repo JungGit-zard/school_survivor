@@ -65,6 +65,7 @@ import StageVendingPrompt from './StageVendingPrompt.jsx'
 import Stage4HazardGuide from './Stage4HazardGuide.jsx'
 import Stage5CallGuide from './Stage5CallGuide.jsx'
 import Stage6HudCues from './Stage6HudCues.jsx'
+import ChiefStatusBar from './ChiefStatusBar.jsx'
 import LobbySettingsModal from './LobbySettingsModal.jsx'
 import { milestoneLabel, missionTitle, t as translate, useLocale, useT, weaponLabel } from '../lib/i18n.js'
 import { dispatchStarlinkCheatCrash } from './Weapons/Starlink.jsx'
@@ -1666,6 +1667,12 @@ export default function HUD({
           || !!studentDialogue || !!introDialogue || !!questToast || questInventoryOpen
           || bossWarning != null || e04IntroWarning != null || matildaWarning != null || formationWarning != null
           || showMatildaDialogue || portalFlash || !!recentMilestone
+          || isTitleReturnConfirmOpen || (devToolsVisible && weaponCheatOpen)}
+      />
+      <ChiefStatusBar
+        phase={phase}
+        hidden={!Number.isFinite(player.hp) || player.hp <= 0
+          || !!studentDialogue || !!introDialogue || questInventoryOpen
           || isTitleReturnConfirmOpen || (devToolsVisible && weaponCheatOpen)}
       />
       <Stage6HudCues

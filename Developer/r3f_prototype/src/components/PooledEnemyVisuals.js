@@ -161,11 +161,15 @@ export function fillChargeCueSlots(pool, out, capacity = CHARGE_CUE_CAPACITY) {
 // bounded cue pool.  Filtering after the first sixteen lowest indices would
 // otherwise hide every on-screen warning when those earlier zombies are off
 // camera.
+// E89 반장 좀비의 "차렷!"으로 동결된 일반 잡몹(E01·E02·E03·E06·E07)도 상태 2(동결) 동안 같은 "GO!" 큐를 단다.
+// 이 타입들은 자기 상태기계가 없어 상태 2가 되는 경로가 지휘 하나뿐이다(lib/novelZombie2Behavior.js).
+const COMMANDED_CUE_TYPE_CODES = new Set([1, 2, 3, 6, 15])
 export function fillVisibleChargeCueSlots(pool, tiers, out, capacity = CHARGE_CUE_CAPACITY) {
   let used = 0; let overflow = 0
   const highest = Math.min(POOLED_ENEMY_CAPACITY - 1, Number.isInteger(pool?.highestActive) ? pool.highestActive : POOLED_ENEMY_CAPACITY - 1)
   for (let index = 0; index <= highest; index += 1) {
-    if (tiers[index] === ENEMY_RENDER_CULLED || pool.active[index] !== 1 || pool.type[index] !== POOLED_CHARGE_CUE_TYPE_CODE || pool.state[index] !== 2 || pool.spawnTimer[index] < SPAWN_REVEAL_MS) continue
+    const cueType = pool.type[index] === POOLED_CHARGE_CUE_TYPE_CODE || COMMANDED_CUE_TYPE_CODES.has(pool.type[index])
+    if (tiers[index] === ENEMY_RENDER_CULLED || pool.active[index] !== 1 || !cueType || pool.state[index] !== 2 || pool.spawnTimer[index] < SPAWN_REVEAL_MS) continue
     if (used < capacity) out[used++] = index
     else overflow += 1
   }

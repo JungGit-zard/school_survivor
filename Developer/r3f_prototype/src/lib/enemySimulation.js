@@ -92,6 +92,16 @@ import {
 } from './projectileZombieBehavior.js'
 import { PROJECTILE_ZOMBIE_TYPES, PROJECTILE_ZOMBIE_TYPE_CODES } from './projectileZombieVisuals.js'
 import { BLOCKY_ZOMBIE_TYPES, BLOCKY_ZOMBIE_TYPE_CODES } from './blockyZombieRoster.js'
+// 2차 신규 좀비 18종(E89~E106, typeCode 94~111). 데이터·행동 정본은 각 모듈이고 여기서는 배선만 한다.
+import {
+  NOVEL2_LAST_TYPE_CODE,
+  NOVEL2_TYPE_IDS,
+  NOVEL2_ZOMBIE_STATS,
+  NOVEL2_TYPE_CODES,
+  isNovel2ExpansionTypeCode,
+  isNovel2ImplementedTypeCode,
+} from './novelZombie2Content.js'
+import { E99_CODE, N2_STATE_TELEGRAPH, createNovel2Result, createNovel2Runtime } from './novelZombie2Behavior.js'
 // 행동 신호음(2026-11-14). 시뮬레이션은 "무슨 일이 일어났다"만 알리고 소리 선택·간격·거리 감쇠는
 // enemyAbilitySfx.js가 소유한다. 그 모듈은 throw하지 않고 Math.random을 쓰지 않는다(결정성 유지).
 import {
@@ -127,7 +137,8 @@ const NOVEL_RUNTIME_ROWS = [
 // 단순 concat으로는 신규 12종이 32~43에 잘못 내려앉는다.
 // 49~63·65~74 = 투사체 좀비 25종(E46~E70). 수치 정본은 projectileZombieBehavior.js 한 곳이다(복사본 없음).
 const extendRuntime = (values, key, novelKey) => {
-  const table = new Float32Array(PZ_TYPE_MAX + 1)
+  // 94~111 = 2차 신규 좀비(구현분만 값이 있다. 예약 id는 0 — 스폰되면 아래 유효성 검사가 격리한다).
+  const table = new Float32Array(Math.max(PZ_TYPE_MAX, NOVEL2_LAST_TYPE_CODE) + 1)
   const head = [...values, ...expansionRows.map(e => e[key])]
   table.set(head, 0)
   for (let i = 0; i < NOVEL_RUNTIME_ROWS.length; i += 1) table[NOVEL_TYPE_MIN + i] = NOVEL_RUNTIME_ROWS[i][novelKey]
@@ -135,6 +146,7 @@ const extendRuntime = (values, key, novelKey) => {
   for (let i = 0; i < PROJECTILE_ZOMBIE_TYPES.length; i += 1) table[PROJECTILE_ZOMBIE_TYPE_CODES[PROJECTILE_ZOMBIE_TYPES[i]]] = PROJECTILE_ZOMBIE_STATS[PROJECTILE_ZOMBIE_TYPES[i]][novelKey]
   // 76~93 = 블록 좀비 18종(E71~E88). 75(B10)는 보스라 0으로 남는다. 수치 정본은 같은 PROJECTILE_ZOMBIE_STATS다.
   for (let i = 0; i < BLOCKY_ZOMBIE_TYPES.length; i += 1) table[BLOCKY_ZOMBIE_TYPE_CODES[BLOCKY_ZOMBIE_TYPES[i]]] = PROJECTILE_ZOMBIE_STATS[BLOCKY_ZOMBIE_TYPES[i]][novelKey]
+  for (const id of NOVEL2_TYPE_IDS) if (NOVEL2_ZOMBIE_STATS[id]) table[NOVEL2_TYPE_CODES[id]] = NOVEL2_ZOMBIE_STATS[id][novelKey]
   return table
 }
 
@@ -186,8 +198,9 @@ export function ignoresObstacles(type) {
 // Track B 신규 12종(37~48)은 여기서 빠진다. 전부 근접이지만 접촉만으로 상시 피해를 주지 않고
 // 자기 ATTACK 단계 안에서만 1회 판정하므로(novelZombieBehavior.js), 공통 접촉 피해 경로를 타면
 // "예고 중 피해 없음" 불변식이 깨진다. 접근 중 접촉에서 멈추는 처리도 각 루프가 직접 한다.
+// 2차 신규 좀비 구현분(76~93)은 공통 접촉 경로를 탄다. 단 자기 예고(상태 8) 중에는 noContact로 끈다(novelZombie2Behavior 불변식 1).
 function isMelee(type) {
-  return type >= 17 && type <= 31 || type === 1 || type === 2 || type === 3 || type === 5 || type === 6 || type === 7 || type === 8 || type === 13 || type === 14 || type === 15
+  return type >= 17 && type <= 31 || isNovel2ImplementedTypeCode(type) || type === 1 || type === 2 || type === 3 || type === 5 || type === 6 || type === 7 || type === 8 || type === 13 || type === 14 || type === 15
 }
 
 export function enemyContactDistance(type) {
@@ -672,6 +685,14 @@ export class EnemySimulationRuntime {
     this._prevPlayerZ = NaN
     this._playerMoveX = 0
     this._playerMoveZ = 0
+    // 2차 신규 좀비(E89~E106) 보조 상태: 지휘·커피·짝·메트로놈·플레이어 경로·사망 폭발.
+    this._novel2 = createNovel2Runtime()
+    this._novel2Result = createNovel2Result()
+    this._novel2Context = null
+  }
+
+  get novel2() {
+    return this._novel2
   }
 
   _emit(type, pool, index, x, y, z, value, callback) {
@@ -687,6 +708,7 @@ export class EnemySimulationRuntime {
     this._prevPlayerZ = NaN
     this._playerMoveX = 0
     this._playerMoveZ = 0
+    this._novel2.reset()
     if(this._pool) resetExpansionPoolAttacks(this._pool)
   }
 
@@ -773,13 +795,23 @@ export class EnemySimulationRuntime {
       }
     }
 
+    // 2차 신규 좀비 머리말: 메트로놈·플레이어 경로·버프 타이머·짝 연결·사망 폭발(E99) 진행.
+    // 폭발 피해는 접촉 이벤트로 낸다(index -1: 이미 죽은 개체의 폭발이다). 무적·사망 판정은 소비측 그대로.
+    this._novel2.beginStep(pool, context, deltaMs, (damage, bx, bz) => {
+      this.events.push(ENEMY_EVENT_CONTACT, -1, 0, bx, 0, bz, damage)
+      if (context.onContact) context.onContact(-1, 0, bx, 0, bz, damage)
+    })
+    const novel2 = this._novel2
+    let novel2NoContact = false
+
     for (let index = 0; index <= pool.highestActive; index += 1) {
       if (!pool.active[index]) continue
       // 유효 타입 = 1~8(E01~E06/RZL/RZC), 13~16(RZT/RZG/E07/E08), 17~31(확장 E19~E33),
       // 37~48(Track B E34~E45), 49~63·65~74(투사체 E46~E70). 9~12와 32~36은 보스라 이 런타임을 타지 않는다.
+      // 76~93 = 2차 신규 좀비 중 구현분(예약 id는 격리).
       if (pool.type[index] < 1 || pool.type[index] > 8 && pool.type[index] < 13
         || pool.type[index] > 31 && pool.type[index] < NOVEL_TYPE_MIN
-        || pool.type[index] > NOVEL_TYPE_MAX && !isProjectileZombieType(pool.type[index])
+        || pool.type[index] > NOVEL_TYPE_MAX && !isProjectileZombieType(pool.type[index]) && !isNovel2ImplementedTypeCode(pool.type[index])
         || !hasFiniteSlot(pool, index)) {
         this._despawn(pool, index, ENEMY_EVENT_ERROR, 0, null)
         continue
@@ -847,6 +879,7 @@ export class EnemySimulationRuntime {
       let moving = false
       let preserveFacing = false
       let expansionAttack = null
+      novel2NoContact = false
       if (groanDue && distance < groanBestDistance && type !== 16 && !isScreenRunner(type)) {
         groanBestDistance = distance
         groanX = posX
@@ -857,6 +890,14 @@ export class EnemySimulationRuntime {
         velocityX = pool.runDirX[index] * ENEMY_RUNTIME_SPEED[type]
         velocityZ = pool.runDirZ[index] * ENEMY_RUNTIME_SPEED[type]
         moving = true
+      } else if (novel2.isCommanded(index) && novel2.stepCommanded(pool, index, deltaMs, this._novel2Result)) {
+        // E89 반장의 "차렷! 경례!": 동결(0.8초) → 확정 방향 동시 돌진(1.6u). 이동만 대신 정하고 피해는 각자의 접촉 경로.
+        const n2 = this._novel2Result
+        velocityX = n2.velocityX
+        velocityZ = n2.velocityZ
+        moving = n2.moving
+        preserveFacing = true
+        if (n2.hasYaw) pool.yaw[index] = n2.yaw
       } else if (pool.knockbackTimer[index] > 0) {
         pool.knockbackTimer[index] = Math.max(0, pool.knockbackTimer[index] - deltaMs)
         velocityX = pool.knockbackX[index]
@@ -956,6 +997,21 @@ export class EnemySimulationRuntime {
           pool.lastContactZ[index] = playerZ
           this._emit(ENEMY_EVENT_CONTACT, pool, index, playerX, 0, playerZ, novel.damage, context.onContact)
         }
+      } else if (isNovel2ImplementedTypeCode(type)) {
+        const args = this._novel2Args ??= { playerX: 0, playerZ: 0, posX: 0, posZ: 0, distance: 0, nx: 0, nz: 0, speed: 0, deltaMs: 0 }
+        args.playerX = playerX; args.playerZ = playerZ; args.posX = posX; args.posZ = posZ
+        args.distance = distance; args.nx = nx; args.nz = nz
+        args.speed = ENEMY_RUNTIME_SPEED[type]
+        args.deltaMs = deltaMs
+        const prevState = pool.state[index]
+        const n2 = novel2.step(pool, index, args, this._novel2Result)
+        if (pool.state[index] === N2_STATE_TELEGRAPH && prevState !== N2_STATE_TELEGRAPH) cueEnemyTelegraphSfx(type, posX, posZ, playerX, playerZ)
+        velocityX = n2.velocityX
+        velocityZ = n2.velocityZ
+        moving = n2.moving
+        preserveFacing = n2.preserveFacing
+        novel2NoContact = n2.noContact
+        if (n2.hasYaw) pool.yaw[index] = n2.yaw
       } else if (type === 16) {
         resolveCoinMonsterVelocityInto(this._velocityScratch, pool, index, posX, posZ, playerX, playerZ, distance, nx, nz, halfX, halfZ, elapsedSec)
         velocityX = this._velocityScratch.x
@@ -1005,12 +1061,20 @@ export class EnemySimulationRuntime {
         }
       }
 
-      if (type >= 17 && type <= 31 && pool.knockbackTimer[index] <= 0) {
+      if ((type >= 17 && type <= 31 || isNovel2ExpansionTypeCode(type)) && pool.knockbackTimer[index] <= 0) {
         const a = this._expansionArgs ??= { deltaMs:0, playing:true, alive:true,gameKey:0,x:0,z:0,playerX:0,playerZ:0,hpRatio:1,blocked:false }
         a.deltaMs=deltaMs; a.playerX=playerX; a.playerZ=playerZ; a.blocked=!!sightBlocked?.[index]
         expansionAttack = stepExpansionPooledAttack(pool,index,a)
         if(expansionAttack.stop) { velocityX=expansionAttack.velocityX;velocityZ=expansionAttack.velocityZ;moving=velocityX!==0||velocityZ!==0;preserveFacing=true }
         if(expansionAttack.damage>0) this._emit(ENEMY_EVENT_CONTACT,pool,index,playerX,0,playerZ,expansionAttack.damage,context.onContact)
+        // 2차 신규 좀비(E94/E97): 예고·판정 중에는 몸 접촉 피해도 끈다(예고 중 피해 0 불변식). 기존 확장 적은 그대로다.
+        if(expansionAttack.stop && isNovel2ExpansionTypeCode(type)) novel2NoContact = true
+      }
+      // E103 커피 셔틀의 "카페인": 받은 일반 좀비의 이동만 ×1.35(5초). 마틸다·보스는 풀 밖, 치프·E08은 대상 선정에서 빠진다.
+      const novel2SpeedMul = novel2.speedMultiplier(index)
+      if (novel2SpeedMul !== 1) {
+        velocityX *= novel2SpeedMul
+        velocityZ *= novel2SpeedMul
       }
       if (sightBlocked && sightBlocked[index] && !isScreenRunner(type) && !preserveFacing) {
         const side = ((index + generation) & 1) === 0 ? 1 : -1
@@ -1113,7 +1177,7 @@ export class EnemySimulationRuntime {
         this._despawn(pool, index, ENEMY_EVENT_DESPAWN, 0, context.onDespawn)
         continue
       }
-      if (isMelee(type) && !expansionAttack?.noContact && distance <= contactDistance(type) && pool.hitCooldown[index] <= 0) {
+      if (isMelee(type) && !expansionAttack?.noContact && !novel2NoContact && distance <= contactDistance(type) && pool.hitCooldown[index] <= 0) {
         pool.hitCooldown[index] = ENEMY_CONTACT_COOLDOWN_MS
         pool.lastContactX[index] = playerX
         pool.lastContactZ[index] = playerZ
@@ -1147,6 +1211,8 @@ export class EnemySimulationRuntime {
     if (pool.hp[index] > 0) return true
     // 신규 좀비 사망 개그(소품·몸개그 한 겹). 사망 발성 랜덤 풀은 호출측(Enemies.jsx)이 그대로 낸다.
     cueEnemyDeathSfx(pool.type[index], pool.posX[index], pool.posZ[index], this._prevPlayerX, this._prevPlayerZ)
+    // E99 압력밥솥: 죽은 자리에 1.2초 예고 뒤 r 1.4u 폭발(플레이어만, 피해 12). 상한·탈출 인증 실패면 무해한 김(무동작).
+    if (pool.type[index] === E99_CODE) this._novel2.queueDeathBurst(pool.posX[index], pool.posZ[index])
     this._despawn(pool, index, ENEMY_EVENT_DEATH, damage, null)
     return true
   }

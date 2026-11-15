@@ -13,6 +13,8 @@ import { composeStudioPartMultiplier, composeStudioPartOffset, composeStudioPart
 import { getCachedChamferedBoxGeo, getToonGradient } from '../lib/toon.js'
 import { POSED_ZOMBIE_ANIM_BASE_ROTATION, POSED_ZOMBIE_BASE, POSED_ZOMBIE_FIRST_TYPE_CODE, POSED_ZOMBIE_MARK_SLOT, POSED_ZOMBIE_PART_KEYS, POSED_ZOMBIE_PART_OUTLINES, POSED_ZOMBIE_PART_ROLES, POSED_ZOMBIE_TYPES, ZOMBIE_PALETTE, buildPosedZombieParts, buildPosedZombiePartsFromRig, buildPosedZombieStatePose, buildPosedZombieStatePoseFromRig } from './ZombieMesh.jsx'
 import { PROJECTILE_ZOMBIE_TYPE_CODES, PROJECTILE_ZOMBIE_TYPE_NAME_SLOTS, projectileZombieFaceId, PROJECTILE_ZOMBIE_MAX_PROPS, PROJECTILE_ZOMBIE_PROP_PARENTS, PROJECTILE_ZOMBIE_PROP_SHAPES, PROJECTILE_ZOMBIE_STATE_POSE_DELTAS, PROJECTILE_ZOMBIE_TYPES, PROJECTILE_ZOMBIE_VISUALS, getProjectileZombieSlotColors, getProjectileZombieTelegraphProgress, projectileZombieStatePhase } from '../lib/projectileZombieVisuals.js'
+import { NOVEL2_FIRST_TYPE_CODE, NOVEL2_TYPE_IDS } from '../lib/novelZombie2Content.js'
+import { NOVEL2_PLACEHOLDER_ALIASES } from '../lib/novelZombie2Visuals.js'
 import { composePooledFaceMatrix, createProjectileZombieFaceMaterial, getFaceAspect } from '../lib/projectileZombieFace.js'
 import { CHARGE_CUE_PULSE_RAD_PER_SEC } from '../lib/warningPulse.js'
 import { BLOCKY_ZOMBIE_TYPE_NAME_SLOTS, isBlockyZombieTypeCode } from '../lib/blockyZombieRoster.js'
@@ -49,7 +51,8 @@ const TYPE_NAMES = ['', 'E01', 'E02', 'E03', 'E04', 'E05', 'E06', 'RZL', 'RZC', 
   .concat(PROJECTILE_ZOMBIE_TYPE_NAME_SLOTS)
   // 75 = B10(보스, 이 레이어 밖) 빈칸, 76-93 = 블록 좀비 18종(E71-E88). 몸통은 BlockyZombieLayer가 그리고 여기서는
   // E07처럼 파트 0개로 그림자·체력바·스폰 연기만 붙인다(lib/blockyZombieRoster.js).
-  .concat([''], BLOCKY_ZOMBIE_TYPE_NAME_SLOTS)
+  // 94-111 = 2차 신규 좀비 E89-E106(lib/novelZombie2Content.js) — 기존 몸통 경로에서 visualId 자리표시로 그린다.
+  .concat([''], BLOCKY_ZOMBIE_TYPE_NAME_SLOTS, NOVEL2_TYPE_IDS)
 // E07(type 15, 웃는얼굴 좀비)의 몸통은 셰이더 얼굴이라 이 박스 인스턴스 파이프라인에
 // 들어오지 않는다 — ProceduralFaceZombieLayer가 그린다. 여기서는 파트를 0개만 찍어
 // 다른 잡몹과 동일한 그림자·체력바·스폰 연기만 붙인다. 단, 얼굴 레이어 슬롯(16) 밖으로 넘친
@@ -133,6 +136,11 @@ const POSED_STATE_POSE_BY_TYPE = POSED_ZOMBIE_TYPES.map((type) => ({
 // 1-based. 0이면 포즈형이 아니다.
 const POSED_TYPE_INDEX = new Int16Array(TYPE_NAMES.length)
 POSED_ZOMBIE_TYPES.forEach((type, typeIndex) => { POSED_TYPE_INDEX[POSED_ZOMBIE_FIRST_TYPE_CODE + typeIndex] = typeIndex + 1 })
+// 2차 신규 좀비 자리표시: 포즈형 리그 하나를 빌려 쓴다(팔레트·크기는 자기 것). Kenney 몸체로 바꿀 때 이 별칭만 걷어낸다.
+NOVEL2_TYPE_IDS.forEach((id, i) => {
+  const alias = NOVEL2_PLACEHOLDER_ALIASES[id]
+  if (alias) POSED_TYPE_INDEX[NOVEL2_FIRST_TYPE_CODE + i] = POSED_ZOMBIE_TYPES.indexOf(alias) + 1
+})
 // 신규 투사체 15종: POSED 13슬롯(같은 InstancedMesh)을 그대로 공유하고, 눈 2슬롯과 표식 슬롯은
 // 끈다(얼굴 셰이더가 눈을 그린다). 소품은 아래 형태 클래스 풀, 얼굴은 얼굴 IM 1개가 맡는다.
 // 1-based. 0이면 신규 15종이 아니다.

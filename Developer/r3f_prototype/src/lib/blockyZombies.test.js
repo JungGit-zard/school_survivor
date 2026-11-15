@@ -100,7 +100,8 @@ describe('블록 좀비 18종 등록', () => {
       expect(firebaseProgress).toContain(`'${id}'`)
     }
     setLocale('ko')
-    expect(accept('E89')).toBe(false)
+    // E89~E106은 2차 신규 좀비(2026-11-14, 블록 좀비 뒤 typeCode 94~111)로 등록됐다 — 등록 밖 id 예시는 E107.
+    expect(accept('E107')).toBe(false)
   })
 })
 

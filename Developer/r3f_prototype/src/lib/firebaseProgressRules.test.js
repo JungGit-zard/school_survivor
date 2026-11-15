@@ -66,7 +66,7 @@ describe('Firebase encounter save contract', () => {
   })
 
   it('still rejects unknown types and invalid encounter values', () => {
-    expect(validateEncounter('E99', { val: () => 1 })).toBe(false)
+    expect(validateEncounter('E107', { val: () => 1 })).toBe(false)
     for (const value of [0, 2, true, '1', null]) {
       expect(validateEncounter('E08', { val: () => value })).toBe(false)
     }

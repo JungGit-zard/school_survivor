@@ -12,6 +12,7 @@ import StudioTunedGroup, { composeStudioPartPosition, composeStudioPartRotation,
 import BossProceduralFace from './BossProceduralFace.jsx'
 import { PROJECTILE_ZOMBIE_PALETTE_ENTRIES } from '../lib/projectileZombieVisuals.js'
 import { BLOCKY_ZOMBIE_PALETTE_ENTRIES } from '../lib/blockyZombieRoster.js'
+import { NOVEL2_PALETTE_ENTRIES } from '../lib/novelZombie2Visuals.js'
 
 const disableRaycast = () => null
 export const ZOMBIE_CHARACTER_CHAMFER_STEPS = 1
@@ -56,6 +57,8 @@ export const ZOMBIE_PALETTE = {
   ...PROJECTILE_ZOMBIE_PALETTE_ENTRIES,
   // 블록 좀비 18종(E71~E88). 몸통은 아틀라스 텍스처라 이 색은 사망 파편·팔레트 조회용 대표색이다.
   ...BLOCKY_ZOMBIE_PALETTE_ENTRIES,
+  // 2차 신규 좀비(E89~E106) 자리표시 팔레트. 정본은 lib/novelZombie2Visuals.js(visualId별).
+  ...NOVEL2_PALETTE_ENTRIES,
 }
 
 // 공용 박스 좀비의 신발 색. 공유 박스 트리와 신규 포즈형이 같은 상수를 쓴다.

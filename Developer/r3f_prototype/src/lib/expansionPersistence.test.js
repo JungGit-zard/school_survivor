@@ -93,11 +93,12 @@ describe('expansion persistence contract', () => {
   })
 
   it('keeps unknown encounter IDs and malformed values out of both normalizers', () => {
-    const invalid = { E18: 1, E89: 1, B11: 1, E19: '1', E20: 2, B05: false }
+    // E71~E88(블록 좀비)·E89~E106(2차 신규 좀비)은 정식 id다 — '모르는 id' 예시는 아직 없는 E107을 쓴다.
+    const invalid = { E18: 1, E107: 1, B11: 1, E19: '1', E20: 2, B05: false }
     expect(normalizeZombieEncounterMap(invalid)).toEqual({})
     applyCloudProgressSnapshot(snapshot({ encounteredZombieTypes: invalid }), user)
     expect(buildCloudProgressSnapshot().progress.encounteredZombieTypes).toEqual({})
-    expect(recordZombieEncounter('E89')).toBe(false)
+    expect(recordZombieEncounter('E107')).toBe(false)
   })
 
   it.each(Array.from({ length: 10 }, (_, i) => i + 1))('keeps stage%s client/server bonus, priority and score parity', (order) => {

@@ -7,7 +7,8 @@ import { getBurstEventsForStage, isBossType } from './burstEvents.js'
 
 const S6 = EXPANSION_STAGES.stage6
 // 2026-11-14 블록 좀비(같은 hp 맞교환): E79·E71 = E01(8 → 20), E73 = E04(32 → 80), E76 = E05(70 → 174).
-const S6_HP = { E19: 30, E20: 64, E21: 36, E01: 20, E02: 174, E04: 80, E05: 174, E06: 796, E07: 40, E79: 20, E71: 20, E73: 80, E76: 174 }
+// E105(2인3각, 2026-11-14 2차 신규)는 Stage 6 절대 HP 30(E19와 같다).
+const S6_HP = { E19: 30, E20: 64, E21: 36, E01: 20, E02: 174, E04: 80, E05: 174, E06: 796, E07: 40, E79: 20, E71: 20, E73: 80, E76: 174, E105: 30 }
 
 describe('stage6 운동장 — 같은 id·기록 키·typeCode, 내용만 교체', () => {
   it('정체·경계 12×20·e04 8초·오버타임 240초·1부 데이터', () => {
@@ -47,9 +48,11 @@ describe('stage6 운동장 — 같은 id·기록 키·typeCode, 내용만 교체
   // 2026-11-14 블록 좀비 4행(16초 E79·52초 E71·108초 E73·120초 E76)은 같은 초의 E01·E01·E04·E05 1기씩을 같은 hp로 맞바꿨다 —
   // 38 → 42행, 마릿수 190·HP 8,910 그대로. E76은 vend 최신안대로 120초(E05 2 → 1 + E76)에만 있고, 200초는 E05 1기 그대로다
   // (Terry 승인 2026-11-14: 200초 E76 행 폐기).
-  it('이벤트 42행, 보스 1행(150초), 마지막 일반 이벤트 228초, 반복 버스트 없음, 일반 적 190마리·HP 8,910', () => {
+  // 2026-11-14 2차 신규: 150초·168초 E01×8 → E01×5 + E105×2(2인3각 한 쌍씩, 블록 좀비가 쓰지 않은 E01 행).
+  // E105 절대 30 × 2 = 실효 E01 20 × 3이라 HP·30초 창 곡선이 그대로이고 마릿수만 190 → 188, 행 42 → 44.
+  it('이벤트 44행, 보스 1행(150초), 마지막 일반 이벤트 228초, 반복 버스트 없음, 일반 적 188마리·HP 8,910', () => {
     const events = getBurstEventsForStage('stage6')
-    expect(events).toHaveLength(42)
+    expect(events).toHaveLength(44)
     // 블록 좀비 4종은 각각 정확히 한 행·한 마리이고, E76은 120초 E05 옆에만 있다.
     expect(events.filter((e) => ['E79', 'E71', 'E73', 'E76'].includes(e.type)).map((e) => [e.sec, e.type, e.count]))
       .toEqual([[16, 'E79', 1], [52, 'E71', 1], [108, 'E73', 1], [120, 'E76', 1]])
@@ -58,7 +61,8 @@ describe('stage6 운동장 — 같은 id·기록 키·typeCode, 내용만 교체
     expect(Math.max(...events.filter((e) => !isBossType(e.type)).map((e) => e.sec))).toBe(228)
     expect(events.some((e) => e.repeatIntervalSec)).toBe(false)
     const normal = events.filter((e) => !isBossType(e.type))
-    expect(normal.reduce((n, e) => n + e.count, 0)).toBe(190)
+    expect(normal.reduce((n, e) => n + e.count, 0)).toBe(188)
+    expect(events.filter((e) => e.type === 'E105').map((e) => [e.sec, e.count])).toEqual([[150, 2], [168, 2]])
     expect(normal.reduce((n, e) => n + e.count * S6_HP[e.type], 0)).toBe(8910)
     const summonHp = EXPANSION_BOSSES.B05.summon.count * S6_HP.E21
     const target = Math.round(3710 * 1.3 ** 5)

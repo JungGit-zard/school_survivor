@@ -80,6 +80,7 @@ import { STAGE6_SFX } from '../lib/stage6AssemblySpeech.js'
 import { hasClearRangedSight, isRangedPropBlockStage } from '../lib/stageRangedBlockers.js'
 import { createExpansionAttackState, stepExpansionAttack, cancelExpansionAttack } from '../lib/expansionAttackRuntime.js'
 import { queueB10StampDeathMark } from './B10StampDeathMark.jsx'
+import { NOVEL2_ZOMBIE_STATS } from '../lib/novelZombie2Content.js'
 import { B10_SFX, STAGE5_BOSS_STATS, createB10SummonState, isAuthoredAttackBoss, isB10EnrageTransitionDone, stepB10SummonTriggers, AUTHORED_ATTACK_BOSSES } from '../lib/stage5ViceBoss.js'
 import { pushBossSummon } from '../lib/bossSummonQueue.js'
 import MiniHealthBar from './MiniHealthBar.jsx'
@@ -508,6 +509,8 @@ export const ENEMY_STATS = {
   ...PROJECTILE_ZOMBIE_STATS,
   // Stage 5 보스 B10 교감 좀비(base 1,563 → 실효 3,241). 수치 정본은 lib/stage5ViceBoss.js.
   ...STAGE5_BOSS_STATS,
+  // 2차 신규 좀비 1차 구현분(E89 반장 치프 · E93 · E94 · E96 · E97 · E99 · E103 · E105). 수치 정본은 lib/novelZombie2Content.js.
+  ...NOVEL2_ZOMBIE_STATS,
 }
 
 // 肄쒕씪?대뜑 湲곕낯 諛섑겕湲?(scale=1 湲곗?)

@@ -35,6 +35,8 @@ import { enemyTypeToCode, enemyTypeFromCode, createEnemyEntityPool, MAX_ENEMIES 
 import { ENEMY_EVENT_CONTACT, ENEMY_EVENT_RANGED_FIRE, ENEMY_EVENT_DEATH, ENEMY_EVENT_DESPAWN, ENEMY_EVENT_ERROR, ENEMY_EVENT_PROJECTILE_ZOMBIE_FIRE, ENEMY_EVENT_PROJECTILE_ZOMBIE_TELEGRAPH, collidesEnemyObstacle, createEnemySimulationRuntime } from '../lib/enemySimulation.js'
 import { createEnemyProjectilePool, MAX_ENEMY_PROJECTILES } from '../lib/enemyProjectilePool.js'
 import { isNovelZombieType } from '../lib/novelZombieBehavior.js'
+import { isNovel2AbsoluteHp, isNovel2ImplementedTypeCode } from '../lib/novelZombie2Content.js'
+import { CHIEF_ELITE_BONUS, admitChiefSpawn, createChiefDebutLedger } from '../lib/stageChiefContent.js'
 import { hasProjectileZombieSplit, isProjectileZombieType, spawnProjectileZombieTelegraphDecal, spawnProjectileZombieVolley } from '../lib/projectileZombieBehavior.js'
 import { emitVfx } from '../lib/vfxEvents.js'
 import { emitDamageNumber, DAMAGE_NUMBER_COLORS } from '../lib/damageNumbers.js'
@@ -107,6 +109,8 @@ export const ELITE_BONUS = {
   B04: { textbook: 3, textbookXp: 40, gold: 5 },
   // B10 교감 좀비(Stage 5, 2026-11-08). 확장 DATA.bosses 밖이라 위 확장 행에서 빠진다 — B01~B04와 같은 보스 공통 보상.
   B10: { textbook: 3, textbookXp: 40, gold: 5 },
+  // 치프(정예) 계층 — E89 반장 등. 교과서 2권 × 45XP + 골드 2(lib/stageChiefContent.js).
+  ...CHIEF_ELITE_BONUS,
 }
 
 export function getEliteBonusTextbookXp(type, fallbackXp) {
@@ -914,6 +918,10 @@ export const JARMOB_HP_TYPES = new Set([
   'E61', 'E62', 'E63', 'E64', 'E65', 'E66', 'E67', 'E68', 'E69', 'E70',
   // 블록 좀비 18종(2026-11-14)도 같은 hp 맞교환으로 버스트 표에 들어가는 잡몹이다(lib/blockyZombieRoster.js).
   'E71', 'E72', 'E73', 'E74', 'E75', 'E76', 'E77', 'E78', 'E79', 'E80', 'E81', 'E82', 'E83', 'E84', 'E85', 'E86', 'E87', 'E88',
+  // 2차 신규 일반 좀비(2026-11-14). host와 같은 HP로 버스트 행을 맞교환한다. 치프(E89)는 순증이라 넣지 않고,
+  // E105(Stage 6 절대 HP)은 기존 종 배수를 타지 않으므로 넣지 않는다.
+  // E96(드리블)은 스3에 같은 hp 자리가 없어 40초 순증으로 들어간다 — 치프처럼 밀도 파생(잡몹 맞교환 예산) 밖에 둔다.
+  'E93', 'E94', 'E97', 'E99', 'E103',
 ])
 
 // 사용자 정본(2026-08-16): 모든 정적 좀비 타입은 Stage 1 기준 누적 1.2배 HP 곡선을 쓴다.
@@ -1131,7 +1139,7 @@ export function stageJarmobLoadWindows(stageId, windowSec = 20, totalSec = 240) 
 }
 
 export function stageHpOverride(type, stageId) {
-  if (isExpansionEnemy(type) || isExpansionBoss(type)) return undefined
+  if (isExpansionEnemy(type) || isExpansionBoss(type) || isNovel2AbsoluteHp(type)) return undefined
   const base = ENEMY_STATS[type]
   if (!base) return undefined
   const hp = sameTypeZombieHpForStage(base.hp, stageId)
@@ -1254,7 +1262,8 @@ export function isPooledEnemyType(type) {
   // Enemy/ZombieMesh. ZombieInstanceLayer intentionally has no boss body mesh.
   // Track B 신규 12종(37~48)도 풀 경로다 — 특수 적 경로는 동시 3마리가 상한이라
   // 여기서 빠지면 네 번째부터 조용히 스폰이 버려진다.
-  return (code >= 1 && code <= STANDARD_POOL_TYPE_MAX || isExpansionEnemy(type) || isNovelZombieType(code) || isProjectileZombieType(code))
+  return (code >= 1 && code <= STANDARD_POOL_TYPE_MAX || isExpansionEnemy(type) || isNovelZombieType(code) || isProjectileZombieType(code)
+    || isNovel2ImplementedTypeCode(code))
     && !isBossType(type)
 }
 
@@ -1556,6 +1565,8 @@ export default function Enemies() {
       stageConfig: getStageConfig(currentStageId),
       // 런마다 새로 만든다 — 스테이지 로스터 순환 기한(lib/stageRosterRotation.js).
       rosterRotation: createStageRosterRotation(currentStageId),
+      // 치프는 런마다 한 번만 데뷔한다(캐치업 재생·중복 행에도).
+      chiefDebuts: createChiefDebutLedger(),
     }
     firedBurstsRef.current.fill(0)
     scheduledRepeatBurstTicksRef.current.fill(-1)
@@ -1789,6 +1800,7 @@ export default function Enemies() {
     for (let entryIndex = 0; entryIndex < newList.length; entryIndex += 1) {
       const entry = newList[entryIndex]
       if (clampZombieSpawnRequest(1, totalZombieCounts()) <= 0) break
+      if (!admitChiefSpawn(stageRuntimeCacheRef.current?.chiefDebuts, entry.type)) continue
       // 작성된 행·형태·소환으로 나온 로스터 종도 순환 기한을 다시 잡는다(최근에 나온 종을 더 끼워 넣지 않게).
       noteRosterRotationSpawn(rosterRotation, entry.type, rosterSec)
       if (!isPooledEnemyType(entry.type)) {

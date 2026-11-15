@@ -35,8 +35,10 @@ describe('existing ledger wire contract and baseline Firebase Rules', () => {
   // prefect·sportsDay. 기존 허용값은 하나도 빠지지 않았다. 클라이언트가 이 키를 저장하므로 Rules를 먼저 배포해야 한다.
   // 2026-11-14: 5b46c44d에서 encounteredZombieTypes 화이트리스트에 블록 좀비 E71~E88(18종)만 추가(aa677f2d…, 리뷰 SAFE).
   // 클라이언트(firebaseProgress ZOMBIE_ENCOUNTER_TYPES·도감)가 이 조우를 저장하므로 이 Rules를 클라이언트보다 먼저 배포해야 한다.
-  it('pins the reviewed Rules bytes: a9 plus the E34-E45, E46-E70, E71-E88 and B10 encounter whitelist, the rosari appearance, the wardrobe playerOutfit, the run-ledger summary, the outfit unlocks/ranking outfitId incl. Stage 5/6 prefect and sportsDay, and the B10/B05 boss passives (deploy Rules before the client)', () => {
-    expect(createHash('sha256').update(bytes).digest('hex')).toBe('aa677f2d5a232de8f1b3dc607a13c63020570495781bc53a3b732075694c6318')
+  // 2026-11-15: aa677f2d에서 encounteredZombieTypes 화이트리스트 끝에 2차 신규 좀비 E89~E106(18종)만 추가(b9f18d16…).
+  // 블록 좀비 E71~E88을 포함한 기존 허용값은 하나도 빠지지 않았다. 클라이언트가 이 조우를 저장하므로 Rules를 먼저 배포해야 한다.
+  it('pins the reviewed Rules bytes: a9 plus the E34-E45, E46-E70, E71-E88, E89-E106 and B10 encounter whitelist, the rosari appearance, the wardrobe playerOutfit, the run-ledger summary, the outfit unlocks/ranking outfitId incl. Stage 5/6 prefect and sportsDay, and the B10/B05 boss passives (deploy Rules before the client)', () => {
+    expect(createHash('sha256').update(bytes).digest('hex')).toBe('b9f18d16ae184280057d82bfd6f6a8b4c60d6407b4b71f1b4e6eba80f24cae1a')
   })
   it.each([1,2,3,4,5,6,7,8,9,10])('stage %i virtual key uses existing numeric run-row validator, not progress schema additions', n => {
     const key=`stage${n}BossDefeats`

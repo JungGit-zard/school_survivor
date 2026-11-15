@@ -64,7 +64,9 @@ const ZOMBIE_ENCOUNTER_TYPES = new Set(['E01', 'E02', 'E03', 'E04', 'E05', 'E06'
   // 블록 좀비 18종 E71~E88(2026-11-14). database.rules.json 허용 목록과 같다 — 규칙을 먼저 배포한다.
   'E71', 'E72', 'E73', 'E74', 'E75', 'E76', 'E77', 'E78', 'E79', 'E80', 'E81', 'E82', 'E83', 'E84', 'E85', 'E86', 'E87', 'E88',
   // Stage 5 보스 교감 좀비(2026-11-08). 문자열 id라 typeCode 배정과 무관하다.
-  'B10'])
+  'B10',
+  // 2차 신규 좀비 18종 E89~E106(2026-11-14, 스테이지마다 3종 + 치프). 추가만 한다 — 이 집합은 절대 줄이지 않는다.
+  'E89', 'E90', 'E91', 'E92', 'E93', 'E94', 'E95', 'E96', 'E97', 'E98', 'E99', 'E100', 'E101', 'E102', 'E103', 'E104', 'E105', 'E106'])
 const MISSION_PROGRESS_SCHEMA_VERSION = 1
 const DEFAULT_MISSION_CATALOG_VERSION = 'missions_2026_08_15_v1'
 const MISSION_ID_PATTERN = /^[a-z0-9_]{1,64}$/

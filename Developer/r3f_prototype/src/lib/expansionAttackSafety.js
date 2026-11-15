@@ -1,5 +1,6 @@
 import { EXPANSION_STAGES, EXPANSION_ENEMIES, EXPANSION_BOSSES } from './expansionContent.js'
 import { AUTHORED_ATTACK_BOSSES } from './stage5ViceBoss.js'
+import { NOVEL2_EXPANSION_ENEMIES } from './novelZombie2Content.js'
 import { getStageObjectSightObstacles, isStageObjectSightBlocked, obstacleCosY, obstacleSinY } from '../components/StageObjects/stageObjectColliders.js'
 
 // Gameplay geometry only. 1 block = 4 units. Radius .192/.048 blocks;
@@ -36,10 +37,18 @@ export function expansionPolygonContains(poly,x,z,pad=0){
 }
 export function expansionSafetyContext(type,a){
  // a.stageId(호출측이 넘긴 현재 스테이지)가 우선. B10 같은 authored-attack 보스는 확장 스테이지 표에 없으므로 레코드의 stageId로 폴백.
- const definition=EXPANSION_ENEMIES[type]??EXPANSION_BOSSES[type]??AUTHORED_ATTACK_BOSSES[type]
- const stageId=a.stageId??Object.values(EXPANSION_STAGES).find(s=>s.bossId===type||s.enemyIds.includes(type))?.id??AUTHORED_ATTACK_BOSSES[type]?.stageId
+ // 2차 신규 좀비(E94/E97)는 확장 스테이지 표에 없으므로 자기 행의 stageId로 폴백한다(Stage 2·3 맵 반폭 7.5×19.2 = 기본값).
+ const definition=EXPANSION_ENEMIES[type]??EXPANSION_BOSSES[type]??AUTHORED_ATTACK_BOSSES[type]??NOVEL2_EXPANSION_ENEMIES[type]
+ const stageId=a.stageId??Object.values(EXPANSION_STAGES).find(s=>s.bossId===type||s.enemyIds.includes(type))?.id??AUTHORED_ATTACK_BOSSES[type]?.stageId??NOVEL2_EXPANSION_ENEMIES[type]?.stageId
  const stage=EXPANSION_STAGES[stageId]
- return {stageId,halfX:a.halfX??stage?.mapHalfXUnits??7.5,halfZ:a.halfZ??stage?.mapHalfZUnits??19.2,obstacles:a.obstacles??(definition?getStageObjectSightObstacles(stageId):[])}
+ let obstacles=a.obstacles??(definition?getStageObjectSightObstacles(stageId):[])
+ // 2차 신규 좀비(E94/E97)는 Stage 2·3 맵 전체 장애물(Stage 3 체육관 39개)이 안전 기하 상한(32)을 넘으면 공격을 영원히 못 낸다.
+ // 이 종들의 공격은 사거리 3.2u 안이라, 공격자·플레이어 둘레 10u 안의 가까운 장애물 32개만 쓴다(기존 확장 적·보스는 그대로).
+ if(NOVEL2_EXPANSION_ENEMIES[type] && obstacles.length>EXPANSION_SAFETY_LIMITS.obstacles && Number.isFinite(a.x+a.z+a.playerX+a.playerZ)){
+  const near=o=>Math.min(Math.hypot(o.x-a.x,o.z-a.z),Math.hypot(o.x-a.playerX,o.z-a.playerZ))
+  obstacles=obstacles.filter(o=>near(o)<=10).sort((p,q)=>near(p)-near(q)).slice(0,EXPANSION_SAFETY_LIMITS.obstacles)
+ }
+ return {stageId,halfX:a.halfX??stage?.mapHalfXUnits??7.5,halfZ:a.halfZ??stage?.mapHalfZUnits??19.2,obstacles}
 }
 // Convex authored pieces, in WORLD XZ. All consumers use this same clipped set.
 export function expansionAuthoredPolygons(s){

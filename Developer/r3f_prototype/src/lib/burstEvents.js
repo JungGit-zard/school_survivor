@@ -152,6 +152,10 @@ export const BURST_EVENTS = [
   { sec: 108, type: 'E77', count:  1 },  // 2026-11-14 블록 좀비 충돌실험 인형 첫 등장(빠른 돌진 뒤 넘어짐, 탄 없음). hp 8 = E01 (3 → 2 + 1)
   { sec: 108, type: 'E36', count:  3 },  // 반걸음되짚기형 첫 등장(2026-11-04: 60초 → 108초, 단독 도입). hp 8 = E01
   { sec: 108, type: 'E02', count:  3 },
+  // 2026-11-14 2차 신규 좀비: 치프 E89 반장 좀비(base 400, 런마다 데뷔 1회). 치프는 잡몹 사다리(스1 3,710 정본) 밖의
+  // 순증이다 — 기존 행을 깎지 않아 비치프 총 HP·마릿수는 그대로이고, 치프 HP는 burstEvents.test의 치프 단언이 따로 못박는다.
+  // 반경 4u 안 일반 좀비를 동결시켰다가 동시 돌진시키는 지휘형 — 같은 108초 잡몹 러시(E01·E02)가 지휘 대상이다.
+  { sec: 108, type: 'E89', count:  1 },  // 반장 좀비(치프) 첫 등장 — "차렷! 경례!"
   ...ALL_STAGES_110SEC_SMILING_TANKER_REINFORCEMENT_EVENTS,
   { sec: 120, type: 'E05', count:  2 },  // 돌진 첫 등장 (E04 탄환형 폐기 — 2026-05-09)
   { sec: 120, type: 'E62', count:  1 },  // 셔틀런 첫 등장(같은 선을 왕복 돌진, 탄 없음). hp 70 = E05
@@ -190,7 +194,9 @@ export const STAGE2_BURST_EVENTS = [
   { sec:  24, type: 'E38', count:  3 },                       // 빈칸반응형(플레이어 이동 읽기). hp 10 = E03
   // 2026-11-04 투사체 좀비 배치: 첫 등장 60(E47)·144(E51)·184(E46) — 기존 신규 종 첫 등장(5·24·108)과 30초 이상.
   // 60·108·120·216은 같은 행 맞교환, 144·184 새 행은 같은 분(150초 E37, 216초 E34)에서 한 마리씩 옮겼다.
-  { sec:  60, type: 'E07', count:  4 },                       // 웃는좀비(E01 2배 스탯) 합류
+  { sec:  60, type: 'E07', count:  3 },                       // 웃는좀비(E01 2배 스탯) 합류(2026-11-14: 1기를 E94로)
+  // 2026-11-14 2차 신규: 108초 E07 행은 블록 좀비 E72가 먼저 맞바꿔 같은 hp(16)의 가장 가까운 E07 행 60초에서 받는다.
+  { sec:  60, type: 'E94', count:  1 },                       // 대걸레 밀기 첫 등장(1.2초 예고 뒤 직선 3.2u). hp 16 = E07
   { sec:  60, type: 'E47', count:  1 },                       // 종이비행기 첫 등장(느린 약유도 탄). hp 16 = E07
   { sec:  72, type: 'E04', count:  1 },                       // 원거리 첫 등장 — 발사 게이트(e04IntroSec 72)와 동시
   { sec:  72, type: 'E63', count:  1 },                       // 2026-11-07 마이크줄 첫 등장(맞으면 끌려감). hp 32 = E04
@@ -222,7 +228,9 @@ export const STAGE2_BURST_EVENTS = [
   // ── 형태(formation) 버스트 — 균일 압력을 깨는 스파이크→이완 비트. E04/보스와 시각이 겹치지 않게 배치.
   { sec:  40, type: 'E01', count:  7, formation: 'swarm' },    // 초반 단조 구간 깨기 — 경비추격과 동시각 스파이크
   { sec:  40, type: 'E65', count:  1 },                        // 2026-11-07 시험감독 첫 등장(고리에서 가운데로 모이는 시험지). hp 8 — 스웜 E01 1기
-  { sec:  60, type: 'E03', count:  6, formation: 'ring' },     // 러너 포위
+  { sec:  60, type: 'E03', count:  5, formation: 'ring' },     // 러너 포위(2026-11-14: 1기를 E93으로)
+  // 2026-11-14 2차 신규: 24초 E03 행은 블록 좀비 E83이 먼저 맞바꿔 같은 hp(10)의 가장 가까운 E03 행(60초 포위)에서 받는다.
+  { sec:  60, type: 'E93', count:  1 },                        // 그림자밟기 첫 등장(2초 전 플레이어 위치로 걷는다). hp 10 = E03
   { sec: 150, type: 'E02', count:  2, formation: 'pincer' },   // 탱커 협공(보스 구간)
   ...ALL_STAGES_110SEC_SMILING_TANKER_REINFORCEMENT_EVENTS,
   ...STAGE2_MIXED_REINFORCEMENT_EVENTS,
@@ -266,6 +274,9 @@ export const STAGE3_BURST_EVENTS = [
   { sec:  24, type: 'E80', count:  1 },                         // 2026-11-14 블록 좀비 축제 부채 첫 등장(부채꼴 종이 바람 3장). hp 10 = E03 (2 → 1 + 1)
   { sec:  24, type: 'E41', count:  2 },                         // 쌍박자교대형(낮은 팔/높은 팔). hp 10 = E03
   { sec:  40, type: 'E04', count:  1 },                         // 원거리 조기 등장 신호(e04IntroSec 34 이후)
+  // 2026-11-14 2차 신규: 스3에는 단발 E07 행이 없고 유일한 E01 행(5초)은 블록 좀비 E85·E74가 먼저 맞바꿨다 —
+  // 같은 hp 자리가 남지 않아 드리블은 40초 앵커에 순증 1기(base 16, 실효 23)로 둔다.
+  { sec:  40, type: 'E96', count:  1 },                         // 드리블 첫 등장(0.5초 박자: 걸음·걸음·예고·돌진 1.2u). 순증 hp 16
   // 2026-11-04 투사체 좀비: 스3 단발 행은 반복 증원이 대부분이라 첫 등장 자리가 72초 하나뿐이다
   // (기존 첫 등장 24·120·168과 30초 이상). 72초 차저 첫 등장 신호(E05×1)는 도입 사슬이라 그대로 두고,
   // 216초 E05×1을 72초로 당겨 E57로 바꾼다(1~2분 +7.3% / 3~4분 −4.5%, 총 HP·마릿수 불변).
@@ -282,7 +293,9 @@ export const STAGE3_BURST_EVENTS = [
   // ── 보스: 체육교사 B03 단일 등장(150). 로비 카드(체육교사)와 실제 전투 일치. ──
   { sec: 150, type: 'B03', count:  1 },
   // ── 형태(formation) 버스트 — 배열 순서 = STAGE3_SPAWN_TELEGRAPHS 순서(60 → 120 → 150 → 184).
-  { sec:  60, type: 'E03', count:  5, formation: 'ring' },      // 첫 완전 포위
+  { sec:  60, type: 'E03', count:  4, formation: 'ring' },      // 첫 완전 포위(2026-11-14: 1기를 E97로)
+  // 2026-11-14 2차 신규: 24초 E03 행은 블록 좀비 E80이 먼저 맞바꿔 같은 hp(10)의 가장 가까운 E03 행(60초 포위)에서 받는다.
+  { sec:  60, type: 'E97', count:  1 },                         // 뜀틀 첫 등장(1.1초 웅크림 뒤 최대 2u 도약, 착지 r 0.8u). hp 10 = E03
   { sec:  60, type: 'E68', count:  1 },                         // 2026-11-07 지구본 첫 등장(둘레를 도는 지구본 3개) — 포위 러너 1기. hp 10 = E03
   // Track B 대체(2026-10-25): 120초 포위를 차저(E05×3)에서 반원발맞춤형(E42×3)으로 통째로 바꾼다.
   // hp(E42) = hp(E05) = 70, count 3, sec·formation 그대로라 총 HP·마릿수·예고 1:1 정렬이 전부 보존된다.
@@ -362,7 +375,8 @@ export const STAGE4_BURST_EVENTS = [
   { sec:  60, type: 'E03', count:  5, formation: 'ring' },     // 첫 완전 포위(러너)
   { sec:  60, type: 'E70', count:  1 },                        // 2026-11-07 술래 첫 등장(찍은 자리로 순간이동 + 터치) — 포위 러너 1기. hp 10 = E03
   { sec: 108, type: 'E02', count:  4, formation: 'pincer' },   // 탱커 앞뒤 협공(피크 예열)
-  { sec: 120, type: 'E05', count:  4, formation: 'ring' },     // 차저 포위(피크 정점, 보스 직전)
+  { sec: 120, type: 'E05', count:  3, formation: 'ring' },     // 차저 포위(피크 정점, 보스 직전) — 2026-11-14: 1기를 E99로
+  { sec: 120, type: 'E99', count:  1 },                        // 압력밥솥 첫 등장(죽은 자리 1.2초 뒤 r 1.4u 폭발). hp 70 = E05
   { sec: 168, type: 'E04', count:  4, formation: 'ring' },     // 원거리 포위 = "안전지대 소멸" 문자 그대로 — 포화점 4기
   { sec: 184, type: 'E06', count:  2, formation: 'pincer' },   // 보스 구간 거대 앞뒤 벽
 ]
@@ -409,7 +423,8 @@ export const STAGE5_BURST_EVENTS = [
   { sec: 108, type: 'E60', count: 1 },                           // hp 16
   ...ALL_STAGES_110SEC_SMILING_TANKER_REINFORCEMENT_EVENTS,
   // 2:24 보스 직전 원거리 벽(포화점 4) + 속공 + 확성기방송 첫 등장
-  { sec: 144, type: 'E04', count: 4 },
+  { sec: 144, type: 'E04', count: 3 },                           // 2026-11-14: 1기를 E103 커피 셔틀로
+  { sec: 144, type: 'E103', count: 1 },                           // 커피 셔틀 첫 등장(일반 좀비 1기 이동 ×1.35, 5초). hp 32 = E04
   { sec: 144, type: 'E07', count: 5 },
   { sec: 144, type: 'E54', count: 1 },                           // 확성기방송(방송 담당 교사) 첫 등장. hp 32
   // 2:30 교감 좀비 B10 등장 — 보스 구간 파생 기준

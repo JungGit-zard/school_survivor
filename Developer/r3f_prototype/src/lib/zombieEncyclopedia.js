@@ -107,6 +107,26 @@ const ZOMBIE_TYPE_LABELS = Object.freeze({
   E86: '장학사 좀비',
   E87: '오리엔티어링부 좀비',
   E88: '육상부 좀비',
+  // 2차 신규 좀비 18종(E89~E106, typeCode 94~111, 2026-11-14). 한국어 정본은 lib/novelZombie2Content.js NOVEL2_LABELS_KO와 같다.
+  // database.rules.json encounteredZombieTypes 허용 목록과 반드시 같이 바꾼다.
+  E89: '반장 좀비',
+  E90: '숙제 걷기 당번 좀비',
+  E91: '교과서 미믹',
+  E92: '복도 기차놀이 기관사 좀비',
+  E93: '그림자밟기 좀비',
+  E94: '대걸레 밀기 좀비',
+  E95: '긴줄넘기 듀오',
+  E96: '드리블 좀비',
+  E97: '뜀틀 좀비',
+  E98: '대식가 좀비',
+  E99: '압력밥솥 좀비',
+  E100: '찹쌀떡 좀비',
+  E101: '복사기 좀비',
+  E102: '회전의자 좀비',
+  E103: '커피 셔틀 좀비',
+  E104: '공굴리기 대장 좀비',
+  E105: '2인3각 좀비',
+  E106: '기마전 좀비',
 })
 
 export const ZOMBIE_ENCYCLOPEDIA_TYPES = Object.freeze(

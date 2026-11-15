@@ -435,12 +435,16 @@ describe('boss runtime spawn routes', () => {
     // 2026-08-17 1.3배 사다리 재설계로 마릿수는 6/11 → 5/6이 됐다. 여기서 지키려는 것은
     // 마릿수가 아니라 '표 → 스폰 위치 → 풀 라우팅' 세 링크가 끊기지 않는다는 사실이다.
     // 2026-11-04 투사체 좀비: 60·108초 E07 1마리씩을 E47(종이비행기, hp 16)이 대체한다.
-    expect(stage2).toContainEqual({ sec: 60, type: 'E07', count: 4 })
+    // 2026-11-14 2차 신규: 60초 E07 1마리를 E94가 더 가져간다(4 → 3 + E94).
+    expect(stage2).toContainEqual({ sec: 60, type: 'E07', count: 3 })
     // 2026-10-25 Track B: 108초 E07×6 중 3마리를 신규 E39(선끝접기형)가 대체한다.
     // hp(E39)=hp(E07)=16이라 이 슬롯의 총 HP·마릿수는 그대로다.
     // 2026-11-14 블록 좀비: 108초 E07 1기 → E72(교통지도, hp 16).
     expect(stage2).toContainEqual({ sec: 108, type: 'E07', count: 1 })
     expect(stage2).toContainEqual({ sec: 108, type: 'E72', count: 1 })
+    // 2026-11-14 2차 신규: E94(대걸레 밀기, hp 16)는 60초 E07 1기 자리에서 받는다(108초는 블록 좀비 E72). 풀 경로를 탄다.
+    expect(stage2).toContainEqual({ sec: 60, type: 'E94', count: 1 })
+    expect(isPooledEnemyType('E94')).toBe(true)
     expect(stage2).toContainEqual({ sec: 108, type: 'E39', count: 3 })
     expect(isPooledEnemyType('E07')).toBe(true)
     expect(ENEMY_STATS.E07).toBeDefined()
@@ -1064,12 +1068,16 @@ describe('all zombie HP follows the cumulative 1.2x-per-stage curve', () => {
       'E71', 'E72', 'E73', 'E74', 'E75', 'E76', 'E77', 'E78', 'E79', 'E80', 'E81', 'E82', 'E83', 'E84', 'E85', 'E86', 'E87', 'E88',
       // Stage 5 보스 B10 교감 좀비(2026-11-08). B01~B04처럼 같은 누적 곡선을 탄다(stage5 실효 3,241).
       'B10',
+      // 2026-11-14 2차 신규 1차분: E89 반장(치프, base 400 × 배수)과 일반 6종은 같은 누적 곡선을 탄다.
+      // E105(2인3각)은 Stage 6 절대 HP라 아래 루프에서 확장 배우처럼 따로 다룬다.
+      'E89', 'E93', 'E94', 'E96', 'E97', 'E99', 'E103', 'E105',
     ])
     const stageMultipliers = { stage1: 1, stage2: 1.2, stage3: 1.44, stage4: 1.728, stage5: 1.2 ** 4 }
     for (const [stageId, multiplier] of Object.entries(stageMultipliers)) {
       for (const [type, stats] of Object.entries(ENEMY_STATS).filter(([id])=>!/^E(?:19|2[0-9]|3[0-3])$|^B0[5-9]$/.test(id))) {
         const expectedHp = Math.round(stats.hp * multiplier)
         expect(sameTypeZombieHpForStage(stats.hp, stageId)).toBe(expectedHp)
+        if (type === 'E105') { expect(stageHpOverride(type, stageId)).toBeUndefined(); continue }
         expect(stageHpOverride(type, stageId)).toEqual(stageId === 'stage1' ? undefined : { hp: expectedHp })
       }
     }

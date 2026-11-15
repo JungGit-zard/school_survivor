@@ -34,6 +34,7 @@ import { getBurstEventsForStage, isBossType } from './burstEvents.js'
 import { EXPANSION_STAGES } from './expansionContent.js'
 import { PROJECTILE_ZOMBIE_BEHAVIORS } from './projectileZombieBehavior.js'
 import { isBlockyZombieType } from './blockyZombieRoster.js'
+import { isChiefType } from './stageChiefContent.js'
 
 // 탄을 쏘는 종(사수): E04 + 투사체 좀비 중 shot이 있는 종(E56 보건실·E61 급식판·E62 셔틀런·E66 플라나리아·E67 방패는 아님).
 export const ROSTER_ROTATION_SHOOTER_TYPES = Object.freeze(new Set([
@@ -57,6 +58,12 @@ export const ROSTER_ROTATION_HOST_TYPES = Object.freeze(['E01', 'E02', 'E03', 'E
 const HOST_SET = new Set(ROSTER_ROTATION_HOST_TYPES)
 // 기본 E01~E08과 크루(RZT/RZG/RZL/RZC)는 순환 대상이 아니다.
 const NON_ROSTER_TYPE = /^(E0[1-8]|RZ[A-Z])$/
+// 순환에 절대 넣지 않는 2차 신규 종: 치프(데뷔 1회 — lib/stageChiefContent.js)와 E105 2인3각(두 몸이 한 단위라
+// host 1기 ↔ 1기 맞교환이 성립하지 않는다. 쌍 단위 교체는 2차 작업).
+const NON_ROTATING_NOVEL2 = new Set(['E105'])
+function isNeverRotated(type) {
+  return isChiefType(type) || NON_ROTATING_NOVEL2.has(type)
+}
 
 const debutCache = new Map()
 
@@ -68,7 +75,7 @@ export function getStageRotationDebuts(stageId) {
   const firstSec = new Map()
   for (const evt of getBurstEventsForStage(stageId) ?? []) {
     for (const type of [evt.type, ...(evt.mixedTypes ?? [])]) {
-      if (!type || isBossType(type)) continue
+      if (!type || isBossType(type) || isNeverRotated(type)) continue
       if (expansion ? !(expansion.enemyIds.includes(type) || isBlockyZombieType(type)) : NON_ROSTER_TYPE.test(type)) continue
       if (!firstSec.has(type) || evt.sec < firstSec.get(type)) firstSec.set(type, evt.sec)
     }
