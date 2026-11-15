@@ -11,19 +11,19 @@ import {
   SHOT_OUTLINE_THICKNESS, SHOT_VISUALS, composeShotQuaternion, createOutlineGeometry,
   createShotBodyMaterial, createShotOutlineMaterial, getShotVisualIndex,
 } from '../../lib/projectileZombieShotGeometry.js'
-import { clearPaperPlanePool, createPaperPlanePool, launchPaperPlanes, stepPaperPlanes } from '../../lib/paperPlane.js'
+import { PAPER_PLANE_FADE_MS, clearPaperPlanePool, createPaperPlanePool, launchPaperPlanes, stepPaperPlanes } from '../../lib/paperPlane.js'
 
 // 종이비행기(paperPlane) — 2026-11-07 Terry: E47 종이비행기 좀비의 탄을 로자리 무기로.
 // 2026-11-08 Terry: 좀비 종이비행기와 크기·비행속도·공격 방식까지 완전히 같게, 로자리 것만 민트 테두리.
 // 동작·수치 정본: lib/paperPlane.js(E47 탄 스펙 + 공용 선회) + weaponCatalog.js paperPlane.base(피해·쿨·대수).
 // 렌더: 좀비 탄 레이어(PooledEnemyProjectileLayer)와 같은 메시·재질·크기·높이·기울기(bank) 규칙을 쓰고,
-// 외곽선 헐 색만 민트다. 몸체 + 외곽선 InstancedMesh 한 쌍. 풀 용량이 늘 때만 메시를 다시 만들고,
+// 외곽선 헐은 검정이다. 몸체 + 외곽선 InstancedMesh 한 쌍. 풀 용량이 늘 때만 메시를 다시 만들고,
 // 매 프레임 할당은 없다. 풀은 16에서 시작해 두 배씩, 안전망 상한 PAPER_PLANE_MAX_CAPACITY(64)까지만 는다.
 export const PAPER_PLANE_VISUAL = getShotVisualIndex(SHOT_KIND.PAPER_PLANE, SHOT_MOTION.HOMING)
 export const PAPER_PLANE_VISUAL_SCALE = SHOT_KIND_INFO[SHOT_KIND.PAPER_PLANE].size // 좀비 탄과 같은 1.35
-// 좀비 탄과의 유일한 차이: 외곽선. E04 청록 탄(#34D6B8)보다 밝고 초록 쪽인 민트.
-// 몸체 메시·크기는 같고, 민트 헐만 좀비 탄 외곽선(0.013)보다 굵게 둬 폰 화면에서도 테두리 색이 읽히게 한다.
-export const PAPER_PLANE_OUTLINE_COLOR = 0x5cffc8
+// 2026-11-15 Terry: "종이비행기 발사체 검정테두리로 바꿔" (이전: 민트 0x5cffc8).
+// 몸체 메시·크기는 좀비 탄과 같고, 검정 헐을 좀비 탄 외곽선(0.013)보다 굵게 둬 폰 화면에서도 테두리가 읽히게 한다.
+export const PAPER_PLANE_OUTLINE_COLOR = 0x000000
 export const PAPER_PLANE_OUTLINE_THICKNESS = SHOT_OUTLINE_THICKNESS * 2.3
 
 let _paperPlaneAssets = null
@@ -44,6 +44,14 @@ const _m = new THREE.Matrix4()
 const _q = new THREE.Quaternion()
 const _p = new THREE.Vector3()
 const _s = new THREE.Vector3(PAPER_PLANE_VISUAL_SCALE, PAPER_PLANE_VISUAL_SCALE, PAPER_PLANE_VISUAL_SCALE)
+// 2026-11-15 Terry: 표적을 못 만나고 수명이 끝나는 비행기는 뚝 끊기지 않고 "스르륵" 사라진다.
+// 수명 마지막 PAPER_PLANE_FADE_MS 동안 크기가 부드럽게(smoothstep) 0으로 줄고 살짝 가라앉는다.
+// ponytail: 인스턴스별 투명도 대신 크기 축소 — 진짜 알파 페이드가 필요하면 instanceColor/셰이더로.
+export function planeFadeScale(ageMs, lifeMs) {
+  const k = Math.min(1, Math.max(0, (lifeMs - ageMs) / PAPER_PLANE_FADE_MS))
+  return k * k * (3 - 2 * k)
+}
+const _fs = new THREE.Vector3()
 const _zero = new THREE.Matrix4().makeScale(0, 0, 0)
 
 // 좀비 탄 레이어(writeProjectileZombieShotFrame)와 같은 규칙: 높이 SHOT_HEIGHT, 진행 방향 + bank 기울기.
@@ -55,9 +63,10 @@ export function writePlaneMatrices(pool, body, outline) {
       outline.setMatrixAt(i, _zero)
       continue
     }
-    _p.set(pool.posX[i], SHOT_HEIGHT, pool.posZ[i])
+    const fade = planeFadeScale(pool.ageMs[i], pool.lifeMs[i])
+    _p.set(pool.posX[i], SHOT_HEIGHT * (0.6 + 0.4 * fade), pool.posZ[i])
     composeShotQuaternion(_q, PAPER_PLANE_VISUAL, pool.velX[i], pool.velZ[i], pool.ageMs[i], i)
-    _m.compose(_p, _q, _s)
+    _m.compose(_p, _q, _fs.copy(_s).multiplyScalar(fade))
     body.setMatrixAt(i, _m)
     outline.setMatrixAt(i, _m)
   }

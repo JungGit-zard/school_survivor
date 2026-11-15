@@ -122,13 +122,12 @@ describe('paper plane flight = the E47 zombie paper plane (2026-11-08 Terry)', (
     expect(E47_PAPER_PLANE_SHOT).toBe(e47)
     expect(e47).toMatchObject({ kind: SHOT_KIND.PAPER_PLANE, motion: SHOT_MOTION.HOMING })
     expect(PAPER_PLANE_SPEED).toBe(e47.speed)
-    expect(PAPER_PLANE_LIFETIME_MS).toBe(e47.lifeMs)
     expect(PAPER_PLANE_TURN_RATE).toBe(e47.p0)
     expect(PAPER_PLANE_TURN_BUDGET).toBe(e47.p1)
     expect(PAPER_PLANE_CONTACT_RADIUS).toBe(e47.hitRadius + PLAYER_CONTACT_HALF_EXTENT)
     // 지금 E47 값: 1.6u/s, 4.2초, 초당 45°, 누적 90°, 접촉 0.256u.
     expect(PAPER_PLANE_SPEED).toBe(1.6)
-    expect(PAPER_PLANE_LIFETIME_MS).toBe(4200)
+    expect(PAPER_PLANE_LIFETIME_MS).toBe(5000) // 2026-11-15 Terry: 수명만 E47(4.2초)과 다르다
     expect(PAPER_PLANE_TURN_RATE).toBeCloseTo(45 * DEG, 12)
     expect(PAPER_PLANE_TURN_BUDGET).toBeCloseTo(90 * DEG, 12)
     expect(PAPER_PLANE_CONTACT_RADIUS).toBeCloseTo(0.256, 12)
@@ -147,7 +146,7 @@ describe('paper plane flight = the E47 zombie paper plane (2026-11-08 Terry)', (
       const [x0, z0] = sc.target(0)
       const { enemies, deps } = makeWorld([[x0, z0]])
       const pool = createPaperPlanePool(2)
-      const plane = spawnPaperPlane(pool, { x: 0, z: 0, dirX: sc.dir[0], dirZ: sc.dir[1], damage: 1, targetIndex: 0, targetGeneration: 1 })
+      const plane = spawnPaperPlane(pool, { x: 0, z: 0, dirX: sc.dir[0], dirZ: sc.dir[1], damage: 1, lifeMs: E47_PAPER_PLANE_SHOT.lifeMs, targetIndex: 0, targetGeneration: 1 })
       let steps = 0
       let turned = 0
       for (let k = 0; k < 400; k += 1) {
@@ -238,8 +237,8 @@ describe('paper plane flight = the E47 zombie paper plane (2026-11-08 Terry)', (
     }
     expect(enemies[0].hits).toBe(1)
     // 맞힐 적이 남아 있지 않으면 수명(4.2초)까지 날고 사라진다.
-    expect(age).toBeGreaterThan(4.15)
-    expect(age).toBeLessThan(4.25)
+    expect(age).toBeGreaterThan(4.95)
+    expect(age).toBeLessThan(5.05)
     // 뚫고 지나간 뒤에는 옆의 좀비를 쫓아 꺾지 않고 연필처럼 그 방향 그대로 직진한다.
     const w2 = makeWorld([[0, 1], [-3, 2]])
     const p2 = createPaperPlanePool(1)
@@ -320,13 +319,13 @@ describe('paper plane flight = the E47 zombie paper plane (2026-11-08 Terry)', (
     expect(estimatePlayerDps({ paperPlane: { ...base, projectileCount: 2 } })).toBeCloseTo(2 * estimatePlayerDps({ paperPlane: base }), 9)
   })
 
-  it('expires after 4.2 s (6.72u) when it touches nothing', () => {
+  it('expires after 5 s (8u) when it touches nothing', () => {
     const { deps } = makeWorld([])
     const pool = createPaperPlanePool(1)
     spawnPaperPlane(pool, { x: 0, z: 0, dirX: 1, dirZ: 0, damage: 1 })
-    run(pool, deps, 4.1)
+    run(pool, deps, 4.9)
     expect(countActivePaperPlanes(pool)).toBe(1)
-    expect(pool.posX[0]).toBeCloseTo(1.6 * 4.1, 1)
+    expect(pool.posX[0]).toBeCloseTo(1.6 * 4.9, 1)
     run(pool, deps, 0.15)
     expect(countActivePaperPlanes(pool)).toBe(0)
   })
@@ -436,7 +435,24 @@ describe('paper plane visual = the zombie paper plane + a mint outline', () => {
     geometry.dispose()
   })
 
-  it('differs only in the outline colour: mint for Rosari, the zombie outline stays near-black', async () => {
+  it('fades out smoothly over the last stretch of its life instead of popping', async () => {
+    const { planeFadeScale } = await import('../components/Weapons/PaperPlane.jsx')
+    const { PAPER_PLANE_FADE_MS, PAPER_PLANE_MAX_ACTIVE, retireExcessPaperPlanes } = await import('./paperPlane.js')
+    // 동시 체류 상한 3: 넘치면 가장 오래된 것이 FADE_MS 뒤 사라지도록 수명이 줄어든다.
+    const capPool = createPaperPlanePool(8)
+    for (let i = 0; i < 5; i += 1) { const sl = spawnPaperPlane(capPool, { x: 0, z: 0, dirX: 1, dirZ: 0, damage: 1 }); capPool.ageMs[sl] = 1000 - i * 100 }
+    retireExcessPaperPlanes(capPool)
+    expect(PAPER_PLANE_MAX_ACTIVE).toBe(3)
+    expect([0, 1, 2, 3, 4].map((i) => capPool.lifeMs[i] - capPool.ageMs[i] <= PAPER_PLANE_FADE_MS)).toEqual([true, true, false, false, false])
+    expect(planeFadeScale(0, 4200)).toBe(1)
+    expect(planeFadeScale(4200 - PAPER_PLANE_FADE_MS, 4200)).toBe(1)
+    const mid = planeFadeScale(4200 - PAPER_PLANE_FADE_MS / 2, 4200)
+    expect(mid).toBeGreaterThan(0)
+    expect(mid).toBeLessThan(1)
+    expect(planeFadeScale(4200, 4200)).toBe(0)
+  })
+
+  it('differs only in the outline colour: black for Rosari, the zombie outline stays near-black', async () => {
     vi.stubGlobal('document', { createElement: () => ({ getContext: () => ({ fillRect() {} }) }) })
     const {
       SHOT_BODY_EMISSIVE, SHOT_OUTLINE_COLOR, SHOT_OUTLINE_THICKNESS, createShotOutlineMaterial,

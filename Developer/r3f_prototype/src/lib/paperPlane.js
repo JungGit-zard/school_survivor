@@ -9,7 +9,7 @@
 //   - 표적 쪽으로 초당 45°까지, 누적 90°까지만 꺾는다(E47 p0·p1). 예산을 다 쓰면 그대로 직진한다.
 //   - 적 하나에 닿으면(좀비 탄이 로자리에 닿는 거리 = hitRadius 0.12 + 몸 반폭 0.136) 피해를 준다.
 //     기본(pierce 1)은 좀비 탄처럼 한 번 맞히면 사라진다.
-//   - 4.2초(E47 lifeMs) 뒤 사라진다. 최대 비행거리 6.72u(약 9블록, 1블록 = 0.75u).
+//   - 5초 뒤 스르륵 사라진다(2026-11-15 Terry, E47은 4.2초). 최대 비행거리 8u. 동시에 최대 3대.
 // 좀비 탄과 다른 것은 표적뿐이다: 좀비 탄 → 로자리 / 로자리 비행기 → 발사 때 고른 적.
 // 그 적이 먼저 죽으면(다른 무기 등) 비행기 근처의 다음 적을 표적으로 삼되, 남은 선회 예산 안에서만 꺾는다.
 // 관통(2026-11-08 Terry): "관통은 연필처럼 좀비를 타격한 뒤 뚫고 지나가 뒤의 좀비까지 타격하는 것".
@@ -31,7 +31,11 @@ export const E47_PAPER_PLANE_SHOT = Object.values(PROJECTILE_ZOMBIE_BEHAVIORS).f
 
 // 거리 단위: 월드 유닛(1블록 = 0.75u). 아래 값은 전부 E47 탄에서 읽는다 — 숫자를 여기서 다시 쓰지 않는다.
 export const PAPER_PLANE_SPEED = E47_PAPER_PLANE_SHOT.speed               // 1.6 u/s
-export const PAPER_PLANE_LIFETIME_MS = E47_PAPER_PLANE_SHOT.lifeMs        // 4200ms → 최대 6.72u
+// 2026-11-15 Terry: "최대 5초 체류하다가 상대방이 없으면 스르륵 소멸", "한 화면에 최대 3개까지 체류".
+// 수명만은 E47(4.2초)에서 읽지 않는다. 5초 → 최대 8u. 마지막 FADE_MS 동안 렌더가 부드럽게 줄어든다.
+export const PAPER_PLANE_LIFETIME_MS = 5000
+export const PAPER_PLANE_FADE_MS = 700
+export const PAPER_PLANE_MAX_ACTIVE = 3
 export const PAPER_PLANE_TURN_RATE = E47_PAPER_PLANE_SHOT.p0              // 45°/s
 export const PAPER_PLANE_TURN_BUDGET = E47_PAPER_PLANE_SHOT.p1            // 누적 90°
 // 좀비 탄이 로자리에 닿는 거리와 같다: 탄 반경 0.12 + 몸 반폭 0.136 = 0.256u(약 1/3블록).
@@ -285,12 +289,28 @@ export function stepPaperPlanes(pool, delta, deps = DEFAULT_DEPS, onHit = null) 
   return hits
 }
 
+// 동시 체류 상한: 아직 사라지는 중이 아닌 비행기가 PAPER_PLANE_MAX_ACTIVE를 넘으면 가장 오래된 것부터
+// 남은 수명을 FADE_MS로 줄여 스르륵 물러나게 한다(뚝 끊지 않는다). 새 비행기는 항상 나간다.
+export function retireExcessPaperPlanes(pool, max = PAPER_PLANE_MAX_ACTIVE) {
+  for (;;) {
+    let live = 0
+    let oldest = -1
+    for (let i = 0; i <= pool.highest; i += 1) {
+      if (!pool.active[i] || pool.lifeMs[i] - pool.ageMs[i] <= PAPER_PLANE_FADE_MS) continue
+      live += 1
+      if (oldest < 0 || pool.ageMs[i] > pool.ageMs[oldest]) oldest = i
+    }
+    if (live <= max) return
+    pool.lifeMs[oldest] = pool.ageMs[oldest] + PAPER_PLANE_FADE_MS
+  }
+}
+
 // 발사 계획: 가장 가까운 적 N명(scratch, 거리순)에게 count대를 나눠 보낸다. 표적이 count보다 적으면
 // 같은 표적을 나눠 쫓되 발사각을 부채꼴로 벌린다(겹쳐 한 대로 보이지 않게). 반환 = 생성한 비행기 수.
 // 좀비 탄처럼 발사 지점(로자리 자리) 그대로에서 출발한다.
 export function launchPaperPlanes(pool, { originX, originZ, weapon, scratch, targetCount, resolveTarget = resolveWeaponTarget }) {
   if (targetCount <= 0) return 0
-  const count = Math.max(1, Math.floor(weapon.projectileCount ?? 1))
+  const count = Math.min(PAPER_PLANE_MAX_ACTIVE, Math.max(1, Math.floor(weapon.projectileCount ?? 1)))
   let launched = 0
   for (let p = 0; p < count; p += 1) {
     const k = p % targetCount
@@ -319,5 +339,6 @@ export function launchPaperPlanes(pool, { originX, originZ, weapon, scratch, tar
     if (slot < 0) break // 풀 상한(안전망)까지 찼다
     launched += 1
   }
+  retireExcessPaperPlanes(pool)
   return launched
 }
