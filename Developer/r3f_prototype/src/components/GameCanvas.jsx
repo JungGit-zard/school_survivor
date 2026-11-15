@@ -11,6 +11,8 @@ import { expansionAttackSnapshots } from '../lib/expansionAttackRuntime.js'
 import ProceduralFaceZombieLayer from './ProceduralFaceZombieLayer.jsx'
 import BlockyZombieLayer from './BlockyZombieLayer.jsx'
 import MiniZombieLayer from './MiniZombieLayer.jsx'
+import MiniHumanLayer from './MiniHumanLayer.jsx'
+import { getMiniHumanPlacements } from '../lib/miniHumanRoster.js'
 import PooledEnemyProjectileLayer from './PooledEnemyProjectileLayer.jsx'
 import StageEntryRuntimeDiagnostics from './StageEntryRuntimeDiagnostics.jsx'
 import { useGameStore } from '../store/useGameStore.js'
@@ -58,6 +60,7 @@ export default function GameCanvas({ gameKey, phase }) {
   const isMatildaContactDeath = phase === 'gameover' && deathCause === 'matilda'
   // 야외 스테이지는 맵 밖 바닥 너머를 잔디색으로 칠한다(Stage 6 운동장). 실내 스테이지는 기존 회색.
   const canvasBackground = useGameStore((state) => EXPANSION_STAGE_VISUALS[state.currentStageId]?.canvasBackground ?? '#c8c4bc')
+  const currentStageId = useGameStore((state) => state.currentStageId)
 
   return (
     <Canvas
@@ -91,6 +94,8 @@ export default function GameCanvas({ gameKey, phase }) {
       <BlockyZombieLayer resetKey={gameKey} />
       {/* 2차 신규 좀비 18종(E89~E106, Kenney Mini Characters CC0) 몸통. 그림자·체력바·스폰 연기는 ZombieInstanceLayer가 담당한다. */}
       <MiniZombieLayer resetKey={gameKey} />
+      {/* 감염 안 된 사람 구경꾼(Kenney Mini 원래 색). 콜라이더·적 풀 없음, 목록이 비면 null — 지금은 구조만 있다. */}
+      <MiniHumanLayer placements={getMiniHumanPlacements(currentStageId)} />
       <PooledEnemyProjectileLayer resetKey={gameKey} />
       <ExpansionHazardLayer events={expansionAttackSnapshots} resetKey={gameKey} />
       <StageEntryRuntimeDiagnostics gameKey={gameKey} />

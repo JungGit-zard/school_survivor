@@ -20,6 +20,8 @@ import { CompassBladeModel } from './Weapons/CompassBlade.jsx'
 import { ChibikoModel } from './Weapons/Chibiko.jsx'
 import { StarlinkSatelliteModel, ZomlonbiskModel } from './Weapons/StarlinkSatellite.jsx'
 import PlayerMesh from './PlayerMesh.jsx'
+import MiniHumanLayer from './MiniHumanLayer.jsx'
+import { getMiniHumanPlacements } from '../lib/miniHumanRoster.js'
 import { FROZEN_STUDIO_SNAPSHOT } from '../title/frozenStudio.js'
 import { loadPlayerOutfit } from '../lib/titleSettings.js'
 import { sunnyPalette } from '../lib/uiStyle.js'
@@ -741,6 +743,8 @@ export default function TitleScene3D({
         <TitleIdleDoge idleId="dogeDisco" position={[1.74, 0.0, 1.18]} dance="disco" delay={1.15} scale={0.92} yaw={-0.5} paused={reducedEffects} />
         <TitleCompanions />
       </TitleCharacterOutlineGroup>
+      {/* 감염 안 된 사람 구경꾼(Kenney Mini 원래 색). 목록이 비어 있으면 null — 지금은 구조만 있다(lib/miniHumanRoster.js). */}
+      <MiniHumanLayer placements={getMiniHumanPlacements('title')} stencilRef={TITLE_CHARACTER_STENCIL_REF} />
     </group>
   )
 
