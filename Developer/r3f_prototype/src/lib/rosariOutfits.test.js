@@ -249,7 +249,7 @@ describe('S6 placeholder outfits', () => {
 
   it('uses exactly the eight ids of the outfit plan, in unlock order', () => {
     expect(ROSARI_OUTFIT_IDS).toEqual(['default', 'winter', 'raincoat', 'gym', 'apron', 'grad', 'prefect', 'sportsDay'])
-    expect(ROSARI_OUTFITS.map((outfit) => outfit.label)).toEqual(['학교 교복', '동복', '비옷', '체육복', '급식 당번복', '졸업', '선도부 교복', '운동회 반티'])
+    expect(ROSARI_OUTFITS.map((outfit) => outfit.label)).toEqual(['학교 교복', '동복', '비옷', '체육복', '급식 당번복', '졸업 모자', '선도부 교복', '운동회 체육복'])
     for (const id of [...NEW_IDS, 'prefect', 'sportsDay']) expect(resolveRosariOutfit(id).note, id).toContain('임시안')
   })
 
@@ -267,7 +267,7 @@ describe('S6 placeholder outfits', () => {
   // Approved redesign (Terry 2026-11-14): 비옷 = mustard coat + hood + dark placket + a furled navy
   // umbrella in the right hand; 급식 당번복 = white smock + crown kerchief with a nape knot + a steel
   // ladle in the right hand; 졸업 = mortarboard + gold tassel and its cord; 선도부 unchanged;
-  // 운동회 = white tee with navy trim, navy shorts (buruma), zekken name patch, red hachimaki.
+  // 운동회 = white tee with navy trim, navy gym shorts, zekken name patch, red hachimaki.
   // Each entry is [mesh name suffix, parent key, color].
   it.each([
     ['raincoat', [
@@ -329,7 +329,7 @@ describe('S6 placeholder outfits', () => {
   it('torso details stay on the torso front and never hang below the hem (leg-swing clipping)', () => {
     for (const id of ['gym', 'raincoat', 'sportsDay']) {
       const { root, meshes } = fixtureWithHairPivot()
-      // The buruma are shorts by design: they wrap the hips below the hem and are checked above.
+      // The gym shorts (ids: buruma*) are shorts by design: they wrap the hips below the hem and are checked above.
       for (const mesh of applyRosariOutfit(root, id, makeMaterial).filter((m) => m.parent === meshes.torso && !m.name.includes('buruma'))) {
         mesh.geometry.computeBoundingBox()
         const box = mesh.geometry.boundingBox

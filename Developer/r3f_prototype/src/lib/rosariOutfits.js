@@ -189,8 +189,8 @@ export const ROSARI_OUTFITS = Object.freeze([
     // 졸업: the default uniform with a black mortarboard and a gold tassel (D-6: no long gown).
     // The cap changes the head *shape*, which no other outfit does.
     id: 'grad',
-    label: '졸업',
-    note: '졸업 임시안이에요. 원화가 나오면 다시 다듬을 거예요.',
+    label: '졸업 모자',
+    note: '졸업 모자 임시안이에요. 원화가 나오면 다시 다듬을 거예요.',
     colors: Object.freeze({}),
     accessories: Object.freeze(['capCrown', 'capBoard', 'capTassel', 'capCord']),
     models: Object.freeze(['rosari']),
@@ -215,23 +215,24 @@ export const ROSARI_OUTFITS = Object.freeze([
     models: Object.freeze(['rosari', 'v9']),
   }),
   Object.freeze({
-    // 운동회 반티 (Terry 2026-11-14: 일본 중학교 체육복 + 부르마). White short-sleeve gym T-shirt
+    // 운동회 체육복 (Terry 2026-11-14: 일본 중학교 체육복, 남색 반바지). White short-sleeve gym T-shirt
     // with navy trim at the collar and sleeve hems, a white name patch (zekken) with a navy border,
-    // navy buruma as plain athletic shorts, bare legs with the GLB's white socks, and a plain red
+    // navy gym shorts, bare legs with the GLB's white socks, and a plain red
     // hachimaki band (no tail pieces at the back). The spec56 yellow (#F2C94C) no longer applies (Terry override).
     // The jacket mesh runs shoulder to wrist, so short sleeves are a skin-colored shell over the
     // forearm half of each sleeve (built from the sleeve's own vertex rings) under a navy hem band;
-    // the wrist cuff turns skin too. The skirt is hidden and the buruma box fills hem to upper thigh.
+    // the wrist cuff turns skin too. The skirt is hidden and the shorts fill hem to upper thigh.
+    // (Accessory ids still say `buruma*`: they are pinned ids, the shape is plain gym shorts.)
     id: 'sportsDay',
-    label: '운동회 반티',
-    note: '운동회 반티 임시안이에요. 원화가 나오면 다시 다듬을 거예요.',
+    label: '운동회 체육복',
+    note: '운동회 체육복 임시안이에요. 원화가 나오면 다시 다듬을 거예요.',
     colors: Object.freeze({
       blazer: '#f2f2ee', // white gym T-shirt
       shirt: '#ffe0c9', // wrist cuff band = bare wrist
       collar: '#1f2a4d', // navy neck trim
       tie: '#f2f2ee', // v9 decal only: paints the drawn tie into the tee
       buttons: '#f2f2ee', // v9 decal only
-      skirt: '#1f2a4d', // v9 only (the rosari skirt is hidden under the buruma)
+      skirt: '#1f2a4d', // v9 only (the rosari skirt is hidden under the shorts)
     }),
     hide: Object.freeze(['yellow_tie_knot', 'yellow_tie_long_drop', 'reference_tapered_pleated_skirt_shell', 'left_white_cuff_band_at_wrist', 'right_white_cuff_band_at_wrist']),
     accessories: Object.freeze([
@@ -341,7 +342,7 @@ function buildZekken() {
   return flatRect(-0.13, 1.43, 0.13, 1.64, SHIRT_V_Z + 0.009)
 }
 
-// 운동회 buruma, shaped as ordinary athletic shorts with the same coverage as before (torso hem
+// 운동회 gym shorts (ids keep the old `buruma` name), ordinary athletic shorts with the same coverage as before (torso hem
 // down to y 0.82 on the upper thigh):
 //  - hips: a static open 6-sided prism from y 0.92 to 1.20 around the pelvis; its widest faces
 //    sit mid-depth so the hips read slightly rounded, and it tapers 5% toward the bottom.

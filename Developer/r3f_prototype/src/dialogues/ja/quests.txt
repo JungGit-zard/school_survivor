@@ -1,11 +1,11 @@
-dialogue.unavailable	?????????????
+dialogue.unavailable	セリフを表示できません。
 quest.stage1-talk-book.start	僕、話すのが苦手なんだ…「話術の本」さえあれば！！！
 quest.stage1-talk-book.completion	よし…これで話せる。みんな、僕の話を聞いて落ち着いて出よう！
 quest.stage1-attendance.start	誰が教室から出て行ったのか知らないと…非常出席簿が前の机にあるはずだ。
 quest.stage1-attendance.completion	確認した。廊下に出た子たちがいる。僕らも後を追おう。
 quest.stage2-bandage.start	304番のロッカーに圧迫包帯がある。暗証番号は0304…セキュリティなんて最初から諦めてるよ。
 quest.stage2-bandage.completion	よし。これで一人でも動ける。ありがとう。
-quest.stage2-broadcast-key.start	緊急放送をしないと。放送室のマスターキーを忘れ物掲示板の裏に貼っておいた。
+quest.stage2-broadcast-key.start	緊急放送をしないと。放送室のマスターキーを落とし物掲示板の裏に貼っておいた。
 quest.stage2-broadcast-key.completion	よし。廊下の端まで避難放送を流す。君は先に行って！
 quest.stage3-whistle.start	みんなパニックだ…僕のホイッスルさえあれば片側に集められる。
 quest.stage3-whistle.completion	よし、僕がみんなをまとめる。体育館の出口は君が開けてくれ！
@@ -13,8 +13,8 @@ quest.stage3-scoreboard-fuse.start	北側の電光掲示板をつければ非常
 quest.stage3-scoreboard-fuse.completion	電光掲示板がつき、非常口へ向かう矢印が現れた。
 quest.stage4-allergy-list.start	残った食べ物を配りたいけど、アレルギーのある子の名簿がない。東側の調理台にあるはずだ。
 quest.stage4-allergy-list.completion	これで安全に配れる。もう誰も具合を悪くさせない。
-quest.stage4-gas-valve.start	コックラインのガスが漏れてる！赤いバルブのハンドルがシンクの方へ転がっていった。
-quest.stage4-gas-valve.completion	バルブを閉めた。コックラインの炎とガスの音が収まっていく。
+quest.stage4-gas-valve.start	クックラインのガスが漏れてる！赤いバルブのハンドルがシンクの方へ転がっていった。
+quest.stage4-gas-valve.completion	バルブを閉めた。クックラインの炎とガスの音が収まっていく。
 quest.stage5-late-slip.start	遅刻届をコピー機に置いてきちゃった…あれがないとここから出られない！
 quest.stage5-late-slip.completion	あった！これで堂々と遅刻者として脱出できる。
 quest.stage5-pa-key.start	あの呼び出し放送は教頭先生の鍵でしか止められない。机の引き出しにあるはず！
@@ -43,7 +43,7 @@ intro.stage5.002	教頭先生ゾンビが決裁印を構えた。机の間の道
 intro.stage5.003	玄関さえ抜ければ運動場だ。ここで終わるわけにはいかない！
 intro.stage6.001	玄関の扉を押し開けると、日差しがあふれた。ついに外…いや、運動場だ。
 intro.stage6.002	朝礼台のスピーカーがザザッと鳴った。校長先生ゾンビの訓話が…終わらない。
-intro.stage6.003	輪の内側でも外側でもいい、線の上だけ避ければ。正門が開いたらすぐ走る!
+intro.stage6.003	輪の内側でも外側でもいい、線の上だけ避ければ。正門が開いたらすぐ走る！
 ending.part1.001	正門を抜けると、足もとの砂がアスファルトに変わった。
 ending.part1.002	背後でチャイムが鳴る。中の友だちも先生も…いつか必ず起こしてあげる。
-ending.part1.003	ゾンビ学校脱出、第1部 完。でも学校はまだ終わっていない!
+ending.part1.003	ゾンビ学校脱出、第1部 完。でも学校はまだ終わっていない！

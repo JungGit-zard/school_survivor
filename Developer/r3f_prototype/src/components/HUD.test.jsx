@@ -311,7 +311,7 @@ describe('student dialogue IDs', () => {
 
       const popup = container.querySelector('[data-testid="quest-item-popup"]')
       expect(popup).not.toBeNull()
-      expect(popup.textContent).toContain('말빨기술책을 얻었습니다.')
+      expect(popup.textContent).toContain('퀘스트 아이템 획득: 말빨기술책')
       expect(popup.querySelector('svg')).not.toBeNull()
 
       act(() => {
@@ -1369,7 +1369,7 @@ describe('matilda entrance presentation', () => {
       const dialogue = container.querySelector('[data-testid="matilda-dialogue"]')
       expect(dialogue).not.toBeNull()
       expect(dialogue.textContent).toContain('마틸다')
-      expect(dialogue.textContent).toContain('오호호호! 떡하나주면 안잡아먹지!')
+      expect(dialogue.textContent).toContain('오호호호! 떡 하나 주면 안 잡아먹지!')
       expect(dialogue.querySelector('img')?.getAttribute('alt')).toBe('마틸다 프로필')
 
       act(() => {
@@ -1443,7 +1443,7 @@ describe('result action layout', () => {
       })
 
       expect(container.querySelector('[data-testid="matilda-dialogue"]')).not.toBeNull()
-      expect(container.textContent).toContain('오호호호!!!!! 맛있게 먹을께!!!!')
+      expect(container.textContent).toContain('오호호호!!!!! 맛있게 먹을게!!!!')
       expect(container.querySelector('[data-testid="gameover-result-overlay"]')).toBeNull()
       // 부딪힌 프레임을 먼저 보여준다 — 홀드 동안에는 흑백 레이어가 아예 없다.
       expect(container.querySelector('[data-testid="gameover-grayscale-transition"]')).toBeNull()
@@ -1470,7 +1470,7 @@ describe('result action layout', () => {
       expect(container.querySelector('[data-testid="matilda-dialogue"]')).toBeNull()
       expect(container.querySelector('[data-testid="gameover-result-overlay"]')).not.toBeNull()
       expect(container.querySelector('[data-testid="gameover-death-line"]').textContent)
-        .toBe('마틸다 에게 영혼을 뺴앗겨 버렸다!!')
+        .toBe('마틸다에게 영혼을 빼앗겨 버렸다!!')
     } finally {
       act(() => {
         root.unmount()

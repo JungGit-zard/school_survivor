@@ -48,7 +48,7 @@ describe('StageRanking', () => {
   })
   it('shows the actual full KST play time on every period', async () => {
     const view = await renderStageRanking()
-    for (const label of ['무제한 누적', '일일랭킹', '주간랭킹']) {
+    for (const label of ['무제한 누적', '일일 랭킹', '주간 랭킹']) {
       await view.clickTab(label)
       expect(view.container.textContent).toContain('마지막 플레이 · 2026-10-18 10:02:03 KST')
     }
@@ -66,7 +66,7 @@ describe('StageRanking', () => {
     expect(view.container.textContent).toContain('기간 제한 없는')
     expect(view.container.textContent).toContain('실시간 주간왕')
     // 주간으로 바뀌는 게 아니라 두 버튼이 나란히 있어야 한다.
-    expect(view.tabLabels()).toEqual(['무제한 누적', '일일랭킹', '주간랭킹'])
+    expect(view.tabLabels()).toEqual(['무제한 누적', '일일 랭킹', '주간 랭킹'])
     expect(subscribeStageRanking).toHaveBeenCalledTimes(1)
     expect(subscribeStageRanking).toHaveBeenCalledWith('stage1', 'allTime', expect.any(Function), { limit: 30, onError: expect.any(Function) })
     expect(fetchStageRanking).not.toHaveBeenCalled()
@@ -76,10 +76,10 @@ describe('StageRanking', () => {
 
   it('resubscribes to the weekly window and drops the daily subscription when switching', async () => {
     const view = await renderStageRanking()
-    await view.clickTab('일일랭킹')
+    await view.clickTab('일일 랭킹')
     const unsubscribeDaily = subscribeStageRanking.mock.results[1].value
 
-    await view.clickTab('주간랭킹')
+    await view.clickTab('주간 랭킹')
 
     expect(subscribeStageRanking).toHaveBeenNthCalledWith(3, 'stage1', 'weekly', expect.any(Function), { limit: 30, onError: expect.any(Function) })
     // 이전 구독을 정리하지 않으면 두 보드의 행이 서로 덮어쓴다.
@@ -95,7 +95,7 @@ describe('StageRanking', () => {
   it('swaps the heading, reset notice and board label to the weekly wording', async () => {
     const view = await renderStageRanking()
 
-    await view.clickTab('주간랭킹')
+    await view.clickTab('주간 랭킹')
 
     expect(view.container.textContent).toContain('이번 주 1위')
     expect(view.container.textContent).toContain('한국시간 월요일 00:00:01 - 일요일 23:59:59')
@@ -105,13 +105,13 @@ describe('StageRanking', () => {
     const seasonLine = [...view.container.querySelectorAll('div')].find((el) => el.textContent.includes('매주 월요일 초기화') && el.children.length === 0)
     expect(seasonLine.style.whiteSpace).toBe('nowrap')
     expect(seasonLine.style.textOverflow).toBe('ellipsis')
-    expect(view.container.querySelector('ol').getAttribute('aria-label')).toContain('주간랭킹')
+    expect(view.container.querySelector('ol').getAttribute('aria-label')).toContain('주간 랭킹')
 
-    await view.clickTab('일일랭킹')
+    await view.clickTab('일일 랭킹')
 
     expect(view.container.textContent).toContain('오늘 1위')
     expect(view.container.textContent).toContain('매일 자정 초기화')
-    expect(view.container.querySelector('ol').getAttribute('aria-label')).toContain('일일랭킹')
+    expect(view.container.querySelector('ol').getAttribute('aria-label')).toContain('일일 랭킹')
 
     view.unmount()
   })
@@ -129,19 +129,19 @@ describe('StageRanking', () => {
 
   it('marks the selected period without relying on colour alone', async () => {
     const view = await renderStageRanking()
-    await view.clickTab('일일랭킹')
+    await view.clickTab('일일 랭킹')
 
-    expect(view.tab('일일랭킹').getAttribute('aria-pressed')).toBe('true')
-    expect(view.tab('주간랭킹').getAttribute('aria-pressed')).toBe('false')
+    expect(view.tab('일일 랭킹').getAttribute('aria-pressed')).toBe('true')
+    expect(view.tab('주간 랭킹').getAttribute('aria-pressed')).toBe('false')
     // 선택 표시는 배경색 말고도 마커와 밑줄로 한 번 더 드러난다.
-    expect(view.tab('일일랭킹').textContent).toContain('●')
-    expect(view.tab('주간랭킹').textContent).toContain('○')
-    expect(view.tab('일일랭킹').style.textDecoration).toBe('underline')
+    expect(view.tab('일일 랭킹').textContent).toContain('●')
+    expect(view.tab('주간 랭킹').textContent).toContain('○')
+    expect(view.tab('일일 랭킹').style.textDecoration).toBe('underline')
 
-    await view.clickTab('주간랭킹')
+    await view.clickTab('주간 랭킹')
 
-    expect(view.tab('주간랭킹').getAttribute('aria-pressed')).toBe('true')
-    expect(view.tab('일일랭킹').getAttribute('aria-pressed')).toBe('false')
+    expect(view.tab('주간 랭킹').getAttribute('aria-pressed')).toBe('true')
+    expect(view.tab('일일 랭킹').getAttribute('aria-pressed')).toBe('false')
 
     view.unmount()
   })
@@ -149,7 +149,7 @@ describe('StageRanking', () => {
   it('keeps both period buttons at the mobile touch target minimum', async () => {
     const view = await renderStageRanking()
 
-    for (const label of ['일일랭킹', '주간랭킹']) {
+    for (const label of ['일일 랭킹', '주간 랭킹']) {
       expect(Number.parseInt(view.tab(label).style.minHeight, 10)).toBeGreaterThanOrEqual(44)
     }
 
@@ -160,7 +160,7 @@ describe('StageRanking', () => {
     subscribeStageRanking.mockImplementation((_stage, _window, onRows) => { onRows([]); return vi.fn() })
     const view = await renderStageRanking()
 
-    await view.clickTab('주간랭킹')
+    await view.clickTab('주간 랭킹')
 
     expect(view.container.querySelector('ol').textContent).toBe('기록 대기 중')
     expect(view.container.querySelector('ol').textContent).not.toContain('오늘')

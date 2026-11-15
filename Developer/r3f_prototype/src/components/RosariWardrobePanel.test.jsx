@@ -134,7 +134,7 @@ describe('outfit feature table', () => {
     setLocale('en')
     act(() => root.render(<OutfitFeatureTable onClose={() => {}} />))
     const text = container.textContent
-    for (const fragment of ['Outfit chart', 'Lunch Duty Apron', 'Escape all of Stages 1–4', 'XP gain +8%', 'Damage taken +8%', 'Locked', 'Owned']) {
+    for (const fragment of ['Outfit chart', 'Lunch Duty Smock', 'Escape all of Stages 1–4', 'XP gain +8%', 'Damage taken +8%', 'Locked', 'Owned']) {
       expect(text).toContain(fragment)
     }
   })

@@ -51,7 +51,7 @@ describe('CoinShop', () => {
         .find((button) => button.textContent.includes('무기 강화'))
         .click()
     })
-    expect(container.textContent).toContain('무기 기본능력 영구 강화')
+    expect(container.textContent).toContain('무기 기본 능력 영구 강화')
     expect(useGameStore.getState().purchasePassive('magnet')).toEqual({ ok: false, reason: 'progressUnavailable' })
 
     act(() => root.unmount())
@@ -127,7 +127,7 @@ describe('CoinShop', () => {
         .dispatchEvent(new MouseEvent('click', { bubbles: true }))
     })
 
-    expect(container.textContent).toContain('무기 기본능력 영구 강화')
+    expect(container.textContent).toContain('무기 기본 능력 영구 강화')
     expect(container.textContent).toContain('연필')
     expect(container.textContent).toContain('보조배터리 미사일')
     expect(container.textContent).toContain('상어미사일')

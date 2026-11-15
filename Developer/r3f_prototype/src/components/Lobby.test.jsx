@@ -136,7 +136,7 @@ describe('Lobby', () => {
     })
     expect(onStartStage).toHaveBeenCalledWith('stage1')
 
-    clickButtonByText(view.container, '점수 레코드')
+    clickButtonByText(view.container, '점수 기록')
     expect(onOpenRanking).toHaveBeenCalledWith('stage1')
 
     clickButtonByText(view.container, '상점')
@@ -478,7 +478,7 @@ describe('Lobby', () => {
     const view = renderLobby({ onStartStage: () => {}, onOpenCoinShop: () => {}, onOpenRanking: () => {} })
 
     expect(view.container.textContent).not.toContain('내 시즌최고점')
-    expect(view.container.textContent).not.toContain('내 누적플레이')
+    expect(view.container.textContent).not.toContain('내 누적 플레이')
 
     view.unmount()
   })
@@ -531,7 +531,7 @@ describe('Lobby', () => {
     const stage4Card = findStageCard(view.container, 'Stage 4 급식실 대탈출')
     const lockPreview = stage4Card.querySelector('[data-testid="stage-lock-preview"]')
     const disabledEntry = findButtonByText(stage4Card, 'Stage 3 보스 처치 시 열림')
-    const rankingButton = findButtonByText(stage4Card, '점수 레코드')
+    const rankingButton = findButtonByText(stage4Card, '점수 기록')
 
     expect(lockPreview).toBeTruthy()
     expect(lockPreview.getAttribute('aria-label')).toBe('stage4 잠김 3D 자물쇠')
@@ -581,7 +581,7 @@ describe('Lobby', () => {
       const previewRow = card.querySelector('[data-testid="stage-card-preview-row"]')
       const lockPreview = card.querySelector('[data-testid="stage-lock-preview"]')
       const disabledEntry = findButtonByText(card, hint)
-      const rankingButton = findButtonByText(card, '점수 레코드')
+      const rankingButton = findButtonByText(card, '점수 기록')
 
       expect(previewRow).toBeTruthy()
       expect(lockPreview).toBeTruthy()
@@ -630,7 +630,7 @@ describe('Lobby', () => {
     const preview = stage4Card.querySelector('[data-testid="stage-boss-preview"]')
 
     const enterButton = findButtonByText(stage4Card, '입장하기')
-    const rankingButton = findButtonByText(stage4Card, '점수 레코드')
+    const rankingButton = findButtonByText(stage4Card, '점수 기록')
 
     // balanceqa 게이트 통과 후: 스3 보스 사망 기록으로 해금 + 프로덕션에서 플레이어블 → 입장/랭킹 활성, '준비 중' 없음.
     expect(preview.dataset.bossType).toBe('B04')
@@ -789,7 +789,7 @@ describe('Lobby', () => {
     expect(overlay.textContent).toContain('Stage 1')
     expect(overlay.textContent).toContain('교실 생존')
     expect(previewRow.contains(findButtonByText(view.container, '입장하기'))).toBe(true)
-    expect(previewRow.contains(findButtonByText(view.container, '점수 레코드'))).toBe(true)
+    expect(previewRow.contains(findButtonByText(view.container, '점수 기록'))).toBe(true)
 
     view.unmount()
   })
@@ -805,7 +805,7 @@ describe('Lobby', () => {
     expect(clearBadge.style.top).toBe('9px')
     expect(clearBadge.style.left).toBe('10px')
 
-    const rankingButton = findButtonByText(view.container, '점수 레코드')
+    const rankingButton = findButtonByText(view.container, '점수 기록')
     expect(rankingButton.style.position).toBe('absolute')
     expect(rankingButton.style.top).toBe('34px')
     expect(rankingButton.style.left).toBe('10px')

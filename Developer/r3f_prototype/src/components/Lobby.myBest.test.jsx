@@ -89,7 +89,7 @@ describe('lobby 내 최고기록 comes from the own ranking entry', () => {
     await renderLobby()
 
     expect(fetchMyStageBests).toHaveBeenCalledWith(expect.objectContaining({ uid: 'anon-guest' }), expect.arrayContaining(['stage1']))
-    expect(stage1Text()).toContain('내 최고기록: 0:21')
+    expect(stage1Text()).toContain('내 최고 기록: 0:21')
     expect(stage1Text()).not.toContain('기록 없음')
   })
 
@@ -97,14 +97,14 @@ describe('lobby 내 최고기록 comes from the own ranking entry', () => {
     vi.mocked(fetchMyStageBests).mockResolvedValue({ stage1: { score: 0, timeMs: 0, cleared: false } })
     await renderLobby()
 
-    expect(stage1Text()).toContain('내 최고기록: 0:00')
+    expect(stage1Text()).toContain('내 최고 기록: 0:00')
     expect(stage1Text()).not.toContain('기록 없음')
   })
 
   it('still says 기록 없음 when there is no entry at all', async () => {
     await renderLobby()
 
-    expect(stage1Text()).toContain('내 최고기록: 기록 없음')
+    expect(stage1Text()).toContain('내 최고 기록: 기록 없음')
   })
 
   it('shows a signed-in 0-point entry as 0 even though local best seconds are 0', async () => {
@@ -114,7 +114,7 @@ describe('lobby 내 최고기록 comes from the own ranking entry', () => {
     await renderLobby()
 
     expect(fetchMyStageBests).toHaveBeenCalledWith(expect.objectContaining({ uid: 'google-user' }), expect.arrayContaining(['stage1']))
-    expect(stage1Text()).toContain('내 최고기록: 0:00')
+    expect(stage1Text()).toContain('내 최고 기록: 0:00')
   })
 
   it('keeps the larger local survival best for a signed-in user', async () => {
@@ -123,7 +123,7 @@ describe('lobby 내 최고기록 comes from the own ranking entry', () => {
     vi.mocked(fetchMyStageBests).mockResolvedValue({ stage1: { score: 30, timeMs: 30000, cleared: false } })
     await renderLobby()
 
-    expect(stage1Text()).toContain('내 최고기록: 1:35')
+    expect(stage1Text()).toContain('내 최고 기록: 1:35')
   })
 
   it('re-reads when the run submission settles after the lobby already mounted', async () => {
@@ -134,6 +134,6 @@ describe('lobby 내 최고기록 comes from the own ranking entry', () => {
     await act(async () => { (await import('../store/useGameStore.js')).useGameStore.setState({ rankingSubmission: { stageId: 'stage1', status: 'recorded' } }) })
     await act(async () => {})
 
-    expect(stage1Text()).toContain('내 최고기록: 0:21')
+    expect(stage1Text()).toContain('내 최고 기록: 0:21')
   })
 })

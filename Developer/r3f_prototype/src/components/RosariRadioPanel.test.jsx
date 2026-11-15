@@ -158,13 +158,13 @@ describe('RosariRadioPanel', () => {
 })
 
 describe('RosariRadioButton', () => {
-  it('라디오에서 멀면 누를 수 없고, 가까우면 「라디오 켜기」, 열려 있으면 「라디오 닫기」', () => {
+  it('라디오에서 멀면 누를 수 없고, 가까우면 「라디오 열기」, 열려 있으면 「라디오 닫기」', () => {
     const onToggle = vi.fn()
     render(<RosariRadioButton near={false} open={false} onToggle={onToggle} />)
     expect(q('[data-room-radio-open]').disabled).toBe(true)
     render(<RosariRadioButton near open={false} onToggle={onToggle} />)
     expect(q('[data-room-radio-open]').disabled).toBe(false)
-    expect(q('[data-room-radio-open]').textContent).toBe('라디오 켜기')
+    expect(q('[data-room-radio-open]').textContent).toBe('라디오 열기')
     click(q('[data-room-radio-open]'))
     expect(onToggle).toHaveBeenCalledTimes(1)
     render(<RosariRadioButton near={false} open onToggle={onToggle} />)

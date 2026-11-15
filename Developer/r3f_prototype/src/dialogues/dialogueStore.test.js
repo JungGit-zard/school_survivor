@@ -19,14 +19,14 @@ describe('dialogueStore', () => {
     expect(entries.has('empty.001')).toBe(false)
     expect(entries.get('valid.001')).toBe('ok')
     expect(getDialogueText('missing.dialogue.id', 'en')).toBe('Dialogue unavailable.')
-    expect(getDialogueText('missing.dialogue.id', 'ko')).toBe('??? ???? ???.')
-    expect(getDialogueText('missing.dialogue.id', 'ja')).toBe('?????????????')
+    expect(getDialogueText('missing.dialogue.id', 'ko')).toBe('대사를 불러올 수 없어요.')
+    expect(getDialogueText('missing.dialogue.id', 'ja')).toBe('セリフを表示できません。')
   })
 
   it('returns localized fallback when the dialogue id is empty', () => {
     expect(getDialogueText('', 'en')).toBe('Dialogue unavailable.')
-    expect(getDialogueText('', 'ko')).toBe('??? ???? ???.')
-    expect(getDialogueText('', 'ja')).toBe('?????????????')
+    expect(getDialogueText('', 'ko')).toBe('대사를 불러올 수 없어요.')
+    expect(getDialogueText('', 'ja')).toBe('セリフを表示できません。')
   })
 
   it('falls back to Korean and always resolves a valid pool ID', () => {

@@ -29,10 +29,10 @@ const expected = {
   ],
   en: [
     'I stopped in my tracks at that bubbling sound.',
-    'I can feel the heat on my face. I am not getting any closer.',
-    'I cannot see through that white steam. I should step aside.',
-    'I tucked my hands into my pockets when the lid rattled.',
-    'I am keeping my distance from that hot pot. Just looking, then leaving.',
+    "I can feel the heat on my face. I'm not getting any closer.",
+    'The white steam blocks my view. I should step aside.',
+    'The lid rattled, so I hid my hands deep in my pockets.',
+    'Keeping my distance from the hot cauldron. Just looking, then moving on.',
   ],
   ja: [
     'ぐつぐつ煮える音に、思わず足を止めちゃった。',

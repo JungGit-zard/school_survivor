@@ -148,7 +148,7 @@ describe('Stage 6 escape = Part 1 complete', () => {
     expect(screen.getAttribute('aria-hidden')).toBeNull()
 
     expect(container.querySelector('#escape-success-title').textContent).toBe('교문 탈출 성공')
-    expect(container.querySelector('[data-testid="escape-continue-hint"]').textContent).toBe('1부 완결! 좀비학교를 빠져나왔습니다.')
+    expect(container.querySelector('[data-testid="escape-continue-hint"]').textContent).toBe('1부 완결! 좀비학교를 빠져나왔어요.')
     // 보스를 쓰러뜨렸어도 1부 마지막이라 이어 가기는 없다.
     expect(container.querySelector('[data-testid="escape-continue-next-stage"]')).toBeNull()
     const teaser = container.querySelector('[data-testid="part1-endless-teaser"]')
