@@ -1138,7 +1138,8 @@ export class EnemySimulationRuntime {
         moving = false
       }
       // 인접 3x3 셀에서 최대 24명만 조사해 밀집 상태도 O(N²)로 악화되지 않게 한다.
-      if (!pinned && !trainCharge && !this.grid.overflow[index]) {
+      // E100 떡의 도약·매달림도 밀어내기를 받지 않는다(도약은 그려진 선 위, 매달림은 로사리 등의 정해진 자리).
+      if (!pinned && !trainCharge && !novel2.ignoresCrowd(pool, index) && !this.grid.overflow[index]) {
         let neighbors = 0
         for (let cellZ = this.grid.cellZ[index] - 1; cellZ <= this.grid.cellZ[index] + 1 && neighbors < 24; cellZ += 1) {
           if (cellZ < 0 || cellZ >= this.grid.cellsZ) continue

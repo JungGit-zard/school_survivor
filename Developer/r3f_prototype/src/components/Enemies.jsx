@@ -2,7 +2,7 @@ import { useRef, useCallback, useState, useEffect } from 'react'
 import { useGameStore } from '../store/useGameStore.js'
 import { emitSfx } from '../lib/sfxEvents.js'
 import { usePlayingFrame } from '../lib/usePlayingFrame.js'
-import { playerPos, screenBounds, enemyBodies, enemyPool, enemySimulationRuntime, enemyProjectilePool, enemySightBlocked, enemyHandleScratch, projectileZombieShotPool, playerSlow, playerImpulse } from '../lib/refs.js'
+import { playerPos, playerFacing, screenBounds, enemyBodies, enemyPool, enemySimulationRuntime, enemyProjectilePool, enemySightBlocked, enemyHandleScratch, projectileZombieShotPool, playerSlow, playerImpulse } from '../lib/refs.js'
 import Enemy, { ENEMY_SIZE_MULTIPLIER, ENEMY_STATS } from './Enemy.jsx'
 import { EXPANSION_STAGES, EXPANSION_ENEMIES, EXPANSION_BOSSES, isExpansionStage, isExpansionEnemy, isExpansionBoss } from '../lib/expansionContent.js'
 import { expansionSpawnPosition, expansionRowPositions, expansionTrackLanePositions } from '../lib/expansionSpawns.js'
@@ -2352,6 +2352,9 @@ export default function Enemies() {
     }
     context.obstacles = obstacles
     context.obstacleCount = obstacles.length
+    // E100 찹쌀떡이 매달리는 등 뒤 자리(왼등·오른등)는 로사리 몸 방향 기준이다(lib/novelZombie2Behavior.js _clingTargetYaw).
+    context.playerFacingX = playerFacing.x
+    context.playerFacingZ = playerFacing.z
     enemySimulationRuntime.step(enemyPool, context)
     const runtimeEvent = runtimeEventScratchRef.current
     while (enemySimulationRuntime.events.drainInto(runtimeEvent)) {

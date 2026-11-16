@@ -2,8 +2,9 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import { EnemyEntityPool, ENEMY_TYPE_CODES, MAX_ENEMIES } from './enemyEntityPool.js'
 import { ENEMY_RUNTIME_HP, ENEMY_RUNTIME_XP, ENEMY_SIZE_MULTIPLIER, ENEMY_SPAWN_REVEAL_MS, createEnemySimulationRuntime } from './enemySimulation.js'
 import { clearExpansionAttacks, expansionAttackSnapshots } from './expansionAttackRuntime.js'
-import { EXPANSION_PLAYER_RADIUS, buildExpansionSafetyGeometry, certifyExpansionEscape, novel2NearSafetyObstacles } from './expansionAttackSafety.js'
+import { EXPANSION_PLAYER_RADIUS, OBSTACLE_INGRESS_BODY_PAD, buildExpansionSafetyGeometry, certifyExpansionEscape, novel2NearSafetyObstacles } from './expansionAttackSafety.js'
 import {
+  NOVEL2_LANE_RETRY,
   E100_MOCHI,
   E101_COPIER,
   E102_CHAIR,
@@ -994,10 +995,17 @@ describe('E106 기마전(스6, 몸 4)', () => {
     return runUntil(ctx.step, player, () => ctx.pool.state[rider.index] === N2_STATE_TELEGRAPH, 12)
   }
 
-  it('모자 뺏기: 0.9초 빨간 부채꼴(90°·r 1.6u) 예고 중 편대 전체 정지·피해 0 → 가만히 있으면 10', () => {
-    const ctx = setup([[0, 4], [1, 5], [-1, 5], [0, 6]])
+  it('모자 뺏기: 2.0u에서 멈춰 0.9초 빨간 부채꼴(90°·r 2.2u) — 앞 말은 로사리와 0.5u 넘게 떨어진다, 예고 중 편대 정지·피해 0 → 가만히 있으면 10', () => {
+    const ctx = setup([[0, 5], [1, 6], [-1, 6], [0, 7]])
     const player = { x: 0, z: 0 }
     expect(toHatTelegraph(ctx, player)).toBe(true)
+    // 2026-11-17 브라우저 확인: 1.5u에서 멈추면 앞 말이 로사리 위에 겹쳤다. 앞 말(자리 0)과 로사리 몸 사이 빈틈 ≥ 0.5u.
+    const front = ctx.bodies.find((h) => state(ctx, h).slot === 0)
+    const frontGap = Math.hypot(ctx.pool.posX[front.index] - player.x, ctx.pool.posZ[front.index] - player.z)
+      - NOVEL2_ZOMBIE_STATS.E106.contactDist * ENEMY_SIZE_MULTIPLIER - EXPANSION_PLAYER_RADIUS
+    expect(frontGap).toBeGreaterThanOrEqual(0.5)
+    expect(Math.hypot(ctx.pool.posX[ctx.bodies[0].index], ctx.pool.posZ[ctx.bodies[0].index])).toBeLessThanOrEqual(E106_CAVALRY.triggerDistance)
+    expect(E106_CAVALRY.coneRadius).toBeGreaterThan(E106_CAVALRY.triggerDistance) // 멈춘 거리의 플레이어는 부채꼴 안
     const hat = snapshotOf('E106')
     expect(hat.shape).toBe('sector')
     expect(hat.angleDeg).toBe(E106_CAVALRY.coneAngleDeg)
@@ -1018,7 +1026,7 @@ describe('E106 기마전(스6, 몸 4)', () => {
   })
 
   it('예고를 보고 옆으로 비키면 피해 0', () => {
-    const ctx = setup([[0, 4], [1, 5], [-1, 5], [0, 6]])
+    const ctx = setup([[0, 5], [1, 6], [-1, 6], [0, 7]])
     const player = { x: 0, z: 0 }
     expect(toHatTelegraph(ctx, player)).toBe(true)
     let damage = 0
@@ -1137,5 +1145,151 @@ describe('E101 복사기 — 책상 옆에 붙어 선 플레이어(2026-11-17 �
     expect(channel.obstacleIngress).toBe(true)
     // 몸(0.9 × 0.192u)만 지나가는 구간도 장애물에 막히지 않는다(붙어 선 책상 면을 따라 빠져나간다).
     expect(isStageObjectSightBlocked({ x: player.x, z: player.z }, { x: channel.toXZ[0], z: channel.toXZ[1] }, obstacles, EXPANSION_PLAYER_RADIUS * 0.9)).toBe(false)
+  })
+})
+
+// ── 2026-11-17 후속(비주얼 브라우저 확인) ───────────────────────────────────────
+describe('E100 매달린 자리 = 로사리 몸 방향 기준 왼등·오른등(그린 몸 = 맞는 몸)', () => {
+  it('첫 떡은 왼등, 둘째 떡은 오른등(등 뒤에서 0.6rad, 0.3u), 판정 몸이 그 자리에 있고, 로사리가 돌면 따라 돈다', () => {
+    const pool = new EnemyEntityPool()
+    const runtime = createEnemySimulationRuntime()
+    const facing = { playerFacingX: 0, playerFacingZ: 1 }
+    const step = (player) => {
+      let damage = 0
+      runtime.step(pool, { delta: DT, playerX: player.x, playerZ: player.z, ...S4_BOUNDS, elapsedSec: 80, activeProjectileCount: 0, stageId: 'stage4',
+        ...facing, onContact: (_i, _g, _x, _y, _z, v) => { damage += v } })
+      return damage
+    }
+    const a = spawn(pool, 'E100', 0, 1.2, { hp: E100_HP, spawnTimer: 3000 })
+    const b = spawn(pool, 'E100', 1.2, 0, { hp: E100_HP, spawnTimer: 3000 })
+    const player = { x: 0, z: 0 }
+    expect(runUntil(step, player, () => runtime.novel2.clingerCount() === 2, 5)).toBe(true)
+    for (let f = 0; f < 0.3 / DT; f += 1) step(player)
+    const A = 0.6
+    const R = E100_MOCHI.attachOffset
+    const ms = (h) => runtime.novel2.mochiStateInto(pool, h.index, {})
+    const first = runtime.novel2.clingers[0] === a.index ? a : b
+    const second = first === a ? b : a
+    // 몸 방향 +z → 왼쪽 = +x, 등 = −z.
+    expect(ms(first).side).toBe(1)
+    expect(ms(first).offsetX).toBeCloseTo(R * Math.sin(A), 3)
+    expect(ms(first).offsetZ).toBeCloseTo(-R * Math.cos(A), 3)
+    expect(ms(second).side).toBe(-1)
+    expect(ms(second).offsetX).toBeCloseTo(-R * Math.sin(A), 3)
+    expect(ms(second).offsetZ).toBeCloseTo(-R * Math.cos(A), 3)
+    for (const h of [first, second]) {
+      // 판정 몸(투사체가 맞는 자리) = 플레이어 + offset.
+      expect(pool.posX[h.index]).toBeCloseTo(player.x + ms(h).offsetX, 2)
+      expect(pool.posZ[h.index]).toBeCloseTo(player.z + ms(h).offsetZ, 2)
+      // 로사리 앞(몸 방향 쪽)에는 절대 없다.
+      expect(ms(h).offsetZ).toBeLessThan(0)
+    }
+    // 로사리가 +x를 보면(왼쪽 = −z, 등 = −x) 0.3초 안에 따라 돈다.
+    facing.playerFacingX = 1; facing.playerFacingZ = 0
+    for (let f = 0; f < 0.3 / DT; f += 1) step(player)
+    expect(ms(first).offsetX).toBeCloseTo(-R * Math.cos(A), 3)
+    expect(ms(first).offsetZ).toBeCloseTo(-R * Math.sin(A), 3)
+    expect(ms(second).offsetX).toBeCloseTo(-R * Math.cos(A), 3)
+    expect(ms(second).offsetZ).toBeCloseTo(R * Math.sin(A), 3)
+    expect(pool.posX[first.index]).toBeCloseTo(player.x + ms(first).offsetX, 2)
+    expect(pool.posZ[first.index]).toBeCloseTo(player.z + ms(first).offsetZ, 2)
+  })
+
+  it('방향을 넘겨주지 않으면(프로브·테스트) 플레이어 이동 방향을 몸 방향으로 쓴다', () => {
+    const pool = new EnemyEntityPool()
+    const runtime = createEnemySimulationRuntime()
+    const step = makeStep(runtime, pool, S4_BOUNDS, 'stage4')
+    const m = spawn(pool, 'E100', 0, 1.2, { hp: E100_HP, spawnTimer: 3000 })
+    const player = { x: 0, z: 0 }
+    expect(runUntil(step, player, () => runtime.novel2.mochiPhase[m.index] === 3, 4)).toBe(true)
+    for (let f = 0; f < 0.4 / DT; f += 1) { player.x -= 1.5 * DT; step(player) } // −x로 걷는다(4u 전에 멈춘다)
+    const st = runtime.novel2.mochiStateInto(pool, m.index, {})
+    expect(st.clinging).toBe(true)
+    expect(st.offsetX).toBeGreaterThan(0) // 등 = +x 쪽
+  })
+})
+
+describe('선을 못 세우면 평범한 접촉 추격(3차 둘째 묶음 — 연속 4번 실패 뒤 1초 간격 재시도)', () => {
+  // 맵 반폭 0.7u 복도: 안전 기하(반폭 ≥ 0.792u)가 서지 않아 인증이 늘 실패한다 — "선이 들어갈 자리가 없는 곳"의 가장 단순한 모형.
+  const NARROW = { halfX: 0.7, halfZ: 16 }
+  it.each([
+    ['E102', 'stage5', 2, NOVEL2_ZOMBIE_STATS.E102.damage],
+    ['E100', 'stage4', 1.2, NOVEL2_ZOMBIE_STATS.E100.damage],
+  ])('%s: 0.25초 간격 재시도는 4번까지, 그 뒤로는 1초에 한 번만 묻고 다가와 몸 접촉으로 때린다', (id, stageId, z, contact) => {
+    const pool = new EnemyEntityPool()
+    const runtime = createEnemySimulationRuntime()
+    const step = makeStep(runtime, pool, NARROW, stageId)
+    const h = spawn(pool, id, 0, z, { hp: 1e9, spawnTimer: 3000 })
+    let damage = 0
+    let telegraphed = false
+    let blockedAt = -1
+    let ms = 0
+    for (let f = 0; f < 3.5 / DT; f += 1) {
+      damage += step({ x: 0, z: 0 })
+      ms += DT * 1000
+      if (pool.state[h.index] === N2_STATE_TELEGRAPH) telegraphed = true
+      if (blockedAt < 0 && runtime.novel2.laneBlocked(pool, h.index)) blockedAt = ms
+    }
+    expect(telegraphed).toBe(false)
+    expect(blockedAt).toBeGreaterThan(0)
+    expect(blockedAt).toBeLessThanOrEqual(1100 + 50)
+    expect(runtime.novel2.laneBlocked(pool, h.index)).toBe(true)
+    expect(damage).toBeGreaterThanOrEqual(contact)
+    const visual = id === 'E102' ? runtime.novel2.chairStateInto(pool, h.index, {}) : runtime.novel2.mochiStateInto(pool, h.index, {})
+    expect(visual.laneBlocked).toBe(true)
+    expect(visual.phase).toBe(0)
+    // 그 뒤로도 1초에 한 번 다시 묻는다(실패 횟수가 계속 는다) — 선이 들어갈 자리가 생기면 그때 예고한다.
+    const fails = runtime.novel2.laneFails[h.index]
+    for (let f = 0; f < (NOVEL2_LANE_RETRY.slowRetryMs * 2 + 100) / 1000 / DT; f += 1) step({ x: 0, z: 0 })
+    expect(runtime.novel2.laneFails[h.index] - fails).toBeGreaterThanOrEqual(1)
+    expect(runtime.novel2.laneFails[h.index] - fails).toBeLessThanOrEqual(3)
+  })
+
+  it('선이 서는 자리로 오면 바로 예고하고 상태가 풀린다', () => {
+    const pool = new EnemyEntityPool()
+    const runtime = createEnemySimulationRuntime()
+    const narrow = makeStep(runtime, pool, NARROW, 'stage5')
+    const open = makeStep(runtime, pool, S5_BOUNDS, 'stage5')
+    const h = spawn(pool, 'E102', 0, 3, { hp: 1e9, spawnTimer: 3000 })
+    expect(runUntil(narrow, { x: 0, z: 0 }, () => runtime.novel2.laneBlocked(pool, h.index), 2)).toBe(true)
+    expect(runUntil(open, { x: 0, z: 0 }, () => pool.state[h.index] === N2_STATE_TELEGRAPH, 2)).toBe(true)
+    expect(runtime.novel2.laneBlocked(pool, h.index)).toBe(false)
+  })
+
+  it('E106: 기수가 선을 못 세우면 편대는 멈추지 않고 다가와 말 접촉으로 때린다', () => {
+    const pool = new EnemyEntityPool()
+    const runtime = createEnemySimulationRuntime()
+    const step = makeStep(runtime, pool, { halfX: 0.7, halfZ: 20 }, 'stage6')
+    const bodies = [[0, 4], [0.2, 4.6], [-0.2, 4.6], [0, 5.2]].map(([x, zz]) => spawn(pool, 'E106', x, zz, { hp: 1e9, spawnTimer: 0 }))
+    let damage = 0
+    let telegraphed = false
+    for (let f = 0; f < 8 / DT; f += 1) {
+      damage += step({ x: 0, z: 0 })
+      if (pool.state[bodies[0].index] === N2_STATE_TELEGRAPH) telegraphed = true
+    }
+    expect(telegraphed).toBe(false)
+    expect(runtime.novel2.cavalryStateInto(pool, bodies[1].index, {}).laneBlocked || runtime.novel2.laneFails[bodies[0].index] > 0).toBe(true)
+    expect(damage).toBeGreaterThanOrEqual(NOVEL2_ZOMBIE_STATS.E106.damage)
+  })
+})
+
+describe('E102 회전의자 — 로사리가 교무실 책상 면에 붙어 선 자리(2026-11-17 브라우저 보고: 0.25u 옆에서 0.25초마다 재시도)', () => {
+  // 원인: 탈출 인증의 "몸만 지나가는 진입 구간" 패딩이 0.9 × 0.192 = 0.173u였는데, 로사리 충돌 상자 반폭은 0.136u라 책상 면에서
+  // 0.136~0.173u 떨어져 선 출발점이 패딩 상자 안에 들어가 모든 후보가 막혔다. 교무실 실측(책상에서 0.14u까지 붙은 자리 × 의자 2u 8방향,
+  // 27,015경우): 사거리 안인데 8초 동안 예고 0번 155 → 41(남은 39는 책상 모서리에 걸려 다가오지 못한 의자 — 공통 이동 경로, 2는 접촉 추격).
+  const obstacles = getStageObjectSightObstacles('stage5')
+  it('몸 패딩은 로사리 실제 충돌 상자 반폭(0.136u)보다 작다', () => {
+    expect(OBSTACLE_INGRESS_BODY_PAD).toBeLessThan(0.136)
+  })
+
+  it('책상 면에서 0.15u 떨어져 선 로사리에게 의자가 8초 안에 회전 예고를 낸다(전에는 0.23u 옆에서 영원히 재시도)', () => {
+    const pool = new EnemyEntityPool()
+    const runtime = createEnemySimulationRuntime()
+    const step = makeStep(runtime, pool, S5_BOUNDS, 'stage5', { obstacles, obstacleCount: obstacles.length })
+    const chair = spawn(pool, 'E102', -4.75 + Math.SQRT2, -6.25 + Math.SQRT2, { hp: 1e9, spawnTimer: 3000 })
+    const player = { x: -4.75, z: -6.25 } // 책상 섬(−4.2, −8.1, 반폭 1.0 × 1.7) 윗면 z −6.4에서 0.15u
+    expect(runUntil(step, player, () => pool.state[chair.index] === N2_STATE_TELEGRAPH && !!snapshotOf('E102'), 8)).toBe(true)
+    expect(snapshotOf('E102').escapeChannel).toBeTruthy()
+    expect(runtime.novel2.laneBlocked(pool, chair.index)).toBe(false)
   })
 })

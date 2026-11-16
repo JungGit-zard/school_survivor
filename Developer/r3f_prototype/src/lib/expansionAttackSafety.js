@@ -155,7 +155,10 @@ function capsuleHits(poly,ax,az,bx,bz,pad){
 // 맵 끝 진입(ingress)과 같은 규칙을 장애물에도 준다: 출발점에서 이미 통로 반폭 안에 들어와 있는("붙어 선") 장애물은 통로 폭 판정에서
 // 빼고(맵 끝이 통로 한쪽을 자르는 것과 같다) 몸(반경 0.9 × 0.192u)만 막히지 않으면 된다. 붙어 있지 않은 다른 장애물은 여전히 전체 폭
 // 통로(반폭 0.792u)를 경로 어디에서도 막으면 안 된다. 출발점이 아무 장애물에도 붙어 있지 않으면 판정은 기존과 똑같다.
-const OBSTACLE_INGRESS_BODY_PAD=EXPANSION_PLAYER_RADIUS*.9
+// 몸 판정 패딩 = 로사리 실제 충돌 상자 반폭(Player.jsx CuboidCollider 0.136u)의 0.9배. 2026-11-17: 처음 넣은 0.9 × 0.192(0.173u)는
+// 로사리가 책상 면에 붙어 설 수 있는 거리(0.136u)보다 커서, 책상에 붙은 출발점이 패딩 상자 안에 들어가 모든 후보가 막혔다
+// (E102 회전의자 교무실 실측: 책상에서 0.14u 떨어진 자리 27,015개 중 155개에서 8초 동안 한 번도 예고 못 함).
+export const OBSTACLE_INGRESS_BODY_PAD=.136*.9
 export function certifyExpansionEscape(snapshot,a,ctx,others,options){
  const px=a.playerX,pz=a.playerZ,r=EXPANSION_PLAYER_RADIUS,clearance=EXPANSION_SAFE_WIDTH/2+r
  const work=ctx.work??={sightQueries:0,clipTests:0,candidates:0,polygonTests:0,exhausted:false}

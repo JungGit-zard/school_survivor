@@ -373,6 +373,10 @@ export const E100_MOCHI = Object.freeze({
   playerImmuneMs: 1500,
   noClingAfterSec: 205,
   attachOffset: 0.3,      // 플레이어 등 뒤(떡마다 좌우로 비켜) 0.3u
+  // 2026-11-17 비주얼 맞춤: 매달린 자리는 로사리 몸 방향 기준 등 뒤에서 좌우로 0.6rad(약 34°) 비킨 곳 — 첫 떡 왼등, 둘째 떡 오른등.
+  // 로사리가 돌면 초당 720°까지 따라 돈다(그린 몸 = 맞는 몸 자리).
+  clingBackAngleRad: 0.6,
+  clingTurnRateRad: 4 * Math.PI,
 })
 
 // ── E102 회전의자(Stage 5) ────────────────────────────────────────────────────
@@ -401,7 +405,10 @@ export const E102_CONTACT = (NOVEL2_ZOMBIE_STATS.E102?.contactDist ?? 0.26) * (4
 // ── E106 기마전(Stage 6, 몸 4개) ──────────────────────────────────────────────
 // 한 행(count 4)의 몸 4개가 첫 걸음에 편대가 된다: 가장 낮은 슬롯이 기수, 나머지 셋이 말(앞 · 왼뒤 · 오른뒤).
 // 편대는 기수를 축으로 0.75u/s, 초당 90°까지만 돈다. 말은 자기 자리로 따라간다(최대 1.4u/s). 막 나온 몸끼리면 자리로 바로 모은다.
-// 기수의 "모자 뺏기": 1.5u 안이면 0.9초 빨간 부채꼴(90°·r 1.6u, 기수 자리·방향 고정, 피해 0) → 피해 10 → 0.5초 쉼, 쿨다운 4초.
+// 기수의 "모자 뺏기": 2.0u 안이면 0.9초 빨간 부채꼴(90°·r 2.2u, 기수 자리·방향 고정, 피해 0) → 피해 10 → 0.5초 쉼, 쿨다운 4초.
+//   2026-11-17 브라우저 확인 뒤: 1.5u/1.6u에서는 편대가 멈출 때 앞 말(기수 앞 0.8u)이 로사리에서 0.7u — 화면에서 로사리 위에 겹치고 부채꼴 안에
+//   들어가 있었다. 2.0u에서 멈추면 앞 말 중심이 로사리에서 약 1.2u, 몸끼리 약 0.66u(앞 말 접촉 0.347 + 로사리 0.192를 뺀 값) 떨어진다.
+//   부채꼴 r 2.2u는 멈춘 거리 + 0.2u라 가만히 선 플레이어는 맞고, 뒤로 0.4u(0.13초) 또는 옆으로 약 1.6u(0.53초) 비키면 빗나간다.
 //   예고·판정 동안 편대 전체가 멈추고 몸 접촉도 끈다. 말 위의 기수는 몸 접촉이 없다(공격은 모자 뺏기뿐).
 // 처치 순서: 기수를 먼저 잡으면 말 셋이 0.8초 휘청였다가 흩어져 E19처럼 0.6u/s로 추격한다.
 //   말 셋을 먼저 잡으면 기수가 1초 낙마했다가 1.2u/s로 질주한다(몸 접촉 10, 모자 뺏기 없음).
@@ -417,8 +424,8 @@ export const E106_CAVALRY = Object.freeze({
   turnRateRad: 90 * Math.PI / 180,
   edgeMargin: 0.4,
   firstDelayMs: 1500,
-  triggerDistance: 1.5,
-  coneRadius: 1.6,        // 0.4블록
+  triggerDistance: 2.0,   // 0.5블록 — 멈춘 편대의 앞 말이 로사리와 겹치지 않는 거리
+  coneRadius: 2.2,        // 0.55블록
   coneAngleDeg: 90,
   telegraphMs: 900,
   activeMs: 150,
@@ -447,6 +454,10 @@ const MOCHI_KEY_PREFIX = 'novel2:e100:'
 const CHAIR_KEY_PREFIX = 'novel2:e102:'
 const HAT_KEY_PREFIX = 'novel2:e106:'
 const NOVEL2_ESCAPE_OPTIONS = Object.freeze({ obstacleIngress: true })
+// 3차 둘째 묶음(E100·E102·E106) 공격 인증 실패 상한: 연속 4번(0.25초 간격 = 약 1초) 실패하면 "선 못 세움" 상태 — 평범한 접촉 추격
+// (의자 0.9u/s 굴러오기·접촉 10, 떡 1.0u/s·접촉 6, 편대 0.75u/s·말 접촉 10)을 하며 1초에 한 번만 다시 묻는다. 선이 서면 그 자리에서
+// 바로 예고하고 상태가 풀린다. 2026-11-17: 선을 못 세우는 자리(책상 사이)에서 0.25초마다 영원히 재시도하며 로사리 옆에 서 있던 문제.
+export const NOVEL2_LANE_RETRY = Object.freeze({ maxFails: 4, slowRetryMs: 1000 })
 // E106 편대를 자리로 바로 모아도 되는 "막 나온 몸"(enemySimulation ENEMY_SPAWN_REVEAL_MS 300과 같다 — 등장 연출 중).
 const CAVALRY_SNAP_MAX_SPAWN_MS = 300
 
@@ -557,6 +568,12 @@ export class Novel2Runtime {
     this.clingMoved = new Float32Array(capacity)
     this.clingOffX = new Float32Array(capacity)
     this.clingOffZ = new Float32Array(capacity)
+    // 매달린 자리: 옆(+1 왼등 / −1 오른등)과 지금 자리 방향(yaw, 플레이어 → 떡).
+    this.clingSide = new Int8Array(capacity)
+    this.clingAngle = new Float32Array(capacity)
+    // 로사리 몸 방향(필드가 context.playerFacingX/Z로 넣는다 — 없으면 플레이어 이동 방향, 처음은 +z).
+    this.facingX = 0
+    this.facingZ = 1
     this.mochiKey = new Array(capacity).fill(null)
     // 매달린 떡 [index, generation] 두 개씩. 플레이어 쪽: 새 매달림 면역 시각, 이번 스텝 감속 배율, 직전 위치(떨쳐내기 거리).
     this.clingers = []
@@ -584,6 +601,8 @@ export class Novel2Runtime {
     this.cavHeading = new Float32Array(capacity)
     this.cavHorse = new Int16Array(capacity * 3).fill(-1)
     this.cavHorseGen = new Int32Array(capacity * 3)
+    // 3차 둘째 묶음 연속 인증 실패 횟수(NOVEL2_LANE_RETRY.maxFails 이상 = 선 못 세움 — 평범한 접촉 추격, 1초 간격 재시도).
+    this.laneFails = new Uint8Array(capacity)
     // 시뮬레이션 런타임이 넣어 주는 연결: 보상 없는 퇴장(먹힘·복사본 소멸)과 타입별 XP 표(enemySimulation ENEMY_RUNTIME_XP).
     this.despawnHook = null
     this.xpTable = null
@@ -628,6 +647,8 @@ export class Novel2Runtime {
     this.mochiPhase.fill(0); this.clingMs.fill(0); this.clingMoved.fill(0); this.mochiKey.fill(null)
     this.clingers.length = 0
     this.clingImmuneUntil = 0; this.clingSlowMul = 1; this.lastPlayerX = NaN; this.lastPlayerZ = NaN; this.elapsedSec = 0
+    this.clingSide.fill(0); this.facingX = 0; this.facingZ = 1
+    this.laneFails.fill(0)
     this.chairKey.fill(null); this.glideSpeed.fill(0); this.driftStartSpeed.fill(0)
     this.cavRole.fill(0); this.cavSlot.fill(-1); this.cavRider.fill(-1); this.cavLinked.fill(0); this.cavSolo.fill(0); this.cavHorse.fill(-1)
     this.clockMs = 0
@@ -668,6 +689,19 @@ export class Novel2Runtime {
     this.glideDirX[index] = 0; this.glideDirZ[index] = 0
     this.cavRole[index] = 0; this.cavSlot[index] = -1; this.cavRider[index] = -1; this.cavLinked[index] = 0; this.cavSolo[index] = 0
     this.cavHorse[index * 3] = -1; this.cavHorse[index * 3 + 1] = -1; this.cavHorse[index * 3 + 2] = -1
+    this.laneFails[index] = 0
+  }
+
+  // 3차 둘째 묶음 공격 인증 실패. 연속 NOVEL2_LANE_RETRY.maxFails번부터는 1초 간격으로만 다시 묻는다(그동안 평범한 접촉 추격).
+  _laneFailed(pool, index) {
+    if (this.laneFails[index] < 255) this.laneFails[index] += 1
+    const retry = this.laneFails[index] >= NOVEL2_LANE_RETRY.maxFails ? NOVEL2_LANE_RETRY.slowRetryMs : SAFETY_RETRY_MS
+    pool.attackCooldown[index] = Math.max(pool.attackCooldown[index], retry)
+  }
+
+  /** 선을 못 세워 평범한 접촉 추격 중인가(비주얼·테스트용). 선이 서면(예고 시작) 풀린다. */
+  laneBlocked(pool, index) {
+    return index >= 0 && index < this.capacity && this.slotGen[index] === pool.generation[index] && this.laneFails[index] >= NOVEL2_LANE_RETRY.maxFails
   }
 
   _addSnapshot(snapshot, pool = null, ownerIndex = -1) {
@@ -746,6 +780,7 @@ export class Novel2Runtime {
     if (dormantCount > E91_MIMIC.maxDormant) this._wakeOldestMimics(pool, highest, dormantCount - E91_MIMIC.maxDormant)
     this._linkPairs(pool, highest)
     this._linkCavalry(pool, highest)
+    this._updatePlayerFacing(context)
     this._stepClings(pool, context.playerX, context.playerZ, deltaMs)
     this._stepTrains(pool, highest)
     this._stepCopies(pool, highest, deltaMs)
@@ -2424,6 +2459,12 @@ export class Novel2Runtime {
     return this.cavRole[index] === 1 && !this.cavSolo[index]
   }
 
+  /** 무리 밀어내기를 받지 않는 상태: E100 도약(그려진 선 위)·매달림(로사리 등의 정해진 자리 — 그린 몸 = 맞는 몸). */
+  ignoresCrowd(pool, index) {
+    return pool.type[index] === E100_CODE && this.slotGen[index] === pool.generation[index]
+      && (this.mochiPhase[index] === 2 || this.mochiPhase[index] === 3)
+  }
+
   // ── E100 찹쌀떡 ───────────────────────────────────────────────────────────────
   /** 지금 매달린 떡 수에 따른 플레이어 이동 배율(1 · 0.75 · 0.6). 필드(Enemies.jsx)가 매 스텝 플레이어 감속으로 건다. */
   playerSlowMul() {
@@ -2459,10 +2500,46 @@ export class Novel2Runtime {
       if (late || this.clingMoved[index] >= M.shakeOffDistance || this.clingMs[index] >= M.maxClingMs) {
         list.splice(i, 2)
         this._dropMochi(pool, index)
+        continue
       }
+      // 등 뒤 자리가 로사리 몸 방향을 따라 돈다(초당 720°까지).
+      let diff = this._clingTargetYaw(this.clingSide[index]) - this.clingAngle[index]
+      while (diff > Math.PI) diff -= Math.PI * 2
+      while (diff < -Math.PI) diff += Math.PI * 2
+      const maxTurn = M.clingTurnRateRad * deltaMs / 1000
+      this.clingAngle[index] += Math.max(-maxTurn, Math.min(maxTurn, diff))
+      this._setClingOffset(index)
     }
     const count = list.length / 2
     this.clingSlowMul = count <= 0 ? 1 : count === 1 ? M.slowOne : M.slowTwo
+  }
+
+  // 로사리 몸 방향: 필드가 넣어 준 값(playerFacingX/Z) → 없으면 이번 스텝 이동 방향 → 그대로.
+  _updatePlayerFacing(context) {
+    const fx = context.playerFacingX
+    const fz = context.playerFacingZ
+    const fl = Math.hypot(fx, fz)
+    if (Number.isFinite(fl) && fl > 1e-6) { this.facingX = fx / fl; this.facingZ = fz / fl; return }
+    if (!Number.isFinite(this.lastPlayerX + this.lastPlayerZ)) return
+    const mx = context.playerX - this.lastPlayerX
+    const mz = context.playerZ - this.lastPlayerZ
+    const ml = Math.hypot(mx, mz)
+    if (Number.isFinite(ml) && ml > 1e-4) { this.facingX = mx / ml; this.facingZ = mz / ml }
+  }
+
+  /** 매달린 자리 방향(yaw, 플레이어 → 떡): 등(−facing)에서 왼쪽(side +1) 또는 오른쪽(−1)으로 0.6rad. 왼쪽 = facing을 y축으로 +90° 돌린 (fz, −fx). */
+  _clingTargetYaw(side) {
+    const a = E100_MOCHI.clingBackAngleRad
+    const fx = this.facingX
+    const fz = this.facingZ
+    const dx = -fx * Math.cos(a) + fz * Math.sin(a) * side
+    const dz = -fz * Math.cos(a) - fx * Math.sin(a) * side
+    return Math.atan2(dx, dz)
+  }
+
+  _setClingOffset(index) {
+    this.clingOffX[index] = Math.sin(this.clingAngle[index]) * E100_MOCHI.attachOffset
+    this.clingOffZ[index] = Math.cos(this.clingAngle[index]) * E100_MOCHI.attachOffset
   }
 
   _dropMochi(pool, index) {
@@ -2574,9 +2651,10 @@ export class Novel2Runtime {
         out.preserveFacing = true
         out.hasYaw = true
         out.yaw = Math.atan2(a.nx, a.nz)
+        this.laneFails[index] = 0
         return out
       }
-      pool.attackCooldown[index] = SAFETY_RETRY_MS
+      this._laneFailed(pool, index)
     }
     return this._chase(a, out, a.speed)
   }
@@ -2602,14 +2680,12 @@ export class Novel2Runtime {
     pool.state[index] = N2_STATE_ATTACK
     this.clingMs[index] = 0
     this.clingMoved[index] = 0
-    // 등 뒤 자리: 떡이 날아온 쪽(착지점 − 플레이어)으로 0.3u. 두 번째 떡은 반대편.
-    let ox = a.posX - px
-    let oz = a.posZ - pz
-    let ol = Math.hypot(ox, oz)
-    if (ol < 1e-4) { ox = -pool.runDirX[index]; oz = -pool.runDirZ[index]; ol = Math.hypot(ox, oz) || 1 }
-    const sign = this.clingerCount() === 1 ? -1 : 1
-    this.clingOffX[index] = ox / ol * M.attachOffset * sign
-    this.clingOffZ[index] = oz / ol * M.attachOffset * sign
+    // 등 뒤 자리(로사리 몸 방향 기준): 첫 떡 왼등(+1), 둘째 떡 오른등(−1). 남은 떡이 왼등이면 새 떡은 오른등.
+    let leftTaken = false
+    for (let k = 0; k < this.clingers.length; k += 2) if (this.clingSide[this.clingers[k]] === 1) leftTaken = true
+    this.clingSide[index] = leftTaken ? -1 : 1
+    this.clingAngle[index] = this._clingTargetYaw(this.clingSide[index])
+    this._setClingOffset(index)
     this.clingers.push(index, pool.generation[index])
     this.clingSlowMul = this.clingerCount() === 1 ? M.slowOne : M.slowTwo
     if (this._onDamage) this._onDamage(M.latchDamage, a.posX, a.posZ)
@@ -2617,7 +2693,8 @@ export class Novel2Runtime {
   }
 
   /** 비주얼용 떡 상태: phase(0 추격·1 웅크림·2 도약·3 매달림·4 빗나감·5 떨어짐), clinging, progress(떨쳐내기 0~1 = 거리·시간 중 큰 쪽),
-   *  offsetX·offsetZ(매달린 자리 = 플레이어 + 이 값), leapX·leapZ(도약 착지점). */
+   *  offsetX·offsetZ(매달린 자리 = 플레이어 + 이 값 — 로사리 몸 방향 기준 왼등/오른등 0.3u, 판정 몸이 서는 바로 그 자리),
+   *  side(+1 왼등 / −1 오른등, 매달리지 않았으면 0), leapX·leapZ(도약 착지점). */
   mochiStateInto(pool, index, out) {
     const valid = index >= 0 && index < this.capacity && pool.type[index] === E100_CODE && this.slotGen[index] === pool.generation[index]
     const phase = valid ? this.mochiPhase[index] : 0
@@ -2626,6 +2703,8 @@ export class Novel2Runtime {
     out.progress = phase === 3 ? Math.min(1, Math.max(this.clingMoved[index] / E100_MOCHI.shakeOffDistance, this.clingMs[index] / E100_MOCHI.maxClingMs)) : 0
     out.offsetX = valid ? this.clingOffX[index] : 0
     out.offsetZ = valid ? this.clingOffZ[index] : 0
+    out.side = phase === 3 ? this.clingSide[index] : 0
+    out.laneBlocked = valid && this.laneBlocked(pool, index)
     out.leapX = valid ? this.leapX[index] : 0
     out.leapZ = valid ? this.leapZ[index] : 0
     return out
@@ -2794,9 +2873,10 @@ export class Novel2Runtime {
         out.preserveFacing = true
         out.hasYaw = true
         out.yaw = Math.atan2(a.nx, a.nz) + Math.PI * 4
+        this.laneFails[index] = 0
         return out
       }
-      pool.attackCooldown[index] = SAFETY_RETRY_MS
+      this._laneFailed(pool, index)
     }
     return this._chase(a, out, a.speed)
   }
@@ -2811,6 +2891,7 @@ export class Novel2Runtime {
     out.dirZ = valid ? this.glideDirZ[index] : 0
     out.speed = valid && gliding ? this.glideSpeed[index] : 0
     out.spin = out.phase === 1 ? Math.min(1, Math.max(0, 1 - pool.stateTimer[index] / E102_CHAIR.telegraphMs)) : 0
+    out.laneBlocked = valid && this.laneBlocked(pool, index)
     return out
   }
 
@@ -2983,9 +3064,10 @@ export class Novel2Runtime {
         out.preserveFacing = true
         out.hasYaw = true
         out.yaw = Math.atan2(a.nx, a.nz)
+        this.laneFails[index] = 0
         return out
       }
-      pool.attackCooldown[index] = SAFETY_RETRY_MS
+      this._laneFailed(pool, index)
     }
     out.velocityX = Math.sin(heading) * V.formSpeed
     out.velocityZ = Math.cos(heading) * V.formSpeed
@@ -3050,6 +3132,7 @@ export class Novel2Runtime {
     out.mounted = role === 1 && !this.cavSolo[index]
     out.scattered = valid && this.cavSolo[index] === 1
     out.heading = riderAlive ? this.cavHeading[rider] : (valid ? pool.yaw[index] : 0)
+    out.laneBlocked = riderAlive && this.laneBlocked(pool, rider)
     return out
   }
 
