@@ -201,7 +201,7 @@ function flatShade(geometry) {
  * @param variant  MINI_ZOMBIE_VISUALS[visualId].variants[k]
  * @param outline  (geometry, thickness) => outlineGeometry — 런타임은 lib/projectileZombieShotGeometry.createOutlineGeometry
  * @returns { parts: [{ key, parentIsTorso, pivot:[x,y,z] (부모 피벗 기준), geometry, outlineGeometry }],
- *            loose: [{ prop, geometry, outlineGeometry, anchor:[x,y,z] (몸 바닥 기준), spec }] }
+ *            loose: [{ prop, geometry, outlineGeometry, part('head'|null), anchor:[x,y,z] (몸 바닥 기준 · part head면 머리 피벗 기준), spec }] }
  */
 export function buildMiniVariant(raw, variant, outline) {
   const body = raw?.bodies?.[variant.body]
@@ -245,7 +245,9 @@ export function buildMiniVariant(raw, variant, outline) {
       spec,
       geometry: flat,
       outlineGeometry: outline ? outline(flat, MINI_OUTLINE_THICKNESS.loose) : null,
-      anchor: [...(MINI_ROOT_ANCHORS[spec.anchor] ?? MINI_ROOT_ANCHORS.root)],
+      // part 'head' = 머리 파트 기준 닻(MINI_HEAD_ANCHORS, 머리 피벗 기준) — MiniZombieLayer가 머리 행렬에 붙인다.
+      part: spec.part === 'head' ? 'head' : null,
+      anchor: spec.part === 'head' ? [...(MINI_HEAD_ANCHORS[spec.anchor] ?? MINI_HEAD_ANCHORS.headTop)] : [...(MINI_ROOT_ANCHORS[spec.anchor] ?? MINI_ROOT_ANCHORS.root)],
       maxDimension: Math.max(size.x, size.y, size.z),
     }
   })

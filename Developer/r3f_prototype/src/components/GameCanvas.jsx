@@ -16,6 +16,7 @@ import { getMiniHumanPlacements } from '../lib/miniHumanRoster.js'
 import { novel2PickVariant, novel2PropScale } from './miniZombieHooks.js'
 import LongRopeLayer from './LongRopeLayer.jsx'
 import RollingBallLayer from './RollingBallLayer.jsx'
+import Wave3bMotionLayer from './Wave3bMotionLayer.jsx'
 import PooledEnemyProjectileLayer from './PooledEnemyProjectileLayer.jsx'
 import StageEntryRuntimeDiagnostics from './StageEntryRuntimeDiagnostics.jsx'
 import { useGameStore } from '../store/useGameStore.js'
@@ -102,6 +103,8 @@ export default function GameCanvas({ gameKey, phase }) {
       {/* E104 공굴리기 대장의 큰 공: 손에 든 공·굴러가는 공·바닥의 공 모두(InstancedMesh 1개 = 드로콜 1개, 대장이 없으면 0).
           굴러가는 공의 중심 = 피해 판정 원의 중심(behavior ballStateInto). */}
       <RollingBallLayer resetKey={gameKey} />
+      {/* E102 회전의자 속도선·회전선 + E106 기마전 엮은 팔(각 InstancedMesh 1개 = 드로콜 1개, 해당 종이 없으면 0). */}
+      <Wave3bMotionLayer resetKey={gameKey} />
       {/* 감염 안 된 사람 구경꾼(Kenney Mini 원래 색). 콜라이더·적 풀 없음, 목록이 비면 null — 지금은 구조만 있다. */}
       <MiniHumanLayer placements={getMiniHumanPlacements(currentStageId)} />
       <PooledEnemyProjectileLayer resetKey={gameKey} />

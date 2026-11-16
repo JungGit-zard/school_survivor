@@ -112,6 +112,7 @@ export const MINI_MIMIC_SIZE_TELL = 1.15
 //   loose     [{ prop, anchor:'root'|'hipRight', offset, scale, worldSize, lift, spin, hook }] — 따로 그리는 소품(드로콜 2개 추가).
 //             worldSize면 크기(최대 변)·offset이 월드 단위. hook = MiniZombieLayer propScale 콜백 이름(0이면 숨김).
 //             drawnBy = 다른 레이어가 그린다(MiniZombieLayer는 메시를 만들지 않는다 — 드로콜 0). 'rollingBall' = E104 공.
+//             part: 'head' = 머리 파트를 따라 다닌다(anchor = MINI_HEAD_ANCHORS — 포즈로 고개를 돌려도 붙어 있다). E106 기수 모자.
 //   codeProps [{ prop, part, anchor, offset }] — GLB에 굽지 않은 코드 프리미티브 소품(miniZombieGeometry MINI_CODE_PROPS).
 //             props처럼 파트에 합친다(드로콜 0). 굽기 스크립트는 읽지 않는다(GLB 불변).
 // style  = 포즈 문법(lib/miniZombiePose.js), fast = 보폭 빠름, scale = ENEMY_STATS.scale 권장값(치프는 1.5 이상)
@@ -168,8 +169,9 @@ export const MINI_ZOMBIE_VISUALS = Object.freeze({
     { body: 'male-e', skin: 'zPale', eye: 'eyeOrange', recolor: { r3c1: 'chefWhite' },
       props: [{ prop: 'potLid', part: 'head', anchor: 'headTop' }] },
   ] },
+  // 2026-11-17: 머리카락(female-a r3c7, 높이 올린 머리)도 떡 흰색 — 위 카메라에서 하얀 찹쌀떡 덩어리로 읽힌다.
   'n2-mochi-cling': { id: 'E100', stage: 4, style: 'cling', fast: true, scale: 0.95, pick: 'single', variants: [
-    { body: 'female-a', skin: 'mochiWhite', eye: 'eyeDark', mouth: 'mochiRose', recolor: { r1c5: 'mochiPink', r1c1: 'mochiRose', r2c1: 'mochiPink', r3c5: 'mochiWhite' } },
+    { body: 'female-a', skin: 'mochiWhite', eye: 'eyeDark', mouth: 'mochiRose', recolor: { r1c5: 'mochiPink', r1c1: 'mochiRose', r2c1: 'mochiPink', r3c5: 'mochiWhite', r3c7: 'mochiWhite' } },
   ] },
   'n2-photocopier': { id: 'E101', stage: 5, chief: true, style: 'copier', scale: 1.5, pick: 'single', variants: [
     { body: 'male-d', skin: 'zGreen', eye: 'eyeGreen', recolor: { r3c7: 'suitCharcoal' },
@@ -177,7 +179,9 @@ export const MINI_ZOMBIE_VISUALS = Object.freeze({
   ] },
   'n2-swivel-chair': { id: 'E102', stage: 5, style: 'swivel', scale: 1.0, pick: 'single', variants: [
     { body: 'female-d', skin: 'zOlive', eye: 'eyeRed', recolor: { r3c3: 'officeGrey' },
-      loose: [{ prop: 'officeChair', anchor: 'root', offset: [0, 0, -0.02] }] },
+      // 2026-11-17: 의자를 1.45배로 — 바퀴 5개 다리(별 모양)가 몸 밖으로 나와 위 카메라에서 사무용 회전의자로 읽힌다(등받이도 머리 뒤로 보인다).
+      // 좌석이 높아진 만큼 몸을 MINI_SWIVEL_SEAT_LIFT만큼 띄우고(포즈), 의자는 그만큼 내려 바닥에 둔다(offset y).
+      loose: [{ prop: 'officeChair', anchor: 'root', offset: [0, -0.05, -0.03], scale: 1.45 }] },
   ] },
   'n2-coffee-runner': { id: 'E103', stage: 5, style: 'serve', scale: 1.0, pick: 'single', variants: [
     { body: 'female-e', skin: 'zGreen', eye: 'eyeAmber', recolor: { r3c15: 'apronBrown', r1c1: 'coffeeDark' },
@@ -197,12 +201,14 @@ export const MINI_ZOMBIE_VISUALS = Object.freeze({
     { body: 'male-f', skin: 'zGreen', eye: 'eyeRed', recolor: { r2c9: 'teamBlue' },
       props: [{ prop: 'ankleBand', part: 'legL', anchor: 'ankle' }] },
   ] },
-  'n2-cavalry': { id: 'E106', stage: 6, style: 'rider', scale: 1.0, pick: 'formation', variants: [
-    // 0 = 기수(모자 뺏기), 1 = 말(기수를 받치는 세 명). 말 몸은 male-e(안경) — 같은 스테이지의 E105 male-f와 겹치지 않게.
-    { body: 'female-b', skin: 'zGreen', eye: 'eyeRed', recolor: { r3c1: 'white', r1c5: 'teamBlue' },
-      props: [{ prop: 'cap', part: 'head', anchor: 'headTop' }] },
-    { body: 'male-e', skin: 'zOlive', eye: 'eyeRed', style: 'horse', recolor: { r3c1: 'white', r3c15: 'white' },
-      props: [{ prop: 'headband', part: 'head', anchor: 'brow', recolor: { white: 'teamBlue' } }] },
+  // 2026-11-17 wave 3 둘째 묶음: 네 몸(기수 1 + 말 3)이 한 변형을 나눠 쓴다 — 드로콜이 몸 수만큼 늘지 않는다(몸 12 + 모자 2).
+  // 역할은 행동 런타임(cavalryStateInto)이 정하고 포즈 문법만 바꿔 끼운다(novelZombie2Wave3Visuals miniPoseStyleFor: rider·riderDown·
+  // horse·horseFront·horseLoose). 기수 = 들려서 앉은 몸 + 빨간 운동회 모자(머리 loose, hook riderCap — 말은 0으로 숨김).
+  // 모두 파란 머리띠(청군). 몸 male-e(안경) — 같은 스테이지 E104 male-g · E105 female-c/male-f와 겹치지 않는다.
+  'n2-cavalry': { id: 'E106', stage: 6, style: 'horse', scale: 1.0, pick: 'formation', variants: [
+    { body: 'male-e', skin: 'zOlive', eye: 'eyeRed', recolor: { r3c1: 'white', r3c15: 'white' },
+      props: [{ prop: 'headband', part: 'head', anchor: 'brow', recolor: { white: 'teamBlue' } }],
+      loose: [{ prop: 'cap', part: 'head', anchor: 'headTop', hook: 'riderCap' }] },
   ] },
 })
 

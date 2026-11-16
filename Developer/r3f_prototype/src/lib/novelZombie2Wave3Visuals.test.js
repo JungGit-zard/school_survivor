@@ -1,5 +1,6 @@
 // @vitest-environment node
 // 2차 신규 좀비 wave 3 치프(E98 대식가 · E101 복사기 · E104 공굴리기 대장) 그리기 쪽 계약. 2026-11-16, threemini.
+// + wave 3 둘째 묶음(E100 찹쌀떡 · E102 회전의자 · E106 기마전) 2026-11-17 — 파일 끝 describe 3개.
 // 못박는 것: 굴러가는 공이 그려지고 그 중심 = 피해 판정 원 중심(반지름 0.9u 그대로) · 손의 공과 굴러가는 공은 한 레이어 한 모양(드로콜 1) ·
 // 먹히는 잡몹은 흡입 동안 작아지며 입으로 · 복사본은 흰 종이색 · 복사기 스캔/부채꼴/용지 걸림 포즈가 서로 다르다 · 예고 색(피해 빨강,
 // 피해 0 노랑) · 세 종 몸 세트 드로콜 12 · 대식가 큰 입 소품(코드 프리미티브, GLB 불변).
@@ -22,6 +23,14 @@ import { MINI_ZOMBIE_VISUALS, miniPaletteKeyAt } from './miniZombieRoster.js'
 import { MINI_POSE_ROOT_ROLL, MINI_POSE_STYLES, createMiniPose, fillMiniZombiePose } from './miniZombiePose.js'
 import { MINI_CODE_PROPS, buildMiniVariant, readMiniZombieScene } from './miniZombieGeometry.js'
 import { EXPANSION_TELEGRAPH_FILL, NOVEL2_DAMAGE_TELEGRAPH_FILL, createExpansionTelegraphVisual } from '../components/expansion/expansionTelegraphs.js'
+// wave 3 둘째 묶음(E100 찹쌀떡 · E102 회전의자 · E106 기마전, 2026-11-17)
+import { E100_MOCHI, E102_CHAIR, E106_CAVALRY, N2_STATE_APPROACH, N2_STATE_RECOVER } from './novelZombie2Behavior.js'
+import {
+  E100_MOCHI_VISUAL, E102_CHAIR_VISUAL, E106_CAVALRY_VISUAL, cavalryLinkedRider, cavalryRiderCapScale, chairMotionInto,
+  createMiniBodyTransform, createMochiDrawMemory, miniBodyTransformInto, mochiLeapLift, novel2BarLiftWorld,
+} from './novelZombie2Wave3Visuals.js'
+import { MINI_POSE_LIFT, MINI_POSE_ROOT_YAW, MINI_RIDER_LIFT } from './miniZombiePose.js'
+import { MINI_HEAD_ANCHORS } from './miniZombieGeometry.js'
 
 // MiniZombieLayer·RollingBallLayer는 drei useGLTF로 GLB를 미리 부른다 — 이 테스트는 GLB 렌더가 필요 없다.
 vi.mock('@react-three/drei', () => { const useGLTF = () => null; useGLTF.preload = () => {}; return { useGLTF } })
@@ -380,5 +389,423 @@ describe('E104 포즈 · 예고', () => {
     const line = snapshotOf('E104')
     expect(createExpansionTelegraphVisual(line).userData.fillMat.color.getHexString()).toBe(hex(NOVEL2_DAMAGE_TELEGRAPH_FILL.color))
     expect(line.widthUnits).toBe(2 * E104_BALL_VISUAL.radius) // 선 폭 = 그린 공 지름
+  })
+})
+
+// ══ wave 3 둘째 묶음 ════════════════════════════════════════════════════════════════════════════════════════
+// 못박는 것: 예고 채움 = 스냅샷 기하 그대로 + 빨강(셋 다 피해 예고) · 떡 웅크림 납작 → 도약 포물선 → 매달림(behavior 매달림 자리 그대로 — 로사리 등 뒤, 앞을
+// 가리지 않고, 떨쳐내기 진행만큼 늘어나며 가늘어짐) → 떨어지면 바닥에 납작 · 의자 회전은 behavior yaw(포즈는 따로 돌지 않음)·속도선 ∝ 속도 ·
+// 기마전 네 몸 = 한 변형(드로콜 공유), 역할별 포즈, 기수만 모자, 말 손 → 기수 엉덩이 엮은 팔, 기수가 쓰러지면 팔이 사라진다.
+function telegraphExtents(snapshot) {
+  const root = createExpansionTelegraphVisual(snapshot)
+  root.updateMatrixWorld(true)
+  const [ox, oz] = snapshot.originXZ
+  const [dx, dz] = snapshot.directionXZ
+  const v = new THREE.Vector3()
+  let along = 0; let back = 0; let lateral = 0; let radius = 0
+  root.traverse((n) => {
+    if (!n.isMesh) return
+    const p = n.geometry.attributes.position
+    for (let k = 0; k < p.count; k += 1) {
+      v.fromBufferAttribute(p, k).applyMatrix4(n.matrixWorld)
+      const rx = v.x - ox; const rz = v.z - oz
+      along = Math.max(along, rx * dx + rz * dz); back = Math.min(back, rx * dx + rz * dz)
+      lateral = Math.max(lateral, Math.abs(rx * -dz + rz * dx)); radius = Math.max(radius, Math.hypot(rx, rz))
+    }
+  })
+  return { root, along, back, lateral, radius }
+}
+function runUntil(step, player, done, seconds = 4) {
+  for (let f = 0; f < seconds / DT; f += 1) { step(player); if (done()) return true }
+  return false
+}
+
+describe('E100 찹쌀떡', () => {
+  function setup() {
+    const pool = new EnemyEntityPool()
+    const runtime = createEnemySimulationRuntime()
+    const step = makeStep(runtime, pool, S4, 'stage4')
+    const mochi = spawn(pool, 'E100', 0, 1.2, { hp: 40, spawnTimer: 3000, scale: NOVEL2_ZOMBIE_STATS.E100.scale })
+    return { pool, runtime, step, mochi }
+  }
+
+  it('웅크림 예고 = 빨간 선, 채움이 스냅샷 기하 그대로(길이 1.75u · 폭 0.9u) — 몸은 점점 납작하게 퍼진다', () => {
+    const { pool, runtime, step, mochi } = setup()
+    const i = mochi.index
+    expect(runUntil(step, { x: 0, z: 0 }, () => pool.state[i] === N2_STATE_TELEGRAPH)).toBe(true)
+    const line = snapshotOf('E100')
+    expect(line.shape).toBe('line'); expect(line.rangeUnits).toBe(E100_MOCHI.lineLength); expect(line.widthUnits).toBe(E100_MOCHI.lineWidth)
+    const ext = telegraphExtents(line)
+    expect(ext.root.userData.fillMat.color.getHexString()).toBe(hex(NOVEL2_DAMAGE_TELEGRAPH_FILL.color))
+    expect(ext.along).toBeCloseTo(E100_MOCHI.lineLength, 2)
+    expect(ext.lateral).toBeCloseTo(E100_MOCHI.lineWidth / 2, 2)
+    expect(miniPoseStyleFor('cling', pool, i, runtime)).toBe('cling')
+    const xf = createMiniBodyTransform()
+    const early = { ...miniBodyTransformInto(xf, pool, i, runtime, { reduced: true }) }
+    for (let f = 0; f < (E100_MOCHI.telegraphMs - 60) / 1000 / DT; f += 1) step({ x: 0, z: 0 })
+    const late = { ...miniBodyTransformInto(xf, pool, i, runtime, { reduced: true }) }
+    expect(late.active).toBe(true)
+    expect(late.sy).toBeLessThan(early.sy)
+    expect(late.sy).toBeLessThan(0.7)
+    expect(late.sx).toBeGreaterThan(1.2)
+    expect(late.x).toBe(pool.posX[i]); expect(late.z).toBe(pool.posZ[i]) // 자리 고정(선의 원점)
+  })
+
+  it('도약 = 원점 → 착지점 포물선(꼭대기 ≤ 0.5u, 착지에서 0), 체력바도 같이 뜬다', () => {
+    const { pool, runtime, step, mochi } = setup()
+    const i = mochi.index
+    expect(runUntil(step, { x: 0, z: 0 }, () => runtime.novel2.mochiPhase[i] === 2)).toBe(true)
+    const xf = createMiniBodyTransform()
+    const lifts = []
+    for (let f = 0; f < 1 / DT && runtime.novel2.mochiPhase[i] === 2; f += 1) {
+      miniBodyTransformInto(xf, pool, i, runtime, { reduced: true })
+      lifts.push(xf.lift)
+      expect(novel2BarLiftWorld(pool, i, runtime)).toBeCloseTo(xf.lift, 6)
+      expect(mochiLeapLift(pool, i, runtime)).toBeCloseTo(xf.lift, 6)
+      step({ x: 0, z: 0 })
+    }
+    expect(lifts.length).toBeGreaterThan(5)
+    const peak = Math.max(...lifts)
+    expect(peak).toBeGreaterThan(0.15)
+    expect(peak).toBeLessThanOrEqual(E100_MOCHI_VISUAL.leapHeightMax + 1e-6)
+    expect(lifts[0]).toBeLessThan(peak * 0.5)
+    expect(lifts[lifts.length - 1]).toBeLessThan(peak * 0.6)
+  })
+
+  it('매달림: 그린 떡 = behavior 매달림 자리(로사리 + offset, 0.3u) = 맞는 몸, 로사리를 보며, 떨쳐내기 진행만큼 늘어나 가늘어진다', () => {
+    const { pool, runtime, step, mochi } = setup()
+    const i = mochi.index
+    expect(runUntil(step, { x: 0, z: 0 }, () => runtime.novel2.mochiPhase[i] === 3)).toBe(true)
+    expect(miniPoseStyleFor('cling', pool, i, runtime)).toBe('clingHold')
+    const xf = createMiniBodyTransform()
+    const memory = createMochiDrawMemory()
+    const player = { x: 0, z: 0 }
+    const samples = []
+    let fellAt = -1
+    for (let f = 0; f < 3 / DT; f += 1) {
+      if (runtime.novel2.mochiPhase[i] === 3) {
+        miniBodyTransformInto(xf, pool, i, runtime, { playerX: player.x, playerZ: player.z, reduced: true, memory })
+        const truth = runtime.novel2.mochiStateInto(pool, i, {})
+        expect(xf.x).toBeCloseTo(player.x + truth.offsetX, 6); expect(xf.z).toBeCloseTo(player.z + truth.offsetZ, 6) // 그린 자리 = behavior 자리
+        // 맞는 몸(풀 자리)과 같은 곳 — 착지 프레임만 빼고 한 스텝 뒤처짐 이내(플레이어 3u/s·0.05u + 등 자리가 방향을 초당 720°로
+        // 따라 도는 한 스텝 12°·0.3u ≈ 0.06u — 풀 자리는 offset을 갱신하기 전 스텝의 값이다)
+        if (samples.length > 0) expect(Math.hypot(xf.x - pool.posX[i], xf.z - pool.posZ[i])).toBeLessThan(0.15)
+        expect(Math.hypot(xf.x - player.x, xf.z - player.z)).toBeCloseTo(E100_MOCHI.attachOffset, 5)
+        expect(Math.sin(xf.yaw) * (player.x - xf.x) + Math.cos(xf.yaw) * (player.z - xf.z)).toBeGreaterThan(0.29) // 로사리를 본다
+        expect(xf.lift).toBe(E100_MOCHI_VISUAL.clingLift); expect(xf.uniform).toBe(E100_MOCHI_VISUAL.clingScale)
+        samples.push({ p: runtime.novel2.mochiStateInto(pool, i, {}).progress, sz: xf.sz, sx: xf.sx, sy: xf.sy })
+      } else if (fellAt < 0) fellAt = f
+      player.x += 3 * DT // 움직이면 떨쳐낸다
+      step(player)
+    }
+    expect(samples.length).toBeGreaterThan(20)
+    for (let k = 1; k < samples.length; k += 1) {
+      expect(samples[k].p).toBeGreaterThanOrEqual(samples[k - 1].p)
+      expect(samples[k].sz).toBeGreaterThanOrEqual(samples[k - 1].sz - 1e-9)
+      expect(samples[k].sx).toBeLessThanOrEqual(samples[k - 1].sx + 1e-9)
+    }
+    const last = samples[samples.length - 1]
+    expect(last.p).toBeGreaterThan(0.9)
+    expect(last.sz).toBeGreaterThan(1.8) // 뒤로 길게
+    expect(last.sx).toBeLessThan(0.6) // 가늘게
+    expect(fellAt).toBeGreaterThan(0)
+  })
+
+  it('매달림 자리는 behavior offset 그대로(시각 쪽 재계산 없음) · 선을 못 세운 접촉 추격(laneBlocked)은 평범한 걸음', () => {
+    const pool = new EnemyEntityPool()
+    const m = spawn(pool, 'E100', 0, 0, { hp: 40 })
+    const state = { phase: 3, offsetX: -0.21, offsetZ: -0.21, laneBlocked: false }
+    const fake = { novel2: { mochiStateInto: (_p, _i, out) => Object.assign(out, { clinging: state.phase === 3, progress: 0.2, leapX: 0, leapZ: 0, side: 1, ...state }) } }
+    const xf = createMiniBodyTransform()
+    miniBodyTransformInto(xf, pool, m.index, fake, { playerX: 2, playerZ: 3, reduced: true })
+    expect(xf.x).toBeCloseTo(2 - 0.21, 9); expect(xf.z).toBeCloseTo(3 - 0.21, 9)
+    expect(Math.sin(xf.yaw) * 0.21 + Math.cos(xf.yaw) * 0.21).toBeGreaterThan(0.29) // 로사리 쪽을 본다
+    state.offsetX = 0.3; state.offsetZ = 0 // 카메라·방향과 상관없이 behavior 자리 그대로
+    miniBodyTransformInto(xf, pool, m.index, fake, { playerX: 0, playerZ: 0, reduced: true })
+    expect(xf.x).toBeCloseTo(0.3, 9); expect(xf.z).toBeCloseTo(0, 9)
+    // laneBlocked: behavior는 평범한 접촉 추격(단계 0, 상태 7) — 포즈는 평시 걸음, 몸 변형은 걸음 말랑임뿐(웅크림·도약 없음)
+    Object.assign(state, { phase: 0, laneBlocked: true })
+    pool.state[m.index] = N2_STATE_APPROACH
+    expect(miniPoseStyleFor('cling', pool, m.index, fake)).toBe('cling')
+    miniBodyTransformInto(xf, pool, m.index, fake, { reduced: true })
+    expect([xf.lift, xf.sx, xf.sy, xf.sz, xf.x, xf.z]).toEqual([0, 1, 1, 1, pool.posX[m.index], pool.posZ[m.index]])
+  })
+
+  it('실제 런타임 laneBlocked: 세 종 모두 접촉 추격 상태(7)라 평시 걸음 포즈 · 의자 속도선 없음', async () => {
+    const { syncChairStreaks } = await import('../components/Wave3bMotionLayer.jsx')
+    const pool = new EnemyEntityPool()
+    const runtime = createEnemySimulationRuntime()
+    const step = makeStep(runtime, pool, S5, 'stage5')
+    const chair = spawn(pool, 'E102', 0, 3, { hp: 40, spawnTimer: 3000 })
+    runtime.novel2.laneFails[chair.index] = 255 // 선을 못 세운 지 오래(behavior가 laneBlocked로 본다)
+    runtime.novel2.slotGen[chair.index] = pool.generation[chair.index]
+    pool.attackCooldown[chair.index] = 5000
+    step({ x: 0, z: 0 })
+    expect(runtime.novel2.chairStateInto(pool, chair.index, {}).laneBlocked).toBe(true)
+    expect(pool.state[chair.index]).toBe(N2_STATE_APPROACH)
+    expect(chairMotionInto({}, pool, chair.index, runtime)).toBe(true)
+    const mesh = new THREE.InstancedMesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial(), E102_CHAIR_VISUAL.capacity)
+    expect(syncChairStreaks(mesh, pool, runtime)).toBe(0)
+    expect(miniPoseStyleFor('swivel', pool, chair.index, runtime)).toBe('swivel')
+  })
+
+  it('떨어지면 바닥에 철퍽(납작·넓게, 매달려 그리던 자리에서 미끄러져 내려온다), 빗나감도 납작 — 포즈는 clingSplat', () => {
+    const { pool, runtime, step, mochi } = setup()
+    const i = mochi.index
+    expect(runUntil(step, { x: 0, z: 0 }, () => runtime.novel2.mochiPhase[i] === 3)).toBe(true)
+    const xf = createMiniBodyTransform()
+    const memory = createMochiDrawMemory()
+    const player = { x: 0, z: 0 }
+    let drawn = null
+    for (let f = 0; f < 3 / DT && runtime.novel2.mochiPhase[i] !== 5; f += 1) {
+      miniBodyTransformInto(xf, pool, i, runtime, { playerX: player.x, playerZ: player.z, reduced: true, memory })
+      drawn = [xf.x, xf.z]
+      player.x += 3 * DT
+      step(player)
+    }
+    expect(runtime.novel2.mochiPhase[i]).toBe(5)
+    expect(pool.state[i]).toBe(N2_STATE_STUN)
+    expect(miniPoseStyleFor('cling', pool, i, runtime)).toBe('clingSplat')
+    miniBodyTransformInto(xf, pool, i, runtime, { playerX: player.x, playerZ: player.z, reduced: true, memory })
+    expect(Math.hypot(xf.x - drawn[0], xf.z - drawn[1])).toBeLessThan(0.1) // 순간이동 없음
+    for (let f = 0; f < 0.4 / DT; f += 1) step(player)
+    miniBodyTransformInto(xf, pool, i, runtime, { reduced: true, memory })
+    expect(xf.sy).toBeCloseTo(E100_MOCHI_VISUAL.splatSquash, 2)
+    expect(xf.sx).toBeCloseTo(E100_MOCHI_VISUAL.splatWiden, 2)
+    expect(xf.x).toBe(pool.posX[i]); expect(xf.z).toBe(pool.posZ[i])
+    // 빗나감(4)
+    const miss = setup()
+    expect(runUntil(miss.step, { x: 0, z: 0 }, () => miss.pool.state[miss.mochi.index] === N2_STATE_TELEGRAPH)).toBe(true)
+    const p2 = { x: 0, z: 0 }
+    for (let f = 0; f < 2 / DT && miss.runtime.novel2.mochiPhase[miss.mochi.index] !== 4; f += 1) { if (p2.x < 1.4) p2.x += 3 * DT; miss.step(p2) }
+    expect(miss.runtime.novel2.mochiPhase[miss.mochi.index]).toBe(4)
+    expect(miss.pool.state[miss.mochi.index]).toBe(N2_STATE_RECOVER)
+    for (let f = 0; f < 0.3 / DT; f += 1) miss.step(p2)
+    miniBodyTransformInto(xf, miss.pool, miss.mochi.index, miss.runtime, { reduced: true })
+    expect(xf.sy).toBeCloseTo(E100_MOCHI_VISUAL.missSquash, 2)
+    const out = createMiniPose()
+    const splat = Array.from(fillMiniZombiePose(out, 'clingSplat', 'stun', 0.5))
+    const hold = Array.from(fillMiniZombiePose(out, 'clingHold', 'charge', 0.5))
+    expect(splat[11]).toBeGreaterThan(1); expect(splat[14]).toBeLessThan(-1) // 팔을 옆으로 쫙
+    expect(hold[11]).toBeLessThan(0); expect(hold[14]).toBeGreaterThan(0) // 팔을 안쪽으로 모아 안는다
+  })
+
+  it('효과 줄이기: 출렁임·떨림 없이 같은 상태 표시(늘어남은 그대로), 몸 세트 드로콜 12', async () => {
+    const { miniVariantDrawCalls } = await import('../components/MiniZombieLayer.jsx')
+    const raw = await loadRaw()
+    expect(miniVariantDrawCalls(buildMiniVariant(raw, MINI_ZOMBIE_VISUALS['n2-mochi-cling'].variants[0], null))).toBe(12)
+    const pool = new EnemyEntityPool()
+    const m = spawn(pool, 'E100', 0, 0, { hp: 40 })
+    const fake = { novel2: { mochiStateInto: (_p, _i, out) => Object.assign(out, { phase: 3, clinging: true, progress: 0.5, offsetX: -0.3, offsetZ: 0, leapX: 0, leapZ: 0 }) } }
+    const xf = createMiniBodyTransform()
+    const a = { ...miniBodyTransformInto(xf, pool, m.index, fake, { playerX: 0, playerZ: 0, clockSec: 0.03, reduced: true }) }
+    const b = { ...miniBodyTransformInto(xf, pool, m.index, fake, { playerX: 0, playerZ: 0, clockSec: 0.11, reduced: true }) }
+    expect(a.sx).toBe(b.sx); expect(a.sy).toBe(b.sy)
+    expect(a.sz).toBeCloseTo(1 + E100_MOCHI_VISUAL.clingStretch * 0.5, 6)
+    const c = { ...miniBodyTransformInto(xf, pool, m.index, fake, { playerX: 0, playerZ: 0, clockSec: 0.03, reduced: false }) }
+    const d = { ...miniBodyTransformInto(xf, pool, m.index, fake, { playerX: 0, playerZ: 0, clockSec: 0.11, reduced: false }) }
+    expect(c.sx).not.toBe(d.sx)
+    // 다른 종은 변형 없음
+    const other = spawn(pool, 'E102', 2, 2, { hp: 40 })
+    expect(miniBodyTransformInto(xf, pool, other.index, fake, null).active).toBe(false)
+  })
+})
+
+describe('E102 회전의자', () => {
+  function setup() {
+    const pool = new EnemyEntityPool()
+    const runtime = createEnemySimulationRuntime()
+    const step = makeStep(runtime, pool, S5, 'stage5')
+    const chair = spawn(pool, 'E102', 0, 4, { hp: 40, spawnTimer: 3000, scale: NOVEL2_ZOMBIE_STATS.E102.scale })
+    return { pool, runtime, step, chair }
+  }
+  const streakMesh = () => new THREE.InstancedMesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial(), E102_CHAIR_VISUAL.capacity)
+
+  it('회전 예고 = 빨간 선(4.2 × 1.8u 그대로) · 몸은 behavior yaw로 두 바퀴 돌아 선 방향에 멈춘다(포즈는 따로 돌지 않는다) · 회전선 4줄', async () => {
+    const { syncChairStreaks } = await import('../components/Wave3bMotionLayer.jsx')
+    const { pool, runtime, step, chair } = setup()
+    const i = chair.index
+    expect(runUntil(step, { x: 0, z: 0 }, () => pool.state[i] === N2_STATE_TELEGRAPH)).toBe(true)
+    const line = snapshotOf('E102')
+    const ext = telegraphExtents(line)
+    expect(ext.root.userData.fillMat.color.getHexString()).toBe(hex(NOVEL2_DAMAGE_TELEGRAPH_FILL.color))
+    expect(ext.along).toBeCloseTo(E102_CHAIR.lineLength, 2)
+    expect(ext.lateral).toBeCloseTo(E102_CHAIR.lineWidth / 2, 2)
+    const out = createMiniPose()
+    expect(fillMiniZombiePose(out, 'swivel', 'warn', 0.4)[MINI_POSE_ROOT_YAW]).toBe(0)
+    const mesh = streakMesh()
+    expect(syncChairStreaks(mesh, pool, runtime, false)).toBe(E102_CHAIR_VISUAL.whirlCount)
+    expect(syncChairStreaks(mesh, pool, runtime, true)).toBe(0) // 효과 줄이기: 회전선 없음
+    const yaws = []
+    while (pool.state[i] === N2_STATE_TELEGRAPH) { yaws.push(pool.yaw[i]); step({ x: 0, z: 0 }) }
+    const turned = yaws[0] - yaws[yaws.length - 1]
+    expect(turned).toBeGreaterThan(Math.PI * 3.5) // 거의 두 바퀴
+    const [dx, dz] = line.directionXZ
+    const lockYaw = Math.atan2(dx, dz)
+    // 예고가 끝난 첫 프레임(활주 시작)의 몸 방향 = 빨간 선 방향(마지막 예고 프레임은 아직 한 프레임만큼 돌고 있다)
+    const diff = Math.atan2(Math.sin(pool.yaw[i] - lockYaw), Math.cos(pool.yaw[i] - lockYaw))
+    expect(Math.abs(diff)).toBeLessThan(0.05)
+  })
+
+  it('활주·표류 = 의자 뒤로 속도선 3줄(진행 반대쪽), 길이 ∝ 속도 · 굴러오는 중에는 0 · 흰 반투명(외곽선 없음)', async () => {
+    const { syncChairStreaks, createChairStreakMaterial } = await import('../components/Wave3bMotionLayer.jsx')
+    const { pool, runtime, step, chair } = setup()
+    const i = chair.index
+    const mesh = streakMesh()
+    expect(syncChairStreaks(mesh, pool, runtime)).toBe(0)
+    expect(mesh.visible).toBe(false)
+    expect(runUntil(step, { x: 0, z: 0 }, () => pool.state[i] === N2_STATE_TELEGRAPH)).toBe(true)
+    const m = new THREE.Matrix4(); const p = new THREE.Vector3(); const q = new THREE.Quaternion(); const s = new THREE.Vector3()
+    const motion = {}
+    const lengths = []
+    let sawGlide = false; let sawDrift = false
+    for (let f = 0; f < (E102_CHAIR.telegraphMs + E102_CHAIR.glideMs + E102_CHAIR.driftMs) / 1000 / DT; f += 1) {
+      step({ x: 0, z: 0 })
+      if (!chairMotionInto(motion, pool, i, runtime) || (motion.phase !== 2 && motion.phase !== 3)) continue
+      sawGlide ||= motion.phase === 2; sawDrift ||= motion.phase === 3
+      const n = syncChairStreaks(mesh, pool, runtime)
+      if (motion.speed < E102_CHAIR_VISUAL.streakMinSpeed) { expect(n).toBe(0); continue }
+      expect(n).toBe(3)
+      mesh.getMatrixAt(0, m); m.decompose(p, q, s)
+      // 줄은 의자 뒤(진행 반대)에 있다
+      expect((p.x - pool.posX[i]) * motion.dirX + (p.z - pool.posZ[i]) * motion.dirZ).toBeLessThan(-0.2)
+      expect(s.z).toBeCloseTo(E102_CHAIR_VISUAL.streakLength * motion.speedFrac, 5)
+      lengths.push({ phase: motion.phase, len: s.z })
+    }
+    expect(sawGlide && sawDrift).toBe(true)
+    const drift = lengths.filter((l) => l.phase === 3)
+    expect(drift.length).toBeGreaterThan(3)
+    for (let k = 1; k < drift.length; k += 1) expect(drift[k].len).toBeLessThanOrEqual(drift[k - 1].len + 1e-9) // 표류하며 줄어든다
+    const material = createChairStreakMaterial()
+    expect(material.type).toBe('MeshBasicMaterial'); expect(material.transparent).toBe(true)
+    expect(new THREE.Color(material.color).getHSL({}).l).toBeGreaterThan(0.8) // 검은 외곽선·검은 줄 없음
+  })
+
+  it('포즈: 회전(팔로 의자 붙잡기) · 활주(등받이로 젖혀 두 팔 위로) · 표류(허우적) · 몸 세트 드로콜 14(몸 12 + 사무용 의자 2)', async () => {
+    const { miniVariantDrawCalls } = await import('../components/MiniZombieLayer.jsx')
+    const out = createMiniPose()
+    const spin = Array.from(fillMiniZombiePose(out, 'swivel', 'warn', 0.7))
+    const glide = Array.from(fillMiniZombiePose(out, 'swivel', 'charge', 0.7))
+    const drift = Array.from(fillMiniZombiePose(out, 'swivel', 'stun', 0.7))
+    expect(glide[6]).toBeLessThan(-0.35) // 뒤로 젖힘
+    expect(glide[9]).toBeLessThan(-2.2); expect(glide[12]).toBeLessThan(-2.2) // 두 팔 위로
+    expect(spin).not.toEqual(glide); expect(drift).not.toEqual(glide)
+    const raw = await loadRaw()
+    const variant = MINI_ZOMBIE_VISUALS['n2-swivel-chair'].variants[0]
+    expect(variant.loose.map((l) => l.prop)).toEqual(['officeChair'])
+    expect(miniVariantDrawCalls(buildMiniVariant(raw, variant, null))).toBe(14)
+  })
+})
+
+describe('E106 기마전', () => {
+  function setup(positions = [[0, 4], [1, 5], [-1, 5], [0, 6]]) {
+    const pool = new EnemyEntityPool()
+    const runtime = createEnemySimulationRuntime()
+    const step = makeStep(runtime, pool, S6, 'stage6')
+    const bodies = positions.map(([x, z]) => spawn(pool, 'E106', x, z, { hp: 30, spawnTimer: 0, scale: NOVEL2_ZOMBIE_STATS.E106.scale }))
+    step({ x: 0, z: -6 })
+    for (let f = 0; f < 0.4 / DT; f += 1) step({ x: 0, z: -6 }) // 등장 연출(0.3초) 지나 몸이 보인다
+    return { pool, runtime, step, bodies }
+  }
+  const armMesh = () => new THREE.InstancedMesh(new THREE.BoxGeometry(), new THREE.MeshBasicMaterial(), E106_CAVALRY_VISUAL.capacity)
+
+  it('네 몸이 한 변형(드로콜 공유: 몸 12 + 기수 모자 2 = 14), 역할별 포즈 문법, 모자는 기수만(머리를 따라간다)', async () => {
+    const { miniVariantDrawCalls } = await import('../components/MiniZombieLayer.jsx')
+    const { novel2PickVariant, novel2PropScale } = await import('../components/miniZombieHooks.js')
+    const raw = await loadRaw()
+    const visual = MINI_ZOMBIE_VISUALS['n2-cavalry']
+    expect(visual.variants).toHaveLength(1)
+    const built = buildMiniVariant(raw, visual.variants[0], null)
+    expect(miniVariantDrawCalls(built)).toBe(14)
+    const cap = built.loose.find((l) => l.prop === 'cap')
+    expect(cap.part).toBe('head')
+    expect(cap.anchor).toEqual([...MINI_HEAD_ANCHORS.headTop])
+    const { pool, runtime, bodies } = setup()
+    const [rider, ...horses] = bodies
+    for (const b of bodies) expect(novel2PickVariant(pool, b.index, 'n2-cavalry', 1, runtime)).toBe(0)
+    expect(miniPoseStyleFor('horse', pool, rider.index, runtime)).toBe('rider')
+    const styles = horses.map((h) => [runtime.novel2.cavalryStateInto(pool, h.index, {}).slot, miniPoseStyleFor('horse', pool, h.index, runtime)])
+    for (const [slot, style] of styles) expect(style).toBe(slot === 0 ? 'horseFront' : 'horse')
+    expect(novel2PropScale('riderCap', pool, rider.index, runtime)).toBe(1)
+    for (const h of horses) expect(novel2PropScale('riderCap', pool, h.index, runtime)).toBe(0)
+    expect(cavalryRiderCapScale(pool, rider.index, null)).toBe(1) // 런타임이 없으면 숨기지 않는다
+    // 기수는 들려 있고(엮은 팔 높이), 체력바도 같이 뜬다
+    const out = createMiniPose()
+    expect(fillMiniZombiePose(out, 'rider', 'normal', 0.3)[MINI_POSE_LIFT]).toBeCloseTo(MINI_RIDER_LIFT, 6)
+    expect(novel2BarLiftWorld(pool, rider.index, runtime)).toBeGreaterThan(0.15)
+    for (const h of horses) expect(novel2BarLiftWorld(pool, h.index, runtime)).toBe(0)
+    // 앞 말은 팔을 뒤로(기수가 뒤에 있다), 뒤 말은 앞으로
+    expect(fillMiniZombiePose(out, 'horseFront', 'normal', 0.3)[9]).toBeGreaterThan(0.5)
+    expect(fillMiniZombiePose(out, 'horse', 'normal', 0.3)[9]).toBeLessThan(-1)
+  })
+
+  it('엮은 팔: 말 셋의 손 → 기수 엉덩이(말 손보다 높다), 기수가 쓰러지면 사라지고 말은 휘청(horseLoose)', async () => {
+    const { syncCavalryLinks } = await import('../components/Wave3bMotionLayer.jsx')
+    const { pool, runtime, step, bodies } = setup([[0, 10], [1, 11], [-1, 11], [0, 12]])
+    const [rider, ...horses] = bodies
+    const mesh = armMesh()
+    expect(syncCavalryLinks(mesh, pool, runtime)).toBe(3)
+    expect(mesh.visible).toBe(true)
+    for (const h of horses) expect(cavalryLinkedRider(pool, h.index, runtime)).toBe(rider.index)
+    expect(cavalryLinkedRider(pool, rider.index, runtime)).toBe(-1)
+    const m = new THREE.Matrix4(); const p = new THREE.Vector3(); const q = new THREE.Quaternion(); const s = new THREE.Vector3()
+    const end = new THREE.Vector3()
+    for (let k = 0; k < 3; k += 1) {
+      mesh.getMatrixAt(k, m); m.decompose(p, q, s)
+      end.set(0, 0, 1).applyMatrix4(m) // 막대 끝(길이 1 → 인스턴스 배율)
+      expect(Math.hypot(end.x - pool.posX[rider.index], end.z - pool.posZ[rider.index])).toBeLessThan(E106_CAVALRY_VISUAL.riderInset + 1e-3)
+      expect(end.y).toBeGreaterThan(p.y) // 기수 엉덩이 > 말 손
+      const nearest = Math.min(...horses.map((h) => Math.hypot(p.x - pool.posX[h.index], p.z - pool.posZ[h.index])))
+      expect(nearest).toBeCloseTo(E106_CAVALRY_VISUAL.carrierInset, 3)
+    }
+    runtime.applyHitIndex(pool, rider.index, rider.generation, 1e9)
+    step({ x: 0, z: 0 })
+    expect(syncCavalryLinks(mesh, pool, runtime)).toBe(0)
+    expect(mesh.visible).toBe(false)
+    for (const h of horses) {
+      expect(pool.state[h.index]).toBe(N2_STATE_STUN)
+      expect(miniPoseStyleFor('horse', pool, h.index, runtime)).toBe('horseLoose')
+    }
+    const out = createMiniPose()
+    expect(Math.abs(fillMiniZombiePose(out, 'horseLoose', 'stun', 0.2)[MINI_POSE_ROOT_ROLL])).toBeGreaterThan(0.05) // 비틀
+  })
+
+  it('말이 다 쓰러지면 기수가 내려와 주저앉는다(riderDown, 들림·체력바 들림 0, 팔 없음)', async () => {
+    const { syncCavalryLinks } = await import('../components/Wave3bMotionLayer.jsx')
+    const { pool, runtime, step, bodies } = setup([[0, 10], [1, 11], [-1, 11], [0, 12]])
+    const [rider, ...horses] = bodies
+    for (const h of horses) runtime.applyHitIndex(pool, h.index, h.generation, 1e9)
+    step({ x: 0, z: 0 })
+    expect(pool.state[rider.index]).toBe(N2_STATE_STUN)
+    expect(miniPoseStyleFor('horse', pool, rider.index, runtime)).toBe('riderDown')
+    expect(novel2BarLiftWorld(pool, rider.index, runtime)).toBe(0)
+    expect(syncCavalryLinks(armMesh(), pool, runtime)).toBe(0)
+    const out = createMiniPose()
+    const sit = fillMiniZombiePose(out, 'riderDown', 'stun', 0.4)
+    expect(sit[MINI_POSE_LIFT]).toBe(0)
+    expect(sit[19]).toBeLessThan(-0.3) // 바닥에 주저앉음(몸을 다리 길이만큼 내림)
+    for (let f = 0; f < (E106_CAVALRY.dismountStunMs + 100) / 1000 / DT; f += 1) step({ x: 0, z: 0 })
+    expect(pool.state[rider.index]).toBe(N2_STATE_APPROACH)
+    expect(miniPoseStyleFor('horse', pool, rider.index, runtime)).toBe('riderDown') // 달린다(보통 좀비 걸음)
+  })
+
+  it('모자 뺏기 예고 = 빨간 부채꼴(90° · 반지름은 behavior E106_CAVALRY.coneRadius 그대로), 기수 팔은 젖혔다가(예고) 반대쪽으로 휘두른다(공격)', () => {
+    const { pool, runtime, step, bodies } = setup()
+    const rider = bodies[0]
+    expect(runUntil(step, { x: 0, z: 0 }, () => pool.state[rider.index] === N2_STATE_TELEGRAPH, 12)).toBe(true)
+    const hat = snapshotOf('E106')
+    expect(hat.shape).toBe('sector'); expect(hat.angleDeg).toBe(E106_CAVALRY.coneAngleDeg); expect(hat.rangeUnits).toBe(E106_CAVALRY.coneRadius)
+    const ext = telegraphExtents(hat)
+    expect(ext.root.userData.fillMat.color.getHexString()).toBe(hex(NOVEL2_DAMAGE_TELEGRAPH_FILL.color))
+    expect(ext.radius).toBeCloseTo(E106_CAVALRY.coneRadius, 2)
+    expect(miniPoseStyleFor('horse', pool, rider.index, runtime)).toBe('rider')
+    const out = createMiniPose()
+    const windup = Array.from(fillMiniZombiePose(out, 'rider', 'warn', 0.5))
+    const swipe = Array.from(fillMiniZombiePose(out, 'rider', 'charge', 0.5))
+    expect(windup[12]).toBeLessThan(-2.6) // 오른팔을 머리 위로 높이(위 카메라에서 모자 위로 손이 보인다)
+    expect(swipe[12]).toBeGreaterThan(-2); expect(swipe[14]).toBeGreaterThan(0.5) // 앞으로 내려 반대쪽(안쪽)으로 휘두름
+    expect(Math.sign(windup[7])).not.toBe(Math.sign(swipe[7])) // 몸통 비틀기 방향이 바뀐다
+    expect(windup[MINI_POSE_LIFT]).toBeCloseTo(MINI_RIDER_LIFT, 6)
+    void runtime
   })
 })

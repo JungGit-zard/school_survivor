@@ -25,7 +25,7 @@ import { NOVEL2_FIRST_TYPE_CODE, NOVEL2_LAST_TYPE_CODE, NOVEL2_ROWS, novel2IdFro
 import { MINI_MODEL_HEIGHT, MINI_ZOMBIE_VISUALS, miniBodyWorldScale, miniDefaultVariantIndex } from '../lib/miniZombieRoster.js'
 import { getMiniZombieAssets } from '../lib/miniZombieGeometry.js'
 import { MINI_POSE_BOB, MINI_POSE_LIFT, MINI_POSE_OFFSET, MINI_POSE_PROP_LIFT, MINI_POSE_PROP_SPIN, MINI_POSE_ROOT_ROLL, MINI_POSE_ROOT_YAW, createMiniPose, fillMiniZombiePose } from '../lib/miniZombiePose.js'
-import { miniInstanceTintInto, miniPoseStyleFor } from '../lib/novelZombie2Wave3Visuals.js'
+import { createMiniBodyTransform, createMochiDrawMemory, miniBodyTransformInto, miniInstanceTintInto, miniPoseStyleFor, novel2ReducedMotion } from '../lib/novelZombie2Wave3Visuals.js'
 import { phase as pooledPhase } from './ZombieInstanceLayer.jsx'
 import { ENEMY_RENDER_CULLED, ENEMY_VISUAL_WORLD_SCALE, POOLED_ENEMY_CAPACITY, SPAWN_REVEAL_MS, getPooledEnemyAnimationTime, getPooledEnemyRenderTier } from './PooledEnemyVisuals.js'
 
@@ -98,6 +98,7 @@ const base = new THREE.Matrix4(); const fit = new THREE.Matrix4(); const torsoMa
 const tmp = new THREE.Matrix4(); const rot = new THREE.Matrix4(); const euler = new THREE.Euler(0, 0, 0, 'XYZ')
 const pos = new THREE.Vector3(); const quat = new THREE.Quaternion(); const scl = new THREE.Vector3(); const color = new THREE.Color()
 const tint = new Float32Array(3)
+const headMat = new THREE.Matrix4(); const stretch = new THREE.Matrix4()
 fit.makeTranslation(0, MINI_MODEL_FOOT_Y, 0).multiply(new THREE.Matrix4().makeScale(MINI_MODEL_FIT, MINI_MODEL_FIT, MINI_MODEL_FIT))
 
 function composePart(out, parent, part, pose) {
@@ -133,8 +134,10 @@ export function pickMiniVariant(pool, index, visualId, count, runtime = enemySim
  * @param resetKey     판 재시작 키(GameCanvas gameKey)
  * @param pickVariant  (pool, index, visualId, variantCount) => 몸 번호. 생략하면 pickMiniVariant(E105는 행동 런타임 짝 정보,
  *                     나머지는 짝·홀/4슬롯 규칙). 개체(슬롯·세대)마다 처음 고른 몸을 끝까지 쓴다.
- *                     E105 2인3각은 behavior의 partner 정보(index < partner ? 0 : 1)로, E106은 기수/말 역할로 바꿔 끼운다.
- * @param propScale    (hook, pool, index) => 배율(0 = 숨김). 'bagScale'(E90 캐리어가 책마다 +8%), 'ballHeld'(E104 큰 공을 들고 있음).
+ *                     E105 2인3각은 behavior의 partner 정보(index < partner ? 0 : 1)로 바꿔 끼운다. E106 기마전은 네 몸이 한 변형이고
+ *                     역할(기수/말)은 포즈 문법(miniPoseStyleFor)과 모자 hook(riderCap)으로만 갈린다.
+ * @param propScale    (hook, pool, index) => 배율(0 = 숨김). 'bagScale'(E90 캐리어가 책마다 +8%), 'ballHeld'(E104 큰 공을 들고 있음),
+ *                     'riderCap'(E106 기수 모자 — 말이면 0).
  */
 function MiniZombieLayerInner({ resetKey, pickVariant, propScale = DEFAULT_PROP_SCALE }) {
   const gltf = useGLTF(MINI_ZOMBIES_URL, false, true)
@@ -142,6 +145,9 @@ function MiniZombieLayerInner({ resetKey, pickVariant, propScale = DEFAULT_PROP_
   // 개체마다 처음 그릴 때 고른 몸을 (슬롯, 세대)로 기억한다 — 짝이 죽어 짝 정보가 사라져도 몸이 바뀌지 않는다.
   const chosen = useRef({ variant: new Int8Array(POOLED_ENEMY_CAPACITY).fill(-1), generation: new Int32Array(POOLED_ENEMY_CAPACITY).fill(-1) })
   const pose = useRef(createMiniPose())
+  // wave 3 둘째 묶음: E100 찹쌀떡 몸 변형(웅크림·도약 포물선·매달림·퍼짐)과 떨어지는 순간 미끄러지기용 기억.
+  const bodyXf = useRef(createMiniBodyTransform())
+  const xfCtx = useRef({ playerX: 0, playerZ: 0, clockSec: 0, reduced: false, memory: createMochiDrawMemory(POOLED_ENEMY_CAPACITY) })
   const state = useMemo(() => {
     const assets = getMiniZombieAssets(gltf?.scene, createOutlineGeometry)
     const atlas = assets?.map ?? null
@@ -174,6 +180,7 @@ function MiniZombieLayerInner({ resetKey, pickVariant, propScale = DEFAULT_PROP_
     }
     tiers.current.fill(0)
     chosen.current.variant.fill(-1); chosen.current.generation.fill(-1)
+    xfCtx.current.memory.generation.fill(-1)
   }, [state, resetKey])
 
   function getSet(visualId, variantIndex) {
@@ -200,6 +207,8 @@ function MiniZombieLayerInner({ resetKey, pickVariant, propScale = DEFAULT_PROP_
     if (pool) {
       const max = Math.min(POOLED_ENEMY_CAPACITY - 1, Number.isInteger(pool.highestActive) ? pool.highestActive : POOLED_ENEMY_CAPACITY - 1)
       const out = pose.current
+      const ctx = xfCtx.current
+      ctx.playerX = playerPos.x; ctx.playerZ = playerPos.z; ctx.clockSec = miniBehaviorClockSec(); ctx.reduced = novel2ReducedMotion()
       for (let i = 0; i <= max; i += 1) {
         if (pool.active[i] !== 1) { tiers.current[i] = 0; continue }
         const visualId = VISUAL_BY_CODE[pool.type[i]]
@@ -228,12 +237,19 @@ function MiniZombieLayerInner({ resetKey, pickVariant, propScale = DEFAULT_PROP_
         fillMiniZombiePose(out, miniPoseStyleFor(set.style, pool, i, enemySimulationRuntime), posePhase, time, set.fast, (i * 0.6180339887) % 1)
         const poolScale = (pool.visualScale[i] || 1) * ENEMY_VISUAL_WORLD_SCALE
         const scale = miniBodyWorldScale(visual, poolScale)
+        // wave 3 둘째 묶음: 몸 변형(E100 찹쌀떡만 — 그릴 자리·방향·높이·발 기준 비균일 배율). 나머지 종은 active=false.
+        const xf = miniBodyTransformInto(bodyXf.current, pool, i, enemySimulationRuntime, ctx)
         // 몸 크기를 월드 가로로 고정한 종(미믹)도 발 높이는 pool 배율 기준 그대로 둔다(바닥에 붙어 있게).
-        pos.set(pool.posX[i], pool.posY[i] + out[MINI_POSE_BOB] * scale + MINI_MODEL_FOOT_Y * (poolScale - scale), pool.posZ[i])
-        euler.set(0, pool.yaw[i] + out[MINI_POSE_ROOT_YAW], 0); quat.setFromEuler(euler); scl.set(scale, scale, scale)
+        pos.set(xf.active ? xf.x : pool.posX[i], pool.posY[i] + out[MINI_POSE_BOB] * scale + MINI_MODEL_FOOT_Y * (poolScale - scale) + (xf.active ? xf.lift : 0), xf.active ? xf.z : pool.posZ[i])
+        euler.set(0, (xf.active ? xf.yaw : pool.yaw[i]) + out[MINI_POSE_ROOT_YAW], 0); quat.setFromEuler(euler); scl.set(scale, scale, scale)
         base.compose(pos, quat, scl)
         if (out[MINI_POSE_ROOT_ROLL]) base.multiply(rot.makeRotationZ(out[MINI_POSE_ROOT_ROLL]))
         base.multiply(fit)
+        if (xf.active && (xf.uniform !== 1 || xf.sx !== 1 || xf.sy !== 1 || xf.sz !== 1)) {
+          // 발(Kenney y 0)과 몸 앞(pivotZ)을 기준으로 누르고 늘린다 — 매달린 떡은 로사리에 붙은 앞면이 그대로고 뒤로 늘어난다.
+          const u = xf.uniform
+          base.multiply(tmp.makeTranslation(0, 0, xf.pivotZ)).multiply(stretch.makeScale(xf.sx * u, xf.sy * u, xf.sz * u)).multiply(tmp.makeTranslation(0, 0, -xf.pivotZ))
+        }
         if (out[MINI_POSE_LIFT]) base.multiply(tmp.makeTranslation(0, out[MINI_POSE_LIFT], 0))
         const flashing = pool.hitFlashTimer[i] > 0
         color.setRGB(flashing ? FLASH_GAIN : 1, flashing ? FLASH_GAIN : 1, flashing ? FLASH_GAIN : 1)
@@ -245,15 +261,18 @@ function MiniZombieLayerInner({ resetKey, pickVariant, propScale = DEFAULT_PROP_
           if (k === set.torsoIndex) partMat.copy(torsoMat)
           else composePart(partMat, entry.part.parentIsTorso ? torsoMat : base, entry.part, out)
           entry.body.setMatrixAt(slot, partMat); entry.outline.setMatrixAt(slot, partMat); entry.body.setColorAt(slot, color)
+          if (entry.part.key === 'head') headMat.copy(partMat)
         }
         for (const entry of set.loose) {
           const { item } = entry
+          // part 'head' 소품(E106 기수 모자)은 머리 행렬에 붙는다 — 고개·상체를 돌려도 머리에 붙어 있다.
+          const parent = item.part === 'head' ? headMat : base
           const hookScale = item.spec.hook ? propScale(item.spec.hook, pool, i) : 1
           const worldPerModel = scale * MINI_MODEL_FIT
           const s = (item.spec.worldSize ? item.spec.worldSize / (item.maxDimension * worldPerModel) : 1) * hookScale
           const o = item.spec.offset ?? [0, 0, 0]
           const k = item.spec.worldSize ? 1 / worldPerModel : 1
-          partMat.copy(base).multiply(tmp.makeTranslation(item.anchor[0] + o[0] * k, item.anchor[1] + o[1] * k + (item.spec.lift ? out[MINI_POSE_PROP_LIFT] : 0), item.anchor[2] + o[2] * k))
+          partMat.copy(parent).multiply(tmp.makeTranslation(item.anchor[0] + o[0] * k, item.anchor[1] + o[1] * k + (item.spec.lift ? out[MINI_POSE_PROP_LIFT] : 0), item.anchor[2] + o[2] * k))
           if (item.spec.spin) partMat.multiply(rot.makeRotationX(out[MINI_POSE_PROP_SPIN]))
           partMat.multiply(tmp.makeScale(s, s, s))
           entry.body.setMatrixAt(slot, s > 0 ? partMat : ZERO); entry.outline.setMatrixAt(slot, s > 0 ? partMat : ZERO); entry.body.setColorAt(slot, color)

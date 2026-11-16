@@ -157,11 +157,15 @@ describe('2차 좀비 포즈', () => {
     }
   })
 
-  it('종 고유 신호: 미믹 뚜껑이 공격에 열리고, 의자는 예고에 돌고, 드리블 공은 예고에 더 높고, 기수는 떠 있다', () => {
+  it('종 고유 신호: 미믹 뚜껑이 공격에 열리고, 의자는 예고에 팔로 붙잡고, 드리블 공은 예고에 더 높고, 기수는 떠 있다', () => {
     const out = createMiniPose()
     expect(fillMiniZombiePose(out, 'mimic', 'charge', 1)[15]).toBeLessThan(-0.8)
     expect(fillMiniZombiePose(out, 'mimic', 'normal', 1.5)[15]).toBe(0)
-    expect(Math.abs(fillMiniZombiePose(out, 'swivel', 'warn', 1)[MINI_POSE_ROOT_YAW])).toBeGreaterThan(1)
+    // 2026-11-17: 의자 회전 예고의 빙글은 behavior pool.yaw(두 바퀴 돌고 고정 방향에 멈춤)가 한다 — 포즈가 몸을 따로 돌리면
+    // 멈춘 방향이 빨간 선과 어긋난다. 포즈는 두 팔을 옆으로 벌려 의자를 붙잡는다.
+    const spin = fillMiniZombiePose(out, 'swivel', 'warn', 1)
+    expect(spin[MINI_POSE_ROOT_YAW]).toBe(0)
+    expect(spin[11]).toBeGreaterThan(0.8); expect(spin[14]).toBeLessThan(-0.8)
     const high = fillMiniZombiePose(out, 'dribble', 'warn', 0.25)[MINI_POSE_PROP_LIFT]
     expect(high).toBeGreaterThan(fillMiniZombiePose(out, 'dribble', 'normal', 0.25)[MINI_POSE_PROP_LIFT])
     expect(fillMiniZombiePose(out, 'rider', 'normal', 1)[MINI_POSE_LIFT]).toBeGreaterThan(0.1)

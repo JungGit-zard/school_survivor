@@ -25,18 +25,32 @@ export const MINI_HEAD_LIFT = 0.3
 // E91 미믹 깡충(초·좀비 로컬 높이). cycle·move는 lib/novelZombie2Behavior.js E91_MIMIC.hopCycleMs/hopMoveMs와 같아야 한다(테스트가 본다).
 // 높이 0.32 = 미믹 몸 두께(로컬 ≈ 0.24)보다 조금 높게 — 월드 ≈ 0.12u.
 export const MINI_MIMIC_HOP = Object.freeze({ cycle: 0.5, move: 0.3, height: 0.32 })
+// E106 기마전 기수가 말 위에서 들리는 높이(Kenney 단위, MINI_POSE_LIFT). 엮은 팔(Wave3bMotionLayer)이 같은 값으로 앉은 높이를 잡는다.
+export const MINI_RIDER_LIFT = 0.3
+// 낙마한 기수가 바닥에 주저앉을 때 몸을 내리는 높이(몸 로컬 단위 = Kenney × 맞춤 1.69/0.671 — MINI_POSE_BOB과 같은 단위). 다리 길이만큼.
+const SIT_DROP = -0.43
 
 // 블록 좀비 포즈에 이미 있는 문법은 그대로 넘긴다.
 const BLOCKY_STYLES = new Set(['punch', 'kick', 'slam', 'charge', 'tumble', 'throw', 'shoot', 'fan', 'whistle', 'cast', 'blink'])
 export const MINI_POSE_STYLES = Object.freeze([
   'command', 'carry', 'mimic', 'whistle', 'stalk', 'mop', 'rope', 'dribble', 'vault', 'eat', 'rattle', 'cling',
   'copier', 'swivel', 'serve', 'roll', 'threeLegged', 'rider', 'horse', 'copierScan',
+  // wave 3 둘째 묶음(2026-11-17): 행동 상태로 바꿔 끼우는 문법(novelZombie2Wave3Visuals miniPoseStyleFor)
+  'clingHold', 'clingSplat', 'riderDown', 'horseFront', 'horseLoose',
 ])
 
 const LEG_L = 0; const LEG_R = 3; const TORSO = 6; const ARM_L = 9; const ARM_R = 12; const HEAD = 15
 function set(out, part, x, y, z) { out[part] = x; out[part + 1] = y; out[part + 2] = z }
 
 export function createMiniPose() { return new Float32Array(MINI_POSE_SIZE) }
+
+// 찹쌀떡 퍼짐: 팔다리를 대자로 벌리고(옆으로 수평) 고개를 들어 얼굴이 보이게, 가끔 꿈틀.
+function fillSplat(out, t) {
+  set(out, TORSO, 0, 0, 0); set(out, HEAD, -0.25, 0, 0)
+  set(out, ARM_L, 0.1, 0, 1.25 + Math.sin(t * 4) * 0.08); set(out, ARM_R, 0.1, 0, -1.25 - Math.sin(t * 4) * 0.08)
+  set(out, LEG_L, -0.2, 0, 0.5); set(out, LEG_R, -0.2, 0, -0.5)
+  out[MINI_POSE_BOB] = 0; out[MINI_POSE_ROOT_ROLL] = 0
+}
 
 /**
  * @param out    createMiniPose()
@@ -128,9 +142,20 @@ export function fillMiniZombiePose(out, style, phase, time, fast = false, seed =
     case 'rattle': // 압력밥솥: 예고(김 새는 경고) = 몸이 덜덜, 공격 상태도 같은 떨림
       if (warn || charge) { out[MINI_POSE_ROOT_ROLL] = Math.sin(t * 46) * 0.07; set(out, HEAD, 0.1 + Math.sin(t * 38) * 0.08, Math.sin(t * 29) * 0.1, 0); set(out, ARM_L, -0.6, 0, 0.5); set(out, ARM_R, -0.6, 0, -0.5) }
       break
-    case 'cling': // 찹쌀떡: 예고 = 웅크림, 공격 = 두 팔 벌려 덮치기
-      if (warn) { set(out, TORSO, 0.65, 0, 0); set(out, ARM_L, 0.4, 0, 0); set(out, ARM_R, 0.4, 0, 0); set(out, LEG_L, -0.3, 0, 0); set(out, LEG_R, 0.3, 0, 0); out[MINI_POSE_BOB] = -0.05 }
-      else if (charge) { set(out, TORSO, 0.3, 0, 0); set(out, ARM_L, -2.3, 0, 0.6); set(out, ARM_R, -2.3, 0, -0.6); set(out, LEG_L, 0.6, 0, 0); set(out, LEG_R, 0.6, 0, 0); out[MINI_POSE_BOB] = 0.1 }
+    case 'cling': // 찹쌀떡(2026-11-17): 예고 = 웅크림(몸 납작 배율은 miniBodyTransformInto), 공격(도약) = 두 팔 벌려 덮치기,
+      // 회복·기절 = 바닥에 퍼짐(매달림·퍼짐은 행동 단계로 'clingHold'·'clingSplat'이 대신 그린다).
+      if (warn) { set(out, TORSO, 0.72, 0, 0); set(out, HEAD, -0.15, 0, 0); set(out, ARM_L, 0.55, 0, 0.35); set(out, ARM_R, 0.55, 0, -0.35); set(out, LEG_L, -0.55, 0, 0.2); set(out, LEG_R, -0.55, 0, -0.2); out[MINI_POSE_BOB] = -0.08 }
+      else if (charge) { set(out, TORSO, -0.15, 0, 0); set(out, HEAD, -0.2, 0, 0); set(out, ARM_L, -2.4, 0, 0.75); set(out, ARM_R, -2.4, 0, -0.75); set(out, LEG_L, 0.7, 0, 0.15); set(out, LEG_R, 0.7, 0, -0.15); out[MINI_POSE_BOB] = 0 }
+      else if (stun) fillSplat(out, t)
+      break
+    case 'clingHold': // 찹쌀떡 매달림: 두 팔로 로사리를 감싸 안고(앞으로 모음), 다리는 뒤로 늘어져 버둥거린다
+      set(out, TORSO, 0.32, 0, 0); set(out, HEAD, 0.05, 0, Math.sin(t * 5) * 0.08)
+      set(out, ARM_L, -1.55, 0, -0.6); set(out, ARM_R, -1.55, 0, 0.6)
+      set(out, LEG_L, 0.55 + Math.sin(t * 9) * 0.3, 0, 0.12); set(out, LEG_R, 0.55 - Math.sin(t * 9) * 0.3, 0, -0.12)
+      out[MINI_POSE_BOB] = 0; out[MINI_POSE_ROOT_ROLL] = 0
+      break
+    case 'clingSplat': // 찹쌀떡 빗나감·떨어짐: 바닥에 철퍽(몸 납작 배율은 miniBodyTransformInto) — 팔다리를 대자로 벌린다
+      fillSplat(out, t)
       break
     case 'copier': // 복사기: 두 손을 상자 앞에 모은 자세로 걷고, 예고·공격은 부채꼴 휘두르기(블록 'fan' 문법)
       if (!warn && !charge && !stun) { set(out, ARM_L, -1.25, 0, -0.35); set(out, ARM_R, -1.25, 0, 0.35) }
@@ -153,13 +178,22 @@ export function fillMiniZombiePose(out, style, phase, time, fast = false, seed =
         set(out, HEAD, 0.12, Math.sin(t * 5.2) * 0.38, 0); out[MINI_POSE_ROOT_ROLL] = Math.sin(t * 50) * 0.018; out[MINI_POSE_BOB] = 0
       } else { set(out, ARM_L, -1.25, 0, -0.35); set(out, ARM_R, -1.25, 0, 0.35) }
       break
-    case 'swivel': // 회전의자: 앉아 있다(다리 앞으로). 예고 = 제자리 빙글, 공격(활주) = 뒤로 젖혀 팔 벌림, 회복(표류) = 허우적
+    case 'swivel': // 회전의자: 사무용 의자(바퀴 5개)에 앉아 있다(다리 앞으로). 2026-11-17 wave 3 둘째 묶음:
+      // 예고 0.9초 = 두 팔을 옆으로 벌려 의자를 붙잡고 다리를 접는다 — 회전은 behavior pool.yaw(두 바퀴 돌고 고정 방향에 멈춤) 그대로,
+      // 포즈는 몸을 따로 돌리지 않는다(그래야 멈춘 방향 = 빨간 선 방향). 공격(활주) = 등받이에 뒤로 젖혀 두 팔을 위로 "야호",
+      // 회복(표류) = 미끄러지며 허우적·꼬리 흔들림.
       set(out, LEG_L, -1.45, 0, 0.05); set(out, LEG_R, -1.45, 0, -0.05); set(out, TORSO, -0.08, 0, 0)
       set(out, ARM_L, -0.95, 0, -0.2); set(out, ARM_R, -0.95, 0, 0.2)
-      out[MINI_POSE_BOB] = 0; out[MINI_POSE_ROOT_ROLL] = 0
-      if (warn) out[MINI_POSE_ROOT_YAW] = t * 11
-      else if (charge) { set(out, TORSO, -0.28, 0, 0); set(out, HEAD, -0.2, 0, 0); set(out, ARM_L, -0.6, 0, 0.9); set(out, ARM_R, -0.6, 0, -0.9) }
-      else if (stun) { set(out, ARM_L, -1.2 + Math.sin(t * 12) * 0.5, 0, 0.4); set(out, ARM_R, -1.2 - Math.sin(t * 12) * 0.5, 0, -0.4); out[MINI_POSE_ROOT_YAW] = Math.sin(t * 2) * 0.4 }
+      out[MINI_POSE_BOB] = 0; out[MINI_POSE_ROOT_ROLL] = 0; out[MINI_POSE_LIFT] = 0.05 // 1.45배 의자 좌석 높이(표 loose offset y −0.05로 의자는 바닥)
+      if (warn) { set(out, TORSO, -0.14, 0, 0); set(out, HEAD, -0.12, 0, 0); set(out, ARM_L, -0.55, 0, 1.05); set(out, ARM_R, -0.55, 0, -1.05); set(out, LEG_L, -1.75, 0, 0.12); set(out, LEG_R, -1.75, 0, -0.12) }
+      else if (charge) {
+        set(out, TORSO, -0.42, 0, Math.sin(t * 6) * 0.04); set(out, HEAD, -0.28, 0, 0)
+        set(out, ARM_L, -2.55, 0, 0.75); set(out, ARM_R, -2.55, 0, -0.75); set(out, LEG_L, -1.6, 0, 0.28); set(out, LEG_R, -1.6, 0, -0.28)
+      } else if (stun) {
+        set(out, TORSO, -0.2, 0, Math.sin(t * 7) * 0.1)
+        set(out, ARM_L, -1.3 + Math.sin(t * 12) * 0.6, 0, 0.55); set(out, ARM_R, -1.3 - Math.sin(t * 12) * 0.6, 0, -0.55)
+        out[MINI_POSE_ROOT_YAW] = Math.sin(t * 2.4) * 0.25
+      }
       break
     case 'serve': // 커피 셔틀: 오른손에 커피포트. 예고·공격 = 아군에게 따르기
       set(out, ARM_R, -0.85, 0, 0.1)
@@ -184,14 +218,41 @@ export function fillMiniZombiePose(out, style, phase, time, fast = false, seed =
       if (stun) { out[MINI_POSE_ROOT_ROLL] = 1.25; set(out, LEG_L, -0.4, 0, 0); set(out, LEG_R, 0.3, 0, 0) }
       break
     }
-    case 'rider': // 기마전 기수: 말 위에 앉아(다리 앞으로·몸 띄움) 모자를 노린다. 예고 = 팔 치켜들기, 공격 = 휘둘러 낚아채기
-      set(out, LEG_L, -1.2, 0, -0.2); set(out, LEG_R, -1.2, 0, 0.2); out[MINI_POSE_LIFT] = 0.16; out[MINI_POSE_BOB] *= 0.5
-      if (warn) { set(out, ARM_R, -2.7, 0, -0.3); set(out, TORSO, -0.1, -0.3, 0) }
-      else if (charge) { set(out, ARM_R, -1.4, 0, -0.9); set(out, TORSO, 0.2, 0.4, -0.1) }
+    case 'rider': // 기마전 기수(말 위): 말 셋의 엮은 팔 위에 앉는다(다리를 벌려 앞으로·MINI_RIDER_LIFT만큼 들림). 왼손은 앞 말 어깨를 짚는다.
+      // 예고 0.9초(빨간 부채꼴) = 오른팔을 옆뒤로 크게 젖히고 몸을 비튼다, 공격 0.15초 = 반대쪽으로 휘둘러 낚아챈다, 회복 0.5초 = 휘두른 뒤 자세.
+      set(out, LEG_L, -1.25, 0, 0.35); set(out, LEG_R, -1.25, 0, -0.35); out[MINI_POSE_LIFT] = MINI_RIDER_LIFT; out[MINI_POSE_BOB] *= 0.4
+      out[MINI_POSE_ROOT_ROLL] *= 0.4
+      set(out, TORSO, 0.05, 0, out[TORSO + 2] * 0.4); set(out, ARM_L, -1.3, 0, -0.25); set(out, ARM_R, -1.9, 0, 0.15)
+      // 예고: 오른팔을 머리 위로 높이 치켜들어 뒤로 젖힌다(위 카메라에서 모자 위로 손이 보인다) + 몸통을 오른쪽으로 비튼다.
+      if (warn) { set(out, ARM_R, -2.95 + Math.sin(t * 9) * 0.08, 0, -0.55); set(out, TORSO, -0.12, -0.5, 0.06); set(out, HEAD, 0, 0.35, 0); set(out, ARM_L, -1.1, 0, 0.2) }
+      else if (charge) { set(out, ARM_R, -1.6, 0, 1.1); set(out, TORSO, 0.2, 0.6, -0.1); set(out, HEAD, 0.05, -0.2, 0); set(out, ARM_L, -0.9, 0, 0.6) }
+      else if (stun) { set(out, ARM_R, -1.3, 0, 1.2); set(out, TORSO, 0.15, 0.45, 0); set(out, ARM_L, -1.1, 0, 0.3) }
       break
-    case 'horse': // 기마전 말: 두 팔을 앞으로 받쳐 기수를 든 자세로 걷는다
-      set(out, ARM_L, -1.5, 0, -0.35); set(out, ARM_R, -1.5, 0, 0.35); set(out, TORSO, 0.28, out[TORSO + 1] * 0.5, 0)
-      if (charge) set(out, TORSO, 0.45, 0, 0)
+    case 'riderDown': // 낙마한 기수: 기절 1초 = 바닥에 주저앉아 어질어질, 그 뒤 = 맨발로 달린다(빠른 좀비 걸음 그대로)
+      if (stun) {
+        set(out, LEG_L, -1.5, 0, 0.3); set(out, LEG_R, -1.5, 0, -0.3); set(out, TORSO, -0.12, 0, Math.sin(t * 5) * 0.12)
+        set(out, HEAD, 0.1, 0, Math.sin(t * 6) * 0.22); set(out, ARM_L, -0.2, 0, 0.7); set(out, ARM_R, -0.2, 0, -0.7)
+        out[MINI_POSE_BOB] = SIT_DROP; out[MINI_POSE_ROOT_ROLL] = 0
+      }
+      break
+    case 'horse': // 기마전 뒤 말(왼뒤·오른뒤): 두 팔을 앞·안쪽으로 내밀어 기수를 받친다(엮은 팔은 Wave3bMotionLayer).
+      // 예고·공격 = 버티기(무릎을 굽혀 낮추고 팔을 들어 올린다), 회복 = 조금 풀린 버티기.
+      set(out, ARM_L, -1.45, 0, -0.45); set(out, ARM_R, -1.45, 0, 0.45); set(out, TORSO, 0.28, out[TORSO + 1] * 0.5, 0)
+      if (warn || charge) { set(out, TORSO, 0.38, 0, charge ? Math.sin(t * 40) * 0.05 : 0); set(out, ARM_L, -1.8, 0, -0.5); set(out, ARM_R, -1.8, 0, 0.5); set(out, LEG_L, -0.3, 0, 0.18); set(out, LEG_R, -0.3, 0, -0.18); out[MINI_POSE_BOB] = -0.06 }
+      else if (stun) { set(out, TORSO, 0.32, 0, 0); set(out, ARM_L, -1.6, 0, -0.45); set(out, ARM_R, -1.6, 0, 0.45); set(out, LEG_L, -0.15, 0, 0.1); set(out, LEG_R, -0.15, 0, -0.1); out[MINI_POSE_BOB] = -0.03 }
+      break
+    case 'horseFront': // 기마전 앞 말: 기수가 뒤에 있으니 두 팔을 뒤로 돌려 기수 다리를 받친다(X 양수 = 뒤로).
+      set(out, ARM_L, 0.85, 0, 0.3); set(out, ARM_R, 0.85, 0, -0.3); set(out, TORSO, 0.3, out[TORSO + 1] * 0.5, 0)
+      if (warn || charge) { set(out, TORSO, 0.42, 0, charge ? Math.sin(t * 40) * 0.05 : 0); set(out, ARM_L, 1.05, 0, 0.35); set(out, ARM_R, 1.05, 0, -0.35); set(out, LEG_L, -0.3, 0, 0.18); set(out, LEG_R, -0.3, 0, -0.18); out[MINI_POSE_BOB] = -0.06 }
+      else if (stun) { set(out, TORSO, 0.34, 0, 0); set(out, LEG_L, -0.15, 0, 0.1); set(out, LEG_R, -0.15, 0, -0.1); out[MINI_POSE_BOB] = -0.03 }
+      break
+    case 'horseLoose': // 흩어진 말: 휘청(기절 0.8초) = 어지러워 좌우로 비틀·팔 허우적, 그 뒤 = 보통 좀비 걸음(E19처럼 추격)
+      if (stun) {
+        const sway = Math.sin(t * 7)
+        out[MINI_POSE_ROOT_ROLL] = sway * 0.2; set(out, TORSO, 0.2, sway * 0.3, 0); set(out, HEAD, 0.15, 0, -sway * 0.3)
+        set(out, ARM_L, -0.6 + Math.sin(t * 11) * 0.6, 0, 0.9); set(out, ARM_R, -0.6 - Math.sin(t * 11) * 0.6, 0, -0.9)
+        set(out, LEG_L, sway * 0.3, 0, 0.15); set(out, LEG_R, -sway * 0.3, 0, -0.15)
+      }
       break
     default:
       break
