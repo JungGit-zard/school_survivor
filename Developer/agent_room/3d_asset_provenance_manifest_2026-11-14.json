@@ -123,6 +123,99 @@
         "whistle"
       ],
       "attribution": "Kenney, www.kenney.nl (optional under CC0)"
+    },
+    {
+      "logicalId": "schoolyardDressingStage6",
+      "category": "stageProps",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/src/assets/models/schoolyard/schoolyard_dressing.glb",
+          "bytes": 155536,
+          "sha256": "ab11ed2bdba6b7261db33d3f7abcb30d82e845ca6b52f49cc10742993f4e6790"
+        },
+        {
+          "path": "Developer/r3f_prototype/src/assets/models/schoolyard/PROVENANCE.json",
+          "bytes": 19363,
+          "sha256": "7cfa6cd2f16a76b968a0835e9c2567271729a7f0e2ac3c67a26f111085ee2e9a"
+        },
+        {
+          "path": "Developer/r3f_prototype/src/assets/models/schoolyard/License.txt",
+          "bytes": 8481,
+          "sha256": "2f8793d1dfbf1361d52f43bce97e130c802ef216b7d8f88e0679c2039a6d1c14"
+        }
+      ],
+      "provenanceType": "third-party-cc0",
+      "source": "Modular Buildings by Kenney (www.kenney.nl), https://kenney.nl/assets/modular-buildings; Racing Kit by Kenney (www.kenney.nl), https://kenney.nl/assets/racing-kit; KayKit Forest Nature Pack 1.0 (FREE) by Kay Lousberg (kaylousberg.com), https://kaylousberg.itch.io/kaykit-forest; KayKit Platformer Pack 1.0 (FREE) by Kay Lousberg (kaylousberg.com), https://kaylousberg.itch.io/kaykit-platformer; KayKit Holiday Bits 1.0 (FREE) by Kay Lousberg (kaylousberg.com), https://kaylousberg.itch.io/holiday-bits; KayKit City Builder Bits 1.0 (FREE) by Kay Lousberg (kaylousberg.com), https://kaylousberg.itch.io/city-builder-bits; KayKit Mini-Game Variety Pack (FREE) by Kay Lousberg (kaylousberg.com), https://kaylousberg.itch.io/kay-kit-mini-game-variety-pack; Tiny Treats - Fun Playground 1.0 (FREE) by Tiny Treats (Isa Lousberg), https://tinytreats.itch.io/fun-playground; Tiny Treats - Pretty Park 1.0 (FREE) by Tiny Treats (Isa Lousberg), https://tinytreats.itch.io/pretty-park (snapshots downloaded 2026-11-17)",
+      "license": "CC0 1.0 Universal (Creative Commons Zero), http://creativecommons.org/publicdomain/zero/1.0/",
+      "licenseEvidence": "Per-pack license text collected in License.txt next to the GLB; per-pack zip sha256 and license snapshot paths in PROVENANCE.json",
+      "snapshotDate": "2026-11-17",
+      "packs": [
+        {
+          "id": "kenney-modular-buildings",
+          "pack": "Modular Buildings",
+          "author": "Kenney (www.kenney.nl)",
+          "url": "https://kenney.nl/assets/modular-buildings",
+          "zipSha256": "47e1614686b4c0fe55190e88b22ff2b8b10935edf61f37f478a9b6a99477edc6"
+        },
+        {
+          "id": "kenney-racing-kit",
+          "pack": "Racing Kit",
+          "author": "Kenney (www.kenney.nl)",
+          "url": "https://kenney.nl/assets/racing-kit",
+          "zipSha256": "8a71ea16219315a01d00d5a90c4f6b5c090faddbc56d80ecf727e2b3b853c6c0"
+        },
+        {
+          "id": "kaykit-forest",
+          "pack": "KayKit Forest Nature Pack 1.0 (FREE)",
+          "author": "Kay Lousberg (kaylousberg.com)",
+          "url": "https://kaylousberg.itch.io/kaykit-forest",
+          "zipSha256": "2ee83e63bb7695f2d884ec27ddf6fce020789a452e7d5c5b0bbdfc4f6ea1fc8c"
+        },
+        {
+          "id": "kaykit-platformer",
+          "pack": "KayKit Platformer Pack 1.0 (FREE)",
+          "author": "Kay Lousberg (kaylousberg.com)",
+          "url": "https://kaylousberg.itch.io/kaykit-platformer",
+          "zipSha256": "7e140ee01abf99a5896cf93a02ff3dc6a23a7222109fd04854821f44a3a3adeb"
+        },
+        {
+          "id": "kaykit-holiday-bits",
+          "pack": "KayKit Holiday Bits 1.0 (FREE)",
+          "author": "Kay Lousberg (kaylousberg.com)",
+          "url": "https://kaylousberg.itch.io/holiday-bits",
+          "zipSha256": "2b72b9209455f7fde90ff0696d1ed1ac80dc49fcb85d246662c6f544741ac49a"
+        },
+        {
+          "id": "kaykit-city-builder-bits",
+          "pack": "KayKit City Builder Bits 1.0 (FREE)",
+          "author": "Kay Lousberg (kaylousberg.com)",
+          "url": "https://kaylousberg.itch.io/city-builder-bits",
+          "zipSha256": "aff444e1d083ddac331be94ea4a7590e5604ef49715ae23df71cd2e9659bd33f"
+        },
+        {
+          "id": "kaykit-mini-game-variety",
+          "pack": "KayKit Mini-Game Variety Pack (FREE)",
+          "author": "Kay Lousberg (kaylousberg.com)",
+          "url": "https://kaylousberg.itch.io/kay-kit-mini-game-variety-pack",
+          "zipSha256": "078d13c02dddec6eebe917c49ec40164dc74b6964756cb4a0ace1aaf84574c9d"
+        },
+        {
+          "id": "tinytreats-fun-playground",
+          "pack": "Tiny Treats - Fun Playground 1.0 (FREE)",
+          "author": "Tiny Treats (Isa Lousberg)",
+          "url": "https://tinytreats.itch.io/fun-playground",
+          "zipSha256": "7031b39f515895eab950cd79b197bc9c0d68106c5738272957075cc664ca3294"
+        },
+        {
+          "id": "tinytreats-pretty-park",
+          "pack": "Tiny Treats - Pretty Park 1.0 (FREE)",
+          "author": "Tiny Treats (Isa Lousberg)",
+          "url": "https://tinytreats.itch.io/pretty-park",
+          "zipSha256": "55c1954ac96ddc76b68e06a58b9780c945ec34440ab03749cca7317bec0591d2"
+        }
+      ],
+      "conversion": "scripts/build_schoolyard_dressing.mjs (see PROVENANCE.json)",
+      "attribution": "Kenney (www.kenney.nl), Kay Lousberg (kaylousberg.com), Tiny Treats / Isa Lousberg (optional under CC0)"
     }
   ]
 }
