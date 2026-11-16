@@ -2718,6 +2718,26 @@
       "source": "scripts/generate_sfx.mjs (procedural WAV synthesis, recipe 'enemies/gagPropClatter'; OGG libvorbis q2 / MP3 64k 44.1kHz mono via --encode with @ffmpeg-installer/ffmpeg)",
       "notes": "2026-11-14 soundmini. 신규 좀비 행동·사망 개그(lib/enemyAbilitySfx.js). 소품 '와르르' 0.32s: 900/1300/700/1100Hz 짧은 타격 4개 + 노이즈 틱. Project procedural SFX asset; no external samples, no third-party or real-world melody copied.",
       "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "gagChomp",
+      "category": "enemies",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/gagChomp.ogg",
+          "bytes": 4518,
+          "sha256": "668edce941fe86549578ccf3a492ab64b01488bb97e7328724bc4dc7404576ee"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/gagChomp.mp3",
+          "bytes": 1506,
+          "sha256": "85416f6ee232eb2892eb459297c544b9fa9f2876fc7f2eff1e38c92c0b50e58e"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis, recipe 'enemies/gagChomp'; OGG libvorbis q2 / MP3 64k 44.1kHz mono via --encode with @ffmpeg-installer/ffmpeg)",
+      "notes": "2026-11-17 soundmini. 신규 좀비 2차 물기(E91 교과서 미믹·E98 대식가, lib/enemyAbilitySfx.js NOVEL2_ABILITY_SFX). 물기 '앙-딱' 0.18s: 260→120Hz 턱 타격 + 900Hz 비조화 이빨 딱 + 노이즈 클릭 2개. Project procedural SFX asset; no external samples, no third-party or real-world audio copied.",
+      "licenseEvidence": "project-generated-procedural"
     }
   ]
 }

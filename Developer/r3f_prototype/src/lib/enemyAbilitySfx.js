@@ -137,6 +137,46 @@ export const EXPANSION_BEHAVIOR_SFX = Object.freeze({
   sidestep: Object.freeze({ active: cue('gagSneakerSqueak', 0.9, 0.34) }),
 })
 
+// 신규 좀비 2차(novel2) 공격형 — 스테이지 1~6에 실제로 나오는 종만(2026-11-17 soundmini).
+// 키 = 종 id → 순간(moment) → 신호. 순간 판정은 lib/novelZombie2Sfx.js(컴포넌트 층, Enemies.jsx가 스텝 직후 1회 호출)가
+// 풀·novel2 런타임 상태의 엣지로 한다. 이 표를 ENEMY_ABILITY_SFX에 넣지 않는다 — 시뮬레이션의 novel2 예고 훅
+// (enemySimulation.js cueEnemyTelegraphSfx)이 같은 순간을 한 번 더 울리게 된다.
+// 소음 예산: 예고는 0.26~0.32(빨간 바닥 표시가 주 경고, 소리는 보조), 판정 순간은 0.32~0.42 — 무기·피격음보다 확실히 아래.
+// 같은 소리 간격(gapMs)·종류 창 예산(ability 4/400ms)·거리 감쇠는 다른 행동 신호와 같은 게이트를 지난다.
+export const NOVEL2_ABILITY_SFX = Object.freeze({
+  // Stage 1 반장(치프): 지휘 원 예고 = 호루라기, 지휘 발령(동결→돌진) = 확성기 '뿌왕'.
+  // 호루라기 음원은 평균 −9.7dB로 개그음(−16dB대)보다 7dB 크다 — 그래서 0.22로 더 낮춘다.
+  E89: Object.freeze({ telegraph: cue('stage2GuardWhistle', 1.15, 0.22, 1500), hit: cue('gagMegaphone', 1.3, 0.34, 600) }),
+  // Stage 1 숙제 걷기 당번: 공격 없음 — 교과서를 가방에 넣는 순간 종이 '착'.
+  E90: Object.freeze({ pickup: cue('gagCardFlick', 0.8, 0.34, 300) }),
+  // Stage 1 교과서 미믹: 예고 '뾰잉'(낮게) → 물기 '앙'.
+  E91: Object.freeze({ telegraph: cue('gagWindup', 0.7, 0.28), hit: cue('gagChomp', 1.15, 0.4) }),
+  // Stage 2 기차놀이 기관사(치프): 예고선 = 기적 '뿌-왕'(확성기 음원 낮게), 돌진 = '휙'.
+  E92: Object.freeze({ telegraph: cue('gagMegaphone', 0.7, 0.32, 600), hit: cue('gagSwoosh', 0.75, 0.36) }),
+  // Stage 3 긴줄넘기 듀오(치프, 두 몸): 줄 들어 올림 '휘리릭' → 내려침 '철썩'. 두 몸이 같은 프레임에 바뀌어도 간격 게이트가 1회로 접는다.
+  E95: Object.freeze({ telegraph: cue('gagRopeWhirr', 0.8, 0.3), hit: cue('gagPaintSplat', 0.75, 0.4) }),
+  // Stage 4 대식가(치프): 입 벌림 → 물기 '앙'(낮게) → 삼킴 '꿀꺽'(먹은 수가 늘 때).
+  E98: Object.freeze({ telegraph: cue('gagWindup', 0.55, 0.3), hit: cue('gagChomp', 0.8, 0.42), gulp: cue('gagPotionBlorp', 0.6, 0.34, 300) }),
+  // Stage 4 찹쌀떡: 웅크림 '쭈왑' → 도약 '휙' → 매달림 '철썩'.
+  E100: Object.freeze({ telegraph: cue('gagSplitSquelch', 1.25, 0.26), leap: cue('gagSwoosh', 1.5, 0.3), cling: cue('gagPaintSplat', 1.3, 0.36) }),
+  // Stage 5 복사기(치프): 스캔 '휘리릭'(높게) → 복사본 등장 '뿅', 부채꼴 예고 '뾰잉' → 종이 뿌리기 '착'.
+  E101: Object.freeze({
+    scan: cue('gagRopeWhirr', 1.6, 0.26), copy: cue('gagBlinkPop', 0.8, 0.32, 300),
+    telegraph: cue('gagWindup', 0.9, 0.28), hit: cue('gagCardFlick', 0.75, 0.38),
+  }),
+  // Stage 5 회전의자: 제자리 회전 가속 '휘리릭'(낮게) → 활주 바퀴 '끽'.
+  E102: Object.freeze({ telegraph: cue('gagRopeWhirr', 0.65, 0.28), glide: cue('gagSneakerSqueak', 0.7, 0.32) }),
+  // Stage 6 공굴리기 대장(치프): 겨눔 '뾰잉' → 공 차기·구름 '퍽' → 공이 멈추거나 좀비를 칠 때 '퍽'(낮게).
+  E104: Object.freeze({ telegraph: cue('gagWindup', 0.6, 0.3), roll: cue('gagBallThwack', 0.75, 0.4), impact: cue('gagBallThwack', 0.55, 0.34) }),
+  // Stage 6 기마전(기수만 — 말 셋은 기수 상태를 따라 하므로 울리지 않는다): 예고 '뾰잉' → 모자 뺏기 '휙'.
+  E106: Object.freeze({ telegraph: cue('gagWindup', 1.2, 0.28), hit: cue('gagSwoosh', 1.3, 0.38) }),
+})
+
+/** novel2 종의 한 순간(lib/novelZombie2Sfx.js가 엣지에서만 부른다). throw하지 않는다. */
+export function cueNovel2AbilitySfx(typeId, moment, x, z, playerX, playerZ) {
+  return play(NOVEL2_ABILITY_SFX[typeId]?.[moment], 'ability', x, z, playerX, playerZ)
+}
+
 export const DEFAULT_SPAWN_SFX = cue('zombieSpawn', 1, 0.3, 180)
 export const AMBIENT_GROAN_SFX = cue('zombieGroan', 1, 0.36, AMBIENT_GROAN_MIN_MS)
 
@@ -273,5 +313,6 @@ export function listEnemyAbilitySfxIds() {
   for (const entry of Object.values(ENEMY_ABILITY_SFX)) for (const c of Object.values(entry)) ids.add(c.id)
   for (const c of Object.values(SHOT_IMPACT_SFX)) ids.add(c.id)
   for (const entry of Object.values(EXPANSION_BEHAVIOR_SFX)) for (const c of Object.values(entry)) ids.add(c.id)
+  for (const entry of Object.values(NOVEL2_ABILITY_SFX)) for (const c of Object.values(entry)) ids.add(c.id)
   return [...ids]
 }

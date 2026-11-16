@@ -13,8 +13,9 @@ import { TITLE_BGM_URL as titleBgmUrl } from './titleBgm.js'
 // 2026-11-14: 103 → 124 (신규 좀비 행동·사망 개그 21종, lib/enemyAbilitySfx.js).
 // 2026-11-14: 124 → 125 (slteraRush — 상어 물기로 바뀐 옛 sharkFire 바이트를 슬테라 등장음으로 이전).
 // 2026-11-15: 125 → 130 (슬테라 코믹 효과음 5종 slteraEngine/Flip/Land/Crash/Boost).
-export const AUDIO_DIAGNOSTIC_SFX_COUNT = 130
-export const AUDIO_DIAGNOSTIC_EXPECTED_COUNT = 131
+// 2026-11-17: 130 → 131 (gagChomp — 신규 좀비 2차 E91·E98 물기).
+export const AUDIO_DIAGNOSTIC_SFX_COUNT = 131
+export const AUDIO_DIAGNOSTIC_EXPECTED_COUNT = 132
 
 // This is intentionally derived from the runtime SFX authority plus the
 // shared title BGM CDN URL. It is not a second audio manifest.

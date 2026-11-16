@@ -1114,6 +1114,14 @@ const sounds = {
       sweptNoise({ dur: 0.015, from: 4500, to: 2500, vol: 0.18, attack: 0.001, release: 0.01 }),
     ), t)),
   ), 0.32), 0.75),
+  // 물기 '앙-딱' 0.18s (2026-11-17 soundmini) — E91 교과서 미믹·E98 대식가. 기존 물기 음원(inuconBite)은 동료 강아지 소리라
+  // 적 물기에 쓰면 오해를 부른다. 턱 몸통(260→120Hz) + 이빨 딱 두 번(노이즈 클릭 + 나무 같은 비조화 타격).
+  'enemies/gagChomp': () => peakTo(trimTo(mix(
+    strike({ freq: 260, freqEnd: 120, dur: 0.13, vol: 0.7, tau: 0.035, partials: [[1, 1], [2, 0.4, 0.5]] }),
+    sweptNoise({ dur: 0.025, from: 3800, to: 1600, vol: 0.35, attack: 0.001, release: 0.02 }),
+    at(strike({ freq: 900, dur: 0.06, vol: 0.4, tau: 0.012, partials: [[1, 1], [2.3, 0.4, 0.6]] }), 0.07),
+    at(sweptNoise({ dur: 0.02, from: 4200, to: 2200, vol: 0.25, attack: 0.001, release: 0.015 }), 0.07),
+  ), 0.18), 0.8),
 }
 
 function encodeDeployPair(wavPath) {

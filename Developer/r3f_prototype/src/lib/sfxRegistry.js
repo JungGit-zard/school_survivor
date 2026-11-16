@@ -136,6 +136,8 @@ export const SOUND_MAP = {
   gagBlinkPop:        '/sfx/enemies/gagBlinkPop.ogg',        // 순간이동 '뿅'
   gagCartonPop:       '/sfx/enemies/gagCartonPop.ogg',       // 우유갑 '펑'
   gagPropClatter:     '/sfx/enemies/gagPropClatter.ogg',     // 소품 '와르르'
+  // 신규 좀비 2차 물기(2026-11-17) — E91 미믹·E98 대식가. 배정은 lib/enemyAbilitySfx.js NOVEL2_ABILITY_SFX.
+  gagChomp:           '/sfx/enemies/gagChomp.ogg',           // 물기 '앙-딱'
 
   // ── UI ───────────────────────────────────────────────────────────────────────
   buttonClick:    '/sfx/ui/buttonClick.ogg',
@@ -426,6 +428,8 @@ export const POLYPHONY_COOLDOWN = Object.freeze({
   gagBlinkPop:      160,
   gagCartonPop:     200,
   gagPropClatter:   240,
+  // 물기 '앙-딱' 0.18s. 미믹·대식가 예고는 1초 안팎이라 연타가 없다 — 같은 프레임 중복과 자기 겹침만 막는다.
+  gagChomp:         200,
 })
 
 const AUTH_OVERLAY_ALLOWED_SFX = new Set([
