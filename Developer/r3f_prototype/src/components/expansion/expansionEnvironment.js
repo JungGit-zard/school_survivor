@@ -279,16 +279,20 @@ function createSchoolyardEnvironment(stageId,art,{halfX,halfZ}) {
  const claim=(x,z,hx,hz)=>bounds.push({minX:x-hx,maxX:x+hx,minZ:z-hz,maxZ:z+hz})
  // track: muted blue-grey urethane (2026-11-17). Picked in the browser with real telegraphs on it: the yellow
  // cue reads at ΔE 26.5 here vs 13.3 on the sand, the red fan/E104 lane at 35.1/33.2 vs 33.5/33.5.
- const C={track:'#6F8496',sandPit:'#CDBB98',line:'#F7F4EA',grass:'#7DBF68',wall:'#EFE3C6',window:'#7FB7D9',door:'#6B4F3A',stone:'#B9B2A6',cap:'#8C8478',podium:'#A7A9AC',wood:'#7A5A3C',steel:'#8C9399',horn:'#E8E8E8',pole:'#C9CDD1',leaf:'#5DAA4F',bars:'#4C7FB8',gate:'#3E6B4E',plate:'#F2E6C9',goal:'#FFFFFF',net:'#DADDE0',netFace:'#C8CDD2',
+ const C={track:'#6F8496',sandPit:'#CDBB98',path:'#CFC7B8',line:'#F7F4EA',grass:'#7DBF68',wall:'#EFE3C6',window:'#7FB7D9',door:'#6B4F3A',stone:'#B9B2A6',cap:'#8C8478',podium:'#A7A9AC',wood:'#7A5A3C',steel:'#8C9399',horn:'#E8E8E8',pole:'#C9CDD1',leaf:'#5DAA4F',bars:'#4C7FB8',gate:'#3E6B4E',plate:'#F2E6C9',goal:'#FFFFFF',net:'#DADDE0',netFace:'#C8CDD2',
   // hand-built props (schoolyardProps.js)
   goalBase:'#C9CDD1',netStrand:'#F4F6F8',rail:'#F7F4EA',woodLight:'#A57A4F',mic:'#2B2B2B',paBox:'#D9D4C7',hornMouth:'#3A3F45',rope:'#FFFDF5',
   gymPost:'#E04B4B',gymX:'#F2C94C',gymZ:'#4C7FB8',seatA:'#2F5FA8',seatB:'#F2C94C'}
 
- // ── Ground: sand slab, grass beyond the side and top edges (flat paint, no hulls) ──
+ // ── Ground: sand slab, grass beyond the side and top edges (flat paint, no hulls). The grass reaches
+ // well past anything the Stage 6 camera end reveal can frame, so no slab edge ever shows. ──
  paint('arena-slab',[halfX*2,.30,halfZ*2],[0,-.17,0],art.floor)
- for(const side of [-1,1])paint('outfield-grass',[4,.30,halfZ*2+4],[side*(halfX+2),-.172,0],C.grass)
- paint('outfield-grass',[halfX*2+8,.30,4],[0,-.172,-halfZ-2],C.grass)
- paint('outfield-grass',[halfX*2+8,.30,4],[0,-.172,halfZ+2],C.grass)
+ for(const side of [-1,1])paint('outfield-grass',[14,.30,halfZ*2+28],[side*(halfX+7),-.172,0],C.grass)
+ paint('outfield-grass',[halfX*2+28,.30,14],[0,-.172,-halfZ-7],C.grass)
+ paint('outfield-grass',[halfX*2+28,.30,14],[0,-.172,halfZ+7],C.grass)
+ // Paved walk out of the main gate (seen past the fence at the bottom end).
+ line('gate-path',[3.4,.012,7],[0,-.0215,halfZ+4.1],C.path)
+ for(const side of [-1,1])line('gate-path-kerb',[.14,.012,7],[side*1.77,-.021,halfZ+4.1],C.line)
 
  // ── Running track: 4 lanes — two straights + two 24-segment half circles, white edge and lane lines ──
  const R=halfX-3,band=2,lanes=4,zc=halfZ-R-1.3,segs=24,arc=rr=>rr*Math.PI/segs*1.08

@@ -27,7 +27,7 @@ import { PUBLISH_INTERVAL_MS, advanceRuntimeTime, getRuntimeElapsedMs } from '..
 import { clampGameplayFrameDelta, createGameplayFixedStepClock, runGameplayFixedSteps } from '../lib/gameplayFrameTime.js'
 import { PLAYER_MESH_WORLD_HALF_WIDTH, PLAYER_MESH_WORLD_HEIGHT } from '../lib/characterVisualScale.js'
 import { EXPANSION_STAGE_VISUALS } from '../lib/expansionVisuals.js'
-import { GAME_CAMERA_BACK, GAME_CAMERA_EDGE_INSET_FRACTION, GAME_CAMERA_HEIGHT, clampGameplayCameraFocus, getGameplayGroundReach, keepPlayerInsideCameraX } from '../lib/gameCameraFraming.js'
+import { GAME_CAMERA_BACK, GAME_CAMERA_EDGE_INSET_FRACTION, GAME_CAMERA_HEIGHT, clampGameplayCameraFocus, getGameplayGroundReach, getStageCameraEndReveal, keepPlayerInsideCameraX } from '../lib/gameCameraFraming.js'
 import {
   PRESSURE_CAULDRON_DAMAGE_RATIO,
   PRESSURE_CAULDRON_EXPLOSION_INTERVAL_MS,
@@ -225,14 +225,19 @@ export default function Game() {
     // 오고 캐릭터가 화면 가로 끝까지 이동 가능. 맵이 시야보다 넓으면 zoom=1(기존 거동 불변).
     // 세로로 긴 스테이지는 이때 세로로 스크롤된다(vfov도 같은 비율로 줄어 세로 빈 바닥은 안 생김).
     const fitZoom = base.reachSideNear > halfX ? base.reachSideNear / halfX : 1
-    if (Math.abs((camera.zoom ?? 1) - fitZoom) > 1e-3) {
-      camera.zoom = fitZoom
-      camera.updateProjectionMatrix()
-    }
     const reachSide = base.reachSideFar / fitZoom
     const reachUp = base.reachUp / fitZoom
     const reachDown = base.reachDown / fitZoom
-    const fz = clampGameplayCameraFocus(playerPos.z, reachUp, reachDown, halfZ)
+    const plainFz = clampGameplayCameraFocus(playerPos.z, reachUp, reachDown, halfZ)
+    // Stage 6 only: near the ends the rendered camera eases out to show the school front / gate (null elsewhere,
+    // so fz === plainFz). Gameplay screenBounds below keep the plain clamp: spawns, tiers, culling unchanged.
+    const endReveal = getStageCameraEndReveal(currentStageId, { fov: camera.fov, fitZoom, focusZ: plainFz, playerZ: playerPos.z })
+    const cameraZoom = endReveal?.zoom ?? fitZoom
+    const fz = endReveal?.focusZ ?? plainFz
+    if (Math.abs((camera.zoom ?? 1) - cameraZoom) > 1e-3) {
+      camera.zoom = cameraZoom
+      camera.updateProjectionMatrix()
+    }
     // Expansion furniture sits outside the collision-safe arena. Clamping the
     // view to the floor hides it even at legal movement edges; follow there.
     const mapFocusX = ['stage6', 'stage7', 'stage8', 'stage9', 'stage10'].includes(currentStageId)
@@ -252,8 +257,8 @@ export default function Game() {
     })
     screenBounds.minX = fx - reachSide
     screenBounds.maxX = fx + reachSide
-    screenBounds.minZ = fz - reachUp
-    screenBounds.maxZ = fz + reachDown
+    screenBounds.minZ = plainFz - reachUp
+    screenBounds.maxZ = plainFz + reachDown
     _camTarget.set(fx, GAME_CAMERA_HEIGHT, fz + GAME_CAMERA_BACK)
     const followAlpha = 1 - Math.pow(0.92, cameraDt * 60)
     camera.position.lerp(_camTarget, followAlpha)
