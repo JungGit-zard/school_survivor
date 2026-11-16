@@ -374,14 +374,15 @@ describe('2차 10종 스폰 배치(스1~5)', () => {
   // 설계 규칙: 2차 10종의 첫 등장은 스1~4다(스5는 해금 전 계정이 많아 첫 조우 지점으로 쓰지 않는다).
   // 2026-11-16 좀비 배치 총검토(Terry 승인 "제안대로 모두 적용", balanceqa 판정표 76건)로 승인된 예외:
   //   - 술래 E70은 스6 운동장 전용(84·216초 작성 행, #47·#65).
-  //   - 교사 소품 E64 분필가루·E68 지구본은 스3 체육관에서 스5 교무실로 옮겨(#32·#36) 첫 등장이 스5다.
-  //   - 사수 순서·컨셉 이동으로 같은 초에 다른 신규 종 첫 등장과 겹치는 네 곳(아래 목록).
+  //   - 사수 순서·컨셉 이동으로 같은 초에 다른 신규 종 첫 등장과 겹치는 네 곳(아래 목록). 스3 184초 E62·E58은 S3 재결정
+  //     (기존 표 유지 + 184초에 E58·E82·E62 추가 — 13개 앵커 안에 30초 간격을 지키는 늦은 자리가 스3에 없다)으로 승인했다.
+  //   - E64·E68은 스3 표(23df529d)에 그대로 남아 첫 등장이 스3이다 — 스5 첫 등장 예외는 없다.
   // 이 목록 밖의 새 위반은 그대로 실패한다.
   const STAGE6_ONLY = ['E70']
-  const APPROVED_STAGE5_DEBUTS_2026_11_16 = ['E64', 'E68']
-  const APPROVED_SAME_SEC_DEBUTS_2026_11_16 = ['E63 stage2 108 E39', 'E65 stage2 120 E49', 'E67 stage2 168 E57', 'E62 stage3 120 E42']
+  const APPROVED_STAGE5_DEBUTS_2026_11_16 = []
+  const APPROVED_SAME_SEC_DEBUTS_2026_11_16 = ['E63 stage2 108 E39', 'E65 stage2 120 E49', 'E67 stage2 168 E57', 'E62 stage3 184 E58']
 
-  it('E70을 뺀 9종은 스1~4(승인 예외 E64·E68은 스5)에 1마리 단독으로 첫 등장하고, 다른 신규 종과 같은 초에 겹치지 않는다(승인 예외 제외)', () => {
+  it('E70을 뺀 9종은 스1~4에 1마리 단독으로 첫 등장하고, 다른 신규 종과 같은 초에 겹치지 않는다(승인 예외 제외)', () => {
     const mine = debuts(IDS)
     expect([...mine.keys()].sort()).toEqual(IDS.filter((id) => !STAGE6_ONLY.includes(id)).sort())
     const others = [...debuts(NOVEL).entries()]
@@ -403,9 +404,9 @@ describe('2차 10종 스폰 배치(스1~5)', () => {
   })
 
   // 소량 배치: 스테이지당 1~3종·3마리 이하가 원칙이다. 2026-11-16 좀비 배치 총검토로 스2(E63·E65 ×2·E67 = 4마리)와
-  // 스5(E66·E64·E68·E65 = 4종·4마리)가 승인 예외가 됐다 — 스테이지별 값을 정확히 못박는다.
+  // 스5(E66·E64·E68·E65 = 4종·4마리)가 승인 예외가 됐다 — 스테이지별 값을 정확히 못박는다. 스3은 E64·E68(기존 표) + E62(184초) 3종·3마리.
   it('스테이지마다 1~2종, 총 배치는 소량(스테이지당 3마리 이하, 2026-11-16 승인 예외 스2·스5)이다', () => {
-    const EXPECTED = { stage1: [1, 2], stage2: [3, 4], stage3: [1, 1], stage4: [2, 2], stage5: [4, 4] }
+    const EXPECTED = { stage1: [1, 2], stage2: [3, 4], stage3: [3, 3], stage4: [2, 2], stage5: [4, 4] }
     for (const stage of STAGES) {
       const rows = getBurstEventsForStage(stage).filter((evt) => IDS.includes(evt.type))
       const types = new Set(rows.map((evt) => evt.type))

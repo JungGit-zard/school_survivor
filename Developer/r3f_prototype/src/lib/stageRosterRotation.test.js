@@ -154,7 +154,7 @@ describe('스테이지 로스터 = 버스트 표에 배분된 신규 종 + 작�
     expect(getStageRotationRoster('stage1')).not.toContain('E04')
     // 2026-11-16: 스2 사수 첫 등장 순서 40 E46 → 72 E47 → 108 E63 → 120 E65 → 144 E51(#21·#23·#24·#20).
     expect(getStageRotationDebuts('stage2')).toMatchObject({ E37: 5, E46: 40, E47: 72, E63: 108, E65: 120, E51: 144 })
-    // 2026-11-16: 스5 E53 5 → 60(#66), E57 24 → 168(#62), E55는 스6으로(#68), E64·E68은 스3에서 받음(#32·#36).
+    // 2026-11-16: 스5 E53 5 → 60(#66), E57 24 → 168(#62), E55는 스6으로(#68), E64·E68을 더함(#32·#36, 스3 표에도 남음).
     expect(getStageRotationDebuts('stage5')).toMatchObject({ E48: 5, E64: 40, E53: 60, E68: 108, E57: 168, E40: 216 })
     expect(getStageRotationDebuts('stage5')).not.toHaveProperty('E55')
   })
