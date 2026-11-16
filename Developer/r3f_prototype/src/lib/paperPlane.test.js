@@ -475,3 +475,23 @@ describe('paper plane visual = the zombie paper plane + a mint outline', () => {
     expect(layer).toContain('outMat: createShotOutlineMaterial(),')
   })
 })
+
+// 2026-11-17 라이브 정지 사고: Float32 반올림 때문에 상한 정리 반복문이 끝나지 않았다(+1대 카드 이후).
+describe('retireExcessPaperPlanes always terminates', () => {
+  it('returns and leaves at most 3 non-fading planes for every 60fps-ish age', async () => {
+    const mod = await import('./paperPlane.js')
+    for (let step = 1; step <= 600; step += 1) {
+      const pool = mod.createPaperPlanePool(8)
+      for (let i = 0; i < 6; i += 1) {
+        const slot = mod.spawnPaperPlane(pool, { x: 0, z: 0, dirX: 1, dirZ: 0, damage: 1 })
+        pool.ageMs[slot] = step * 16.667 + i * 0.001
+      }
+      mod.retireExcessPaperPlanes(pool, 3)
+      let live = 0
+      for (let i = 0; i <= pool.highest; i += 1) {
+        if (pool.active[i] && pool.lifeMs[i] - pool.ageMs[i] > mod.PAPER_PLANE_FADE_MS) live += 1
+      }
+      expect(live).toBeLessThanOrEqual(3)
+    }
+  })
+})

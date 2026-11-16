@@ -292,7 +292,8 @@ export function stepPaperPlanes(pool, delta, deps = DEFAULT_DEPS, onHit = null) 
 // 동시 체류 상한: 아직 사라지는 중이 아닌 비행기가 PAPER_PLANE_MAX_ACTIVE를 넘으면 가장 오래된 것부터
 // 남은 수명을 FADE_MS로 줄여 스르륵 물러나게 한다(뚝 끊지 않는다). 새 비행기는 항상 나간다.
 export function retireExcessPaperPlanes(pool, max = PAPER_PLANE_MAX_ACTIVE) {
-  for (;;) {
+  // 한 바퀴에 한 대씩만 물러나므로 풀 크기만큼만 돈다(무한 반복 금지 — 11-17 라이브 정지 사고).
+  for (let pass = 0; pass <= pool.highest; pass += 1) {
     let live = 0
     let oldest = -1
     for (let i = 0; i <= pool.highest; i += 1) {
@@ -301,7 +302,9 @@ export function retireExcessPaperPlanes(pool, max = PAPER_PLANE_MAX_ACTIVE) {
       if (oldest < 0 || pool.ageMs[i] > pool.ageMs[oldest]) oldest = i
     }
     if (live <= max) return
-    pool.lifeMs[oldest] = pool.ageMs[oldest] + PAPER_PLANE_FADE_MS
+    // lifeMs/ageMs는 Float32Array라 '+ FADE_MS'가 반올림돼 700.0001이 될 수 있다. 1ms 안쪽으로 넣어
+    // 위의 '<= FADE_MS' 검사에 반드시 걸리게 한다.
+    pool.lifeMs[oldest] = pool.ageMs[oldest] + PAPER_PLANE_FADE_MS - 1
   }
 }
 
