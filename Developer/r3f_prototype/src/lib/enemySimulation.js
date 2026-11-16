@@ -893,7 +893,8 @@ export class EnemySimulationRuntime {
 
       // 잠든 E91 미믹(바닥 책)과 예고·돌진 중인 E92 머리는 넉백으로 날아가지 않는다 — 자리가 고정이다.
       // 미믹은 맞으면 이번 걸음에서 깨어난다(그 뒤로는 넉백을 다시 받는다). 머리의 예고선은 시작 순간 자리·방향으로 그려져 있다.
-      if (pool.knockbackTimer[index] > 0 && (type === E91_CODE && novel2.isDormant(index) || novel2.isTrainLocked(pool, index))) {
+      // 2026-11-17: E102 의자(예고·활주·표류)와 E100 떡(웅크림·도약·매달림)도 같은 이유로 넉백을 받지 않는다(isLineLocked).
+      if (pool.knockbackTimer[index] > 0 && (type === E91_CODE && novel2.isDormant(index) || novel2.isLineLocked(pool, index))) {
         pool.knockbackTimer[index] = 0
       }
       if (isScreenRunner(type)) {
@@ -1127,9 +1128,10 @@ export class EnemySimulationRuntime {
 
       // 자리 고정(무리 밀어내기·이동·끼임 순간이동을 받지 않는다): 잠든 E91 미믹, 예고 중인 E92 머리.
       // 예고·돌진 중인 E92 머리(trainCharge)는 밀어내기만 받지 않고, 이동 뒤 도착점이 예고선 밖이면 돌진을 취소한다(아래).
+      // 2026-11-17: E102 의자 회전 예고·E100 떡 웅크림도 자리 고정, E102 활주·표류도 선 안 이동(isLinePinned / isLineCharging).
       const pinned = type === E91_CODE && novel2.isDormant(index)
-        || novel2.isTrainLocked(pool, index) && pool.state[index] === N2_STATE_TELEGRAPH
-      const trainCharge = !pinned && novel2.isTrainLocked(pool, index) && pool.state[index] === N2_STATE_ATTACK
+        || novel2.isLinePinned(pool, index)
+      const trainCharge = !pinned && novel2.isLineCharging(pool, index)
       if (pinned) {
         velocityX = 0
         velocityZ = 0
@@ -1192,10 +1194,10 @@ export class EnemySimulationRuntime {
         // E92 돌진: 장애물 미끄러짐·벽 클램프가 경로를 바꿨거나 도착점이 그려진 예고선 밖이면 이번 프레임 이동을 버리고 돌진을 취소한다.
         // 같은 프레임 안에서 판정하므로 머리 접촉 판정(0.4u)이 폭 1.1u 선 밖으로 나가지 않는다. 끼임 순간이동도 없다.
         const deviation = Math.hypot(nextX - (posX + velocityX * delta), nextZ - (posZ + velocityZ * delta))
-        if (deviation > 1e-3 || !novel2.trainChargeKeepsLine(pool, index, nextX, nextZ)) {
+        if (deviation > 1e-3 || !novel2.lineChargeKeepsLine(pool, index, nextX, nextZ)) {
           nextX = posX
           nextZ = posZ
-          novel2.cancelTrainCharge(pool, index)
+          novel2.cancelLineCharge(pool, index)
         }
         pool.stuckMs[index] = 0
         pool.detourMs[index] = 0
@@ -1236,6 +1238,8 @@ export class EnemySimulationRuntime {
       // 3차 치프: 넉백으로 행동 걸음을 건너뛴 프레임에도 예고(8)·E98 흡입(9)·E101 용지 걸림(4) 중에는 몸 접촉 피해 0(예고 중 피해 0 불변식).
       if ((type === E98_CODE || type === E101_CODE || type === E104_CODE) && (pool.state[index] === N2_STATE_TELEGRAPH
         || type === E98_CODE && pool.state[index] === N2_STATE_ATTACK || type === E101_CODE && (pool.state[index] === N2_STATE_STUN || pool.state[index] === N2_STATE_ATTACK))) novel2NoContact = true
+      // 3차 둘째 묶음(E100 떡·E102 의자·E106 기마전): 예고·매달림·말 위 기수·기절 중 몸 접촉 0(lib/novelZombie2Behavior.js forcesNoContact).
+      if (novel2.forcesNoContact(pool, index)) novel2NoContact = true
       if (isMelee(type) && !expansionAttack?.noContact && !novel2NoContact && distance <= contactDistance(type) && pool.hitCooldown[index] <= 0) {
         pool.hitCooldown[index] = ENEMY_CONTACT_COOLDOWN_MS
         pool.lastContactX[index] = playerX

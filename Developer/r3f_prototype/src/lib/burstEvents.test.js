@@ -62,7 +62,9 @@ const NOVEL_BASE_HP = { E34: 8, E35: 10, E36: 8, E37: 8, E38: 10, E39: 16, E40: 
   // 2026-11-14 2차 신규 일반 6종(E89~E106 세트) — host와 같은 base hp(lib/novelZombie2Content.js). E105(스6 절대 HP)는 이 표 밖이다.
   E93: 10, E94: 16, E96: 16, E97: 10, E99: 70, E103: 32,
   // 2026-11-15 2차 신규 2차분(wave 2) 일반 2종 — host와 같은 base hp. 치프 E92·E95는 순증이라 이 표 밖이다.
-  E90: 16, E91: 8 }
+  E90: 16, E91: 8,
+  // 2026-11-17 3차 둘째 묶음 일반 2종 — host와 같은 base hp(E100 ← 스4 168초 E44, E102 ← 스5 144초 E07). E106(스6 절대 HP)은 이 표 밖이다.
+  E100: 16, E102: 16 }
 const STAGE2_BASE_HP = { E01: 8, E02: 70, E03: 10, E04: 32, E05: 70, E06: 320, E07: 16, RZT: 140, RZG: 48, ...NOVEL_BASE_HP }
 const STAGE2_HP_MULTIPLIER = 1.2
 
@@ -558,7 +560,8 @@ describe('stage4 급식실 대탈출 버스트', () => {
       { type: 'E44', count: 1 }, { type: 'E84', count: 1 },
       { type: 'E04', count: 4 }, { type: 'E59', count: 1 },
       { type: 'E05', count: 2 }, { type: 'E03', count: 2 }, { type: 'E45', count: 3 }, { type: 'E49', count: 1 },
-      { type: 'E69', count: 1 }, { type: 'E47', count: 1 }, { type: 'E44', count: 1 },
+      // 2026-11-17 3차 둘째 묶음: 168초 E44 복습 → E100 찹쌀떡(hp 16 맞교환 — 마릿수 69·적용 HP 5,596 그대로).
+      { type: 'E69', count: 1 }, { type: 'E47', count: 1 }, { type: 'E100', count: 1 },
       { type: 'E43', count: 1 },
       { type: 'E05', count: 2 }, { type: 'E59', count: 1 }, { type: 'E06', count: 1 }, { type: 'E84', count: 1 },
       { type: 'E07', count: 3 }, { type: 'E02', count: 3 },
@@ -578,8 +581,8 @@ describe('stage4 급식실 대탈출 버스트', () => {
       E61: 121, E69: 28,
       // 블록 좀비 이동분(2026-11-16): E85·E84 round(8 × 1.728) = 14.
       E85: 14, E84: 14,
-      // 2026-11-14 2차 신규: E99←E05(121).
-      E99: 121,
+      // 2026-11-14 2차 신규: E99←E05(121). 2026-11-17: E100←E44(28).
+      E99: 121, E100: 28,
     }[event.type] ?? 0) * event.count, 0)
     expect(appliedHp).toBe(5596)
   })

@@ -38,6 +38,7 @@ import { isNovelZombieType } from '../lib/novelZombieBehavior.js'
 import { NOVEL2_DROP_BONUS, isNovel2AbsoluteHp, isNovel2ImplementedTypeCode } from '../lib/novelZombie2Content.js'
 import { CHIEF_ELITE_BONUS, admitChiefSpawn, createChiefDebutLedger } from '../lib/stageChiefContent.js'
 import { hasProjectileZombieSplit, isProjectileZombieType, spawnProjectileZombieTelegraphDecal, spawnProjectileZombieVolley } from '../lib/projectileZombieBehavior.js'
+import { applyPlayerSlow } from '../lib/projectileZombieShotPool.js'
 import { emitVfx } from '../lib/vfxEvents.js'
 import { VFX_BURST, resolveWeaponHitBurst, spawnVfxBurst } from '../lib/vfxBursts.js'
 import { emitDamageNumber, DAMAGE_NUMBER_COLORS } from '../lib/damageNumbers.js'
@@ -927,6 +928,8 @@ export const JARMOB_HP_TYPES = new Set([
   'E93', 'E94', 'E97', 'E99', 'E103',
   // 2차 신규 2차분(wave 2, 2026-11-15): 스1 150초 E07 → E90, 184초 혼합 E01 → E91(같은 hp 맞교환). 치프 E92·E95는 순증이라 넣지 않는다.
   'E90', 'E91',
+  // 3차 둘째 묶음(2026-11-17): 스4 168초 E44 → E100, 스5 144초 E07 1기 → E102(같은 hp 16 맞교환). E106(스6 절대 HP)은 E105처럼 넣지 않는다.
+  'E100', 'E102',
 ])
 
 // 사용자 정본(2026-08-16): 모든 정적 좀비 타입은 Stage 1 기준 누적 1.2배 HP 곡선을 쓴다.
@@ -2369,6 +2372,9 @@ export default function Enemies() {
     // E104 공굴리기 대장의 공에 맞은 일반 좀비(60): 무기 히트 브리지로 넘겨 처치·XP를 플레이어 처치로 계산한다(설계 E86).
     // 공은 투사체가 아니라 시야 차단을 보지 않는다(공 경로는 이미 골대 앞에서 멈춘다). 치명타 없음.
     enemySimulationRuntime.novel2.drainBallHits(ballHitDrainRef.current)
+    // E100 찹쌀떡이 매달려 있으면 플레이어 이동 ×0.75(2기 ×0.6). 매 스텝 0.12초씩 다시 걸어, 떨어지면 0.12초 안에 풀린다.
+    const clingSlowMul = enemySimulationRuntime.novel2.playerSlowMul()
+    if (clingSlowMul < 1) applyPlayerSlow(playerSlow, clingSlowMul, 120)
     enemyProjectilePool.step(delta, playerPos.x, playerPos.z, projectileHitRef.current, screenBounds)
     projectileZombieShotPool.step(delta, playerPos.x, playerPos.z, projectileHitRef.current, screenBounds, playerSlow, bounds, playerImpulse)
 

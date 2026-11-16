@@ -28,6 +28,7 @@ import {
   NOVEL2_WAVE1_IDS,
   NOVEL2_WAVE2_IDS,
   NOVEL2_WAVE3_IDS,
+  NOVEL2_WAVE3B_IDS,
   NOVEL2_ZOMBIE_STATS,
 } from './novelZombie2Content.js'
 import { CHIEF_ELITE_BONUS, admitChiefSpawn, createChiefDebutLedger, isChiefType } from './stageChiefContent.js'
@@ -76,14 +77,16 @@ function stationaryDamage(id, { startX = -3, seconds = 60, stageId = 'stage1' } 
 }
 
 describe('2차 신규 좀비 등록', () => {
-  it('18개 id를 typeCode 94~111에 끝에만 붙여 예약하고, 스탯은 1차 8종 + 2차 4종 + 3차 치프 3종만 갖는다', () => {
+  // 2026-11-17 3차 둘째 묶음(E100·E102·E106)으로 18종 전부가 스탯을 갖는다.
+  it('18개 id를 typeCode 94~111에 끝에만 붙여 예약하고, 스탯은 1차 8종 + 2차 4종 + 3차 치프 3종 + 3차 일반 3종(= 18종 전부)이 갖는다', () => {
     NOVEL2_TYPE_IDS.forEach((id, i) => {
       expect(ENEMY_TYPE_CODES[id]).toBe(NOVEL2_FIRST_TYPE_CODE + i)
       expect(ENEMY_TYPE_NAMES[NOVEL2_FIRST_TYPE_CODE + i]).toBe(id)
     })
     expect(ENEMY_TYPE_CODES.B10).toBe(75)
-    expect(Object.keys(NOVEL2_ZOMBIE_STATS).sort()).toEqual([...NOVEL2_WAVE1_IDS, ...NOVEL2_WAVE2_IDS, ...NOVEL2_WAVE3_IDS].sort())
-    for (const id of [...NOVEL2_WAVE1_IDS, ...NOVEL2_WAVE2_IDS, ...NOVEL2_WAVE3_IDS]) {
+    expect(Object.keys(NOVEL2_ZOMBIE_STATS).sort()).toEqual([...NOVEL2_WAVE1_IDS, ...NOVEL2_WAVE2_IDS, ...NOVEL2_WAVE3_IDS, ...NOVEL2_WAVE3B_IDS].sort())
+    expect(Object.keys(NOVEL2_ZOMBIE_STATS).sort()).toEqual([...NOVEL2_TYPE_IDS].sort())
+    for (const id of [...NOVEL2_WAVE1_IDS, ...NOVEL2_WAVE2_IDS, ...NOVEL2_WAVE3_IDS, ...NOVEL2_WAVE3B_IDS]) {
       expect(ENEMY_RUNTIME_HP[ENEMY_TYPE_CODES[id]], id).toBe(NOVEL2_ZOMBIE_STATS[id].hp)
       // 비주얼은 visualId 뒤에 있다(행동은 비주얼을 모른다). 몸은 Kenney Mini 몸체 표(MiniZombieLayer)가 그린다.
       // 옛 자리표시 별칭(NOVEL2_PLACEHOLDER_ALIASES)은 데이터로만 남아 있다(렌더 경로에서는 쓰지 않는다).
@@ -100,6 +103,9 @@ describe('2차 신규 좀비 등록', () => {
     expect(NOVEL2_ZOMBIE_STATS.E99.hp).toBe(70) // E05
     expect(NOVEL2_ZOMBIE_STATS.E103.hp).toBe(32) // E04
     expect(NOVEL2_ZOMBIE_STATS.E105.hp).toBe(30) // E19(Stage 6 절대값)
+    expect(NOVEL2_ZOMBIE_STATS.E100.hp).toBe(16) // E44 = E07 체급(스4 168초)
+    expect(NOVEL2_ZOMBIE_STATS.E102.hp).toBe(16) // E07(스5 144초)
+    expect(NOVEL2_ZOMBIE_STATS.E106.hp).toBe(30) // E19(Stage 6 절대값, 몸마다)
   })
 
   it('Kenney 몸체 표는 이동·의료 보조기구를 쓰지 않는다', () => {

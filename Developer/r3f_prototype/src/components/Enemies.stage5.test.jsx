@@ -20,7 +20,8 @@ describe('Stage5 production enemy runtime', () => {
     for (const [type, stats] of Object.entries(ENEMY_STATS)) {
       // Expansion actors have absolute contract HP; they must not inherit legacy cumulative scaling.
       // E105(2인3각, 2026-11-14)도 Stage 6 절대 HP 계약이라 누적 배수를 타지 않는다.
-      const expansionActor = /^E(?:19|2[0-9]|3[0-3])$|^B0[5-9]$/.test(type) || type === 'E105'
+      // E104(공굴리기 대장, 2026-11-16)·E106(기마전, 2026-11-17)도 같은 Stage 6 절대 HP 행이다(hpMode 'absolute').
+      const expansionActor = /^E(?:19|2[0-9]|3[0-3])$|^B0[5-9]$/.test(type) || type === 'E105' || type === 'E104' || type === 'E106'
       expect(stageHpOverride(type, 'stage5')?.hp ?? stats.hp, type).toBe(expansionActor ? stats.hp : Math.round(stats.hp * 1.2 ** 4))
       if (expansionActor) expect(stageHpOverride(type, 'stage5')).toBeUndefined()
       for (const [id, multiplier] of Object.entries({ stage1: 1, stage2: 1.2, stage3: 1.44, stage4: 1.728 })) {

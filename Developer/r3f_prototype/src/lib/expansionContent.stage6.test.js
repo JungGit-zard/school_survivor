@@ -12,8 +12,9 @@ const S6 = EXPANSION_STAGES.stage6
 // E105(2인3각, 2026-11-14 2차 신규)는 Stage 6 절대 HP 30(E19와 같다).
 // 2026-11-16 좀비 배치 총검토(운동회 총출동)로 스1~5에서 옮겨 온 종도 같은 기존 종 배수(×2.488)를 탄다:
 // E87·E78 = round(8 × 2.488) 20, E83·E70·E80·E88 = round(10 × 2.488) 25, E72 = round(16 × 2.488) 40, E55 = round(70 × 2.488) 174.
+// 2026-11-17: E106 기마전(몸마다 절대 30 — 192초 조회 줄 E19 4기 자리).
 const S6_HP = { E19: 30, E20: 64, E21: 36, E01: 20, E02: 174, E04: 80, E05: 174, E06: 796, E07: 40, E79: 20, E71: 20, E73: 80, E76: 174, E105: 30,
-  E87: 20, E78: 20, E83: 25, E70: 25, E80: 25, E88: 25, E72: 40, E55: 174 }
+  E87: 20, E78: 20, E83: 25, E70: 25, E80: 25, E88: 25, E72: 40, E55: 174, E106: 30 }
 
 describe('stage6 운동장 — 같은 id·기록 키·typeCode, 내용만 교체', () => {
   it('정체·경계 12×20·e04 8초·오버타임 240초·1부 데이터', () => {
@@ -61,13 +62,16 @@ describe('stage6 운동장 — 같은 id·기록 키·typeCode, 내용만 교체
   // 사다리 ±2% 안에 둔다(코디네이터 결정 2026-11-16). 44 → 51행, 일반 적 188 → 193마리, HP 8,910 → 9,063.
   // 2026-11-16 3차(wave 3): 치프 E104 공굴리기 대장 72초 행 1개(절대 HP 250)를 더해 52행. 치프는 사다리 밖 순증이라
   // 아래 마릿수·HP·사다리·30초 곡선은 치프를 빼고 센다(193마리·9,063·+1.47% 그대로).
-  it('이벤트 51행 + 치프 1행, 보스 1행(150초), 마지막 일반 이벤트 228초, 반복 버스트 없음, 일반 적 193마리·HP 9,063', () => {
+  // 2026-11-17 3차 둘째 묶음: 192초 정문 조회 줄 E19×12 → ×8 + E106 기마전 몸 4(절대 30씩) 한 행 — 52 → 53행, 193마리·9,063 그대로.
+  it('이벤트 52행 + 치프 1행, 보스 1행(150초), 마지막 일반 이벤트 228초, 반복 버스트 없음, 일반 적 193마리·HP 9,063', () => {
     const all = getBurstEventsForStage('stage6')
-    expect(all).toHaveLength(52)
+    expect(all).toHaveLength(53)
     expect(all.filter((e) => isChiefType(e.type))).toEqual([{ sec: 72, type: 'E104', count: 1 }])
     expect(NOVEL2_ZOMBIE_STATS.E104.hp).toBe(250)
     const events = all.filter((e) => !isChiefType(e.type))
-    expect(events).toHaveLength(51)
+    expect(events).toHaveLength(52)
+    expect(events.filter((e) => e.type === 'E106')).toEqual([{ sec: 192, type: 'E106', count: 4 }])
+    expect(NOVEL2_ZOMBIE_STATS.E106.hp).toBe(S6_HP.E106)
     // 2026-11-14 블록 좀비 4종은 각각 정확히 한 행·한 마리였고, 2026-11-16 E76은 스4 150초에서 200초 행을 하나 더 받았다(#54).
     expect(events.filter((e) => ['E79', 'E71', 'E73', 'E76'].includes(e.type)).map((e) => [e.sec, e.type, e.count]))
       .toEqual([[16, 'E79', 1], [52, 'E71', 1], [108, 'E73', 1], [120, 'E76', 1], [200, 'E76', 1]])
@@ -90,10 +94,10 @@ describe('stage6 운동장 — 같은 id·기록 키·typeCode, 내용만 교체
       expect(Math.abs(total / target - 1), `${summons} summons`).toBeLessThanOrEqual(0.02)
     }
     const countOf = (type) => normal.filter((e) => e.type === type).reduce((n, e) => n + e.count, 0)
-    expect([countOf('E19'), countOf('E20'), countOf('E21')]).toEqual([105, 7, 18])
+    expect([countOf('E19'), countOf('E20'), countOf('E21')]).toEqual([101, 7, 18])
     expect(events.filter((e) => e.type === 'E20').map((e) => [e.sec, e.count])).toEqual([[24, 1], [72, 2], [108, 2], [168, 2]])
     expect(events.filter((e) => e.formation === 'assembly_row').map((e) => [e.sec, e.side, e.count]))
-      .toEqual([[5, 'top', 10], [36, 'bottom', 10], [64, 'top', 12], [64, 'bottom', 12], [96, 'top', 12], [96, 'bottom', 12], [132, 'auto', 12], [192, 'gate', 12], [216, 'gate', 13]])
+      .toEqual([[5, 'top', 10], [36, 'bottom', 10], [64, 'top', 12], [64, 'bottom', 12], [96, 'top', 12], [96, 'bottom', 12], [132, 'auto', 12], [192, 'gate', 8], [216, 'gate', 13]])
     expect(events.filter((e) => e.formation === 'track_lanes')).toEqual([{ sec: 124, type: 'E21', count: 6, formation: 'track_lanes' }])
     // 110초 전통 증원(E07 3 + E02 3) 유지.
     expect(events.filter((e) => e.sec === 110).map((e) => [e.type, e.count])).toEqual([['E07', 3], ['E02', 3]])

@@ -72,6 +72,9 @@ export const E95_CODE = CODE.E95
 export const E98_CODE = CODE.E98
 export const E101_CODE = CODE.E101
 export const E104_CODE = CODE.E104
+export const E100_CODE = CODE.E100
+export const E102_CODE = CODE.E102
+export const E106_CODE = CODE.E106
 export const E01_CODE = 1
 
 // ── E89 반장 좀비 "차렷! 경례!" ─────────────────────────────────────────────
@@ -339,6 +342,95 @@ export const E104_BALL = Object.freeze({
   retrieveTimeoutMs: 12000, // 굴린 뒤 이만큼 지나도 못 주우면 새 공을 꺼낸다(막힌 자리 대비)
 })
 
+// ── E100 찹쌀떡(Stage 4) ──────────────────────────────────────────────────────
+// 1.3u 안이면 0.9초 웅크림(빨간 선 1.75 × 0.9u, 피해 0 — 방향·착지점은 예고 시작에 고정) → 3u/s로 착지점까지 도약 →
+// 착지점 0.45u 안이면서 그려진 선 안이면 플레이어 등에 매달린다(매달리는 순간 물기 6 한 번).
+// 매달린 동안 이동 −25%(2기 −40%, 그 이상은 매달리지 못한다), 추가 피해 없음. 플레이어가 누적 4u를 움직이면(대응) · 4초가 지나면 ·
+// 처치하면 떨어진다. 떨어진 떡은 1초 퍼져 있고(접촉 0) 5초 동안 다시 매달리지 못한다. 매달림이 끝나면 플레이어는 1.5초 동안
+// 새 매달림을 받지 않는다(감속이 이어 붙어 영구 감속이 되지 않게). 마틸다 경고(205초) 뒤에는 매달리지 않고, 매달린 떡은 떨어진다.
+// 설계 E82의 "매달림 초당 피해 2"는 넣지 않았다: 플레이어 피해 경로(store.damagePlayer)는 한 번 맞을 때마다 0.52초 무적과 넉백을
+// 건다 — 초당 피해로 넣으면 매달린 떡이 다른 좀비 피해를 막는 방패가 되고 플레이어를 계속 밀친다. 그래서 매달리는 순간 1회 6으로 바꿨다.
+// 거리: 웅크림 시작 1.3u(0.325블록) · 선 1.75u(0.44블록) · 매달림 판정 0.45u(0.11블록) · 떨쳐내기 4u(1블록).
+export const E100_MOCHI = Object.freeze({
+  firstDelayMs: 1000,
+  triggerDistance: 1.3,
+  telegraphMs: 900,       // 설계 0.5초 → 예고 ≥ 0.85초 불변식
+  lineLength: 1.75,       // 웅크림 시작 거리 1.3 + 매달림 판정 0.45
+  lineWidth: 0.9,         // 반폭 0.45 = 매달림 판정 반경(옆으로 0.45 + 몸 0.19 비키면 빗나간다 — 3u/s로 약 0.21초)
+  leapSpeed: 3.0,
+  clingReach: 0.45,
+  latchDamage: 6,
+  missRecoverMs: 800,     // 빗나가면 바닥에 퍼진 채(처치 기회, 접촉 0)
+  cooldownMs: 3000,
+  maxClingers: 2,
+  slowOne: 0.75,
+  slowTwo: 0.6,
+  shakeOffDistance: 4,
+  maxClingMs: 4000,
+  maxStepMove: 0.5,       // 한 스텝에 이보다 크게 움직인 몫(순간이동)은 떨쳐내기에 세지 않는다
+  dropStunMs: 1000,
+  reclingCooldownMs: 5000,
+  playerImmuneMs: 1500,
+  noClingAfterSec: 205,
+  attachOffset: 0.3,      // 플레이어 등 뒤(떡마다 좌우로 비켜) 0.3u
+})
+
+// ── E102 회전의자(Stage 5) ────────────────────────────────────────────────────
+// 사무용 회전의자(바퀴 5개)에 앉은 교사. 보조기구가 아니다. 5u 안이면 0.9초 제자리 회전 예고(빨간 선 4.2 × 1.8u, 방향 고정, 피해 0) →
+// 1.6초 활주(2.0u/s²로 최대 2.6u/s, 플레이어 쪽으로 초당 25°까지만 꺾음) → 1.0초 표류(방향 전환 없이 감속) → 1.2초 쉼 → 반복.
+// 활주·표류 중 피해 = 몸 접촉 10. 의자 중심은 선 축에서 옆으로 0.553u(반폭 0.9 − 접촉 0.347) 안, 앞으로 4.2 − 0.347u 안만 다닌다 →
+// 접촉 판정이 그려진 선 밖으로 나가지 않는다. 장애물에 미끄러지거나 밀려 선을 벗어나려 하면 그 자리에서 멈춘다(순간이동 없음).
+// 최대 이동: 활주 0.5·2·1.3² + 2.6·0.3 = 2.47u + 표류 2.6·1.0/2 = 1.3u = 3.77u ≤ 4.2 − 0.347.
+// 설계 E84의 예고 0.6초는 불변식(≥ 0.85초)에 맞춰 0.9초로 늘렸다.
+export const E102_CHAIR = Object.freeze({
+  firstDelayMs: 1000,
+  triggerDistance: 5,     // 1.25블록
+  telegraphMs: 900,
+  lineLength: 4.2,        // 1.05블록
+  lineWidth: 1.8,         // 0.45블록
+  accel: 2.0,
+  maxSpeed: 2.6,
+  glideMs: 1600,
+  turnRateRad: 25 * Math.PI / 180,
+  driftMs: 1000,
+  cooldownMs: 1200,
+})
+// 의자 접촉 반경 = contactDist × 4/3(enemySimulation ENEMY_SIZE_MULTIPLIER — 순환 import를 피해 값만 쓴다).
+export const E102_CONTACT = (NOVEL2_ZOMBIE_STATS.E102?.contactDist ?? 0.26) * (4 / 3)
+
+// ── E106 기마전(Stage 6, 몸 4개) ──────────────────────────────────────────────
+// 한 행(count 4)의 몸 4개가 첫 걸음에 편대가 된다: 가장 낮은 슬롯이 기수, 나머지 셋이 말(앞 · 왼뒤 · 오른뒤).
+// 편대는 기수를 축으로 0.75u/s, 초당 90°까지만 돈다. 말은 자기 자리로 따라간다(최대 1.4u/s). 막 나온 몸끼리면 자리로 바로 모은다.
+// 기수의 "모자 뺏기": 1.5u 안이면 0.9초 빨간 부채꼴(90°·r 1.6u, 기수 자리·방향 고정, 피해 0) → 피해 10 → 0.5초 쉼, 쿨다운 4초.
+//   예고·판정 동안 편대 전체가 멈추고 몸 접촉도 끈다. 말 위의 기수는 몸 접촉이 없다(공격은 모자 뺏기뿐).
+// 처치 순서: 기수를 먼저 잡으면 말 셋이 0.8초 휘청였다가 흩어져 E19처럼 0.6u/s로 추격한다.
+//   말 셋을 먼저 잡으면 기수가 1초 낙마했다가 1.2u/s로 질주한다(몸 접촉 10, 모자 뺏기 없음).
+// 몸이 4개가 다 나오지 못했으면(동시 150 상한) 1.5초 뒤 있는 몸끼리 편대를 짓는다(혼자면 E19처럼 추격).
+// 설계 E88의 예고 0.8초는 불변식(≥ 0.85초)에 맞춰 0.9초로 늘렸다.
+export const E106_CAVALRY = Object.freeze({
+  bodies: 4,
+  linkGraceMs: 1500,
+  // 말 자리(진행 방향 기준 [옆, 앞] u): 앞 · 왼뒤 · 오른뒤. 기수는 가운데(0, 0).
+  slots: Object.freeze([Object.freeze([0, 0.8]), Object.freeze([-0.7, -0.4]), Object.freeze([0.7, -0.4])]),
+  formSpeed: 0.75,
+  horseCatchUpSpeed: 1.4,
+  turnRateRad: 90 * Math.PI / 180,
+  edgeMargin: 0.4,
+  firstDelayMs: 1500,
+  triggerDistance: 1.5,
+  coneRadius: 1.6,        // 0.4블록
+  coneAngleDeg: 90,
+  telegraphMs: 900,
+  activeMs: 150,
+  recoverMs: 500,
+  cooldownMs: 4000,
+  damage: 10,
+  scatterStunMs: 800,
+  horseSoloSpeed: 0.6,
+  dismountStunMs: 1000,
+  riderSoloSpeed: 1.2,
+})
+
 const COMMAND_TELEGRAPH_KEY_PREFIX = 'novel2:e89:'
 const COFFEE_TELEGRAPH_KEY_PREFIX = 'novel2:e103:'
 const BURST_KEY_PREFIX = 'novel2:e99:'
@@ -351,6 +443,12 @@ const EATER_KEY_PREFIX = 'novel2:e98:'
 const COPIER_SCAN_KEY_PREFIX = 'novel2:e101scan:'
 const COPIER_FAN_KEY_PREFIX = 'novel2:e101fan:'
 const BALL_KEY_PREFIX = 'novel2:e104:'
+const MOCHI_KEY_PREFIX = 'novel2:e100:'
+const CHAIR_KEY_PREFIX = 'novel2:e102:'
+const HAT_KEY_PREFIX = 'novel2:e106:'
+const NOVEL2_ESCAPE_OPTIONS = Object.freeze({ obstacleIngress: true })
+// E106 편대를 자리로 바로 모아도 되는 "막 나온 몸"(enemySimulation ENEMY_SPAWN_REVEAL_MS 300과 같다 — 등장 연출 중).
+const CAVALRY_SNAP_MAX_SPAWN_MS = 300
 
 export function createNovel2Result() {
   return { velocityX: 0, velocityZ: 0, moving: false, preserveFacing: false, noContact: false, hasYaw: false, yaw: 0 }
@@ -451,6 +549,41 @@ export class Novel2Runtime {
     // 공에 맞은 좀비: [index, generation, damage, ballX, ballZ] 다섯 개씩. 매 스텝 머리말에 비운다 — 필드(Enemies.jsx)가 스텝 직후
     // drainBallHits로 가져가 무기 히트 브리지(처치 보상·XP 포함)로 넘긴다. 가져가는 쪽이 없으면(프로브·테스트) 좀비 피해는 없다.
     this.ballHits = []
+    // E100 찹쌀떡: 떡 쪽(단계 0 없음 / 1 웅크림 / 2 도약 / 3 매달림 / 4 빗나감 / 5 떨어짐, 도약 착지점, 매달린 시간·떨쳐낸 거리, 등 뒤 자리, 예고 키).
+    this.mochiPhase = new Uint8Array(capacity)
+    this.leapX = new Float32Array(capacity)
+    this.leapZ = new Float32Array(capacity)
+    this.clingMs = new Float32Array(capacity)
+    this.clingMoved = new Float32Array(capacity)
+    this.clingOffX = new Float32Array(capacity)
+    this.clingOffZ = new Float32Array(capacity)
+    this.mochiKey = new Array(capacity).fill(null)
+    // 매달린 떡 [index, generation] 두 개씩. 플레이어 쪽: 새 매달림 면역 시각, 이번 스텝 감속 배율, 직전 위치(떨쳐내기 거리).
+    this.clingers = []
+    this.clingImmuneUntil = 0
+    this.clingSlowMul = 1
+    this.lastPlayerX = NaN
+    this.lastPlayerZ = NaN
+    this.elapsedSec = 0
+    this._onDamage = null
+    // E102 회전의자: 선 키, 현재 속도·진행 방향(활주 중 플레이어 쪽으로 초당 25°까지), 표류 시작 속도.
+    this.chairKey = new Array(capacity).fill(null)
+    this.glideSpeed = new Float32Array(capacity)
+    this.glideHeading = new Float32Array(capacity)
+    this.driftStartSpeed = new Float32Array(capacity)
+    this.glideDirX = new Float32Array(capacity)
+    this.glideDirZ = new Float32Array(capacity)
+    // E106 기마전: 역할(0 없음 / 1 기수 / 2 말), 말 자리(0 앞 · 1 왼뒤 · 2 오른뒤), 기수 슬롯·세대, 편대 연결 여부, 혼자 추격(흩어진 말·낙마한 기수),
+    // 기수의 진행 방향과 말 세 슬롯.
+    this.cavRole = new Uint8Array(capacity)
+    this.cavSlot = new Int8Array(capacity).fill(-1)
+    this.cavRider = new Int16Array(capacity).fill(-1)
+    this.cavRiderGen = new Int32Array(capacity)
+    this.cavLinked = new Uint8Array(capacity)
+    this.cavSolo = new Uint8Array(capacity)
+    this.cavHeading = new Float32Array(capacity)
+    this.cavHorse = new Int16Array(capacity * 3).fill(-1)
+    this.cavHorseGen = new Int32Array(capacity * 3)
     // 시뮬레이션 런타임이 넣어 주는 연결: 보상 없는 퇴장(먹힘·복사본 소멸)과 타입별 XP 표(enemySimulation ENEMY_RUNTIME_XP).
     this.despawnHook = null
     this.xpTable = null
@@ -492,6 +625,11 @@ export class Novel2Runtime {
     this.ballPhase.fill(0); this.ballRetrieveMs.fill(0); this.ballKey.fill(null); this.ballHitRoll.fill(-1)
     this.balls.length = 0
     this.ballHits.length = 0
+    this.mochiPhase.fill(0); this.clingMs.fill(0); this.clingMoved.fill(0); this.mochiKey.fill(null)
+    this.clingers.length = 0
+    this.clingImmuneUntil = 0; this.clingSlowMul = 1; this.lastPlayerX = NaN; this.lastPlayerZ = NaN; this.elapsedSec = 0
+    this.chairKey.fill(null); this.glideSpeed.fill(0); this.driftStartSpeed.fill(0)
+    this.cavRole.fill(0); this.cavSlot.fill(-1); this.cavRider.fill(-1); this.cavLinked.fill(0); this.cavSolo.fill(0); this.cavHorse.fill(-1)
     this.clockMs = 0
     this.pathHead = 0; this.pathCount = 0; this.pathAccMs = 0
     this.bursts.length = 0
@@ -525,6 +663,11 @@ export class Novel2Runtime {
     this.jamAcc[index] = 0; this.jamStartMs[index] = 0; this.jamImmuneUntil[index] = 0
     this.ballPhase[index] = 0; this.ballRetrieveMs[index] = 0; this.ballKey[index] = null; this.ballHitRoll[index] = -1
     this.ballX[index] = pool.posX[index]; this.ballZ[index] = pool.posZ[index]
+    this.mochiPhase[index] = 0; this.clingMs[index] = 0; this.clingMoved[index] = 0; this.mochiKey[index] = null
+    this.chairKey[index] = null; this.glideSpeed[index] = 0; this.driftStartSpeed[index] = 0
+    this.glideDirX[index] = 0; this.glideDirZ[index] = 0
+    this.cavRole[index] = 0; this.cavSlot[index] = -1; this.cavRider[index] = -1; this.cavLinked[index] = 0; this.cavSolo[index] = 0
+    this.cavHorse[index * 3] = -1; this.cavHorse[index * 3 + 1] = -1; this.cavHorse[index * 3 + 2] = -1
   }
 
   _addSnapshot(snapshot, pool = null, ownerIndex = -1) {
@@ -589,6 +732,8 @@ export class Novel2Runtime {
     this.playerZ = context.playerZ
     this.obstacles = context.obstacles && Number.isInteger(context.obstacleCount) && context.obstacleCount > 0 ? context.obstacles : null
     this.ballHits.length = 0
+    this.elapsedSec = Number.isFinite(context.elapsedSec) ? context.elapsedSec : this.elapsedSec
+    this._onDamage = onDamage ?? null
     this._recordPlayer(context.playerX, context.playerZ, deltaMs)
     const highest = Math.min(pool.highestActive, this.capacity - 1)
     let dormantCount = 0
@@ -600,6 +745,8 @@ export class Novel2Runtime {
     }
     if (dormantCount > E91_MIMIC.maxDormant) this._wakeOldestMimics(pool, highest, dormantCount - E91_MIMIC.maxDormant)
     this._linkPairs(pool, highest)
+    this._linkCavalry(pool, highest)
+    this._stepClings(pool, context.playerX, context.playerZ, deltaMs)
     this._stepTrains(pool, highest)
     this._stepCopies(pool, highest, deltaMs)
     this._cleanupOrphanTelegraphs(pool)
@@ -702,7 +849,9 @@ export class Novel2Runtime {
     const context = { stageId: this.stageId, halfX, halfZ, obstacles: novel2NearSafetyObstacles(this.obstacles ?? [], ox, oz, this.playerX, this.playerZ) }
     snapshot.safetyBounds = { halfX, halfZ }
     snapshot.safetyPolygons = buildExpansionSafetyGeometry(snapshot, context)
-    snapshot.escapeChannel = certifyExpansionEscape(snapshot, { playerX: this.playerX, playerZ: this.playerZ }, context, expansionAttackSnapshots.values())
+    // obstacleIngress: 플레이어가 책상·사물함에 붙어 서 있어도(통로 반폭 0.792u 안) 몸이 빠져나갈 짧은 진입 구간 뒤 전체 폭 통로가 있으면 인증한다.
+    // 없으면 붙어 선 자리가 "공격이 영원히 오지 않는 자리"가 된다(2026-11-17 E101 복사기 교무실 책상 사이 실측 — expansionAttackSafety.js 주석).
+    snapshot.escapeChannel = certifyExpansionEscape(snapshot, { playerX: this.playerX, playerZ: this.playerZ }, context, expansionAttackSnapshots.values(), NOVEL2_ESCAPE_OPTIONS)
     if (!snapshot.safetyPolygons.length || !snapshot.escapeChannel) return null
     return snapshot
   }
@@ -1005,6 +1154,9 @@ export class Novel2Runtime {
     if (type === E98_CODE) return this._stepE98(pool, index, a, out)
     if (type === E101_CODE) return this._stepE101(pool, index, a, out)
     if (type === E104_CODE) return this._stepE104(pool, index, a, out)
+    if (type === E100_CODE) return this._stepE100(pool, index, a, out)
+    if (type === E102_CODE) return this._stepE102(pool, index, a, out)
+    if (type === E106_CODE) return this._stepE106(pool, index, a, out)
     // E99(평범한 추격 — 특이점은 사망 시 폭발)과 확장 행동형(E94/E97의 접근)은 단순 추격.
     out.velocityX = a.nx * a.speed
     out.velocityZ = a.nz * a.speed
@@ -2214,6 +2366,690 @@ export class Novel2Runtime {
     out.x = valid ? this.ballX[index] : 0
     out.z = valid ? this.ballZ[index] : 0
     out.radius = E104_BALL.ballRadius
+    return out
+  }
+
+  // ── 3차 둘째 묶음 공통: 선에 묶인 몸(E92 머리·E102 의자·E100 떡) ─────────────────
+  /** 넉백을 받지 않는 상태: E92 예고·돌진, E102 예고·활주·표류(선이 그려져 있는 동안), E100 웅크림·도약·매달림. */
+  isLineLocked(pool, index) {
+    const type = pool.type[index]
+    if (type === E92_CODE) return this.isTrainLocked(pool, index)
+    if (this.slotGen[index] !== pool.generation[index]) return false
+    if (type === E102_CODE) return pool.state[index] === N2_STATE_TELEGRAPH || this.chairKey[index] !== null
+    if (type === E100_CODE) return this.mochiPhase[index] >= 1 && this.mochiPhase[index] <= 3
+    return false
+  }
+
+  /** 자리 고정(무리 밀어내기·이동 없음): E92·E102 예고, E100 웅크림 — 예고 시작 자리가 선의 원점이다. */
+  isLinePinned(pool, index) {
+    const type = pool.type[index]
+    if (type === E92_CODE) return this.isTrainLocked(pool, index) && pool.state[index] === N2_STATE_TELEGRAPH
+    if (this.slotGen[index] !== pool.generation[index]) return false
+    if (type === E102_CODE) return pool.state[index] === N2_STATE_TELEGRAPH
+    if (type === E100_CODE) return this.mochiPhase[index] === 1
+    return false
+  }
+
+  /** 선 안에서만 움직이는 이동 중(이번 프레임 도착점이 선 밖이면 이동을 버리고 멈춘다): E92 돌진, E102 활주·표류. */
+  isLineCharging(pool, index) {
+    const type = pool.type[index]
+    if (type === E92_CODE) return this.isTrainLocked(pool, index) && pool.state[index] === N2_STATE_ATTACK
+    if (type === E102_CODE) return this.slotGen[index] === pool.generation[index] && this.chairKey[index] !== null
+      && (pool.state[index] === N2_STATE_ATTACK || pool.state[index] === N2_STATE_RECOVER)
+    return false
+  }
+
+  lineChargeKeepsLine(pool, index, x, z) {
+    return pool.type[index] === E102_CODE ? this.chairKeepsLine(pool, index, x, z) : this.trainChargeKeepsLine(pool, index, x, z)
+  }
+
+  cancelLineCharge(pool, index) {
+    if (pool.type[index] === E102_CODE) this.cancelChairGlide(pool, index)
+    else this.cancelTrainCharge(pool, index)
+  }
+
+  /**
+   * 넉백으로 행동 걸음을 건너뛴 프레임에도 몸 접촉 피해를 끄는 상태(예고 중 피해 0 불변식).
+   * E100: 웅크림·도약·매달림·빗나감·떨어짐 전부(피해는 매달리는 순간 1회뿐). E102: 회전 예고.
+   * E106: 말 위의 기수(공격은 모자 뺏기뿐), 모자 뺏기 예고·판정 중인 편대 전체, 휘청·낙마 기절.
+   */
+  forcesNoContact(pool, index) {
+    const type = pool.type[index]
+    if (type !== E100_CODE && type !== E102_CODE && type !== E106_CODE) return false
+    if (this.slotGen[index] !== pool.generation[index]) return false
+    const state = pool.state[index]
+    if (type === E100_CODE) return this.mochiPhase[index] !== 0
+    if (type === E102_CODE) return state === N2_STATE_TELEGRAPH
+    if (state === N2_STATE_TELEGRAPH || state === N2_STATE_ATTACK || state === N2_STATE_STUN) return true
+    return this.cavRole[index] === 1 && !this.cavSolo[index]
+  }
+
+  // ── E100 찹쌀떡 ───────────────────────────────────────────────────────────────
+  /** 지금 매달린 떡 수에 따른 플레이어 이동 배율(1 · 0.75 · 0.6). 필드(Enemies.jsx)가 매 스텝 플레이어 감속으로 건다. */
+  playerSlowMul() {
+    return this.clingSlowMul
+  }
+
+  clingerCount() {
+    return this.clingers.length / 2
+  }
+
+  // 머리말: 매달린 떡의 시간·떨쳐낸 거리를 쌓고 조건이 되면 떨어뜨린다. 죽은 떡도 목록에서 빼며 면역을 건다.
+  _stepClings(pool, playerX, playerZ, deltaMs) {
+    const M = E100_MOCHI
+    let move = 0
+    if (Number.isFinite(this.lastPlayerX + this.lastPlayerZ) && Number.isFinite(playerX + playerZ)) {
+      move = Math.min(M.maxStepMove, Math.hypot(playerX - this.lastPlayerX, playerZ - this.lastPlayerZ))
+    }
+    this.lastPlayerX = playerX
+    this.lastPlayerZ = playerZ
+    const late = this.elapsedSec >= M.noClingAfterSec
+    const list = this.clingers
+    for (let i = list.length - 2; i >= 0; i -= 2) {
+      const index = list[i]
+      const generation = list[i + 1]
+      if (!slotAlive(pool, index, generation) || pool.type[index] !== E100_CODE || this.slotGen[index] !== generation || this.mochiPhase[index] !== 3) {
+        // 처치(또는 퇴장)로 떨어졌다 — 대응 성공. 새 매달림 면역을 건다.
+        list.splice(i, 2)
+        this.clingImmuneUntil = Math.max(this.clingImmuneUntil, this.clockMs + M.playerImmuneMs)
+        continue
+      }
+      this.clingMs[index] += deltaMs
+      this.clingMoved[index] += move
+      if (late || this.clingMoved[index] >= M.shakeOffDistance || this.clingMs[index] >= M.maxClingMs) {
+        list.splice(i, 2)
+        this._dropMochi(pool, index)
+      }
+    }
+    const count = list.length / 2
+    this.clingSlowMul = count <= 0 ? 1 : count === 1 ? M.slowOne : M.slowTwo
+  }
+
+  _dropMochi(pool, index) {
+    const M = E100_MOCHI
+    this.mochiPhase[index] = 5
+    pool.state[index] = N2_STATE_STUN
+    pool.stateTimer[index] = M.dropStunMs
+    pool.attackCooldown[index] = Math.max(pool.attackCooldown[index], M.reclingCooldownMs)
+    this.clingImmuneUntil = Math.max(this.clingImmuneUntil, this.clockMs + M.playerImmuneMs)
+  }
+
+  _mochiLineKey(pool, index) {
+    return `${MOCHI_KEY_PREFIX}${index}:${pool.generation[index]}`
+  }
+
+  _stepE100(pool, index, a, out) {
+    const M = E100_MOCHI
+    out.preserveFacing = true
+    let phase = this.mochiPhase[index]
+    if (phase === 3) {
+      // 매달림: 플레이어 등 뒤 자리에 붙어 다닌다(몸 접촉 0 — 피해는 매달리는 순간 1회였다). 맞으면 정상적으로 맞는다.
+      out.noContact = true
+      pool.state[index] = N2_STATE_ATTACK
+      const dx = a.playerX + this.clingOffX[index] - a.posX
+      const dz = a.playerZ + this.clingOffZ[index] - a.posZ
+      const dist = Math.hypot(dx, dz)
+      if (dist > 1e-4) {
+        const speed = Math.min(12, dist / Math.max(1e-6, a.deltaMs / 1000))
+        out.velocityX = dx / dist * speed
+        out.velocityZ = dz / dist * speed
+        out.moving = true
+      }
+      const fx = a.playerX - a.posX
+      const fz = a.playerZ - a.posZ
+      if (Math.hypot(fx, fz) > 1e-6) { out.hasYaw = true; out.yaw = Math.atan2(fx, fz) }
+      return out
+    }
+    if (phase === 5 || phase === 4) {
+      // 떨어짐(1초) · 빗나감(0.8초): 바닥에 퍼져 있다. 접촉 0, 처치 기회.
+      out.noContact = true
+      pool.state[index] = phase === 5 ? N2_STATE_STUN : N2_STATE_RECOVER
+      if (pool.stateTimer[index] > 0) return out
+      this.mochiPhase[index] = 0
+      phase = 0
+    }
+    const key = this._mochiLineKey(pool, index)
+    if (phase === 1) {
+      // 웅크림(예고): 제자리, 피해 0. 착지점·선은 예고 시작에 고정.
+      out.noContact = true
+      pool.state[index] = N2_STATE_TELEGRAPH
+      this._advanceOwnedSnapshot(key, a.deltaMs)
+      if (pool.stateTimer[index] > 0 && expansionAttackSnapshots.has(key)) return out
+      if (!expansionAttackSnapshots.has(key)) {
+        // 예고가 지워졌다(판 리셋 등) — 도약하지 않는다.
+        this.mochiPhase[index] = 0
+        pool.state[index] = N2_STATE_APPROACH
+        return out
+      }
+      this.mochiPhase[index] = 2
+      phase = 2
+      pool.state[index] = N2_STATE_ATTACK
+      const dist = Math.hypot(this.leapX[index] - a.posX, this.leapZ[index] - a.posZ)
+      pool.stateTimer[index] = dist / M.leapSpeed * 1000 + 50
+    }
+    if (phase === 2) {
+      // 도약: 고정된 착지점으로 3u/s. 몸 접촉 0.
+      out.noContact = true
+      pool.state[index] = N2_STATE_ATTACK
+      this._advanceOwnedSnapshot(key, a.deltaMs)
+      const dx = this.leapX[index] - a.posX
+      const dz = this.leapZ[index] - a.posZ
+      const dist = Math.hypot(dx, dz)
+      const dt = Math.max(1e-6, a.deltaMs / 1000)
+      if (dist > 0.02 && pool.stateTimer[index] > 0) {
+        const speed = Math.min(M.leapSpeed, dist / dt)
+        out.velocityX = dx / dist * speed
+        out.velocityZ = dz / dist * speed
+        out.moving = true
+        out.hasYaw = true
+        out.yaw = Math.atan2(dx, dz)
+        // 이번 프레임에 닿으면 착지 판정은 다음 프레임(도착한 자리에서) 한다.
+        return out
+      }
+      this._landMochi(pool, index, a, key)
+      return out
+    }
+    pool.state[index] = N2_STATE_APPROACH
+    out.preserveFacing = false
+    const ready = pool.attackCooldown[index] <= 0 && pool.spawnTimer[index] >= M.firstDelayMs && a.distance <= M.triggerDistance
+      && a.distance > 1e-6 && this.elapsedSec < M.noClingAfterSec && expansionChannelFree()
+    if (ready) {
+      const snapshot = this._buildCertifiedSnapshot(key, 'E100', 'e100_leap', 'line', a.posX, a.posZ, a.nx, a.nz,
+        M.lineLength, M.lineWidth, M.telegraphMs, Math.ceil(M.triggerDistance / M.leapSpeed * 1000) + 100, 0, 0)
+      if (snapshot) {
+        snapshot.contactAttack = true // 피해는 스냅샷이 아니라 매달림 판정 — 빨간 선
+        this._addSnapshot(snapshot, pool, index)
+        this.mochiKey[index] = key
+        this.leapX[index] = a.playerX
+        this.leapZ[index] = a.playerZ
+        this.chargeOriginX[index] = a.posX
+        this.chargeOriginZ[index] = a.posZ
+        pool.runDirX[index] = a.nx
+        pool.runDirZ[index] = a.nz
+        this.mochiPhase[index] = 1
+        pool.state[index] = N2_STATE_TELEGRAPH
+        pool.stateTimer[index] = M.telegraphMs
+        pool.attackCooldown[index] = M.cooldownMs
+        out.noContact = true
+        out.preserveFacing = true
+        out.hasYaw = true
+        out.yaw = Math.atan2(a.nx, a.nz)
+        return out
+      }
+      pool.attackCooldown[index] = SAFETY_RETRY_MS
+    }
+    return this._chase(a, out, a.speed)
+  }
+
+  // 착지: 착지점 0.45u 안 + 그려진 선 안 + 매달린 떡 2기 미만 + 면역 아님 + 마틸다 경고 전이면 매달린다(물기 6 한 번).
+  _landMochi(pool, index, a, key) {
+    const M = E100_MOCHI
+    const snapshot = expansionAttackSnapshots.get(key)
+    const px = a.playerX
+    const pz = a.playerZ
+    const near = Math.hypot(px - a.posX, pz - a.posZ) <= M.clingReach
+    const drawn = snapshot ? expansionAttackContains(snapshot, px, pz, 0) : false
+    this._removeSnapshot(key)
+    this.mochiKey[index] = null
+    const ok = near && drawn && this.clingerCount() < M.maxClingers && this.clockMs >= this.clingImmuneUntil && this.elapsedSec < M.noClingAfterSec
+    if (!ok) {
+      this.mochiPhase[index] = 4
+      pool.state[index] = N2_STATE_RECOVER
+      pool.stateTimer[index] = M.missRecoverMs
+      return false
+    }
+    this.mochiPhase[index] = 3
+    pool.state[index] = N2_STATE_ATTACK
+    this.clingMs[index] = 0
+    this.clingMoved[index] = 0
+    // 등 뒤 자리: 떡이 날아온 쪽(착지점 − 플레이어)으로 0.3u. 두 번째 떡은 반대편.
+    let ox = a.posX - px
+    let oz = a.posZ - pz
+    let ol = Math.hypot(ox, oz)
+    if (ol < 1e-4) { ox = -pool.runDirX[index]; oz = -pool.runDirZ[index]; ol = Math.hypot(ox, oz) || 1 }
+    const sign = this.clingerCount() === 1 ? -1 : 1
+    this.clingOffX[index] = ox / ol * M.attachOffset * sign
+    this.clingOffZ[index] = oz / ol * M.attachOffset * sign
+    this.clingers.push(index, pool.generation[index])
+    this.clingSlowMul = this.clingerCount() === 1 ? M.slowOne : M.slowTwo
+    if (this._onDamage) this._onDamage(M.latchDamage, a.posX, a.posZ)
+    return true
+  }
+
+  /** 비주얼용 떡 상태: phase(0 추격·1 웅크림·2 도약·3 매달림·4 빗나감·5 떨어짐), clinging, progress(떨쳐내기 0~1 = 거리·시간 중 큰 쪽),
+   *  offsetX·offsetZ(매달린 자리 = 플레이어 + 이 값), leapX·leapZ(도약 착지점). */
+  mochiStateInto(pool, index, out) {
+    const valid = index >= 0 && index < this.capacity && pool.type[index] === E100_CODE && this.slotGen[index] === pool.generation[index]
+    const phase = valid ? this.mochiPhase[index] : 0
+    out.phase = phase
+    out.clinging = phase === 3
+    out.progress = phase === 3 ? Math.min(1, Math.max(this.clingMoved[index] / E100_MOCHI.shakeOffDistance, this.clingMs[index] / E100_MOCHI.maxClingMs)) : 0
+    out.offsetX = valid ? this.clingOffX[index] : 0
+    out.offsetZ = valid ? this.clingOffZ[index] : 0
+    out.leapX = valid ? this.leapX[index] : 0
+    out.leapZ = valid ? this.leapZ[index] : 0
+    return out
+  }
+
+  // ── E102 회전의자 ─────────────────────────────────────────────────────────────
+  _chairLineKey(pool, index) {
+    return `${CHAIR_KEY_PREFIX}${index}:${pool.generation[index]}`
+  }
+
+  _chairLimits() {
+    const C = E102_CHAIR
+    return { lateral: C.lineWidth / 2 - E102_CONTACT, along: C.lineLength - E102_CONTACT }
+  }
+
+  /** 의자의 이번 프레임 도착점이 그려진 선 안인가(옆 ≤ 반폭 − 접촉, 앞 ≤ 길이 − 접촉, 뒤로 물러나지 않음, 그려진 다각형 안). */
+  chairKeepsLine(pool, index, x, z) {
+    const C = E102_CHAIR
+    const dirX = pool.runDirX[index]
+    const dirZ = pool.runDirZ[index]
+    const relX = x - this.chargeOriginX[index]
+    const relZ = z - this.chargeOriginZ[index]
+    const along = relX * dirX + relZ * dirZ
+    const lateral = relX * -dirZ + relZ * dirX
+    if (!(Math.abs(lateral) <= C.lineWidth / 2 - E102_CONTACT + 1e-4 && along <= C.lineLength - E102_CONTACT + 1e-4 && along >= -0.01)) return false
+    const key = this.chairKey[index]
+    const snapshot = key ? expansionAttackSnapshots.get(key) : null
+    return !snapshot || expansionAttackContains(snapshot, x, z, 0)
+  }
+
+  /** 활주·표류 취소(막혔거나 선을 벗어나려 했다): 선을 지우고 그 자리에서 멈춘다(순간이동 없음). */
+  cancelChairGlide(pool, index) {
+    const key = this.chairKey[index]
+    if (key) this._removeSnapshot(key)
+    this.chairKey[index] = null
+    this.glideSpeed[index] = 0
+    pool.state[index] = N2_STATE_RECOVER
+    pool.stateTimer[index] = 500
+    pool.attackCooldown[index] = Math.max(pool.attackCooldown[index], E102_CHAIR.cooldownMs)
+  }
+
+  _stepE102(pool, index, a, out) {
+    const C = E102_CHAIR
+    let state = pool.state[index]
+    if (state !== N2_STATE_TELEGRAPH && state !== N2_STATE_ATTACK && state !== N2_STATE_RECOVER) state = N2_STATE_APPROACH
+    const key = this.chairKey[index]
+    const dirYaw = Math.atan2(pool.runDirX[index], pool.runDirZ[index])
+    if (state === N2_STATE_TELEGRAPH) {
+      // 제자리 회전(예고): 피해 0. 두 바퀴 돌고 고정된 방향을 보며 멈춘다.
+      out.noContact = true
+      out.preserveFacing = true
+      if (!key || !expansionAttackSnapshots.has(key)) {
+        this.chairKey[index] = null
+        pool.state[index] = N2_STATE_APPROACH
+        return out
+      }
+      this._advanceOwnedSnapshot(key, a.deltaMs)
+      out.hasYaw = true
+      out.yaw = dirYaw + Math.max(0, pool.stateTimer[index]) / C.telegraphMs * Math.PI * 4
+      if (pool.stateTimer[index] > 0) return out
+      pool.state[index] = N2_STATE_ATTACK
+      pool.stateTimer[index] = C.glideMs
+      this.glideSpeed[index] = 0
+      this.glideHeading[index] = dirYaw
+      state = N2_STATE_ATTACK
+    }
+    if ((state === N2_STATE_ATTACK || state === N2_STATE_RECOVER) && key) {
+      out.preserveFacing = true
+      if (!expansionAttackSnapshots.has(key)) { this.cancelChairGlide(pool, index); return out }
+      this._advanceOwnedSnapshot(key, a.deltaMs)
+      const dt = Math.max(1e-6, a.deltaMs / 1000)
+      const lim = this._chairLimits()
+      const dirX = pool.runDirX[index]
+      const dirZ = pool.runDirZ[index]
+      const relX = a.posX - this.chargeOriginX[index]
+      const relZ = a.posZ - this.chargeOriginZ[index]
+      const along = relX * dirX + relZ * dirZ
+      const lateral = relX * -dirZ + relZ * dirX
+      // 밀려서 선 밖에 있으면(넉백은 막지만 다른 경로 대비) 끌어오지 않고 그 자리에서 멈춘다.
+      if (Math.abs(lateral) > lim.lateral + 1e-3 || along < -0.02) { this.cancelChairGlide(pool, index); return out }
+      let speed
+      if (state === N2_STATE_ATTACK) {
+        if (pool.stateTimer[index] <= 0) {
+          // 활주 끝 → 표류: 방향 전환 없이 1.0초 동안 0까지 감속.
+          pool.state[index] = N2_STATE_RECOVER
+          pool.stateTimer[index] = C.driftMs
+          this.driftStartSpeed[index] = this.glideSpeed[index]
+          state = N2_STATE_RECOVER
+          speed = this.glideSpeed[index]
+        } else {
+          speed = Math.min(C.maxSpeed, this.glideSpeed[index] + C.accel * dt)
+          // 플레이어 쪽으로 초당 25°까지만 꺾는다(관성).
+          if (a.distance > 1e-6) {
+            let diff = Math.atan2(a.nx, a.nz) - this.glideHeading[index]
+            while (diff > Math.PI) diff -= Math.PI * 2
+            while (diff < -Math.PI) diff += Math.PI * 2
+            const maxTurn = C.turnRateRad * dt
+            this.glideHeading[index] += Math.max(-maxTurn, Math.min(maxTurn, diff))
+          }
+        }
+      }
+      if (state === N2_STATE_RECOVER) {
+        if (pool.stateTimer[index] <= 0) {
+          // 표류 끝: 선을 지우고 쉰다.
+          this._removeSnapshot(key)
+          this.chairKey[index] = null
+          this.glideSpeed[index] = 0
+          pool.state[index] = N2_STATE_APPROACH
+          pool.attackCooldown[index] = Math.max(pool.attackCooldown[index], C.cooldownMs)
+          return out
+        }
+        speed = this.driftStartSpeed[index] * pool.stateTimer[index] / C.driftMs
+      }
+      this.glideSpeed[index] = speed
+      const hx = state === N2_STATE_ATTACK ? Math.sin(this.glideHeading[index]) : (this.glideDirX[index] || dirX)
+      const hz = state === N2_STATE_ATTACK ? Math.cos(this.glideHeading[index]) : (this.glideDirZ[index] || dirZ)
+      // 다음 자리를 선 띠 안으로 자른다: 옆은 ±(반폭 − 접촉), 앞은 길이 − 접촉. 뒤로는 가지 않는다.
+      let nextAlong = along + (hx * dirX + hz * dirZ) * speed * dt
+      let nextLat = lateral + (hx * -dirZ + hz * dirX) * speed * dt
+      nextLat = Math.max(-lim.lateral, Math.min(lim.lateral, nextLat))
+      nextAlong = Math.max(along, Math.min(lim.along, nextAlong))
+      const nx = this.chargeOriginX[index] + dirX * nextAlong - dirZ * nextLat
+      const nz = this.chargeOriginZ[index] + dirZ * nextAlong + dirX * nextLat
+      const vx = (nx - a.posX) / dt
+      const vz = (nz - a.posZ) / dt
+      const v = Math.hypot(vx, vz)
+      if (v > 1e-4) {
+        out.velocityX = vx
+        out.velocityZ = vz
+        out.moving = true
+        out.hasYaw = true
+        out.yaw = Math.atan2(vx, vz)
+        this.glideDirX[index] = vx / v
+        this.glideDirZ[index] = vz / v
+      } else if (nextAlong >= lim.along - 1e-6) {
+        this.glideSpeed[index] = 0 // 선 끝에 닿았다
+      }
+      return out
+    }
+    if (state === N2_STATE_RECOVER) {
+      // 취소 뒤 쉼(선 없음).
+      out.preserveFacing = true
+      if (pool.stateTimer[index] > 0) return out
+    }
+    pool.state[index] = N2_STATE_APPROACH
+    this.glideSpeed[index] = 0
+    const ready = pool.attackCooldown[index] <= 0 && pool.spawnTimer[index] >= C.firstDelayMs && a.distance <= C.triggerDistance
+      && a.distance > 1e-6 && expansionChannelFree()
+    if (ready) {
+      const lineKey = this._chairLineKey(pool, index)
+      const snapshot = this._buildCertifiedSnapshot(lineKey, 'E102', 'e102_glide', 'line', a.posX, a.posZ, a.nx, a.nz,
+        C.lineLength, C.lineWidth, C.telegraphMs, C.glideMs + C.driftMs, 0, 0)
+      if (snapshot) {
+        snapshot.contactAttack = true // 피해는 의자 몸 접촉 — 빨간 선
+        this._addSnapshot(snapshot, pool, index)
+        this.chairKey[index] = lineKey
+        this.chargeOriginX[index] = a.posX
+        this.chargeOriginZ[index] = a.posZ
+        pool.runDirX[index] = a.nx
+        pool.runDirZ[index] = a.nz
+        this.glideDirX[index] = a.nx
+        this.glideDirZ[index] = a.nz
+        pool.state[index] = N2_STATE_TELEGRAPH
+        pool.stateTimer[index] = C.telegraphMs
+        out.noContact = true
+        out.preserveFacing = true
+        out.hasYaw = true
+        out.yaw = Math.atan2(a.nx, a.nz) + Math.PI * 4
+        return out
+      }
+      pool.attackCooldown[index] = SAFETY_RETRY_MS
+    }
+    return this._chase(a, out, a.speed)
+  }
+
+  /** 비주얼용 의자 상태: phase(0 굴러옴·1 회전 예고·2 활주·3 표류), dirX·dirZ(활주 진행 방향), speed(u/s), spin(회전 예고 진행 0~1). */
+  chairStateInto(pool, index, out) {
+    const valid = index >= 0 && index < this.capacity && pool.type[index] === E102_CODE && this.slotGen[index] === pool.generation[index]
+    const state = valid ? pool.state[index] : 0
+    const gliding = valid && this.chairKey[index] !== null
+    out.phase = !valid ? 0 : state === N2_STATE_TELEGRAPH ? 1 : gliding && state === N2_STATE_ATTACK ? 2 : gliding && state === N2_STATE_RECOVER ? 3 : 0
+    out.dirX = valid ? this.glideDirX[index] : 0
+    out.dirZ = valid ? this.glideDirZ[index] : 0
+    out.speed = valid && gliding ? this.glideSpeed[index] : 0
+    out.spin = out.phase === 1 ? Math.min(1, Math.max(0, 1 - pool.stateTimer[index] / E102_CHAIR.telegraphMs)) : 0
+    return out
+  }
+
+  // ── E106 기마전 ───────────────────────────────────────────────────────────────
+  // 머리말: 아직 편대가 없는 E106 몸을 넷씩 묶는다. 넷이 안 되면 가장 낮은 슬롯이 1.5초 기다린 뒤 있는 몸끼리 묶는다.
+  _linkCavalry(pool, highest) {
+    const V = E106_CAVALRY
+    let free = null
+    for (let index = 0; index <= highest; index += 1) {
+      if (pool.active[index] !== 1 || pool.type[index] !== E106_CODE || this.cavLinked[index] || this.slotGen[index] !== pool.generation[index]) continue
+      free ??= (this._cavFree ??= [])
+      free.push(index)
+    }
+    if (!free) return
+    while (free.length > 0) {
+      const first = free[0]
+      if (free.length < V.bodies && pool.spawnTimer[first] < V.linkGraceMs) break
+      // 첫 몸 + 가장 가까운 몸 셋(있는 만큼).
+      const group = this._cavGroup ??= []
+      group.length = 0
+      group.push(first)
+      const rest = free.slice(1).sort((p, q) => Math.hypot(pool.posX[p] - pool.posX[first], pool.posZ[p] - pool.posZ[first])
+        - Math.hypot(pool.posX[q] - pool.posX[first], pool.posZ[q] - pool.posZ[first]))
+      for (let k = 0; k < rest.length && group.length < V.bodies; k += 1) group.push(rest[k])
+      group.sort((p, q) => p - q)
+      for (const member of group) free.splice(free.indexOf(member), 1)
+      this._formCavalry(pool, group)
+    }
+    free.length = 0
+  }
+
+  _formCavalry(pool, group) {
+    const V = E106_CAVALRY
+    const rider = group[0]
+    if (group.length === 1) {
+      // 혼자 나왔다(동시 상한): E19처럼 추격하는 말.
+      this.cavLinked[rider] = 1
+      this.cavRole[rider] = 2
+      this.cavSolo[rider] = 1
+      return
+    }
+    const fresh = group.every((member) => pool.spawnTimer[member] < CAVALRY_SNAP_MAX_SPAWN_MS)
+    let fx = this.playerX - pool.posX[rider]
+    let fz = this.playerZ - pool.posZ[rider]
+    const fl = Math.hypot(fx, fz)
+    if (fl > 1e-6) { fx /= fl; fz /= fl } else { fx = 0; fz = 1 }
+    const heading = Math.atan2(fx, fz)
+    this.cavLinked[rider] = 1
+    this.cavRole[rider] = 1
+    this.cavSlot[rider] = -1
+    this.cavRider[rider] = rider
+    this.cavRiderGen[rider] = pool.generation[rider]
+    this.cavHeading[rider] = heading
+    const limitX = (this.halfX > 0 ? this.halfX : 12) - V.edgeMargin
+    const limitZ = (this.halfZ > 0 ? this.halfZ : 20) - V.edgeMargin
+    for (let k = 1; k < group.length; k += 1) {
+      const horse = group[k]
+      const slot = k - 1
+      this.cavLinked[horse] = 1
+      this.cavRole[horse] = 2
+      this.cavSlot[horse] = slot
+      this.cavRider[horse] = rider
+      this.cavRiderGen[horse] = pool.generation[rider]
+      this.cavHorse[rider * 3 + slot] = horse
+      this.cavHorseGen[rider * 3 + slot] = pool.generation[horse]
+      if (fresh) {
+        // 막 나온 몸끼리면 자리로 바로 모은다(아직 등장 연출 중 — 흩어진 채 걸어 모이지 않게).
+        const [side, ahead] = V.slots[slot]
+        pool.posX[horse] = Math.max(-limitX, Math.min(limitX, pool.posX[rider] + fz * side + fx * ahead))
+        pool.posZ[horse] = Math.max(-limitZ, Math.min(limitZ, pool.posZ[rider] - fx * side + fz * ahead))
+        pool.yaw[horse] = heading
+      }
+    }
+    if (fresh) {
+      pool.yaw[rider] = heading
+      pool.markSpatialChanged?.()
+    }
+  }
+
+  _cavHorsesAlive(pool, rider) {
+    let count = 0
+    for (let slot = 0; slot < 3; slot += 1) {
+      const horse = this.cavHorse[rider * 3 + slot]
+      if (horse >= 0 && slotAlive(pool, horse, this.cavHorseGen[rider * 3 + slot]) && pool.type[horse] === E106_CODE) count += 1
+    }
+    return count
+  }
+
+  _cavHatKey(pool, rider) {
+    return `${HAT_KEY_PREFIX}${rider}:${pool.generation[rider]}`
+  }
+
+  _stepE106(pool, index, a, out) {
+    const V = E106_CAVALRY
+    const role = this.cavRole[index]
+    if (role === 0) {
+      // 편대를 기다리는 중(최대 1.5초): 천천히 다가온다.
+      pool.state[index] = N2_STATE_APPROACH
+      return this._chase(a, out, V.formSpeed)
+    }
+    if (this.cavSolo[index]) {
+      // 흩어진 말(0.8초 휘청 뒤 0.6u/s) · 낙마한 기수(1초 뒤 1.2u/s). 일반 몸 접촉 10.
+      if (pool.state[index] === N2_STATE_STUN) {
+        out.noContact = true
+        out.preserveFacing = true
+        if (pool.stateTimer[index] > 0) return out
+      }
+      pool.state[index] = N2_STATE_APPROACH
+      return this._chase(a, out, role === 1 ? V.riderSoloSpeed : V.horseSoloSpeed)
+    }
+    if (role === 2) return this._stepCavalryHorse(pool, index, a, out)
+    return this._stepCavalryRider(pool, index, a, out)
+  }
+
+  _stepCavalryRider(pool, index, a, out) {
+    const V = E106_CAVALRY
+    out.noContact = true // 말 위의 기수는 몸 접촉이 없다(공격은 모자 뺏기뿐)
+    if (this._cavHorsesAlive(pool, index) === 0) {
+      // 말 셋이 다 쓰러졌다: 낙마.
+      this.cavSolo[index] = 1
+      this._removeOwnedAttacks(index)
+      pool.state[index] = N2_STATE_STUN
+      pool.stateTimer[index] = V.dismountStunMs
+      out.preserveFacing = true
+      return out
+    }
+    let state = pool.state[index]
+    if (state !== N2_STATE_TELEGRAPH && state !== N2_STATE_ATTACK && state !== N2_STATE_RECOVER) state = N2_STATE_APPROACH
+    if (state === N2_STATE_TELEGRAPH) {
+      out.preserveFacing = true
+      if (pool.stateTimer[index] > 0) return out
+      pool.state[index] = N2_STATE_ATTACK
+      pool.stateTimer[index] = V.activeMs
+      return out
+    }
+    if (state === N2_STATE_ATTACK) {
+      out.preserveFacing = true
+      if (pool.stateTimer[index] > 0) return out
+      pool.state[index] = N2_STATE_RECOVER
+      pool.stateTimer[index] = V.recoverMs
+      return out
+    }
+    if (state === N2_STATE_RECOVER) {
+      out.preserveFacing = true
+      if (pool.stateTimer[index] > 0) return out
+    }
+    pool.state[index] = N2_STATE_APPROACH
+    // 편대 방향은 초당 90°까지만 돈다.
+    let heading = this.cavHeading[index]
+    if (a.distance > 1e-6) {
+      let diff = Math.atan2(a.nx, a.nz) - heading
+      while (diff > Math.PI) diff -= Math.PI * 2
+      while (diff < -Math.PI) diff += Math.PI * 2
+      const maxTurn = V.turnRateRad * a.deltaMs / 1000
+      heading += Math.max(-maxTurn, Math.min(maxTurn, diff))
+      this.cavHeading[index] = heading
+    }
+    const ready = pool.attackCooldown[index] <= 0 && pool.spawnTimer[index] >= V.firstDelayMs && a.distance <= V.triggerDistance
+      && a.distance > 1e-6 && expansionChannelFree()
+    if (ready) {
+      const snapshot = this._buildCertifiedSnapshot(`${this._cavHatKey(pool, index)}:${++this.seq}`, 'E106', 'e106_hat', 'sector',
+        a.posX, a.posZ, a.nx, a.nz, V.coneRadius, 0, V.telegraphMs, V.activeMs, 0, V.damage, V.coneAngleDeg)
+      if (snapshot) {
+        this._addAttack(snapshot, pool, index)
+        pool.runDirX[index] = a.nx
+        pool.runDirZ[index] = a.nz
+        pool.state[index] = N2_STATE_TELEGRAPH
+        pool.stateTimer[index] = V.telegraphMs
+        pool.attackCooldown[index] = V.cooldownMs
+        out.preserveFacing = true
+        out.hasYaw = true
+        out.yaw = Math.atan2(a.nx, a.nz)
+        return out
+      }
+      pool.attackCooldown[index] = SAFETY_RETRY_MS
+    }
+    out.velocityX = Math.sin(heading) * V.formSpeed
+    out.velocityZ = Math.cos(heading) * V.formSpeed
+    out.moving = true
+    out.preserveFacing = true
+    out.hasYaw = true
+    out.yaw = heading
+    return out
+  }
+
+  _stepCavalryHorse(pool, index, a, out) {
+    const V = E106_CAVALRY
+    out.preserveFacing = true
+    const rider = this.cavRider[index]
+    if (rider < 0 || !slotAlive(pool, rider, this.cavRiderGen[index]) || pool.type[rider] !== E106_CODE) {
+      // 기수가 쓰러졌다: 휘청였다가 흩어진다.
+      this.cavSolo[index] = 1
+      pool.state[index] = N2_STATE_STUN
+      pool.stateTimer[index] = V.scatterStunMs
+      out.noContact = true
+      return out
+    }
+    const riderState = pool.state[rider]
+    if (!this.cavSolo[rider] && (riderState === N2_STATE_TELEGRAPH || riderState === N2_STATE_ATTACK || riderState === N2_STATE_RECOVER)) {
+      // 모자 뺏기 동안 편대 전체가 멈춘다(예고·판정 중 몸 접촉 0).
+      pool.state[index] = riderState
+      if (riderState !== N2_STATE_RECOVER) out.noContact = true
+      out.hasYaw = true
+      out.yaw = this.cavHeading[rider]
+      return out
+    }
+    pool.state[index] = N2_STATE_APPROACH
+    const heading = this.cavHeading[rider]
+    const fx = Math.sin(heading)
+    const fz = Math.cos(heading)
+    const [side, ahead] = V.slots[Math.max(0, this.cavSlot[index])]
+    const tx = pool.posX[rider] + fz * side + fx * ahead
+    const tz = pool.posZ[rider] - fx * side + fz * ahead
+    const dx = tx - a.posX
+    const dz = tz - a.posZ
+    const dist = Math.hypot(dx, dz)
+    out.hasYaw = true
+    out.yaw = heading
+    if (dist < 1e-4) return out
+    const speed = Math.min(V.horseCatchUpSpeed, dist / Math.max(1e-6, a.deltaMs / 1000))
+    out.velocityX = dx / dist * speed
+    out.velocityZ = dz / dist * speed
+    out.moving = true
+    return out
+  }
+
+  /** 비주얼용 기마전 상태: role(0 없음·1 기수·2 말), slot(말 자리 0 앞·1 왼뒤·2 오른뒤, 기수 −1), rider(기수 슬롯, 없으면 −1),
+   *  mounted(기수가 말 위), scattered(흩어진 말·낙마한 기수), heading(편대 진행 방향 yaw). */
+  cavalryStateInto(pool, index, out) {
+    const valid = index >= 0 && index < this.capacity && pool.type[index] === E106_CODE && this.slotGen[index] === pool.generation[index]
+    const role = valid ? this.cavRole[index] : 0
+    const rider = valid ? this.cavRider[index] : -1
+    const riderAlive = rider >= 0 && slotAlive(pool, rider, this.cavRiderGen[index])
+    out.role = role
+    out.slot = valid && role === 2 ? this.cavSlot[index] : -1
+    out.rider = riderAlive ? rider : -1
+    out.mounted = role === 1 && !this.cavSolo[index]
+    out.scattered = valid && this.cavSolo[index] === 1
+    out.heading = riderAlive ? this.cavHeading[rider] : (valid ? pool.yaw[index] : 0)
     return out
   }
 

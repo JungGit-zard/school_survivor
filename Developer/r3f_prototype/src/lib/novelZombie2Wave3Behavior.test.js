@@ -2,22 +2,29 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import { EnemyEntityPool, ENEMY_TYPE_CODES, MAX_ENEMIES } from './enemyEntityPool.js'
 import { ENEMY_RUNTIME_HP, ENEMY_RUNTIME_XP, ENEMY_SIZE_MULTIPLIER, ENEMY_SPAWN_REVEAL_MS, createEnemySimulationRuntime } from './enemySimulation.js'
 import { clearExpansionAttacks, expansionAttackSnapshots } from './expansionAttackRuntime.js'
-import { EXPANSION_PLAYER_RADIUS } from './expansionAttackSafety.js'
+import { EXPANSION_PLAYER_RADIUS, buildExpansionSafetyGeometry, certifyExpansionEscape, novel2NearSafetyObstacles } from './expansionAttackSafety.js'
 import {
+  E100_MOCHI,
   E101_COPIER,
+  E102_CHAIR,
+  E102_CONTACT,
   E104_BALL,
+  E106_CAVALRY,
   E98_EATER,
   N2_STATE_APPROACH,
+  N2_STATE_ATTACK,
+  N2_STATE_RECOVER,
   N2_STATE_STUN,
   N2_STATE_TELEGRAPH,
   isBallTargetTypeCode,
 } from './novelZombie2Behavior.js'
-import { NOVEL2_ROWS, NOVEL2_WAVE3_IDS, NOVEL2_ZOMBIE_STATS, isNovel2AbsoluteHp } from './novelZombie2Content.js'
+import { NOVEL2_ROWS, NOVEL2_WAVE3B_IDS, NOVEL2_WAVE3_IDS, NOVEL2_ZOMBIE_STATS, isNovel2AbsoluteHp } from './novelZombie2Content.js'
+import { runStageRuntimeProbe } from './stageRuntimeProbe.js'
 import { isSupportImmune } from './projectileZombieBehavior.js'
 import { CHIEF_ELITE_BONUS, admitChiefSpawn, createChiefDebutLedger, findLiveChiefInto, isChiefType } from './stageChiefContent.js'
 import { getStageRotationRoster } from './stageRosterRotation.js'
 import { STAGE4_BURST_EVENTS, STAGE5_BURST_EVENTS, getBurstEventsForStage, isBossType } from './burstEvents.js'
-import { getStageObjectSightObstacles } from '../components/StageObjects/stageObjectColliders.js'
+import { getStageObjectSightObstacles, isStageObjectSightBlocked } from '../components/StageObjects/stageObjectColliders.js'
 import { isNovel2DamageTelegraph } from '../components/expansion/expansionTelegraphs.js'
 
 // 2차 신규 좀비 3차분(wave 3, 2026-11-16): 치프 3종 — E98 대식가(스4) · E101 복사기(스5) · E104 공굴리기 대장(스6).
@@ -600,5 +607,535 @@ describe('E104 공굴리기 대장(치프, 스6)', () => {
     let damage = 0
     for (let f = 0; f < 60 / DT; f += 1) damage += step({ x: 0, z: 0 })
     expect(damage).toBeGreaterThan(0)
+  })
+})
+
+// ── 3차 둘째 묶음(2026-11-17): 일반 3종 — E100 찹쌀떡(스4) · E102 회전의자(스5) · E106 기마전(스6, 몸 4) ──────────────
+// 못박는 것: 예고 ≥ 0.85초·예고 중 피해 0·예고 시작에 자리·방향 고정·옆으로 비키면 피해 0·그려진 선/부채꼴 밖 피해 0,
+// 찹쌀떡 매달림의 대응(4u 떨쳐내기·4초·처치)·2기 상한·면역(영구 감속 없음)·마틸다 경고 뒤 금지, 의자 활주가 선 띠 밖으로 나가지 않음,
+// 기마전 편대·처치 순서, 치프 아님(이름표·보상 없음, 순환 풀), 같은 hp 맞교환 행, 기본 시드에서 실제 스폰.
+const E100_HP = Math.round(16 * 1.728) // 28
+const E102_HP = Math.round(16 * 1.2 ** 4) // 33
+
+describe('wave 3 둘째 묶음 등록·배치', () => {
+  it('세 종 모두 implemented 일반 종(치프 아님 — 이름표·체력바·치프 보상 없음), E100·E102 hp 16 × 배수, E106 절대 30', () => {
+    expect(NOVEL2_WAVE3B_IDS).toEqual(['E100', 'E102', 'E106'])
+    for (const id of NOVEL2_WAVE3B_IDS) {
+      expect(NOVEL2_ROWS[id].implemented, id).toBe(true)
+      expect(NOVEL2_ROWS[id].chief, id).toBe(false)
+      expect(isChiefType(id), id).toBe(false)
+      expect(isBossType(id), id).toBe(false)
+      expect(CHIEF_ELITE_BONUS[id], id).toBeUndefined()
+      expect(ENEMY_RUNTIME_HP[ENEMY_TYPE_CODES[id]], id).toBe(NOVEL2_ZOMBIE_STATS[id].hp)
+      const pool = new EnemyEntityPool()
+      spawn(pool, id, 0, 0, { hp: 30 })
+      expect(findLiveChiefInto(pool, { index: -1, typeCode: 0, hp: 0, maxHp: 0 }).index, id).toBe(-1)
+    }
+    expect(NOVEL2_ZOMBIE_STATS.E100.hp).toBe(16)
+    expect(NOVEL2_ZOMBIE_STATS.E102.hp).toBe(16)
+    expect(E100_HP).toBe(28)
+    expect(E102_HP).toBe(33)
+    expect(isNovel2AbsoluteHp('E106')).toBe(true)
+    expect(NOVEL2_ZOMBIE_STATS.E106.hp).toBe(30)
+    expect(NOVEL2_ROWS.E106.bodyCount).toBe(4)
+  })
+
+  it('행: 스4 168초 E100(E44 복습 자리) · 스5 144초 E07 5 → 4 + E102 · 스6 192초 조회 줄 E19 12 → 8 + E106 몸 4', () => {
+    expect(STAGE4_BURST_EVENTS.filter((e) => e.type === 'E100')).toEqual([{ sec: 168, type: 'E100', count: 1 }])
+    expect(STAGE4_BURST_EVENTS.filter((e) => e.sec === 168 && e.type === 'E44')).toEqual([])
+    expect(STAGE5_BURST_EVENTS.filter((e) => e.type === 'E102')).toEqual([{ sec: 144, type: 'E102', count: 1 }])
+    expect(STAGE5_BURST_EVENTS.filter((e) => e.sec === 144 && e.type === 'E07')).toEqual([{ sec: 144, type: 'E07', count: 4 }])
+    const s6 = getBurstEventsForStage('stage6')
+    expect(s6.filter((e) => e.type === 'E106')).toEqual([{ sec: 192, type: 'E106', count: 4 }])
+    expect(s6.filter((e) => e.sec === 192 && e.type === 'E19').map((e) => e.count)).toEqual([8])
+  })
+
+  it('E100·E102는 스테이지 순환 풀에 들어가고(첫 등장 168·144초), E106은 편대라 순환하지 않는다', () => {
+    expect(getStageRotationRoster('stage4')).toContain('E100')
+    expect(getStageRotationRoster('stage5')).toContain('E102')
+    expect(getStageRotationRoster('stage6')).not.toContain('E106')
+  })
+
+  // 지난 차례에 작성 행이 순환에 조용히 바뀌어 사라진 일이 있었다 — 기본 시드 런타임 프로브(실제 스폰 경로)로 첫 등장을 확인한다.
+  it.each([
+    ['stage4', 'E100', 1, 172],
+    ['stage5', 'E102', 1, 148],
+    ['stage6', 'E106', 4, 196],
+  ])('%s: 기본 시드 1 프로브에서 %s가 실제로 나온다(몸 %i)', (stageId, id, bodies, maxSec) => {
+    const run = runStageRuntimeProbe({ stageId, seed: 1, immortal: true, maxSec })
+    expect(run.spawnCountByType[id] ?? 0, JSON.stringify(run.spawnSecsByType?.[id])).toBeGreaterThanOrEqual(bodies)
+  }, 60000)
+})
+
+describe('E100 찹쌀떡(스4)', () => {
+  function setup({ elapsedSec = 80 } = {}) {
+    const pool = new EnemyEntityPool()
+    const runtime = createEnemySimulationRuntime()
+    const step = makeStep(runtime, pool, S4_BOUNDS, 'stage4', { elapsedSec })
+    return { pool, runtime, step }
+  }
+  const spawnMochi = (pool, x, z) => spawn(pool, 'E100', x, z, { hp: E100_HP, spawnTimer: 3000, scale: NOVEL2_ZOMBIE_STATS.E100.scale })
+  const mochiLine = () => [...expansionAttackSnapshots.values()].find((s) => s.type === 'E100')
+
+  it('0.9초 빨간 선(1.75 × 0.9u) 웅크림 예고 중 피해 0·자리 고정 → 가만히 있으면 매달림(물기 6 한 번, 이동 ×0.75)', () => {
+    const { pool, runtime, step } = setup()
+    const m = spawnMochi(pool, 0, 1.2)
+    const player = { x: 0, z: 0 }
+    expect(runUntil(step, player, () => pool.state[m.index] === N2_STATE_TELEGRAPH)).toBe(true)
+    const line = mochiLine()
+    expect(line.shape).toBe('line')
+    expect(line.windupMs).toBeGreaterThanOrEqual(850)
+    expect(line.rangeUnits).toBe(E100_MOCHI.lineLength)
+    expect(line.widthUnits).toBe(E100_MOCHI.lineWidth)
+    expect(isNovel2DamageTelegraph(line)).toBe(true)
+    const origin = [...line.originXZ]
+    const dir = [...line.directionXZ]
+    const x0 = pool.posX[m.index]
+    const z0 = pool.posZ[m.index]
+    let telegraphDamage = 0
+    for (let f = 0; f < (E100_MOCHI.telegraphMs - 50) / 1000 / DT; f += 1) telegraphDamage += step({ x: Math.sin(f * 0.3) * 0.1, z: 0 })
+    expect(telegraphDamage).toBe(0)
+    expect(line.originXZ).toEqual(origin)
+    expect(line.directionXZ).toEqual(dir)
+    expect(pool.posX[m.index]).toBeCloseTo(x0, 6)
+    expect(pool.posZ[m.index]).toBeCloseTo(z0, 6)
+    let damage = 0
+    for (let f = 0; f < 0.8 / DT; f += 1) damage += step(player)
+    expect(damage).toBe(E100_MOCHI.latchDamage)
+    expect(runtime.novel2.clingerCount()).toBe(1)
+    expect(runtime.novel2.playerSlowMul()).toBe(E100_MOCHI.slowOne)
+    const visual = runtime.novel2.mochiStateInto(pool, m.index, {})
+    expect(visual.phase).toBe(3)
+    expect(visual.clinging).toBe(true)
+    expect(Math.hypot(visual.offsetX, visual.offsetZ)).toBeCloseTo(E100_MOCHI.attachOffset, 5)
+  })
+
+  it('예고를 보고 옆으로 비키면 매달리지 않고 피해 0(떡은 바닥에 퍼진다)', () => {
+    const { pool, runtime, step } = setup()
+    const m = spawnMochi(pool, 0, 1.2)
+    const player = { x: 0, z: 0 }
+    expect(runUntil(step, player, () => pool.state[m.index] === N2_STATE_TELEGRAPH)).toBe(true)
+    let damage = 0
+    let sawMiss = false
+    for (let f = 0; f < (E100_MOCHI.telegraphMs + 600) / 1000 / DT; f += 1) {
+      if (player.x < 1.2) player.x += PLAYER_SPEED * DT
+      damage += step(player)
+      if (runtime.novel2.mochiPhase[m.index] === 4) sawMiss = true
+    }
+    expect(damage).toBe(0)
+    expect(sawMiss).toBe(true)
+    expect(runtime.novel2.clingerCount()).toBe(0)
+    expect(runtime.novel2.playerSlowMul()).toBe(1)
+  })
+
+  function cling(ctx, x = 0, z = 1.2) {
+    const m = spawnMochi(ctx.pool, x, z)
+    expect(runUntil(ctx.step, { x: 0, z: 0 }, () => ctx.runtime.novel2.mochiPhase[m.index] === 3, 4)).toBe(true)
+    return m
+  }
+
+  it('대응: 누적 4u를 움직이면 떨어진다 — 떨어진 떡은 1초 퍼져 있고, 플레이어는 1.5초 동안 새 매달림을 받지 않는다', () => {
+    const ctx = setup()
+    const m = cling(ctx)
+    const player = { x: 0, z: 0 }
+    let moved = 0
+    let detachedAt = -1
+    for (let f = 0; f < 2.5 / DT; f += 1) {
+      player.x += PLAYER_SPEED * DT
+      moved += PLAYER_SPEED * DT
+      ctx.step(player)
+      if (detachedAt < 0 && ctx.runtime.novel2.clingerCount() === 0) detachedAt = moved
+    }
+    expect(detachedAt).toBeGreaterThanOrEqual(E100_MOCHI.shakeOffDistance - 0.1)
+    expect(detachedAt).toBeLessThanOrEqual(E100_MOCHI.shakeOffDistance + 0.2)
+    expect(ctx.runtime.novel2.playerSlowMul()).toBe(1)
+    // 면역 중에 다른 떡이 도약해도 매달리지 못한다(감속이 이어 붙지 않는다).
+    const fresh = setup()
+    const a = cling(fresh)
+    fresh.runtime.applyHitIndex(fresh.pool, a.index, a.generation, 1e9) // 처치도 대응이다
+    const b = spawnMochi(fresh.pool, 0, -1.2)
+    let damage = 0
+    let bClung = false
+    for (let f = 0; f < (E100_MOCHI.playerImmuneMs - 100) / 1000 / DT; f += 1) {
+      damage += fresh.step({ x: 0, z: 0 })
+      if (fresh.runtime.novel2.mochiPhase[b.index] === 3) bClung = true
+    }
+    expect(fresh.runtime.novel2.playerSlowMul()).toBe(1)
+    expect(bClung).toBe(false)
+    expect(damage).toBe(0)
+    expect(m).toBeTruthy()
+  })
+
+  it('가만히 있어도 4초면 떨어지고, 매달린 동안 추가 피해는 없다', () => {
+    const ctx = setup()
+    const m = cling(ctx)
+    let damage = 0
+    for (let f = 0; f < 3.8 / DT; f += 1) damage += ctx.step({ x: 0, z: 0 })
+    expect(ctx.runtime.novel2.clingerCount()).toBe(1)
+    expect(damage).toBe(0)
+    for (let f = 0; f < 0.4 / DT; f += 1) ctx.step({ x: 0, z: 0 })
+    expect(ctx.runtime.novel2.clingerCount()).toBe(0)
+    expect(ctx.pool.state[m.index]).toBe(N2_STATE_STUN)
+  })
+
+  it('처치하면 즉시 풀린다(투사체를 막지 않는 보통 몸 — 맞으면 정상적으로 죽는다)', () => {
+    const ctx = setup()
+    const m = cling(ctx)
+    ctx.runtime.applyHitIndex(ctx.pool, m.index, m.generation, 1e9)
+    expect(ctx.pool.isIndexGenerationAlive(m.index, m.generation)).toBe(false)
+    ctx.step({ x: 0, z: 0 })
+    expect(ctx.runtime.novel2.playerSlowMul()).toBe(1)
+  })
+
+  it('동시에 매달리는 떡은 2기까지(이동 ×0.6) — 세 번째는 빗나가고, 감속은 0.6 아래로 내려가지 않는다', () => {
+    const ctx = setup()
+    for (const [x, z] of [[0, 1.2], [1.2, 0], [-1.2, 0]]) spawnMochi(ctx.pool, x, z)
+    let maxClingers = 0
+    let minMul = 1
+    for (let f = 0; f < 3.5 / DT; f += 1) {
+      ctx.step({ x: 0, z: 0 })
+      maxClingers = Math.max(maxClingers, ctx.runtime.novel2.clingerCount())
+      minMul = Math.min(minMul, ctx.runtime.novel2.playerSlowMul())
+    }
+    expect(maxClingers).toBe(E100_MOCHI.maxClingers)
+    expect(minMul).toBe(E100_MOCHI.slowTwo)
+  })
+
+  it('마틸다 경고(205초) 뒤에는 매달리지 않고, 매달려 있던 떡은 떨어진다', () => {
+    const ctx = setup()
+    cling(ctx)
+    const late = makeStep(ctx.runtime, ctx.pool, S4_BOUNDS, 'stage4', { elapsedSec: 206 })
+    late({ x: 0, z: 0 })
+    expect(ctx.runtime.novel2.clingerCount()).toBe(0)
+    const fresh = setup({ elapsedSec: 206 })
+    const m = spawnMochi(fresh.pool, 0, 1.2)
+    let telegraphed = false
+    for (let f = 0; f < 4 / DT; f += 1) {
+      fresh.step({ x: 0, z: 0 })
+      if (fresh.pool.state[m.index] === N2_STATE_TELEGRAPH) telegraphed = true
+    }
+    expect(telegraphed).toBe(false)
+    expect(fresh.runtime.novel2.clingerCount()).toBe(0)
+  })
+})
+
+describe('E102 회전의자(스5)', () => {
+  function setup(obstacles = null) {
+    const pool = new EnemyEntityPool()
+    const runtime = createEnemySimulationRuntime()
+    const extra = obstacles ? { obstacles, obstacleCount: obstacles.length } : {}
+    const step = makeStep(runtime, pool, S5_BOUNDS, 'stage5', extra)
+    const chair = spawn(pool, 'E102', 0, 4, { hp: E102_HP, spawnTimer: 3000, scale: NOVEL2_ZOMBIE_STATS.E102.scale })
+    return { pool, runtime, step, chair }
+  }
+  const chairLine = () => [...expansionAttackSnapshots.values()].find((s) => s.type === 'E102')
+
+  it('0.9초 회전 예고(빨간 선 4.2 × 1.8u) 중 피해 0, 의자는 제자리, 선은 예고 시작 자리·방향 고정', () => {
+    const { pool, step, chair } = setup()
+    expect(runUntil(step, { x: 0, z: 0 }, () => pool.state[chair.index] === N2_STATE_TELEGRAPH)).toBe(true)
+    const line = chairLine()
+    expect(line.shape).toBe('line')
+    expect(line.windupMs).toBeGreaterThanOrEqual(850)
+    expect(line.rangeUnits).toBe(E102_CHAIR.lineLength)
+    expect(line.widthUnits).toBe(E102_CHAIR.lineWidth)
+    expect(isNovel2DamageTelegraph(line)).toBe(true)
+    const origin = [...line.originXZ]
+    const dir = [...line.directionXZ]
+    const x0 = pool.posX[chair.index]
+    const z0 = pool.posZ[chair.index]
+    let damage = 0
+    for (let f = 0; f < (E102_CHAIR.telegraphMs - 50) / 1000 / DT; f += 1) damage += step({ x: Math.sin(f * 0.2) * 0.4, z: 0 })
+    expect(damage).toBe(0)
+    expect(line.originXZ).toEqual(origin)
+    expect(line.directionXZ).toEqual(dir)
+    expect(pool.posX[chair.index]).toBeCloseTo(x0, 6)
+    expect(pool.posZ[chair.index]).toBeCloseTo(z0, 6)
+  })
+
+  it('선 위에 가만히 선 플레이어는 활주에 맞고(접촉 10), 옆으로 비키면 피해 0', () => {
+    for (const [dodge, expectHit] of [[false, true], [true, false]]) {
+      clearExpansionAttacks()
+      const { pool, step, chair } = setup()
+      const player = { x: 0, z: 0 }
+      expect(runUntil(step, player, () => pool.state[chair.index] === N2_STATE_TELEGRAPH)).toBe(true)
+      let damage = 0
+      for (let f = 0; f < (E102_CHAIR.telegraphMs + E102_CHAIR.glideMs + E102_CHAIR.driftMs) / 1000 / DT; f += 1) {
+        if (dodge && player.x < 1.6) player.x += PLAYER_SPEED * DT
+        damage += step(player)
+      }
+      if (expectHit) expect(damage).toBeGreaterThanOrEqual(NOVEL2_ZOMBIE_STATS.E102.damage)
+      else expect(damage).toBe(0)
+    }
+  })
+
+  it('활주(초당 25°까지 꺾음)·표류는 그려진 선 띠 밖으로 나가지 않는다 — 옆 ≤ 반폭 − 접촉, 앞 ≤ 길이 − 접촉, 최고 2.6u/s, 표류는 방향 고정', () => {
+    const { pool, runtime, step, chair } = setup()
+    const player = { x: 0, z: 0 }
+    expect(runUntil(step, player, () => pool.state[chair.index] === N2_STATE_TELEGRAPH)).toBe(true)
+    const line = chairLine()
+    const [ox, oz] = line.originXZ
+    const [dx, dz] = line.directionXZ
+    let maxLat = 0
+    let maxAlong = -Infinity
+    let minAlong = Infinity
+    let maxSpeed = 0
+    let driftDir = null
+    let driftTurn = 0
+    let px = pool.posX[chair.index]
+    let pz = pool.posZ[chair.index]
+    let sawGlide = false
+    for (let f = 0; f < (E102_CHAIR.telegraphMs + E102_CHAIR.glideMs + E102_CHAIR.driftMs + 200) / 1000 / DT; f += 1) {
+      player.x += PLAYER_SPEED * DT * 0.9 // 옆으로 계속 달려 의자가 꺾게 만든다
+      step(player)
+      const x = pool.posX[chair.index]
+      const z = pool.posZ[chair.index]
+      const visual = runtime.novel2.chairStateInto(pool, chair.index, {})
+      if (visual.phase === 2 || visual.phase === 3) {
+        sawGlide = true
+        const along = (x - ox) * dx + (z - oz) * dz
+        const lat = Math.abs((x - ox) * -dz + (z - oz) * dx)
+        maxLat = Math.max(maxLat, lat)
+        maxAlong = Math.max(maxAlong, along)
+        minAlong = Math.min(minAlong, along)
+        const v = Math.hypot(x - px, z - pz) / DT
+        maxSpeed = Math.max(maxSpeed, v)
+        if (visual.phase === 3 && v > 1e-3) {
+          const dir = Math.atan2(x - px, z - pz)
+          if (driftDir === null) driftDir = dir
+          else driftTurn = Math.max(driftTurn, Math.abs(dir - driftDir))
+        }
+      }
+      px = x
+      pz = z
+    }
+    expect(sawGlide).toBe(true)
+    expect(maxLat).toBeLessThanOrEqual(E102_CHAIR.lineWidth / 2 - E102_CONTACT + 1e-3)
+    expect(maxLat).toBeGreaterThan(0.05) // 실제로 꺾었다(관성 활주)
+    expect(maxAlong).toBeLessThanOrEqual(E102_CHAIR.lineLength - E102_CONTACT + 1e-3)
+    expect(minAlong).toBeGreaterThanOrEqual(-0.01)
+    expect(maxSpeed).toBeLessThanOrEqual(E102_CHAIR.maxSpeed + 0.05)
+    expect(driftTurn).toBeLessThan(1e-3)
+  })
+
+  it('장애물에 막히면 그 자리에서 멈춘다 — 순간이동 없음, 장애물 안으로 들어가지 않음, 선은 지워진다', () => {
+    const desk = Object.freeze({ id: 'desk', type: 'staffroomDeskIsland', x: 0, z: 2, halfX: 1.0, halfZ: 0.2, rotationY: 0, cosY: 1, sinY: 0 })
+    const { pool, step, chair } = setup([desk])
+    const player = { x: 0, z: 0 }
+    let maxStep = 0
+    let px = pool.posX[chair.index]
+    let pz = pool.posZ[chair.index]
+    let telegraphed = false
+    for (let f = 0; f < 6 / DT; f += 1) {
+      step(player)
+      if (pool.state[chair.index] === N2_STATE_TELEGRAPH) telegraphed = true
+      const x = pool.posX[chair.index]
+      const z = pool.posZ[chair.index]
+      maxStep = Math.max(maxStep, Math.hypot(x - px, z - pz))
+      expect(Math.abs(x - desk.x) < desk.halfX && Math.abs(z - desk.z) < desk.halfZ).toBe(false)
+      px = x
+      pz = z
+    }
+    expect(telegraphed).toBe(true)
+    expect(maxStep).toBeLessThanOrEqual(E102_CHAIR.maxSpeed * DT + 0.02)
+  })
+})
+
+describe('E106 기마전(스6, 몸 4)', () => {
+  function setup(positions = [[0, 6], [2, 7], [-2, 7], [0, 8]], spawnTimer = 0) {
+    const pool = new EnemyEntityPool()
+    const runtime = createEnemySimulationRuntime()
+    const step = makeStep(runtime, pool, S6_BOUNDS, 'stage6')
+    const bodies = positions.map(([x, z]) => spawn(pool, 'E106', x, z, { hp: 30, spawnTimer, scale: NOVEL2_ZOMBIE_STATS.E106.scale }))
+    return { pool, runtime, step, bodies }
+  }
+  const state = (ctx, h) => ctx.runtime.novel2.cavalryStateInto(ctx.pool, h.index, {})
+
+  it('첫 걸음에 편대: 가장 낮은 슬롯이 기수, 나머지 셋이 말(앞·왼뒤·오른뒤 자리로 바로 모임)', () => {
+    const ctx = setup()
+    ctx.step({ x: 0, z: 0 })
+    const [rider, ...horses] = ctx.bodies
+    expect(state(ctx, rider)).toMatchObject({ role: 1, slot: -1, mounted: true, scattered: false, rider: rider.index })
+    expect(horses.map((h) => state(ctx, h).slot).sort()).toEqual([0, 1, 2])
+    for (const h of horses) {
+      expect(state(ctx, h)).toMatchObject({ role: 2, rider: rider.index, mounted: false })
+      const d = Math.hypot(ctx.pool.posX[h.index] - ctx.pool.posX[rider.index], ctx.pool.posZ[h.index] - ctx.pool.posZ[rider.index])
+      expect(d).toBeGreaterThan(0.7)
+      expect(d).toBeLessThan(0.9)
+    }
+  })
+
+  it('편대는 0.75u/s로 함께 온다(말은 자리에서 0.3u 안)', () => {
+    const ctx = setup([[0, 10], [1, 11], [-1, 11], [0, 12]])
+    const [rider, ...horses] = ctx.bodies
+    const player = { x: 0, z: 0 }
+    ctx.step(player)
+    for (let f = 0; f < 1 / DT; f += 1) ctx.step(player)
+    let maxRiderSpeed = 0
+    let px = ctx.pool.posX[rider.index]
+    let pz = ctx.pool.posZ[rider.index]
+    for (let f = 0; f < 3 / DT; f += 1) {
+      ctx.step(player)
+      maxRiderSpeed = Math.max(maxRiderSpeed, Math.hypot(ctx.pool.posX[rider.index] - px, ctx.pool.posZ[rider.index] - pz) / DT)
+      px = ctx.pool.posX[rider.index]
+      pz = ctx.pool.posZ[rider.index]
+    }
+    expect(maxRiderSpeed).toBeLessThanOrEqual(E106_CAVALRY.formSpeed + 0.1)
+    const heading = state(ctx, rider).heading
+    for (const h of horses) {
+      const [side, ahead] = E106_CAVALRY.slots[state(ctx, h).slot]
+      const tx = ctx.pool.posX[rider.index] + Math.cos(heading) * side + Math.sin(heading) * ahead
+      const tz = ctx.pool.posZ[rider.index] - Math.sin(heading) * side + Math.cos(heading) * ahead
+      expect(Math.hypot(ctx.pool.posX[h.index] - tx, ctx.pool.posZ[h.index] - tz)).toBeLessThan(0.3)
+    }
+  })
+
+  function toHatTelegraph(ctx, player) {
+    const rider = ctx.bodies[0]
+    return runUntil(ctx.step, player, () => ctx.pool.state[rider.index] === N2_STATE_TELEGRAPH, 12)
+  }
+
+  it('모자 뺏기: 0.9초 빨간 부채꼴(90°·r 1.6u) 예고 중 편대 전체 정지·피해 0 → 가만히 있으면 10', () => {
+    const ctx = setup([[0, 4], [1, 5], [-1, 5], [0, 6]])
+    const player = { x: 0, z: 0 }
+    expect(toHatTelegraph(ctx, player)).toBe(true)
+    const hat = snapshotOf('E106')
+    expect(hat.shape).toBe('sector')
+    expect(hat.angleDeg).toBe(E106_CAVALRY.coneAngleDeg)
+    expect(hat.rangeUnits).toBe(E106_CAVALRY.coneRadius)
+    expect(hat.windupMs).toBeGreaterThanOrEqual(850)
+    expect(hat.damage).toBe(E106_CAVALRY.damage)
+    expect(isNovel2DamageTelegraph(hat)).toBe(true)
+    const before = ctx.bodies.map((h) => [ctx.pool.posX[h.index], ctx.pool.posZ[h.index]])
+    let telegraphDamage = 0
+    for (let f = 0; f < (E106_CAVALRY.telegraphMs - 50) / 1000 / DT; f += 1) telegraphDamage += ctx.step(player)
+    expect(telegraphDamage).toBe(0)
+    ctx.bodies.forEach((h, k) => {
+      expect(Math.hypot(ctx.pool.posX[h.index] - before[k][0], ctx.pool.posZ[h.index] - before[k][1])).toBeLessThan(0.05)
+    })
+    let hit = 0
+    for (let f = 0; f < 0.3 / DT; f += 1) hit += ctx.step(player)
+    expect(hit).toBe(E106_CAVALRY.damage)
+  })
+
+  it('예고를 보고 옆으로 비키면 피해 0', () => {
+    const ctx = setup([[0, 4], [1, 5], [-1, 5], [0, 6]])
+    const player = { x: 0, z: 0 }
+    expect(toHatTelegraph(ctx, player)).toBe(true)
+    let damage = 0
+    for (let f = 0; f < (E106_CAVALRY.telegraphMs + E106_CAVALRY.activeMs + 100) / 1000 / DT; f += 1) {
+      player.x += PLAYER_SPEED * DT
+      damage += ctx.step(player)
+    }
+    expect(damage).toBe(0)
+  })
+
+  it('기수를 먼저 잡으면 말 셋이 0.8초 휘청였다가 흩어져 0.6u/s로 추격한다', () => {
+    const ctx = setup([[0, 10], [1, 11], [-1, 11], [0, 12]])
+    const [rider, ...horses] = ctx.bodies
+    const player = { x: 0, z: 0 }
+    for (let f = 0; f < 1 / DT; f += 1) ctx.step(player)
+    ctx.runtime.applyHitIndex(ctx.pool, rider.index, rider.generation, 1e9)
+    ctx.step(player)
+    for (const h of horses) {
+      expect(ctx.pool.state[h.index]).toBe(N2_STATE_STUN)
+      expect(state(ctx, h).scattered).toBe(true)
+    }
+    for (let f = 0; f < 1 / DT; f += 1) ctx.step(player)
+    let maxSpeed = 0
+    const prev = horses.map((h) => [ctx.pool.posX[h.index], ctx.pool.posZ[h.index]])
+    for (let f = 0; f < 1 / DT; f += 1) {
+      ctx.step(player)
+      horses.forEach((h, k) => {
+        maxSpeed = Math.max(maxSpeed, Math.hypot(ctx.pool.posX[h.index] - prev[k][0], ctx.pool.posZ[h.index] - prev[k][1]) / DT)
+        prev[k] = [ctx.pool.posX[h.index], ctx.pool.posZ[h.index]]
+      })
+    }
+    expect(maxSpeed).toBeGreaterThan(0.3)
+    expect(maxSpeed).toBeLessThanOrEqual(E106_CAVALRY.horseSoloSpeed + 0.75) // 흩어진 몸끼리 밀어내기 몫(0.68) 여유
+    for (const h of horses) expect(ctx.pool.state[h.index]).toBe(N2_STATE_APPROACH)
+  })
+
+  it('말 셋을 먼저 잡으면 기수가 1초 낙마했다가 1.2u/s로 질주한다(이때부터 몸 접촉 10)', () => {
+    const ctx = setup([[0, 10], [1, 11], [-1, 11], [0, 12]])
+    const [rider, ...horses] = ctx.bodies
+    const player = { x: 0, z: 0 }
+    for (let f = 0; f < 1 / DT; f += 1) ctx.step(player)
+    expect(ctx.runtime.novel2.forcesNoContact(ctx.pool, rider.index)).toBe(true) // 말 위의 기수는 몸 접촉이 없다
+    for (const h of horses) ctx.runtime.applyHitIndex(ctx.pool, h.index, h.generation, 1e9)
+    ctx.step(player)
+    expect(ctx.pool.state[rider.index]).toBe(N2_STATE_STUN)
+    expect(state(ctx, rider)).toMatchObject({ role: 1, mounted: false, scattered: true })
+    for (let f = 0; f < (E106_CAVALRY.dismountStunMs + 100) / 1000 / DT; f += 1) ctx.step(player)
+    let px = ctx.pool.posX[rider.index]
+    let pz = ctx.pool.posZ[rider.index]
+    let maxSpeed = 0
+    for (let f = 0; f < 1 / DT; f += 1) {
+      ctx.step(player)
+      maxSpeed = Math.max(maxSpeed, Math.hypot(ctx.pool.posX[rider.index] - px, ctx.pool.posZ[rider.index] - pz) / DT)
+      px = ctx.pool.posX[rider.index]
+      pz = ctx.pool.posZ[rider.index]
+    }
+    expect(maxSpeed).toBeCloseTo(E106_CAVALRY.riderSoloSpeed, 1)
+    expect(ctx.runtime.novel2.forcesNoContact(ctx.pool, rider.index)).toBe(false)
+    let damage = 0
+    for (let f = 0; f < 12 / DT; f += 1) damage += ctx.step(player)
+    expect(damage).toBeGreaterThanOrEqual(NOVEL2_ZOMBIE_STATS.E106.damage)
+  })
+
+  it('몸이 다 나오지 못하면(동시 150 상한) 1.5초 뒤 있는 몸끼리 편대를 짓는다', () => {
+    const ctx = setup([[0, 10], [1, 11]])
+    const [rider, horse] = ctx.bodies
+    ctx.step({ x: 0, z: 0 })
+    expect(state(ctx, rider).role).toBe(0)
+    for (let f = 0; f < (E106_CAVALRY.linkGraceMs + 100) / 1000 / DT; f += 1) ctx.step({ x: 0, z: 0 })
+    expect(state(ctx, rider)).toMatchObject({ role: 1, mounted: true })
+    expect(state(ctx, horse)).toMatchObject({ role: 2, slot: 0, rider: rider.index })
+  })
+})
+
+describe('E101 복사기 — 책상 옆에 붙어 선 플레이어(2026-11-17 브라우저 보고 "안전 판정이 계속 재시도돼")', () => {
+  // 교무실 책상 섬(x −4.2·0, 반폭 1.0) 사이 통로(폭 2.2u)에서 책상 면에서 0.2u 떨어진 플레이어. 탈출 인증은 출발점에서 1.2u 중앙 통로
+  // (반폭 0.792u)를 요구해 이 자리에서는 모든 후보가 막혔다 — 부채꼴이 영원히 인증 실패·재시도였다(2.5u 안 1,383자리 중 258자리).
+  const obstacles = getStageObjectSightObstacles('stage5')
+  const player = { x: -3.0, z: -8.0 }
+
+  it('부채꼴 예고가 나오고, 통로를 따라 비키면 피해 0 · 가만히 있으면 12', () => {
+    for (const [dodge, expected] of [[true, 0], [false, E101_COPIER.fanDamage]]) {
+      clearExpansionAttacks()
+      const pool = new EnemyEntityPool()
+      const runtime = createEnemySimulationRuntime()
+      const step = makeStep(runtime, pool, S5_BOUNDS, 'stage5', { obstacles, obstacleCount: obstacles.length })
+      const copier = spawn(pool, 'E101', -2.1, -6.2, { hp: 1e9, spawnTimer: 3000 })
+      const p = { ...player }
+      expect(runUntil(step, p, () => pool.state[copier.index] === N2_STATE_TELEGRAPH && !!snapshotOf('E101') && snapshotOf('E101').patternId === 'e101_fan', 3)).toBe(true)
+      const fan = snapshotOf('E101')
+      expect(fan.escapeChannel.obstacleIngress).toBe(true)
+      let damage = 0
+      for (let f = 0; f < (E101_COPIER.fanTelegraphMs + E101_COPIER.fanActiveMs + 100) / 1000 / DT; f += 1) {
+        if (dodge && p.z > -11.5) p.z -= PLAYER_SPEED * DT // 통로를 따라 아래로
+        damage += step(p)
+      }
+      expect(damage, `dodge ${dodge}`).toBe(expected)
+    }
+  })
+
+  it('진입 구간 허용은 2차 신규 좀비 옵션일 때만 — 확장 적·보스(옵션 없음) 판정은 그대로 이 자리를 거절한다', () => {
+    const snapshot = {
+      id: 'probe', patternId: 'probe', type: 'E101', key: 'probe', shape: 'sector', angleDeg: 60,
+      originXZ: [-2.1, -6.2], directionXZ: [-0.447, -0.894], yaw: Math.atan2(-0.447, -0.894),
+      rangeUnits: 2.4, widthUnits: 0, windupMs: 1000, activeMs: 150, recoveryMs: 0, damage: 12, phase: 'windup', elapsedMs: 0,
+    }
+    const context = () => ({ stageId: 'stage5', halfX: 9.36, halfZ: 16, obstacles: novel2NearSafetyObstacles(obstacles, -2.1, -6.2, player.x, player.z) })
+    const ctxA = context()
+    snapshot.safetyPolygons = buildExpansionSafetyGeometry(snapshot, ctxA)
+    expect(snapshot.safetyPolygons.length).toBeGreaterThan(0)
+    expect(certifyExpansionEscape(snapshot, { playerX: player.x, playerZ: player.z }, ctxA, [])).toBeNull()
+    const ctxB = context()
+    buildExpansionSafetyGeometry(snapshot, ctxB)
+    const channel = certifyExpansionEscape(snapshot, { playerX: player.x, playerZ: player.z }, ctxB, [], { obstacleIngress: true })
+    expect(channel).not.toBeNull()
+    expect(channel.obstacleIngress).toBe(true)
+    // 몸(0.9 × 0.192u)만 지나가는 구간도 장애물에 막히지 않는다(붙어 선 책상 면을 따라 빠져나간다).
+    expect(isStageObjectSightBlocked({ x: player.x, z: player.z }, { x: channel.toXZ[0], z: channel.toXZ[1] }, obstacles, EXPANSION_PLAYER_RADIUS * 0.9)).toBe(false)
   })
 })

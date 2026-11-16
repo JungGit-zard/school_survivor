@@ -59,8 +59,9 @@ const HOST_SET = new Set(ROSTER_ROTATION_HOST_TYPES)
 // 기본 E01~E08과 크루(RZT/RZG/RZL/RZC)는 순환 대상이 아니다.
 const NON_ROSTER_TYPE = /^(E0[1-8]|RZ[A-Z])$/
 // 순환에 절대 넣지 않는 2차 신규 종: 치프(데뷔 1회 — lib/stageChiefContent.js)와 E105 2인3각(두 몸이 한 단위라
-// host 1기 ↔ 1기 맞교환이 성립하지 않는다. 쌍 단위 교체는 2차 작업).
-const NON_ROTATING_NOVEL2 = new Set(['E105'])
+// host 1기 ↔ 1기 맞교환이 성립하지 않는다. 쌍 단위 교체는 2차 작업). E106 기마전도 몸 4개가 한 편대라 같은 이유로 넣지 않는다
+// (지금은 스6 확장 스테이지에만 있어 enemyIds 거름으로도 빠지지만, 다른 스테이지 행이 생겨도 혼자 순환되지 않게 명시한다).
+const NON_ROTATING_NOVEL2 = new Set(['E105', 'E106'])
 function isNeverRotated(type) {
   return isChiefType(type) || NON_ROTATING_NOVEL2.has(type)
 }

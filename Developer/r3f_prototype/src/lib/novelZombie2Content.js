@@ -8,7 +8,8 @@
 //  - typeCode는 ENEMY_TYPE_NAMES 끝(75 = B10, 76~93 = 블록 좀비 다음)에만 붙인다. 94 = E89 … 111 = E106. 재배열 금지.
 //  - 확장 DATA.enemies(expansionContent.js)에 행을 넣지 않는다 — 넣으면 typeCode 37~75가 전부 한 칸씩 밀린다.
 //  - 18개 id는 전부 지금 예약한다(조우 기록·Rules 허용 목록이 18개를 한 번에 갖는다). 실제 스폰·행동이 있는 것은
-//    implemented: true인 행(wave 1 8종 + wave 2 4종 + wave 3 3종)뿐이고, 나머지는 스탯이 없어 스폰되지 않는다(시뮬레이션이 오류로 격리).
+//    implemented: true인 행(wave 1 8종 + wave 2 4종 + wave 3 치프 3종 + wave 3 일반 3종 = 18종 전부)이다. 스탯이 없는 행은
+//    스폰되지 않는다(시뮬레이션이 오류로 격리).
 //
 // 수치 규칙:
 //  - 일반 종: 같은 HP의 기본 좀비(host) 1기와 1:1 교체 → 스테이지 총 HP·XP 불변. hp/xp = host.
@@ -19,7 +20,8 @@
 //    3차(wave 3) 치프 E98·E101·E104는 E92와 같은 base 100 규칙(스4 173, 스6 절대 250). E101만 base 90(스5 187 — 아래 행 주석).
 //  - hpMode 'absolute'는 E104(Stage 6 치프)도 쓴다.
 //  - 두 몸 치프(E95 긴줄넘기 듀오): 한 행이 몸 bodyCount개를 낸다. 행 hp는 몸 하나 — 치프 합계 = hp × bodyCount.
-//  - hpMode 'absolute'(E105, Stage 6): 기존 종 배수(2.488)를 타지 않고 표의 hp를 그대로 쓴다(E19와 같은 30).
+//  - hpMode 'absolute'(E105·E106, Stage 6): 기존 종 배수(2.488)를 타지 않고 표의 hp를 그대로 쓴다(E19와 같은 30).
+//  - 여러 몸 일반 종(E106 기마전): 한 행 count = 몸 수(bodyCount 4). 행 hp는 몸 하나. 동시 150 상한은 몸마다 센다.
 //
 // 거리 단위는 월드 유닛(u). 1블록 = 4u.
 
@@ -44,8 +46,10 @@ export const NOVEL2_CHIEF_IDS = Object.freeze(['E89', 'E92', 'E95', 'E98', 'E101
 export const NOVEL2_WAVE1_IDS = Object.freeze(['E89', 'E93', 'E94', 'E96', 'E97', 'E99', 'E103', 'E105'])
 // 2차 구현분(wave 2, 2026-11-15).
 export const NOVEL2_WAVE2_IDS = Object.freeze(['E90', 'E91', 'E92', 'E95'])
-// 3차 구현분 첫 묶음(wave 3, 2026-11-16): 치프 3종. 남은 3종(E100·E102·E106)은 id·typeCode·조우 기록만 예약돼 있다.
+// 3차 구현분 첫 묶음(wave 3, 2026-11-16): 치프 3종.
 export const NOVEL2_WAVE3_IDS = Object.freeze(['E98', 'E101', 'E104'])
+// 3차 구현분 둘째 묶음(2026-11-17): 일반 3종 — 찹쌀떡(스4)·회전의자(스5)·기마전(스6). 이것으로 18종이 모두 구현됐다.
+export const NOVEL2_WAVE3B_IDS = Object.freeze(['E100', 'E102', 'E106'])
 
 // 행 공통 필드: stageId, chief, visualId(비주얼 교체 키 — 행동은 이 값을 읽지 않는다), implemented.
 // visualId는 lib/novelZombie2Visuals.js가 해석한다. Kenney Mini Characters 몸체가 들어오면 그 표만 바뀐다.
@@ -94,12 +98,19 @@ const ROWS = {
   // host E05(hp 70 / xp 15) — Stage 4 120초 차저 포위 4기 중 1기.
   E99: { stageId: 'stage4', chief: false, visualId: 'n2-pressure-cooker', implemented: true,
     stats: { hp: 70, speed: 0.42, damage: 10, scale: 1.3, xp: 15, contactDist: 0.34 } },
-  E100: { stageId: 'stage4', chief: false, visualId: 'n2-mochi-cling', implemented: false },
+  // host E44(hp 16 / xp 8, E07 체급) — Stage 4 168초 발맞춤후퇴형 복습 1기와 같은 hp 맞교환(3차 둘째 묶음, 2026-11-17).
+  // 설계 E82는 E03 체급(실효 17)이었지만 168초 앵커에는 E03 행이 없다 — 같은 앵커·같은 hp 자리에서만 바꿔 밀도 동결을 비트 그대로 둔다.
+  // 매달리기 물기 6(접촉 피해 경로가 아니라 착지 판정 1회), 몸 접촉 6. 접촉 0.24 × 4/3 = 0.32u.
+  E100: { stageId: 'stage4', chief: false, visualId: 'n2-mochi-cling', implemented: true,
+    stats: { hp: 16, speed: 1.0, damage: 6, scale: 0.85, xp: 8, contactDist: 0.24 } },
   // 치프(3차, 2026-11-16). base 90(스5 실효 187) — 봇 사망률이 이미 가장 높은 스5라 E98보다 한 단계 가볍게, 등장도 가장 이른(40초) 치프라
   // 플레이어 화력이 가장 낮을 때 나온다. 근접 부채꼴 12(60°·r 2.4u, 예고 1.0초), 접촉 12. 복사본은 XP·드롭 0(E101_COPIER).
   E101: { stageId: 'stage5', chief: true, visualId: 'n2-photocopier', implemented: true,
     stats: { hp: 90, speed: 0.38, damage: 12, scale: 1.5, xp: 15, contactDist: 0.3 } },
-  E102: { stageId: 'stage5', chief: false, visualId: 'n2-swivel-chair', implemented: false },
+  // host E07(hp 16 / xp 8) — Stage 5 144초 E07×5 중 1기(설계 E84 "E07×5 중 1" 그대로). 사무용 회전의자 + 교사(보조기구 아님).
+  // 피해 10은 활주·표류 중 몸 접촉(빨간 선 안에서만 움직인다). 평시 굴러오기 0.9u/s. 접촉 0.26 × 4/3 = 0.35u.
+  E102: { stageId: 'stage5', chief: false, visualId: 'n2-swivel-chair', implemented: true,
+    stats: { hp: 16, speed: 0.9, damage: 10, scale: 1.0, xp: 8, contactDist: 0.26 } },
   // host E04(hp 32 / xp 10) — Stage 5 144초 원거리 행 4기 중 1기. 탄을 쏘지 않는다(사수 상한·사수 순환 계층 밖).
   E103: { stageId: 'stage5', chief: false, visualId: 'n2-coffee-runner', implemented: true,
     stats: { hp: 32, speed: 0.5, damage: 6, scale: 1.0, xp: 10, contactDist: 0.26 } },
@@ -110,7 +121,11 @@ const ROWS = {
   // Stage 6 절대 HP(E19와 같은 30 / xp 6). 150초·168초 E01 3기(실효 20 × 3 = 60) 자리를 한 쌍(30 × 2)씩 받는다 — HP 불변.
   E105: { stageId: 'stage6', chief: false, visualId: 'n2-three-legged', implemented: true, hpMode: 'absolute',
     stats: { hp: 30, speed: 0.9, damage: 10, scale: 0.95, xp: 6, contactDist: 0.26 } },
-  E106: { stageId: 'stage6', chief: false, visualId: 'n2-cavalry', implemented: false },
+  // Stage 6 절대 HP(E19와 같은 30 / xp 6). 한 행이 몸 4개(기수 1 + 말 3)를 낸다 — 192초 조회 줄 E19×12 중 4기 자리(30 × 4 = 120, HP·마릿수 불변).
+  // 설계 E88의 기수 80은 순증 +90이라 넣지 않았다(스6 사다리 +1.47%에 여유가 없다) — 기수도 30이고, 처치 순서의 차이는 역할이 만든다
+  // (기수 = 유일한 공격자, 말 = 몸 접촉만). 편대 이동 0.75u/s, 낙마한 기수 1.2u/s, 흩어진 말 0.6u/s(E19).
+  E106: { stageId: 'stage6', chief: false, visualId: 'n2-cavalry', implemented: true, hpMode: 'absolute', bodyCount: 4,
+    stats: { hp: 30, speed: 0.75, damage: 10, scale: 0.95, xp: 6, contactDist: 0.26 } },
 }
 
 function deepFreeze(value) {

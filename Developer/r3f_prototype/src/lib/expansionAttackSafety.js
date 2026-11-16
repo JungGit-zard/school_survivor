@@ -148,7 +148,15 @@ function capsuleHits(poly,ax,az,bx,bz,pad){
  }
  return false
 }
-export function certifyExpansionEscape(snapshot,a,ctx,others){
+// options.obstacleIngress(2차 신규 좀비 전용, 기본 꺼짐 — 확장 적·보스 판정은 그대로): 플레이어가 장애물에 붙어 서 있으면
+// 출발점에서 1.2u 중앙 통로가 물리적으로 존재하지 않는다(통로 반폭 0.792u 안에 장애물). 그러면 모든 후보가 막혀 인증이
+// 영원히 실패한다 — Stage 5 교무실 책상 통로(폭 2.2u)에서는 통로 가장자리 0.79u씩이 "공격이 절대 오지 않는 자리"가 됐다
+// (2026-11-17 E101 복사기 부채꼴 실측: 2.5u 안 1,383자리 중 258자리에서 8초 동안 한 번도 예고 못 함).
+// 맵 끝 진입(ingress)과 같은 규칙을 장애물에도 준다: 출발점에서 이미 통로 반폭 안에 들어와 있는("붙어 선") 장애물은 통로 폭 판정에서
+// 빼고(맵 끝이 통로 한쪽을 자르는 것과 같다) 몸(반경 0.9 × 0.192u)만 막히지 않으면 된다. 붙어 있지 않은 다른 장애물은 여전히 전체 폭
+// 통로(반폭 0.792u)를 경로 어디에서도 막으면 안 된다. 출발점이 아무 장애물에도 붙어 있지 않으면 판정은 기존과 똑같다.
+const OBSTACLE_INGRESS_BODY_PAD=EXPANSION_PLAYER_RADIUS*.9
+export function certifyExpansionEscape(snapshot,a,ctx,others,options){
  const px=a.playerX,pz=a.playerZ,r=EXPANSION_PLAYER_RADIUS,clearance=EXPANSION_SAFE_WIDTH/2+r
  const work=ctx.work??={sightQueries:0,clipTests:0,candidates:0,polygonTests:0,exhausted:false}
  const inside=(x,z,pad)=>Math.abs(x)+pad<=ctx.halfX+EPS&&Math.abs(z)+pad<=ctx.halfZ+EPS
@@ -162,6 +170,10 @@ export function certifyExpansionEscape(snapshot,a,ctx,others){
   return predicate(p)
  })
  const max=snapshot.windupMs/1000*3 // existing player speed: 3 units/s (.75 blocks/s)
+ // 출발점이 장애물에 붙어 있을 때만(옵션) 진입 구간을 허용한다. 붙어 있지 않으면 아래 판정은 기존과 같다.
+ const crowded=options?.obstacleIngress===true&&ctx.obstacles?.length>0&&sight(ctx,{x:px,z:pz},{x:px,z:pz},clearance)
+ // 붙어 선 장애물을 뺀 통로 판정용 문맥(같은 work 계수를 공유한다).
+ const laneCtx=crowded?{...ctx,obstacles:ctx.obstacles.filter(o=>!isStageObjectSightBlocked({x:px,z:pz},{x:px,z:pz},[o],clearance))}:null
  for(let distance=0;distance<=max+EPS;distance+=.2)for(let i=0;i<32;i++){
   if(work.candidates>=EXPANSION_SAFETY_LIMITS.candidates||work.exhausted)return null
   work.candidates++
@@ -170,7 +182,12 @@ export function certifyExpansionEscape(snapshot,a,ctx,others){
   // A destination beyond an active/warning hazard is not a safe route. Check
   // the WHOLE swept 1.2-unit centre lane plus body, not just its endpoint.
   if(hazards.slice(1).some(ps=>check(ps,p=>capsuleHits(p,px,pz,x,z,clearance))))continue
-  if(sight(ctx,{x:px,z:pz},{x,z},clearance)||work.exhausted)continue
+  let obstacleFrom=null
+  if(sight(ctx,{x:px,z:pz},{x,z},clearance)||work.exhausted){
+   if(!crowded||work.exhausted)continue
+   obstacleFrom=obstacleIngressFrom(ctx,laneCtx,px,pz,x,z,clearance)
+   if(!obstacleFrom||work.exhausted)continue
+  }
   // At a map edge a full symmetric lane cannot exist at the initial centre.
   // Permit body-safe inward ingress, then require the full-width lane INSIDE
   // the map. Convex map guarantees the whole body-centre segment stays inside.
@@ -179,7 +196,20 @@ export function certifyExpansionEscape(snapshot,a,ctx,others){
   for(const [from,to,half]of [[px,x,ctx.halfX],[pz,z,ctx.halfZ]]){
    if(Math.abs(from)>half-clearance)ingress=Math.max(ingress,(Math.abs(from)-(half-clearance))/(Math.abs(from)-Math.sign(from)*to))
   }
-  return {fromXZ:[px,pz],toXZ:[x,z],fullWidthFromXZ:[px+(x-px)*ingress,pz+(z-pz)*ingress],boundaryIngress:ingress>0,widthUnits:EXPANSION_SAFE_WIDTH,bodyRadiusUnits:r,clearanceUnits:clearance}
+  const fullWidthFromXZ=obstacleFrom??[px+(x-px)*ingress,pz+(z-pz)*ingress]
+  return {fromXZ:[px,pz],toXZ:[x,z],fullWidthFromXZ,boundaryIngress:ingress>0,obstacleIngress:obstacleFrom!==null,widthUnits:EXPANSION_SAFE_WIDTH,bodyRadiusUnits:r,clearanceUnits:clearance}
  }
  return null
+}
+// 장애물 진입 경로: 몸(0.9 × 0.192u)은 출발점 → 목적지 전체를 모든 장애물에 막히지 않고 지나가고, 붙어 선 장애물을 뺀 나머지는
+// 전체 폭 통로(반폭 0.792u)를 막지 않아야 한다. 성립하면 모든 장애물 기준으로 전체 폭이 처음 열리는 지점(없으면 목적지), 아니면 null.
+function obstacleIngressFrom(ctx,laneCtx,px,pz,x,z,clearance){
+ const dx=x-px,dz=z-pz,length=Math.hypot(dx,dz)
+ if(length<EPS)return null
+ if(sight(ctx,{x:px,z:pz},{x,z},OBSTACLE_INGRESS_BODY_PAD))return null
+ if(sight(laneCtx,{x:px,z:pz},{x,z},clearance))return null
+ let lo=0,hi=1
+ if(sight(ctx,{x,z},{x,z},clearance))return [x,z]
+ for(let i=0;i<6;i++){const mid=(lo+hi)/2;if(sight(ctx,{x:px+dx*mid,z:pz+dz*mid},{x,z},clearance))lo=mid;else hi=mid}
+ return [px+dx*hi,pz+dz*hi]
 }
