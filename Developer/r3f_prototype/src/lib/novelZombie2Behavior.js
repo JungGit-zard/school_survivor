@@ -285,7 +285,7 @@ export const E101_COPIER = Object.freeze({
   scanRadius: 0.8,
   scanRecoverMs: 400,
   copyCooldownMs: 10000,
-  maxCopies: 2,
+  maxCopies: 1,
   copyHpRatio: 0.4,
   copyLifeMs: 20000,
   copyOffset: 0.8,
@@ -331,7 +331,7 @@ export const E104_BALL = Object.freeze({
   // 굴림 한 번에 좀비를 이만큼만 친다(그 뒤로는 공이 좀비를 그냥 지나간다). 상한이 없으면 공이 쫓아오는 무리를 매번 쓸어
   // XP가 폭주한다 — 스6 프로브(연필 봇, 치프가 끝까지 산다) 6시드: 공 처치 판당 106~169 · 레벨 7~11(공 처치 없으면 1~6 · 레벨 1~2).
   // 조회 줄(12명) 절반을 쓸 수 있는 6으로 둔다(balanceqa 확인 항목).
-  maxZombieHitsPerRoll: 6,
+  maxZombieHitsPerRoll: 3,
   kickMs: 600,            // 찬 뒤 제자리(접촉은 켜진다)
   retrieveSpeed: 0.8,
   pickupReach: 0.8,
