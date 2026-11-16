@@ -11,8 +11,8 @@ describe('stage6 hand-built schoolyard props',()=>{
  it('builds all six props within their triangle budgets, outside the arena, without moving Studio part slots',()=>{
    const {halfX,halfZ}=getStageBounds('stage6')
    const root=createExpansionEnvironment('stage6',{halfX,halfZ})
-   // Root slots 0-2 are unchanged; the props are appended as slot 3.
-   expect(root.children.map(c=>c.name)).toEqual(['authored-static-volumes','stage6-gate-doors','schoolyard-bounded-spectacle','schoolyard-hand-built-props'])
+   // Root slots 0-2 are unchanged; the props are appended as slot 3, the free-pack dressing (2026-11-17) as slot 4.
+   expect(root.children.map(c=>c.name)).toEqual(['authored-static-volumes','stage6-gate-doors','schoolyard-bounded-spectacle','schoolyard-hand-built-props','schoolyard-pack-dressing'])
    // Pre-existing static batches keep their child index (retired ones stay as empty groups).
    const slots=root.children[0].children.map(c=>c.name.replace(/^schoolyard-/,'').replace(/-retired/,''))
    const expected=SCHOOLYARD_STATIC_BATCH_ORDER.flatMap(k=>k.endsWith(':flat')?[`${k}-solid`]:[`${k}-solid`,`${k}-outline`])

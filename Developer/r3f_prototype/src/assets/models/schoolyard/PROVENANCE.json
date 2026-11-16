@@ -1,0 +1,595 @@
+{
+  "asset": "Stage 6 schoolyard (운동장) free-pack dressing - school block, trees, bushes, hedges, flower beds, lamps, bench, bin, hydrants, playground set, sports-day tents and kit, school fence and gate pillars",
+  "created": "2026-11-17",
+  "packs": [
+    {
+      "id": "kenney-modular-buildings",
+      "pack": "Modular Buildings",
+      "author": "Kenney (www.kenney.nl)",
+      "url": "https://kenney.nl/assets/modular-buildings",
+      "license": {
+        "id": "CC0-1.0",
+        "url": "http://creativecommons.org/publicdomain/zero/1.0/",
+        "statement": "License.txt in zip"
+      },
+      "downloaded": "2026-11-17",
+      "zip": {
+        "file": "modular-buildings.zip",
+        "bytes": 1825490,
+        "sha256": "47e1614686b4c0fe55190e88b22ff2b8b10935edf61f37f478a9b6a99477edc6"
+      },
+      "licenseSnapshot": "F:/ezs-work/assets_cc0/environment/kenney-modular-buildings/LICENSE_SNAPSHOT.md"
+    },
+    {
+      "id": "kenney-racing-kit",
+      "pack": "Racing Kit",
+      "author": "Kenney (www.kenney.nl)",
+      "url": "https://kenney.nl/assets/racing-kit",
+      "license": {
+        "id": "CC0-1.0",
+        "url": "http://creativecommons.org/publicdomain/zero/1.0/",
+        "statement": "License.txt in zip"
+      },
+      "downloaded": "2026-11-17",
+      "zip": {
+        "file": "racing-kit.zip",
+        "bytes": 6082755,
+        "sha256": "8a71ea16219315a01d00d5a90c4f6b5c090faddbc56d80ecf727e2b3b853c6c0"
+      },
+      "licenseSnapshot": "F:/ezs-work/assets_cc0/environment/kenney-racing-kit/LICENSE_SNAPSHOT.md"
+    },
+    {
+      "id": "kaykit-forest",
+      "pack": "KayKit Forest Nature Pack 1.0 (FREE)",
+      "author": "Kay Lousberg (kaylousberg.com)",
+      "url": "https://kaylousberg.itch.io/kaykit-forest",
+      "license": {
+        "id": "CC0-1.0",
+        "url": "http://creativecommons.org/publicdomain/zero/1.0/",
+        "statement": "License.txt in zip + itch page"
+      },
+      "downloaded": "2026-11-17",
+      "zip": {
+        "file": "kaykit-forest_Free.zip",
+        "bytes": 6435630,
+        "sha256": "2ee83e63bb7695f2d884ec27ddf6fce020789a452e7d5c5b0bbdfc4f6ea1fc8c"
+      },
+      "licenseSnapshot": "F:/ezs-work/assets_cc0/environment/kaylousberg-kaykit-forest/LICENSE_SNAPSHOT.md"
+    },
+    {
+      "id": "kaykit-platformer",
+      "pack": "KayKit Platformer Pack 1.0 (FREE)",
+      "author": "Kay Lousberg (kaylousberg.com)",
+      "url": "https://kaylousberg.itch.io/kaykit-platformer",
+      "license": {
+        "id": "CC0-1.0",
+        "url": "http://creativecommons.org/publicdomain/zero/1.0/",
+        "statement": "License.txt in zip + itch page"
+      },
+      "downloaded": "2026-11-17",
+      "zip": {
+        "file": "kaykit-platformer_Free.zip",
+        "bytes": 23789539,
+        "sha256": "7e140ee01abf99a5896cf93a02ff3dc6a23a7222109fd04854821f44a3a3adeb"
+      },
+      "licenseSnapshot": "F:/ezs-work/assets_cc0/environment/kaylousberg-kaykit-platformer/LICENSE_SNAPSHOT.md"
+    },
+    {
+      "id": "kaykit-holiday-bits",
+      "pack": "KayKit Holiday Bits 1.0 (FREE)",
+      "author": "Kay Lousberg (kaylousberg.com)",
+      "url": "https://kaylousberg.itch.io/holiday-bits",
+      "license": {
+        "id": "CC0-1.0",
+        "url": "http://creativecommons.org/publicdomain/zero/1.0/",
+        "statement": "itch page only (no License.txt in zip)"
+      },
+      "downloaded": "2026-11-17",
+      "zip": {
+        "file": "holiday-bits_Free.zip",
+        "bytes": 13412946,
+        "sha256": "2b72b9209455f7fde90ff0696d1ed1ac80dc49fcb85d246662c6f544741ac49a"
+      },
+      "licenseSnapshot": "F:/ezs-work/assets_cc0/environment/kaylousberg-holiday-bits/LICENSE_SNAPSHOT.md"
+    },
+    {
+      "id": "kaykit-city-builder-bits",
+      "pack": "KayKit City Builder Bits 1.0 (FREE)",
+      "author": "Kay Lousberg (kaylousberg.com)",
+      "url": "https://kaylousberg.itch.io/city-builder-bits",
+      "license": {
+        "id": "CC0-1.0",
+        "url": "http://creativecommons.org/publicdomain/zero/1.0/",
+        "statement": "License.txt in zip + itch page"
+      },
+      "downloaded": "2026-11-17",
+      "zip": {
+        "file": "city-builder-bits_Free.zip",
+        "bytes": 4881740,
+        "sha256": "aff444e1d083ddac331be94ea4a7590e5604ef49715ae23df71cd2e9659bd33f"
+      },
+      "licenseSnapshot": "F:/ezs-work/assets_cc0/environment/kaylousberg-city-builder-bits/LICENSE_SNAPSHOT.md"
+    },
+    {
+      "id": "kaykit-mini-game-variety",
+      "pack": "KayKit Mini-Game Variety Pack (FREE)",
+      "author": "Kay Lousberg (kaylousberg.com)",
+      "url": "https://kaylousberg.itch.io/kay-kit-mini-game-variety-pack",
+      "license": {
+        "id": "CC0-1.0",
+        "url": "http://creativecommons.org/publicdomain/zero/1.0/",
+        "statement": "License.txt in zip + itch page"
+      },
+      "downloaded": "2026-11-15",
+      "zip": {
+        "file": "kay-kit-mini-game-variety-pack.zip",
+        "bytes": 16729802,
+        "sha256": "078d13c02dddec6eebe917c49ec40164dc74b6964756cb4a0ace1aaf84574c9d"
+      },
+      "licenseSnapshot": "F:/ezs-work/assets_cc0/characters/kaylousberg-kay-kit-mini-game-variety-pack/LICENSE_SNAPSHOT.md"
+    },
+    {
+      "id": "tinytreats-fun-playground",
+      "pack": "Tiny Treats - Fun Playground 1.0 (FREE)",
+      "author": "Tiny Treats (Isa Lousberg)",
+      "url": "https://tinytreats.itch.io/fun-playground",
+      "license": {
+        "id": "CC0-1.0",
+        "url": "http://creativecommons.org/publicdomain/zero/1.0/",
+        "statement": "License.txt in zip + itch page"
+      },
+      "downloaded": "2026-11-17",
+      "zip": {
+        "file": "fun-playground_Free.zip",
+        "bytes": 5061955,
+        "sha256": "7031b39f515895eab950cd79b197bc9c0d68106c5738272957075cc664ca3294"
+      },
+      "licenseSnapshot": "F:/ezs-work/assets_cc0/environment/tinytreats-fun-playground/LICENSE_SNAPSHOT.md"
+    },
+    {
+      "id": "tinytreats-pretty-park",
+      "pack": "Tiny Treats - Pretty Park 1.0 (FREE)",
+      "author": "Tiny Treats (Isa Lousberg)",
+      "url": "https://tinytreats.itch.io/pretty-park",
+      "license": {
+        "id": "CC0-1.0",
+        "url": "http://creativecommons.org/publicdomain/zero/1.0/",
+        "statement": "License.txt in zip + itch page"
+      },
+      "downloaded": "2026-11-17",
+      "zip": {
+        "file": "pretty-park_Free.zip",
+        "bytes": 3029100,
+        "sha256": "55c1954ac96ddc76b68e06a58b9780c945ec34440ab03749cca7317bec0591d2"
+      },
+      "licenseSnapshot": "F:/ezs-work/assets_cc0/environment/tinytreats-pretty-park/LICENSE_SNAPSHOT.md"
+    }
+  ],
+  "license": {
+    "id": "CC0-1.0",
+    "url": "http://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "not required; credits in License.txt",
+    "file": "License.txt (pack License.txt texts verbatim, itch page licence field for Holiday Bits which ships none)"
+  },
+  "nodes": [
+    {
+      "node": "school_wall_windows",
+      "pack": "kenney-modular-buildings",
+      "member": "Models/GLB format/building-windows.glb",
+      "memberSha256": "08a65ac609c1b81035d9d72f2bee022b4586b7952d20d53f888013d6161cb608",
+      "triangles": 44,
+      "size": [
+        1,
+        0.625,
+        1
+      ]
+    },
+    {
+      "node": "school_wall_door",
+      "pack": "kenney-modular-buildings",
+      "member": "Models/GLB format/building-door-window.glb",
+      "memberSha256": "90a8cf6f5bf30420ef2e4065589ca462c93d34ecb05ae006f40c614701334b8e",
+      "triangles": 44,
+      "size": [
+        1,
+        0.625,
+        1
+      ]
+    },
+    {
+      "node": "school_roof",
+      "pack": "kenney-modular-buildings",
+      "member": "Models/GLB format/roof-flat-top.glb",
+      "memberSha256": "bba09a68499585628abe5c117ff0300ec79189c38036612aa1d3a22b69e9fd5c",
+      "triangles": 28,
+      "size": [
+        1.1,
+        0.2125,
+        1.1
+      ]
+    },
+    {
+      "node": "tent_long",
+      "pack": "kenney-racing-kit",
+      "member": "Models/GLTF format/tentLong.glb",
+      "memberSha256": "aa1297953436fd8496a0ade725cb9777ed6483f3c3cc50020ed44b92f7c3d91f",
+      "triangles": 86,
+      "size": [
+        2,
+        0.7,
+        1
+      ],
+      "recolour": {
+        "red": "#2F5FA8",
+        "grey": "#F4F6F8"
+      }
+    },
+    {
+      "node": "tent_small",
+      "pack": "kenney-racing-kit",
+      "member": "Models/GLTF format/tent.glb",
+      "memberSha256": "86ad24a0e86f4d247a170157404088325615b7125b90f8e9a180c4e75939105c",
+      "triangles": 86,
+      "size": [
+        1,
+        0.7,
+        1
+      ],
+      "recolour": {
+        "red": "#4C7FB8",
+        "grey": "#F4F6F8"
+      }
+    },
+    {
+      "node": "tree_round",
+      "pack": "kaykit-forest",
+      "member": "KayKit_Forest_Nature_Pack_1.0_FREE/Assets/gltf/Tree_1_A_Color1.gltf",
+      "memberSha256": "9d972eba9d61fc563cb7c3248f1be057190859ce2554ad2032df27c3d09e06c6",
+      "triangles": 530,
+      "size": [
+        3.181,
+        4.1607,
+        3.2511
+      ]
+    },
+    {
+      "node": "tree_tall",
+      "pack": "kaykit-forest",
+      "member": "KayKit_Forest_Nature_Pack_1.0_FREE/Assets/gltf/Tree_2_A_Color1.gltf",
+      "memberSha256": "793570b93cd350b935bc88c766317675890f102d157965d2aca3d8daef5ee49b",
+      "triangles": 336,
+      "size": [
+        2.6,
+        4.6748,
+        2
+      ]
+    },
+    {
+      "node": "bush_round",
+      "pack": "kaykit-forest",
+      "member": "KayKit_Forest_Nature_Pack_1.0_FREE/Assets/gltf/Bush_1_C_Color1.gltf",
+      "memberSha256": "b67ad1166a944eab3d1c88a3255216784848fca45a3a0d1eef6e56c05f4474e7",
+      "triangles": 168,
+      "size": [
+        1.2041,
+        0.8074,
+        1.2041
+      ]
+    },
+    {
+      "node": "bush_small",
+      "pack": "kaykit-forest",
+      "member": "KayKit_Forest_Nature_Pack_1.0_FREE/Assets/gltf/Bush_2_C_Color1.gltf",
+      "memberSha256": "d6544824738f219cbecdf4e31b3832bcea89fd5b4a21bd22a8f28b087628e67c",
+      "triangles": 108,
+      "size": [
+        1.32,
+        1.32,
+        1.32
+      ]
+    },
+    {
+      "node": "hedge_long",
+      "pack": "tinytreats-pretty-park",
+      "member": "Tiny_Treats_Pretty_Park_1.0_FREE/Assets/gltf/hedge_straight_long.gltf",
+      "memberSha256": "46cb948b2f6b05d6d105b054c0f7c02d491c3dc1e2c6bf79655fba04871b494c",
+      "triangles": 372,
+      "size": [
+        4,
+        1.5,
+        1.5
+      ]
+    },
+    {
+      "node": "flower_white",
+      "pack": "tinytreats-pretty-park",
+      "member": "Tiny_Treats_Pretty_Park_1.0_FREE/Assets/gltf/flower_A.gltf",
+      "memberSha256": "603089d57186c714e0cec3bee26f97d796310f1aa7a321d4d2bf44bc0e81968a",
+      "triangles": 192,
+      "size": [
+        0.4491,
+        0.1383,
+        0.4491
+      ]
+    },
+    {
+      "node": "flower_pink",
+      "pack": "tinytreats-pretty-park",
+      "member": "Tiny_Treats_Pretty_Park_1.0_FREE/Assets/gltf/flower_B.gltf",
+      "memberSha256": "01d603a026ac7f48b4fe8c651b98b660c83471d57fc935cb9546a4a4b2741438",
+      "triangles": 166,
+      "size": [
+        0.3111,
+        0.1107,
+        0.2963
+      ]
+    },
+    {
+      "node": "park_bench",
+      "pack": "tinytreats-pretty-park",
+      "member": "Tiny_Treats_Pretty_Park_1.0_FREE/Assets/gltf/bench.gltf",
+      "memberSha256": "5728657c25a018ec0b2ede7cc222867d4832b4f8a56ec034d2b320293af99bd4",
+      "triangles": 396,
+      "size": [
+        2,
+        1.4059,
+        1.3166
+      ]
+    },
+    {
+      "node": "street_lantern",
+      "pack": "tinytreats-pretty-park",
+      "member": "Tiny_Treats_Pretty_Park_1.0_FREE/Assets/gltf/street_lantern.gltf",
+      "memberSha256": "33df9044b08b588d9761260caa1ec4a79c7a9b726c55b19084ab00ddb7ec0358",
+      "triangles": 424,
+      "size": [
+        0.9398,
+        4.5,
+        0.9398
+      ]
+    },
+    {
+      "node": "fence_long",
+      "pack": "tinytreats-fun-playground",
+      "member": "Tiny_Treats_Fun_Playground_1.0_FREE/Assets/gltf/fence_straight_long.gltf",
+      "memberSha256": "b86849f1b66be0667e8d0bf3f40771e5cd05884aa9eb9d09ae3029bfbd9b67a1",
+      "triangles": 168,
+      "size": [
+        2.4,
+        2,
+        0.4
+      ]
+    },
+    {
+      "node": "fence_post",
+      "pack": "tinytreats-fun-playground",
+      "member": "Tiny_Treats_Fun_Playground_1.0_FREE/Assets/gltf/fence_post.gltf",
+      "memberSha256": "0bc6810669d4e16db3128c46341b4453aa56def83cc5bb848ebcb118032acf4c",
+      "triangles": 44,
+      "size": [
+        0.4,
+        2,
+        0.4
+      ]
+    },
+    {
+      "node": "slide",
+      "pack": "tinytreats-fun-playground",
+      "member": "Tiny_Treats_Fun_Playground_1.0_FREE/Assets/gltf/slide_A.gltf",
+      "memberSha256": "de715d34e8096a12f2acb541f1920ef6c8ff50e7a052430dd74aa5cf08eddc72",
+      "triangles": 1574,
+      "size": [
+        2.7612,
+        4,
+        5.9107
+      ]
+    },
+    {
+      "node": "swing",
+      "pack": "tinytreats-fun-playground",
+      "member": "Tiny_Treats_Fun_Playground_1.0_FREE/Assets/gltf/swing_B_small.gltf",
+      "memberSha256": "e3fc78456ea29f4dbdc5ce27f18413eb40cfaf2ba8aa5c93f3bdfdb24c13f382",
+      "triangles": 692,
+      "size": [
+        4,
+        3.9417,
+        3.065
+      ]
+    },
+    {
+      "node": "seesaw",
+      "pack": "tinytreats-fun-playground",
+      "member": "Tiny_Treats_Fun_Playground_1.0_FREE/Assets/gltf/seesaw_small.gltf",
+      "memberSha256": "c76f1a3b021be946bc3ed95efc6e7d813f9d9add768a66c10e1063665a9d0b0c",
+      "triangles": 452,
+      "size": [
+        1.54,
+        0.95,
+        4
+      ]
+    },
+    {
+      "node": "merry_go_round",
+      "pack": "tinytreats-fun-playground",
+      "member": "Tiny_Treats_Fun_Playground_1.0_FREE/Assets/gltf/merry_go_round.gltf",
+      "memberSha256": "45269ab36d8ab136011760fa5d2859dcd87b9393e849905b7dce3f88afdc71a1",
+      "triangles": 864,
+      "size": [
+        4,
+        2.4957,
+        4
+      ]
+    },
+    {
+      "node": "sandbox",
+      "pack": "tinytreats-fun-playground",
+      "member": "Tiny_Treats_Fun_Playground_1.0_FREE/Assets/gltf/sandbox_round.gltf",
+      "memberSha256": "699ae98854013dabc3fe286f1b22be44caab4dedf822bf9284c30d6b1f423408",
+      "triangles": 480,
+      "size": [
+        4,
+        0.3861,
+        4
+      ]
+    },
+    {
+      "node": "bin",
+      "pack": "tinytreats-pretty-park",
+      "member": "Tiny_Treats_Pretty_Park_1.0_FREE/Assets/gltf/trashcan.gltf",
+      "memberSha256": "cbf8e62c61fea979f0d6bc4fecd5555c05ba54fc51b6053b60f5dbcd888323aa",
+      "triangles": 504,
+      "size": [
+        1,
+        1.1429,
+        1
+      ]
+    },
+    {
+      "node": "hydrant",
+      "pack": "kaykit-city-builder-bits",
+      "member": "KayKit_City_Builder_Bits_1.0_FREE/Assets/gltf/firehydrant.gltf",
+      "memberSha256": "0a3f9fb95e8b4805602ad26050ee552408553682b41f3e54981a69dfa92a7f3b",
+      "triangles": 180,
+      "size": [
+        0.1355,
+        0.2246,
+        0.1313
+      ]
+    },
+    {
+      "node": "cone_blue",
+      "pack": "kaykit-platformer",
+      "member": "KayKit_Platformer_Pack_1.0_FREE/Assets/gltf/blue/cone_blue.gltf",
+      "memberSha256": "e100116c4fb1c369d38291b636943ebb9fc852ecb24f90ba7754a91f8b1a0266",
+      "triangles": 120,
+      "size": [
+        0.5,
+        0.65,
+        0.5
+      ]
+    },
+    {
+      "node": "cone_green",
+      "pack": "kaykit-platformer",
+      "member": "KayKit_Platformer_Pack_1.0_FREE/Assets/gltf/green/cone_green.gltf",
+      "memberSha256": "1d5fbb24db7b2f0888d2c70d0a112ff4958c28a65f034cb76aa9fff79ac4b782",
+      "triangles": 120,
+      "size": [
+        0.5,
+        0.65,
+        0.5
+      ]
+    },
+    {
+      "node": "big_ball_blue",
+      "pack": "kaykit-platformer",
+      "member": "KayKit_Platformer_Pack_1.0_FREE/Assets/gltf/blue/ball_blue.gltf",
+      "memberSha256": "3f61e029b27e23ed063110fc797ebdd62294d97f2ce3372df96fe3cd0c07178c",
+      "triangles": 528,
+      "size": [
+        2,
+        2,
+        2
+      ]
+    },
+    {
+      "node": "team_flag_blue",
+      "pack": "kaykit-platformer",
+      "member": "KayKit_Platformer_Pack_1.0_FREE/Assets/gltf/blue/flag_A_blue.gltf",
+      "memberSha256": "f047713f733dd27dc7ea42fd93bd89316cb2b3da4b57644409b725c76cd3a023",
+      "triangles": 502,
+      "size": [
+        0.6,
+        2.0642,
+        1.6231
+      ]
+    },
+    {
+      "node": "team_flag_yellow",
+      "pack": "kaykit-platformer",
+      "member": "KayKit_Platformer_Pack_1.0_FREE/Assets/gltf/yellow/flag_A_yellow.gltf",
+      "memberSha256": "7a588346d7add731b60f299c10e0d05d4f69a5d463092caec72ba969267f3961",
+      "triangles": 502,
+      "size": [
+        0.6,
+        2.0642,
+        1.6231
+      ]
+    },
+    {
+      "node": "sign_board",
+      "pack": "kaykit-platformer",
+      "member": "KayKit_Platformer_Pack_1.0_FREE/Assets/gltf/neutral/sign.gltf",
+      "memberSha256": "7898eea8c245291a2c2beee11bf2f4cab138a1e3b7ecd4f9fd443ae8da2e0b5d",
+      "triangles": 440,
+      "size": [
+        0.7664,
+        1.2556,
+        0.7551
+      ]
+    },
+    {
+      "node": "football",
+      "pack": "kaykit-holiday-bits",
+      "member": "KayKit_Holiday_Bits_1.0_FREE/Assets/gltf/football.gltf",
+      "memberSha256": "60e3ca0c19c3178acd290d5d71369c8294be16568dcca723b390fa6d343afc09",
+      "triangles": 540,
+      "size": [
+        0.5689,
+        0.5768,
+        0.5665
+      ]
+    },
+    {
+      "node": "school_bell",
+      "pack": "kaykit-holiday-bits",
+      "member": "KayKit_Holiday_Bits_1.0_FREE/Assets/gltf/bell.gltf",
+      "memberSha256": "bac62e898fbf737d9d305af139550ab1501af568425273e7e22a99929d194619",
+      "triangles": 720,
+      "size": [
+        0.806,
+        1.095,
+        0.806
+      ]
+    },
+    {
+      "node": "hurdle",
+      "pack": "kaykit-mini-game-variety",
+      "member": "Models/gltf/barrierSmall.gltf.glb",
+      "memberSha256": "4f74387fc808f7e535ec19c144491277c52e67b7e7f5e73d66ecf71c5fc04fc9",
+      "triangles": 672,
+      "size": [
+        1.9602,
+        1,
+        0.165
+      ],
+      "recolour": {
+        "Metal": "#E8EEF2"
+      }
+    }
+  ],
+  "modifications": [
+    "Only the 32 models listed under nodes are included (one root node each, named by our key).",
+    "Each model: all mesh nodes flattened (world matrix baked), centred on x/z, standing on y = 0, all primitives merged into one primitive.",
+    "Textures dropped: the KayKit / Tiny Treats gradient atlases and the Kenney colormap were sampled (bilinear) at every vertex UV and stored as linear vertex colours (COLOR_0); UVs dropped.",
+    "Material-colour models recoloured from a fixed table (RECOLOUR in the build script): Kenney Racing Kit tentLong/tent red -> #2F5FA8/#4C7FB8 school blue, grey -> #F4F6F8; KayKit Mini-Game Variety barrierSmall Metal -> #E8EEF2 (white hurdle).",
+    "One shared untextured material; @gltf-transform dedup + weld + prune + meshopt (EXT_meshopt_compression + KHR_mesh_quantization, position 14 bit, normal 8 bit, colour 8 bit)."
+  ],
+  "output": {
+    "file": "schoolyard_dressing.glb",
+    "bytes": 155536,
+    "sha256": "ab11ed2bdba6b7261db33d3f7abcb30d82e845ca6b52f49cc10742993f4e6790",
+    "nodes": 32,
+    "triangles": 12082,
+    "textures": 0,
+    "toolchain": {
+      "gltfTransform": "4.5.1",
+      "functions": "4.5.1",
+      "meshoptimizer": "1.2.0",
+      "sharp": "0.35.5",
+      "node": "v24.15.0"
+    },
+    "script": "scripts/build_schoolyard_dressing.mjs (--packs F:/ezs-work/assets_cc0)"
+  },
+  "runtime": "src/components/expansion/schoolyardDressing.js (layout + merge into 8 region chunks, vertex-colour toon + inverted-hull outline shared with schoolyardProps.js)"
+}
