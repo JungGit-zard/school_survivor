@@ -18,6 +18,17 @@
 //                               머리가 죽으면 객차가 1.2초 기절했다가 일반 E01이 된다.
 //   E95 긴줄넘기 듀오(Stage 3 치프, 두 몸) — 플레이어 양옆에 서서 2.0초 주기로 줄(선 공격, 피해 10)을 내려친다. 한 몸이 죽으면 남은 몸이 1.5배 속도로 추격.
 //
+// 3차(wave 3, 2026-11-16) 치프 3종(행동·스탯·등장 행 — 포즈·소품은 threemini 다음 차례):
+//   E98 대식가(Stage 4 치프)   — 7초마다 1.0초 입을 벌리는 빨간 부채꼴(70°·r 2.2u) → 물기 14 + 부채꼴 안 약한 잡몹(HP ≤ 자기 최대 HP 25%)
+//                               최대 3기를 0.4초 동안 입으로 끌어와 먹는다(먹을 때마다 최대 HP 8% 회복·크기 +6%·속도 −5%, 6마리까지).
+//                               그 뒤 1.4초 제자리에서 씹는다. 먹힌 잡몹의 XP는 쌓였다가 대식가가 죽으면 교과서로 그대로 떨어진다.
+//   E101 복사기(Stage 5 치프)  — 10초마다 반경 5u 안 가장 가까운 단순 잡몹(E01·E02·E03·E07)을 1.2초 노란 원으로 스캔한 뒤
+//                               옆에 복사본 1기(HP 40%, XP·드롭 0, 20초 뒤 소멸, 동시 2기)를 만든다. 복사기가 죽으면 복사본도 사라진다.
+//                               2.5u 안이면 1.0초 빨간 부채꼴(60°·r 2.4u) 뒤 피해 12. 4초 안에 최대 HP 20%를 맞으면 2.5초 "용지 걸림"(제자리·피해 0).
+//   E104 공굴리기 대장(Stage 6 치프) — 8초마다(HP 50% 이하 6초) 1.3초 빨간 선(폭 1.8u, 맵 끝까지 최대 20u) 뒤 지름 1.8u 공을 6u/s로 굴린다.
+//                               공은 플레이어 1회 10, 지나가는 일반 좀비 60(굴림당 6기까지, 플레이어 처치로 계산 — drainBallHits).
+//                               멈춘 공은 0.8u/s로 주우러 간다.
+//
 // 불변식(테스트가 못박는다):
 //  1. 예고(TELEGRAPH, 상태 8) 중에는 이 종의 피해가 0이다 — 접촉 피해도 끈다(noContact).
 //  2. 공격 방향·위치는 예고가 시작/끝나는 순간 1회 확정되고 그 뒤로 추적하지 않는다 → 옆으로 비키면 빈 자리가 남는다.
@@ -27,11 +38,12 @@
 //  6. Math.random()을 쓰지 않는다(시뮬레이션 패리티).
 //
 // 거리 단위 = 월드 유닛(u), 1블록 = 4u. 시간 = 게임 시간 ms(일시정지 중 진행하지 않는다).
-import { MAX_ENEMIES } from './enemyEntityPool.js'
+import { ENEMY_TYPE_NAMES, MAX_ENEMIES } from './enemyEntityPool.js'
 import { NOVEL2_TYPE_CODES, NOVEL2_ZOMBIE_STATS } from './novelZombie2Content.js'
 import { isChiefTypeCode } from './stageChiefContent.js'
-import { advanceExpansionSnapshot, emitExpansionHazardSnapshot, expansionAttackSnapshots, expansionChannelFree } from './expansionAttackRuntime.js'
-import { buildExpansionSafetyGeometry, certifyExpansionEscape, novel2NearSafetyObstacles } from './expansionAttackSafety.js'
+import { advanceExpansionSnapshot, emitExpansionHazardSnapshot, expansionAttackContains, expansionAttackSnapshots, expansionChannelFree } from './expansionAttackRuntime.js'
+import { EXPANSION_PLAYER_RADIUS, buildExpansionSafetyGeometry, certifyExpansionEscape, novel2NearSafetyObstacles } from './expansionAttackSafety.js'
+import { isStageObjectSightBlocked } from '../components/StageObjects/stageObjectColliders.js'
 import { markSupportImmune } from './projectileZombieBehavior.js'
 import { findStealableTextbookInto, getTextbookTheftMagnetRadius, isStealableTextbook, stealTextbook, textbookPositionInto } from './textbookTheftBridge.js'
 
@@ -57,6 +69,9 @@ export const E90_CODE = CODE.E90
 export const E91_CODE = CODE.E91
 export const E92_CODE = CODE.E92
 export const E95_CODE = CODE.E95
+export const E98_CODE = CODE.E98
+export const E101_CODE = CODE.E101
+export const E104_CODE = CODE.E104
 export const E01_CODE = 1
 
 // ── E89 반장 좀비 "차렷! 경례!" ─────────────────────────────────────────────
@@ -126,6 +141,14 @@ export function isBuffableTypeCode(typeCode) {
   // 확장 일반(17~31), Track B(37~48), 투사체 좀비(49~74, 64 예약 제외), 블록 좀비(76~93), 2차 일반(94~111 중 치프 아닌 것).
   return (typeCode >= 17 && typeCode <= 31) || (typeCode >= 37 && typeCode <= 74 && typeCode !== 64)
     || (typeCode >= 76 && typeCode <= 111)
+}
+
+// E104 공에 맞는 타입 = 풀 안의 일반 좀비. 치프(자기 포함)·E08(16)·런 크루(7·8·13·14)는 제외. 마틸다·보스는 풀에 없다.
+export function isBallTargetTypeCode(typeCode) {
+  if (!Number.isInteger(typeCode) || typeCode <= 0) return false
+  if (typeCode === 16 || typeCode === 7 || typeCode === 8 || typeCode === 13 || typeCode === 14) return false
+  if (isChiefTypeCode(typeCode)) return false
+  return isBuffableTypeCode(typeCode) || typeCode === E103_CODE
 }
 
 // ── E105 2인3각 ───────────────────────────────────────────────────────────────
@@ -221,6 +244,101 @@ export const E95_ROPE = Object.freeze({
   unpairedGraceMs: 3000,  // 짝 없이 이만큼 지나면 혼자 추격(장부·동시 상한에 한 몸만 나온 경우)
 })
 
+// ── 3차 치프 공통: 먹기·복사 대상 = 단순 추격 잡몹(E01·E02·E03·E07). 자기 상태기계가 있는 종(투사체·신형·확장·E05)은 넣지 않는다 —
+// 상태기계 도중에 끌려가거나 복제되면 예약된 탄·예고가 꼬인다. E06(거대)은 엘리트 보상이 있어 복제 대상이 아니다.
+const SIMPLE_MOB_CODES = new Set([1, 2, 3, 15])
+
+// ── E98 대식가(치프, Stage 4) ─────────────────────────────────────────────────
+// 물기 부채꼴 r 2.2u(0.55블록)·70°, 예고 1.0초(wave 2 교훈 ≥ 0.85초). 부채꼴은 예고 시작 자리·방향으로 고정된다.
+// 정지한 플레이어가 부채꼴 밖(옆으로 최대 2.2u × sin35° + 몸 반경)으로 나가는 데 3u/s로 약 0.5초 — 반응 여유 0.5초.
+// 먹기(흡입)는 같은 부채꼴 안만 — 그려진 범위 밖의 좀비는 끌려오지 않는다.
+export const E98_EATER = Object.freeze({
+  firstDelayMs: 2500,
+  cooldownMs: 7000,
+  biteTrigger: 2.5,       // 플레이어가 이 거리 안이면(먹이가 없어도) 입을 벌린다
+  coneRadius: 2.2,
+  coneAngleDeg: 70,
+  telegraphMs: 1000,      // 입을 벌림(빨간 부채꼴, 피해 0)
+  biteMs: 200,            // 물기 판정(부채꼴 안, 1회 14)
+  biteDamage: 14,
+  suckMs: 400,            // 먹이를 입으로 끌어옴(ATTACK — 몸 접촉 피해 0)
+  chewMs: 1400,           // 제자리에서 씹기(처치 기회)
+  mouthOffset: 0.4,       // 끌려온 먹이가 모이는 자리 = 부채꼴 원점 + 방향 × 0.4u
+  edibleHpRatio: 0.25,    // 먹이 HP ≤ 대식가 최대 HP의 25%(스4 173 → 43 이하: E01 14·E03 17·E07 28)
+  maxPerGulp: 3,
+  maxEaten: 8,            // 저장 칸(XP를 쌓는 상한). 다 차면 먹지 않고 물기만 한다
+  healPerEat: 0.08,
+  growPerEat: 0.06,
+  growCapEats: 6,         // 크기 +36%, 속도 −30%에서 멈춘다
+  slowPerEat: 0.05,
+})
+
+// ── E101 복사기(치프, Stage 5) ────────────────────────────────────────────────
+// 복사본은 동시 2기(설계 4 → 스5 사망률이 이미 가장 높아 절반), 20초 뒤 소멸, HP 40%, XP·드롭 0. 동시 150 상한은 보스·마틸다 몫 2칸을 남긴다.
+// 설계의 "용지 걸림 중 받는 피해 +30%"는 넣지 않았다 — 무기 보상 판정(Enemies.jsx 히트 브리지)이 시뮬레이션보다 먼저 처치 여부를 정하므로
+// 배율을 시뮬레이션 쪽에만 걸면 처치 보상이 어긋난다. 대신 걸림 2.5초는 제자리·접촉 피해 0이다.
+export const E101_COPIER = Object.freeze({
+  firstDelayMs: 3000,
+  // 복사
+  pickRadius: 5,
+  scanMs: 1200,           // 노란 원(피해 0) — 복사 대상 발밑
+  scanRadius: 0.8,
+  scanRecoverMs: 400,
+  copyCooldownMs: 10000,
+  maxCopies: 2,
+  copyHpRatio: 0.4,
+  copyLifeMs: 20000,
+  copyOffset: 0.8,
+  reserveSlots: 2,
+  // 근접 부채꼴
+  fanTrigger: 2.5,
+  fanRadius: 2.4,
+  fanAngleDeg: 60,
+  fanTelegraphMs: 1000,
+  fanActiveMs: 150,
+  fanRecoverMs: 500,
+  fanDamage: 12,
+  fanCooldownMs: 4000,
+  // 용지 걸림
+  jamWindowMs: 4000,
+  jamDamageRatio: 0.2,
+  jamMs: 2500,
+  jamImmuneMs: 3000,      // 걸림이 끝난 뒤 이만큼은 다시 걸리지 않는다(영구 경직 방지)
+})
+
+// ── E104 공굴리기 대장(치프, Stage 6) ─────────────────────────────────────────
+// 예고선 폭 1.8u = 공 지름. 공 중심은 선 안쪽 [r, 길이 − r]만 지나므로 공 판정이 그려진 선 밖으로 나가지 않는다.
+// 플레이어 피해는 "공 원 안 + 그려진 선 안" 둘 다일 때만(선 전체가 3초 동안 아픈 게 아니라 공이 지나가는 자리만).
+// 정지한 플레이어가 선 밖(반폭 0.9 + 몸 0.19)으로 나가는 데 3u/s로 약 0.4초 — 예고 1.3초.
+export const E104_BALL = Object.freeze({
+  firstDelayMs: 2500,
+  cooldownMs: 8000,
+  enragedCooldownMs: 6000,
+  enrageHpRatio: 0.5,
+  triggerDistance: 12,    // 3블록 — 화면 안
+  telegraphMs: 1300,
+  ballRadius: 0.9,        // 지름 1.8u(0.45블록)
+  lineWidth: 1.8,
+  maxLength: 20,          // 5블록
+  minLength: 4,
+  edgeMargin: 0.2,
+  rollSpeed: 6,
+  // 공 피해 10 = 스6 E19 접촉 10(교장 B05 훈화 9보다 1 높다). 설계 14는 스6 짝비교(연필 봇 60시드, 치프 있음/없음)에서
+  // 사망 27 대 15(+20%p)였다 — 그 판들에서 늘어난 피해의 대부분이 공(판당 약 18)이었다.
+  damage: 10,
+  zombieDamage: 60,       // 지나가는 일반 좀비(치프·E08·런 크루 제외). 처치는 플레이어 처치로 계산된다(Enemies.jsx drainBallHits)
+  zombieHitPad: 0.3,
+  // 굴림 한 번에 좀비를 이만큼만 친다(그 뒤로는 공이 좀비를 그냥 지나간다). 상한이 없으면 공이 쫓아오는 무리를 매번 쓸어
+  // XP가 폭주한다 — 스6 프로브(연필 봇, 치프가 끝까지 산다) 6시드: 공 처치 판당 106~169 · 레벨 7~11(공 처치 없으면 1~6 · 레벨 1~2).
+  // 조회 줄(12명) 절반을 쓸 수 있는 6으로 둔다(balanceqa 확인 항목).
+  maxZombieHitsPerRoll: 6,
+  kickMs: 600,            // 찬 뒤 제자리(접촉은 켜진다)
+  retrieveSpeed: 0.8,
+  pickupReach: 0.8,
+  pickupDelayMs: 1000,    // 주운 뒤 이만큼은 다시 굴리지 않는다
+  retrieveTimeoutMs: 12000, // 굴린 뒤 이만큼 지나도 못 주우면 새 공을 꺼낸다(막힌 자리 대비)
+})
+
 const COMMAND_TELEGRAPH_KEY_PREFIX = 'novel2:e89:'
 const COFFEE_TELEGRAPH_KEY_PREFIX = 'novel2:e103:'
 const BURST_KEY_PREFIX = 'novel2:e99:'
@@ -229,6 +347,10 @@ const SAFETY_RETRY_MS = 250
 const BITE_KEY_PREFIX = 'novel2:e91:'
 const TRAIN_LINE_KEY_PREFIX = 'novel2:e92:'
 const ROPE_KEY_PREFIX = 'novel2:e95:'
+const EATER_KEY_PREFIX = 'novel2:e98:'
+const COPIER_SCAN_KEY_PREFIX = 'novel2:e101scan:'
+const COPIER_FAN_KEY_PREFIX = 'novel2:e101fan:'
+const BALL_KEY_PREFIX = 'novel2:e104:'
 
 export function createNovel2Result() {
   return { velocityX: 0, velocityZ: 0, moving: false, preserveFacing: false, noContact: false, hasYaw: false, yaw: 0 }
@@ -295,8 +417,43 @@ export class Novel2Runtime {
     // E95 줄넘기: 줄 스냅샷 키는 짝 중 낮은 슬롯(줄 주인)에 둔다. 줄 상태는 그 스냅샷의 단계가 정본이다
     // (windup = 들어 올림·예고, active = 내려침, recovery = 안전) — 넉백 등으로 몸 걸음이 건너뛰어도 피해 시각과 어긋나지 않는다.
     this.ropeKey = new Array(capacity).fill(null)
-    // 소유한 피해 스냅샷(E91 물기·E95 줄). 주인이 죽으면 피해 없이 지운다.
+    // 소유한 피해 스냅샷(E91 물기·E95 줄·E98 물기·E101 부채꼴). 주인이 죽으면 피해 없이 지운다.
     this.attacks = []
+    // E98 대식가: 먹히는 쪽(끌려가는 중) 기록과 대식가 쪽(먹은 수·먹은 XP·기본 크기·입 자리).
+    this.eatenBy = new Int16Array(capacity).fill(-1)
+    this.eatenByGen = new Int32Array(capacity)
+    this.eatCount = new Uint8Array(capacity)
+    this.eatXp = new Float32Array(capacity * E98_EATER.maxEaten)
+    this.eaterBaseScale = new Float32Array(capacity)
+    this.mouthX = new Float32Array(capacity)
+    this.mouthZ = new Float32Array(capacity)
+    // E101 복사기: 복사기 쪽(모드 0 없음 / 1 스캔 / 2 부채꼴, 복사 쿨다운, 스캔 대상, 용지 걸림 누적)과 복사본 쪽(주인·남은 수명).
+    this.copierMode = new Uint8Array(capacity)
+    this.copyCooldownMs = new Float32Array(capacity)
+    this.copyTarget = new Int16Array(capacity).fill(-1)
+    this.copyTargetGen = new Int32Array(capacity)
+    this.copyOwner = new Int16Array(capacity).fill(-1)
+    this.copyOwnerGen = new Int32Array(capacity)
+    this.copyMs = new Float32Array(capacity)
+    this.jamAcc = new Float32Array(capacity)
+    this.jamStartMs = new Float64Array(capacity)
+    this.jamImmuneUntil = new Float64Array(capacity)
+    // E104 공굴리기 대장: 공 단계(0 듦 / 1 겨눔(예고) / 2 구름 / 3 바닥에 멈춤)·공 자리·회수 시간. 맞은 좀비 쪽에는 굴림 번호.
+    this.ballPhase = new Uint8Array(capacity)
+    this.ballX = new Float32Array(capacity)
+    this.ballZ = new Float32Array(capacity)
+    this.ballRetrieveMs = new Float32Array(capacity)
+    this.ballKey = new Array(capacity).fill(null)
+    this.ballHitRoll = new Int32Array(capacity).fill(-1)
+    this.ballHitGen = new Int32Array(capacity)
+    this.balls = []
+    this.rollSeq = 0
+    // 공에 맞은 좀비: [index, generation, damage, ballX, ballZ] 다섯 개씩. 매 스텝 머리말에 비운다 — 필드(Enemies.jsx)가 스텝 직후
+    // drainBallHits로 가져가 무기 히트 브리지(처치 보상·XP 포함)로 넘긴다. 가져가는 쪽이 없으면(프로브·테스트) 좀비 피해는 없다.
+    this.ballHits = []
+    // 시뮬레이션 런타임이 넣어 주는 연결: 보상 없는 퇴장(먹힘·복사본 소멸)과 타입별 XP 표(enemySimulation ENEMY_RUNTIME_XP).
+    this.despawnHook = null
+    this.xpTable = null
     // 전역 시계.
     this.clockMs = 0
     // 플레이어 경로(E93): 0.1초 간격 링버퍼.
@@ -329,6 +486,12 @@ export class Novel2Runtime {
     this.carHead.fill(-1); this.carDerailMs.fill(0); this.trainBuilt.fill(0); this.trains.clear()
     this.ropeKey.fill(null)
     this.attacks.length = 0
+    this.eatenBy.fill(-1); this.eatCount.fill(0); this.eatXp.fill(0); this.eaterBaseScale.fill(0)
+    this.copierMode.fill(0); this.copyCooldownMs.fill(0); this.copyTarget.fill(-1); this.copyOwner.fill(-1); this.copyMs.fill(0)
+    this.jamAcc.fill(0); this.jamStartMs.fill(0); this.jamImmuneUntil.fill(0)
+    this.ballPhase.fill(0); this.ballRetrieveMs.fill(0); this.ballKey.fill(null); this.ballHitRoll.fill(-1)
+    this.balls.length = 0
+    this.ballHits.length = 0
     this.clockMs = 0
     this.pathHead = 0; this.pathCount = 0; this.pathAccMs = 0
     this.bursts.length = 0
@@ -354,6 +517,14 @@ export class Novel2Runtime {
     this.trainBuilt[index] = 0
     if (this.trains.has(index)) this.trains.delete(index)
     this.ropeKey[index] = null
+    this.eatenBy[index] = -1
+    this.eatCount[index] = 0
+    this.eaterBaseScale[index] = pool.type[index] === E98_CODE ? pool.visualScale[index] : 0
+    this.copierMode[index] = 0; this.copyCooldownMs[index] = 0; this.copyTarget[index] = -1
+    this.copyOwner[index] = -1; this.copyMs[index] = 0
+    this.jamAcc[index] = 0; this.jamStartMs[index] = 0; this.jamImmuneUntil[index] = 0
+    this.ballPhase[index] = 0; this.ballRetrieveMs[index] = 0; this.ballKey[index] = null; this.ballHitRoll[index] = -1
+    this.ballX[index] = pool.posX[index]; this.ballZ[index] = pool.posZ[index]
   }
 
   _addSnapshot(snapshot, pool = null, ownerIndex = -1) {
@@ -417,6 +588,7 @@ export class Novel2Runtime {
     this.playerX = context.playerX
     this.playerZ = context.playerZ
     this.obstacles = context.obstacles && Number.isInteger(context.obstacleCount) && context.obstacleCount > 0 ? context.obstacles : null
+    this.ballHits.length = 0
     this._recordPlayer(context.playerX, context.playerZ, deltaMs)
     const highest = Math.min(pool.highestActive, this.capacity - 1)
     let dormantCount = 0
@@ -429,9 +601,30 @@ export class Novel2Runtime {
     if (dormantCount > E91_MIMIC.maxDormant) this._wakeOldestMimics(pool, highest, dormantCount - E91_MIMIC.maxDormant)
     this._linkPairs(pool, highest)
     this._stepTrains(pool, highest)
+    this._stepCopies(pool, highest, deltaMs)
     this._cleanupOrphanTelegraphs(pool)
     this._stepBursts(context.playerX, context.playerZ, deltaMs, onDamage)
     this._stepAttacks(pool, context.playerX, context.playerZ, deltaMs, onDamage)
+    this._stepBalls(pool, context.playerX, context.playerZ, deltaMs, onDamage)
+  }
+
+  /** 보상 없이 퇴장시킨다(먹힘·복사본 소멸). 시뮬레이션 런타임이 연결을 넣어 주면 그쪽 퇴장 이벤트 경로를 탄다. */
+  _despawnQuiet(pool, index) {
+    if (this.despawnHook) this.despawnHook(pool, index)
+    else pool.despawnIndex(index, pool.generation[index])
+  }
+
+  // E101 복사본: 수명이 다했거나 복사기가 죽었으면 보상 없이 사라진다.
+  _stepCopies(pool, highest, deltaMs) {
+    for (let index = 0; index <= highest; index += 1) {
+      if (pool.active[index] !== 1 || this.copyOwner[index] < 0 || this.slotGen[index] !== pool.generation[index]) continue
+      this.copyMs[index] -= deltaMs
+      const owner = this.copyOwner[index]
+      if (this.copyMs[index] <= 0 || !slotAlive(pool, owner, this.copyOwnerGen[index]) || pool.type[owner] !== E101_CODE) {
+        this.copyOwner[index] = -1
+        this._despawnQuiet(pool, index)
+      }
+    }
   }
 
   _linkPairs(pool, highest) {
@@ -494,7 +687,7 @@ export class Novel2Runtime {
    * 안전 기하 + 탈출 인증을 통과한 선/원 스냅샷을 만든다(맵에는 아직 넣지 않는다). 실패면 null.
    * 장애물은 공격자·플레이어 둘레 10u 안 가까운 32개(Stage 3 체육관 39개 대응, expansionAttackSafety.novel2NearSafetyObstacles).
    */
-  _buildCertifiedSnapshot(key, type, patternId, shape, ox, oz, dirX, dirZ, rangeUnits, widthUnits, windupMs, activeMs, recoveryMs, damage) {
+  _buildCertifiedSnapshot(key, type, patternId, shape, ox, oz, dirX, dirZ, rangeUnits, widthUnits, windupMs, activeMs, recoveryMs, damage, angleDeg = 0) {
     const snapshot = {
       id: patternId, patternId, type, key, attackId: key, sourceEntityId: key, shape,
       originXZ: [ox, oz], sourceXZ: [ox, oz], targetXZ: [this.playerX, this.playerZ], directionXZ: [dirX, dirZ], yaw: Math.atan2(dirX, dirZ),
@@ -502,6 +695,8 @@ export class Novel2Runtime {
       phase: 'windup', elapsedMs: 0, hit: false, novel2: true, zeroDamage: damage <= 0,
       n2OwnerA: -1, n2OwnerGenA: 0, n2OwnerB: -1, n2OwnerGenB: 0,
     }
+    // 부채꼴(E98 물기·E101 부채꼴)의 벌어진 각. 안전 기하·텔레그래프가 같은 값을 읽는다.
+    if (shape === 'sector') snapshot.angleDeg = angleDeg
     const halfX = this.halfX > 0 ? this.halfX : 7.5
     const halfZ = this.halfZ > 0 ? this.halfZ : 19.2
     const context = { stageId: this.stageId, halfX, halfZ, obstacles: novel2NearSafetyObstacles(this.obstacles ?? [], ox, oz, this.playerX, this.playerZ) }
@@ -807,6 +1002,9 @@ export class Novel2Runtime {
     if (type === E91_CODE) return this._stepE91(pool, index, a, out)
     if (type === E92_CODE) return this._stepE92(pool, index, a, out)
     if (type === E95_CODE) return this._stepE95(pool, index, a, out)
+    if (type === E98_CODE) return this._stepE98(pool, index, a, out)
+    if (type === E101_CODE) return this._stepE101(pool, index, a, out)
+    if (type === E104_CODE) return this._stepE104(pool, index, a, out)
     // E99(평범한 추격 — 특이점은 사망 시 폭발)과 확장 행동형(E94/E97의 접근)은 단순 추격.
     out.velocityX = a.nx * a.speed
     out.velocityZ = a.nz * a.speed
@@ -867,7 +1065,7 @@ export class Novel2Runtime {
     const highest = Math.min(pool.highestActive, this.capacity - 1)
     for (let index = 0; index <= highest; index += 1) {
       if (index === chiefIndex || pool.active[index] !== 1 || !COMMANDABLE_CODES.has(pool.type[index]) || this.cmdPhase[index] !== 0) continue
-      if (this.isTrainCar(pool, index)) continue // 기관사 객차는 치프에 묶인 몸이다
+      if (this.isChiefMinion(pool, index)) continue // 기관사 객차·복사기 복사본·먹히는 중인 개체는 치프에 묶인 몸이다
       const dx = pool.posX[index] - cx
       const dz = pool.posZ[index] - cz
       if (dx * dx + dz * dz <= r2) count += 1
@@ -883,7 +1081,7 @@ export class Novel2Runtime {
     let issued = 0
     for (let index = 0; index <= highest && issued < E89_COMMAND.maxCommanded; index += 1) {
       if (index === chiefIndex || pool.active[index] !== 1 || !COMMANDABLE_CODES.has(pool.type[index]) || this.cmdPhase[index] !== 0) continue
-      if (this.isTrainCar(pool, index)) continue
+      if (this.isChiefMinion(pool, index)) continue
       const dx = pool.posX[index] - cx
       const dz = pool.posZ[index] - cz
       if (dx * dx + dz * dz > r2) continue
@@ -1028,7 +1226,7 @@ export class Novel2Runtime {
     const highest = Math.min(pool.highestActive, this.capacity - 1)
     for (let index = 0; index <= highest; index += 1) {
       if (index === shuttleIndex || pool.active[index] !== 1 || !isBuffableTypeCode(pool.type[index])) continue
-      if (this.isTrainCar(pool, index)) continue // 기관사 객차(치프에 묶인 몸)는 버프 대상이 아니다
+      if (this.isChiefMinion(pool, index)) continue // 기관사 객차·복사본·먹히는 중인 개체(치프에 묶인 몸)는 버프 대상이 아니다
       if (this.slotGen[index] === pool.generation[index] && this.buffMs[index] > 0) continue
       const dx = pool.posX[index] - x
       const dz = pool.posZ[index] - z
@@ -1409,6 +1607,614 @@ export class Novel2Runtime {
   partnerOf(pool, index) {
     const partner = this.partner[index]
     return partner >= 0 && slotAlive(pool, partner, this.partnerGen[index]) ? partner : -1
+  }
+
+  // ── 3차 치프 공통 ─────────────────────────────────────────────────────────────
+  /** 치프에 묶인 몸(E92 객차·E101 복사본·E98에게 먹히는 중) — 지휘·커피·먹기·복사 대상이 아니다. */
+  isChiefMinion(pool, index) {
+    return this.isTrainCar(pool, index) || this.isCopy(pool, index) || this.isBeingEaten(pool, index)
+  }
+
+  _removeOwnedAttacks(owner) {
+    for (let i = this.attacks.length - 1; i >= 0; i -= 1) {
+      if (this.attacks[i].n2OwnerA !== owner) continue
+      this._removeSnapshot(this.attacks[i].key)
+      this.attacks.splice(i, 1)
+    }
+  }
+
+  // ── E98 대식가 ────────────────────────────────────────────────────────────────
+  isBeingEaten(pool, index) {
+    return index >= 0 && index < this.capacity && this.eatenBy[index] >= 0 && this.slotGen[index] === pool.generation[index]
+  }
+
+  /** 먹을 수 있는 개체: 단순 잡몹 · HP ≤ 대식가 최대 HP × 25% · 치프에 묶인 몸·지휘받는 중·잠든 미믹이 아님. */
+  _isEdible(pool, eater, index) {
+    if (index === eater || pool.active[index] !== 1 || !SIMPLE_MOB_CODES.has(pool.type[index])) return false
+    if (this.slotGen[index] === pool.generation[index] && (this.isChiefMinion(pool, index) || this.cmdPhase[index] !== 0)) return false
+    return pool.hp[index] <= pool.maxHp[eater] * E98_EATER.edibleHpRatio
+  }
+
+  _inCone(ox, oz, dirX, dirZ, x, z, radius, angleDeg) {
+    const dx = x - ox
+    const dz = z - oz
+    const dist = Math.hypot(dx, dz)
+    if (dist > radius) return false
+    if (dist < 1e-6) return true
+    return (dx * dirX + dz * dirZ) / dist >= Math.cos(angleDeg * Math.PI / 360)
+  }
+
+  _countEdible(pool, eater, ox, oz, dirX, dirZ) {
+    const E = E98_EATER
+    let count = 0
+    const highest = Math.min(pool.highestActive, this.capacity - 1)
+    for (let index = 0; index <= highest; index += 1) {
+      if (!this._isEdible(pool, eater, index)) continue
+      if (this._inCone(ox, oz, dirX, dirZ, pool.posX[index], pool.posZ[index], E.coneRadius, E.coneAngleDeg)) count += 1
+    }
+    return count
+  }
+
+  /** 대식가 속도 배율: 먹을 때마다 −5%, 6마리에서 멈춘다(0.7). */
+  eaterSpeedMultiplier(index) {
+    return 1 - E98_EATER.slowPerEat * Math.min(this.eatCount[index], E98_EATER.growCapEats)
+  }
+
+  /** 대식가 성장 배율(크기): 1 + 0.06 × min(먹은 수, 6). 비주얼은 pool.visualScale에 이미 반영된다. */
+  eaterGrowth(pool, index) {
+    if (index < 0 || index >= this.capacity || pool.type[index] !== E98_CODE || this.slotGen[index] !== pool.generation[index]) return 1
+    return 1 + E98_EATER.growPerEat * Math.min(this.eatCount[index], E98_EATER.growCapEats)
+  }
+
+  _stepE98(pool, index, a, out) {
+    const E = E98_EATER
+    let state = pool.state[index]
+    if (state !== N2_STATE_TELEGRAPH && state !== N2_STATE_ATTACK && state !== N2_STATE_RECOVER) state = N2_STATE_APPROACH
+    if (state === N2_STATE_TELEGRAPH) {
+      // 입을 벌림: 제자리, 피해 0(부채꼴은 예고 시작 자리·방향으로 고정 — 물기 피해는 스냅샷이 낸다).
+      out.noContact = true
+      out.preserveFacing = true
+      if (pool.stateTimer[index] > 0) return out
+      this._startGulp(pool, index)
+      pool.state[index] = N2_STATE_ATTACK
+      pool.stateTimer[index] = E.suckMs
+      return out
+    }
+    if (state === N2_STATE_ATTACK) {
+      // 흡입: 먹이가 입으로 끌려온다. 몸 접촉 피해는 끈다(피해는 물기 부채꼴만).
+      out.noContact = true
+      out.preserveFacing = true
+      if (pool.stateTimer[index] > 0) return out
+      this._finishGulp(pool, index)
+      pool.state[index] = N2_STATE_RECOVER
+      pool.stateTimer[index] = E.chewMs
+      return out
+    }
+    if (state === N2_STATE_RECOVER) {
+      // 씹기: 제자리(처치 기회).
+      out.preserveFacing = true
+      if (pool.stateTimer[index] > 0) return out
+    }
+    pool.state[index] = N2_STATE_APPROACH
+    const ready = pool.attackCooldown[index] <= 0 && pool.spawnTimer[index] >= E.firstDelayMs && a.distance > 1e-6 && expansionChannelFree()
+    if (ready) {
+      const food = this.eatCount[index] < E.maxEaten && this._countEdible(pool, index, a.posX, a.posZ, a.nx, a.nz) > 0
+      if (a.distance <= E.biteTrigger || food) {
+        const snapshot = this._buildCertifiedSnapshot(`${EATER_KEY_PREFIX}${index}:${pool.generation[index]}:${++this.seq}`, 'E98', 'e98_bite', 'sector',
+          a.posX, a.posZ, a.nx, a.nz, E.coneRadius, 0, E.telegraphMs, E.biteMs, 0, E.biteDamage, E.coneAngleDeg)
+        if (snapshot) {
+          this._addAttack(snapshot, pool, index)
+          this.mouthX[index] = a.posX + a.nx * E.mouthOffset
+          this.mouthZ[index] = a.posZ + a.nz * E.mouthOffset
+          this.chargeOriginX[index] = a.posX
+          this.chargeOriginZ[index] = a.posZ
+          pool.runDirX[index] = a.nx
+          pool.runDirZ[index] = a.nz
+          pool.state[index] = N2_STATE_TELEGRAPH
+          pool.stateTimer[index] = E.telegraphMs
+          pool.attackCooldown[index] = E.cooldownMs
+          out.noContact = true
+          out.preserveFacing = true
+          out.hasYaw = true
+          out.yaw = Math.atan2(a.nx, a.nz)
+          return out
+        }
+        pool.attackCooldown[index] = SAFETY_RETRY_MS
+      }
+    }
+    return this._chase(a, out, a.speed * this.eaterSpeedMultiplier(index))
+  }
+
+  // 흡입 시작: 예고 때 고정한 부채꼴 안의 먹이를 가까운 순으로 최대 3기(저장 칸이 남은 만큼) 고른다.
+  _startGulp(pool, eater) {
+    const E = E98_EATER
+    const room = Math.min(E.maxPerGulp, E.maxEaten - this.eatCount[eater])
+    const ox = this.chargeOriginX[eater]
+    const oz = this.chargeOriginZ[eater]
+    const dirX = pool.runDirX[eater]
+    const dirZ = pool.runDirZ[eater]
+    const highest = Math.min(pool.highestActive, this.capacity - 1)
+    for (let n = 0; n < room; n += 1) {
+      let best = -1
+      let bestD2 = Infinity
+      for (let index = 0; index <= highest; index += 1) {
+        if (!this._isEdible(pool, eater, index)) continue
+        const x = pool.posX[index]
+        const z = pool.posZ[index]
+        if (!this._inCone(ox, oz, dirX, dirZ, x, z, E.coneRadius, E.coneAngleDeg)) continue
+        const d2 = (x - ox) * (x - ox) + (z - oz) * (z - oz)
+        if (d2 < bestD2) { bestD2 = d2; best = index }
+      }
+      if (best < 0) return
+      this._claimSlot(pool, best)
+      this.eatenBy[best] = eater
+      this.eatenByGen[best] = pool.generation[eater]
+    }
+  }
+
+  // 흡입 끝: 끌려온 먹이를 먹는다(보상 없이 퇴장). XP는 대식가 칸에 쌓이고, 회복·성장·감속이 붙는다.
+  _finishGulp(pool, eater) {
+    const E = E98_EATER
+    const highest = Math.min(pool.highestActive, this.capacity - 1)
+    for (let index = 0; index <= highest; index += 1) {
+      if (pool.active[index] !== 1 || this.eatenBy[index] !== eater || this.eatenByGen[index] !== pool.generation[eater]) continue
+      if (this.slotGen[index] !== pool.generation[index]) continue
+      this.eatenBy[index] = -1
+      if (this.eatCount[eater] < E.maxEaten) {
+        this.eatXp[eater * E.maxEaten + this.eatCount[eater]] = this.xpTable?.[pool.type[index]] ?? 0
+        this.eatCount[eater] += 1
+        pool.hp[eater] = Math.min(pool.maxHp[eater], pool.hp[eater] + pool.maxHp[eater] * E.healPerEat)
+      }
+      this._despawnQuiet(pool, index)
+    }
+    if (this.eaterBaseScale[eater] > 0) pool.visualScale[eater] = this.eaterBaseScale[eater] * this.eaterGrowth(pool, eater)
+  }
+
+  /** 먹히는 중인 개체: 이번 프레임 이동을 대신 정하고 true(입으로 끌려간다, 접촉 피해 0). 대식가가 죽었거나 흡입이 끝났으면 풀려 false. */
+  stepEaten(pool, index, deltaMs, out) {
+    if (!this.isBeingEaten(pool, index)) return false
+    const eater = this.eatenBy[index]
+    if (!slotAlive(pool, eater, this.eatenByGen[index]) || pool.type[eater] !== E98_CODE || pool.state[eater] !== N2_STATE_ATTACK) {
+      this.eatenBy[index] = -1
+      return false
+    }
+    resetResult(out)
+    out.preserveFacing = true
+    out.noContact = true
+    const dx = this.mouthX[eater] - pool.posX[index]
+    const dz = this.mouthZ[eater] - pool.posZ[index]
+    const dist = Math.hypot(dx, dz)
+    if (dist < 0.05) return out
+    const dt = Math.max(1e-6, deltaMs / 1000)
+    const remaining = Math.max(pool.stateTimer[eater] / 1000, dt)
+    const speed = Math.min(dist / remaining, dist / dt)
+    out.velocityX = dx / dist * speed
+    out.velocityZ = dz / dist * speed
+    out.moving = true
+    out.hasYaw = true
+    out.yaw = Math.atan2(dx, dz)
+    return out
+  }
+
+  /** 대식가가 죽은 자리: 먹은 잡몹의 XP를 한 권씩 떨어뜨릴 목록(E90 도둑과 같은 drainThiefLoot)에 올린다. */
+  queueEaterLoot(pool, index) {
+    if (pool.type[index] !== E98_CODE || this.slotGen[index] !== pool.generation[index]) return 0
+    const x = pool.posX[index]
+    const z = pool.posZ[index]
+    if (!Number.isFinite(x + z)) return 0
+    const count = this.eatCount[index]
+    const base = index * E98_EATER.maxEaten
+    for (let k = 0; k < count; k += 1) if (this.eatXp[base + k] > 0) this.thiefLoot.push(x, z, this.eatXp[base + k])
+    this.eatCount[index] = 0
+    return count
+  }
+
+  // ── E101 복사기 ───────────────────────────────────────────────────────────────
+  isCopy(pool, index) {
+    return index >= 0 && index < this.capacity && this.copyOwner[index] >= 0 && this.slotGen[index] === pool.generation[index]
+  }
+
+  liveCopies(pool, owner) {
+    let count = 0
+    const highest = Math.min(pool.highestActive, this.capacity - 1)
+    for (let index = 0; index <= highest; index += 1) {
+      if (pool.active[index] === 1 && this.copyOwner[index] === owner && this.copyOwnerGen[index] === pool.generation[owner] && this.isCopy(pool, index)) count += 1
+    }
+    return count
+  }
+
+  _isCopyable(pool, index) {
+    if (pool.active[index] !== 1 || !SIMPLE_MOB_CODES.has(pool.type[index])) return false
+    return !(this.slotGen[index] === pool.generation[index] && (this.isChiefMinion(pool, index) || this.cmdPhase[index] !== 0))
+  }
+
+  /** 복사기 반경 5u 안에서 가장 가까운 복사 대상(단순 잡몹, 복사본·치프에 묶인 몸 제외). 없으면 -1. */
+  pickCopyTarget(pool, copier) {
+    const r2 = E101_COPIER.pickRadius * E101_COPIER.pickRadius
+    const x = pool.posX[copier]
+    const z = pool.posZ[copier]
+    let best = -1
+    let bestD2 = Infinity
+    const highest = Math.min(pool.highestActive, this.capacity - 1)
+    for (let index = 0; index <= highest; index += 1) {
+      if (index === copier || !this._isCopyable(pool, index)) continue
+      const d2 = (pool.posX[index] - x) ** 2 + (pool.posZ[index] - z) ** 2
+      if (d2 <= r2 && d2 < bestD2) { bestD2 = d2; best = index }
+    }
+    return best
+  }
+
+  _spawnCopy(pool, copier, target) {
+    const C = E101_COPIER
+    if (pool.activeCount >= MAX_ENEMIES - C.reserveSlots) return -1
+    const name = ENEMY_TYPE_NAMES[pool.type[target]]
+    if (!name) return -1
+    // 대상 옆(복사기 → 대상 방향의 수직)으로 0.8u. 좌우는 번갈아.
+    let ux = pool.posX[target] - pool.posX[copier]
+    let uz = pool.posZ[target] - pool.posZ[copier]
+    const ul = Math.hypot(ux, uz)
+    if (ul > 1e-6) { ux /= ul; uz /= ul } else { ux = 0; uz = 1 }
+    const side = (this.seq & 1) === 0 ? 1 : -1
+    const limitX = (this.halfX > 0 ? this.halfX : 9.36) - 0.4
+    const limitZ = (this.halfZ > 0 ? this.halfZ : 16) - 0.4
+    const source = this._copySource ??= { type: 'E01', x: 0, y: 0, z: 0, hp: 1, maxHp: 1, visualScale: 1, spawnTimer: 1, yaw: 0, runDirX: 0, runDirZ: 1 }
+    const handle = this._copyHandle ??= { index: -1, generation: 0 }
+    const hp = Math.max(1, Math.round(pool.maxHp[target] * C.copyHpRatio))
+    source.type = name
+    source.x = Math.max(-limitX, Math.min(limitX, pool.posX[target] - uz * side * C.copyOffset))
+    source.z = Math.max(-limitZ, Math.min(limitZ, pool.posZ[target] + ux * side * C.copyOffset))
+    source.y = pool.posY[target]
+    source.hp = hp; source.maxHp = hp
+    source.visualScale = pool.visualScale[target]
+    source.yaw = pool.yaw[target]
+    if (!pool.spawnInto(handle, source)) return -1
+    this.seq += 1
+    this._claimSlot(pool, handle.index)
+    // 복사본은 회복(E56·E84)·방패(E67·E78·E86)·커피·지휘를 받지 않는다(치프 부하 제외 규칙).
+    markSupportImmune(pool, handle.index)
+    this.copyOwner[handle.index] = copier
+    this.copyOwnerGen[handle.index] = pool.generation[copier]
+    this.copyMs[handle.index] = C.copyLifeMs
+    return handle.index
+  }
+
+  _scanKey(pool, index) {
+    return `${COPIER_SCAN_KEY_PREFIX}${index}:${pool.generation[index]}`
+  }
+
+  _stepE101(pool, index, a, out) {
+    const C = E101_COPIER
+    if (this.copyCooldownMs[index] > 0) this.copyCooldownMs[index] = Math.max(0, this.copyCooldownMs[index] - a.deltaMs)
+    let state = pool.state[index]
+    if (state === N2_STATE_STUN) {
+      // 용지 걸림: 제자리, 접촉 피해 0.
+      out.noContact = true
+      out.preserveFacing = true
+      if (pool.stateTimer[index] > 0) return out
+      state = N2_STATE_APPROACH
+    }
+    if (state === N2_STATE_TELEGRAPH) {
+      out.noContact = true
+      out.preserveFacing = true
+      if (this.copierMode[index] === 1) {
+        const key = this._scanKey(pool, index)
+        this._advanceOwnedSnapshot(key, a.deltaMs)
+        if (pool.stateTimer[index] > 0) return out
+        this._removeSnapshot(key)
+        const target = this.copyTarget[index]
+        // 스캔 중 대상이 죽었으면 "용지 없음" — 복사하지 않는다.
+        if (target >= 0 && slotAlive(pool, target, this.copyTargetGen[index]) && this._isCopyable(pool, target)
+          && this.liveCopies(pool, index) < C.maxCopies) this._spawnCopy(pool, index, target)
+        this.copyTarget[index] = -1
+        this.copierMode[index] = 0
+        pool.state[index] = N2_STATE_RECOVER
+        pool.stateTimer[index] = C.scanRecoverMs
+        return out
+      }
+      if (pool.stateTimer[index] > 0) return out
+      pool.state[index] = N2_STATE_ATTACK
+      pool.stateTimer[index] = C.fanActiveMs
+      return out
+    }
+    if (state === N2_STATE_ATTACK) {
+      out.noContact = true
+      out.preserveFacing = true
+      if (pool.stateTimer[index] > 0) return out
+      this.copierMode[index] = 0
+      pool.state[index] = N2_STATE_RECOVER
+      pool.stateTimer[index] = C.fanRecoverMs
+      return out
+    }
+    if (state === N2_STATE_RECOVER) {
+      out.preserveFacing = true
+      if (pool.stateTimer[index] > 0) return out
+    }
+    pool.state[index] = N2_STATE_APPROACH
+    this.copierMode[index] = 0
+    const ready = pool.spawnTimer[index] >= C.firstDelayMs && expansionChannelFree()
+    if (ready && pool.attackCooldown[index] <= 0 && a.distance <= C.fanTrigger && a.distance > 1e-6) {
+      const snapshot = this._buildCertifiedSnapshot(`${COPIER_FAN_KEY_PREFIX}${index}:${pool.generation[index]}:${++this.seq}`, 'E101', 'e101_fan', 'sector',
+        a.posX, a.posZ, a.nx, a.nz, C.fanRadius, 0, C.fanTelegraphMs, C.fanActiveMs, 0, C.fanDamage, C.fanAngleDeg)
+      if (snapshot) {
+        this._addAttack(snapshot, pool, index)
+        this.copierMode[index] = 2
+        pool.runDirX[index] = a.nx
+        pool.runDirZ[index] = a.nz
+        pool.state[index] = N2_STATE_TELEGRAPH
+        pool.stateTimer[index] = C.fanTelegraphMs
+        pool.attackCooldown[index] = C.fanCooldownMs
+        out.noContact = true
+        out.preserveFacing = true
+        out.hasYaw = true
+        out.yaw = Math.atan2(a.nx, a.nz)
+        return out
+      }
+      pool.attackCooldown[index] = SAFETY_RETRY_MS
+    } else if (ready && this.copyCooldownMs[index] <= 0 && pool.activeCount < MAX_ENEMIES - C.reserveSlots && this.liveCopies(pool, index) < C.maxCopies) {
+      const target = this.pickCopyTarget(pool, index)
+      if (target >= 0) {
+        this.copyTarget[index] = target
+        this.copyTargetGen[index] = pool.generation[target]
+        this.copierMode[index] = 1
+        // 노란 원(피해 0): 스캔 대상 발밑(예고 시작 자리로 고정).
+        this._addSnapshot(makeZeroDamageSnapshot(this._scanKey(pool, index), 'E101', 'e101_scan', 'disk',
+          pool.posX[target], pool.posZ[target], C.scanRadius, 0, C.scanMs, 0, 0), pool, index)
+        pool.state[index] = N2_STATE_TELEGRAPH
+        pool.stateTimer[index] = C.scanMs
+        this.copyCooldownMs[index] = C.copyCooldownMs
+        out.noContact = true
+        out.preserveFacing = true
+        const dx = pool.posX[target] - a.posX
+        const dz = pool.posZ[target] - a.posZ
+        if (Math.hypot(dx, dz) > 1e-6) { out.hasYaw = true; out.yaw = Math.atan2(dx, dz) }
+        return out
+      }
+    }
+    return this._chase(a, out, a.speed)
+  }
+
+  /**
+   * E101 용지 걸림 판정(applyHitIndex가 피해를 뺀 뒤 부른다). 4초 창 안에 최대 HP 20% 이상을 맞으면 2.5초 제자리 경직.
+   * 걸리는 순간 진행 중이던 스캔·부채꼴 예고는 피해 없이 지운다. 걸림이 끝나고 3초 동안은 다시 걸리지 않는다.
+   */
+  noteCopierDamage(pool, index, damage) {
+    if (pool.type[index] !== E101_CODE || !(damage > 0) || !(pool.hp[index] > 0)) return false
+    const C = E101_COPIER
+    this._claimSlot(pool, index)
+    if (pool.state[index] === N2_STATE_STUN || this.clockMs < this.jamImmuneUntil[index]) return false
+    if (this.clockMs - this.jamStartMs[index] > C.jamWindowMs || this.jamAcc[index] <= 0) {
+      this.jamStartMs[index] = this.clockMs
+      this.jamAcc[index] = 0
+    }
+    this.jamAcc[index] += damage
+    if (this.jamAcc[index] < pool.maxHp[index] * C.jamDamageRatio) return false
+    this._removeSnapshot(this._scanKey(pool, index))
+    this._removeOwnedAttacks(index)
+    this.copyTarget[index] = -1
+    this.copierMode[index] = 0
+    this.jamAcc[index] = 0
+    this.jamImmuneUntil[index] = this.clockMs + C.jamMs + C.jamImmuneMs
+    pool.state[index] = N2_STATE_STUN
+    pool.stateTimer[index] = C.jamMs
+    return true
+  }
+
+  isJammed(pool, index) {
+    return pool.type[index] === E101_CODE && pool.state[index] === N2_STATE_STUN
+  }
+
+  // ── E104 공굴리기 대장 ─────────────────────────────────────────────────────────
+  /** 공이 굴러갈 길이: 대장 → 맵 끝(여백 0.2u, 최대 20u). 장애물(골대)에 막히면 그 앞까지. */
+  _ballLaneLength(ox, oz, dirX, dirZ) {
+    const B = E104_BALL
+    const hx = this.halfX > 0 ? this.halfX : 12
+    const hz = this.halfZ > 0 ? this.halfZ : 20
+    let edge = Infinity
+    if (dirX > 1e-6) edge = Math.min(edge, (hx - ox) / dirX)
+    else if (dirX < -1e-6) edge = Math.min(edge, (-hx - ox) / dirX)
+    if (dirZ > 1e-6) edge = Math.min(edge, (hz - oz) / dirZ)
+    else if (dirZ < -1e-6) edge = Math.min(edge, (-hz - oz) / dirZ)
+    let length = Math.min(B.maxLength, edge - B.edgeMargin)
+    if (!(length > 0)) return 0
+    const obstacles = this.obstacles
+    if (obstacles && obstacles.length) {
+      const from = this._laneFrom ??= { x: 0, z: 0 }
+      const to = this._laneTo ??= { x: 0, z: 0 }
+      from.x = ox; from.z = oz
+      const pad = B.ballRadius * 0.5
+      to.x = ox + dirX * length; to.z = oz + dirZ * length
+      if (isStageObjectSightBlocked(from, to, obstacles, pad)) {
+        let lo = 0
+        let hi = length
+        for (let i = 0; i < 16; i += 1) {
+          const mid = (lo + hi) / 2
+          to.x = ox + dirX * mid; to.z = oz + dirZ * mid
+          if (isStageObjectSightBlocked(from, to, obstacles, pad)) hi = mid
+          else lo = mid
+        }
+        length = lo
+      }
+    }
+    return length
+  }
+
+  _startRoll(pool, index, a) {
+    const B = E104_BALL
+    const length = this._ballLaneLength(a.posX, a.posZ, a.nx, a.nz)
+    if (!(length >= B.minLength)) return false
+    const rollMs = (length - 2 * B.ballRadius) / B.rollSpeed * 1000
+    const key = `${BALL_KEY_PREFIX}${index}:${pool.generation[index]}:${++this.seq}`
+    const snapshot = this._buildCertifiedSnapshot(key, 'E104', 'e104_ball', 'line', a.posX, a.posZ, a.nx, a.nz,
+      length, B.lineWidth, B.telegraphMs, rollMs, 0, B.damage)
+    if (!snapshot) return false
+    snapshot.n2OwnerA = index
+    snapshot.n2OwnerGenA = pool.generation[index]
+    snapshot.ballRadius = B.ballRadius
+    snapshot.ballStartAlong = B.ballRadius
+    snapshot.ballEndAlong = length - B.ballRadius
+    snapshot.ballXZ = [a.posX + a.nx * B.ballRadius, a.posZ + a.nz * B.ballRadius]
+    snapshot.rollId = ++this.rollSeq
+    snapshot.zombieHits = 0
+    expansionAttackSnapshots.set(key, snapshot)
+    this.ownedKeys.add(key)
+    this.balls.push(snapshot)
+    this.ballKey[index] = key
+    this.ballPhase[index] = 1
+    this.ballX[index] = snapshot.ballXZ[0]
+    this.ballZ[index] = snapshot.ballXZ[1]
+    this.ballRetrieveMs[index] = 0
+    pool.runDirX[index] = a.nx
+    pool.runDirZ[index] = a.nz
+    pool.state[index] = N2_STATE_TELEGRAPH
+    pool.stateTimer[index] = B.telegraphMs
+    const enraged = pool.maxHp[index] > 0 && pool.hp[index] <= pool.maxHp[index] * B.enrageHpRatio
+    pool.attackCooldown[index] = enraged ? B.enragedCooldownMs : B.cooldownMs
+    return true
+  }
+
+  _stepE104(pool, index, a, out) {
+    const B = E104_BALL
+    let state = pool.state[index]
+    if (state === N2_STATE_TELEGRAPH) {
+      // 겨눔: 제자리, 피해 0. 공 경로(선)는 예고 시작 자리·방향으로 고정 — 대장이 밀려도 공은 그려진 선 위로만 간다.
+      out.noContact = true
+      out.preserveFacing = true
+      const key = this.ballKey[index]
+      if (key && expansionAttackSnapshots.has(key)) {
+        if (pool.stateTimer[index] > 0) return out
+        pool.state[index] = N2_STATE_ATTACK
+        pool.stateTimer[index] = B.kickMs
+        return out
+      }
+      this.ballPhase[index] = 0 // 예고가 지워졌다(판 리셋 등) — 공을 든 채로 돌아간다
+      state = N2_STATE_APPROACH
+    }
+    if (state === N2_STATE_ATTACK) {
+      out.preserveFacing = true
+      if (pool.stateTimer[index] > 0) return out
+    }
+    pool.state[index] = N2_STATE_APPROACH
+    const phase = this.ballPhase[index]
+    if (phase === 2 || phase === 3) {
+      // 공을 주우러 간다(0.8u/s). 굴리지 못하는 동안이 처치 기회다.
+      this.ballRetrieveMs[index] += a.deltaMs
+      const dx = this.ballX[index] - a.posX
+      const dz = this.ballZ[index] - a.posZ
+      const dist = Math.hypot(dx, dz)
+      if (phase === 3 && (dist <= B.pickupReach || this.ballRetrieveMs[index] >= B.retrieveTimeoutMs)) {
+        this.ballPhase[index] = 0
+        pool.attackCooldown[index] = Math.max(pool.attackCooldown[index], B.pickupDelayMs)
+        return out
+      }
+      if (dist < 1e-3) return out
+      const speed = Math.min(B.retrieveSpeed, dist / Math.max(1e-6, a.deltaMs / 1000))
+      out.velocityX = dx / dist * speed
+      out.velocityZ = dz / dist * speed
+      out.moving = true
+      out.hasYaw = true
+      out.yaw = Math.atan2(dx, dz)
+      return out
+    }
+    this.ballPhase[index] = 0
+    const ready = pool.attackCooldown[index] <= 0 && pool.spawnTimer[index] >= B.firstDelayMs && a.distance <= B.triggerDistance
+      && a.distance > 1e-6 && expansionChannelFree()
+    if (ready) {
+      if (this._startRoll(pool, index, a)) {
+        out.noContact = true
+        out.preserveFacing = true
+        out.hasYaw = true
+        out.yaw = Math.atan2(a.nx, a.nz)
+        return out
+      }
+      pool.attackCooldown[index] = SAFETY_RETRY_MS
+    }
+    return this._chase(a, out, a.speed)
+  }
+
+  // 공 진행(머리말). 공 중심은 [r, 길이 − r]만 지난다. 플레이어 피해 = 공 원 안 + 그려진 선 안(1회). 지나가는 일반 좀비는 굴림마다 1회 60.
+  _stepBalls(pool, playerX, playerZ, deltaMs, onDamage) {
+    const B = E104_BALL
+    for (let i = this.balls.length - 1; i >= 0; i -= 1) {
+      const s = this.balls[i]
+      const owner = s.n2OwnerA
+      const alive = slotAlive(pool, owner, s.n2OwnerGenA)
+      if (expansionAttackSnapshots.get(s.key) !== s || !alive) {
+        // 대장이 죽었거나 판 리셋으로 지워졌다: 피해 없이 지운다.
+        this._removeSnapshot(s.key)
+        this.balls.splice(i, 1)
+        if (alive && this.ballKey[owner] === s.key) { this.ballKey[owner] = null; this.ballPhase[owner] = 0 }
+        continue
+      }
+      s.elapsedMs += deltaMs
+      const end = s.windupMs + s.activeMs
+      s.phase = s.elapsedMs < s.windupMs ? 'windup' : s.elapsedMs < end ? 'active' : 'recovery'
+      if (s.phase === 'windup') continue
+      const along = Math.min(s.ballEndAlong, s.ballStartAlong + B.rollSpeed * (s.elapsedMs - s.windupMs) / 1000)
+      const cx = s.originXZ[0] + s.directionXZ[0] * along
+      const cz = s.originXZ[1] + s.directionXZ[1] * along
+      s.ballXZ[0] = cx
+      s.ballXZ[1] = cz
+      this.ballX[owner] = cx
+      this.ballZ[owner] = cz
+      if (s.phase === 'active') {
+        this.ballPhase[owner] = 2
+        if (!s.hit && Math.hypot(playerX - cx, playerZ - cz) <= B.ballRadius + EXPANSION_PLAYER_RADIUS
+          && expansionAttackContains(s, playerX, playerZ, EXPANSION_PLAYER_RADIUS)) {
+          s.hit = true
+          if (onDamage) onDamage(s.damage, cx, cz)
+        }
+        this._ballHitZombies(pool, owner, s, cx, cz)
+        continue
+      }
+      // 굴림 끝: 공은 멈춘 자리에 놓인다(대장이 주우러 간다).
+      this.ballPhase[owner] = 3
+      this.ballKey[owner] = null
+      this._removeSnapshot(s.key)
+      this.balls.splice(i, 1)
+    }
+  }
+
+  _ballHitZombies(pool, owner, s, cx, cz) {
+    const B = E104_BALL
+    if (s.zombieHits >= B.maxZombieHitsPerRoll) return
+    const rollId = s.rollId
+    const reach = B.ballRadius + B.zombieHitPad
+    const reach2 = reach * reach
+    const highest = Math.min(pool.highestActive, this.capacity - 1)
+    for (let index = 0; index <= highest && s.zombieHits < B.maxZombieHitsPerRoll; index += 1) {
+      if (index === owner || pool.active[index] !== 1 || !isBallTargetTypeCode(pool.type[index])) continue
+      if (this.ballHitRoll[index] === rollId && this.ballHitGen[index] === pool.generation[index]) continue
+      const dx = pool.posX[index] - cx
+      const dz = pool.posZ[index] - cz
+      if (dx * dx + dz * dz > reach2) continue
+      this.ballHitRoll[index] = rollId
+      this.ballHitGen[index] = pool.generation[index]
+      this.ballHits.push(index, pool.generation[index], B.zombieDamage, cx, cz)
+      s.zombieHits += 1
+    }
+  }
+
+  /** 이번 스텝에 공에 맞은 좀비를 넘기고 목록을 비운다. cb(index, generation, damage, ballX, ballZ). */
+  drainBallHits(cb) {
+    const hits = this.ballHits
+    for (let i = 0; i + 4 < hits.length; i += 5) cb(hits[i], hits[i + 1], hits[i + 2], hits[i + 3], hits[i + 4])
+    hits.length = 0
+  }
+
+  /** 소품 배율 훅 'ballHeld'(MiniZombieLayer): 공을 들고 있거나 겨누는 동안 1, 굴러가거나 바닥에 있으면 0(숨김). */
+  ballHeldScale(pool, index) {
+    if (index < 0 || index >= this.capacity || pool.type[index] !== E104_CODE || this.slotGen[index] !== pool.generation[index]) return 1
+    return this.ballPhase[index] <= 1 ? 1 : 0
+  }
+
+  /** 공 상태(비주얼용): phase 0 듦 · 1 겨눔 · 2 구름 · 3 바닥. x·z = 공 중심(구름·바닥일 때 의미가 있다), radius = 0.9u. */
+  ballStateInto(pool, index, out) {
+    const valid = index >= 0 && index < this.capacity && pool.type[index] === E104_CODE && this.slotGen[index] === pool.generation[index]
+    out.phase = valid ? this.ballPhase[index] : 0
+    out.x = valid ? this.ballX[index] : 0
+    out.z = valid ? this.ballZ[index] : 0
+    out.radius = E104_BALL.ballRadius
+    return out
   }
 
   // ── E105 ─────────────────────────────────────────────────────────────────────

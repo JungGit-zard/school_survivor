@@ -273,7 +273,8 @@ describe('S6 B05 시간 소환: 천장에 잘린 몫은 미뤘다가 자리가 �
   it('레벨 1 프로브: 192·222초 소환이 천장에 막혀도 225초에 자리가 나면 12마리 모두 도착, 동시 적 ≤ 150', () => {
     let freedAt = null
     let maxTotal = 0
-    const run = runStageRuntimeProbe({ stageId: 'stage6', seed: 1, bot: REFUSE, immortal: true, maxSec: 232, onFrame: ({ sec, specials }) => {
+    // 2026-11-16 wave 3: 스6 72초 치프 E104의 공이 잡몹을 쓸어(60) 천장을 비우고 XP를 내므로, 소환 천장만 보는 이 두 테스트는 치프 행을 뺀다.
+    const run = runStageRuntimeProbe({ stageId: 'stage6', seed: 1, bot: REFUSE, immortal: true, maxSec: 232, includeChiefs: false, onFrame: ({ sec, specials }) => {
       maxTotal = Math.max(maxTotal, enemyPool.activeCount + aliveSpecials(specials))
       if (freedAt === null && sec >= 225) { freedAt = sec; freePooled(30) }
     } })
@@ -294,7 +295,7 @@ describe('S6 B05 시간 소환: 천장에 잘린 몫은 미뤘다가 자리가 �
   it('보스가 죽으면 미룬 몫은 폐기된다 — 처치 뒤에 자리가 나도 소환체가 나오지 않는다', () => {
     let freedAt = null
     // 외부 DPS 90: B05(4,050)가 150초 등장 후 약 45초 뒤 처치 — 격노 소환(175초)이 천장에 막혀 미뤄진 다음이다.
-    const run = runStageRuntimeProbe({ stageId: 'stage6', seed: 1, bot: REFUSE, immortal: true, maxSec: 232, bossExternalDps: 90, onFrame: ({ sec, specials }) => {
+    const run = runStageRuntimeProbe({ stageId: 'stage6', seed: 1, bot: REFUSE, immortal: true, maxSec: 232, bossExternalDps: 90, includeChiefs: false, onFrame: ({ sec, specials }) => {
       const boss = specials.find((s) => s.type === 'B05')
       if (freedAt === null && boss && !boss.alive) { freedAt = sec; freePooled(30) }
     } })

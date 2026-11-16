@@ -17,9 +17,12 @@ export function novel2PickVariant(pool, index, visualId, count, runtime = enemyS
 }
 
 /**
- * 소품 배율. 'bagScale' = E90 숙제 가방(책마다 +8%, 최대 8권 → 1.64배). 'ballHeld'(E104, 3차)는 아직 행동이 없어 1.
+ * 소품 배율. 'bagScale' = E90 숙제 가방(책마다 +8%, 최대 8권 → 1.64배).
+ * 'ballHeld' = E104 큰 공: 들고 있거나 겨누는 동안 1, 굴러가거나 바닥에 놓였으면 0(손의 공을 숨긴다 — 굴러가는 공은
+ * runtime.novel2.ballStateInto(pool, index, out)의 x·z로 따로 그린다. threemini 다음 차례).
  */
 export function novel2PropScale(hook, pool, index, runtime = enemySimulationRuntime) {
   if (hook === 'bagScale') return runtime?.novel2?.bagScale?.(pool, index) ?? 1
+  if (hook === 'ballHeld') return runtime?.novel2?.ballHeldScale?.(pool, index) ?? 1
   return 1
 }

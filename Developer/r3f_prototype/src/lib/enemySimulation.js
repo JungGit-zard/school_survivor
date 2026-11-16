@@ -101,7 +101,7 @@ import {
   isNovel2ExpansionTypeCode,
   isNovel2ImplementedTypeCode,
 } from './novelZombie2Content.js'
-import { E90_CODE, E91_CODE, E99_CODE, N2_STATE_ATTACK, N2_STATE_TELEGRAPH, createNovel2Result, createNovel2Runtime } from './novelZombie2Behavior.js'
+import { E90_CODE, E91_CODE, E98_CODE, E99_CODE, E101_CODE, E104_CODE, N2_STATE_ATTACK, N2_STATE_STUN, N2_STATE_TELEGRAPH, createNovel2Result, createNovel2Runtime } from './novelZombie2Behavior.js'
 // 행동 신호음(2026-11-14). 시뮬레이션은 "무슨 일이 일어났다"만 알리고 소리 선택·간격·거리 감쇠는
 // enemyAbilitySfx.js가 소유한다. 그 모듈은 throw하지 않고 Math.random을 쓰지 않는다(결정성 유지).
 import {
@@ -689,6 +689,9 @@ export class EnemySimulationRuntime {
     this._novel2 = createNovel2Runtime()
     this._novel2Result = createNovel2Result()
     this._novel2Context = null
+    // 3차 치프 연결: E98에게 먹힌 개체·소멸하는 E101 복사본은 보상 없이 퇴장(DESPAWN 이벤트), 먹힌 개체 XP는 이 표에서 읽는다.
+    this._novel2.despawnHook = (pool, index) => this._despawn(pool, index, ENEMY_EVENT_DESPAWN, 0, null)
+    this._novel2.xpTable = ENEMY_RUNTIME_XP
   }
 
   get novel2() {
@@ -897,6 +900,15 @@ export class EnemySimulationRuntime {
         velocityX = pool.runDirX[index] * ENEMY_RUNTIME_SPEED[type]
         velocityZ = pool.runDirZ[index] * ENEMY_RUNTIME_SPEED[type]
         moving = true
+      } else if (novel2.isBeingEaten(pool, index) && novel2.stepEaten(pool, index, deltaMs, this._novel2Result)) {
+        // E98 대식가에게 먹히는 중: 0.4초 동안 입(예고 때 고정한 부채꼴 원점 앞)으로 끌려간다. 접촉 피해 0, 넉백·버프 없음.
+        const n2 = this._novel2Result
+        velocityX = n2.velocityX
+        velocityZ = n2.velocityZ
+        moving = n2.moving
+        preserveFacing = true
+        novel2NoContact = true
+        if (n2.hasYaw) pool.yaw[index] = n2.yaw
       } else if (novel2.isCommanded(index) && novel2.stepCommanded(pool, index, deltaMs, this._novel2Result)) {
         // E89 반장의 "차렷! 경례!": 동결(0.8초) → 확정 방향 동시 돌진(1.6u). 이동만 대신 정하고 피해는 각자의 접촉 경로.
         const n2 = this._novel2Result
@@ -1221,6 +1233,9 @@ export class EnemySimulationRuntime {
         this._despawn(pool, index, ENEMY_EVENT_DESPAWN, 0, context.onDespawn)
         continue
       }
+      // 3차 치프: 넉백으로 행동 걸음을 건너뛴 프레임에도 예고(8)·E98 흡입(9)·E101 용지 걸림(4) 중에는 몸 접촉 피해 0(예고 중 피해 0 불변식).
+      if ((type === E98_CODE || type === E101_CODE || type === E104_CODE) && (pool.state[index] === N2_STATE_TELEGRAPH
+        || type === E98_CODE && pool.state[index] === N2_STATE_ATTACK || type === E101_CODE && (pool.state[index] === N2_STATE_STUN || pool.state[index] === N2_STATE_ATTACK))) novel2NoContact = true
       if (isMelee(type) && !expansionAttack?.noContact && !novel2NoContact && distance <= contactDistance(type) && pool.hitCooldown[index] <= 0) {
         pool.hitCooldown[index] = ENEMY_CONTACT_COOLDOWN_MS
         pool.lastContactX[index] = playerX
@@ -1248,6 +1263,8 @@ export class EnemySimulationRuntime {
     if (!pool || !pool.isIndexGenerationAlive(index, generation) || !isStorableFloat(damage) || damage < 0
       || !isStorableFloat(knockbackX) || !isStorableFloat(knockbackZ) || !isStorableFloat(knockbackMs) || knockbackMs < 0) return false
     pool.hp[index] = Math.max(0, pool.hp[index] - damage)
+    // E101 복사기 "용지 걸림"(4초 안 최대 HP 20% → 2.5초 경직). 피해 배율은 없다(보상 판정과 어긋나지 않게).
+    if (pool.type[index] === E101_CODE) this._novel2.noteCopierDamage(pool, index, damage)
     pool.hitFlashTimer[index] = 90
     pool.knockbackX[index] = knockbackX
     pool.knockbackZ[index] = knockbackZ
@@ -1259,6 +1276,8 @@ export class EnemySimulationRuntime {
     if (pool.type[index] === E99_CODE) this._novel2.queueDeathBurst(pool.posX[index], pool.posZ[index])
     // E90 숙제 걷기 당번: 주운 책 전부 + 보너스 1권을 그 자리에 떨어뜨린다(필드가 drainThiefLoot로 가져간다).
     if (pool.type[index] === E90_CODE) this._novel2.queueThiefLoot(pool, index)
+    // E98 대식가: 먹은 잡몹의 XP를 한 권씩 그 자리에 떨어뜨린다(같은 drainThiefLoot 경로).
+    if (pool.type[index] === E98_CODE) this._novel2.queueEaterLoot(pool, index)
     this._despawn(pool, index, ENEMY_EVENT_DEATH, damage, null)
     return true
   }

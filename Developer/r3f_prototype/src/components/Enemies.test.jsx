@@ -1079,14 +1079,15 @@ describe('all zombie HP follows the cumulative 1.2x-per-stage curve', () => {
       // 2026-11-14 2차 신규 1차분: E89 반장(치프, base 400 × 배수)과 일반 6종은 같은 누적 곡선을 탄다.
       // E105(2인3각)은 Stage 6 절대 HP라 아래 루프에서 확장 배우처럼 따로 다룬다.
       // 2026-11-15 2차분(wave 2): E90·E91(일반, host 같은 hp)·E92·E95(치프, base × 배수)도 같은 곡선을 탄다.
-      'E89', 'E90', 'E91', 'E92', 'E93', 'E94', 'E95', 'E96', 'E97', 'E99', 'E103', 'E105',
+      // 2026-11-16 3차분(wave 3): 치프 E98·E101(base × 배수). E104(스6 치프)는 E105처럼 절대 HP라 아래 루프에서 따로 다룬다.
+      'E89', 'E90', 'E91', 'E92', 'E93', 'E94', 'E95', 'E96', 'E97', 'E98', 'E99', 'E101', 'E103', 'E104', 'E105',
     ])
     const stageMultipliers = { stage1: 1, stage2: 1.2, stage3: 1.44, stage4: 1.728, stage5: 1.2 ** 4 }
     for (const [stageId, multiplier] of Object.entries(stageMultipliers)) {
       for (const [type, stats] of Object.entries(ENEMY_STATS).filter(([id])=>!/^E(?:19|2[0-9]|3[0-3])$|^B0[5-9]$/.test(id))) {
         const expectedHp = Math.round(stats.hp * multiplier)
         expect(sameTypeZombieHpForStage(stats.hp, stageId)).toBe(expectedHp)
-        if (type === 'E105') { expect(stageHpOverride(type, stageId)).toBeUndefined(); continue }
+        if (type === 'E105' || type === 'E104') { expect(stageHpOverride(type, stageId)).toBeUndefined(); continue }
         expect(stageHpOverride(type, stageId)).toEqual(stageId === 'stage1' ? undefined : { hp: expectedHp })
       }
     }

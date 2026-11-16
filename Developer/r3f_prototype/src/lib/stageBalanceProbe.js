@@ -179,7 +179,7 @@ export function firePencil(weapon, stats, onKill, specials = null) {
     // applyHitIndex가 죽이면 슬롯이 즉시 반납되어 type/좌표를 더는 읽을 수 없다.
     const killed = enemyPool.hp[index] <= weapon.damage
     if (killed) {
-      onKill(enemyPool.type[index], enemyPool.posX[index], enemyPool.posZ[index])
+      onKill(enemyPool.type[index], enemyPool.posX[index], enemyPool.posZ[index], index)
     }
     enemySimulationRuntime.applyHitIndex(enemyPool, index, generation, weapon.damage, 0, 0, 0)
     stats.shotsHit += 1

@@ -4,6 +4,8 @@ import { EXPANSION_BOSSES, EXPANSION_ENEMIES, EXPANSION_HAZARDS, EXPANSION_STAGE
 import { EXPANSION_PART2_LIBRARY_ARCHIVE } from './expansionPart2Archive.js'
 import { ENEMY_TYPE_CODES } from './enemyEntityPool.js'
 import { getBurstEventsForStage, isBossType } from './burstEvents.js'
+import { isChiefType } from './stageChiefContent.js'
+import { NOVEL2_ZOMBIE_STATS } from './novelZombie2Content.js'
 
 const S6 = EXPANSION_STAGES.stage6
 // 2026-11-14 블록 좀비(같은 hp 맞교환): E79·E71 = E01(8 → 20), E73 = E04(32 → 80), E76 = E05(70 → 174).
@@ -57,8 +59,14 @@ describe('stage6 운동장 — 같은 id·기록 키·typeCode, 내용만 교체
   // 스1~5에서 운동장 컨셉 10행을 받는다. 108·132·216초 E04 행 삭제, 8초 E04 2 → 1 + E87(#43 수정 — 스5 → 스6 오프닝 1.6배 한도).
   // 216초는 판정 #74(2 → 1)에서 한 걸음 더 — 남은 E04 1기도 술래 E70과 맞바꿔 4회 소환 총 HP를 14,057(+2.05%) → 13,977(+1.47%)로
   // 사다리 ±2% 안에 둔다(코디네이터 결정 2026-11-16). 44 → 51행, 일반 적 188 → 193마리, HP 8,910 → 9,063.
-  it('이벤트 51행, 보스 1행(150초), 마지막 일반 이벤트 228초, 반복 버스트 없음, 일반 적 193마리·HP 9,063', () => {
-    const events = getBurstEventsForStage('stage6')
+  // 2026-11-16 3차(wave 3): 치프 E104 공굴리기 대장 72초 행 1개(절대 HP 250)를 더해 52행. 치프는 사다리 밖 순증이라
+  // 아래 마릿수·HP·사다리·30초 곡선은 치프를 빼고 센다(193마리·9,063·+1.47% 그대로).
+  it('이벤트 51행 + 치프 1행, 보스 1행(150초), 마지막 일반 이벤트 228초, 반복 버스트 없음, 일반 적 193마리·HP 9,063', () => {
+    const all = getBurstEventsForStage('stage6')
+    expect(all).toHaveLength(52)
+    expect(all.filter((e) => isChiefType(e.type))).toEqual([{ sec: 72, type: 'E104', count: 1 }])
+    expect(NOVEL2_ZOMBIE_STATS.E104.hp).toBe(250)
+    const events = all.filter((e) => !isChiefType(e.type))
     expect(events).toHaveLength(51)
     // 2026-11-14 블록 좀비 4종은 각각 정확히 한 행·한 마리였고, 2026-11-16 E76은 스4 150초에서 200초 행을 하나 더 받았다(#54).
     expect(events.filter((e) => ['E79', 'E71', 'E73', 'E76'].includes(e.type)).map((e) => [e.sec, e.type, e.count]))
@@ -96,7 +104,7 @@ describe('stage6 운동장 — 같은 id·기록 키·typeCode, 내용만 교체
 
   // 30초 창별 유입 HP(일반 적 + B05 시간 소환 162·192·222초). 곡선 모양을 못박는다.
   it('난이도 곡선: 150초까지 오르막, 보스 창이 오프닝보다 붐빈다, 탈출 이후 구간은 그대로', () => {
-    const events = getBurstEventsForStage('stage6').filter((e) => !isBossType(e.type))
+    const events = getBurstEventsForStage('stage6').filter((e) => !isBossType(e.type) && !isChiefType(e.type))
     const summonHp = EXPANSION_BOSSES.B05.summon.count * S6_HP.E21
     const windows = [0, 30, 60, 90, 120, 150, 180, 210].map((from) => events
       .filter((e) => e.sec >= from && e.sec < from + 30).reduce((n, e) => n + e.count * S6_HP[e.type], 0)
@@ -108,6 +116,9 @@ describe('stage6 운동장 — 같은 id·기록 키·typeCode, 내용만 교체
     expect(windows[0] + windows[1]).toBeLessThanOrEqual(1300)
     // 보스 창(150~240초)의 어느 30초도 오프닝 30초 창보다 한산하지 않다.
     expect(Math.min(...windows.slice(5))).toBeGreaterThan(Math.max(windows[0], windows[1]))
+    // 치프 E104(72초, 250)를 더해도 60~150초 오르막이 그대로다(1,579 < 1,595 < 1,785).
+    const withChief = windows[2] + NOVEL2_ZOMBIE_STATS.E104.hp
+    expect(withChief < windows[3] && windows[3] < windows[4]).toBe(true)
   })
 
   it('훈화 고리(H06) 피해는 같은 고리를 쓰는 교장 B05 훈화 고리와 같다(튜토리얼 기믹이 보스판보다 아프지 않게)', () => {

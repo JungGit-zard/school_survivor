@@ -210,6 +210,7 @@ import { INV_DURATION, PLAYER_HIT_KNOCKBACK_MS, resolvePlayerHitKnockback } from
 import { firePencil, mulberry32 } from './stageBalanceProbe.js'
 import { createBot, decideBotMove, DODGE_REACTION_MS, PORTAL_MODE_REFUSE } from './balanceProbeBots.js'
 import { REF_BUILD_V1, refBuildPencilStats } from './refBuildV1.js'
+import { isChiefType } from './stageChiefContent.js'
 
 export const PROBE_FRAME_DELTA = 1 / 60
 export const PROBE_PLAYER_MAX_HP = 100
@@ -374,6 +375,8 @@ export function updateScreenBounds(stageId, halfX, halfZ) {
  * @param {number} [options.startLevel]  시작 레벨(연속 런 근사, 기본 1)
  * @param {number} [options.bossExternalDps]  확장·authored 보스(B10·B05~)에 매 프레임 더하는 외부 피해(초당). 연필 1종 봇이
  *   보스를 거의 못 때리는 한계를 메우는 측정 전용 옵션(기본 0 = 없음). 처치 시각·소환 트리거를 실제로 지나가게 한다.
+ * @param {boolean} [options.includeChiefs]  false면 치프 등장 행(lib/stageChiefContent.js)을 뺀다 — 치프와 무관한 메커니즘
+ *   (보스 소환 천장 등)만 따로 보는 측정 전용 옵션(기본 true = 런타임 그대로). 짝비교(치프 있음/없음)에도 쓴다.
  */
 export function runStageRuntimeProbe({
   stageId = 'stage1',
@@ -389,12 +392,13 @@ export function runStageRuntimeProbe({
   playerCollidesProps = false,
   startLevel = 1,
   bossExternalDps = 0,
+  includeChiefs = true,
 } = {}) {
   // 정적 데이터는 시드 RNG를 걸기 전에 만든다(stageBalanceProbe.js 결정론 주석과 같은 이유).
   const bounds = getStageBounds(stageId)
   const obstacles = getStageObjectSightObstacles(stageId)
   const stageConfig = getStageConfig(stageId)
-  const spawnEvents = getRuntimeSpawnEventsForStage(stageId)
+  const spawnEvents = includeChiefs ? getRuntimeSpawnEventsForStage(stageId) : getRuntimeSpawnEventsForStage(stageId).filter((event) => !isChiefType(event.type))
   const bossSpawnSec = getBossSpawnSec(stageId)
   const escapePortalSec = stageConfig.escapePortalSec ?? 210
   const matildaWarningSec = stageConfig.matildaWarningSec ?? 205
@@ -528,6 +532,20 @@ export function runStageRuntimeProbe({
   let matildaEntry = null
   const specials = [] // 보스·마틸다
   let sec = 0
+  // 풀 좀비 처치 보상(연필·E104 공 공용). 게임 히트 브리지와 같은 규칙 — E101 복사본은 XP·드롭 0.
+  const rewardPoolKill = (typeCode, x, z, index = -1) => {
+    kills += 1
+    recordEnemyKill(dominance, sec * 1000)
+    const type = enemyTypeFromCode(typeCode)
+    const xpValue = index >= 0 && enemySimulationRuntime.novel2.isCopy(enemyPool, index) ? 0 : (ENEMY_STATS[type]?.xp ?? 0)
+    const bonus = ELITE_BONUS[type]
+    if (bonus) {
+      const value = getEliteBonusTextbookXp(type, xpValue)
+      for (let i = 0; i < bonus.textbook; i += 1) orbs.push({ x, z, value })
+    } else if (shouldDropTextbook({ xp: xpValue, type }, Math.random(), sec)) {
+      orbs.push({ x, z, value: xpValue })
+    }
+  }
 
   // ── 2026-11-08 Stage 5/6 기믹 상태 ──
   const expansionStage = isExpansionStage(stageId)
@@ -1421,6 +1439,12 @@ export function runStageRuntimeProbe({
       }
 
       enemySimulationRuntime.step(enemyPool, context)
+      // E104 공굴리기 대장의 공에 맞은 일반 좀비(60): 게임(Enemies.jsx 히트 브리지)과 같은 순서 — 처치 여부·보상을 먼저 확정한다.
+      enemySimulationRuntime.novel2.drainBallHits((index, generation, damage) => {
+        if (!enemyPool.isIndexGenerationAlive(index, generation)) return
+        if (enemyPool.hp[index] <= damage) rewardPoolKill(enemyPool.type[index], enemyPool.posX[index], enemyPool.posZ[index], index)
+        enemySimulationRuntime.applyHitIndex(enemyPool, index, generation, damage, 0, 0, 0)
+      })
       while (enemySimulationRuntime.events.drainInto(event)) {
         if (event.type === ENEMY_EVENT_CONTACT) {
           const typeName = enemyTypeFromCode(enemyPool.type[event.index]) ?? 'unknown'
@@ -1537,19 +1561,7 @@ export function runStageRuntimeProbe({
 
       // ── 연필 ──
       if (elapsedMs - lastFiredMs >= weapon.cooldown) {
-        if (firePencil(weapon, { shotsFired: 0, shotsHit: 0 }, (typeCode, x, z) => {
-          kills += 1
-          recordEnemyKill(dominance, elapsedMs)
-          const type = enemyTypeFromCode(typeCode)
-          const xpValue = ENEMY_STATS[type]?.xp ?? 0
-          const bonus = ELITE_BONUS[type]
-          if (bonus) {
-            const value = getEliteBonusTextbookXp(type, xpValue)
-            for (let i = 0; i < bonus.textbook; i += 1) orbs.push({ x, z, value })
-          } else if (shouldDropTextbook({ xp: xpValue, type }, Math.random(), sec)) {
-            orbs.push({ x, z, value: xpValue })
-          }
-        }, specials)) lastFiredMs = elapsedMs
+        if (firePencil(weapon, { shotsFired: 0, shotsHit: 0 }, rewardPoolKill, specials)) lastFiredMs = elapsedMs
       }
 
       // ── XP 회수 + REF_BUILD 성장 ──

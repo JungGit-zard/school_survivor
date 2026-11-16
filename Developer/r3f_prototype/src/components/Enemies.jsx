@@ -1717,6 +1717,14 @@ export default function Enemies() {
   }, [scheduleRuntimeFlush])
 
   const pooledHitBridgeRef = useRef(null)
+  // E104 공 피해 임팩트(프레임마다 새로 만들지 않는다 — source만 갈아 끼운다).
+  const ballHitImpactRef = useRef({ ignoreSightBlock: true, canCrit: false, knockback: 3, knockbackMs: 220, source: { x: 0, z: 0 } })
+  const ballHitDrainRef = useRef((hitIndex, hitGeneration, hitDamage, ballX, ballZ) => {
+    const impact = ballHitImpactRef.current
+    impact.source.x = ballX
+    impact.source.z = ballZ
+    pooledHitBridgeRef.current?.(hitIndex, hitGeneration, hitDamage, impact)
+  })
   const pooledCriticalScratchRef = useRef({ damage: 0, isCritical: false })
   pooledHitBridgeRef.current = (index, generation, damage, impact) => {
     if (!enemyPool.isIndexGenerationAlive(index, generation)) return
@@ -1753,7 +1761,9 @@ export default function Enemies() {
         killKey: `${store.gameKey}:pool:${index}:${generation}`,
       })
       store.recordKill(); logKill(type); recordEnemyKill(dominanceSwarmRef.current, getRuntimeElapsedMs(store.elapsedMs)); emitSfx({ id: deathSfxId(type) })
-      enqueuePooledDeath(enemyPool.type[index], x, y, z, (hasProjectileZombieSplit(enemyPool, index) ? stats.xp * 0.5 : stats.xp), enemyPool.visualScale[index] * 0.333, critical.damage, enemyPool.maxHp[index], safeImpact.knockback ?? 0, safeImpact.deathStyleOverride)
+      // E101 복사기의 복사본은 XP·드롭 0(lib/novelZombie2Behavior.js isCopy). xp 0이면 교과서도 떨어지지 않는다(shouldDropTextbook).
+      const deathXp = enemySimulationRuntime.novel2.isCopy(enemyPool, index) ? 0 : (hasProjectileZombieSplit(enemyPool, index) ? stats.xp * 0.5 : stats.xp)
+      enqueuePooledDeath(enemyPool.type[index], x, y, z, deathXp, enemyPool.visualScale[index] * 0.333, critical.damage, enemyPool.maxHp[index], safeImpact.knockback ?? 0, safeImpact.deathStyleOverride)
     }
     enemySimulationRuntime.applyHitIndex(enemyPool, index, generation, critical.damage, dx / length * knockbackSpeed, dz / length * knockbackSpeed, knockbackMs)
   }
@@ -2356,6 +2366,9 @@ export default function Enemies() {
         // death 보상은 generation-보호 hit handler에서 despawn 전에 확정한다. 탈주/오류는 보상 없음.
       }
     }
+    // E104 공굴리기 대장의 공에 맞은 일반 좀비(60): 무기 히트 브리지로 넘겨 처치·XP를 플레이어 처치로 계산한다(설계 E86).
+    // 공은 투사체가 아니라 시야 차단을 보지 않는다(공 경로는 이미 골대 앞에서 멈춘다). 치명타 없음.
+    enemySimulationRuntime.novel2.drainBallHits(ballHitDrainRef.current)
     enemyProjectilePool.step(delta, playerPos.x, playerPos.z, projectileHitRef.current, screenBounds)
     projectileZombieShotPool.step(delta, playerPos.x, playerPos.z, projectileHitRef.current, screenBounds, playerSlow, bounds, playerImpulse)
 

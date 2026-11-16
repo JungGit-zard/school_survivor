@@ -541,7 +541,9 @@ describe('stage4 급식실 대탈출 버스트', () => {
   // 2:00~3:04의 64초 보스 단독 공백을 없앴다. 다만 증분을 전부 E04로 넣어 26마리가 됐던 건
   // 2026-08-19에 12마리로 되돌렸다(아래 포화 테스트 참조). 잡몹 예산은 5,577로 유지된다.
   it('비보스 이벤트는 공통 13개 앵커를 모두 쓰며 사다리 예산을 만족한다', () => {
-    const ordinary = STAGE4_BURST_EVENTS.filter((event) => !isBossType(event.type))
+    // 치프(2026-11-16 wave 3 E98 대식가)는 사다리 밖 순증 — 72초 행 하나만 따로 못박고 여기서는 뺀다.
+    expect(STAGE4_BURST_EVENTS.filter((event) => isChiefType(event.type))).toEqual([{ sec: 72, type: 'E98', count: 1 }])
+    const ordinary = STAGE4_BURST_EVENTS.filter((event) => !isBossType(event.type) && !isChiefType(event.type))
     expect(uniqueSeconds(ordinary)).toEqual([5, 24, 40, 60, 72, 108, 110, 120, 144, 150, 168, 184, 216])
     expect(ordinary.map(payloadWithoutSec)).toEqual([
       // 2026-10-25 Track B: 144초 E02×2 → E02×1 + E43×1, 150초 E03×6 → E03×3 + E45×3, 168초 E07×4 → E07×2 + E44×2. hp 동일 교체.
@@ -676,7 +678,9 @@ describe('stage5 교무실 최종 돌파 버스트', () => {
   // 받는다(#32·#36). E48 40 → 5(#61), E57 24 → 168(#62), E04×2 24 → 40(#63), E39 40 → 24(#64), E53 5 → 60(#66), 거대 72 → 184초(#67),
   // 216초 E103 복습(#71), 40초 E02 1기(추가 변경 A1). 단발 82 → 81기, 실효 5,305 → 5,321.
   it('단발 81기·실효 5,321, 앵커별 합(2026-11-16 좀비 배치 총검토 뒤)', () => {
-    const single = singleShotEvents(STAGE5_BURST_EVENTS).filter((event) => !isBossType(event.type))
+    // 치프(2026-11-16 wave 3 E101 복사기)는 사다리 밖 순증 — 40초 행 하나만 따로 못박고 여기서는 뺀다.
+    expect(STAGE5_BURST_EVENTS.filter((event) => isChiefType(event.type))).toEqual([{ sec: 40, type: 'E101', count: 1 }])
+    const single = singleShotEvents(STAGE5_BURST_EVENTS).filter((event) => !isBossType(event.type) && !isChiefType(event.type))
     expect(single.reduce((sum, event) => sum + event.count, 0)).toBe(81)
     const byAnchor = {}
     for (const event of single) byAnchor[event.sec] = (byAnchor[event.sec] ?? 0) + rowHp(event)
@@ -703,7 +707,7 @@ describe('stage5 교무실 최종 돌파 버스트', () => {
   })
 
   it('총 HP 사다리: 단발 5,321 + 반복 672 + 호출 702 + B10 3,241 + 소집 684 = 10,620 (목표 10,596, ±2%)', () => {
-    const total = STAGE5_BURST_EVENTS.reduce((sum, event) => sum + rowHp(event)
+    const total = STAGE5_BURST_EVENTS.filter((event) => !isChiefType(event.type)).reduce((sum, event) => sum + rowHp(event)
       * (isRepeatingBurstEvent(event) ? repeatingBurstTickCount(event) : 1), 0) + STAGE5_B10_SUMMON_FIXED_HP
     expect(applied('B10')).toBe(3241)
     expect(total).toBe(10620)
@@ -805,7 +809,15 @@ describe('스테이지 총체력 1.3배 사다리 (스1 앵커 고정)', () => {
     // 2026-11-15 wave 2: Stage 2 E92 기관사(머리 1 — 객차 E01은 머리가 직접 세운다, 144초 앵커), Stage 3 E95 줄넘기 듀오(몸 2).
     expect(chiefRows('stage2')).toEqual([{ sec: 144, type: 'E92', count: 1 }])
     expect(chiefRows('stage3')).toEqual([{ sec: 110, type: 'E95', count: 2 }])
-    for (const stageId of ['stage2', 'stage3', 'stage4', 'stage5']) {
+    // 2026-11-16 wave 3: Stage 4 E98 대식가 72초(실효 173), Stage 5 E101 복사기 40초(실효 187), Stage 6 E104 공굴리기 대장 72초(절대 250).
+    expect(chiefRows('stage4')).toEqual([{ sec: 72, type: 'E98', count: 1 }])
+    expect(chiefRows('stage5')).toEqual([{ sec: 40, type: 'E101', count: 1 }])
+    expect(chiefRows('stage6')).toEqual([{ sec: 72, type: 'E104', count: 1 }])
+    expect(Math.round(NOVEL2_ZOMBIE_STATS.E98.hp * STAGE_HP_MULTIPLIER.stage4)).toBe(173)
+    expect(Math.round(NOVEL2_ZOMBIE_STATS.E101.hp * STAGE_HP_MULTIPLIER.stage5)).toBe(187)
+    expect(isNovel2AbsoluteHp('E104')).toBe(true)
+    expect(NOVEL2_ZOMBIE_STATS.E104.hp).toBe(250)
+    for (const stageId of ['stage2', 'stage3', 'stage4', 'stage5', 'stage6']) {
       const rows = chiefRows(stageId)
       expect(rows.length).toBeLessThanOrEqual(1)
       for (const row of rows) expect(row.count).toBe(chiefBodyCount(row.type))
@@ -983,11 +995,12 @@ describe('Stage 5 → Stage 6 한 계단 상승', () => {
     const s6Hp = (event) => (EXPANSION_ENEMIES[event.type]?.hp ?? EXPANSION_BOSSES[event.type]?.hp
       ?? (isNovel2AbsoluteHp(event.type) ? NOVEL2_ZOMBIE_STATS[event.type].hp : undefined)
       ?? Math.round(S5_HP[event.type] * s6Mult)) * (event.count ?? 1)
-    const s5Total = STAGE5_BURST_EVENTS.reduce((sum, event) => sum + s5Hp(event), 0) + STAGE5_B10_SUMMON_FIXED_HP
+    // 치프(2026-11-16 wave 3: 스5 E101 40초·스6 E104 72초)는 사다리 밖 순증 — 총 HP·오프닝 비교에서 뺀다.
+    const s5Total = STAGE5_BURST_EVENTS.filter((event) => !isChiefType(event.type)).reduce((sum, event) => sum + s5Hp(event), 0) + STAGE5_B10_SUMMON_FIXED_HP
     expect(s5Total).toBe(10620)
     const summon = EXPANSION_BOSSES.B05.summon
     const summonHp = summon.count * EXPANSION_ENEMIES[summon.type].hp
-    const s6Events = getBurstEventsForStage('stage6')
+    const s6Events = getBurstEventsForStage('stage6').filter((event) => !isChiefType(event.type))
     const s6Base = s6Events.reduce((sum, event) => sum + s6Hp(event), 0)
     for (const summons of [3, 4]) {
       const ratio = (s6Base + summons * summonHp) / s5Total
@@ -995,7 +1008,7 @@ describe('Stage 5 → Stage 6 한 계단 상승', () => {
       expect(ratio, `${summons} summons`).toBeLessThanOrEqual(1.33)
     }
     const opening = (events, hp) => events.filter((event) => event.sec < 60 && !isBossType(event.type)).reduce((sum, event) => sum + hp(event), 0)
-    const s5Opening = opening(STAGE5_BURST_EVENTS, s5Hp)
+    const s5Opening = opening(STAGE5_BURST_EVENTS.filter((event) => !isChiefType(event.type)), s5Hp)
     const s6Opening = opening(s6Events, s6Hp)
     // 2026-11-14 2차 신규: E105 쌍은 150·168초 E01 3기씩(실효 20 × 3 = 절대 30 × 2) 자리라 오프닝 1,296 그대로.
     // 2026-11-16 좀비 배치 총검토: 스5 오프닝 832 → 790(40초 E02 A1 포함), 스6 오프닝 1,296 → 1,261(8초 E04 1기 → E87, 44초 E83).
