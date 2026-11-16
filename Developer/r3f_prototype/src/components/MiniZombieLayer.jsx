@@ -25,6 +25,7 @@ import { NOVEL2_FIRST_TYPE_CODE, NOVEL2_LAST_TYPE_CODE, NOVEL2_ROWS, novel2IdFro
 import { MINI_MODEL_HEIGHT, MINI_ZOMBIE_VISUALS, miniBodyWorldScale, miniDefaultVariantIndex } from '../lib/miniZombieRoster.js'
 import { getMiniZombieAssets } from '../lib/miniZombieGeometry.js'
 import { MINI_POSE_BOB, MINI_POSE_LIFT, MINI_POSE_OFFSET, MINI_POSE_PROP_LIFT, MINI_POSE_PROP_SPIN, MINI_POSE_ROOT_ROLL, MINI_POSE_ROOT_YAW, createMiniPose, fillMiniZombiePose } from '../lib/miniZombiePose.js'
+import { miniInstanceTintInto, miniPoseStyleFor } from '../lib/novelZombie2Wave3Visuals.js'
 import { phase as pooledPhase } from './ZombieInstanceLayer.jsx'
 import { ENEMY_RENDER_CULLED, ENEMY_VISUAL_WORLD_SCALE, POOLED_ENEMY_CAPACITY, SPAWN_REVEAL_MS, getPooledEnemyAnimationTime, getPooledEnemyRenderTier } from './PooledEnemyVisuals.js'
 
@@ -69,6 +70,11 @@ function instanced(geometry, material, capacity, withColor) {
   return mesh
 }
 
+// 이 레이어가 그리는 loose 소품인가(표 drawnBy가 있으면 다른 레이어 몫 — E104 공은 RollingBallLayer). 메시를 만들지 않아 드로콜 0.
+export function miniLooseDrawnHere(item) { return !item?.spec?.drawnBy }
+/** 변형 1개가 이 레이어에서 쓰는 드로콜 수(파트·이 레이어 loose 소품마다 몸통 + 외곽선 2개). */
+export function miniVariantDrawCalls(built) { return (built.parts.length + built.loose.filter(miniLooseDrawnHere).length) * 2 }
+
 // 변형 1개의 메시 세트: 파트(+loose 소품)마다 [몸통, 외곽선].
 function createVariantSet(built, materials, capacity, name) {
   const group = new THREE.Group(); group.name = name
@@ -79,7 +85,7 @@ function createVariantSet(built, materials, capacity, name) {
     group.add(body, outline)
     entries.push({ part, body, outline })
   }
-  const loose = built.loose.map((item) => {
+  const loose = built.loose.filter(miniLooseDrawnHere).map((item) => {
     const body = instanced(item.geometry, materials.body, capacity, true); body.renderOrder = 2
     const outline = instanced(item.outlineGeometry, materials.outline, capacity, false); outline.renderOrder = 1
     group.add(body, outline)
@@ -91,6 +97,7 @@ function createVariantSet(built, materials, capacity, name) {
 const base = new THREE.Matrix4(); const fit = new THREE.Matrix4(); const torsoMat = new THREE.Matrix4(); const partMat = new THREE.Matrix4()
 const tmp = new THREE.Matrix4(); const rot = new THREE.Matrix4(); const euler = new THREE.Euler(0, 0, 0, 'XYZ')
 const pos = new THREE.Vector3(); const quat = new THREE.Quaternion(); const scl = new THREE.Vector3(); const color = new THREE.Color()
+const tint = new Float32Array(3)
 fit.makeTranslation(0, MINI_MODEL_FOOT_Y, 0).multiply(new THREE.Matrix4().makeScale(MINI_MODEL_FIT, MINI_MODEL_FIT, MINI_MODEL_FIT))
 
 function composePart(out, parent, part, pose) {
@@ -217,7 +224,8 @@ function MiniZombieLayerInner({ resetKey, pickVariant, propScale = DEFAULT_PROP_
         // 미믹 깡충(stun = 깨어난 추격)은 행동 시계로 박자를 맞춘다 — 움직이는 0.3초에 뛰고, 서 있는 0.2초에 앉는다.
         const time = set.style === 'mimic' && posePhase === 'stun'
           ? miniBehaviorClockSec() : getPooledEnemyAnimationTime(timer, tier)
-        fillMiniZombiePose(out, set.style, posePhase, time, set.fast, (i * 0.6180339887) % 1)
+        // wave 3: 복사기 스캔 예고(모드 1)는 부채꼴 예고와 다른 포즈('copierScan').
+        fillMiniZombiePose(out, miniPoseStyleFor(set.style, pool, i, enemySimulationRuntime), posePhase, time, set.fast, (i * 0.6180339887) % 1)
         const poolScale = (pool.visualScale[i] || 1) * ENEMY_VISUAL_WORLD_SCALE
         const scale = miniBodyWorldScale(visual, poolScale)
         // 몸 크기를 월드 가로로 고정한 종(미믹)도 발 높이는 pool 배율 기준 그대로 둔다(바닥에 붙어 있게).
@@ -229,6 +237,8 @@ function MiniZombieLayerInner({ resetKey, pickVariant, propScale = DEFAULT_PROP_
         if (out[MINI_POSE_LIFT]) base.multiply(tmp.makeTranslation(0, out[MINI_POSE_LIFT], 0))
         const flashing = pool.hitFlashTimer[i] > 0
         color.setRGB(flashing ? FLASH_GAIN : 1, flashing ? FLASH_GAIN : 1, flashing ? FLASH_GAIN : 1)
+        // wave 3: E101 용지 걸림 = 빨간 오류 깜박임(피격 플래시가 우선).
+        if (!flashing && miniInstanceTintInto(tint, pool, i, miniBehaviorClockSec())) color.setRGB(tint[0], tint[1], tint[2])
         if (set.torsoIndex >= 0) composePart(torsoMat, base, set.entries[set.torsoIndex].part, out)
         for (let k = 0; k < set.entries.length; k += 1) {
           const entry = set.entries[k]

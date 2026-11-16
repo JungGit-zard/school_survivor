@@ -16,9 +16,10 @@
 // STUDIO_OUTER_MOTION_ONLY — 아래 useFrame은 StudioTunedGroup 바깥 그룹만 움직인다.
 import { createRef, useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
-import { enemyPool, screenBounds } from '../lib/refs.js'
+import { enemyPool, enemySimulationRuntime, screenBounds } from '../lib/refs.js'
 import { getStudioZombieItemId } from '../lib/graphicsStudioConfig.js'
-import { getFlashMat } from '../lib/toon.js'
+import { getFlashMat, toonMat } from '../lib/toon.js'
+import { COPY_PAPER_COLORS, eatenVisualInto, isNovel2Copy } from '../lib/novelZombie2Wave3Visuals.js'
 import { PROCEDURAL_FACE_ZOMBIE_CAPACITY, isProceduralFaceZombieCandidate } from './PooledEnemyVisuals.js'
 import StudioTunedGroup from './StudioTunedGroup.jsx'
 import ProceduralFaceTestZombie from './ProceduralFaceTestZombie.jsx'
@@ -40,19 +41,35 @@ function collectFlashMeshes(group, out) {
 }
 
 export function setProceduralFaceSlotFlash(meshes, flashing) {
+  setProceduralFaceSlotMaterial(meshes, flashing ? getFlashMat() : null)
+}
+
+// 몸통 박스 메시를 덮어쓰기 재질(피격 플래시·복사본 종이)로 바꾸거나(null이면) 원래 Studio 재질로 되돌린다.
+// 덮어쓰기끼리 바뀌어도(종이 → 플래시) 되돌릴 재질은 처음 저장한 Studio 재질 그대로다.
+export function setProceduralFaceSlotMaterial(meshes, overlay) {
   for (let i = 0; i < meshes.length; i += 1) {
     const mesh = meshes[i]
-    if (flashing && !mesh.userData.faceLayerFlashRestore) {
-      mesh.userData.faceLayerFlashRestore = mesh.material
-      mesh.material = getFlashMat()
+    if (overlay) {
+      if (!mesh.userData.faceLayerFlashRestore) mesh.userData.faceLayerFlashRestore = mesh.material
+      mesh.material = overlay
       mesh.userData.studioNonTunable = true
-    } else if (!flashing && mesh.userData.faceLayerFlashRestore) {
+    } else if (mesh.userData.faceLayerFlashRestore) {
       mesh.material = mesh.userData.faceLayerFlashRestore
       delete mesh.userData.faceLayerFlashRestore
       delete mesh.userData.studioNonTunable
     }
   }
 }
+
+// wave 3(2026-11-16): E101 복사본 E07 = 흰 종이 몸통(툰 명암은 그대로, 셰이더 얼굴은 그대로 웃는다). 모듈 수명 동안 1벌.
+let _paperMat = null
+export function getCopyPaperMat() {
+  if (!_paperMat) _paperMat = toonMat(COPY_PAPER_COLORS.body, 0.08)
+  return _paperMat
+}
+const eaten = { scale: 1, lift: 0, spin: 0 }
+const FLASH = 1
+const PAPER = 2
 
 export default function ProceduralFaceZombieLayer() {
   const slots = useMemo(
@@ -77,31 +94,33 @@ export default function ProceduralFaceZombieLayer() {
         const group = slots[used].current
         used += 1
         if (!group) continue
-        const scale = (pool.visualScale[index] || 1) * 0.333
+        // wave 3: E98에게 먹히는 중이면 작아지며 입 높이로 떠올라 돈다.
+        eatenVisualInto(eaten, pool, index, enemySimulationRuntime)
+        const scale = (pool.visualScale[index] || 1) * 0.333 * eaten.scale
         // 보행감: 위아래 바운스 + 좌우 뒤뚱. 파트 회전이 아니라 바깥 그룹만 흔들어
         // 스튜디오 파트 튜닝과 절대 싸우지 않게 한다.
         const walk = timer * 0.007
         group.position.set(
           pool.posX[index],
-          pool.posY[index] + Math.abs(Math.sin(walk)) * scale * 0.16,
+          pool.posY[index] + Math.abs(Math.sin(walk)) * scale * 0.16 + eaten.lift,
           pool.posZ[index],
         )
-        group.rotation.set(0, pool.yaw[index], Math.sin(walk) * 0.06)
+        group.rotation.set(0, pool.yaw[index] + eaten.spin, Math.sin(walk) * 0.06)
         group.scale.setScalar(scale)
         group.visible = true
         const slot = used - 1
-        const flashing = pool.hitFlashTimer[index] > 0 ? 1 : 0
-        if (flashing !== flashState[slot]) {
+        const overlay = pool.hitFlashTimer[index] > 0 ? FLASH : isNovel2Copy(pool, index, enemySimulationRuntime) ? PAPER : 0
+        if (overlay !== flashState[slot]) {
           if (!flashMeshes[slot].length) collectFlashMeshes(group, flashMeshes[slot])
-          setProceduralFaceSlotFlash(flashMeshes[slot], flashing === 1)
-          flashState[slot] = flashing
+          setProceduralFaceSlotMaterial(flashMeshes[slot], overlay === FLASH ? getFlashMat() : overlay === PAPER ? getCopyPaperMat() : null)
+          flashState[slot] = overlay
         }
       }
     }
     for (let slot = used; slot < PROCEDURAL_FACE_ZOMBIE_CAPACITY; slot += 1) {
       const group = slots[slot].current
       if (group) group.visible = false
-      if (flashState[slot]) { setProceduralFaceSlotFlash(flashMeshes[slot], false); flashState[slot] = 0 }
+      if (flashState[slot]) { setProceduralFaceSlotMaterial(flashMeshes[slot], null); flashState[slot] = 0 }
     }
   })
 

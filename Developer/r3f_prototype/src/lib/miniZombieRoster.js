@@ -111,6 +111,9 @@ export const MINI_MIMIC_SIZE_TELL = 1.15
 //   props     [{ prop, part, anchor, offset, rotation, scale }] — 파트 지오메트리에 합친다(드로콜 0 추가)
 //   loose     [{ prop, anchor:'root'|'hipRight', offset, scale, worldSize, lift, spin, hook }] — 따로 그리는 소품(드로콜 2개 추가).
 //             worldSize면 크기(최대 변)·offset이 월드 단위. hook = MiniZombieLayer propScale 콜백 이름(0이면 숨김).
+//             drawnBy = 다른 레이어가 그린다(MiniZombieLayer는 메시를 만들지 않는다 — 드로콜 0). 'rollingBall' = E104 공.
+//   codeProps [{ prop, part, anchor, offset }] — GLB에 굽지 않은 코드 프리미티브 소품(miniZombieGeometry MINI_CODE_PROPS).
+//             props처럼 파트에 합친다(드로콜 0). 굽기 스크립트는 읽지 않는다(GLB 불변).
 // style  = 포즈 문법(lib/miniZombiePose.js), fast = 보폭 빠름, scale = ENEMY_STATS.scale 권장값(치프는 1.5 이상)
 // worldWidth/modelWidth = (선택) 몸 크기를 pool 배율 대신 월드 가로로 고정한다(미믹 = 진짜 교과서 × 1.15). 발 높이는 그대로.
 // pick   = 같은 typeCode 안에서 몸 고르기: 'single' | 'pair'(짝 2몸) | 'formation'(기수 1 + 말 3)
@@ -157,7 +160,9 @@ export const MINI_ZOMBIE_VISUALS = Object.freeze({
   ] },
   'n2-big-eater': { id: 'E98', stage: 4, chief: true, style: 'eat', scale: 1.6, pick: 'single', variants: [
     { body: 'male-b', skin: 'zPale', eye: 'eyeRed', recolor: { r2c15: 'chefWhite' },
-      props: [{ prop: 'bib', part: 'torso', anchor: 'chest' }, { prop: 'spoon', part: 'armR', anchor: 'hand' }] },
+      props: [{ prop: 'bib', part: 'torso', anchor: 'chest' }, { prop: 'spoon', part: 'armR', anchor: 'hand' }],
+      // 쩍 벌린 큰 입(코드 프리미티브 — miniZombieGeometry MINI_CODE_PROPS). 예고 때 고개를 젖히면 카메라 쪽으로 입 안이 보인다.
+      codeProps: [{ prop: 'gapingMouth', part: 'head', anchor: 'mouth' }] },
   ] },
   'n2-pressure-cooker': { id: 'E99', stage: 4, style: 'rattle', scale: 1.3, pick: 'single', variants: [
     { body: 'male-e', skin: 'zPale', eye: 'eyeOrange', recolor: { r3c1: 'chefWhite' },
@@ -182,7 +187,9 @@ export const MINI_ZOMBIE_VISUALS = Object.freeze({
     { body: 'male-g', skin: 'zGreen', eye: 'eyeRed', recolor: { r3c5: 'teamBlue', r2c1: 'white' },
       props: [{ prop: 'headband', part: 'head', anchor: 'brow', recolor: { white: 'teamBlue' } }],
       // worldSize 소품은 크기·offset을 월드 단위로 쓴다(공 지름 1.8u, 대장 앞 1.2u). 몸 배율과 무관하게 설계값 그대로.
-      loose: [{ prop: 'giantBall', anchor: 'root', offset: [0, 0, 1.2], worldSize: 1.8, hook: 'ballHeld' }] },
+      // drawnBy: 'rollingBall' = 몸 레이어(MiniZombieLayer)가 그리지 않고 RollingBallLayer가 든 공·굴러가는 공·바닥의 공을
+      // 같은 모양으로 그린다(2026-11-16 wave 3 — 한 공이 손과 바닥 사이를 오간다. 몸 세트 드로콜 14 → 12).
+      loose: [{ prop: 'giantBall', anchor: 'root', offset: [0, 0, 1.2], worldSize: 1.8, hook: 'ballHeld', drawnBy: 'rollingBall' }] },
   ] },
   'n2-three-legged': { id: 'E105', stage: 6, style: 'threeLegged', scale: 0.95, pick: 'pair', variants: [
     { body: 'female-c', skin: 'zGreen', eye: 'eyeRed', recolor: { r1c1: 'teamBlue', r2c15: 'white' },

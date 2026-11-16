@@ -11,7 +11,7 @@
 // three만 의존한다(React 없음).
 import * as THREE from 'three'
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
-import { MINI_PART_KEYS, miniRemapUv, miniPaletteKeyAt, miniVariantRemap } from './miniZombieRoster.js'
+import { MINI_PART_KEYS, miniPaletteRectOf, miniRemapUv, miniPaletteKeyAt, miniVariantRemap } from './miniZombieRoster.js'
 
 // Kenney 팔은 T자 수평이다. 쉬는 자세 = 어깨에서 아래·바깥으로 1.2rad(≈69°). Kenney idle 클립은 0.785를 쓰지만
 // 좀비 팔 뻗기(X −1.35)가 앞쪽으로 모이려면 더 내려야 한다(블록 좀비 팔은 수직으로 늘어진 상태가 0).
@@ -22,7 +22,46 @@ export const MINI_OUTLINE_THICKNESS = Object.freeze({ legL: 0.009, legR: 0.009, 
 export const MINI_HEAD_ANCHORS = Object.freeze({
   headCentre: Object.freeze([0, 0.159, 0.002]), headTop: Object.freeze([0, 0.318, 0.002]),
   brow: Object.freeze([0, 0.225, 0.002]), eyes: Object.freeze([0, 0.095, 0.076]),
+  // 입 앞: male-b 기준 얼굴 앞면 z 0.16, 콧수염 z ≤ 0.196, 눈 아래끝 = 머리 피벗 위 0.119 → 입(±0.045)이 눈을 가리지 않는 높이·콧수염 앞.
+  mouth: Object.freeze([0, 0.06, 0.2]),
 })
+
+// ── 코드 소품(GLB에 굽지 않은 프리미티브) ──────────────────────────────────────
+// 표의 codeProps가 쓴다. GLB 소품과 똑같이 파트 지오메트리에 합친다(드로콜 0 추가). 상자마다 UV를 팔레트 슬롯 칸 가운데로 찍어
+// 텍스처·재질은 전 종 공용 1벌 그대로다. 굽기 스크립트(usedProps)는 props·loose만 읽으므로 이 소품은 GLB를 바꾸지 않는다.
+function slotUv(slot) {
+  const rect = miniPaletteRectOf(slot)
+  if (!rect) throw new Error(`mini zombie: palette slot ${slot} missing`)
+  return [(rect.x + rect.width / 2) / 512, (rect.y + rect.height * 0.5) / 512]
+}
+function codeBox(min, max, slot) {
+  const g = new THREE.BoxGeometry(max[0] - min[0], max[1] - min[1], max[2] - min[2])
+  g.translate((min[0] + max[0]) / 2, (min[1] + max[1]) / 2, (min[2] + max[2]) / 2)
+  g.deleteAttribute('normal')
+  const [u, v] = slotUv(slot)
+  const uv = g.attributes.uv
+  for (let i = 0; i < uv.count; i += 1) uv.setXY(i, u, v)
+  return g
+}
+export const MINI_CODE_PROPS = Object.freeze({
+  // E98 대식가의 쩍 벌린 큰 입(얼굴 가로의 절반 이상): 빨간 입술 테 · 검붉은 목구멍 · 윗니 3개 · 아랫니 2개 · 혀. 원점 = 입 닻, +z = 앞.
+  gapingMouth: () => mergeGeometries([
+    codeBox([-0.1, -0.045, 0], [0.1, 0.045, 0.01], 'armRed'),
+    codeBox([-0.078, -0.03, 0.01], [0.078, 0.03, 0.016], 'coffeeDark'),
+    codeBox([-0.07, 0.012, 0.016], [-0.03, 0.03, 0.021], 'teeth'),
+    codeBox([-0.02, 0.012, 0.016], [0.02, 0.03, 0.021], 'teeth'),
+    codeBox([0.03, 0.012, 0.016], [0.07, 0.03, 0.021], 'teeth'),
+    codeBox([-0.055, -0.03, 0.016], [-0.02, -0.018, 0.021], 'teeth'),
+    codeBox([0.02, -0.03, 0.016], [0.055, -0.018, 0.021], 'teeth'),
+    codeBox([-0.03, -0.018, 0.016], [0.03, -0.004, 0.019], 'mochiRose'),
+  ], false),
+})
+function propSource(raw, name) {
+  const fromGlb = raw.props?.[name]
+  if (fromGlb) return fromGlb
+  const build = MINI_CODE_PROPS[name]
+  return build ? build() : null
+}
 // 몸 바닥(발) 기준 고정 닻 — loose 소품용.
 export const MINI_ROOT_ANCHORS = Object.freeze({ root: Object.freeze([0, 0, 0]), hipRight: Object.freeze([-0.2, 0, 0]) })
 // 팔 축을 따라 도는 띠처럼 T자(바인드) 자세에서 붙여야 하는 소품. 나머지는 쉬는 자세(팔을 내린 뒤)에서 붙인다.
@@ -177,16 +216,16 @@ export function buildMiniVariant(raw, variant, outline) {
     const geometry = source.geometry.clone()
     geometry.translate(-source.pivot[0], -source.pivot[1], -source.pivot[2])
     const isArm = key === 'armL' || key === 'armR'
-    const mine = (variant.props ?? []).filter((p) => p.part === key)
+    const mine = [...(variant.props ?? []), ...(variant.codeProps ?? [])].filter((p) => p.part === key)
     // 바인드 자세(팔을 내리기 전)에서 붙이는 소품
     const bindProps = mine.filter((p) => BIND_FRAME_PROPS.has(p.prop))
     const restProps = mine.filter((p) => !BIND_FRAME_PROPS.has(p.prop))
     const bindAnchors = bindProps.map((p) => miniPartAnchor(key, p.anchor, geometry, source.pivot, 'bind'))
     pieces.push(remapUvs(geometry, remap))
-    bindProps.forEach((p, k) => { const g = raw.props[p.prop]; if (!g) throw new Error(`mini zombie: prop ${p.prop} missing`); pieces.push(placedPropGeometry(g, p, bindAnchors[k], remap)) })
+    bindProps.forEach((p, k) => { const g = propSource(raw, p.prop); if (!g) throw new Error(`mini zombie: prop ${p.prop} missing`); pieces.push(placedPropGeometry(g, p, bindAnchors[k], remap)) })
     if (isArm) { const rest = armRestMatrix(key); for (const g of pieces) g.applyMatrix4(rest) }
     for (const p of restProps) {
-      const g = raw.props[p.prop]; if (!g) throw new Error(`mini zombie: prop ${p.prop} missing`)
+      const g = propSource(raw, p.prop); if (!g) throw new Error(`mini zombie: prop ${p.prop} missing`)
       pieces.push(placedPropGeometry(g, p, miniPartAnchor(key, p.anchor, source.geometry.clone().translate(-source.pivot[0], -source.pivot[1], -source.pivot[2]), source.pivot, 'rest'), remap))
     }
     const merged = pieces.length === 1 ? pieces[0] : mergeGeometries(pieces.map((g) => (g.index ? g.toNonIndexed() : g)), false)

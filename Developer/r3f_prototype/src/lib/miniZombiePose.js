@@ -30,7 +30,7 @@ export const MINI_MIMIC_HOP = Object.freeze({ cycle: 0.5, move: 0.3, height: 0.3
 const BLOCKY_STYLES = new Set(['punch', 'kick', 'slam', 'charge', 'tumble', 'throw', 'shoot', 'fan', 'whistle', 'cast', 'blink'])
 export const MINI_POSE_STYLES = Object.freeze([
   'command', 'carry', 'mimic', 'whistle', 'stalk', 'mop', 'rope', 'dribble', 'vault', 'eat', 'rattle', 'cling',
-  'copier', 'swivel', 'serve', 'roll', 'threeLegged', 'rider', 'horse',
+  'copier', 'swivel', 'serve', 'roll', 'threeLegged', 'rider', 'horse', 'copierScan',
 ])
 
 const LEG_L = 0; const LEG_R = 3; const TORSO = 6; const ARM_L = 9; const ARM_R = 12; const HEAD = 15
@@ -107,10 +107,23 @@ export function fillMiniZombiePose(out, style, phase, time, fast = false, seed =
       if (warn) { set(out, TORSO, 0.6, 0, 0); set(out, HEAD, -0.2, 0, 0); set(out, ARM_L, 0.7, 0, -0.1); set(out, ARM_R, 0.7, 0, 0.1); set(out, LEG_L, -0.45, 0, 0); set(out, LEG_R, 0.35, 0, 0); out[MINI_POSE_BOB] = -0.05 }
       else if (charge) { set(out, TORSO, -0.15, 0, 0); set(out, ARM_L, -2.9, 0, -0.25); set(out, ARM_R, -2.9, 0, 0.25); set(out, LEG_L, -1.0, 0, 0); set(out, LEG_R, -0.8, 0, 0); out[MINI_POSE_BOB] = 0.12 }
       break
-    case 'eat': // 대식가: 예고 = 고개 젖혀 입 벌림·팔 벌림, 공격 = 흡입(팔 모으며 숙임), 회복 = 우물우물 씹기
-      if (warn) { set(out, HEAD, -0.5, 0, 0); set(out, TORSO, -0.12, 0, 0); set(out, ARM_L, -1.0, 0, 0.9); set(out, ARM_R, -1.0, 0, -0.9) }
-      else if (charge) { set(out, HEAD, 0.3, 0, 0); set(out, TORSO, 0.4, 0, 0); set(out, ARM_L, -1.5, 0.4, -0.5); set(out, ARM_R, -1.5, -0.4, 0.5) }
-      else if (stun) { set(out, HEAD, 0.1 + Math.sin(t * 14) * 0.15, 0, 0); set(out, TORSO, 0.2, 0, 0); set(out, ARM_R, -1.9, 0, -0.3) }
+    case 'eat': // 대식가(wave 3, 2026-11-16 threemini): 예고 1.0초 = 고개를 젖혀 큰 입(gapingMouth 소품)을 카메라 쪽으로 쩍 벌리고 두 팔을 벌린다
+      // (떨림이 점점 커진다 — 곧 들이마신다). 공격 0.4초 = 흡입: 고개를 앞으로 내밀고 두 팔로 끌어당기며 몸이 덜덜 떤다.
+      // 회복 1.4초 = 우물우물 씹기: 숟가락을 입으로, 왼손은 배를 두드리고 몸이 씹는 박자로 들썩인다.
+      if (warn) {
+        set(out, HEAD, -0.62 + Math.sin(t * 22) * 0.05, 0, 0); set(out, TORSO, -0.16, 0, Math.sin(t * 17) * 0.04)
+        set(out, ARM_L, -1.25, 0, 1.0); set(out, ARM_R, -1.25, 0, -1.0); set(out, LEG_L, 0.08, 0, 0.06); set(out, LEG_R, -0.08, 0, -0.06); out[MINI_POSE_BOB] = 0.02
+      } else if (charge) {
+        const shake = Math.sin(t * 58) * 0.07
+        set(out, HEAD, 0.38, shake, 0); set(out, TORSO, 0.42, shake * 0.6, 0)
+        set(out, ARM_L, -1.75 + Math.sin(t * 31) * 0.25, 0.4, -0.55); set(out, ARM_R, -1.75 - Math.sin(t * 31) * 0.25, -0.4, 0.55)
+        set(out, LEG_L, -0.25, 0, 0.1); set(out, LEG_R, 0.25, 0, -0.1); out[MINI_POSE_ROOT_ROLL] = shake * 0.4
+      } else if (stun) {
+        const chew = Math.sin(t * 14)
+        set(out, HEAD, 0.05 + chew * 0.16, 0, chew * 0.05); set(out, TORSO, 0.12, 0, 0)
+        set(out, ARM_R, -2.05 + chew * 0.12, 0, -0.35); set(out, ARM_L, -0.45 + Math.abs(chew) * 0.3, 0, -0.55)
+        set(out, LEG_L, 0, 0, 0); set(out, LEG_R, 0, 0, 0); out[MINI_POSE_BOB] = Math.abs(chew) * 0.03
+      }
       break
     case 'rattle': // 압력밥솥: 예고(김 새는 경고) = 몸이 덜덜, 공격 상태도 같은 떨림
       if (warn || charge) { out[MINI_POSE_ROOT_ROLL] = Math.sin(t * 46) * 0.07; set(out, HEAD, 0.1 + Math.sin(t * 38) * 0.08, Math.sin(t * 29) * 0.1, 0); set(out, ARM_L, -0.6, 0, 0.5); set(out, ARM_R, -0.6, 0, -0.5) }
@@ -120,9 +133,25 @@ export function fillMiniZombiePose(out, style, phase, time, fast = false, seed =
       else if (charge) { set(out, TORSO, 0.3, 0, 0); set(out, ARM_L, -2.3, 0, 0.6); set(out, ARM_R, -2.3, 0, -0.6); set(out, LEG_L, 0.6, 0, 0); set(out, LEG_R, 0.6, 0, 0); out[MINI_POSE_BOB] = 0.1 }
       break
     case 'copier': // 복사기: 두 손을 상자 앞에 모은 자세로 걷고, 예고·공격은 부채꼴 휘두르기(블록 'fan' 문법)
-      if (!warn && !charge) { set(out, ARM_L, -1.25, 0, -0.35); set(out, ARM_R, -1.25, 0, 0.35) }
+      if (!warn && !charge && !stun) { set(out, ARM_L, -1.25, 0, -0.35); set(out, ARM_R, -1.25, 0, 0.35) }
       else if (warn) { set(out, ARM_R, -1.3, 0, 1.15); set(out, TORSO, 0, -0.35, 0.12); set(out, ARM_L, -1.0, 0, -0.3) }
-      else { set(out, ARM_R, -1.3, 0, -0.9); set(out, TORSO, 0.1, 0.35, -0.15); set(out, ARM_L, -1.0, 0, -0.3) }
+      else if (charge) { set(out, ARM_R, -1.3, 0, -0.9); set(out, TORSO, 0.1, 0.35, -0.15); set(out, ARM_L, -1.0, 0, -0.3) }
+      else {
+        // 용지 걸림(상태 4, 2.5초 제자리): 복사기 머리가 덜컹덜컹 떨리며 기울고, 상체가 고장 난 듯 처지며 두 팔이 축 늘어진다.
+        // (몸 전체 빨간 오류 깜박임은 MiniZombieLayer 인스턴스 색 — lib/novelZombie2Wave3Visuals.js miniInstanceTintInto)
+        const rattle = Math.sin(t * 38)
+        set(out, TORSO, 0.48, 0, Math.sin(t * 9) * 0.05); set(out, HEAD, 0.32 + rattle * 0.05, Math.sin(t * 27) * 0.12, 0.22 + rattle * 0.1)
+        set(out, ARM_L, 0.12, 0, -0.32); set(out, ARM_R, 0.2, 0, 0.28); set(out, LEG_L, 0.05, 0, 0); set(out, LEG_R, -0.05, 0, 0)
+        out[MINI_POSE_ROOT_ROLL] = rattle * 0.045; out[MINI_POSE_BOB] = Math.abs(Math.sin(t * 19)) * 0.025
+      }
+      break
+    case 'copierScan': // 복사기 스캔 예고(모드 1, 1.2초 노란 원 — 피해 0): 대상 쪽으로 서서 두 손으로 버튼을 누르고, 머리(스캐너)가
+      // 좌우로 훑으며 기계처럼 웅웅 떤다. 부채꼴 예고(팔을 옆으로 크게 젖힘)와 한눈에 다르다.
+      set(out, LEG_L, 0, 0, 0); set(out, LEG_R, 0, 0, 0); set(out, TORSO, 0.16, 0, 0)
+      if (warn || charge) {
+        set(out, ARM_L, -0.85 + Math.sin(t * 12) * 0.12, 0, -0.42); set(out, ARM_R, -0.85 - Math.sin(t * 12) * 0.12, 0, 0.42)
+        set(out, HEAD, 0.12, Math.sin(t * 5.2) * 0.38, 0); out[MINI_POSE_ROOT_ROLL] = Math.sin(t * 50) * 0.018; out[MINI_POSE_BOB] = 0
+      } else { set(out, ARM_L, -1.25, 0, -0.35); set(out, ARM_R, -1.25, 0, 0.35) }
       break
     case 'swivel': // 회전의자: 앉아 있다(다리 앞으로). 예고 = 제자리 빙글, 공격(활주) = 뒤로 젖혀 팔 벌림, 회복(표류) = 허우적
       set(out, LEG_L, -1.45, 0, 0.05); set(out, LEG_R, -1.45, 0, -0.05); set(out, TORSO, -0.08, 0, 0)
@@ -136,10 +165,18 @@ export function fillMiniZombiePose(out, style, phase, time, fast = false, seed =
       set(out, ARM_R, -0.85, 0, 0.1)
       if (warn || charge) { set(out, ARM_R, -1.55, 0, -0.65); set(out, TORSO, 0.15, -0.3, 0.1); set(out, HEAD, 0.15, -0.25, 0) }
       break
-    case 'roll': // 공굴리기 대장: 두 손으로 큰 공을 민다. 예고 = 뒤로 젖혀 힘 모으기, 공격 = 확 밀기
+    case 'roll': // 공굴리기 대장: 두 손으로 큰 공을 민다(공은 RollingBallLayer가 앞 1.2u에 그린다).
+      // 예고 1.3초(겨눔) = 뒤로 젖혀 오른발을 뒤로 빼고 힘 모으기(점점 더 젖힌다), 공격 0.6초 = 차기: 오른발을 앞으로 힘껏 차올리고
+      // 두 팔은 옆으로 벌려 균형을 잡는다(공은 이미 굴러간다).
       set(out, ARM_L, -1.45, 0, -0.3); set(out, ARM_R, -1.45, 0, 0.3)
-      if (warn) { set(out, TORSO, -0.22, 0, 0); set(out, ARM_L, -0.6, 0, -0.3); set(out, ARM_R, -0.6, 0, 0.3); set(out, LEG_R, 0.6, 0, 0); set(out, LEG_L, -0.2, 0, 0) }
-      else if (charge) { set(out, TORSO, 0.55, 0, 0); set(out, ARM_L, -1.7, 0, -0.2); set(out, ARM_R, -1.7, 0, 0.2); set(out, LEG_R, -0.45, 0, 0); set(out, LEG_L, 0.4, 0, 0) }
+      if (warn) {
+        set(out, TORSO, -0.26, 0, Math.sin(t * 21) * 0.03); set(out, ARM_L, -0.55, 0, -0.35); set(out, ARM_R, -0.55, 0, 0.35)
+        set(out, LEG_R, 0.75, 0, 0); set(out, LEG_L, -0.25, 0, 0); out[MINI_POSE_BOB] = -0.03
+      } else if (charge) {
+        set(out, TORSO, -0.18, 0, 0); set(out, HEAD, 0.12, 0, 0)
+        set(out, LEG_R, -1.45, 0, 0); set(out, LEG_L, 0.22, 0, 0)
+        set(out, ARM_L, -0.55, 0, 0.95); set(out, ARM_R, -0.55, 0, -0.95); out[MINI_POSE_BOB] = 0.04
+      }
       break
     case 'threeLegged': { // 2인3각: 0.4초 걷고 0.2초 멈추는 박자(짝이 같은 박), 넘어짐(회복) = 옆으로 굴러 눕기
       const cycle = time % 0.6
