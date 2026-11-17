@@ -161,15 +161,15 @@ describe('portal reachability against the real movement/collider contract', () =
 
   // Stage 6 정문(+Z 아래 끝) 고정 앵커: 플레이어 최소 거리 규칙 없이 접근 경로만 본다. stage7~10은 무작위 그대로.
   describe('Stage 6 gate anchor', () => {
-    it('플레이어가 어디 있든(경로가 있으면) 정문 안쪽 (0, 16.5)에 연다', () => {
-      expect(pickPortalPosition('stage6', { x: 0, z: -10 }, () => { throw new Error('no random') })).toEqual([0, 0.05, 16.5])
-      expect(pickPortalPosition('stage6', { x: 1, z: 15 }, () => { throw new Error('no random') })).toEqual([0, 0.05, 16.5])
+    it('플레이어가 어디 있든(경로가 있으면) 정문 안쪽 (0, 10.5)에 연다(2026-11-18 축소 전 16.5)', () => {
+      expect(pickPortalPosition('stage6', { x: 0, z: -10 }, () => { throw new Error('no random') })).toEqual([0, 0.05, 10.5])
+      expect(pickPortalPosition('stage6', { x: 1, z: 13 }, () => { throw new Error('no random') })).toEqual([0, 0.05, 10.5])
       const b = getPortalPlacementBounds('stage6')
-      expect(16.5).toBeLessThanOrEqual(b.maxZ)
-      // (0, −10)은 두 골대와 일직선이라 L자 경로가 막힌다 → 좌우 끝 세로 통로 우회로 인증한다.
+      expect(10.5).toBeLessThanOrEqual(b.maxZ)
+      // (0, −10)(플레이어 이동 위 끝)은 두 골대와 일직선이라 L자 경로가 막힌다 → 좌우 끝 세로 통로 우회로 인증한다.
       const blockers = getPortalBlockers('stage6')
-      expect(getPortalApproachPath({ x: 0, z: -10 }, { x: 0, z: 16.5 }, blockers)).toBeNull()
-      expect(getPortalSideLaneDetour({ x: 0, z: -10 }, { x: 0, z: 16.5 }, blockers, b)).toHaveLength(4)
+      expect(getPortalApproachPath({ x: 0, z: -10 }, { x: 0, z: 10.5 }, blockers)).toBeNull()
+      expect(getPortalSideLaneDetour({ x: 0, z: -10 }, { x: 0, z: 10.5 }, blockers, b)).toHaveLength(4)
     })
 
     it('stage7은 앵커 좌표가 있어도 portalMode가 없어 무작위 배치를 쓴다', () => {

@@ -63,10 +63,10 @@ describe('stageVending gameplay contract', () => {
     expect(Math.hypot(placement.position.x - 6.0, placement.position.z + 13.4)).toBeGreaterThan(2)
   })
 
-  it('Stage 6 운동장 자판기는 서쪽 스탠드 아래 (−10.5, 6), stage7~10은 확장 공통 (6.25, −14) 그대로', () => {
+  it('Stage 6 운동장 자판기는 서쪽 스탠드 아래 (−7.0, 4.2)(2026-11-18 축소 전 (−10.5, 6)), stage7~10은 확장 공통 (6.25, −14) 그대로', () => {
     const s6 = getStageVendingPlacement('stage6')
-    expect(s6).toMatchObject({ id: 'vending-stage6', wallSide: 'west', position: { x: -10.5, y: 0, z: 6 } })
-    expect(isWithinStageVendingRange({ x: -10, z: 6 }, s6)).toBe(true)
+    expect(s6).toMatchObject({ id: 'vending-stage6', wallSide: 'west', position: { x: -7.0, y: 0, z: 4.2 } })
+    expect(isWithinStageVendingRange({ x: -6.5, z: 4.2 }, s6)).toBe(true)
     for (const id of ['stage7', 'stage8', 'stage9', 'stage10']) expect(getStageVendingPlacement(id).position).toMatchObject({ x: 6.25, z: -14 })
   })
 })

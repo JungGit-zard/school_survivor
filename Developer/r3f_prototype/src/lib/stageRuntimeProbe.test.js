@@ -278,7 +278,8 @@ describe('S6 B05 시간 소환: 천장에 잘린 몫은 미뤘다가 자리가 �
       maxTotal = Math.max(maxTotal, enemyPool.activeCount + aliveSpecials(specials))
       if (freedAt === null && sec >= 225) { freedAt = sec; freePooled(30) }
     } })
-    expect(run.level).toBe(1)
+    // 2026-11-18 경기장 축소(24 × 40u → 17 × 28u): 같은 좀비가 좁은 판에 몰려 연필 봇이 레벨 1에 머물지 않는다(시드 1에서 4).
+    // 이 테스트의 주장은 소환 미루기(아래)이고 레벨은 전제가 아니어서 레벨 고정 단언은 뺐다. 난이도 변화 측정은 balanceqa 몫이다.
     const summons = run.spawnRequests.filter((q) => q.kind === 'bossSummon')
     const original = summons.filter((q) => !q.retry && q.sec >= 190)
     // 시간표 그대로 192·222초에 요청이 나오고, 그 순간에는 천장에 막혀 0마리.

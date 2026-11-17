@@ -28,7 +28,7 @@ const randomSeed=()=>{let x=777;return()=>((x=Math.imul(x,1664525)+1013904223)>>
 afterEach(clearExpansionAttacks)
 const args=(deltaMs=2500)=>({deltaMs,playing:true,alive:true,gameKey:1,x:0,z:0,playerX:0,playerZ:.5,hpRatio:1})
 describe('expansion real integrations',()=>{
- // 2026-11-08: stage6(운동장)은 경계 12×20, 줄(assembly_row)·트랙(track_lanes) 포메이션, 보스 앵커(조회대 앞 (0,−17)),
+ // 2026-11-08: stage6(운동장)은 경계 12×20(2026-11-18 축소 → 8.5×14), 줄(assembly_row)·트랙(track_lanes) 포메이션, 보스 앵커(조회대 앞 (0,−17)),
  // 일반 적 190마리를 쓴다. 링 거리(8.5u) 규칙은 포메이션 없는 행에만 적용한다. stage7~10은 기존 그대로.
  it.each(Object.values(EXPANSION_STAGES))('$id safe scheduled events reach actual pool and special boss route without fallback',stage=>{
   const cache={id:stage.id,bounds:stage.id==='stage6'?getStageBounds('stage6'):{halfX:7.5,halfZ:19.2},obstacles:getStageObjectSightObstacles(stage.id)}
@@ -59,7 +59,7 @@ describe('expansion real integrations',()=>{
    // stage6은 퀘스트 의뢰 학생 2명(비 solid)이 배치에 더해진다(2026-11-13). solid·시야 장애물 수는 골대 2개 그대로.
    const placements=getStageObjectPlacements(stage.id).filter(p=>p.type==='expansionObstacle');expect(placements).toHaveLength(count)
    expect(getStageObjectColliders(stage.id)).toHaveLength(count);expect(getStageObjectSightObstacles(stage.id)).toHaveLength(count)
-   if(stage.id==='stage6'){expect(placements.map(p=>[p.position[0],p.position[2]])).toEqual([[0,-11],[0,11]]);expect(getStageObjectPlacements(stage.id).filter(p=>p.type==='unconsciousStudent').map(p=>p.id)).toEqual(['stage6-student-relay-east','stage6-student-roll-west']);continue}
+   if(stage.id==='stage6'){expect(placements.map(p=>[p.position[0],p.position[2]])).toEqual([[0,-7.7],[0,7.7]]);expect(getStageObjectPlacements(stage.id).filter(p=>p.type==='unconsciousStudent').map(p=>p.id)).toEqual(['stage6-student-relay-east','stage6-student-roll-west']);continue}
    expect(getStageObjectPlacements(stage.id)).toHaveLength(count)
    for(const p of placements)expect(Math.abs(p.position[0])-p.props.halfX).toBeGreaterThanOrEqual(2)
   }

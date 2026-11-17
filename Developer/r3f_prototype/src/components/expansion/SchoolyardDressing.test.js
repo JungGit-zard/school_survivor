@@ -6,6 +6,7 @@ import * as THREE from 'three'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js'
 import { createExpansionEnvironment, disposeExpansionEnvironment } from './expansionEnvironment.js'
+import { getSchoolyardStandHalf, getSchoolyardJungleGymAnchor, getSchoolyardGateHalf, getSchoolyardFenceSpan, SCHOOLYARD_FENCE } from './schoolyardProps.js'
 import { SCHOOLYARD_DRESSING_NODES, SCHOOLYARD_DRESSING_CHUNKS, getSchoolyardDressingLayout, schoolyardDressingFootprint, attachSchoolyardDressing } from './schoolyardDressing.js'
 import { getStageBounds } from '../../lib/stageConfig.js'
 import { EXPANSION_STAGES } from '../../lib/expansionContent.js'
@@ -42,19 +43,18 @@ describe('stage6 free-pack schoolyard dressing', () => {
     const root = createExpansionEnvironment('stage6', { halfX, halfZ })
     expect(root.userData.schoolyardProps.children.map((c) => c.name)).toEqual(['schoolyard-prop-goals', 'schoolyard-prop-podium', 'schoolyard-prop-flagpoles', 'schoolyard-prop-pa-horns', 'schoolyard-prop-jungle-gym', 'schoolyard-prop-grandstand'])
     expect(root.userData.gateLeaves).toHaveLength(2)
-    // Goal colliders are the layout obstacles, untouched.
-    expect(EXPANSION_STAGES.stage6.layout.obstacles.map(({ id, xUnits, zUnits, halfXUnits, halfZUnits }) => [id, xUnits, zUnits, halfXUnits, halfZUnits]))
-      .toEqual([['exp_s6_goal_north', 0, -11, 1.6, 0.45], ['exp_s6_goal_south', 0, 11, 1.6, 0.45]])
-    expect(root.userData.obstacleVisualIds).toEqual(['exp_s6_goal_north', 'exp_s6_goal_south'])
+    // Goal visuals follow the goal collider data (owned by the stage data; levelmini may move them).
+    expect(root.userData.obstacleVisualIds).toEqual(EXPANSION_STAGES.stage6.layout.obstacles.map((o) => o.id))
     // Every pre-dressing claim is still there, unchanged.
     const key = (b) => [b.minX, b.maxX, b.minZ, b.maxZ].map((v) => v.toFixed(3)).join(',')
     const claimed = new Set(root.userData.decorationBounds.map(key))
-    const old = [[0, -halfZ - 5, 13, .5], [0, -halfZ - 1.8, 3, 1.2], [halfX + 2.5, halfZ - 4, .8, .8], [0, halfZ + .4, 3.1, .1]]
+    const old = [[0, -halfZ - 5, 13, .5], [0, -halfZ - 1.8, 3, 1.2], [...getSchoolyardJungleGymAnchor(halfX, halfZ), .8, .8], [0, halfZ + .4, 3.1, .1]]
     for (const side of [-1, 1]) {
-      old.push([side * 3.4, -halfZ - 1.2, .35, .35], [side * (halfX + 2.75), 0, 1.25, 12], [side * 3.4, halfZ + .6, .55, .55], [side * 10.25, halfZ + .6, 5.75, .1])
+      const g = getSchoolyardGateHalf(halfX), [f0, f1] = getSchoolyardFenceSpan(halfX)
+      old.push([side * g, -halfZ - 1.2, .35, .35], [side * (halfX + 2.75), 0, 1.25, getSchoolyardStandHalf(halfZ)], [side * g, halfZ + .6, .55, .55], [side * (f0 + f1) / 2, halfZ + SCHOOLYARD_FENCE.dz, (f1 - f0) / 2, .1])
       for (const tz of [-15, -5, 5, 15]) old.push([side * (halfX + 5), tz, 1.2, 1.2])
     }
-    for (const fx of [-6.5, -8.0, -9.5]) old.push([fx, -halfZ - 1.5, .6, .2])
+    for (const fx of [-6.5, -8.0, -9.5]) old.push([fx * halfX / 12, -halfZ - 1.5, .6, .2])
     for (const [x, z, hx, hz] of old) expect(claimed.has(key({ minX: x - hx, maxX: x + hx, minZ: z - hz, maxZ: z + hz })), `${x},${z}`).toBe(true)
     // No dressing footprint reaches into the playable rectangle.
     const layout = getSchoolyardDressingLayout({ halfX, halfZ })

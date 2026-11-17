@@ -30,7 +30,7 @@ describe('Stage6 enemy data and overtime', () => {
     expect(shouldScheduleOvertimeReinforcement(-1, 239.9, 'stage6').shouldSchedule).toBe(false)
   })
 
-  it('buildExpansionBurstBatch: 5초 조회 줄 E19 10마리는 같은 z 가로줄, B05는 조회대 앞 (0, −17)', async () => {
+  it('buildExpansionBurstBatch: 5초 조회 줄 E19 10마리는 같은 z 가로줄, B05는 조회대 앞 (0, −11)(2026-11-18 축소 17 × 28u)', async () => {
     const { buildExpansionBurstBatch } = await import('./Enemies.jsx')
     const { getStageObjectSightObstacles } = await import('./StageObjects/stageObjectColliders.js')
     const { playerPos, screenBounds } = await import('../lib/refs.js')
@@ -38,16 +38,16 @@ describe('Stage6 enemy data and overtime', () => {
     playerPos.set(0, 0, 4)
     Object.assign(screenBounds, { minX: -5, maxX: 5, minZ: 4 - 12.44, maxZ: 4 + 7.18 })
     try {
-      const cache = { id: 'stage6', bounds: { halfX: 12, halfZ: 20 }, obstacles: getStageObjectSightObstacles('stage6') }
+      const cache = { id: 'stage6', bounds: { halfX: 8.5, halfZ: 14 }, obstacles: getStageObjectSightObstacles('stage6') }
       const counts = { pooledActive: 0, specialActive: 0, pooledQueued: 0 }
       const row = buildExpansionBurstBatch(cache, { sec: 5, type: 'E19', count: 10, formation: 'assembly_row', side: 'top' }, counts)
       expect(row).toHaveLength(10)
       expect(new Set(row.map((e) => e.pos[2])).size).toBe(1)
       expect(row[0].pos[2]).toBeCloseTo(4 - 12.44 - 1, 6)
       const lanes = buildExpansionBurstBatch(cache, { sec: 124, type: 'E21', count: 6, formation: 'track_lanes' }, counts)
-      expect(lanes.map((e) => [e.pos[0], e.pos[2]])).toEqual([[-9, -6], [9, -6], [-9, 0], [9, 0], [-9, 6], [9, 6]])
+      expect(lanes.map((e) => [e.pos[0], e.pos[2]])).toEqual([[-5.5, -4.2], [5.5, -4.2], [-5.5, 0], [5.5, 0], [-5.5, 4.2], [5.5, 4.2]])
       const boss = buildExpansionBurstBatch(cache, { sec: 150, type: 'B05', count: 1 }, counts)
-      expect([boss[0].pos[0], boss[0].pos[2]]).toEqual([0, -17])
+      expect([boss[0].pos[0], boss[0].pos[2]]).toEqual([0, -11])
       // 상한(150)이 차 있으면 줄도 먼저 잘린다.
       expect(buildExpansionBurstBatch(cache, { type: 'E19', count: 12, formation: 'assembly_row', side: 'top' }, { pooledActive: 145, specialActive: 1, pooledQueued: 0 })).toHaveLength(4)
     } finally {
@@ -96,7 +96,7 @@ describe('Stage6 production enemy runtime', () => {
       for (let sec = 1; sec <= 89; sec += 1) { state.elapsedMs = sec * 1000; frame(0.016); flush() }
       // 90초: 동시 천장 150을 채워 코인 몬스터가 자리를 못 받게 한다.
       clearPool()
-      for (let i = 0; i < 150; i += 1) pool.spawn({ type: 'E01', x: -11 + (i % 20) * 1.1, z: -15 + Math.floor(i / 20) * 1.1, hp: 20, maxHp: 20, spawnTimer: 300 })
+      for (let i = 0; i < 150; i += 1) pool.spawn({ type: 'E01', x: -7.7 + (i % 15) * 1.1, z: -13 + Math.floor(i / 15) * 1.1, hp: 20, maxHp: 20, spawnTimer: 300 })
       spy.mockClear()
       state.elapsedMs = 90_000; frame(0.016); flush()
       expect(spy.mock.calls.filter(([, e]) => e.type === 'E08')).toHaveLength(0)
@@ -107,23 +107,23 @@ describe('Stage6 production enemy runtime', () => {
 
       // B05 '운동장 10바퀴': Enemy.jsx가 넣는 소환 요청(보스 typeCode 32) → 트랙 6지점 E21×6. 다른 판 요청은 버린다.
       clearPool(); spy.mockClear()
-      summonQueue.pushBossSummon(state.gameKey - 1, 0, -17, 32)
-      summonQueue.pushBossSummon(state.gameKey, 0, -17, 32)
+      summonQueue.pushBossSummon(state.gameKey - 1, 0, -11, 32)
+      summonQueue.pushBossSummon(state.gameKey, 0, -11, 32)
       frame(0.016); flush()
       const summoned = spy.mock.calls.map(([, e]) => e)
       expect(summoned.map((e) => e.type)).toEqual(['E21', 'E21', 'E21', 'E21', 'E21', 'E21'])
-      expect(summoned.map((e) => [e.x, e.z])).toEqual([[-9, -6], [9, -6], [-9, 0], [9, 0], [-9, 6], [9, 6]])
+      expect(summoned.map((e) => [e.x, e.z])).toEqual([[-5.5, -4.2], [5.5, -4.2], [-5.5, 0], [5.5, 0], [-5.5, 4.2], [5.5, 4.2]])
       expect(summoned.every((e) => e.hp === 36)).toBe(true)
       expect(summonQueue.getBossSummonQueueCount()).toBe(0)
 
       // 천장(150)이 꽉 찬 순간의 B05 시간 소환은 버리지 않고 미뤘다가 자리가 나면 나온다. 총 도착 수 = 요청 수(6).
       // 천장은 그대로 지킨다 — 빈 자리만큼만 나온다.
       state.bossAliveCount = 1
-      const fillPool = () => { clearPool(); for (let i = 0; i < 150; i += 1) pool.spawn({ type: 'E01', x: -11 + (i % 20) * 1.1, z: -15 + Math.floor(i / 20) * 1.1, hp: 20, maxHp: 20, spawnTimer: 300 }) }
+      const fillPool = () => { clearPool(); for (let i = 0; i < 150; i += 1) pool.spawn({ type: 'E01', x: -7.7 + (i % 15) * 1.1, z: -13 + Math.floor(i / 15) * 1.1, hp: 20, maxHp: 20, spawnTimer: 300 }) }
       const freeSlots = (n) => { let freed = 0; for (let i = 0; i <= pool.highestActive && freed < n; i += 1) if (pool.active[i] && pool.type[i] !== 19) { pool.despawnIndex(i, pool.generation[i]); freed += 1 } }
       const arrivedE21 = () => spy.mock.calls.filter(([, e]) => e.type === 'E21').length
       fillPool(); spy.mockClear()
-      summonQueue.pushBossSummon(state.gameKey, 0, -17, 32)
+      summonQueue.pushBossSummon(state.gameKey, 0, -11, 32)
       frame(0.016); flush()
       expect(arrivedE21()).toBe(0)
       frame(0.016); flush()
@@ -140,7 +140,7 @@ describe('Stage6 production enemy runtime', () => {
 
       // 보스가 죽으면 미뤄 둔 몫은 폐기된다 — 처치 뒤에 자리가 나도 아무것도 나오지 않는다.
       fillPool(); spy.mockClear()
-      summonQueue.pushBossSummon(state.gameKey, 0, -17, 32)
+      summonQueue.pushBossSummon(state.gameKey, 0, -11, 32)
       frame(0.016); flush()
       expect(arrivedE21()).toBe(0)
       state.bossAliveCount = 0

@@ -240,10 +240,10 @@ function buildPodium(z, halfZ, art, C) {
 }
 
 // ── PA poles: Korean schoolyard trumpet-horn speakers on a crossarm ──
-function buildPaHorns(halfZ, C) {
+function buildPaHorns(halfZ, C, poleX = 3.4) {
  const b = createPropBuilder()
  for (const side of [-1, 1]) {
-  const px = side * 3.4, pz = -halfZ - 1.2, armY = 3.72
+  const px = side * poleX, pz = -halfZ - 1.2, armY = 3.72
   b.cyl(.065, .075, 4.2, [px, 2.1, pz], C.steel)
   b.box([.3, .12, .3], [px, .06, pz], C.cap)                                  // concrete footing
   b.box([.22, .3, .12], [px, 1.5, pz + .1], C.paBox)                          // amplifier box
@@ -362,22 +362,23 @@ function buildJungleGym(gx, gz, C) {
 }
 
 // ── Bleachers: four stepped concrete tiers, coloured seat planks with aisle gaps, end and back rails ──
-function buildGrandstand(halfX, C) {
- const b = createPropBuilder(), depth = .6, rise = .34, L = 24
+function buildGrandstand(halfX, C, half = 12) {
+ // half = stand half-length (12 on the original 24 × 40 board; shorter on a shorter board). z = 12-based × f.
+ const b = createPropBuilder(), depth = .6, rise = .34, L = half * 2, f = half / 12
  for (const side of [-1, 1]) {
   const inner = halfX + 1.5
   for (let tier = 0; tier < 4; tier++) {
    const cx = side * (inner + depth * (tier + .5)), h = rise * (tier + 1)
    b.box([depth, h, L], [cx, h / 2, 0], C.stone, { t: .04 })
-   for (const [z0, z1] of [[-11.8, -4.35], [-3.65, 3.65], [4.35, 11.8]]) {
+   for (const [z0, z1] of [[-11.8 * f, -4.35 * f], [-3.65 * f, 3.65 * f], [4.35 * f, 11.8 * f]]) {
     b.box([.3, .07, z1 - z0], [cx - side * .08, h + .05, (z0 + z1) / 2], tier % 2 ? C.seatB : C.seatA, { t: .022 })
    }
   }
   const backX = side * (inner + depth * 4 - .06), topY = rise * 4
-  for (const z of [-11.6, -3.9, 3.9, 11.6]) b.box([.06, .7, .06], [backX, topY + .35, z], C.rail, { t: .02 })
-  b.box([.07, .07, 23.3], [backX, topY + .7, 0], C.rail, { t: .02 })
+  for (const z of [-11.6 * f, -3.9 * f, 3.9 * f, 11.6 * f]) b.box([.06, .7, .06], [backX, topY + .35, z], C.rail, { t: .02 })
+  b.box([.07, .07, L - .7], [backX, topY + .7, 0], C.rail, { t: .02 })
   for (const end of [-1, 1]) {
-   const ez = end * 11.95, lowX = side * (inner + .1), lowY = rise + .7, highY = topY + .7
+   const ez = end * (half - .05), lowX = side * (inner + .1), lowY = rise + .7, highY = topY + .7
    b.box([.06, .7, .06], [lowX, rise + .35, ez], C.rail, { t: .02 })
    b.bar([lowX, lowY, ez], [backX, highY, ez], .07, C.rail, { t: .02 })
   }
@@ -385,18 +386,30 @@ function buildGrandstand(halfX, C) {
  return b.build('schoolyard-prop-grandstand')
 }
 
+// Arena-derived anchors (2026-11-17): identical to the original numbers on the 24 × 40 board, scaled to fit
+// a smaller board. Shared with the claims (expansionEnvironment.js) and the dressing layout.
+export const getSchoolyardStandHalf = (halfZ) => Math.min(12, halfZ - 4)
+// Gate pillars / PA poles x (3.4 on the 24-wide board; never wider than 40% of the half-width).
+export const getSchoolyardGateHalf = (halfX) => Math.min(3.4, halfX * 0.4)
+// Fence from the gate pillar out to the corner: [from, to] along x.
+export const getSchoolyardFenceSpan = (halfX) => [getSchoolyardGateHalf(halfX) + 0.44, halfX + 3.6]
+// Fence line z offset past the bottom edge + height: the game camera looks down at 45°, so a fence of height h
+// at distance d past the edge covers the arena only if h > d — keep h <= d so it never hides the bottom strip.
+export const SCHOOLYARD_FENCE = Object.freeze({ dz: 1.0, height: 1.0 })
+export const getSchoolyardJungleGymAnchor = (halfX, halfZ) => [halfX + 2.5, Math.max(halfZ - 4, getSchoolyardStandHalf(halfZ) + 1.4)]
 export function createSchoolyardProps({ art, C, goals, halfX, halfZ }) {
  const group = new THREE.Group(); group.name = 'schoolyard-hand-built-props'
  const podiumZ = -halfZ - 1.8, flagZ = -halfZ - 1.5
  const flagColors = ['#2F5FA8', '#F2C94C', '#E04B4B']
- const poles = [-6.5, -8.0, -9.5].map((x) => ({ x, z: flagZ }))
+ const k = halfX / 12, standHalf = getSchoolyardStandHalf(halfZ)
+ const poles = [-6.5, -8.0, -9.5].map((x) => ({ x: x * k, z: flagZ }))
  const props = {
   goals: buildGoals(goals, C),
   podium: buildPodium(podiumZ, halfZ, art, C),
   flagpoles: buildFlagpoles(poles, art, C),
-  paHorns: buildPaHorns(halfZ, C),
-  jungleGym: buildJungleGym(halfX + 2.5, halfZ - 4, C),
-  grandstand: buildGrandstand(halfX, C),
+  paHorns: buildPaHorns(halfZ, C, getSchoolyardGateHalf(halfX)),
+  jungleGym: buildJungleGym(...getSchoolyardJungleGymAnchor(halfX, halfZ), C),
+  grandstand: buildGrandstand(halfX, C, standHalf),
  }
  const flags = createFlagMesh(poles.map(({ x, z }, i) => ({ x: x + .07, y: 5.0, z, color: flagColors[i], pattern: i + 1, phase: i * 1.9 })))
  props.flagpoles.add(flags)

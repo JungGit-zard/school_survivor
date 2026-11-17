@@ -4,7 +4,7 @@ import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.j
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
 import dressingUrl from '../../assets/models/schoolyard/schoolyard_dressing.glb?url'
 import { createOutlineGeometry } from '../../lib/projectileZombieShotGeometry.js'
-import { getSchoolyardPropMaterial, getSchoolyardOutlineMaterial } from './schoolyardProps.js'
+import { getSchoolyardPropMaterial, getSchoolyardOutlineMaterial, getSchoolyardStandHalf, getSchoolyardJungleGymAnchor, getSchoolyardGateHalf, getSchoolyardFenceSpan, SCHOOLYARD_FENCE } from './schoolyardProps.js'
 
 // Stage 6 「운동장」 free-pack dressing (2026-11-17): school block, trees, bushes, hedges, flower beds, lamps,
 // benches, bin, hydrants, playground set, sports-day tents and kit, school fence and gate pillars — all CC0
@@ -45,13 +45,11 @@ const HALF_PI = Math.PI / 2
 // Placements in game units: p = [x, y, z] of the model's base centre, s = uniform or [sx, sy, sz], r = yaw.
 // glTF +Z (the model's front) faces the game camera with r = 0; +π/2 turns it to face +X.
 export function getSchoolyardDressingLayout({ halfX, halfZ }) {
-  const X = halfX, Z = halfZ, items = []
+  // All positions derive from the arena size (and the stand half-length H, schoolyardProps.js), so the
+  // ring follows whatever stage 6 bounds the stage data defines. On the original 24 × 40 board (X 12, Z 20,
+  // H 12) the side/top numbers match the hand-placed 2026-11-17 v2 layout.
+  const X = halfX, Z = halfZ, H = getSchoolyardStandHalf(halfZ), f = H / 12, items = []
   const put = (chunk, node, x, z, { s = 1, r = 0, y = 0 } = {}) => items.push({ chunk, node, p: [x, y, z], s: Array.isArray(s) ? s : [s, s, s], r })
-
-  // Placement rule (2026-11-17 v2): the portrait phone frame shows only a ~1.5–3 unit band outside the side
-  // edges, the top end down to the school front and the bottom end down to just past the fence (Stage 6
-  // camera end reveal, gameCameraFraming.js). Visible pieces sit in those bands, never inside the playable
-  // rectangle; low pieces next to the bottom edge (the camera side), tall ones only beside or beyond it.
 
   // ── Top: school block (Kenney Modular Buildings, 10 × 3 tiles); hedges, flower beds and lamps in front ──
   const tile = 2.6, floorH = SCHOOLYARD_DRESSING_NODES.school_wall_windows[1] * tile, schoolZ = -Z - 5.8
@@ -63,67 +61,71 @@ export function getSchoolyardDressingLayout({ halfX, halfZ }) {
   for (const side of [-1, 1]) {
     for (const x of [5.2, 8.6]) put('schoolFront', 'hedge_long', side * x, -Z - 3.8, { s: 0.6 })
     ;[4.4, 6.9, 10.3].forEach((x, i) => put('schoolFront', i % 2 ? 'flower_pink' : 'flower_white', side * x, -Z - 2.95, { s: i % 2 ? 2.2 : 1.6, r: i * 0.7 }))
-    put('schoolFront', 'street_lantern', side * 12.9, -Z - 2.3, { s: 0.7 })
+    put('schoolFront', 'street_lantern', side * (X + 0.9), -Z - 2.3, { s: 0.7 })
   }
 
-  // ── Top corners (in frame at the top end): tents (Racing Kit, school blue), trees beside the school,
+  // ── Top corners (beyond the stand ends): tents (Racing Kit, school blue), trees beside the school,
   // team flags + bell (left), bench, bin, lamp, hydrant (right) ──
-  put('cornerTL', 'tree_round', -17, -15, { s: 0.9 })
-  put('cornerTL', 'tree_round', -15.4, -24.6, { s: 0.85, r: 0.8 })
-  put('cornerTL', 'tent_long', -14.3, -16.3, { s: 2.7, r: HALF_PI })
-  put('cornerTL', 'school_bell', -13.2, -16.3, { s: 0.5, y: 1.0 })
-  put('cornerTL', 'team_flag_blue', -12.75, -12.75, { s: 0.8 })
-  put('cornerTL', 'team_flag_yellow', -12.75, -19.85, { s: 0.8 })
-  put('cornerTR', 'tree_round', 17, -15, { s: 0.9, r: 1.3 })
-  put('cornerTR', 'tree_tall', 15.3, -24.6, { r: HALF_PI })
-  put('cornerTR', 'tent_long', 14.3, -16.3, { s: 2.7, r: -HALF_PI })
-  put('cornerTR', 'park_bench', 13.2, -12.75, { s: 0.55, r: -HALF_PI })
-  put('cornerTR', 'street_lantern', 12.9, -19.6, { s: 0.7 })
-  put('cornerTR', 'bin', 13.0, -20.6, { s: 0.5 })
-  put('cornerTR', 'hydrant', 13.7, -21.4, { s: 2.7 })
+  const tentZ = -(H + 2.9)
+  put('cornerTL', 'tree_round', -(X + 5), -(H + 3), { s: 0.9 })
+  put('cornerTL', 'tree_round', -(X + 3.4), -Z - 4.6, { s: 0.85, r: 0.8 })
+  put('cornerTL', 'tent_long', -(X + 2.6), tentZ, { s: 2.7, r: HALF_PI })
+  put('cornerTL', 'school_bell', -(X + 1.45), tentZ, { s: 0.5, y: 1.0 })
+  put('cornerTL', 'team_flag_blue', -(X + 0.6), -(H + 0.75), { s: 0.8 })
+  put('cornerTL', 'team_flag_yellow', -(X + 0.6), tentZ - 1.6, { s: 0.8 })
+  put('cornerTR', 'tree_round', X + 5, -(H + 3), { s: 0.9, r: 1.3 })
+  put('cornerTR', 'tree_tall', X + 3.3, -Z - 4.6, { r: HALF_PI })
+  put('cornerTR', 'tent_long', X + 2.6, tentZ, { s: 2.7, r: -HALF_PI })
+  put('cornerTR', 'park_bench', X + 0.75, -(H + 0.6), { s: 0.55, r: -HALF_PI })
+  put('cornerTR', 'street_lantern', X + 0.75, tentZ - 1.2, { s: 0.7 })
+  put('cornerTR', 'bin', X + 0.75, tentZ + 0.9, { s: 0.5 })
+  put('cornerTR', 'hydrant', X + 1.7, -Z - 1.4, { s: 2.7 })
 
-  // ── Sides: in front of our bleachers (x ±12.85, the on-screen strip): low hedges, lamps at the stand
-  // aisles, flower beds at the stand ends; plane trees and bushes behind the bleachers ──
+  // ── Sides: in front of our bleachers (the on-screen strip): low hedges, lamps at the stand aisles,
+  // flower beds at the stand ends; plane trees and bushes behind the bleachers ──
   for (const [side, chunk] of [[-1, 'sideL'], [1, 'sideR']]) {
-    for (const z of [-8.6, -1.4, 1.4, 8.6]) put(chunk, 'hedge_long', side * 12.85, z, { s: [0.45, 0.4, 0.45], r: HALF_PI })
-    for (const z of [-4, 4]) put(chunk, 'street_lantern', side * 12.9, z, { s: 0.55 })
-    for (const z of [-11.1, 11.1]) {
-      put(chunk, 'flower_white', side * 12.7, z, { s: 1.6, r: z })
-      put(chunk, 'flower_pink', side * 13.15, z + 0.35, { s: 2.2, r: -z })
+    for (const z of [-8.6, -1.4, 1.4, 8.6]) put(chunk, 'hedge_long', side * (X + 0.85), z * f, { s: [0.45, 0.4, 0.45], r: HALF_PI })
+    for (const z of [-4, 4]) put(chunk, 'street_lantern', side * (X + 0.9), z * f, { s: 0.55 })
+    for (const z of [-(H - 0.9), H - 0.9]) {
+      put(chunk, 'flower_white', side * (X + 0.7), z, { s: 1.6, r: z })
+      put(chunk, 'flower_pink', side * (X + 1.15), z + 0.35 * Math.sign(z), { s: 2.2, r: -z })
     }
-    put(chunk, 'tree_tall', side * 17, -5, { r: HALF_PI })
-    put(chunk, 'tree_round', side * 17, 5, { s: 0.9, r: 2.1 })
-    put(chunk, 'bush_round', side * 17.2, 0, { s: 1.2 })
+    put(chunk, 'tree_tall', side * (X + 5), -5 * f, { r: HALF_PI })
+    put(chunk, 'tree_round', side * (X + 5), 5 * f, { s: 0.9, r: 2.1 })
+    put(chunk, 'bush_round', side * (X + 5.2), 0, { s: 1.2 })
   }
 
-  // ── Bottom-left corner: sports-day kit — small tent, hurdles, cones, sign, giant ball, football ──
-  put('cornerBL', 'tree_tall', -17, 15, { r: HALF_PI })
-  put('cornerBL', 'tent_small', -14.4, 16.4, { s: 2.7, r: HALF_PI })
-  for (const z of [13.2, 13.6, 14.0]) put('cornerBL', 'hurdle', -13.6, z, { s: 0.5 })
-  ;[[-12.75, 'cone_blue'], [-13.35, 'cone_green'], [-13.95, 'cone_blue']].forEach(([x, node]) => put('cornerBL', node, x, 12.9, { s: 0.6 }))
-  put('cornerBL', 'sign_board', -12.8, 18.2, { s: 0.6, r: HALF_PI })
-  put('cornerBL', 'big_ball_blue', -13.3, 18.95, { s: 0.45 })
-  put('cornerBL', 'football', -13.95, 19.6, { s: 0.4 })
+  // ── Bottom-left corner (beyond the stand end): small tent, hurdles, cones, sign, giant ball, football ──
+  put('cornerBL', 'tree_tall', -(X + 5), H + 3, { r: HALF_PI })
+  put('cornerBL', 'tent_small', -(X + 1.95), H + 1.6, { s: 2.7, r: HALF_PI })
+  for (const dz of [3.25, 3.65, 4.05]) put('cornerBL', 'hurdle', -(X + 1.15), H + dz, { s: 0.5 })
+  ;[[0.4, 'cone_blue'], [0.4, 'cone_green']].forEach(([dx, node], i) => put('cornerBL', node, -(X + dx), H + 3.1 + i * 0.6, { s: 0.6 }))
+  put('cornerBL', 'sign_board', -(X + 0.35), H + 1.4, { s: 0.6, r: HALF_PI })
+  put('cornerBL', 'big_ball_blue', -(X + 3.9), H + 1.1, { s: 0.45 })
+  put('cornerBL', 'football', -(X + 3.9), H + 2.0, { s: 0.4 })
 
-  // ── Bottom-right corner: playground (Tiny Treats Fun Playground) packed beside our jungle gym (X+2.5, Z-4) ──
-  put('cornerBR', 'tree_round', 17, 15, { s: 0.9, r: 0.6 })
-  put('cornerBR', 'swing', 13.3, 13.6, { s: 0.5, r: HALF_PI })
-  put('cornerBR', 'seesaw', 12.95, 15.9, { s: 0.5 })
-  put('cornerBR', 'slide', 14.3, 18.0, { s: 0.45, r: -HALF_PI })
-  put('cornerBR', 'merry_go_round', 13.45, 19.55, { s: 0.45 })
-  put('cornerBR', 'sandbox', 16.6, 13.4, { s: 0.5 })
+  // ── Bottom-right corner: playground (Tiny Treats Fun Playground) packed round our jungle gym ──
+  const [gx, gz] = getSchoolyardJungleGymAnchor(halfX, halfZ)
+  put('cornerBR', 'tree_round', X + 5, H + 3, { s: 0.9, r: 0.6 })
+  put('cornerBR', 'swing', X + 0.95, gz - 0.4, { s: 0.5, r: HALF_PI })
+  put('cornerBR', 'seesaw', X + 0.55, gz + 1.6, { s: 0.5 })
+  put('cornerBR', 'slide', gx - 0.2, gz + 1.7, { s: 0.45, r: -HALF_PI })
+  put('cornerBR', 'merry_go_round', X + 4.6, gz, { s: 0.45 })
+  put('cornerBR', 'sandbox', X + 4.6, gz + 2.1, { s: 0.5 })
 
-  // ── Bottom: school fence + gate pillars (Tiny Treats fence); outside it low flower beds, bushes, hydrant ──
-  const gateZ = Z + 0.6
+  // ── Bottom: school fence + gate pillars (Tiny Treats fence) out to the corners; outside it low flower
+  // beds, bushes, hydrant ──
+  const gateZ = Z + 0.6, [fenceFrom, fenceTo] = getSchoolyardFenceSpan(X), gateHalf = getSchoolyardGateHalf(X), segs = Math.max(1, Math.round((fenceTo - fenceFrom) / 1.68)), segW = (fenceTo - fenceFrom) / segs
   for (const side of [-1, 1]) {
-    put('gate', 'fence_post', side * 3.4, gateZ, { s: [2.2, 1.6, 2.2] })
-    for (let i = 0; i < 7; i++) put('gate', 'fence_long', side * (4.68 + i * 1.68), gateZ, { s: 0.7 })
-    put('gate', 'fence_post', side * 15.75, gateZ, { s: 0.7 })
-    put('gate', 'bush_round', side * 17.2, gateZ + 0.2, { s: 1.0 })
-    ;[4.6, 7.4, 10.2].forEach((x, i) => put('gate', i % 2 ? 'flower_pink' : 'flower_white', side * x, Z + 1.45, { s: i % 2 ? 2.2 : 1.6, r: x }))
-    put('gate', 'bush_small', side * 12.9, Z + 1.6, { s: 0.6 })
+    put('gate', 'fence_post', side * gateHalf, Z + SCHOOLYARD_FENCE.dz, { s: [2.2, 0.6, 2.2] }) // on the fence line, 1.2 tall: never buries the bottom strip
+    const fz = Z + SCHOOLYARD_FENCE.dz, fh = SCHOOLYARD_FENCE.height / SCHOOLYARD_DRESSING_NODES.fence_long[1]
+    for (let i = 0; i < segs; i++) put('gate', 'fence_long', side * (fenceFrom + (i + 0.5) * segW), fz, { s: [segW / 2.4, fh, 0.7] })
+    put('gate', 'fence_post', side * (fenceTo + 0.15), fz, { s: [0.7, fh, 0.7] })
+    put('gate', 'bush_round', side * (X + 5.2), gateZ + 0.2, { s: 1.0 })
+    ;[4.6, 7.4, 10.2].filter((x) => x < X + 2.5).forEach((x, i) => put('gate', i % 2 ? 'flower_pink' : 'flower_white', side * x, Z + 1.75, { s: i % 2 ? 2.2 : 1.6, r: x }))
+    put('gate', 'bush_small', side * (X + 0.9), Z + 1.9, { s: 0.6 })
   }
-  put('gate', 'hydrant', 6.0, Z + 1.5, { s: 2.7 })
+  put('gate', 'hydrant', Math.min(6.0, X - 1), Z + 1.85, { s: 2.7 })
   return items
 }
 

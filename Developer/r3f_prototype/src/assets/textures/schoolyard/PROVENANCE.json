@@ -1,0 +1,85 @@
+{
+  "asset": "Stage 6 schoolyard ground detail maps (track, pitch turf, outfield grass, sand, dirt surround, paved walk, kerb)",
+  "created": "2026-11-17",
+  "source": {
+    "site": "ambientCG (https://ambientcg.com)",
+    "author": "Lennart Demes / ambientCG",
+    "license": {
+      "id": "CC0-1.0",
+      "url": "https://docs.ambientcg.com/license/",
+      "attribution": "not required"
+    },
+    "downloaded": "2026-11-17",
+    "archive": "F:/ezs-work/assets_cc0/textures/ambientcg-<id>/ (zip + LICENSE_SNAPSHOT.md)"
+  },
+  "maps": {
+    "track": {
+      "source": "ambientCG Rubber003",
+      "member": "Rubber003_1K-JPG_Color.jpg",
+      "memberSha256": "6db4e5be5705655cfa0d0c0c0548a490a8552e10655db3ceda4a702324f2b35c",
+      "bytes": 18300,
+      "sha256": "7df4662a311391a0895f43c46766ed9b49eea48c30923e2bde61d34e2e3a37b6",
+      "amplitude": 0.13,
+      "levels": 7
+    },
+    "turf": {
+      "source": "ambientCG Grass001",
+      "member": "Grass001_1K-JPG_Color.jpg",
+      "memberSha256": "b9b6d61bc3b6137b868a3447eef18737896acd26d58fe2f4b83ce8c0e9d3f8ad",
+      "bytes": 9401,
+      "sha256": "d96ade8ad65d109ff9b16ab654e760b8f54334ee2063b0a06ffc8be689323163",
+      "amplitude": 0.13,
+      "levels": 6
+    },
+    "outfield": {
+      "source": "ambientCG Grass004",
+      "member": "Grass004_1K-JPG_Color.jpg",
+      "memberSha256": "9e1c60da44b34a9738b1256ba827541f097dc583521b1d281e61b5f4b4217bc5",
+      "bytes": 10001,
+      "sha256": "0ee709139c84d43bae808523d7bcc7249451ce8b4556fc570414f9512f5e3015",
+      "amplitude": 0.14,
+      "levels": 6
+    },
+    "sand": {
+      "source": "ambientCG Ground054",
+      "member": "Ground054_1K-JPG_Color.jpg",
+      "memberSha256": "77c0b5ac13eead1420887c608b2c28209a1ae5ba70761bf29953aa23cf3dc31b",
+      "bytes": 11554,
+      "sha256": "846ac00b64c5c25cb145686b771a929f3fa2d505bc3b488f4f4c1ef29b158ae4",
+      "amplitude": 0.12,
+      "levels": 6
+    },
+    "dirt": {
+      "source": "ambientCG Ground048",
+      "member": "Ground048_1K-JPG_Color.jpg",
+      "memberSha256": "5ed6949bbe77332e12f9fdcfcadcd1d851ae2240ea0a46196e9a171fac201e8b",
+      "bytes": 10680,
+      "sha256": "88f7e82e4837de6e8ff80deb6b62959b9db5f57d30cc30cbeccaafed80374ddc",
+      "amplitude": 0.13,
+      "levels": 6
+    },
+    "paving": {
+      "source": "ambientCG PavingStones128",
+      "member": "PavingStones128_1K-JPG_Color.jpg",
+      "memberSha256": "eef877d5807627e97b0f1813b14ff4d1855836c9af4976df65e8503f2022d0a3",
+      "bytes": 8083,
+      "sha256": "c8e21b8bda44958f15b205937eaa0a5a0791553acfd72acca85edc419ac50b04",
+      "amplitude": 0.15,
+      "levels": 7
+    },
+    "kerb": {
+      "source": "ambientCG Concrete034",
+      "member": "Concrete034_1K-JPG_Color.jpg",
+      "memberSha256": "8ceb9186d990b31fce785e06fdc6974c160f1d27c43f6160266f164deba713aa",
+      "bytes": 8092,
+      "sha256": "c2a4a4ac623f31bccb9a986d0ee22b0829ac8cdcb7556b3e51011da58bc6d400",
+      "amplitude": 0.09,
+      "levels": 6
+    }
+  },
+  "modifications": [
+    "Only the 1K Color map of each material is used; it is converted to luminance, blurred, softly posterised, normalised to mean 0.80 with the listed amplitude and downsized to 256x256 grayscale JPEG.",
+    "At runtime the map multiplies a toon material colour chosen per surface (schoolyardGround.js), so the shipped files carry no colour of their own."
+  ],
+  "script": "scripts/build_schoolyard_ground_textures.mjs (--src F:/ezs-work/assets_cc0/textures)"
+}

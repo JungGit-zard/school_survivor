@@ -34,10 +34,11 @@ export const STAGE_VENDING_PLACEMENTS = Object.freeze({
   // Stage 5 교무실(2026-11-08 스펙 §3-5): 옛 (6.25, −14)는 북벽 복사기(6.0, −13.4)와 겹친다 → L4 앞쪽 끝 동벽.
   // 플레이어 최근접점 (7.36, −10.6)까지 1.19u ≤ 상호작용 반경 2.25u. 몸체는 플레이어 이동 밖(x > 7.36)이라 레인을 막지 않는다.
   // Stage 6 운동장(2026-11-08 스펙 Part C C-9-2): 조회대(−Z) 쪽 옛 확장 공통 위치 대신 서쪽 스탠드 아래 매점.
-  // 플레이어 최소 x −10(= −12 + inset 2)에서 0.5u, 상호작용 반경 2.25u 안. stage7~10은 위 공통 위치 그대로.
+  // 2026-11-18 경기장 축소(반폭 12 → 8.5, 반길이 20 → 14): (−10.5, 6) → (−7.0, 4.2). 플레이어 최소 x −6.5(= −8.5 + inset 2)에서
+  // 예전과 같은 0.5u, 상호작용 반경 2.25u 안. z는 ×0.7. stage7~10은 위 공통 위치 그대로.
   stage6: Object.freeze({
     id: 'vending-stage6', stageId: 'stage6', wallSide: 'west',
-    position: Object.freeze({ x: -10.5, y: 0, z: 6 }),
+    position: Object.freeze({ x: -7.0, y: 0, z: 4.2 }),
     interactionRadiusUnits: STAGE_VENDING_INTERACTION_RADIUS_UNITS,
     interactionRadiusBlocks: STAGE_VENDING_INTERACTION_RADIUS_BLOCKS,
   }),

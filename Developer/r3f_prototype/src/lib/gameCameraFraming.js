@@ -49,17 +49,16 @@ export function keepPlayerInsideCameraX({
 }
 
 // ── Stage end reveal (2026-11-17, Stage 6 운동장 only) ──────────────────────────────────────────
-// Near the top/bottom ends the camera may look past the arena edge so the school front (podium,
-// flagpoles, hedges) and the gate/fence/playground come into frame. It never shows less of the arena
-// interior than the plain clamp does: the interior-side view edge stays where it was and the camera
-// eases out (zoom < 1) by exactly the amount needed to add `beyond` units on the outer side.
+// Near the top/bottom ends the follow camera keeps travelling past the arena edge (same zoom as
+// everywhere else) so the school front and the gate/fence come into frame. The extended clamp never
+// moves the focus past the player, so the view toward the arena interior is never smaller than in
+// mid-field, and the part of the arena on screen is always a subset of what the plain clamp showed
+// (nothing can spawn or be culled differently inside the visible screen).
 // Rendering only — callers keep publishing the plain-clamp screen bounds to gameplay (spawns, tiers).
 // Stages without an entry here get null and keep the old camera bit-for-bit.
 export const STAGE_CAMERA_END_REVEAL = Object.freeze({
-  stage6: Object.freeze({ beyondTop: 9, beyondBottom: 3.5, rampFrom: 8, rampTo: 15 }),
+  stage6: Object.freeze({ beyondTop: 8, beyondBottom: 3.2 }),
 })
-
-const smoothstep = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t) }
 
 // Exact ground reach (up = far side, down = near side) for a half vertical fov `a` (radians).
 function groundReachAtHalfFov(a) {
@@ -67,26 +66,20 @@ function groundReachAtHalfFov(a) {
   return { up: GAME_CAMERA_HEIGHT / Math.tan(pitch - a) - GAME_CAMERA_BACK, down: GAME_CAMERA_BACK - GAME_CAMERA_HEIGHT / Math.tan(pitch + a) }
 }
 
-// Returns null (no change) or { zoom, focusZ } for the rendered camera. `zoom` is the full camera.zoom
-// (already including fitZoom); `focusZ` replaces the clamped focus. playerZ drives the ramp.
-export function getStageCameraEndReveal(stageId, { fov = 30, fitZoom = 1, focusZ, playerZ }) {
+// Returns null (no change) or { zoom, focusZ, ... } for the rendered camera. `zoom` always equals
+// fitZoom (no zoom change); `focusZ` replaces the plain clamped focus.
+export function getStageCameraEndReveal(stageId, { fov = 30, fitZoom = 1, halfZ, playerZ }) {
   const cfg = STAGE_CAMERA_END_REVEAL[stageId]
-  if (!cfg || !Number.isFinite(focusZ) || !Number.isFinite(playerZ)) return null
-  const top = playerZ < 0, t = smoothstep(cfg.rampFrom, cfg.rampTo, Math.abs(playerZ))
-  const beyond = (top ? cfg.beyondTop : cfg.beyondBottom) * t
-  if (!(beyond > 1e-6)) return null
+  if (!cfg || !Number.isFinite(halfZ) || !Number.isFinite(playerZ)) return null
   const tanHalf = Math.tan((Number(fov) || 30) * Math.PI / 360)
-  const a0 = Math.atan(tanHalf / fitZoom), r0 = groundReachAtHalfFov(a0)
-  const viewTop = focusZ - r0.up, viewBottom = focusZ + r0.down
-  const span = r0.up + r0.down + beyond
-  let lo = a0, hi = Math.PI / 4 - 1e-3
-  for (let i = 0; i < 40; i++) { const mid = (lo + hi) / 2, r = groundReachAtHalfFov(mid); if (r.up + r.down < span) lo = mid; else hi = mid }
-  const a = hi, r = groundReachAtHalfFov(a)
+  const r = groundReachAtHalfFov(Math.atan(tanHalf / fitZoom))
+  const plainFz = clampGameplayCameraFocus(playerZ, r.up, r.down, halfZ)
+  const lo = -halfZ - cfg.beyondTop + r.up, hi = halfZ + cfg.beyondBottom - r.down
+  const focusZ = lo > hi ? plainFz : Math.min(hi, Math.max(lo, playerZ))
   return {
-    zoom: tanHalf / Math.tan(a),
-    focusZ: top ? (viewTop - beyond) + r.up : viewTop + r.up,
-    viewTop: top ? viewTop - beyond : viewTop,
-    viewBottom: top ? viewTop - beyond + r.up + r.down : viewTop + r.up + r.down,
-    plainViewTop: viewTop, plainViewBottom: viewBottom,
+    zoom: fitZoom, focusZ,
+    viewTop: focusZ - r.up, viewBottom: focusZ + r.down,
+    plainViewTop: plainFz - r.up, plainViewBottom: plainFz + r.down,
+    reachUp: r.up, reachDown: r.down,
   }
 }

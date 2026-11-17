@@ -22,10 +22,14 @@ const DATA = {
       "matildaWarningSec": 205,
       "matildaSec": 210,
       "e04IntroSec": 8,
-      "mapHalfXUnits": 12,
-      "mapHalfXBlocks": 3.0,
-      "mapHalfZUnits": 20,
-      "mapHalfZBlocks": 5.0,
+      // 2026-11-18 Terry "운동장 맵 30% 축소"(선형 ×0.7): 24 × 40u(6 × 10블록) → 17 × 28u(4.25 × 7블록).
+      //   경기장 크기의 단일 정본 — getStageBounds·플레이어 이동 한계·카메라·스폰·공격 안전 판정·비주얼 전부 여기서 읽는다.
+      //   좌표 규칙: 필드 안 물건(골대·트랙 계주 지점)은 ×0.7, 경기장 끝에 붙은 물건(조회대 쪽 보스·훈화 원점, 정문 쪽 포탈)은
+      //   끝에서 떨어진 거리를 그대로 둔다(보스 끝−3u, 훈화 끝−1u, 포탈 끝−3.5u — 플레이어 이동 한계와의 관계가 예전과 같다).
+      "mapHalfXUnits": 8.5,
+      "mapHalfXBlocks": 2.125,
+      "mapHalfZUnits": 14,
+      "mapHalfZBlocks": 3.5,
       "unlockClearsKey": "stage5Clears",
       "unlockClearsRequired": 1,
       "clearRecordKey": "stage6Clears",
@@ -390,7 +394,11 @@ const DATA = {
         "introSpecialDelayMs": 2500,
         "formation": "ring_safe_candidates",
         "bossSpawnDistanceUnits": 6,
-        "bossSpawnDistanceBlocks": 1.5
+        "bossSpawnDistanceBlocks": 1.5,
+        // 2026-11-18 축소: 일반 링 스폰은 화면 사각형(+여백 1u + 몸 반경) 밖 후보를 먼저 고른다. 24번 안에 화면 밖 후보가 없으면
+        // 맵 안·겹침 없는 첫 후보를 쓴다(마릿수를 버리지 않는다). 보스 앵커·고정 대형(조회 줄·트랙)은 이 규칙 밖이다.
+        "offscreenMarginUnits": 1.0,
+        "offscreenMarginBlocks": 0.25
       },
       "layout": {
         "layoutId": "expansion_schoolyard",
@@ -403,8 +411,8 @@ const DATA = {
             "id": "exp_s6_goal_north",
             "xUnits": 0,
             "xBlocks": 0.0,
-            "zUnits": -11,
-            "zBlocks": -2.75,
+            "zUnits": -7.7,
+            "zBlocks": -1.925,
             "halfXUnits": 1.6,
             "halfXBlocks": 0.4,
             "halfZUnits": 0.45,
@@ -414,8 +422,8 @@ const DATA = {
             "id": "exp_s6_goal_south",
             "xUnits": 0,
             "xBlocks": 0.0,
-            "zUnits": 11,
-            "zBlocks": 2.75,
+            "zUnits": 7.7,
+            "zBlocks": 1.925,
             "halfXUnits": 1.6,
             "halfXBlocks": 0.4,
             "halfZUnits": 0.45,
@@ -426,31 +434,41 @@ const DATA = {
         "portalAnchorUnits": [
           0,
           0,
-          16.5
+          10.5
         ],
         "portalAnchorBlocks": [
           0,
           0,
-          4.125
+          2.625
         ],
         "bossAnchorUnits": [
           0,
           0,
-          -17
+          -11
         ],
         "bossAnchorBlocks": [
           0,
           0,
-          -4.25
+          -2.75
         ],
         "speechOriginUnits": [
           0,
-          -19
+          -13
         ],
         "speechOriginBlocks": [
           0,
-          -4.75
-        ]
+          -3.25
+        ],
+        // 트랙 계주 대열(track_lanes: 124초 E21×6 · B05 '운동장 10바퀴')의 6지점 = 트랙 직선 x ±5.5(= 경기장 반폭 − 3, 비주얼 트랙
+        // 반지름과 같은 식) × z −4.2/0/+4.2(예전 ±9 × −6/0/+6의 ×0.7 — x는 트랙 직선 위에 맞췄다). 6마리 넘으면 z +2.1u로 한 바퀴 더.
+        "trackLanePointsUnits": [
+          [-5.5, -4.2], [5.5, -4.2], [-5.5, 0], [5.5, 0], [-5.5, 4.2], [5.5, 4.2]
+        ],
+        "trackLanePointsBlocks": [
+          [-1.375, -1.05], [1.375, -1.05], [-1.375, 0], [1.375, 0], [-1.375, 1.05], [1.375, 1.05]
+        ],
+        "trackLaneSecondLapZOffsetUnits": 2.1,
+        "trackLaneSecondLapZOffsetBlocks": 0.525
       }
     },
     {
@@ -2224,13 +2242,14 @@ const DATA = {
       "id": "H06",
       "stageId": "stage6",
       "nameKo": "훈화 말씀",
+      // 2026-11-18 축소: stage6 layout.speechOriginUnits와 같은 점(경기장 위 끝 − 1u). 테스트가 둘이 같은지 못박는다.
       "originUnits": [
         0,
-        -19
+        -13
       ],
       "originBlocks": [
         0,
-        -4.75
+        -3.25
       ],
       "firstSec": 30,
       "intervalSec": 30,

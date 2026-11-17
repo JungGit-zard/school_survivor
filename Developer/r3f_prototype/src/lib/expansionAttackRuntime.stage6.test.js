@@ -17,7 +17,8 @@ afterEach(() => clearExpansionAttacks())
 
 const H06 = EXPANSION_HAZARDS.H06
 const B05 = EXPANSION_BOSSES.B05
-const bossArgs = { x: 0, z: -12, playerX: 0, playerZ: -7, playing: true, alive: true, gameKey: 0, hpRatio: 1, deltaMs: 0 }
+// 2026-11-18 축소(17 × 28u): 보스 앵커 (0, −11), 플레이어는 북쪽 골대(z −7.7) 앞쪽 1.25u — 골대에 바짝 붙으면 탈출 인증이 발신을 미룬다.
+const bossArgs = { x: 0, z: -11, playerX: 0, playerZ: -6, playing: true, alive: true, gameKey: 0, hpRatio: 1, deltaMs: 0 }
 
 describe('B05 교장 데이터', () => {
   it('typeCode 32 유지, HP 4,050, 패턴 훈화 고리(annulus) → 교가 제창(cross)', () => {
@@ -53,21 +54,22 @@ describe('R2·R3 격노 2중 고리', () => {
     expect(angry.snapshot.extraRingOffsetsUnits).toEqual([2.4])
     expect(expansionAuthoredPolygons(angry.snapshot)).toHaveLength(single * 2)
     // 바깥 고리 띠(외반경 5.6+2.4 = 8.0, 내반경 6.8) 위는 피해, 두 고리 사이(6.0)는 안전.
-    expect(expansionAttackContains(angry.snapshot, 0, -12 + 7.4)).toBe(true)
-    expect(expansionAttackContains(angry.snapshot, 0, -12 + 6.2)).toBe(false)
+    expect(expansionAttackContains(angry.snapshot, 0, -11 + 7.4)).toBe(true)
+    expect(expansionAttackContains(angry.snapshot, 0, -11 + 6.2)).toBe(false)
   })
 })
 
 describe('R4 + 해저드 발신(훈화 말씀)', () => {
   const emit = (playerX, playerZ, key = 'H06:1:0:0') => emitExpansionHazardSnapshot({
-    hazardId: 'H06', pattern: H06.pattern, originXZ: H06.originUnits, key, gameKey: 1, playerX, playerZ, stageId: 'stage6', halfX: 12, halfZ: 20,
+    hazardId: 'H06', pattern: H06.pattern, originXZ: H06.originUnits, key, gameKey: 1, playerX, playerZ, stageId: 'stage6', halfX: 8.5, halfZ: 14,
   })
 
   it('고리 띠가 플레이어를 지나고, active에서 9 피해 1회(B05 고리와 같다), 다음 프레임 0', () => {
     const s = emit(0, 0)
     expect(s).not.toBeNull()
     expect(s).toMatchObject({ hazard: true, shape: 'annulus', damage: 9 })
-    expect(s.rangeUnits).toBeCloseTo(19.6, 9)
+    // 발신원 (0, −13)(경기장 위 끝 − 1u) → 플레이어 (0, 0) 13u + 여유 0.6u.
+    expect(s.rangeUnits).toBeCloseTo(13.6, 9)
     expect(expansionAttackSnapshots.get('H06:1:0:0')).toBe(s)
     const a = { deltaMs: 1599, playing: true, playerX: 0, playerZ: 0, gameKey: 1 }
     expect(stepExpansionHazardSnapshots(a).damage).toBe(0)
@@ -95,11 +97,11 @@ describe('R4 + 해저드 발신(훈화 말씀)', () => {
   })
 
   it('골대가 발신원과 플레이어 사이에 있어도 고리 피해 기하는 골대 뒤를 덮는다(ignoresSightBlockers)', () => {
-    // 북쪽 골대 (0, −11, 반길이 0.45) 뒤(+Z) 플레이어. 발신원 (0, −19) → 플레이어 (0, −9.2).
+    // 북쪽 골대 (0, −7.7, 반길이 0.45) 뒤(+Z) 플레이어. 발신원 (0, −13) → 플레이어 (0, −5.9)(골대 뒷면에서 1.35u — 축소 전과 같은 간격).
     // (골대에 0.79u보다 바짝 붙으면 기존 탈출 인증이 통로를 못 찾아 발신을 미룬다 — 그건 재시도 규칙의 몫이다.)
-    const s = emit(0, -9.2)
+    const s = emit(0, -5.9)
     expect(s).not.toBeNull()
-    expect(expansionAttackContains(s, 0, -9.2)).toBe(true)
+    expect(expansionAttackContains(s, 0, -5.9)).toBe(true)
     // 같은 고리를 장애물 차단으로 만들었다면 골대 그림자에 가려졌을 자리다.
     expect(s.ignoresSightBlockers).toBe(true)
   })
@@ -107,7 +109,7 @@ describe('R4 + 해저드 발신(훈화 말씀)', () => {
   it('해저드가 떠 있으면 일반 적 특수행동은 열리지 않는다(보스 활성과 같은 규칙)', () => {
     emit(0, 0)
     const ring = createExpansionAttackState('E20', 'e20', 0)
-    stepExpansionAttack(ring, { x: 1, z: 0, playerX: 0, playerZ: 0, playing: true, alive: true, gameKey: 0, hpRatio: 1, deltaMs: 3000, stageId: 'stage6', halfX: 12, halfZ: 20 })
+    stepExpansionAttack(ring, { x: 1, z: 0, playerX: 0, playerZ: 0, playing: true, alive: true, gameKey: 0, hpRatio: 1, deltaMs: 3000, stageId: 'stage6', halfX: 8.5, halfZ: 14 })
     expect(ring.snapshot).toBeNull()
   })
 })

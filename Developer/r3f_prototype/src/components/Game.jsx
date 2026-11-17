@@ -229,9 +229,9 @@ export default function Game() {
     const reachUp = base.reachUp / fitZoom
     const reachDown = base.reachDown / fitZoom
     const plainFz = clampGameplayCameraFocus(playerPos.z, reachUp, reachDown, halfZ)
-    // Stage 6 only: near the ends the rendered camera eases out to show the school front / gate (null elsewhere,
-    // so fz === plainFz). Gameplay screenBounds below keep the plain clamp: spawns, tiers, culling unchanged.
-    const endReveal = getStageCameraEndReveal(currentStageId, { fov: camera.fov, fitZoom, focusZ: plainFz, playerZ: playerPos.z })
+    // Stage 6 only: near the ends the rendered camera travels on past the arena edge (same zoom) to show the
+    // school front / gate (null elsewhere, so fz === plainFz). Gameplay screenBounds keep the plain clamp.
+    const endReveal = getStageCameraEndReveal(currentStageId, { fov: camera.fov, fitZoom, halfZ, playerZ: playerPos.z })
     const cameraZoom = endReveal?.zoom ?? fitZoom
     const fz = endReveal?.focusZ ?? plainFz
     if (Math.abs((camera.zoom ?? 1) - cameraZoom) > 1e-3) {

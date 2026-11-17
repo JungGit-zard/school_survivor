@@ -261,11 +261,11 @@ describe('stage configuration registry', () => {
     expect(isStageUnlocked('stage6', { stage5BossDefeats: 1 })).toBe(true)
     expect(isStageUnlocked('stage6', { stage5Clears: 3 })).toBe(false)
     expect(getStageConfig('stage6')).toMatchObject({
-      title: '운동장 최후의 조회', bossType: 'B05', e04IntroSec: 8, mapHalfX: 12, mapHalfZ: 20,
+      title: '운동장 최후의 조회', bossType: 'B05', e04IntroSec: 8, mapHalfX: 8.5, mapHalfZ: 14,
       escapePortalSec: 210, matildaWarningSec: 205, matildaSec: 210, bossWarningSec: 150,
       description: '끝나지 않는 훈화 고리를 넘어, 열린 정문으로 탈출하세요.',
     })
-    expect(getStageBounds('stage6')).toEqual({ halfX: 12, halfZ: 20 })
+    expect(getStageBounds('stage6')).toEqual({ halfX: 8.5, halfZ: 14 }) // 2026-11-18 축소(옛 12 × 20)
     // 원본 표(관리자 골드 배율 적용 전). 앞선 테스트가 배율을 바꿔 둘 수 있어 STAGE_CONFIGS를 본다.
     expect(STAGE_CONFIGS.stage6.survivalMilestones.map((m) => m.gold)).toEqual([6, 8, 13, 22])
     expect(VISIBLE_STAGE_IDS).toContain('stage6')

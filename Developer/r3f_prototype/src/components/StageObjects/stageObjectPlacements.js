@@ -1008,13 +1008,14 @@ export function computeDefaultStageObjectPlacements(stageId = 'stage1') {
 
 // Stage 6 운동장 퀘스트 의뢰 학생 2명(2026-11-13). 쓰러진 학생은 BLOCKING_STAGE_OBJECT_TYPES 밖이라 콜라이더·시야
 // 장애물·스폰 장애물이 되지 않는다(골대 2개만 solid 그대로). 위치(월드 유닛, 1블록 = 4u):
-//   계주 선수 (8.0, −3.0) = (2.0, −0.75블록): 동쪽 트랙 위. 트랙 계주 스폰점(±9, −6/0/6)과 1u 이상 떨어진다.
-//   반장     (−7.6, −1.5) = (−1.9, −0.375블록): 서쪽 스탠드 앞. 매점 자판기(−10.5, 6)와 7.5u 떨어진다.
-// 둘 다 플레이어 이동 범위(|x| ≤ 10, |z| ≤ 18) 안이고 정문 앵커(0, 16.5)·보스 앵커(0, −17)와 겹치지 않는다.
+// 2026-11-18 경기장 축소(17 × 28u)로 옮김(옛 위치 (8.0, −3.0) · (−7.6, −1.5)):
+//   계주 선수 (5.6, −3.15) = (1.4, −0.7875블록): 동쪽 트랙 위. 트랙 계주 지점(±5.5, −4.2/0/+4.2, 둘째 바퀴 −2.1/2.1/6.3)과 1u 이상 떨어진다.
+//   반장     (−5.3, −1.05) = (−1.325, −0.2625블록): 서쪽 스탠드 앞(×0.7). 매점 자판기(−7.0, 4.2)와 5.5u 떨어진다.
+// 둘 다 플레이어 이동 범위(|x| ≤ 6.5, −10 ≤ z ≤ 13.2) 안이고 정문 앵커(0, 10.5)·보스 앵커(0, −11)와 겹치지 않는다.
 const EXPANSION_STAGE_STUDENTS = Object.freeze({
   stage6: Object.freeze([
-    Object.freeze({ id: 'stage6-student-relay-east', type: 'unconsciousStudent', position: [8.0, 0, -3.0], rotation: [0, 0, 0], scale: UNCONSCIOUS_STUDENT_PLAYER_SCALE, props: { variant: 'sideLeft' } }),
-    Object.freeze({ id: 'stage6-student-roll-west', type: 'unconsciousStudent', position: [-7.6, 0, -1.5], rotation: [0, 0, 0], scale: UNCONSCIOUS_STUDENT_PLAYER_SCALE, props: { variant: 'sideRight' } }),
+    Object.freeze({ id: 'stage6-student-relay-east', type: 'unconsciousStudent', position: [5.6, 0, -3.15], rotation: [0, 0, 0], scale: UNCONSCIOUS_STUDENT_PLAYER_SCALE, props: { variant: 'sideLeft' } }),
+    Object.freeze({ id: 'stage6-student-roll-west', type: 'unconsciousStudent', position: [-5.3, 0, -1.05], rotation: [0, 0, 0], scale: UNCONSCIOUS_STUDENT_PLAYER_SCALE, props: { variant: 'sideRight' } }),
   ]),
 })
 

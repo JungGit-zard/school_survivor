@@ -570,13 +570,14 @@ describe('E104 공굴리기 대장(치프, 스6)', () => {
   it('골대(장애물)에 막히면 공 길이 그 앞까지 줄어든다', () => {
     const obstacles = getStageObjectSightObstacles('stage6')
     expect(obstacles.length).toBeGreaterThan(0)
-    const ctx = setup(0, 8, { obstacles, obstacleCount: obstacles.length })
+    // 2026-11-18 경기장 축소: 골대는 z ±7.7(옛 ±11). 대장은 두 골대 사이 z 4에서 북쪽으로 찬다(맵 크기는 이 묶음의 가상 S6_BOUNDS).
+    const ctx = setup(0, 4, { obstacles, obstacleCount: obstacles.length })
     ctx.step({ x: 0, z: 30 }) // 머리말에 맵 크기·장애물을 넣는다(멀어서 굴리지 않는다)
-    const free = ctx.runtime.novel2._ballLaneLength(4, 8, 0, -1) // 골대 옆(x 4) — 막히지 않는다
-    const blocked = ctx.runtime.novel2._ballLaneLength(0, 8, 0, -1) // 북쪽 골대(z −11) 정면
+    const free = ctx.runtime.novel2._ballLaneLength(4, 4, 0, -1) // 골대 옆(x 4) — 막히지 않는다
+    const blocked = ctx.runtime.novel2._ballLaneLength(0, 4, 0, -1) // 북쪽 골대(z −7.7) 정면
     expect(free).toBeCloseTo(E104_BALL.maxLength, 5)
-    expect(blocked).toBeLessThan(8 + 11)
-    expect(blocked).toBeGreaterThan(8 + 11 - 2)
+    expect(blocked).toBeLessThan(4 + 7.7)
+    expect(blocked).toBeGreaterThan(4 + 7.7 - 2)
   })
 
   it('굴리는 중 대장이 죽으면 공은 피해 없이 사라진다', () => {

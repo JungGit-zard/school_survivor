@@ -79,9 +79,10 @@ describe('stage quest definitions', () => {
     const roll = getQuestTargetPosition('stage6', 'stage6-assembly-roll', getQuestDefinition('stage6-assembly-roll').itemTarget, placements)
     expect(baton.sourceId).toBe('exp_s6_goal_north')
     expect(roll.sourceId).toBe('exp_s6_goal_south')
-    // 골대 반폭 z 0.45 + 0.38 바깥: 북쪽은 z < −11.45, 남쪽은 z > 11.45. 플레이어 이동 범위 |z| ≤ 18 안.
-    expect(baton.position[2]).toBeLessThan(-11.45)
-    expect(roll.position[2]).toBeGreaterThan(11.45)
-    for (const { position } of [baton, roll]) expect(Math.abs(position[2])).toBeLessThanOrEqual(18)
+    // 2026-11-18 축소(골대 z ±7.7): 골대 반폭 z 0.45 + 0.38 바깥 — 북쪽은 z < −8.15, 남쪽은 z > 8.15. 플레이어 이동 범위(−10 ≤ z ≤ 13.2) 안.
+    expect(baton.position[2]).toBeLessThan(-8.15)
+    expect(roll.position[2]).toBeGreaterThan(8.15)
+    expect(baton.position[2]).toBeGreaterThanOrEqual(-10)
+    expect(roll.position[2]).toBeLessThanOrEqual(13.2)
   })
 })

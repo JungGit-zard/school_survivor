@@ -13,10 +13,10 @@ function sweep(fromSec, toSec, step = 1 / 60) {
 }
 
 describe('H06 데이터', () => {
-  it('조회대 스피커 원점 (0, −19), 30초 간격 30~120초, 고리 2개(0/0.8초), 피해 12, 플레이어 거리 반지름', () => {
+  it('조회대 스피커 원점 (0, −13)(2026-11-18 축소 전 (0, −19)), 30초 간격 30~120초, 고리 2개(0/0.8초), 피해 12, 플레이어 거리 반지름', () => {
     expect(getExpansionStageHazards('stage6').map((h) => h.id)).toEqual(['H06'])
     expect(getExpansionStageHazards('stage7')).toEqual([])
-    expect(H06).toMatchObject({ originUnits: [0, -19], firstSec: 30, intervalSec: 30, endExclusiveSec: 150, ringDelaysMs: [0, 800], preCueLeadMs: 1000, retryMs: 250, maxRetries: 4 })
+    expect(H06).toMatchObject({ originUnits: [0, -13], firstSec: 30, intervalSec: 30, endExclusiveSec: 150, ringDelaysMs: [0, 800], preCueLeadMs: 1000, retryMs: 250, maxRetries: 4 })
     expect(H06.pattern).toMatchObject({ shape: 'annulus', windupMs: 1600, activeMs: 350, recoveryMs: 600, widthUnits: 1.2, damage: 9,
       radiusMode: 'player_distance', radiusPaddingUnits: 0.6, minRangeUnits: 2, maxRangeUnits: 40, ignoresSightBlockers: true, maxHitsPerTarget: 1 })
   })
@@ -77,19 +77,19 @@ describe('advanceAssemblySpeech', () => {
 })
 
 describe('emitAssemblySpeechRing — 2번째 고리는 동심 물결(wave 4)', () => {
-  const ctx = { gameKey: 7, playerX: 0, playerZ: 0, stageId: 'stage6', halfX: 12, halfZ: 20 }
+  const ctx = { gameKey: 7, playerX: 0, playerZ: 0, stageId: 'stage6', halfX: 8.5, halfZ: 14 }
 
-  it('1번째 고리는 플레이어를 지나고(외반경 19.6), 2번째 고리는 같은 원점에서 +1.8u(21.4) — 플레이어가 1번째 띠 위에 서 있어도 건너뛰지 않는다', () => {
+  it('1번째 고리는 플레이어를 지나고(외반경 13.6), 2번째 고리는 같은 원점에서 +1.8u(15.4) — 플레이어가 1번째 띠 위에 서 있어도 건너뛰지 않는다', () => {
     clearExpansionAttacks()
     expect(H06.followUpRingOffsetUnits).toBe(1.8)
     const state = createAssemblySpeechState(7)
     const ring1 = emitAssemblySpeechRing(state, H06, { cycle: 0, ring: 0 }, ctx)
-    expect(ring1.rangeUnits).toBeCloseTo(19.6, 9)
-    expect(ring1.originXZ).toEqual([0, -19])
+    expect(ring1.rangeUnits).toBeCloseTo(13.6, 9)
+    expect(ring1.originXZ).toEqual([0, -13])
     const ring2 = emitAssemblySpeechRing(state, H06, { cycle: 0, ring: 1 }, ctx)
     expect(ring2).not.toBeNull()
-    expect(ring2.rangeUnits).toBeCloseTo(21.4, 9)
-    expect(ring2.originXZ).toEqual([0, -19])
+    expect(ring2.rangeUnits).toBeCloseTo(15.4, 9)
+    expect(ring2.originXZ).toEqual([0, -13])
     // 2번째 고리는 플레이어를 다시 겨누지 않는다 — 지금 자리(1번째 띠)는 2번째 띠 밖이다.
     expect(expansionAttackContains(ring2, 0, 0)).toBe(false)
     expect(expansionAttackContains(ring2, 0, 1.8)).toBe(true)
@@ -100,7 +100,7 @@ describe('emitAssemblySpeechRing — 2번째 고리는 동심 물결(wave 4)', (
     clearExpansionAttacks()
     const state = createAssemblySpeechState(7)
     const ring2 = emitAssemblySpeechRing(state, H06, { cycle: 3, ring: 1 }, ctx)
-    expect(ring2.rangeUnits).toBeCloseTo(19.6, 9)
+    expect(ring2.rangeUnits).toBeCloseTo(13.6, 9)
     clearExpansionAttacks()
   })
 })

@@ -348,7 +348,7 @@ function spawnPosOnValidRing(type, bounds, minRadius, maxRadius, taken = [], ran
 
 export function randomSpawnPos(type, bounds, taken = [], random = Math.random, obstacles = [], scaleOverride) {
   const stageId=useGameStore.getState().currentStageId
-  if(isExpansionStage(stageId)) return expansionSpawnPosition(type,stageId,playerPos,bounds,taken,obstacles,random,scaleOverride??ENEMY_STATS[type]?.scale)
+  if(isExpansionStage(stageId)) return expansionSpawnPosition(type,stageId,playerPos,bounds,taken,obstacles,random,scaleOverride??ENEMY_STATS[type]?.scale,screenBounds)
   return spawnPosOnValidRing(type, bounds, SPAWN_MIN_RADIUS, SPAWN_MAX_RADIUS, taken, random, obstacles, scaleOverride)
 }
 
@@ -1443,7 +1443,7 @@ export function buildExpansionBurstBatch(cache,evt,counts,random=Math.random) {
     const authoredType=evt.mixedTypes?evt.mixedTypes[index%evt.mixedTypes.length]:evt.type
     // 형태 없는 정규 행만 로스터 순환을 탄다. 보스·코인은 host가 아니라 그대로다.
     const type=evt.formation?rotateFormationSpawnType(cache,authoredType):rotateRegularSpawnType(cache,authoredType)
-    const pos=expansionSpawnPosition(type,cache.id,playerPos,cache.bounds,taken,cache.obstacles,random,ENEMY_STATS[type]?.scale)
+    const pos=expansionSpawnPosition(type,cache.id,playerPos,cache.bounds,taken,cache.obstacles,random,ENEMY_STATS[type]?.scale,screenBounds)
     if(!pos)continue
     taken.push(pos)
     batch.push({id:++_uid,type,pos,statOverride:stageHpOverride(type,cache.id)})

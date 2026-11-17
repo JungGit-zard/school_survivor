@@ -4,8 +4,9 @@ import { EXPANSION_STAGES } from '../../lib/expansionContent.js'
 import { getCachedToonMat, getCachedOutlineMat, inflateScale } from '../../lib/toon.js'
 import { getExpansionGeometry } from './expansionRig.js'
 import { captureStudioPartBaseTransforms, composeStudioPartPosition, composeStudioPartRotation, disposeStudioOwnedMaterials } from '../StudioTunedGroup.jsx'
-import { createSchoolyardProps, animateSchoolyardProps, disposeSchoolyardProps } from './schoolyardProps.js'
+import { createSchoolyardProps, animateSchoolyardProps, disposeSchoolyardProps, getSchoolyardStandHalf, getSchoolyardJungleGymAnchor, getSchoolyardGateHalf, getSchoolyardFenceSpan, SCHOOLYARD_FENCE } from './schoolyardProps.js'
 import { getSchoolyardDressingLayout, schoolyardDressingFootprint, disposeSchoolyardDressing } from './schoolyardDressing.js'
+import { createSchoolyardGround, disposeSchoolyardGround } from './schoolyardGround.js'
 
 // Static scenery is geometry/material batched. It is decoration, not a second
 // collider registry: every raised prop footprint is outside the playable bounds.
@@ -273,69 +274,19 @@ function createSchoolyardEnvironment(stageId,art,{halfX,halfZ}) {
  const records=[],bounds=[]
  const add=(name,shape,size,p,color,r=[0,0,0],emissive=.06,outline=true)=>records.push({name,shape,size,p,color,r,emissive,outline})
  const box=(n,s,p,c,r)=>add(n,'box',s,p,c,r)
- const paint=(n,s,p,c,r)=>add(n,'box',s,p,c,r,.04,false)
- const line=(n,s,p,c,r)=>add(n,'tile',s,p,c,r,.04,false) // thin top-only ground paint
  const ring=(n,s,p,c,r)=>add(n,'ring',s,p,c,r)
  const claim=(x,z,hx,hz)=>bounds.push({minX:x-hx,maxX:x+hx,minZ:z-hz,maxZ:z+hz})
- // track: muted blue-grey urethane (2026-11-17). Picked in the browser with real telegraphs on it: the yellow
- // cue reads at ΔE 26.5 here vs 13.3 on the sand, the red fan/E104 lane at 35.1/33.2 vs 33.5/33.5.
- const C={track:'#6F8496',sandPit:'#CDBB98',path:'#CFC7B8',line:'#F7F4EA',grass:'#7DBF68',wall:'#EFE3C6',window:'#7FB7D9',door:'#6B4F3A',stone:'#B9B2A6',cap:'#8C8478',podium:'#A7A9AC',wood:'#7A5A3C',steel:'#8C9399',horn:'#E8E8E8',pole:'#C9CDD1',leaf:'#5DAA4F',bars:'#4C7FB8',gate:'#3E6B4E',plate:'#F2E6C9',goal:'#FFFFFF',net:'#DADDE0',netFace:'#C8CDD2',
+ // Ground colours live in schoolyardGround.js (textured surfaces); C keeps the prop palette.
+ const C={line:'#F7F4EA',grass:'#7DBF68',wall:'#EFE3C6',window:'#7FB7D9',door:'#6B4F3A',stone:'#B9B2A6',cap:'#8C8478',podium:'#A7A9AC',wood:'#7A5A3C',steel:'#8C9399',horn:'#E8E8E8',pole:'#C9CDD1',leaf:'#5DAA4F',bars:'#4C7FB8',gate:'#3E6B4E',plate:'#F2E6C9',goal:'#FFFFFF',net:'#DADDE0',netFace:'#C8CDD2',
   // hand-built props (schoolyardProps.js)
   goalBase:'#C9CDD1',netStrand:'#F4F6F8',rail:'#F7F4EA',woodLight:'#A57A4F',mic:'#2B2B2B',paBox:'#D9D4C7',hornMouth:'#3A3F45',rope:'#FFFDF5',
   gymPost:'#E04B4B',gymX:'#F2C94C',gymZ:'#4C7FB8',seatA:'#2F5FA8',seatB:'#F2C94C'}
 
- // ── Ground: sand slab, grass beyond the side and top edges (flat paint, no hulls). The grass reaches
- // well past anything the Stage 6 camera end reveal can frame, so no slab edge ever shows. ──
- paint('arena-slab',[halfX*2,.30,halfZ*2],[0,-.17,0],art.floor)
- for(const side of [-1,1])paint('outfield-grass',[14,.30,halfZ*2+28],[side*(halfX+7),-.172,0],C.grass)
- paint('outfield-grass',[halfX*2+28,.30,14],[0,-.172,-halfZ-7],C.grass)
- paint('outfield-grass',[halfX*2+28,.30,14],[0,-.172,halfZ+7],C.grass)
- // Paved walk out of the main gate (seen past the fence at the bottom end).
- line('gate-path',[3.4,.012,7],[0,-.0215,halfZ+4.1],C.path)
- for(const side of [-1,1])line('gate-path-kerb',[.14,.012,7],[side*1.77,-.021,halfZ+4.1],C.line)
-
- // ── Running track: 4 lanes — two straights + two 24-segment half circles, white edge and lane lines ──
- const R=halfX-3,band=2,lanes=4,zc=halfZ-R-1.3,segs=24,arc=rr=>rr*Math.PI/segs*1.08
- for(const side of [-1,1])line('track-straight',[band,.012,zc*2],[side*R,-.004,0],C.track)
- for(const end of [-1,1])for(let i=0;i<segs;i++) {
-   const phi=(i+.5)*Math.PI/segs
-   line('track-curve',[band,.012,arc(R+band/2)],[R*Math.cos(phi),-.004,end*(zc+R*Math.sin(phi))],C.track,[0,end<0?phi:-phi,0])
- }
- for(let lane=0;lane<=lanes;lane++) {
-   const rr=R-band/2+lane*band/lanes
-   for(const end of [-1,1])for(let i=0;i<segs;i++) {
-     const phi=(i+.5)*Math.PI/segs
-     line('track-line',[.07,.012,arc(rr)],[rr*Math.cos(phi),-.002,end*(zc+rr*Math.sin(phi))],C.line,[0,end<0?phi:-phi,0])
-   }
-   for(const side of [-1,1])line('track-line',[.07,.012,zc*2],[side*rr,-.002,0],C.line)
- }
- // ── Soccer pitch lines: touchlines, goal lines, halfway line, centre circle + spot, penalty and goal boxes ──
+ // ── Ground (2026-11-17 v3): every visible surface is a textured mesh from schoolyardGround.js (dirt surround,
+ // athletics track + kerb, striped turf pitch, sand pit / goalmouths, paved gate walk, grass outfield, white
+ // markings and lane numbers), built from the arena size and the goal data and appended as root slot 5 below.
+ // The old flat-paint ground batches keep their slots as empty retired groups (Studio part paths).
  const goals=(EXPANSION_STAGES[stageId]?.layout?.obstacles??[])
- const touchX=R-band/2-.4,goalLineZ=goals.length?Math.min(...goals.map(g=>Math.abs(g.zUnits)-g.halfZUnits)):zc
- for(const side of [-1,1]) {
-   line('pitch-touchline',[.08,.012,goalLineZ*2],[side*touchX,-.003,0],C.line)
-   line('pitch-goal-line',[touchX*2+.08,.012,.08],[0,-.003,side*goalLineZ],C.line)
- }
- line('pitch-halfway-line',[touchX*2,.012,.08],[0,-.003,0],C.line)
- for(let i=0;i<24;i++){const a=(i+.5)*Math.PI*2/24;line('pitch-centre-circle',[.08,.012,2.5*Math.PI*2/24*1.05],[2.5*Math.cos(a),-.003,2.5*Math.sin(a)],C.line,[0,-a,0])}
- line('pitch-centre-spot',[.2,.012,.2],[0,-.003,0],C.line)
- for(const goal of goals) {
-   const f=goal.zUnits<0?1:-1,front=goal.zUnits+f*goal.halfZUnits
-   line('pitch-penalty-box',[6,.012,.08],[goal.xUnits,-.003,front+f*3],C.line)
-   for(const side of [-1,1])line('pitch-penalty-box',[.08,.012,3],[goal.xUnits+side*3,-.003,front+f*1.5],C.line)
-   line('pitch-goal-box',[3.6,.012,.08],[goal.xUnits,-.003,front+f*1.1],C.line)
-   for(const side of [-1,1])line('pitch-goal-box',[.08,.012,1.1],[goal.xUnits+side*1.8,-.003,front+f*.55],C.line)
-   line('pitch-penalty-spot',[.18,.012,.18],[goal.xUnits,-.003,front+f*2.2],C.line)
- }
- // ── Long-jump pit beside the right straight: damp sand, white border, take-off board and runway lines ──
- {
-   const px=R+band/2+1,pz0=1.8,pz1=5.6,pw=1.2
-   line('long-jump-pit',[pw,.012,pz1-pz0],[px,-.0035,(pz0+pz1)/2],C.sandPit)
-   for(const side of [-1,1])line('long-jump-pit-line',[.06,.012,pz1-pz0],[px+side*pw/2,-.002,(pz0+pz1)/2],C.line)
-   line('long-jump-pit-line',[pw,.012,.06],[px,-.002,pz1],C.line)
-   line('long-jump-board',[pw,.012,.16],[px,-.002,pz0-.5],C.line)
-   for(const side of [-1,1])line('long-jump-runway',[.05,.012,6],[px+side*pw/2,-.002,pz0-3.6],C.line)
- }
 
  // ── Soccer goals = the solid layout obstacles; schoolyardProps.js draws them inside their collider rectangles ──
  const obstacleVisualIds=goals.map(goal=>goal.id)
@@ -349,25 +300,25 @@ function createSchoolyardEnvironment(stageId,art,{halfX,halfZ}) {
  // Assembly podium, PA horn poles and flagpoles are hand-built in schoolyardProps.js; the claims
  // (decoration footprints) stay exactly where the old box versions were.
  claim(0,-halfZ-1.8,3,1.2)
- for(const side of [-1,1])claim(side*3.4,-halfZ-1.2,.35,.35)
- for(const fx of [-6.5,-8.0,-9.5])claim(fx,-halfZ-1.5,.6,.2)
+ for(const side of [-1,1])claim(side*getSchoolyardGateHalf(halfX),-halfZ-1.2,.35,.35)
+ for(const fx of [-6.5,-8.0,-9.5])claim(fx*halfX/12,-halfZ-1.5,.6,.2)
 
  // ── Sides: bleachers (schoolyardProps.js) and the plane-tree spots (pack trees, schoolyardDressing.js);
  // bottom-right jungle gym ──
  for(const side of [-1,1]) {
-   claim(side*(halfX+2.75),0,1.25,12)
+   claim(side*(halfX+2.75),0,1.25,getSchoolyardStandHalf(halfZ))
    for(const tz of [-15,-5,5,15])claim(side*(halfX+5),tz,1.2,1.2)
  }
- claim(halfX+2.5,halfZ-4,.8,.8)
+ {const [gx,gz]=getSchoolyardJungleGymAnchor(halfX,halfZ);claim(gx,gz,.8,.8)}
 
  // ── Bottom (+Z): gate pillars + fence (pack, schoolyardDressing.js), our name plate on the left pillar
  // (the sliding leaves are built below) ──
  const gateZ=halfZ+.6
  for(const side of [-1,1]) {
-   claim(side*3.4,gateZ,.55,.55)
-   claim(side*10.25,gateZ,5.75,.1)
+   claim(side*getSchoolyardGateHalf(halfX),gateZ,.55,.55)
+   {const [f0,f1]=getSchoolyardFenceSpan(halfX);claim(side*(f0+f1)/2,halfZ+SCHOOLYARD_FENCE.dz,(f1-f0)/2,.1)}
  }
- box('school-name-plate',[.7,.9,.05],[-3.4,2.0,gateZ+.48],C.plate)
+ box('school-name-plate',[.7,.6,.05],[-getSchoolyardGateHalf(halfX),.62,halfZ+SCHOOLYARD_FENCE.dz+.47],C.plate)
  // Free-pack dressing footprints (decoration only, all beyond the playable edges).
  for(const item of getSchoolyardDressingLayout({halfX,halfZ})){const b=schoolyardDressingFootprint(item);bounds.push(b)}
 
@@ -413,6 +364,12 @@ function createSchoolyardEnvironment(stageId,art,{halfX,halfZ}) {
  // is loaded (ExpansionStageEnvironment → attachSchoolyardDressing); until then the slot is empty.
  const dressing=new THREE.Group();dressing.name='schoolyard-pack-dressing';dressing.userData.bounds={halfX,halfZ};root.add(dressing)
  root.userData.schoolyardDressingSlot=dressing
+ // Textured ground: root child 5 (appended after the dressing slot).
+ const lanePts=EXPANSION_STAGES[stageId]?.layout?.trackLanePointsUnits
+ const trackX=Array.isArray(lanePts)&&lanePts.length?Math.max(...lanePts.map(p=>Math.abs(p[0]))):null
+ const ground=createSchoolyardGround({halfX,halfZ,goals,trackX});root.add(ground)
+ root.userData.schoolyardGround=ground
+ root.userData.staticPartCount=records.length+ground.userData.pieces
  root.userData.obstacleVisualIds=obstacleVisualIds;root.userData.gateLeaves=leaves;root.userData.gateOpenness=0
  captureStudioPartBaseTransforms(root)
  return root
@@ -458,6 +415,7 @@ export function disposeExpansionEnvironment(root) {
  disposeStudioOwnedMaterials(root)
  if(root?.userData.schoolyardProps)disposeSchoolyardProps(root.userData.schoolyardProps)
  if(root?.userData.schoolyardDressingSlot)disposeSchoolyardDressing(root.userData.schoolyardDressingSlot)
+ if(root?.userData.schoolyardGround)disposeSchoolyardGround(root.userData.schoolyardGround)
  root?.traverse(node=>{if(node.isInstancedMesh)node.dispose()})
  // Shared unit geometry/cached materials are not disposed on floor switches.
 }

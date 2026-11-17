@@ -341,7 +341,9 @@ export function updateScreenBounds(stageId, halfX, halfZ) {
   const reachUp = base.reachUp / fitZoom
   const reachDown = base.reachDown / fitZoom
   const fz = clampGameplayCameraFocus(playerPos.z, reachUp, reachDown, halfZ)
-  const mapFocusX = clampGameplayCameraFocus(playerPos.x, reachSide, reachSide, halfX)
+  // Game.jsx와 같다: 확장 스테이지(6~10)는 가로 클램프 없이 플레이어 x를 따른다(2026-11-18 Stage 6 축소 때 맞춤 —
+  // 그전에는 프로브만 클램프해 |x| > 반폭 − 4.21u에서 화면 사각형이 실제와 달랐다).
+  const mapFocusX = isExpansionStage(stageId) ? playerPos.x : clampGameplayCameraFocus(playerPos.x, reachSide, reachSide, halfX)
   const fx = keepPlayerInsideCameraX({
     focusX: mapFocusX,
     focusZ: fz,

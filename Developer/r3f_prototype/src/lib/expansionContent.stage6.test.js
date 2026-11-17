@@ -6,6 +6,12 @@ import { ENEMY_TYPE_CODES } from './enemyEntityPool.js'
 import { getBurstEventsForStage, isBossType } from './burstEvents.js'
 import { isChiefType } from './stageChiefContent.js'
 import { NOVEL2_ZOMBIE_STATS } from './novelZombie2Content.js'
+import { getStageBounds } from './stageConfig.js'
+import { getPlayerMovementBounds } from './playerMovementBounds.js'
+import { getPortalPlacementBounds } from './portalPlacement.js'
+import { getStageVendingPlacement } from './stageVending.js'
+import { TRACK_LANE_POINTS, TRACK_LANE_SECOND_LAP_Z_OFFSET } from './expansionSpawns.js'
+import { getStageObjectPlacements } from '../components/StageObjects/stageObjectPlacements.js'
 
 const S6 = EXPANSION_STAGES.stage6
 // 2026-11-14 블록 좀비(같은 hp 맞교환): E79·E71 = E01(8 → 20), E73 = E04(32 → 80), E76 = E05(70 → 174).
@@ -17,11 +23,11 @@ const S6_HP = { E19: 30, E20: 64, E21: 36, E01: 20, E02: 174, E04: 80, E05: 174,
   E87: 20, E78: 20, E83: 25, E70: 25, E80: 25, E88: 25, E72: 40, E55: 174, E106: 30 }
 
 describe('stage6 운동장 — 같은 id·기록 키·typeCode, 내용만 교체', () => {
-  it('정체·경계 12×20·e04 8초·오버타임 240초·1부 데이터', () => {
+  it('정체·경계 8.5×14(2026-11-18 축소, 옛 12×20)·e04 8초·오버타임 240초·1부 데이터', () => {
     expect(S6).toMatchObject({
       id: 'stage6', order: 6, nameKo: '운동장 최후의 조회', themeKey: 'schoolyard', bossId: 'B05', enemyIds: ['E19', 'E20', 'E21'],
       durationSec: 240, bossSec: 150, portalSec: 210, matildaWarningSec: 205, matildaSec: 210,
-      mapHalfXUnits: 12, mapHalfXBlocks: 3, mapHalfZUnits: 20, mapHalfZBlocks: 5, e04IntroSec: 8,
+      mapHalfXUnits: 8.5, mapHalfXBlocks: 2.125, mapHalfZUnits: 14, mapHalfZBlocks: 3.5, e04IntroSec: 8,
       clearRecordKey: 'stage6Clears', bestRecordKey: 'stage6BestSurvivalSec', newEnemyHpMode: 'absolute', scoreStageBonus: 300,
       descriptionKo: '끝나지 않는 훈화 고리를 넘어, 열린 정문으로 탈출하세요.',
     })
@@ -29,14 +35,14 @@ describe('stage6 운동장 — 같은 id·기록 키·typeCode, 내용만 교체
     expect(S6.overtime).toMatchObject({ startSec: 240, intervalSec: 30, count: 30, mixedTypes: ['E19', 'E20', 'E21'] })
     expect(S6.milestones.map((m) => [m.sec, m.gold])).toEqual([[48, 6], [144, 8], [192, 13], [240, 22]])
     expect(S6.spawnPolicy).toMatchObject({ minDistanceUnits: 8.5, maxDistanceUnits: 12.5, maxAttempts: 24, bossSpawnDistanceUnits: 6 })
-    expect(S6.layout).toMatchObject({ layoutId: 'expansion_schoolyard', portalMode: 'anchor', portalAnchorUnits: [0, 0, 16.5], bossAnchorUnits: [0, 0, -17], speechOriginUnits: [0, -19] })
+    expect(S6.layout).toMatchObject({ layoutId: 'expansion_schoolyard', portalMode: 'anchor', portalAnchorUnits: [0, 0, 10.5], bossAnchorUnits: [0, 0, -11], speechOriginUnits: [0, -13] })
     expect(S6.layout.obstacles.map((o) => [o.id, o.xUnits, o.zUnits, o.halfXUnits, o.halfZUnits]))
-      .toEqual([['exp_s6_goal_north', 0, -11, 1.6, 0.45], ['exp_s6_goal_south', 0, 11, 1.6, 0.45]])
+      .toEqual([['exp_s6_goal_north', 0, -7.7, 1.6, 0.45], ['exp_s6_goal_south', 0, 7.7, 1.6, 0.45]])
   })
 
   it('getExpansionStageConfig: 설명·마일스톤 라벨·고정 정문 앵커', () => {
     const config = getExpansionStageConfig('stage6')
-    expect(config).toMatchObject({ title: '운동장 최후의 조회', description: S6.descriptionKo, mapHalfX: 12, mapHalfZ: 20, e04IntroSec: 8, portalAnchor: { x: 0, z: 16.5, fixed: true } })
+    expect(config).toMatchObject({ title: '운동장 최후의 조회', description: S6.descriptionKo, mapHalfX: 8.5, mapHalfZ: 14, e04IntroSec: 8, portalAnchor: { x: 0, z: 10.5, fixed: true } })
     expect(config.survivalMilestones.map((m) => m.label)).toEqual(['운동장 진입 보너스', '조회 버티기 보너스', '교장 조우 보너스', '정문 탈출 보너스'])
     // stage7~10은 필드가 없어 기존 결과 그대로(무작위 포탈, 공통 설명·라벨).
     const s7 = getExpansionStageConfig('stage7')
@@ -148,6 +154,80 @@ describe('stage6 운동장 — 같은 id·기록 키·typeCode, 내용만 교체
       .toEqual([['B06', 4, 300], ['B07', 4, 300], ['B08', 4, 300], ['B09', 4, 300]])
     expect(EXPANSION_ENEMIES.E22.stageId).toBe('stage7')
     expect(EXPANSION_BOSSES.B06.hp).toBe(2000)
+  })
+})
+
+// 2026-11-18 Terry "운동장 맵 30% 축소": 선형 ×0.7 → 24 × 40u(6 × 10블록)를 17 × 28u(4.25 × 7블록)로. 경기장 크기 정본은
+// stage6.mapHalf*Units 하나이고, 게임 좌표(골대 콜라이더·포탈·보스·훈화 원점·트랙 계주 지점·매점·퀘스트 학생)는 전부 그 안이다.
+describe('stage6 축소 경기장 17 × 28u — 모든 게임 좌표가 안에 있다', () => {
+  const B = getStageBounds('stage6')
+  const move = getPlayerMovementBounds('stage6')
+  const goals = S6.layout.obstacles
+  const inArena = ([x, z], pad = 0) => Math.abs(x) <= B.halfX - pad && Math.abs(z) <= B.halfZ - pad
+  const inGoal = ([x, z], pad = 0) => goals.some((g) => Math.abs(x - g.xUnits) < g.halfXUnits + pad && Math.abs(z - g.zUnits) < g.halfZUnits + pad)
+
+  it('크기 = 반폭 8.5u(2.125블록) × 반길이 14u(3.5블록), 단위·블록 둘이 맞는다(1블록 = 4u)', () => {
+    expect(B).toEqual({ halfX: 8.5, halfZ: 14 })
+    expect([B.halfX * 2, B.halfZ * 2]).toEqual([17, 28])
+    expect(S6.mapHalfXBlocks * 4).toBe(S6.mapHalfXUnits)
+    expect(S6.mapHalfZBlocks * 4).toBe(S6.mapHalfZUnits)
+    expect(move).toEqual({ minX: -6.5, maxX: 6.5, minZ: -10, maxZ: 13.2 })
+    for (const g of goals) {
+      expect([g.xBlocks * 4, g.zBlocks * 4, g.halfXBlocks * 4, g.halfZBlocks * 4]).toEqual([g.xUnits, g.zUnits, g.halfXUnits, g.halfZUnits])
+    }
+    expect(S6.layout.trackLanePointsBlocks.map(([x, z]) => [x * 4, z * 4])).toEqual(S6.layout.trackLanePointsUnits)
+    expect(S6.layout.portalAnchorBlocks.map((v) => v * 4)).toEqual(S6.layout.portalAnchorUnits)
+    expect(S6.layout.bossAnchorBlocks.map((v) => v * 4)).toEqual(S6.layout.bossAnchorUnits)
+    expect(S6.layout.speechOriginBlocks.map((v) => v * 4)).toEqual(S6.layout.speechOriginUnits)
+  })
+
+  it('골대 콜라이더 전체가 경기장 안, 플레이어가 골대 둘레를 돌아갈 통로(각 옆 ≥ 4u)가 있다', () => {
+    for (const g of goals) {
+      expect(inArena([g.xUnits + g.halfXUnits, g.zUnits + g.halfZUnits])).toBe(true)
+      expect(inArena([g.xUnits - g.halfXUnits, g.zUnits - g.halfZUnits])).toBe(true)
+      expect(move.maxX - (g.xUnits + g.halfXUnits)).toBeGreaterThanOrEqual(4)
+      expect((g.xUnits - g.halfXUnits) - move.minX).toBeGreaterThanOrEqual(4)
+    }
+  })
+
+  it('포탈·보스·훈화 원점은 경기장 안, 골대 밖; 포탈은 포탈 배치 범위 안, 훈화 원점은 H06과 같은 점', () => {
+    const portal = [S6.layout.portalAnchorUnits[0], S6.layout.portalAnchorUnits[2]]
+    const boss = [S6.layout.bossAnchorUnits[0], S6.layout.bossAnchorUnits[2]]
+    const bossRadius = 0.28 * EXPANSION_BOSSES.B05.scale * 4 / 3
+    const pb = getPortalPlacementBounds('stage6')
+    expect(portal[1]).toBeLessThanOrEqual(pb.maxZ)
+    expect(inArena(portal)).toBe(true)
+    expect(inGoal(portal, 0.5)).toBe(false)
+    expect(inArena(boss, bossRadius)).toBe(true)
+    expect(inGoal(boss, bossRadius)).toBe(false)
+    expect(inArena(S6.layout.speechOriginUnits)).toBe(true)
+    expect(EXPANSION_HAZARDS.H06.originUnits).toEqual(S6.layout.speechOriginUnits)
+    expect(EXPANSION_HAZARDS.H06.originBlocks).toEqual(S6.layout.speechOriginBlocks)
+    // 조회대 쪽 끝·정문 쪽 끝과의 관계는 축소 전과 같다(보스 끝−3, 훈화 끝−1, 포탈 끝−3.5).
+    expect([boss[1] + B.halfZ, S6.layout.speechOriginUnits[1] + B.halfZ, B.halfZ - portal[1]]).toEqual([3, 1, 3.5])
+  })
+
+  it('트랙 계주 지점(두 바퀴 12점)은 경기장 안·골대 밖, 몸 반경까지 들어간다', () => {
+    const r = 0.25 * EXPANSION_ENEMIES.E21.scale * 4 / 3
+    expect(TRACK_LANE_POINTS).toEqual(S6.layout.trackLanePointsUnits)
+    const all = [...TRACK_LANE_POINTS, ...TRACK_LANE_POINTS.map(([x, z]) => [x, z + TRACK_LANE_SECOND_LAP_Z_OFFSET])]
+    for (const p of all) {
+      expect(inArena(p, r), JSON.stringify(p)).toBe(true)
+      expect(inGoal(p, r), JSON.stringify(p)).toBe(false)
+    }
+  })
+
+  it('매점·퀘스트 학생은 경기장 안, 학생은 플레이어 이동 범위 안', () => {
+    const vend = getStageVendingPlacement('stage6').position
+    expect(inArena([vend.x, vend.z])).toBe(true)
+    // 매점은 플레이어 최소 x에서 0.5u 밖(예전과 같은 관계), 상호작용 반경 2.25u 안.
+    expect(move.minX - vend.x).toBeCloseTo(0.5, 9)
+    const students = getStageObjectPlacements('stage6').filter((p) => p.type === 'unconsciousStudent')
+    expect(students).toHaveLength(2)
+    for (const { position: [x, , z] } of students) {
+      expect(x >= move.minX && x <= move.maxX && z >= move.minZ && z <= move.maxZ).toBe(true)
+      expect(inGoal([x, z], 0.5)).toBe(false)
+    }
   })
 })
 
