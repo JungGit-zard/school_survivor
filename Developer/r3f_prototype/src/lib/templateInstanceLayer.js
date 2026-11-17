@@ -33,9 +33,14 @@ function isVisibleUnder(object, root) {
 }
 
 // 이번에 실제로 그리는 앞부분(count개)만 GPU로 올린다(전체 용량을 매 프레임 올리지 않음).
+// three 0.164 addUpdateRange는 부를 때마다 범위 객체를 새로 만든다 → 속성마다 범위 객체 1개를 다시 쓴다(매 프레임 할당 0).
+const _uploadRanges = new WeakMap()
 export function markInstanceUpload(attribute, count, itemSize) {
+  let range = _uploadRanges.get(attribute)
+  if (!range) { range = { start: 0, count: 0 }; _uploadRanges.set(attribute, range) }
+  range.count = Math.max(0, count) * itemSize
   attribute.clearUpdateRanges()
-  attribute.addUpdateRange(0, Math.max(0, count) * itemSize)
+  attribute.updateRanges.push(range)
   attribute.needsUpdate = true
 }
 
@@ -208,6 +213,7 @@ export function createTemplateInstanceLayer(initialCapacity = 16, name = 'templa
       _base.toArray(bases, slot * 16)
       if (parts.length === 0) return
       writeSlot(slot)
+      // 범위 표시는 속성마다 같은 범위 객체를 다시 쓴다(markInstanceUpload) — 물체 N개 × 파츠 M개를 불러도 할당 0.
       const count = highest + 1
       for (let k = 0; k < parts.length; k += 1) markInstanceUpload(parts[k].mesh.instanceMatrix, count, 16)
     },

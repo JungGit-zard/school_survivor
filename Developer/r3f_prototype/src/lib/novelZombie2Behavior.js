@@ -1586,7 +1586,7 @@ export class Novel2Runtime {
     const T = E92_TRAIN
     let state = pool.state[index]
     if (state !== N2_STATE_TELEGRAPH && state !== N2_STATE_ATTACK && state !== N2_STATE_RECOVER) state = N2_STATE_APPROACH
-    const lineKey = `${TRAIN_LINE_KEY_PREFIX}${index}:${pool.generation[index]}`
+    const lineKey = this._trainLineKey(pool, index)
     if (state === N2_STATE_TELEGRAPH) {
       out.noContact = true
       out.preserveFacing = true
@@ -1691,7 +1691,19 @@ export class Novel2Runtime {
 
   /** 돌진 취소(막혔거나 선을 벗어나려 했다): 피해 없이 예고선을 지우고 회복 상태로. 순간이동하지 않는다. */
   cancelTrainCharge(pool, index) {
-    this._endTrainCharge(pool, index, `${TRAIN_LINE_KEY_PREFIX}${index}:${pool.generation[index]}`, this._cancelScratch ??= createNovel2Result())
+    this._endTrainCharge(pool, index, this._trainLineKey(pool, index), this._cancelScratch ??= createNovel2Result())
+  }
+
+  // E92 예고선 키(슬롯·세대마다 한 번만 만든다 — 매 프레임 E92마다 문자열을 새로 만들지 않는다). 값은 예전 템플릿과 같다.
+  _trainLineKey(pool, index) {
+    const generation = pool.generation[index]
+    const keys = this._trainKeys ??= []
+    const generations = this._trainKeyGenerations ??= []
+    if (keys[index] === undefined || generations[index] !== generation) {
+      keys[index] = `${TRAIN_LINE_KEY_PREFIX}${index}:${generation}`
+      generations[index] = generation
+    }
+    return keys[index]
   }
 
   _endTrainCharge(pool, index, lineKey, out) {

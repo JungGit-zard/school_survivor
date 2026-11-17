@@ -74,7 +74,62 @@ export function clonePlayerV9Scene(scene, gameplay, outfit = 'default') {
   // Per-clone materials only; the default outfit is a no-op.
   applyPlayerV9Outfit(cloned, outfit)
   addPlayerV9Outlines(cloned, gameplay ? PLAYER_OUTLINE_THICKNESS : PLAYER_OUTLINE_THICKNESS_PREVIEW)
+  // 이 복제가 새로 만든 재질(표면 툰 재질·외곽선 재질)과 외곽선 헐 지오메트리. 해제용 목록이다.
+  // 원본 GLB 지오메트리·텍스처는 모든 복제가 공유하므로 넣지 않는다.
+  const materials = new Set()
+  const geometries = new Set()
+  cloned.traverse((object) => {
+    if (!object.isMesh) return
+    for (const material of Array.isArray(object.material) ? object.material : [object.material]) {
+      if (material) materials.add(material)
+    }
+    if (object.userData.studioRenderOutline) geometries.add(object.geometry)
+  })
+  playerV9CloneResources.set(cloned, { materials, geometries })
   return cloned
+}
+
+// 복제 루트 → 그 복제가 만든 GPU 자원. userData가 아니라 WeakMap에 둔다(userData는 clone 때 JSON으로 복사된다).
+const playerV9CloneResources = new WeakMap()
+
+// clonePlayerV9Scene이 만든 재질·외곽선 지오메트리를 해제한다. 두 번 불러도 안전하다(three dispose는 멱등).
+export function disposePlayerV9Clone(cloned) {
+  const resources = playerV9CloneResources.get(cloned)
+  if (!resources) return
+  resources.materials.forEach((material) => material.dispose())
+  resources.geometries.forEach((geometry) => geometry.dispose())
+}
+
+// 꼬마 로자리 분신처럼 같은 외형을 여러 벌 띄울 때: 툰 재질·외곽선 헐을 한 벌(템플릿)만 만들고, 분신마다
+// template.clone(true)로 노드만 복제해 재질·지오메트리를 참조로 공유한다(모양은 같은 함수로 만든 복제와 같다).
+// 마지막 분신이 내려가면 템플릿 자원을 해제한다.
+const sharedPlayerV9Templates = new WeakMap()
+
+export function getSharedPlayerV9Template(source, gameplay, outfit = 'default') {
+  let byKey = sharedPlayerV9Templates.get(source)
+  if (!byKey) {
+    byKey = new Map()
+    sharedPlayerV9Templates.set(source, byKey)
+  }
+  const key = `${gameplay ? 1 : 0}:${outfit}`
+  let entry = byKey.get(key)
+  if (!entry) {
+    entry = { template: clonePlayerV9Scene(source, gameplay, outfit), refs: 0, byKey, key }
+    byKey.set(key, entry)
+  }
+  return entry
+}
+
+export function retainSharedPlayerV9Template(entry) {
+  entry.refs += 1
+  if (!entry.byKey.has(entry.key)) entry.byKey.set(entry.key, entry)
+}
+
+export function releaseSharedPlayerV9Template(entry) {
+  entry.refs = Math.max(0, entry.refs - 1)
+  if (entry.refs > 0) return
+  if (entry.byKey.get(entry.key) === entry) entry.byKey.delete(entry.key)
+  disposePlayerV9Clone(entry.template)
 }
 
 // Flash only the cloned GLB surfaces.  The blob shadow and the lantern (block +
@@ -159,11 +214,13 @@ function PlayerV9LanternModel() {
   )
 }
 
-export default function PlayerV9Model({ groupRef, movingRef, animateRef = null, hitFlashToken = 0, previewArmAction = null, gameplay = false, outfit = 'default' }) {
+export default function PlayerV9Model({ groupRef, movingRef, animateRef = null, hitFlashToken = 0, previewArmAction = null, gameplay = false, outfit = 'default', sharedClone = false }) {
   const modelScale = PLAYER_V9_SCALE * (gameplay ? 0.9 : 1)
   const floorY = -0.32 - PLAYER_V9_RAW_MIN_Y * modelScale
   const gltf = useGLTF(PLAYER_V9_MODEL_URL)
-  const scene = useMemo(() => clonePlayerV9Scene(gltf.scene, gameplay, outfit), [gltf.scene, gameplay, outfit])
+  // sharedClone(꼬마 로자리 분신 전용): 재질·외곽선을 같은 외형의 다른 분신과 공유한다. 본체·스튜디오는 지금처럼 자기 복제.
+  const shared = useMemo(() => (sharedClone ? getSharedPlayerV9Template(gltf.scene, gameplay, outfit) : null), [sharedClone, gltf.scene, gameplay, outfit])
+  const scene = useMemo(() => (shared ? shared.template.clone(true) : clonePlayerV9Scene(gltf.scene, gameplay, outfit)), [shared, gltf.scene, gameplay, outfit])
   const modelRef = useRef(null)
   const lanternRef = useRef(null)
   const parts = useRef({})
@@ -171,6 +228,7 @@ export default function PlayerV9Model({ groupRef, movingRef, animateRef = null, 
   const lastHitFlashToken = useRef(hitFlashToken)
   const hitFlashFrames = useRef(0)
   const flashMat = useMemo(() => new THREE.MeshBasicMaterial({ color: 0xffffff }), [])
+  useEffect(() => () => flashMat.dispose(), [flashMat])
   flashMat.stencilWrite = true
   flashMat.stencilRef = 3
   flashMat.stencilFunc = THREE.AlwaysStencilFunc
@@ -191,14 +249,16 @@ export default function PlayerV9Model({ groupRef, movingRef, animateRef = null, 
       }
     })
     parts.current = found
-    return () => {
-      scene.traverse((object) => {
-        if (!object.userData.studioRenderOutline) return
-        object.geometry.dispose()
-        object.material.dispose()
-      })
-    }
   }, [scene])
+
+  // 언마운트(또는 외형 변경으로 복제가 바뀔 때) 이 복제가 만든 재질·외곽선을 해제한다. 공유 분신은 마지막 하나가 내려갈 때 해제.
+  useEffect(() => {
+    if (shared) {
+      retainSharedPlayerV9Template(shared)
+      return () => releaseSharedPlayerV9Template(shared)
+    }
+    return () => disposePlayerV9Clone(scene)
+  }, [shared, scene])
 
   useFrame(({ clock }, delta) => {
     const p = parts.current

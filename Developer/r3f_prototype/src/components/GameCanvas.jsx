@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef } from 'react'
+import { useEffect, useLayoutEffect, useRef, useSyncExternalStore } from 'react'
 import { Canvas, useStore, useThree } from '@react-three/fiber'
 import { Physics } from '@react-three/rapier'
 import Game from './Game.jsx'
@@ -18,9 +18,10 @@ import LongRopeLayer from './LongRopeLayer.jsx'
 import RollingBallLayer from './RollingBallLayer.jsx'
 import Wave3bMotionLayer from './Wave3bMotionLayer.jsx'
 import PooledEnemyProjectileLayer from './PooledEnemyProjectileLayer.jsx'
-import StageEntryRuntimeDiagnostics from './StageEntryRuntimeDiagnostics.jsx'
+import StageEntryRuntimeDiagnostics, { isStageEntryWarmupPending, subscribeStageEntryWarmup } from './StageEntryRuntimeDiagnostics.jsx'
 import { useGameStore } from '../store/useGameStore.js'
 import { EXPANSION_STAGE_VISUALS } from '../lib/expansionVisuals.js'
+import { t } from '../lib/i18n.js'
 
 // ponytail: dev-only QA handle. window.gameThree.getState() lets QA read gameplay materials
 // directly instead of inferring colors from tone-mapped pixels. Live store, not a snapshot.
@@ -65,8 +66,13 @@ export default function GameCanvas({ gameKey, phase }) {
   // 야외 스테이지는 맵 밖 바닥 너머를 잔디색으로 칠한다(Stage 6 운동장). 실내 스테이지는 기존 회색.
   const canvasBackground = useGameStore((state) => EXPANSION_STAGE_VISUALS[state.currentStageId]?.canvasBackground ?? '#c8c4bc')
   const currentStageId = useGameStore((state) => state.currentStageId)
+  // 스테이지 진입 셰이더 예열(StageEntryRuntimeDiagnostics)이 끝날 때까지 프레임 루프를 멈춘다 — 게임 시간·물리·렌더가
+  // 모두 멈춘 채 로딩 화면이 덮고, 예열이 끝나면 첫 렌더가 링크 대기 없이 바로 그려진다.
+  const warmupPending = useSyncExternalStore(subscribeStageEntryWarmup, () => isStageEntryWarmupPending(gameKey))
 
   return (
+    <>
+    {warmupPending && <div data-testid="stage-entry-warmup-loading" style={warmupLoadingStyle}>{t('loading.game')}</div>}
     <Canvas
       // 살짝 원근(perspective) — 좁은 화각(fov)으로 직교에 가깝되,
       // 상단(먼 쪽)으로 갈수록 아주 미세하게 멀어지는 3D 깊이감을 준다.
@@ -75,7 +81,7 @@ export default function GameCanvas({ gameKey, phase }) {
       dpr={[1, 1.5]}
       shadows
       gl={{ stencil: true }}
-      frameloop={isMatildaContactDeath ? 'never' : 'always'}
+      frameloop={isMatildaContactDeath || warmupPending ? 'never' : 'always'}
       style={{ width: '100%', height: '100%', background: canvasBackground, display: 'block', filter: isMatildaContactDeath ? 'grayscale(1)' : 'none' }}
     >
       {import.meta.env.DEV && <DevQaHandle />}
@@ -111,5 +117,12 @@ export default function GameCanvas({ gameKey, phase }) {
       <ExpansionHazardLayer events={expansionAttackSnapshots} resetKey={gameKey} />
       <StageEntryRuntimeDiagnostics gameKey={gameKey} />
     </Canvas>
+    </>
   )
+}
+
+// GameplayScreen의 게임 로딩 화면(Suspense fallback)과 같은 모양이다.
+const warmupLoadingStyle = {
+  position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', background: '#16121d',
+  color: '#f8fafc', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif', fontWeight: 800, zIndex: 20,
 }

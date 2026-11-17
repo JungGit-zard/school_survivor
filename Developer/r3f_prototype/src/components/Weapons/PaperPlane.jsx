@@ -150,10 +150,11 @@ export function PaperPlaneWeapon() {
     writePlaneRibbons(pool, ribbon)
   })
 
-  if (!active) return null
+  // 무기가 없을 때도 리본·몸체·외곽선을 숨긴 채(visible=false, 드로콜 0) 붙여 둔다: 스테이지 진입 예열(gl.compileAsync —
+  // three r164 compile은 숨은 메시도 traverse한다)이 리본 셰이더를 함께 컴파일해, 무기를 얻고 첫 발을 쏘는 순간 멈추지 않는다.
   // renderOrder: 좀비 탄 레이어와 같다(외곽선 1, 몸체 2).
   return (
-    <group>
+    <group visible={active}>
       <primitive object={ribbon.mesh} />
       <instancedMesh key={`o${capacity}`} ref={outlineRef} args={[assets.outlineGeo, assets.outlineMat, capacity]} frustumCulled={false} count={0} renderOrder={1} />
       <instancedMesh key={`b${capacity}`} ref={bodyRef} args={[assets.bodyGeo, assets.bodyMat, capacity]} frustumCulled={false} count={0} renderOrder={2} />

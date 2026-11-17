@@ -23,8 +23,9 @@ import { loadSavedPlayerAppearance, resolvePlayerAppearance } from '../Player.js
 // 수치는 전부 weaponCatalog.js의 miniRosari.base 한 곳에서 조정한다.
 //
 // 2026-11-02 Terry: "화면상 오니기리가 몇 개 있더라도 늘려" — 동시에 나는 분신 수에 상한이 없다.
-// 분신 모델은 슬롯 풀로 재사용한다: 빈 슬롯이 없을 때만 슬롯을 하나 늘리고(오래 빈 끝 슬롯만 줄임),
-// 발사할 때마다 모델을 다시 복제하지 않고 위치·표시만 바꾼다(3c0bcbe8 모바일 CPU 절약 유지).
+// 분신 모델은 슬롯 풀로 재사용한다: 무기를 얻는 순간 대기 상한(MINI_ROSARI_HOVER_CAP)만큼 미리 만들어 두고,
+// 빈 슬롯이 없을 때만 하나 늘린다. 풀은 줄이지 않는다(쓰지 않는 분신은 숨김). 발사할 때마다 모델을 다시
+// 복제하지 않고 위치·표시만 바꾼다(3c0bcbe8 모바일 CPU 절약 유지).
 export const MINI_ROSARI_SCALE = 0.5
 // 주인공 모델 원점은 몸통 중심(발바닥 = -0.32). 분신 발이 바닥에 닿는 높이 = 0.32 × 축척.
 const MINI_ROSARI_FOOT_OFFSET = 0.32 * MINI_ROSARI_SCALE
@@ -49,7 +50,7 @@ function MiniRosariModel({ animateRef }) {
         ? <PlayerMesh movingRef={movingRef} outfit={look.outfit} />
         : look.appearance === 'rosari'
           ? <PlayerRosariModel movingRef={movingRef} animateRef={animateRef} gameplay />
-          : <PlayerV9Model movingRef={movingRef} animateRef={animateRef} gameplay outfit={look.outfit} />}
+          : <PlayerV9Model movingRef={movingRef} animateRef={animateRef} gameplay outfit={look.outfit} sharedClone />}
     </group>
   )
 }
@@ -59,6 +60,8 @@ function MiniRosariModel({ animateRef }) {
 export function hideMiniRosariClone(group, id) {
   if (!group || group.userData.miniRosariOwnerId !== id) return
   group.visible = false
+  // 숨은 분신(메시 약 86개)은 매 프레임 행렬 갱신도 건너뛴다. 다시 보일 때 writeMiniRosariPose가 켠다.
+  group.matrixWorldAutoUpdate = false
   group.userData.miniRosariOwnerId = null
 }
 
@@ -119,6 +122,7 @@ function writeMiniRosariPose(entry, slot, camera) {
   const shown = shouldRenderMiniRosariClone(entry.state, camera, flight.x, y, flight.z)
   group.userData.miniRosariOwnerId = id
   group.visible = shown
+  group.matrixWorldAutoUpdate = shown
   slot.activeRef.current = shown
   group.position.set(flight.x, y, flight.z)
   group.rotation.set(0.18, Math.atan2(flight.dirX, flight.dirZ), 0, 'YXZ')
@@ -158,7 +162,7 @@ export function stepMiniRosariPoof(poof, group, delta) {
 }
 
 function createMiniRosariSlot() {
-  return { ref: createRef(), activeRef: { current: false }, ownerId: null, freeSince: null }
+  return { ref: createRef(), activeRef: { current: false }, ownerId: null }
 }
 
 // 빈 슬롯을 하나 빌린다. 없으면 새 슬롯을 만들어 풀에 더한다(동시 분신 수 상한 없음).
@@ -170,7 +174,6 @@ export function claimMiniRosariSlot(slots, ownerId) {
   }
   slots[index].ownerId = ownerId
   slots[index].activeRef.current = true
-  slots[index].freeSince = null
   return index
 }
 
@@ -179,29 +182,20 @@ export function releaseMiniRosariSlot(slots, ownerId) {
   if (!slot) return
   slot.ownerId = null
   slot.activeRef.current = false
-  slot.freeSince = null // 비어 있기 시작한 시각은 다음 정리(trimIdleMiniRosariSlots)가 찍는다.
 }
 
-// 2026-11-13 렌더·메모리 완화: 풀은 늘기만 했다(분신 1개 = 주인공 모델 복제 1벌). 이제 끝난 분신 슬롯이
-// MINI_ROSARI_SLOT_IDLE_MS 동안 다시 쓰이지 않으면 풀 **끝에서부터** 내려놓는다. 끝에서만 빼므로 살아 있는
-// 분신의 slotIndex는 절대 밀리지 않고, 빈 슬롯은 가장 앞 것부터 재사용되므로(claim) 바쁜 분신은 앞쪽에
-// 모여 끝이 자연스럽게 비워진다. 1개는 남겨 다음 투척 때 다시 복제하지 않게 한다.
-// 동작(투척 수·상한 없음·대기 분신 유지)은 그대로 — 빈 슬롯만 줄인다. 반환값 = 내려놓은 슬롯 수.
-export const MINI_ROSARI_SLOT_IDLE_MS = 4000
-export const MINI_ROSARI_WARM_SLOTS = 1
+// 2026-11-17 끊김 수정: 예전에는 4초 동안 안 쓴 끝 슬롯을 내려놓았다가(분신 1개 = 주인공 모델 복제 1벌, 메시 약 86개)
+// 다음 투척 때 다시 복제해 그 프레임이 멈췄다. 이제 무기를 얻는 순간 대기 상한만큼 미리 만들고 줄이지 않는다.
+// 반환값 = 새로 만든 슬롯 수.
+export const MINI_ROSARI_PREBUILT_SLOTS = MINI_ROSARI_HOVER_CAP
 
-export function trimIdleMiniRosariSlots(slots, now, idleMs = MINI_ROSARI_SLOT_IDLE_MS, keep = MINI_ROSARI_WARM_SLOTS) {
-  for (let i = 0; i < slots.length; i += 1) {
-    if (slots[i].ownerId === null && slots[i].freeSince === null) slots[i].freeSince = now
+export function prefillMiniRosariSlots(slots, count = MINI_ROSARI_PREBUILT_SLOTS) {
+  let added = 0
+  while (slots.length < count) {
+    slots.push(createMiniRosariSlot())
+    added += 1
   }
-  let removed = 0
-  while (slots.length > keep) {
-    const last = slots[slots.length - 1]
-    if (last.ownerId !== null || now - last.freeSince < idleMs) break
-    slots.pop()
-    removed += 1
-  }
-  return removed
+  return added
 }
 
 // 테스트·진단용: 지금 마운트된 꼬마 로자리 무기의 풀 크기(없으면 null).
@@ -224,7 +218,7 @@ export function MiniRosariWeapon() {
   const slotsRef     = useRef([])
   const lastFireRef  = useRef(0)
   const poofsRef     = useRef([])
-  // 슬롯 수가 바뀔 때만 다시 그린다(새 슬롯 모델 마운트 / 오래 빈 슬롯 언마운트).
+  // 슬롯 수가 바뀔 때만 다시 그린다(미리 만들기 / 상한을 넘어 늘 때 / 무기가 빠질 때).
   const [, setSlotVersion] = useState(0)
   const swarmRef = useRef(null)
   if (swarmRef.current === null) {
@@ -249,7 +243,7 @@ export function MiniRosariWeapon() {
   }
 
   // 남은 분신·펑·슬롯 주인·대기 시간을 전부 비운다(무기 해제·교체, 판 리셋·스테이지 이동·사망 후 재시작).
-  // 슬롯 모델도 무기가 빠질 때 함께 내려가므로 풀째 비운다(다시 얻으면 빈 풀에서 시작).
+  // 미리 만든 분신 모델은 숨긴 채 남긴다. 무기가 빠질 때만 풀째 내려놓는다(아래 active 효과).
   const resetAll = useCallback(() => {
     clearProjectileSwarm(swarmRef.current, (entry) => {
       hideMiniRosariClone(slotsRef.current[entry.slotIndex]?.ref.current, entry.id)
@@ -260,9 +254,9 @@ export function MiniRosariWeapon() {
       hideMiniRosariClone(group, poof.id)
     }
     poofsRef.current.length = 0
-    if (slotsRef.current.length > 0) {
-      slotsRef.current = []
-      setSlotVersion((v) => v + 1)
+    for (const slot of slotsRef.current) {
+      slot.ownerId = null
+      slot.activeRef.current = false
     }
   }, [])
 
@@ -276,9 +270,18 @@ export function MiniRosariWeapon() {
 
   // balanceqa F1 (2026-11-02): 교체 카드로 무기가 빠지는 순간 떠 있던 분신은 끝난다. 발사 목록과 분신 슬롯을
   // 비우지 않으면 같은 판에서 다시 얻었을 때 옛 분신이 처음 던진 자리에서 바운스가 꽉 찬 채 되살아난다.
+  // 무기를 얻는 순간 분신을 대기 상한만큼 미리 만든다(투척 때 복제하지 않는다). 빠지면 풀째 내려놓는다.
   const active = !!weapons.miniRosari?.active
   useEffect(() => {
-    if (!active) resetAll()
+    if (!active) {
+      resetAll()
+      if (slotsRef.current.length > 0) {
+        slotsRef.current = []
+        setSlotVersion((v) => v + 1)
+      }
+      return
+    }
+    if (prefillMiniRosariSlots(slotsRef.current) > 0) setSlotVersion((v) => v + 1)
   }, [active, resetAll])
   // 판이 새로 시작되면(gameKey) 쿨다운·분신·슬롯을 모두 처음 상태로.
   useEffect(() => {
@@ -292,8 +295,6 @@ export function MiniRosariWeapon() {
     const now = clock.elapsedTime * 1000
     const swarm = swarmRef.current
     const slots = slotsRef.current
-    // 오래 빈 끝 슬롯을 내려놓는다(할당 없음). 줄었으면 다시 그려 그 분신 모델을 언마운트한다.
-    if (trimIdleMiniRosariSlots(slots, now) > 0) setSlotVersion((v) => v + 1)
 
     // 쿨다운이 차면 1명(balanceqa F3: 쿨다운 전에는 아무것도 만들지 않는다).
     // 이미 뛰어가거나 기다리는 분신 수로 새 투척을 막거나 늦추지 않는다. 새 분신은 언제나 이번 프레임의
@@ -347,7 +348,7 @@ export function MiniRosariWeapon() {
     <>
       {/* 분신 슬롯마다 모델 1벌(재사용). 발사체는 컴포넌트가 없고 무기 루프가 슬롯 group을 움직인다. */}
       {slotsRef.current.map((slot, index) => (
-        <group key={index} ref={slot.ref} visible={false}>
+        <group key={index} ref={slot.ref} visible={false} matrixWorldAutoUpdate={false}>
           <MiniRosariModel animateRef={slot.activeRef} />
         </group>
       ))}

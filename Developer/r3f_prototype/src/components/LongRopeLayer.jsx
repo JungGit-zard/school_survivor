@@ -12,6 +12,7 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
 import { expansionAttackSnapshots } from '../lib/expansionAttackRuntime.js'
 import { getToonGradient } from '../lib/toon.js'
 import { LONG_ROPE_VISUAL, longRopeInto, longRopeMatrixParts } from '../lib/longRopeVisual.js'
+import { markInstanceUpload } from '../lib/templateInstanceLayer.js'
 
 const ZERO = new THREE.Matrix4().makeScale(0, 0, 0)
 
@@ -77,9 +78,7 @@ export function syncLongRopes(mesh, source = expansionAttackSnapshots) {
   }
   mesh.count = count
   mesh.visible = count > 0
-  if (count > 0) {
-    mesh.instanceMatrix.clearUpdateRanges(); mesh.instanceMatrix.addUpdateRange(0, count * 16); mesh.instanceMatrix.needsUpdate = true
-  }
+  if (count > 0) markInstanceUpload(mesh.instanceMatrix, count, 16)
   return count
 }
 
@@ -99,7 +98,9 @@ export default function LongRopeLayer({ resetKey, source = expansionAttackSnapsh
   }, [])
   const frame = useRef(0)
   useEffect(() => () => { mesh.geometry.dispose(); mesh.material.dispose(); mesh.dispose() }, [mesh])
-  useLayoutEffect(() => { mesh.count = 0 }, [mesh, resetKey])
+  // 판 시작·스테이지 진입마다 프리웜을 다시 켠다: 이 레이어는 판마다 다시 마운트되는 Physics 밖에 있어서, 첫 판에만
+  // 켜면 다음 스테이지(다른 조명 구성)에서 첫 줄이 나오는 순간 셰이더를 다시 컴파일한다.
+  useLayoutEffect(() => { mesh.count = 0; frame.current = 0; mesh.visible = true }, [mesh, resetKey])
   useFrame(() => {
     frame.current += 1
     const drawn = syncLongRopes(mesh, source)

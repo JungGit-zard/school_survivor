@@ -3,8 +3,10 @@
 // BlockyZombieLayer와 같은 방식이다: 몸 1벌 = 강체 파트 6개, 파트마다 InstancedMesh 2개(툰 몸통 + 스텐실 뒷면 외곽선),
 // 포즈는 절차적(lib/miniZombiePose.js — 블록 좀비 포즈 문법 위에 종별 예고·공격·회복만 덮어쓴다). SkinnedMesh·클립 믹서 없음.
 // 블록 좀비와 다른 점: Kenney Mini 캐릭터는 몸마다 지오메트리가 달라서 변형(몸 + 리컬러 + 소품)마다 메시 세트가 따로다.
-// 그래서 세트는 그 변형의 개체가 처음 보일 때 만든다(스테이지마다 3종 남짓만 생긴다). 세트가 없거나 그 프레임에 0마리면
-// visible=false라 드로콜도 0이다. 텍스처·재질은 전 종 1벌(팔레트 아틀라스 512², 최근접 필터)이라 셰이더 프로그램도 2개뿐이다.
+// 세트는 스테이지 진입·판 시작 때(프레임 루프 밖) 그 스테이지가 낼 수 있는 몸 전부를 미리 만든다(miniZombieStageVariants —
+// 스폰 표에서 읽는다, 스테이지마다 3종 남짓). 2026-11-17: 예전에는 첫 개체가 보이는 프레임에 만들어서 종마다 4~34 ms(폰 3~5배)
+// 끊겼다(스1 60·108·150·184초). 표에 없는 몸이 혹시 나오면 그때 만드는 예전 경로가 안전망으로 남아 있다.
+// 그 프레임에 0마리면 visible=false라 드로콜도 0이다. 텍스처·재질은 전 종 1벌(팔레트 아틀라스 512², 최근접 필터)이라 셰이더 프로그램도 2개뿐이다.
 //
 // 분업(블록 좀비·E07과 같다):
 //  - 시뮬레이션: enemyPool + enemySimulation + novelZombie2Behavior(visualId를 읽지 않는다)
@@ -21,6 +23,9 @@ import miniZombiesUrl from '../assets/models/kenney_mini/mini_zombies_kenney.glb
 import { enemyPool, enemySimulationRuntime, playerPos, screenBounds } from '../lib/refs.js'
 import { getToonGradient } from '../lib/toon.js'
 import { createOutlineGeometry } from '../lib/projectileZombieShotGeometry.js'
+import { markInstanceUpload } from '../lib/templateInstanceLayer.js'
+import { getBurstEventsForStage } from '../lib/burstEvents.js'
+import { useGameStore } from '../store/useGameStore.js'
 import { NOVEL2_FIRST_TYPE_CODE, NOVEL2_LAST_TYPE_CODE, NOVEL2_ROWS, novel2IdFromCode } from '../lib/novelZombie2Content.js'
 import { MINI_MODEL_HEIGHT, MINI_ZOMBIE_VISUALS, miniBodyWorldScale, miniDefaultVariantIndex } from '../lib/miniZombieRoster.js'
 import { getMiniZombieAssets } from '../lib/miniZombieGeometry.js'
@@ -37,6 +42,10 @@ export const MINI_MODEL_FIT = 1.69 / MINI_MODEL_HEIGHT
 export const MINI_MODEL_FOOT_Y = -0.63
 const FLASH_GAIN = 2.6
 const CHIEF_CAPACITY = 8
+// 스테이지 진입·판 시작 뒤 프리웜 메시와 미리 만든 세트를 0개인 채로 보이게 두는 렌더 프레임 수
+// (셰이더 컴파일 + 지오메트리·인스턴스 버퍼 업로드를 진입 순간에 끝낸다).
+const WARM_FRAMES = 2
+const NO_OFFSET = Object.freeze([0, 0, 0])
 
 // typeCode → visualId(행 표가 정본: NOVEL2_ROWS[id].visualId). Kenney 몸이 없는 visualId는 0으로 둔다.
 const VISUAL_BY_CODE = new Array(NOVEL2_LAST_TYPE_CODE + 1).fill(null)
@@ -45,6 +54,29 @@ for (let code = NOVEL2_FIRST_TYPE_CODE; code <= NOVEL2_LAST_TYPE_CODE; code += 1
   if (MINI_ZOMBIE_VISUALS[visualId]) VISUAL_BY_CODE[code] = visualId
 }
 export function miniZombieVisualIdForCode(typeCode) { return VISUAL_BY_CODE[typeCode] ?? null }
+
+// 스테이지가 낼 수 있는 2차 좀비 몸 [visualId, 몸 번호] 목록 — 프레임 루프 밖에서 미리 만들 대상(하드코딩 없음).
+// 출처: 그 스테이지 스폰 표(getBurstEventsForStage의 type·mixedTypes — 로스터 순환·복사기 복사본도 이 표의 종만 낸다)
+// + 행 표의 stageId(표 밖 경로로 스폰되는 치프 대비). 같은 몸은 한 번만.
+const stageVariantCache = new Map()
+export function miniZombieStageVariants(stageId) {
+  if (stageVariantCache.has(stageId)) return stageVariantCache.get(stageId)
+  const visualIds = new Set()
+  const addId = (id) => { const visualId = NOVEL2_ROWS[id]?.visualId; if (MINI_ZOMBIE_VISUALS[visualId]) visualIds.add(visualId) }
+  for (const row of Object.values(NOVEL2_ROWS)) if (row.stageId === stageId) addId(row.id)
+  for (const evt of getBurstEventsForStage(stageId) ?? []) {
+    if (evt?.type) addId(evt.type)
+    for (const type of evt?.mixedTypes ?? []) addId(type)
+  }
+  const out = []
+  for (const visualId of visualIds) {
+    const count = MINI_ZOMBIE_VISUALS[visualId].variants.length
+    for (let k = 0; k < count; k += 1) out.push(Object.freeze([visualId, k]))
+  }
+  const frozen = Object.freeze(out)
+  stageVariantCache.set(stageId, frozen)
+  return frozen
+}
 
 function makeBodyMaterial(atlas) {
   const material = new THREE.MeshToonMaterial({ color: 0xffffff, map: atlas, emissive: 0xffffff, emissiveMap: atlas, emissiveIntensity: 0.16, gradientMap: getToonGradient() })
@@ -79,19 +111,79 @@ export function miniVariantDrawCalls(built) { return (built.parts.length + built
 function createVariantSet(built, materials, capacity, name) {
   const group = new THREE.Group(); group.name = name
   const entries = []
+  // 프레임 루프에서 문자열 조회·배열 복사를 하지 않게 포즈 칸 번호와 메시 목록을 여기서 한 번 만든다.
+  const meshes = []
   for (const part of built.parts) {
     const body = instanced(part.geometry, materials.body, capacity, true); body.renderOrder = 2
     const outline = instanced(part.outlineGeometry, materials.outline, capacity, false); outline.renderOrder = 1
     group.add(body, outline)
-    entries.push({ part, body, outline })
+    entries.push({ part, body, outline, offset: MINI_POSE_OFFSET[part.key], isHead: part.key === 'head' })
+    meshes.push(body, outline)
   }
   const loose = built.loose.filter(miniLooseDrawnHere).map((item) => {
     const body = instanced(item.geometry, materials.body, capacity, true); body.renderOrder = 2
     const outline = instanced(item.outlineGeometry, materials.outline, capacity, false); outline.renderOrder = 1
     group.add(body, outline)
+    meshes.push(body, outline)
     return { item, body, outline }
   })
-  return { group, entries, loose, capacity, count: 0, torsoIndex: built.parts.findIndex((p) => p.key === 'torso') }
+  return { group, entries, loose, meshes, capacity, count: 0, torsoIndex: built.parts.findIndex((p) => p.key === 'torso') }
+}
+
+/** 레이어 상태 1벌(GLB 장면당). 세트는 아직 없다 — prebuildMiniZombieStage / getMiniVariantSet이 만든다. */
+export function createMiniZombieLayerState(scene) {
+  const assets = getMiniZombieAssets(scene, createOutlineGeometry)
+  const atlas = assets?.map ?? null
+  if (atlas) {
+    atlas.colorSpace = THREE.SRGBColorSpace
+    atlas.flipY = false
+    atlas.magFilter = THREE.NearestFilter
+    atlas.minFilter = THREE.NearestFilter
+    atlas.generateMipmaps = false
+    atlas.needsUpdate = true
+  }
+  const materials = { body: makeBodyMaterial(atlas), outline: makeOutlineMaterial() }
+  const root = new THREE.Group(); root.name = 'mini-zombie-layer'
+  // 컴파일 프리웜용(compileAsync는 visible만 돈다): 같은 재질·같은 속성 구성의 빈 인스턴스 메시 한 쌍.
+  const warmGeometry = new THREE.BoxGeometry(0.01, 0.01, 0.01)
+  const warmBody = instanced(warmGeometry, materials.body, 1, true); const warmOutline = instanced(warmGeometry, materials.outline, 1, false)
+  root.add(warmBody, warmOutline)
+  // byVisual: visualId → 몸 번호별 세트(문자열 열쇠를 프레임마다 만들지 않는다). sets: 순회용 배열.
+  return { assets, materials, root, warmGeometry, warmMeshes: [warmBody, warmOutline], byVisual: new Map(), sets: [], warmFrames: WARM_FRAMES }
+}
+
+/** 변형 세트를 돌려준다. 없으면 만든다 — 스테이지 진입 때 prebuildMiniZombieStage가 미리 부르고, 프레임 경로에서는 표 밖 몸의 안전망이다. */
+export function getMiniVariantSet(state, visualId, variantIndex) {
+  let list = state.byVisual.get(visualId)
+  if (list) { const found = list[variantIndex]; if (found) return found }
+  const visual = MINI_ZOMBIE_VISUALS[visualId]
+  if (!list) { list = new Array(visual.variants.length).fill(null); state.byVisual.set(visualId, list) }
+  const variant = visual.variants[variantIndex]
+  const built = state.assets.variant(visualId, variantIndex, variant)
+  const set = createVariantSet(built, state.materials, visual.chief ? CHIEF_CAPACITY : POOLED_ENEMY_CAPACITY, `mini-${visualId}-${variantIndex}`)
+  set.style = variant.style ?? visual.style
+  set.fast = Boolean(visual.fast)
+  list[variantIndex] = set
+  state.sets.push(set)
+  state.root.add(set.group)
+  return set
+}
+
+/** 스테이지가 낼 수 있는 몸 전부를 지금 만든다(프레임 루프 밖). 만든 세트 수를 돌려준다. 지오메트리는 장면 캐시라 재시작·재진입은 0 ms. */
+export function prebuildMiniZombieStage(state, stageId) {
+  if (!state?.assets) return 0
+  const list = miniZombieStageVariants(stageId)
+  let made = 0
+  for (let n = 0; n < list.length; n += 1) {
+    const before = state.sets.length
+    try {
+      getMiniVariantSet(state, list[n][0], list[n][1])
+    } catch {
+      // 미리 만들기 실패는 삼킨다 — 그 몸이 실제로 나오는 프레임의 예전 경로가 같은 오류를 그대로 낸다(동작 불변).
+    }
+    made += state.sets.length - before
+  }
+  return made
 }
 
 const base = new THREE.Matrix4(); const fit = new THREE.Matrix4(); const torsoMat = new THREE.Matrix4(); const partMat = new THREE.Matrix4()
@@ -101,15 +193,11 @@ const tint = new Float32Array(3)
 const headMat = new THREE.Matrix4(); const stretch = new THREE.Matrix4()
 fit.makeTranslation(0, MINI_MODEL_FOOT_Y, 0).multiply(new THREE.Matrix4().makeScale(MINI_MODEL_FIT, MINI_MODEL_FIT, MINI_MODEL_FIT))
 
-function composePart(out, parent, part, pose) {
-  const offset = MINI_POSE_OFFSET[part.key]
+function composePart(out, parent, entry, pose) {
+  const { part, offset } = entry
   euler.set(pose[offset], pose[offset + 1], pose[offset + 2])
   rot.makeRotationFromEuler(euler)
   return out.copy(parent).multiply(tmp.makeTranslation(part.pivot[0], part.pivot[1], part.pivot[2])).multiply(rot)
-}
-
-function finish(mesh, count, itemSize, attribute) {
-  attribute.clearUpdateRanges(); attribute.addUpdateRange(0, count * itemSize); attribute.needsUpdate = true
 }
 
 const DEFAULT_PROP_SCALE = () => 1
@@ -148,62 +236,38 @@ function MiniZombieLayerInner({ resetKey, pickVariant, propScale = DEFAULT_PROP_
   // wave 3 둘째 묶음: E100 찹쌀떡 몸 변형(웅크림·도약 포물선·매달림·퍼짐)과 떨어지는 순간 미끄러지기용 기억.
   const bodyXf = useRef(createMiniBodyTransform())
   const xfCtx = useRef({ playerX: 0, playerZ: 0, clockSec: 0, reduced: false, memory: createMochiDrawMemory(POOLED_ENEMY_CAPACITY) })
-  const state = useMemo(() => {
-    const assets = getMiniZombieAssets(gltf?.scene, createOutlineGeometry)
-    const atlas = assets?.map ?? null
-    if (atlas) {
-      atlas.colorSpace = THREE.SRGBColorSpace
-      atlas.flipY = false
-      atlas.magFilter = THREE.NearestFilter
-      atlas.minFilter = THREE.NearestFilter
-      atlas.generateMipmaps = false
-      atlas.needsUpdate = true
-    }
-    const materials = { body: makeBodyMaterial(atlas), outline: makeOutlineMaterial() }
-    const root = new THREE.Group(); root.name = 'mini-zombie-layer'
-    // 컴파일 프리웜용(compileAsync는 visible만 돈다): 같은 재질·같은 속성 구성의 빈 인스턴스 메시 한 쌍.
-    const warmGeometry = new THREE.BoxGeometry(0.01, 0.01, 0.01)
-    const warmBody = instanced(warmGeometry, materials.body, 1, true); const warmOutline = instanced(warmGeometry, materials.outline, 1, false)
-    root.add(warmBody, warmOutline)
-    return { assets, materials, root, warmGeometry, sets: new Map(), frame: 0 }
-  }, [gltf])
+  const state = useMemo(() => createMiniZombieLayerState(gltf?.scene), [gltf])
 
   useEffect(() => () => {
-    for (const set of state.sets.values()) for (const e of [...set.entries, ...set.loose]) { e.body.dispose(); e.outline.dispose() }
+    for (const set of state.sets) for (const mesh of set.meshes) mesh.dispose()
     state.warmGeometry.dispose(); state.materials.body.dispose(); state.materials.outline.dispose()
   }, [state])
 
   useLayoutEffect(() => {
-    for (const set of state.sets.values()) {
+    // 스테이지 진입·판 시작(같은 커밋의 StageEntryRuntimeDiagnostics compileAsync보다 먼저 돈다):
+    // 1) 이 스테이지가 낼 수 있는 몸을 지금 다 만든다 — 첫 스폰 프레임에 만들지 않는다.
+    //    스테이지는 구독하지 않고 여기서 읽는다: startGame이 currentStageId와 gameKey(= resetKey)를 같은 갱신에서 바꾼다.
+    prebuildMiniZombieStage(state, useGameStore.getState().currentStageId)
+    // 2) 프리웜을 다시 켠다 — 이 레이어는 판마다 다시 마운트되는 Physics 밖이라 첫 판에만 켜면 다음 스테이지(다른 조명)에서
+    //    첫 스폰 때 셰이더를 다시 컴파일한다. 미리 만든 세트도 0개인 채로 보여 버퍼 업로드까지 진입 순간에 끝낸다.
+    state.warmFrames = WARM_FRAMES
+    for (const mesh of state.warmMeshes) mesh.visible = true
+    for (const set of state.sets) {
       set.count = 0
-      for (const e of [...set.entries, ...set.loose]) { e.body.count = 0; e.outline.count = 0; e.body.visible = false; e.outline.visible = false }
+      for (const mesh of set.meshes) { mesh.count = 0; mesh.visible = true }
     }
     tiers.current.fill(0)
     chosen.current.variant.fill(-1); chosen.current.generation.fill(-1)
     xfCtx.current.memory.generation.fill(-1)
   }, [state, resetKey])
 
-  function getSet(visualId, variantIndex) {
-    const key = `${visualId}#${variantIndex}`
-    let set = state.sets.get(key)
-    if (set) return set
-    const visual = MINI_ZOMBIE_VISUALS[visualId]
-    const variant = visual.variants[variantIndex]
-    const built = state.assets.variant(visualId, variantIndex, variant)
-    set = createVariantSet(built, state.materials, visual.chief ? CHIEF_CAPACITY : POOLED_ENEMY_CAPACITY, `mini-${visualId}-${variantIndex}`)
-    set.style = variant.style ?? visual.style
-    set.fast = Boolean(visual.fast)
-    state.sets.set(key, set)
-    state.root.add(set.group)
-    return set
-  }
-
   useFrame(() => {
     const pool = enemyPool
     if (!state.assets) return
-    state.frame += 1
-    if (state.frame === 2) { state.root.children[0].visible = false; state.root.children[1].visible = false }
-    for (const set of state.sets.values()) set.count = 0
+    const warming = state.warmFrames > 0
+    if (warming) state.warmFrames -= 1
+    for (let n = 0; n < state.warmMeshes.length; n += 1) state.warmMeshes[n].visible = warming
+    for (let n = 0; n < state.sets.length; n += 1) state.sets[n].count = 0
     if (pool) {
       const max = Math.min(POOLED_ENEMY_CAPACITY - 1, Number.isInteger(pool.highestActive) ? pool.highestActive : POOLED_ENEMY_CAPACITY - 1)
       const out = pose.current
@@ -226,7 +290,7 @@ function MiniZombieLayerInner({ resetKey, pickVariant, propScale = DEFAULT_PROP_
           pick = (pickVariant ?? pickMiniVariant)(pool, i, visualId, count)
           memo.variant[i] = pick; memo.generation[i] = generation
         }
-        const set = getSet(visualId, Math.min(count - 1, Math.max(0, pick | 0)))
+        const set = getMiniVariantSet(state, visualId, Math.min(count - 1, Math.max(0, pick | 0)))
         if (set.count >= set.capacity) continue
         const slot = set.count++
         const posePhase = pooledPhase(pool, i)
@@ -255,22 +319,23 @@ function MiniZombieLayerInner({ resetKey, pickVariant, propScale = DEFAULT_PROP_
         color.setRGB(flashing ? FLASH_GAIN : 1, flashing ? FLASH_GAIN : 1, flashing ? FLASH_GAIN : 1)
         // wave 3: E101 용지 걸림 = 빨간 오류 깜박임(피격 플래시가 우선).
         if (!flashing && miniInstanceTintInto(tint, pool, i, miniBehaviorClockSec())) color.setRGB(tint[0], tint[1], tint[2])
-        if (set.torsoIndex >= 0) composePart(torsoMat, base, set.entries[set.torsoIndex].part, out)
+        if (set.torsoIndex >= 0) composePart(torsoMat, base, set.entries[set.torsoIndex], out)
         for (let k = 0; k < set.entries.length; k += 1) {
           const entry = set.entries[k]
           if (k === set.torsoIndex) partMat.copy(torsoMat)
-          else composePart(partMat, entry.part.parentIsTorso ? torsoMat : base, entry.part, out)
+          else composePart(partMat, entry.part.parentIsTorso ? torsoMat : base, entry, out)
           entry.body.setMatrixAt(slot, partMat); entry.outline.setMatrixAt(slot, partMat); entry.body.setColorAt(slot, color)
-          if (entry.part.key === 'head') headMat.copy(partMat)
+          if (entry.isHead) headMat.copy(partMat)
         }
-        for (const entry of set.loose) {
+        for (let j = 0; j < set.loose.length; j += 1) {
+          const entry = set.loose[j]
           const { item } = entry
           // part 'head' 소품(E106 기수 모자)은 머리 행렬에 붙는다 — 고개·상체를 돌려도 머리에 붙어 있다.
           const parent = item.part === 'head' ? headMat : base
           const hookScale = item.spec.hook ? propScale(item.spec.hook, pool, i) : 1
           const worldPerModel = scale * MINI_MODEL_FIT
           const s = (item.spec.worldSize ? item.spec.worldSize / (item.maxDimension * worldPerModel) : 1) * hookScale
-          const o = item.spec.offset ?? [0, 0, 0]
+          const o = item.spec.offset ?? NO_OFFSET
           const k = item.spec.worldSize ? 1 / worldPerModel : 1
           partMat.copy(parent).multiply(tmp.makeTranslation(item.anchor[0] + o[0] * k, item.anchor[1] + o[1] * k + (item.spec.lift ? out[MINI_POSE_PROP_LIFT] : 0), item.anchor[2] + o[2] * k))
           if (item.spec.spin) partMat.multiply(rot.makeRotationX(out[MINI_POSE_PROP_SPIN]))
@@ -279,12 +344,19 @@ function MiniZombieLayerInner({ resetKey, pickVariant, propScale = DEFAULT_PROP_
         }
       }
     }
-    for (const set of state.sets.values()) {
+    for (let n = 0; n < state.sets.length; n += 1) {
+      const set = state.sets[n]
       const count = set.count
-      for (const e of [...set.entries, ...set.loose]) {
-        e.body.count = count; e.outline.count = count
-        e.body.visible = count > 0; e.outline.visible = count > 0
-        if (count > 0) { finish(e.body, count, 16, e.body.instanceMatrix); finish(e.body, count, 3, e.body.instanceColor); finish(e.outline, count, 16, e.outline.instanceMatrix) }
+      // 프리웜 프레임에는 0개인 세트도 보이게 둔다(셰이더·버퍼가 진입 순간에 준비된다 — 0개라 그려지는 것은 없다).
+      const shown = count > 0 || warming
+      for (let k = 0; k < set.meshes.length; k += 1) {
+        const mesh = set.meshes[k]
+        mesh.count = count
+        mesh.visible = shown
+        if (count > 0) {
+          markInstanceUpload(mesh.instanceMatrix, count, 16)
+          if (mesh.instanceColor) markInstanceUpload(mesh.instanceColor, count, 3)
+        }
       }
     }
   })

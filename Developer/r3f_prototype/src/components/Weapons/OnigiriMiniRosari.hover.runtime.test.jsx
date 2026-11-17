@@ -111,6 +111,9 @@ const WEAPONS = {
       && s.bursts === 0 && s.grainInstances === 0,
     idle: (s) => s.projectiles === 0 && s.hovering === 0 && s.bodyLiveSlots === 0 && s.bodyInstances === 0,
     pool: (s) => s.bodyCapacity,
+    // 판 리셋(gameKey) 뒤 상태.
+    reset: (s) => s.projectiles === 0 && s.hovering === 0 && s.bodyLiveSlots === 0 && s.bodyInstances === 0
+      && s.bursts === 0 && s.grainInstances === 0,
     maxLevel: (base) => ({ ...base, active: true, level: 5, bounces: 12, damage: base.damage + 22.25 * 2, critChance: 0.24 }),
   },
   miniRosari: {
@@ -121,9 +124,13 @@ const WEAPONS = {
     // 슬롯 주인 불변식: 주인 있는 분신 슬롯 = 살아 있는 분신 + 펑 중인 분신.
     consistent: (s) => s.ownedSlots === s.projectiles + s.poofs,
     empty: (s) => s.projectiles === 0 && s.hovering === 0 && s.poofs === 0 && s.slots === 0 && s.ownedSlots === 0,
-    // 끝난 뒤에는 주인 없는 따뜻한 슬롯 1개만 남는다(다음 투척 때 모델을 다시 복제하지 않게).
-    idle: (s) => s.projectiles === 0 && s.hovering === 0 && s.poofs === 0 && s.ownedSlots === 0 && s.slots <= 1,
+    // 끝난 뒤에는 주인 없는 분신만 남는다. 무기를 얻을 때 대기 상한만큼 미리 만든 풀은 줄지 않는다
+    // (2026-11-17: 다음 투척 때 모델을 다시 복제하지 않게).
+    idle: (s) => s.projectiles === 0 && s.hovering === 0 && s.poofs === 0 && s.ownedSlots === 0 && s.slots === MINI_ROSARI_HOVER_CAP,
     pool: (s) => s.slots,
+    // 판 리셋(gameKey)은 분신 주인·펑을 비우고, 미리 만든 분신 모델은 숨긴 채 남긴다(무기는 그대로 장착).
+    // 그 판에서 대기 상한을 넘어 늘었던 슬롯도 줄지 않는다.
+    reset: (s) => s.projectiles === 0 && s.hovering === 0 && s.poofs === 0 && s.ownedSlots === 0 && s.slots >= MINI_ROSARI_HOVER_CAP,
     maxLevel: (base) => ({ ...base, active: true, level: 5, bounces: 9, damage: base.damage + 16.7 * 2, critChance: 0.28 }),
   },
 }
@@ -223,7 +230,7 @@ describe.each(['onigiri', 'miniRosari'])('%s hover timeout + cap, mounted', (id)
     // 판 리셋·사망 후 재시작·스테이지 이동은 gameKey를 올린다.
     act(() => { useGameStore.setState((s) => ({ gameKey: s.gameKey + 1 })) })
     patchGroups()
-    expect(spec.empty(spec.stats())).toBe(true)
+    expect(spec.reset(spec.stats())).toBe(true)
     run(0.2)
     expect(spec.consistent(spec.stats())).toBe(true)
 

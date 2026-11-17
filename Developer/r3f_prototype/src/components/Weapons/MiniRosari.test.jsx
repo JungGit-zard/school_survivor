@@ -9,7 +9,7 @@ describe('MiniRosariWeapon projectile visual (mini protagonist)', () => {
   it('renders the real player model chosen by the saved appearance and the run outfit', () => {
     expect(source).toContain('loadSavedPlayerAppearance()')
     expect(source).toContain('outfit: useGameStore.getState().runOutfitId')
-    expect(source).toContain('<PlayerV9Model movingRef={movingRef} animateRef={animateRef} gameplay outfit={look.outfit} />')
+    expect(source).toContain('<PlayerV9Model movingRef={movingRef} animateRef={animateRef} gameplay outfit={look.outfit} sharedClone />')
     expect(source).toContain('<PlayerRosariModel movingRef={movingRef} animateRef={animateRef} gameplay />')
     expect(source).toContain('<PlayerMesh movingRef={movingRef} outfit={look.outfit} />')
     expect(source).not.toContain('OnigiiriModel')
@@ -51,59 +51,47 @@ describe('MiniRosariWeapon projectile visual (mini protagonist)', () => {
     expect(slots).toHaveLength(4)
   })
 
-  // 2026-11-13: 풀이 늘기만 하던 것을, 끝난 분신 슬롯이 오래 비면 끝에서부터 내려놓도록 바꿨다.
-  it('shrinks the clone pool from the tail once finished clones stay idle, never moving a live clone', async () => {
+  // 2026-11-17 끊김 수정: 오래 빈 슬롯을 내려놓았다가 다음 투척 때 주인공 모델을 통째로 다시 복제해 멈췄다.
+  // 이제 무기를 얻는 순간 대기 상한만큼 미리 만들고, 풀은 줄이지 않는다(쓰지 않는 분신은 숨김).
+  it('prefills the clone pool up to the hover cap once, and never trims it', async () => {
     const {
-      claimMiniRosariSlot, releaseMiniRosariSlot, trimIdleMiniRosariSlots,
-      MINI_ROSARI_SLOT_IDLE_MS, MINI_ROSARI_WARM_SLOTS,
+      claimMiniRosariSlot, releaseMiniRosariSlot, prefillMiniRosariSlots, MINI_ROSARI_PREBUILT_SLOTS,
     } = await import('./MiniRosari.jsx')
+    const { MINI_ROSARI_HOVER_CAP } = await import('../../lib/onigiri.js')
+    expect(MINI_ROSARI_PREBUILT_SLOTS).toBe(MINI_ROSARI_HOVER_CAP)
     const slots = []
-    for (let id = 1; id <= 6; id += 1) claimMiniRosariSlot(slots, id)
-    expect(slots).toHaveLength(6)
-    const liveSlot = slots[1]
+    expect(prefillMiniRosariSlots(slots)).toBe(MINI_ROSARI_HOVER_CAP)
+    expect(prefillMiniRosariSlots(slots)).toBe(0) // 두 번째 호출은 아무것도 만들지 않는다
+    expect(slots).toHaveLength(MINI_ROSARI_HOVER_CAP)
+    expect(slots.every((slot) => slot.ownerId === null && slot.activeRef.current === false)).toBe(true)
 
-    // 1번(인덱스 0)과 3~6번이 끝났다. 2번(인덱스 1)은 아직 떠서 기다린다.
-    for (const id of [1, 3, 4, 5, 6]) releaseMiniRosariSlot(slots, id)
-    expect(trimIdleMiniRosariSlots(slots, 1000)).toBe(0) // 막 끝난 슬롯은 바로 버리지 않는다
-    expect(slots).toHaveLength(6)
-    expect(trimIdleMiniRosariSlots(slots, 1000 + MINI_ROSARI_SLOT_IDLE_MS - 1)).toBe(0)
-
-    expect(trimIdleMiniRosariSlots(slots, 1000 + MINI_ROSARI_SLOT_IDLE_MS)).toBe(4)
-    expect(slots).toHaveLength(2) // 살아 있는 인덱스 1 뒤의 빈 슬롯만 빠졌다
-    expect(slots[1]).toBe(liveSlot)
-    expect(slots[1].ownerId).toBe(2)
-    expect(slots[1].activeRef.current).toBe(true)
-
-    // 마지막 분신도 끝나고 충분히 지나면 따뜻한 슬롯 1개만 남는다.
-    releaseMiniRosariSlot(slots, 2)
-    trimIdleMiniRosariSlots(slots, 10_000)
-    expect(trimIdleMiniRosariSlots(slots, 10_000 + MINI_ROSARI_SLOT_IDLE_MS)).toBe(1)
-    expect(slots).toHaveLength(MINI_ROSARI_WARM_SLOTS)
-
-    // 다시 던지면 남은 슬롯을 재사용하고(복제 없음), 바쁘면 그때 다시 는다.
-    expect(claimMiniRosariSlot(slots, 7)).toBe(0)
-    expect(claimMiniRosariSlot(slots, 8)).toBe(1)
-    expect(slots).toHaveLength(2)
+    // 미리 만든 슬롯을 앞에서부터 재사용하고, 다 바쁠 때만 는다. 끝나도 줄지 않는다.
+    const first = slots[0]
+    for (let id = 1; id <= MINI_ROSARI_HOVER_CAP; id += 1) expect(claimMiniRosariSlot(slots, id)).toBe(id - 1)
+    expect(slots[0]).toBe(first)
+    expect(claimMiniRosariSlot(slots, 99)).toBe(MINI_ROSARI_HOVER_CAP)
+    for (let id = 1; id <= MINI_ROSARI_HOVER_CAP; id += 1) releaseMiniRosariSlot(slots, id)
+    releaseMiniRosariSlot(slots, 99)
+    expect(slots).toHaveLength(MINI_ROSARI_HOVER_CAP + 1)
   })
 
-  it('a reused slot restarts its idle clock', async () => {
-    const { claimMiniRosariSlot, releaseMiniRosariSlot, trimIdleMiniRosariSlots, MINI_ROSARI_SLOT_IDLE_MS } = await import('./MiniRosari.jsx')
-    const slots = []
-    claimMiniRosariSlot(slots, 1)
-    claimMiniRosariSlot(slots, 2)
-    releaseMiniRosariSlot(slots, 2)
-    trimIdleMiniRosariSlots(slots, 0) // 인덱스 1 비기 시작 = 0
-    claimMiniRosariSlot(slots, 3) // 빈 슬롯은 인덱스 1뿐 → 재사용
-    releaseMiniRosariSlot(slots, 3)
-    trimIdleMiniRosariSlots(slots, MINI_ROSARI_SLOT_IDLE_MS - 10) // 다시 비기 시작
-    expect(trimIdleMiniRosariSlots(slots, MINI_ROSARI_SLOT_IDLE_MS + 10)).toBe(0)
-    expect(slots).toHaveLength(2)
-  })
-
-  it('the weapon trims idle slots every playing frame and re-renders when the pool shrinks', () => {
+  it('builds the clones when the weapon is acquired, not on a throw, and has no idle trim in the frame loop', () => {
     const weaponSource = source.slice(source.indexOf('export function MiniRosariWeapon'))
-    expect(weaponSource).toContain('if (trimIdleMiniRosariSlots(slots, now) > 0) setSlotVersion((v) => v + 1)')
-    expect(weaponSource.indexOf('trimIdleMiniRosariSlots(')).toBeLessThan(weaponSource.indexOf('if (now - lastFireRef.current >= w.cooldown)'))
+    expect(source).not.toContain('trimIdleMiniRosariSlots')
+    expect(weaponSource).toMatch(/useEffect\(\(\) => \{\s+if \(!active\) \{[\s\S]*?if \(prefillMiniRosariSlots\(slotsRef\.current\) > 0\) setSlotVersion\(\(v\) => v \+ 1\)\s+\}, \[active, resetAll\]\)/)
+    // 판 리셋은 분신 주인·표시만 비우고 미리 만든 모델은 남긴다.
+    const resetAll = weaponSource.slice(weaponSource.indexOf('const resetAll'), weaponSource.indexOf('}, [])'))
+    expect(resetAll).not.toContain('slotsRef.current = []')
+  })
+
+  it('hidden clones skip per-frame matrix updates until a pose shows them again', async () => {
+    const { hideMiniRosariClone } = await import('./MiniRosari.jsx')
+    const group = { visible: true, matrixWorldAutoUpdate: true, userData: { miniRosariOwnerId: 3 } }
+    hideMiniRosariClone(group, 3)
+    expect(group.matrixWorldAutoUpdate).toBe(false)
+    const projectileSource = source.slice(source.indexOf('function writeMiniRosariPose'), source.indexOf('function hitMiniRosariTarget'))
+    expect(projectileSource).toMatch(/group\.visible = shown\s+group\.matrixWorldAutoUpdate = shown/)
+    expect(source).toContain('<group key={index} ref={slot.ref} visible={false} matrixWorldAutoUpdate={false}>')
   })
 
   it('hops toward the target and bounces with the shared flight stepper', () => {

@@ -44,7 +44,9 @@ studioEffects.forEach((f) => f())
 const meshes = collect(tree)
 const instanceFrame = frameCb
 // Blocky zombies E71-E88 get their bodies from BlockyZombieLayer (GameCanvas mounts both layers).
-const blockyMeshes = collect(BlockyZombieLayer({ resetKey: 0 }))
+// BlockyZombieLayer wraps its body in its own Suspense (the atlas must not suspend the whole Canvas): Suspense > inner.
+const blockyInner = BlockyZombieLayer({ resetKey: 0 }).props.children
+const blockyMeshes = collect(blockyInner.type(blockyInner.props))
 const blockyFrame = frameCb
 
 // Novel-2 zombies E89-E106 (typeCode 94-111) get their bodies from MiniZombieLayer (Kenney Mini Characters, CC0).

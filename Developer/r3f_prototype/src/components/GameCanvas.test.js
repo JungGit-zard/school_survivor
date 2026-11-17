@@ -30,7 +30,7 @@ describe('GameCanvas reset ownership', () => {
 
   it('freezes the Matilda contact frame and greys it immediately without changing other gameovers', () => {
     expect(source).toContain("const isMatildaContactDeath = phase === 'gameover' && deathCause === 'matilda'")
-    expect(source).toContain("frameloop={isMatildaContactDeath ? 'never' : 'always'}")
+    expect(source).toContain("frameloop={isMatildaContactDeath || warmupPending ? 'never' : 'always'}")
     expect(source).toContain("filter: isMatildaContactDeath ? 'grayscale(1)' : 'none'")
   })
 
@@ -48,5 +48,10 @@ describe('GameCanvas reset ownership', () => {
     expect(diagnostics).toContain('gl.compile(scene, camera)')
     expect(diagnostics).toContain('const devMetricsEnabled = import.meta.env.DEV')
     expect(diagnostics).toContain('lastWarmupGameKeyRef.current === gameKey')
+  })
+
+  it('holds the frame loop behind a loading cover until the stage-entry shader warm-up resolves', () => {
+    expect(source).toContain('const warmupPending = useSyncExternalStore(subscribeStageEntryWarmup, () => isStageEntryWarmupPending(gameKey))')
+    expect(source).toContain('{warmupPending && <div data-testid="stage-entry-warmup-loading"')
   })
 })

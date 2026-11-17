@@ -13,12 +13,13 @@
 // 툰 규칙(Graphic_designer 정책): MeshToonMaterial(같은 5단 그라디언트) + 스텐실 뒷면 외곽선(#050209, .96)을
 // ZombieInstanceLayer와 똑같이 쓴다. Studio 아이템은 투사체 좀비 E46~E70처럼 아직 없다(튜닝 대상 아님).
 // 좀비 처리(채도 −30%·병색 틴트·살색 → 회녹색)는 아틀라스를 구울 때 들어갔다(scripts/build_kenney_blocky_zombies.mjs).
-import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
+import { Suspense, useEffect, useLayoutEffect, useMemo, useRef } from 'react'
 import { useFrame, useLoader } from '@react-three/fiber'
 import * as THREE from 'three'
 import atlasUrl from '../assets/models/kenney_blocky/kenney_blocky_zombie_atlas.png'
 import { enemyPool, playerPos, screenBounds } from '../lib/refs.js'
 import { getToonGradient } from '../lib/toon.js'
+import { markInstanceUpload } from '../lib/templateInstanceLayer.js'
 import { KENNEY_BLOCKY_ATLAS, KENNEY_BLOCKY_PARTS } from '../lib/kenneyBlockyGeometry.js'
 import { BLOCKY_ZOMBIE_TYPES, BLOCKY_ZOMBIE_VISUALS, blockyZombieAtlasCell, blockyZombieIndex } from '../lib/blockyZombieRoster.js'
 import { createBlockyPose, fillBlockyZombiePose } from '../lib/blockyZombiePose.js'
@@ -128,7 +129,7 @@ function composePart(out, parent, part, pose, offset) {
   return out
 }
 
-export default function BlockyZombieLayer({ resetKey }) {
+function BlockyZombieLayerInner({ resetKey }) {
   const atlas = useLoader(THREE.TextureLoader, atlasUrl)
   const tiers = useRef(new Uint8Array(LIMIT))
   const pose = useRef(createBlockyPose())
@@ -208,10 +209,11 @@ export default function BlockyZombieLayer({ resetKey }) {
       const bodyMesh = all.body[k]; const outlineMesh = all.outline[k]
       bodyMesh.count = count; outlineMesh.count = count
       if (count > 0) {
-        bodyMesh.instanceMatrix.clearUpdateRanges(); bodyMesh.instanceMatrix.addUpdateRange(0, count * 16); bodyMesh.instanceMatrix.needsUpdate = true
-        bodyMesh.instanceColor.clearUpdateRanges(); bodyMesh.instanceColor.addUpdateRange(0, count * 3); bodyMesh.instanceColor.needsUpdate = true
-        const atlasAttr = bodyMesh.userData.atlas; atlasAttr.clearUpdateRanges(); atlasAttr.addUpdateRange(0, count * 2); atlasAttr.needsUpdate = true
-        outlineMesh.instanceMatrix.clearUpdateRanges(); outlineMesh.instanceMatrix.addUpdateRange(0, count * 16); outlineMesh.instanceMatrix.needsUpdate = true
+        // 범위 객체를 다시 쓰는 helper(매 프레임 addUpdateRange 객체 할당 없음).
+        markInstanceUpload(bodyMesh.instanceMatrix, count, 16)
+        markInstanceUpload(bodyMesh.instanceColor, count, 3)
+        markInstanceUpload(bodyMesh.userData.atlas, count, 2)
+        markInstanceUpload(outlineMesh.instanceMatrix, count, 16)
       }
     }
   })
@@ -221,5 +223,23 @@ export default function BlockyZombieLayer({ resetKey }) {
       {all.body.map((mesh, k) => <primitive key={`bb${k}`} object={mesh} renderOrder={2} />)}
       {all.outline.map((mesh, k) => <primitive key={`bo${k}`} object={mesh} renderOrder={1} />)}
     </>
+  )
+}
+
+// 아틀라스 PNG를 기다리는 동안 다른 장면 요소(게임 로직·다른 레이어)는 기다리지 않는다 — 경계가 없으면
+// R3F 캔버스 전체가 서스펜드된다. 모듈 로드 때 미리 받아 두어 보통은 첫 마운트에서 바로 그려진다(Enemy.jsx 스폰 연기와 같은 방식).
+if (typeof document !== 'undefined' && import.meta.env?.MODE !== 'test') {
+  try {
+    useLoader.preload(THREE.TextureLoader, atlasUrl)
+  } catch {
+    /* 미리 받기 실패는 무시 — 실제 마운트의 같은 로더 캐시가 다시 시도한다 */
+  }
+}
+
+export default function BlockyZombieLayer(props) {
+  return (
+    <Suspense fallback={null}>
+      <BlockyZombieLayerInner {...props} />
+    </Suspense>
   )
 }

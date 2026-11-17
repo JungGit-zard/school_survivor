@@ -624,17 +624,21 @@ export function InuconWeapon() {
     lastHealAtRef.current = null
     lastPushAtRef.current = null
     trailRef.current.length = 0
-    return null
   }
 
+  // 가드 이펙트(방패 껍질 + "멍!멍!" 글자)는 이누콘이 없을 때도 숨긴 채(visible=false, 드로콜 0) 같은 자리에 붙여 둔다:
+  // 스테이지 진입 예열(gl.compileAsync — three r164 compile은 숨은 메시도 traverse한다)이 두 셰이더를 함께 컴파일해
+  // 첫 대신 맞기 순간에 멈추지 않는다. 자리를 바꾸지 않으므로 이누콘을 얻어도 다시 마운트(재질 재생성)되지 않는다.
   return (
     <>
-      <group ref={groupRef} scale={[INUCON_COMPANION_SCALE, INUCON_COMPANION_SCALE, INUCON_COMPANION_SCALE]}>
-        <group ref={yawRef}><InuconModel fainted={fainted} /></group>
-        {/* 머리(1.64)·유령 고리(1.82) 위. 부모 스케일 0.36 기준이라 월드 폭 ≈0.30u. 기절 중 숨김. */}
-        {!fainted && inuconMaxHp > 0 && <MiniHealthBar current={inuconHp} max={inuconMaxHp} width={0.84} height={0.14} y={2.0} />}
-      </group>
-      <InuconPushEffect token={pushVfx.token} radius={pushVfx.radius} />
+      {active && (
+        <group ref={groupRef} scale={[INUCON_COMPANION_SCALE, INUCON_COMPANION_SCALE, INUCON_COMPANION_SCALE]}>
+          <group ref={yawRef}><InuconModel fainted={fainted} /></group>
+          {/* 머리(1.64)·유령 고리(1.82) 위. 부모 스케일 0.36 기준이라 월드 폭 ≈0.30u. 기절 중 숨김. */}
+          {!fainted && inuconMaxHp > 0 && <MiniHealthBar current={inuconHp} max={inuconMaxHp} width={0.84} height={0.14} y={2.0} />}
+        </group>
+      )}
+      {active && <InuconPushEffect token={pushVfx.token} radius={pushVfx.radius} />}
       <InuconGuardEffect inuconPosRef={posRef} />
     </>
   )

@@ -40,6 +40,21 @@ export function createEscapePortalVfx() {
 }
 const PORTAL_LIGHT_DECAY = 2
 
+// 탈출구는 열리는 순간에야 마운트된다(Game.jsx). 그때 소용돌이·빛기둥 셰이더를 처음 컴파일하면 그 프레임이 멈췄다.
+// 같은 생성 함수(= 같은 프로그램 키)의 재질을 스테이지 내내 숨긴 채(visible=false, 드로콜 0) 붙여 두어 스테이지 진입
+// 예열(gl.compileAsync — three r164 compile은 숨은 메시도 traverse한다)에 함께 컴파일되게 한다. 스테이지 도중에
+// 떼지 않는다: 재질을 dispose하면 쓰는 곳이 없어진 프로그램이 지워져 탈출구가 다시 컴파일한다.
+export function EscapePortalShaderPrewarm() {
+  const vfx = useMemo(() => createEscapePortalVfx(), [])
+  useEffect(() => () => { vfx.swirl.dispose(); vfx.pillar.dispose(); vfx.geometry.dispose() }, [vfx])
+  return (
+    <group name="escape-portal-shader-prewarm" visible={false}>
+      <mesh geometry={vfx.geometry} material={vfx.swirl} />
+      <mesh geometry={vfx.geometry} material={vfx.pillar} />
+    </group>
+  )
+}
+
 // Mounting a pointLight mid-run changes NUM_POINT_LIGHTS and recompiles every
 // lit material that the stage-entry prewarm already compiled.  Gameplay keeps
 // one EscapePortalSceneLight mounted for the whole stage at intensity 0; the
