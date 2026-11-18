@@ -216,6 +216,108 @@
       ],
       "conversion": "scripts/build_schoolyard_dressing.mjs (see PROVENANCE.json)",
       "attribution": "Kenney (www.kenney.nl), Kay Lousberg (kaylousberg.com), Tiny Treats / Isa Lousberg (optional under CC0)"
+    },
+    {
+      "logicalId": "schoolyardGroundTextures",
+      "category": "stageTextures",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/src/assets/textures/schoolyard/track.jpg",
+          "bytes": 18300,
+          "sha256": "7df4662a311391a0895f43c46766ed9b49eea48c30923e2bde61d34e2e3a37b6"
+        },
+        {
+          "path": "Developer/r3f_prototype/src/assets/textures/schoolyard/turf.jpg",
+          "bytes": 9401,
+          "sha256": "d96ade8ad65d109ff9b16ab654e760b8f54334ee2063b0a06ffc8be689323163"
+        },
+        {
+          "path": "Developer/r3f_prototype/src/assets/textures/schoolyard/outfield.jpg",
+          "bytes": 10001,
+          "sha256": "0ee709139c84d43bae808523d7bcc7249451ce8b4556fc570414f9512f5e3015"
+        },
+        {
+          "path": "Developer/r3f_prototype/src/assets/textures/schoolyard/sand.jpg",
+          "bytes": 11554,
+          "sha256": "846ac00b64c5c25cb145686b771a929f3fa2d505bc3b488f4f4c1ef29b158ae4"
+        },
+        {
+          "path": "Developer/r3f_prototype/src/assets/textures/schoolyard/dirt.jpg",
+          "bytes": 10680,
+          "sha256": "88f7e82e4837de6e8ff80deb6b62959b9db5f57d30cc30cbeccaafed80374ddc"
+        },
+        {
+          "path": "Developer/r3f_prototype/src/assets/textures/schoolyard/paving.jpg",
+          "bytes": 8083,
+          "sha256": "c8e21b8bda44958f15b205937eaa0a5a0791553acfd72acca85edc419ac50b04"
+        },
+        {
+          "path": "Developer/r3f_prototype/src/assets/textures/schoolyard/kerb.jpg",
+          "bytes": 8092,
+          "sha256": "c2a4a4ac623f31bccb9a986d0ee22b0829ac8cdcb7556b3e51011da58bc6d400"
+        },
+        {
+          "path": "Developer/r3f_prototype/src/assets/textures/schoolyard/PROVENANCE.json",
+          "bytes": 3457,
+          "sha256": "39996de7bffff34c297ae2f0045eeb102951847481d1ba4cbe904df5dcb59ffd"
+        },
+        {
+          "path": "Developer/r3f_prototype/src/assets/textures/schoolyard/License.txt",
+          "bytes": 1830,
+          "sha256": "35294e23440c57eddc85a1efcf2f2a164a2532f1f373034bf9961d4ffd32e5e7"
+        }
+      ],
+      "provenanceType": "third-party-cc0",
+      "source": "ambientCG (https://ambientcg.com) by Lennart Demes: Rubber003, Grass001, Grass004, Ground054, Ground048, PavingStones128, Concrete034 (1K Color maps, snapshots downloaded 2026-11-17)",
+      "license": "CC0 1.0 Universal (Creative Commons Zero), https://docs.ambientcg.com/license/",
+      "licenseEvidence": "License text in License.txt next to the maps; per-map source member sha256 in PROVENANCE.json",
+      "snapshotDate": "2026-11-17",
+      "materials": [
+        {
+          "id": "track",
+          "material": "ambientCG Rubber003",
+          "member": "Rubber003_1K-JPG_Color.jpg",
+          "memberSha256": "6db4e5be5705655cfa0d0c0c0548a490a8552e10655db3ceda4a702324f2b35c"
+        },
+        {
+          "id": "turf",
+          "material": "ambientCG Grass001",
+          "member": "Grass001_1K-JPG_Color.jpg",
+          "memberSha256": "b9b6d61bc3b6137b868a3447eef18737896acd26d58fe2f4b83ce8c0e9d3f8ad"
+        },
+        {
+          "id": "outfield",
+          "material": "ambientCG Grass004",
+          "member": "Grass004_1K-JPG_Color.jpg",
+          "memberSha256": "9e1c60da44b34a9738b1256ba827541f097dc583521b1d281e61b5f4b4217bc5"
+        },
+        {
+          "id": "sand",
+          "material": "ambientCG Ground054",
+          "member": "Ground054_1K-JPG_Color.jpg",
+          "memberSha256": "77c0b5ac13eead1420887c608b2c28209a1ae5ba70761bf29953aa23cf3dc31b"
+        },
+        {
+          "id": "dirt",
+          "material": "ambientCG Ground048",
+          "member": "Ground048_1K-JPG_Color.jpg",
+          "memberSha256": "5ed6949bbe77332e12f9fdcfcadcd1d851ae2240ea0a46196e9a171fac201e8b"
+        },
+        {
+          "id": "paving",
+          "material": "ambientCG PavingStones128",
+          "member": "PavingStones128_1K-JPG_Color.jpg",
+          "memberSha256": "eef877d5807627e97b0f1813b14ff4d1855836c9af4976df65e8503f2022d0a3"
+        },
+        {
+          "id": "kerb",
+          "material": "ambientCG Concrete034",
+          "member": "Concrete034_1K-JPG_Color.jpg",
+          "memberSha256": "8ceb9186d990b31fce785e06fdc6974c160f1d27c43f6160266f164deba713aa"
+        }
+      ],
+      "conversion": "scripts/build_schoolyard_ground_textures.mjs (see PROVENANCE.json): luminance, blur, soft posterise, 256x256 grayscale JPEG",
+      "attribution": "ambientCG / Lennart Demes (optional under CC0)"
     }
   ]
 }
