@@ -36,6 +36,17 @@ const DATA = {
       "bestRecordKey": "stage6BestSurvivalSec",
       "nextStageId": "stage7",
       "spawnClock": "gameplayElapsedSec",
+      // 2026-11-19 balanceqa 안 A8(17 × 28u 축소 보정, Terry 크기 유지): 같은 좀비가 좁은 판에 몰려 약한 봇 사망이 옛 판보다 +57/+68%p.
+      //   스폰 화면 밖 수정만 넣으면 최대 +8%p 더 나빠졌고, 수정 + A8은 300시드에서 약한 봇 +35.7/+45.3%p · 강한 봇 +1/+1%p —
+      //   줄 수·속도·동시 상한·크기 안 중 가장 좋았다. 마릿수·HP·시간표는 그대로다.
+      //   ① contactDamageMultiplier: 풀 좀비 접촉 이벤트(몸 접촉·근접 공격, 소스 index ≥ 0) 피해 × 0.6. 보스 B05·마틸다·훈화 고리·
+      //      E104 공·폭발(index −1)·탄은 그대로.
+      //   ② earlyRowStagger: 90초 전 일반 행(보스 제외, 2마리 이상)은 몸을 한꺼번에 내지 않고 spreadSec 동안 고르게(i/n × 2초) 낸다.
+      "contactDamageMultiplier": 0.6,
+      "earlyRowStagger": {
+        "beforeSec": 90,
+        "spreadSec": 2
+      },
       "stageHpMultiplier": 1,
       "newEnemyHpMode": "absolute",
       "existingEnemyHpMultiplier": 2.4883199999999994,
@@ -2475,6 +2486,11 @@ const DATA = {
     "simultaneousNewTelegraphs": 2,
     "simultaneousDamagingAreas": 4
   }
+}
+// 2026-11-19 A8: 스테이지별 풀 좀비 접촉 피해 배수(없으면 1). Enemies.jsx 접촉 이벤트 소비와 stageRuntimeProbe가 같은 값을 쓴다.
+export function getStageContactDamageMultiplier(stageId) {
+ const m=DATA.stages.find(s=>s.id===stageId)?.contactDamageMultiplier
+ return Number.isFinite(m)&&m>0?m:1
 }
 function freeze(v) { if(v && typeof v==='object'){Object.values(v).forEach(freeze);Object.freeze(v)} return v }
 const map = rows => freeze(Object.fromEntries(rows.map(v => [v.id,v])))

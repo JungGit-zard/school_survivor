@@ -8,6 +8,7 @@ import { MAX_ENEMY_PROJECTILES } from './enemyProjectilePool.js'
 import { getBossSpawnSec } from './burstEvents.js'
 import { INV_DURATION, PLAYER_HIT_KNOCKBACK_MS } from '../components/Player.jsx'
 import { enemyPool, playerPos } from './refs.js'
+import { enemyTypeToCode } from './enemyEntityPool.js'
 import { pairedProportionDiff, pairedRatioMedian } from './balanceProbeStats.js'
 import { getRuntimeSpawnEventsForStage, postExitRepeatWaveIndex, postExitWaveCount } from './burstEvents.js'
 import { overtimeReinforcementCountForTick, OVERTIME_REINFORCEMENT_COUNT } from '../components/Enemies.jsx'
@@ -310,5 +311,45 @@ describe('S6 B05 시간 소환: 천장에 잘린 몫은 미뤘다가 자리가 �
     // 처치 뒤에는 자리가 30칸 나도 소환 요청·재시도가 하나도 없다.
     expect(summons.filter((q) => q.sec > killSec)).toEqual([])
     expect(freedAt).not.toBeNull()
+  }, LONG)
+})
+
+// 2026-11-19 balanceqa 안 A8(stage6 축소 보정): 프로브가 게임(Enemies.jsx)과 같은 규칙을 탄다.
+describe('S6 A8: 풀 좀비 접촉 ×0.6 · 90초 전 행 2초 나눠 내기', () => {
+  it('stage6 풀 접촉 피해는 작성값 × 0.6, stage5 접촉은 그대로(정수)', () => {
+    const contactAmounts = (stageId) => {
+      const run = runStageRuntimeProbe({ stageId, seed: 3, bot: { kind: 'IDLE' }, immortal: true, maxSec: 70 })
+      const out = []
+      for (let i = 0; i < run.hitEvents.length; i += 3) if (String(run.hitEvents[i + 1]).startsWith('contact:')) out.push(run.hitEvents[i + 2])
+      return out
+    }
+    const s6 = contactAmounts('stage6')
+    expect(s6.length).toBeGreaterThan(0)
+    // 스6 작성 접촉 피해는 정수(E19 10 · E21 9 …) — 0.6으로 나누면 정수로 돌아오고, 하나도 작성값 그대로가 아니다.
+    for (const amount of s6) expect(Math.abs(amount / 0.6 - Math.round(amount / 0.6))).toBeLessThan(1e-9)
+    expect(s6.every((amount) => !Number.isInteger(amount) || amount % 3 === 0)).toBe(true)
+    expect(Math.max(...s6)).toBeLessThanOrEqual(0.6 * 22)
+    const s5 = contactAmounts('stage5')
+    expect(s5.length).toBeGreaterThan(0)
+    expect(s5.every((amount) => Number.isInteger(amount))).toBe(true)
+  }, LONG)
+
+  it('5초 조회 줄 E19×10은 한꺼번에가 아니라 약 2초에 걸쳐 고르게 나오고, 하나도 빠지지 않는다', () => {
+    const e19 = enemyTypeToCode('E19')
+    let now = 0
+    const times = []
+    const origInto = enemyPool.spawnInto.bind(enemyPool)
+    enemyPool.spawnInto = (out, src) => { if (src && enemyTypeToCode(src.type) === e19) times.push(now); return origInto(out, src) }
+    try {
+      runStageRuntimeProbe({ stageId: 'stage6', seed: 1, bot: { kind: 'IDLE' }, immortal: true, maxSec: 9, onFrame: ({ sec }) => { now = sec } })
+    } finally { enemyPool.spawnInto = origInto }
+    const row = times.filter((t) => t >= 4.9 && t < 9)
+    expect(row).toHaveLength(10)
+    expect(Math.min(...row)).toBeLessThan(5.2)
+    // i번째 몸 = 5 + 2 × i / 10초 → 마지막 몸 6.8초 무렵(드레인 한 프레임 여유).
+    expect(Math.max(...row)).toBeGreaterThan(6.6)
+    expect(Math.max(...row)).toBeLessThan(7.2)
+    // 0.5초 안에 4마리 이상 몰려 나오지 않는다(예전: 같은 프레임에 10마리 큐 → 4프레임 안에 전부).
+    for (const t of row) expect(row.filter((u) => u >= t && u < t + 0.5).length).toBeLessThanOrEqual(3)
   }, LONG)
 })

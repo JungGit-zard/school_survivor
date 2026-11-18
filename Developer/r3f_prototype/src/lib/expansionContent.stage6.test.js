@@ -1,6 +1,6 @@
 // Stage 6 「운동장 최후의 조회」 데이터 교체(스펙 Part C C-2·C-4·C-5·C-6·C-7, 부록 C-A).
 import { describe, expect, it } from 'vitest'
-import { EXPANSION_BOSSES, EXPANSION_ENEMIES, EXPANSION_HAZARDS, EXPANSION_STAGES, getExpansionStageConfig } from './expansionContent.js'
+import { EXPANSION_BOSSES, EXPANSION_ENEMIES, EXPANSION_HAZARDS, EXPANSION_STAGES, getExpansionStageConfig, getStageContactDamageMultiplier } from './expansionContent.js'
 import { EXPANSION_PART2_LIBRARY_ARCHIVE } from './expansionPart2Archive.js'
 import { ENEMY_TYPE_CODES } from './enemyEntityPool.js'
 import { getBurstEventsForStage, isBossType } from './burstEvents.js'
@@ -228,6 +228,17 @@ describe('stage6 축소 경기장 17 × 28u — 모든 게임 좌표가 안에 �
       expect(x >= move.minX && x <= move.maxX && z >= move.minZ && z <= move.maxZ).toBe(true)
       expect(inGoal([x, z], 0.5)).toBe(false)
     }
+  })
+})
+
+// 2026-11-19 balanceqa 안 A8: 스6만 풀 좀비 접촉 ×0.6, 90초 전 행 2초 나눠 내기. 다른 스테이지는 배수 1·나눠 내기 없음.
+describe('stage6 A8 보정 상수', () => {
+  it('contactDamageMultiplier 0.6 · earlyRowStagger { beforeSec 90, spreadSec 2 }, 다른 스테이지는 그대로', () => {
+    expect(S6.contactDamageMultiplier).toBe(0.6)
+    expect(S6.earlyRowStagger).toEqual({ beforeSec: 90, spreadSec: 2 })
+    expect(getStageContactDamageMultiplier('stage6')).toBe(0.6)
+    for (const id of ['stage1', 'stage2', 'stage3', 'stage4', 'stage5', 'stage7', 'stage8', 'stage9', 'stage10']) expect(getStageContactDamageMultiplier(id), id).toBe(1)
+    for (const id of ['stage7', 'stage8', 'stage9', 'stage10']) expect(EXPANSION_STAGES[id].earlyRowStagger).toBeUndefined()
   })
 })
 

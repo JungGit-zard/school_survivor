@@ -4,8 +4,8 @@ import { emitSfx } from '../lib/sfxEvents.js'
 import { usePlayingFrame } from '../lib/usePlayingFrame.js'
 import { playerPos, playerFacing, screenBounds, enemyBodies, enemyPool, enemySimulationRuntime, enemyProjectilePool, enemySightBlocked, enemyHandleScratch, projectileZombieShotPool, playerSlow, playerImpulse } from '../lib/refs.js'
 import Enemy, { ENEMY_SIZE_MULTIPLIER, ENEMY_STATS } from './Enemy.jsx'
-import { EXPANSION_STAGES, EXPANSION_ENEMIES, EXPANSION_BOSSES, isExpansionStage, isExpansionEnemy, isExpansionBoss } from '../lib/expansionContent.js'
-import { expansionSpawnPosition, expansionRowPositions, expansionTrackLanePositions } from '../lib/expansionSpawns.js'
+import { EXPANSION_STAGES, EXPANSION_ENEMIES, EXPANSION_BOSSES, isExpansionStage, isExpansionEnemy, isExpansionBoss, getStageContactDamageMultiplier } from '../lib/expansionContent.js'
+import { expansionSpawnPosition, expansionRowPositions, expansionTrackLanePositions, refreshQueuedExpansionSpawn, shouldStaggerExpansionBurst, scheduleStaggeredBurst, takeDueStaggered } from '../lib/expansionSpawns.js'
 import EnemyDeathCollapse from './EnemyDeathCollapse.jsx'
 import { ZOMBIE_PALETTE } from './ZombieMesh.jsx'
 import { purifiedStudentPool, spawnPurifiedStudent } from '../lib/purifiedStudentPool.js'
@@ -1273,6 +1273,8 @@ const SCHEDULE_BOSS_SUMMON = 11
 const SCHEDULE_EXPANSION_SUMMON = 12
 // 트랙 계주 대열(track_lanes, Stage 6 124초) 직전 호루라기 리드. 보스 소환 경고(B05 summon.warningMs 1,200ms)와 같은 길이.
 export const TRACK_LANE_CUE_LEAD_SEC = 1.2
+// A8 ②(stage6) 나눠 내기 방출: 프레임 루프는 시각이 된 몸이 있다는 신호만 올리고, 몸은 스케줄러(RAF)에서 드레인 큐에 넣는다.
+const SCHEDULE_STAGGER_RELEASE = 13
 
 export function isPooledEnemyType(type) {
   const code = enemyTypeToCode(type)
@@ -1434,7 +1436,7 @@ export function buildExpansionBurstBatch(cache,evt,counts,random=Math.random) {
   const fixed=evt.formation==='assembly_row'
     ? expansionRowPositions(evt.type,cache.id,playerPos,cache.bounds,screenBounds,count,evt.side??'top',cache.obstacles)
     : evt.formation==='track_lanes'
-      ? expansionTrackLanePositions(evt.type,cache.id,playerPos,cache.bounds,count,cache.obstacles)
+      ? expansionTrackLanePositions(evt.type,cache.id,playerPos,cache.bounds,count,cache.obstacles,[],screenBounds)
       : null
   if(fixed){
     for(const pos of fixed) batch.push({id:++_uid,type:evt.type,pos,statOverride:stageHpOverride(evt.type,cache.id)})
@@ -1552,6 +1554,8 @@ export default function Enemies() {
     const queue = runtimeQueueRef.current
     stageSpawnTokenRef.current = (stageSpawnTokenRef.current + 1) >>> 0 || 1
     resetPooledEnemySpawnDrainQueue(queue.spawnDrain)
+    queue.staggered = [] // A8 ② 나눠 내기 대기 몸(이전 판 토큰은 드레인이 어차피 버린다)
+    queue.staggerReleaseQueued = false
     // resetGame이 같은 stageId로 다시 시작되는 경우에도 이전 RAF 요청을 폐기한다.
     queue.scheduleRead = 0
     queue.scheduleWrite = 0
@@ -1801,7 +1805,8 @@ export default function Enemies() {
 
   const spawnPooledEnemy = useCallback((entry) => {
     const stats = { ...(ENEMY_STATS[entry.type] ?? ENEMY_STATS.E01), ...(entry.statOverride ?? {}) }
-    const pos = entry.pos ?? [0, 0, 0]
+    // Stage 6: 큐에서 나오는 순간 화면 안이 된 좌표는 화면 밖으로 다시 옮긴다(lib/expansionSpawns.js, 다른 스테이지는 그대로).
+    const pos = refreshQueuedExpansionSpawn(entry, stageRuntimeCacheRef.current, playerPos, screenBounds).pos ?? [0, 0, 0]
     const spawned = enemyPool.spawnInto(enemyHandleScratch, {
       type: entry.type,
       x: pos[0], y: pos[1], z: pos[2], hp: stats.hp, maxHp: stats.hp,
@@ -1823,7 +1828,8 @@ export default function Enemies() {
   const totalZombieCounts = useCallback(() => ({
     pooledActive: enemyPool.activeCount,
     specialActive: countAliveSpecialZombies(enemiesRef.current, runtimeQueueRef.current.specialRemovals, enemyBodies),
-    pooledQueued: runtimeQueueRef.current.spawnDrain.count,
+    // A8 ② 나눠 내기로 아직 안 나온 몸도 대기열로 센다(동시 150 상한이 그 몫까지 지킨다).
+    pooledQueued: runtimeQueueRef.current.spawnDrain.count + (runtimeQueueRef.current.staggered?.length ?? 0),
   }), [])
 
   const addEnemies = useCallback((newList, deferPooled = false, stageToken = stageSpawnTokenRef.current) => {
@@ -2042,6 +2048,10 @@ export default function Enemies() {
         recordMissionBurstSpawns(store, batch, cache.id, getRuntimeElapsedMs(store.elapsedMs) / 1000)
         addEnemies(batch, true, cache.spawnToken)
       }
+    } else if (kind === SCHEDULE_STAGGER_RELEASE) {
+      queue.staggerReleaseQueued = false
+      const due = takeDueStaggered(queue.staggered ?? [], getRuntimeElapsedMs(store.elapsedMs) / 1000)
+      for (const item of due) addEnemies([item.entry], true, item.token)
     } else if (kind === SCHEDULE_BOSS_SUMMON) {
       // B10 교무회의 소집: 보스 중심 2.5u 링에 E57·E51·E54. 첫 자리는 플레이어 반대쪽.
       const ring = b10SummonRingPositions(a, b, playerPos.x, playerPos.z)
@@ -2069,6 +2079,11 @@ export default function Enemies() {
         // 예전에는 한 번 실패하면 fired로 남아 그 판에 다시 나오지 않았다.
         if(shouldRetryRewardBurst(evt,batch.length>0,b)){firedBurstsRef.current[Math.trunc(a)]=0;return}
         recordMissionBurstSpawns(store,batch,cache.id,b)
+        // A8 ②(stage6): 90초 전 행은 몸을 spreadSec 동안 고르게 낸다 — 같은 몸·순서·좌표, 프레임 루프가 시각이 되면 드레인 큐에 넣는다.
+        if(shouldStaggerExpansionBurst(cache.id,evt,batch.length)){
+          scheduleStaggeredBurst(queue.staggered??=[],cache.id,batch,getRuntimeElapsedMs(store.elapsedMs)/1000,cache.spawnToken)
+          return
+        }
         addEnemies(batch,true,cache.spawnToken)
         return
       }
@@ -2362,8 +2377,10 @@ export default function Enemies() {
     while (enemySimulationRuntime.events.drainInto(runtimeEvent)) {
       if (runtimeEvent.type === ENEMY_EVENT_CONTACT) {
         const store = useGameStore.getState()
-        store.damagePlayer(runtimeEvent.value)
-        recordPlayerDamage(dominanceSwarmRef.current, runtimeEvent.value, getRuntimeElapsedMs(store.elapsedMs))
+        // A8 ①(stage6 contactDamageMultiplier 0.6): 풀 좀비가 낸 접촉 이벤트(index ≥ 0)만. 폭발·공(index −1)은 그대로.
+        const contactDamage = runtimeEvent.index >= 0 ? runtimeEvent.value * getStageContactDamageMultiplier(stageRuntime.id) : runtimeEvent.value
+        store.damagePlayer(contactDamage)
+        recordPlayerDamage(dominanceSwarmRef.current, contactDamage, getRuntimeElapsedMs(store.elapsedMs))
       } else if (runtimeEvent.type === ENEMY_EVENT_RANGED_FIRE) {
         enemyProjectilePool.spawnInto(enemyHandleScratch, runtimeEvent.x, runtimeEvent.y, runtimeEvent.z, runtimeEvent.value, runtimeEvent.aux)
       } else if (runtimeEvent.type === ENEMY_EVENT_PROJECTILE_ZOMBIE_TELEGRAPH) {
@@ -2433,6 +2450,10 @@ export default function Enemies() {
       const summonBossType = enemyTypeFromCode(summonScratch.bossTypeCode)
       if (summonBossType && EXPANSION_BOSSES[summonBossType]?.summon) enqueueScheduled(SCHEDULE_EXPANSION_SUMMON, summonScratch.bossTypeCode, 0)
       else enqueueScheduled(SCHEDULE_BOSS_SUMMON, summonScratch.x, summonScratch.z)
+    }
+    // A8 ② 나눠 내기: 시각이 된 몸을 넣은 순서대로 드레인 큐에 넣는다(나오는 순간 화면 밖 재확인은 spawnPooledEnemy가 한다).
+    if (runtimeQueue.staggered?.length && !runtimeQueue.staggerReleaseQueued && runtimeQueue.staggered.some((item) => item.atSec <= sec)) {
+      runtimeQueue.staggerReleaseQueued = enqueueScheduled(SCHEDULE_STAGGER_RELEASE)
     }
     // 천장(150)이나 좌표 실패로 미뤄 둔 B05 시간 소환 몫: 보스가 살아 있고 자리가 나면 한 소환 크기씩 다시 올린다.
     // 판·스테이지가 바뀌었거나 보스가 죽었으면 조용히 버린다. 경고·호루라기는 원래 소환 시각에 이미 울렸으니 다시 내지 않는다.

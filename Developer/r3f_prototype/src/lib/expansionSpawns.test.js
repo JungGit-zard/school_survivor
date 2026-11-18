@@ -3,29 +3,38 @@ import { describe, expect, it } from 'vitest'
 import {
   ASSEMBLY_ROW_SPACING,
   isInsideExpandedScreenRect,
+  refreshQueuedExpansionSpawn,
+  shouldStaggerExpansionBurst,
+  scheduleStaggeredBurst,
+  takeDueStaggered,
   TRACK_LANE_POINTS,
   expansionRowPositions,
   expansionSpawnPosition,
   expansionTrackLanePositions,
 } from './expansionSpawns.js'
 import { getStageBounds } from './stageConfig.js'
+import { getBurstEventsForStage } from './burstEvents.js'
 import { getStageObjectSightObstacles } from '../components/StageObjects/stageObjectColliders.js'
 
 const bounds = getStageBounds('stage6')
 const obstacles = getStageObjectSightObstacles('stage6')
 const screen = (player) => ({ minX: player.x - 5, maxX: player.x + 5, minZ: player.z - 12.44, maxZ: player.z + 7.18 })
 const E19_RADIUS = 0.28 * 1 * 4 / 3
+const noOverlap = (positions, radius) => positions.every((p, i) => positions.every((q, j) => j <= i || Math.hypot(p[0] - q[0], p[2] - q[2]) >= radius * 2 + 0.1 - 1e-9))
+// 실제 게임(세로 폰 390×844, 플레이 줌) 화면 사각형: 플레이어 x ±4.21, 위 12.44, 아래 7.19, 초점 z는 경기장 안으로 클램프(−1.56 … 6.82).
+const portraitRect = (player) => { const fz = Math.min(6.82, Math.max(-1.56, player.z)); return { minX: player.x - 4.21, maxX: player.x + 4.21, minZ: fz - 12.44, maxZ: fz + 7.19 } }
 // 2026-11-18 Terry 운동장 30% 축소: 24 × 40u → 17 × 28u(반폭 8.5 · 반길이 14).
 
 describe('assembly_row', () => {
-  it('12마리 가로줄: 간격 1.1u, 같은 z, 전부 맵 안, 플레이어 3u 밖, 위쪽(top)은 화면 위 끝 1u 밖', () => {
+  // 2026-11-19: 화면 밖 규칙이 있는 stage6은 줄이 화면 끝에서 1u + 몸 반경 밖에 선다(몸 전체가 화면 밖 + 1u).
+  it('12마리 가로줄: 간격 1.1u, 같은 z, 전부 맵 안, 플레이어 3u 밖, 위쪽(top)은 화면 위 끝 1u + 몸 반경 밖', () => {
     expect(bounds).toEqual({ halfX: 8.5, halfZ: 14 })
     const player = { x: 0, z: 4 }
     const row = expansionRowPositions('E19', 'stage6', player, bounds, screen(player), 12, 'top', obstacles)
     expect(row).toHaveLength(12)
     const z = row[0][2]
     expect(row.every((p) => p[2] === z)).toBe(true)
-    expect(z).toBeCloseTo(4 - 12.44 - 1, 9)
+    expect(z).toBeCloseTo(4 - 12.44 - 1 - E19_RADIUS, 5)
     for (let i = 1; i < row.length; i += 1) expect(row[i][0] - row[i - 1][0]).toBeCloseTo(ASSEMBLY_ROW_SPACING, 9)
     for (const [x, , pz] of row) {
       expect(Math.abs(x)).toBeLessThanOrEqual(8.5 - E19_RADIUS)
@@ -43,7 +52,7 @@ describe('assembly_row', () => {
   it('gate/bottom은 화면 아래 끝 밖(+Z, 정문 쪽), 경계를 넘으면 클램프', () => {
     const player = { x: 2, z: 0 }
     const gate = expansionRowPositions('E19', 'stage6', player, bounds, screen(player), 12, 'gate', obstacles)
-    expect(gate[0][2]).toBeCloseTo(7.18 + 1, 9)
+    expect(gate[0][2]).toBeCloseTo(7.18 + 1 + E19_RADIUS, 5)
     const deep = { x: 0, z: 12 }
     const clamped = expansionRowPositions('E19', 'stage6', deep, bounds, screen(deep), 12, 'bottom', obstacles)
     // 아래는 경계(14 − r)로 클램프돼 플레이어와 6u 미만 → 반대쪽(위)으로 1회 바꾼다.
@@ -56,13 +65,15 @@ describe('assembly_row', () => {
     expect(auto[0][2]).toBeGreaterThan(nearTop.z)
   })
 
-  it('장애물(골대)과 겹치는 슬롯만 건너뛴다', () => {
+  it('장애물(골대)과 겹치는 슬롯은 버리지 않고 골대 밖 가장 가까운 자리로 옮긴다(2026-11-19 — 예전에는 건너뛰었다)', () => {
     // 북쪽 골대 (0, −7.7) 반크기 1.6×0.45. 줄 z를 골대 위로 오게 화면을 맞춘다.
     const player = { x: 0, z: -1 }
     const rect = { minZ: -6.7, maxZ: 5 }
     const row = expansionRowPositions('E19', 'stage6', player, bounds, rect, 12, 'top', obstacles)
-    expect(row.length).toBeLessThan(12)
-    expect(row.every(([x]) => Math.abs(x) > 1.6)).toBe(true)
+    expect(row).toHaveLength(12)
+    const goal = { z: -7.7, hx: 1.6, hz: 0.45 }
+    expect(row.some(([x, , z]) => Math.abs(x) < goal.hx + E19_RADIUS && Math.abs(z - goal.z) < goal.hz + E19_RADIUS)).toBe(false)
+    expect(noOverlap(row, E19_RADIUS)).toBe(true)
   })
 })
 
@@ -146,5 +157,99 @@ describe('off-screen ring preference (stage6)', () => {
     const c = expansionSpawnPosition('E22', 'stage7', { x: 0, z: 0 }, s7, [], [], lcg(5), undefined, { minX: -20, maxX: 20, minZ: -20, maxZ: 20 })
     const d = expansionSpawnPosition('E22', 'stage7', { x: 0, z: 0 }, s7, [], [], lcg(5))
     expect(c).toEqual(d)
+  })
+})
+
+// 2026-11-19 고정 지점도 화면 밖에서: 경기장 끝에 막힌 조회 줄·화면 안 계주 지점을 버리지 않고 화면 밖으로 옮긴다.
+describe('fixed-point spawns start off-screen (stage6)', () => {
+  const pad = (radius) => 1 + radius
+
+  it('카메라가 위 끝에 멈춘 자리(플레이어 z −5): 위쪽 줄 12마리가 같은 z 줄의 화면 좌우 바깥에 선다 — 반대쪽으로 넘기지 않는다', () => {
+    const player = { x: 0, z: -5 }
+    const rect = portraitRect(player)
+    const row = expansionRowPositions('E19', 'stage6', player, bounds, rect, 12, 'top', obstacles)
+    expect(row).toHaveLength(12)
+    for (const [x, , z] of row) {
+      expect(isInsideExpandedScreenRect(x, z, rect, pad(E19_RADIUS))).toBe(false)
+      expect(z).toBeLessThan(player.z) // 위쪽(조회대 쪽) 그대로
+      expect(Math.abs(x)).toBeLessThanOrEqual(8.5 - E19_RADIUS)
+    }
+    expect(noOverlap(row, E19_RADIUS)).toBe(true)
+    // 64·96초 짝(위 + 아래)은 서로 다른 쪽에 남는다.
+    const bottom = expansionRowPositions('E19', 'stage6', player, bounds, rect, 12, 'bottom', obstacles, row)
+    expect(bottom).toHaveLength(12)
+    expect(bottom.every(([, , z]) => z > player.z)).toBe(true)
+    expect(noOverlap([...row, ...bottom], E19_RADIUS)).toBe(true)
+  })
+
+  it('계주 지점: 화면 안·플레이어 4u 안 지점은 다른 계주 지점(없으면 가장 가까운 화면 밖 점)으로 옮기고 6마리 모두 낸다', () => {
+    const r = 0.25 * 0.9 * 4 / 3 // E21 scale 0.9
+    for (const player of [{ x: 0, z: 13.2 }, { x: -5.5, z: 0 }, { x: 5, z: -10 }, { x: 0, z: 0 }, { x: -6.5, z: 6 }]) {
+      const rect = portraitRect(player)
+      const lanes = expansionTrackLanePositions('E21', 'stage6', player, bounds, 6, obstacles, [], rect)
+      expect(lanes, JSON.stringify(player)).toHaveLength(6)
+      for (const [x, , z] of lanes) {
+        expect(isInsideExpandedScreenRect(x, z, rect, pad(r)), JSON.stringify({ player, x, z })).toBe(false)
+        expect(Math.hypot(x - player.x, z - player.z)).toBeGreaterThanOrEqual(4)
+      }
+      expect(noOverlap(lanes, r)).toBe(true)
+    }
+    // 보고된 실측 자리: 플레이어 z 13.2에서 (−5.5, 4.2) 지점이 화면 안이었다 → 이제 화면 밖 계주 지점으로 간다.
+    const p = { x: -2, z: 13.2 }
+    const lanes = expansionTrackLanePositions('E21', 'stage6', p, bounds, 6, obstacles, [], portraitRect(p))
+    expect(lanes.some(([x, , z]) => x === -5.5 && z === 4.2)).toBe(false)
+  })
+
+  it('화면 사각형이 없으면(헤드리스 호출) 계주 지점은 예전 규칙 그대로', () => {
+    const near = expansionTrackLanePositions('E21', 'stage6', { x: -5.5, z: 0 }, bounds, 6, obstacles)
+    expect(near).toHaveLength(5)
+  })
+})
+
+// 2026-11-19 드레인 직전 재확인: 큐에서 나오는 순간 화면 안이 된 좌표만 옮긴다. 보스·치프·다른 스테이지는 그대로.
+describe('refreshQueuedExpansionSpawn', () => {
+  const cache = { id: 'stage6', bounds, obstacles }
+  it('나오는 순간 화면 안이면 가장 가까운 화면 밖 유효 점으로, 화면 밖이면 그대로', () => {
+    const player = { x: -6.5, z: 5.25 }
+    const rect = portraitRect(player)
+    const stale = { type: 'E21', pos: [-2.88, 0.3, 3.24], statOverride: { hp: 36 } }
+    const fresh = refreshQueuedExpansionSpawn(stale, cache, player, rect)
+    expect(fresh).not.toBe(stale)
+    expect(fresh.type).toBe('E21')
+    expect(fresh.statOverride).toBe(stale.statOverride)
+    expect(isInsideExpandedScreenRect(fresh.pos[0], fresh.pos[2], rect, 1 + 0.25 * 0.9 * 4 / 3)).toBe(false)
+    expect(Math.abs(fresh.pos[2] - 3.24)).toBeLessThan(0.01) // 같은 z 줄에서 옆으로 비킨다
+    const ok = { type: 'E21', pos: [3, 0.3, 3.24] }
+    expect(refreshQueuedExpansionSpawn(ok, cache, player, rect)).toBe(ok)
+  })
+  it('보스·치프·stage7·화면 사각형 없음은 그대로', () => {
+    const player = { x: 0, z: 0 }
+    const rect = portraitRect(player)
+    for (const entry of [{ type: 'B05', pos: [0, 1, 0] }, { type: 'E104', pos: [0, 0.3, 1] }]) expect(refreshQueuedExpansionSpawn(entry, cache, player, rect)).toBe(entry)
+    const e = { type: 'E01', pos: [0, 0.3, 1] }
+    expect(refreshQueuedExpansionSpawn(e, { id: 'stage7', bounds: getStageBounds('stage7'), obstacles: [] }, player, rect)).toBe(e)
+    expect(refreshQueuedExpansionSpawn(e, cache, player, null)).toBe(e)
+  })
+})
+
+// 2026-11-19 A8 ②: 90초 전 stage6 행(보스 제외, 2마리 이상)만 2초에 걸쳐 나눠 낸다.
+describe('A8 early-row stagger (stage6)', () => {
+  it('대상 행은 90초 전·2마리 이상·보스 아님 — 시간표 그대로에서 고른다', () => {
+    const picked = getBurstEventsForStage('stage6').filter((e) => shouldStaggerExpansionBurst('stage6', e, e.count ?? 1)).map((e) => [e.sec, e.type, e.count])
+    expect(picked).toEqual([[5, 'E19', 10], [16, 'E01', 5], [36, 'E19', 10], [44, 'E21', 2], [52, 'E01', 9], [64, 'E19', 12], [64, 'E19', 12], [72, 'E20', 2], [72, 'E21', 3], [84, 'E05', 2]])
+    expect(shouldStaggerExpansionBurst('stage6', { sec: 96, type: 'E19', count: 12 }, 12)).toBe(false)
+    expect(shouldStaggerExpansionBurst('stage6', { sec: 5, type: 'E19', count: 10 }, 1)).toBe(false) // 상한에 잘려 한 마리면 그대로
+    expect(shouldStaggerExpansionBurst('stage7', { sec: 5, type: 'E22', count: 4 }, 4)).toBe(false)
+  })
+
+  it('i번째 몸은 now + 2 × i / n초, 같은 몸·같은 순서로 꺼내고 하나도 버리지 않는다', () => {
+    const batch = Array.from({ length: 10 }, (_, i) => ({ id: i, type: 'E19', pos: [i, 0.3, -9] }))
+    const list = scheduleStaggeredBurst([], 'stage6', batch, 5, 7)
+    expect(list.map((it) => +it.atSec.toFixed(6))).toEqual([5, 5.2, 5.4, 5.6, 5.8, 6, 6.2, 6.4, 6.6, 6.8])
+    expect(list.every((it) => it.token === 7)).toBe(true)
+    const out = []
+    for (let t = 5; t <= 7; t += 1 / 60) takeDueStaggered(list, t, out)
+    expect(out.map((it) => it.entry)).toEqual(batch)
+    expect(list).toHaveLength(0)
   })
 })

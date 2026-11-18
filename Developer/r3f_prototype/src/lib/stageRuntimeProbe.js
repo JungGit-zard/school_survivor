@@ -157,8 +157,9 @@ import {
 } from './expansionAttackRuntime.js'
 import { createBossSummonState, stepBossSummon } from './expansionBossSummons.js'
 import { advanceAssemblySpeech, createAssemblySpeechState, emitAssemblySpeechRing } from './stage6AssemblySpeech.js'
+import { refreshQueuedExpansionSpawn, shouldStaggerExpansionBurst, scheduleStaggeredBurst, takeDueStaggered } from './expansionSpawns.js'
 import { isRangedPropBlockStage } from './stageRangedBlockers.js'
-import { EXPANSION_BOSSES, getExpansionStageHazards, isExpansionBoss, isExpansionStage } from './expansionContent.js'
+import { EXPANSION_BOSSES, getExpansionStageHazards, isExpansionBoss, isExpansionStage, getStageContactDamageMultiplier } from './expansionContent.js'
 import { noteRosterRotationSpawn } from './stageRosterRotation.js'
 import { getPooledEnemyRenderTier, shouldRefreshEnemySight } from '../components/PooledEnemyVisuals.js'
 import {
@@ -399,6 +400,7 @@ export function runStageRuntimeProbe({
   // 정적 데이터는 시드 RNG를 걸기 전에 만든다(stageBalanceProbe.js 결정론 주석과 같은 이유).
   const bounds = getStageBounds(stageId)
   const obstacles = getStageObjectSightObstacles(stageId)
+  const drainCache = { id: stageId, bounds, obstacles }
   const stageConfig = getStageConfig(stageId)
   const spawnEvents = includeChiefs ? getRuntimeSpawnEventsForStage(stageId) : getRuntimeSpawnEventsForStage(stageId).filter((event) => !isChiefType(event.type))
   const bossSpawnSec = getBossSpawnSec(stageId)
@@ -438,6 +440,8 @@ export function runStageRuntimeProbe({
 
   const bot = createBot(botSpec)
   const spawnDrain = createPooledEnemySpawnDrainQueue()
+  const staggered = [] // A8 ② 나눠 내기 대기 몸(Enemies.jsx runtimeQueue.staggered와 같다)
+  const contactDamageMultiplier = getStageContactDamageMultiplier(stageId)
   const spawnToken = 1
   const catchUp = createSpawnCatchUpState()
   const lowDensity = createLowDensityReinforcementState()
@@ -649,7 +653,7 @@ export function runStageRuntimeProbe({
   function totalZombieCounts() {
     let specialActive = 0
     for (const special of specials) if (special.alive) specialActive += 1
-    return { pooledActive: enemyPool.activeCount, specialActive, pooledQueued: spawnDrain.count }
+    return { pooledActive: enemyPool.activeCount, specialActive, pooledQueued: spawnDrain.count + staggered.length }
   }
 
   function spawnPooledNow(entry, source) {
@@ -845,6 +849,8 @@ export function runStageRuntimeProbe({
     if (expansionStage && !isRepeatingBurstEvent(evt)) {
       const batch = buildExpansionBurstBatch(cache, evt, totalZombieCounts())
       if (isExpansionBoss(evt.type) && batch.length === 0) { fired[eventIndex] = 0; return }
+      // A8 ②(Enemies.jsx와 같다): 90초 전 행은 몸을 spreadSec 동안 고르게 낸다.
+      if (shouldStaggerExpansionBurst(stageId, evt, batch.length)) { scheduleStaggeredBurst(staggered, stageId, batch, sec, spawnToken); return }
       if (batch.length > 0) addEnemies(batch, true, isBossType(evt.type) ? 'boss' : 'burst')
       return
     }
@@ -1450,7 +1456,8 @@ export function runStageRuntimeProbe({
       while (enemySimulationRuntime.events.drainInto(event)) {
         if (event.type === ENEMY_EVENT_CONTACT) {
           const typeName = enemyTypeFromCode(enemyPool.type[event.index]) ?? 'unknown'
-          damagePlayer(event.value, `${SOURCE_CONTACT}:${typeName}`)
+          // A8 ①(Enemies.jsx와 같다): 풀 좀비 접촉 이벤트(index ≥ 0)만 스테이지 배수.
+          damagePlayer(event.index >= 0 ? event.value * contactDamageMultiplier : event.value, `${SOURCE_CONTACT}:${typeName}`)
         } else if (event.type === ENEMY_EVENT_RANGED_FIRE) {
           enemyProjectilePool.spawnInto({ index: -1, generation: 0 }, event.x, event.y, event.z, event.value, event.aux)
         } else if (event.type === ENEMY_EVENT_PROJECTILE_ZOMBIE_TELEGRAPH) {
@@ -1504,7 +1511,10 @@ export function runStageRuntimeProbe({
         fired[index] = 1
         processBurst(index, sec)
       }
-      drainPooledEnemySpawnQueue(spawnDrain, spawnToken, (entry) => spawnPooledNow(entry, entry.source ?? 'burst'))
+      // A8 ②: 시각이 된 나눠 내기 몸을 넣은 순서대로 큐에 넣는다.
+      if (staggered.length) for (const item of takeDueStaggered(staggered, sec)) addEnemies([item.entry], true, 'burst')
+      // Enemies.jsx drainPooled와 같다: 화면 밖 규칙 스테이지(6)는 나오는 순간의 화면 사각형으로 좌표를 다시 본다.
+      drainPooledEnemySpawnQueue(spawnDrain, spawnToken, (entry) => spawnPooledNow(refreshQueuedExpansionSpawn(entry, drainCache, playerPos, screenBounds), entry.source ?? 'burst'))
       maxActiveEnemies = Math.max(maxActiveEnemies, enemyPool.activeCount)
       {
         const capCounts = totalZombieCounts()

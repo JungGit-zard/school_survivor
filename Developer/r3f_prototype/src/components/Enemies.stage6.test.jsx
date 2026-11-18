@@ -43,9 +43,15 @@ describe('Stage6 enemy data and overtime', () => {
       const row = buildExpansionBurstBatch(cache, { sec: 5, type: 'E19', count: 10, formation: 'assembly_row', side: 'top' }, counts)
       expect(row).toHaveLength(10)
       expect(new Set(row.map((e) => e.pos[2])).size).toBe(1)
-      expect(row[0].pos[2]).toBeCloseTo(4 - 12.44 - 1, 6)
+      // 2026-11-19: 줄은 화면 끝에서 1u + 몸 반경(E19 0.373u) 밖.
+      expect(row[0].pos[2]).toBeCloseTo(4 - 12.44 - 1 - 0.28 * 4 / 3, 5)
+      // 계주 지점(x ±5.5)은 이 화면(x ±5)에서 1u + 몸 반경 안이라 버리지 않고 바로 바깥(트랙 띠 쪽)으로 옮겨 6마리 모두 나온다.
       const lanes = buildExpansionBurstBatch(cache, { sec: 124, type: 'E21', count: 6, formation: 'track_lanes' }, counts)
-      expect(lanes.map((e) => [e.pos[0], e.pos[2]])).toEqual([[-5.5, -4.2], [5.5, -4.2], [-5.5, 0], [5.5, 0], [-5.5, 4.2], [5.5, 4.2]])
+      expect(lanes).toHaveLength(6)
+      for (const { pos: [x, , z] } of lanes) {
+        expect(Math.abs(x)).toBeGreaterThanOrEqual(5.5)
+        expect(Math.abs(x) > 5 + 1.3 || z < screenBounds.minZ - 1.3 || z > screenBounds.maxZ + 1.3).toBe(true)
+      }
       const boss = buildExpansionBurstBatch(cache, { sec: 150, type: 'B05', count: 1 }, counts)
       expect([boss[0].pos[0], boss[0].pos[2]]).toEqual([0, -11])
       // 상한(150)이 차 있으면 줄도 먼저 잘린다.
@@ -55,6 +61,57 @@ describe('Stage6 enemy data and overtime', () => {
       playerPos.set(0, 0, 0)
     }
   })
+})
+
+// 2026-11-19 증명: 스테이지 6 시간표 전체(보스 B05·치프 E104 제외, B05 '운동장 10바퀴' 소환 포함)를 플레이 영역 격자의 모든 플레이어
+// 자리에서 실제 배치 함수(buildExpansionBurstBatch)로 내 보면, 세로 폰 화면 사각형(게임과 같은 식 — 프로브 updateScreenBounds가
+// Enemies.jsx가 읽는 screenBounds를 채운다) 안에 몸이 걸치는 스폰이 하나도 없고(1u 여백 + 몸 반경까지), 마릿수도 하나도 줄지 않는다.
+describe('Stage6 spawns never start on screen (phone portrait, whole timeline × player grid)', () => {
+  it('비면제 스폰 전부 화면 사각형 + 1u + 몸 반경 밖, 요청 마릿수 그대로', async () => {
+    const { buildExpansionBurstBatch } = await import('./Enemies.jsx')
+    const { ENEMY_STATS } = await import('./Enemy.jsx')
+    const { getStageObjectSightObstacles } = await import('./StageObjects/stageObjectColliders.js')
+    const { playerPos, screenBounds } = await import('../lib/refs.js')
+    const { updateScreenBounds } = await import('../lib/stageRuntimeProbe.js')
+    const { getBurstEventsForStage, isBossType } = await import('../lib/burstEvents.js')
+    const { isChiefType } = await import('../lib/stageChiefContent.js')
+    const { EXPANSION_BOSSES } = await import('../lib/expansionContent.js')
+    const { getPlayerMovementBounds } = await import('../lib/playerMovementBounds.js')
+    const savedScreen = { ...screenBounds }
+    const cache = { id: 'stage6', bounds: { halfX: 8.5, halfZ: 14 }, obstacles: getStageObjectSightObstacles('stage6') }
+    const counts = { pooledActive: 0, specialActive: 0, pooledQueued: 0 }
+    const events = [...getBurstEventsForStage('stage6').filter((e) => !isBossType(e.type) && !isChiefType(e.type)),
+      { type: EXPANSION_BOSSES.B05.summon.type, count: EXPANSION_BOSSES.B05.summon.count, formation: EXPANSION_BOSSES.B05.summon.formation }]
+    const move = getPlayerMovementBounds('stage6')
+    let seed = 99
+    const random = () => { seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0; return seed / 4294967296 }
+    const bad = []
+    let spawned = 0
+    try {
+      for (let ix = 0; ix <= 6; ix += 1) for (let iz = 0; iz <= 8; iz += 1) {
+        const px = move.minX + (move.maxX - move.minX) * ix / 6
+        const pz = move.minZ + (move.maxZ - move.minZ) * iz / 8
+        playerPos.set(px, 0, pz)
+        updateScreenBounds('stage6', 8.5, 14)
+        expect(screenBounds.maxX - screenBounds.minX).toBeCloseTo(8.42, 1)
+        for (const evt of events) {
+          const batch = buildExpansionBurstBatch(cache, evt, counts, random)
+          expect(batch.length, JSON.stringify({ px, pz, evt })).toBe(evt.count ?? 1)
+          for (const { type, pos: [x, , z] } of batch) {
+            spawned += 1
+            const r = 0.28 * (ENEMY_STATS[type]?.scale ?? 1) * 4 / 3
+            const p = 1 + r
+            if (x >= screenBounds.minX - p && x <= screenBounds.maxX + p && z >= screenBounds.minZ - p && z <= screenBounds.maxZ + p) bad.push({ px, pz, type, x, z, formation: evt.formation })
+          }
+        }
+      }
+    } finally {
+      Object.assign(screenBounds, savedScreen)
+      playerPos.set(0, 0, 0)
+    }
+    expect(spawned).toBeGreaterThan(63 * 190)
+    expect(bad.slice(0, 5)).toEqual([])
+  }, 300_000)
 })
 
 // Headless frame/RAF harness(Enemies.stage5.test.jsx와 같은 방식): 실제 Enemies 스케줄러와 풀 드레인을 돌린다.
@@ -92,8 +149,34 @@ describe('Stage6 production enemy runtime', () => {
       runtime.default()
       for (const effect of effects) { const cleanup = effect(); if (typeof cleanup === 'function') cleanups.push(cleanup) }
 
+      // 2026-11-19 A8 ②: 5초 조회 줄 E19×10은 같은 몸이 2초에 걸쳐 고르게 나온다(스케줄러 → 드레인, 프레임 콜백에서 직접 스폰하지 않는다).
+      const e19At = []
+      for (let t = 1; t <= 75; t += 1) {
+        state.elapsedMs = t * 100; frame(0.016); flush()
+        for (let d = 0; d < 4; d += 1) { frame(0.016); flush() } // 드레인(프레임당 3마리)이 따라잡게 한다
+        const n = spy.mock.calls.filter(([, e]) => e.type === 'E19').length
+        e19At.push([t / 10, n])
+      }
+      const countAt = (sec) => e19At.find(([t]) => t >= sec - 1e-9)[1]
+      expect(countAt(4.9)).toBe(0)
+      expect(countAt(5.0)).toBeGreaterThanOrEqual(1)
+      expect(countAt(5.0)).toBeLessThanOrEqual(2)
+      expect(countAt(6.0)).toBeGreaterThanOrEqual(5)
+      expect(countAt(6.0)).toBeLessThanOrEqual(7)
+      expect(countAt(6.7)).toBeLessThan(10)
+      expect(countAt(7.0)).toBe(10)
+      // 2026-11-19 A8 ①: 스6 풀 좀비 몸 접촉(E19 작성 10)은 store.damagePlayer에 10 × 0.6 = 6으로 들어간다.
+      clearPool(); state.damagePlayer.mockClear()
+      runtimeRefs.playerPos.set(0, 0, 0)
+      pool.spawn({ type: 'E19', x: 0.1, z: 0, hp: 30, maxHp: 30, spawnTimer: 1000 })
+      for (let f = 0; f < 30 && state.damagePlayer.mock.calls.length === 0; f += 1) { frame(0.016); flush() }
+      expect(state.damagePlayer.mock.calls.length).toBeGreaterThan(0)
+      expect(state.damagePlayer.mock.calls[0][0]).toBeCloseTo(6, 9)
+      clearPool(); state.damagePlayer.mockClear()
+      runtimeRefs.playerPos.set(0, 0, 18)
+      spy.mockClear()
       // 89초까지 표대로 흘린다(코인 직전).
-      for (let sec = 1; sec <= 89; sec += 1) { state.elapsedMs = sec * 1000; frame(0.016); flush() }
+      for (let sec = 8; sec <= 89; sec += 1) { state.elapsedMs = sec * 1000; frame(0.016); flush() }
       // 90초: 동시 천장 150을 채워 코인 몬스터가 자리를 못 받게 한다.
       clearPool()
       for (let i = 0; i < 150; i += 1) pool.spawn({ type: 'E01', x: -7.7 + (i % 15) * 1.1, z: -13 + Math.floor(i / 15) * 1.1, hp: 20, maxHp: 20, spawnTimer: 300 })
