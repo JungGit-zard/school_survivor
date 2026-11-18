@@ -42,8 +42,7 @@ import {
   readFirebaseMissionProgress,
   recordPlayActivity,
   requestCloudProgressSave,
-  recordFirebaseRunCheckpoint,
-  getFirebaseRunCheckpointState,
+  commitFirebaseStageResult,
   recordFirebaseProgressPurchase,
   flushCloudProgressBeforeSignOut,
   hydrateCloudProgress,
@@ -59,6 +58,16 @@ import {
   getCounterChanges,
 } from '../lib/missionProgress.js'
 import { getApprovedMissionRewardAllowlist, MISSION_BY_ID } from '../lib/missionCatalog.js'
+import {
+  addStageSlotGoldSpent,
+  addStageSlotMissionChanges,
+  closeLiveStageSlot,
+  getLiveStageSlot,
+  noteStageSlotBossPassive,
+  openStageSlot,
+  setStageSlotTotals,
+  toStageRunKey,
+} from '../lib/stageSlot.js'
 import { submitRun, describeSubmission, prepareRankingSubmission, retryPendingRankings } from '../lib/firebaseRanking.js'
 import { getRankingUser } from '../lib/guestRankingIdentity.js'
 import { isProjectMaster } from '../lib/projectAdmin.js'
@@ -94,7 +103,6 @@ const MAX_MISSION_KILL_KEYS = 512
 // new run replacing an unfinished one). Continuing to the next stage is the same run; every stage it
 // passed through keeps its own stage-board entry, but all of them go out in one batched update.
 // The only other write is a real page unload (pagehide) before the run ended.
-const pendingRuns = new Map()
 
 // GA4 run lifecycle (lib/analytics.js). Same run boundary as the ranking write: run_start when a
 // new run starts (not on a stage continuation), run_end exactly once when that run ends.
@@ -125,55 +133,56 @@ function trackRunEnd(state, runs, endPhase) {
   })
 }
 
-function checkpointRun(state, phaseName = state.phase) {
-  const uid = useAuthStore.getState().user?.uid
-  if (!uid) return false
-  let run = pendingRuns.get(state.progressRunId)
-  if (!run && state.progressRunId && ['playing','paused','levelup','cleared','gameover'].includes(phaseName)) {
-    const id = state.progressRunId
-    run = pendingRuns.get(id) ?? { uid, stageId: state.currentStageId, applied: {}, walletApplied: 0 }
-    pendingRuns.set(id,run)
+// 판 도중 기록(Terry 2026-11-19): 처치·골드·레벨업·생존·보스·미션 카운터는 메모리의 숫자로만 쌓이고,
+// 로그인 계정이면 지금 스테이지 하나 분량만 기기 칸(lib/stageSlot.js)에 비춰 둔다. 클라우드 쓰기는
+// 스테이지가 끝날 때(클리어·사망·포기·로비 복귀·재시작) 한 번뿐이다. 게스트는 칸을 열지 않는다.
+function isLiveStageSlotFor(state) {
+  const slot = getLiveStageSlot()
+  return !!slot && slot.runKey === toStageRunKey(state.progressRunId) && slot.uid === useAuthStore.getState().user?.uid
+}
+
+function computeStageTotals(state, stageId, phaseName) {
+  const stage = getStageConfig(stageId)
+  const survivalSeconds = Math.floor(getRuntimeElapsedMs(state.elapsedMs) / 1000)
+  return {
+    records: {
+      totalRuns: 1,
+      totalKills: state.runKills,
+      totalGold: state.goldSession,
+      totalLevelUps: state.runLevelUps,
+      bossKills: state.runBossKills ?? 0,
+      totalSurvivalSeconds: survivalSeconds,
+      [stage.clearRecordKey]: phaseName === 'cleared' ? 1 : 0,
+      [`${stageId}BossDefeats`]: state.bossDefeated ? 1 : 0,
+      stage1Survival180Runs: stageId === 'stage1' && getRuntimeElapsedMs(state.elapsedMs) >= 180000 ? 1 : 0,
+    },
+    best: { bestSurvivalSeconds: survivalSeconds, [stage.bestRecordKey]: survivalSeconds },
+    gold: state.goldSession,
   }
-  // Capture the visible run only for its owner, but still replay this account's
-  // older pending runs when another account last used the visible game state.
-  if (run?.uid === uid) {
-    const stage = getStageConfig(run.stageId)
-    run.values = {
-    totalRuns: 1,
-    totalKills: state.runKills,
-    totalGold: state.goldSession,
-    totalLevelUps: state.runLevelUps,
-    bossKills: state.runBossKills ?? 0,
-    totalSurvivalSeconds: Math.floor(getRuntimeElapsedMs(state.elapsedMs) / 1000),
-    [stage.clearRecordKey]: phaseName === 'cleared' || run.values?.[stage.clearRecordKey] === 1 ? 1 : 0,
-    [`${run.stageId}BossDefeats`]: state.bossDefeated || run.values?.[`${run.stageId}BossDefeats`] === 1 ? 1 : 0,
-    stage1Survival180Runs: run.stageId === 'stage1' && state.elapsedMs >= 180000 ? 1 : 0,
-    }
-    run.best = { bestSurvivalSeconds: run.values.totalSurvivalSeconds, [stage.bestRecordKey]: run.values.totalSurvivalSeconds }
-    run.bossPassiveUnlocks = { ...state.bossPassiveUnlocks }
-  }
-  if (!isFirebaseProgressHydrated({ uid })) {
+}
+
+// Gold earned minus gold spent in the stage still being played (not yet in the account total).
+function liveStageGoldNet(state) {
+  const slot = getLiveStageSlot()
+  return isLiveStageSlotFor(state) ? (state.goldSession ?? 0) - slot.goldSpent : 0
+}
+
+// The stage's single result write. The record is folded into progress in memory right away; the
+// device copy is deleted once the cloud write is acknowledged (or recovered at the next sign-in).
+function endStage(state, phaseName) {
+  if (!isLiveStageSlotFor(state)) return false
+  const slot = getLiveStageSlot()
+  setStageSlotTotals(computeStageTotals(state, slot.stageId, phaseName))
+  const closed = closeLiveStageSlot(slot.runKey)
+  if (!closed || !isFirebaseProgressHydrated({ uid: closed.uid })) {
     useGameStore.setState({ progressSaveWarning: 'save-failed' })
     return false
   }
-  const ownedBossUnlocks = { ...readFirebasePlayerProgress().bossPassiveUnlocks }
-  for (const [runId,pending] of pendingRuns.entries()) {
-    if (pending.uid !== uid || !pending.values) continue
-    // An ended run's values are final. Once this session holds them there is nothing to resend,
-    // and once the server ledger acknowledged them the account-switch replay no longer needs them.
-    const ended = runId !== state.progressRunId
-    if (ended && getFirebaseRunCheckpointState(runId) === 'recorded') continue
-    const changed = recordFirebaseRunCheckpoint(runId, { stageId: pending.stageId, records: pending.values, best: pending.best, missionCounters: pending.missionCounters })
-    const newBossUnlocks = Object.fromEntries(Object.entries(pending.bossPassiveUnlocks??{}).filter(([key,value])=>value===true&&ownedBossUnlocks[key]!==true))
-    if(Object.keys(newBossUnlocks).length) {
-      Object.assign(ownedBossUnlocks,newBossUnlocks)
-      updateFirebasePlayerProgress(progress => { progress.bossPassiveUnlocks = { ...progress.bossPassiveUnlocks,...newBossUnlocks } })
-    }
-    pending.applied = { ...pending.values }
-    pending.walletApplied = pending.values.totalGold
-    if (ended && !changed && getFirebaseRunCheckpointState(runId) === 'acknowledged') pendingRuns.delete(runId)
+  void commitFirebaseStageResult(closed, { uid: closed.uid })
+  const missions = readFirebaseMissionProgress()
+  if (missions.ok) {
+    useGameStore.setState(s => ({ missionProgress: { ...reconcileMissionProgress(missions.missions), pinnedMissionIds: s.missionProgress.pinnedMissionIds } }))
   }
-  saveRuntimeProgress()
   return true
 }
 
@@ -357,7 +366,7 @@ function saveRuntimeProgress() {
   useGameStore.setState({ progressSaveState: 'pending' })
   const markCurrentAccountWarning = () => {
     if (isFirebaseProgressHydrated({ uid: uidAtRequest })) {
-      useGameStore.setState(s => ({ progressSaveWarning: 'save-failed', goldTotal: loadGoldTotal(), passiveVersion: s.passiveVersion + 1 }))
+      useGameStore.setState(s => ({ progressSaveWarning: 'save-failed', goldTotal: loadGoldTotal() + liveStageGoldNet(s), passiveVersion: s.passiveVersion + 1 }))
     }
   }
   void requestCloudProgressSave().then((saved) => {
@@ -702,14 +711,14 @@ export const useGameStore = create(
         })
       }
       set(s => ({ runBossKills: (s.runBossKills ?? 0) + 1 }))
-      checkpointRun(get())
       if (!isFirebaseProgressHydrated()) return
       if (unlockedNow) {
+        // Memory now, device slot for a closed tab, cloud with the stage-end save.
         updateFirebasePlayerProgress((progress) => {
           progress.bossPassiveUnlocks = nextBossPassiveUnlocks
           return progress
         })
-        void requestCloudProgressSave()
+        noteStageSlotBossPassive(nextBossPassiveUnlocks)
       }
     },
 
@@ -724,20 +733,12 @@ export const useGameStore = create(
       return { ok: true, missions: missionProgress }
     },
 
+    // Per-event path: counters only (store + one-stage device slot). Toasts read the store's
+    // incrementally updated missions; the account copy is folded once when the stage ends.
     recordMissionEvent: (event) => {
-      const pending = pendingRuns.get(get().progressRunId)
-      if (pending && pending.uid === useAuthStore.getState().user?.uid) {
-        pending.missionCounters ??= {}
-        for(const {key,value,mode} of getCounterChanges(event)) pending.missionCounters[key] = mode === 'max'
-          ? Math.max(pending.missionCounters[key]??0,value)
-          : (pending.missionCounters[key]??0)+value
-      }
+      if (isLiveStageSlotFor(get())) addStageSlotMissionChanges(getCounterChanges(event))
       const missionProgress = reduceMissionEvent(get().missionProgress, event)
-      set({ missionProgress })
-      if (isFirebaseProgressHydrated()) {
-        checkpointRun(get())
-        set({ missionProgress: reconcileMissionProgress(readFirebasePlayerProgress().missions) })
-      }
+      if (missionProgress !== get().missionProgress) set({ missionProgress })
       return missionProgress
     },
 
@@ -828,12 +829,27 @@ export const useGameStore = create(
     _onRunEnd: (phaseName) => {
       const s = get()
       set({ stageVendingPurchasedItemIds: [] })
-      checkpointRun(s, phaseName)
       const elapsedMs = getRuntimeElapsedMs(s.elapsedMs)
       const runSurvivalSeconds = Math.floor(elapsedMs / 1000)
       const stage = getStageConfig(s.currentStageId)
       const { run, bossBonus } = buildRankingRunSnapshot(s, elapsedMs, phaseName)
       if (s.bossBonus !== bossBonus) set({ bossBonus })
+
+      // 미션 종료 이벤트를 먼저 칸에 담고, 그다음 스테이지 결과를 한 번 접어 쓴다.
+      get().recordMissionEvent({ type: 'survival_updated', stageId: s.currentStageId, value: runSurvivalSeconds })
+      if (phaseName === 'cleared') get().recordMissionEvent({ type: 'stage_cleared', stageId: s.currentStageId })
+      for (const spawn of s.missionSpecialEnemySpawns) {
+        if (spawn.stageId !== s.currentStageId) continue
+        const survivedAfterSpawnSec = runSurvivalSeconds - spawn.spawnSec
+        if (survivedAfterSpawnSec > 0) {
+          get().recordMissionEvent({
+            type: 'special_enemy_survival',
+            enemyType: spawn.enemyType,
+            value: survivedAfterSpawnSec,
+          })
+        }
+      }
+      endStage(get(), phaseName)
 
       // 1. 합본 (snapshot 전). bossKills는 mid-run에 이미 cumulative에 들어 있음.
       const progressReady = isFirebaseProgressHydrated()
@@ -849,20 +865,6 @@ export const useGameStore = create(
         if (phaseName === 'cleared') evalInput[stage.clearRecordKey] = 1
       }
 
-      // 미션은 여기서만 run-end batch로 저장한다. component/frame/pickup별 Firebase 쓰기는 없다.
-      get().recordMissionEvent({ type: 'survival_updated', stageId: s.currentStageId, value: runSurvivalSeconds })
-      if (phaseName === 'cleared') get().recordMissionEvent({ type: 'stage_cleared', stageId: s.currentStageId })
-      for (const spawn of s.missionSpecialEnemySpawns) {
-        if (spawn.stageId !== s.currentStageId) continue
-        const survivedAfterSpawnSec = runSurvivalSeconds - spawn.spawnSec
-        if (survivedAfterSpawnSec > 0) {
-          get().recordMissionEvent({
-            type: 'special_enemy_survival',
-            enemyType: spawn.enemyType,
-            value: survivedAfterSpawnSec,
-          })
-        }
-      }
 
       // 2. 평가 → diff (starter 제외, 이미 unlock된 것 제외)
       const nextUnlocked = evaluateUnlocks(evalInput)
@@ -1013,7 +1015,6 @@ export const useGameStore = create(
       try {
         if (!isFirebaseProgressHydrated(user)) await hydrateCloudProgress(user)
         if (useAuthStore.getState().user?.uid !== user.uid) return false
-        checkpointRun(get())
         const saved = await requestCloudProgressSave(user)
         set({ progressSaveWarning: saved ? null : 'save-failed' })
         return saved
@@ -1024,7 +1025,8 @@ export const useGameStore = create(
     },
 
     flushProgressBeforeTransition: async () => {
-      checkpointRun(get())
+      // Leaving gameplay ends a stage that is still open (back button, pause → lobby).
+      endStage(get(), 'quit')
       const user = useAuthStore.getState().user
       if (!user?.uid) return true
       const saved = await flushCloudProgressBeforeSignOut(user)
@@ -1038,8 +1040,6 @@ export const useGameStore = create(
       const { gold, goldCarry } = grantRunGold(get(), amount)
       const nextTotal = goldTotal + gold
       set({ goldSession: goldSession + gold, goldTotal: nextTotal, goldCarry })
-      checkpointRun(get())
-      saveRuntimeProgress()
     },
 
     spendGold: (amount) => {
@@ -1047,8 +1047,13 @@ export const useGameStore = create(
       const { goldTotal } = get()
       if (goldTotal < amount) return false
       const nextTotal = goldTotal - amount
-      saveGoldTotal(nextTotal)
       set({ goldTotal: nextTotal })
+      // Mid-stage spending is folded with the stage result; the account total excludes unfolded run gold.
+      if (isLiveStageSlotFor(get())) {
+        addStageSlotGoldSpent(amount)
+        return true
+      }
+      saveGoldTotal(nextTotal)
       saveRuntimeProgress()
       return true
     },
@@ -1059,8 +1064,7 @@ export const useGameStore = create(
       if (!isFirebaseProgressHydrated()) return { ok: false, reason: 'progressUnavailable', itemId }
       const progressUid = getFirebaseProgressRuntimeSnapshot().uid
       const authUid = useAuthStore.getState().user?.uid
-      const runOwnerUid = pendingRuns.get(get().progressRunId)?.uid
-      if (!authUid || authUid !== progressUid || runOwnerUid !== authUid) return { ok: false, reason: 'progressUnavailable', itemId }
+      if (!authUid || authUid !== progressUid || !isLiveStageSlotFor(get())) return { ok: false, reason: 'progressUnavailable', itemId }
       let result = { ok: false, reason: 'not-applied', itemId }
       set((s) => {
         const reject = (reason) => { result = { ok: false, reason, itemId }; return s }
@@ -1081,9 +1085,9 @@ export const useGameStore = create(
         if (!Number.isFinite(s.goldTotal) || s.goldTotal < item.priceGold) return reject('insufficient-gold')
         const nextHp = Math.min(maxHp, s.player.hp + item.healHp)
         const nextGold = s.goldTotal - item.priceGold
-        // Persist before synchronous subscribers; a reentrant pickup/click must
-        // not overwrite the new wallet or spend the entitlement twice.
-        saveGoldTotal(nextGold)
+        // Recorded before synchronous subscribers; a reentrant pickup/click must not
+        // spend the entitlement twice. The spend is folded with the stage result.
+        addStageSlotGoldSpent(item.priceGold)
         result = { ok: true, itemId: item.id, machineId: placement.id,
           goldSpent: item.priceGold, hpRestored: nextHp - s.player.hp, nextGold }
         // healFlashToken: the vending heal plays the same picked heal effect as every other recovery (2026-11-15).
@@ -1092,12 +1096,6 @@ export const useGameStore = create(
           // 구매 직후 팝업을 즉시 닫고 진행을 재개한다(Terry 2026-10-28).
           ...(vendingPaused ? { phase: 'playing', pauseSource: null } : {}) }
       })
-      if (result.ok && isFirebaseProgressHydrated({ uid: progressUid })) {
-        // Reconcile the latest visible wallet, not the pre-notification value.
-        // Existing gainGold checkpoints only when an authenticated owner exists.
-        saveGoldTotal(get().goldTotal)
-        saveRuntimeProgress()
-      }
       return result
     },
 
@@ -1149,14 +1147,13 @@ export const useGameStore = create(
 
     reloadPersistentProgress: () => {
       if (!isFirebaseProgressHydrated()) return false
-      checkpointRun(get())
       const levels = getAllLevels()
       const bossPassiveUnlocks = loadBossPassiveUnlocks()
       applyMagnetPassive(levels)
       syncStoredWeaponUnlocksFromRecords()
       syncStoredOutfitUnlocksFromRecords()
       set((s) => ({
-        goldTotal: loadGoldTotal(),
+        goldTotal: loadGoldTotal() + liveStageGoldNet(s),
         // 진행된 판의 옷을 유지한다(판 도중 교체 금지). 다음 resetGame이 새 보유 목록으로 다시 정한다.
         player: buildInitialPlayer(levels, s.runOutfitId),
         weapons: buildInitialWeapons(levels, { bossPassiveUnlocks }),
@@ -1192,7 +1189,6 @@ export const useGameStore = create(
         ],
         recentMilestone: earned[earned.length - 1],
       })
-      saveRuntimeProgress()
     },
 
     clearMilestone: () => set({ recentMilestone: null }),
@@ -1261,7 +1257,6 @@ export const useGameStore = create(
         questToast: { type: 'completed', questId },
       })
       get().recordMissionEvent({ type: 'quest_completed' })
-      saveRuntimeProgress()
       return true
     },
 
@@ -1609,7 +1604,6 @@ export const useGameStore = create(
         return true
       }
       set({ bossAliveCount: 0, bossDefeated: true })
-      checkpointRun(get())
       emitSfx({ id: 'bossClearJingle' })
       return true
     },
@@ -1655,11 +1649,13 @@ export const useGameStore = create(
       // A new run replaces the current one: an unfinished run (restart mid-play, or a clear the player
       // did not continue) still gets its one ranking write now. A stage continuation is the same run.
       if (!preserveContinuousScore) get().finishRankingRun('end')
+      // A stage still open (restart mid-play) gets its one result write before the slot is replaced.
+      endStage(get(), 'quit')
       resetRuntimeRefs(getPlayerStartPosition(nextStageId))
       const progressReady = isFirebaseProgressHydrated()
       const progressRunId = globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`
       const uid = useAuthStore.getState().user?.uid
-      if (uid) pendingRuns.set(progressRunId, { uid, stageId: nextStageId, applied: {}, walletApplied: 0 })
+      if (uid) openStageSlot({ uid, runId: progressRunId, stageId: nextStageId })
       const levels = loadRuntimePassiveLevels()
       const bossPassiveUnlocks = progressReady ? loadBossPassiveUnlocks() : get().bossPassiveUnlocks
       applyMagnetPassive(levels)
@@ -1746,21 +1742,19 @@ export const useGameStore = create(
       get().recordMissionEvent({ type: 'stage_started', stageId: nextStageId })
       if (!preserveContinuousScore) trackRunStart(nextStageId, get())
       recordRuntimePlayActivity(nextStageId)
-      checkpointRun(get())
       saveRuntimeProgress()
       return true
     },
   }))
 )
 
-// 판 도중(처치·골드·레벨업·매초)에는 체크포인트/클라우드 저장을 하지 않는다(Terry 2026-11-19):
-// 로그인 계정에서 저장이 쉬지 않고 이어져 화면이 끊겼다. 판이 끝났을 때(클리어·사망)만 한 번 한다.
-// 판 시작과 화면 이동(flushProgressBeforeTransition)의 저장은 그대로다.
+// 판 도중에는 클라우드에 쓰지 않는다(Terry 2026-11-19). 바뀐 숫자만 기기 칸에 비춘다(칸이 초당 1회로 묶는다).
 useGameStore.subscribe(
-  state => `${state.progressRunId}|${state.phase}`,
+  state => `${state.progressRunId}|${state.runKills}|${state.goldSession}|${state.runLevelUps}|${state.runBossKills}|${state.bossDefeated}|${Math.floor(state.elapsedMs / 1000)}`,
   () => {
     const state = useGameStore.getState()
-    if (['cleared','gameover'].includes(state.phase)) checkpointRun(state)
+    if (!['playing','paused','levelup'].includes(state.phase) || !isLiveStageSlotFor(state)) return
+    setStageSlotTotals(computeStageTotals(state, getLiveStageSlot().stageId, state.phase))
   },
 )
 

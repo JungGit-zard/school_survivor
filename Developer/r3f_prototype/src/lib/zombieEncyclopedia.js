@@ -1,7 +1,8 @@
 // Zombie encyclopedia progress layer.
 // Encounter persistence lives only in Firebase users/{uid}.progress.encounteredZombieTypes.
 import { ENEMY_TYPE_NAMES } from './enemyEntityPool.js'
-import { isFirebaseProgressHydrated, readFirebasePlayerProgress, requestCloudProgressSave, updateFirebasePlayerProgress } from './firebaseProgress.js'
+import { isFirebaseProgressHydrated, peekFirebaseProgress, readFirebasePlayerProgress, updateFirebasePlayerProgress } from './firebaseProgress.js'
+import { noteStageSlotEncounter } from './stageSlot.js'
 import { t } from './i18n.js'
 
 export const ZOMBIE_ENCOUNTER_STORAGE_KEY = 'school_survivor:zombieEncounters'
@@ -172,17 +173,15 @@ export function buildZombieEncyclopediaEntries() {
   }))
 }
 
+// Called on every spawn: an already-seen type costs one property read. A first encounter is
+// kept in memory and in the device stage slot; it reaches the cloud with the stage-end save.
 export function recordZombieEncounter(type) {
   if (!isKnownZombieType(type) || !isFirebaseProgressHydrated()) return false
-  let changed = false
+  if (peekFirebaseProgress('encounteredZombieTypes', type) === 1) return false
   updateFirebasePlayerProgress((progress) => {
-    const encountered = normalizeZombieEncounterMap(progress.encounteredZombieTypes)
-    if (encountered[type] === 1) return progress
-    encountered[type] = 1
-    progress.encounteredZombieTypes = encountered
-    changed = true
+    progress.encounteredZombieTypes = { ...normalizeZombieEncounterMap(progress.encounteredZombieTypes), [type]: 1 }
     return progress
   })
-  if (changed) void requestCloudProgressSave()
-  return changed
+  noteStageSlotEncounter(type)
+  return true
 }

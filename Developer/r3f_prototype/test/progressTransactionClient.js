@@ -1,6 +1,7 @@
 import { _setFirebaseProgressClientForTests, buildCloudProgressSnapshot, getFirebaseProgressRuntimeSnapshot, updateFirebasePlayerProgress } from '../src/lib/firebaseProgress.js'
 import { useAuthStore } from '../src/store/useAuthStore.js'
 import { _setFirebaseRankingClientForTests } from '../src/lib/firebaseRanking.js'
+import { createFakeProgressDatabase } from './fakeProgressDatabase.js'
 
 // Synthetic prior-stage proof for tests of unrelated gameplay in later stages.
 export function seedStageEntryForTests(stageId) {
@@ -21,14 +22,8 @@ export function installProgressTransactionTestClient() {
   }})
   const uid=getFirebaseProgressRuntimeSnapshot().uid
   useAuthStore.setState({user:{uid},status:'signedIn'})
-  let remote=buildCloudProgressSnapshot()
-  _setFirebaseProgressClientForTests({
-    load:async()=>structuredClone(remote),
-    transaction:async(_path,mutate)=>{
-      const next=mutate(structuredClone(remote))
-      if(next===undefined)return{committed:false}
-      remote=structuredClone(next)
-      return{committed:true,snapshot:{val:()=>structuredClone(remote)}}
-    },
-  })
+  // Path-aware fake RTDB that enforces database.rules.json on every write.
+  const db=createFakeProgressDatabase({users:{[uid]:buildCloudProgressSnapshot()}})
+  _setFirebaseProgressClientForTests(db)
+  return db
 }

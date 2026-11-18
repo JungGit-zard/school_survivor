@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import { seedStageEntryForTests } from '../../test/progressTransactionClient.js'
+import { getLiveStageSlot } from '../lib/stageSlot.js'
 import { beforeEach, describe, expect, it } from 'vitest'
 import {
   _seedHydratedFirebaseProgressForTests,
@@ -71,9 +72,12 @@ describe('Google user progress persistence snapshot', () => {
 
     expect(state.goldSession).toBe(4)
     expect(state.goldTotal).toBe(4)
-    expect(snapshot.progress.goldTotal).toBe(4)
-    // Earned coins are checkpointed during play, before a terminal result.
-    expect(snapshot.progress.records.totalGold).toBe(4)
+    // 2026-11-19: coins stay in memory + the one-stage device slot until the stage ends.
+    expect(snapshot.progress.goldTotal).toBe(0)
+    expect(getLiveStageSlot().gold).toBe(4)
+    useGameStore.getState()._onRunEnd('gameover')
+    expect(buildCloudProgressSnapshot().progress.goldTotal).toBe(4)
+    expect(buildCloudProgressSnapshot().progress.records.totalGold).toBe(4)
   })
 
   it('snapshots and restores weapon permanent upgrade levels', () => {

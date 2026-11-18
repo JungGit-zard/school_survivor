@@ -1,4 +1,5 @@
 import { seedStageEntryForTests } from '../../test/progressTransactionClient.js'
+import { getLiveStageSlot } from '../lib/stageSlot.js'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 
 const ranking = vi.hoisted(() => ({ submitRun: vi.fn() }))
@@ -68,7 +69,9 @@ describe('useGameStore stage vending purchase', () => {
     expect(state.goldTotal).toBe(15)
     expect(state.goldSession).toBe(9)
     expect(state.stageVendingPurchasedItemIds).toEqual(['recoveryDrink'])
-    expect(readFirebasePlayerProgress().goldTotal).toBe(15)
+    // 2026-11-19: mid-stage spending stays in the one-stage device slot and is folded at stage end.
+    expect(readFirebasePlayerProgress().goldTotal).toBe(20)
+    expect(getLiveStageSlot().goldSpent).toBe(5)
   })
 
   it('hydrate가 없으면 회복·차감·구매권 모두 거절한다', () => {
@@ -112,7 +115,8 @@ describe('useGameStore stage vending purchase', () => {
       expect(useGameStore.getState().purchaseStageVendingItem('recoveryDrink').ok).toBe(true)
       expect(notified).toBe(true)
       expect(useGameStore.getState().goldTotal).toBe(16)
-      expect(readFirebasePlayerProgress().goldTotal).toBe(16)
+      expect(readFirebasePlayerProgress().goldTotal).toBe(20)
+      expect(getLiveStageSlot().goldSpent).toBe(5)
     } finally { unsubscribe() }
   })
 

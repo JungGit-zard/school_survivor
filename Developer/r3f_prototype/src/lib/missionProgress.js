@@ -17,39 +17,63 @@ export function createMissionProgressState(value = {}) {
   }
 }
 
+// Per-event path (kills, pickups, hits): only the missions that read a changed counter are
+// re-evaluated. A state that was never reconciled gets one full pass first.
 export function reduceMissionEvent(progress, event) {
-  const next = createMissionProgressState(progress)
   const changes = getCounterChanges(event)
-  if (changes.length === 0) return reconcileMissionProgress(next)
-
+  const reconciled = progress?.active && Object.keys(progress.active).length > 0
+  if (changes.length === 0) return reconciled ? progress : reconcileMissionProgress(createMissionProgressState(progress))
+  const next = createMissionProgressState(progress)
+  const affected = new Set()
   for (const { key, value, mode = 'add' } of changes) {
     const previous = readCounter(next.counters[key])
     next.counters[key] = mode === 'max'
       ? Math.max(previous, value)
       : Math.min(MAX_COUNTER_VALUE, previous + value)
+    for (const mission of getMissionsByCounterKey().get(key) ?? []) affected.add(mission)
   }
   next.updatedAt = new Date().toISOString()
-  return reconcileMissionProgress(next)
+  if (!reconciled) return reconcileMissionProgress(next)
+  for (const mission of affected) applyMissionEntry(next, mission)
+  return next
+}
+
+let missionsByCounterKey = null
+function getMissionsByCounterKey() {
+  if (missionsByCounterKey) return missionsByCounterKey
+  missionsByCounterKey = new Map()
+  for (const mission of MISSION_CATALOG) {
+    const completion = mission.completion
+    const keys = completion?.type === 'any-counter' ? completion.counterKeys : [completion?.counterKey]
+    for (const key of keys ?? []) {
+      if (typeof key !== 'string') continue
+      if (!missionsByCounterKey.has(key)) missionsByCounterKey.set(key, [])
+      missionsByCounterKey.get(key).push(mission)
+    }
+  }
+  return missionsByCounterKey
+}
+
+function applyMissionEntry(next, mission) {
+  const status = getMissionStatus(next, mission)
+  const existing = next.active[mission.id] ?? {}
+  const completed = next.completed[mission.id] ?? {}
+  const claimed = next.claimed[mission.id] ?? {}
+  const entry = {
+    counter: status.counter,
+    target: status.target,
+    completedAt: existing.completedAt ?? completed.completedAt ?? null,
+    claimedAt: existing.claimedAt ?? claimed.claimedAt ?? null,
+    claimId: existing.claimId ?? claimed.claimId ?? null,
+  }
+  if (status.complete && !entry.completedAt) entry.completedAt = new Date().toISOString()
+  next.active[mission.id] = entry
+  if (entry.completedAt) next.completed[mission.id] = { completedAt: entry.completedAt, counter: entry.counter, target: entry.target }
 }
 
 export function reconcileMissionProgress(progress) {
   const next = createMissionProgressState(progress)
-  for (const mission of MISSION_CATALOG) {
-    const status = getMissionStatus(next, mission)
-    const existing = next.active[mission.id] ?? {}
-    const completed = next.completed[mission.id] ?? {}
-    const claimed = next.claimed[mission.id] ?? {}
-    const entry = {
-      counter: status.counter,
-      target: status.target,
-      completedAt: existing.completedAt ?? completed.completedAt ?? null,
-      claimedAt: existing.claimedAt ?? claimed.claimedAt ?? null,
-      claimId: existing.claimId ?? claimed.claimId ?? null,
-    }
-    if (status.complete && !entry.completedAt) entry.completedAt = new Date().toISOString()
-    next.active[mission.id] = entry
-    if (entry.completedAt) next.completed[mission.id] = { completedAt: entry.completedAt, counter: entry.counter, target: entry.target }
-  }
+  for (const mission of MISSION_CATALOG) applyMissionEntry(next, mission)
   return next
 }
 

@@ -61,23 +61,19 @@ describe('useGameStore cloud progress integration', () => {
     })
     requestCloudProgressSave.mockReset()
     requestCloudProgressSave.mockResolvedValue(true)
+    consumeFirebaseProgressSaveWarning.mockReset()
     consumeFirebaseProgressSaveWarning.mockReturnValue(null)
     getFirebaseProgressRuntimeSnapshot.mockReturnValue({ uid: mockProgressUid })
     isFirebaseProgressConfigured.mockReturnValue(true)
   })
 
-  it('requests a cloud save after total gold changes', () => {
-    useGameStore.getState().gainGold(3)
-
-    expect(requestCloudProgressSave).toHaveBeenCalled()
-  })
-
-  it('requests a cloud save after milestone gold changes', () => {
+  // 2026-11-19: in-run gold (coins, milestones) stays in memory + the device slot until stage end.
+  it('does not write to the cloud for milestone gold during a stage', () => {
     useGameStore.setState({ elapsedMs: 48_000 })
 
     useGameStore.getState().checkSurvivalMilestone()
 
-    expect(requestCloudProgressSave).toHaveBeenCalled()
+    expect(requestCloudProgressSave).not.toHaveBeenCalled()
   })
 
   it('requests a cloud save after spending gold', () => {
@@ -124,7 +120,8 @@ describe('useGameStore cloud progress integration', () => {
     requestCloudProgressSave.mockResolvedValueOnce(false)
     consumeFirebaseProgressSaveWarning.mockReturnValueOnce('save-failed')
 
-    useGameStore.getState().gainGold(3)
+    useGameStore.setState({ goldTotal: 3 })
+    useGameStore.getState().spendGold(1)
     await Promise.resolve()
 
     // 1b39a533: a failed save resyncs the visible wallet to the durable progress wallet.
@@ -148,7 +145,8 @@ describe('useGameStore cloud progress integration', () => {
   it('shows the same warning when the save promise rejects', async () => {
     requestCloudProgressSave.mockRejectedValueOnce(new Error('offline'))
 
-    useGameStore.getState().gainGold(3)
+    useGameStore.setState({ goldTotal: 3 })
+    useGameStore.getState().spendGold(1)
     await Promise.resolve()
     await Promise.resolve()
 
@@ -163,7 +161,8 @@ describe('useGameStore cloud progress integration', () => {
     getFirebaseProgressRuntimeSnapshot.mockReturnValue({ uid: 'uid-a' })
     requestCloudProgressSave.mockImplementationOnce(() => new Promise((_, reject) => { rejectSave = reject }))
 
-    useGameStore.getState().gainGold(3)
+    useGameStore.setState({ goldTotal: 3 })
+    useGameStore.getState().spendGold(1)
     await vi.waitFor(() => expect(rejectSave).toBeTypeOf('function'))
     mockProgressUid = 'uid-b'
     getFirebaseProgressRuntimeSnapshot.mockReturnValue({ uid: mockProgressUid })

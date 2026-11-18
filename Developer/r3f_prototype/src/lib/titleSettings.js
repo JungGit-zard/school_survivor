@@ -1,6 +1,6 @@
 // Player title/settings runtime layer.
 // Durable player settings live only in Firebase users/{uid}. Admin/dev config remains separate.
-import { getFirebaseProgressRuntimeSnapshot, isFirebaseProgressHydrated, readFirebasePlayerProgressOrDefault, requestCloudProgressSave, updateFirebasePlayerProgress } from './firebaseProgress.js'
+import { getFirebaseProgressRuntimeSnapshot, isFirebaseProgressHydrated, peekFirebaseProgress, readFirebasePlayerProgressOrDefault, requestCloudProgressSave, updateFirebasePlayerProgress } from './firebaseProgress.js'
 import { detectInitialLocale, isSupportedLocale, setLocale } from './i18n.js'
 import { isPlayerAppearance } from './playerAppearance.js'
 import { DEFAULT_PLAYER_OUTFIT as CANONICAL_DEFAULT_PLAYER_OUTFIT, PLAYER_OUTFIT_IDS as CANONICAL_PLAYER_OUTFIT_IDS, isPlayerOutfitId } from './playerOutfitIds.js'
@@ -145,7 +145,8 @@ export function vibrateFeedback(pattern = 18) {
   if (typeof navigator === 'undefined' || typeof navigator.vibrate !== 'function') return
   // Remote account settings are only readable after the authenticated snapshot is applied.
   if (!isFirebaseProgressHydrated()) return
-  if (!loadTitleSettings().vibration) return
+  // Per-hit path: read the one flag, never clone the whole progress.
+  if (peekFirebaseProgress('titleSettings', 'vibration') === false) return
   navigator.vibrate(pattern)
 }
 
