@@ -3,6 +3,7 @@ import { PROJECTILE_ZOMBIE_TYPE_CODES, PROJECTILE_ZOMBIE_TYPE_NAME_SLOTS } from 
 import { B10_TYPE_CODE } from './stage5ViceBoss.js'
 import { BLOCKY_ZOMBIE_TYPE_CODES, BLOCKY_ZOMBIE_TYPE_NAME_SLOTS } from './blockyZombieRoster.js'
 import { NOVEL2_TYPE_CODES, NOVEL2_TYPE_IDS } from './novelZombie2Content.js'
+import { MAX_ZOMBIE_LOOKS, pickLeastUsedLook, zombieLookCount } from './zombieLooks.js'
 // 적 런타임의 정적 슬롯 풀. React/Three/Rapier 및 저장소에 의존하지 않는다.
 export const MAX_ENEMIES = 150
 export const MAX_ENEMY_GENERATION = 0xffff
@@ -83,6 +84,10 @@ export const ENEMY_TYPE_NAMES = Object.freeze([
 ])
 
 const MAX_GENERATION = MAX_ENEMY_GENERATION
+
+// Look variants per typeCode (lib/zombieLooks.js). Visual only: the look is chosen by counting, never by
+// randomness, so the simulation and its RNG streams are untouched.
+export const LOOK_COUNT_BY_CODE = Uint8Array.from(ENEMY_TYPE_NAMES, (name) => (name ? zombieLookCount(name) : 1))
 
 function isKnownTypeCode(typeCode) {
   return Number.isInteger(typeCode) && typeCode > 0 && typeCode < ENEMY_TYPE_NAMES.length && ENEMY_TYPE_NAMES[typeCode] !== ''
@@ -169,6 +174,9 @@ export class EnemyEntityPool {
     this.active = new Uint8Array(MAX_ENEMIES)
     this.generation = new Uint16Array(MAX_ENEMIES)
     this.type = new Uint8Array(MAX_ENEMIES)
+    // Visual look variant (0 = the original look) and alive count per type+look.
+    this.look = new Uint8Array(MAX_ENEMIES)
+    this.lookAlive = new Uint16Array(ENEMY_TYPE_NAMES.length * MAX_ZOMBIE_LOOKS)
     this.posX = new Float32Array(MAX_ENEMIES)
     this.posY = new Float32Array(MAX_ENEMIES)
     this.posZ = new Float32Array(MAX_ENEMIES)
@@ -355,6 +363,13 @@ export class EnemyEntityPool {
     this.active[index] = 1
     this._proxyActive[index] = 1
     this.type[index] = typeCode
+    {
+      // Fewest alive of this type per look (ties -> lowest index). Never delays or drops a spawn.
+      const looks = LOOK_COUNT_BY_CODE[typeCode] || 1, base = typeCode * MAX_ZOMBIE_LOOKS
+      const look = looks > 1 ? pickLeastUsedLook(this.lookAlive, base, looks) : 0
+      this.look[index] = look
+      this.lookAlive[base + look] += 1
+    }
     this.posX[index] = x
     this.posY[index] = y
     this.posZ[index] = z
@@ -473,6 +488,7 @@ export class EnemyEntityPool {
     this.active[index] = 0
     this._proxyActive[index] = 0
     this._hitHandlers[index] = null
+    { const slot = this.type[index] * MAX_ZOMBIE_LOOKS + this.look[index]; if (this.lookAlive[slot] > 0) this.lookAlive[slot] -= 1 }
     this._resetSlotNumbers(index)
     this._activeCount -= 1
     this._liveProxyCount -= 1
@@ -492,6 +508,7 @@ export class EnemyEntityPool {
 
   _resetSlotNumbers(index) {
     this.type[index] = 0
+    this.look[index] = 0
     this.posX[index] = 0
     this.posY[index] = 0
     this.posZ[index] = 0
@@ -645,7 +662,14 @@ export class EnemyEntityPool {
     return true
   }
 
+  // Alive zombies of one type (name or code) wearing one look.
+  aliveWithLook(type, look) {
+    const code = enemyTypeToCode(type)
+    return code ? this.lookAlive[code * MAX_ZOMBIE_LOOKS + look] : 0
+  }
+
   reset() {
+    this.lookAlive.fill(0)
     this._freeHead = -1
     this._activeCount = 0
     this._highestActive = -1

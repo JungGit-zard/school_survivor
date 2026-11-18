@@ -155,7 +155,9 @@ describe('ZombieInstanceLayer Studio material frame path', () => {
     for (let i = 0; i < PROCEDURAL_FACE_ZOMBIE_CAPACITY + 1; i++) spawn('E07', -8 + i * 0.5, 1)
     setTunings({})
     frame()
-    expect(bodies[3].count).toBe(1)
+    // Look variants (2026-11-19): 17 E07 split over 4 looks (5/4/4/4). Only look 0 uses the face-layer
+    // slots, so the 12 look 1-3 bodies are drawn here (each with an instanced smile face).
+    expect(bodies[3].count).toBe(12)
     const plain = xScale(bodies[3], 0)
     expect(bodies[3].userData.instanceEmissive.array[0]).toBeCloseTo(DEFAULT_STUDIO_TUNING.emissiveIntensity, 6)
     setTunings({ 'zombie-procedural-face-test': { scale: 2 } })

@@ -252,4 +252,24 @@ describe('ZombieInstanceLayer body visibility after studio hydrate', () => {
     frameCb({}, 0.016)
     expect(drawnBodyInstances()).toBeGreaterThan(0)
   })
+
+  // 2026-11-19 look variants: every E07 gets the smile face — look 0 in the face layer, looks 1-3
+  // (and any face-layer overflow) as an instanced face quad on the instanced body.
+  it('every E07 on screen gets a smile face (26 alive = measured worst)', async () => {
+    const { isProceduralFaceZombieCandidate } = await import('./PooledEnemyVisuals.js')
+    const { screenBounds } = await import('../lib/refs.js')
+    clearPool()
+    // Spawn into recycled slots too (the free list is LIFO), so set the reveal timer on each handle.
+    for (let i = 0; i < 26; i++) {
+      const handle = {}
+      enemyPool.spawnInto(handle, { type: 'E07', x: -6 + i * 0.45, y: 0, z: 1, hp: 10, maxHp: 10, visualScale: 1 })
+      enemyPool.spawnTimer[handle.index] = 5000
+    }
+    instanceFrame({}, 0.016)
+    let faceLayer = 0
+    for (let i = 0; i <= enemyPool.highestActive; i++) if (isProceduralFaceZombieCandidate(enemyPool, i, screenBounds)) faceLayer++
+    const instancedFaces = meshes.find((mesh) => mesh.name === 'e07-instanced-face')
+    expect(faceLayer).toBeLessThanOrEqual(PROCEDURAL_FACE_ZOMBIE_CAPACITY)
+    expect(faceLayer + nonZeroInstances(instancedFaces)).toBe(26)
+  })
 })

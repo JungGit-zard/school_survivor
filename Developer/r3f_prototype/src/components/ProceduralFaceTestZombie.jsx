@@ -1,4 +1,5 @@
 import { useMemo, useRef } from 'react'
+import * as THREE from 'three'
 import { useFrame } from '@react-three/fiber'
 import { getCachedBoxGeo, getCachedToonMat, getSharedOutlineMat, inflateScale } from '../lib/toon.js'
 import { composeStudioPartPosition, composeStudioPartRotation } from './StudioTunedGroup.jsx'
@@ -17,7 +18,7 @@ const FACE_VERTEX_SHADER = `
   }
 `
 
-const FACE_FRAGMENT_SHADER = `
+export const FACE_FRAGMENT_SHADER = `
   uniform float uTime;
   varying vec2 vUv;
 
@@ -66,6 +67,24 @@ const FACE_FRAGMENT_SHADER = `
     gl_FragColor = vec4(color, alpha);
   }
 `
+
+// Same smile face for instanced E07 bodies (look variants drawn by ZombieInstanceLayer). One draw call.
+export function createInstancedProceduralFaceMaterial() {
+  return new THREE.ShaderMaterial({
+    uniforms: { uTime: { value: 0 } },
+    vertexShader: `
+      varying vec2 vUv;
+      void main() {
+        vUv = uv;
+        gl_Position = projectionMatrix * modelViewMatrix * instanceMatrix * vec4(position, 1.0);
+      }
+    `,
+    fragmentShader: FACE_FRAGMENT_SHADER,
+    transparent: true,
+    depthWrite: false,
+    toneMapped: false,
+  })
+}
 
 function ZombiePart({ name, partRef = null, size, position, rotation = [0, 0, 0], color, emissive = 0.1, outlineScale = 1.07, children = null }) {
   const geometry = getCachedBoxGeo(...size)

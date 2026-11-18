@@ -44,6 +44,9 @@ export const PROCEDURAL_FACE_ZOMBIE_TYPE_CODE = 15
 export const PROCEDURAL_FACE_ZOMBIE_CAPACITY = 16
 export function isProceduralFaceZombieCandidate(pool, index, bounds) {
   if (pool.active[index] !== 1 || pool.type[index] !== PROCEDURAL_FACE_ZOMBIE_TYPE_CODE || pool.spawnTimer[index] < SPAWN_REVEAL_MS) return false
+  // Look variants (lib/zombieLooks.js): only look 0 (the original body) uses the face-layer slots; looks 1+
+  // are drawn by ZombieInstanceLayer as instanced bodies with the same instanced smile face.
+  if (pool.look && pool.look[index] !== 0) return false
   const x = pool.posX[index]; const z = pool.posZ[index]
   return !!bounds && x >= bounds.minX - RENDER_ENTER_MARGIN && x <= bounds.maxX + RENDER_ENTER_MARGIN
     && z >= bounds.minZ - RENDER_ENTER_MARGIN && z <= bounds.maxZ + RENDER_ENTER_MARGIN
