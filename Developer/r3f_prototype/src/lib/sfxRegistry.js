@@ -184,6 +184,10 @@ export const SOUND_MAP = {
   stage6RelayWhistle:    '/sfx/events/stage6RelayWhistle.ogg',    // 소환 warn·계주 대열 호루라기
   stage6AnthemSting:     '/sfx/events/stage6AnthemSting.ogg',     // 교가 제창 windup 스팅
   stage6GateOpen:        '/sfx/events/stage6GateOpen.ogg',        // 정문 개방 '드르륵…쿵'
+  // Stage 6 운동회 순서표(2026-11-19). 배정·간격 정본은 lib/stage6ProgrammeSfx.js. 전부 scripts/generate_sfx.mjs 자체 합성.
+  stage6ProgAnnounce:    '/sfx/events/stage6ProgAnnounce.ogg',    // 종목 안내 방송 자작 4음 차임 + 확성기 '꽥' 1.15s
+  stage6CrowdCheer:      '/sfx/events/stage6CrowdCheer.ogg',      // 스탠드 함성 '와아!'(의사 군중, 말 없음) 1.1s
+  stage6DrumRollHit:     '/sfx/events/stage6DrumRollHit.ogg',     // 북 연타 + 심벌 '두루루루-쾅!' 1.15s
 }
 
 export const DEFAULT_SFX_TUNING = {
@@ -389,6 +393,10 @@ export const POLYPHONY_COOLDOWN = Object.freeze({
   stage6RelayWhistle:    600,
   stage6AnthemSting:     900,
   stage6GateOpen:        900,
+  // 운동회 순서표(2026-11-19). 셋 다 음원 길이(1.1~1.15s) 이상 — 같은 신호가 자기 위에 쌓이지 않게.
+  stage6ProgAnnounce:    1200,
+  stage6CrowdCheer:      1200,
+  stage6DrumRollHit:     1200,
   // 착지 간격은 홉 1회(목표 500ms, 최소 약 333ms)다. 음원 0.22s보다 길고 홉보다 짧게.
   b03ShuttleStomp:       250,
   // 슬테라 코믹 효과음(2026-11-15). 등장·회전·착지·급가속은 지나가기 1회라 같은 프레임 중복만 거른다.

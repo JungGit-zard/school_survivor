@@ -904,6 +904,69 @@ const sounds = {
     ), 0.7),
   ), 0.9), 0.9),
 
+  // ── Stage 6 운동회 순서표 (2026-11-19 soundmini, stage6_fun_plan 항목 2·5) ──────────────
+  // 전부 자체 합성. 실존 교내 방송 차임·기존 징글·실제 함성 녹음 미사용. 말소리 없음.
+  // 종목 안내 방송 1.15s — 자작 4음 C6-G5-A5-E6(내려갔다 두 번 오르는 윤곽, stage5 하행·학교 종 상행과 다름) 비브라폰풍 종
+  // + 확성기 '꽥'(카주풍 사각파 대역) + 짧은 하울링 꼬리. 런타임이 rate 3종(0.94/1/1.06)으로 돌려 같은 판 안 반복을 가린다.
+  'events/stage6ProgAnnounce': () => (() => {
+    const notes = [1047, 784, 880, 1319]
+    const bells = notes.map((f, i) => {
+      const last = i === notes.length - 1
+      return at(mix(
+        strike({ freq: f, dur: last ? 0.5 : 0.36, vol: 0.55, tau: last ? 0.22 : 0.15,
+          partials: [[1, 1], [4, 0.12, 0.3], [2.01, 0.1, 0.5]] }),
+        synth({ wave: 'sine', freq: f * 1.003, dur: last ? 0.4 : 0.25, vol: 0.12, attack: 0.004, decay: 0.08, sustain: 0.3, release: 0.12,
+          vibRate: 5, vibDepth: f * 0.004 }),
+      ), i * 0.19)
+    })
+    const squawk = at(mix(
+      peakTo(bandpass(synth({ wave: 'square', freq: 330, freqEnd: 290, dur: 0.16, vol: 0.5, attack: 0.008, decay: 0.04, sustain: 0.8,
+        release: 0.05, vibRate: 32, vibDepth: 14, noiseAmt: 0.12 }), 600, 2800), 0.32),
+      at(synth({ wave: 'sine', freq: 2700, freqEnd: 3050, dur: 0.2, vol: 0.09, attack: 0.05, decay: 0.03, sustain: 0.9, release: 0.07 }), 0.08),
+    ), 0.86)
+    return peakTo(trimTo(mix(...bells, squawk), 1.15), 0.8)
+  })(),
+  // 스탠드 함성 '와아!' 1.1s — 자작 의사 군중: 디튠된 톱니 목소리 22개(180~420Hz, 0~0.12s 엇박 시작, 살짝 올랐다 내림)를
+  // /a/ 포먼트 대역(F1 600~1100Hz, F2 1100~1700Hz)에 통과 + 숨·박수 노이즈. 말·단어 없음.
+  'events/stage6CrowdCheer': () => (() => {
+    const voices = []
+    for (let k = 0; k < 22; k += 1) {
+      const f = 180 + Math.random() * 240
+      const start = Math.random() * 0.12
+      const dur = 0.85 + Math.random() * 0.2
+      voices.push(at(synth({ wave: 'sawtooth', freq: f, freqEnd: f * (0.92 + Math.random() * 0.06), dur, vol: 0.5,
+        attack: 0.09 + Math.random() * 0.06, decay: 0.15, sustain: 0.75, release: 0.35,
+        vibRate: 4 + Math.random() * 3, vibDepth: f * 0.02 }), start))
+    }
+    const choir = mix(...voices)
+    return peakTo(trimTo(mix(
+      peakTo(bandpass(choir, 600, 1100), 0.6),
+      peakTo(bandpass(choir, 1100, 1700), 0.35),
+      sweptNoise({ dur: 1.1, from: 2600, to: 1800, vol: 0.22, attack: 0.1, release: 0.45, am: 11, amDepth: 0.5 }),
+    ), 1.1), 0.8)
+  })(),
+  // 북 연타 + 심벌 '두루루루-쾅!' 1.15s — 스네어 롤(70ms→42ms 간격으로 빨라지며 커짐) + 큰북·심벌·스네어 강타.
+  'events/stage6DrumRollHit': () => (() => {
+    const hits = []
+    let t = 0
+    let gap = 0.07
+    while (t < 0.56) {
+      const g = 0.25 + 0.55 * (t / 0.56)
+      hits.push(at(mix(
+        sweptNoise({ dur: 0.045, from: 6500, to: 2500, vol: 0.5 * g, attack: 0.001, release: 0.035 }),
+        strike({ freq: 210, freqEnd: 170, dur: 0.05, vol: 0.25 * g, tau: 0.015 }),
+      ), t))
+      t += gap
+      gap = Math.max(0.042, gap * 0.94)
+    }
+    const accent = at(mix(
+      strike({ freq: 72, freqEnd: 45, dur: 0.35, vol: 0.9, tau: 0.11, partials: [[1, 1], [2, 0.3, 0.5]] }),
+      sweptNoise({ dur: 0.08, from: 6000, to: 2500, vol: 0.5, attack: 0.001, release: 0.06 }),
+      highpass(sweptNoise({ dur: 0.55, from: 9500, to: 5500, vol: 0.4, attack: 0.002, release: 0.48 }), 3000),
+    ), 0.6)
+    return peakTo(trimTo(mix(...hits, accent), 1.15), 0.85)
+  })(),
+
   // 슬테라 돌진음 — 2026-11-14 sharkFire가 상어 물기로 바뀌면서, 슬테라가 빌려 쓰던 옛 sharkFire 톱니파 상승음을
   // 이 이름으로 옮겼다. 배포 음원은 옛 sharkFire.ogg/mp3 바이트를 그대로 복사했다(Math.random 노이즈라 재생성하면 달라짐).
   'events/slteraRush': () => mix(

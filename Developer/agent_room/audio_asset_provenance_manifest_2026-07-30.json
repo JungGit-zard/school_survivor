@@ -2738,6 +2738,66 @@
       "source": "scripts/generate_sfx.mjs (procedural WAV synthesis, recipe 'enemies/gagChomp'; OGG libvorbis q2 / MP3 64k 44.1kHz mono via --encode with @ffmpeg-installer/ffmpeg)",
       "notes": "2026-11-17 soundmini. 신규 좀비 2차 물기(E91 교과서 미믹·E98 대식가, lib/enemyAbilitySfx.js NOVEL2_ABILITY_SFX). 물기 '앙-딱' 0.18s: 260→120Hz 턱 타격 + 900Hz 비조화 이빨 딱 + 노이즈 클릭 2개. Project procedural SFX asset; no external samples, no third-party or real-world audio copied.",
       "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "stage6ProgAnnounce",
+      "category": "events",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/events/stage6ProgAnnounce.ogg",
+          "bytes": 8426,
+          "sha256": "f73983ebd5b2fa4571f920815d395a2858d4eafd1ff7f14ae0fa3589105d443f"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/events/stage6ProgAnnounce.mp3",
+          "bytes": 9657,
+          "sha256": "9de4796b12395330cbf813b6c1b8372c6e8bcf8a4f6298f54d90ea04393cd36e"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis, recipe 'events/stage6ProgAnnounce'; OGG libvorbis q2 / MP3 64k 44.1kHz mono via --encode with @ffmpeg-installer/ffmpeg)",
+      "notes": "2026-11-19 soundmini. Stage 6 운동회 순서표 종목 안내 방송(lib/stage6ProgrammeSfx.js). 자작 4음 C6-G5-A5-E6 비브라폰풍 종(지수 감쇠 부분음) + 카주풍 사각파 확성기 '꽥' + 2.7→3.05kHz 짧은 하울링, 1.15s. 런타임 rate 1/1.06/0.94 순환. No speech; no real school chime, jingle or third-party audio copied.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "stage6CrowdCheer",
+      "category": "events",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/events/stage6CrowdCheer.ogg",
+          "bytes": 11941,
+          "sha256": "2f4d446c1ebf1d71d353e5f45ecb4f0e26addee7a80d1afc76c1b9f79f47bc1f"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/events/stage6CrowdCheer.mp3",
+          "bytes": 9448,
+          "sha256": "f46c4232b20753b0cd0649f32d2c5199d4edaf7627cc5337aa3ebbe59acb464e"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis, recipe 'events/stage6CrowdCheer'; OGG libvorbis q2 / MP3 64k 44.1kHz mono via --encode with @ffmpeg-installer/ffmpeg)",
+      "notes": "2026-11-19 soundmini. Stage 6 스탠드 함성(multiKill·bossDown·finishTape). 디튠된 톱니 의사 목소리 22개(180~420Hz, 엇박 시작)를 /a/ 포먼트 대역 600~1100/1100~1700Hz로 거르고 AM 노이즈(숨·박수)를 더한 자작 의사 군중, 1.1s. No words, no crowd recording.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "stage6DrumRollHit",
+      "category": "events",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/events/stage6DrumRollHit.ogg",
+          "bytes": 13161,
+          "sha256": "32504d8e11d67a99763de4fb28722898c7757d747c565454390fe167a117d63c"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/events/stage6DrumRollHit.mp3",
+          "bytes": 9866,
+          "sha256": "19bbe4943828a014b6f7cff88c3c77658c31cac1d8415547b14b72ce0ac64346"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis, recipe 'events/stage6DrumRollHit'; OGG libvorbis q2 / MP3 64k 44.1kHz mono via --encode with @ffmpeg-installer/ffmpeg)",
+      "notes": "2026-11-19 soundmini. Stage 6 공굴리기 대장 처치. 스네어 롤(노이즈 버스트 + 210Hz 몸통, 70→42ms 간격 크레셴도) 0.56s + 큰북 72→45Hz·스네어 강타·하이패스 심벌 꼬리, 1.15s. Project procedural SFX; no external samples.",
+      "licenseEvidence": "project-generated-procedural"
     }
   ]
 }

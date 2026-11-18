@@ -122,6 +122,24 @@ describe('Stage 6 in-run HUD', () => {
     act(() => useGameStore.setState({ currentStageId: 'stage1', elapsedMs: (getStageConfig('stage1').matildaSec - 2) * 1000 }))
     expect(container.querySelector('[data-testid="matilda-warning-flavor"]')).toBeNull()
   })
+
+  it('mounts the sports-day programme strip on stage 6 only and hides it on pause', () => {
+    renderStage6(100_000)
+    const strip = container.querySelector('[data-testid="stage6-programme-strip"]')
+    expect(strip.dataset.current).toBe('teamsMarch')
+    expect(strip.dataset.next).toBe('parade')
+    act(() => useGameStore.setState({ phase: 'paused', pauseSource: 'manual' }))
+    expect(container.querySelector('[data-testid="stage6-programme-strip"]')).toBeNull()
+    act(() => useGameStore.setState({ phase: 'playing', pauseSource: null, currentStageId: 'stage5' }))
+    expect(container.querySelector('[data-testid="stage6-programme-strip"]')).toBeNull()
+  })
+
+  it('holds the programme strip while the milestone toast uses the top slot', () => {
+    renderStage6(100_000, { recentMilestone: { atMs: 96_000, gold: 8, label: '조회 버티기 보너스' } })
+    expect(container.querySelector('[data-testid="stage6-programme-strip"]')).toBeNull()
+    act(() => useGameStore.setState({ recentMilestone: null }))
+    expect(container.querySelector('[data-testid="stage6-programme-strip"]')).not.toBeNull()
+  })
 })
 
 describe('Stage 6 escape = Part 1 complete', () => {

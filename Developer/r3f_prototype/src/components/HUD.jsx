@@ -65,6 +65,7 @@ import StageVendingPrompt from './StageVendingPrompt.jsx'
 import Stage4HazardGuide from './Stage4HazardGuide.jsx'
 import Stage5CallGuide from './Stage5CallGuide.jsx'
 import Stage6HudCues from './Stage6HudCues.jsx'
+import Stage6Programme from './Stage6Programme.jsx'
 import ChiefStatusBar from './ChiefStatusBar.jsx'
 import LobbySettingsModal from './LobbySettingsModal.jsx'
 import { milestoneLabel, missionTitle, t as translate, useLocale, useT, weaponLabel } from '../lib/i18n.js'
@@ -1680,6 +1681,15 @@ export default function HUD({
         phase={phase}
         gameKey={gameKey}
         escapePortalActive={escapePortalActive}
+        hidden={!Number.isFinite(player.hp) || player.hp <= 0
+          || !!studentDialogue || !!introDialogue || questInventoryOpen
+          || isTitleReturnConfirmOpen || (devToolsVisible && weaponCheatOpen)}
+      />
+      <Stage6Programme
+        stageId={currentStageId}
+        phase={phase}
+        gameKey={gameKey}
+        deferBanner={!!recentMilestone}
         hidden={!Number.isFinite(player.hp) || player.hp <= 0
           || !!studentDialogue || !!introDialogue || questInventoryOpen
           || isTitleReturnConfirmOpen || (devToolsVisible && weaponCheatOpen)}

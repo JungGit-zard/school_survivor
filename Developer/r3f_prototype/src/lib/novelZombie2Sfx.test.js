@@ -101,6 +101,22 @@ describe('엣지에서만 낸다', () => {
     expect(heard.map((event) => event.id)).toEqual(['gagWindup', 'gagChomp'])
   })
 
+  it('판 다시 시작(풀 reset = 세대 +1): 예전 상태로 오인해 내거나 첫 엣지를 빠뜨리지 않는다', () => {
+    const world = fakeWorld(['E91'])
+    frame(world)
+    world.pool.state[0] = N2_STATE_TELEGRAPH
+    frame(world)
+    // refs.resetRuntime → enemyPool.reset()이 세대를 올리고 새 판 미믹이 같은 슬롯에 접근 상태로 나온다.
+    world.pool.generation[0] += 1
+    world.rt.slotGen[0] = world.pool.generation[0]
+    world.pool.state[0] = N2_STATE_APPROACH
+    now += 1000
+    frame(world)
+    world.pool.state[0] = N2_STATE_TELEGRAPH
+    frame(world)
+    expect(heard.map((event) => event.id)).toEqual(['gagWindup', 'gagWindup'])
+  })
+
   it('E106 기마전: 기수만 울리고 같은 엣지를 따라 하는 말은 조용하다', () => {
     const world = fakeWorld(['E106', 'E106', 'E106', 'E106'])
     world.rt.cavRole.set([1, 2, 2, 2])
