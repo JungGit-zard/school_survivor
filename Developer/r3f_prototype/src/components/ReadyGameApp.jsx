@@ -134,16 +134,21 @@ export default function ReadyGameApp({
 
   useEffect(() => {
     let stopped = false
-    const retry = () => {
+    // 5초 주기에서는 클라우드 진행도 저장을 하지 않는다(Terry 2026-11-19): 로그인 계정의 저장 노드
+    // 전체를 5초마다 다시 쓰던 것이 로그인 상태에서만 생기는 끊김의 원인이었다. 주기 틱은 랭킹
+    // 재시도만 하고, 진행도 재확인은 네트워크가 돌아왔을 때(online)만 한다.
+    const retry = (reconcileProgress) => {
       void import('../store/useGameStore.js').then(({useGameStore}) => {
         if (stopped) return
-        if (authUser?.uid) void useGameStore.getState().reconcileCloudProgress()
+        if (reconcileProgress && authUser?.uid) void useGameStore.getState().reconcileCloudProgress()
         return useGameStore.getState().retryRankingSubmission()
       }).catch(() => {})
     }
-    const timer = window.setInterval(retry,5000)
-    window.addEventListener('online',retry)
-    return () => { stopped = true; window.clearInterval(timer); window.removeEventListener('online',retry) }
+    const onTick = () => retry(false)
+    const onOnline = () => retry(true)
+    const timer = window.setInterval(onTick,5000)
+    window.addEventListener('online',onOnline)
+    return () => { stopped = true; window.clearInterval(timer); window.removeEventListener('online',onOnline) }
   },[authUser?.uid])
 
   // 랭킹은 런이 끝날 때 한 번만 쓴다(0점 런 포함, useGameStore.finishRankingRun). 타이틀·로사리 방만

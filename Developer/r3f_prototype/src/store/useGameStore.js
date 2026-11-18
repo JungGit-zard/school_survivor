@@ -1753,12 +1753,14 @@ export const useGameStore = create(
   }))
 )
 
-// Meaningful gameplay changes checkpoint immediately; frame-only changes do not.
+// 판 도중(처치·골드·레벨업·매초)에는 체크포인트/클라우드 저장을 하지 않는다(Terry 2026-11-19):
+// 로그인 계정에서 저장이 쉬지 않고 이어져 화면이 끊겼다. 판이 끝났을 때(클리어·사망)만 한 번 한다.
+// 판 시작과 화면 이동(flushProgressBeforeTransition)의 저장은 그대로다.
 useGameStore.subscribe(
-  state => `${state.progressRunId}|${state.runKills}|${state.goldSession}|${state.runLevelUps}|${Math.floor(state.elapsedMs / 1000)}|${state.phase}`,
+  state => `${state.progressRunId}|${state.phase}`,
   () => {
     const state = useGameStore.getState()
-    if (['playing','paused','levelup','cleared','gameover'].includes(state.phase)) checkpointRun(state)
+    if (['cleared','gameover'].includes(state.phase)) checkpointRun(state)
   },
 )
 
