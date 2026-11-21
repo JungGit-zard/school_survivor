@@ -1,16 +1,14 @@
 Stage 6 schoolyard ground detail maps (Escape! zombie school)
 
 track.jpg   <- ambientCG Rubber003        https://ambientcg.com/view?id=Rubber003
-turf.jpg    <- ambientCG Grass001         https://ambientcg.com/view?id=Grass001
-outfield.jpg<- ambientCG Grass004         https://ambientcg.com/view?id=Grass004
+grass.jpg   <- ambientCG Grass004         https://ambientcg.com/view?id=Grass004
 sand.jpg    <- ambientCG Ground054        https://ambientcg.com/view?id=Ground054
-dirt.jpg    <- ambientCG Ground048        https://ambientcg.com/view?id=Ground048
 paving.jpg  <- ambientCG PavingStones128  https://ambientcg.com/view?id=PavingStones128
 kerb.jpg    <- ambientCG Concrete034      https://ambientcg.com/view?id=Concrete034
 
 Licence: Creative Commons CC0 1.0 Universal - https://creativecommons.org/publicdomain/zero/1.0/
 Attribution is not required; credit: created using the materials above from ambientCG.com, licensed under CC0 1.0.
-Modifications: see PROVENANCE.json (grayscale detail maps, blurred, softly posterised, normalised, 256 px).
+Modifications: see PROVENANCE.json (grass.jpg is a tinted colour map; the others are grayscale detail maps, blurred, softly posterised, normalised, 256 px).
 
 ambientCG licence page (https://docs.ambientcg.com/license/), retrieved 2026-11-17, verbatim excerpt:
 All ambientCG assets are provided under the Creative Commons CC0 1.0 Universal License . This applies to the downloadable asset files and the material preview renders shown for each asset on the site. License Details ขา The Creative Commons CC0 license gives you near limitless freedom to use the materials, models and other assets: Creative Commons CC0 License You can copy, modify, distribute and perform the assets, even for commercial purposes, all without asking permission. You can include the raw files in your project, for example a video game. You can read the full text on the Creative Commons website . There you can also read the full license in many languages by using the dropdown menu in the top right corner. Giving credit ขา You don't need to gi

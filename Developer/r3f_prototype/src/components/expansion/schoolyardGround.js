@@ -1,36 +1,45 @@
 import * as THREE from 'three'
 import { getToonGradient } from '../../lib/toon.js'
 import trackUrl from '../../assets/textures/schoolyard/track.jpg?url'
-import turfUrl from '../../assets/textures/schoolyard/turf.jpg?url'
-import outfieldUrl from '../../assets/textures/schoolyard/outfield.jpg?url'
+import grassUrl from '../../assets/textures/schoolyard/grass.jpg?url'
 import sandUrl from '../../assets/textures/schoolyard/sand.jpg?url'
-import dirtUrl from '../../assets/textures/schoolyard/dirt.jpg?url'
 import pavingUrl from '../../assets/textures/schoolyard/paving.jpg?url'
 import kerbUrl from '../../assets/textures/schoolyard/kerb.jpg?url'
 
-// Stage 6 「운동장」 textured ground (2026-11-17 v3): every visible ground surface carries a CC0 detail map
-// (ambientCG, src/assets/textures/schoolyard/PROVENANCE.json): dirt surround, 4-lane athletics track with
-// a concrete kerb, striped turf pitch, sand long-jump pit and worn goalmouths, paved gate walk, grass
-// outfield. Everything is flat (no colliders) and derived from the arena size + goal data, so it follows
-// whatever stage 6 bounds the stage data defines. One draw call per surface material.
+// Stage 6 「운동장」 textured ground (2026-11-17 v3; field floor 2026-11-21): CC0 ambientCG maps
+// (src/assets/textures/schoolyard/PROVENANCE.json). The whole field floor — striped pitch, the surround
+// inside the arena and the outfield beyond it — is the Grass004 photo in its real colour (Terry picked it:
+// 「이걸로 깔아라」); the 4-lane athletics track with its concrete kerb, the sand long-jump pit and worn
+// goalmouths and the paved gate walk keep their detail maps. Everything is flat (no colliders) and derived
+// from the arena size + goal data, so it follows whatever stage 6 bounds the stage data defines.
+// One draw call per mesh, same meshes as before.
 //
-// Detail maps are plain multipliers (mean 0.80, no colour space); the toon material colour below sets each
-// surface's average tone. Colours were picked in the browser against real telegraphs (see the report /
-// expansionEnvironment.js note): yellow cue ≥ 20 ΔE and red ≥ 33.5 ΔE on every surface a telegraph can hit.
+// Detail maps are plain multipliers (mean 0.80, no colour space); the toon material colour sets each such
+// surface's average tone. grass.jpg is an sRGB colour map: its material colour is only a light tint.
+// Colours were checked in the browser against real telegraphs: yellow cue ≥ 20 ΔE and red ≥ 33.5 ΔE on
+// every surface a telegraph can hit.
 export const SCHOOLYARD_GROUND_COLORS = Object.freeze({
   // Measured 2026-11-17 on the textured surfaces (start-of-windup telegraphs, 0.4 opacity; ΔE76 mean /
   // darkest 10% / lightest 10% of the ground under the circle, white paint excluded):
-  //   turf  yellow 22.3/24.4/21.0  red 41.7/40.3/42.8      track yellow 29.3/30.5/27.6  red 35.4/34.5/36.0
-  //   dirt  yellow 22.7/24.3/21.5  red 34.1/34.4/34.0      sand  yellow 22.3/24.4/20.9  red 34.7/35.1/34.5
-  // Warm sand/brown tones cannot reach red ≥ 33.5 (they sit in the red-orange family), hence the cool
-  // grey-green cinder surround and damp sand.
-  dirt: '#5F6B62', track: '#3F86A8', kerb: '#DCD9CF', turfA: '#2E6B4A', turfB: '#285F41', sand: '#5C6A5E',
-  paving: '#C9C2B4', outfield: '#6FAE5C', line: '#F7F4EA',
+  //   track yellow 29.3/30.5/27.6  red 35.4/34.5/36.0      sand  yellow 22.3/24.4/20.9  red 34.7/35.1/34.5
+  // grass / grassStripe: tint over the Grass004 photo and the darker mowing band of the pitch. The photo's
+  // light blades are yellow-olive, so the tint darkens and cools it slightly to keep the yellow cue (2026-11-21,
+  // same method, screen pixels at the spawn view / beside the sand pit):
+  //   grass yellow 25.4/30.7/20.7 · 24.2/29.0/20.4  red 42.7/42.9/42.4 · 42.7/42.8/42.7
+  //   (light tint #C4D8C2 gave yellow 15.8 on the lightest 10%)
+  grass: '#98B8B0', grassStripe: '#84A298', track: '#3F86A8', kerb: '#DCD9CF', sand: '#5C6A5E',
+  paving: '#C9C2B4', line: '#F7F4EA',
 })
 // World units per texture repeat.
-const TILE = Object.freeze({ dirt: 3.2, track: 2.2, kerb: 1.6, turf: 3.4, sand: 2.4, paving: 2.6, outfield: 4 })
+const TILE = Object.freeze({ grass: 4, track: 2.2, kerb: 1.6, sand: 2.4, paving: 2.6 })
 const DETAIL_MEAN = 0.8
-const URLS = { dirt: dirtUrl, track: trackUrl, kerb: kerbUrl, turf: turfUrl, sand: sandUrl, paving: pavingUrl, outfield: outfieldUrl }
+const URLS = { grass: grassUrl, track: trackUrl, kerb: kerbUrl, sand: sandUrl, paving: pavingUrl }
+// Colour (sRGB) maps; the others are grayscale detail multipliers.
+const COLOUR_MAPS = new Set(['grass'])
+// Grass repeat breaker: the same map sampled again, rotated and ~5× / ~14× larger, modulates brightness
+// (±20 % at most) around the map's mean linear luminance (PROVENANCE.json meanLinearLuminance). Two extra
+// texture reads in the ground shader, no extra draw call, no extra texture.
+const GRASS_MACRO = Object.freeze({ scale: 0.19, scale2: 0.071, mean: 0.1054, gain: 1.6 })
 
 // Heights (top faces) — all below the telegraph decals (y 0.035+).
 const Y = Object.freeze({ outfield: -0.03, paving: -0.022, dirt: -0.012, track: -0.004, kerb: -0.0035, turf: -0.004, sand: -0.0025, marks: 0.0015, digits: 0.002 })
@@ -135,7 +144,7 @@ function detailTexture(name) {
   if (!_textures.has(name)) {
     const t = _loader.load(URLS[name])
     t.wrapS = t.wrapT = THREE.RepeatWrapping
-    t.colorSpace = THREE.NoColorSpace
+    t.colorSpace = COLOUR_MAPS.has(name) ? THREE.SRGBColorSpace : THREE.NoColorSpace
     t.anisotropy = 4
     t.name = `schoolyard-ground-${name}`
     _textures.set(name, t)
@@ -145,10 +154,11 @@ function detailTexture(name) {
 export function getSchoolyardGroundMaterial(surface, { map = surface, vertexColors = false, color = SCHOOLYARD_GROUND_COLORS[surface] } = {}) {
   const key = `${surface}|${map}|${vertexColors}|${color}`
   if (!_materials.has(key)) {
-    // colour / mean so the textured average equals the chosen tone.
-    const c = new THREE.Color(color).multiplyScalar(map ? 1 / DETAIL_MEAN : 1)
+    // Detail maps: colour / mean so the textured average equals the chosen tone. Colour maps: plain tint.
+    const c = new THREE.Color(color).multiplyScalar(map && !COLOUR_MAPS.has(map) ? 1 / DETAIL_MEAN : 1)
     const m = new THREE.MeshToonMaterial({ color: c, gradientMap: getToonGradient(), emissive: c.clone(), emissiveIntensity: 0.04 })
     if (map) { m.map = detailTexture(map); m.emissiveMap = m.map }
+    if (map === 'grass') addGrassMacroVariation(m)
     m.vertexColors = vertexColors
     m.name = `schoolyard-ground-${surface}`
     // Stencil like toonMat (ground paint writes the stencil; outlines are not stencil-tested over it).
@@ -156,6 +166,20 @@ export function getSchoolyardGroundMaterial(surface, { map = surface, vertexColo
     _materials.set(key, m)
   }
   return _materials.get(key)
+}
+
+function addGrassMacroVariation(m) {
+  const { scale, scale2, mean, gain } = GRASS_MACRO, f = (x) => x.toFixed(4)
+  m.onBeforeCompile = (shader) => {
+    shader.fragmentShader = shader.fragmentShader.replace('#include <map_fragment>', `#include <map_fragment>
+      {
+        vec2 macroUv = mat2(0.8, -0.6, 0.6, 0.8) * vMapUv;
+        float macroA = dot(texture2D(map, macroUv * ${f(scale)}).rgb, vec3(0.3333));
+        float macroB = dot(texture2D(map, macroUv.yx * ${f(scale2)} + 0.37).rgb, vec3(0.3333));
+        diffuseColor.rgb *= clamp(1.0 + ${f(gain)} * (macroA + macroB - ${f(2 * mean)}), 0.8, 1.2);
+      }`)
+  }
+  m.customProgramCacheKey = () => 'schoolyard-grass-macro-v1'
 }
 
 // Lane numbers 1..lanes as one small canvas atlas (generated, not downloaded). Null without a 2D canvas.
@@ -191,17 +215,18 @@ export function createSchoolyardGround({ halfX, halfZ, goals = [], trackX = null
   }
 
   // Outfield grass (big, beyond anything the camera can frame) and the paved gate walk.
-  { const P = [], I = []; rect(P, I, 0, 0, halfX * 2 + 80, halfZ * 2 + 80); add('schoolyard-ground-outfield', 'outfield', P, I) }
+  { const P = [], I = []; rect(P, I, 0, 0, halfX * 2 + 80, halfZ * 2 + 80); add('schoolyard-ground-outfield', 'grass', P, I, { y: 'outfield' }) }
   { const P = [], I = []; rect(P, I, 0, halfZ + 4.2, 3.4, 8); add('schoolyard-ground-gate-walk', 'paving', P, I) }
-  // Dirt surround (the whole playable rectangle; track, turf and sand sit on top).
-  { const P = [], I = []; rect(P, I, 0, 0, halfX * 2, halfZ * 2); add('schoolyard-ground-dirt', 'dirt', P, I) }
+  // Surround (the whole playable rectangle; track, turf and sand sit on top): the same Grass004 floor as the
+  // outfield (world-space UVs, so no seam at the arena edge).
+  { const P = [], I = []; rect(P, I, 0, 0, halfX * 2, halfZ * 2); add('schoolyard-ground-dirt', 'grass', P, I, { y: 'dirt' }) }
   // Track surface and the concrete kerb against the infield.
   { const P = [], I = []; ringStrip(P, I, zc, Ri, Ro); add('schoolyard-ground-track', 'track', P, I) }
   { const P = [], I = []; ringStrip(P, I, zc, turfR, Ri); add('schoolyard-ground-kerb', 'kerb', P, I) }
-  // Turf infield with mowing stripes (vertex tint bands across the pitch).
+  // Grass004 pitch infield with mowing stripes (vertex tint bands across the pitch).
   {
     const P = [], I = [], colors = []
-    const stripe = 1.6 * k, tintA = new THREE.Color(SCHOOLYARD_GROUND_COLORS.turfA), tintB = new THREE.Color(SCHOOLYARD_GROUND_COLORS.turfB)
+    const stripe = 1.6 * k, tintA = new THREE.Color(SCHOOLYARD_GROUND_COLORS.grass), tintB = new THREE.Color(SCHOOLYARD_GROUND_COLORS.grassStripe)
     const ratio = [tintB.r / tintA.r, tintB.g / tintA.g, tintB.b / tintA.b]
     // Band polygons (stadium ∩ [z0, z1]), coloured per band: exact edges, no interpolation across stripes.
     const zMax = zc + turfR, halfW = (z) => (Math.abs(z) <= zc ? turfR : Math.sqrt(Math.max(0, turfR * turfR - (Math.abs(z) - zc) ** 2)))
@@ -216,7 +241,7 @@ export function createSchoolyardGround({ halfX, halfZ, goals = [], trackX = null
       for (let i = 1; i < m - 1; i++) tris.push(base, base + i, base + i + 1)
       I.push(...upTris(P, tris))
     }
-    add('schoolyard-ground-turf', 'turf', P, I, { colors, matOpts: { vertexColors: true, color: SCHOOLYARD_GROUND_COLORS.turfA } })
+    add('schoolyard-ground-turf', 'grass', P, I, { y: 'turf', colors, matOpts: { vertexColors: true } })
   }
   // Sand: worn goalmouths and the long-jump pit beside the right straight.
   {

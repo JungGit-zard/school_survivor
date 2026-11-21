@@ -21,10 +21,12 @@ const CASES = [
 ]
 
 describe('stage6 textured ground', () => {
-  it('ships small CC0 detail maps with provenance', () => {
+  it('ships small CC0 maps with provenance (Grass004 colour field floor ≤ 150 KB)', () => {
     const dir = resolve(process.cwd(), 'src/assets/textures/schoolyard')
     const files = readdirSync(dir)
-    for (const f of ['track.jpg', 'turf.jpg', 'outfield.jpg', 'sand.jpg', 'dirt.jpg', 'paving.jpg', 'kerb.jpg', 'PROVENANCE.json', 'License.txt']) expect(files, f).toContain(f)
+    for (const f of ['grass.jpg', 'track.jpg', 'sand.jpg', 'paving.jpg', 'kerb.jpg', 'PROVENANCE.json', 'License.txt']) expect(files, f).toContain(f)
+    for (const gone of ['turf.jpg', 'outfield.jpg', 'dirt.jpg']) expect(files, gone).not.toContain(gone)
+    expect(statSync(resolve(dir, 'grass.jpg')).size).toBeLessThanOrEqual(150 * 1024)
     const bytes = files.filter((f) => f.endsWith('.jpg')).reduce((t, f) => t + statSync(resolve(dir, f)).size, 0)
     expect(bytes).toBeLessThanOrEqual(120 * 1024)
   })
@@ -48,6 +50,15 @@ describe('stage6 textured ground', () => {
       expect(n.getY(0), m.name).toBe(1)
       m.geometry.computeBoundingBox()
     }
+    // The whole field floor (pitch, surround, outfield) is the Grass004 colour map; the rest keep detail maps.
+    for (const name of ['schoolyard-ground-turf', 'schoolyard-ground-dirt', 'schoolyard-ground-outfield']) {
+      const map = surfaces.find((m) => m.name === name).material.map
+      expect(map.name, name).toBe('schoolyard-ground-grass')
+      expect(map.colorSpace, name).toBe(THREE.SRGBColorSpace)
+    }
+    for (const name of ['schoolyard-ground-track', 'schoolyard-ground-kerb', 'schoolyard-ground-sand', 'schoolyard-ground-gate-walk']) {
+      expect(surfaces.find((m) => m.name === name).material.map.colorSpace, name).toBe(THREE.NoColorSpace)
+    }
     const box = (name) => surfaces.find((m) => m.name === name).geometry.boundingBox
     // Dirt covers the whole playable rectangle; outfield runs far past anything the camera can frame.
     const dirt = box('schoolyard-ground-dirt')
@@ -64,6 +75,5 @@ describe('stage6 textured ground', () => {
     const listeners = surfaces.map((m) => { const l = vi.fn(); m.geometry.addEventListener('dispose', l); return l })
     disposeSchoolyardGround(ground)
     for (const l of listeners) expect(l).toHaveBeenCalledTimes(1)
-    void THREE
   })
 })
