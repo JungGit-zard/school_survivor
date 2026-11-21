@@ -5,6 +5,7 @@ import { getStageBounds } from '../../lib/stageConfig.js'
 import { useGameStore } from '../../store/useGameStore.js'
 import { createExpansionEnvironment, animateExpansionEnvironment, disposeExpansionEnvironment } from './expansionEnvironment.js'
 import { loadSchoolyardDressingScene, attachSchoolyardDressing, cullSchoolyardDressing } from './schoolyardDressing.js'
+import Stage6FinishTape from './Stage6FinishTape.jsx'
 
 export default function ExpansionStageEnvironment({stageId,staticPose=false}) {
  const {halfX,halfZ}=getStageBounds(stageId)
@@ -34,5 +35,9 @@ export default function ExpansionStageEnvironment({stageId,staticPose=false}) {
    cullSchoolyardDressing(root,camera)
  })
  if(!root)return null
- return <StudioTunedGroup key={dressedRoot===root?'dressed':'bare'} itemId={`stage-floor-${stageId}`}><primitive object={root} dispose={null}/></StudioTunedGroup>
+ // Stage 6 탈출구 결승 테이프(Stage6FinishTape.jsx, 탈출구 자리를 따라감): Studio 튜닝 그룹 밖 형제 — 바닥 Studio 파트 경로는 그대로다.
+ return <>
+   <StudioTunedGroup key={dressedRoot===root?'dressed':'bare'} itemId={`stage-floor-${stageId}`}><primitive object={root} dispose={null}/></StudioTunedGroup>
+   {stageId==='stage6'&&!staticPose&&<Stage6FinishTape stageId={stageId}/>}
+ </>
 }

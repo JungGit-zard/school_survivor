@@ -66,6 +66,7 @@ import Stage4HazardGuide from './Stage4HazardGuide.jsx'
 import Stage5CallGuide from './Stage5CallGuide.jsx'
 import Stage6HudCues from './Stage6HudCues.jsx'
 import Stage6Programme from './Stage6Programme.jsx'
+import { useStage6ClearPanelHold } from './useStage6ClearPanelHold.js'
 import ChiefStatusBar from './ChiefStatusBar.jsx'
 import LobbySettingsModal from './LobbySettingsModal.jsx'
 import { milestoneLabel, missionTitle, t as translate, useLocale, useT, weaponLabel } from '../lib/i18n.js'
@@ -934,6 +935,8 @@ export default function HUD({
   const continuationStageId = getClearContinuationStageId(currentStageId, { bossDefeated })
   // 1부 마지막 스테이지(Stage 6) 탈출 결과: 이어 가기 없음, 엔드리스 예고 배지(비활성), 엔딩 컷.
   const isPart1Finale = phase === 'cleared' && currentStageId === PART1_FINAL_STAGE_ID
+  // Stage 6 탈출구 클리어: 결승 테이프가 끊기는 동안(~0.7초) 결과창·엔딩 컷을 미룬다(useStage6ClearPanelHold.js).
+  const clearPanelHeld = useStage6ClearPanelHold({ stageId: currentStageId, phase, escapePortalActive, gameKey })
   const [part1EndingIndex, setPart1EndingIndex] = useState(-1)
   const part1EndingOpen = isPart1Finale && part1EndingIndex >= 0
   const part1EndingShownRef = useRef(null)
@@ -943,10 +946,11 @@ export default function HUD({
       setPart1EndingIndex(-1)
       return
     }
+    if (clearPanelHeld) return
     if (part1EndingShownRef.current === gameKey) return
     part1EndingShownRef.current = gameKey
     setPart1EndingIndex(0)
-  }, [isPart1Finale, gameKey])
+  }, [isPart1Finale, gameKey, clearPanelHeld])
   const closePart1Ending = useCallback(() => setPart1EndingIndex(-1), [])
   const advancePart1Ending = useCallback(() => {
     setPart1EndingIndex((index) => (index < 0 || index >= PART1_ENDING_IDS.length - 1 ? -1 : index + 1))
@@ -2028,7 +2032,12 @@ export default function HUD({
         </div>
       )}
 
-      {phase === 'cleared' && (
+      {/* 결과창을 미루는 동안에도 결과창처럼 아래 HUD 터치를 막는다(투명, 글자·배치 없음). */}
+      {phase === 'cleared' && clearPanelHeld && (
+        <div data-testid="escape-finish-hold" aria-hidden="true" style={styles.clearHoldCatcher} />
+      )}
+
+      {phase === 'cleared' && !clearPanelHeld && (
         <div data-testid="escape-success-screen" style={{ ...styles.overlay, ...styles.escapeOverlay }} aria-hidden={part1EndingOpen ? 'true' : undefined}>
           <section style={styles.escapePanel} aria-labelledby="escape-success-title">
             <img src={escapeSuccessSrc} alt="" style={styles.escapeImage} />
@@ -2695,6 +2704,7 @@ const styles = {
     filter: 'drop-shadow(0 1px 1px rgba(0,0,0,0.5))',
     userSelect: 'none',
   },
+  clearHoldCatcher: { position: 'absolute', inset: 0, background: 'transparent', pointerEvents: 'auto' },
   overlay: {
     position: 'absolute', inset: 0, background: 'rgba(5,2,9,0.62)',
     display: 'flex', alignItems: 'center', justifyContent: 'center',
