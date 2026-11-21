@@ -103,7 +103,8 @@ describe('saves never touch history', () => {
     await requestCloudProgressSave(user)
     const rowWrites = db.writes.filter(write => JSON.stringify(write).includes('runLedger/run-new'))
     expect(rowWrites).toHaveLength(1)
-    expect(historyPaths(db.writes.flatMap(write => Object.keys(write.values ?? {}))).filter(path => path !== 'runLedger/run-new')).toEqual([])
+    // 2026-11-21: the boss stage also bumps its counter in the small ledgerSummary, in the same write.
+    expect(historyPaths(db.writes.flatMap(write => Object.keys(write.values ?? {}))).filter(path => path !== 'runLedger/run-new')).toEqual(['ledgerSummary/bossDefeats/stage1BossDefeats'])
     const node = db.get(`users/${UID}`)
     expect(node.progress.goldTotal).toBe(510)
     expect(node.progress.records.totalKills).toBe(5030)

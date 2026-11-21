@@ -94,11 +94,14 @@ const DEFAULT_TITLE_SETTINGS = Object.freeze({
 
 // 저장은 users/{uid} 전체를 다시 읽고 쓰지 않는다(Terry 2026-11-19: 지난 기록을 다시 쓰지 않는다).
 // - 진행도: users/{uid}/progress 한 노드만 트랜잭션으로 바꾼다(바뀐 잎만 병합, 합산 값은 차이만 더한다).
-// - 스테이지 결과: 끝날 때 한 번, runLedger/{runKey} 한 줄 추가 + progress 합산 값 증가를 하나의 다중 경로
-//   update로 원자적으로 쓴다. 그 줄이 "이미 기록됨" 영수증이라 같은 스테이지가 두 번 들어가지 않는다.
+// - 스테이지 결과: 끝날 때 한 번, runLedger/{runKey} 한 줄 추가 + progress 합산 값 증가(+ 보스를 잡았으면
+//   ledgerSummary/bossDefeats 1 증가)를 하나의 다중 경로 update로 원자적으로 쓴다. 그 줄이 "이미 기록됨"
+//   영수증이라 같은 스테이지가 두 번 들어가지 않는다. 쓰기가 거절되면 기기 칸을 지우지 않고 다음 저장·다음
+//   로그인 때 그 한 줄만 다시 확인(읽기 1줄)한 뒤 없을 때만 다시 쓴다(2026-11-21).
 // - 프로필·활동·동의: users/{uid}의 해당 자식만 update로 쓴다.
-// checkpointLedger·runLedger의 옛 줄은 읽지도 다시 쓰지도 않는다. runLedger는 로그인 때 보스 처치 증거
-// (스테이지 해금)를 세기 위해서만 한 번 읽는다.
+// checkpointLedger·runLedger의 옛 줄은 읽지도 다시 쓰지도 않는다. 스테이지 해금용 보스 처치 수는
+// ledgerSummary(작은 고정 크기 노드)에 있다. 아직 옮기지 않은 옛 계정만 로그인 때 runLedger를 딱 한 번
+// 읽어 ledgerSummary를 채우고(compactedBefore > 0 = 옮김 완료 표시), 그 뒤로는 다시 읽지 않는다.
 let cloudUser = null
 let progressClientPromise = null
 let testProgressClient = null
@@ -109,16 +112,23 @@ let pendingProgressSaveWarning = null
 let persistenceSession = ''
 let persistenceBase = null
 let purchaseOperations = new Map()
-// Boss-defeat counts = ledgerSummary.bossDefeats + runLedger rows, counted once at hydration and
-// bumped by each stage this session records.
+// Boss-defeat counts = ledgerSummary.bossDefeats (+ runLedger rows, only for an account not yet
+// migrated), counted once at hydration and bumped by each stage this session records.
 let ledgerBossCounts = null
-// runLedger keys the server holds (hydration) plus every stage this session recorded.
+// True once the server's ledgerSummary holds every run row's boss proof (migrated account): stage
+// results then bump ledgerSummary/bossDefeats in the same atomic write as their row.
+let ledgerSummaryComplete = false
+// Run keys known to be on the server: rows read by a one-time migration plus every stage this session
+// wrote.
 let recordedRunKeys = new Set()
 // Stage results folded into memory whose atomic cloud write is not acknowledged yet. Progress
 // transactions leave these amounts out so they reach the server exactly once.
 let inflightFold = createEmptyContribution()
-// Device slots whose stage reached the server through the fallback progress transaction.
-let slotsAwaitingClear = new Set()
+// Stage results folded into memory whose run row is not on the server yet (runKey -> entry). A
+// rejected write stays here (its amounts stay in inflightFold, its device slot stays) and is retried by
+// the next progress save; the retry first reads that one row so a write whose ack was lost is never
+// applied twice.
+let pendingStageRows = new Map()
 let lastTopLevelFingerprint = ''
 
 const SUM_RECORD_KEYS = RECORD_KEYS.filter(key => !/best/i.test(key))
@@ -210,15 +220,13 @@ function sanitizeStageResult(result) {
 
 // One stage's result, recorded once. Folds into memory now, then writes the run row and the
 // additive progress totals in a single atomic multi-path update (no read of the user node).
-// Resolves true once the result is durable on the server (by either path), false otherwise.
+// Resolves true once the result is durable on the server, false otherwise (it is then retried).
 export function commitFirebaseStageResult(result, user = cloudUser) {
   ensureHydrated()
   const uid = runtime.uid
   if (readUserId(user) && readUserId(user) !== uid) return Promise.resolve(false)
   const stage = sanitizeStageResult(result)
-  if (!stage || recordedRunKeys.has(stage.runKey)) return Promise.resolve(false)
-  recordedRunKeys.add(stage.runKey)
-  const session = persistenceSession
+  if (!stage || recordedRunKeys.has(stage.runKey) || pendingStageRows.has(stage.runKey)) return Promise.resolve(false)
 
   // Totals close to a rule ceiling go through the clamping progress transaction instead, so the
   // atomic increment can never be rejected by a max-value rule.
@@ -252,27 +260,58 @@ export function commitFirebaseStageResult(result, user = cloudUser) {
   if (bossKey && ledgerBossCounts) ledgerBossCounts[bossKey]++
   addContribution(inflightFold, contribution, 1)
 
-  const missionCatalogVersion = runtime.progress.missions.catalogVersion
-  const row = { stageId: stage.stageId, records: stage.records, best: stage.best, gold: stage.gold, at: stage.at }
+  const entry = {
+    uid,
+    session: persistenceSession,
+    stage,
+    contribution,
+    bossKey,
+    missionCatalogVersion: runtime.progress.missions.catalogVersion,
+    verifyRow: false,
+    writing: null,
+    done: false,
+  }
+  pendingStageRows.set(stage.runKey, entry)
+  return writeStageRow(entry).then(async () => {
+    // Best records, mission entries and the like travel in the progress transaction; it also retries
+    // this row once more if the first write was rejected.
+    await requestCloudProgressSave({ uid })
+    return entry.done
+  })
+}
+
+// Writes one pending stage row (+ its increments). Shared by the first attempt and every retry; a call
+// while an attempt is running joins it. Only a confirmed row clears the device slot.
+function writeStageRow(entry) {
+  if (entry.writing) return entry.writing
+  const { uid, session, stage, contribution } = entry
   const attempt = writeQueue.catch(() => {}).then(async () => {
     if (!isFirebaseProgressHydrated({ uid }) || persistenceSession !== session) return false
     const client = await getProgressClient()
     if (typeof client.update !== 'function' || typeof client.increment !== 'function') {
       throw new FirebaseProgressError('Atomic progress updates are required.', 'update-unavailable')
     }
+    // A retry: the earlier write may have landed with its acknowledgement lost. Read that one row
+    // (never its siblings); if it is there, the increments landed with it and must not be sent again.
+    if (entry.verifyRow) {
+      if (await isRunRowOnServer(client, uid, stage.runKey)) return true
+      if (!isFirebaseProgressHydrated({ uid }) || persistenceSession !== session) return false
+    }
     const now = new Date().toISOString()
+    const row = { stageId: stage.stageId, records: stage.records, best: stage.best, gold: stage.gold, at: stage.at }
     const values = {
       [`runLedger/${stage.runKey}`]: row,
       'progress/checkpointRevision': client.increment(1),
       updatedAt: now,
     }
+    if (entry.bossKey && ledgerSummaryComplete) values[`ledgerSummary/bossDefeats/${entry.bossKey}`] = client.increment(1)
     if (contribution.gold) values['progress/goldTotal'] = client.increment(contribution.gold)
     for (const [key, value] of Object.entries(contribution.records)) values[`progress/records/${key}`] = client.increment(value)
     const counters = Object.entries(contribution.missionCounters)
     if (counters.length) {
       // The missions node must keep its required header for the update to validate.
       values['progress/missions/schemaVersion'] = MISSION_PROGRESS_SCHEMA_VERSION
-      values['progress/missions/catalogVersion'] = missionCatalogVersion
+      values['progress/missions/catalogVersion'] = entry.missionCatalogVersion
       values['progress/missions/updatedAt'] = now
       for (const [key, value] of counters) values[`progress/missions/counters/${encodeCounterKey(key)}`] = client.increment(value)
     }
@@ -282,23 +321,35 @@ export function commitFirebaseStageResult(result, user = cloudUser) {
     console.warn('Firebase stage result was not acknowledged.', error?.code ?? error?.message ?? 'stage-write-failed')
     return false
   }).then(written => {
-    if (persistenceSession !== session) return false
-    addContribution(inflightFold, contribution, -1)
-    if (written) {
-      addContribution(persistenceBase.progress, contribution, 1)
-      clearStoredStageSlot(uid, stage.runKey)
-      return true
+    entry.writing = null
+    if (persistenceSession !== session || pendingStageRows.get(stage.runKey) !== entry) return false
+    if (!written) {
+      // Kept for retry: amounts stay out of progress transactions, the device slot stays.
+      entry.verifyRow = true
+      return false
     }
-    // Rejected writes never landed: the amounts are now ordinary local changes that the next
-    // progress transaction carries, and the device slot is cleared once that save succeeds.
-    slotsAwaitingClear.add(stage.runKey)
-    return false
+    pendingStageRows.delete(stage.runKey)
+    recordedRunKeys.add(stage.runKey)
+    entry.done = true
+    addContribution(inflightFold, contribution, -1)
+    addContribution(persistenceBase.progress, contribution, 1)
+    clearStoredStageSlot(uid, stage.runKey)
+    return true
   })
+  entry.writing = attempt
   writeQueue = attempt
-  return attempt.then(async written => {
-    const saved = await requestCloudProgressSave({ uid })
-    return written || (saved && !slotsAwaitingClear.has(stage.runKey))
-  })
+  return attempt
+}
+
+async function isRunRowOnServer(client, uid, runKey) {
+  const found = await client.loadFields(`users/${uid}/runLedger`, [runKey])
+  return found?.[runKey] != null
+}
+
+async function retryPendingStageRows() {
+  if (pendingStageRows.size === 0) return true
+  const results = await Promise.all([...pendingStageRows.values()].map(writeStageRow))
+  return results.every(Boolean)
 }
 
 function addContribution(target, contribution, sign) {
@@ -319,12 +370,23 @@ function hasInflightFold() {
     || Object.values(inflightFold.missionCounters).some(Boolean)
 }
 
-// A stage left on this device by a tab closed mid-stage: recorded once, unless the server already
-// holds its run row (then the slot is just removed).
-async function recoverStoredStageResult(uid) {
+// A stage left on this device (tab closed mid-stage, or its result write was rejected): recorded once,
+// unless the server already holds its run row (one row read; then the slot is just removed).
+async function recoverStoredStageResult(uid, client) {
   const stored = readStoredStageSlot(uid)
   if (!stored || stored.runKey === getLiveStageRunKey()) return false
-  if (recordedRunKeys.has(stored.runKey)) {
+  let onServer = recordedRunKeys.has(stored.runKey)
+  if (!onServer) {
+    try {
+      onServer = await isRunRowOnServer(client, uid, stored.runKey)
+    } catch (error) {
+      // Unknown: keep the slot for the next sign-in rather than risk a second copy.
+      console.warn('Firebase stage row check failed.', error?.code ?? error?.message ?? 'row-check-failed')
+      return false
+    }
+    if (!isFirebaseProgressHydrated({ uid })) return false
+  }
+  if (onServer) {
     clearStoredStageSlot(uid, stored.runKey)
     return false
   }
@@ -371,9 +433,10 @@ export function getUserProgressPath(user = cloudUser) {
 function resetSessionState() {
   purchaseOperations = new Map()
   ledgerBossCounts = null
+  ledgerSummaryComplete = false
   recordedRunKeys = new Set()
   inflightFold = createEmptyContribution()
-  slotsAwaitingClear = new Set()
+  pendingStageRows = new Map()
   lastTopLevelFingerprint = ''
 }
 
@@ -419,19 +482,54 @@ export function buildCloudProgressSnapshot(now = Date.now()) {
   return { ...buildTopLevelPayload(now), schemaVersion: SCHEMA_VERSION, progress: serializeProgress(runtime.progress) }
 }
 
-// Only what the game needs. checkpointLedger (old per-page copies) is never fetched.
-const HYDRATION_FIELDS = Object.freeze(['schemaVersion', 'profile', 'progress', 'activity', 'consent', 'ledgerSummary', 'runLedger'])
+// Only what the game needs. checkpointLedger (old per-page copies) and runLedger (run history) are
+// never fetched; runLedger is read once only to migrate an account whose ledgerSummary is incomplete.
+const HYDRATION_FIELDS = Object.freeze(['schemaVersion', 'profile', 'progress', 'activity', 'consent', 'ledgerSummary'])
 
 async function loadHydrationSnapshot(client, path) {
-  let fields
-  if (typeof client.loadFields === 'function') {
-    fields = await client.loadFields(path, HYDRATION_FIELDS)
-  } else {
-    const node = await client.load(path)
-    fields = node && typeof node === 'object' ? Object.fromEntries(HYDRATION_FIELDS.map(key => [key, node[key]])) : null
-  }
+  if (typeof client.loadFields !== 'function') throw new FirebaseProgressError('Named-child progress reads are required.', 'load-fields-unavailable')
+  const fields = await client.loadFields(path, HYDRATION_FIELDS)
   if (!fields || typeof fields !== 'object' || fields.progress == null) return null
   return Object.fromEntries(Object.entries(fields).filter(([, value]) => value !== undefined && value !== null))
+}
+
+// One-time migration read (account not migrated yet): every row's boss proof goes into ledgerSummary.
+async function loadRunLedgerForMigration(client, path) {
+  const rows = await client.loadFields(path, ['runLedger'])
+  return rows?.runLedger && typeof rows.runLedger === 'object' ? rows.runLedger : {}
+}
+
+function isLedgerSummaryComplete(value) {
+  return Number.isSafeInteger(value?.compactedBefore) && value.compactedBefore > 0
+}
+
+// Writes the counted boss proof as a complete ledgerSummary, once per account. A failure is harmless:
+// this session keeps the counts in memory and the next sign-in migrates again.
+function migrateLedgerSummary(client, uid, path, snapshot) {
+  if (ledgerSummaryComplete || !ledgerBossCounts) return Promise.resolve(false)
+  const session = persistenceSession
+  const priorRuns = Number.isSafeInteger(snapshot?.ledgerSummary?.runs) && snapshot.ledgerSummary.runs > 0 ? snapshot.ledgerSummary.runs : 0
+  const rowCount = snapshot?.runLedger && typeof snapshot.runLedger === 'object' ? Object.keys(snapshot.runLedger).length : 0
+  const summary = {
+    compactedBefore: Date.now(),
+    runs: priorRuns + rowCount,
+    // All ten keys, zeros included, so a stage result can always increment its key.
+    bossDefeats: Object.fromEntries(BOSS_RECORD_KEYS.map(key => [key, ledgerBossCounts[key] ?? 0])),
+  }
+  const attempt = writeQueue.catch(() => {}).then(async () => {
+    if (!isFirebaseProgressHydrated({ uid }) || persistenceSession !== session) return false
+    if (typeof client.update !== 'function') return false
+    // Multi-path update of the small ledgerSummary node only (path = users/{uid}).
+    await client.update(path, { ledgerSummary: summary, updatedAt: new Date().toISOString() })
+    if (persistenceSession !== session) return false
+    ledgerSummaryComplete = true
+    return true
+  }).catch(error => {
+    console.warn('Firebase ledger summary migration was not acknowledged.', error?.code ?? error?.message ?? 'migration-failed')
+    return false
+  })
+  writeQueue = attempt
+  return attempt
 }
 
 export async function hydrateCloudProgress(user = cloudUser) {
@@ -454,11 +552,17 @@ export async function hydrateCloudProgress(user = cloudUser) {
       runtime = createEmptyRuntime(requestedUid)
       throw new FirebaseProgressError(`Remote Firebase user snapshot is missing at ${path}.`, 'missing-remote')
     }
+    if (!isLedgerSummaryComplete(snapshot.ledgerSummary)) {
+      snapshot.runLedger = await loadRunLedgerForMigration(client, path)
+      if (readUserId(cloudUser) !== requestedUid) return false
+      if (runtime !== runtimeAtRequest && isFirebaseProgressHydrated(user)) return true
+    }
     if (!applyCloudProgressSnapshot(snapshot, user)) {
       runtime = createEmptyRuntime(requestedUid)
       throw new FirebaseProgressError(`Remote Firebase user snapshot is invalid at ${path}.`, 'invalid-remote')
     }
-    await recoverStoredStageResult(requestedUid)
+    if (snapshot.runLedger) await migrateLedgerSummary(client, requestedUid, path, snapshot)
+    await recoverStoredStageResult(requestedUid, client)
     if (migrateLegacyWeaponUnlockEntitlements()) {
       // 이전 저장 실패는 플레이와 현재 세션의 권리 적용을 막지 않는다. 다음 정상 저장 때 다시 시도된다.
       await requestCloudProgressSave(user)
@@ -506,13 +610,15 @@ export function applyCloudProgressSnapshot(snapshot, user = cloudUser, { keepClo
   persistenceSession = globalThis.crypto?.randomUUID?.() ?? `session-${Date.now()}-${Math.random().toString(36).slice(2)}`
   persistenceBase = { progress: cloneProgress(normalized.progress) }
   resetSessionState()
-  // The run rows are only counted, never kept: boss proof for stage unlocks and the run receipts.
+  // Boss proof for stage unlocks lives in ledgerSummary. Run rows (present only for a one-time
+  // migration) are counted, never kept, unless the summary already includes them.
   const summary = normalizeLedgerSummary(snapshot?.ledgerSummary)
+  ledgerSummaryComplete = isLedgerSummaryComplete(snapshot?.ledgerSummary)
   const counts = Object.fromEntries(BOSS_RECORD_KEYS.map(key => [key, summary?.bossDefeats?.[key] ?? 0]))
   const rows = snapshot?.runLedger && typeof snapshot.runLedger === 'object' ? snapshot.runLedger : {}
   for (const [runKey, row] of Object.entries(rows)) {
     recordedRunKeys.add(runKey)
-    const key = ledgerBossDefeatKey(row)
+    const key = ledgerSummaryComplete ? null : ledgerBossDefeatKey(row)
     if (key) counts[key]++
   }
   ledgerBossCounts = counts
@@ -830,6 +936,8 @@ async function performCloudProgressSave(user, repeat = 0) {
     markProgressSaveWarning(uidAtRequest)
     return false
   }
+  // Stage rows whose earlier write was rejected go first (each one at most once on the server).
+  const rowsWritten = await retryPendingStageRows()
   const attempt = writeQueue.catch(() => {}).then(async () => {
     if (!isFirebaseProgressHydrated({ uid: uidAtRequest })) {
       return { saved: false, shouldWarn: false }
@@ -843,7 +951,6 @@ async function performCloudProgressSave(user, repeat = 0) {
     const purchasesAtSave = [...purchaseOperations.entries()]
     const topLevel = buildTopLevelFields()
     const topLevelFingerprint = fingerprint(topLevel)
-    const slotsAtSave = [...slotsAwaitingClear]
     const delta = {
       gold: payload.goldTotal - base.goldTotal - inflightAtSave.gold,
       records: Object.fromEntries(SUM_RECORD_KEYS.map(key => [key, payload.records[key] - base.records[key] - (inflightAtSave.records[key] ?? 0)])),
@@ -859,7 +966,7 @@ async function performCloudProgressSave(user, repeat = 0) {
     }
     const progressChanged = purchasesAtSave.length > 0 || fingerprint(expected) !== fingerprint(payload)
     const topLevelChanged = topLevelFingerprint !== lastTopLevelFingerprint
-    if (!progressChanged && !topLevelChanged && slotsAtSave.length === 0) return { saved: true, shouldWarn: false }
+    if (!progressChanged && !topLevelChanged) return { saved: true, shouldWarn: false }
 
     const client = await getProgressClient()
     if (!isFirebaseProgressHydrated({ uid: uidAtRequest }) || persistenceSession !== session) return { saved: false, shouldWarn: false }
@@ -867,7 +974,7 @@ async function performCloudProgressSave(user, repeat = 0) {
 
     let receipts = {}
     let savedProgress = null
-    if (progressChanged || slotsAtSave.length > 0) {
+    if (progressChanged) {
       let sentFingerprint = ''
       // Scoped to users/{uid}/progress: no other part of the user node is read or written.
       const result = await client.transaction(`users/${uidAtRequest}/progress`, current => {
@@ -953,10 +1060,6 @@ async function performCloudProgressSave(user, repeat = 0) {
         runtime = { ...runtime, progress }
       }
       persistenceBase = { ...persistenceBase, progress: nextBase }
-      for (const runKey of slotsAtSave) {
-        slotsAwaitingClear.delete(runKey)
-        clearStoredStageSlot(uidAtRequest, runKey)
-      }
     }
     return { saved: !purchaseConflict, shouldWarn: purchaseConflict }
   }).catch(error => {
@@ -965,7 +1068,8 @@ async function performCloudProgressSave(user, repeat = 0) {
   })
   writeQueue = attempt.then(({ saved }) => saved)
   const { saved, shouldWarn } = await attempt
-  if (shouldWarn) markProgressSaveWarning(uidAtRequest)
+  if (shouldWarn || !rowsWritten) markProgressSaveWarning(uidAtRequest)
+  if (!rowsWritten) return false
   if (saved && repeat < MAX_SAVE_REPEATS && isFirebaseProgressHydrated({uid:uidAtRequest}) && runtime !== runtimeAtSave) return performCloudProgressSave(user, repeat + 1)
   return saved
 }

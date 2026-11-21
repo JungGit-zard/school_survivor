@@ -7,6 +7,15 @@ const THIS_FILE = 'lib/localStoragePolicy.test.js'
 const NEGATIVE_POLICY_TEST_ALLOWLIST = new Set([
   'lib/firebaseProgress.test.js',
   'lib/studioLocalStorageGuard.test.js',
+  // one-stage device slot (stageSlot.js, Terry 11-19) — these tests seed/clear it
+  'components/ReadyGameApp.signedInIdleGuard.test.jsx',
+  'lib/bossLedgerProjection.test.js',
+  'lib/firebaseProgress.historyFree.test.js',
+  'store/progressCheckpoint.test.js',
+  'store/runStartBoundary.test.js',
+  'store/signedInPerformanceGuard.test.js',
+  'store/stageResultOnce.test.js',
+  'store/stageUnlockPersistence.test.js',
 ])
 
 function listSourceFiles(directory = SOURCE_ROOT) {

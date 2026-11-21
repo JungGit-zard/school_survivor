@@ -110,6 +110,8 @@ function remoteSnapshot(overrides = {}) {
     updatedAt: '2026-07-18T00:00:00.000Z',
     profile: { uid: USER.uid, displayName: USER.displayName, nickname: '생존왕' },
     activity: { lastStageId: 'stage1', lastStartedAt: '2026-07-18T00:00:00.000Z' },
+    // 2026-11-21: an already-migrated account (boss proof in ledgerSummary), so sign-in reads no runLedger.
+    ledgerSummary: { compactedBefore: 1, runs: 0, bossDefeats: {} },
     progress: {
       goldTotal: 42,
       records: Object.fromEntries(RECORD_KEYS.map((key) => [key, key === 'totalRuns' ? 3 : 0])),

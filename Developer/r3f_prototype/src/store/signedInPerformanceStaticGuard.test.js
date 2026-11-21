@@ -82,7 +82,8 @@ describe('static guard: no whole users/{uid} writes, no history reads', () => {
       'lib/firebaseProgress.js :: await client.update(`users/${uid}`, values)',
       // Top-level leaves (profile/activity/consent/updatedAt), a multi-path update.
       'lib/firebaseProgress.js :: await client.update(`users/${uidAtRequest}`, { ...topLevel, updatedAt: new Date().toISOString() })',
-      // getUserProgressPath: used for named-child hydration reads and account deletion only.
+      // getUserProgressPath: used for named-child hydration reads, the one-time ledgerSummary migration
+      // (a multi-path update of the small ledgerSummary node via that same path) and account deletion.
       "lib/firebaseProgress.js :: return uid ? `users/${uid}` : ''",
     ].sort())
     // Nobody may set() a users/ path (a set replaces the whole node).
@@ -90,7 +91,7 @@ describe('static guard: no whole users/{uid} writes, no history reads', () => {
     // The root path helper is only used to read named children and to delete the account.
     const helperUses = collect(/getUserProgressPath\(([^)]*)\)/g, (match, code) => lineOf(code, match.index))
     expect(helperUses).toEqual([
-      'lib/firebaseProgress.js :: const path = getUserProgressPath(user)', // hydrateCloudProgress (named children)
+      'lib/firebaseProgress.js :: const path = getUserProgressPath(user)', // hydrateCloudProgress (named children, migration)
       'lib/firebaseProgress.js :: const path = getUserProgressPath(user)', // deleteFirebaseProgressDocument
       'lib/firebaseProgress.js :: export function getUserProgressPath(user = cloudUser) {',
     ].sort())
@@ -100,15 +101,23 @@ describe('static guard: no whole users/{uid} writes, no history reads', () => {
     expect(FILES.filter(file => /checkpointLedger/.test(file.code)).map(file => file.rel)).toEqual([])
   })
 
-  it('the progress module loads the whole user node only in the no-loadFields fallback', () => {
+  it('the progress module never loads the whole user node and hydration never names runLedger', () => {
+    // 2026-11-21: the whole-node client.load(users/{uid}) fallback is gone; every read names its child.
+    // The only load() left is inside the production client, which loadFields uses per named child.
     const found = collect(/\.load\(([^)]*)\)/g, (match, code) => lineOf(code, match.index)).filter(entry => entry.startsWith('lib/firebaseProgress.js'))
-    // KNOWN (reported 2026-11-19): loadHydrationSnapshot falls back to client.load(users/{uid}) — the
-    // whole node, history included — when a client has no loadFields. The production client always
-    // has loadFields; this guard keeps it to that one fallback line.
-    expect(found).toEqual(['lib/firebaseProgress.js :: const node = await client.load(path)'])
-    const hydration = FILES.find(file => file.rel === 'lib/firebaseProgress.js').code.match(/HYDRATION_FIELDS = Object\.freeze\(\[([^\]]*)\]\)/)
+    expect(found).toEqual([])
+    const code = FILES.find(file => file.rel === 'lib/firebaseProgress.js').code
+    const hydration = code.match(/HYDRATION_FIELDS = Object\.freeze\(\[([^\]]*)\]\)/)
     expect(hydration?.[1]).toBeTruthy()
-    expect(hydration[1]).not.toMatch(/checkpointLedger/)
+    expect(hydration[1]).not.toMatch(/checkpointLedger|runLedger/)
+    // runLedger is read in exactly two places: the one-time migration of an account whose ledgerSummary
+    // is incomplete, and the single-row check before a stage row is retried or recovered.
+    const runLedgerReads = collect(/loadFields\(([^)]*)\)/g, (match, code) => lineOf(code, match.index))
+      .filter(entry => entry.startsWith('lib/firebaseProgress.js') && /runLedger/.test(entry))
+    expect(runLedgerReads).toEqual([
+      "lib/firebaseProgress.js :: const found = await client.loadFields(`users/${uid}/runLedger`, [runKey])",
+      "lib/firebaseProgress.js :: const rows = await client.loadFields(path, ['runLedger'])", // loadRunLedgerForMigration
+    ].sort())
   })
 
   it('in-run store subscriptions never call a cloud save', () => {

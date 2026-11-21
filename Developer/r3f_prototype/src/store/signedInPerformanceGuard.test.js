@@ -53,6 +53,7 @@ import {
   buildCloudProgressSnapshot,
   flushCloudProgressBeforeSignOut,
   hydrateCloudProgress,
+  readFirebasePlayerProgress,
   requestCloudProgressSave,
 } from '../lib/firebaseProgress.js'
 import { _resetStageSlotForTests, STAGE_SLOT_MAX_BYTES, getLiveStageSlot, readStoredStageSlot } from '../lib/stageSlot.js'
@@ -140,8 +141,10 @@ function assertNoHistoryTouched(writes) {
   for (const write of writes) {
     expect(write.path).not.toMatch(HISTORY_PATH)
     for (const key of Object.keys(write.values ?? {})) {
-      // The only history the game may ever write is the new row of the stage that just ended.
+      // The only history the game may ever write is the new row of the stage that just ended, and the
+      // +1 on its stage's boss counter in the small fixed-size ledgerSummary (2026-11-21).
       if (key.startsWith('runLedger/')) continue
+      if (/^ledgerSummary\/bossDefeats\/stage([1-9]|10)BossDefeats$/.test(key)) continue
       expect(key).not.toMatch(HISTORY_PATH)
     }
     expect(JSON.stringify(write)).not.toMatch(/checkpointLedger|session-\d|run-\d{5}/)
@@ -324,7 +327,7 @@ describe('3. history independence — every save path ignores the 500 KB / 2,000
     expect(after.ledgerSummary).toEqual(before.ledgerSummary)
   })
 
-  it('sign-in hydration reads named children once — never the whole node, never checkpointLedger — and writes nothing', async () => {
+  it('sign-in hydration reads named children once — never the whole node, never checkpointLedger, never runLedger — and writes nothing', async () => {
     await signInWithHistory()
     _resetFirebaseProgressForTests()
     _setFirebaseProgressClientForTests(db)
@@ -334,9 +337,56 @@ describe('3. history independence — every save path ignores the 500 KB / 2,000
     expect(db.reads).not.toContain(`users/${uid}`)
     expect(db.reads.some(path => /checkpointLedger/.test(path))).toBe(false)
     expect(new Set(db.reads).size).toBe(db.reads.length)
-    // KNOWN (reported 2026-11-19): hydration downloads users/{uid}/runLedger in full, once per sign-in,
-    // to count boss proof. It is bounded here to exactly one read so it can never move into a save path.
+    // 2026-11-21: a migrated account (ledgerSummary complete) reads zero runLedger at sign-in.
+    expect(db.reads.filter(path => /runLedger/.test(path))).toEqual([])
+    // Boss proof still unlocks: 40 boss rows in the history fixture, now held in ledgerSummary.
+    expect(readFirebasePlayerProgress().records.stage1BossDefeats).toBe(40)
+  })
+
+  it('an unmigrated account reads runLedger exactly once, writes ledgerSummary once, and never reads runLedger again', async () => {
+    uid = `perf-guard-${++sequence}`
+    const node = bigHistoryNode(uid)
+    delete node.ledgerSummary
+    db = createControllableProgressDatabase({ users: { [uid]: node } })
+    _resetFirebaseProgressForTests()
+    _setFirebaseProgressClientForTests(db)
+    await hydrateCloudProgress({ uid })
     expect(db.reads.filter(path => /runLedger/.test(path))).toEqual([`users/${uid}/runLedger`])
+    expect(db.writes).toHaveLength(1)
+    expect(Object.keys(db.writes[0].values)).toEqual(['ledgerSummary', 'updatedAt'])
+    expect(db.writes[0].values.ledgerSummary.compactedBefore).toBeGreaterThan(0)
+    expect(writeBytes(db.writes[0])).toBeLessThanOrEqual(1024)
+    const summary = db.get(`users/${uid}/ledgerSummary`)
+    expect(summary.bossDefeats.stage1BossDefeats).toBe(40)
+    expect(summary.runs).toBe(2000)
+    expect(readFirebasePlayerProgress().records.stage1BossDefeats).toBe(40)
+    // History itself is untouched.
+    expect(Object.keys(db.get(`users/${uid}/runLedger`))).toHaveLength(2000)
+
+    // Next sign-in: zero runLedger reads, zero writes, same proof.
+    _resetFirebaseProgressForTests()
+    _setFirebaseProgressClientForTests(db)
+    resetCounters()
+    await hydrateCloudProgress({ uid })
+    expect(db.reads.filter(path => /runLedger|ledgerSummary\/runs/.test(path))).toEqual([])
+    expect(db.writes).toEqual([])
+    expect(readFirebasePlayerProgress().records.stage1BossDefeats).toBe(40)
+
+    // A boss stage after migration bumps the summary inside its one result write, so the proof survives
+    // the next sign-in without any history read.
+    useAuthStore.setState({ user: { uid, displayName: 'Owner' }, status: 'signedIn' })
+    expect(useGameStore.getState().resetGame('stage1')).toBe(true)
+    useGameStore.getState().spawnBoss()
+    useGameStore.getState().recordBossDefeat()
+    expect(await useGameStore.getState().flushProgressBeforeTransition()).toBe(true)
+    await settle()
+    expect(db.get(`users/${uid}/ledgerSummary/bossDefeats/stage1BossDefeats`)).toBe(41)
+    _resetFirebaseProgressForTests()
+    _setFirebaseProgressClientForTests(db)
+    resetCounters()
+    await hydrateCloudProgress({ uid })
+    expect(db.reads.filter(path => /runLedger/.test(path))).toEqual([])
+    expect(readFirebasePlayerProgress().records.stage1BossDefeats).toBe(41)
   })
 })
 

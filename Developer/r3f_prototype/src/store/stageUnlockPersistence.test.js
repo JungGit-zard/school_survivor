@@ -217,3 +217,33 @@ it('same-account stale hydrate cannot erase a boss-only unlock; account switch d
   useAuthStore.setState({user,status:'signedIn'})
   expect(isStageUnlocked('stage2',readFirebasePlayerProgress().records)).toBe(true)
 })
+
+// 2026-11-21: a rejected stage-result write leaves the device slot in place; a reload before the network
+// returns applies it once at the next sign-in (one row read, then one write), and never a second time.
+it('a rejected boss stage left on the device is written once at the next sign-in, never twice', async () => {
+  db.control.offline = true
+  expect(useGameStore.getState().resetGame('stage1')).toBe(true)
+  useGameStore.getState().spawnBoss()
+  useGameStore.getState().recordBossDefeat()
+  expect(await useGameStore.getState().flushProgressBeforeTransition()).toBe(false)
+  const runKey = useGameStore.getState().progressRunId
+  expect(localStorage.getItem(`school_survivor:stageSlot:${user.uid}`)).toContain(runKey)
+  const runsBefore = stored().progress.records.totalRuns
+  // Reload while still offline, then the network returns.
+  _resetFirebaseProgressForTests()
+  setProgressClient(db)
+  db.control.offline = false
+  await hydrateCloudProgress(user)
+  expect(stored().runLedger[runKey].records.stage1BossDefeats).toBe(1)
+  expect(stored().progress.records.totalRuns).toBe(runsBefore + 1)
+  expect(localStorage.getItem(`school_survivor:stageSlot:${user.uid}`)).toBeNull()
+  expect(isStageUnlocked('stage2', readFirebasePlayerProgress().records)).toBe(true)
+  // Another sign-in adds nothing.
+  db.writes.length = 0
+  _resetFirebaseProgressForTests()
+  setProgressClient(db)
+  await hydrateCloudProgress(user)
+  expect(db.writes).toEqual([])
+  expect(stored().progress.records.totalRuns).toBe(runsBefore + 1)
+  expect(isStageUnlocked('stage2', readFirebasePlayerProgress().records)).toBe(true)
+})
