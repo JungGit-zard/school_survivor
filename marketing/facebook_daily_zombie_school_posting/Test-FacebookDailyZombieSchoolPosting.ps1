@@ -9,19 +9,31 @@ Assert-True ($invokeSource.Contains('[string]$StopAtKst') -and $invokeSource.Con
 $config=Get-FacebookConfig
 foreach($lang in $script:FacebookLanguages){$pair=Get-FacebookPair $config $lang;Assert-True ($pair.attachmentCount -eq 1) "$lang exact pair has one image";Assert-True (Test-FacebookUnderImageRoot $pair.imagePath) "$lang image is allowlisted";Assert-True ($pair.imageSha256 -ceq (Get-FileHash -LiteralPath $pair.imagePath -Algorithm SHA256).Hash.ToLowerInvariant()) "$lang exact pair freezes the image SHA256"}
 . (Join-Path $PSScriptRoot '..\x_daily_zombie_school_posting\PostingVariant.ps1')
-$selectionCandidates=@(Get-PostingLocaleImageCandidates $config ja -RequireGameStartText -Platform Facebook);$selectedPoolPath=[string]$selectionCandidates[-1];$selectedPoolVariant=[pscustomobject]@{id='original';imagePath=$selectedPoolPath};$selectedPoolPair=Get-FacebookPairFromSelectedVariant $config ja $selectedPoolVariant
-$expectedSelectedFacebookPath=Resolve-FacebookPlatformImagePath $selectedPoolPath ja
-Assert-True ($selectedPoolPair.imagePath -ceq $expectedSelectedFacebookPath -and [IO.Path]::GetFileName($selectedPoolPair.imagePath) -ceq [IO.Path]::GetFileName($selectedPoolPath)) 'Facebook selected source pair preserves the selected locale-pool image and resolves its exact Facebook catalog copy'
+# 2026-11-07 (Terry): Facebook posts X's localized promo pool (not comics) with X's gating.
+$selectionCandidates=@(Get-PostingLocaleImageCandidates $config ja -Platform Facebook);$selectedPoolPath=[string]$selectionCandidates[-1];$selectedPoolVariant=[pscustomobject]@{id='original';imagePath=$selectedPoolPath};$selectedPoolPair=Get-FacebookPairFromSelectedVariant $config ja $selectedPoolVariant
+$xPoolPaths=@($config.localized_social_image_pool.ja.images | ForEach-Object { Resolve-PostingImagePath ([string]$_) })
+Assert-True (@($selectionCandidates | Where-Object { $xPoolPaths -cnotcontains $_ }).Count -eq 0 -and $selectionCandidates.Count -gt 0) 'Facebook candidates come only from the X localized promo pool'
+$comicPoolPaths=@($config.facebook_rotation_image_pool.ja.images | ForEach-Object { Resolve-PostingImagePath ([string]$_) -Platform Facebook })
+Assert-True (@($selectionCandidates | Where-Object { $comicPoolPaths -ccontains $_ }).Count -eq 0) 'Facebook candidates exclude the retired comic pool'
+Assert-True ($selectedPoolPair.imagePath -ceq $selectedPoolPath) 'Facebook selected source pair posts the exact selected X promo image'
 Assert-FacebookFrozenIntent $config ja $selectedPoolPair
-Assert-True (Test-FacebookCanonicalIntent $config $selectedPoolPair) 'selected locale-pool image remains canonical through frozen receipt validation'
+Assert-True (Test-FacebookCanonicalIntent $config $selectedPoolPair) 'selected X promo image remains canonical through frozen receipt validation'
 $nonCtaCandidate=@(Get-PostingLocaleImageCandidates $config ja | Where-Object { -not (Test-PostingImageGameStartText $_ ja X) } | Select-Object -First 1)
-if($nonCtaCandidate.Count -gt 0){$nonCtaVariant=[pscustomobject]@{id='original';imagePath=[string]$nonCtaCandidate[0]};$nonCtaRejected=$false;try{$null=Get-FacebookPairFromSelectedVariant $config ja $nonCtaVariant}catch{$nonCtaRejected=$_.Exception.Message -like '*game-start CTA*'};Assert-True $nonCtaRejected 'Facebook selection rejects an X image without localized CTA proof before saving an intent'}
+if($nonCtaCandidate.Count -gt 0){
+  $nonCtaVariant=[pscustomobject]@{id='original';imagePath=[string]$nonCtaCandidate[0]}
+  Assert-True ((Test-PostingXWebsiteCardMode $config) -and (Get-FacebookPairFromSelectedVariant $config ja $nonCtaVariant).imagePath -ceq [string]$nonCtaCandidate[0]) 'website-card mode lets Facebook post an X promo image without a burned-in CTA, like X'
+  $cardOffConfig=$config|ConvertTo-Json -Depth 20|ConvertFrom-Json;$cardOffConfig.x_link_card.enabled=$false
+  $nonCtaRejected=$false;try{$null=Get-FacebookPairFromSelectedVariant $cardOffConfig ja $nonCtaVariant}catch{$nonCtaRejected=$_.Exception.Message -like '*game-start CTA*'};Assert-True $nonCtaRejected 'with website-card mode off Facebook still rejects an X image without localized CTA proof before saving an intent'
+}
+$oldComicIntent=[pscustomobject]@{language='ja';variantId=$selectedPoolPair.variantId;text=$selectedPoolPair.text;textSha256=$selectedPoolPair.textSha256;imagePath=[string]$comicPoolPaths[0];attachmentCount=1}
+Assert-True (Test-FacebookCanonicalIntent $config $oldComicIntent) 'a receipt frozen on a retired comic stays readable as canonical history'
 $foreignLocaleCandidate=[string](Get-PostingLocaleImageCandidates $config en -Platform Facebook | Select-Object -First 1);$foreignFacebookPath=Resolve-PostingImagePath $foreignLocaleCandidate -Platform Facebook
 $foreignLocaleIntent=[pscustomobject]@{language='ja';variantId=$selectedPoolPair.variantId;text=$selectedPoolPair.text;textSha256=$selectedPoolPair.textSha256;imagePath=$foreignFacebookPath;attachmentCount=1}
 Assert-True (-not (Test-FacebookCanonicalIntent $config $foreignLocaleIntent)) 'selected-pool receipt rejects an image mapped to another locale'
 $wrapperSource=Get-Content -LiteralPath $invoke -Raw -Encoding UTF8
 Assert-True ($wrapperSource -match 'Select-PostingVariant \$config \$Language \$RunId \$ReceiptDirectory -Platform Facebook') 'Facebook variant selection resolves prior receipts with Facebook platform ownership'
 Assert-True ($wrapperSource.Contains("selectedEntry.state -in @('selected','prepared')") -and $wrapperSource.Contains('-Platform Facebook')) 'Facebook rechecks selected/prepared intent image CTA before platform UI and leaves publish_intent untouched'
+Assert-True ($wrapperSource.Contains('if(-not (Test-PostingXWebsiteCardMode $config)){Assert-PostingImageGameStartText ([string]$selectedEntry.intent.imagePath) $Language -Platform Facebook}')) 'Facebook selected/prepared CTA recheck uses the same website-card gating as X'
 Assert-True ($wrapperSource -match '\[switch\]\$ForceReload' -and $wrapperSource -match 'if \(\$ForceReload -and \$Action -ne ''OpenProfile''\)' -and $wrapperSource -match 'Open-FacebookProfileNative \$WindowId -ForceReload:\$ForceReload') 'ForceReload is routed only through OpenProfile and remains guarded for every other wrapper action'
 Assert-True ($wrapperSource -match 'Get-FacebookPairFromSelectedVariant \$config \$Language \$selectedVariant') 'SelectSourcePair passes the selected variant image path into Facebook image mapping'
 foreach($lang in $script:FacebookLanguages){foreach($bossId in @('boss-b01','boss-b02','boss-b03','boss-b04','boss-all')){ $failed=$false;try{$null=Get-FacebookPair $config $lang $bossId}catch{$failed=$true};Assert-True $failed "$lang/$bossId shared reference is not a new localized Facebook pair" }}
@@ -30,16 +42,16 @@ $koBossB03=[pscustomobject]@{language='ko';variantId='boss-b03';text=$config.cop
 Assert-FacebookFrozenIntent $config ko $koBossB03
 Assert-True (Test-FacebookCanonicalIntent $config $koBossB03) 'explicit legacy boss receipt remains valid without creating a localized Facebook pair'
 Assert-True ((Resolve-FacebookAttachmentPath $legacyBossPath) -ceq [IO.Path]::GetFullPath((Join-Path $script:FacebookImageRoot '..\reference\boss_series\boss_b03_promotional.png'))) 'legacy attachment selection resolves to the shared reference file under guard'
-Assert-True ((Resolve-FacebookAttachmentPath (Get-FacebookPair $config ja 'bell').imagePath) -ceq (Get-FacebookPair $config ja 'bell').imagePath) 'new Facebook attachment selection resolves only its Facebook copy'
+Assert-True ((Resolve-FacebookAttachmentPath (Get-FacebookPair $config ja 'bell').imagePath) -ceq (Get-FacebookPair $config ja 'bell').imagePath) 'new Facebook attachment selection resolves to its exact X promo image'
 $legacyJaImage=[IO.Path]::GetFullPath((Join-Path (Split-Path $script:FacebookImageRoot -Parent) 'marketing_social_30_20261004\ja\01_bell_escape.png'))
 $jaVariant=@((Get-PostingVariants $config ja -IncludeDisabled)|Where-Object{$_.id -ceq 'bell'})[0]
 $legacyJa=[pscustomobject]@{language='ja';variantId='bell';text=$jaVariant.text;textSha256=(Get-FacebookSha256 $jaVariant.text);imagePath=$legacyJaImage;attachmentCount=1}
 Assert-FacebookFrozenIntent $config ja $legacyJa
 Assert-True (Test-FacebookCanonicalIntent $config $legacyJa) 'legacy localized Facebook receipt remains canonical through its explicit X-path mapping'
 Assert-True ((Resolve-FacebookAttachmentPath $legacyJaImage) -ceq [IO.Path]::GetFullPath((Join-Path $script:FacebookImageRoot '..\x\ja\marketing_social_30_20261004\01_bell_escape.png'))) 'legacy localized attachment path resumes at the original X asset under explicit mapping'
-$xPairPath=(Get-FacebookPair $config ja 'bell').imagePath -replace '\\facebook\\','\\x\\'
-$crossPlatformRejected=$false;try{$null=Resolve-FacebookAttachmentPath $xPairPath}catch{$crossPlatformRejected=$true}
-Assert-True $crossPlatformRejected 'Facebook attachment resolver rejects an unregistered X path'
+$unregisteredReferencePath=[IO.Path]::GetFullPath((Join-Path $script:FacebookImageRoot '..\reference\boss_series\boss_b03_promotional.png'))
+$crossPlatformRejected=$false;try{$null=Resolve-FacebookAttachmentPath $unregisteredReferencePath}catch{$crossPlatformRejected=$true}
+Assert-True $crossPlatformRejected 'Facebook attachment resolver rejects a non-legacy shared reference path outside the X/Facebook roots'
 Assert-True (-not (Test-FacebookUnderImageRoot (Join-Path $script:FacebookImageRoot '..\evil.png'))) 'path traversal rejected'
 Assert-True (-not (Test-FacebookUnderImageRoot 'C:\temp\evil.png')) 'outside path rejected'
 $tempRoot=[IO.Path]::GetFullPath([IO.Path]::GetTempPath()).TrimEnd([IO.Path]::DirectorySeparatorChar,[IO.Path]::AltDirectorySeparatorChar)
@@ -56,7 +68,7 @@ try {
   Assert-True ($LASTEXITCODE -eq 0 -and (($selected -join "`n") -match 'selected')) 'wrapper command selects a receipt intent'
   $prepared=Get-Content -LiteralPath (Get-FacebookReceiptPath $temp '2026-09-27-2149-wrappertest') -Raw -Encoding UTF8|ConvertFrom-Json
   Assert-True ($prepared.entries.en.state -eq 'selected' -and $prepared.schema -eq 1) 'receipt lifecycle begins selected with current schema'
-  foreach($state in @('selected','prepared')){$legacySelectedRun=if($state -eq 'selected'){'2026-10-10-0600'}else{'2026-10-10-1200'};$legacySelected=New-FacebookReceipt $legacySelectedRun;$legacySelected.entries.en=[pscustomobject]@{state=$state;intent=(Get-FacebookPair $config en);evidence=$null};Save-FacebookReceipt $legacySelected (Get-FacebookReceiptPath $temp $legacySelectedRun);$savedPreference=$ErrorActionPreference;$ErrorActionPreference='Continue';try {$blockedCta=& powershell -NoProfile -ExecutionPolicy Bypass -File $invoke -Action TypeText -RunId $legacySelectedRun -Language en -ReceiptDirectory $temp 2>&1;$blockedExit=$LASTEXITCODE} finally {$ErrorActionPreference=$savedPreference};$blockedText=$blockedCta -join "`n";Assert-True ($blockedExit -ne 0 -and ($blockedText -match 'not confirmed to contain the exact localized game-start CTA')) "legacy $state image without CTA is rejected before any Facebook UI action (exit=$blockedExit; output=$blockedText)"}
+  foreach($state in @('selected','prepared')){$legacySelectedRun=if($state -eq 'selected'){'2026-10-10-0600'}else{'2026-10-10-1200'};$legacySelected=New-FacebookReceipt $legacySelectedRun;$legacySelected.entries.en=[pscustomobject]@{state=$state;intent=(Get-FacebookPair $config en);evidence=$null};Save-FacebookReceipt $legacySelected (Get-FacebookReceiptPath $temp $legacySelectedRun);$savedPreference=$ErrorActionPreference;$ErrorActionPreference='Continue';try {$cardCta=& powershell -NoProfile -ExecutionPolicy Bypass -File $invoke -Action InspectPair -RunId $legacySelectedRun -Language en -ReceiptDirectory $temp 2>&1;$cardExit=$LASTEXITCODE} finally {$ErrorActionPreference=$savedPreference};$cardText=$cardCta -join "`n";Assert-True ($cardExit -eq 0 -and ($cardText -notmatch 'game-start CTA')) "website-card mode: $state X promo image passes the pre-UI CTA recheck like X (read-only InspectPair; exit=$cardExit; output=$cardText)"}
   $legacyIntentRun='2026-10-10-1700';$legacyIntent=New-FacebookReceipt $legacyIntentRun;$legacyIntent.entries.en=[pscustomobject]@{state='publish_intent';intent=(Get-FacebookPair $config en);evidence=$null};Save-FacebookReceipt $legacyIntent (Get-FacebookReceiptPath $temp $legacyIntentRun)
   $legacyIntentState=& powershell -NoProfile -ExecutionPolicy Bypass -File $invoke -Action FullCycleResumeSafe -RunId $legacyIntentRun -ReceiptDirectory $temp 2>&1
   $legacyIntentResult=$legacyIntentState|ConvertFrom-Json

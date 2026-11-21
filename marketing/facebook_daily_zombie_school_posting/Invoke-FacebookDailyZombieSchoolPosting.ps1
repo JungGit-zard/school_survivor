@@ -56,7 +56,8 @@ if($Action -eq 'SelectSourcePair'){
 $selectedEntry=if($Language){$receipt.entries.$Language}else{$null}
 if($null -ne $selectedEntry -and $selectedEntry.state -in @('selected','prepared')){
   . (Join-Path $PSScriptRoot '..\x_daily_zombie_school_posting\PostingVariant.ps1')
-  Assert-PostingImageGameStartText ([string]$selectedEntry.intent.imagePath) $Language -Platform Facebook
+  # Facebook shares X's promo pool and gating (2026-11-07): website-card mode needs no burned-in CTA.
+  if(-not (Test-PostingXWebsiteCardMode $config)){Assert-PostingImageGameStartText ([string]$selectedEntry.intent.imagePath) $Language -Platform Facebook}
 }
 switch ($Action) {
   'InspectPair' { if([string]::IsNullOrWhiteSpace($VariantId)){$VariantId='escape'};Get-FacebookPair $config $Language $VariantId | ConvertTo-Json -Depth 5; exit 0 }

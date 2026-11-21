@@ -22,6 +22,9 @@ function Test-FacebookUnderImageRoot([string]$Path) {
     $full = Resolve-PostingImagePath $Path -Platform Facebook
     $root = $script:FacebookImageRoot.TrimEnd([IO.Path]::DirectorySeparatorChar, [IO.Path]::AltDirectorySeparatorChar) + [IO.Path]::DirectorySeparatorChar
     if ($full.StartsWith($root, [StringComparison]::OrdinalIgnoreCase)) { return $true }
+    # 2026-11-07: Facebook posts X's localized promo images directly.
+    $xRoot = [IO.Path]::GetFullPath((Join-Path $script:FacebookImageRoot '..\x')).TrimEnd([IO.Path]::DirectorySeparatorChar, [IO.Path]::AltDirectorySeparatorChar) + [IO.Path]::DirectorySeparatorChar
+    if ($full.StartsWith($xRoot, [StringComparison]::OrdinalIgnoreCase)) { return $true }
     $normalized=$Path -replace '\\','/';$marker=[regex]::Match($normalized,'(?:^|/)image_pool/(.+)$',[Text.RegularExpressions.RegexOptions]::IgnoreCase)
     $suffix=if($marker.Success){$marker.Groups[1].Value}else{$normalized.TrimStart('/')};$catalog=Get-PostingImageCatalog
     return ($catalog.legacyPaths.PSObject.Properties.Name -contains $suffix)
@@ -48,13 +51,11 @@ function Resolve-FacebookPlatformImagePath([string]$Path, [ValidateSet('ja','en'
   $xImage = Resolve-PostingImagePath $Path -Platform X
   $relative=$xImage.Substring($poolRoot.Length+1).Replace('\','/')
   $xRows=@($catalog.images|Where-Object{$_.platform -ceq 'X' -and $_.path -ceq $relative -and $_.locale -ceq $Language})
-  if($xRows.Count -ne 1){throw "No exact X catalog entry for $Language image"}
-  $fbRows=@($catalog.images|Where-Object{$_.platform -ceq 'Facebook' -and $_.locale -ceq $Language -and $_.collection -ceq $xRows[0].collection -and [IO.Path]::GetFileName($_.path) -ceq [IO.Path]::GetFileName($xRows[0].path)})
-  if($fbRows.Count -ne 1){throw "No explicit Facebook copy for $Language image; shared reference assets are not localized pairs"}
-  $facebookImage = Resolve-PostingImagePath ('image_pool/'+$fbRows[0].path) -Platform Facebook
-  Assert-FacebookImagePath $facebookImage
-  if (-not (Test-Path -LiteralPath $facebookImage -PathType Leaf)) { throw "Missing Facebook platform image for $Language" }
-  return $facebookImage
+  if($xRows.Count -ne 1){throw "No exact X catalog entry for $Language image; shared reference assets are not localized pairs"}
+  # 2026-11-07 (Terry): Facebook posts the same X promo image itself, not a Facebook comic copy.
+  Assert-FacebookImagePath $xImage
+  if (-not (Test-Path -LiteralPath $xImage -PathType Leaf)) { throw "Missing X promo image for $Language" }
+  return $xImage
 }
 function Add-FacebookCampaignUtm([string]$Text, [string]$Language) {
   [regex]::Replace($Text, 'https://escapezombie\.com(?=\s)', ('https://escapezombie.com/?utm_source=fb&utm_medium=social&utm_campaign=daily_' + $Language))
@@ -74,7 +75,8 @@ function Get-FacebookPairFromSelectedVariant($Config,[ValidateSet('ja','en','vi'
   if($null -eq $SelectedVariant -or [string]::IsNullOrWhiteSpace([string]$SelectedVariant.id) -or [string]::IsNullOrWhiteSpace([string]$SelectedVariant.imagePath)){throw 'Selected Facebook variant must contain its exact ID and selected X catalog image path'}
   $pair=Get-FacebookPair $Config $Language ([string]$SelectedVariant.id) ([string]$SelectedVariant.imagePath)
   . (Join-Path $PSScriptRoot '..\x_daily_zombie_school_posting\PostingVariant.ps1')
-  Assert-PostingImageGameStartText ([string]$pair.imagePath) $Language -Platform Facebook
+  # Same gating as X: website-card mode needs no burned-in CTA because the post text carries the links.
+  if(-not (Test-PostingXWebsiteCardMode $Config)){Assert-PostingImageGameStartText ([string]$pair.imagePath) $Language -Platform Facebook}
   return $pair
 }
 function Get-FacebookReceiptPath([string]$ReceiptDirectory, [string]$RunId) { Join-Path $ReceiptDirectory ($RunId + '.json') }
@@ -101,7 +103,9 @@ function Assert-FacebookFrozenIntent($Config,[string]$Language,$Intent) {
   if($pairMatch){return}
   $selectedVariant=@((Get-PostingVariants $Config $Language -IncludeDisabled)|Where-Object{$_.id -ceq [string]$Intent.variantId -and ($_.text -ceq [string]$Intent.text -or (Add-FacebookCampaignUtm $_.text $Language) -ceq [string]$Intent.text)})
   if($selectedVariant.Count -eq 1){
-    foreach($candidate in @(Get-PostingLocaleImageCandidates $Config $Language -Platform Facebook)){
+    # Retired comic pool stays valid only for receipts frozen before 2026-11-07.
+    $retiredComics=@(if($Config.PSObject.Properties.Name -contains 'facebook_rotation_image_pool' -and $Config.facebook_rotation_image_pool.PSObject.Properties.Name -contains $Language){@($Config.facebook_rotation_image_pool.$Language.images)})
+    foreach($candidate in @(@(Get-PostingLocaleImageCandidates $Config $Language -Platform Facebook)+$retiredComics)){
       try{$mappedFacebookPath=Resolve-PostingImagePath ([string]$candidate) -Platform Facebook;if($mappedFacebookPath -ceq $intentPath){return}}catch{}
     }
   }

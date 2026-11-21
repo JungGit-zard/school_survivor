@@ -50,10 +50,11 @@ $composer=@'
   1 text Hyun Uk Jung
   2 edit What's on your mind?, Value: exact draft
   3 text Edit privacy. Sharing with Your friends.
-  4 text fixture.png
+  4 graphic, Value: fixture.png. Open context menu to inspect image description.
   5 button Remove post attachment
 '@
 $composerProof=Assert-FacebookComposerTree $composer 'exact draft' 'fixture.png'
-Assert-True ($composerProof.text -eq 'exact draft' -and $composerProof.attachmentCount -eq 1) 'composer parser reads edit value after raw label stripping'
+Assert-True ($composerProof.text -eq 'exact draft' -and $composerProof.attachmentCount -eq 1) 'composer parser accepts exact filename followed by an accessibility hint in the graphic value'
 Assert-Throws { Assert-FacebookComposerTree $composer 'wrong draft' 'fixture.png' } 'composer parser rejects mismatched text'
+Assert-Throws { Assert-FacebookComposerTree ($composer+"`r`n  6 graphic, Value: fixture.png") 'exact draft' 'fixture.png' } 'composer parser rejects duplicate matching attachments'
 'FACEBOOK_POST_TREE_TEST_OK'
