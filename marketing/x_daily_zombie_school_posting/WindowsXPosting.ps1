@@ -41,7 +41,46 @@ function Get-XWindowElement {
   if ($process.ProcessName -ne 'chrome') { throw 'Target X window process is not Chrome' }
   return $window
 }
+if (-not ('XPostingIdle' -as [type])) {
+  Add-Type -TypeDefinition @'
+using System;
+using System.Runtime.InteropServices;
+public static class XPostingIdle {
+ [StructLayout(LayoutKind.Sequential)] struct LASTINPUTINFO { public uint cbSize; public uint dwTime; }
+ [DllImport("user32.dll")] static extern bool GetLastInputInfo(ref LASTINPUTINFO info);
+ public static long LastInputTick() { var i=new LASTINPUTINFO(); i.cbSize=(uint)Marshal.SizeOf(typeof(LASTINPUTINFO)); if(!GetLastInputInfo(ref i)){throw new InvalidOperationException("GetLastInputInfo failed");} return (long)i.dwTime; }
+ public static long NowTick() { return ((long)Environment.TickCount) & 0xFFFFFFFFL; }
+}
+'@
+}
+# 2026-11-21 (Terry): never steal focus or send keys/clicks while a person is using the PC.
+# The runner's own input also moves GetLastInputInfo, so each injected input records its tick
+# in a marker file; only input newer than that marker counts as human.
+$script:XUserIdleMilliseconds = 60000
+$script:XInjectedInputToleranceMilliseconds = 1500
+$script:XInjectedInputMarkerPath = Join-Path ([IO.Path]::GetTempPath()) 'escape-zombie-school-x-injected-input.txt'
+function Get-XTickDelta([long]$Later, [long]$Earlier) {
+  $d = ($Later - $Earlier) % 4294967296L
+  if ($d -lt 0) { $d += 4294967296L }
+  if ($d -ge 2147483648L) { $d -= 4294967296L }
+  return $d
+}
+function Test-XHumanInputRecent([long]$NowTick, [long]$LastInputTick, $MarkerTick, [int]$IdleMilliseconds = 60000, [int]$ToleranceMilliseconds = 1500) {
+  if ((Get-XTickDelta $NowTick $LastInputTick) -ge $IdleMilliseconds) { return $false }
+  if ($null -ne $MarkerTick -and (Get-XTickDelta $LastInputTick ([long]$MarkerTick)) -le $ToleranceMilliseconds) { return $false }
+  return $true
+}
+function Register-XInjectedInput { try { [IO.File]::WriteAllText($script:XInjectedInputMarkerPath, [string][XPostingIdle]::NowTick()) } catch { } }
+function Assert-XUserIdle {
+  $marker = $null
+  try { $raw = [IO.File]::ReadAllText($script:XInjectedInputMarkerPath).Trim(); $tick = 0L; if ([long]::TryParse($raw, [ref]$tick)) { $marker = $tick } } catch { }
+  $now = [XPostingIdle]::NowTick(); $last = [XPostingIdle]::LastInputTick()
+  if (Test-XHumanInputRecent $now $last $marker $script:XUserIdleMilliseconds $script:XInjectedInputToleranceMilliseconds) {
+    throw "USER_ACTIVE: keyboard or mouse input $([math]::Round((Get-XTickDelta $now $last)/1000.0,1))s ago; X focus/keys/clicks stopped"
+  }
+}
 function Assert-XForeground {
+  Assert-XUserIdle
   $foreground = [XPostingNative]::GetForegroundWindow()
   if ($foreground.ToInt64() -ne $script:XWindow) {
     # The scheduled worker runs without a visible console.  Its own host can
@@ -64,6 +103,7 @@ function Assert-XForeground {
   }
 }
 function Restore-XWindowFocus([string]$Reason = 'navigation boundary') {
+  Assert-XUserIdle
   $window = Get-XWindowElement
   [XPostingNative]::ShowWindow([IntPtr]$script:XWindow, 9) | Out-Null
   [XPostingNative]::SetForegroundWindow([IntPtr]$script:XWindow) | Out-Null
@@ -78,6 +118,7 @@ function Restore-XWindowFocus([string]$Reason = 'navigation boundary') {
       [XPostingNative]::SetCursorPos([int]($rect.X + [Math]::Min(200, [Math]::Max(20, $rect.Width / 2))), [int]($rect.Y + 15)) | Out-Null
       [XPostingNative]::mouse_event(2,0,0,0,[UIntPtr]::Zero)
       [XPostingNative]::mouse_event(4,0,0,0,[UIntPtr]::Zero)
+      Register-XInjectedInput
       Start-Sleep -Milliseconds 250
     }
   }
@@ -92,6 +133,7 @@ function Click-XElement($Element) {
   [XPostingNative]::SetCursorPos([int]($rect.X + $rect.Width/2), [int]($rect.Y + $rect.Height/2)) | Out-Null
   [XPostingNative]::mouse_event(2,0,0,0,[UIntPtr]::Zero)
   [XPostingNative]::mouse_event(4,0,0,0,[UIntPtr]::Zero)
+  Register-XInjectedInput
 }
 function Invoke-XButton($Element) {
   Assert-XForeground
@@ -102,7 +144,7 @@ function Invoke-XButton($Element) {
   if (-not $Element.Current.IsEnabled -or $Element.Current.IsOffscreen) { throw 'Post button became disabled or offscreen before invocation' }
   $pattern.Invoke()
 }
-function Send-XKeys([string]$Keys) { Assert-XForeground; [Windows.Forms.SendKeys]::SendWait($Keys) }
+function Send-XKeys([string]$Keys) { Assert-XForeground; [Windows.Forms.SendKeys]::SendWait($Keys); Register-XInjectedInput }
 function Wait-XCondition([scriptblock]$Condition, [string]$Description, [int]$Seconds = 20) {
   $end = [DateTime]::UtcNow.AddSeconds($Seconds)
   do {
@@ -169,6 +211,18 @@ function Set-XChromeWindowBounds([long]$WindowId) {
   Start-Sleep -Milliseconds 100
   return Get-XChromeWindowBounds $WindowId
 }
+function Select-XWindowCandidate($Windows) {
+  # 2026-11-21: a launch fallback can leave two identical "<account> / X" windows in the same
+  # Chrome process. Same process means the same signed-in profile, so either posts to the same
+  # account; take the top of the desktop Z-order (UIA root children are in Z-order). Windows
+  # from different Chrome processes (different profiles) stay ambiguous and are refused.
+  $items = @($Windows)
+  if ($items.Count -lt 2) { return $null }
+  $pids = @($items | ForEach-Object { $_.Current.ProcessId } | Select-Object -Unique)
+  $titles = @($items | ForEach-Object { $_.Current.Name } | Select-Object -Unique)
+  if ($pids.Count -ne 1 -or $titles.Count -ne 1) { return $null }
+  return $items[0]
+}
 function Initialize-XWindow([long]$RequestedWindowId, [switch]$AllowSignedOut) {
   $windows = @(Get-XTopLevelWindows)
   if ($RequestedWindowId) {
@@ -186,7 +240,9 @@ function Initialize-XWindow([long]$RequestedWindowId, [switch]$AllowSignedOut) {
     } while ([DateTime]::UtcNow -lt $deadline)
     if ($windows.Count -ne 1) { throw 'Timed out waiting up to 25 seconds for the visible Chrome X window after launch.' }
   } elseif ($windows.Count -ne 1) {
-    throw "Expected one existing Chrome X window, found $($windows.Count). Select -WindowId."
+    $picked = Select-XWindowCandidate $windows
+    if ($null -eq $picked) { throw "Expected one existing Chrome X window, found $($windows.Count). Select -WindowId." }
+    $windows = @($picked)
   }
   $script:XWindow = [long]$windows[0].Current.NativeWindowHandle
   # Reacquire by HWND and verify its title and owning process before any UI input.

@@ -1,6 +1,22 @@
 Set-StrictMode -Version Latest
 
-function Assert-XWebsiteCardPublished([string]$CardUrl) {
+function Assert-XWebsiteCardPublished([string]$CardUrl, [int]$Attempts = 6, [int]$RetryDelaySeconds = 3) {
+  # 2026-11-21: some Cloudflare edges (NRT) briefly answer a fresh /share/ card with the game's
+  # SPA fallback page (generic og-image) while others (HKG, US) already serve the card. Ask for
+  # an uncached copy and retry a few times; the exact-image check itself is unchanged.
+  $lastError = $null
+  for ($attempt = 1; $attempt -le [Math]::Max(1, $Attempts); $attempt++) {
+    try { return (Assert-XWebsiteCardPublishedOnce $CardUrl) }
+    catch {
+      $lastError = $_
+      if ($_.Exception.Message -match 'approved exact locale/hash card URL') { throw }
+      if ($attempt -lt $Attempts) { Start-Sleep -Seconds $RetryDelaySeconds }
+    }
+  }
+  throw $lastError
+}
+
+function Assert-XWebsiteCardPublishedOnce([string]$CardUrl) {
   $uri = $null
   if (-not [Uri]::TryCreate($CardUrl, [UriKind]::Absolute, [ref]$uri) -or
       $uri.Scheme -cne 'https' -or
@@ -11,7 +27,7 @@ function Assert-XWebsiteCardPublished([string]$CardUrl) {
   }
 
   try {
-    $response = Invoke-WebRequest -Uri $uri.AbsoluteUri -UseBasicParsing -TimeoutSec 20
+    $response = Invoke-WebRequest -Uri $uri.AbsoluteUri -UseBasicParsing -TimeoutSec 20 -Headers @{ 'Cache-Control' = 'no-cache'; 'Pragma' = 'no-cache' }
   } catch {
     throw "X website card is not publicly reachable: $($_.Exception.Message)"
   }
