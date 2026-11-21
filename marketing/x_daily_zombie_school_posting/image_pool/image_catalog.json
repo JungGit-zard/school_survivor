@@ -9138,6 +9138,78 @@
       "collection": "promo_from_facebook_20261026",
       "path": "x/ko/promo_from_facebook_20261026/k4_f_05.png",
       "source": "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/4.KO_intergration/f_05.png"
+    },
+    {
+      "platform": "X",
+      "locale": "en",
+      "collection": "gameplay_composite_20261121",
+      "path": "x/en/gameplay_composite_20261121/02_pencil_survival.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/en/marketing_social_30_20261004/02_pencil_survival.png",
+      "sha256": "9091f815609da559d7edf6f6dbb2983fb9dc821dd70784ed315ed3990adf6ba5"
+    },
+    {
+      "platform": "X",
+      "locale": "en",
+      "collection": "gameplay_composite_20261121",
+      "path": "x/en/gameplay_composite_20261121/04_b02_teacher.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/en/marketing_social_30_20261004/04_b02_teacher.png",
+      "sha256": "5ec31227ddfd8ee038187e0b6a90ec590c2e4a42964ed03ebbadcaa553f02b95"
+    },
+    {
+      "platform": "X",
+      "locale": "en",
+      "collection": "gameplay_composite_20261121",
+      "path": "x/en/gameplay_composite_20261121/05_gym.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/en/marketing_social_20261010_add10/05_gym.png",
+      "sha256": "36496b613df1662ecc6b96db80ee09b84f12c8e93e90be3736f5616848ecbe0a"
+    },
+    {
+      "platform": "X",
+      "locale": "en",
+      "collection": "gameplay_composite_20261121",
+      "path": "x/en/gameplay_composite_20261121/01_start.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/en/marketing_social_cta_20261010/01_start.png",
+      "sha256": "a1d097e1e7b4b6050a1ac5359dca8ba0ae6b9c7628dc48eb9de02c5ec07d741a"
+    },
+    {
+      "platform": "X",
+      "locale": "ko",
+      "collection": "gameplay_composite_20261121",
+      "path": "x/ko/gameplay_composite_20261121/01_bell_escape.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/marketing_social_30_20261004/01_bell_escape.png",
+      "sha256": "d00c0669600786217953df07ab3dd91f646a7701c48e80da46ad9e9f23ecf8be"
+    },
+    {
+      "platform": "X",
+      "locale": "ko",
+      "collection": "gameplay_composite_20261121",
+      "path": "x/ko/gameplay_composite_20261121/02_pencil_survival.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/marketing_social_30_20261004/02_pencil_survival.png",
+      "sha256": "1b4038360c9bf2488458fd1ae6cc7bc5ece1733e1a6bac8d79d884b32c5bf964"
+    },
+    {
+      "platform": "X",
+      "locale": "ko",
+      "collection": "gameplay_composite_20261121",
+      "path": "x/ko/gameplay_composite_20261121/08_nurse_office.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/marketing_social_30_20261004/08_nurse_office.png",
+      "sha256": "c398bfe1d1a037c50bad1ad1c5b7ad3ce3f7a7d8280976b7414d41578ec4b262"
+    },
+    {
+      "platform": "X",
+      "locale": "ko",
+      "collection": "gameplay_composite_20261121",
+      "path": "x/ko/gameplay_composite_20261121/03_cafeteria.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/marketing_social_20261010_add10/03_cafeteria.png",
+      "sha256": "5bcacac47daaa4ea5806c51bc52398fcd43d0e3976ce7d4922157e087d66fc15"
+    },
+    {
+      "platform": "X",
+      "locale": "ko",
+      "collection": "gameplay_composite_20261121",
+      "path": "x/ko/gameplay_composite_20261121/01_start.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/marketing_social_cta_20261010/01_start.png",
+      "sha256": "534ced92c11dc3049e9dc3213c6ffcd1c6181cd67638f32339c0de14a3d0b563"
     }
   ],
   "legacyPaths": {

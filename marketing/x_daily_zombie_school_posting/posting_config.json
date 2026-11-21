@@ -338,7 +338,11 @@
         "image_pool/x/en/promo_from_facebook_20261026/fb_add10_07_music_room.png",
         "image_pool/x/en/promo_from_facebook_20261026/fb_add10_08_art_room.png",
         "image_pool/x/en/promo_from_facebook_20261026/fb_add10_09_playground.png",
-        "image_pool/x/en/promo_from_facebook_20261026/fb_add10_10_school_gate.png"
+        "image_pool/x/en/promo_from_facebook_20261026/fb_add10_10_school_gate.png",
+        "image_pool/x/en/gameplay_composite_20261121/02_pencil_survival.png",
+        "image_pool/x/en/gameplay_composite_20261121/04_b02_teacher.png",
+        "image_pool/x/en/gameplay_composite_20261121/05_gym.png",
+        "image_pool/x/en/gameplay_composite_20261121/01_start.png"
       ]
     },
     "vi": {
@@ -442,7 +446,12 @@
         "image_pool/x/ko/promo_from_facebook_20261026/k4_f_02.png",
         "image_pool/x/ko/promo_from_facebook_20261026/k4_f_03.png",
         "image_pool/x/ko/promo_from_facebook_20261026/k4_f_04.png",
-        "image_pool/x/ko/promo_from_facebook_20261026/k4_f_05.png"
+        "image_pool/x/ko/promo_from_facebook_20261026/k4_f_05.png",
+        "image_pool/x/ko/gameplay_composite_20261121/01_bell_escape.png",
+        "image_pool/x/ko/gameplay_composite_20261121/02_pencil_survival.png",
+        "image_pool/x/ko/gameplay_composite_20261121/08_nurse_office.png",
+        "image_pool/x/ko/gameplay_composite_20261121/03_cafeteria.png",
+        "image_pool/x/ko/gameplay_composite_20261121/01_start.png"
       ]
     }
   },
