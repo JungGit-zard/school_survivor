@@ -4,15 +4,15 @@ import { useGameStore } from './useGameStore.js'
 import { getBossKillBonus, getRankingScore } from '../lib/rankingScorePolicy.js'
 import { VISIBLE_STAGE_IDS } from '../lib/stageConfig.js'
 
-// 보스를 잡자마자 탈출한다. 반환값은 그 순간의 런 누적 총점이다(Terry 2026-11-21: 점수는 런 전체 누적
-// 하나 — 이월 점수도 보스 20%·탈출 15%의 바탕이 된다).
+// 보스를 잡자마자 탈출한다. 반환값은 그 순간의 런 누적 총점이다(Terry 2026-11-21: 이월 점수는 고정,
+// 보스 20%·탈출 15%는 이번 스테이지 점수에만 붙는다).
 function clearAt(stageId, elapsedMs) {
   const carriedScore = useGameStore.getState().continuousScoreBase
   useGameStore.setState({ elapsedMs, bossAliveCount: 1 })
   expect(useGameStore.getState().recordBossDefeat()).toBe(true)
   expect(useGameStore.getState().clearStage()).toBe(true)
   const survivalSeconds = elapsedMs / 1000
-  const bossBonus = getBossKillBonus({ stageId, survivalSeconds, carriedScore })
+  const bossBonus = getBossKillBonus({ stageId, survivalSeconds })
   return getRankingScore({ stageId, survivalSeconds, cleared: true, bossBonus, carriedScore })
 }
 
@@ -37,8 +37,8 @@ describe('escape success and continuous score', () => {
     expect(first).toBe(331)
     await useGameStore.getState().continueToNextStage()
     const second = clearAt('stage2', 300000)
-    // stage2: 이월 331 + 300 + 60 = 691 -> 보스 138 = 829 -> 탈출 124 = 953.
-    expect(second).toBe(953)
+    // stage2: 이월 331(고정) + (360 -> 보스 72 = 432 -> 탈출 64 = 496) = 827.
+    expect(second).toBe(827)
     expect(useGameStore.getState().escapeResult).toMatchObject({ totalScore: second, stageScore: second - first })
     await useGameStore.getState().continueToNextStage()
     useGameStore.setState((s) => ({ elapsedMs: 120000, player: { ...s.player, hp: 1 } }))

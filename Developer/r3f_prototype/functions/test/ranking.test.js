@@ -68,8 +68,9 @@ test('expectedScore follows the running-total examples Terry dictated', () => {
   assert.equal(expectedScore('stage1', 1000000, true, { bossKillTimeMs: 1000000 }), 1380)
   // escape without a boss from 1000 -> 1150.
   assert.equal(expectedScore('stage1', 1000000, true), 1150)
-  // carried score from earlier stages is part of the running total.
-  assert.equal(expectedScore('stage2', 340000, true, { bossKillTimeMs: 340000, carriedScore: 600 }), 1380)
+  // carried score from earlier stages is frozen: bonuses apply to this stage only.
+  // carry 600, this stage 400 -> boss 480 -> escape 552 -> total 1152.
+  assert.equal(expectedScore('stage2', 340000, true, { bossKillTimeMs: 340000, carriedScore: 600 }), 1152)
 })
 
 test('uses Korean day and Monday-based week keys', () => {

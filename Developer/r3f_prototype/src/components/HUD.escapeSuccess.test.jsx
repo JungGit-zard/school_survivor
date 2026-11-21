@@ -96,14 +96,14 @@ describe('escape success choices', () => {
     useGameStore.getState().resetGame('stage4')
     // b3fada83: the continue button needs this run's boss defeat.
     useGameStore.setState({ phase: 'playing', elapsedMs: 100_000, continuousScoreBase: 500, bossAliveCount: 1 })
-    // 처치 순간 누적(이월 500 + 100초 + 180) = 780 -> 보스 보너스 156으로 고정(Terry 2026-11-21).
+    // 처치 순간 이번 스테이지 점수(100초 + 180) = 280 -> 보스 보너스 56으로 고정(Terry 2026-11-21, 이월 500은 고정).
     expect(useGameStore.getState().recordBossDefeat()).toBe(true)
     renderSuccess()
     const { bossBonus } = useGameStore.getState()
-    expect(bossBonus).toBe(156)
-    // 탈출 15%는 이월 점수까지 포함한 누적(936)에 붙는다: 936 + 140 = 1076.
+    expect(bossBonus).toBe(56)
+    // 탈출 15%는 이번 스테이지 점수(336)에만 붙는다: 500 + 336 + 50 = 886.
     const score = getRankingScore({ stageId: 'stage4', survivalSeconds: 100, cleared: true, bossBonus, carriedScore: 500 })
-    expect(score).toBe(1076)
+    expect(score).toBe(886)
     const next = [...container.querySelector('[data-testid="result-primary-actions"]').querySelectorAll('button')].find((button) => button.textContent === '다음 스테이지 계속')
     expect(next).toBeDefined()
     expect(container.querySelector('[data-testid="escape-total-score"]').textContent).toContain(score.toLocaleString())

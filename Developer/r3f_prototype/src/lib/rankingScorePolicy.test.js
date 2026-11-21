@@ -5,7 +5,7 @@ import {
   compareRankingEntries,
   BOSS_BONUS_RATE,
   getBossKillBonus,
-  getBossKillBonusFromTotal,
+  getBossKillBonusFromStageScore,
   getEscapeBonus,
   getRankingScore,
   getRankingScorePolicy,
@@ -54,7 +54,7 @@ describe('ranking score policy', () => {
   // 탈출하면 탈출 순간 누적(보스 보너스 포함)의 15%를 더한다.
   it('applies Terry 2026-11-21 examples: 1000 -> boss 1200 -> escape 1380, escape without boss 1150', () => {
     expect(BOSS_BONUS_RATE).toBe(0.2)
-    expect(getBossKillBonusFromTotal(1000)).toBe(200)
+    expect(getBossKillBonusFromStageScore(1000)).toBe(200)
     expect(getRankingScore({ stageId: 'stage1', survivalSeconds: 1000, bossBonus: 200 })).toBe(1200)
     expect(getRankingScore({ stageId: 'stage1', survivalSeconds: 1000, cleared: true, bossBonus: 200 })).toBe(1380)
     expect(getRankingScore({ stageId: 'stage1', survivalSeconds: 1000, cleared: true })).toBe(1150)
@@ -75,11 +75,12 @@ describe('ranking score policy', () => {
     expect(getRankingScore({ stageId: 'stage1', survivalSeconds: 240, cleared: true, bossBonus })).toBe(319)
   })
 
-  it('treats carried score from earlier stages as part of the running total', () => {
-    // 이월 600 + stage2(340초 + 60) = 1000 에서 처치 -> 1200 -> 탈출 1380.
-    const bossBonus = getBossKillBonus({ stageId: 'stage2', survivalSeconds: 340, carriedScore: 600 })
-    expect(bossBonus).toBe(200)
-    expect(getRankingScore({ stageId: 'stage2', survivalSeconds: 340, cleared: true, bossBonus, carriedScore: 600 })).toBe(1380)
+  it('freezes carried score from earlier stages: bonuses apply to this stage only', () => {
+    // Terry 2026-11-21 "1스테이지에서 500점을 얻었다면 거기서 고정".
+    // 이월 600, 이번 스테이지(340초 + 60) = 400 에서 처치 -> 480 -> 탈출 552 -> 총점 1152.
+    const bossBonus = getBossKillBonus({ stageId: 'stage2', survivalSeconds: 340 })
+    expect(bossBonus).toBe(80)
+    expect(getRankingScore({ stageId: 'stage2', survivalSeconds: 340, cleared: true, bossBonus, carriedScore: 600 })).toBe(1152)
   })
 
   it('agrees with the server reference formula (functions/src/ranking.js expectedScore)', async () => {
@@ -96,7 +97,7 @@ describe('ranking score policy', () => {
       { stageId: 'stage10', timeSec: 94_608_000, cleared: true, killSec: 94_000_000, carried: 12_345 },
     ]
     for (const { stageId, timeSec, cleared, killSec, carried = 0 } of cases) {
-      const bossBonus = killSec == null ? 0 : getBossKillBonus({ stageId, survivalSeconds: killSec, carriedScore: carried })
+      const bossBonus = killSec == null ? 0 : getBossKillBonus({ stageId, survivalSeconds: killSec })
       const client = getRankingScore({ stageId, survivalSeconds: timeSec, cleared, bossBonus, carriedScore: carried })
       const serverScore = server.expectedScore(stageId, timeSec * 1000, cleared, {
         bossKillTimeMs: killSec == null ? null : killSec * 1000, carriedScore: carried,

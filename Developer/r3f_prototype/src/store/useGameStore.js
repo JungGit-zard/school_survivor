@@ -75,7 +75,7 @@ import { useAuthStore } from './useAuthStore.js'
 import { trackEvent } from '../lib/analytics.js'
 import { DEFAULT_PLAYER_OUTFIT, isPlayerOutfitId } from '../lib/playerOutfitIds.js'
 import { getStageVendingItem, getStageVendingPlacement, getStageVendingRemainingPurchases, isWithinStageVendingRange } from '../lib/stageVending.js'
-import { getBossKillBonusFromTotal, getEscapeBonus, getRankingBaseScore, getRankingScorePolicy } from '../lib/rankingScorePolicy.js'
+import { getBossKillBonusFromStageScore, getEscapeBonus, getRankingBaseScore, getRankingScorePolicy } from '../lib/rankingScorePolicy.js'
 import { logDamageTaken } from '../lib/playtestLogger.js'
 import { emitSfx } from '../lib/sfxEvents.js'
 import { emitDamageNumber, DAMAGE_NUMBER_COLORS } from '../lib/damageNumbers.js'
@@ -200,8 +200,9 @@ function buildRankingRunSnapshot(state, elapsedMs, phaseName = 'playing') {
   const survivalSeconds = Math.floor(floorNonNegativeMs(elapsedMs) / 1000)
   const cleared = phaseName === 'cleared'
   const policy = getRankingScorePolicy()
-  // 점수는 런 전체의 누적 점수 하나다(Terry 2026-11-21). 보스 보너스는 처치 순간 recordBossDefeat가
-  // 누적 점수의 20%로 고정해 둔 값을 그대로 쓴다 — 사망·로비 이탈·pagehide에도 유지되고,
+  // 점수는 런 전체의 누적 점수 하나다(Terry 2026-11-21). 끝난 스테이지 점수는 continuousScoreBase로
+  // 고정돼 이월되고, 보너스는 이번 스테이지 점수에만 붙는다. 보스 보너스는 처치 순간 recordBossDefeat가
+  // 이번 스테이지 점수의 20%로 고정해 둔 값을 그대로 쓴다 — 사망·로비 이탈·pagehide에도 유지되고,
   // 처치 뒤에 쌓인 생존 점수에는 곱해지지 않는다.
   const bossBonus = readNonNegativeScore(state.bossBonus)
   // Marketing-critical rule: a player who actually achieved anything in a run must be visible.
@@ -212,10 +213,9 @@ function buildRankingRunSnapshot(state, elapsedMs, phaseName = 'playing') {
     state.runKills > 0 ? 1 : 0,
   )
   const carried = readNonNegativeScore(state.continuousScoreBase)
-  const runningTotal = carried + stageRunning
-  // 탈출 보너스는 탈출 순간 누적 점수(이월 점수 + 보스 보너스 포함)의 15%다.
-  const score = runningTotal + (cleared ? getEscapeBonus(runningTotal) : 0)
-  const stageScore = score - carried
+  // 탈출 보너스는 탈출 순간 이번 스테이지 점수(보스 보너스 포함)의 15%다. 이월 점수에는 붙지 않는다.
+  const stageScore = stageRunning + (cleared ? getEscapeBonus(stageRunning) : 0)
+  const score = carried + stageScore
   return {
     run: { stageId: state.currentStageId, score, stageScore, timeMs: floorNonNegativeMs(elapsedMs), globalTimeMs: state.continuousTimeBase + floorNonNegativeMs(elapsedMs), cleared, ...(isPlayerOutfitId(state.runOutfitId) ? { outfitId: state.runOutfitId } : {}) },
     survivalSeconds,
@@ -1595,7 +1595,7 @@ export const useGameStore = create(
     activateEscapePortal: () => set({ escapePortalActive: true }),
     spawnMatilda: () => set({ matildaSpawned: true }),
 
-    // 보스 처치 시 호출(Enemy.jsx). 마지막 생존 보스를 잡은 그 순간 누적 점수의 20%를
+    // 보스 처치 시 호출(Enemy.jsx). 마지막 생존 보스를 잡은 그 순간 이번 스테이지 점수의 20%를
     // bossBonus로 고정한다(Terry 2026-11-21). 스테이지 클리어/런 종료는 하지 않는다.
     // bossAliveCount=0 가드가 중복 기록·중복 보너스·징글 반복을 막는다.
     recordBossDefeat: (bossType) => {
@@ -1607,9 +1607,9 @@ export const useGameStore = create(
         set({ bossAliveCount: remaining })
         return true
       }
-      // 처치 순간의 누적 점수(HUD·랭킹 체크포인트와 같은 값, 런타임 시계 기준)에서 보너스를 뗀다.
-      const atKill = buildRankingRunSnapshot(s, getRuntimeElapsedMs(s.elapsedMs), 'playing').run.score
-      set({ bossAliveCount: 0, bossDefeated: true, bossBonus: getBossKillBonusFromTotal(atKill) })
+      // 처치 순간의 이번 스테이지 점수(랭킹 체크포인트와 같은 값, 런타임 시계 기준)에서 보너스를 뗀다.
+      const atKill = buildRankingRunSnapshot(s, getRuntimeElapsedMs(s.elapsedMs), 'playing').run.stageScore
+      set({ bossAliveCount: 0, bossDefeated: true, bossBonus: getBossKillBonusFromStageScore(atKill) })
       emitSfx({ id: 'bossClearJingle' })
       return true
     },

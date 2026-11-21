@@ -15,18 +15,17 @@ const DAY_MS = 24 * 60 * 60 * 1000
 const RUN_ID_PATTERN = /^[A-Za-z0-9_-]{12,80}$/
 
 // 클라이언트 getRankingScore / buildRankingRunSnapshot과 같은 누적식(Terry 2026-11-21).
-// 점수는 런 전체의 누적 점수 하나다: carried(이어 가기 이월) + survival + stageBonus.
-// 보스를 잡으면 그 순간 누적 점수의 20%가 고정 보너스로 붙고(사망·이탈에도 유지, 이후 점수엔 곱하지 않음),
-// 탈출하면 탈출 순간 누적 점수(보스 보너스 포함)의 15%를 더한다.
+// 런 총점 = carried(이어 가기 이월, 고정) + 이번 스테이지 점수(survival + stageBonus).
+// 보스를 잡으면 그 순간 이번 스테이지 점수의 20%가 고정 보너스로 붙고(사망·이탈에도 유지, 이후 점수엔 곱하지 않음),
+// 탈출하면 탈출 순간 이번 스테이지 점수(보스 보너스 포함)의 15%를 더한다. 이월 점수에는 어느 보너스도 붙지 않는다.
 // 검증용 게이트가 아니라(f955342f에서 서버 재검증 제거) 서버가 같은 모델을 알고 있게 하는 참조 구현이다.
 // bossKillTimeMs: 이번 스테이지에서 마지막 보스를 잡은 경과 시간(ms). 없으면 보스 보너스 0.
 export function expectedScore(stageId, timeMs, cleared, { bossKillTimeMs = null, carriedScore = 0 } = {}) {
   const stageBonus = SERVER_STAGE_BONUS[stageId] ?? 0
-  const carried = readNonNegInt(carriedScore)
-  const runningAt = (ms) => carried + Math.floor(readNonNegInt(ms) / 1000) + stageBonus
-  const boss = bossKillTimeMs == null ? 0 : Math.floor(runningAt(Math.min(readNonNegInt(bossKillTimeMs), readNonNegInt(timeMs))) * BOSS_BONUS_RATE)
-  const running = runningAt(timeMs) + boss
-  return running + (cleared === true ? Math.floor(running * SERVER_ESCAPE_BONUS_RATE) : 0)
+  const stageAt = (ms) => Math.floor(readNonNegInt(ms) / 1000) + stageBonus
+  const boss = bossKillTimeMs == null ? 0 : Math.floor(stageAt(Math.min(readNonNegInt(bossKillTimeMs), readNonNegInt(timeMs))) * BOSS_BONUS_RATE)
+  const stageRunning = stageAt(timeMs) + boss
+  return readNonNegInt(carriedScore) + stageRunning + (cleared === true ? Math.floor(stageRunning * SERVER_ESCAPE_BONUS_RATE) : 0)
 }
 
 export function normalizeRun(value) {
