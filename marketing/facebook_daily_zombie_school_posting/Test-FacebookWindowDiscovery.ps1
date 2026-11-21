@@ -50,4 +50,29 @@ Assert-Throws { Resolve-FacebookComposerReadiness @($emptyComposer,$emptyCompose
 Assert-True ($nativeSource -match 'Get-FacebookExistingComposerReadiness' -and $nativeSource -match 'reusedEmptyComposer=\$true' -and $nativeSource -match 'AddSeconds\(10\)' -and $nativeSource -match 'did not become ready after one composer click') 'composer reuses only the proven empty dialog and otherwise polls bounded readiness after one click'
 $cancelSource=[regex]::Match($nativeSource,'(?s)function Cancel-FacebookOwnDraftNative.*?(?=\r?\nfunction |\z)').Value
 Assert-True ($cancelSource -match 'Focus-FacebookChromeWindow \$w' -and $cancelSource -match 'Assert-FacebookForeground \$w;\$draft=Get-FacebookDraftNative') 'draft cancellation foregrounds the exact Chrome window before checking canonical draft evidence'
+# 2026-11-21: user-activity guard and single-Facebook-tab cleanup.
+Assert-True (-not (Test-FacebookHumanInputRecent 100000 30000 $null 60000 1500)) 'input older than 60s is not recent user activity'
+Assert-True (Test-FacebookHumanInputRecent 100000 90000 $null 60000 1500) 'input 10s ago with no runner marker counts as user activity'
+Assert-True (-not (Test-FacebookHumanInputRecent 100000 90000 90500 60000 1500)) 'input at or before the runner marker is the runner own input'
+Assert-True (-not (Test-FacebookHumanInputRecent 100000 91000 90000 60000 1500)) 'input within the tolerance after the runner marker is the runner own input'
+Assert-True (Test-FacebookHumanInputRecent 100000 95000 90000 60000 1500) 'input 5s after the runner marker counts as user activity'
+Assert-True (Test-FacebookHumanInputRecent 5000 4294966296 $null 60000 1500) 'tick wraparound: input 6s before a wrapped tick is recent'
+Assert-True (-not (Test-FacebookHumanInputRecent 70000 4294966296 $null 60000 1500)) 'tick wraparound: input 71s before is not recent'
+Assert-True ((Get-FacebookTickDelta 1000 4294967000) -eq 1296) 'tick delta handles 32-bit wraparound'
+$tabA=[pscustomobject]@{selected=$false;windowIsFacebook=$false};$tabB=[pscustomobject]@{selected=$true;windowIsFacebook=$false};$tabC=[pscustomobject]@{selected=$true;windowIsFacebook=$true}
+Assert-True ((Select-FacebookTabToKeep @($tabA,$tabB,$tabC)) -eq 2) 'keeps the active tab of the Facebook-titled window'
+Assert-True ((Select-FacebookTabToKeep @($tabA,$tabB)) -eq 1) 'otherwise keeps an active Facebook tab'
+Assert-True ((Select-FacebookTabToKeep @($tabA,$tabA)) -eq 0) 'otherwise keeps the first Facebook tab'
+Assert-True ((Select-FacebookTabToKeep @()) -eq -1) 'no Facebook tab yields no keep index'
+Assert-True ((Get-FacebookTabCloseNames) -contains 'Close' -and @(Get-FacebookTabCloseNames).Count -eq 2) 'tab cleanup recognises the English and Korean Chrome Close button names'
+$discoverySource=[regex]::Match($nativeSource,'(?s)function Get-FacebookChromeWindowForDiscovery.*?(?=\r?\nfunction |\z)').Value
+Assert-True ($discoverySource -match 'Close-FacebookExtraTabsNative' -and $discoverySource.IndexOf('Close-FacebookExtraTabsNative') -lt $discoverySource.IndexOf('Resolve-FacebookDiscoveryPlan')) 'window discovery closes extra Facebook tabs before choosing the window'
+$closeTabsSource=[regex]::Match($nativeSource,'(?s)function Close-FacebookExtraTabsNative.*?(?=\r?\nfunction |\z)').Value
+Assert-True ($closeTabsSource -match 'Get-FacebookAllFacebookTabs' -and $closeTabsSource -match 'InvokePattern' -and $closeTabsSource -notmatch 'SendWait' -and $closeTabsSource -notmatch 'WindowPattern') 'tab cleanup closes only Facebook-named tabs through their own Close buttons, without keys or closing windows'
+$focusSource=[regex]::Match($nativeSource,'(?s)function Focus-FacebookChromeWindow.*?(?=\r?\nfunction |\z)').Value
+Assert-True ($focusSource.IndexOf('Assert-FacebookUserIdle') -ge 0 -and $focusSource.IndexOf('Assert-FacebookUserIdle') -lt $focusSource.IndexOf('SetForegroundWindow') -and $focusSource -notmatch 'keybd_event') 'focus checks user activity before taking the foreground and never taps Alt'
+$keyLines=@($nativeSource -split "`n"|Where-Object{$_ -match 'SendKeys\]::SendWait'})
+Assert-True ($keyLines.Count -ge 5 -and @($keyLines|Where-Object{$_ -notmatch 'Assert-FacebookUserIdle;' -or $_ -notmatch 'Register-FacebookInjectedInput'}).Count -eq 0) 'every SendKeys group is preceded by the user-activity guard and records the runner input'
+$profileSource=[regex]::Match($nativeSource,'(?s)function Open-FacebookProfileNative.*?(?=\r?\nfunction |\z)').Value
+Assert-True ($profileSource -match 'elseif\(-not \$composerOpen\)\{Navigate-FacebookProfileInSelectedTab \$w\}' -and $profileSource -match 'Wait-FacebookComposerButtonReady \$w') 'profile open always reloads the profile URL unless an own draft is open, then waits for the composer button'
 'FACEBOOK_WINDOW_DISCOVERY_TEST_OK'

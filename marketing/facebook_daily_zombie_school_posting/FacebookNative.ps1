@@ -23,6 +23,94 @@ public static class FacebookPostingNative {
  public static bool WriteText(IntPtr h,string s) { return SendMessage(h,WM_SETTEXT,IntPtr.Zero,s)!=IntPtr.Zero; }
 }
 '@ }
+if (-not ('FacebookPostingIdle' -as [type])) { Add-Type -TypeDefinition @'
+using System; using System.Runtime.InteropServices;
+public static class FacebookPostingIdle {
+ [StructLayout(LayoutKind.Sequential)] struct LASTINPUTINFO { public uint cbSize; public uint dwTime; }
+ [DllImport("user32.dll")] static extern bool GetLastInputInfo(ref LASTINPUTINFO info);
+ public static long LastInputTick() { var i=new LASTINPUTINFO(); i.cbSize=(uint)Marshal.SizeOf(typeof(LASTINPUTINFO)); if(!GetLastInputInfo(ref i)){throw new InvalidOperationException("GetLastInputInfo failed");} return (long)i.dwTime; }
+ public static long NowTick() { return ((long)Environment.TickCount) & 0xFFFFFFFFL; }
+}
+'@ }
+# 2026-11-21 (Terry): never steal focus or send keys/clicks while a person is using the PC.
+# The runner's own SendKeys/mouse input also moves GetLastInputInfo, so every injected input
+# records its tick in a marker file; only input newer than that marker counts as human.
+$script:FacebookUserIdleMilliseconds=60000
+$script:FacebookInjectedInputToleranceMilliseconds=1500
+$script:FacebookInjectedInputMarkerPath=Join-Path ([IO.Path]::GetTempPath()) 'escape-zombie-school-facebook-injected-input.txt'
+function Get-FacebookTickDelta([long]$Later,[long]$Earlier) {
+ # Signed difference of two 32-bit wrapping millisecond ticks.
+ $d=($Later-$Earlier) % 4294967296L
+ if($d -lt 0){$d+=4294967296L}
+ if($d -ge 2147483648L){$d-=4294967296L}
+ $d
+}
+function Test-FacebookHumanInputRecent([long]$NowTick,[long]$LastInputTick,$MarkerTick,[int]$IdleMilliseconds=60000,[int]$ToleranceMilliseconds=1500) {
+ if((Get-FacebookTickDelta $NowTick $LastInputTick) -ge $IdleMilliseconds){return $false}
+ if($null -ne $MarkerTick -and (Get-FacebookTickDelta $LastInputTick ([long]$MarkerTick)) -le $ToleranceMilliseconds){return $false}
+ $true
+}
+function Get-FacebookInjectedInputMarker {
+ try { $raw=[IO.File]::ReadAllText($script:FacebookInjectedInputMarkerPath).Trim(); $tick=0L; if([long]::TryParse($raw,[ref]$tick)){return $tick} } catch {}
+ $null
+}
+function Register-FacebookInjectedInput {
+ try { [IO.File]::WriteAllText($script:FacebookInjectedInputMarkerPath,[string][FacebookPostingIdle]::NowTick()) } catch {}
+}
+function Assert-FacebookUserIdle {
+ $now=[FacebookPostingIdle]::NowTick();$last=[FacebookPostingIdle]::LastInputTick()
+ if(Test-FacebookHumanInputRecent $now $last (Get-FacebookInjectedInputMarker) $script:FacebookUserIdleMilliseconds $script:FacebookInjectedInputToleranceMilliseconds){
+  throw "USER_ACTIVE: keyboard or mouse input $([math]::Round((Get-FacebookTickDelta $now $last)/1000.0,1))s ago; Facebook focus/keys/clicks stopped so the slot retries later"
+ }
+}
+function Get-FacebookTabCloseNames { @('Close',(-join [char[]](0xB2EB,0xAE30))) }
+function Select-FacebookTabToKeep($Tabs) {
+ # Keep the Facebook tab the user last looked at: the active tab of a Facebook-titled window,
+ # then any active Facebook tab, then the first one found.
+ $items=@($Tabs)
+ if($items.Count -eq 0){return -1}
+ for($i=0;$i -lt $items.Count;$i++){if($items[$i].selected -and $items[$i].windowIsFacebook){return $i}}
+ for($i=0;$i -lt $items.Count;$i++){if($items[$i].selected){return $i}}
+ 0
+}
+function Get-FacebookAllFacebookTabs {
+ $tabCondition=New-Object Windows.Automation.PropertyCondition([Windows.Automation.AutomationElement]::ControlTypeProperty,[Windows.Automation.ControlType]::TabItem)
+ @(foreach($window in Get-FacebookChromeWindows){
+  $windowIsFacebook=$window.Current.Name -match '^(?:\(\d+\) )?Facebook - Chrome$'
+  foreach($tab in @($window.FindAll([Windows.Automation.TreeScope]::Descendants,$tabCondition))){
+   if(Test-FacebookTabName $tab.Current.Name){[pscustomobject]@{windowId=[long]$window.Current.NativeWindowHandle;name=$tab.Current.Name;selected=(Get-FacebookTabSelected $tab);windowIsFacebook=$windowIsFacebook;element=$tab}}
+  }
+ })
+}
+function Close-FacebookExtraTabsNative {
+ # Leave exactly one Facebook tab. Only Facebook-named tabs are closed, each through its own
+ # tab Close button (UIA Invoke, no keystrokes); other tabs and windows are never touched.
+ $tabs=@(Get-FacebookAllFacebookTabs)
+ if($tabs.Count -le 1){return [pscustomobject]@{facebookTabs=$tabs.Count;closed=0}}
+ $keep=Select-FacebookTabToKeep $tabs;$closed=0
+ for($i=0;$i -lt $tabs.Count;$i++){
+  if($i -eq $keep){continue}
+  $closeNames=Get-FacebookTabCloseNames
+  $buttons=@($tabs[$i].element.FindAll([Windows.Automation.TreeScope]::Descendants,[Windows.Automation.Condition]::TrueCondition)|Where-Object{$_.Current.ControlType -eq [Windows.Automation.ControlType]::Button -and $_.Current.Name -in $closeNames})
+  if($buttons.Count -ne 1){throw "Extra Facebook tab '$($tabs[$i].name)' has $($buttons.Count) Close buttons; tab cleanup stopped"}
+  $invoke=$null
+  if(-not $buttons[0].TryGetCurrentPattern([Windows.Automation.InvokePattern]::Pattern,[ref]$invoke)){throw 'Extra Facebook tab Close button has no InvokePattern; tab cleanup stopped'}
+  $invoke.Invoke();$closed++;Start-Sleep -Milliseconds 300
+ }
+ $deadline=[DateTime]::UtcNow.AddSeconds(5)
+ do { $after=@(Get-FacebookAllFacebookTabs);if($after.Count -eq 1){break};Start-Sleep -Milliseconds 200 } while([DateTime]::UtcNow -lt $deadline)
+ if($after.Count -ne 1){throw "Expected exactly one Facebook tab after closing extras; found $($after.Count)"}
+ [pscustomobject]@{facebookTabs=1;closed=$closed;kept=$tabs[$keep].name}
+}
+function Test-FacebookComposerOpen($Window) {
+ $names=@("What's on your mind?",(-join [char[]](0xBB34,0xC2A8,0x20,0xC0DD,0xAC01,0xC744,0x20,0xD558,0xACE0,0x20,0xACC4,0xC2E0,0xAC00,0xC694,0x3F)))
+ @((Get-FacebookUiAll $Window)|Where-Object{!$_.Current.IsOffscreen -and $_.Current.ControlType -eq [Windows.Automation.ControlType]::Edit -and $_.Current.Name -in $names}).Count -gt 0
+}
+function Wait-FacebookComposerButtonReady($Window) {
+ $deadline=[DateTime]::UtcNow.AddSeconds(15);$last=''
+ do { try { $null=Get-FacebookVisibleComposerButton $Window;return } catch { $last=$_.Exception.Message;Start-Sleep -Milliseconds 250 } } while([DateTime]::UtcNow -lt $deadline)
+ throw "Profile composer button did not become ready within 15 seconds: $last"
+}
 $script:FacebookWindowLeft=0
 $script:FacebookWindowTop=0
 $script:FacebookWindowWidth=1280
@@ -72,6 +160,7 @@ function Get-FacebookChromeWindow([long]$WindowId=0) {
  $selected.window
 }
 function Get-FacebookChromeWindowForDiscovery {
+ $null=Close-FacebookExtraTabsNative
  $windows=Get-FacebookChromeWindows
  $descriptors=@(foreach($window in $windows){[pscustomobject]@{windowId=$window.Current.NativeWindowHandle;windowName=$window.Current.Name;isChrome=$true;tabNames=@((Get-FacebookUiAll $window)|Where-Object{!$_.Current.IsOffscreen -and $_.Current.ControlType -eq [Windows.Automation.ControlType]::TabItem}|ForEach-Object{$_.Current.Name});window=$window}})
  $plan=Resolve-FacebookDiscoveryPlan $descriptors
@@ -103,6 +192,7 @@ function Set-FacebookStableWindowBounds($Window) {
 }
 function Focus-FacebookChromeWindow($Window) {
  $target=[IntPtr]$Window.Current.NativeWindowHandle;if($target -eq [IntPtr]::Zero){throw 'Chrome target has no HWND'}
+ Assert-FacebookUserIdle
  if([FacebookPostingNative]::IsIconic($target)){[FacebookPostingNative]::ShowWindow($target,9)|Out-Null}
  Set-FacebookStableWindowBounds $Window|Out-Null
  if([FacebookPostingNative]::GetForegroundWindow() -eq $target){return}
@@ -180,6 +270,7 @@ function Invoke-FacebookUiClick($Element,$Window,[switch]$AllowExactStorageWarni
  $resolution=Resolve-FacebookCoordinateCacheEntry (Get-FacebookCoordinateCacheRecords) $key $state $x $y
  Save-FacebookCoordinateCacheRecords $resolution.records
  Assert-FacebookForeground $Window
+ Assert-FacebookUserIdle
  if(-not [FacebookPostingNative]::SetCursorPos($x,$y)){throw 'Could not move to the freshly verified Facebook control coordinate; input stopped'}
  if($AllowExactStorageWarningClose){$storageClose=Get-FacebookExactStorageWarningClose $Window;if($null -eq $storageClose){throw 'Exact Chrome storage warning disappeared immediately before its Close click; recovery stopped'};$clickRoot=$storageClose.dialog}
  $immediate=@((Get-FacebookUiAll $clickRoot)|Where-Object{!$_.Current.IsOffscreen -and $_.Current.IsEnabled -and $_.Current.ControlType -eq $controlType -and $_.Current.Name -ceq $name})
@@ -188,6 +279,7 @@ function Invoke-FacebookUiClick($Element,$Window,[switch]$AllowExactStorageWarni
  Assert-FacebookForeground $Window
  [FacebookPostingNative]::mouse_event($script:FacebookMouseLeftDown,0,0,0,[IntPtr]::Zero)
  [FacebookPostingNative]::mouse_event($script:FacebookMouseLeftUp,0,0,0,[IntPtr]::Zero)
+ Register-FacebookInjectedInput
  [pscustomobject]@{cacheHit=$resolution.cacheHit;x=$x;y=$y}
 }
 function Close-FacebookChromeStorageWarningIfPresent($Window) {
@@ -229,7 +321,7 @@ function Navigate-FacebookProfileInSelectedTab($Window) {
  $address=$addresses[0];$address.SetFocus();Start-Sleep -Milliseconds 50
  $focused=[Windows.Automation.AutomationElement]::FocusedElement
  if($null -eq $focused -or -not [Windows.Automation.Automation]::Compare($focused,$address)){throw 'Chrome address bar did not receive focus; profile navigation stopped'}
- [Windows.Forms.Clipboard]::SetText($script:FacebookProfileUrl);[Windows.Forms.SendKeys]::SendWait('^a');[Windows.Forms.SendKeys]::SendWait('^v');[Windows.Forms.SendKeys]::SendWait('{ENTER}')
+ Assert-FacebookUserIdle;[Windows.Forms.Clipboard]::SetText($script:FacebookProfileUrl);[Windows.Forms.SendKeys]::SendWait('^a');[Windows.Forms.SendKeys]::SendWait('^v');[Windows.Forms.SendKeys]::SendWait('{ENTER}');Register-FacebookInjectedInput
  $deadline=[DateTime]::UtcNow.AddSeconds(10)
  do { try { Assert-FacebookProfileAddress $Window;return } catch { Start-Sleep -Milliseconds 200 } } while([DateTime]::UtcNow -lt $deadline)
  throw 'Selected Facebook tab did not navigate to the exact Hyun Uk Jung profile address'
@@ -252,7 +344,7 @@ function Open-FacebookExactPostNative([string]$Permalink,[long]$WindowId=0) {
  if($addresses.Count -ne 1){throw 'Expected one visible Chrome address bar for exact post navigation'}
  $address=$addresses[0];$address.SetFocus();Start-Sleep -Milliseconds 50;$focused=[Windows.Automation.AutomationElement]::FocusedElement
  if($null -eq $focused -or -not [Windows.Automation.Automation]::Compare($focused,$address)){throw 'Chrome address bar did not receive focus; exact-post navigation stopped'}
- [Windows.Forms.Clipboard]::SetText($Permalink);[Windows.Forms.SendKeys]::SendWait('^a');[Windows.Forms.SendKeys]::SendWait('^v');[Windows.Forms.SendKeys]::SendWait('{ENTER}')
+ Assert-FacebookUserIdle;[Windows.Forms.Clipboard]::SetText($Permalink);[Windows.Forms.SendKeys]::SendWait('^a');[Windows.Forms.SendKeys]::SendWait('^v');[Windows.Forms.SendKeys]::SendWait('{ENTER}');Register-FacebookInjectedInput
  $deadline=[DateTime]::UtcNow.AddSeconds(15);do{try{$fresh=Get-FacebookChromeWindow $WindowId;Assert-FacebookForeground $fresh;$values=@((Get-FacebookUiAll $fresh)|Where-Object{!$_.Current.IsOffscreen -and $_.Current.ControlType -eq [Windows.Automation.ControlType]::Edit -and $_.Current.Name -in $addressNames}|ForEach-Object{Get-FacebookValue $_});foreach($value in $values){if(Test-FacebookExactPostDisplayAddress ([string]$value) $Permalink){return [pscustomobject]@{status='exact_permalink_opened';windowId=$fresh.Current.NativeWindowHandle;permalink=$Permalink}}}}catch{};Start-Sleep -Milliseconds 250}while([DateTime]::UtcNow -lt $deadline)
  throw 'Exact post permalink did not become the visible Facebook address'
 }
@@ -295,8 +387,12 @@ function Open-FacebookProfileNative([long]$WindowId=0,[switch]$ForceReload) {
  $w=Get-FacebookChromeWindow $WindowId
  Focus-FacebookChromeWindow $w
  if(-not (Select-FacebookProfileTab $w)){throw 'Resolved Facebook window no longer exposes one exact Facebook tab'}
- if($ForceReload){Navigate-FacebookProfileInSelectedTab $w}else{try { Assert-FacebookProfileAddress $w } catch { Navigate-FacebookProfileInSelectedTab $w }}
+ # 2026-11-21: a tab left on a photo viewer or feed still passed the address check, so the
+ # composer button was missing. Always reload the profile unless an own draft composer is open.
+ $composerOpen=Test-FacebookComposerOpen $w
+ if($ForceReload){Navigate-FacebookProfileInSelectedTab $w}elseif(-not $composerOpen){Navigate-FacebookProfileInSelectedTab $w}else{try { Assert-FacebookProfileAddress $w } catch { Navigate-FacebookProfileInSelectedTab $w }}
  Wait-FacebookProfileReady $w
+ if($ForceReload -or -not $composerOpen){Wait-FacebookComposerButtonReady $w}
  return [pscustomobject]@{windowId=$w.Current.NativeWindowHandle;processId=$w.Current.ProcessId;reusedTab=$true;windowBounds=(Set-FacebookStableWindowBounds $w)}
 }
 function Get-FacebookVisibleTabSnapshot($Window) {
@@ -311,7 +407,7 @@ function Open-FacebookProfileNewTabNative([long]$WindowId=0) {
  $beforeTabs=@(Get-FacebookVisibleTabSnapshot $w)
  $selectedBefore=@($beforeTabs|Where-Object{$_.selected}|Select-Object -ExpandProperty name)
  [Windows.Forms.Clipboard]::SetText($script:FacebookProfileUrl)
- [Windows.Forms.SendKeys]::SendWait('^t')
+ Assert-FacebookUserIdle;[Windows.Forms.SendKeys]::SendWait('^t');Register-FacebookInjectedInput
  Start-Sleep -Milliseconds 150
  $addressNames=@('Address and search bar','주소창 및 검색창')
  $deadline=[DateTime]::UtcNow.AddSeconds(5)
@@ -323,7 +419,7 @@ function Open-FacebookProfileNewTabNative([long]$WindowId=0) {
  if($addresses.Count -ne 1){throw "Expected one visible Chrome address bar after opening a new tab; found $($addresses.Count)"}
  $focused=[Windows.Automation.AutomationElement]::FocusedElement
  if($null -eq $focused -or -not [Windows.Automation.Automation]::Compare($focused,$addresses[0])){throw 'Chrome new-tab address bar did not receive focus; profile navigation stopped'}
- [Windows.Forms.SendKeys]::SendWait('^v');[Windows.Forms.SendKeys]::SendWait('{ENTER}')
+ Assert-FacebookUserIdle;[Windows.Forms.SendKeys]::SendWait('^v');[Windows.Forms.SendKeys]::SendWait('{ENTER}');Register-FacebookInjectedInput
  $deadline=[DateTime]::UtcNow.AddSeconds(10)
  do { try { Assert-FacebookProfileAddress $w;break } catch { Start-Sleep -Milliseconds 200 } } while([DateTime]::UtcNow -lt $deadline)
  Assert-FacebookProfileAddress $w
@@ -349,7 +445,7 @@ function Close-FacebookDuplicateProfileTabNative([long]$WindowId=0) {
  $freshFacebookTabs=@((Get-FacebookVisibleTabSnapshot $w)|Where-Object{Test-FacebookTabName $_.name});$freshSelected=@($freshFacebookTabs|Where-Object{$_.selected})
  if($freshFacebookTabs.Count -ne 2 -or $freshSelected.Count -ne 1 -or -not $freshFacebookTabs[-1].selected){throw 'Trace-identified Facebook tab selection changed before the one close action; stopped'}
  Assert-FacebookProfileAddress $w;Assert-FacebookAccountMarker $w
- [Windows.Forms.SendKeys]::SendWait('^w')
+ Assert-FacebookUserIdle;[Windows.Forms.SendKeys]::SendWait('^w');Register-FacebookInjectedInput
  $deadline=[DateTime]::UtcNow.AddSeconds(5);do{$afterFacebookTabs=@((Get-FacebookVisibleTabSnapshot $w)|Where-Object{Test-FacebookTabName $_.name});if($afterFacebookTabs.Count -eq 1){break};Start-Sleep -Milliseconds 150}while([DateTime]::UtcNow -lt $deadline)
  if($afterFacebookTabs.Count -ne 1){throw "Expected exactly one Facebook profile tab after closing the selected duplicate; found $($afterFacebookTabs.Count)"}
  if(-not (Select-FacebookProfileTab $w)){throw 'Remaining original Facebook profile tab could not be selected'}
@@ -374,7 +470,7 @@ function Get-FacebookComposerDialog($Window) {
   throw 'Exact composer editor has no Create post dialog ancestor'
 }
 function Get-FacebookComposerEditor($Window) { $dialog=Get-FacebookComposerDialog $Window;$hits=@((Get-FacebookUiAll $dialog)|Where-Object{!$_.Current.IsOffscreen -and $_.Current.ControlType -eq [Windows.Automation.ControlType]::Edit -and $_.Current.Name -in @("What's on your mind?",'무슨 생각을 하고 계신가요?')});if($hits.Count -ne 1){throw "Expected one exact composer Edit; found $($hits.Count)"};$hits[0] }
-function Set-FacebookComposerTextNative([string]$Text,[long]$WindowId=0) { $w=Get-FacebookChromeWindow $WindowId;Focus-FacebookChromeWindow $w;Assert-FacebookForeground $w;$e=Get-FacebookComposerEditor $w;$existing=Get-FacebookValue $e;if(-not [string]::IsNullOrWhiteSpace((Normalize-FacebookText $existing)) -and (Normalize-FacebookText $existing) -cne (Normalize-FacebookText $Text)){throw 'Composer has unknown existing text; refusing to append or replace it'};if((Normalize-FacebookText $existing) -ceq (Normalize-FacebookText $Text)){return};$e.SetFocus();Start-Sleep -Milliseconds 50;$focused=[Windows.Automation.AutomationElement]::FocusedElement;if($null -eq $focused -or -not [Windows.Automation.Automation]::Compare($focused,$e)){throw 'Composer editor did not receive focus; select-all/paste stopped'};[Windows.Forms.Clipboard]::SetText($Text);[Windows.Forms.SendKeys]::SendWait('^a');[Windows.Forms.SendKeys]::SendWait('^v');Start-Sleep -Milliseconds 250;if((Normalize-FacebookText (Get-FacebookValue $e)) -cne (Normalize-FacebookText $Text)){throw 'Focused composer did not retain exact select-all/pasted text'} }
+function Set-FacebookComposerTextNative([string]$Text,[long]$WindowId=0) { $w=Get-FacebookChromeWindow $WindowId;Focus-FacebookChromeWindow $w;Assert-FacebookForeground $w;$e=Get-FacebookComposerEditor $w;$existing=Get-FacebookValue $e;if(-not [string]::IsNullOrWhiteSpace((Normalize-FacebookText $existing)) -and (Normalize-FacebookText $existing) -cne (Normalize-FacebookText $Text)){throw 'Composer has unknown existing text; refusing to append or replace it'};if((Normalize-FacebookText $existing) -ceq (Normalize-FacebookText $Text)){return};$e.SetFocus();Start-Sleep -Milliseconds 50;$focused=[Windows.Automation.AutomationElement]::FocusedElement;if($null -eq $focused -or -not [Windows.Automation.Automation]::Compare($focused,$e)){throw 'Composer editor did not receive focus; select-all/paste stopped'};Assert-FacebookUserIdle;[Windows.Forms.Clipboard]::SetText($Text);[Windows.Forms.SendKeys]::SendWait('^a');[Windows.Forms.SendKeys]::SendWait('^v');Register-FacebookInjectedInput;Start-Sleep -Milliseconds 250;if((Normalize-FacebookText (Get-FacebookValue $e)) -cne (Normalize-FacebookText $Text)){throw 'Focused composer did not retain exact select-all/pasted text'} }
 function Get-FacebookOpenDialog($ChromeWindow) { $dialogs=@((Get-FacebookUiAll $ChromeWindow)|Where-Object{$_.Current.ControlType -eq [Windows.Automation.ControlType]::Window -and $_.Current.Name -in @('Open','열기') -and (Get-Process -Id $_.Current.ProcessId -ErrorAction SilentlyContinue).ProcessName -eq 'chrome'});if($dialogs.Count -ne 1){throw "Expected one Chrome-owned Open window descendant; found $($dialogs.Count)"};$dialogs[0] }
 function Set-FacebookNativeOpenDialogPath([string]$ImagePath,$ChromeWindow) { Assert-FacebookImagePath $ImagePath;$ImagePath=Resolve-FacebookAttachmentPath $ImagePath;$d=Get-FacebookOpenDialog $ChromeWindow;$edit=@((Get-FacebookUiAll $d)|Where-Object{$_.Current.AutomationId -eq '1148' -and $_.Current.ClassName -eq 'Edit'});if($edit.Count -ne 1){throw "Expected one native filename Edit AutomationId 1148/ClassName Edit; found $($edit.Count)"};$h=[IntPtr]$edit[0].Current.NativeWindowHandle;if($h -eq [IntPtr]::Zero){throw 'Native filename Edit has no HWND'};$full=[IO.Path]::GetFullPath($ImagePath);if(-not [FacebookPostingNative]::WriteText($h,$full)){throw 'WM_SETTEXT failed'};$read=[FacebookPostingNative]::ReadText($h);if($read -cne $full){throw 'WM_GETTEXT did not confirm exact native file path'};[pscustomobject]@{dialogWindowId=$d.Current.NativeWindowHandle;dialogProcessId=$d.Current.ProcessId;fileEditWindowId=$edit[0].Current.NativeWindowHandle;imagePath=$full} }
 function Set-FacebookNativeOpenDialogPathForWindow([string]$ImagePath,[long]$WindowId) { $w=Get-FacebookChromeWindow $WindowId; Set-FacebookNativeOpenDialogPath $ImagePath $w }
