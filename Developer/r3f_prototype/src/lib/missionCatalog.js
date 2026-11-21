@@ -49,3 +49,40 @@ export function getApprovedMissionRewardAllowlist() {
     amount: mission.rewardProposal.amount,
   }])))
 }
+
+// 미션 체인(2026-11-21 Terry 승인): 플레이어는 미션을 고르지 않는다. 평소처럼 플레이하면 완료되고,
+// 보상을 받으면(claim) 다음 미션이 드러난다. 저장 필드를 새로 만들지 않고 claimed 상태만으로 계산한다.
+export const MISSION_CHAIN_START_IDS = Object.freeze([
+  'first_xp_textbook',
+  'first_levelup_choice',
+  'first_stage1_30_seconds',
+  'first_e01_kills',
+])
+
+// 키 미션을 받으면 값의 미션들이 보인다.
+export const MISSION_CHAIN_UNLOCKS = Object.freeze({
+  first_xp_textbook: ['e07_recognition', 'lunch_secured'],
+  first_levelup_choice: ['tumbler_orbit', 'school_bag_pushback'],
+  first_stage1_30_seconds: ['stage1_one_minute'],
+  first_e01_kills: ['pencil_throw_training', 'e02_tanker_practice'],
+  stage1_one_minute: ['first_gold_coin', 'first_stage1_escape'],
+  e02_tanker_practice: ['first_investigation'],
+  school_bag_pushback: ['weapon_level_five'],
+  tumbler_orbit: ['weapon_level_five'],
+  first_investigation: ['first_quest_complete'],
+  weapon_level_five: ['four_active_weapons'],
+  first_stage1_escape: ['first_stage2_start', 'bell_shockwave', 'boss_hunter'],
+  first_stage2_start: ['e03_runner_survival', 'stage2_e04_response', 'science_flask_experiment'],
+  e03_runner_survival: ['stage2_guard_chase'],
+  stage2_e04_response: ['stage2_b02_encounter'],
+  stage2_b02_encounter: ['stage2_escape'],
+  stage2_escape: ['stage3_runner_crew', 'stage3_escape'],
+  stage3_escape: ['stage4_escape'],
+  four_active_weapons: ['hanako_cheer'],
+})
+
+// 미션 id → 이 미션을 드러내는 선행 미션 목록(하나라도 받으면 보인다).
+export const MISSION_CHAIN_PREREQUISITES = Object.freeze(Object.entries(MISSION_CHAIN_UNLOCKS).reduce((out, [from, ids]) => {
+  for (const id of ids) out[id] = Object.freeze([...(out[id] ?? []), from])
+  return out
+}, {}))

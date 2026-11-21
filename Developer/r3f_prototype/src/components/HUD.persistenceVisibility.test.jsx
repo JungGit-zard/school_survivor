@@ -14,7 +14,7 @@ vi.mock('../store/useAuthStore.js', async () => {
 })
 vi.mock('./Enemy.jsx', () => ({ ENEMY_SIZE_MULTIPLIER: 1, ENEMY_STATS: {} }))
 vi.mock('./Weapons/Starlink.jsx', () => ({ dispatchStarlinkCheatCrash: vi.fn() }))
-vi.mock('./MissionTracker.jsx', () => ({ default: () => null }))
+vi.mock('./MissionCompleteToast.jsx', () => ({ default: () => null }))
 vi.mock('../lib/weaponUnlocks.js', () => ({ isUnlocked: () => false }))
 vi.mock('../lib/adminConfig.js', () => ({
   getAdminOperationsConfig: () => ({ cheatMenuButtonVisible: false }),
@@ -24,6 +24,7 @@ vi.mock('../lib/adminConfig.js', () => ({
 vi.mock('../lib/graphicsStudioConfig.js', () => ({
   DEFAULT_STUDIO_TUNING: {}, GRAPHICS_STUDIO_TUNING_EVENT: 'offline-studio-tuning',
   loadStudioTunings: () => ({}),
+  getStudioZombieItemId: (type) => `zombie-${type}`,
 }))
 vi.mock('../lib/dialogueVoice.js', () => ({ playDialogueVoice: vi.fn(), stopDialogueVoice: vi.fn() }))
 vi.mock('../lib/playtestLogger.js', () => ({ buildPlaytestSummary: vi.fn(), sendPlaytestSummaryToAssistant: vi.fn() }))

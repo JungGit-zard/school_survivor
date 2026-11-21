@@ -56,9 +56,9 @@ const E04_INTRO_WARNING_KEYS = Object.freeze({
 })
 import { isProjectMaster } from '../lib/projectAdmin.js'
 import { schoolButton, schoolPanel, uiBorders, uiPalette, uiShadows, uiType } from '../lib/uiStyle.js'
-import { getMissionStatus } from '../lib/missionProgress.js'
+import { getMissionStatus, isMissionVisible } from '../lib/missionProgress.js'
 import { MISSION_BY_ID } from '../lib/missionCatalog.js'
-import MissionTracker from './MissionTracker.jsx'
+import MissionCompleteToast from './MissionCompleteToast.jsx'
 import OutfitUnlockCard from './OutfitUnlockCard.jsx'
 import { outfitEffectSummary, outfitName } from '../lib/outfitDisplay.js'
 import StageVendingPrompt from './StageVendingPrompt.jsx'
@@ -1049,7 +1049,7 @@ export default function HUD({
     [weapons],
   )
   const missionSummary = useMemo(() => {
-    const statuses = Object.values(MISSION_BY_ID).map((mission) => ({ mission, ...getMissionStatus(missionProgress, mission) }))
+    const statuses = Object.values(MISSION_BY_ID).filter((mission) => isMissionVisible(missionProgress, mission)).map((mission) => ({ mission, ...getMissionStatus(missionProgress, mission) }))
     const completed = statuses.filter((entry) => entry.state === 'completed_unclaimed')
     const progressed = statuses.filter((entry) => entry.counter > 0 && entry.state === 'active')
     return { completed, progressed }
@@ -1713,8 +1713,7 @@ export default function HUD({
           || isTitleReturnConfirmOpen || (devToolsVisible && weaponCheatOpen)}
       />
       <StageVendingPrompt />
-      <MissionTracker
-        missionProgress={missionProgress}
+      <MissionCompleteToast
         hidden={phase !== 'playing' || bossWarning != null || e04IntroWarning != null || matildaWarning != null || formationWarning != null || questInventoryOpen}
       />
 

@@ -77,10 +77,22 @@ export function StageLockModel() {
   )
 }
 
-export function StageLockPreview({ style = null, testId = 'stage-lock-preview', ariaLabel = '잠긴 스테이지 3D 자물쇠' }) {
+// 자물쇠 회전(2026-11-21 Terry): 동전·픽업처럼 세로축으로 천천히(3초에 한 바퀴) 돈다. 3D 장면은 그대로
+// demand로 두고 캔버스 상자만 CSS transform으로 돌리므로 프레임마다 JS·WebGL 작업이 없다.
+// 움직임 줄이기 설정에서는 멈춘다.
+const STAGE_LOCK_SPIN_CSS = `
+@keyframes stageLockSpin { from { transform: perspective(700px) rotateY(0deg) } to { transform: perspective(700px) rotateY(360deg) } }
+.stage-lock-spin { animation: stageLockSpin 3s linear infinite; will-change: transform }
+@media (prefers-reduced-motion: reduce) { .stage-lock-spin { animation: none } }
+`
+
+export function StageLockPreview({ style = null, testId = 'stage-lock-preview', ariaLabel = '잠긴 스테이지 3D 자물쇠', spin = true }) {
   // 정적 자물쇠라 매 프레임 그릴 필요가 없다. demand는 마운트·리사이즈·프롭 변경(스튜디오 튜닝 invalidate) 때만 그린다.
   return (
+    <>
+    {spin && <style>{STAGE_LOCK_SPIN_CSS}</style>}
     <Canvas
+      className={spin ? 'stage-lock-spin' : undefined}
       frameloop="demand"
       data-testid={testId}
       aria-label={ariaLabel}
@@ -95,6 +107,7 @@ export function StageLockPreview({ style = null, testId = 'stage-lock-preview', 
         <StageLockModel />
       </group>
     </Canvas>
+    </>
   )
 }
 

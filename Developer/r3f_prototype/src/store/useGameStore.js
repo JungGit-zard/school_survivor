@@ -181,7 +181,7 @@ function endStage(state, phaseName) {
   void commitFirebaseStageResult(closed, { uid: closed.uid })
   const missions = readFirebaseMissionProgress()
   if (missions.ok) {
-    useGameStore.setState(s => ({ missionProgress: { ...reconcileMissionProgress(missions.missions), pinnedMissionIds: s.missionProgress.pinnedMissionIds } }))
+    useGameStore.setState({ missionProgress: reconcileMissionProgress(missions.missions) })
   }
   return true
 }
@@ -775,29 +775,6 @@ export const useGameStore = create(
       set((s) => ({
         missionSpecialEnemySpawns: [...s.missionSpecialEnemySpawns, { key: spawnKey, enemyType, stageId, gameKey, spawnSec: second }],
       }))
-      return true
-    },
-
-    setPinnedMissionIds: (missionIds) => {
-      const pinnedMissionIds = []
-      for (const missionId of Array.isArray(missionIds) ? missionIds : []) {
-        if (!MISSION_BY_ID[missionId] || pinnedMissionIds.includes(missionId)) continue
-        pinnedMissionIds.push(missionId)
-        if (pinnedMissionIds.length === 2) break
-      }
-      set((s) => ({ missionProgress: { ...s.missionProgress, pinnedMissionIds } }))
-      return pinnedMissionIds
-    },
-
-    togglePinnedMission: (missionId) => {
-      if (!MISSION_BY_ID[missionId]) return false
-      const pinnedMissionIds = get().missionProgress.pinnedMissionIds
-      if (pinnedMissionIds.includes(missionId)) {
-        get().setPinnedMissionIds(pinnedMissionIds.filter((id) => id !== missionId))
-        return true
-      }
-      if (pinnedMissionIds.length >= 2) return false
-      get().setPinnedMissionIds([...pinnedMissionIds, missionId])
       return true
     },
 

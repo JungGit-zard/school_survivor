@@ -23,6 +23,7 @@ import { schoolButton, schoolPanel, uiBorders, uiPalette, uiShadows, uiType } fr
 import { stageTitle, t as translate, useLocale, useT } from '../lib/i18n.js'
 import { useAuthStore } from '../store/useAuthStore.js'
 import { useGameStore } from '../store/useGameStore.js'
+import { countClaimableVisibleMissions } from '../lib/missionProgress.js'
 import LobbyBgm from './LobbyBgm.jsx'
 import WeaponModal from './WeaponModal.jsx'
 import LobbySettingsModal from './LobbySettingsModal.jsx'
@@ -89,6 +90,12 @@ export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onO
   const t = useT()
   const authUser = useAuthStore((s) => s.user)
   const progressStatus = useAuthStore((s) => s.progressStatus)
+  const missionProgress = useGameStore((s) => s.missionProgress)
+  // 받을 수 있는 미션 보상 수. 게스트는 미션 체인이 없으므로 배지를 띄우지 않는다.
+  const claimableMissionCount = useMemo(
+    () => (authUser?.uid ? countClaimableVisibleMissions(missionProgress) : 0),
+    [authUser?.uid, missionProgress],
+  )
   const [nickname, setNickname] = useState(() => authUser ? getSavedNickname(authUser) : getGuestRankingNickname())
   useEffect(() => {
     let active = true
@@ -455,7 +462,10 @@ export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onO
         </button>
         <button type="button" className="lobby-press" data-ui-sfx="open" style={styles.bottomNavButtonAccent} onClick={() => !showtimeStageId && onOpenRanking?.()}>{t('lobby.ranking')}</button>
         <button type="button" className="lobby-press" data-ui-sfx="open" style={styles.bottomNavButtonReward} onClick={() => !showtimeStageId && onOpenCoinShop?.()}>{t('lobby.shop')}</button>
-        <button type="button" className="lobby-press" data-ui-sfx="open" style={styles.bottomNavButton} onClick={() => !showtimeStageId && onOpenMissionCenter?.()}>{t('lobby.missions')}</button>
+        <button type="button" className="lobby-press" data-ui-sfx="open" style={styles.bottomNavButton} onClick={() => !showtimeStageId && onOpenMissionCenter?.()}>
+          {t('lobby.missions')}
+          {claimableMissionCount > 0 && <span data-testid="mission-nav-badge" aria-label={t('missions.badgeAria', { count: claimableMissionCount })} style={styles.missionCountBadge}>{claimableMissionCount}</span>}
+        </button>
       </nav>
 
       {modal === 'weapon' && <WeaponModal onClose={closeWeaponModal} initialWeaponId={weaponModalInitialId} newlyUnlockedWeaponIds={newlyUnlockedWeaponIds} playerRecords={records} recordsStatus={progressStatus} onRetryRecords={() => { void useAuthStore.getState().retryCloudProgress?.() }} />}
@@ -957,6 +967,26 @@ const styles = {
     fontSize: 8,
     lineHeight: 1,
     fontWeight: uiType.weightHeavy,
+  },
+  missionCountBadge: {
+    position: 'absolute',
+    top: -8,
+    right: -6,
+    minWidth: 20,
+    height: 20,
+    padding: '0 5px',
+    boxSizing: 'border-box',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    border: uiBorders.hairline,
+    borderRadius: 999,
+    background: '#e5484d',
+    color: '#ffffff',
+    fontSize: 12,
+    lineHeight: 1,
+    fontWeight: uiType.weightHeavy,
+    fontFamily: uiType.numeric,
   },
   expansionDescription: {
     margin: 0,

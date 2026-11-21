@@ -1,4 +1,4 @@
-import { MISSION_BY_ID, MISSION_CATALOG, MISSION_CATALOG_VERSION, MISSION_REWARD_APPROVED } from './missionCatalog.js'
+import { MISSION_BY_ID, MISSION_CATALOG, MISSION_CATALOG_VERSION, MISSION_CHAIN_PREREQUISITES, MISSION_CHAIN_START_IDS, MISSION_REWARD_APPROVED } from './missionCatalog.js'
 import { isStageVisible } from './stageConfig.js'
 
 const MAX_COUNTER_VALUE = 1_000_000
@@ -12,6 +12,8 @@ export function createMissionProgressState(value = {}) {
     active: { ...(value.active ?? {}) },
     completed: { ...(value.completed ?? {}) },
     claimed: { ...(value.claimed ?? {}) },
+    // 고정(pin) 기능은 2026-11-21에 없어졌다. 예전에 저장된 값은 클라우드에 그대로 두려고 받은 그대로
+    // 실어 나르기만 한다(저장 경로가 이 칸을 통째로 쓰므로 비우면 지워진다). 화면은 이 값을 읽지 않는다.
     pinnedMissionIds: Array.isArray(value.pinnedMissionIds) ? value.pinnedMissionIds.slice(0, 2) : [],
     claimLedger: { ...(value.claimLedger ?? {}) },
   }
@@ -97,6 +99,33 @@ export function getMissionStatus(progress, missionOrId) {
     // 이 한 seam이 false인 동안은 proposal 금액으로 claim을 절대 실행하지 않는다.
     claimEnabled: complete && !claimed && MISSION_REWARD_APPROVED,
   }
+}
+
+function isMissionClaimed(progress, missionId) {
+  return !!(progress?.active?.[missionId]?.claimedAt || progress?.claimed?.[missionId])
+}
+
+const CHAIN_START_SET = new Set(MISSION_CHAIN_START_IDS)
+
+// 체인 공개 규칙: 시작 미션이거나, 선행 미션 하나라도 받았거나, 이미 받은 미션(순서 밖에서 받은 경우)이면 보인다.
+export function isMissionVisible(progress, missionOrId) {
+  const id = typeof missionOrId === 'string' ? missionOrId : missionOrId?.id
+  if (!MISSION_BY_ID[id]) return false
+  if (CHAIN_START_SET.has(id) || isMissionClaimed(progress, id)) return true
+  return (MISSION_CHAIN_PREREQUISITES[id] ?? []).some((from) => isMissionClaimed(progress, from))
+}
+
+export function getVisibleMissionIds(progress) {
+  return MISSION_CATALOG.filter((mission) => isMissionVisible(progress, mission)).map((mission) => mission.id)
+}
+
+// 받을 수 있는(완료·미수령) 보이는 미션 수. 로비 배지용.
+export function countClaimableVisibleMissions(progress) {
+  let count = 0
+  for (const mission of MISSION_CATALOG) {
+    if (isMissionVisible(progress, mission) && getMissionStatus(progress, mission).state === 'completed_unclaimed') count += 1
+  }
+  return count
 }
 
 export function getCounterChanges(event = {}) {
