@@ -9,7 +9,7 @@ import { getStageConfig,isStageUnlocked,getNextStageId,isStageVisible } from '..
 import { enemyPool,enemySimulationRuntime } from '../lib/refs.js'
 import { EXPANSION_STAGES } from '../lib/expansionContent.js'
 import { expansionAttackSnapshots } from '../lib/expansionAttackRuntime.js'
-import { getBossClearBonus,getRankingScore } from '../lib/rankingScorePolicy.js'
+import { getBossKillBonus,getRankingScore } from '../lib/rankingScorePolicy.js'
 beforeEach(()=>{
  _resetFirebaseProgressForTests()
  _seedHydratedFirebaseProgressForTests({uid:'expansion-offline-test'},{progress:{goldTotal:30,records:{stage5BossDefeats:1}}})
@@ -43,9 +43,10 @@ describe('new stage gameplay progression against offline-only progress fixture',
   expect(store().currentStageId).toBe(next??stage.id)
   if(!next)expect(store().phase).toBe('cleared')
   else expect(isStageUnlocked(next,load())).toBe(true)
-  const base=210+stage.scoreStageBonus,escape=Math.floor(base*.15),bonus=Math.floor((base+escape)*.2)
-  expect(getBossClearBonus({stageId:stage.id,survivalSeconds:210,cleared:true,bossDefeated:true})).toBe(bonus)
-  expect(getRankingScore({stageId:stage.id,survivalSeconds:210,cleared:true,bossBonus:bonus})).toBe(base+escape+bonus)
+  // Terry 2026-11-21: 보스 20%는 처치 순간(150초) 누적에, 탈출 15%는 탈출 순간 누적(보스 보너스 포함)에 붙는다.
+  const bonus=Math.floor((150+stage.scoreStageBonus)*.2),running=210+stage.scoreStageBonus+bonus,escape=Math.floor(running*.15)
+  expect(getBossKillBonus({stageId:stage.id,survivalSeconds:150})).toBe(bonus)
+  expect(getRankingScore({stageId:stage.id,survivalSeconds:210,cleared:true,bossBonus:bonus})).toBe(running+escape)
   store().resetGame(stage.id);expect(store()).toMatchObject({currentStageId:stage.id,phase:'playing',escapePortalActive:false,bossDefeated:false})
  })
  itWhenReleased('stage6','stage7')('real reset clears pool and warnings, while store pause freezes elapsed gameplay time',()=>{

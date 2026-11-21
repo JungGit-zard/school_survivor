@@ -75,7 +75,7 @@ import { useAuthStore } from './useAuthStore.js'
 import { trackEvent } from '../lib/analytics.js'
 import { DEFAULT_PLAYER_OUTFIT, isPlayerOutfitId } from '../lib/playerOutfitIds.js'
 import { getStageVendingItem, getStageVendingPlacement, getStageVendingRemainingPurchases, isWithinStageVendingRange } from '../lib/stageVending.js'
-import { getBossClearBonus, getRankingScore, getRankingScorePolicy } from '../lib/rankingScorePolicy.js'
+import { getBossKillBonusFromTotal, getEscapeBonus, getRankingBaseScore, getRankingScorePolicy } from '../lib/rankingScorePolicy.js'
 import { logDamageTaken } from '../lib/playtestLogger.js'
 import { emitSfx } from '../lib/sfxEvents.js'
 import { emitDamageNumber, DAMAGE_NUMBER_COLORS } from '../lib/damageNumbers.js'
@@ -191,27 +191,31 @@ function floorNonNegativeMs(value) {
   return Number.isFinite(ms) && ms > 0 ? Math.floor(ms) : 0
 }
 
+function readNonNegativeScore(value) {
+  const n = Number(value)
+  return Number.isFinite(n) && n > 0 ? Math.floor(n) : 0
+}
+
 function buildRankingRunSnapshot(state, elapsedMs, phaseName = 'playing') {
   const survivalSeconds = Math.floor(floorNonNegativeMs(elapsedMs) / 1000)
   const cleared = phaseName === 'cleared'
   const policy = getRankingScorePolicy()
-  const bossBonus = getBossClearBonus({
-    stageId: state.currentStageId,
-    survivalSeconds,
-    cleared,
-    bossDefeated: state.bossDefeated,
-  }, policy)
-  const rawScore = getRankingScore({
-    stageId: state.currentStageId,
-    survivalSeconds,
-    cleared,
-    bossBonus,
-  }, policy)
+  // 점수는 런 전체의 누적 점수 하나다(Terry 2026-11-21). 보스 보너스는 처치 순간 recordBossDefeat가
+  // 누적 점수의 20%로 고정해 둔 값을 그대로 쓴다 — 사망·로비 이탈·pagehide에도 유지되고,
+  // 처치 뒤에 쌓인 생존 점수에는 곱해지지 않는다.
+  const bossBonus = readNonNegativeScore(state.bossBonus)
   // Marketing-critical rule: a player who actually achieved anything in a run must be visible.
   // Stage 1 can still have 0 survival score during the first second, so one kill promotes the
   // ranking checkpoint to score 1 instead of disappearing on back/force-close.
-  const stageScore = Math.max(rawScore, state.runKills > 0 ? 1 : 0)
-  const score = state.continuousScoreBase + stageScore
+  const stageRunning = Math.max(
+    getRankingBaseScore({ stageId: state.currentStageId, survivalSeconds }, policy) + bossBonus,
+    state.runKills > 0 ? 1 : 0,
+  )
+  const carried = readNonNegativeScore(state.continuousScoreBase)
+  const runningTotal = carried + stageRunning
+  // 탈출 보너스는 탈출 순간 누적 점수(이월 점수 + 보스 보너스 포함)의 15%다.
+  const score = runningTotal + (cleared ? getEscapeBonus(runningTotal) : 0)
+  const stageScore = score - carried
   return {
     run: { stageId: state.currentStageId, score, stageScore, timeMs: floorNonNegativeMs(elapsedMs), globalTimeMs: state.continuousTimeBase + floorNonNegativeMs(elapsedMs), cleared, ...(isPlayerOutfitId(state.runOutfitId) ? { outfitId: state.runOutfitId } : {}) },
     survivalSeconds,
@@ -832,8 +836,8 @@ export const useGameStore = create(
       const elapsedMs = getRuntimeElapsedMs(s.elapsedMs)
       const runSurvivalSeconds = Math.floor(elapsedMs / 1000)
       const stage = getStageConfig(s.currentStageId)
-      const { run, bossBonus } = buildRankingRunSnapshot(s, elapsedMs, phaseName)
-      if (s.bossBonus !== bossBonus) set({ bossBonus })
+      // bossBonus는 처치 순간 recordBossDefeat가 고정한 값 그대로다 — 여기서 다시 계산하지 않는다.
+      const { run } = buildRankingRunSnapshot(s, elapsedMs, phaseName)
 
       // 미션 종료 이벤트를 먼저 칸에 담고, 그다음 스테이지 결과를 한 번 접어 쓴다.
       get().recordMissionEvent({ type: 'survival_updated', stageId: s.currentStageId, value: runSurvivalSeconds })
@@ -1591,9 +1595,9 @@ export const useGameStore = create(
     activateEscapePortal: () => set({ escapePortalActive: true }),
     spawnMatilda: () => set({ matildaSpawned: true }),
 
-    // 보스 처치 시 호출(Enemy.jsx). 마지막 생존 보스에서는 처치 사실과 징글만 기록한다.
-    // 스테이지 클리어/런 종료는 하지 않으며, 점수 보너스는 포탈 클리어에서만 확정한다.
-    // bossAliveCount=0 가드가 중복 기록과 징글을 막는다.
+    // 보스 처치 시 호출(Enemy.jsx). 마지막 생존 보스를 잡은 그 순간 누적 점수의 20%를
+    // bossBonus로 고정한다(Terry 2026-11-21). 스테이지 클리어/런 종료는 하지 않는다.
+    // bossAliveCount=0 가드가 중복 기록·중복 보너스·징글 반복을 막는다.
     recordBossDefeat: (bossType) => {
       const s = get()
       if (bossType != null && bossType !== getStageConfig(s.currentStageId).bossType) return false
@@ -1603,7 +1607,9 @@ export const useGameStore = create(
         set({ bossAliveCount: remaining })
         return true
       }
-      set({ bossAliveCount: 0, bossDefeated: true })
+      // 처치 순간의 누적 점수(HUD·랭킹 체크포인트와 같은 값, 런타임 시계 기준)에서 보너스를 뗀다.
+      const atKill = buildRankingRunSnapshot(s, getRuntimeElapsedMs(s.elapsedMs), 'playing').run.score
+      set({ bossAliveCount: 0, bossDefeated: true, bossBonus: getBossKillBonusFromTotal(atKill) })
       emitSfx({ id: 'bossClearJingle' })
       return true
     },
@@ -1611,8 +1617,8 @@ export const useGameStore = create(
     clearStage: () => {
       const s = get()
       if (s.phase !== 'playing') return false
-      const { run, bossBonus } = buildRankingRunSnapshot(s, getRuntimeElapsedMs(s.elapsedMs), 'cleared')
-      set({ phase: 'cleared', pauseSource: null, bossBonus, escapeResult: {
+      const { run } = buildRankingRunSnapshot(s, getRuntimeElapsedMs(s.elapsedMs), 'cleared')
+      set({ phase: 'cleared', pauseSource: null, escapeResult: {
         stageId: run.stageId, stageScore: run.stageScore, totalScore: run.score,
         timeMs: run.timeMs, totalTimeMs: run.globalTimeMs,
       } })

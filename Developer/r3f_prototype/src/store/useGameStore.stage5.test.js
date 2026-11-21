@@ -7,7 +7,7 @@ import { _resetFirebaseProgressForTests, _seedHydratedFirebaseProgressForTests, 
 import { getStageConfig, getNextStageId, isStageUnlocked, getStageBounds, isStageVisible } from '../lib/stageConfig.js'
 import { getDefaultWavePhases } from '../lib/waveTimelines.js'
 import { getRuntimeSpawnEventsForStage, getBossSpawnSec } from '../lib/burstEvents.js'
-import { getRankingScore, getBossClearBonus } from '../lib/rankingScorePolicy.js'
+import { getRankingScore, getBossKillBonus } from '../lib/rankingScorePolicy.js'
 import { load } from '../lib/playerRecords.js'
 import { playerPos } from '../lib/refs.js'
 import { getStageVendingPlacement } from '../lib/stageVending.js'
@@ -67,6 +67,7 @@ describe('Stage5 playable store vertical slice', () => {
     store().spawnBoss()
     expect(store().recordBossDefeat()).toBe(true)
     expect(store().phase).toBe('playing')
+    expect(store().bossBonus).toBe(78)
     useGameStore.setState({ elapsedMs: 210_000 })
     store().checkSurvivalMilestone()
     store().activateEscapePortal()
@@ -77,8 +78,9 @@ describe('Stage5 playable store vertical slice', () => {
     expect(load()).toMatchObject({ stage5Clears: 1, stage5BestSurvivalSec: 210 })
     expect(readFirebasePlayerProgress().records).toMatchObject({ stage5Clears: 1, stage5BestSurvivalSec: 210 })
     expect(buildCloudProgressSnapshot().progress.records).toMatchObject({ stage5Clears: 1, stage5BestSurvivalSec: 210 })
-    expect(getBossClearBonus({ stageId: 'stage5', survivalSeconds: 210, cleared: true, bossDefeated: true })).toBe(103)
-    expect(getRankingScore({ stageId: 'stage5', survivalSeconds: 210, cleared: true, bossBonus: 103 })).toBe(620)
+    // Terry 2026-11-21: 150초 처치 -> 누적(150 + 240)의 20% = 78. 210초 탈출: 450 + 78 = 528, 탈출 15% = 79 -> 607.
+    expect(getBossKillBonus({ stageId: 'stage5', survivalSeconds: 150 })).toBe(78)
+    expect(getRankingScore({ stageId: 'stage5', survivalSeconds: 210, cleared: true, bossBonus: 78 })).toBe(607)
     expect(await store().clearStageAndStartNext()).toBe(false)
     expect(load().stage5Clears).toBe(1)
     store().resetGame('stage5')

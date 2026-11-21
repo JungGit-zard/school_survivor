@@ -3,7 +3,10 @@ import {
   ESCAPE_BONUS_RATE,
   STAGE_BONUS,
   compareRankingEntries,
-  getBossClearBonus,
+  BOSS_BONUS_RATE,
+  getBossKillBonus,
+  getBossKillBonusFromTotal,
+  getEscapeBonus,
   getRankingScore,
   getRankingScorePolicy,
   getStagePriority,
@@ -47,19 +50,59 @@ describe('ranking score policy', () => {
     expect(getStagePriority('stage4')).toBe(4)
   })
 
-  it('includes the boss-clear bonus only after a portal clear', () => {
-    const prePortalBonus = getBossClearBonus({
-      stageId: 'stage1', survivalSeconds: 192, cleared: false, bossDefeated: true,
-    })
-    const portalBonus = getBossClearBonus({
-      stageId: 'stage1', survivalSeconds: 240, cleared: true, bossDefeated: true,
-    })
+  // Terry 2026-11-21: 점수는 런 전체 누적 점수 하나. 보스 처치 순간 누적의 20%를 고정 보너스로 더하고,
+  // 탈출하면 탈출 순간 누적(보스 보너스 포함)의 15%를 더한다.
+  it('applies Terry 2026-11-21 examples: 1000 -> boss 1200 -> escape 1380, escape without boss 1150', () => {
+    expect(BOSS_BONUS_RATE).toBe(0.2)
+    expect(getBossKillBonusFromTotal(1000)).toBe(200)
+    expect(getRankingScore({ stageId: 'stage1', survivalSeconds: 1000, bossBonus: 200 })).toBe(1200)
+    expect(getRankingScore({ stageId: 'stage1', survivalSeconds: 1000, cleared: true, bossBonus: 200 })).toBe(1380)
+    expect(getRankingScore({ stageId: 'stage1', survivalSeconds: 1000, cleared: true })).toBe(1150)
+    expect(getEscapeBonus(1200)).toBe(180)
+  })
 
-    expect(prePortalBonus).toBe(0)
-    expect(getRankingScore({ stageId: 'stage1', survivalSeconds: 192, cleared: false, bossBonus: 44 })).toBe(192)
-    // base 240 + 탈출 15%(36) = 276, 그 20% = 55. 두 보너스는 순차 적용된다.
-    expect(portalBonus).toBe(55)
-    expect(getRankingScore({ stageId: 'stage1', survivalSeconds: 240, cleared: true, bossBonus: portalBonus })).toBe(331)
+  it('keeps the boss bonus on a non-cleared run (death, quit, pagehide)', () => {
+    const bossBonus = getBossKillBonus({ stageId: 'stage1', survivalSeconds: 192 })
+    expect(bossBonus).toBe(38) // floor(192 * 0.2)
+    expect(getRankingScore({ stageId: 'stage1', survivalSeconds: 192, cleared: false, bossBonus })).toBe(230)
+  })
+
+  it('never multiplies score earned after the kill by the boss rate', () => {
+    // 192초에 처치(보너스 38) 후 240초까지 생존: 240 + 38 = 278. 240의 20%(48)가 아니다.
+    const bossBonus = getBossKillBonus({ stageId: 'stage1', survivalSeconds: 192 })
+    expect(getRankingScore({ stageId: 'stage1', survivalSeconds: 240, bossBonus })).toBe(278)
+    // 탈출 15%는 탈출 순간 누적(278)에 붙는다: 278 + 41 = 319.
+    expect(getRankingScore({ stageId: 'stage1', survivalSeconds: 240, cleared: true, bossBonus })).toBe(319)
+  })
+
+  it('treats carried score from earlier stages as part of the running total', () => {
+    // 이월 600 + stage2(340초 + 60) = 1000 에서 처치 -> 1200 -> 탈출 1380.
+    const bossBonus = getBossKillBonus({ stageId: 'stage2', survivalSeconds: 340, carriedScore: 600 })
+    expect(bossBonus).toBe(200)
+    expect(getRankingScore({ stageId: 'stage2', survivalSeconds: 340, cleared: true, bossBonus, carriedScore: 600 })).toBe(1380)
+  })
+
+  it('agrees with the server reference formula (functions/src/ranking.js expectedScore)', async () => {
+    const server = await import('../../functions/src/ranking.js')
+    expect(server.SERVER_ESCAPE_BONUS_RATE).toBe(ESCAPE_BONUS_RATE)
+    expect(server.BOSS_BONUS_RATE).toBe(BOSS_BONUS_RATE)
+    const cases = [
+      { stageId: 'stage1', timeSec: 0, cleared: false },
+      { stageId: 'stage1', timeSec: 1000, cleared: true },
+      { stageId: 'stage1', timeSec: 1000, cleared: true, killSec: 1000 },
+      { stageId: 'stage3', timeSec: 245, cleared: false, killSec: 151 },
+      { stageId: 'stage4', timeSec: 240, cleared: true, killSec: 200 },
+      { stageId: 'stage6', timeSec: 377, cleared: true, killSec: 300, carried: 1789 },
+      { stageId: 'stage10', timeSec: 94_608_000, cleared: true, killSec: 94_000_000, carried: 12_345 },
+    ]
+    for (const { stageId, timeSec, cleared, killSec, carried = 0 } of cases) {
+      const bossBonus = killSec == null ? 0 : getBossKillBonus({ stageId, survivalSeconds: killSec, carriedScore: carried })
+      const client = getRankingScore({ stageId, survivalSeconds: timeSec, cleared, bossBonus, carriedScore: carried })
+      const serverScore = server.expectedScore(stageId, timeSec * 1000, cleared, {
+        bossKillTimeMs: killSec == null ? null : killSec * 1000, carriedScore: carried,
+      })
+      expect(serverScore).toBe(client)
+    }
   })
 
   it('breaks equal score/clear/survival ties by higher stage priority (stage4 > stage1)', () => {

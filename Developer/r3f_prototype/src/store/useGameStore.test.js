@@ -372,13 +372,15 @@ describe('runtime elapsed time publication', () => {
     expect(getRuntimeElapsedMs()).toBe(60_000)
   })
 
-  it('records final-boss defeat without granting a pre-portal score bonus when the HUD snapshot lags', () => {
+  // Terry 2026-11-21: 보스 보너스는 처치 순간 누적 점수의 20%로 고정되고, 사망·이탈·pagehide에도 유지된다.
+  it('captures the boss bonus at the kill from the runtime clock even when the HUD snapshot lags', () => {
     useGameStore.setState({ elapsedMs: 59_999, bossAliveCount: 1, phase: 'playing' })
     advanceRuntimeTime(60_050)
     useGameStore.getState().recordBossDefeat()
 
     expect(useGameStore.getState().bossDefeated).toBe(true)
-    expect(useGameStore.getState().bossBonus).toBe(0)
+    // 런타임 시계 60초 -> 누적 60, 그 20% = 12.
+    expect(useGameStore.getState().bossBonus).toBe(12)
     expect(useGameStore.getState().phase).toBe('playing')
   })
 
@@ -389,34 +391,81 @@ describe('runtime elapsed time publication', () => {
       useGameStore.setState({ elapsedMs: 192_000, bossAliveCount: 1, phase: 'playing' })
 
       expect(useGameStore.getState().recordBossDefeat()).toBe(true)
-      expect(useGameStore.getState()).toMatchObject({ phase: 'playing', bossAliveCount: 0, bossDefeated: true, bossBonus: 0 })
+      expect(useGameStore.getState()).toMatchObject({ phase: 'playing', bossAliveCount: 0, bossDefeated: true, bossBonus: 38 })
 
+      // 중복 보고는 보너스를 다시 계산하지도 더하지도 않는다.
+      useGameStore.setState({ elapsedMs: 300_000 })
       expect(useGameStore.getState().recordBossDefeat()).toBe(false)
-      expect(useGameStore.getState().bossBonus).toBe(0)
+      expect(useGameStore.getState().bossBonus).toBe(38)
       expect(sfx.filter((id) => id === 'bossClearJingle')).toHaveLength(1)
     } finally {
       unsubscribe()
     }
   })
 
-  it('pays the boss bonus only on a portal clear, never on a boss-kill gameover', () => {
+  it('keeps the boss bonus on a boss-kill gameover', () => {
     useGameStore.setState({ elapsedMs: 192_000, bossAliveCount: 1, phase: 'playing' })
     advanceRuntimeTime(192_000)
     useGameStore.getState().recordBossDefeat()
+    expect(useGameStore.getState().bossBonus).toBe(38)
     const player = useGameStore.getState().player
     useGameStore.setState({ player: { ...player, hp: 1 } })
     useGameStore.getState().damagePlayer(1, { ignoreInvulnerability: true })
-    expect(useGameStore.getState().bossBonus).toBe(0)
 
-    useGameStore.getState().resetGame('stage1')
+    expect(useGameStore.getState()).toMatchObject({ phase: 'gameover', bossBonus: 38 })
+    // 192 + 38 = 230, 탈출 보너스 없음.
+    expect(useGameStore.getState().rankingSubmission).toMatchObject({ score: 230, cleared: false })
+  })
+
+  it('boss kill then escape: escape 15% applies to the running total including the boss bonus', () => {
     useGameStore.setState({ elapsedMs: 192_000, bossAliveCount: 1, phase: 'playing' })
     advanceRuntimeTime(192_000)
     useGameStore.getState().recordBossDefeat()
     advanceRuntimeTime(48_000)
     useGameStore.getState().clearStage()
 
-    // base 240 + 탈출 보너스 15%(36) = 276, 보스 보너스는 그 20% = 55.
-    expect(useGameStore.getState()).toMatchObject({ phase: 'cleared', bossDefeated: true, bossBonus: 55 })
+    // 처치 시 192 -> 보너스 38(고정). 240초 탈출: 240 + 38 = 278 (처치 뒤 48초엔 20%가 곱해지지 않는다),
+    // 탈출 15% = floor(278 * 0.15) = 41 -> 319.
+    expect(useGameStore.getState()).toMatchObject({ phase: 'cleared', bossDefeated: true, bossBonus: 38 })
+    expect(useGameStore.getState().escapeResult).toMatchObject({ stageScore: 319, totalScore: 319 })
+  })
+
+  it('matches Terry examples in the store: 1000 at the kill -> 1200 -> escape 1380; no boss -> 1150', () => {
+    useGameStore.setState({ elapsedMs: 1_000_000, bossAliveCount: 1, phase: 'playing' })
+    useGameStore.getState().recordBossDefeat()
+    expect(useGameStore.getState().bossBonus).toBe(200)
+    useGameStore.getState().clearStage()
+    expect(useGameStore.getState().escapeResult.totalScore).toBe(1380)
+
+    useGameStore.getState().resetGame('stage1')
+    useGameStore.setState({ elapsedMs: 1_000_000, phase: 'playing' })
+    useGameStore.getState().clearStage()
+    expect(useGameStore.getState().escapeResult.totalScore).toBe(1150)
+  })
+
+  it('keeps the boss bonus when the page hides or the player quits to the lobby after the kill', () => {
+    useGameStore.setState({ elapsedMs: 192_000, bossAliveCount: 1, phase: 'playing' })
+    useGameStore.getState().recordBossDefeat()
+    expect(useGameStore.getState().finishRankingRun('pagehide')).toBe(true)
+    expect(useGameStore.getState().rankingSubmission).toMatchObject({ score: 230, cleared: false })
+
+    useGameStore.getState().resetGame('stage1')
+    useGameStore.setState({ elapsedMs: 192_000, bossAliveCount: 1, phase: 'playing' })
+    useGameStore.getState().recordBossDefeat()
+    useGameStore.getState().pauseGame()
+    // 로비 이탈 = 진행 중 런을 끝내고 새로 리셋한다(finishRankingRun('end')). 리셋 직후 새 런의
+    // 0점 진입 기록이 rankingSubmission을 덮으므로, 그 사이에 나간 제출을 모두 모아 본다.
+    const submitted = []
+    const unsubscribe = useGameStore.subscribe((state, prev) => {
+      if (state.rankingSubmission && state.rankingSubmission !== prev.rankingSubmission) submitted.push(state.rankingSubmission)
+    })
+    try {
+      useGameStore.getState().resetGame('stage1')
+    } finally {
+      unsubscribe()
+    }
+    expect(submitted[0]).toMatchObject({ score: 230, cleared: false })
+    expect(useGameStore.getState().bossBonus).toBe(0)
   })
 })
 

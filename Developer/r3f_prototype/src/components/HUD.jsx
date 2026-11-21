@@ -923,10 +923,12 @@ export default function HUD({
   const runClock = formatRunClock(elapsed)
   // 실시간 점수. 탈출구가 열린 뒤 "더 버틸까 / 지금 나갈까"를 저울질하려면 지금 점수가 보여야 한다.
   // 점수식은 복제하지 않고 랭킹과 같은 getRankingScore를 쓴다. 런 중에는 아직 미클리어다.
+  // 보스를 잡았으면 처치 순간 고정된 보스 보너스가 실시간 점수에도 바로 붙는다.
   const liveScore = continuousScoreBase + getRankingScore({
     stageId: currentStageId,
     survivalSeconds: Math.floor(elapsed / 1000),
     cleared: false,
+    bossBonus,
   })
   const stageConfig = getStageConfig(currentStageId)
   const locale = useLocale()

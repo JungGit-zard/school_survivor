@@ -1,15 +1,19 @@
 import { installProgressTransactionTestClient } from '../../test/progressTransactionClient.js'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { useGameStore } from './useGameStore.js'
-import { getBossClearBonus, getRankingScore } from '../lib/rankingScorePolicy.js'
+import { getBossKillBonus, getRankingScore } from '../lib/rankingScorePolicy.js'
 import { VISIBLE_STAGE_IDS } from '../lib/stageConfig.js'
 
+// 보스를 잡자마자 탈출한다. 반환값은 그 순간의 런 누적 총점이다(Terry 2026-11-21: 점수는 런 전체 누적
+// 하나 — 이월 점수도 보스 20%·탈출 15%의 바탕이 된다).
 function clearAt(stageId, elapsedMs) {
-  useGameStore.setState({ elapsedMs, bossDefeated: true })
+  const carriedScore = useGameStore.getState().continuousScoreBase
+  useGameStore.setState({ elapsedMs, bossAliveCount: 1 })
+  expect(useGameStore.getState().recordBossDefeat()).toBe(true)
   expect(useGameStore.getState().clearStage()).toBe(true)
   const survivalSeconds = elapsedMs / 1000
-  return getRankingScore({ stageId, survivalSeconds, cleared: true,
-    bossBonus: getBossClearBonus({ stageId, survivalSeconds, cleared: true, bossDefeated: true }) })
+  const bossBonus = getBossKillBonus({ stageId, survivalSeconds, carriedScore })
+  return getRankingScore({ stageId, survivalSeconds, cleared: true, bossBonus, carriedScore })
 }
 
 describe('escape success and continuous score', () => {
@@ -27,17 +31,21 @@ describe('escape success and continuous score', () => {
     expect(await useGameStore.getState().continueToNextStage()).toBe(false)
   })
 
-  it('adds two clear scores then includes the dying stage live score; fresh starts reset the sequence', async () => {
+  it('carries one running total across stages then includes the dying stage live score; fresh starts reset the sequence', async () => {
     const first = clearAt('stage1', 240000)
+    // stage1: 240 -> 보스 48 = 288 -> 탈출 43 = 331.
+    expect(first).toBe(331)
     await useGameStore.getState().continueToNextStage()
     const second = clearAt('stage2', 300000)
-    expect(useGameStore.getState().escapeResult.totalScore).toBe(first + second)
+    // stage2: 이월 331 + 300 + 60 = 691 -> 보스 138 = 829 -> 탈출 124 = 953.
+    expect(second).toBe(953)
+    expect(useGameStore.getState().escapeResult).toMatchObject({ totalScore: second, stageScore: second - first })
     await useGameStore.getState().continueToNextStage()
     useGameStore.setState((s) => ({ elapsedMs: 120000, player: { ...s.player, hp: 1 } }))
     useGameStore.getState().damagePlayer(100, { ignoreInvulnerability: true })
     const liveScore = getRankingScore({ stageId: 'stage3', survivalSeconds: 120 })
     expect(useGameStore.getState()).toMatchObject({ phase: 'gameover',
-      rankingSubmission: { score: first + second + liveScore, stageScore: liveScore, globalTimeMs: 660000 } })
+      rankingSubmission: { score: second + liveScore, stageScore: liveScore, globalTimeMs: 660000 } })
     useGameStore.getState().resetGame('stage1')
     expect(useGameStore.getState()).toMatchObject({ continuousScoreBase: 0, continuousTimeBase: 0, escapeResult: null })
   })

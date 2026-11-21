@@ -279,11 +279,12 @@ describe('보스 격퇴 보너스와 포탈 클리어 분리', () => {
     expect(useGameStore.getState().bossAliveCount).toBe(1)
     expect(useGameStore.getState().bossBonus).toBe(0)
 
-    // 마지막 보스 처치 — 보너스만 기록하고 포탈 전까지 계속 플레이.
+    // 마지막 보스 처치 — 처치 순간 누적의 20%를 보너스로 고정하고 포탈 전까지 계속 플레이.
     useGameStore.getState().recordBossDefeat()
     expect(useGameStore.getState().phase).toBe('playing')
     expect(useGameStore.getState().bossAliveCount).toBe(0)
-    expect(useGameStore.getState()).toMatchObject({ bossDefeated: true, bossBonus: 0 })
+    // stage3 150초 처치 -> 누적(150 + 120) = 270의 20% = 54.
+    expect(useGameStore.getState()).toMatchObject({ bossDefeated: true, bossBonus: 54 })
   })
 
   it('단일 보스도 격퇴 후 playing을 유지하고, 포탈이 런 종료를 처리한다', () => {
@@ -294,7 +295,8 @@ describe('보스 격퇴 보너스와 포탈 클리어 분리', () => {
 
     useGameStore.getState().recordBossDefeat()
     expect(useGameStore.getState().phase).toBe('playing')
-    expect(useGameStore.getState()).toMatchObject({ bossDefeated: true, bossBonus: 0 })
+    // 240초 처치 -> 누적 240의 20% = 48.
+    expect(useGameStore.getState()).toMatchObject({ bossDefeated: true, bossBonus: 48 })
 
     // 2026-11-19: a run is counted when its stage ends. The stage3 run ended (quit) when stage1
     // started; the stage1 run still in play is not in the account totals yet.

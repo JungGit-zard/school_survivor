@@ -47,13 +47,29 @@ test('expectedScore mirrors the client score model as a reference, not a gate', 
   assert.equal(expectedScore('stage1', 100000, false), 100)
   // stage4 clear 240s: base 240+180=420, +escape floor(420*0.15)=63 -> 483
   assert.equal(expectedScore('stage4', 240000, true), 483)
-  // boss bonus applies only on clear: (420+63)=483, +floor(483*0.2)=96 -> 579
-  assert.equal(expectedScore('stage4', 240000, true, true), 579)
+  // Terry 2026-11-21: boss bonus = 20% of the running total at the kill, kept on death too.
+  // kill at 240s: 420 -> +84 = 504; escape right away: +floor(504*0.15)=75 -> 579
+  assert.equal(expectedScore('stage4', 240000, true, { bossKillTimeMs: 240000 }), 579)
+  // death right after the kill keeps the bonus: 420 + 84 = 504
+  assert.equal(expectedScore('stage4', 240000, false, { bossKillTimeMs: 240000 }), 504)
+  // score after the kill is not multiplied: kill at 200s (380 -> +76), die at 240s = 420 + 76 = 496
+  assert.equal(expectedScore('stage4', 240000, false, { bossKillTimeMs: 200000 }), 496)
+  // the old positional boolean no longer means anything: no kill time, no bonus
   assert.equal(expectedScore('stage4', 240000, false, true), 420)
   // f955342f removed server revalidation: normalizeRun no longer rejects scores off the model.
   assert.doesNotThrow(() =>
     normalizeRun({ runId: 'run_cheat_0001', stageId: 'stage2', score: 840, timeMs: 95000, cleared: true }),
   )
+})
+
+test('expectedScore follows the running-total examples Terry dictated', () => {
+  // running 1000 at the kill -> 1200; escape right away -> 1380.
+  assert.equal(expectedScore('stage1', 1000000, false, { bossKillTimeMs: 1000000 }), 1200)
+  assert.equal(expectedScore('stage1', 1000000, true, { bossKillTimeMs: 1000000 }), 1380)
+  // escape without a boss from 1000 -> 1150.
+  assert.equal(expectedScore('stage1', 1000000, true), 1150)
+  // carried score from earlier stages is part of the running total.
+  assert.equal(expectedScore('stage2', 340000, true, { bossKillTimeMs: 340000, carriedScore: 600 }), 1380)
 })
 
 test('uses Korean day and Monday-based week keys', () => {

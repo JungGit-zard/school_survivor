@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
-import { getBossClearBonus, getRankingScore } from './rankingScorePolicy.js'
+import { getBossKillBonus, getRankingScore } from './rankingScorePolicy.js'
 import { DEFAULT_SETTINGS } from './titleSettings.js'
 import { FIREBASE_STUDIO_DATASET_KEYS } from './firebaseStudio.js'
 import { PLAYER_OUTFIT_IDS, UNLOCKABLE_OUTFIT_IDS } from './playerOutfitIds.js'
@@ -210,7 +210,7 @@ function fullyAccepts(entryRule, { entry, existing, auth, $uid, $window, $stageI
 
 function honestEntry({ uid = 'me', stageId = 'stage2', timeMs = 50000, cleared = true, displayName = 'Neo' } = {}) {
   const survivalSeconds = Math.floor(timeMs / 1000)
-  const bossBonus = getBossClearBonus({ stageId, survivalSeconds, cleared, bossDefeated: cleared })
+  const bossBonus = cleared ? getBossKillBonus({ stageId, survivalSeconds }) : 0
   const score = getRankingScore({ stageId, survivalSeconds, cleared, bossBonus })
   return { uid, displayName, score, timeMs, cleared, stageId, submittedAt: Date.now() }
 }
@@ -271,13 +271,14 @@ describe('ranking entry write rules (evaluated against the real rule strings)', 
     }
   })
 
-  it('drops the boss bonus on a gameover and keeps it on a portal clear', () => {
+  // Terry 2026-11-21: 보스 보너스는 처치 순간 누적의 20%로 고정되고 사망해도 유지된다. 규칙은 점수식에 무관하다.
+  it('accepts the boss bonus on a gameover and on a portal clear', () => {
     const gameover = honestEntry({ stageId: 'stage1', timeMs: 192_000, cleared: false })
-    gameover.score = getRankingScore({ stageId: 'stage1', survivalSeconds: 192, cleared: false, bossBonus: 44 })
-    expect(gameover.score).toBe(192)
+    gameover.score = getRankingScore({ stageId: 'stage1', survivalSeconds: 192, cleared: false, bossBonus: getBossKillBonus({ stageId: 'stage1', survivalSeconds: 192 }) })
+    expect(gameover.score).toBe(230)
     expect(fullyAccepts(stageRule, { ...base, $stageId: 'stage1', entry: gameover })).toBe(true)
 
-    const bossBonus = getBossClearBonus({ stageId: 'stage1', survivalSeconds: 240, cleared: true, bossDefeated: true })
+    const bossBonus = getBossKillBonus({ stageId: 'stage1', survivalSeconds: 240 })
     const cleared = {
       ...honestEntry({ stageId: 'stage1', timeMs: 240_000, cleared: true }),
       score: getRankingScore({ stageId: 'stage1', survivalSeconds: 240, cleared: true, bossBonus }),

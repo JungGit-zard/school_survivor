@@ -95,15 +95,18 @@ describe('escape success choices', () => {
     installProgressTransactionTestClient()
     useGameStore.getState().resetGame('stage4')
     // b3fada83: the continue button needs this run's boss defeat.
-    useGameStore.setState({ phase: 'playing', elapsedMs: 100_000, continuousScoreBase: 500, bossDefeated: true })
+    useGameStore.setState({ phase: 'playing', elapsedMs: 100_000, continuousScoreBase: 500, bossAliveCount: 1 })
+    // 처치 순간 누적(이월 500 + 100초 + 180) = 780 -> 보스 보너스 156으로 고정(Terry 2026-11-21).
+    expect(useGameStore.getState().recordBossDefeat()).toBe(true)
     renderSuccess()
-    // 이번 런 보스 처치 보너스가 스테이지 점수에 들어간다(결과창은 store bossBonus를 그대로 쓴다).
     const { bossBonus } = useGameStore.getState()
-    expect(bossBonus).toBeGreaterThan(0)
-    const score = 500 + getRankingScore({ stageId: 'stage4', survivalSeconds: 100, cleared: true, bossBonus })
+    expect(bossBonus).toBe(156)
+    // 탈출 15%는 이월 점수까지 포함한 누적(936)에 붙는다: 936 + 140 = 1076.
+    const score = getRankingScore({ stageId: 'stage4', survivalSeconds: 100, cleared: true, bossBonus, carriedScore: 500 })
+    expect(score).toBe(1076)
     const next = [...container.querySelector('[data-testid="result-primary-actions"]').querySelectorAll('button')].find((button) => button.textContent === '다음 스테이지 계속')
     expect(next).toBeDefined()
-    expect(container.querySelector('[data-testid="escape-total-score"]').textContent).toContain(String(score))
+    expect(container.querySelector('[data-testid="escape-total-score"]').textContent).toContain(score.toLocaleString())
     await act(async () => next.click())
     expect(useGameStore.getState()).toMatchObject({ phase: 'playing', currentStageId: 'stage5', continuousScoreBase: score })
   })
@@ -120,7 +123,7 @@ describe('escape success choices', () => {
     expect(stageId).toBe('stage6')
     expect(container.textContent).not.toContain('모든 스테이지를 탈출했어요!')
     expect(container.querySelector('[data-testid="escape-continue-hint"]').textContent).toBe('1부 완결! 좀비학교를 빠져나왔어요.')
-    expect(container.querySelector('[data-testid="escape-total-score"]').textContent).toContain((500 + getRankingScore({ stageId, survivalSeconds: 100, cleared: true })).toLocaleString())
+    expect(container.querySelector('[data-testid="escape-total-score"]').textContent).toContain(getRankingScore({ stageId, survivalSeconds: 100, cleared: true, carriedScore: 500 }).toLocaleString())
     expect(container.querySelector('section').style.overflowY).toBe('auto')
     expect(container.querySelector('section').style.maxHeight).toBe('100%')
     expect(container.querySelector('details').open).toBe(false)

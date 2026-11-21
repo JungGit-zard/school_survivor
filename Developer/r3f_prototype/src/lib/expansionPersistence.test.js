@@ -6,7 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { _resetFirebaseProgressForTests, _setFirebaseProgressClientForTests, applyCloudProgressSnapshot, buildCloudProgressSnapshot, requestCloudProgressSave } from './firebaseProgress.js'
 import { load, incrementRecord, setBestIfHigher } from './playerRecords.js'
 import { getZombieTypeLabel, isKnownZombieType, normalizeZombieEncounterMap, recordZombieEncounter } from './zombieEncyclopedia.js'
-import { getRankingScorePolicy, getStagePriority, getRankingScore, getBossClearBonus } from './rankingScorePolicy.js'
+import { getRankingScorePolicy, getStagePriority, getRankingScore, getBossKillBonus } from './rankingScorePolicy.js'
 import { ALLOWED_STAGE_IDS, SERVER_STAGE_BONUS, expectedScore, normalizeRun } from '../../functions/src/ranking.js'
 import { EXPANSION_ENEMIES, EXPANSION_BOSSES } from './expansionContent.js'
 import { EXPANSION_PART2_LIBRARY_ARCHIVE } from './expansionPart2Archive.js'
@@ -111,9 +111,10 @@ describe('expansion persistence contract', () => {
     expect(ALLOWED_STAGE_IDS.has(stageId)).toBe(true)
     for (const cleared of [false, true]) {
       for (const bossDefeated of [false, true]) {
-        const args = { stageId, survivalSeconds: 360000, cleared, bossDefeated }
-        const score = getRankingScore({ ...args, bossBonus: getBossClearBonus(args) })
-        expect(expectedScore(stageId, 360000000, cleared, bossDefeated)).toBe(score)
+        // 보스는 300000초에 잡혔다고 본다 — 이후 점수에는 20%가 곱해지지 않는다.
+        const bossBonus = bossDefeated ? getBossKillBonus({ stageId, survivalSeconds: 300000 }) : 0
+        const score = getRankingScore({ stageId, survivalSeconds: 360000, cleared, bossBonus })
+        expect(expectedScore(stageId, 360000000, cleared, bossDefeated ? { bossKillTimeMs: 300000000 } : {})).toBe(score)
         expect(normalizeRun({ runId: 'expansion_test_run', stageId, score, timeMs: 360000000, cleared }).stageId).toBe(stageId)
       }
     }
