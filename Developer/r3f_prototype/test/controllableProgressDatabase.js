@@ -5,8 +5,8 @@
 // db.writes / db.reads exactly like the plain fake.
 import { createFakeProgressDatabase } from './fakeProgressDatabase.js'
 
-export function createControllableProgressDatabase(initialRoot = {}) {
-  const db = createFakeProgressDatabase(initialRoot)
+export function createControllableProgressDatabase(initialRoot = {}, options = {}) {
+  const db = createFakeProgressDatabase(initialRoot, options)
   const control = {
     offline: false, // update/transaction reject with a synthetic network error
     holdWrites: false, // update/transaction wait in control.heldWrites until released

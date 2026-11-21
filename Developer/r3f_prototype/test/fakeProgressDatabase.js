@@ -45,12 +45,16 @@ function setAt(root, path, value) {
   else node[keys.at(-1)] = pruned
 }
 
-function snap(value) {
+// A snapshot knows its place in the user node, so rules can walk up with parent() (RTDB semantics:
+// newData is the whole node after the write, data the whole node before it).
+function snap(root, path) {
+  const value = path.reduce((node, key) => (node == null ? undefined : node[key]), root)
   const present = v => v !== undefined && v !== null && !(typeof v === 'object' && Object.keys(v).length === 0)
   return {
     exists: () => present(value),
     val: () => (value === undefined ? null : value),
-    child: path => snap(segments(path).reduce((node, key) => (node == null ? undefined : node[key]), value)),
+    child: childPath => snap(root, [...path, ...segments(childPath)]),
+    parent: () => snap(root, path.slice(0, -1)),
     hasChildren: keys => !!value && typeof value === 'object' && (keys ? keys.every(key => present(value[key])) : Object.keys(value).length > 0),
     isNumber: () => typeof value === 'number',
     isString: () => typeof value === 'string',
@@ -58,16 +62,20 @@ function snap(value) {
   }
 }
 
-function evaluate(expression, newValue, oldValue, vars) {
+function evaluate(expression, newRoot, oldRoot, path, vars) {
   const names = Object.keys(vars)
   // eslint-disable-next-line no-new-func
-  return new Function('newData', 'data', 'now', ...names, `return (${expression})`)(snap(newValue), snap(oldValue), Date.now(), ...names.map(name => vars[name]))
+  return new Function('newData', 'data', 'now', ...names, `return (${expression})`)(snap(newRoot, path), snap(oldRoot, path), Date.now(), ...names.map(name => vars[name]))
 }
 
-function validateNode(rule, newValue, oldValue, vars, path, errors) {
+// validateUnchanged: also evaluate nodes whose value did not change. The real server's behaviour for an
+// unchanged child inside a larger write is not documented; the rules must hold under both readings.
+function validateNode(rule, newRoot, oldRoot, path, vars, errors, validateUnchanged) {
+  const newValue = path.reduce((node, key) => (node == null ? undefined : node[key]), newRoot)
+  const oldValue = path.reduce((node, key) => (node == null ? undefined : node[key]), oldRoot)
   if (newValue === undefined || newValue === null) return
-  if (JSON.stringify(newValue) === JSON.stringify(oldValue)) return
-  if (rule['.validate'] && !evaluate(rule['.validate'], newValue, oldValue, vars)) errors.push(path)
+  if (!validateUnchanged && JSON.stringify(newValue) === JSON.stringify(oldValue)) return
+  if (rule['.validate'] && !evaluate(rule['.validate'], newRoot, oldRoot, path, vars)) errors.push(['users', vars.$uid, ...path].join('/'))
   if (!newValue || typeof newValue !== 'object') return
   const wildcard = Object.keys(rule).find(key => key.startsWith('$'))
   for (const key of Object.keys(newValue)) {
@@ -77,17 +85,17 @@ function validateNode(rule, newValue, oldValue, vars, path, errors) {
       childRule = rule[wildcard]
       childVars = { ...vars, [wildcard]: key }
     }
-    if (childRule && typeof childRule === 'object') validateNode(childRule, newValue[key], oldValue?.[key], childVars, `${path}/${key}`, errors)
+    if (childRule && typeof childRule === 'object') validateNode(childRule, newRoot, oldRoot, [...path, key], childVars, errors, validateUnchanged)
   }
 }
 
-export function validateUserNodeWrite(uid, before, after) {
+export function validateUserNodeWrite(uid, before, after, { validateUnchanged = false } = {}) {
   const errors = []
-  validateNode(USER_RULES, after, before, { $uid: uid }, `users/${uid}`, errors)
+  validateNode(USER_RULES, after, before, [], { $uid: uid }, errors, validateUnchanged)
   return errors
 }
 
-export function createFakeProgressDatabase(initialRoot = {}) {
+export function createFakeProgressDatabase(initialRoot = {}, { validateUnchanged = false } = {}) {
   const root = prune(clone(initialRoot)) ?? {}
   const reads = []
   const writes = []
@@ -99,7 +107,7 @@ export function createFakeProgressDatabase(initialRoot = {}) {
     const after = clone(before) ?? {}
     mutateNode(after)
     const pruned = prune(after)
-    const errors = validateUserNodeWrite(uid, before, pruned)
+    const errors = validateUserNodeWrite(uid, before, pruned, { validateUnchanged })
     if (errors.length) {
       throw Object.assign(new Error(`PERMISSION_DENIED: ${errors.join(', ')}`), { code: 'PERMISSION_DENIED', errors })
     }
