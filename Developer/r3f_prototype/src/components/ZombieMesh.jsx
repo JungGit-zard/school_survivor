@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef } from 'react'
+import { Suspense, useLayoutEffect, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { runWithTitleIdleRig } from '../lib/titleIdleRig.js'
 import { inflateScale, getCachedBoxGeo, getCachedChamferedBoxGeo, getCachedToonMat, getSharedOutlineMat, getFlashMat } from '../lib/toon.js'
@@ -8,6 +8,9 @@ import { getExpansionVisual } from '../lib/expansionVisuals.js'
 import MatildaMesh from './MatildaMesh.jsx'
 import ProceduralFaceTestZombie from './ProceduralFaceTestZombie.jsx'
 import B10ViceBossMesh from './B10ViceBossMesh.jsx'
+import MiniBossMesh from './MiniBossMesh.jsx'
+import ErrorBoundary from './ErrorBoundary.jsx'
+import { getMiniBossVisual } from '../lib/miniBossRoster.js'
 import StudioTunedGroup, { composeStudioPartPosition, composeStudioPartRotation, composeStudioPartScale } from './StudioTunedGroup.jsx'
 import BossProceduralFace from './BossProceduralFace.jsx'
 import { PROJECTILE_ZOMBIE_PALETTE_ENTRIES } from '../lib/projectileZombieVisuals.js'
@@ -1389,6 +1392,23 @@ export default function ZombieMesh({ type = 'E01', animPhase = 'normal', hitFlas
   // idleRig(타이틀 전용, 선택): 없으면 stepZombieFrame만 그대로 돈다.
   useFrame((state, delta) => runWithTitleIdleRig(idleRig, p.current, stepZombieFrame, state, delta))
 
+  // Stage 5 B10 · Stage 6 B05 보스: Kenney Mini 몸 개조 모델(Terry 2026-11-21 "둘 다 안 A", MiniBossMesh).
+  // 예전 모델(B10ViceBossMesh · 확장 리그 B05)은 지우지 않고, Mini GLB를 읽는 동안·읽기 실패 시 대신 그린다.
+  if (!isMatilda && getMiniBossVisual(type)) {
+    const legacy = type === 'B10'
+      ? <StudioTunedGroup itemId={getStudioZombieItemId('B10')}><B10ViceBossMesh animPhase={animPhase} hitFlash={hitFlash} staticPose={staticPose} /></StudioTunedGroup>
+      : <ExpansionZombieMesh type={type} animPhase={animPhase} hitFlash={hitFlash} staticPose={staticPose} />
+    return (
+      <ErrorBoundary fallback={legacy}>
+        <Suspense fallback={legacy}>
+          <StudioTunedGroup itemId={getMiniBossVisual(type).studioItemId}>
+            <MiniBossMesh type={type} animPhase={animPhase} hitFlash={hitFlash} staticPose={staticPose} />
+          </StudioTunedGroup>
+        </Suspense>
+      </ErrorBoundary>
+    )
+  }
+
   if (!isMatilda && getExpansionVisual(type)) {
     return <ExpansionZombieMesh type={type} animPhase={animPhase} hitFlash={hitFlash} staticPose={staticPose} />
   }
@@ -1455,8 +1475,8 @@ export default function ZombieMesh({ type = 'E01', animPhase = 'normal', hitFlas
     )
   }
 
-  // B10 교감 좀비: 자체 포즈 애니메이션(normal/warn/stun)을 돌린다. reg를 넘기지 않으므로
-  // 위 공용 stepZombieFrame은 legL이 없어 즉시 반환한다.
+  // B10 교감 좀비(예전 블록 모델): 위 Mini 보스 분기가 먼저 받는다. 이 분기는 Mini 보스 표에서 B10을 빼면 다시 쓰인다.
+  // 자체 포즈 애니메이션(normal/warn/stun)을 돌린다. reg를 넘기지 않으므로 위 공용 stepZombieFrame은 legL이 없어 즉시 반환한다.
   if (type === 'B10') {
     return (
       <StudioTunedGroup itemId={getStudioZombieItemId('B10')}>

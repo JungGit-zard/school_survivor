@@ -297,6 +297,56 @@
       "conversion": "scripts/build_schoolyard_ground_textures.mjs (see PROVENANCE.json): grass.jpg = Grass004 colour photo, 512x512 sRGB JPEG q80; track/sand/paving/kerb = luminance, blur, soft posterise, 256x256 grayscale JPEG",
       "changes": "2026-11-21: Stage 6 field floor (pitch, surround, outfield) switched to the Grass004 colour map grass.jpg (Terry picked Grass004); grayscale detail maps turf.jpg (Grass001), outfield.jpg (Grass004) and dirt.jpg (Ground048) removed as unused; track/sand/paving/kerb maps unchanged byte for byte.",
       "attribution": "ambientCG / Lennart Demes (optional under CC0)"
+    },
+    {
+      "logicalId": "kenneyMiniBossesB10B05",
+      "category": "bosses",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/src/lib/miniBossProps.data.js",
+          "bytes": 19533,
+          "sha256": "111d36312f23fc4cf13bbda53e5dcc53c3ff83802296314154be7be8fe18d6b9"
+        }
+      ],
+      "provenanceType": "third-party-cc0",
+      "source": "Bodies: Kenney Mini Characters (2.0) male-a (B10 교감) and male-d (B05 교장), already baked into Developer/r3f_prototype/src/assets/models/kenney_mini/mini_zombies_kenney.glb (entry kenneyMiniCharactersNovel2Zombies; GLB unchanged, sha256 736b00e2...b3439e). Props in miniBossProps.data.js: original project-authored procedural boxes/rings/balls (stamp, attendance ledger, desk bell, comb-over strips, horn-rim bar, shirt V, collar, lanyard, ID card, round glasses, hand mic, medal, whistle), no third-party geometry.",
+      "license": "CC0 1.0 Universal (Creative Commons Zero), http://creativecommons.org/publicdomain/zero/1.0/ (bodies); props are our own work",
+      "licenseEvidence": "Same as kenneyMiniCharactersNovel2Zombies (License.txt + PROVENANCE.json next to the GLB)",
+      "snapshotDate": "2026-11-14",
+      "conversion": "Runtime only (lib/miniBossGeometry.js): per-triangle palette-cell remap onto the 52 slots already in the GLB atlas, arm rest tilt, boss part scale, props merged into the part geometry. Props exported from the Blender 5.2 build in Developer/r3f_prototype/scripts/mini_boss/ (export_props.py). Option B (Graveyard Kit vampire / male-b) is archived, not shipped: Developer/agent_room/boss_remodel_20261121/option_b/.",
+      "bodies": [
+        "male-a",
+        "male-d"
+      ],
+      "props": [
+        "stampHandle",
+        "stampHead",
+        "stampInk",
+        "ledgerCover",
+        "ledgerPages",
+        "bellBase",
+        "bellDome",
+        "backHair",
+        "comb0",
+        "comb1",
+        "comb2",
+        "hornRim",
+        "sideHair",
+        "collar",
+        "idCard",
+        "lanyardL",
+        "lanyardR",
+        "shirtV_L",
+        "shirtV_R",
+        "micHandle",
+        "micHead",
+        "glass",
+        "glassBridge",
+        "medal",
+        "medalRibbon",
+        "whistle"
+      ],
+      "attribution": "Kenney, www.kenney.nl (optional under CC0)"
     }
   ]
 }
