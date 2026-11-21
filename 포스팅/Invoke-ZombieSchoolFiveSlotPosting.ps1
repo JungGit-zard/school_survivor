@@ -345,7 +345,16 @@ function Invoke-SerializedPublishOnlyCycle {
       if(-not [string]::IsNullOrWhiteSpace($StopAtKst)){$windowArgs+=@('-StopAtKst',$StopAtKst)}
       $null=Invoke-JsonRunner -ScriptPath $FacebookActionRunnerPath -Arguments (@('-Action','OpenProfile')+$windowArgs) -Name "Facebook $language profile"
       if($entry.state -eq 'selected'){
-        foreach($action in @('OpenComposer','TypeText','AttachImage','VerifyDraft')){$null=Invoke-JsonRunner -ScriptPath $FacebookActionRunnerPath -Arguments (@('-Action',$action)+$windowArgs) -Name "Facebook $language $action";if($action -ceq 'OpenComposer'){$draftOpened=$true}}
+        # 2026-11-21 (Terry): link post with the per-image card first; if the card or its preview
+        # is unavailable, the same composer falls back to the photo post so the slot still posts.
+        $linkPrepared=$false
+        try {
+          $null=Invoke-JsonRunner -ScriptPath $FacebookActionRunnerPath -Arguments (@('-Action','OpenComposer')+$windowArgs) -Name "Facebook $language OpenComposer";$draftOpened=$true
+          $null=Invoke-JsonRunner -ScriptPath $FacebookActionRunnerPath -Arguments (@('-Action','TypeLinkText')+$windowArgs) -Name "Facebook $language TypeLinkText"
+          $null=Invoke-JsonRunner -ScriptPath $FacebookActionRunnerPath -Arguments (@('-Action','VerifyLinkDraft')+$windowArgs) -Name "Facebook $language VerifyLinkDraft"
+          $linkPrepared=$true
+        } catch { if(-not $draftOpened -or $_.Exception.Message -notmatch 'LINK_CARD_UNAVAILABLE|LINK_PREVIEW_TIMEOUT'){throw};$draftCleanups += [pscustomobject]@{platform='facebook';language=$language;linkFallbackToPhoto=($_.Exception.Message -replace '(?s)^.*?(LINK_(?:CARD_UNAVAILABLE|PREVIEW_TIMEOUT)[^_<\r\n]{0,160}).*$','$1')} }
+        if(-not $linkPrepared){foreach($action in @('TypeText','AttachImage','VerifyDraft')){$null=Invoke-JsonRunner -ScriptPath $FacebookActionRunnerPath -Arguments (@('-Action',$action)+$windowArgs) -Name "Facebook $language $action"}}
       } else {
         $null=Invoke-JsonRunner -ScriptPath $FacebookActionRunnerPath -Arguments (@('-Action','ResumeOwnDraft')+$windowArgs) -Name "Facebook $language resume draft"
         $null=Invoke-JsonRunner -ScriptPath $FacebookActionRunnerPath -Arguments (@('-Action','VerifyDraft')+$windowArgs) -Name "Facebook $language verify resumed draft"

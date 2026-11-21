@@ -156,12 +156,68 @@ function ConvertFrom-FacebookPostTree([string]$Tree,[string]$Permalink,[string]$
   if($photos.Count -ne 1){throw "Scoped post requires exactly one photo evidence node; found $($photos.Count)"}
   [pscustomobject]@{permalink=$canonical;text=$ExpectedText;attachmentCount=1;audience='Friends';author='Hyun Uk Jung';observedTreeSha256=(Get-FacebookSha256 $scope);verifiedUtc=[DateTimeOffset]::UtcNow.ToString('o')}
 }
-function Add-FacebookPublishIntent($Receipt, [string]$Language, $Intent, [string]$Path) {
+function Add-FacebookPublishIntent($Receipt, [string]$Language, $Intent, [string]$Path, [string]$PostFormat = '', [string]$CardUrl = '') {
   $entry = $Receipt.entries.$Language
   if ($null -ne $entry -and $entry.state -eq 'publish_intent') { throw "UNCERTAIN ${Language}: an earlier Post click exists; verify it before any further click" }
   if ($null -ne $entry -and $entry.state -eq 'verified') { throw "$Language is already verified; no second post" }
   $Receipt.entries.$Language = [pscustomobject]@{ state='publish_intent'; intent=$Intent; evidence=$null; publishIntentUtc=[DateTimeOffset]::UtcNow.ToString('o') }
+  if ($PostFormat -ceq 'link_card') { $Receipt.entries.$Language | Add-Member -NotePropertyName postFormat -NotePropertyValue $PostFormat; $Receipt.entries.$Language | Add-Member -NotePropertyName cardUrl -NotePropertyValue $CardUrl }
   Save-FacebookReceipt $Receipt $Path
+}
+
+# 2026-11-21 (Terry): Facebook posts are link posts. The frozen intent (text, image, SHA) is
+# unchanged so selection, no-reuse and canonical checks stay exactly as before; the composer
+# text swaps the plain game URL for the per-image X website card URL (same UTM), and no photo
+# is uploaded. Facebook builds the large preview from the card's og:image. If the card or its
+# preview is unavailable the same slot falls back to the photo post.
+$script:FacebookLinkCardEnabled = $true
+$script:FacebookLinkCardBaseUrl = 'https://escapezombie.com'
+$script:FacebookLinkPreviewTimeoutSeconds = 25
+function Get-FacebookEntryPostFormat($Entry) {
+  if ($null -ne $Entry -and $Entry.PSObject.Properties.Name -contains 'postFormat') { return [string]$Entry.postFormat }
+  'photo'
+}
+function Get-FacebookCampaignQuery([string]$Language) { '?utm_source=fb&utm_medium=social&utm_campaign=daily_' + $Language }
+function Get-FacebookCardUrl($Intent) {
+  $language = [string]$Intent.language; $sha = [string]$Intent.imageSha256
+  if ($language -notin $script:FacebookLanguages) { throw 'Link card requires a known intent language' }
+  if ($sha -notmatch '^[0-9a-f]{64}$') { throw 'Link card requires the frozen lowercase image SHA-256' }
+  $script:FacebookLinkCardBaseUrl.TrimEnd('/') + '/share/x/' + $language + '/' + $sha.Substring(0, 16)
+}
+function Get-FacebookLinkPostText($Intent) {
+  $language = [string]$Intent.language; $text = [string]$Intent.text
+  $gameUrl = 'https://escapezombie.com/' + (Get-FacebookCampaignQuery $language)
+  if ([regex]::Matches($text, [regex]::Escape($gameUrl)).Count -ne 1) { throw 'LINK_CARD_UNAVAILABLE: frozen copy does not contain its campaign game URL exactly once' }
+  $linkText = $text.Replace($gameUrl, (Get-FacebookCardUrl $Intent) + (Get-FacebookCampaignQuery $language))
+  if (-not $linkText.Contains($script:FacebookPlayUrl)) { throw 'Link post copy lost its Play URL' }
+  $linkText
+}
+function Test-FacebookLinkCardHtml([string]$Html, [string]$CardUrl) {
+  $meta = @{}
+  foreach ($tag in [regex]::Matches($Html, '<meta\b[^>]*>', [Text.RegularExpressions.RegexOptions]::IgnoreCase)) {
+    $attributes = @{}
+    foreach ($attribute in [regex]::Matches($tag.Value, '(?<name>[\w:-]+)\s*=\s*(?:"(?<double>[^"]*)"|''(?<single>[^'']*)'')')) {
+      $value = if ($attribute.Groups['double'].Success) { $attribute.Groups['double'].Value } else { $attribute.Groups['single'].Value }
+      $attributes[$attribute.Groups['name'].Value.ToLowerInvariant()] = [Net.WebUtility]::HtmlDecode($value)
+    }
+    if ($attributes.ContainsKey('property') -and $attributes.ContainsKey('content')) { $meta[[string]$attributes['property']] = [string]$attributes['content'] }
+  }
+  $path = ([uri]$CardUrl).AbsolutePath
+  $okUrls = @($CardUrl, ('https://media.escapezombie.com' + $path))
+  $okImages = @(($CardUrl + '.png'), ('https://media.escapezombie.com' + $path + '.png'))
+  return ($meta.ContainsKey('og:url') -and $okUrls -ccontains $meta['og:url'] -and $meta.ContainsKey('og:image') -and $okImages -ccontains $meta['og:image'])
+}
+function Assert-FacebookLinkCardPublished([string]$CardUrl) {
+  if ($CardUrl -notmatch '^https://escapezombie\.com/share/x/(ko|en|ja|vi)/[0-9a-f]{16}$') { throw 'LINK_CARD_UNAVAILABLE: card URL is not an exact locale/hash card' }
+  try { $response = Invoke-WebRequest -Uri $CardUrl -UseBasicParsing -TimeoutSec 20 } catch { throw "LINK_CARD_UNAVAILABLE: card page is not reachable: $($_.Exception.Message)" }
+  if ([int]$response.StatusCode -ne 200) { throw "LINK_CARD_UNAVAILABLE: card page returned HTTP $($response.StatusCode)" }
+  if (-not (Test-FacebookLinkCardHtml ([string]$response.Content) $CardUrl)) { throw 'LINK_CARD_UNAVAILABLE: card page og:url/og:image do not match the exact card' }
+}
+function Assert-FacebookLinkDraft($Intent, [string]$ObservedText, [string]$ObservedAudience, [bool]$PreviewSeen) {
+  if (-not (Test-FacebookIntent $Intent)) { throw 'Invalid frozen post intent' }
+  if ((Normalize-FacebookText $ObservedText) -cne (Normalize-FacebookText (Get-FacebookLinkPostText $Intent))) { throw 'Link draft text must exactly match the frozen copy with its card URL' }
+  if (-not $PreviewSeen) { throw 'LINK_PREVIEW_TIMEOUT: link preview is not visible in the composer' }
+  if ($ObservedAudience -cne 'Friends') { throw 'Audience must remain Friends; public expansion is forbidden' }
 }
 function Complete-FacebookVerification($Receipt, [string]$Language, $Evidence, [string]$Path) {
   $entry = $Receipt.entries.$Language

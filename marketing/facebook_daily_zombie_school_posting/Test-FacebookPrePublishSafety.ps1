@@ -48,7 +48,7 @@ $composer=@'
   $script:events=[Collections.Generic.List[string]]::new()
   function Add-FacebookPublishIntent { $script:events.Add('intent') }
   function Invoke-FacebookPublishNative { $script:events.Add('native');[pscustomobject]@{clickedUtc='fixture'} }
-  $receipt=@{};$Language='en';$entry=[pscustomobject]@{intent=@{}};$path='fixture';$WindowId=1
+  $receipt=@{};$Language='en';$entry=[pscustomobject]@{intent=@{}};$path='fixture';$WindowId=1;$postFormat='photo';$cardUrl=''
   $StopAtKst=[DateTimeOffset]::UtcNow.AddMinutes(-1).ToString('o')
   Assert-Throws { & $boundary } 'expired final cutoff rejects publish'
   Assert-True ($script:events.Count -eq 0) 'expired cutoff writes no intent and invokes no native click'
@@ -118,4 +118,33 @@ $composer=@'
     Assert-Throws {& $cancelAction} "actual CancelOwnDraft action rejects $state before native cleanup"
   }
 }
+# 2026-11-21: link-card posts with photo fallback.
+. (Join-Path $PSScriptRoot 'FacebookNative.ps1')
+$linkIntent=[pscustomobject]@{language='ko';imageSha256='71d1066e05b4c48ba17b9180a18ac3561f2ddaaa3cadf647ee03cf08293fb4b7';text="intro`nhttps://escapezombie.com/?utm_source=fb&utm_medium=social&utm_campaign=daily_ko`nplay ->`n$($script:FacebookPlayUrl)`n#tag"}
+$cardUrl=Get-FacebookCardUrl $linkIntent
+Assert-True ($cardUrl -ceq 'https://escapezombie.com/share/x/ko/71d1066e05b4c48b') 'card URL is the X website card for the frozen image hash and language'
+$linkText=Get-FacebookLinkPostText $linkIntent
+Assert-True ($linkText.Contains($cardUrl+'?utm_source=fb&utm_medium=social&utm_campaign=daily_ko') -and -not $linkText.Contains('https://escapezombie.com/?utm_source') -and $linkText.Contains($script:FacebookPlayUrl)) 'link copy swaps only the game URL for the card URL and keeps fb UTM and the Play URL'
+Assert-Throws { Get-FacebookLinkPostText ([pscustomobject]@{language='ko';imageSha256=$linkIntent.imageSha256;text='no game url here'}) } 'link copy refuses a frozen text without its campaign game URL'
+Assert-Throws { Get-FacebookCardUrl ([pscustomobject]@{language='ko';imageSha256='ABC'}) } 'card URL requires the full lowercase image hash'
+$cardHtml='<meta property="og:url" content="https://escapezombie.com/share/x/ko/71d1066e05b4c48b"><meta property="og:image" content="https://escapezombie.com/share/x/ko/71d1066e05b4c48b.png">'
+Assert-True (Test-FacebookLinkCardHtml $cardHtml $cardUrl) 'published card page with exact og:url and og:image is accepted'
+Assert-True (-not (Test-FacebookLinkCardHtml ($cardHtml -replace '71d1066e05b4c48b\.png','0000000000000000.png') $cardUrl)) 'card page whose og:image is another image is rejected'
+Assert-True (-not (Test-FacebookLinkCardHtml '<html></html>' $cardUrl)) 'card page without og tags is rejected'
+Assert-Throws { Assert-FacebookLinkCardPublished 'https://evil.example/share/x/ko/71d1066e05b4c48b' } 'only exact escapezombie card URLs are fetched'
+Assert-True ((Test-FacebookLinkPreviewSignal 'Text' 'ESCAPEZOMBIE.COM' '' '/share/x/ko/71d1066e05b4c48b') -and (Test-FacebookLinkPreviewSignal 'Hyperlink' 'x' 'https://l.facebook.com/l.php?u=https%3A%2F%2Fescapezombie.com%2Fshare%2Fx%2Fko%2F71d1066e05b4c48b' '/share/x/ko/71d1066e05b4c48b') -and (Test-FacebookLinkPreviewSignal 'Button' 'Remove link preview' '' '/share/x/ko/71d1066e05b4c48b')) 'preview is recognised by domain label, card hyperlink, or remove-preview button'
+Assert-True (-not (Test-FacebookLinkPreviewSignal 'Text' 'Hyun Uk Jung' '' '/share/x/ko/71d1066e05b4c48b') -and -not (Test-FacebookLinkPreviewSignal 'Hyperlink' 'x' 'https://escapezombie.com/share/x/ko/0000000000000000' '/share/x/ko/71d1066e05b4c48b')) 'unrelated nodes and other cards are not a preview'
+Assert-True ((Get-FacebookEntryPostFormat ([pscustomobject]@{state='prepared'})) -ceq 'photo' -and (Get-FacebookEntryPostFormat ([pscustomobject]@{state='prepared';postFormat='link_card'})) -ceq 'link_card') 'entries without a post format stay photo posts'
+$invokeSource=Get-Content -LiteralPath (Join-Path $PSScriptRoot 'Invoke-FacebookDailyZombieSchoolPosting.ps1') -Raw -Encoding UTF8
+$publishClause=[regex]::Match($invokeSource,"(?s)'PublishOnce' \{.*?\r?\n  \}").Value
+Assert-True ($publishClause.IndexOf("Add-FacebookPublishIntent `$receipt `$Language `$entry.intent `$path `$postFormat `$cardUrl") -ge 0 -and $publishClause.IndexOf('Add-FacebookPublishIntent') -lt $publishClause.IndexOf('Invoke-FacebookPublishNative') -and $publishClause -match 'Assert-FacebookLinkDraft' -and $publishClause -match 'Assert-PostingIntentImageSequence') 'link PublishOnce re-proves the link draft, keeps the image sequence check, and persists publish_intent with its card before the one click'
+$linkVerifyClause=[regex]::Match($invokeSource,"(?s)'VerifyLinkDraft' \{.*?\r?\n  \}").Value
+Assert-True ($linkVerifyClause -match 'Wait-FacebookLinkPreviewNative' -and $linkVerifyClause -match "state -cne 'selected'" -and $linkVerifyClause -match "postFormat -NotePropertyValue 'link_card'" -and $linkVerifyClause -notmatch 'Invoke-FacebookPublishNative') 'link draft is prepared only after the preview renders and never clicks Post'
+$typeLinkClause=[regex]::Match($invokeSource,"(?s)'TypeLinkText' \{.*?\r?\n  \}").Value
+Assert-True ($typeLinkClause.IndexOf('Assert-FacebookLinkCardPublished') -ge 0 -and $typeLinkClause.IndexOf('Assert-FacebookLinkCardPublished') -lt $typeLinkClause.IndexOf('Set-FacebookComposerTextNative')) 'card page is checked before any link copy is typed'
+$tmpReceipt=[pscustomobject]@{entries=[pscustomobject]@{ko=$null}};$tmpPath=Join-Path ([IO.Path]::GetTempPath()) ('fb-link-intent-'+[guid]::NewGuid().ToString('N')+'.json')
+try{Add-FacebookPublishIntent $tmpReceipt 'ko' $linkIntent $tmpPath 'link_card' $cardUrl;$saved=Get-Content -LiteralPath $tmpPath -Raw|ConvertFrom-Json;Assert-True ($saved.entries.ko.state -ceq 'publish_intent' -and $saved.entries.ko.postFormat -ceq 'link_card' -and $saved.entries.ko.cardUrl -ceq $cardUrl) 'link publish_intent records its format and card URL';Assert-Throws {Add-FacebookPublishIntent $saved 'ko' $linkIntent $tmpPath 'link_card' $cardUrl} 'a second link publish_intent for the same language is refused'}finally{Remove-Item -LiteralPath $tmpPath -ErrorAction SilentlyContinue}
+$orchestratorPath=@(Get-ChildItem -LiteralPath ([IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..'))) -Directory|ForEach-Object{Join-Path $_.FullName 'Invoke-ZombieSchoolFiveSlotPosting.ps1'}|Where-Object{Test-Path -LiteralPath $_})[0]
+$orchestratorSource=Get-Content -LiteralPath $orchestratorPath -Raw -Encoding UTF8
+Assert-True ($orchestratorSource -match "'TypeLinkText'" -and $orchestratorSource -match "'VerifyLinkDraft'" -and $orchestratorSource -match 'LINK_CARD_UNAVAILABLE\|LINK_PREVIEW_TIMEOUT' -and $orchestratorSource -match "foreach\(\`$action in @\('TypeText','AttachImage','VerifyDraft'\)\)") 'orchestrator tries the link post and falls back to the photo post in the same composer only on card/preview failures'
 'FACEBOOK_PREPUBLISH_SAFETY_TEST_OK'

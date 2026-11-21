@@ -1,6 +1,6 @@
 ﻿[CmdletBinding()]
 param(
-[Parameter(Mandatory=$true)][ValidateSet('InspectPair','SelectSourcePair','DiscoverWindow','OpenProfile','OpenProfileNewTab','CloseDuplicateProfileTab','RecoverStorageWarning','ProfileReadinessDiagnostics','FeedCandidateDiagnostics','FindExistingPost','OpenExactPost','ReadState','OpenComposer','ResumeOwnDraft','TypeText','AttachImage','VerifyDraft','PublishOnce','OpenNewestPost','VerifyPost','ClosePost','CancelOwnDraft','FullCycleResumeSafe')][string]$Action,
+[Parameter(Mandatory=$true)][ValidateSet('InspectPair','SelectSourcePair','DiscoverWindow','OpenProfile','OpenProfileNewTab','CloseDuplicateProfileTab','RecoverStorageWarning','ProfileReadinessDiagnostics','FeedCandidateDiagnostics','FindExistingPost','OpenExactPost','ReadState','OpenComposer','ResumeOwnDraft','TypeText','TypeLinkText','VerifyLinkDraft','AttachImage','VerifyDraft','PublishOnce','OpenNewestPost','VerifyPost','ClosePost','CancelOwnDraft','FullCycleResumeSafe')][string]$Action,
   [Parameter(Mandatory=$true)][string]$RunId,
   [ValidateSet('ja','en','vi','ko')][string]$Language,
   [string]$ReceiptDirectory,
@@ -84,10 +84,37 @@ switch ($Action) {
     exit 0
   }
   'OpenComposer' { $result=Open-FacebookComposerNative $WindowId;$w=Get-FacebookChromeWindow $WindowId;$null=Assert-FacebookComposerTree (Get-FacebookOrcaTree $w.Current.ProcessId $WindowId).tree;$result | ConvertTo-Json;exit 0 }
-  'ResumeOwnDraft' { $entry=$receipt.entries.$Language;if($null -eq $entry -or $entry.state -notin @('selected','prepared')){throw 'Resume requires a frozen selected or prepared draft intent'};Assert-FacebookCanonicalIntent $config $entry.intent;Resume-FacebookOwnDraftNative $entry.intent.text $WindowId|ConvertTo-Json;exit 0 }
-  'TypeText' { $entry=$receipt.entries.$Language;if($null -eq $entry){throw 'Select source pair before typing'};Assert-FacebookCanonicalIntent $config $entry.intent;$w=Get-FacebookChromeWindow $WindowId;$null=Assert-FacebookComposerTree (Get-FacebookOrcaTree $w.Current.ProcessId $WindowId).tree;Set-FacebookComposerTextNative $entry.intent.text $WindowId;Get-FacebookDraftNative $WindowId|ConvertTo-Json;exit 0 }
+  'ResumeOwnDraft' { $entry=$receipt.entries.$Language;if($null -eq $entry -or $entry.state -notin @('selected','prepared')){throw 'Resume requires a frozen selected or prepared draft intent'};Assert-FacebookCanonicalIntent $config $entry.intent;$resumeText=if((Get-FacebookEntryPostFormat $entry) -ceq 'link_card'){Get-FacebookLinkPostText $entry.intent}else{$entry.intent.text};Resume-FacebookOwnDraftNative $resumeText $WindowId|ConvertTo-Json;exit 0 }
+  'TypeText' {
+    $entry=$receipt.entries.$Language;if($null -eq $entry){throw 'Select source pair before typing'};Assert-FacebookCanonicalIntent $config $entry.intent;$w=Get-FacebookChromeWindow $WindowId;$null=Assert-FacebookComposerTree (Get-FacebookOrcaTree $w.Current.ProcessId $WindowId).tree
+    # Photo fallback after a link attempt: only the exact frozen link copy may be replaced.
+    $replaceable='';if($entry.state -ceq 'selected'){try{$replaceable=Get-FacebookLinkPostText $entry.intent}catch{$replaceable=''}}
+    Set-FacebookComposerTextNative $entry.intent.text $WindowId $replaceable;Get-FacebookDraftNative $WindowId|ConvertTo-Json;exit 0
+  }
+  'TypeLinkText' {
+    $entry=$receipt.entries.$Language;if($null -eq $entry -or $entry.state -cne 'selected'){throw 'Link copy requires a frozen selected intent'};Assert-FacebookCanonicalIntent $config $entry.intent
+    if(-not $script:FacebookLinkCardEnabled){throw 'LINK_CARD_UNAVAILABLE: link posts are disabled'}
+    $cardUrl=Get-FacebookCardUrl $entry.intent;$linkText=Get-FacebookLinkPostText $entry.intent;Assert-FacebookLinkCardPublished $cardUrl
+    $w=Get-FacebookChromeWindow $WindowId;$null=Assert-FacebookComposerTree (Get-FacebookOrcaTree $w.Current.ProcessId $WindowId).tree
+    Set-FacebookComposerTextNative $linkText $WindowId;[pscustomobject]@{cardUrl=$cardUrl;draft=(Get-FacebookDraftNative $WindowId)}|ConvertTo-Json -Depth 4;exit 0
+  }
+  'VerifyLinkDraft' {
+    $entry=$receipt.entries.$Language;if($null -eq $entry -or $entry.state -cne 'selected'){throw 'Link draft verification requires a frozen selected intent'};Assert-FacebookCanonicalIntent $config $entry.intent
+    $cardUrl=Get-FacebookCardUrl $entry.intent;$linkText=Get-FacebookLinkPostText $entry.intent
+    $preview=Wait-FacebookLinkPreviewNative $cardUrl $script:FacebookLinkPreviewTimeoutSeconds $WindowId
+    $w=Get-FacebookChromeWindow $WindowId;$state=Assert-FacebookComposerTree (Get-FacebookOrcaTree $w.Current.ProcessId $WindowId).tree $linkText
+    Assert-FacebookLinkDraft $entry.intent $state.text $state.audience $preview.previewSeen
+    $entry.state='prepared';$entry|Add-Member -Force -NotePropertyName postFormat -NotePropertyValue 'link_card';$entry|Add-Member -Force -NotePropertyName cardUrl -NotePropertyValue $cardUrl;$entry|Add-Member -Force -NotePropertyName linkTextSha256 -NotePropertyValue (Get-FacebookSha256 $linkText);$entry|Add-Member -Force -NotePropertyName draftVerifiedUtc -NotePropertyValue ([DateTimeOffset]::UtcNow.ToString('o'))
+    Save-FacebookReceipt $receipt $path;[pscustomobject]@{status='link_draft_verified';cardUrl=$cardUrl;previewSignals=@($preview.signals);uiTouched=$false}|ConvertTo-Json -Depth 4;exit 0
+  }
   'AttachImage' { $entry=$receipt.entries.$Language;if($null -eq $entry){throw 'Select source pair before attachment'};Assert-FacebookCanonicalIntent $config $entry.intent;$imagePath=[string]$entry.intent.imagePath;$w=Get-FacebookChromeWindow $WindowId;$null=Assert-FacebookComposerTree (Get-FacebookOrcaTree $w.Current.ProcessId $WindowId).tree $entry.intent.text;if($NativeChooserAlreadyOpen){Complete-FacebookNativeOpenDialog $imagePath $WindowId $OrcaAppId|ConvertTo-Json;exit 0};Attach-FacebookImageNative $imagePath $WindowId $OrcaAppId|ConvertTo-Json;exit 0 }
-  'VerifyDraft' { $entry=$receipt.entries.$Language; if($null -eq $entry -or $entry.state -notin @('selected','prepared')){throw 'Select and freeze the source pair before draft verification'};Assert-FacebookCanonicalIntent $config $entry.intent;$w=Get-FacebookChromeWindow $WindowId;$state=Assert-FacebookComposerTree (Get-FacebookOrcaTree $w.Current.ProcessId $WindowId).tree $entry.intent.text ([IO.Path]::GetFileName($entry.intent.imagePath));Assert-FacebookDraft $entry.intent $state.text $state.attachmentCount $state.audience;$entry.state='prepared';$entry | Add-Member -Force -NotePropertyName draftVerifiedUtc -NotePropertyValue ([DateTimeOffset]::UtcNow.ToString('o'));Save-FacebookReceipt $receipt $path;[pscustomobject]@{status='draft_verified';uiTouched=$false}|ConvertTo-Json;exit 0 }
+  'VerifyDraft' { $entry=$receipt.entries.$Language; if($null -eq $entry -or $entry.state -notin @('selected','prepared')){throw 'Select and freeze the source pair before draft verification'};Assert-FacebookCanonicalIntent $config $entry.intent
+    if((Get-FacebookEntryPostFormat $entry) -ceq 'link_card'){
+      $linkText=Get-FacebookLinkPostText $entry.intent;$cardUrl=Get-FacebookCardUrl $entry.intent;if([string]$entry.cardUrl -cne $cardUrl){throw 'Prepared link draft is bound to a different card URL'}
+      $preview=Wait-FacebookLinkPreviewNative $cardUrl $script:FacebookLinkPreviewTimeoutSeconds $WindowId;$w=Get-FacebookChromeWindow $WindowId;$state=Assert-FacebookComposerTree (Get-FacebookOrcaTree $w.Current.ProcessId $WindowId).tree $linkText
+      Assert-FacebookLinkDraft $entry.intent $state.text $state.audience $preview.previewSeen;$entry|Add-Member -Force -NotePropertyName draftVerifiedUtc -NotePropertyValue ([DateTimeOffset]::UtcNow.ToString('o'));Save-FacebookReceipt $receipt $path;[pscustomobject]@{status='link_draft_verified';uiTouched=$false}|ConvertTo-Json;exit 0
+    }
+    $w=Get-FacebookChromeWindow $WindowId;$state=Assert-FacebookComposerTree (Get-FacebookOrcaTree $w.Current.ProcessId $WindowId).tree $entry.intent.text ([IO.Path]::GetFileName($entry.intent.imagePath));Assert-FacebookDraft $entry.intent $state.text $state.attachmentCount $state.audience;$entry.state='prepared';$entry | Add-Member -Force -NotePropertyName draftVerifiedUtc -NotePropertyValue ([DateTimeOffset]::UtcNow.ToString('o'));Save-FacebookReceipt $receipt $path;[pscustomobject]@{status='draft_verified';uiTouched=$false}|ConvertTo-Json;exit 0 }
   'PublishOnce' {
     if(-not $AuthorizePublish){throw 'Publish is a live external mutation: rerun only with explicit -AuthorizePublish'}
     if(-not [string]::IsNullOrWhiteSpace($StopAtKst) -and [DateTimeOffset]::UtcNow.ToOffset([TimeSpan]::FromHours(9)) -ge [DateTimeOffset]::Parse($StopAtKst,[Globalization.CultureInfo]::InvariantCulture)){throw 'SCHEDULE_CUTOFF: KST cutoff reached before Facebook PublishOnce.'}
@@ -95,11 +122,19 @@ switch ($Action) {
     $receipt=Get-Content -LiteralPath $path -Raw -Encoding UTF8 | ConvertFrom-Json
     $entry=$receipt.entries.$Language;if($null -eq $entry -or $entry.state -ne 'prepared'){throw 'Publish requires a persisted prepared draft'}
     Assert-FacebookCanonicalIntent $config $entry.intent
-    $w=Get-FacebookChromeWindow $WindowId;$fresh=Assert-FacebookComposerTree (Get-FacebookOrcaTree $w.Current.ProcessId $WindowId).tree $entry.intent.text ([IO.Path]::GetFileName($entry.intent.imagePath));Assert-FacebookDraft $entry.intent $fresh.text $fresh.attachmentCount $fresh.audience
+    $postFormat=Get-FacebookEntryPostFormat $entry;$cardUrl=''
+    $w=Get-FacebookChromeWindow $WindowId
+    if($postFormat -ceq 'link_card'){
+      $cardUrl=Get-FacebookCardUrl $entry.intent;if([string]$entry.cardUrl -cne $cardUrl){throw 'Prepared link draft is bound to a different card URL'}
+      $linkText=Get-FacebookLinkPostText $entry.intent;$fresh=Assert-FacebookComposerTree (Get-FacebookOrcaTree $w.Current.ProcessId $WindowId).tree $linkText
+      Assert-FacebookLinkDraft $entry.intent $fresh.text $fresh.audience (@(Get-FacebookLinkPreviewSignals $w $cardUrl).Count -gt 0)
+    } else {
+      $fresh=Assert-FacebookComposerTree (Get-FacebookOrcaTree $w.Current.ProcessId $WindowId).tree $entry.intent.text ([IO.Path]::GetFileName($entry.intent.imagePath));Assert-FacebookDraft $entry.intent $fresh.text $fresh.attachmentCount $fresh.audience
+    }
     . (Join-Path $PSScriptRoot '..\x_daily_zombie_school_posting\PostingVariant.ps1')
     Assert-PostingIntentImageSequence $config $Language $RunId $ReceiptDirectory $entry.intent Facebook | Out-Null
     if(-not [string]::IsNullOrWhiteSpace($StopAtKst) -and [DateTimeOffset]::UtcNow.ToOffset([TimeSpan]::FromHours(9)) -ge [DateTimeOffset]::Parse($StopAtKst,[Globalization.CultureInfo]::InvariantCulture)){throw 'SCHEDULE_CUTOFF: KST cutoff reached before Facebook native Publish click.'}
-    Add-FacebookPublishIntent $receipt $Language $entry.intent $path
+    Add-FacebookPublishIntent $receipt $Language $entry.intent $path $postFormat $cardUrl
     $click=Invoke-FacebookPublishNative $WindowId
     [pscustomobject]@{status='uncertain_requires_VerifyPost';receiptPath=$path;publishClick=$click}|ConvertTo-Json -Depth 6
     exit 0
@@ -107,6 +142,6 @@ switch ($Action) {
   'OpenNewestPost' { $entry=$receipt.entries.$Language;if($null -eq $entry){throw 'No frozen post intent'};Assert-FacebookCanonicalIntent $config $entry.intent;$url=Open-FacebookNewestPostNative $entry.intent.text ([IO.Path]::GetFileName($entry.intent.imagePath)) $WindowId;[pscustomobject]@{status='opened_current_visible_post';permalink=$url}|ConvertTo-Json -Compress;exit 0 }
   'VerifyPost' { $entry=$receipt.entries.$Language;if($null -eq $entry -or $entry.state -ne 'publish_intent'){throw 'Verification requires a persisted publish intent'};if([string]::IsNullOrWhiteSpace($Permalink)){throw 'Permalink is required; ambiguous results must not be marked verified'};$w=Get-FacebookChromeWindow $WindowId;$tree=(Get-FacebookOrcaTree $w.Current.ProcessId $WindowId).tree;$evidence=Get-FacebookPostEvidenceFromTree $tree $Permalink $entry.intent.text;Complete-FacebookVerification $receipt $Language $evidence $path;[pscustomobject]@{status='verified';permalink=$Permalink}|ConvertTo-Json;exit 0 }
   'ClosePost' { Close-FacebookPostNative $WindowId;[pscustomobject]@{status='closed'}|ConvertTo-Json;exit 0 }
-  'CancelOwnDraft' { $entry=$receipt.entries.$Language;if($null -eq $entry){throw 'No frozen draft intent'};if($SelectedTextOnly -and $entry.state -cne 'selected'){throw 'Text-only cleanup requires a selected receipt; prepared or publish intents are never cancelled'};Assert-FacebookCanonicalIntent $config $entry.intent;$w=Get-FacebookChromeWindow $WindowId;if(-not $SelectedTextOnly){Assert-FacebookComposerTree (Get-FacebookOrcaTree $w.Current.ProcessId $WindowId).tree $entry.intent.text ([IO.Path]::GetFileName($entry.intent.imagePath))|Out-Null};$cleanup=Cancel-FacebookOwnDraftNative $entry.intent.text ([IO.Path]::GetFileName($entry.intent.imagePath)) $WindowId -SelectedTextOnly:$SelectedTextOnly;[pscustomobject]@{status='cancelled_exact_own_draft';cleanup=$cleanup}|ConvertTo-Json -Depth 5;exit 0 }
+  'CancelOwnDraft' { $entry=$receipt.entries.$Language;if($null -eq $entry){throw 'No frozen draft intent'};if($SelectedTextOnly -and $entry.state -cne 'selected'){throw 'Text-only cleanup requires a selected receipt; prepared or publish intents are never cancelled'};Assert-FacebookCanonicalIntent $config $entry.intent;$w=Get-FacebookChromeWindow $WindowId;if(-not $SelectedTextOnly){Assert-FacebookComposerTree (Get-FacebookOrcaTree $w.Current.ProcessId $WindowId).tree $entry.intent.text ([IO.Path]::GetFileName($entry.intent.imagePath))|Out-Null};$cancelText=[string]$entry.intent.text;if($SelectedTextOnly){try{$linkText=Get-FacebookLinkPostText $entry.intent;if((Normalize-FacebookText (Get-FacebookDraftNative $WindowId).text) -ceq (Normalize-FacebookText $linkText)){$cancelText=$linkText}}catch{}};$cleanup=Cancel-FacebookOwnDraftNative $cancelText ([IO.Path]::GetFileName($entry.intent.imagePath)) $WindowId -SelectedTextOnly:$SelectedTextOnly;[pscustomobject]@{status='cancelled_exact_own_draft';cleanup=$cleanup}|ConvertTo-Json -Depth 5;exit 0 }
 }
 } finally { if($locked){$mutex.ReleaseMutex()};if($null -ne $mutex){$mutex.Dispose()} }
