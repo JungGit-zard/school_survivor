@@ -291,6 +291,16 @@ describe('client: duplicates are never counted, results are never lost', () => {
     expect(db.writes).toEqual([])
   })
 
+  it('an account with no run rows and no summary needs no migration: sign-in writes nothing', async () => {
+    const node = userNode()
+    delete node.ledgerSummary
+    const db = createControllableProgressDatabase({ users: { [UID]: node } })
+    _setFirebaseProgressClientForTests(db)
+    await hydrateCloudProgress(user)
+    await requestCloudProgressSave(user)
+    expect(db.writes).toEqual([])
+  })
+
   it('sign-in returns before a left-over result is written', async () => {
     const db = createControllableProgressDatabase({ users: { [UID]: userNode() } })
     _setFirebaseProgressClientForTests(db)

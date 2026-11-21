@@ -652,6 +652,9 @@ function migrateLedgerSummary(client, uid, path, snapshot) {
   const session = persistenceSession
   const priorRuns = Number.isSafeInteger(snapshot?.ledgerSummary?.runs) && snapshot.ledgerSummary.runs > 0 ? snapshot.ledgerSummary.runs : 0
   const rowCount = snapshot?.runLedger && typeof snapshot.runLedger === 'object' ? Object.keys(snapshot.runLedger).length : 0
+  // Nothing to migrate (no run rows, no prior summary): write nothing. Reading an empty runLedger at the
+  // next sign-in costs nothing, and the first row that appears is migrated then.
+  if (rowCount === 0 && priorRuns === 0 && BOSS_RECORD_KEYS.every(key => !(ledgerBossCounts[key] > 0))) return Promise.resolve(false)
   const summary = {
     compactedBefore: Date.now(),
     runs: priorRuns + rowCount,
