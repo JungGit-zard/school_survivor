@@ -340,6 +340,23 @@ export function listPendingStageResults(uid) {
     .sort((a, b) => a.at - b.at)
 }
 
+// How many times the server refused this result (Terry 2026-11-21: given up after 3). Kept inside the
+// result's own device record (the pending copy, or the live slot when that is the only copy), so the
+// count survives a reload without another storage key. False when no device record holds this run.
+export function noteStageResultRejections(uid, runKey, rejects) {
+  const count = Math.max(0, Math.floor(Number(rejects) || 0))
+  const pending = readPendingStageResult(uid, runKey)
+  if (pending) {
+    const text = JSON.stringify({ ...pending, rejects: count })
+    return text.length <= STAGE_SLOT_MAX_BYTES && writeItem(pendingKey(uid, runKey), text)
+  }
+  const stored = readStoredStageSlot(uid)
+  if (stored?.runKey !== runKey) return false
+  if (live?.runKey === runKey) live.rejects = count
+  const text = JSON.stringify({ ...stored, rejects: count })
+  return text.length <= STAGE_SLOT_MAX_BYTES && writeItem(slotKey(uid), text)
+}
+
 export function removePendingStageResult(uid, runKey) {
   if (typeof uid !== 'string' || !uid || !runKey) return
   removeItem(pendingKey(uid, runKey))

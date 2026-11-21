@@ -17,6 +17,7 @@ import {
   isRunLockHeldHere,
   isStoredSlotFresh,
   listPendingStageResults,
+  noteStageResultRejections,
   readPendingStageResult,
   readStoredStageSlot,
   releaseRunLock,
@@ -173,6 +174,10 @@ const MAX_STAGE_COUNTER_KEYS = 256
 const RUN_KEY_PATTERN = /^[A-Za-z0-9_-]{1,128}$/
 const STAGE_ID_PATTERN = /^stage([1-9]|10)$/
 const MAX_SAVE_REPEATS = 3
+// Terry 2026-11-21: a stage result the server refuses 3 times (per run id, counted across reloads) is
+// given up: its device copy goes, the save warning stops and sign-out is no longer held. Only a server
+// refusal (PERMISSION_DENIED) counts; an offline write just waits in the SDK and never counts.
+const MAX_STAGE_ROW_REJECTS = 3
 
 function createEmptyContribution() {
   return { gold: 0, records: {}, missionCounters: {} }
@@ -250,7 +255,8 @@ export function commitFirebaseStageResult(result, user = cloudUser, { followSave
   // The finished result stays on this device until the server confirms it; the live slot is freed for
   // the next stage, and this tab holds the run's lock so no other tab sends it meanwhile.
   // If the pending copy cannot be stored (quota), the live slot is kept as the device copy instead.
-  if (savePendingStageResult({ ...stage, uid })) clearStoredStageSlot(uid, stage.runKey)
+  const priorRejects = clampInt(result.rejects, MAX_STAGE_ROW_REJECTS)
+  if (savePendingStageResult({ ...stage, uid, ...(priorRejects > 0 ? { rejects: priorRejects } : {}) })) clearStoredStageSlot(uid, stage.runKey)
   holdRunLock(stage.runKey)
 
   // Totals close to a rule ceiling go through the clamping progress transaction instead, so the
@@ -299,6 +305,7 @@ export function commitFirebaseStageResult(result, user = cloudUser, { followSave
     bossKey,
     missionCatalogVersion: runtime.progress.missions.catalogVersion,
     verifyRow: false,
+    rejects: priorRejects,
     // The first attempt also carries this device's run-end changes and profile/activity (one write).
     full: true,
     writing: null,
@@ -318,6 +325,7 @@ export function commitFirebaseStageResult(result, user = cloudUser, { followSave
 function writeStageRow(entry) {
   if (entry.writing) return entry.writing
   const { uid, session, stage, contribution } = entry
+  let refusedByServer = false
   const attempt = writeQueue.catch(() => {}).then(async () => {
     if (!isFirebaseProgressHydrated({ uid }) || persistenceSession !== session) return false
     const client = await getProgressClient()
@@ -371,7 +379,12 @@ function writeStageRow(entry) {
       values['progress/missions/catalogVersion'] = entry.missionCatalogVersion
       values['progress/missions/updatedAt'] ??= now
     }
-    await client.update(`users/${uid}`, values)
+    try {
+      await client.update(`users/${uid}`, values)
+    } catch (error) {
+      refusedByServer = isServerRefusal(error)
+      throw error
+    }
     entry.writtenLeaves = leaves
     entry.writtenTopLevel = topLevelFingerprint
     return true
@@ -384,6 +397,15 @@ function writeStageRow(entry) {
     if (!written) {
       // Kept for retry: amounts stay out of progress transactions, the device slot stays.
       entry.verifyRow = true
+      if (refusedByServer) {
+        entry.rejects += 1
+        if (entry.rejects >= MAX_STAGE_ROW_REJECTS) {
+          giveUpStageRow(entry)
+          // Settled: nothing is left to retry for this run.
+          return true
+        }
+        noteStageResultRejections(uid, stage.runKey, entry.rejects)
+      }
       return false
     }
     pendingStageRows.delete(stage.runKey)
@@ -404,6 +426,28 @@ function writeStageRow(entry) {
   entry.writing = attempt
   writeQueue = attempt
   return attempt
+}
+
+function isServerRefusal(error) {
+  return /permission[_ ]denied/i.test(String(error?.code ?? '')) || /permission[_ ]denied/i.test(String(error?.message ?? ''))
+}
+
+// The server refused this result MAX_STAGE_ROW_REJECTS times: drop it everywhere. Its additive amounts
+// leave memory (and inflightFold) so no other write carries them; the device copy is removed. No cloud
+// write is made for it.
+function giveUpStageRow(entry) {
+  const { uid, stage, contribution, bossKey } = entry
+  pendingStageRows.delete(stage.runKey)
+  addContribution(inflightFold, contribution, -1)
+  const progress = cloneProgress(runtime.progress)
+  addContribution(progress, contribution, -1)
+  runtime = { ...runtime, progress }
+  if (bossKey && ledgerBossCounts?.[bossKey] > 0) ledgerBossCounts[bossKey]--
+  clearStoredStageSlot(uid, stage.runKey)
+  removePendingStageResult(uid, stage.runKey)
+  releaseRunLock(stage.runKey)
+  if (uid === readUserId(cloudUser)) pendingProgressSaveWarning = null
+  console.warn('Firebase stage result was given up after repeated server refusals.', stage.runKey)
 }
 
 async function isRunRowOnServer(client, uid, runKey) {

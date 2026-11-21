@@ -19,9 +19,9 @@ const claimedOf = (ids) => Object.fromEntries(ids.map((id) => [id, { claimedAt: 
 const progressWith = ({ counters = {}, claimed = [] } = {}) => reconcileMissionProgress(createMissionProgressState({ counters, claimed: claimedOf(claimed) }))
 
 describe('mission chain', () => {
-  it('keeps the catalog version and every chain id inside the 30-mission catalog', () => {
+  it('keeps the catalog version and every chain id inside the 32-mission catalog', () => {
     expect(MISSION_CATALOG_VERSION).toBe('missions_2026_08_15_v1')
-    expect(MISSION_CATALOG).toHaveLength(30)
+    expect(MISSION_CATALOG).toHaveLength(32)
     const ids = [...MISSION_CHAIN_START_IDS, ...Object.keys(MISSION_CHAIN_UNLOCKS), ...Object.values(MISSION_CHAIN_UNLOCKS).flat()]
     for (const id of ids) expect(MISSION_BY_ID[id], id).toBeTruthy()
   })
@@ -52,7 +52,7 @@ describe('mission chain', () => {
     expect(isMissionVisible(progress, 'stage3_escape')).toBe(false)
   })
 
-  it('reaches all 30 missions by claiming along the chain', () => {
+  it('reaches all 32 missions by claiming along the chain', () => {
     const claimed = new Set()
     let visible = new Set(getVisibleMissionIds(progressWith()))
     for (let guard = 0; guard < 40; guard += 1) {
@@ -61,8 +61,18 @@ describe('mission chain', () => {
       claimed.add(next)
       visible = new Set(getVisibleMissionIds(progressWith({ claimed: [...claimed] })))
     }
-    expect(visible.size).toBe(30)
-    expect(claimed.size).toBe(30)
+    expect(visible.size).toBe(32)
+    expect(claimed.size).toBe(32)
+  })
+
+  it('chains stage4_escape -> stage5_escape -> stage6_escape', () => {
+    expect(MISSION_CHAIN_PREREQUISITES.stage5_escape).toEqual(['stage4_escape'])
+    expect(MISSION_CHAIN_PREREQUISITES.stage6_escape).toEqual(['stage5_escape'])
+    expect(isMissionVisible(progressWith({ claimed: ['stage3_escape'] }), 'stage5_escape')).toBe(false)
+    const after4 = progressWith({ claimed: ['stage3_escape', 'stage4_escape'] })
+    expect(isMissionVisible(after4, 'stage5_escape')).toBe(true)
+    expect(isMissionVisible(after4, 'stage6_escape')).toBe(false)
+    expect(isMissionVisible(progressWith({ claimed: ['stage3_escape', 'stage4_escape', 'stage5_escape'] }), 'stage6_escape')).toBe(true)
   })
 
   it('counts only visible completed-unclaimed missions for the lobby badge', () => {

@@ -15,6 +15,7 @@ const NEGATIVE_POLICY_TEST_ALLOWLIST = new Set([
   'lib/bossLedgerProjection.test.js',
   'lib/firebaseProgress.historyFree.test.js',
   'lib/stageResultOnceOnly.test.js',
+  'lib/stageResultRejectCap.test.js',
   'store/progressCheckpoint.test.js',
   'store/runStartBoundary.test.js',
   'store/signedInPerformanceGuard.test.js',

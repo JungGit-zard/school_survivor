@@ -1,6 +1,6 @@
 export const MISSION_CATALOG_VERSION = 'missions_2026_08_15_v1'
 
-// 사용자가 30개 미션 골드 보상을 승인했다. 모든 claim은 Firebase 원자 트랜잭션을 통해서만 처리한다.
+// 사용자가 30개 미션 골드 보상을 승인했다(2026-11-21 Stage 5·6 클리어 미션 2개 추가 승인 → 32개). 모든 claim은 Firebase 원자 트랜잭션을 통해서만 처리한다.
 export const MISSION_REWARD_APPROVED = true
 
 const proposal = (amount) => ({ type: 'gold', amount, status: 'proposal' })
@@ -28,6 +28,8 @@ export const MISSION_CATALOG = Object.freeze([
   { id: 'stage3_runner_crew', sourceNumber: 18, title: 'Stage 3 런좀비 버티기', description: 'Stage 3 런좀비 무리의 압박을 경험하고 버틴다.', objective: '런좀비 무리 등장 뒤 30초 이상 생존', completion: anyCounter(['special.RZL.survivedAfterSpawnSec', 'special.RZC.survivedAfterSpawnSec'], 30), rewardProposal: proposal(18) },
   { id: 'stage3_escape', sourceNumber: 19, title: 'Stage 3 탈출', description: 'Stage 3를 클리어해 후반 스테이지 접근을 연다.', objective: 'Stage 3 클리어 1회', completion: counter('stage.stage3.clearCount', 1), rewardProposal: proposal(30) },
   { id: 'stage4_escape', sourceNumber: 20, title: 'Stage 4 탈출', description: '급식실 Stage 4를 끝까지 버티고 클리어한다.', objective: 'Stage 4 클리어 1회', completion: counter('stage.stage4.clearCount', 1), rewardProposal: proposal(40) },
+  { id: 'stage5_escape', sourceNumber: 31, title: 'Stage 5 클리어', description: '교무실 Stage 5를 끝까지 버티고 클리어한다.', objective: 'Stage 5 클리어 1회', completion: counter('stage.stage5.clearCount', 1), rewardProposal: proposal(50) },
+  { id: 'stage6_escape', sourceNumber: 32, title: 'Stage 6 클리어', description: '운동장 Stage 6를 끝까지 버티고 클리어한다.', objective: 'Stage 6 클리어 1회', completion: counter('stage.stage6.clearCount', 1), rewardProposal: proposal(60) },
   { id: 'school_bag_pushback', sourceNumber: 21, title: '30cm 자로 밀어내기', description: '근접 방어 무기 30cm 자로 몰린 적을 처리한다.', objective: '30cm 자로 마무리 처치 10회', completion: counter('weapon.schoolBag.killCount', 10), rewardProposal: proposal(15) },
   { id: 'tumbler_orbit', sourceNumber: 22, title: '텀블러 궤도 익히기', description: '텀블러로 근접한 적을 자동 타격한다.', objective: '텀블러 적중 50회', completion: counter('weapon.tumbler.hitCount', 50), rewardProposal: proposal(15) },
   { id: 'science_flask_experiment', sourceNumber: 23, title: '과학 플라스크 폭발 실험', description: '과학 플라스크 폭발로 밀집한 적을 처리한다.', objective: '과학 플라스크로 마무리 처치 8회', completion: counter('weapon.scienceFlask.killCount', 8), rewardProposal: proposal(18) },
@@ -78,6 +80,8 @@ export const MISSION_CHAIN_UNLOCKS = Object.freeze({
   stage2_b02_encounter: ['stage2_escape'],
   stage2_escape: ['stage3_runner_crew', 'stage3_escape'],
   stage3_escape: ['stage4_escape'],
+  stage4_escape: ['stage5_escape'],
+  stage5_escape: ['stage6_escape'],
   four_active_weapons: ['hanako_cheer'],
 })
 
