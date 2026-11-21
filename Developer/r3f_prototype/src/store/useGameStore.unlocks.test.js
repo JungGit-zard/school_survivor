@@ -225,10 +225,14 @@ describe('useGameStore run-end unlock evaluator', () => {
     expect(Object.isFrozen(ids)).toBe(true)
   })
 
-  it('recordBossKill은 cumulative bossKills를 즉시 누적', () => {
+  // 2026-11-19 (Terry): in-run events stay in memory; the account total grows once, at stage end.
+  it('recordBossKill은 런 카운터에 즉시 쌓이고, 계정 누적 bossKills에는 스테이지 종료 때 한 번 더해진다', () => {
+    const before = loadPlayerRecords().bossKills
     useGameStore.getState().recordBossKill()
-    const records = loadPlayerRecords()
-    expect(records.bossKills).toBe(1)
+    expect(useGameStore.getState().runBossKills).toBe(1)
+    expect(loadPlayerRecords().bossKills).toBe(before)
+    useGameStore.getState()._onRunEnd('gameover')
+    expect(loadPlayerRecords().bossKills).toBe(before + 1)
   })
 
   it('gainXp의 level-up 분기에서 runLevelUps 증가', () => {
@@ -292,8 +296,9 @@ describe('보스 격퇴 보너스와 포탈 클리어 분리', () => {
     expect(useGameStore.getState().phase).toBe('playing')
     expect(useGameStore.getState()).toMatchObject({ bossDefeated: true, bossBonus: 0 })
 
-    // Both explicit starts are checkpointed, even before either run ends.
-    expect(loadPlayerRecords().totalRuns).toBe(2)
+    // 2026-11-19: a run is counted when its stage ends. The stage3 run ended (quit) when stage1
+    // started; the stage1 run still in play is not in the account totals yet.
+    expect(loadPlayerRecords().totalRuns).toBe(1)
     expect(useGameStore.getState().clearStage()).toBe(true)
     expect(loadPlayerRecords()).toMatchObject({ stage1Clears: 1, totalRuns: 2 })
   })

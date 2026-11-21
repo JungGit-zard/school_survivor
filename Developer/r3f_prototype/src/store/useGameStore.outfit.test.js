@@ -333,12 +333,21 @@ describe('T-12 guest session', () => {
 })
 
 describe('no browser storage', () => {
-  it('outfit flow never touches localStorage', () => {
+  // 2026-11-19: the only browser-storage write a signed-in run may make is the one-stage device slot
+  // (lib/stageSlot.js, key school_survivor:stageSlot:{uid}). Outfit state must never appear in it.
+  it('outfit flow writes nothing to browser storage except the one-stage slot, which carries no outfit data', () => {
     const spy = vi.spyOn(Storage.prototype, 'setItem')
     startRun('stage1', 'gym')
     useGameStore.setState({ elapsedMs: 240_000 })
     useGameStore.getState().clearStage()
-    expect(spy.mock.calls.filter(([key]) => /outfit/i.test(String(key)))).toEqual([])
+    const uid = useAuthStore.getState().user.uid
+    const keys = [...new Set(spy.mock.calls.map(([key]) => String(key)))]
+    expect(keys.filter(key => key !== `school_survivor:stageSlot:${uid}`)).toEqual([])
+    for (const [, value] of spy.mock.calls) {
+      const slot = JSON.parse(String(value))
+      expect(slot.uid).toBe(uid)
+      expect(JSON.stringify({ ...slot, uid: '' })).not.toMatch(/outfit|"gym"/i)
+    }
     spy.mockRestore()
   })
 })

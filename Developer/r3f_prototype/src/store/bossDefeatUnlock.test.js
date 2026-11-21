@@ -24,27 +24,22 @@ import {
 import { load as loadPlayerRecords } from '../lib/playerRecords.js'
 import { isStageUnlocked } from '../lib/stageConfig.js'
 import { useAuthStore } from './useAuthStore.js'
+import { createFakeProgressDatabase } from '../../test/fakeProgressDatabase.js'
+import { TEST_FIREBASE_ENV } from '../../test/controllableProgressDatabase.js'
 import { useGameStore } from './useGameStore.js'
 
 let user
-let remote
+let db
 let sequence = 0
 
 beforeEach(() => {
-  vi.stubEnv('VITE_FIREBASE_DATABASE_URL', 'https://test.invalid')
+  for (const [key, value] of Object.entries(TEST_FIREBASE_ENV)) vi.stubEnv(key, value)
   user = { uid: `boss-defeat-record-${++sequence}` }
   _resetFirebaseProgressForTests()
   applyCloudProgressSnapshot({ progress: { records: {} } }, user)
-  remote = buildCloudProgressSnapshot()
-  _setFirebaseProgressClientForTests({
-    load: async () => structuredClone(remote),
-    transaction: async (_path, mutate) => {
-      const next = mutate(structuredClone(remote))
-      if (next === undefined) return { committed: false }
-      remote = structuredClone(next)
-      return { committed: true, snapshot: { val: () => structuredClone(remote) } }
-    },
-  })
+  // 2026-11-19: rules-faithful path-aware fake. The stage result lands as one runLedger row + increments.
+  db = createFakeProgressDatabase({ users: { [user.uid]: buildCloudProgressSnapshot() } })
+  _setFirebaseProgressClientForTests(db)
   useAuthStore.setState({ user, status: 'signedIn' })
   useGameStore.getState().resetGame('stage1')
 })
@@ -86,10 +81,13 @@ describe('boss defeat unlock records (origin stage{N}BossDefeats)', () => {
     killBoss('stage4', 'B04')
     expect(await useGameStore.getState().flushProgressBeforeTransition()).toBe(true)
     // 증거는 progress.records가 아니라 런 ledger에만 저장된다(origin 와이어 계약).
-    expect(remote.progress.records).not.toHaveProperty('stage3BossDefeats')
+    expect(db.get(`users/${user.uid}/progress/records`)).not.toHaveProperty('stage3BossDefeats')
+    const rows = Object.values(db.get(`users/${user.uid}/runLedger`))
+    expect(rows.filter(row => row.records.stage3BossDefeats === 1)).toHaveLength(1)
+    expect(rows.filter(row => row.records.stage4BossDefeats === 1)).toHaveLength(1)
 
     _resetFirebaseProgressForTests()
-    _setFirebaseProgressClientForTests({ load: async () => structuredClone(remote) })
+    _setFirebaseProgressClientForTests(db)
     await hydrateCloudProgress(user)
 
     const records = loadPlayerRecords()

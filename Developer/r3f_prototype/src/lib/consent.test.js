@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 const firebaseProgressSpies = vi.hoisted(() => ({
   requestCloudProgressSave: vi.fn(),
@@ -22,6 +22,7 @@ vi.mock('./firebaseProgress.js', async (importOriginal) => {
 // 재동의를 요구하는지 검증한다. consent.js는 이 상수만 소비하므로 다른 모듈에는 영향이 없다.
 vi.mock('./legalDocuments.js', () => ({ TERMS_VERSION: 2, PRIVACY_VERSION: 2 }))
 
+const { createControllableProgressDatabase, TEST_FIREBASE_ENV } = await import('../../test/controllableProgressDatabase.js')
 const { needsConsent, recordConsent, readConsent, _resetForTests } = await import('./consent.js')
 const { TERMS_VERSION, PRIVACY_VERSION } = await import('./legalDocuments.js')
 const {
@@ -33,16 +34,12 @@ const {
 
 const USER = { uid: 'consent-user', displayName: 'Tester' }
 
+// Rules-faithful fake (database.rules.json). 2026-11-19: consent saves as a small users/{uid}
+// update of top-level leaves; no transaction and no progress write is needed for it.
 function consentClient(fail = false) {
-  let remote = remoteSnapshot()
-  const transaction = vi.fn(async (_path, mutate) => {
-    if (fail) throw new Error('network down')
-    const next = mutate(structuredClone(remote))
-    if (next === undefined) return { committed: false }
-    remote = structuredClone(next)
-    return { committed: true, snapshot: { val: () => structuredClone(remote) } }
-  })
-  return { load: vi.fn(async () => structuredClone(remote)), transaction }
+  const db = createControllableProgressDatabase({ users: { [USER.uid]: remoteSnapshot() } })
+  db.control.offline = fail
+  return db
 }
 
 function remoteSnapshot(overrides = {}) {
@@ -68,7 +65,9 @@ describe('consent.js', () => {
     vi.clearAllMocks()
     _resetFirebaseProgressForTests()
     _resetForTests()
+    for (const [key, value] of Object.entries(TEST_FIREBASE_ENV)) vi.stubEnv(key, value)
   })
+  afterEach(() => vi.unstubAllEnvs())
 
   it('requires consent when the progress runtime has not hydrated for this user', () => {
     expect(needsConsent(USER)).toBe(true)
@@ -86,6 +85,7 @@ describe('consent.js', () => {
     const client = consentClient()
     _setFirebaseProgressClientForTests(client)
     await hydrateCloudProgress(USER)
+    client.writes.length = 0 // hydration's one-time weapon-unlock schema migration is not part of this
 
     await expect(recordConsent(USER)).resolves.toBe(true)
 
@@ -94,7 +94,12 @@ describe('consent.js', () => {
     expect(consent.terms.version).toBe(TERMS_VERSION)
     expect(consent.privacy.version).toBe(PRIVACY_VERSION)
     expect(Number.isNaN(Date.parse(consent.terms.acceptedAt))).toBe(false)
-    expect(client.transaction).toHaveBeenCalled()
+    // Saved as top-level leaves of users/{uid} only (rules-valid), never by a progress transaction.
+    expect(client.get(`users/${USER.uid}/consent/terms/version`)).toBe(TERMS_VERSION)
+    expect(client.get(`users/${USER.uid}/consent/privacy/version`)).toBe(PRIVACY_VERSION)
+    expect(client.writes.length).toBeGreaterThan(0)
+    expect(client.writes.every(write => write.kind === 'update' && write.path === `users/${USER.uid}`)).toBe(true)
+    expect(client.writes.flatMap(write => Object.keys(write.values)).some(key => /progress|Ledger/.test(key))).toBe(false)
   })
 
   it('requires consent again when the stored version is lower than the current legal document version', async () => {

@@ -110,14 +110,21 @@ it('multiple no-boss clears and preserved historical clears never manufacture bo
 it('actual Enemy call order records first bossKills but explicit flag0 blocks until the last living boss', async () => {
   useGameStore.getState().spawnBoss()
   useGameStore.getState().spawnBoss()
+  const accountBossKills = records().bossKills
   useGameStore.getState().recordBossKill('B01')
   useGameStore.getState().recordBossDefeat('B01')
-  expect(records().bossKills).toBe(1)
+  // 2026-11-19: boss kills count in the run (memory) and reach the account total at stage end.
+  expect(useGameStore.getState().runBossKills).toBe(1)
+  expect(records().bossKills).toBe(accountBossKills)
   expect(records().stage1BossDefeats).toBe(0)
   expect(isStageUnlocked('stage2',records())).toBe(false)
   useGameStore.getState().recordBossKill('B01')
   useGameStore.getState().recordBossDefeat('B01')
-  expect(records().bossKills).toBe(2)
+  expect(useGameStore.getState().runBossKills).toBe(2)
+  // The live stage's boss proof unlocks at once (projected from the in-memory stage record).
   expect(records().stage1BossDefeats).toBe(1)
   expect(isStageUnlocked('stage2',records())).toBe(true)
+  useGameStore.getState().clearStage()
+  expect(records().bossKills).toBe(accountBossKills + 2)
+  expect(records().stage1BossDefeats).toBe(1)
 })

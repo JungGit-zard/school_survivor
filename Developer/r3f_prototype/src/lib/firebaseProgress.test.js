@@ -58,18 +58,46 @@ const COMPLETE_ENV = {
 
 const USER = { uid: 'uid-1', displayName: 'Tester', email: 'tester@example.com', photoURL: 'https://example.com/me.png' }
 
+// Adapter for tests written against a `save(path, payload)` transport. 2026-11-19: it is path-aware
+// like RTDB. A progress save is a transaction on users/{uid}/progress (payload = the progress node);
+// top-level leaves and stage results are a multi-path update on users/{uid} (payload = the values).
+// `save` is called once per write, after the write is applied to the in-memory node.
+const PROGRESS_WRITE = /\/progress$/
+const isProgressSave = ([path]) => PROGRESS_WRITE.test(path)
 function _setFirebaseProgressClientForTests(client) {
-  if (client.transaction || !client.save) return injectProgressClient(client)
+  if (client.transaction || client.update || !client.save) return injectProgressClient(client)
   let remote = null
+  const node = () => remote ?? (isFirebaseProgressHydrated(USER) ? buildCloudProgressSnapshot() : remoteSnapshot())
   injectProgressClient({ ...client,
-    ...(client.load ? {load:async(...args)=>{remote=await client.load(...args);return structuredClone(remote)}} : {}),
-    transaction:async(path,mutate)=>{
-      const current=remote??(isFirebaseProgressHydrated(USER)?buildCloudProgressSnapshot():remoteSnapshot())
-      const next=mutate(structuredClone(current))
-      if(next===undefined)return{committed:false,snapshot:{val:()=>structuredClone(current)}}
-      await client.save(path,next)
-      remote=structuredClone(next)
-      return{committed:true,snapshot:{val:()=>structuredClone(remote)}}
+    ...(client.load ? {
+      load: async (...args) => { remote = await client.load(...args); return structuredClone(remote) },
+      // One logical read of the named children of the user node.
+      loadFields: async (path, fields) => {
+        remote = await client.load(path)
+        return remote && typeof remote === 'object' ? Object.fromEntries(fields.map(field => [field, structuredClone(remote[field] ?? null)])) : null
+      },
+    } : {}),
+    increment: delta => ({ '.sv': { increment: delta } }),
+    transaction: async (path, mutate) => {
+      const current = node()
+      const sub = PROGRESS_WRITE.test(path)
+      const next = mutate(structuredClone(sub ? current.progress : current))
+      if (next === undefined) return { committed: false, snapshot: { val: () => structuredClone(sub ? current.progress : current) } }
+      await client.save(path, next)
+      remote = sub ? { ...structuredClone(current), progress: structuredClone(next) } : structuredClone(next)
+      return { committed: true, snapshot: { val: () => structuredClone(sub ? remote.progress : remote) } }
+    },
+    update: async (path, values) => {
+      const current = structuredClone(node())
+      for (const [key, value] of Object.entries(values)) {
+        const keys = key.split('/')
+        let target = current
+        for (const part of keys.slice(0, -1)) target = target[part] = target[part] && typeof target[part] === 'object' ? target[part] : {}
+        const leaf = keys.at(-1)
+        target[leaf] = value && typeof value === 'object' && value['.sv'] ? (target[leaf] ?? 0) + value['.sv'].increment : structuredClone(value)
+      }
+      await client.save(path, values)
+      remote = current
     },
   })
 }
@@ -144,6 +172,8 @@ describe('firebase-only player progress runtime', () => {
     vi.stubEnv('VITE_FIREBASE_APP_ID', COMPLETE_ENV.VITE_FIREBASE_APP_ID)
     _resetFirebaseProgressForTests()
     applyCloudProgressSnapshot(remoteSnapshot(), USER)
+    // 2026-11-19: a save with nothing changed sends nothing and is trivially true, so make a change.
+    updateFirebasePlayerProgress(progress => { progress.goldTotal += 1 })
 
     // The reset client has no server transaction ACK; it must not invent one.
     await expect(requestCloudProgressSave(USER)).resolves.toBe(false)
@@ -180,8 +210,8 @@ describe('firebase-only player progress runtime', () => {
       progress: { weaponUnlockSchemaVersion: 1, weaponUnlocks: { guidedMissile: 1 } },
     })
     let stored = structuredClone(legacy)
-    const save = vi.fn(async (_path, payload) => {
-      stored = structuredClone(payload)
+    const save = vi.fn(async (path, payload) => {
+      if (PROGRESS_WRITE.test(path)) stored = { ...stored, progress: structuredClone(payload) }
     })
     _setFirebaseProgressClientForTests({ load: vi.fn(async () => structuredClone(stored)), save })
 
@@ -198,10 +228,13 @@ describe('firebase-only player progress runtime', () => {
       chibiko: 1,
       inucon: 1,
     })
-    expect(save).toHaveBeenCalledTimes(1)
+    // One progress transaction for the migration (plus its small top-level updatedAt/profile update).
+    expect(save.mock.calls.filter(isProgressSave)).toHaveLength(1)
+    expect(stored.progress.weaponUnlockSchemaVersion).toBe(2)
+    const writesAfterMigration = save.mock.calls.length
 
     await expect(hydrateCloudProgress(USER)).resolves.toBe(true)
-    expect(save).toHaveBeenCalledTimes(1)
+    expect(save).toHaveBeenCalledTimes(writesAfterMigration)
   })
 
   it('does not grant legacy entitlements to an already-v2 account', async () => {
@@ -302,7 +335,8 @@ describe('firebase-only player progress runtime', () => {
       save,
     })
 
-    await expect(hydrateCloudProgress(USER)).rejects.toMatchObject({ code: 'invalid-remote' })
+    // 2026-11-19: hydration reads named children; a node without a progress child is "missing".
+    await expect(hydrateCloudProgress(USER)).rejects.toMatchObject({ code: 'missing-remote' })
     await expect(requestCloudProgressSave(USER)).resolves.toBe(false)
 
     expect(isFirebaseProgressHydrated(USER)).toBe(false)
@@ -403,6 +437,7 @@ describe('firebase-only player progress runtime', () => {
       save: vi.fn(() => new Promise((_, reject) => { rejectSave = reject })),
     })
     applyCloudProgressSnapshot(remoteSnapshot({ profile: { uid: a.uid, displayName: 'A' } }), a)
+    updateFirebasePlayerProgress(progress => { progress.goldTotal += 1 }) // something to save
 
     const pendingSave = requestCloudProgressSave(a)
     await vi.waitFor(() => expect(rejectSave).toBeTypeOf('function'))
@@ -420,9 +455,10 @@ describe('firebase-only player progress runtime', () => {
     vi.stubEnv('VITE_FIREBASE_PROJECT_ID', COMPLETE_ENV.VITE_FIREBASE_PROJECT_ID)
     vi.stubEnv('VITE_FIREBASE_APP_ID', COMPLETE_ENV.VITE_FIREBASE_APP_ID)
     let releaseFirstSave
-    const save = vi.fn(() => new Promise((resolve) => { releaseFirstSave = resolve }))
+    const save = vi.fn(() => (save.mock.calls.length === 1 ? new Promise((resolve) => { releaseFirstSave = resolve }) : Promise.resolve()))
     _setFirebaseProgressClientForTests({ save })
     applyCloudProgressSnapshot(remoteSnapshot(), USER)
+    updateFirebasePlayerProgress(progress => { progress.goldTotal += 1 }) // something to save
 
     const firstSave = requestCloudProgressSave(USER)
     await vi.waitFor(() => expect(releaseFirstSave).toBeTypeOf('function'))
@@ -435,7 +471,7 @@ describe('firebase-only player progress runtime', () => {
     expect(queuedSave).toBe(firstSave)
     await expect(queuedSave).resolves.toBe(true)
     expect(consumeFirebaseProgressSaveWarning()).toBeNull()
-    expect(save).toHaveBeenCalledTimes(1)
+    expect(save.mock.calls.filter(isProgressSave)).toHaveLength(1)
   })
 
   it('keeps the E2E memory runtime hydrated without registering a Firebase write user', async () => {
@@ -488,11 +524,13 @@ describe('firebase-only player progress runtime', () => {
     const firstSave = new Promise((resolve) => { releaseFirst = resolve })
     _setFirebaseProgressClientForTests({
       load: vi.fn(async () => remoteSnapshot()),
-      save: vi.fn(async (_path, value) => {
+      save: vi.fn(async (path, value) => {
         inFlight += 1
         maxInFlight = Math.max(maxInFlight, inFlight)
-        saved.push(value.progress.goldTotal)
-        if (saved.length === 1) await firstSave
+        if (PROGRESS_WRITE.test(path)) {
+          saved.push(value.goldTotal)
+          if (saved.length === 1) await firstSave
+        }
         inFlight -= 1
       }),
     })
@@ -515,16 +553,17 @@ describe('firebase-only player progress runtime', () => {
     let failNextSave = true
     _setFirebaseProgressClientForTests({
       load: vi.fn(async () => remoteSnapshot()),
-      save: vi.fn(async (_path, value) => {
+      save: vi.fn(async (path, value) => {
         if (failNextSave) {
           failNextSave = false
           throw new Error('transient network failure')
         }
-        saved.push(value.progress.goldTotal)
+        if (PROGRESS_WRITE.test(path)) saved.push(value.goldTotal)
       }),
     })
     await hydrateCloudProgress(USER)
 
+    updateFirebasePlayerProgress(progress => { progress.goldTotal = 100 })
     await expect(requestCloudProgressSave()).resolves.toBe(false)
 
     updateFirebasePlayerProgress(progress => { progress.goldTotal = 120 })
@@ -551,11 +590,19 @@ describe('firebase-only player progress runtime', () => {
     firebaseSdk.getApps.mockImplementationOnce(()=>{throw new Error('one-time-sdk-init')}).mockReturnValue([])
     firebaseSdk.initializeApp.mockReturnValue({name:'qa'})
     databaseSdk.getDatabase.mockReturnValue({})
-    databaseSdk.get.mockResolvedValue({exists:()=>true,val:()=>remoteSnapshot()})
+    // 2026-11-19: the real client reads named children (users/{uid}/progress ...), never the whole node.
+    databaseSdk.ref.mockImplementation((_db,path)=>path)
+    databaseSdk.get.mockImplementation(async path=>{
+      const value=String(path).split('/').slice(2).reduce((node,key)=>node?.[key],remoteSnapshot())
+      return {exists:()=>value!==undefined,val:()=>value??null}
+    })
     try {
       await expect(hydrateCloudProgress(USER)).rejects.toThrow('one-time-sdk-init')
       await expect(hydrateCloudProgress(USER)).resolves.toBe(true)
       expect(firebaseSdk.getApps).toHaveBeenCalledTimes(2)
-    } finally { firebaseSdk.getApps.mockImplementation(original) }
+      const readPaths=databaseSdk.get.mock.calls.map(([path])=>path)
+      expect(readPaths).not.toContain('users/uid-1')
+      expect(readPaths.some(path=>/checkpointLedger/.test(path))).toBe(false)
+    } finally { firebaseSdk.getApps.mockImplementation(original); databaseSdk.ref.mockReset(); databaseSdk.get.mockReset() }
   })
 })

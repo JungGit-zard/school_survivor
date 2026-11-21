@@ -8,14 +8,22 @@ vi.mock('../lib/firebaseRanking.js',()=>({prepareRankingSubmission: run => run, 
 import { useGameStore } from './useGameStore.js'
 import { useAuthStore } from './useAuthStore.js'
 import { applyCloudProgressSnapshot, buildCloudProgressSnapshot, _setFirebaseProgressClientForTests } from '../lib/firebaseProgress.js'
+import { createFakeProgressDatabase } from '../../test/fakeProgressDatabase.js'
 
-let remote, user
+let db, user
+const remoteProgress = () => db.get(`users/${user.uid}/progress`)
 function seed(counters) {
   user = { uid: crypto.randomUUID() }
   applyCloudProgressSnapshot({ progress: { goldTotal: 10, weaponUnlockSchemaVersion: 2, records: {}, missions: { schemaVersion: 1, catalogVersion: 'missions_2026_08_15_v1', updatedAt: '', counters } } }, user)
-  remote = buildCloudProgressSnapshot()
+  const remote = buildCloudProgressSnapshot()
   // buildCloudProgressSnapshot은 메모리 형태(점 키)를 돌려준다. 서버에는 %2E 인코딩 키만 존재한다.
   remote.progress.missions.counters = { ...counters }
+  // 2026-11-19: rules-faithful path-aware fake (users/{uid}/progress transaction + users/{uid} update).
+  // RTDB처럼 트랜잭션은 첫 호출을 빈 로컬 캐시(null)로 돌린 뒤 서버 값으로 다시 돈다.
+  db = createFakeProgressDatabase({ users: { [user.uid]: remote } })
+  const serverTransaction = db.transaction
+  db.transaction = async (path, mutate) => serverTransaction(path, current => { mutate(null); return mutate(current) })
+  _setFirebaseProgressClientForTests(db)
   useAuthStore.setState({ user, status: 'signedIn' })
   useGameStore.getState().hydrateMissionProgress()
 }
@@ -27,46 +35,37 @@ beforeEach(() => {
   vi.stubEnv('VITE_FIREBASE_PROJECT_ID', 'qa-project')
   vi.stubEnv('VITE_FIREBASE_APP_ID', '1:0:web:qa')
   vi.stubEnv('VITE_FIREBASE_DATABASE_URL', 'https://qa.invalid')
-  // RTDB처럼 첫 호출은 빈 로컬 캐시(null), 이후 서버 값으로 다시 돈다.
-  _setFirebaseProgressClientForTests({ load: async () => structuredClone(remote), transaction: async (path, mutate) => {
-    const sub = path.endsWith('/progress')
-    mutate(null)
-    const next = mutate(structuredClone(sub ? remote.progress : remote))
-    if (next === undefined) return { committed: false, snapshot: { val: () => structuredClone(sub ? remote.progress : remote) } }
-    if (sub) remote.progress = structuredClone(next); else remote = structuredClone(next)
-    return { committed: true, snapshot: { val: () => structuredClone(sub ? remote.progress : remote) } }
-  } })
 })
 
 it('claims a mission whose server counters meet the target even without a persisted completedAt', async () => {
   seed({ 'pickup%2EgoldCoin%2Ecount': 3 })
-  expect(remote.progress.missions.active?.first_gold_coin).toBeUndefined()
+  expect(remoteProgress().missions.active?.first_gold_coin).toBeUndefined()
   expect(useGameStore.getState().missionProgress.active.first_gold_coin.completedAt).toBeTruthy()
 
   const result = await useGameStore.getState().claimMissionReward('first_gold_coin')
 
   expect(result).toMatchObject({ ok: true, reason: 'claimed' })
-  expect(remote.progress.goldTotal).toBe(15)
-  expect(remote.progress.missions.claimLedger['first_gold_coin:missions_2026_08_15_v1'].reward).toEqual({ type: 'gold', amount: 5 })
-  expect(remote.progress.missions.active.first_gold_coin).toMatchObject({ counter: 1, target: 1 })
-  expect(remote.progress.missions.active.first_gold_coin.claimedAt).toBeTruthy()
+  expect(remoteProgress().goldTotal).toBe(15)
+  expect(remoteProgress().missions.claimLedger['first_gold_coin:missions_2026_08_15_v1'].reward).toEqual({ type: 'gold', amount: 5 })
+  expect(remoteProgress().missions.active.first_gold_coin).toMatchObject({ counter: 1, target: 1 })
+  expect(remoteProgress().missions.active.first_gold_coin.claimedAt).toBeTruthy()
   expect(useGameStore.getState().missionProgress.claimed.first_gold_coin).toBeTruthy()
 
   const again = await useGameStore.getState().claimMissionReward('first_gold_coin')
   expect(again).toMatchObject({ ok: false, reason: 'already-claimed' })
-  expect(remote.progress.goldTotal).toBe(15)
+  expect(remoteProgress().goldTotal).toBe(15)
 })
 
 it('still refuses a claim when the server counters are below the target', async () => {
   seed({ 'enemy%2EE01%2EkillCount': 9 })
   const result = await useGameStore.getState().claimMissionReward('first_e01_kills')
   expect(result).toMatchObject({ ok: false, reason: 'not-completed' })
-  expect(remote.progress.goldTotal).toBe(10)
+  expect(remoteProgress().goldTotal).toBe(10)
 })
 
 it('counts any-counter missions from whichever server counter meets the target', async () => {
   seed({ 'boss%2EB02%2EkillCount': 1 })
   const result = await useGameStore.getState().claimMissionReward('boss_hunter')
   expect(result).toMatchObject({ ok: true, reason: 'claimed' })
-  expect(remote.progress.goldTotal).toBe(45)
+  expect(remoteProgress().goldTotal).toBe(45)
 })
