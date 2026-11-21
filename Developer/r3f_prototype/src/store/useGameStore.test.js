@@ -443,6 +443,15 @@ describe('runtime elapsed time publication', () => {
     expect(useGameStore.getState().escapeResult.totalScore).toBe(1150)
   })
 
+  it('treats score carried from earlier stages as part of the running total (boss 20%, escape 15%)', () => {
+    // 이어 가기 이월 600 + stage2(340초 + 60) = 1000 에서 처치 -> 1200 -> 탈출 1380.
+    useGameStore.setState({ currentStageId: 'stage2', continuousScoreBase: 600, elapsedMs: 340_000, bossAliveCount: 1, phase: 'playing' })
+    useGameStore.getState().recordBossDefeat()
+    expect(useGameStore.getState().bossBonus).toBe(200)
+    useGameStore.getState().clearStage()
+    expect(useGameStore.getState().escapeResult).toMatchObject({ totalScore: 1380, stageScore: 780 })
+  })
+
   it('keeps the boss bonus when the page hides or the player quits to the lobby after the kill', () => {
     useGameStore.setState({ elapsedMs: 192_000, bossAliveCount: 1, phase: 'playing' })
     useGameStore.getState().recordBossDefeat()
