@@ -15,7 +15,7 @@ vi.mock('../lib/firebaseAuth.js', () => ({
 import {
   _resetFirebaseProgressForTests, _setFirebaseProgressClientForTests as setProgressClient,
   applyCloudProgressSnapshot, buildCloudProgressSnapshot, hydrateCloudProgress,
-  readFirebasePlayerProgress, setCloudProgressUser, updateFirebasePlayerProgress,
+  readFirebasePlayerProgress, requestCloudProgressSave, setCloudProgressUser, updateFirebasePlayerProgress,
 } from '../lib/firebaseProgress.js'
 import { isStageUnlocked, isStageVisible } from '../lib/stageConfig.js'
 import { useGameStore } from './useGameStore.js'
@@ -227,13 +227,15 @@ it('a rejected boss stage left on the device is written once at the next sign-in
   useGameStore.getState().recordBossDefeat()
   expect(await useGameStore.getState().flushProgressBeforeTransition()).toBe(false)
   const runKey = useGameStore.getState().progressRunId
-  expect(localStorage.getItem(`school_survivor:stageSlot:${user.uid}`)).toContain(runKey)
+  // The finished result waits on the device as a pending send (its own key), not in the live slot.
+  expect(localStorage.getItem(`school_survivor:stagePending:${user.uid}:${runKey}`)).toContain(runKey)
   const runsBefore = stored().progress.records.totalRuns
   // Reload while still offline, then the network returns.
   _resetFirebaseProgressForTests()
   setProgressClient(db)
   db.control.offline = false
   await hydrateCloudProgress(user)
+  await requestCloudProgressSave(user) // sign-in does not wait for device results; a save does
   expect(stored().runLedger[runKey].records.stage1BossDefeats).toBe(1)
   expect(stored().progress.records.totalRuns).toBe(runsBefore + 1)
   expect(localStorage.getItem(`school_survivor:stageSlot:${user.uid}`)).toBeNull()

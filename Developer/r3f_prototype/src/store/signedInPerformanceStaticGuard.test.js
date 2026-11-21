@@ -149,8 +149,9 @@ describe('static guard: browser storage only in the one-stage slot and the Fireb
       if (uses) found[rel] = uses.length
     }
     expect(found).toEqual({
-      // THE one-stage device slot (2026-11-19 owner design).
-      'lib/stageSlot.js': 1,
+      // THE device stage slot (2026-11-19 owner design; 2026-11-21 named AGENTS.md exception): plain
+      // localStorage get/set/remove/key/length inside four small try/catch helpers, each with its typeof guard.
+      'lib/stageSlot.js': 9,
       // Firebase Auth session (Google sign-in): IndexedDB persistence, sessionStorage capability probe.
       'lib/firebaseAuth.js': 2,
       // Firebase Auth session for the anonymous guest-ranking identity (approved exception, AGENTS.md).
@@ -167,11 +168,17 @@ describe('static guard: browser storage only in the one-stage slot and the Fireb
     })
   })
 
-  it('the slot module owns a single key per account and nothing else', () => {
+  // 2026-11-21 (Terry, cloud-save fix): besides the one live slot per account, a finished stage result
+  // waits on the device as a "pending send" entry (its own key) until the server confirms it, so an
+  // offline stage is never lost when the next stage starts. Both go through one writer with a size cap.
+  it('the slot module owns one live key per account plus capped pending-send keys, and nothing else', () => {
     const slot = FILES.find(file => file.rel === 'lib/stageSlot.js').code
     expect(slot.match(/const KEY_PREFIX = '([^']+)'/)?.[1]).toBe('school_survivor:stageSlot:')
-    expect(slot.match(/\.setItem\(/g)).toHaveLength(1)
-    expect(slot).toMatch(/\.setItem\(slotKey\(live\.uid\), text\)/)
+    expect(slot.match(/const PENDING_PREFIX = '([^']+)'/)?.[1]).toBe('school_survivor:stagePending:')
+    expect(slot.match(/\.setItem\(/g)).toHaveLength(1) // the single writer, writeItem()
+    expect(slot).toMatch(/writeItem\(slotKey\(live\.uid\), text\)/)
     expect(slot).toMatch(/if \(text\.length > STAGE_SLOT_MAX_BYTES\) return/)
+    expect(slot).toMatch(/if \(text\.length > STAGE_SLOT_MAX_BYTES\) return false/)
+    expect(slot).toMatch(/listKeys\(`\$\{PENDING_PREFIX\}\$\{uid\}:`\)\.length >= MAX_PENDING_RESULTS/)
   })
 })

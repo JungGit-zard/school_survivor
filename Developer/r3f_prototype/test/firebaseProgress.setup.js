@@ -34,6 +34,38 @@ function seedFirebaseTestRuntime() {
   }, { revision: 0 })
 }
 
+// Every browser the game supports has the Web Locks API (navigator.locks); jsdom and Node do not.
+// One in-memory lock manager stands in for "this browser": a tab that closes (_resetStageSlotForTests)
+// releases its locks, exactly like a real closed tab. Tests of the no-Web-Locks fallback delete it.
+function installTestWebLocks() {
+  const nav = globalThis.navigator
+  if (!nav || nav.locks) return
+  const held = new Map()
+  const locks = {
+    async request(name, optionsOrCallback, maybeCallback) {
+      const options = typeof optionsOrCallback === 'function' ? {} : (optionsOrCallback ?? {})
+      const callback = typeof optionsOrCallback === 'function' ? optionsOrCallback : maybeCallback
+      let queue = held.get(name)
+      if (queue) {
+        if (options.ifAvailable) return callback(null)
+        await new Promise(resolve => queue.push(resolve))
+      } else {
+        queue = []
+        held.set(name, queue)
+      }
+      try {
+        return await callback({ name, mode: 'exclusive' })
+      } finally {
+        const next = queue.shift()
+        if (next) next()
+        else held.delete(name)
+      }
+    },
+  }
+  Object.defineProperty(nav, 'locks', { value: locks, configurable: true })
+}
+
+installTestWebLocks()
 seedFirebaseTestRuntime()
 
 beforeEach(() => {

@@ -166,7 +166,7 @@ export function openStageSlot({ uid, runId, stageId, at = Date.now() }) {
     return null
   }
   const leftover = readStoredStageSlot(uid)
-  if (leftover && leftover.runKey !== runKey && !isRunLockHeldHere(leftover.runKey) && !readPendingStageResult(uid, leftover.runKey)) {
+  if (leftover && leftover.runKey !== runKey && !readPendingStageResult(uid, leftover.runKey)) {
     savePendingStageResult({ ...leftover, fromLive: true })
   }
   live = {

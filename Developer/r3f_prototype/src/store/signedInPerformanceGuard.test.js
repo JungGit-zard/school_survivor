@@ -76,9 +76,11 @@ const MAX_BYTES_PER_SAVE_ACTION = 32 * 1024
 // Measured 0.9x on a dev PC. Budget 4x: generous for a slow CI box, still far below the incident
 // (whole-progress clone + full mission recompute + cloud save on every kill).
 const MAX_SIGNED_IN_VS_GUEST_PER_KILL = 4
-// Writes one stage end may send (today: 3, see test 2b). No headroom on purpose: a new write here
-// must be a deliberate, reviewed change.
-const MAX_WRITES_AT_STAGE_END = 3
+// Writes one stage end may send. 2026-11-19: 3 (result, progress transaction, profile/activity).
+// 2026-11-21 (Terry: save once when the run ends): 1 — the result write also carries the run-end leaves
+// (bests, unlocks, mission entries) and profile/activity. No headroom on purpose: a new write here must be
+// a deliberate, reviewed change.
+const MAX_WRITES_AT_STAGE_END = 1
 
 function bigHistoryNode(uid) {
   // ~500 KB of old per-page checkpoint copies and 2,000 old run rows, like a long-time account.
@@ -259,8 +261,9 @@ describe('2. in-run — zero cloud traffic until the stage ends, then one result
 
   // Measured 2026-11-19: the stage end sends exactly one result (runLedger row + additive increments,
   // ~1.2 KB), then one users/{uid}/progress transaction (~2.8 KB: mission entries and best records are
-  // not increments) and one top-level profile/activity update (~0.2 KB). Never more than these three.
-  it('a short stage end: exactly one result row, at most three small writes in total', async () => {
+  // not increments) and one top-level profile/activity update (~0.2 KB). Since 2026-11-21 those three are
+  // one multi-path update (measured: 1 write).
+  it('a short stage end: exactly one result row in exactly one small write', async () => {
     await signInWithHistory()
     // Settle every unlock a short run could trigger before measuring.
     expect(useGameStore.getState().resetGame('stage1')).toBe(true)
@@ -351,6 +354,8 @@ describe('3. history independence — every save path ignores the 500 KB / 2,000
     _resetFirebaseProgressForTests()
     _setFirebaseProgressClientForTests(db)
     await hydrateCloudProgress({ uid })
+    // The migration write runs after sign-in returns (sign-in never waits on a write); saves wait for it.
+    await requestCloudProgressSave({ uid })
     expect(db.reads.filter(path => /runLedger/.test(path))).toEqual([`users/${uid}/runLedger`])
     expect(db.writes).toHaveLength(1)
     expect(Object.keys(db.writes[0].values)).toEqual(['ledgerSummary', 'updatedAt'])

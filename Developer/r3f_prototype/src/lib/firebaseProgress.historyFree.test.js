@@ -163,6 +163,8 @@ describe('one-stage device record', () => {
     _resetFirebaseProgressForTests()
     _setFirebaseProgressClientForTests(db)
     await hydrateCloudProgress(user)
+    // Sign-in does not wait for device results (2026-11-21); the next save does.
+    await requestCloudProgressSave(user)
     expect(db.get(`users/${UID}`).progress.goldTotal).toBe(504)
     expect(readStoredStageSlot(UID)).toBeNull()
   })

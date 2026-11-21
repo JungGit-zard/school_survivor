@@ -4,6 +4,9 @@ import { describe, expect, it } from 'vitest'
 
 const SOURCE_ROOT = join(process.cwd(), 'src')
 const THIS_FILE = 'lib/localStoragePolicy.test.js'
+// AGENTS.md storage ban, single named exception (Terry 2026-11-21): the device stage slot. It keeps one
+// stage of in-play data plus finished results until the server confirms them. No other production file.
+const PRODUCTION_LOCAL_STORAGE_ALLOWLIST = new Set(['lib/stageSlot.js'])
 const NEGATIVE_POLICY_TEST_ALLOWLIST = new Set([
   'lib/firebaseProgress.test.js',
   'lib/studioLocalStorageGuard.test.js',
@@ -11,6 +14,7 @@ const NEGATIVE_POLICY_TEST_ALLOWLIST = new Set([
   'components/ReadyGameApp.signedInIdleGuard.test.jsx',
   'lib/bossLedgerProjection.test.js',
   'lib/firebaseProgress.historyFree.test.js',
+  'lib/stageResultOnceOnly.test.js',
   'store/progressCheckpoint.test.js',
   'store/runStartBoundary.test.js',
   'store/signedInPerformanceGuard.test.js',
@@ -114,19 +118,21 @@ describe('localStorage source policy', { timeout: 30_000 }, () => {
         file: relative(SOURCE_ROOT, path).replaceAll('\\', '/'),
         calls: findLocalStorageCalls(readSource(path)),
       }))
-      .filter(({ file, calls }) => file !== THIS_FILE && calls.length > 0 && !NEGATIVE_POLICY_TEST_ALLOWLIST.has(file))
+      .filter(({ file, calls }) => file !== THIS_FILE && calls.length > 0 && !NEGATIVE_POLICY_TEST_ALLOWLIST.has(file) && !PRODUCTION_LOCAL_STORAGE_ALLOWLIST.has(file))
 
     expect(violations).toEqual([])
   })
 
-  it('has no executable production localStorage call', () => {
-    const violations = listSourceFiles()
+  it('has no executable production localStorage call outside the one approved stage slot', () => {
+    const found = listSourceFiles()
       .map((path) => ({
         file: relative(SOURCE_ROOT, path).replaceAll('\\', '/'),
         calls: findLocalStorageCalls(readSource(path)),
       }))
       .filter(({ file, calls }) => !file.includes('.test.') && calls.length > 0)
 
-    expect(violations).toEqual([])
+    expect(found.map(({ file }) => file)).toEqual([...PRODUCTION_LOCAL_STORAGE_ALLOWLIST])
+    // Plain localStorage: no indirection that would hide a call from this scan.
+    expect(readSource(join(SOURCE_ROOT, 'lib/stageSlot.js'))).not.toMatch(/globalThis\.localStorage|window\.localStorage|\[['"]localStorage['"]\]/)
   })
 })

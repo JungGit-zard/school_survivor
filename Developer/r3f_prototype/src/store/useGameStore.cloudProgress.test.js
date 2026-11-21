@@ -180,11 +180,13 @@ describe('useGameStore cloud progress integration', () => {
     expect(useGameStore.getState().progressSaveWarning).toBe('save-failed')
   })
 
-  it('records and saves a minimal activity record when an unlocked stage starts', () => {
+  // Terry 2026-11-21: nothing is uploaded at run start. The activity is kept in memory and travels with
+  // the stage result (the run's one write).
+  it('records a minimal activity record in memory when an unlocked stage starts, with no cloud save', () => {
     mockProgress.records.stage1BossDefeats=1
     useGameStore.getState().resetGame('stage2')
 
     expect(recordPlayActivity).toHaveBeenCalledWith('stage2')
-    expect(requestCloudProgressSave).toHaveBeenCalled()
+    expect(requestCloudProgressSave).not.toHaveBeenCalled()
   })
 })

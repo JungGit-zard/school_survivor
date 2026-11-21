@@ -342,7 +342,8 @@ describe('no browser storage', () => {
     useGameStore.getState().clearStage()
     const uid = useAuthStore.getState().user.uid
     const keys = [...new Set(spy.mock.calls.map(([key]) => String(key)))]
-    expect(keys.filter(key => key !== `school_survivor:stageSlot:${uid}`)).toEqual([])
+    // Also allowed: the finished stage's own "pending send" entry, kept until the server confirms it.
+    expect(keys.filter(key => key !== `school_survivor:stageSlot:${uid}` && !key.startsWith(`school_survivor:stagePending:${uid}:`))).toEqual([])
     for (const [, value] of spy.mock.calls) {
       const slot = JSON.parse(String(value))
       expect(slot.uid).toBe(uid)

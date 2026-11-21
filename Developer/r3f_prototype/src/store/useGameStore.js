@@ -1741,8 +1741,9 @@ export const useGameStore = create(
       }
       get().recordMissionEvent({ type: 'stage_started', stageId: nextStageId })
       if (!preserveContinuousScore) trackRunStart(nextStageId, get())
+      // Nothing is uploaded at run start (Terry 2026-11-21): the play activity stays in memory and goes
+      // out with the stage result, the run's single write.
       recordRuntimePlayActivity(nextStageId)
-      saveRuntimeProgress()
       return true
     },
   }))

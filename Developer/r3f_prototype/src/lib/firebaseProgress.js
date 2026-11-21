@@ -12,7 +12,18 @@ import {
   clearStoredStageSlot,
   getLiveStageRunKey,
   getLiveStageSlot,
+  hasRunLocks,
+  holdRunLock,
+  isRunLockHeldHere,
+  isStoredSlotFresh,
+  listPendingStageResults,
+  readPendingStageResult,
   readStoredStageSlot,
+  releaseRunLock,
+  removeAllStageData,
+  removePendingStageResult,
+  savePendingStageResult,
+  withFreeRunLock,
 } from './stageSlot.js'
 
 const DATABASE_URL_KEY = 'VITE_FIREBASE_DATABASE_URL'
@@ -98,6 +109,12 @@ const DEFAULT_TITLE_SETTINGS = Object.freeze({
 //   ledgerSummary/bossDefeats 1 증가)를 하나의 다중 경로 update로 원자적으로 쓴다. 그 줄이 "이미 기록됨"
 //   영수증이라 같은 스테이지가 두 번 들어가지 않는다. 쓰기가 거절되면 기기 칸을 지우지 않고 다음 저장·다음
 //   로그인 때 그 한 줄만 다시 확인(읽기 1줄)한 뒤 없을 때만 다시 쓴다(2026-11-21).
+//   중복 차단은 서버가 보장한다(Terry 2026-11-21 "중복은 어떤 경우라도 막는다"): database.rules.json에서 이미 있는
+//   run 행은 똑같은 값으로만 다시 쓸 수 있고, 결과 쓰기는 progress/resultWrites를 1 올리면서 그 쓰기 전에 없던 행
+//   (progress/lastResultKey)을 만들어야만 통과한다. 그래서 같은 스테이지의 두 번째 쓰기(다른 탭, 재시도, SDK 재전송)는
+//   행·골드·기록·보스 처치 증가까지 통째로 거절된다.
+// - 끝났지만 서버 확인 전인 결과는 기기에 "보내는 중"으로 남는다(stageSlot.js). 새 스테이지가 시작돼도 지워지지
+//   않고, 서버가 받았다고 확인한 뒤에만 지운다.
 // - 프로필·활동·동의: users/{uid}의 해당 자식만 update로 쓴다.
 // checkpointLedger·runLedger의 옛 줄은 읽지도 다시 쓰지도 않는다. 스테이지 해금용 보스 처치 수는
 // ledgerSummary(작은 고정 크기 노드)에 있다. 아직 옮기지 않은 옛 계정만 로그인 때 runLedger를 딱 한 번
@@ -129,6 +146,9 @@ let inflightFold = createEmptyContribution()
 // the next progress save; the retry first reads that one row so a write whose ack was lost is never
 // applied twice.
 let pendingStageRows = new Map()
+// Sign-in work that runs after sign-in returns (one-time ledgerSummary migration, then sending results a
+// closed tab left on this device). Saves wait for it; sign-in does not.
+let deviceRecovery = Promise.resolve()
 let lastTopLevelFingerprint = ''
 
 const SUM_RECORD_KEYS = RECORD_KEYS.filter(key => !/best/i.test(key))
@@ -221,12 +241,17 @@ function sanitizeStageResult(result) {
 // One stage's result, recorded once. Folds into memory now, then writes the run row and the
 // additive progress totals in a single atomic multi-path update (no read of the user node).
 // Resolves true once the result is durable on the server, false otherwise (it is then retried).
-export function commitFirebaseStageResult(result, user = cloudUser) {
+export function commitFirebaseStageResult(result, user = cloudUser, { followSave = true } = {}) {
   ensureHydrated()
   const uid = runtime.uid
   if (readUserId(user) && readUserId(user) !== uid) return Promise.resolve(false)
   const stage = sanitizeStageResult(result)
   if (!stage || recordedRunKeys.has(stage.runKey) || pendingStageRows.has(stage.runKey)) return Promise.resolve(false)
+  // The finished result stays on this device until the server confirms it; the live slot is freed for
+  // the next stage, and this tab holds the run's lock so no other tab sends it meanwhile.
+  // If the pending copy cannot be stored (quota), the live slot is kept as the device copy instead.
+  if (savePendingStageResult({ ...stage, uid })) clearStoredStageSlot(uid, stage.runKey)
+  holdRunLock(stage.runKey)
 
   // Totals close to a rule ceiling go through the clamping progress transaction instead, so the
   // atomic increment can never be rejected by a max-value rule.
@@ -256,6 +281,12 @@ export function commitFirebaseStageResult(result, user = cloudUser) {
     progress.bossPassiveUnlocks = { ...progress.bossPassiveUnlocks, ...stage.bossPassiveUnlocks }
     progress.encounteredZombieTypes = { ...progress.encounteredZombieTypes, ...stage.encounteredZombieTypes }
   })
+  // The stage's start is the account's latest play activity; it travels with the result (no write at
+  // run start).
+  const startedAt = new Date(stage.at).toISOString()
+  if (!runtime.activity?.lastStartedAt || runtime.activity.lastStartedAt < startedAt) {
+    runtime = { ...runtime, activity: { lastStageId: stage.stageId, lastStartedAt: startedAt } }
+  }
   const bossKey = ledgerBossDefeatKey(stage)
   if (bossKey && ledgerBossCounts) ledgerBossCounts[bossKey]++
   addContribution(inflightFold, contribution, 1)
@@ -268,14 +299,16 @@ export function commitFirebaseStageResult(result, user = cloudUser) {
     bossKey,
     missionCatalogVersion: runtime.progress.missions.catalogVersion,
     verifyRow: false,
+    // The first attempt also carries this device's run-end changes and profile/activity (one write).
+    full: true,
     writing: null,
     done: false,
   }
   pendingStageRows.set(stage.runKey, entry)
   return writeStageRow(entry).then(async () => {
-    // Best records, mission entries and the like travel in the progress transaction; it also retries
-    // this row once more if the first write was rejected.
-    await requestCloudProgressSave({ uid })
+    // Usually a no-op now. It retries this row at once if the first write was rejected, and carries
+    // anything the result write could not (purchases, settings, a refused best record).
+    if (followSave) await requestCloudProgressSave({ uid })
     return entry.done
   })
 }
@@ -302,20 +335,45 @@ function writeStageRow(entry) {
     const values = {
       [`runLedger/${stage.runKey}`]: row,
       'progress/checkpointRevision': client.increment(1),
+      // Server-side once-only guard (database.rules.json): resultWrites may only grow together with a
+      // run row, named by lastResultKey, that did not exist before this write.
+      'progress/resultWrites': client.increment(1),
+      'progress/lastResultKey': stage.runKey,
       updatedAt: now,
     }
     if (entry.bossKey && ledgerSummaryComplete) values[`ledgerSummary/bossDefeats/${entry.bossKey}`] = client.increment(1)
     if (contribution.gold) values['progress/goldTotal'] = client.increment(contribution.gold)
     for (const [key, value] of Object.entries(contribution.records)) values[`progress/records/${key}`] = client.increment(value)
     const counters = Object.entries(contribution.missionCounters)
-    if (counters.length) {
+    let missionsTouched = counters.length > 0
+    for (const [key, value] of counters) values[`progress/missions/counters/${encodeCounterKey(key)}`] = client.increment(value)
+    const full = entry.full
+    entry.full = false
+    let leaves = []
+    let topLevelFingerprint = null
+    if (full) {
+      leaves = collectRunEndLeaves()
+      for (const leaf of leaves) {
+        if (!leaf.path) continue
+        values[`progress/${leaf.path}`] = leaf.value
+        if (leaf.path.startsWith('missions/')) missionsTouched = true
+      }
+      const topLevel = buildTopLevelFields()
+      const topFingerprint = fingerprint(topLevel)
+      if (topFingerprint !== lastTopLevelFingerprint) {
+        Object.assign(values, topLevel)
+        topLevelFingerprint = topFingerprint
+      }
+    }
+    if (missionsTouched) {
       // The missions node must keep its required header for the update to validate.
       values['progress/missions/schemaVersion'] = MISSION_PROGRESS_SCHEMA_VERSION
       values['progress/missions/catalogVersion'] = entry.missionCatalogVersion
-      values['progress/missions/updatedAt'] = now
-      for (const [key, value] of counters) values[`progress/missions/counters/${encodeCounterKey(key)}`] = client.increment(value)
+      values['progress/missions/updatedAt'] ??= now
     }
     await client.update(`users/${uid}`, values)
+    entry.writtenLeaves = leaves
+    entry.writtenTopLevel = topLevelFingerprint
     return true
   }).catch(error => {
     console.warn('Firebase stage result was not acknowledged.', error?.code ?? error?.message ?? 'stage-write-failed')
@@ -332,8 +390,15 @@ function writeStageRow(entry) {
     recordedRunKeys.add(stage.runKey)
     entry.done = true
     addContribution(inflightFold, contribution, -1)
-    addContribution(persistenceBase.progress, contribution, 1)
+    // What the server now holds, in this session's local terms.
+    const nextBase = cloneProgress(persistenceBase.progress)
+    addContribution(nextBase, contribution, 1)
+    for (const leaf of entry.writtenLeaves ?? []) leaf.apply?.(nextBase)
+    persistenceBase = { ...persistenceBase, progress: nextBase }
+    if (entry.writtenTopLevel) lastTopLevelFingerprint = entry.writtenTopLevel
     clearStoredStageSlot(uid, stage.runKey)
+    removePendingStageResult(uid, stage.runKey)
+    releaseRunLock(stage.runKey)
     return true
   })
   entry.writing = attempt
@@ -370,27 +435,103 @@ function hasInflightFold() {
     || Object.values(inflightFold.missionCounters).some(Boolean)
 }
 
-// A stage left on this device (tab closed mid-stage, or its result write was rejected): recorded once,
-// unless the server already holds its run row (one row read; then the slot is just removed).
-async function recoverStoredStageResult(uid, client) {
-  const stored = readStoredStageSlot(uid)
-  if (!stored || stored.runKey === getLiveStageRunKey()) return false
-  let onServer = recordedRunKeys.has(stored.runKey)
-  if (!onServer) {
-    try {
-      onServer = await isRunRowOnServer(client, uid, stored.runKey)
-    } catch (error) {
-      // Unknown: keep the slot for the next sign-in rather than risk a second copy.
-      console.warn('Firebase stage row check failed.', error?.code ?? error?.message ?? 'row-check-failed')
-      return false
+// Leaves this device changed that are safe as plain values in a multi-path update: flags that only
+// turn on, best records that only grow, and mission entries. Purchases, settings and mission claims are
+// not here; they keep their own transaction.
+function collectRunEndLeaves() {
+  const current = runtime.progress
+  const base = persistenceBase.progress
+  const leaves = []
+  for (const key of RECORD_KEYS) {
+    if (!/best/i.test(key)) continue
+    const value = current.records[key] ?? 0
+    if (value > (base.records[key] ?? 0)) leaves.push({ path: `records/${key}`, value, apply: next => { next.records[key] = value } })
+  }
+  for (const field of ['weaponUnlocks', 'outfitUnlocks', 'encounteredZombieTypes']) {
+    for (const [id, value] of Object.entries(current[field] ?? {})) {
+      if (value === 1 && base[field]?.[id] !== 1) leaves.push({ path: `${field}/${id}`, value: 1, apply: next => { next[field] = { ...next[field], [id]: 1 } } })
     }
-    if (!isFirebaseProgressHydrated({ uid })) return false
   }
-  if (onServer) {
-    clearStoredStageSlot(uid, stored.runKey)
-    return false
+  for (const [id, value] of Object.entries(current.bossPassiveUnlocks ?? {})) {
+    if (value === true && base.bossPassiveUnlocks?.[id] !== true) leaves.push({ path: `bossPassiveUnlocks/${id}`, value: true, apply: next => { next.bossPassiveUnlocks = { ...next.bossPassiveUnlocks, [id]: true } } })
   }
-  return commitFirebaseStageResult(stored, { uid })
+  const missions = current.missions
+  const baseMissions = base.missions
+  for (const [key, value] of Object.entries(missions.counters)) {
+    if (isMaxMissionCounter(key) && value > (baseMissions.counters[key] ?? 0)) {
+      leaves.push({ path: `missions/counters/${encodeCounterKey(key)}`, value, apply: next => { next.missions.counters[key] = value } })
+    }
+  }
+  for (const [id, entry] of Object.entries(missions.active)) {
+    const before = baseMissions.active[id]
+    if (fingerprint(entry) === fingerprint(before)) continue
+    leaves.push({ path: `missions/active/${id}/counter`, value: entry.counter })
+    leaves.push({ path: `missions/active/${id}/target`, value: entry.target })
+    if (entry.completedAt && entry.completedAt !== before?.completedAt) leaves.push({ path: `missions/active/${id}/completedAt`, value: entry.completedAt })
+    // claimedAt/claimId are never written here (the claim transaction owns them).
+    leaves.push({ path: null, apply: next => {
+      const prior = next.missions.active[id] ?? { claimedAt: null, claimId: null }
+      next.missions.active[id] = { ...prior, counter: entry.counter, target: entry.target, completedAt: entry.completedAt ?? prior.completedAt ?? null }
+    } })
+  }
+  for (const [id, entry] of Object.entries(missions.completed)) {
+    if (fingerprint(entry) === fingerprint(baseMissions.completed[id])) continue
+    leaves.push({ path: `missions/completed/${id}`, value: { ...entry }, apply: next => { next.missions.completed[id] = { ...entry } } })
+  }
+  if (missions.updatedAt && missions.updatedAt !== baseMissions.updatedAt) {
+    const value = missions.updatedAt
+    leaves.push({ path: 'missions/updatedAt', value, apply: next => { next.missions.updatedAt = value } })
+  }
+  return leaves
+}
+
+// Results left on this device by a closed tab — its live slot, or finished results the server never
+// confirmed: each is sent once, unless its run row is already on the server (one row read; then the
+// device copy is just removed). A result still owned by an open tab (it holds the run's Web Lock or,
+// without Web Locks, its slot heartbeat is fresh) is left alone. The server rule rejects a second copy
+// anyway; the lock keeps a live tab's stage from being cut short by another tab.
+async function recoverDeviceStageResults(uid) {
+  const candidates = []
+  const slot = readStoredStageSlot(uid)
+  if (slot && slot.runKey !== getLiveStageRunKey() && !pendingStageRows.has(slot.runKey)) {
+    if (hasRunLocks() || !isStoredSlotFresh(slot)) candidates.push({ runKey: slot.runKey, fromSlot: true })
+  }
+  for (const pending of listPendingStageResults(uid)) {
+    if (pending.runKey === getLiveStageRunKey() || pendingStageRows.has(pending.runKey)) continue
+    if (!hasRunLocks() && pending.fromLive && isStoredSlotFresh(pending)) continue
+    candidates.push({ runKey: pending.runKey, fromSlot: false })
+  }
+  for (const { runKey, fromSlot } of candidates) {
+    if (!isFirebaseProgressHydrated({ uid })) return
+    // This tab's own earlier stage (e.g. it ended before this account was hydrated): it already holds the
+    // lock. Any other tab's: only when that tab is gone.
+    const underLock = isRunLockHeldHere(runKey) ? task => task() : task => withFreeRunLock(runKey, task)
+    await underLock(async () => {
+      // Read again under the lock: another tab may have finished it meanwhile.
+      const stored = fromSlot ? readStoredStageSlot(uid) : readPendingStageResult(uid, runKey)
+      if (!stored || stored.runKey !== runKey || !isFirebaseProgressHydrated({ uid })) return
+      const forget = () => {
+        clearStoredStageSlot(uid, runKey)
+        removePendingStageResult(uid, runKey)
+      }
+      if (recordedRunKeys.has(runKey)) return forget()
+      let onServer
+      try {
+        const client = await getProgressClient()
+        onServer = await isRunRowOnServer(client, uid, runKey)
+      } catch (error) {
+        // Unknown: keep the device copy for the next sign-in rather than risk a second copy.
+        console.warn('Firebase stage row check failed.', error?.code ?? error?.message ?? 'row-check-failed')
+        return
+      }
+      if (!isFirebaseProgressHydrated({ uid })) return
+      if (onServer) {
+        recordedRunKeys.add(runKey)
+        return forget()
+      }
+      await commitFirebaseStageResult(stored, { uid }, { followSave: false })
+    })
+  }
 }
 
 export function recordFirebaseProgressPurchase({ category, id, price, nextLevel }) {
@@ -437,6 +578,7 @@ function resetSessionState() {
   recordedRunKeys = new Set()
   inflightFold = createEmptyContribution()
   pendingStageRows = new Map()
+  deviceRecovery = Promise.resolve()
   lastTopLevelFingerprint = ''
 }
 
@@ -561,11 +703,16 @@ export async function hydrateCloudProgress(user = cloudUser) {
       runtime = createEmptyRuntime(requestedUid)
       throw new FirebaseProgressError(`Remote Firebase user snapshot is invalid at ${path}.`, 'invalid-remote')
     }
-    if (snapshot.runLedger) await migrateLedgerSummary(client, requestedUid, path, snapshot)
-    await recoverStoredStageResult(requestedUid, client)
+    // Sign-in returns now; the one-time migration write and the device results follow in the background
+    // (in that order, so a recovered boss proof lands in a complete ledgerSummary). Saves wait for them.
+    const migrating = snapshot.runLedger ? migrateLedgerSummary(client, requestedUid, path, snapshot) : Promise.resolve(false)
+    deviceRecovery = migrating.then(() => recoverDeviceStageResults(requestedUid)).catch(error => {
+      console.warn('Device stage results were not recovered.', error?.message ?? 'recovery-failed')
+    })
     if (migrateLegacyWeaponUnlockEntitlements()) {
       // 이전 저장 실패는 플레이와 현재 세션의 권리 적용을 막지 않는다. 다음 정상 저장 때 다시 시도된다.
-      await requestCloudProgressSave(user)
+      // 기기에 남은 결과 처리(deviceRecovery)는 기다리지 않는다(2026-11-21: 로그인이 남은 결과 쓰기에 묶이지 않는다).
+      await performCloudProgressSave(user)
     }
     return true
   } catch (error) {
@@ -893,7 +1040,7 @@ export async function deleteFirebaseProgressDocument(user = cloudUser) {
   // 이미 실행 중인 저장은 큐를 흘려보낸 뒤 삭제한다.
   runtime = createEmptyRuntime()
   cloudUser = null
-  clearStoredStageSlot(readUserId(user))
+  removeAllStageData(readUserId(user))
   await writeQueue.catch(() => {})
   await client.remove(path)
   return true
@@ -911,7 +1058,7 @@ export function recordPlayActivity(stageId, now = Date.now()) {
       lastStartedAt: startedAt.toISOString(),
     },
   }
-  void requestCloudProgressSave()
+  // Memory only: nothing is uploaded during play. It goes out with the stage result.
   return true
 }
 
@@ -922,7 +1069,8 @@ export function recordPlayActivity(stageId, now = Date.now()) {
 export function requestCloudProgressSave(user = cloudUser) {
   const key = `${readUserId(user)}:${persistenceSession}`
   if (pendingSaves.has(key)) return pendingSaves.get(key)
-  const pending = performCloudProgressSave(user).finally(() => {
+  const recovery = deviceRecovery
+  const pending = recovery.then(() => performCloudProgressSave(user)).finally(() => {
     if (pendingSaves.get(key) === pending) pendingSaves.delete(key)
   })
   pendingSaves.set(key,pending)
