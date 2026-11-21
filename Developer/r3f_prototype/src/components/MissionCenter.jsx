@@ -126,7 +126,7 @@ function GuestLock({ t }) {
     <div style={styles.lockOverlay}>
       <section role="dialog" aria-modal="false" aria-labelledby="mission-guest-lock-title" data-testid="mission-guest-lock" style={styles.lockModal}>
         <div style={styles.lockIcon}>
-          <StageLockPreview testId="mission-guest-lock-icon" ariaLabel={t('missions.guest.lockAria')} />
+          <StageLockPreview testId="mission-guest-lock-icon" framing="icon" ariaLabel={t('missions.guest.lockAria')} />
         </div>
         <h2 id="mission-guest-lock-title" style={styles.lockTitle}>{t('missions.guest.lockTitle')}</h2>
         <button type="button" data-testid="mission-guest-signin" disabled={busy} style={{ ...styles.signInButton, ...(busy ? styles.pendingButton : null) }} onClick={handleSignIn}>
@@ -173,7 +173,7 @@ const styles = {
   claimedToggle: { ...schoolButton('paper'), minHeight: 44, padding: '0 10px', fontSize: 13 },
   lockOverlay: { position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, boxSizing: 'border-box', background: 'rgba(5,2,9,0.28)' },
   lockModal: { ...schoolPanel('paper'), width: 'min(100%, 320px)', display: 'grid', justifyItems: 'center', gap: 10, padding: '14px 16px 16px', boxSizing: 'border-box', textAlign: 'center' },
-  lockIcon: { width: 168, height: 150, marginBottom: -12 },
+  lockIcon: { width: 128, height: 128, margin: '2px auto 0' },
   lockTitle: { margin: 0, fontSize: 18, lineHeight: 1.35, fontWeight: uiType.weightHeavy, wordBreak: 'keep-all', overflowWrap: 'anywhere' },
   signInButton: { ...schoolButton('primary'), width: '100%', minHeight: 48, padding: '0 14px', fontSize: 15 },
   notice: { margin: '0 10px 8px', padding: '8px 10px', border: uiBorders.hairline, borderRadius: 8, background: '#fff0be', color: '#493f4d', fontSize: 12, fontWeight: 800 },
