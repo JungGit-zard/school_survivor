@@ -19,11 +19,10 @@ function Resolve-PostingImagePath([string]$Path, [ValidateSet('X','Facebook')][s
     throw 'Image path is not canonical and has no explicit legacy mapping.'
   }
   if ($suffix -match '(^|/)\.\.(/|$)' -or $suffix -match '^[A-Za-z]:') { throw 'Image path traversal or absolute suffix is forbidden.' }
-  $platformRoot = if ($Platform -eq 'Facebook') { 'facebook/' } else { 'x/' }
   $isLegacy = $catalog.legacyPaths.PSObject.Properties.Name -contains $(if ($match.Success) { $match.Groups[1].Value } else { $normalized.TrimStart('/') })
   if ($Platform -eq 'X' -and $suffix.StartsWith('facebook/', [StringComparison]::OrdinalIgnoreCase)) { throw 'X cannot resolve Facebook-owned images.' }
-  if ($Platform -eq 'Facebook' -and $suffix.StartsWith('x/', [StringComparison]::OrdinalIgnoreCase) -and -not $isLegacy) { throw 'Facebook cannot resolve X-owned images outside an explicit legacy receipt mapping.' }
-  if ($Platform -eq 'Facebook' -and -not $isLegacy -and -not $suffix.StartsWith($platformRoot, [StringComparison]::OrdinalIgnoreCase)) { throw 'Facebook images must be under the Facebook platform root.' }
+  # 2026-11-07: Facebook posts the same X promo images, so it may resolve x/; facebook/ stays readable for old receipts.
+  if ($Platform -eq 'Facebook' -and -not $isLegacy -and -not $suffix.StartsWith('facebook/', [StringComparison]::OrdinalIgnoreCase) -and -not $suffix.StartsWith('x/', [StringComparison]::OrdinalIgnoreCase)) { throw 'Facebook images must be under the Facebook or X platform root.' }
   if ($Platform -eq 'X' -and -not $suffix.StartsWith('x/', [StringComparison]::OrdinalIgnoreCase) -and -not $suffix.StartsWith('reference/', [StringComparison]::OrdinalIgnoreCase)) { throw 'X images must be under the X or shared-reference root.' }
   $resolved = [IO.Path]::GetFullPath((Join-Path $root ($suffix -replace '/', [IO.Path]::DirectorySeparatorChar)))
   if (-not $resolved.StartsWith($rootPrefix, [StringComparison]::OrdinalIgnoreCase)) { throw 'Configured image path escapes the campaign image_pool root.' }
@@ -60,7 +59,9 @@ function Test-PostingImageGameStartText([string]$ImagePath, [ValidateSet('ko','e
   $full = Resolve-PostingImagePath $ImagePath -Platform $Platform
   $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot 'image_pool'))
   $relative = $full.Substring($root.Length + 1).Replace([string][char]92,'/')
-  $rows = @($Catalog.images | Where-Object { $_.platform -ceq $Platform -and $_.locale -ceq $Language -and $_.path -ceq $relative })
+  # CTA proof belongs to the catalog row of the image's own root (Facebook may post x/ images).
+  $rowPlatform = if ($relative.StartsWith('x/', [StringComparison]::OrdinalIgnoreCase)) { 'X' } elseif ($relative.StartsWith('facebook/', [StringComparison]::OrdinalIgnoreCase)) { 'Facebook' } else { $Platform }
+  $rows = @($Catalog.images | Where-Object { $_.platform -ceq $rowPlatform -and $_.locale -ceq $Language -and $_.path -ceq $relative })
   if ($rows.Count -ne 1 -or $rows[0].PSObject.Properties.Name -notcontains 'gameStartText') { return $false }
   return ([string]$rows[0].gameStartText -ceq (Get-PostingGameStartText $Language))
 }
@@ -72,16 +73,14 @@ function Assert-PostingImageGameStartText([string]$ImagePath, [ValidateSet('ko',
 }
 function Get-PostingLocaleImageCandidates($Config, [string]$Language, [switch]$IncludeLegacy, [switch]$RequireGameStartText, [ValidateSet('X','Facebook')][string]$Platform = 'X', $Catalog = $null) {
   $images = @()
-  if ($Platform -eq 'Facebook' -and $Config.PSObject.Properties.Name -contains 'facebook_rotation_image_pool' -and
-      $Config.facebook_rotation_image_pool.PSObject.Properties.Name -contains $Language) {
-    $images += @($Config.facebook_rotation_image_pool.$Language.images)
-  } elseif ($Platform -eq 'Facebook') {
+  # 2026-11-07 (Terry): Facebook uses X's localized promo pool, not comics; facebook_rotation_image_pool is retired.
+  $hasLocalizedPool = $Config.PSObject.Properties.Name -contains 'localized_social_image_pool' -and $Config.localized_social_image_pool.PSObject.Properties.Name -contains $Language
+  if ($Platform -eq 'Facebook' -and -not $hasLocalizedPool) {
     if ($null -eq $Catalog) { $Catalog = Get-PostingImageCatalog }
     $images += @($Catalog.images | Where-Object { $_.platform -ceq 'Facebook' -and $_.locale -ceq $Language -and $_.PSObject.Properties.Name -contains 'gameStartText' } | ForEach-Object { 'image_pool/' + [string]$_.path })
   }
   if ($IncludeLegacy) { $images += @($Config.image_pool.$Language.images) }
-  if ($Platform -eq 'X' -and $Config.PSObject.Properties.Name -contains 'localized_social_image_pool' -and
-      $Config.localized_social_image_pool.PSObject.Properties.Name -contains $Language) {
+  if ($hasLocalizedPool) {
     $images += @($Config.localized_social_image_pool.$Language.images)
   }
   if ($RequireGameStartText -and $null -eq $Catalog) { $Catalog = Get-PostingImageCatalog }
@@ -163,11 +162,12 @@ function Select-PostingLocaleImagePath($Config, [string]$Language, [string]$Cycl
       $parentsByHash[$key] = @($parentsByHash[$key]) + ([string]$row.derivedFromSha256).ToLowerInvariant()
     }
   }
-  $gatedCandidates = if ($Platform -eq 'X' -and (Test-PostingXWebsiteCardMode $Config)) {
+  $gatedCandidates = if (Test-PostingXWebsiteCardMode $Config) {
     # Website cards carry the game-start CTA in the post text, so any localized promo image in the pool is eligible.
+    # Facebook (2026-11-07) shares X's pool and gating; its post text carries the same campaign links.
     @(Get-PostingLocaleImageCandidates $Config $Language -Platform $Platform -Catalog $Catalog)
   } else { @(Get-PostingLocaleImageCandidates $Config $Language -RequireGameStartText -Platform $Platform -Catalog $Catalog) }
-  $pool = if ($Platform -eq 'Facebook' -and $Config.PSObject.Properties.Name -contains 'facebook_rotation_image_pool' -and $Config.facebook_rotation_image_pool.PSObject.Properties.Name -contains $Language) { @($Config.facebook_rotation_image_pool.$Language.images) } elseif ($Platform -eq 'X' -and $Config.PSObject.Properties.Name -contains 'localized_social_image_pool' -and $Config.localized_social_image_pool.PSObject.Properties.Name -contains $Language) { @($Config.localized_social_image_pool.$Language.images) } else { @() }
+  $pool = if ($Config.PSObject.Properties.Name -contains 'localized_social_image_pool' -and $Config.localized_social_image_pool.PSObject.Properties.Name -contains $Language) { @($Config.localized_social_image_pool.$Language.images) } else { @() }
   $poolPaths = @($pool | ForEach-Object { Resolve-PostingImagePath ([string]$_) -Platform $Platform } | Select-Object -Unique)
   $candidates = @(if ($poolPaths.Count -gt 0) { @($poolPaths | Where-Object { $gatedCandidates -ccontains $_ }) } else { $gatedCandidates })
   if ($candidates.Count -eq 0) { throw "No confirmed localized game-start CTA images are eligible for $Platform/$Language." }
@@ -179,7 +179,8 @@ function Select-PostingLocaleImagePath($Config, [string]$Language, [string]$Cycl
   $candidateHashes = @{}
   $lineageRowsByPath = @{}
   foreach ($row in $Catalog.images) {
-    if ($row.platform -ceq $Platform -and $row.locale -ceq $Language -and $row.PSObject.Properties.Name -contains 'derivedFromSha256') { $lineageRowsByPath[[string]$row.path] = $row }
+    # Catalog paths are root-prefixed (x/ or facebook/), so lineage is keyed by path for either platform.
+    if ($row.locale -ceq $Language -and $row.PSObject.Properties.Name -contains 'derivedFromSha256') { $lineageRowsByPath[[string]$row.path] = $row }
   }
   $imageRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot 'image_pool'))
   foreach ($candidate in $candidates) {
@@ -239,9 +240,10 @@ function Select-PostingLocaleImagePath($Config, [string]$Language, [string]$Cycl
     if (-not $usedHashes.ContainsKey($candidateHashes[$candidate])) { return [string]$candidate }
   }
   if ($Platform -eq 'Facebook') {
-    # Facebook only (2026-10-28): once every comic was posted, reuse the pool in
-    # least-recently-used order (ties keep pool order) instead of stopping, and
-    # never repeat the most recently posted comic while another one exists.
+    # Facebook only (2026-10-28, pool switched to X promos 2026-11-07): once every
+    # image was posted, reuse the pool in least-recently-used order (ties keep pool
+    # order) instead of stopping, and never repeat the most recently posted image
+    # while another one exists. History comes only from Facebook receipts.
     # X never reuses images because X caches card URLs.
     $mostRecent = $null
     foreach ($key in @($lastUsedCycle.Keys)) { if ($null -eq $mostRecent -or [string]::CompareOrdinal([string]$lastUsedCycle[$key], [string]$lastUsedCycle[$mostRecent]) -gt 0) { $mostRecent = $key } }
