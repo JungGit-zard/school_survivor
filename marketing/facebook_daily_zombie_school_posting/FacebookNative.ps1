@@ -486,7 +486,20 @@ function Set-FacebookComposerEditorFocus($Editor) {
  }
  $false
 }
-function Set-FacebookComposerTextNative([string]$Text,[long]$WindowId=0,[string]$ReplaceableText='') { $w=Get-FacebookChromeWindow $WindowId;Focus-FacebookChromeWindow $w;Assert-FacebookForeground $w;$e=Get-FacebookComposerEditor $w;$existing=Get-FacebookValue $e;$replaceable=(-not [string]::IsNullOrWhiteSpace($ReplaceableText)) -and (Normalize-FacebookText $existing) -ceq (Normalize-FacebookText $ReplaceableText);if(-not [string]::IsNullOrWhiteSpace((Normalize-FacebookText $existing)) -and (Normalize-FacebookText $existing) -cne (Normalize-FacebookText $Text) -and -not $replaceable){throw 'Composer has unknown existing text; refusing to append or replace it'};if((Normalize-FacebookText $existing) -ceq (Normalize-FacebookText $Text)){return};if(-not (Set-FacebookComposerEditorFocus $e)){throw 'Composer editor did not receive focus; select-all/paste stopped'};Assert-FacebookUserIdle;[Windows.Forms.Clipboard]::SetText($Text);[Windows.Forms.SendKeys]::SendWait('^a');[Windows.Forms.SendKeys]::SendWait('^v');Register-FacebookInjectedInput;Start-Sleep -Milliseconds 250;if((Normalize-FacebookText (Get-FacebookValue $e)) -cne (Normalize-FacebookText $Text)){throw 'Focused composer did not retain exact select-all/pasted text'} }
+function Remove-FacebookLinkPreviewNative($Window) {
+ # Photo fallback after a link attempt: while a card preview is attached the composer shows "This can't
+ # be combined with what you've already added to your post.", so remove the preview before the photo.
+ $dialog=Get-FacebookComposerDialog $Window
+ $buttons=@((Get-FacebookUiAll $dialog)|Where-Object{!$_.Current.IsOffscreen -and $_.Current.ControlType -eq [Windows.Automation.ControlType]::Button -and (Test-FacebookRemoveLinkPreviewName $_.Current.Name)})
+ if($buttons.Count -eq 0){return [pscustomobject]@{removed=$false}}
+ if($buttons.Count -ne 1){throw "Expected at most one remove-link-preview button; found $($buttons.Count)"}
+ $invoke=$null;if(-not $buttons[0].TryGetCurrentPattern([Windows.Automation.InvokePattern]::Pattern,[ref]$invoke)){throw 'Remove-link-preview button has no InvokePattern'}
+ Assert-FacebookUserIdle;$invoke.Invoke()
+ $deadline=[DateTime]::UtcNow.AddSeconds(5)
+ do{Start-Sleep -Milliseconds 200;$left=@((Get-FacebookUiAll (Get-FacebookComposerDialog $Window))|Where-Object{!$_.Current.IsOffscreen -and $_.Current.ControlType -eq [Windows.Automation.ControlType]::Button -and (Test-FacebookRemoveLinkPreviewName $_.Current.Name)});if($left.Count -eq 0){return [pscustomobject]@{removed=$true}}}while([DateTime]::UtcNow -lt $deadline)
+ throw 'Link preview was still present after one remove-preview invoke'
+}
+function Set-FacebookComposerTextNative([string]$Text,[long]$WindowId=0,[string]$ReplaceableText='') { $w=Get-FacebookChromeWindow $WindowId;Focus-FacebookChromeWindow $w;Assert-FacebookForeground $w;$e=Get-FacebookComposerEditor $w;$existing=Get-FacebookValue $e;$replaceable=(-not [string]::IsNullOrWhiteSpace($ReplaceableText)) -and (Normalize-FacebookText $existing) -ceq (Normalize-FacebookText $ReplaceableText);if(-not [string]::IsNullOrWhiteSpace((Normalize-FacebookText $existing)) -and (Normalize-FacebookText $existing) -cne (Normalize-FacebookText $Text) -and -not $replaceable){throw 'Composer has unknown existing text; refusing to append or replace it'};if((Normalize-FacebookText $existing) -ceq (Normalize-FacebookText $Text)){return};if($replaceable){$null=Remove-FacebookLinkPreviewNative $w;$e=Get-FacebookComposerEditor $w};if(-not (Set-FacebookComposerEditorFocus $e)){throw 'Composer editor did not receive focus; select-all/paste stopped'};Assert-FacebookUserIdle;[Windows.Forms.Clipboard]::SetText($Text);[Windows.Forms.SendKeys]::SendWait('^a');[Windows.Forms.SendKeys]::SendWait('^v');Register-FacebookInjectedInput;Start-Sleep -Milliseconds 250;if((Normalize-FacebookText (Get-FacebookValue $e)) -cne (Normalize-FacebookText $Text)){throw 'Focused composer did not retain exact select-all/pasted text'} }
 function Get-FacebookOpenDialog($ChromeWindow) { $dialogs=@((Get-FacebookUiAll $ChromeWindow)|Where-Object{$_.Current.ControlType -eq [Windows.Automation.ControlType]::Window -and $_.Current.Name -in @('Open','열기') -and (Get-Process -Id $_.Current.ProcessId -ErrorAction SilentlyContinue).ProcessName -eq 'chrome'});if($dialogs.Count -ne 1){throw "Expected one Chrome-owned Open window descendant; found $($dialogs.Count)"};$dialogs[0] }
 function Set-FacebookNativeOpenDialogPath([string]$ImagePath,$ChromeWindow) { Assert-FacebookImagePath $ImagePath;$ImagePath=Resolve-FacebookAttachmentPath $ImagePath;$d=Get-FacebookOpenDialog $ChromeWindow;$edit=@((Get-FacebookUiAll $d)|Where-Object{$_.Current.AutomationId -eq '1148' -and $_.Current.ClassName -eq 'Edit'});if($edit.Count -ne 1){throw "Expected one native filename Edit AutomationId 1148/ClassName Edit; found $($edit.Count)"};$h=[IntPtr]$edit[0].Current.NativeWindowHandle;if($h -eq [IntPtr]::Zero){throw 'Native filename Edit has no HWND'};$full=[IO.Path]::GetFullPath($ImagePath);if(-not [FacebookPostingNative]::WriteText($h,$full)){throw 'WM_SETTEXT failed'};$read=[FacebookPostingNative]::ReadText($h);if($read -cne $full){throw 'WM_GETTEXT did not confirm exact native file path'};[pscustomobject]@{dialogWindowId=$d.Current.NativeWindowHandle;dialogProcessId=$d.Current.ProcessId;fileEditWindowId=$edit[0].Current.NativeWindowHandle;imagePath=$full} }
 function Set-FacebookNativeOpenDialogPathForWindow([string]$ImagePath,[long]$WindowId) { $w=Get-FacebookChromeWindow $WindowId; Set-FacebookNativeOpenDialogPath $ImagePath $w }
@@ -524,13 +537,24 @@ function Attach-FacebookImageNative([string]$ImagePath,[long]$WindowId=0,[string
   throw 'Native Open dialog did not appear'
 }
 function Get-FacebookDraftEvidenceNative($Window) { $dialog=Get-FacebookComposerDialog $Window;$e=Get-FacebookComposerEditor $Window;$all=Get-FacebookUiAll $dialog;$attachments=@($all|Where-Object{!$_.Current.IsOffscreen -and $_.Current.Name -in @('Remove post attachment','게시물 첨부 파일 제거')}).Count;$privacy=@($all|Where-Object{!$_.Current.IsOffscreen -and $_.Current.Name -match '^Edit privacy\. Sharing with Your friends\.\s*$'}).Count;$authors=@($all|Where-Object{!$_.Current.IsOffscreen -and "$($_.Current.Name)".Trim() -ceq 'Hyun Uk Jung'}).Count;[pscustomobject]@{text=(Get-FacebookValue $e);attachmentCount=$attachments;audience=if($privacy -eq 1){'Friends'}else{'unknown'};authorCount=$authors} }
+function Test-FacebookRemoveLinkPreviewName([string]$Name) {
+ # en: 'Remove link preview from your post' (captured), older/shorter variants; ko: a button naming the
+ # link preview (ring-keu mi-ri-bo-gi) together with remove/delete (je-geo / sak-je).
+ $n=("$Name" -replace '\s+',' ').Trim()
+ if($n -imatch '^Remove (?:link preview|preview|link)(?: from (?:your|this) post)?$'){return $true}
+ if($n -match '\uB9C1\uD06C\s*\uBBF8\uB9AC\s*\uBCF4\uAE30' -and $n -match '\uC81C\uAC70|\uC0AD\uC81C'){return $true}
+ $false
+}
 function Test-FacebookLinkPreviewSignal([string]$ControlType,[string]$Name,[string]$Value,[string]$CardPath) {
  # Pure predicate over one composer node outside the editor. A rendered Facebook link preview
  # shows the card domain, links to the card (directly or via l.facebook.com), or offers a
  # remove-preview button. The editor's own typed URL is excluded by the caller.
- $n="$Name".Trim()
- if($n -imatch '^(?:https?://)?(?:www\.)?escapezombie\.com/?$'){return $true}
- if($ControlType -eq 'Button' -and $n -imatch '^(?:Remove link preview|Remove preview|Remove link)$'){return $true}
+ # 2026-11-22 capture (en UI): the rendered preview exposes Hyperlink 'ESCAPEZOMBIE.COM Escape! Zombie
+ # School' (domain + title in one name, href back to the profile, not the card) and Button 'Remove link
+ # preview from your post'. Neither matched the old exact-name rules, so every link post timed out.
+ $n=("$Name" -replace '\s+',' ').Trim()
+ if($n -imatch '^(?:https?://)?(?:www\.)?escapezombie\.com/?(?:\s|$)'){return $true}
+ if($ControlType -eq 'Button' -and (Test-FacebookRemoveLinkPreviewName $n)){return $true}
  if($ControlType -eq 'Hyperlink' -and -not [string]::IsNullOrWhiteSpace($Value)){
   if($Value -match [regex]::Escape($CardPath)){return $true}
   if($Value -match [regex]::Escape([Uri]::EscapeDataString($CardPath))){return $true}
