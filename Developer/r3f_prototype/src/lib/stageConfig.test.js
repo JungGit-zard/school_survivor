@@ -128,10 +128,11 @@ describe('stage configuration registry', () => {
     expect(isStageUnlocked('stage4', { stage3BossDefeats: 3 })).toBe(true)
   })
 
-  it('refuses every non-boss-defeat evidence for Stage 4', () => {
-    // clear(포탈 탈출)·누적 생존 시간·퀘스트·총 보스 처치수는 대체 증거가 아니다.
-    expect(isStageUnlocked('stage4', { stage3Clears: 1 })).toBe(false)
-    expect(isStageUnlocked('stage4', { stage3Clears: 99, stage2Clears: 5 })).toBe(false)
+  it('opens Stage 4 on a Stage 3 boss defeat or a Stage 3 escape, nothing else', () => {
+    // Terry 2026-11-22: Stage 3 탈출(니쿠오 엔딩)도 Stage 4를 연다. 누적 생존 시간·총 보스 처치수는 여전히 아니다.
+    expect(isStageUnlocked('stage4', { stage3Clears: 1 })).toBe(true)
+    expect(isStageUnlocked('stage4', { stage3Clears: 0, stage2Clears: 5 })).toBe(false)
+    expect(isStageUnlocked('stage4', { stage3Clears: '1' })).toBe(false)
     expect(isStageUnlocked('stage4', { stage3BestSurvivalSec: 240 })).toBe(false)
     expect(isStageUnlocked('stage4', { totalSurvivalSeconds: 99_999 })).toBe(false)
     expect(isStageUnlocked('stage4', { bossKills: 50 })).toBe(false)

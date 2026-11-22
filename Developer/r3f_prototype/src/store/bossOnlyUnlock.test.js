@@ -59,12 +59,14 @@ it.each(ENTERABLE)('stage %i no-boss escape/time does not unlock', n => {
   useGameStore.setState({elapsedMs:240000})
   useGameStore.getState().clearStage()
   expect(records()[`stage${n}Clears`]).toBe(1)
-  expect(isStageUnlocked(`stage${n+1}`,records())).toBe(false)
+  // Terry 2026-11-22: the Stage 3 escape (Nikuo ending) is the one escape that opens the next stage.
+  expect(isStageUnlocked(`stage${n+1}`,records())).toBe(n === 3)
 })
 it('historical escape clears never substitute for missing or zero boss evidence in all nine gates', () => {
   for(let n=1;n<10;n++) {
-    expect(isStageUnlocked(`stage${n+1}`,{[`stage${n}Clears`]:999})).toBe(false)
-    expect(isStageUnlocked(`stage${n+1}`,{[`stage${n}Clears`]:999,[`stage${n}BossDefeats`]:0})).toBe(false)
+    // Only exception (Terry 2026-11-22): stage3Clears opens stage4.
+    expect(isStageUnlocked(`stage${n+1}`,{[`stage${n}Clears`]:999})).toBe(n === 3)
+    expect(isStageUnlocked(`stage${n+1}`,{[`stage${n}Clears`]:999,[`stage${n}BossDefeats`]:0})).toBe(n === 3)
   }
   expect(isStageUnlocked('stage2',{bossKills:999,totalRuns:999})).toBe(false)
   expect(isStageUnlocked('stage1',{})).toBe(true)

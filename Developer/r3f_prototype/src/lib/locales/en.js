@@ -100,7 +100,7 @@ export default {
   'lobby.unlock.stage2': 'Unlocks after defeating the Stage 1 boss',
   'lobby.unlock.stage3': 'Unlocks after defeating the Stage 2 boss',
   'lobby.unlock.stage5': 'Unlocks after defeating the Stage 4 boss',
-  'lobby.unlock.stage4': 'Unlocks after defeating the Stage 3 boss',
+  'lobby.unlock.stage4': 'Unlocks after escaping Stage 3',
 
   // Stage 5 교무실 최종 돌파 (spec56 B §10-1)
   'stage.stage5.description': 'Pick your aisle between the desks, get past the Vice Principal Zombie, and escape through the main entrance',
@@ -593,6 +593,12 @@ export default {
   'hud.introAria': 'Story intro',
   'hud.introPortraitAlt': 'Rosari portrait',
   'hud.skipIntro': 'Skip',
+  'hud.nikuoCut.aria': 'Talk with Nikuo',
+  'hud.nikuoCut.nikuoPortraitAlt': 'Nikuo in the Sltera',
+  'hud.nikuoCut.question': 'Get in the Sltera?',
+  'hud.nikuoCut.yes': 'Get in',
+  'hud.nikuoCut.no': 'No thanks',
+  'hud.slteraRun.title': 'Sltera Coast Run',
   'hud.allWeapons': 'All weapons',
   'hud.weaponCheat': 'Weapon cheat',
   'hud.summonMatilda': 'Summon Matilda',

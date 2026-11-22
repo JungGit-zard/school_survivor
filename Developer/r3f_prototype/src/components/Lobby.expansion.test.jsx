@@ -125,10 +125,11 @@ it.each(Array.from({ length: LAST - 1 }, (_, i) => i + 2))('normal UI stage %i i
     for(let i=1;i<=10;i++) {p.records[`stage${i}Clears`]=999;p.records[`stage${i}BossDefeats`]=0}
   }))
   render({devAllStagesUnlocked:true})
-  for(let i=2;i<=LAST;i++) expect(entry(card(`stage${i}`)).disabled).toBe(true)
+  // The one exception (Terry 2026-11-22): a Stage 3 escape (stage3Clears) opens Stage 4. Every other stage is boss-only.
+  for(let i=2;i<=LAST;i++) expect(entry(card(`stage${i}`)).disabled).toBe(i!==4)
   expect(entry(card('stage1')).disabled).toBe(false)
   act(() => updateFirebasePlayerProgress(p => {p.records[`stage${n-1}BossDefeats`]=1}))
   act(() => useAuthStore.setState({progressStatus:'loading'}))
   act(() => useAuthStore.setState({progressStatus:'ready'}))
-  for(let i=2;i<=LAST;i++) expect(entry(card(`stage${i}`)).disabled).toBe(i!==n)
+  for(let i=2;i<=LAST;i++) expect(entry(card(`stage${i}`)).disabled).toBe(i!==n && i!==4)
 })

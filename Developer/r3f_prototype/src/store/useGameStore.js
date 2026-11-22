@@ -76,6 +76,7 @@ import { trackEvent } from '../lib/analytics.js'
 import { DEFAULT_PLAYER_OUTFIT, isPlayerOutfitId } from '../lib/playerOutfitIds.js'
 import { getStageVendingItem, getStageVendingPlacement, getStageVendingRemainingPurchases, isWithinStageVendingRange } from '../lib/stageVending.js'
 import { getBossKillBonusFromStageScore, getEscapeBonus, getRankingBaseScore, getRankingScorePolicy } from '../lib/rankingScorePolicy.js'
+import { SLTERA_RACER_STAGE_ID, getSlteraRacerBonus } from '../lib/slteraRacerBonus.js'
 import { logDamageTaken } from '../lib/playtestLogger.js'
 import { emitSfx } from '../lib/sfxEvents.js'
 import { emitDamageNumber, DAMAGE_NUMBER_COLORS } from '../lib/damageNumbers.js'
@@ -498,6 +499,8 @@ export const useGameStore = create(
     // The run being played, for the one ranking write at its end.
     // { id, stages: [cleared stage runs], written: null | 'pagehide' | 'ended', writtenScore }
     rankingRun: null,
+    // Stage 3 escape: the run's ranking write waits for the Nikuo choice (finalizeDeferredStageResult).
+    deferredStageResult: null,
     // Runs started in this page session (a stage continuation is the same run). Guests have no
     // persisted records, so the ranking header's run count reads this instead of a fixed 0.
     sessionRunCount: 0,
@@ -902,6 +905,14 @@ export const useGameStore = create(
       const s = get()
       const rankingRun = s.rankingRun ?? { id: s.progressRunId, stages: [], written: null, writtenScore: 0 }
       set({ rankingRun: { ...rankingRun, stages: [...rankingRun.stages.filter(stage => stage.stageId !== run.stageId), run] } })
+      // Stage 3 escape (Terry 2026-11-22): the run's one ranking write waits for the Nikuo choice so the
+      // racer kills can join the score. The stage result row (save) was already written by endStage — it
+      // holds no score, so it does not wait. Any other run end (lobby, back button, new run) writes the
+      // run without the bonus; a hidden/closed page writes it through the usual pagehide flush.
+      if (run.stageId === SLTERA_RACER_STAGE_ID) {
+        set({ deferredStageResult: { stageId: run.stageId, runId: s.progressRunId } })
+        return false
+      }
       // 이어 갈 수 없는 클리어(마지막 스테이지, 또는 보스 미처치 탈출구 탈출)는 여기서 런이 끝난다.
       // finishRankingRun은 written==='ended' 가드로 로비 복귀 시 재호출돼도 한 번만 쓴다.
       if (!getClearContinuationStageId(run.stageId, { bossDefeated: s.bossDefeated })) return get().finishRankingRun('end', null, 'cleared')
@@ -914,6 +925,9 @@ export const useGameStore = create(
     // 0점 런도 등록한다 — 점수 하한 필터를 두지 않는다.
     // endPhase(optional): 'gameover' | 'cleared' | 'quit' — only for the GA4 run_end result.
     finishRankingRun: (reason = 'end', endRun = null, endPhase = null) => {
+      // A real run end settles a deferred Stage 3 result without the racer bonus. pagehide is not an end:
+      // the bonus can still follow (written again only because the score went up).
+      if (reason !== 'pagehide' && get().deferredStageResult) set({ deferredStageResult: null })
       const s = get()
       const rankingRun = s.rankingRun
       if (!rankingRun || rankingRun.written === 'ended') return false
@@ -935,6 +949,32 @@ export const useGameStore = create(
       set({ rankingRun: { ...rankingRun, written, writtenScore: score } })
       void get().submitRunToRanking(useAuthStore.getState().user, runs.length === 1 ? runs[0] : runs)
       return true
+    },
+
+    // UI API (Nikuo cut, Terry 2026-11-22). The deferral itself happens inside clearStage on a Stage 3
+    // escape; this only reports it (true while the Stage 3 ranking write is waiting for the choice).
+    deferStage3Result: () => {
+      const s = get()
+      return !!s.deferredStageResult && s.deferredStageResult.runId === s.progressRunId
+    },
+
+    // 「타지 않습니다」 → finalizeDeferredStageResult({ racerKills: 0 }); racer exit → its kills (counted even
+    // when the cafeteria was not reached). Adds clamp(racerKills) × 1 to the Stage 3 score and sends the
+    // run's ranking write (queued, fire-and-forget). Synchronous; never throws. Safe to call twice.
+    finalizeDeferredStageResult: ({ racerKills = 0 } = {}) => {
+      const s = get()
+      const deferred = s.deferredStageResult
+      if (!deferred || deferred.runId !== s.progressRunId || !s.rankingRun) return { ok: false, reason: 'not-deferred', bonus: 0, written: false }
+      const bonus = getSlteraRacerBonus(racerKills)
+      const addBonus = stage => ({ ...stage, score: stage.score + bonus, stageScore: (stage.stageScore ?? 0) + bonus, racerBonus: bonus })
+      const stages = s.rankingRun.stages.map(stage => (stage.stageId === deferred.stageId ? addBonus(stage) : stage))
+      set({
+        deferredStageResult: null,
+        rankingRun: { ...s.rankingRun, stages },
+        ...(s.escapeResult?.stageId === deferred.stageId ? { escapeResult: { ...s.escapeResult, stageScore: s.escapeResult.stageScore + bonus, totalScore: s.escapeResult.totalScore + bonus, racerBonus: bonus } } : {}),
+      })
+      const written = get().finishRankingRun('end', null, 'cleared')
+      return { ok: true, bonus, written }
     },
 
     // 제출을 상태로 만든다. 결과를 버리면 실패가 console.warn에서 끝나 플레이어에게 안 보인다.
@@ -1685,6 +1725,7 @@ export const useGameStore = create(
         runLevelUps: 0,
         newlyUnlockedWeaponIds: [],
         rankingRun: preserveContinuousScore && s.rankingRun ? s.rankingRun : { id: progressRunId, stages: [], written: null, writtenScore: 0 },
+        deferredStageResult: null,
         sessionRunCount: preserveContinuousScore ? s.sessionRunCount : s.sessionRunCount + 1,
         survivalMilestonesHit: [],
         recentMilestone: null,

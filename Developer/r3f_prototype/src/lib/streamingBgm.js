@@ -43,6 +43,10 @@ export const BGM_WATCHDOG_MS = 2000
 
 const players = new Map()
 
+// Sltera Coast Run exception (Terry 2026-11-22): while the racer mini-game iframe is open it plays its
+// own engine/music, so every game track is held paused. Playheads are kept; lifting the hold resumes.
+let suspended = false
+
 function isHidden() {
   return typeof document !== 'undefined' && document.visibilityState === 'hidden'
 }
@@ -76,7 +80,7 @@ function createPlayer(url, volume) {
   let disposed = false
   let bridgeTimer = null
 
-  const wanted = () => !disposed && !isHidden() && (Boolean(bridgeTimer) || [...holders].some((h) => h.active))
+  const wanted = () => !disposed && !suspended && !isHidden() && (Boolean(bridgeTimer) || [...holders].some((h) => h.active))
 
   const clearBridge = () => { if (bridgeTimer) { clearTimeout(bridgeTimer); bridgeTimer = null } }
 
@@ -247,6 +251,14 @@ export function resumeStreamingBgm() {
 }
 onSharedAudioResume(resumeStreamingBgm)
 
+// Hold (true) or release (false) every game track for a full-screen mini-game with its own audio.
+export function setStreamingBgmSuspended(next) {
+  const value = Boolean(next)
+  if (value === suspended) return
+  suspended = value
+  resumeStreamingBgm()
+}
+
 // Music slider: volume/muted only. Never sync()/play()/pause() here, so the track is
 // neither restarted nor cut.
 export function applyStreamingBgmVolume() {
@@ -260,5 +272,6 @@ export function _streamingBgmPlayersForTests() {
 
 // Tests only: drop every player at once (bridges included).
 export function _resetStreamingBgmForTests() {
+  suspended = false
   for (const player of [...players.values()]) { player.holders.clear(); player.dispose() }
 }

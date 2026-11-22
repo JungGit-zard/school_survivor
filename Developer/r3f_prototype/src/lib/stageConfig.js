@@ -223,6 +223,9 @@ export function getStageBounds(stageId = DEFAULT_STAGE_ID) {
   }
 }
 
+// Stages that also open on the previous stage's escape (clear), not only on its boss kill.
+export const CLEAR_UNLOCKS_NEXT_STAGE = Object.freeze({ stage4: 'stage3Clears' })
+
 export function isStageUnlocked(stageId, records = {}) {
   if (stageId === 'stage1') return true
   if (!Object.hasOwn(STAGE_CONFIGS, stageId)) return false
@@ -232,7 +235,12 @@ export function isStageUnlocked(stageId, records = {}) {
   // Escape clears (including historical ones) are not per-stage boss evidence.
   // Missing evidence stays locked; never fabricate or backfill boss history.
   const defeats = records[`${previousId}BossDefeats`]
-  return Number.isSafeInteger(defeats) && defeats >= 1
+  if (Number.isSafeInteger(defeats) && defeats >= 1) return true
+  // Terry 2026-11-22: Stage 3 escape (Nikuo/Sltera ending) also opens Stage 4. Only this pair; the
+  // synced stage3Clears record is the evidence, so no new save field is needed.
+  const clearKey = CLEAR_UNLOCKS_NEXT_STAGE[stageId]
+  const clears = clearKey ? records[clearKey] : undefined
+  return Number.isSafeInteger(clears) && clears >= 1
 }
 
 function applyAdminStageOverrides(base) {

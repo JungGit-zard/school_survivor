@@ -28,7 +28,8 @@ it.each([1,2,3,4,5,6,7,8,9,10])('projects exact legacy stage %i per-run proof wi
 })
 it('clear999 and global boss999 without per-run proof unlock nothing', () => {
   seed({},Object.fromEntries([['bossKills',999],...Array.from({length:10},(_,i)=>[`stage${i+1}Clears`,999])]))
-  for(let n=1;n<10;n++) expect(isStageUnlocked(`stage${n+1}`,readFirebasePlayerProgress().records)).toBe(false)
+  // Only exception (Terry 2026-11-22): stage3Clears opens stage4.
+  for(let n=1;n<10;n++) expect(isStageUnlocked(`stage${n+1}`,readFirebasePlayerProgress().records)).toBe(n === 3)
 })
 it.each([0,-1,'1',0.5,null,undefined,NaN,Infinity,Number.MAX_SAFE_INTEGER+1])('rejects invalid legacy per-run boss count %s', bad => {
   seed({invalid:row('stage1',{bossKills:bad})}); expect(proof(1)).toBe(0)

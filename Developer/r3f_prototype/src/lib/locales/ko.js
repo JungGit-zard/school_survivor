@@ -97,7 +97,7 @@ export default {
   'lobby.unlock.stage2': 'Stage 1 보스 처치 시 열림',
   'lobby.unlock.stage3': 'Stage 2 보스 처치 시 열림',
   'lobby.unlock.stage5': 'Stage 4 보스 처치 시 열림',
-  'lobby.unlock.stage4': 'Stage 3 보스 처치 시 열림',
+  'lobby.unlock.stage4': 'Stage 3 탈출 시 열림',
 
   // Stage 5 교무실 최종 돌파 (spec56 B §10-1)
   'stage.stage5.title': '교무실 최종 돌파',
@@ -592,6 +592,12 @@ export default {
   'hud.introAria': '스토리 인트로',
   'hud.introPortraitAlt': '로자리 프로필',
   'hud.skipIntro': '건너뛰기',
+  'hud.nikuoCut.aria': '니쿠오와의 대화',
+  'hud.nikuoCut.nikuoPortraitAlt': '슬테라를 탄 니쿠오',
+  'hud.nikuoCut.question': '슬테라에 타시겠습니까?',
+  'hud.nikuoCut.yes': '탑니다',
+  'hud.nikuoCut.no': '타지 않습니다',
+  'hud.slteraRun.title': '슬테라 코스트 런',
   'hud.allWeapons': '모든 무기',
   'hud.weaponCheat': '무기 치트',
   'hud.summonMatilda': '마틸다 소환',

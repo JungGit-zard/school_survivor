@@ -117,7 +117,8 @@ describe('boss defeat unlock records (origin stage{N}BossDefeats)', () => {
 
     const records = loadPlayerRecords()
     expect(records.stage3BossDefeats).toBe(0)
-    expect(isStageUnlocked('stage4', records)).toBe(false)
+    // Terry 2026-11-22: a Stage 3 escape opens Stage 4 (clear evidence, not boss evidence). Others stay boss-only.
+    expect(isStageUnlocked('stage4', records)).toBe(true)
     expect(isStageUnlocked('stage5', records)).toBe(false)
     expect(buildCloudProgressSnapshot().progress.records).not.toHaveProperty('bossB03Defeats')
   })
@@ -130,7 +131,9 @@ describe('boss defeat unlock records (origin stage{N}BossDefeats)', () => {
     } }, user)
 
     const records = loadPlayerRecords()
-    expect(isStageUnlocked('stage4', records)).toBe(false)
+    // stage4 opens from stage3Clears (Terry 2026-11-22), not from the passive; stage5 stays boss-only.
+    expect(isStageUnlocked('stage4', records)).toBe(true)
+    expect(isStageUnlocked('stage4', { ...records, stage3Clears: 0 })).toBe(false)
     expect(isStageUnlocked('stage5', records)).toBe(false)
   })
 })

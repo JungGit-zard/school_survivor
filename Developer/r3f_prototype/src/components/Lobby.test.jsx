@@ -343,7 +343,7 @@ describe('Lobby', () => {
     expect(view.container.querySelectorAll('[data-testid="stage-lock-preview"]')).toHaveLength(5)
     expect(view.container.querySelectorAll('[data-testid="stage-boss-preview"]')).toHaveLength(1)
     expect(view.container.textContent).toContain('Stage 1 보스 처치 시 열림')
-    expect(view.container.textContent).toContain('Stage 3 보스 처치 시 열림')
+    expect(view.container.textContent).toContain('Stage 3 탈출 시 열림')
 
     seedPlayerRecords({
       stage1Clears: 1,
@@ -530,13 +530,13 @@ describe('Lobby', () => {
     const view = renderLobby({ onStartStage, onOpenCoinShop: () => {}, onOpenRanking })
     const stage4Card = findStageCard(view.container, 'Stage 4 급식실 대탈출')
     const lockPreview = stage4Card.querySelector('[data-testid="stage-lock-preview"]')
-    const disabledEntry = findButtonByText(stage4Card, 'Stage 3 보스 처치 시 열림')
+    const disabledEntry = findButtonByText(stage4Card, 'Stage 3 탈출 시 열림')
     const rankingButton = findButtonByText(stage4Card, '점수 기록')
 
     expect(lockPreview).toBeTruthy()
     expect(lockPreview.getAttribute('aria-label')).toBe('stage4 잠김 3D 자물쇠')
     expect(stage4Card.querySelector('[data-testid="stage-boss-preview"]')).toBeFalsy()
-    expect(stage4Card.textContent).not.toContain('🔒 Stage 3 보스 처치 시 열림')
+    expect(stage4Card.textContent).not.toContain('🔒 Stage 3 탈출 시 열림')
     expect(disabledEntry.disabled).toBe(true)
     expect(disabledEntry.style.position).toBe('absolute')
     expect(disabledEntry.style.right).toBe('10px')
@@ -665,7 +665,7 @@ describe('Lobby', () => {
     const stage4Card = findStageCard(view.container, 'Stage 4 급식실 대탈출')
 
     expect(stage4Card.querySelector('[data-testid="stage-lock-preview"]')).toBeTruthy()
-    expect(findButtonByText(stage4Card, 'Stage 3 보스 처치 시 열림').disabled).toBe(true)
+    expect(findButtonByText(stage4Card, 'Stage 3 탈출 시 열림').disabled).toBe(true)
     expect(onStartStage).not.toHaveBeenCalled()
 
     view.unmount()

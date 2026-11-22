@@ -47,6 +47,7 @@ const BOSS_PASSIVE_ITEM_ICONS = Object.freeze({
 // 1부 엔딩 컷(스펙 Part C C-8-3): Stage 6 정문 탈출 때마다 결과 패널 위에 3줄. 건너뛰기 항상 표시.
 export const PART1_ENDING_IDS = Object.freeze(['ending.part1.001', 'ending.part1.002', 'ending.part1.003'])
 
+
 // 확장 스테이지 원거리(E04) 도입 경고 문구. stage2·stage4는 기존 공용 문구.
 const E04_INTRO_WARNING_KEYS = Object.freeze({
   stage2: 'hud.projectileWarning',
@@ -100,6 +101,7 @@ import laidManPortraitSrc from '../assets/character/laid_man.webp'
 import matildaConversationPortraitSrc from '../assets/character/matilda_conversation.webp'
 import rosariIntroPortraitSrc from '../assets/character/rosari_intro.jpg'
 import escapeSuccessSrc from '../assets/escape_success.webp'
+import NikuoCut, { isNikuoCutStage as isNikuoCutStageFor } from './NikuoCut.jsx'
 
 const GAMEOVER_TRANSITION_MS = 1000
 const QUEST_TRANSIENT_BASE_MS = 2000
@@ -964,6 +966,8 @@ export default function HUD({
     playDialogueVoice(getDialogueText(PART1_ENDING_IDS[part1EndingIndex]), 'protagonistIntro', { volume: 1 })
     return () => stopDialogueVoice()
   }, [part1EndingOpen, part1EndingIndex])
+  // Stage 3 탈출(보스 처치 여부 무관)마다 니쿠오 컷 → 선택 → (레이서) → 로비. 컷 상태는 NikuoCut.jsx가 가진다.
+  const isNikuoCutStage = isNikuoCutStageFor(phase, currentStageId)
   const stageClearScore = escapeResult?.stageScore ?? getRankingScore({
     stageId: currentStageId,
     survivalSeconds: Math.floor(elapsed / 1000),
@@ -2051,7 +2055,7 @@ export default function HUD({
       )}
 
       {phase === 'cleared' && !clearPanelHeld && (
-        <div data-testid="escape-success-screen" style={{ ...styles.overlay, ...styles.escapeOverlay }} aria-hidden={part1EndingOpen ? 'true' : undefined}>
+        <div data-testid="escape-success-screen" style={{ ...styles.overlay, ...styles.escapeOverlay }} aria-hidden={part1EndingOpen || isNikuoCutStage ? 'true' : undefined}>
           <section style={styles.escapePanel} aria-labelledby="escape-success-title">
             <img src={escapeSuccessSrc} alt="" style={styles.escapeImage} />
             <div style={styles.escapeContent}>
@@ -2066,7 +2070,8 @@ export default function HUD({
               )}
               <OutfitUnlockCard outfitIds={newlyUnlockedOutfitIds} />
               <div data-testid="result-primary-actions" style={styles.escapeActions}>
-                {continuationStageId && !isPart1Finale && (
+                {/* Stage 3은 니쿠오 컷 → 선택 → (레이서) → 로비가 유일한 출구라 이어 가기를 띄우지 않는다(첫 프레임 포함). */}
+                {continuationStageId && !isPart1Finale && !isNikuoCutStage && (
                   <button type="button" data-testid="escape-continue-next-stage" data-ui-sfx="confirm" style={styles.escapeContinueBtn} onClick={continueToNextStage}>
                     {t('hud.continueNextStage')}
                   </button>
@@ -2212,7 +2217,7 @@ export default function HUD({
       {part1EndingOpen && (
         <div
           data-testid="part1-ending-catcher"
-          style={styles.introCatcher}
+          style={styles.clearCutCatcher}
           onPointerDown={() => { emitUiSfx('advance'); advancePart1Ending() }}
         >
           <button
@@ -2239,6 +2244,15 @@ export default function HUD({
             </div>
           </div>
         </div>
+      )}
+
+      {/* Stage 3 탈출 컷 — Stage 1 시작 로자리 대사(스테이지 인트로)와 같은 UI. 결과창 위라 배경 층만 60. */}
+      {isNikuoCutStage && (
+        <NikuoCut
+          key={gameKey}
+          onFinish={onGoToLobby ?? onGoToTitle}
+          dialogueStyles={nikuoCutDialogueStyles}
+        />
       )}
 
       {/* 스테이지 스토리 인트로(Stage 1~6) — 딤 처리된 화면 위 내레이션. 탭할 때마다 다음 대사, 마지막 탭에 게임 시작 */}
@@ -3883,6 +3897,19 @@ const styles = {
     cursor: 'pointer',
     zIndex: 40,
   },
+  // 탈출 결과창(escapeOverlay zIndex 50) 위에 뜨는 컷(1부 엔딩·니쿠오). introCatcher(40)를 그대로 쓰면 결과창 뒤에 깔린다.
+  clearCutCatcher: {
+    position: 'absolute',
+    inset: 0,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: '0 16px',
+    background: 'rgba(6,10,14,0.82)',
+    pointerEvents: 'auto',
+    cursor: 'pointer',
+    zIndex: 60,
+  },
   introSkipButton: {
     position: 'absolute',
     top: 'var(--hud-safe-top)', '--hud-safe-top': 'max(14px, env(safe-area-inset-top, 0px))',
@@ -3948,3 +3975,15 @@ const styles = {
     minWidth: 0,
   },
 }
+
+// 니쿠오 컷(NikuoCut.jsx)이 Stage 1 시작 로자리 대사와 똑같은 UI를 쓰도록 스테이지 인트로 스타일을 그대로 넘긴다.
+const nikuoCutDialogueStyles = Object.freeze({
+  catcher: styles.clearCutCatcher,
+  skipButton: styles.introSkipButton,
+  box: styles.introBox,
+  row: styles.introRow,
+  portraitFrame: styles.introPortraitFrame,
+  portrait: styles.introPortrait,
+  line: { ...styles.dialogueLine, ...styles.introLine },
+  hint: styles.dialogueHint,
+})

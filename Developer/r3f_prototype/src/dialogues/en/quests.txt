@@ -47,3 +47,7 @@ intro.stage6.003	Inside the ring or outside it—just stay off the line. When th
 ending.part1.001	Past the gate, the sand under my feet turned to asphalt.
 ending.part1.002	The bell rang behind me. My friends and teachers in there… someday I'll wake them all.
 ending.part1.003	Escape from Zombie School: Part 1 complete. But school isn't over yet!
+ending.stage3.nikuo.001	Hey, you, kid! Quit dawdling and get in!
+ending.stage3.nikuo.002	W-who are you? Wait… is that a Sltera?!
+ending.stage3.nikuo.003	Name's Nikuo. Save the questions for later!
+ending.stage3.nikuo.004	The Sltera doesn't wait for zombies. Hold on tight!

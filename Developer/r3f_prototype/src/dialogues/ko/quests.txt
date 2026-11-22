@@ -47,3 +47,7 @@ ending.part1.001	정문을 지나자 발밑이 운동장 모래에서 아스팔�
 ending.part1.002	뒤에서 종이 울린다. 저 안의 친구들과 선생님들은… 언젠가 꼭 깨워 줄게.
 ending.part1.003	좀비학교 탈출, 1부 끝. 하지만 학교는 아직 끝나지 않았어!
 dialogue.unavailable	대사를 불러올 수 없어요.
+ending.stage3.nikuo.001	어이, 거기 꼬맹이! 꾸물대지 말고 타라!
+ending.stage3.nikuo.002	누, 누구세요? 이 차… 설마 슬테라?!
+ending.stage3.nikuo.003	니쿠오다. 질문은 나중에 해!
+ending.stage3.nikuo.004	슬테라는 좀비 따위 안 기다려. 꽉 잡아!

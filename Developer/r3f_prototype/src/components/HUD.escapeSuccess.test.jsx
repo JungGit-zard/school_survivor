@@ -65,7 +65,15 @@ describe('escape success choices', () => {
     expect(getFirebaseProgressRuntimeSnapshot()).toEqual(remoteBefore)
   })
 
-  it.each(['stage1', 'stage2', 'stage3'])('continues a guest %s run into the next stage after this run boss defeat', async (stageId) => {
+  // Stage 3은 이어 가기 대신 니쿠오 컷 → 탑니다/타지 않습니다 → 로비(Terry 2026-11-22). HUD.nikuoCut.test.jsx 참고.
+  it('never offers next-stage continuation on a Stage 3 boss-defeat escape (Nikuo cut owns the exit)', () => {
+    useGameStore.setState({ currentStageId: 'stage3', phase: 'playing', elapsedMs: 240_000, bossDefeated: true, continuousScoreBase: 0 })
+    renderSuccess()
+    expect(container.querySelector('[data-testid="escape-continue-next-stage"]')).toBeNull()
+    expect(container.querySelector('[data-testid="nikuo-cut-catcher"]')).not.toBeNull()
+  })
+
+  it.each(['stage1', 'stage2'])('continues a guest %s run into the next stage after this run boss defeat', async (stageId) => {
     // 게스트는 계정 records가 {}라 예전에는 보스를 잡아도 버튼이 비활성(=진행 불가)이었다.
     useGameStore.setState({ currentStageId: stageId, phase: 'playing', elapsedMs: 240_000, bossDefeated: true, continuousScoreBase: 0 })
     renderSuccess()
@@ -74,7 +82,7 @@ describe('escape success choices', () => {
     expect(next.disabled).toBe(false)
     expect(container.querySelector('[data-testid="escape-continue-hint"]').textContent).toBe('계속하면 지금 점수가 다음 스테이지로 이어져요.')
     await act(async () => next.click())
-    const expectedNext = { stage1: 'stage2', stage2: 'stage3', stage3: 'stage4' }[stageId]
+    const expectedNext = { stage1: 'stage2', stage2: 'stage3' }[stageId]
     expect(useGameStore.getState()).toMatchObject({ phase: 'playing', currentStageId: expectedNext, bossDefeated: false })
   })
 

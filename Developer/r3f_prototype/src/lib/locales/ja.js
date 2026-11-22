@@ -100,7 +100,7 @@ export default {
   'lobby.unlock.stage2': 'Stage 1 のボス撃破で解放',
   'lobby.unlock.stage3': 'Stage 2 のボス撃破で解放',
   'lobby.unlock.stage5': 'Stage 4 のボス撃破で解放',
-  'lobby.unlock.stage4': 'Stage 3 のボス撃破で解放',
+  'lobby.unlock.stage4': 'Stage 3 脱出で解放',
 
   // Stage 5 교무실 최종 돌파 (spec56 B §10-1)
   'stage.stage5.description': '机の間の通路を選び、教頭ゾンビを越えて中央玄関から脱出しよう。',
@@ -593,6 +593,12 @@ export default {
   'hud.introAria': 'ストーリーイントロ',
   'hud.introPortraitAlt': 'ロザリの立ち絵',
   'hud.skipIntro': 'スキップ',
+  'hud.nikuoCut.aria': 'ニクオとの会話',
+  'hud.nikuoCut.nikuoPortraitAlt': 'スルテラに乗ったニクオ',
+  'hud.nikuoCut.question': 'スルテラに乗りますか？',
+  'hud.nikuoCut.yes': '乗る',
+  'hud.nikuoCut.no': '乗らない',
+  'hud.slteraRun.title': 'スルテラ・コーストラン',
   'hud.allWeapons': 'すべての武器',
   'hud.weaponCheat': '武器チート',
   'hud.summonMatilda': 'マチルダを召喚',

@@ -23,7 +23,9 @@ describe('six-stage release policy (2026-11-08: Stage 5·6 public, 7+ hidden) pr
     const definitions = JSON.stringify(STAGE_CONFIGS)
     for (let i = 1; i <= 10; i++) {
       expect(isStageUnlocked(`stage${i}`, records)).toBe(true)
-      if (i > 1) expect(isStageUnlocked(`stage${i}`, { ...records, [`stage${i - 1}BossDefeats`]: 0 })).toBe(false)
+      // stage4 also opens from stage3Clears (Terry 2026-11-22).
+      if (i > 1) expect(isStageUnlocked(`stage${i}`, { ...records, [`stage${i - 1}BossDefeats`]: 0 })).toBe(i === 4)
+      if (i === 4) expect(isStageUnlocked('stage4', { ...records, stage3BossDefeats: 0, stage3Clears: 0 })).toBe(false)
       // Stage 6 = PART1_FINAL: no next stage even though stage7 evidence exists.
       expect(getNextStageId(`stage${i}`)).toBe(i < 6 ? `stage${i + 1}` : null)
     }
