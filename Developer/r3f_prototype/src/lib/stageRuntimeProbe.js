@@ -160,7 +160,6 @@ import { advanceAssemblySpeech, createAssemblySpeechState, emitAssemblySpeechRin
 import { refreshQueuedExpansionSpawn, shouldStaggerExpansionBurst, scheduleStaggeredBurst, takeDueStaggered } from './expansionSpawns.js'
 import { isRangedPropBlockStage } from './stageRangedBlockers.js'
 import { EXPANSION_BOSSES, getExpansionStageHazards, isExpansionBoss, isExpansionStage, getStageContactDamageMultiplier } from './expansionContent.js'
-import { noteRosterRotationSpawn } from './stageRosterRotation.js'
 import { getPooledEnemyRenderTier, shouldRefreshEnemySight } from '../components/PooledEnemyVisuals.js'
 import {
   buildExpansionBurstBatch,
@@ -168,6 +167,7 @@ import {
   buildOvertimeMixedReinforcementEntries,
   clampZombieSpawnRequest,
   createStageRosterRotation,
+  noteStageRosterSpawn,
   createRunZombieCrewEntries,
   createStage2GuardChaseEntries,
   ELITE_BONUS,
@@ -827,7 +827,7 @@ export function runStageRuntimeProbe({
   function addEnemies(batch, deferPooled, source) {
     for (const entry of batch) {
       if (clampZombieSpawnRequest(1, totalZombieCounts()) <= 0) { droppedSpawns += 1; break }
-      noteRosterRotationSpawn(cache.rosterRotation, entry.type, sec)
+      noteStageRosterSpawn(cache.rosterRotation, entry, sec)
       if (!isPooledEnemyType(entry.type)) {
         if (specials.filter((s) => s.alive).length < 3) spawnSpecial(entry, source)
         continue
@@ -1662,6 +1662,8 @@ export function runStageRuntimeProbe({
     matildaSpawnHp,
     spawnClockAt210: spawnClockAt210 === null ? null : round1(spawnClockAt210),
     spawnHash: spawnHash.toString(16).padStart(8, '0'),
+    // 2026-11-21 웨이브 표준 장부(lib/waveComposition.js): 바뀌기 전 몸 HP 합(hpIn)·실제로 낸 HP 합(hpOut)·남은 빚. 표가 없는 스테이지는 null.
+    waveLedger: cache.rosterRotation?.kind === 'wave' ? { hpIn: Math.round(cache.rosterRotation.hpIn), hpOut: Math.round(cache.rosterRotation.hpOut), debt: Math.round(cache.rosterRotation.debt), converted: cache.rosterRotation.converted, buffed: cache.rosterRotation.buffed } : null,
     maxActiveProjectiles,
     maxActiveEnemies,
     droppedSpawns,

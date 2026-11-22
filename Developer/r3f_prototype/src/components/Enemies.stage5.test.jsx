@@ -136,7 +136,10 @@ describe('Stage5 production enemy runtime', () => {
         if (sec >= 73 && sec < 83) callLaneEntries.push(...spawned)
         for (const entry of spawned) {
           const { ENEMY_STATS } = await import('./Enemy.jsx')
-          expect(entry.hp).toBe(Math.round(ENEMY_STATS[entry.type].hp * 1.2 ** 4))
+          // 2026-11-21 웨이브 표준(lib/waveComposition.js): 밥줄은 원래 몸 HP(기본의 0.5~2배), 특수는 강화(최대 ×2.5)를 받는다.
+          const staged = Math.round(ENEMY_STATS[entry.type].hp * 1.2 ** 4)
+          expect(entry.hp).toBeGreaterThanOrEqual(Math.floor(staged * 0.5))
+          expect(entry.hp).toBeLessThanOrEqual(Math.ceil(staged * 2.5))
           expect(entry.maxHp).toBe(entry.hp)
           // 교무실 경계 9.36 × 16(스펙 §2-1).
           expect(Math.abs(entry.x)).toBeLessThanOrEqual(9.36)

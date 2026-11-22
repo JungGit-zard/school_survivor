@@ -55,10 +55,20 @@ describe('owner population priority in every accepted stage', () => {
       const entries = spy.mock.calls.map(([, entry]) => entry)
       // 시계 0초(elapsedMs 고정): 로스터 순환은 데뷔 + 간격 전에는 기한이 오지 않으므로 리필은 정확히 E07×10 + E01×10이다.
       // 기한이 온 뒤의 섞임은 stageRosterRotation.test.js가 시계를 고정해 단언한다.
-      expect(entries.filter(entry => entry.type === 'E07')).toHaveLength(10)
-      expect(entries.filter(entry => entry.type === 'E01')).toHaveLength(10)
+      // 2026-11-21 웨이브 표준: 스테이지 1~6은 리필 20마리도 그 웨이브(W1) 구성(밥줄·W1 특수·제 종으로 남은 E07). 7~10은 옛 규칙 그대로.
+      const { getStageWave } = await import('../lib/waveComposition.js')
+      const wave = getStageWave(stageId, 0)
+      if (wave) {
+        // v2(2026-11-22): 몸의 급을 지킨다 — E07(중간)은 그 웨이브에 같은 급 특수가 없으면 제 종 그대로 남는다.
+        const allowed = new Set([wave.fodder, ...wave.specials, 'E07'])
+        expect(entries.every(entry => allowed.has(entry.type))).toBe(true)
+        expect(entries.filter(entry => entry.type !== 'E07' && !wave.specials.includes(entry.type)).length).toBeGreaterThanOrEqual(1)
+      } else {
+        expect(entries.filter(entry => entry.type === 'E07')).toHaveLength(10)
+        expect(entries.filter(entry => entry.type === 'E01')).toHaveLength(10)
+      }
       expect(entries.every(entry => entry.hp > 0 && entry.maxHp === entry.hp)).toBe(true)
-      for (const type of ['E07', 'E01']) expect(Array.from(pool.type).filter((code, i) => pool.active[i] && code === enemyTypeToCode(type))).toHaveLength(10)
+      if (!wave) for (const type of ['E07', 'E01']) expect(Array.from(pool.type).filter((code, i) => pool.active[i] && code === enemyTypeToCode(type))).toHaveLength(10)
       frame(20); flush(); expect(spy).toHaveBeenCalledTimes(20)
       // Queued regular waves reserve the existing cap: 19 remaining slots
       // cannot produce a partial reinforcement batch. Queue helpers are real.

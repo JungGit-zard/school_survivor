@@ -176,16 +176,22 @@ describe('Team A low-density runtime integration', () => {
       expect(queue.spawnDrain.count).toBe(0)
       expect(queue.scheduleCount).toBe(0)
       const counts = {}
+      let totalHp = 0
       for (let index = 0; index <= pool.highestActive; index++) {
         if (!pool.active[index]) continue
         const type = enemyTypeFromCode(pool.type[index])
         counts[type] = (counts[type] ?? 0) + 1
-        expect(pool.hp[index]).toBe(stageHpOverride(type, 'stage1')?.hp ?? ENEMY_STATS[type].hp)
+        expect(pool.hp[index]).toBeGreaterThan(0)
         expect(pool.maxHp[index]).toBe(pool.hp[index])
+        totalHp += pool.hp[index]
       }
-      // 시계 0초: 로스터 순환은 데뷔(작성된 첫 등장) + 간격 전에는 어떤 종도 기한이 오지 않으므로(lib/stageRosterRotation.js)
-      // 리필은 정확히 E07×10 + E01×10이다. 기한이 온 뒤의 섞임은 stageRosterRotation.test.js가 시계를 고정해 단언한다.
+      // 2026-11-21 웨이브 표준(lib/waveComposition.js) v2: 스1 W1(0–30초)은 밥줄 E01 + 특수 E34. 리필 20마리(E07×10 + E01×10)에서
+      // E07은 같은 급(중간) 특수가 없어 제 종 그대로, E01은 밥줄 — 시계 0초 리필은 트렁크와 같은 E07×10 + E01×10이다.
       expect(counts).toEqual({ E07: 10, E01: 10 })
+      // 앞 단계에서 확정된 몸의 장부 빚이 남아 있을 수 있어 합은 원래 묶음 이상, 강화 상한(×2.5) 이하로만 단언한다(정확한 장부는 waveComposition.test.js). 강화 상한은 ×1.6이지만 밥줄은 원래 몸 HP(최대 ×2)를 받는다.
+      const authoredHp = 10 * (stageHpOverride('E07', 'stage1')?.hp ?? ENEMY_STATS.E07.hp) + 10 * (stageHpOverride('E01', 'stage1')?.hp ?? ENEMY_STATS.E01.hp)
+      expect(totalHp).toBeGreaterThanOrEqual(authoredHp)
+      expect(totalHp).toBeLessThanOrEqual(authoredHp * 2.5)
       frame(0.001) // >=4 resets
       clearPool()
       frame(9.999)
@@ -225,7 +231,7 @@ describe('Team A low-density runtime integration', () => {
         const type = enemyTypeFromCode(pool.type[index])
         restartedCounts[type] = (restartedCounts[type] ?? 0) + 1
       }
-      // 새 런은 로스터 순환 기한도 데뷔 게이트부터 새로 시작한다 — 시계 0초 리필은 기본 구성 그대로다.
+      // 새 런은 웨이브 구성도 새로 시작한다 — 시계 0초 리필은 다시 E07×10 + E01×10이다.
       expect(restartedCounts).toEqual({ E07: 10, E01: 10 })
     } finally {
       for (const cleanup of cleanups.reverse()) cleanup()

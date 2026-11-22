@@ -468,25 +468,25 @@ describe('저밀도 리필(정규 리스폰) 묶음 — 시계를 고정한 결�
   }
   const count = (batch) => batch.reduce((acc, e) => ({ ...acc, [e.type]: (acc[e.type] ?? 0) + 1 }), {})
 
-  it('스1 0초: 아무 종도 데뷔 전이라 정확히 E07×10 + E01×10', () => {
+  // 2026-11-21 웨이브 표준(lib/waveComposition.js): 스테이지 1~6은 '밥줄 1종 + 그 웨이브 특수' 구성. 2026-11-22 v2부터는 이 옛 순환이
+  // 먼저 낼 종을 정하고(규칙 0), 웨이브 규칙이 그 몸의 급을 지켜 웨이브 종으로 바꾼다. 저밀도 리필 20마리도 같다(마릿수 20 그대로).
+  it('스1 0초(W1 밥줄 E01·특수 E34): E07은 같은 급 특수가 없어 제 종 그대로 — 정확히 E07×10 + E01×10', () => {
     expect(count(build('stage1', 0).batch)).toEqual({ E07: 10, E01: 10 })
   })
 
-  it('스1 150초: 기한이 온 신규 종이 한 묶음에 여러 종 섞이고 마릿수는 20 그대로다', () => {
-    const { batch } = build('stage1', 150)
-    // 2026-11-16 좀비 배치 총검토 뒤 데뷔+20초(70hp E56은 +30초)가 지난 종: E34(24) E35(40) E36(60) E66(72) E77(120) — 기한 순으로 E07 자리 1~5.
-    // E62·E82는 스3, E49는 스4, E78은 스6으로 옮겨 스1 순환에서 빠졌다(순환 풀 12 → 8종).
-    // E56(144 데뷔, 기한 174)은 기한 전이지만 10번째 자리(다채로움 몫, 5번째마다)로 들어간다. E91(184)은 데뷔 전.
-    // 2026-11-15 wave 2: E90(숙제 걷기 당번)이 150초에 데뷔해 15번째 자리(E01, 다채로움 몫)를 받는다.
-    expect(count(batch)).toEqual({ E07: 4, E34: 1, E66: 1, E35: 1, E36: 1, E77: 1, E56: 1, E90: 1, E01: 9 })
+  it('스1 150초(W6 밥줄 E01·특수 E56/E90): 밥줄·그 웨이브 특수·기본 E07만, 마릿수 20', () => {
+    const counts = count(build('stage1', 150).batch)
+    expect(Object.values(counts).reduce((a, b) => a + b, 0)).toBe(20)
+    for (const type of Object.keys(counts)) expect(['E01', 'E07', 'E56', 'E90']).toContain(type)
+    expect(counts.E01).toBeGreaterThanOrEqual(1)
   })
 
-  it('리필 묶음을 버리면(20마리 미만 등) 시계가 그대로라 다음 리필에 같은 종이 다시 섞인다', () => {
+  it('리필 묶음을 버리면(확정 없음) 다음 시각에 같은 구성이 다시 나온다', () => {
     const first = build('stage1', 150)
     const again = buildLowDensityReinforcementBatch(first.cache, 20, () => 0.25) // 같은 캐시·같은 시각, 확정(note) 없음
-    expect(count(again)).toEqual({ E07: 10, E01: 10 }) // 같은 시각엔 예약이 남아 중복 섞지 않는다
+    for (const type of Object.keys(count(again))) expect(['E01', 'E07', 'E56', 'E90']).toContain(type)
     first.cache.rosterRotationClock = () => 151
-    expect(count(buildLowDensityReinforcementBatch(first.cache, 20, () => 0.25))).toEqual({ E07: 4, E34: 1, E66: 1, E35: 1, E36: 1, E77: 1, E56: 1, E90: 1, E01: 9 })
+    expect(count(buildLowDensityReinforcementBatch(first.cache, 20, () => 0.25))).toEqual(count(first.batch))
   })
 })
 

@@ -54,6 +54,7 @@ import { getStageObjectSightObstacles, isStageObjectEnemyTrackingBlocked } from 
 import { createEnemyHitEventQueue } from '../lib/enemyHitEventQueue.js'
 import { getRuntimeElapsedMs } from '../lib/gameRuntimeTime.js'
 import { createRosterRotation, noteRosterRotationSpawn, pickRosterRotationType, pickRosterTankType } from '../lib/stageRosterRotation.js'
+import { createWaveComposer, hasWaveStandard, noteWaveSpawn, pickWaveType } from '../lib/waveComposition.js'
 import { advanceMatildaEntryGrace, canSpawnMatildaEntry, cancelMatildaEntryGrace, createMatildaEntryGrace } from '../lib/matildaEntryGrace.js'
 import { matildaHpFromWeapons } from '../lib/playerDpsEstimate.js'
 import { getPooledEnemyRenderTier, shouldRefreshEnemySight } from './PooledEnemyVisuals.js'
@@ -1391,18 +1392,36 @@ export function countAliveSpecialZombies(entries, pendingRemovals = [], bodies =
 // cache.rosterRotation이 없으면(테스트가 만든 맨 캐시) 그대로 돌려준다. 시계는 실제 경과 시간이고,
 // 헤드리스 프로브처럼 스토어 시계를 쓰지 않는 곳은 cache.rosterRotationClock()으로 자기 시계를 넘긴다.
 const rosterRotationHpOf = (type) => ENEMY_STATS[type]?.hp ?? 0
+// 2026-11-21 웨이브 표준(lib/waveComposition.js): 스테이지 1~6은 '밥줄 1종 70% + 특수 2~3종 30%' 웨이브 구성 규칙,
+// 표가 없는 스테이지(7~10)는 옛 순환 그대로. 같은 cache.rosterRotation 자리에 들어가고 아래 세 함수가 종류로 갈라 부른다.
 export function createStageRosterRotation(stageId) {
+  if (hasWaveStandard(stageId)) {
+    return createWaveComposer(stageId, {
+      hpOf: (type) => stageHpOverride(type, stageId)?.hp ?? ENEMY_STATS[type]?.hp ?? 0,
+      statsOf: (type) => ENEMY_STATS[type] ?? null,
+      aliveOf: countPooledType,
+      // v2(2026-11-22): 트렁크 순환이 낼 종을 먼저 정하고 그 급을 지켜 웨이브 종으로 바꾼다.
+      rotation: createRosterRotation(stageId, { hpOf: rosterRotationHpOf }),
+    })
+  }
   return createRosterRotation(stageId, { hpOf: rosterRotationHpOf })
+}
+// 실제로 스폰된 몸 하나를 순환/웨이브 규칙에 확정한다. 웨이브 규칙은 entry.statOverride에 밥줄 HP 맞춤·특수 강화(HP·크기)를 쓴다.
+export function noteStageRosterSpawn(state, entry, sec) {
+  if (state?.kind === 'wave') noteWaveSpawn(state, entry, sec)
+  else noteRosterRotationSpawn(state, entry?.type, sec)
 }
 function rosterRotationNowSec() {
   return getRuntimeElapsedMs(useGameStore.getState().elapsedMs) / 1000
 }
 export function rotateRegularSpawnType(cache, type, sec = cache?.rosterRotationClock ? cache.rosterRotationClock() : rosterRotationNowSec()) {
-  return pickRosterRotationType(cache?.rosterRotation, type, sec)
+  const state = cache?.rosterRotation
+  return state?.kind === 'wave' ? pickWaveType(state, type, sec) : pickRosterRotationType(state, type, sec)
 }
 // 형태 버스트(ring/pincer…): 위치·타입은 작성 그대로, E05 탱커 감축 계수(5번째마다 신규 종)만 탄다.
 export function rotateFormationSpawnType(cache, type, sec = cache?.rosterRotationClock ? cache.rosterRotationClock() : rosterRotationNowSec()) {
-  return pickRosterTankType(cache?.rosterRotation, type, sec)
+  const state = cache?.rosterRotation
+  return state?.kind === 'wave' ? pickWaveType(state, type, sec, true) : pickRosterTankType(state, type, sec)
 }
 
 export function buildLowDensityReinforcementBatch(cache, count = 20, random = Math.random) {
@@ -1841,7 +1860,7 @@ export default function Enemies() {
       if (clampZombieSpawnRequest(1, totalZombieCounts()) <= 0) break
       if (!admitChiefSpawn(stageRuntimeCacheRef.current?.chiefDebuts, entry.type)) continue
       // 작성된 행·형태·소환으로 나온 로스터 종도 순환 기한을 다시 잡는다(최근에 나온 종을 더 끼워 넣지 않게).
-      noteRosterRotationSpawn(rosterRotation, entry.type, rosterSec)
+      noteStageRosterSpawn(rosterRotation, entry, rosterSec)
       if (!isPooledEnemyType(entry.type)) {
         // pooled numeric generation-id와 legacy special body key가 충돌하지 않도록 namespace를 분리한다.
         if (enemiesRef.current.length < MAX_SPECIAL_ENEMIES) {
