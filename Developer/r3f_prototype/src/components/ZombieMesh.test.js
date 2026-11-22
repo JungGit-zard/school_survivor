@@ -303,8 +303,8 @@ describe('Stage 4 chef zombie boss', () => {
 
 describe('Stage 3 run zombie crew visual reference', () => {
   it('registers leader and crew enemy stats separately from normal runners', () => {
-    expect(ENEMY_STATS.RZL).toMatchObject({ hp: 90, speed: 2.695, scale: 1.08, runCrew: true })
-    expect(ENEMY_STATS.RZC).toMatchObject({ hp: 28, speed: 2.398, scale: 0.78, runCrew: true })
+    expect(ENEMY_STATS.RZL).toMatchObject({ hp: 90, speed: 1.48225, scale: 1.08, runCrew: true })
+    expect(ENEMY_STATS.RZC).toMatchObject({ hp: 28, speed: 1.3189, scale: 0.78, runCrew: true })
     expect(ENEMY_STATS.RZL.speed).toBeGreaterThan(ENEMY_STATS.E03.speed)
     expect(ENEMY_STATS.RZC.speed).toBeGreaterThan(ENEMY_STATS.E03.speed)
   })

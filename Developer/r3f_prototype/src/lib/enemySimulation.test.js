@@ -610,7 +610,7 @@ describe('enemySimulation 순수 일반 적 런타임', () => {
     const crew = spawn(pool, 'RZC', -4, 0, { spawnTimer: 300, runDirX: 0, runDirZ: -5 })
     runtime.step(pool, context({ halfX: 1, halfZ: 1 }))
     expect(pool.get(leader)).toBeNull()
-    expect(pool.velZ[crew.index]).toBeCloseTo(-2.398, 4)
+    expect(pool.velZ[crew.index]).toBeCloseTo(-1.3189, 4)
     const event = {}
     while (runtime.events.drainInto(event) && event.type !== ENEMY_EVENT_DESPAWN) {}
     expect(event.type).toBe(ENEMY_EVENT_DESPAWN)
@@ -691,7 +691,8 @@ describe('enemySimulation 순수 일반 적 런타임', () => {
     for (let index = 0; index < 13; index += 1) {
       spawn(pool, index === 0 ? 'RZL' : 'RZC', -3.2 - index * 0.12, -3.2 - index * 0.12, { spawnTimer: 300, runDirX: 1, runDirZ: 1 })
     }
-    for (let frame = 0; frame < 600; frame += 1) runtime.step(pool, context({ playerX: 0, playerZ: 0, halfX: 3, halfZ: 3, obstacles, obstacleCount: 1 }))
+    // 2026-11-22: 크루 속도 ×0.55 → 같은 거리를 지나려면 프레임이 더 필요하다(600 → 1200).
+    for (let frame = 0; frame < 1200; frame += 1) runtime.step(pool, context({ playerX: 0, playerZ: 0, halfX: 3, halfZ: 3, obstacles, obstacleCount: 1 }))
     expect(pool.activeCount).toBe(0)
     expect(pool.validateInvariants()).toBe(true)
   })
@@ -901,8 +902,8 @@ describe('enemySimulation 순수 일반 적 런타임', () => {
   it('keeps Stage 2 guard chase runtime speeds at the required half-speed values', () => {
     expect(ENEMY_RUNTIME_SPEED[13]).toBeCloseTo(1.4025, 6)
     expect(ENEMY_RUNTIME_SPEED[14]).toBeCloseTo(1.3475, 6)
-    expect(ENEMY_RUNTIME_SPEED[7]).toBeCloseTo(2.695, 6)
-    expect(ENEMY_RUNTIME_SPEED[8]).toBeCloseTo(2.398, 6)
+    expect(ENEMY_RUNTIME_SPEED[7]).toBeCloseTo(1.48225, 6)
+    expect(ENEMY_RUNTIME_SPEED[8]).toBeCloseTo(1.3189, 6)
   })
 
   it('lets only Stage 2 chase runners pass straight through props and despawn beyond the opposite boundary', () => {

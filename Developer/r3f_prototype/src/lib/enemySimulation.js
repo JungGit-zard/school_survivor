@@ -152,7 +152,7 @@ const extendRuntime = (values, key, novelKey) => {
 
 export const ENEMY_RUNTIME_HP = extendRuntime([0, 8, 70, 10, 32, 70, 320, 90, 28, 0, 0, 0, 0, 140, 48, 16, 12], 'hp', 'hp')
 // speed 전 슬롯 ×1.1 (2026-08-13). ENEMY_STATS와 한 벌이라 한쪽만 고치면 게임과 프로브가 갈라진다.
-export const ENEMY_RUNTIME_SPEED = extendRuntime([0, 0.5225, 0.4235, 1.21, 0.495, 0.55, 0.66, 2.695, 2.398, 0, 0, 0, 0, 1.4025, 1.3475, 1.045, 0.88], 'speedUnitsPerSec', 'speed')
+export const ENEMY_RUNTIME_SPEED = extendRuntime([0, 0.5225, 0.4235, 1.21, 0.495, 0.55, 0.66, 1.48225, 1.3189, 0, 0, 0, 0, 1.4025, 1.3475, 1.045, 0.88], 'speedUnitsPerSec', 'speed')
 export const ENEMY_RUNTIME_DAMAGE = extendRuntime([0, 8, 14, 6, 8, 16, 20, 14, 7, 0, 0, 0, 0, 6, 9, 16, 0], 'contactDamage', 'damage')
 // RZT(코드 13) scale 0.88→1.76 — 위 hp와 같은 커밋에서 두 배가 됐다. 이 값은 히트박스 반경
 // (enemyContactRadius)까지 좌우해서, 어긋난 채로 두면 프로브가 절반 크기 판정으로 돌아간다.

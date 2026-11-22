@@ -525,7 +525,8 @@ const COLUMN_WIDTH_RATIO = 0.6
 const GAUNTLET_WALL_INSET = 0.8
 
 export const RUN_ZOMBIE_CREW_SIZE = 13
-export const RUN_ZOMBIE_CREW_DIR = Object.freeze({ x: 1, z: 1 })
+// 화면 위(-z) → 아래(+z) 종단. 이전(~2026-11-21)은 { x: 1, z: 1 } 대각 횡단이었다.
+export const RUN_ZOMBIE_CREW_DIR = Object.freeze({ x: 0, z: 1 })
 export const STAGE2_GUARD_CHASE_SIZE = 7
 
 export function formationSpawnPositions(formation, count, bounds, player, random = Math.random, obstacles = [], type = 'E01') {
@@ -604,16 +605,34 @@ export function formationSpawnPositions(formation, count, bounds, player, random
   return positions
 }
 
-export function createRunZombieCrewEntries(bounds, random = Math.random, obstacles = []) {
+// 2026-11-22 Terry: "3스테이지 좀비런닝크루가 화면체류시간 길게, 위에서 아래로 내려보내."
+// 맵 모서리 대각 횡단(+x,+z) → 화면 위 가장자리 바로 바깥에서 등장해 화면을 위→아래(+z)로 곧게 종단.
+// 리더는 플레이어 X 기준 ±RUN_ZOMBIE_CREW_LANE_SPREAD 안의 레인(맵 안으로 클램프)에 선다.
+// 시뮬레이션은 |z| > halfZ+6에서 러너를 despawn하므로 맨 뒤 행이 그 선 안에 들도록 시작 Z를 클램프한다
+// (플레이어가 맵 최상단 근처라 화면 위끝이 맵 위끝에 붙으면 리더가 화면 위끝 살짝 안쪽에서 나타난다).
+export const RUN_ZOMBIE_CREW_LANE_SPREAD = 2
+const RUN_ZOMBIE_CREW_TOP_MARGIN = 1.2
+const RUN_ZOMBIE_CREW_LEADER_GAP = 1.28
+const RUN_ZOMBIE_CREW_ROW_GAP = 0.92
+const RUN_ZOMBIE_CREW_MAX_TRAIL = RUN_ZOMBIE_CREW_LEADER_GAP + Math.floor((RUN_ZOMBIE_CREW_SIZE - 2) / 2) * RUN_ZOMBIE_CREW_ROW_GAP
+
+export function createRunZombieCrewEntries(bounds, random = Math.random, obstacles = [], player = null, visibleBounds = null) {
   const limX = bounds.halfX - SPAWN_INSET
-  const limZ = bounds.halfZ - SPAWN_INSET
   const dirLen = Math.hypot(RUN_ZOMBIE_CREW_DIR.x, RUN_ZOMBIE_CREW_DIR.z) || 1
   const nx = RUN_ZOMBIE_CREW_DIR.x / dirLen
   const nz = RUN_ZOMBIE_CREW_DIR.z / dirLen
   const px = -nz
   const pz = nx
-  const startX = -limX - 1.8
-  const startZ = -limZ - 1.8
+  const hasView = visibleBounds && Number.isFinite(visibleBounds.minZ) && Number.isFinite(visibleBounds.minX) && Number.isFinite(visibleBounds.maxX)
+  const playerX = Number.isFinite(player?.x) ? player.x : (hasView ? (visibleBounds.minX + visibleBounds.maxX) * 0.5 : 0)
+  // 화면 위 가장자리(-z). 화면 정보가 없으면 플레이어 기준 기본 카메라 시야로, 플레이어도 없으면 맵 위끝으로 둔다.
+  const viewTopZ = hasView
+    ? visibleBounds.minZ
+    : (Number.isFinite(player?.z) ? player.z - getGameplayGroundReach(30, 1).reachUp : -bounds.halfZ)
+  const laneOffset = (random() * 2 - 1) * RUN_ZOMBIE_CREW_LANE_SPREAD
+  const startX = Math.max(-limX, Math.min(limX, playerX + laneOffset))
+  const minLeaderZ = -bounds.halfZ - 6 + 0.5 + RUN_ZOMBIE_CREW_MAX_TRAIL
+  const startZ = Math.max(minLeaderZ, viewTopZ - RUN_ZOMBIE_CREW_TOP_MARGIN)
 
   const entries = []
   for (let i = 0; i < RUN_ZOMBIE_CREW_SIZE; i += 1) {
@@ -626,7 +645,7 @@ export function createRunZombieCrewEntries(bounds, random = Math.random, obstacl
     // 행 간격을 벌려 '리더 1명 + 뒤따르는 러닝크루' 실루엣을 만든다.
     if (!isLeader) random()
     const sideOffset = isLeader ? 0 : (col === 0 ? -0.42 : 0.42)
-    const trail = isLeader ? 0 : 1.28 + row * 0.92
+    const trail = isLeader ? 0 : RUN_ZOMBIE_CREW_LEADER_GAP + row * RUN_ZOMBIE_CREW_ROW_GAP
     const x = startX - nx * trail + px * sideOffset
     const z = startZ - nz * trail + pz * sideOffset
     const type = isLeader ? 'RZL' : 'RZC'
@@ -2171,7 +2190,7 @@ export default function Enemies() {
       }
       if (evt.formation === RUN_ZOMBIE_CREW_FORMATION) {
         emitSfx({ id: 'rzlWhistle', volume: 0.5 })
-        const batch = createRunZombieCrewEntries(cache.bounds, Math.random, cache.obstacles, { x: playerPos.x, z: playerPos.z })
+        const batch = createRunZombieCrewEntries(cache.bounds, Math.random, cache.obstacles, { x: playerPos.x, z: playerPos.z }, screenBounds)
           .map((entry) => ({ id: ++_uid, ...entry, statOverride: stageHpOverride(entry.type, cache.id) }))
         recordMissionBurstSpawns(store, batch, cache.id, b)
         addEnemies(batch, true, cache.spawnToken)

@@ -906,7 +906,7 @@ export function runStageRuntimeProbe({
       return
     }
     if (evt.formation === RUN_ZOMBIE_CREW_FORMATION) {
-      const batch = createRunZombieCrewEntries(bounds, Math.random, obstacles, { x: playerPos.x, z: playerPos.z })
+      const batch = createRunZombieCrewEntries(bounds, Math.random, obstacles, { x: playerPos.x, z: playerPos.z }, screenBounds)
         .map((entry) => ({ ...entry, statOverride: stageHpOverride(entry.type, stageId) }))
       addEnemies(batch, true, 'burst')
       return

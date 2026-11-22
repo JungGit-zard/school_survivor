@@ -469,8 +469,10 @@ export const ENEMY_STATS = {
          charger: true, chargeSpeed: 1.7, warnDist: 4.5, warnDuration: 700, stunDuration: 1000, chargeDuration: 1200 },
   E06: { hp: 320,  speed: 0.66, damage: 20, scale: 1.60, xp: 56, contactDist: 0.42 },
   // Stage 3 Run Zombie crew: screen-crossing melee swarm, not a boss.
-  RZL: { hp: 90,   speed: 2.695, damage: 14, scale: 1.08, xp: 12, contactDist: 0.28, runCrew: true },
-  RZC: { hp: 28,   speed: 2.398, damage: 7,  scale: 0.78, xp: 5,  contactDist: 0.22, runCrew: true },
+  // 2026-11-22 Terry "화면체류시간 길게": 위→아래 종단 + 속도 ×0.55(2.695→1.48225, 2.398→1.3189).
+  // 여전히 일반 좀비(최고 E03 1.21)보다 빠르고 플레이어보다는 느리다. enemySimulation.js 7·8번 슬롯과 같이 바꾼다.
+  RZL: { hp: 90,   speed: 1.48225, damage: 14, scale: 1.08, xp: 12, contactDist: 0.28, runCrew: true },
+  RZC: { hp: 28,   speed: 1.3189, damage: 7,  scale: 0.78, xp: 5,  contactDist: 0.22, runCrew: true },
   // Stage 2 guard chase: a faster fleeing trench-coat zombie and six guards.
   RZT: { hp: 140,  speed: 1.4025, damage: 6,  scale: 1.76, xp: 5, contactDist: 0.22, runCrew: true },
   RZG: { hp: 48,   speed: 1.3475, damage: 9,  scale: 0.92, xp: 6, contactDist: 0.24, runCrew: true },

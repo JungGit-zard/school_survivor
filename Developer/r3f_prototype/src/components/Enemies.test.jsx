@@ -1462,16 +1462,35 @@ describe('formation spawns', () => {
     }
   })
 
-  it('keeps the run zombie crew as a diagonal screen-crossing swarm, not a ring/pincer clone', () => {
-    const entries = createRunZombieCrewEntries({ halfX: 18, halfZ: 18 }, () => 0.5)
+  it('sends the run zombie crew straight down the screen from just above the top edge of the view', () => {
+    // Stage 3 arena (halfX 7.5, halfZ 19.2), player mid-map, phone-portrait-like view.
+    const arena = { halfX: 7.5, halfZ: 19.2 }
+    const view = { minX: -4.2, maxX: 4.2, minZ: -12.4, maxZ: 7.2 }
+    const entries = createRunZombieCrewEntries(arena, () => 0.5, [], { x: 1, z: 0 }, view)
     const leader = entries[0]
-    const last = entries[entries.length - 1]
 
-    expect(RUN_ZOMBIE_CREW_DIR).toEqual({ x: 1, z: 1 })
-    expect(leader.pos[0]).toBeLessThan(-15)
-    expect(leader.pos[2]).toBeLessThan(-15)
-    expect(last.pos[0]).toBeLessThan(leader.pos[0])
-    expect(last.pos[2]).toBeLessThan(leader.pos[2])
+    expect(RUN_ZOMBIE_CREW_DIR).toEqual({ x: 0, z: 1 })
+    expect(entries).toHaveLength(RUN_ZOMBIE_CREW_SIZE)
+    // random 0.5 → lane offset 0: the leader runs down the player's column, just above the top edge.
+    expect(leader.pos[0]).toBeCloseTo(1, 6)
+    expect(leader.pos[2]).toBeLessThan(view.minZ)
+    expect(leader.pos[2]).toBeGreaterThan(view.minZ - 2)
+    // Followers trail above (further -z) the leader and every body stays inside the runner despawn window.
+    entries.slice(1).forEach((entry) => {
+      expect(entry.pos[2]).toBeLessThan(leader.pos[2])
+      expect(Math.abs(entry.pos[0] - leader.pos[0])).toBeLessThan(0.5)
+    })
+    entries.forEach((entry) => expect(Math.abs(entry.pos[2])).toBeLessThan(arena.halfZ + 6))
+  })
+
+  it('keeps the run zombie crew inside the despawn window and the map lanes when the view is pinned to the map top', () => {
+    const arena = { halfX: 7.5, halfZ: 19.2 }
+    const view = { minX: -4.2, maxX: 4.2, minZ: -19.2, maxZ: 0.4 }
+    const entries = createRunZombieCrewEntries(arena, () => 0.999, [], { x: 7, z: -15 }, view)
+    entries.forEach((entry) => {
+      expect(Math.abs(entry.pos[2])).toBeLessThan(arena.halfZ + 6)
+      expect(Math.abs(entry.pos[0])).toBeLessThanOrEqual(arena.halfX)
+    })
   })
 
   it('creates the Stage 2 guard chase as one fugitive ahead of six guards for every map edge', () => {
@@ -1499,8 +1518,8 @@ describe('formation spawns', () => {
     expect(ENEMY_STATS.RZT).toMatchObject({ hp: 140, speed: 1.4025, damage: 6, scale: 1.76, contactDist: 0.22 })
     expect(ENEMY_STATS.RZG).toMatchObject({ hp: 48, speed: 1.3475, damage: 9 })
     expect(STAGE2_GUARD_CHASE_SIZE).toBe(7)
-    expect(ENEMY_STATS.RZL.speed).toBe(2.695)
-    expect(ENEMY_STATS.RZC.speed).toBe(2.398)
+    expect(ENEMY_STATS.RZL.speed).toBe(1.48225)
+    expect(ENEMY_STATS.RZC.speed).toBe(1.3189)
   })
 
   it('blows the coach whistle once per run-zombie crew burst (crew-level, not per entity)', () => {
@@ -1511,7 +1530,7 @@ describe('formation spawns', () => {
   it('keeps the run zombie crew on its dedicated spawn layer before general formation spawning', () => {
     const source = readFileSync(new URL('./Enemies.jsx', import.meta.url), 'utf8')
     const runCrewBranch = source.indexOf('evt.formation === RUN_ZOMBIE_CREW_FORMATION')
-    const runCrewFactory = source.indexOf('createRunZombieCrewEntries(cache.bounds, Math.random, cache.obstacles, { x: playerPos.x, z: playerPos.z })')
+    const runCrewFactory = source.indexOf('createRunZombieCrewEntries(cache.bounds, Math.random, cache.obstacles, { x: playerPos.x, z: playerPos.z }, screenBounds)')
     const runCrewReturn = source.indexOf('return', runCrewFactory)
     const generalFormation = source.indexOf('formationSpawnPositions(evt.formation', runCrewReturn)
     expect(runCrewBranch).toBeGreaterThan(-1)
