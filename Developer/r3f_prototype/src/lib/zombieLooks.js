@@ -9,6 +9,8 @@
 // body proportion (visual only, hitbox unchanged) and a worn accessory — the head top and the
 // accessories carry most of the difference, because the game camera sees heads from above.
 
+import { ROAD_ZOMBIE_COLORS } from './roadZombieRoster.js'
+
 export const LOOK_ALIVE_LIMIT = 10
 export const MAX_ZOMBIE_LOOKS = 16
 
@@ -123,6 +125,20 @@ const ACCESSORIES = {
     { frame: 'head', pos: [0, -hy * 0.55, hz + 0.012], size: [hx * 1.35, hy * 0.62, 0.035], tone: 0 },
     { frame: 'head', pos: [0, -hy * 0.4, 0], size: [hx * 2 + 0.03, 0.025, hz * 2 + 0.03], tone: 1 },
   ],
+  // ── RDZ road zombie (2026-11-22, ported from the Sltera racer's zHeadGeo / zTorsoGeo) ──
+  // flat hair cap on the crown (racer: 0.54 x 0.10 x 0.48 at y +0.20)
+  roadHair: ({ hx, hy, hz }) => [
+    { frame: 'head', pos: [0, hy - 0.04, 0], size: [hx * 2 + 0.02, 0.1, hz * 2 + 0.02], tone: 0 },
+  ],
+  // dark open mouth under the eyes (racer: 0.20 x 0.10 at y -0.15 on the face)
+  roadMouth: ({ hy, hz }) => [
+    { frame: 'head', pos: [0, -hy * 0.62, hz + 0.012], size: [0.2, 0.1, 0.03], tone: 0 },
+  ],
+  // white shirt collar + red tie on the uniform front (racer: collar 0.20 x 0.30, tie 0.07 x 0.24)
+  roadCollar: ({ by, bz }) => [
+    { frame: 'body', pos: [0, by * 0.34, bz + 0.008], size: [0.2, by * 1.0, 0.02], tone: 0 },
+    { frame: 'body', pos: [0, by * 0.28, bz + 0.022], size: [0.07, by * 0.82, 0.025], tone: 1 },
+  ],
 }
 // Accessories that cover the face front — not allowed on looks of types whose face is a shader/quad.
 export const FACE_FRONT_ACCESSORIES = Object.freeze(['glasses', 'mask'])
@@ -140,6 +156,8 @@ export function accessoryBoxes(kind, frames) {
 // acc: [{ kind, color, color2 }], scale: [width, height] (each within ±12 %).
 const L = (shirt, pants, skin, acc, scale, extra) => Object.freeze({ shirt, pants, skin, acc: Object.freeze(acc ?? []), scale: scale ?? null, ...(extra ?? {}) })
 const acc = (kind, color, color2) => Object.freeze({ kind, color, color2: color2 ?? color })
+const ROAD = ROAD_ZOMBIE_COLORS
+const ROAD_ACC = [acc('roadHair', ROAD.hair), acc('roadMouth', ROAD.mouth), acc('roadCollar', ROAD.collar, ROAD.tie)]
 
 export const ZOMBIE_LOOKS = Object.freeze({
   // Classic box zombies: each keeps its own shirt hue family (that is how the types tell apart), the looks
@@ -273,6 +291,22 @@ export const ZOMBIE_LOOKS = Object.freeze({
     L(0x7a4fa0, 0x3a3a44, 0xb9c98a, [acc('mop', 0x6b4a2e)], [1.05, 1]),
     L(0x1e2a3a, 0x6b4a2e, 0xc9d8b0, [acc('spiky', 0xd23a2e)], [1, 1.07]),
   ],
+  // RDZ road zombie (lib/roadZombieRoster.js): the racer's six uniforms x four green skins. Every look keeps the
+  // racer silhouette — hair cap, mouth, collar + tie — and its group variety comes from uniform + skin + build.
+  // Look 0 is drawn from ZOMBIE_BASE_LOOKS.RDZ below (first uniform), so index 0 stays {} like every other type.
+  RDZ: [{},
+    L(ROAD.uniforms[1], ROAD.pants, ROAD.skins[1], ROAD_ACC, [1.04, 0.97]),
+    L(ROAD.uniforms[2], ROAD.pants, ROAD.skins[2], ROAD_ACC, [0.96, 1.04]),
+    L(ROAD.uniforms[3], ROAD.pants, ROAD.skins[3], ROAD_ACC, [1.06, 1]),
+    L(ROAD.uniforms[4], ROAD.pants, ROAD.skins[0], ROAD_ACC, [0.95, 1.05]),
+    L(ROAD.uniforms[5], ROAD.pants, ROAD.skins[2], ROAD_ACC, [1, 1.06]),
+  ],
+})
+
+// Look 0 for types whose original look is itself a coloured look with accessories (only RDZ: its racer details are
+// accessories on the shared STANDARD box body). Renderers use this when a zombie's look index is 0.
+export const ZOMBIE_BASE_LOOKS = Object.freeze({
+  RDZ: L(ROAD.uniforms[0], ROAD.pants, ROAD.skins[0], ROAD_ACC, null),
 })
 
 // Look count per type name (1 = no variants).

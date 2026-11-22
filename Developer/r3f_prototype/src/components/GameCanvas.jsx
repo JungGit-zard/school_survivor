@@ -6,6 +6,7 @@ import DamageNumbersLayer from './DamageNumbersLayer.jsx'
 import ZombieInstanceLayer from './ZombieInstanceLayer.jsx'
 import WaveRoleRingLayer from './WaveRoleRingLayer.jsx'
 import PurifiedStudentLayer from './PurifiedStudentLayer.jsx'
+import KnockFlightDeathLayer from './KnockFlightDeathLayer.jsx'
 import ExpansionZombieInstanceLayer from './expansion/ExpansionZombieInstanceLayer.jsx'
 import ExpansionHazardLayer from './expansion/ExpansionHazardLayer.jsx'
 import { expansionAttackSnapshots } from '../lib/expansionAttackRuntime.js'
@@ -99,6 +100,8 @@ export default function GameCanvas({ gameKey, phase }) {
       {/* 웨이브 특수 역할 발밑 고리(스테이지 1~6 특수만, 드로콜 2개). lib/waveRoleMarker.js */}
       <WaveRoleRingLayer resetKey={gameKey} />
       <PurifiedStudentLayer resetKey={gameKey} />
+      {/* '치여 날아가 펑' 사망 연출(슬테라 처치 등 deathStyleOverride=knockFlight). 풀 24·퍼프 96, 활성 시 드로콜 최대 7. */}
+      <KnockFlightDeathLayer resetKey={gameKey} />
       <ExpansionZombieInstanceLayer resetKey={gameKey} />
       {/* E07 웃는얼굴 좀비 몸통(셰이더 얼굴이라 인스턴싱 대상이 아님). 그림자·체력바·
           스폰 연기는 위 ZombieInstanceLayer가 그대로 담당한다. */}

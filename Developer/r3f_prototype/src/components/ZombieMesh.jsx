@@ -16,6 +16,7 @@ import BossProceduralFace from './BossProceduralFace.jsx'
 import { PROJECTILE_ZOMBIE_PALETTE_ENTRIES } from '../lib/projectileZombieVisuals.js'
 import { BLOCKY_ZOMBIE_PALETTE_ENTRIES } from '../lib/blockyZombieRoster.js'
 import { NOVEL2_PALETTE_ENTRIES } from '../lib/novelZombie2Visuals.js'
+import { ROAD_ZOMBIE_PALETTE, ROAD_ZOMBIE_TYPE } from '../lib/roadZombieRoster.js'
 
 const disableRaycast = () => null
 export const ZOMBIE_CHARACTER_CHAMFER_STEPS = 1
@@ -62,6 +63,8 @@ export const ZOMBIE_PALETTE = {
   ...BLOCKY_ZOMBIE_PALETTE_ENTRIES,
   // 2차 신규 좀비(E89~E106) 자리표시 팔레트. 정본은 lib/novelZombie2Visuals.js(visualId별).
   ...NOVEL2_PALETTE_ENTRIES,
+  // RDZ 도로 좀비(Sltera 레이서 좀비 이식). 게임 몸통은 ZombieInstanceLayer STANDARD 슬롯 + 룩 소품이 그린다.
+  [ROAD_ZOMBIE_TYPE]: ROAD_ZOMBIE_PALETTE,
 }
 
 // 공용 박스 좀비의 신발 색. 공유 박스 트리와 신규 포즈형이 같은 상수를 쓴다.

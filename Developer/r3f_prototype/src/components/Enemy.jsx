@@ -83,6 +83,7 @@ import { createExpansionAttackState, stepExpansionAttack, cancelExpansionAttack 
 import { queueB10StampDeathMark } from './B10StampDeathMark.jsx'
 import { createB10StampImpactTracker, stepB10StampImpact } from '../lib/b10StampImpact.js'
 import { NOVEL2_ZOMBIE_STATS } from '../lib/novelZombie2Content.js'
+import { ROAD_ZOMBIE_STATS, ROAD_ZOMBIE_TYPE } from '../lib/roadZombieRoster.js'
 import { B10_SFX, STAGE5_BOSS_STATS, createB10SummonState, isAuthoredAttackBoss, isB10EnrageTransitionDone, stepB10SummonTriggers, AUTHORED_ATTACK_BOSSES } from '../lib/stage5ViceBoss.js'
 import { pushBossSummon } from '../lib/bossSummonQueue.js'
 import MiniHealthBar from './MiniHealthBar.jsx'
@@ -517,6 +518,8 @@ export const ENEMY_STATS = {
   ...STAGE5_BOSS_STATS,
   // 2차 신규 좀비 1차 구현분(E89 반장 치프 · E93 · E94 · E96 · E97 · E99 · E103 · E105). 수치 정본은 lib/novelZombie2Content.js.
   ...NOVEL2_ZOMBIE_STATS,
+  // RDZ 도로 좀비(Sltera 레이서 좀비 이식, 2026-11-22) = E01 수치 그대로. 정본 lib/roadZombieRoster.js. 웨이브 미배치.
+  [ROAD_ZOMBIE_TYPE]: ROAD_ZOMBIE_STATS,
 }
 
 // 肄쒕씪?대뜑 湲곕낯 諛섑겕湲?(scale=1 湲곗?)

@@ -62,7 +62,9 @@ describe('EnemyEntityPool', () => {
       // 블록 좀비 18종(2026-11-14, typeCode 76~93, Kenney Blocky Characters CC0).
       'E71', 'E72', 'E73', 'E74', 'E75', 'E76', 'E77', 'E78', 'E79', 'E80', 'E81', 'E82', 'E83', 'E84', 'E85', 'E86', 'E87', 'E88',
       // 2차 신규 좀비 18종(2026-11-14, typeCode 94~111 — 블록 좀비 뒤 끝에만 붙는다).
-      'E89', 'E90', 'E91', 'E92', 'E93', 'E94', 'E95', 'E96', 'E97', 'E98', 'E99', 'E100', 'E101', 'E102', 'E103', 'E104', 'E105', 'E106'])
+      'E89', 'E90', 'E91', 'E92', 'E93', 'E94', 'E95', 'E96', 'E97', 'E98', 'E99', 'E100', 'E101', 'E102', 'E103', 'E104', 'E105', 'E106',
+      // 2026-11-22 RDZ 도로 좀비(Sltera 레이서 좀비 이식) = 112. 끝에만 붙는다.
+      'RDZ'])
     expect(enemyTypeToCode('B10')).toBe(75)
     expect(enemyTypeFromCode(75)).toBe('B10')
     expect(enemyTypeToCode('E71')).toBe(76)
@@ -71,8 +73,9 @@ describe('EnemyEntityPool', () => {
     expect(enemyTypeToCode('E89')).toBe(94)
     expect(enemyTypeToCode('E106')).toBe(111)
     expect(enemyTypeFromCode(99)).toBe('E94')
-    expect(enemyTypeFromCode(112)).toBe(null)
-    expect(ENEMY_TYPE_NAMES).toHaveLength(112)
+    expect(enemyTypeFromCode(112)).toBe('RDZ')
+    expect(enemyTypeFromCode(113)).toBe(null)
+    expect(ENEMY_TYPE_NAMES).toHaveLength(113)
     expect(enemyTypeToCode('E60')).toBe(63)
     expect(enemyTypeToCode('E59M')).toBe(0)
     expect(enemyTypeToCode('E61')).toBe(65)
@@ -89,8 +92,8 @@ describe('EnemyEntityPool', () => {
     expect(enemyTypeFromCode(15)).toBe('E07')
     expect(enemyTypeFromCode(16)).toBe('E08')
     expect(enemyTypeToCode('unknown')).toBe(0)
-    // 99는 2026-11-14부터 E94(2차 신규 좀비)다 — 모르는 코드 예시는 표 끝 다음(112)을 쓴다.
-    expect(enemyTypeFromCode(112)).toBeNull()
+    // 99는 2026-11-14부터 E94(2차 신규 좀비)다 — 모르는 코드 예시는 표 끝 다음(113, 2026-11-22 RDZ가 112)을 쓴다.
+    expect(enemyTypeFromCode(113)).toBeNull()
   })
 
 

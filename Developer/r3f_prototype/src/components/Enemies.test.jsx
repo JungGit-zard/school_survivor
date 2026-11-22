@@ -1089,6 +1089,8 @@ describe('all zombie HP follows the cumulative 1.2x-per-stage curve', () => {
       // 2026-11-16 3차분(wave 3): 치프 E98·E101(base × 배수). E104(스6 치프)는 E105처럼 절대 HP라 아래 루프에서 따로 다룬다.
       // 2026-11-17 3차 둘째 묶음: E100·E102(일반, host 같은 hp 16)는 같은 곡선, E106(스6 기마전)은 E105처럼 절대 HP라 아래 루프에서 따로 다룬다.
       'E89', 'E90', 'E91', 'E92', 'E93', 'E94', 'E95', 'E96', 'E97', 'E98', 'E99', 'E100', 'E101', 'E102', 'E103', 'E104', 'E105', 'E106',
+      // 2026-11-22 RDZ 도로 좀비(Sltera 레이서 좀비 이식, typeCode 112) = E01 수치 그대로라 같은 곡선을 탄다.
+      'RDZ',
     ])
     const stageMultipliers = { stage1: 1, stage2: 1.2, stage3: 1.44, stage4: 1.728, stage5: 1.2 ** 4 }
     for (const [stageId, multiplier] of Object.entries(stageMultipliers)) {

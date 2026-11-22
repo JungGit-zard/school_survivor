@@ -66,6 +66,8 @@ import {
 } from '../lib/pooledEnemySpawnDrain.js'
 import { recordZombieEncounter } from '../lib/zombieEncyclopedia.js'
 import { announceWaveSpecialSpawn } from '../lib/waveDebutNotice.js'
+import { ROAD_ZOMBIE_TYPE_CODE } from '../lib/roadZombieRoster.js'
+import { KNOCK_FLIGHT_DEATH_STYLE, knockFlightDeathPool, spawnKnockFlightDeath } from '../lib/knockFlightDeath.js'
 import { BOSS_TELEGRAPH_LEAD_SEC, LOW_DENSITY_ENEMY_THRESHOLD, advanceSpawnCatchUp, createSpawnCatchUpState, publishSpawnCatchUpOffsetSec, resetSpawnCatchUpState } from '../lib/spawnCatchUp.js'
 import { LOW_DENSITY_REINFORCEMENT_ENTRIES, advanceLowDensityReinforcement, createLowDensityReinforcementState, finishLowDensityReinforcement, resetLowDensityReinforcementState } from '../lib/lowDensityReinforcement.js'
 import { createDominanceSwarmSpawnPlan, createDominanceSwarmState, evaluateDominanceSwarm, recordDominanceSwarmSpawn, recordEmptyField, recordEnemyKill, recordPlayerDamage, resetDominanceSwarmState } from '../lib/dominanceSwarmRespawn.js'
@@ -1249,6 +1251,31 @@ function spawnKillPuff(dropData) {
 let _collapseId = 0
 let _chestId = 0
 
+// Per-kill death visual (impact.deathStyleOverride → the death queue's Uint8 code). 0 = normal death pool,
+// 1 = shatter5 (eraser bomb), 2 = knock-flight (lib/knockFlightDeath.js — Sltera hits today).
+export const DEATH_STYLE_CODE = Object.freeze({ DEFAULT: 0, SHATTER5: 1, KNOCK_FLIGHT: 2 })
+export function encodeDeathStyleOverride(style) {
+  return style === 'shatter5' ? DEATH_STYLE_CODE.SHATTER5 : style === KNOCK_FLIGHT_DEATH_STYLE ? DEATH_STYLE_CODE.KNOCK_FLIGHT : DEATH_STYLE_CODE.DEFAULT
+}
+export function decodeDeathStyleOverride(code) {
+  return code === DEATH_STYLE_CODE.SHATTER5 ? 'shatter5' : code === DEATH_STYLE_CODE.KNOCK_FLIGHT ? KNOCK_FLIGHT_DEATH_STYLE : undefined
+}
+
+// One death visual per kill. styleOverride = knock-flight (non-boss, non-Matilda) → the body tumbles away and pops
+// into puffs (KnockFlightDeathLayer; the purified student appears after the pop) INSTEAD of the collapse + kill puff
+// + purified student below. Every other kill is exactly as before. dropData.dirX/dirZ = fling direction (optional).
+export function emitEnemyDeathVisual(dropData, collapses, flightPool = knockFlightDeathPool) {
+  if (dropData?.styleOverride === KNOCK_FLIGHT_DEATH_STYLE && dropData.pos && !dropData.isMatilda && dropData.type && !isBossType(dropData.type)) {
+    const pos = dropData.pos
+    const slot = spawnKnockFlightDeath(flightPool, pos[0], pos[1], pos[2], dropData.dirX ?? 0, dropData.dirZ ?? 0, dropData.visualScale, ZOMBIE_PALETTE[dropData.type] ?? ZOMBIE_PALETTE.E01)
+    if (slot >= 0) return KNOCK_FLIGHT_DEATH_STYLE
+  }
+  pushBounded(collapses, createDeathCollapseEntry(++_collapseId, dropData), 12)
+  spawnKillPuff(dropData)
+  emitPurifiedStudentForDeath(dropData)
+  return 'collapse'
+}
+
 // 15 = E07(웃는얼굴 좀비). 시뮬레이션은 다른 잡몹과 같은 풀을 쓰고, 몸통만
 // ProceduralFaceZombieLayer가 그린다(ZombieInstanceLayer는 그림자/체력바/스폰연기만 담당).
 const STANDARD_POOL_TYPE_MAX = 16
@@ -1304,7 +1331,7 @@ export function isPooledEnemyType(type) {
   // Track B 신규 12종(37~48)도 풀 경로다 — 특수 적 경로는 동시 3마리가 상한이라
   // 여기서 빠지면 네 번째부터 조용히 스폰이 버려진다.
   return (code >= 1 && code <= STANDARD_POOL_TYPE_MAX || isExpansionEnemy(type) || isNovelZombieType(code) || isProjectileZombieType(code)
-    || isNovel2ImplementedTypeCode(code))
+    || isNovel2ImplementedTypeCode(code) || code === ROAD_ZOMBIE_TYPE_CODE)
     && !isBossType(type)
 }
 
@@ -1548,7 +1575,7 @@ export default function Enemies() {
   const [doges, setDoges]           = useState([])
   const [chests, setChests]         = useState([])
   const enemiesRef                = useRef([])
-  const runtimeQueueRef           = useRef({ specialRemovals: [], textbooks: [], gold: [], collapses: [], doges: [], chests: [], flushScheduled: false, raf: 0, scheduleKind: new Uint8Array(64), scheduleA: new Float32Array(64), scheduleB: new Float32Array(64), scheduleRead: 0, scheduleWrite: 0, scheduleCount: 0, processScheduled: null, matildaEntry: null, spawnDrain: createPooledEnemySpawnDrainQueue(), drainPooled: null, deathType: new Uint8Array(MAX_RUNTIME_QUEUE), deathX: new Float32Array(MAX_RUNTIME_QUEUE), deathY: new Float32Array(MAX_RUNTIME_QUEUE), deathZ: new Float32Array(MAX_RUNTIME_QUEUE), deathXp: new Float32Array(MAX_RUNTIME_QUEUE), deathScale: new Float32Array(MAX_RUNTIME_QUEUE), deathDamage: new Float32Array(MAX_RUNTIME_QUEUE), deathMaxHp: new Float32Array(MAX_RUNTIME_QUEUE), deathKnockback: new Float32Array(MAX_RUNTIME_QUEUE), deathStyle: new Uint8Array(MAX_RUNTIME_QUEUE), deathRead: 0, deathWrite: 0, deathCount: 0, hitQueue: createEnemyHitEventQueue(), hitScratch: {} })
+  const runtimeQueueRef           = useRef({ specialRemovals: [], textbooks: [], gold: [], collapses: [], doges: [], chests: [], flushScheduled: false, raf: 0, scheduleKind: new Uint8Array(64), scheduleA: new Float32Array(64), scheduleB: new Float32Array(64), scheduleRead: 0, scheduleWrite: 0, scheduleCount: 0, processScheduled: null, matildaEntry: null, spawnDrain: createPooledEnemySpawnDrainQueue(), drainPooled: null, deathType: new Uint8Array(MAX_RUNTIME_QUEUE), deathX: new Float32Array(MAX_RUNTIME_QUEUE), deathY: new Float32Array(MAX_RUNTIME_QUEUE), deathZ: new Float32Array(MAX_RUNTIME_QUEUE), deathXp: new Float32Array(MAX_RUNTIME_QUEUE), deathScale: new Float32Array(MAX_RUNTIME_QUEUE), deathDamage: new Float32Array(MAX_RUNTIME_QUEUE), deathMaxHp: new Float32Array(MAX_RUNTIME_QUEUE), deathKnockback: new Float32Array(MAX_RUNTIME_QUEUE), deathStyle: new Uint8Array(MAX_RUNTIME_QUEUE), deathDirX: new Float32Array(MAX_RUNTIME_QUEUE), deathDirZ: new Float32Array(MAX_RUNTIME_QUEUE), deathRead: 0, deathWrite: 0, deathCount: 0, hitQueue: createEnemyHitEventQueue(), hitScratch: {} })
   const runtimeEventScratchRef    = useRef({})
   const runtimeContextRef         = useRef({ delta: 0, playerX: 0, playerZ: 0, halfX: 1, halfZ: 1, elapsedSec: 0, spawnSec: 0, activeProjectileCount: 0, stageId: 'stage1', e04IntroSec: 72, bossPressure: false, obstacles: null, obstacleCount: 0, sightBlocked: enemySightBlocked, screenBounds: null, projectileZombieShotCount: 0 })
   const stageRuntimeCacheRef      = useRef(null)
@@ -1687,11 +1714,10 @@ export default function Enemies() {
         const dropData = {
           pos, xp: queue.deathXp[slot], type, visualScale: queue.deathScale[slot],
           intensity: resolveCollapseIntensity({ killingDamage: queue.deathDamage[slot], maxHp: queue.deathMaxHp[slot], knockback: queue.deathKnockback[slot] }),
-          styleOverride: queue.deathStyle[slot] === 1 ? 'shatter5' : undefined,
+          styleOverride: decodeDeathStyleOverride(queue.deathStyle[slot]),
+          dirX: queue.deathDirX[slot], dirZ: queue.deathDirZ[slot],
         }
-        pushBounded(queue.collapses, createDeathCollapseEntry(++_collapseId, dropData), 12)
-        spawnKillPuff(dropData)
-        emitPurifiedStudentForDeath(dropData)
+        emitEnemyDeathVisual(dropData, queue.collapses)
         if (type === 'RZT') emitRztLunchFoodDrop(pos)
         const bonus = ELITE_BONUS[type]
         if (bonus) {
@@ -1742,7 +1768,7 @@ export default function Enemies() {
     return true
   }, [scheduleRuntimeFlush])
 
-  const enqueuePooledDeath = useCallback((typeCode, x, y, z, xp, scale, damage, maxHp, knockback, styleOverride) => {
+  const enqueuePooledDeath = useCallback((typeCode, x, y, z, xp, scale, damage, maxHp, knockback, styleOverride, dirX = 0, dirZ = 0) => {
     const queue = runtimeQueueRef.current
     if (queue.deathCount >= MAX_RUNTIME_QUEUE) return false
     const slot = queue.deathWrite
@@ -1750,7 +1776,8 @@ export default function Enemies() {
     queue.deathX[slot] = x; queue.deathY[slot] = y; queue.deathZ[slot] = z
     queue.deathXp[slot] = xp; queue.deathScale[slot] = scale
     queue.deathDamage[slot] = damage; queue.deathMaxHp[slot] = maxHp; queue.deathKnockback[slot] = knockback
-    queue.deathStyle[slot] = styleOverride === 'shatter5' ? 1 : 0
+    queue.deathStyle[slot] = encodeDeathStyleOverride(styleOverride)
+    queue.deathDirX[slot] = Number.isFinite(dirX) ? dirX : 0; queue.deathDirZ[slot] = Number.isFinite(dirZ) ? dirZ : 0
     queue.deathWrite = (slot + 1) % MAX_RUNTIME_QUEUE
     queue.deathCount += 1
     scheduleRuntimeFlush()
@@ -1811,7 +1838,8 @@ export default function Enemies() {
       store.recordKill(); logKill(type); recordEnemyKill(dominanceSwarmRef.current, getRuntimeElapsedMs(store.elapsedMs)); emitSfx({ id: deathSfxId(type) })
       // E101 복사기의 복사본은 XP·드롭 0(lib/novelZombie2Behavior.js isCopy). xp 0이면 교과서도 떨어지지 않는다(shouldDropTextbook).
       const deathXp = enemySimulationRuntime.novel2.isCopy(enemyPool, index) ? 0 : (hasProjectileZombieSplit(enemyPool, index) ? stats.xp * 0.5 : stats.xp)
-      enqueuePooledDeath(enemyPool.type[index], x, y, z, deathXp, enemyPool.visualScale[index] * 0.333, critical.damage, enemyPool.maxHp[index], safeImpact.knockback ?? 0, safeImpact.deathStyleOverride)
+      // dx/dz/length = hit source → zombie (the knock-flight death flies that way; 0,0 when the source is the zombie itself).
+      enqueuePooledDeath(enemyPool.type[index], x, y, z, deathXp, enemyPool.visualScale[index] * 0.333, critical.damage, enemyPool.maxHp[index], safeImpact.knockback ?? 0, safeImpact.deathStyleOverride, dx / length, dz / length)
     }
     enemySimulationRuntime.applyHitIndex(enemyPool, index, generation, critical.damage, dx / length * knockbackSpeed, dz / length * knockbackSpeed, knockbackMs)
   }
@@ -2272,9 +2300,7 @@ export default function Enemies() {
       killKey: `${store.gameKey}:special:${id}`,
     })
 
-    pushBounded(runtimeQueueRef.current.collapses, createDeathCollapseEntry(++_collapseId, dropData), 12)
-    spawnKillPuff(dropData)
-    emitPurifiedStudentForDeath(dropData)
+    emitEnemyDeathVisual(dropData, runtimeQueueRef.current.collapses)
     if (dropData.type === 'RZT') emitRztLunchFoodDrop(dropData.pos)
 
     const bonus = ELITE_BONUS[dropData.type]

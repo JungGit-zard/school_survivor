@@ -3,6 +3,7 @@ import { PROJECTILE_ZOMBIE_TYPE_CODES, PROJECTILE_ZOMBIE_TYPE_NAME_SLOTS } from 
 import { B10_TYPE_CODE } from './stage5ViceBoss.js'
 import { BLOCKY_ZOMBIE_TYPE_CODES, BLOCKY_ZOMBIE_TYPE_NAME_SLOTS } from './blockyZombieRoster.js'
 import { NOVEL2_TYPE_CODES, NOVEL2_TYPE_IDS } from './novelZombie2Content.js'
+import { ROAD_ZOMBIE_TYPE, ROAD_ZOMBIE_TYPE_CODE } from './roadZombieRoster.js'
 import { MAX_ZOMBIE_LOOKS, pickLeastUsedLook, zombieLookCount } from './zombieLooks.js'
 import { waveRoleCode } from './waveRoleMarker.js'
 // 적 런타임의 정적 슬롯 풀. React/Three/Rapier 및 저장소에 의존하지 않는다.
@@ -61,10 +62,12 @@ export const ENEMY_TYPE_CODES = Object.freeze({
   // 94~111 = 2차 신규 좀비 18종 E89~E106(2026-11-14, 스테이지마다 3종 + 치프). lib/novelZombie2Content.js가 정본이다.
   // 블록 좀비 E71~E88이 같은 날 먼저 트렁크에 들어가 이 세트는 id·typeCode를 +18 옮겼다. 스폰·행동은 구현분(1차 8종)만 있다.
   ...NOVEL2_TYPE_CODES,
+  // 112 = RDZ 도로 좀비(2026-11-22, Sltera 레이서 좀비 이식). lib/roadZombieRoster.js. 웨이브 미배치(Terry 결정 대기).
+  [ROAD_ZOMBIE_TYPE]: ROAD_ZOMBIE_TYPE_CODE,
 })
 
 // 인덱스 = typeCode. 리터럴 17개(0~16) + 확장 20개(17~36) + Track B 12개(37~48) + 투사체 25개(49~74, 64 예약) + B10(75)
-// + 블록 좀비 18개(76~93) + 2차 신규 18종(94~111).
+// + 블록 좀비 18개(76~93) + 2차 신규 18종(94~111) + RDZ(112).
 // ⚠ 순서를 바꾸면 모든 typeCode가 밀린다. 새 타입은 반드시 배열 끝에만 붙인다.
 export const NOVEL_ZOMBIE_TYPE_IDS = Object.freeze([
   'E34', 'E35', 'E36', 'E37', 'E38', 'E39', 'E40', 'E41', 'E42', 'E43', 'E44', 'E45',
@@ -82,6 +85,8 @@ export const ENEMY_TYPE_NAMES = Object.freeze([
   ...BLOCKY_ZOMBIE_TYPE_NAME_SLOTS,
   // 94~111 = 2차 신규 좀비 E89~E106. 끝에만 붙인다.
   ...NOVEL2_TYPE_IDS,
+  // 112 = RDZ 도로 좀비. 끝에만 붙인다.
+  ROAD_ZOMBIE_TYPE,
 ])
 
 const MAX_GENERATION = MAX_ENEMY_GENERATION

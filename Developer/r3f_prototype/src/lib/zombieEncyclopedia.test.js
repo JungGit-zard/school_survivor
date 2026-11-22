@@ -156,7 +156,14 @@ describe('Stage 6 운동장 로스터 도감 표시명', () => {
 // 게임에 등록된 모든 적 코드(ENEMY_TYPE_NAMES)가 세 언어 모두 진짜 표시명을 갖는지 묶는다.
 // ko는 도감 표(zombieEncyclopedia.js)가 정본이고, en/ja는 사전 키가 있어야 한다(없으면 i18n이 조용히 한국어로 폴백한다).
 describe('등록된 모든 적 코드의 도감 표시명', () => {
-  const ALL = ENEMY_TYPE_NAMES.filter(Boolean)
+  // RDZ 도로 좀비(2026-11-22, Sltera 레이서 좀비 이식)는 웨이브 미배치 타입이라 아직 도감·조우 기록 밖이다:
+  // 조우 허용 목록(firebaseProgress.js)과 DB 규칙(encounteredZombieTypes)이 RDZ를 모른다 — 도감에 넣으면 조우 저장이
+  // 규칙에 막힐 수 있다. Terry가 배치를 정하면 백엔드(허용 목록·규칙)와 ko/en/ja 이름을 함께 넣고 이 예외를 지운다.
+  const NOT_YET_IN_ENCYCLOPEDIA = new Set(['RDZ'])
+  const ALL = ENEMY_TYPE_NAMES.filter((id) => id && !NOT_YET_IN_ENCYCLOPEDIA.has(id))
+  it('RDZ stays out of the encyclopedia until it is placed (no encounter save for an unknown key)', () => {
+    for (const id of NOT_YET_IN_ENCYCLOPEDIA) expect(isKnownZombieType(id)).toBe(false)
+  })
 
   it('모든 코드가 도감 타입이고 ko 라벨이 ID가 아니다', () => {
     expect(ALL.length).toBeGreaterThanOrEqual(70)

@@ -1782,13 +1782,15 @@ export function createSlteraLaunchTable(capacity = SLTERA_LAUNCH_CAPACITY) {
     sec: new Float32Array(capacity),
     peak: new Float32Array(capacity),
     damage: new Float32Array(capacity), // 착지 때 줄 피해(0 = 밀치기)
+    dirX: new Float32Array(capacity), // 날아간 방향(단위) — 착지 처치의 '치여 날아가 펑' 사망 연출이 같은 쪽으로 더 날아간다
+    dirZ: new Float32Array(capacity),
     height: new Float32Array(capacity), // 이번 step 높이(비주얼)
     done: new Uint8Array(capacity),
   }
 }
 
 /** 비행 하나를 건다(같은 좀비가 이미 날고 있으면 그 칸을 새로 쓴다). 표가 가득 차면 -1(호출측이 피해를 바로 준다). */
-export function addSlteraLaunch(table, index, generation, baseY, sec, peak, damage) {
+export function addSlteraLaunch(table, index, generation, baseY, sec, peak, damage, dirX = 0, dirZ = 0) {
   let slot = -1
   for (let i = 0; i < table.count; i += 1) if (table.index[i] === index) { slot = i; break }
   if (slot < 0) {
@@ -1806,6 +1808,8 @@ export function addSlteraLaunch(table, index, generation, baseY, sec, peak, dama
   table.sec[slot] = sec
   table.peak[slot] = peak
   table.damage[slot] = damage
+  table.dirX[slot] = Number.isFinite(dirX) ? dirX : 0
+  table.dirZ[slot] = Number.isFinite(dirZ) ? dirZ : 0
   table.height[slot] = 0
   table.done[slot] = 0
   return slot
@@ -1832,6 +1836,8 @@ export function removeSlteraLaunchAt(table, i) {
     table.sec[i] = table.sec[last]
     table.peak[i] = table.peak[last]
     table.damage[i] = table.damage[last]
+    table.dirX[i] = table.dirX[last]
+    table.dirZ[i] = table.dirZ[last]
     table.height[i] = table.height[last]
     table.done[i] = table.done[last]
   }

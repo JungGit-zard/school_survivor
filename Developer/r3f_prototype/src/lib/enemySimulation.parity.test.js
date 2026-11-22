@@ -63,7 +63,8 @@ describe('ENEMY_STATS ↔ ENEMY_RUNTIME_* 수치 패리티', () => {
     // 표 길이는 마지막 typeCode 74 + 1이고 예약 슬롯 64는 0으로 남는다.
     // 2026-11-14: 75 = B10(보스, 0으로 남는다), 76~93 = 블록 좀비 18종 → 길이 94.
     // 2026-11-14: 94~111 = 2차 신규 좀비 E89~E106(구현분만 값, 예약 id는 0) → 길이 112.
-    expect(ENEMY_RUNTIME_HP.length).toBe(112)
+    // 2026-11-22: 112 = RDZ 도로 좀비(E01 수치 복사) → 길이 113.
+    expect(ENEMY_RUNTIME_HP.length).toBe(113)
     expect(ENEMY_RUNTIME_HP[75]).toBe(0)
     expect(ENEMY_RUNTIME_HP[64]).toBe(0)
     expect(ENEMY_RUNTIME_SPEED[64]).toBe(0)

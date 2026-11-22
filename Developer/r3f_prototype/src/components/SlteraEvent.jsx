@@ -36,6 +36,7 @@ import {
   stepSlteraLaunchTable, stepSlteraPass,
 } from '../lib/slteraEvent.js'
 import { registerSlteraInstantSpawnTarget } from '../lib/slteraInstantSpawn.js'
+import { KNOCK_FLIGHT_DEATH_STYLE } from '../lib/knockFlightDeath.js'
 import SlteraCar, { SLTERA_GLOW_PARTS } from './SlteraCar.jsx'
 import SlteraTailTrail from './SlteraTailTrail.jsx'
 
@@ -56,6 +57,13 @@ function setImpactToward(impact, x, z, dirX, dirZ, distance, sec) {
   impact.knockback = sec > 0 ? distance / sec : 0
   impact.knockbackMs = sec * 1000
   return impact
+}
+
+// 슬테라가 적을 칠 때 쓰는 impact(판마다 두 개 — 직접 치기·착지 피해). 차는 플레이어 무기가 아니다 — 로자리 시야(사선)
+// 가림과 무관하게 친다. 2026-11-22 Terry "죽는 연출도": 슬테라에 치여 죽는 적은 일반 부서짐 대신 레이서의 '치여 날아가 펑'으로
+// 죽는다(deathStyleOverride = 처치 출처별 사망 연출 선택. lib/knockFlightDeath.js, Enemies.jsx emitEnemyDeathVisual).
+export function createSlteraHitImpact() {
+  return { source: { x: 0, z: 0 }, knockback: 0, knockbackMs: 0, ignoreSightBlock: true, deathStyleOverride: KNOCK_FLIGHT_DEATH_STYLE }
 }
 
 // 꼬리 라이트바(차 로컬 tailBar 파츠)의 월드 위치를 잔상 리본에 넘긴다. 차 그룹 scale = SLTERA_SIZE_SCALE.
@@ -82,9 +90,8 @@ export default function SlteraEvent({ stageId, gameKey }) {
       run: createSlteraRunState(),
       scratch: createWeaponTargetScratch(),
       box: { centerX: 0, centerZ: 0, yaw: 0, halfWidth: 0, halfDepth: 0 },
-      // 차는 플레이어 무기가 아니다 — 로자리 시야(사선) 가림과 무관하게 친다.
-      impact: { source: { x: 0, z: 0 }, knockback: 0, knockbackMs: 0, ignoreSightBlock: true },
-      landingImpact: { source: { x: 0, z: 0 }, knockback: 0, knockbackMs: 0, ignoreSightBlock: true },
+      impact: createSlteraHitImpact(),
+      landingImpact: createSlteraHitImpact(),
       contact: { x: 0, z: 0, nx: 0, nz: 0 },
       dir: { x: 0, z: 0, distance: 0 },
       playerT: { x: 0, y: 0, z: 0 },
@@ -128,10 +135,13 @@ export default function SlteraEvent({ stageId, gameKey }) {
       if (!launches.done[i]) { enemyPool.posY[index] = launches.baseY[i] + launches.height[i]; continue }
       enemyPool.posY[index] = launches.baseY[i]
       const damage = launches.damage[i]
+      // 착지 피해의 source = 날아온 쪽 한 걸음 뒤. 넉백은 0이라 이동은 그대로이고, 처치되면 사망 연출이 이 방향으로 날아간다.
+      const flightDirX = launches.dirX[i]
+      const flightDirZ = launches.dirZ[i]
       removeSlteraLaunchAt(launches, i)
       if (damage > 0) {
-        s.landingImpact.source.x = enemyPool.posX[index]
-        s.landingImpact.source.z = enemyPool.posZ[index]
+        s.landingImpact.source.x = enemyPool.posX[index] - flightDirX
+        s.landingImpact.source.z = enemyPool.posZ[index] - flightDirZ
         applyEnemyHit(enemyPool.proxies[index], generation, damage, s.landingImpact)
       }
     }
@@ -224,10 +234,10 @@ export default function SlteraEvent({ stageId, gameKey }) {
         const planned = dir.distance
         // 수평 이동 = 기존 넉백 경로(속도·시간, 매 step 프랍·경계 충돌). 피해 0으로 걸고 피해는 착지 때.
         enemySimulationRuntime.applyHitIndex(enemyPool, index, generation, 0, dir.x * planned / sec, dir.z * planned / sec, sec * 1000)
-        const slot = addSlteraLaunch(launches, index, generation, enemyPool.posY[index], sec, hit ? SLTERA_ZOMBIE_LAUNCH_PEAK : SLTERA_SHOVE_PEAK, damage)
+        const slot = addSlteraLaunch(launches, index, generation, enemyPool.posY[index], sec, hit ? SLTERA_ZOMBIE_LAUNCH_PEAK : SLTERA_SHOVE_PEAK, damage, dir.x, dir.z)
         if (slot < 0 && hit) {
-          s.landingImpact.source.x = contact.x
-          s.landingImpact.source.z = contact.z
+          s.landingImpact.source.x = contact.x - dir.x
+          s.landingImpact.source.z = contact.z - dir.z
           applyEnemyHit(rb, generation, damage, s.landingImpact) // 비행 표가 가득 — 피해만 바로
         }
         if (hit) ranOver = true
