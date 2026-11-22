@@ -3,7 +3,9 @@ import * as THREE from 'three'
 import { EnemyEntityPool } from '../lib/enemyEntityPool.js'
 import { WAVE_ROLE_COLORS } from '../lib/waveRoleMarker.js'
 import { SPAWN_REVEAL_MS } from './PooledEnemyVisuals.js'
-import { collectWaveRoleRingSlots, createWaveRoleRingMeshes, writeWaveRoleRings } from './WaveRoleRingLayer.jsx'
+import { SHOT_KIND, SHOT_MOTION } from '../lib/projectileZombieShotPool.js'
+import { DECAL_VISUAL, getDecalVisuals } from '../lib/projectileZombieShotGeometry.js'
+import { WAVE_ROLE_RING_INNER, collectWaveRoleRingSlots, createWaveRoleRingMeshes, writeWaveRoleRings } from './WaveRoleRingLayer.jsx'
 
 const BOUNDS = { minX: -10, maxX: 10, minZ: -10, maxZ: 10 }
 const tiers = () => new Uint8Array(200)
@@ -35,19 +37,42 @@ describe('wave role ground rings', () => {
     expect(Array.from(out.slice(0, count))).toEqual([shown.index])
   })
 
-  it('writes one instance per ring into two shared meshes (2 draw calls), coloured by role', () => {
+  it('writes one instance per ring into one shared mesh (1 draw call), coloured by role', () => {
     const pool = new EnemyEntityPool()
     const a = add(pool, 'E02', 0, '탱크'); const b = add(pool, 'E56', 1, '지원')
     const meshes = createWaveRoleRingMeshes()
     const out = Int16Array.from([a.index, b.index])
     writeWaveRoleRings(meshes, pool, out, 2)
-    expect(meshes.ring.count).toBe(2); expect(meshes.back.count).toBe(2)
+    expect(meshes.ring.count).toBe(2)
     const got = new THREE.Color(); const want = new THREE.Color()
     meshes.ring.getColorAt(0, got); want.setHex(WAVE_ROLE_COLORS[1])
     expect(got.getHex()).toBe(want.getHex()) // tank red
     meshes.ring.getColorAt(1, got); want.setHex(WAVE_ROLE_COLORS[6])
     expect(got.getHex()).toBe(want.getHex()) // support green
     writeWaveRoleRings(meshes, pool, out, 0)
-    expect(meshes.ring.visible).toBe(false); expect(meshes.back.visible).toBe(false)
+    expect(meshes.ring.visible).toBe(false)
+  })
+})
+
+// 2026-11-22 Terry "모든 좀비 발밑의 원형 시각표시 효과에 대하여 외곽선을 빼라".
+describe('zombie foot circles have no outline', () => {
+  it('role ring is the coloured band only — no dark backing/outline mesh', () => {
+    const meshes = createWaveRoleRingMeshes()
+    expect(Object.keys(meshes)).toEqual(['ring'])
+    for (const mesh of Object.values(meshes)) expect(mesh.name).not.toMatch(/back|outline|edge|rim/i)
+    // single band from the inner edge to the outer radius; nothing reaches past it
+    const { innerRadius, outerRadius } = meshes.ring.geometry.parameters
+    expect(innerRadius).toBe(WAVE_ROLE_RING_INNER); expect(outerRadius).toBe(1)
+    // colour comes from the role per instance; the material itself is not a dark outline tint
+    expect(meshes.ring.material.color.getHex()).toBe(0xffffff)
+    expect(meshes.ring.material.side).not.toBe(THREE.BackSide)
+  })
+
+  it('ground warning circles under shooters use the fill only, never the border ring', () => {
+    for (const kind of Object.values(SHOT_KIND)) {
+      for (const motion of Object.values(SHOT_MOTION)) {
+        expect(getDecalVisuals(kind, motion, 0)).not.toContain(DECAL_VISUAL.RING)
+      }
+    }
   })
 })

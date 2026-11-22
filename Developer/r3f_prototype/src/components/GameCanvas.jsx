@@ -97,7 +97,7 @@ export default function GameCanvas({ gameKey, phase }) {
           their frame update keeps the original simulation-then-visual order. */}
       <DamageNumbersLayer resetKey={gameKey} />
       <ZombieInstanceLayer resetKey={gameKey} />
-      {/* 웨이브 특수 역할 발밑 고리(스테이지 1~6 특수만, 드로콜 2개). lib/waveRoleMarker.js */}
+      {/* 웨이브 특수 역할 발밑 고리(스테이지 1~6 특수만, 외곽선 없음, 드로콜 1개). lib/waveRoleMarker.js */}
       <WaveRoleRingLayer resetKey={gameKey} />
       <PurifiedStudentLayer resetKey={gameKey} />
       {/* '치여 날아가 펑' 사망 연출(슬테라 처치 등 deathStyleOverride=knockFlight). 풀 24·퍼프 96, 활성 시 드로콜 최대 7. */}

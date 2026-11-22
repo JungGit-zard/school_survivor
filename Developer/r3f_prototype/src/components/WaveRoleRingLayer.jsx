@@ -2,8 +2,11 @@
 // by its job (lib/waveRoleMarker.js) so "that one charges, that one shoots" reads at a glance. Fodder and every
 // zombie without a wave role (stages 7-10, chiefs, bosses, crews) gets nothing.
 //
-// Cost: two InstancedMeshes for the whole crowd (dark backing ring + coloured ring) = 2 draw calls, two
-// materials created once, colour per instance. No per-enemy mesh, material or draw call. Reads the pool only.
+// 2026-11-22 Terry "모든 좀비 발밑의 원형 시각표시 효과에 대하여 외곽선을 빼라": the ring is the coloured band
+// only. The dark backing band (cartoon outline) is gone — never add an outline/edge band back under a zombie.
+//
+// Cost: one InstancedMesh for the whole crowd = 1 draw call, one material created once, colour per instance.
+// No per-enemy mesh, material or draw call. Reads the pool only.
 import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
@@ -16,7 +19,6 @@ import { ENEMY_RENDER_CULLED, ENEMY_VISUAL_WORLD_SCALE, POOLED_ENEMY_CAPACITY, S
 // Outer radius in body-local units (× visualScale × 0.333): just outside the arms (±0.5) and the blob shadow.
 export const WAVE_ROLE_RING_RADIUS = 0.62
 export const WAVE_ROLE_RING_INNER = 0.74 // coloured band = 74 %…100 % of the radius
-export const WAVE_ROLE_RING_BACK = Object.freeze([0.64, 1.1]) // dark backing band (cartoon outline)
 export const WAVE_ROLE_RING_Y = 0.026 // above floor decals (≤ 0.015) and the blob shadow (0.018)
 const LIMIT = POOLED_ENEMY_CAPACITY
 const ZERO = new THREE.Matrix4().makeScale(0, 0, 0)
@@ -63,11 +65,10 @@ function upload(attribute, count, itemSize) {
 }
 
 export function createWaveRoleRingMeshes() {
-  const back = ringMesh(WAVE_ROLE_RING_BACK[0], WAVE_ROLE_RING_BACK[1], new THREE.MeshBasicMaterial({ color: 0x050209, transparent: true, opacity: 0.55, depthWrite: false }))
   const ring = ringMesh(WAVE_ROLE_RING_INNER, 1, new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.92, depthWrite: false, toneMapped: false }))
   ring.setColorAt(0, color.setHex(0xffffff)); ring.instanceColor.setUsage(THREE.DynamicDrawUsage)
-  back.name = 'wave-role-ring-back'; ring.name = 'wave-role-ring'
-  return { back, ring }
+  ring.name = 'wave-role-ring'
+  return { ring }
 }
 
 // Writes `count` rings for the given slots. Returns count.
@@ -79,11 +80,9 @@ export function writeWaveRoleRings(meshes, pool, slots, count) {
     m.compose(p, IDENTITY_Q, s)
     meshes.ring.setMatrixAt(k, m)
     meshes.ring.setColorAt(k, ROLE_COLORS[pool.role[i]])
-    p.y = WAVE_ROLE_RING_Y - 0.002
-    m.compose(p, IDENTITY_Q, s)
-    meshes.back.setMatrixAt(k, m)
   }
-  for (const mesh of [meshes.back, meshes.ring]) { mesh.count = count; mesh.visible = count > 0; upload(mesh.instanceMatrix, count, 16) }
+  meshes.ring.count = count; meshes.ring.visible = count > 0
+  upload(meshes.ring.instanceMatrix, count, 16)
   upload(meshes.ring.instanceColor, count, 3)
   return count
 }
@@ -92,7 +91,7 @@ export default function WaveRoleRingLayer({ resetKey }) {
   const meshes = useMemo(() => createWaveRoleRingMeshes(), [])
   const tiers = useRef(new Uint8Array(LIMIT))
   const slots = useRef(new Int16Array(LIMIT))
-  useEffect(() => () => { for (const mesh of [meshes.back, meshes.ring]) { mesh.geometry.dispose(); mesh.material.dispose(); mesh.dispose() } }, [meshes])
+  useEffect(() => () => { meshes.ring.geometry.dispose(); meshes.ring.material.dispose(); meshes.ring.dispose() }, [meshes])
   useLayoutEffect(() => {
     // Run reset: no ring from the previous run for even one frame.
     tiers.current.fill(0)
@@ -102,10 +101,5 @@ export default function WaveRoleRingLayer({ resetKey }) {
     const count = collectWaveRoleRingSlots(enemyPool, tiers.current, screenBounds, playerPos.x, playerPos.z, slots.current)
     writeWaveRoleRings(meshes, enemyPool, slots.current, count)
   })
-  return (
-    <>
-      <primitive object={meshes.back} renderOrder={1} />
-      <primitive object={meshes.ring} renderOrder={1.1} />
-    </>
-  )
+  return <primitive object={meshes.ring} renderOrder={1.1} />
 }
