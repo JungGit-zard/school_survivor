@@ -45,6 +45,10 @@ export const TITLE_PLAYER_RUN_SPEED = 8.4
 export const TITLE_BOARD_BACK_LIMIT_Z = -4.62
 export const TITLE_ZOMBIE_GROUND_LIFT_Y = 0.16
 export const TITLE_SCENE_BASE_POSITION = [0, -1.15, 0]
+// 2026-11-22 Terry: 타이틀 출연진 전체(바닥·좀비·보스·로자리·마틸다·도지·오리·소품)를 한 덩어리로 왼쪽으로 민다.
+// 개별 배치는 그대로 두고 바깥 그룹만 옮긴다. 카메라 줌은 그대로라 폰(360x744)에서 오른쪽 도지가 잘리지 않고
+// 두 도지가 화면 양쪽에 비슷한 여백으로 들어온다. PC(세로 450x800 프레임)도 같은 값으로 좌우 균형이 맞는다.
+export const TITLE_CAST_SHIFT_X = -0.27
 const TITLE_CHARACTER_STENCIL_REF = 2
 const TITLE_OUTLINE_SCALE_BOOST = 1.02
 const TITLE_STANDING_STUDENTS = [
@@ -758,6 +762,7 @@ export default function TitleScene3D({
       <directionalLight position={[2, 4, -5]} intensity={TITLE_DAYLIGHT.backFillIntensity} color={TITLE_DAYLIGHT.backFillColor} />
       <pointLight position={[0, 1.1, -3.7]} intensity={3} color={0xffdf9a} distance={8} decay={2} />
 
+      <group position={[TITLE_CAST_SHIFT_X, 0, 0]}>
       {studioMode ? (
         <>
           <StudioTuningPreviewProvider>
@@ -779,6 +784,7 @@ export default function TitleScene3D({
           </group>
         </StudioTuningSnapshotProvider>
       )}
+      </group>
       {/* 세팅값은 동결 스냅샷(src/title/studioSnapshot.json)에서 온다 — Firebase 대기 없이 항상 렌더. */}
     </TitleIdleContext.Provider>
   )
