@@ -1,0 +1,53 @@
+import { describe, expect, it } from 'vitest'
+import * as THREE from 'three'
+import { EnemyEntityPool } from '../lib/enemyEntityPool.js'
+import { WAVE_ROLE_COLORS } from '../lib/waveRoleMarker.js'
+import { SPAWN_REVEAL_MS } from './PooledEnemyVisuals.js'
+import { collectWaveRoleRingSlots, createWaveRoleRingMeshes, writeWaveRoleRings } from './WaveRoleRingLayer.jsx'
+
+const BOUNDS = { minX: -10, maxX: 10, minZ: -10, maxZ: 10 }
+const tiers = () => new Uint8Array(200)
+const slots = () => new Int16Array(200)
+function add(pool, type, x, waveRole, spawnTimer = SPAWN_REVEAL_MS) {
+  return pool.spawn({ type, x, z: 0, hp: 10, maxHp: 10, visualScale: 1.6, spawnTimer, waveRole })
+}
+
+describe('wave role ground rings', () => {
+  it('only zombies with a role get a ring — fodder and roleless types get none', () => {
+    const pool = new EnemyEntityPool()
+    add(pool, 'E01', 0)
+    const tank = add(pool, 'E02', 1, '탱크')
+    add(pool, 'E07', 2)
+    const ranged = add(pool, 'E46', 3, '원거리')
+    const out = slots()
+    const count = collectWaveRoleRingSlots(pool, tiers(), BOUNDS, 0, 0, out, () => false)
+    expect(Array.from(out.slice(0, count))).toEqual([tank.index, ranged.index])
+  })
+
+  it('no ring before the spawn reveal, while hidden, or off screen', () => {
+    const pool = new EnemyEntityPool()
+    add(pool, 'E02', 0, '탱크', SPAWN_REVEAL_MS - 1)
+    const hiddenOne = add(pool, 'E60', 1, '기습')
+    add(pool, 'E05', 40, '돌진')
+    const shown = add(pool, 'E05', 2, '돌진')
+    const out = slots()
+    const count = collectWaveRoleRingSlots(pool, tiers(), BOUNDS, 0, 0, out, (p, i) => i === hiddenOne.index)
+    expect(Array.from(out.slice(0, count))).toEqual([shown.index])
+  })
+
+  it('writes one instance per ring into two shared meshes (2 draw calls), coloured by role', () => {
+    const pool = new EnemyEntityPool()
+    const a = add(pool, 'E02', 0, '탱크'); const b = add(pool, 'E56', 1, '지원')
+    const meshes = createWaveRoleRingMeshes()
+    const out = Int16Array.from([a.index, b.index])
+    writeWaveRoleRings(meshes, pool, out, 2)
+    expect(meshes.ring.count).toBe(2); expect(meshes.back.count).toBe(2)
+    const got = new THREE.Color(); const want = new THREE.Color()
+    meshes.ring.getColorAt(0, got); want.setHex(WAVE_ROLE_COLORS[1])
+    expect(got.getHex()).toBe(want.getHex()) // tank red
+    meshes.ring.getColorAt(1, got); want.setHex(WAVE_ROLE_COLORS[6])
+    expect(got.getHex()).toBe(want.getHex()) // support green
+    writeWaveRoleRings(meshes, pool, out, 0)
+    expect(meshes.ring.visible).toBe(false); expect(meshes.back.visible).toBe(false)
+  })
+})

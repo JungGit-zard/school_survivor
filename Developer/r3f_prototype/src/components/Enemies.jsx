@@ -1849,6 +1849,8 @@ export default function Enemies() {
       type: entry.type,
       x: pos[0], y: pos[1], z: pos[2], hp: stats.hp, maxHp: stats.hp,
       visualScale: stats.scale * ENEMY_SIZE_MULTIPLIER, runDirX: entry.runCrewDir?.x ?? 1, runDirZ: entry.runCrewDir?.z ?? 0,
+      // 웨이브 특수 역할(발밑 고리 색, lib/waveRoleMarker.js). 그림 전용 — 밥줄·스테이지 7~10은 없다.
+      waveRole: entry.waveRole,
     })
     if (spawned) recordZombieEncounter(entry.type)
     return spawned

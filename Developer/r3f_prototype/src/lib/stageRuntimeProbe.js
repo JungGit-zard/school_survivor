@@ -669,6 +669,7 @@ export function runStageRuntimeProbe({
       visualScale: stats.scale * ENEMY_SIZE_MULTIPLIER,
       runDirX: entry.runCrewDir?.x ?? 1,
       runDirZ: entry.runCrewDir?.z ?? 0,
+      waveRole: entry.waveRole,
     })
     if (ok) logSpawn(entry.type, entry.pos[0], entry.pos[2], source, stats.hp)
     else droppedSpawns += 1

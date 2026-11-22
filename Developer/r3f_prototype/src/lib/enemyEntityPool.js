@@ -4,6 +4,7 @@ import { B10_TYPE_CODE } from './stage5ViceBoss.js'
 import { BLOCKY_ZOMBIE_TYPE_CODES, BLOCKY_ZOMBIE_TYPE_NAME_SLOTS } from './blockyZombieRoster.js'
 import { NOVEL2_TYPE_CODES, NOVEL2_TYPE_IDS } from './novelZombie2Content.js'
 import { MAX_ZOMBIE_LOOKS, pickLeastUsedLook, zombieLookCount } from './zombieLooks.js'
+import { waveRoleCode } from './waveRoleMarker.js'
 // 적 런타임의 정적 슬롯 풀. React/Three/Rapier 및 저장소에 의존하지 않는다.
 export const MAX_ENEMIES = 150
 export const MAX_ENEMY_GENERATION = 0xffff
@@ -177,6 +178,8 @@ export class EnemyEntityPool {
     // Visual look variant (0 = the original look) and alive count per type+look.
     this.look = new Uint8Array(MAX_ENEMIES)
     this.lookAlive = new Uint16Array(ENEMY_TYPE_NAMES.length * MAX_ZOMBIE_LOOKS)
+    // Wave special role marker (lib/waveRoleMarker.js; 0 = none). Visual only — the ground ring reads it.
+    this.role = new Uint8Array(MAX_ENEMIES)
     this.posX = new Float32Array(MAX_ENEMIES)
     this.posY = new Float32Array(MAX_ENEMIES)
     this.posZ = new Float32Array(MAX_ENEMIES)
@@ -370,6 +373,7 @@ export class EnemyEntityPool {
       this.look[index] = look
       this.lookAlive[base + look] += 1
     }
+    this.role[index] = waveRoleCode(source.waveRole)
     this.posX[index] = x
     this.posY[index] = y
     this.posZ[index] = z
@@ -509,6 +513,7 @@ export class EnemyEntityPool {
   _resetSlotNumbers(index) {
     this.type[index] = 0
     this.look[index] = 0
+    this.role[index] = 0
     this.posX[index] = 0
     this.posY[index] = 0
     this.posZ[index] = 0

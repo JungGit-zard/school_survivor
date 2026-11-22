@@ -25,6 +25,8 @@ import { BLOCKY_ZOMBIE_TYPES, BLOCKY_ZOMBIE_VISUALS, blockyZombieAtlasCell, bloc
 import { createBlockyPose, fillBlockyZombiePose } from '../lib/blockyZombiePose.js'
 import { phase as pooledPhase } from './ZombieInstanceLayer.jsx'
 import { ENEMY_RENDER_CULLED, POOLED_ENEMY_CAPACITY, SPAWN_REVEAL_MS, getPooledEnemyAnimationTime, getPooledEnemyRenderTier } from './PooledEnemyVisuals.js'
+import { ZOMBIE_LOOKS } from '../lib/zombieLooks.js'
+import { beginLookAccessories, createLookAccessoryMeshes, disposeLookAccessoryMeshes, endLookAccessories, getLookAccessoryPlan, writeLookAccessories } from './zombieLookAccessories.js'
 
 const OUTLINE = 1
 const ZERO = new THREE.Matrix4().makeScale(0, 0, 0)
@@ -43,6 +45,24 @@ const LIMIT = POOLED_ENEMY_CAPACITY
 const STYLE_BY_INDEX = [''].concat(BLOCKY_ZOMBIE_TYPES.map((type) => BLOCKY_ZOMBIE_VISUALS[type].style))
 const FAST_BY_INDEX = [false].concat(BLOCKY_ZOMBIE_TYPES.map((type) => BLOCKY_ZOMBIE_VISUALS[type].role === 'fast'))
 const ATLAS_OFFSET_BY_INDEX = [[0, 0]].concat(BLOCKY_ZOMBIE_TYPES.map((type) => blockyAtlasOffset(blockyZombieAtlasCell(type))))
+// Look variants (lib/zombieLooks.js, 2026-11-22 — E74 so far): `tint` multiplies the atlas colour, `scale` is the
+// build (visual only), accessories go into one shared instanced pair (2 draw calls) framed on the head / torso box.
+const LOOKS_BY_INDEX = [null].concat(BLOCKY_ZOMBIE_TYPES.map((type) => ZOMBIE_LOOKS[type] ?? null))
+const LOOK_TINTS = LOOKS_BY_INDEX.map((list) => list ? list.map((look) => (look?.tint != null ? new THREE.Color(look.tint) : null)) : null)
+function partBox(key) {
+  const part = KENNEY_BLOCKY_PARTS.find((item) => item.key === key)
+  const min = [Infinity, Infinity, Infinity]; const max = [-Infinity, -Infinity, -Infinity]
+  part.position.forEach((v, i) => { const a = i % 3; min[a] = Math.min(min[a], v); max[a] = Math.max(max[a], v) })
+  return { center: min.map((v, a) => (v + max[a]) / 2), half: min.map((v, a) => (max[a] - v) / 2) }
+}
+// Accessory frames = part matrix × box centre × 1/FIT, so the frame is in shared box-zombie units (head ≈ 0.25 half).
+const LOOK_FRAME_BOXES = { head: partBox('head'), torso: partBox('torso') }
+export const BLOCKY_LOOK_HEAD_HALF = LOOK_FRAME_BOXES.head.half.map((v) => v * BLOCKY_MODEL_FIT)
+export const BLOCKY_LOOK_BODY_HALF = LOOK_FRAME_BOXES.torso.half.map((v) => v * BLOCKY_MODEL_FIT)
+const HEAD_FRAME_LOCAL = new THREE.Matrix4().makeTranslation(...LOOK_FRAME_BOXES.head.center).multiply(new THREE.Matrix4().makeScale(1 / BLOCKY_MODEL_FIT, 1 / BLOCKY_MODEL_FIT, 1 / BLOCKY_MODEL_FIT))
+const BODY_FRAME_LOCAL = new THREE.Matrix4().makeTranslation(...LOOK_FRAME_BOXES.torso.center).multiply(new THREE.Matrix4().makeScale(1 / BLOCKY_MODEL_FIT, 1 / BLOCKY_MODEL_FIT, 1 / BLOCKY_MODEL_FIT))
+const HEAD_PART_INDEX = KENNEY_BLOCKY_PARTS.findIndex((part) => part.key === 'head')
+const lookHeadFrame = new THREE.Matrix4(); const lookBodyFrame = new THREE.Matrix4()
 
 export function blockyAtlasOffset(cell) {
   const { cols, cell: size, gutter, width, height } = KENNEY_BLOCKY_ATLAS
@@ -154,22 +174,25 @@ function BlockyZombieLayerInner({ resetKey }) {
       return mesh
     })
     const outline = KENNEY_BLOCKY_PARTS.map((part) => instanced(buildPartGeometry(part, OUTLINE_THICKNESS[part.key]), outlineMaterial))
-    return { body, outline, bodyMaterial, outlineMaterial }
+    const lookAcc = createLookAccessoryMeshes(LIMIT)
+    return { body, outline, bodyMaterial, outlineMaterial, lookAcc }
   }, [atlas])
   useEffect(() => () => {
     for (const mesh of all.body) mesh.geometry.dispose()
     for (const mesh of all.outline) mesh.geometry.dispose()
-    all.bodyMaterial.dispose(); all.outlineMaterial.dispose()
+    all.bodyMaterial.dispose(); all.outlineMaterial.dispose(); disposeLookAccessoryMeshes(all.lookAcc)
   }, [all])
   useLayoutEffect(() => {
     // 판 재시작: 이전 판 행렬을 한 프레임도 보이지 않게 비운다(버퍼는 그대로 쓴다).
     for (const mesh of [...all.body, ...all.outline]) { mesh.count = 0; mesh.instanceMatrix.needsUpdate = true }
+    beginLookAccessories(all.lookAcc); endLookAccessories(all.lookAcc)
     tiers.current.fill(0)
   }, [all, resetKey])
 
   useFrame(() => {
     const pool = enemyPool
     let count = 0
+    beginLookAccessories(all.lookAcc)
     if (pool) {
       const max = Math.min(LIMIT - 1, Number.isInteger(pool.highestActive) ? pool.highestActive : LIMIT - 1)
       const out = pose.current
@@ -185,8 +208,12 @@ function BlockyZombieLayerInner({ resetKey }) {
         const time = getPooledEnemyAnimationTime(timer, tier)
         fillBlockyZombiePose(out, STYLE_BY_INDEX[index], pooledPhase(pool, i), time, FAST_BY_INDEX[index], (i * 0.6180339887) % 1)
         const scale = (pool.visualScale[i] || 1) * 0.333
+        const looks = LOOKS_BY_INDEX[index]; const lookIndex = looks && pool.look ? pool.look[i] : 0
+        const look = lookIndex && lookIndex < looks.length ? looks[lookIndex] : null
+        const lookW = look?.scale ? look.scale[0] : 1; const lookH = look?.scale ? look.scale[1] : 1
+        const tint = look ? LOOK_TINTS[index][lookIndex] : null
         pos.set(pool.posX[i], pool.posY[i] + out[19] * scale, pool.posZ[i])
-        euler.set(0, pool.yaw[i], 0); quat.setFromEuler(euler); scl.set(scale, scale, scale)
+        euler.set(0, pool.yaw[i], 0); quat.setFromEuler(euler); scl.set(scale * lookW, scale * lookH, scale * lookW)
         base.compose(pos, quat, scl)
         if (out[18]) base.multiply(rot.makeRotationZ(out[18]))
         base.multiply(fit)
@@ -199,9 +226,14 @@ function BlockyZombieLayerInner({ resetKey }) {
           else composePart(partMat, PARENT_TORSO[k] ? torsoMat : base, part, out, POSE_OFFSET[part.key])
           all.body[k].setMatrixAt(slot, partMat)
           all.outline[k].setMatrixAt(slot, partMat)
-          all.body[k].setColorAt(slot, flashing ? color.setRGB(FLASH_GAIN, FLASH_GAIN, FLASH_GAIN) : color.setRGB(1, 1, 1))
+          all.body[k].setColorAt(slot, flashing ? color.setRGB(FLASH_GAIN, FLASH_GAIN, FLASH_GAIN) : tint ? color.copy(tint) : color.setRGB(1, 1, 1))
           const atlasAttr = all.body[k].userData.atlas.array
           atlasAttr[slot * 2] = ox; atlasAttr[slot * 2 + 1] = oz
+          if (k === HEAD_PART_INDEX) lookHeadFrame.multiplyMatrices(partMat, HEAD_FRAME_LOCAL)
+        }
+        if (look?.acc.length) {
+          lookBodyFrame.multiplyMatrices(torsoMat, BODY_FRAME_LOCAL)
+          writeLookAccessories(all.lookAcc, getLookAccessoryPlan(pool.type[i] * 32 + lookIndex, look, BLOCKY_LOOK_HEAD_HALF, BLOCKY_LOOK_BODY_HALF), lookHeadFrame, lookBodyFrame, flashing)
         }
       }
     }
@@ -216,12 +248,15 @@ function BlockyZombieLayerInner({ resetKey }) {
         markInstanceUpload(outlineMesh.instanceMatrix, count, 16)
       }
     }
+    endLookAccessories(all.lookAcc)
   })
 
   return (
     <>
       {all.body.map((mesh, k) => <primitive key={`bb${k}`} object={mesh} renderOrder={2} />)}
       {all.outline.map((mesh, k) => <primitive key={`bo${k}`} object={mesh} renderOrder={1} />)}
+      <primitive object={all.lookAcc.body} renderOrder={2} />
+      <primitive object={all.lookAcc.out} renderOrder={1} />
     </>
   )
 }

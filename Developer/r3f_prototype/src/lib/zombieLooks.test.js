@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import { EnemyEntityPool, ENEMY_TYPE_CODES, LOOK_COUNT_BY_CODE } from './enemyEntityPool.js'
 import { EXPANSION_STAGES } from './expansionContent.js'
-import { LOOK_ALIVE_LIMIT, ZOMBIE_LOOKS, ZOMBIE_LOOK_EXCLUDED, ZOMBIE_MEASURED_WORST_ALIVE, zombieLookCount } from './zombieLooks.js'
+import { FACE_FRONT_ACCESSORIES, LOOK_ALIVE_LIMIT, MAX_ZOMBIE_LOOKS, NO_FACE_FRONT_ACCESSORY_TYPES, ZOMBIE_ACCESSORY_KINDS, ZOMBIE_LOOKS, ZOMBIE_LOOK_EXCLUDED, ZOMBIE_MEASURED_WORST_ALIVE, accessoryBoxes, zombieLookCount } from './zombieLooks.js'
+import { LOOK_ACC_PER_ZOMBIE } from '../components/zombieLookAccessories.js'
+import { ZOMBIE_PALETTE } from '../components/ZombieMesh.jsx'
 
 // Terry 2026-11-19: "똑같이 생긴 좀비 10마리 이상 못나오게 막아" — never more than 10 alive zombies of one
 // type wearing one look. Spawns are never capped; looks spread them out.
@@ -110,5 +112,86 @@ describe('look allocation keeps ≤ 10 alive per type+look', () => {
     // single-look types stay on look 0
     expect(pool.look[spawn(pool, 'E08').index]).toBe(0)
     expect(pool.look[spawn(pool, 'E08').index]).toBe(0)
+  })
+})
+
+// 2026-11-22 wave standard: one fodder species is ~70 % of every wave, so the fodder bodies need many looks.
+describe('wave standard looks (2026-11-22)', () => {
+  const FRAMES = { head: { hx: 0.26, hy: 0.24, hz: 0.23 }, body: { bx: 0.28, by: 0.29, bz: 0.2 } }
+  const hue = (hex) => {
+    const r = ((hex >> 16) & 255) / 255; const g = ((hex >> 8) & 255) / 255; const b = (hex & 255) / 255
+    const max = Math.max(r, g, b); const min = Math.min(r, g, b); const d = max - min
+    if (!d) return 0
+    const h = max === r ? ((g - b) / d) % 6 : max === g ? (b - r) / d + 2 : (r - g) / d + 4
+    return (h * 60 + 360) % 360
+  }
+  const hueGap = (a, b) => { const d = Math.abs(a - b) % 360; return Math.min(d, 360 - d) }
+
+  it('look count per species: fodder E01/E03/E07/E19 have 12, specials E40/E56/E66/E74 have 3, all within the pool cap', () => {
+    for (const type of ['E01', 'E03', 'E07', 'E19']) expect(zombieLookCount(type), type).toBe(12)
+    for (const type of ['E40', 'E56', 'E66', 'E74']) expect(zombieLookCount(type), type).toBe(3)
+    for (const [type, list] of Object.entries(ZOMBIE_LOOKS)) {
+      expect(list.length, type).toBeLessThanOrEqual(MAX_ZOMBIE_LOOKS)
+      expect(LOOK_COUNT_BY_CODE[ENEMY_TYPE_CODES[type]], type).toBe(list.length)
+    }
+  })
+
+  it('a 120-strong crowd of one fodder species never puts more than 10 on one look', () => {
+    for (const type of ['E01', 'E03', 'E07', 'E19']) {
+      const pool = new EnemyEntityPool()
+      for (let k = 0; k < 120; k += 1) spawn(pool, type)
+      expect(maxPerLook(pool, type), type).toBeLessThanOrEqual(LOOK_ALIVE_LIMIT)
+    }
+  })
+
+  it('every accessory is a known kind and a look stays within the per-zombie box budget', () => {
+    for (const [type, list] of Object.entries(ZOMBIE_LOOKS)) {
+      list.slice(1).forEach((look, n) => {
+        let boxes = 0
+        for (const item of look.acc) {
+          expect(ZOMBIE_ACCESSORY_KINDS, `${type} look ${n + 1}`).toContain(item.kind)
+          boxes += accessoryBoxes(item.kind, FRAMES).length
+        }
+        expect(boxes, `${type} look ${n + 1} boxes`).toBeLessThanOrEqual(LOOK_ACC_PER_ZOMBIE)
+      })
+    }
+  })
+
+  it('nothing covers a shader / quad / atlas face (glasses and masks only on plain box heads)', () => {
+    for (const type of NO_FACE_FRONT_ACCESSORY_TYPES) {
+      for (const look of ZOMBIE_LOOKS[type] ?? []) {
+        for (const item of look.acc ?? []) expect(FACE_FRONT_ACCESSORIES, `${type} ${item.kind}`).not.toContain(item.kind)
+      }
+    }
+  })
+
+  it('fodder looks stay the same species: shirt hue within 25° of the species colour', () => {
+    for (const type of ['E01', 'E03', 'E07']) {
+      const base = hue(ZOMBIE_PALETTE[type].body)
+      ZOMBIE_LOOKS[type].slice(1).forEach((look, n) => {
+        expect(hueGap(hue(look.shirt), base), `${type} look ${n + 1}`).toBeLessThanOrEqual(25)
+      })
+    }
+  })
+
+  it('specials keep their body hue (E40 purple, E56 pink, E66 mint)', () => {
+    const special = { E40: ZOMBIE_PALETTE.E40.body, E56: 0xf2a7c0, E66: 0x7fd6c2 }
+    for (const [type, body] of Object.entries(special)) {
+      ZOMBIE_LOOKS[type].slice(1).forEach((look, n) => expect(hueGap(hue(look.shirt), hue(body)), `${type} look ${n + 1}`).toBeLessThanOrEqual(25))
+    }
+  })
+
+  it('no two looks of one species share the same head-top (what the camera sees first)', () => {
+    const headSig = (look) => {
+      const head = (look.acc ?? []).filter((item) => accessoryBoxes(item.kind, FRAMES).some((box) => box.frame === 'head'))
+      return JSON.stringify([head.map((item) => [item.kind, item.color, item.color2]), look.cap ?? null, look.band ?? null, look.tint ?? null])
+    }
+    for (const type of ['E01', 'E03', 'E07', 'E19', 'E40', 'E56', 'E66', 'E74']) {
+      const sigs = ZOMBIE_LOOKS[type].slice(1).map(headSig)
+      // E19 identity is its cap colour; others by headgear. A look may share headgear only if its body accessory differs.
+      const full = ZOMBIE_LOOKS[type].slice(1).map((look) => JSON.stringify([look.shirt, look.pants, look.skin, look.acc, look.cap ?? null, look.tint ?? null]))
+      expect(new Set(full).size, `${type} full looks distinct`).toBe(full.length)
+      if (type !== 'E19' && type !== 'E56' && type !== 'E66') expect(new Set(sigs).size, `${type} head-tops distinct`).toBe(sigs.length)
+    }
   })
 })

@@ -288,7 +288,11 @@ export function noteWaveSpawn(state, entry, sec) {
     if (outHp > actualHp) state.buffed += 1
     const scale = (entry.statOverride?.scale ?? base?.scale ?? 1) * WAVE_SPECIAL_SCALE_MUL
     entry.statOverride = { ...(entry.statOverride ?? {}), scale }
-    // 그래픽 연결점(2단계, threemini): 역할 색 외곽선/발밑 고리가 읽을 표식. 지금은 아무도 읽지 않는다.
+    // 발 높이(2026-11-22 threemini): 스폰 높이는 이미 기본 크기로 정해졌다(BASE_COL_Y × scale × 4/3 — 몸 원점 높이가 크기에
+    // 비례하는 규칙). 보기 크기만 ×1.2로 키우면 발이 바닥 아래로 0.056×scale 내려가 박힌다(E06 −0.026u). 원점 높이도 같은 배율로
+    // 올려 '처음부터 1.2배 크기로 난 좀비'와 같게 둔다. 판정은 XZ 평면이라 높이는 그림에만 쓰인다(스폰 해시도 x·z만 센다).
+    if (Array.isArray(entry.pos) && Number.isFinite(entry.pos[1])) entry.pos = [entry.pos[0], entry.pos[1] * WAVE_SPECIAL_SCALE_MUL, entry.pos[2]]
+    // 그래픽 연결점: 역할 색 발밑 고리(lib/waveRoleMarker.js → enemyEntityPool.role → components/WaveRoleRingLayer.jsx).
     entry.waveRole = WAVE_SPECIAL_ROLE[type] ?? null
   } else if (picked) {
     // 같은 급 특수가 없어 기본 종으로 남은 몸(규칙 3): 특수 몫에 세고 장부만 맞춘다(강화·크기 없음).
