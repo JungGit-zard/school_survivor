@@ -11,7 +11,7 @@ import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.j
 import ZombieMesh from './ZombieMesh.jsx'
 import { MiniBossModel, MINI_BOSS_FACE_PLANE } from './MiniBossMesh.jsx'
 import { buildMiniBoss } from '../lib/miniBossGeometry.js'
-import { MINI_BOSS_POSES, MINI_BOSS_TYPES, MINI_BOSS_VISUALS, getMiniBossVisual } from '../lib/miniBossRoster.js'
+import { B05_CHANT_STRIKE, MINI_BOSS_POSES, MINI_BOSS_TYPES, MINI_BOSS_VISUALS, getMiniBossVisual } from '../lib/miniBossRoster.js'
 import MINI_BOSS_PROPS from '../lib/miniBossProps.data.js'
 import { MINI_BODY_IDS, MINI_PALETTE_SLOT_INDEX, miniPaletteKeyAt } from '../lib/miniZombieRoster.js'
 import { readMiniZombieScene } from '../lib/miniZombieGeometry.js'
@@ -183,5 +183,45 @@ describe('Mini boss mesh render', () => {
     expect(b10.state.scene.getObjectByName('b10ViceRoot')).toBeDefined()
     const b05 = await mount(<ZombieMesh type="B05" />)
     expect(b05.state.scene.getObjectByName('expansion-B05-rig')).toBeDefined()
+  })
+})
+
+// Stage 6 B05 교가 제창(b05_p2) 타격 몸 연출(Terry 2026-11-22). Enemy.jsx의 공격 상태 ref를 그대로 읽는다(읽기 전용).
+describe('B05 chant strike body motion', () => {
+  const W = EXPANSION_BOSSES.B05.patterns[1].windupMs
+  async function posedAt(elapsedMs, patternId = 'b05_p2') {
+    const attackStateRef = { current: { snapshot: { patternId, elapsedMs, windupMs: W, activeMs: 350, recoveryMs: 1000, phase: elapsedMs < W ? 'windup' : 'active' } } }
+    const { state } = await mount(<MiniBossModel type="B05" scene={gltf.scene} animPhase={elapsedMs < W ? 'warn' : 'normal'} attackStateRef={attackStateRef} />)
+    await act(async () => { state.advance(1000); state.advance(1016) })
+    const root = state.scene.getObjectByName('miniBossB05Root')
+    root.updateWorldMatrix(true, true)
+    const legs = new THREE.Box3()
+    root.traverse((m) => { if (m.isMesh && /_leg[LR]$/.test(m.name)) legs.expandByObject(m, true) })
+    return { root, legs, torso: state.scene.getObjectByName('miniBossB05_torsoRig'), armL: state.scene.getObjectByName('miniBossB05_armLRig') }
+  }
+  const fit = getMiniBossVisual('B05').fit
+
+  it('squashes and bows at the impact time, feet stay on the ground', async () => {
+    const hit = await posedAt(W)
+    expect(hit.root.scale.y).toBeCloseTo(fit * (1 + B05_CHANT_STRIKE.squashY), 6)
+    expect(hit.root.scale.x).toBeCloseTo(fit * (1 + B05_CHANT_STRIKE.squashXZ), 6)
+    expect(hit.torso.rotation.x).toBeGreaterThan(0.3)
+    expect(hit.armL.rotation.x).toBeCloseTo(MINI_BOSS_POSES.B05.chantStrike.armL[0], 1)
+    expect(hit.legs.min.y).toBeCloseTo(getMiniBossVisual('B05').legacyFootY, 2)
+  })
+
+  it('stretches and leans back just before the strike, feet stay on the ground', async () => {
+    const ready = await posedAt(W - B05_CHANT_STRIKE.strikeLeadMs)
+    expect(ready.root.scale.y).toBeGreaterThan(fit)
+    expect(ready.torso.rotation.x).toBeLessThan(-0.15)
+    expect(ready.legs.min.y).toBeCloseTo(getMiniBossVisual('B05').legacyFootY, 2)
+  })
+
+  it('leaves the ring attack (b05_p1) and previews without a snapshot untouched', async () => {
+    const ring = await posedAt(W, 'b05_p1')
+    expect(ring.root.scale.y).toBeCloseTo(fit, 9)
+    const { state } = await mount(<MiniBossModel type="B05" scene={gltf.scene} />)
+    await act(async () => { state.advance(1000) })
+    expect(state.scene.getObjectByName('miniBossB05Root').scale.y).toBeCloseTo(fit, 9)
   })
 })

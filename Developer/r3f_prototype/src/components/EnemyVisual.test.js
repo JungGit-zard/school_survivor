@@ -477,14 +477,14 @@ describe("Matilda's rendered body matches her physics collider (no untouchable-l
     // reaches both the visual and collider path. Matilda deliberately supplies
     // B01's base 2.00 scale to restore her intended visible size.
     expect(enemySource).toContain(
-      "export function EnemyVisual({ type = 'E01', animPhase = 'normal', hitFlash = false, hp, showHealthBar = true, groupRef = null, isMatilda = false, forceMesh = false, staticPose = false, scale, bossFaceRecipe, isChefPhase2 = false, maxHp }) {",
+      "export function EnemyVisual({ type = 'E01', animPhase = 'normal', hitFlash = false, hp, showHealthBar = true, groupRef = null, isMatilda = false, forceMesh = false, staticPose = false, scale, bossFaceRecipe, isChefPhase2 = false, maxHp, attackStateRef = null }) {",
     )
     expect(enemySource).toContain('const cs = (scale ?? stats.scale) * ENEMY_SIZE_MULTIPLIER')
 
     // Enemy forwards the merged scale to EnemyVisual, keeping the visual group
     // and CuboidCollider derived from the exact same `cs`.
     expect(enemySource).toContain(
-      '<EnemyVisual groupRef={groupRef} type={type} animPhase={animPhase} hitFlash={hitFlash} hp={hp} maxHp={stats.hp} isMatilda={isMatilda} scale={stats.scale} isChefPhase2={isChefPhase2} />',
+      '<EnemyVisual groupRef={groupRef} type={type} animPhase={animPhase} hitFlash={hitFlash} hp={hp} maxHp={stats.hp} isMatilda={isMatilda} scale={stats.scale} isChefPhase2={isChefPhase2} attackStateRef={expansionAttackRef} />',
     )
     expect(enemiesSource).toMatch(/const matildaStats = \{[\s\S]*?scale:\s+ENEMY_STATS\.B01\.scale,/)
     // The mini health bar's max must be the merged (stage-scaled) hp, not the base ENEMY_STATS hp.

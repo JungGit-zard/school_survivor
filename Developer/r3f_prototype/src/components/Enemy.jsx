@@ -655,7 +655,7 @@ export function resetActiveE04ProjectileCountForTest() {
 // E01-E06 standard zombies render via ZombieInstanceLayer (instanced). B01 + Matilda use React mesh.
 const INSTANCED_TYPES = new Set(['E01', 'E02', 'E03', 'E04', 'E05', 'E06'])
 
-export function EnemyVisual({ type = 'E01', animPhase = 'normal', hitFlash = false, hp, showHealthBar = true, groupRef = null, isMatilda = false, forceMesh = false, staticPose = false, scale, bossFaceRecipe, isChefPhase2 = false, maxHp }) {
+export function EnemyVisual({ type = 'E01', animPhase = 'normal', hitFlash = false, hp, showHealthBar = true, groupRef = null, isMatilda = false, forceMesh = false, staticPose = false, scale, bossFaceRecipe, isChefPhase2 = false, maxHp, attackStateRef = null }) {
   const stats = ENEMY_STATS[type] ?? ENEMY_STATS.E01
   // scale prop lets a caller (Enemy) pass the merged statOverride scale (Matilda keeps B01's base scale)
   // so the rendered body matches the physics collider exactly. Falls back to the base
@@ -670,7 +670,7 @@ export function EnemyVisual({ type = 'E01', animPhase = 'normal', hitFlash = fal
     <>
       <group ref={groupRef} scale={[cs * 0.333, cs * 0.333, cs * 0.333]}>
         {/* E01-E06: rendered imperatively by ZombieInstanceLayer ??no mesh here */}
-        {!useInstanced && <ZombieMesh type={type} animPhase={animPhase} hitFlash={hitFlash} isMatilda={isMatilda} staticPose={staticPose} bossFaceRecipe={bossFaceRecipe} />}
+        {!useInstanced && <ZombieMesh type={type} animPhase={animPhase} hitFlash={hitFlash} isMatilda={isMatilda} staticPose={staticPose} bossFaceRecipe={bossFaceRecipe} attackStateRef={attackStateRef} />}
         {!staticPose && canShowChargeCue && animPhase === 'warn' && <ChargeToonCue y={CHARGE_CUE_LAYOUT.y} />}
       </group>
       {showHealthBar && <MiniHealthBar current={currentHp} max={maxHp ?? stats.hp} width={0.32 * cs} height={0.045} y={0.72 * cs} />}
@@ -1980,7 +1980,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
           colliders={false}
         >
           <CuboidCollider args={colArgs} sensor={isMatilda} />
-          <EnemyVisual groupRef={groupRef} type={type} animPhase={animPhase} hitFlash={hitFlash} hp={hp} maxHp={stats.hp} isMatilda={isMatilda} scale={stats.scale} isChefPhase2={isChefPhase2} />
+          <EnemyVisual groupRef={groupRef} type={type} animPhase={animPhase} hitFlash={hitFlash} hp={hp} maxHp={stats.hp} isMatilda={isMatilda} scale={stats.scale} isChefPhase2={isChefPhase2} attackStateRef={expansionAttackRef} />
         </RigidBody>
       )}
       {type === 'B02' && currentStageId === 'stage2' && (

@@ -38,8 +38,79 @@ export const MINI_BOSS_POSES = Object.freeze({
     lean: Object.freeze({ armL: [-0.4, 0, 0], armR: [-1.2217, 0, 0.1], torso: [0, 0, 0] }),
     // 격노 전환·정지: 두 팔 위 + 호루라기.
     stun: Object.freeze({ armL: [-2.9, 0, -0.5], armR: [-2.9, 0, 0.5], torso: [0, 0, 0] }),
+    // 교가 제창(b05_p2) 몸 연출(Terry 2026-11-22 "공격순간 보스의 몸 움직임을 좀 넣어"): 지휘 마지막 큰 박자.
+    // chantWindup = 타격 직전 최대 준비(두 팔 머리 위로 더 젖히고 몸을 뒤로), chantStrike = 타격 순간(두 팔 앞아래로 내려치며 몸 숙임).
+    // 두 팔을 V자로 바깥·앞으로 벌린다. 팔은 쉬는 기울기(ARM_TILT)가 먼저 걸려 있어, 들어 올릴 때 왼팔 z가 +면 바깥, −면 머리 뒤 안쪽이다
+    // (기존 warn 왼팔 z −0.6이 Mini 큰 머리 뒤로 숨던 이유). Blender 미리보기로 확인(F:/ezs-work/backup/boss7_ult_20261122/).
+    chantWindup: Object.freeze({ armL: [-2.5, 0, 0.55], armR: [-2.4, 0, -0.55], torso: [-0.2, 0, 0] }),
+    chantStrike: Object.freeze({ armL: [-0.45, 0, -0.2], armR: [-0.6, 0, 0.15], torso: [0.34, 0, 0] }),
   }),
 })
+
+// ── Stage 6 B05 「교가 제창」(b05_p2) 타격 몸 연출 곡선 ─────────────────────────────────────────────
+// 그림만이다. 입력은 게임이 이미 가진 공격 스냅샷의 elapsedMs/windupMs/activeMs(읽기 전용) — 타이밍·피해·범위는 바꾸지 않는다.
+// 타격 순간 = elapsedMs === windupMs(피해 판정이 active로 들어가는 바로 그 시각). strike 곡선은 이 순간 정확히 1(최대)이다.
+//   준비(anticipation): windup 35% 지점부터 타격 lead 직전까지 0→1로 부드럽게 — 팔을 더 치켜들고 몸을 뒤로 젖힌다.
+//   내려치기(strike): 타격 strikeLeadMs 전부터 가속(제곱)해 타격 순간 1, 이후 strikeDecayMs 동안 부드럽게 0(기울기 0에서 출발 → 잠깐 머문다).
+//   가중(weight): windup 첫 blendInMs 동안 0→1(평소 자세에서 이어받기), 감쇠가 끝나면 0(평소 자세로 돌려주기).
+// 스쿼시: 준비 때 위로 늘이고(stretch), 타격 때 아래로 눌린다(squash). 발바닥 높이는 MiniBossModel이 그대로 붙인다.
+export const B05_CHANT_STRIKE = Object.freeze({
+  patternId: 'b05_p2',
+  blendInMs: 220,
+  anticipationStart: 0.35,
+  strikeLeadMs: 110,
+  strikeDecayMs: 760,
+  stretchY: 0.05,
+  stretchXZ: -0.03,
+  squashY: -0.11,
+  squashXZ: 0.07,
+})
+const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v)
+const smooth01 = (v) => { const t = clamp01(v); return t * t * (3 - 2 * t) }
+
+/** 곡선 값만(0~1): anticipation, strike, weight. 타격 뒤 감쇠(strikeDecayMs)가 active 350ms를 덮으므로 activeMs는 받지 않는다. out을 넘기면 그 객체를 채운다(프레임마다 새 객체를 만들지 않는다). */
+export function b05ChantStrikeCurve(elapsedMs, windupMs, out = { anticipation: 0, strike: 0, weight: 0 }) {
+  const C = B05_CHANT_STRIKE
+  out.anticipation = 0; out.strike = 0; out.weight = 0
+  if (!Number.isFinite(elapsedMs) || !(windupMs > 0) || elapsedMs < 0) return out
+  const impact = windupMs
+  const lead = Math.min(C.strikeLeadMs, windupMs * 0.25)
+  if (elapsedMs >= impact + C.strikeDecayMs) return out
+  out.weight = elapsedMs < impact ? smooth01(elapsedMs / Math.min(C.blendInMs, windupMs * 0.3)) : 1
+  const anticStart = windupMs * C.anticipationStart
+  out.anticipation = elapsedMs < impact ? smooth01((elapsedMs - anticStart) / Math.max(1, impact - lead - anticStart)) : 1
+  if (elapsedMs < impact - lead) out.strike = 0
+  else if (elapsedMs < impact) { const u = (elapsedMs - (impact - lead)) / lead; out.strike = u * u }
+  else out.strike = 1 - smooth01((elapsedMs - impact) / C.strikeDecayMs)
+  return out
+}
+
+const lerp = (a, b, t) => a + (b - a) * t
+const B05_CHANT_POSE_KEYS = Object.freeze(['armL', 'armR', 'torso'])
+/**
+ * 곡선 → 절대 자세(팔·몸통 회전 + 스쿼시). 타격 전: (warn + 준비) → strike 보간, 타격 후: normal ← strike 보간.
+ * out = { weight, armL:[3], armR:[3], torso:[3], scaleY, scaleXZ } 를 채운다. MiniBossModel이 lerp(부드럽게 따라가는 평소 자세, 이 자세, weight).
+ */
+export function b05ChantStrikePose(elapsedMs, windupMs, out = createB05ChantStrikePose()) {
+  const c = b05ChantStrikeCurve(elapsedMs, windupMs, out.curve)
+  const P = MINI_BOSS_POSES.B05, C = B05_CHANT_STRIKE
+  const before = elapsedMs < windupMs
+  for (let k = 0; k < B05_CHANT_POSE_KEYS.length; k += 1) {
+    const key = B05_CHANT_POSE_KEYS[k]
+    for (let i = 0; i < 3; i += 1) {
+      const from = before ? lerp(P.warn[key][i], P.chantWindup[key][i], c.anticipation) : P.normal[key][i]
+      out[key][i] = lerp(from, P.chantStrike[key][i], c.strike)
+    }
+  }
+  const stretch = before ? c.anticipation * (1 - c.strike) : 0
+  out.scaleY = 1 + C.stretchY * stretch + C.squashY * c.strike
+  out.scaleXZ = 1 + C.stretchXZ * stretch + C.squashXZ * c.strike
+  out.weight = c.weight
+  return out
+}
+export function createB05ChantStrikePose() {
+  return { weight: 0, armL: [0, 0, 0], armR: [0, 0, 0], torso: [0, 0, 0], scaleY: 1, scaleXZ: 1, curve: { anticipation: 0, strike: 0, weight: 0 } }
+}
 
 export const MINI_BOSS_VISUALS = Object.freeze({
   B10: Object.freeze({

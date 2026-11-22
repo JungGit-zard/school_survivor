@@ -44,10 +44,47 @@ export const EXPANSION_TELEGRAPH_FILL=Object.freeze({color:'#f5ce69',activeColor
 export const NOVEL2_DAMAGE_TELEGRAPH_FILL=Object.freeze({color:'#e5333d',activeColor:'#c8102e'})
 export function isNovel2DamageTelegraph(d){return d?.novel2===true&&(d.contactAttack===true||d.damage>0)}
 function telegraphFillColor(d,active){const red=isNovel2DamageTelegraph(d),F=red?NOVEL2_DAMAGE_TELEGRAPH_FILL:EXPANSION_TELEGRAPH_FILL;return active?F.activeColor:F.color}
+// ── Stage 6 B05 교장 「교가 제창」(b05_p2) 십자 경고만의 등장·퇴장 곡선 (Terry 2026-11-22 "노출시작과 종료를 좀 더 부드럽게") ──
+// 그림만이다. 피해 기하(safetyPolygons)·타이밍·판정은 그대로이고, 아래 곡선은 불투명도 배수(fade)와 원점 기준 XZ 배율(scale)만 준다.
+//   windup 앞 fadeInMs: 가운데서 펼쳐지며(startScale→1, easeOutCubic) 서서히 진해진다(fade 0→1, smoothstep). 그 뒤 타격까지 1 고정.
+//   active(피해 판정 창): scale 1·fade 1 고정 — 바닥 표시 = 실제 피격 범위. 타격 순간 불투명도가 한 번 번쩍(impactFlash)이고 active 동안 가라앉는다.
+//   recovery 앞 fadeOutMs: 피해가 끝난 뒤 fade 1→0(smoothstep)으로 사라지며 살짝 퍼진다(fadeOutScaleGain). 예전엔 recovery 첫 프레임에 툭 꺼졌다.
+// createExpansionTelegraphVisual은 언제나 실제 크기 그대로 만들고, 시간 곡선은 updateExpansionTelegraphVisual이 매 프레임 입힌다
+// (ExpansionHazardLayer가 만든 같은 프레임에 바로 update를 부르므로 첫 화면부터 곡선이 적용된다).
+export const B05_CHANT_TELEGRAPH=Object.freeze({patternId:'b05_p2',fadeInMs:320,startScale:.18,impactFlashOpacity:.3,fadeOutMs:420,fadeOutScaleGain:.05})
+export function isB05ChantTelegraph(d){return (d?.patternId??d?.id)===B05_CHANT_TELEGRAPH.patternId}
+const clamp01=v=>v<0?0:v>1?1:v
+const smooth01=v=>{const t=clamp01(v);return t*t*(3-2*t)}
+const easeOutCubic=v=>{const t=1-clamp01(v);return 1-t*t*t}
+/** 시간 → {fade, scale, flash}. phase가 우선(active면 무조건 1·1), 경과 시간은 등장·퇴장 램프에만 쓴다. out을 채워 돌려준다. */
+export function b05ChantTelegraphEnvelope(phase,elapsedMs,windupMs,activeMs,out={fade:1,scale:1,flash:0}) {
+ const C=B05_CHANT_TELEGRAPH,e=elapsedMs
+ out.fade=1;out.scale=1;out.flash=0
+ if(!Number.isFinite(e))return out // 경과 시간이 없으면 곡선 없이 그대로 보인다(숨기지 않는다)
+ if(phase==='active'){out.flash=activeMs>0?(1-clamp01((e-windupMs)/activeMs))**2:0;return out}
+ if(phase==='recovery'){const k=smooth01((e-windupMs-activeMs)/C.fadeOutMs);out.fade=1-k;out.scale=1+C.fadeOutScaleGain*k;return out}
+ const rampMs=windupMs>0?Math.min(C.fadeInMs,windupMs*.5):C.fadeInMs,t=e/rampMs
+ out.fade=smooth01(t);out.scale=C.startScale+(1-C.startScale)*easeOutCubic(t)
+ return out
+}
+/** recovery 페이드가 아직 남았는가(ExpansionHazardLayer가 이미 그리던 b05_p2 십자만 recovery에도 남겨 둔다). */
+export function b05ChantTelegraphFading(event){return isB05ChantTelegraph(event)&&event.phase==='recovery'&&event.elapsedMs<event.windupMs+event.activeMs+B05_CHANT_TELEGRAPH.fadeOutMs}
+const chantEnvelope={fade:1,scale:1,flash:0}
+const CHANT_WINDUP_COLOR=new THREE.Color(EXPANSION_TELEGRAPH_FILL.color),CHANT_ACTIVE_COLOR=new THREE.Color(EXPANSION_TELEGRAPH_FILL.activeColor)
+function updateB05ChantTelegraph(root,event,progress) {
+ const F=EXPANSION_TELEGRAPH_FILL,C=B05_CHANT_TELEGRAPH,mat=root.userData.fillMat
+ const env=b05ChantTelegraphEnvelope(event.phase,event.elapsedMs,event.windupMs,event.activeMs,chantEnvelope)
+ const hot=event.phase==='active'||event.phase==='recovery'
+ // 같은 root를 windup→active→recovery 내내 쓴다(ExpansionHazardLayer가 다시 만들지 않는다) → 색은 페이즈가 바뀔 때만 바꾼다.
+ if(root.userData.chantHot!==hot){root.userData.chantHot=hot;mat.color.copy(hot?CHANT_ACTIVE_COLOR:CHANT_WINDUP_COLOR)}
+ mat.opacity=event.phase==='active'?F.activeOpacity+env.flash*C.impactFlashOpacity:(hot?F.activeOpacity:F.windupOpacity+progress*F.windupOpacityGain)*env.fade
+ root.scale.set(env.scale,1,env.scale)
+}
 export function updateExpansionTelegraphVisual(root,event) {
  if(!root)return
  const raw=event.windupMs>0?event.elapsedMs/event.windupMs:event.progress??0
  const progress=Number.isFinite(raw)?Math.max(0,Math.min(1,raw)):0
+ if(root.userData.b05Chant){updateB05ChantTelegraph(root,event,progress);return}
  const F=EXPANSION_TELEGRAPH_FILL
  root.userData.fillMat.opacity=event.phase==='active'?F.activeOpacity:F.windupOpacity+progress*F.windupOpacityGain
  if(root.userData.stampMat)root.userData.stampMat.opacity=event.phase==='active'?B10_STAMP_DECAL.activeOpacity:progress*B10_STAMP_DECAL.windupMaxOpacity
@@ -90,6 +127,8 @@ export function createExpansionTelegraphVisual(event) {
    if(shape==='disk')addB10StampDecal(root,d,radius)
    root.userData.expansionSnapshot=d
    updateExpansionTelegraphVisual(root,d)
+   // 시간 곡선 표식은 위 초기 불투명도 뒤에 붙인다 → 만든 직후의 root는 실제 피해 기하 그대로(배율 1).
+   if(isB05ChantTelegraph(d))root.userData.b05Chant=true
    return root
  }
  function circle(px,pz,inner=0,outer=radius,angle=tau) {
@@ -121,6 +160,7 @@ export function createExpansionTelegraphVisual(event) {
  case 'grid':d.lineOffsetsUnits.forEach(o=>{line(0,o,0,true);line(Math.PI/2,0,o,true)});break
  }
  root.userData.expansionSnapshot=d
+ if(isB05ChantTelegraph(d))root.userData.b05Chant=true
  return root
 }
 export function disposeExpansionTelegraphVisual(root) {

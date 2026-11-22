@@ -3,7 +3,7 @@ import {afterEach,expect,it,vi} from 'vitest'
 import * as THREE from 'three'
 import {EXPANSION_BOSSES,EXPANSION_ENEMIES} from '../../lib/expansionContent.js'
 import {createExpansionAttackState,stepExpansionAttack,clearExpansionAttacks,expansionAttackContains} from '../../lib/expansionAttackRuntime.js'
-import {createExpansionTelegraphVisual,disposeExpansionTelegraphVisual,EXPANSION_TELEGRAPH_FILL} from './expansionTelegraphs.js'
+import {B05_CHANT_TELEGRAPH,createExpansionTelegraphVisual,disposeExpansionTelegraphVisual,EXPANSION_TELEGRAPH_FILL,isB05ChantTelegraph} from './expansionTelegraphs.js'
 import {syncExpansionTelegraphs} from './ExpansionHazardLayer.jsx'
 const args={x:1.31,z:-2.17,playerX:1.36,playerZ:-2.10,alive:true,playing:true,deltaMs:1,gameKey:0,hpRatio:1}
 afterEach(clearExpansionAttacks)
@@ -24,11 +24,15 @@ for(const b of Object.values(EXPANSION_BOSSES))for(let i=0;i<b.patterns.length;i
  const s=snapshot(b.id,i),saved=JSON.stringify(s),group=new THREE.Group(),cache=new Map();syncExpansionTelegraphs(group,cache,[s]);const root=group.children[0]
  verifyFillOnly(root);verifyInside(root,s.safetyPolygons)
  const F=EXPANSION_TELEGRAPH_FILL,footprint=Array.from(root.children[0].geometry.attributes.position.array)
- expect(root.userData.fillMat.color.getHexString()).toBe(F.color.slice(1));expect(root.userData.fillMat.opacity).toBeCloseTo(F.windupOpacity,6)
- s.elapsedMs=s.windupMs/2;syncExpansionTelegraphs(group,cache,[s]);expect(group.children[0]).toBe(root);expect(root.userData.fillMat.opacity).toBeCloseTo(F.windupOpacity+F.windupOpacityGain/2,6)
+ // 2026-11-22 Terry: Stage 6 B05 교가 제창(b05_p2) 십자만 0에서 서서히 나타나고(가운데서 펼쳐짐) 타격 순간 한 번 번쩍인다.
+ // 지오메트리(footprint)는 그대로 — 배율은 root에만 걸리고 windup 중반·타격 순간에는 정확히 1이다.
+ const chant=isB05ChantTelegraph(s)
+ expect(root.userData.fillMat.color.getHexString()).toBe(F.color.slice(1));expect(root.userData.fillMat.opacity).toBeCloseTo(chant?0:F.windupOpacity,6)
+ expect(root.scale.x).toBeCloseTo(chant?B05_CHANT_TELEGRAPH.startScale:1,6)
+ s.elapsedMs=s.windupMs/2;syncExpansionTelegraphs(group,cache,[s]);expect(group.children[0]).toBe(root);expect(root.userData.fillMat.opacity).toBeCloseTo(F.windupOpacity+F.windupOpacityGain/2,6);expect(root.scale.x).toBe(1)
  expect(Array.from(root.children[0].geometry.attributes.position.array)).toEqual(footprint)
  s.elapsedMs=s.windupMs;s.phase='active';syncExpansionTelegraphs(group,cache,[s]);const hit=group.children[0];verifyFillOnly(hit)
- expect(hit.userData.fillMat.opacity).toBe(F.activeOpacity);expect(Array.from(hit.children[0].geometry.attributes.position.array)).toEqual(footprint)
+ expect(hit.userData.fillMat.opacity).toBeCloseTo(chant?F.activeOpacity+B05_CHANT_TELEGRAPH.impactFlashOpacity:F.activeOpacity,6);expect(hit.scale.x).toBe(1);expect(Array.from(hit.children[0].geometry.attributes.position.array)).toEqual(footprint)
  expect(JSON.stringify({...s,phase:'windup',elapsedMs:0})).toBe(saved)
  syncExpansionTelegraphs(group,cache,[])
 })

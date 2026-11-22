@@ -12,7 +12,7 @@ import miniZombiesUrl from '../assets/models/kenney_mini/mini_zombies_kenney.glb
 import { getFlashMat, getToonGradient } from '../lib/toon.js'
 import { createOutlineGeometry } from '../lib/projectileZombieShotGeometry.js'
 import { getMiniBossAssets } from '../lib/miniBossGeometry.js'
-import { getMiniBossVisual, MINI_BOSS_POSES } from '../lib/miniBossRoster.js'
+import { B05_CHANT_STRIKE, b05ChantStrikePose, createB05ChantStrikePose, getMiniBossVisual, MINI_BOSS_POSES } from '../lib/miniBossRoster.js'
 import { B10_FACE_FRAGMENT_SHADER } from './B10ViceBossMesh.jsx'
 import { composeStudioPartPosition, composeStudioPartRotation } from './StudioTunedGroup.jsx'
 
@@ -144,8 +144,14 @@ function composeRotation(object, axis, target) {
 }
 function approach(current, target, delta, rate) { return current + (target - current) * Math.min(1, delta * rate) }
 
-/** GLB 장면을 이미 가진 쪽(테스트·미리보기)이 바로 쓰는 본체. */
-export function MiniBossModel({ type, scene, animPhase = 'normal', hitFlash = false, staticPose = false }) {
+const CHANT_KEYS = Object.freeze(['armL', 'armR', 'torso'])
+
+/**
+ * GLB 장면을 이미 가진 쪽(테스트·미리보기)이 바로 쓰는 본체.
+ * attackStateRef(선택): Enemy.jsx의 확장 공격 상태 ref. B05 교가 제창(b05_p2) 스냅샷이 있으면 그 elapsedMs로 타격 몸 연출을
+ * 그린다(읽기만 한다 — 공격 타이밍·피해·범위는 건드리지 않는다). 없으면(미리보기·스튜디오) 예전 그대로.
+ */
+export function MiniBossModel({ type, scene, animPhase = 'normal', hitFlash = false, staticPose = false, attackStateRef = null }) {
   const visual = getMiniBossVisual(type)
   const assets = useMemo(() => getMiniBossAssets(scene, type, createOutlineGeometry), [scene, type])
   const materials = useMemo(() => getMiniBossMaterials(assets?.map), [assets])
@@ -153,6 +159,8 @@ export function MiniBossModel({ type, scene, animPhase = 'normal', hitFlash = fa
   const reg = (key) => (node) => { if (node) nodes.current[key] = node }
   const rest = MINI_BOSS_POSES[type].normal
   const state = useRef({ armL: [...rest.armL], armR: [...rest.armR], torso: [...rest.torso] })
+  const rootRef = useRef(null)
+  const chant = useRef(null)
   const pose = visual.poseFor(animPhase)
   const stunned = animPhase === 'stun'
 
@@ -167,21 +175,45 @@ export function MiniBossModel({ type, scene, animPhase = 'normal', hitFlash = fa
     const windup = animPhase === 'warn' || animPhase === 'charge' || animPhase === 'special'
     const rate = windup ? 14 : 9
     for (const key of ['armL', 'armR', 'torso']) for (let a = 0; a < 3; a += 1) s[key][a] = approach(s[key][a], pose[key][a], delta, key === 'torso' ? 10 : rate)
-    const walking = !stunned && !windup
-    const stride = walking ? Math.sin(t * 6.2) * 0.32 : 0
-    const sway = walking ? Math.sin(t * 3.1) * 0.06 : 0
     // B10 warn: 치켜든 도장이 결재 직전처럼 떨린다. stun: 종(B10)·호루라기(B05)를 톡톡.
     const jitter = animPhase === 'warn' && type === 'B10' ? Math.sin(t * 30) * 0.05 : 0
     const tap = stunned ? Math.max(0, Math.sin(t * 16)) * 0.25 : 0
-    composeRotation(pt.armR, 'x', s.armR[0] + jitter - tap + sway)
+    // B05 교가 제창: 준비(팔 더 치켜들고 몸 뒤로) → 타격 순간 내려치기·숙이기·눌림(정점 = 피해 판정 시작 시각) → 평소 자세로.
+    const snap = type === 'B05' ? attackStateRef?.current?.snapshot : null
+    let w = 0
+    let quiver = 0
+    if (snap && snap.patternId === B05_CHANT_STRIKE.patternId) {
+      const c = (chant.current ??= createB05ChantStrikePose())
+      b05ChantStrikePose(snap.elapsedMs, snap.windupMs, c)
+      w = c.weight
+      // 준비가 꽉 찼을 때 팔이 박자를 기다리며 떨린다(B10 도장 떨림과 같은 30Hz, 내려치기가 시작되면 멈춘다).
+      quiver = Math.sin(t * 30) * 0.045 * c.curve.anticipation * (1 - c.curve.strike) * (snap.elapsedMs < snap.windupMs ? 1 : 0)
+      // 따라가는 자세 상태 자체를 곡선 쪽으로 당긴다 → weight가 0으로 돌아갈 때 이어받기가 끊기지 않는다.
+      if (w > 0) for (let k = 0; k < CHANT_KEYS.length; k += 1) { const key = CHANT_KEYS[k]; for (let a = 0; a < 3; a += 1) s[key][a] += (c[key][a] - s[key][a]) * w }
+    }
+    // 교가 제창 타격 동안(w)은 발을 땅에 붙이고(걷기 0), 감쇠가 끝나면서 걷기가 서서히 돌아온다.
+    const walkAmount = !stunned && !windup ? 1 - w : 0
+    const walking = walkAmount > 0
+    const stride = walking ? Math.sin(t * 6.2) * 0.32 * walkAmount : 0
+    const sway = walking ? Math.sin(t * 3.1) * 0.06 * walkAmount : 0
+    composeRotation(pt.armR, 'x', s.armR[0] + jitter + quiver - tap + sway)
     composeRotation(pt.armR, 'z', s.armR[2])
-    composeRotation(pt.armL, 'x', s.armL[0] - sway)
+    composeRotation(pt.armL, 'x', s.armL[0] - quiver - sway)
     composeRotation(pt.armL, 'z', s.armL[2])
     composeRotation(pt.legL, 'x', stride)
     composeRotation(pt.legR, 'x', -stride)
     composeRotation(pt.torso, 'x', s.torso[0])
-    pt.torso.position.y = composeStudioPartPosition(pt.torso, 'y', pt.torso.userData.miniBossPivotY ?? 0, walking ? Math.abs(Math.sin(t * 6.2)) * 0.006 : 0)
-    if (pt.head) composeRotation(pt.head, 'z', walking ? Math.sin(t * 1.5) * 0.05 : 0)
+    // 스쿼시·스트레치(루트 비율). 발바닥이 땅(legacyFootY)에서 뜨거나 묻히지 않게 루트 높이를 같이 옮긴다.
+    const root = rootRef.current
+    if (root && assets) {
+      const c = chant.current
+      const sy = w > 0 ? 1 + (c.scaleY - 1) * w : 1
+      const sxz = w > 0 ? 1 + (c.scaleXZ - 1) * w : 1
+      root.scale.set(visual.fit * sxz, visual.fit * sy, visual.fit * sxz)
+      root.position.y = visual.legacyFootY - visual.fit * sy * assets.built.footY
+    }
+    pt.torso.position.y = composeStudioPartPosition(pt.torso, 'y', pt.torso.userData.miniBossPivotY ?? 0, walking ? Math.abs(Math.sin(t * 6.2)) * 0.006 * walkAmount : 0)
+    if (pt.head) composeRotation(pt.head, 'z', walking ? Math.sin(t * 1.5) * 0.05 * walkAmount : 0)
   })
 
   if (!visual || !assets) return null
@@ -206,7 +238,7 @@ export function MiniBossModel({ type, scene, animPhase = 'normal', hitFlash = fa
   }
   const footOffset = visual.legacyFootY - visual.fit * built.footY
   return (
-    <group name={`miniBoss${type}Root`} position={[0, footOffset, 0]} scale={visual.fit}>
+    <group ref={rootRef} name={`miniBoss${type}Root`} position={[0, footOffset, 0]} scale={visual.fit}>
       {part('legL')}
       {part('legR')}
       {part('torso', <>

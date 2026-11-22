@@ -1150,7 +1150,7 @@ function setZombieScale(object, multiplier) {
 
 // animPhase: 'normal' | 'warn' | 'charge' | 'stun' | 'retreat'
 // staticPose: 로비 보스 카드처럼 상호작용 없는 프리뷰에서 내부 파트 애니메이션 계산을 완전히 건너뛰는 정적 포즈 게이트.
-export default function ZombieMesh({ type = 'E01', animPhase = 'normal', hitFlash = false, isMatilda = false, staticPose = false, titleRunPose = false, bossFaceRecipe, idleRig = null }) {
+export default function ZombieMesh({ type = 'E01', animPhase = 'normal', hitFlash = false, isMatilda = false, staticPose = false, titleRunPose = false, bossFaceRecipe, idleRig = null, attackStateRef = null }) {
   const p    = useRef({})
   const pal  = ZOMBIE_PALETTE[type] ?? ZOMBIE_PALETTE.E01
   // 포즈형 12종은 공유 보행 애니메이션을 그대로 쓰되, 각 파츠의 휴지 포즈를 0이 아니라
@@ -1402,7 +1402,7 @@ export default function ZombieMesh({ type = 'E01', animPhase = 'normal', hitFlas
       <ErrorBoundary fallback={legacy}>
         <Suspense fallback={legacy}>
           <StudioTunedGroup itemId={getMiniBossVisual(type).studioItemId}>
-            <MiniBossMesh type={type} animPhase={animPhase} hitFlash={hitFlash} staticPose={staticPose} />
+            <MiniBossMesh type={type} animPhase={animPhase} hitFlash={hitFlash} staticPose={staticPose} attackStateRef={attackStateRef} />
           </StudioTunedGroup>
         </Suspense>
       </ErrorBoundary>
