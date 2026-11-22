@@ -161,14 +161,14 @@
       <span>체크포인트</span><b id="oCp">0</b>
       <span>최고 콤보</span><b id="oCombo">0</b>
     </div>
-    <div class="pbtns"><button class="btn2 noEmbed" id="stageSelBtn" type="button">스테이지 선택</button><button class="btn2" id="restartBtn" type="button">다시 시작</button><button class="btn2" id="oMuteBtn" type="button">소리 꺼짐</button></div>
+    <div class="pbtns"><button class="btn2 noEmbed" id="stageSelBtn" type="button">스테이지 선택</button><button class="btn2 noEmbed" id="restartBtn" type="button">다시 시작</button><button class="btn2" id="oMuteBtn" type="button">소리 꺼짐</button></div>
     <button class="btn embedOnly" id="exitBtn" type="button">학교로 돌아가기</button>
     <button class="btn noEmbed" id="overOkBtn" type="button">스테이지 선택으로</button>
   </div>
 </div>
 <div class="overlay" id="pauseScreen" hidden>
   <div class="card"><h2>일시정지</h2>
-    <div class="pbtns"><button class="btn2" id="pRestartBtn" type="button">다시 시작</button><button class="btn2 noEmbed" id="pStageBtn" type="button">스테이지 선택</button><button class="btn2 embedOnly" id="pExitBtn" type="button">학교로 돌아가기</button><button class="btn2" id="pMuteBtn" type="button">소리 꺼짐</button></div>
+    <div class="pbtns"><button class="btn2 noEmbed" id="pRestartBtn" type="button">다시 시작</button><button class="btn2 noEmbed" id="pStageBtn" type="button">스테이지 선택</button><button class="btn2 embedOnly" id="pExitBtn" type="button">학교로 돌아가기</button><button class="btn2" id="pMuteBtn" type="button">소리 꺼짐</button></div>
     <button class="btn" id="resumeBtn" type="button">계속</button>
   </div>
 </div>
@@ -2317,8 +2317,9 @@ document.addEventListener('visibilitychange', () => {
 // ?course=gym-to-cafeteria&embed=1 → straight into the campus run; the end screen offers 「학교로 돌아가기」
 const PARAMS = new URLSearchParams(location.search);
 const EMBED = PARAMS.get('embed') === '1';
-if (PARAMS.get('course') === 'gym-to-cafeteria') selStage = 3;
-function exitToSchool() { try { parent.postMessage({ type: 'sltera-run:exit' }, location.origin); } catch (err) { /* opaque origin (file://) */ } }
+// 본게임(embed)은 선택지 없이 무조건 체육관→식당 한 판: 코스 고정, 다시 시작 버튼 없음.
+if (EMBED || PARAMS.get('course') === 'gym-to-cafeteria') selStage = 3;
+function exitToSchool() { try { parent.postMessage({ type: 'sltera-run:exit', kills: state.kills, arrived: state.overReason === 'clear' }, location.origin); } catch (err) { /* opaque origin (file://) */ } }
 for (const id of ['exitBtn', 'pExitBtn']) $(id).addEventListener('click', exitToSchool);
 document.body.classList.toggle('embed', EMBED);
 applyStage(selStage);
