@@ -64,6 +64,7 @@ import { outfitEffectSummary, outfitName } from '../lib/outfitDisplay.js'
 import StageVendingPrompt from './StageVendingPrompt.jsx'
 import Stage4HazardGuide from './Stage4HazardGuide.jsx'
 import Stage5CallGuide from './Stage5CallGuide.jsx'
+import B10StampImpactOverlay from './B10StampImpactOverlay.jsx'
 import Stage6HudCues from './Stage6HudCues.jsx'
 import Stage6Programme from './Stage6Programme.jsx'
 import { useStage6ClearPanelHold } from './useStage6ClearPanelHold.js'
@@ -1497,6 +1498,8 @@ export default function HUD({
 
   return (
     <div style={styles.root}>
+      {/* Stage 5 B10 결재 도장 타격 순간 화면 도장 자국. 첫 자식 = 맨 아래 층: 뒤의 상단 HUD 띠·버튼·조이스틱이 항상 위에 그려진다. */}
+      {currentStageId === 'stage5' && <B10StampImpactOverlay gameKey={gameKey} phase={phase} />}
       {/* 저체력 비네트 */}
       {lowHp && (
         <div style={{

@@ -81,6 +81,7 @@ import { STAGE6_SFX } from '../lib/stage6AssemblySpeech.js'
 import { hasClearRangedSight, isRangedPropBlockStage } from '../lib/stageRangedBlockers.js'
 import { createExpansionAttackState, stepExpansionAttack, cancelExpansionAttack } from '../lib/expansionAttackRuntime.js'
 import { queueB10StampDeathMark } from './B10StampDeathMark.jsx'
+import { createB10StampImpactTracker, stepB10StampImpact } from '../lib/b10StampImpact.js'
 import { NOVEL2_ZOMBIE_STATS } from '../lib/novelZombie2Content.js'
 import { B10_SFX, STAGE5_BOSS_STATS, createB10SummonState, isAuthoredAttackBoss, isB10EnrageTransitionDone, stepB10SummonTriggers, AUTHORED_ATTACK_BOSSES } from '../lib/stage5ViceBoss.js'
 import { pushBossSummon } from '../lib/bossSummonQueue.js'
@@ -1084,6 +1085,8 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
   const b10PrevHpRatioRef = useRef(1)
   const b10SummonStopMsRef = useRef(0)
   const b10ActiveSfxKeyRef = useRef('')
+  // B10 결재 도장 타격 순간 화면 도장 자국(비주얼 전용, lib/b10StampImpact.js) — 공격마다 1회.
+  const b10StampImpactRef = useRef(null)
   // 확장 보스 소환 타이머(B05 '운동장 10바퀴')·패턴 windup SFX 1회 판정 키·등장 SFX 1회.
   const expansionSummonRef = useRef(null)
   const expansionWindupSfxKeyRef = useRef('')
@@ -1426,6 +1429,8 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
       if (authoredAttackBoss) {
         // 패턴 SFX: active 진입 프레임에 1회(도장 내려찍기 / 출석부 휘두르기). id는 soundmini 추가 전까지 무음.
         const snap=state.snapshot
+        // 화면 도장 자국: 도장(b10_p1)이 active로 넘어간 첫 프레임 = 위 피해 판정과 같은 프레임. windup에서는 안 뜬다.
+        stepB10StampImpact(b10StampImpactRef.current ??= createB10StampImpactTracker(), snap, store.gameKey)
         if (snap?.phase==='active' && b10ActiveSfxKeyRef.current!==snap.attackId) {
           b10ActiveSfxKeyRef.current=snap.attackId
           const sfxId=B10_SFX[snap.patternId]
