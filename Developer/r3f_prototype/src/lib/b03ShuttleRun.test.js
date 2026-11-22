@@ -79,7 +79,7 @@ describe('B03 왕복 오래달리기', () => {
   })
 
   it('첫 액티브 프레임의 이동량이 한 프레임 분량(속도×delta)을 넘지 않는다 — 순간이동 없음', () => {
-    // 한 프레임 최대 이동 = 기본속도 × 3 × delta. 옛 구현은 여기서 5유닛 이상 튀었다.
+    // 한 프레임 최대 이동 = 기본속도 × 배수(6) × delta. 옛 구현은 여기서 5유닛 이상 튀었다.
     const maxFrameTravel = B03_SHUTTLE_BASE_SPEED * B03_SHUTTLE_SPEED_MULTIPLIER * (FRAME_MS / 1000)
     for (const bossX of [-6.4, -3.1, -0.2, 0, 0.2, 2.7, 6.4]) {
       const { laneZ, startX, endX } = getB03ShuttleRunLaneFromBoss(bossX, 3.5, STAGE3_HALF_X, STAGE3_HALF_Z)
@@ -94,7 +94,7 @@ describe('B03 왕복 오래달리기', () => {
       // Enemy.jsx는 이 X와 보스의 실제 t.x 차이를 delta로 나눠 속도로 넣는다.
       const stepped = advanceB03ShuttleRun(state, FRAME_MS)
       expect(Math.abs(getB03ShuttleRunX(stepped) - bossX)).toBeLessThanOrEqual(maxFrameTravel + 1e-9)
-      // 그 속도 자체도 "평소 이동속도 ×3"을 넘지 않아야 한다.
+      // 그 속도 자체도 "평소 이동속도 × 배수(6)"를 넘지 않아야 한다.
       const impliedSpeed = Math.abs(getB03ShuttleRunX(stepped) - bossX) / (FRAME_MS / 1000)
       expect(impliedSpeed).toBeLessThanOrEqual(B03_SHUTTLE_BASE_SPEED * B03_SHUTTLE_SPEED_MULTIPLIER + 1e-6)
     }
@@ -167,25 +167,58 @@ describe('B03 왕복 오래달리기', () => {
   // 2026-08-29 사용자 지시 최종본: "평소 이동하는 애니메이션 그대로, 속도만 3배로
   // 그 직선 위를 걷는다. 1번 왕복한다."
   // 고정 duration 상수로는 이 사양을 지킬 수 없다 — 레인 길이에서 역산해야 한다.
-  it('편도 소요시간은 레인 길이 ÷ (기본속도 × 3)으로 역산된다', () => {
-    expect(B03_SHUTTLE_SPEED_MULTIPLIER).toBe(3)
+  // 2026-11-22 Terry "셔틀런필살기는 지금의 이동속도 2배": 배수 3 → 6.
+  it('편도 소요시간은 레인 길이 ÷ (기본속도 × 6)으로 역산된다', () => {
+    expect(B03_SHUTTLE_SPEED_MULTIPLIER).toBe(6)
     const distance = Math.abs(STAGE3_END_X - STAGE3_START_X)
     const expectedMs = (distance / (B03_SHUTTLE_BASE_SPEED * B03_SHUTTLE_SPEED_MULTIPLIER)) * 1000
     const state = startB03ShuttleRun(createB03ShuttleRunState(), 'sixtyFive', {
       laneZ: 0, startX: STAGE3_START_X, endX: STAGE3_END_X, baseSpeed: B03_SHUTTLE_BASE_SPEED,
     })
     expect(state.passDurationMs).toBeCloseTo(expectedMs, 6)
-    // stage3 최장 레인 실측: 13.2 / 1.5675 ≈ 8.42초 편도 → 왕복 ≈ 16.8초.
-    // 보스가 중앙에서 발동하면 편도 6.6이라 왕복 ≈ 8.4초다(출발점 = 보스 현재 X).
-    expect(state.passDurationMs).toBeCloseTo(8421.05, 1)
-    // 실효 이동속도가 정확히 기본속도의 3배인지 X 보간으로 직접 확인한다.
+    // stage3 최장 레인 실측: 13.2 / 3.135 ≈ 4.21초 편도 → 왕복 ≈ 8.4초(이전 ×3 때 8.42초 / 16.8초).
+    // 보스가 중앙에서 발동하면 편도 6.6이라 왕복 ≈ 4.2초다(출발점 = 보스 현재 X).
+    expect(state.passDurationMs).toBeCloseTo(4210.53, 1)
+    // 실효 이동속도가 정확히 기본속도의 6배인지 X 보간으로 직접 확인한다.
     const active = advanceB03ShuttleRun(state, B03_SHUTTLE_TELEGRAPH_MS)
     const oneSecondIn = advanceB03ShuttleRun(active, 1000)
     const travelled = getB03ShuttleRunX(oneSecondIn) - STAGE3_START_X
-    expect(travelled).toBeCloseTo(B03_SHUTTLE_BASE_SPEED * 3, 6)
+    expect(travelled).toBeCloseTo(B03_SHUTTLE_BASE_SPEED * 6, 6)
   })
 
-  it('레인이 길어져도 이동속도는 3배로 고정된다(길이에 비례해 시간만 늘어난다)', () => {
+  // 2026-11-22: 코스 속도만 2배다. 예고 리드타임(1.25초)과 "출발 전에 전체 코스를 보여 준다"는
+  // 계약은 그대로여야 한다 — 빨라진 만큼 예고 전에 보스가 움직이기 시작하면 안 된다.
+  it('셔틀런 코스 속도는 이전(×3)의 정확히 2배이고, 예고 리드타임과 전체 코스 예고는 그대로다', () => {
+    const OLD_COURSE_SPEED = 0.5225 * 3 // 1.5675 u/s (2026-08-29 ~ 2026-11-22)
+    expect(B03_SHUTTLE_BASE_SPEED * B03_SHUTTLE_SPEED_MULTIPLIER).toBeCloseTo(OLD_COURSE_SPEED * 2, 9)
+    expect(B03_SHUTTLE_BASE_SPEED * B03_SHUTTLE_SPEED_MULTIPLIER).toBeCloseTo(3.135, 9)
+    expect(getB03ShuttleBodyMaxStep(B03_SHUTTLE_BASE_SPEED, 1000)).toBeCloseTo(OLD_COURSE_SPEED * 2 * 2, 9)
+    expect(B03_SHUTTLE_TELEGRAPH_MS).toBe(1_250)
+
+    const state = startB03ShuttleRun(createB03ShuttleRunState(), 'sixtyFive', {
+      laneZ: 0, startX: STAGE3_START_X, endX: STAGE3_END_X, baseSpeed: B03_SHUTTLE_BASE_SPEED,
+    })
+    // 예고선은 출발 전부터 [startX, endX] 전체를 덮는다(속도와 무관한 기하).
+    const lane = getB03ShuttleRunLaneGeometry(state.startX, state.endX)
+    expect(lane.centerX).toBeCloseTo(0, 9)
+    expect(lane.length).toBeCloseTo(13.2, 9)
+    // 예고 1.25초 내내 보스 코스 좌표는 출발점에 머문다 — 이동은 예고가 끝난 뒤에만 시작된다.
+    for (let ms = 0; ms < B03_SHUTTLE_TELEGRAPH_MS; ms += 50) {
+      const during = advanceB03ShuttleRun(state, ms)
+      expect(during.phase).toBe('telegraph')
+      expect(getB03ShuttleRunX(during)).toBe(STAGE3_START_X)
+    }
+    const justBefore = advanceB03ShuttleRun(state, B03_SHUTTLE_TELEGRAPH_MS - 1)
+    expect(justBefore.phase).toBe('telegraph')
+    const atEnd = advanceB03ShuttleRun(state, B03_SHUTTLE_TELEGRAPH_MS)
+    expect(atEnd.phase).toBe('active')
+    expect(getB03ShuttleRunX(atEnd)).toBeCloseTo(STAGE3_START_X, 9)
+    // 편도 시간은 정확히 절반.
+    const oldPassMs = (13.2 / OLD_COURSE_SPEED) * 1000
+    expect(state.passDurationMs).toBeCloseTo(oldPassMs / 2, 6)
+  })
+
+  it('레인이 길어져도 이동속도는 6배로 고정된다(길이에 비례해 시간만 늘어난다)', () => {
     const short = getB03ShuttleRunPassDurationMs(-6.6, 6.6, B03_SHUTTLE_BASE_SPEED)
     const long = getB03ShuttleRunPassDurationMs(-13.2, 13.2, B03_SHUTTLE_BASE_SPEED)
     expect(long / short).toBeCloseTo(2, 10)
@@ -402,11 +435,13 @@ describe('B03 왕복 오래달리기', () => {
   })
 
   it('홉 수치는 피해·소요시간·속도 사양을 바꾸지 않는다', () => {
-    expect(B03_SHUTTLE_SPEED_MULTIPLIER).toBe(3)
+    expect(B03_SHUTTLE_SPEED_MULTIPLIER).toBe(6)
     expect(B03_SHUTTLE_TELEGRAPH_MS).toBe(1_250)
     expect(B03_SHUTTLE_STUN_MS).toBe(1_200)
     expect(B03_SHUTTLE_PLAYER_DAMAGE_RATIO).toBe(0.3)
     expect(getB03ShuttleHopCount(8421.05)).toBe(17)
+    // ×6 기준 stage3 최장 편도 4210.53ms → 홉 8회(홉당 ~526ms). 홉 높이·목표 간격 상수는 그대로.
+    expect(getB03ShuttleHopCount(4210.53)).toBe(8)
     expect(getB03ShuttleHopCount(0)).toBe(1)
   })
 

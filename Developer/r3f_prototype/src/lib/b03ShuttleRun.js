@@ -7,7 +7,9 @@
 // 아레나 가장자리로 고정이던 시절, 왕복이 너무 길다는 이유로 올린 값이었다. 지금은
 // 출발점이 보스의 현재 위치라 평균 편도가 짧아졌고, 사양도 "달리기"가 아니라
 // "평소 걷는 애니메이션 그대로 3배 속도로 그 직선 위를 걷는다"로 바뀌었다.
-export const B03_SHUTTLE_SPEED_MULTIPLIER = 3
+// 2026-11-22 Terry "3스테이지 체육선생 셔틀런필살기는 지금의 이동속도 2배": 3 → 6.
+// 평소 속도 0.5225 기준 코스 속도 1.5675 → 3.135 u/s. 예고(1.25초)·스턴·피해·레인 형태는 그대로다.
+export const B03_SHUTTLE_SPEED_MULTIPLIER = 6
 // ENEMY_STATS를 여기서 import하면 Enemy.jsx ↔ 이 모듈이 순환 참조가 된다.
 // 호출부(Enemy.jsx)가 stats.speed를 넘기는 것이 정본이고, 이 값은 그때의 폴백일 뿐이다.
 export const B03_SHUTTLE_BASE_SPEED = 0.5225
@@ -27,7 +29,7 @@ export function getB03ShuttleRunPlayerDamage(currentHp) {
   return Math.max(0, currentHp) * B03_SHUTTLE_PLAYER_DAMAGE_RATIO
 }
 
-// 편도 1회 소요시간(ms) = 레인 길이 / (기본 이동속도 × 3).
+// 편도 1회 소요시간(ms) = 레인 길이 / (기본 이동속도 × B03_SHUTTLE_SPEED_MULTIPLIER).
 // 길이 0(미시전 idle 상태의 기본값)일 때 advance의 나눗셈이 터지지 않도록 하한 1ms를 둔다.
 export function getB03ShuttleRunPassDurationMs(startX, endX, baseSpeed = B03_SHUTTLE_BASE_SPEED) {
   const distance = Math.abs(endX - startX)
