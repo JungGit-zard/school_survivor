@@ -70,7 +70,9 @@ describe('escape success choices', () => {
     useGameStore.setState({ currentStageId: 'stage3', phase: 'playing', elapsedMs: 240_000, bossDefeated: true, continuousScoreBase: 0 })
     renderSuccess()
     expect(container.querySelector('[data-testid="escape-continue-next-stage"]')).toBeNull()
-    expect(container.querySelector('[data-testid="nikuo-cut-catcher"]')).not.toBeNull()
+    // 결과창 대신 화이트아웃 → 니쿠오 컷(화이트아웃 타이밍은 HUD.nikuoCut.test.jsx).
+    expect(container.querySelector('[data-testid="nikuo-whiteout"]')).not.toBeNull()
+    expect(container.querySelector('[data-testid="escape-success-screen"]').style.visibility).toBe('hidden')
   })
 
   it.each(['stage1', 'stage2'])('continues a guest %s run into the next stage after this run boss defeat', async (stageId) => {

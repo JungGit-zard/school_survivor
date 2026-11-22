@@ -24,6 +24,12 @@ export const NIKUO_CUT_LINES = Object.freeze([
   Object.freeze({ id: 'ending.stage3.nikuo.004', speaker: 'nikuo' }),
 ])
 const CHOICE_STEP = NIKUO_CUT_LINES.length
+// Terry 2026-11-22: 탈출구를 밟으면 화면이 하얗게 바랜 뒤(화이트아웃) 바로 니쿠오 대사가 나온다.
+export const NIKUO_WHITEOUT_MS = 500
+
+function prefersReducedMotion() {
+  try { return Boolean(window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches) } catch { return false }
+}
 
 export function isNikuoCutStage(phase, stageId) {
   return phase === 'cleared' && stageId === NIKUO_CUT_STAGE_ID
@@ -33,16 +39,25 @@ export default function NikuoCut({ onFinish, dialogueStyles: ds }) {
   const t = useT()
   // 0..대사 수-1 = 대사, CHOICE_STEP = 선택지, -1 = 닫힘(레이서 중이거나 로비로 가는 중).
   const [step, setStep] = useState(0)
+  // 화이트아웃이 다 하얘진 뒤에만 대사를 띄운다. 모션 줄이기면 즉시 흰 화면.
+  const [reducedMotion] = useState(prefersReducedMotion)
+  const [whiteDone, setWhiteDone] = useState(reducedMotion)
+  useEffect(() => {
+    if (whiteDone) return undefined
+    const id = setTimeout(() => setWhiteDone(true), NIKUO_WHITEOUT_MS)
+    return () => clearTimeout(id)
+  }, [whiteDone])
   const [racerOpen, setRacerOpen] = useState(false)
   const line = step >= 0 && step < CHOICE_STEP ? NIKUO_CUT_LINES[step] : null
   const isRosari = line?.speaker === 'rosari'
 
   useEffect(() => {
+    if (!whiteDone) return undefined
     // 로자리 대사만 기존 주인공 목소리. 니쿠오 전용 목소리는 아직 없다(soundmini 몫) — 글자만 나온다.
     if (!line || line.speaker !== 'rosari') return undefined
     playDialogueVoice(getDialogueText(line.id), 'protagonistIntro', { volume: 1 })
     return () => stopDialogueVoice()
-  }, [line])
+  }, [line, whiteDone])
 
   // 두 출구(타지 않습니다 = 0킬, 레이서 종료 = 레이서 킬)는 모두 여기 한 곳을 지난다.
   const finish = useCallback((racerKills = 0) => {
@@ -56,7 +71,14 @@ export default function NikuoCut({ onFinish, dialogueStyles: ds }) {
 
   return (
     <>
-      {step >= 0 && (
+      {/* 흰 층은 컷이 끝날 때(레이서·로비)까지 대사 뒤에 깔린다. 결과창(50) 위, 대사 catcher(60) 아래. */}
+      <style>{'@keyframes nikuoWhiteoutIn{from{opacity:0}to{opacity:1}}'}</style>
+      <div
+        data-testid="nikuo-whiteout"
+        aria-hidden="true"
+        style={{ ...styles.whiteout, animation: reducedMotion ? 'none' : `nikuoWhiteoutIn ${NIKUO_WHITEOUT_MS}ms ease-out both` }}
+      />
+      {whiteDone && step >= 0 && (
         <div
           data-testid="nikuo-cut-catcher"
           style={ds.catcher}
@@ -131,6 +153,7 @@ export default function NikuoCut({ onFinish, dialogueStyles: ds }) {
 }
 
 const styles = {
+  whiteout: { position: 'absolute', inset: 0, background: '#fff', pointerEvents: 'auto', zIndex: 59 },
   // 니쿠오 초상: 실제 SlteraCar 모델에서 찍은 운전석 정사각 컷(로자리 초상과 달리 확대 없이 그대로).
   nikuoPortrait: {
     width: '100%',

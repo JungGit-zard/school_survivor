@@ -5,7 +5,7 @@ import React, { act } from 'react'
 import { createRoot } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import HUD from './HUD.jsx'
-import { NIKUO_CUT_LINES, NIKUO_CUT_STAGE_ID } from './NikuoCut.jsx'
+import { NIKUO_CUT_LINES, NIKUO_CUT_STAGE_ID, NIKUO_WHITEOUT_MS } from './NikuoCut.jsx'
 import { SLTERA_RUN_EXIT_MESSAGE, SLTERA_RUN_SRC, readSlteraRunResult } from './SlteraRunOverlay.jsx'
 import { useGameStore } from '../store/useGameStore.js'
 import { useAuthStore } from '../store/useAuthStore.js'
@@ -16,6 +16,7 @@ import { getDialogueText } from '../dialogues/dialogueStore.js'
 let root, container, originalState, originalLocale
 beforeEach(() => {
   vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT', true)
+  vi.useFakeTimers()
   originalState = useGameStore.getState()
   originalLocale = getLocale()
   setLocale('ko')
@@ -33,6 +34,7 @@ afterEach(() => {
   _seedHydratedFirebaseProgressForTests()
   setLocale(originalLocale)
   vi.unstubAllGlobals()
+  vi.useRealTimers()
 })
 
 const q = (id) => container.querySelector(`[data-testid="${id}"]`)
@@ -44,6 +46,8 @@ function renderCleared(stageId, extra = {}, props = {}) {
     useGameStore.setState({ currentStageId: stageId, phase: 'cleared', elapsedMs: 200_000, bossDefeated: true, ...extra })
     root.render(<HUD onGoToTitle={() => {}} onGoToLobby={onGoToLobby} onOpenCoinShop={() => {}} />)
   })
+  // 탈출 직후 화이트아웃이 다 하얘질 때까지 기다린다.
+  if (!props.holdWhiteout) act(() => vi.advanceTimersByTime(NIKUO_WHITEOUT_MS))
   return onGoToLobby
 }
 
@@ -52,6 +56,26 @@ function advanceToChoice() {
 }
 
 describe('Stage 3 clear: Nikuo arrives in the Sltera', () => {
+  it('whites out the screen first; the Nikuo dialogue appears right after the whiteout', () => {
+    renderCleared(NIKUO_CUT_STAGE_ID, {}, { holdWhiteout: true })
+    expect(q('nikuo-whiteout')).not.toBeNull()
+    expect(q('nikuo-cut-catcher')).toBeNull()
+    expect(q('escape-success-screen').style.visibility).toBe('hidden')
+    act(() => vi.advanceTimersByTime(NIKUO_WHITEOUT_MS - 1))
+    expect(q('nikuo-cut-catcher')).toBeNull()
+    act(() => vi.advanceTimersByTime(1))
+    expect(q('nikuo-cut-line').textContent).toBe(getDialogueText(NIKUO_CUT_LINES[0].id))
+    // 흰 층은 대사 뒤에 계속 깔린다.
+    expect(q('nikuo-whiteout')).not.toBeNull()
+    // 보스를 안 잡고 탈출해도 똑같다.
+    act(() => useGameStore.setState({ phase: 'playing', gameKey: useGameStore.getState().gameKey + 1 }))
+    renderCleared(NIKUO_CUT_STAGE_ID, { bossDefeated: false }, { holdWhiteout: true })
+    expect(q('nikuo-whiteout')).not.toBeNull()
+    expect(q('nikuo-cut-catcher')).toBeNull()
+    act(() => vi.advanceTimersByTime(NIKUO_WHITEOUT_MS))
+    expect(q('nikuo-cut-catcher')).not.toBeNull()
+  })
+
   it('plays the Nikuo lines with Nikuo as speaker and his Sltera portrait over the result screen', () => {
     renderCleared(NIKUO_CUT_STAGE_ID)
     expect(q('escape-success-screen').getAttribute('aria-hidden')).toBe('true')

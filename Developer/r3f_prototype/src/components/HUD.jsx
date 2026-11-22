@@ -2055,7 +2055,7 @@ export default function HUD({
       )}
 
       {phase === 'cleared' && !clearPanelHeld && (
-        <div data-testid="escape-success-screen" style={{ ...styles.overlay, ...styles.escapeOverlay }} aria-hidden={part1EndingOpen || isNikuoCutStage ? 'true' : undefined}>
+        <div data-testid="escape-success-screen" style={{ ...styles.overlay, ...styles.escapeOverlay, ...(isNikuoCutStage ? { visibility: 'hidden' } : null) }} aria-hidden={part1EndingOpen || isNikuoCutStage ? 'true' : undefined}>
           <section style={styles.escapePanel} aria-labelledby="escape-success-title">
             <img src={escapeSuccessSrc} alt="" style={styles.escapeImage} />
             <div style={styles.escapeContent}>
