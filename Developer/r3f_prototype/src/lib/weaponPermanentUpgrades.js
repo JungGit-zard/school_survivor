@@ -47,7 +47,7 @@ export const WEAPON_PERMANENT_UPGRADE_PLANS = {
   stunGun: makePlan('stunGun', '피해', '체인 수 +1', '짧은 경직 확률 +8%', DAMAGE_LEVELS, '치명타 확률', CRIT_CHANCE_LEVELS),
   onigiri: makePlan('onigiri', '투사체 속도', '바운스 횟수 +1', '바운스 횟수 추가 +1', ['+3%', '+6%', '+9%', '+12%'], '치명타 확률', CRIT_CHANCE_LEVELS),
   // 꼬마 로자리: 오니기리의 '투사체 속도'는 분신 이동속도가 컴포넌트 상수라 base에 speed가 없어 효과가
-  // 없다. 대신 정체성(한 방 무게)에 맞게 실제로 적용되는 '피해' +2~8%를 준다(Lv10 34 → 36.7).
+  // 없다. 대신 정체성(한 방 무게)에 맞게 실제로 적용되는 '피해' +2~8%를 준다(Lv10 170 → 183.6, 2026-11-22 저녁 base).
   miniRosari: makePlan('miniRosari', '피해', '바운스 횟수 +1', '바운스 횟수 추가 +1', DAMAGE_LEVELS, '치명타 확률', CRIT_CHANCE_LEVELS),
   // 종이비행기: 5·10레벨에 관통 +1씩 — 맞힌 좀비를 뚫고 지나가 뒤의 좀비도 맞힌다(카드 cap 4 = 기본 1 + 카드 1 + 영구 2).
   paperPlane: makePlan('paperPlane', '피해', '관통 +1', '관통 추가 +1', DAMAGE_LEVELS, '치명타 확률', CRIT_CHANCE_LEVELS),

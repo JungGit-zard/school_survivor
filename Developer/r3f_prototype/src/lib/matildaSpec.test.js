@@ -111,13 +111,23 @@ describe('마틸다 S2 체력 = DPS × 1800초', () => {
   })
 
   // 꼬마 로자리 바운스는 hitSet 때문에 같은 적을 두 번 때리지 않는다 — 마틸다 HP에 바운스를 곱하지 않는다.
-  it('꼬마 로자리는 damage × 발사율 × 기대 치명타만 마틸다 HP에 기여하고 바운스는 곱하지 않는다', () => {
+  // 2026-11-22 저녁: 화면 1개 · 사라진 뒤 대기 → 발동 간격은 cooldown이 아니라 사이클(추정 수명 + 대기, 최소 3초).
+  it('오니기리·꼬마 로자리는 damage × 기대 치명타 / 사이클(수명 + 대기)만 마틸다 HP에 기여하고 바운스는 곱하지 않는다', () => {
     const mini = { ...WEAPON_CATALOG.miniRosari.base, active: true }
-    const expected = (34 / 3) * (1 + 0.12 * 0.5)
+    const life = (hits) => ((3.0 + 1.5 * (hits - 1)) / (11 / 8)) * 1000
+    const expected = (170 * (1 + 0.12 * 0.5) * 1000) / (life(3) + 10000)
 
     expect(estimatePlayerDps({ miniRosari: mini })).toBeCloseTo(expected, 10)
-    expect(estimatePlayerDps({ miniRosari: { ...mini, bounces: 9 } })).toBeCloseTo(expected, 10)
+    expect(estimatePlayerDps({ miniRosari: { ...mini, bounces: 9 } })).toBeCloseTo((170 * 1.06 * 1000) / (life(9) + 10000), 10)
+    expect(estimatePlayerDps({ miniRosari: { ...mini, bounces: 9 } })).toBeLessThan(expected)
     expect(matildaHpFromWeapons({ miniRosari: mini })).toBeCloseTo(expected * 1800, 6)
+    // 94452e62(34 / 3초)의 마틸다 기여 12.01/s와 거의 같다(+4%) — 한 방이 커진 만큼 HP가 부풀지 않는다.
+    expect(expected / ((34 / 3) * 1.06)).toBeCloseTo(1.045, 2)
+
+    const oni = { ...WEAPON_CATALOG.onigiri.base, active: true }
+    expect(estimatePlayerDps({ onigiri: oni })).toBeCloseTo((230 * 1.04 * 1000) / (life(3) + 10000), 10)
+    // 대기 시간이 손놀림·치비코로 3초 아래 값이 돼도 추정은 3초로 센다.
+    expect(estimatePlayerDps({ onigiri: { ...oni, bounces: 5, cooldown: 1200 } })).toBeCloseTo((230 * 1.04 * 1000) / (life(5) + 3000), 10)
   })
 
   // balanceqa 2026-10-31 ③: 오리요강은 3타 → 폭발 30(치명타 없음) → 리스폰 3초 사이클(4.5초)로 센다.

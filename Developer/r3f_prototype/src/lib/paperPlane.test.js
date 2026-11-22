@@ -97,8 +97,9 @@ describe('paper plane weapon — catalog & cards', () => {
     expect(dps('paperPlane')).toBeLessThan(dps('onigiri'))
     expect(WEAPON_CATALOG.guidedMissile.base).toMatchObject({ damage: expect.any(Number) })
     expect(WEAPON_CATALOG.pencilThrow.base.damage).toBe(2.4)
-    expect(WEAPON_CATALOG.onigiri.base.damage).toBe(75) // 2026-11-22 주먹밥 정리(바운스 6→3 보상)
-    expect(WEAPON_CATALOG.miniRosari.base.damage).toBe(34)
+    // 2026-11-22 저녁: 화면 1개 · 사라진 뒤 대기 10초 → 한 방 75→230, 34→170(유효 DPS는 사이클 기준으로 예전과 비슷).
+    expect(WEAPON_CATALOG.onigiri.base.damage).toBe(230)
+    expect(WEAPON_CATALOG.miniRosari.base.damage).toBe(170)
   })
 
   it('has ko (HUD) / en / ja card names and descriptions and an icon', () => {

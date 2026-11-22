@@ -8,9 +8,10 @@ import { findClosestEnemy } from '../../lib/weaponTargeting.js'
 import { applyEnemyHit } from '../../lib/weaponCollision.js'
 import {
   FLIGHT_FADING, FLIGHT_HOVERING, MINI_ROSARI_HOVER_TIMEOUT_MS, MINI_ROSARI_MAX_ALIVE, addSwarmProjectile,
-  clearProjectileSwarm, countFadingProjectiles, countHoveringProjectiles, createProjectileSwarm, maxHoverMs,
-  planOnigiriFrame, projectileFadeProgress, stepProjectileSwarm,
+  clearProjectileSwarm, countFadingProjectiles, countHoveringProjectiles, createProjectileSwarm, isProjectileSwarmReady,
+  maxHoverMs, planOnigiriFrame, projectileFadeProgress, stepProjectileSwarm,
 } from '../../lib/onigiri.js'
+import { SINGLE_PROJECTILE_SPEED } from '../../lib/singleProjectileCycle.js'
 import PlayerMesh from '../PlayerMesh.jsx'
 import PlayerV9Model from '../PlayerV9Model.jsx'
 import PlayerRosariModel from '../PlayerRosariModel.jsx'
@@ -23,9 +24,10 @@ import { loadSavedPlayerAppearance, resolvePlayerAppearance } from '../Player.js
 // 깡충깡충 뛰어가 부딪히고, bounceRange 안의 다음 적으로 튕겨 간다(오니기리와 같은 바운스 규칙).
 // 수치는 전부 weaponCatalog.js의 miniRosari.base 한 곳에서 조정한다.
 //
-// 2026-11-22 Terry "주먹밥, 미니로자리를 정리하자": 화면에 분신은 최대 MINI_ROSARI_MAX_ALIVE(3)명 — 3명이
-// 살아 있으면 쿨다운이 차도 기다렸다가 하나가 사라지는 다음 프레임에 던진다(예전 11-02 "상한 없음"을 대체).
-// 분신 모델은 슬롯 풀로 재사용한다: 무기를 얻는 순간 3명분을 미리 만들어 두고, 빈 슬롯이 없을 때만 하나
+// 2026-11-22 Terry(저녁 개정) "무조건 한 화면에 1개만": 화면에 분신은 MINI_ROSARI_MAX_ALIVE(1)명뿐이다.
+// 그 1명이 사라진 순간부터 대기 시간(Lv1 10초 → Lv5 3초, 최소 3초)을 재고, 다 차면 다음 1명을 던진다
+// (lib/singleProjectileCycle.js). 예전 11-02 "상한 없음"·11-22 낮 "최대 3명"을 대체한다.
+// 분신 모델은 슬롯 풀로 재사용한다: 무기를 얻는 순간 1명분을 미리 만들어 두고, 빈 슬롯이 없을 때만 하나
 // 늘린다(상한 때문에 실제로는 늘지 않는다). 풀은 줄이지 않는다(쓰지 않는 분신은 숨김). 발사할 때마다 모델을
 // 다시 복제하지 않고 위치·표시만 바꾼다(3c0bcbe8 모바일 CPU 절약 유지).
 export const MINI_ROSARI_SCALE = 0.5
@@ -33,7 +35,7 @@ export const MINI_ROSARI_SCALE = 0.5
 const MINI_ROSARI_FOOT_OFFSET = 0.32 * MINI_ROSARI_SCALE
 const MINI_ROSARI_HOP_HEIGHT = 0.22
 // 이동 속도(units/s). 2026-10-28 오니기리 분신 시절 값 11/8 그대로.
-const MINI_ROSARI_SPEED = 11 / 8
+const MINI_ROSARI_SPEED = SINGLE_PROJECTILE_SPEED
 
 let _miniRosariId = 0
 const nextMiniRosariId = () => ++_miniRosariId
@@ -68,7 +70,7 @@ export function hideMiniRosariClone(group, id) {
 }
 
 // ── 렌더 비용 완화(balanceqa F2, 2026-11-02) — 게임플레이(탐색·피격)는 건드리지 않는다 ──
-// 분신 1개 = 주인공 전체 모델 복제(메시 31~43개 + 외곽선 헐). 기다리는 분신은 상한 없이 쌓일 수 있다.
+// 분신 1개 = 주인공 전체 모델 복제(메시 31~43개 + 외곽선 헐). (당시에는 기다리는 분신이 상한 없이 쌓였다 — 2026-11-22부터 화면 1명.)
 // 1) 분신은 그림자를 드리우지 않는다. 복제 함수(clonePlayer*Scene)는 본체·타이틀과 공유라 손대지 않고,
 //    슬롯 그룹 아래 메시만 끈다(슬롯마다 1번). 반환값 = 끈 메시 수(아직 모델이 안 붙었으면 0).
 export function disableMiniRosariCloneShadows(root) {
@@ -107,7 +109,7 @@ export function shouldRenderMiniRosariClone(flightState, camera, x, y, z) {
 // 2026-11-22 Terry "공격대상을 찾지 못하고 3초가 지나면 그 자리에서 스르륵 사라진다": 표적 없이
 // MINI_ROSARI_HOVER_TIMEOUT_MS(3초) 떠 있던 분신은 PROJECTILE_FADE_MS(0.4초) 동안 그 자리에서 부드럽게 작아지며
 // 살짝 가라앉아 사라진다(11-13의 180ms "펑"을 대체). 새 이펙트 없이 슬롯 group 축척만 바꾸는 싼 연출이다.
-// 사라지는 동안에는 탐색·피격이 없고, 화면 3명에는 센다. 시간은 게임 시간.
+// 사라지는 동안에는 탐색·피격이 없고, 화면 1명에 센다. 시간은 게임 시간.
 const MINI_ROSARI_FADE_SINK = 0.12
 
 export function miniRosariFadeScale(fade) {
@@ -183,7 +185,7 @@ export function releaseMiniRosariSlot(slots, ownerId) {
 }
 
 // 2026-11-17 끊김 수정: 예전에는 4초 동안 안 쓴 끝 슬롯을 내려놓았다가(분신 1개 = 주인공 모델 복제 1벌, 메시 약 86개)
-// 다음 투척 때 다시 복제해 그 프레임이 멈췄다. 이제 무기를 얻는 순간 화면 상한(3명)만큼 미리 만들고 줄이지 않는다.
+// 다음 투척 때 다시 복제해 그 프레임이 멈췄다. 이제 무기를 얻는 순간 화면 상한(1명)만큼 미리 만들고 줄이지 않는다.
 // 반환값 = 새로 만든 슬롯 수.
 export const MINI_ROSARI_PREBUILT_SLOTS = MINI_ROSARI_MAX_ALIVE
 
@@ -203,6 +205,7 @@ export function getMiniRosariWeaponStats() {
   const { swarm, slotsRef } = _live
   return {
     projectiles: swarm.entries.length,
+    msSinceRetire: swarm.msSinceRetire,
     hovering: countHoveringProjectiles(swarm),
     fading: countFadingProjectiles(swarm),
     maxHoverMs: maxHoverMs(swarm),
@@ -214,7 +217,6 @@ export function getMiniRosariWeaponStats() {
 export function MiniRosariWeapon() {
   // 분신 슬롯 풀. 슬롯의 activeRef는 그 분신이 살아 있는 동안만 true — 숨겨진 분신의 포즈 계산을 멈춘다.
   const slotsRef     = useRef([])
-  const lastFireRef  = useRef(0)
   // 슬롯 수가 바뀔 때만 다시 그린다(미리 만들기 / 무기가 빠질 때).
   const [, setSlotVersion] = useState(0)
   const swarmRef = useRef(null)
@@ -274,37 +276,30 @@ export function MiniRosariWeapon() {
     }
     if (prefillMiniRosariSlots(slotsRef.current) > 0) setSlotVersion((v) => v + 1)
   }, [active, resetAll])
-  // 판이 새로 시작되면(gameKey) 쿨다운·분신·슬롯을 모두 처음 상태로.
+  // 판이 새로 시작되면(gameKey) 대기 시간·분신·슬롯을 모두 처음 상태로(resetAll이 대기 시간도 비운다).
   useEffect(() => {
     resetAll()
-    lastFireRef.current = 0
   }, [gameKey, resetAll])
 
-  usePlayingFrame(({ clock, camera }, delta) => {
+  usePlayingFrame(({ camera }, delta) => {
     const w = weapons.miniRosari
     if (phase !== 'playing' || !w?.active) return
-    const now = clock.elapsedTime * 1000
     const swarm = swarmRef.current
     const slots = slotsRef.current
 
-    // 쿨다운이 차면 1명(balanceqa F3: 쿨다운 전에는 아무것도 만들지 않는다).
-    // 2026-11-22 Terry: 화면에 최대 3명 — 3명이 살아 있으면(사라지는 중 포함) 기다리고, 하나가 사라지는 바로
-    // 다음 프레임에 던진다. 새 분신은 언제나 이번 프레임의 주인공 몸(playerPos)에서 출발한다 — 오니기리와 같은
-    // 공용 판단(planOnigiriFrame).
-    if (now - lastFireRef.current >= w.cooldown) {
+    // 2026-11-22 저녁 Terry: 화면에 1명 — 살아 있는 분신(사라지는 중 포함)이 없고, 그 분신이 사라진 뒤 대기
+    // 시간이 다 찼을 때만 1명(balanceqa F3: 준비 전에는 표적도 찾지 않고 아무것도 만들지 않는다).
+    // 새 분신은 언제나 이번 프레임의 주인공 몸(playerPos)에서 출발한다 — 오니기리와 같은 공용 판단(planOnigiriFrame).
+    if (isProjectileSwarmReady(swarm, w)) {
       const launch = planOnigiriFrame({
-        now,
-        lastFireAt: lastFireRef.current,
         weapon: w,
         origin: playerPos,
         findFreshTarget: findClosestEnemy,
         nextId: nextMiniRosariId,
-        aliveCount: swarm.entries.length,
-        maxAlive: swarm.maxAlive,
+        swarm,
       })
       const entry = launch && addSwarmProjectile(swarm, launch, { slotIndex: -1, hopPhase: 0 })
       if (entry) {
-        lastFireRef.current = now
         emitSfx({ id: 'onigiriFire' })
         const before = slots.length
         entry.slotIndex = claimMiniRosariSlot(slots, launch.id)

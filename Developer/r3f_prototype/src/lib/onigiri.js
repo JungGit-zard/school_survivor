@@ -1,5 +1,6 @@
 import { enemyBodies as globalEnemyBodies, enemyPool, enemySimulationRuntime } from './refs.js'
 import { captureEnemyGeneration, isEnemyHitLive } from './weaponCollision.js'
+import { effectiveSingleProjectileCooldownMs } from './singleProjectileCycle.js'
 
 function isPoolProxy(rb) {
   return Number.isInteger(rb?.index) && rb.index >= 0 && rb.index < enemyPool.proxies.length
@@ -140,17 +141,19 @@ export function createOnigiriLaunch({ id, origin, target, weapon, bounceCap = Nu
   }
 }
 
-// ── 화면 체류 상한(2026-11-22 Terry "주먹밥, 미니로자리를 정리하자") ──
-// "둘 다 절대 화면에 최대 체류 개수는 3개" · "이전 발사체가 사라지지 않으면 새로 발사될 수 없다"
-// · "여러 수십 개가 화면에 머무르는 일은 없다" · "공격대상을 찾지 못하고 3초가 지나면 그 자리에서 스르륵 사라진다".
-// - 무기 하나당 살아 있는 발사체(날아감·바운스·떠서 찾는 중·사라지는 중 전부)는 PROJECTILE_MAX_ALIVE개를 넘지 않는다.
-//   레벨·패시브·영구강화·치비코·쿨다운 감소 어느 것도 이 수를 늘리지 못한다(무리 자체가 넣기를 거절한다).
-// - 3개가 살아 있으면 쿨다운이 차도 던지지 않고 기다린다. 하나가 사라지면 **그 다음 프레임에 바로** 던진다
-//   (쿨다운은 이미 찼으므로 다음 쿨다운까지 또 기다리지 않는다). 살아 있는 발사체를 지워 자리를 만들지 않는다.
+// ── 화면 체류 상한·대기 시간(2026-11-22 Terry, 같은 날 저녁 개정) ──
+// 낮: "둘 다 절대 화면에 최대 체류 개수는 3개" · "공격대상을 찾지 못하고 3초가 지나면 그 자리에서 스르륵 사라진다".
+// 저녁: "미니로자리, 오니기리는 둘다 무조건 한 화면에 1개만 존재 가능하게"
+//       "1개 발사된 발사체가 사라지면 직후부터 대기시간이 적용되고 10초로부터 업그레이드 하면 3초까지 짧아질 수 있도록"
+// - 무기 하나당 살아 있는 발사체(날아감·바운스·떠서 찾는 중·사라지는 중 전부)는 PROJECTILE_MAX_ALIVE(1)개다.
+//   레벨·패시브·영구강화·치비코·쿨다운 감소·캐릭터 보너스 어느 것도 이 수를 늘리지 못한다 — 무리는 만들 때 이
+//   상한으로 묶이고(createProjectileSwarm), 넣기를 거절한다(addSwarmProjectile).
+// - 대기 시간은 **그 1개가 사라진 순간**(바운스 소진·3초 대기 뒤 스르륵 사라짐, 이유 무관)부터 게임 시간으로 잰다
+//   (swarm.msSinceRetire). 던질 때부터 재지 않는다. 다 차면(effectiveSingleProjectileCooldownMs — 최소 3초)
+//   사거리 안 적이 있는 첫 프레임에 다음 1개를 던진다. 무기를 처음 얻었을 때·판 리셋 뒤에는 바로 던진다.
 // - 표적 없이 PROJECTILE_NO_TARGET_TIMEOUT_MS(게임 시간) 떠 있으면 그 자리에서 PROJECTILE_FADE_MS 동안
-//   스르륵 사라진 뒤 빠진다. 사라지는 동안에도 3개에 센다. 표적을 잡으면 대기 시간은 0으로 돌아간다.
-// 이 규칙이 2026-11-13 "대기 시간+안전 상한"(오니기리 12초/24개, 꼬마 로자리 8초/8개)을 대체한다.
-export const PROJECTILE_MAX_ALIVE = 3
+//   스르륵 사라진 뒤 빠진다. 사라지는 동안에도 1개로 센다. 표적을 잡으면 대기 시간은 0으로 돌아간다.
+export const PROJECTILE_MAX_ALIVE = 1
 export const PROJECTILE_NO_TARGET_TIMEOUT_MS = 3000
 export const PROJECTILE_FADE_MS = 400
 export const ONIGIRI_MAX_ALIVE = PROJECTILE_MAX_ALIVE
@@ -158,14 +161,18 @@ export const MINI_ROSARI_MAX_ALIVE = PROJECTILE_MAX_ALIVE
 export const ONIGIRI_HOVER_TIMEOUT_MS = PROJECTILE_NO_TARGET_TIMEOUT_MS
 export const MINI_ROSARI_HOVER_TIMEOUT_MS = PROJECTILE_NO_TARGET_TIMEOUT_MS
 
-// 새 투척 판단(오니기리·꼬마 로자리 공용). 쿨다운이 차고, 살아 있는 발사체가 maxAlive보다 적고,
-// 사거리(weapon.range) 안에 적이 있으면 주인공 몸에서 1발 던진다. 자리가 없으면 표적도 찾지 않는다.
+// 새 투척 판단(오니기리·꼬마 로자리 공용). 살아 있는 발사체가 없고(maxAlive 미만), 마지막 발사체가 사라진 뒤
+// 대기 시간(최소 3초)이 다 찼고, 사거리(weapon.range) 안에 적이 있으면 주인공 몸에서 1발 던진다.
+// swarm을 넘기면 그 무리의 살아 있는 수·상한·사라진 뒤 경과 시간을 그대로 쓴다. 준비가 안 됐으면 표적도 찾지 않는다.
 export function planOnigiriFrame({
-  now, lastFireAt, weapon, origin, findFreshTarget, nextId,
-  aliveCount = 0, maxAlive = PROJECTILE_MAX_ALIVE, bounceCap,
+  weapon, origin, findFreshTarget, nextId, swarm = null,
+  aliveCount = swarm ? swarm.entries.length : 0,
+  maxAlive = swarm ? swarm.maxAlive : PROJECTILE_MAX_ALIVE,
+  msSinceRetire = swarm ? swarm.msSinceRetire : Number.POSITIVE_INFINITY,
+  bounceCap,
 }) {
-  if (now - lastFireAt < weapon.cooldown) return null
-  if (aliveCount >= maxAlive) return null
+  if (aliveCount >= Math.min(maxAlive, PROJECTILE_MAX_ALIVE)) return null
+  if (msSinceRetire < effectiveSingleProjectileCooldownMs(weapon)) return null
   const target = findFreshTarget(weapon.range ?? 18)
   if (!target) return null
   return createOnigiriLaunch({ id: nextId(), origin, target, weapon, bounceCap })
@@ -319,7 +326,9 @@ function releaseFlight(flight) {
 //   2) 바운스를 다 쓴 것은 'done'으로 끝낸다.
 //   3) 표적 없이 대기 시간이 다 된 것은 그 자리에서 사라지기 시작한다(FLIGHT_FADING, 탐색·피격 없음).
 //   4) 끝난 것은 onRetire(entry, reason)를 부른 뒤 목록에서 제자리 제거한다(할당 없음).
-// 무리 크기(사라지는 중 포함)는 addSwarmProjectile이 maxAlive에서 막으므로 언제나 ≤ maxAlive다.
+// 무리 크기(사라지는 중 포함)는 addSwarmProjectile이 maxAlive(1)에서 막으므로 언제나 ≤ 1이다.
+// 대기 시간: 스텝을 시작할 때 살아 있는 발사체가 없으면 msSinceRetire에 delta를 더하고, 이번 스텝에 하나라도
+// 끝나면 0으로 되돌린다 → 사라진 바로 그 순간부터 잰다(2026-11-22 저녁 Terry).
 // delta는 게임 시간(usePlayingFrame의 고정 스텝)이다 — 일시정지·레벨업·대화·컷신·탭 숨김 중에는 스텝이
 // 돌지 않으므로 대기 시간도 페이드도 흐르지 않는다.
 export const RETIRE_DONE = 'done'
@@ -331,7 +340,21 @@ export function createProjectileSwarm({
   maxAlive = PROJECTILE_MAX_ALIVE,
   fadeMs = PROJECTILE_FADE_MS,
 }) {
-  return { entries: [], speed, hoverTimeoutMs, maxAlive, fadeMs }
+  // 상한은 PROJECTILE_MAX_ALIVE를 넘지 못한다 — 호출 측이 더 큰 수를 넘겨도 1로 묶는다.
+  const cap = Math.max(1, Math.min(PROJECTILE_MAX_ALIVE, Math.floor(Number.isFinite(maxAlive) ? maxAlive : PROJECTILE_MAX_ALIVE)))
+  // msSinceRetire: 마지막 발사체가 사라진 뒤 흐른 게임 시간(ms). 처음엔 무한대 = 바로 던질 수 있다.
+  return { entries: [], speed, hoverTimeoutMs, maxAlive: cap, fadeMs, msSinceRetire: Number.POSITIVE_INFINITY }
+}
+
+// 대기 시간까지 다 찼는가(살아 있는 발사체 없음 + 사라진 뒤 대기 시간 경과). 표적 유무는 보지 않는다.
+export function isProjectileSwarmReady(swarm, weapon) {
+  return canLaunchProjectile(swarm) && swarm.msSinceRetire >= effectiveSingleProjectileCooldownMs(weapon)
+}
+
+// 남은 대기 시간(ms). 살아 있는 발사체가 있으면 null(아직 대기 시간이 시작되지 않았다).
+export function projectileCooldownRemainingMs(swarm, weapon) {
+  if (!canLaunchProjectile(swarm)) return null
+  return Math.max(0, effectiveSingleProjectileCooldownMs(weapon) - swarm.msSinceRetire)
 }
 
 // 지금 한 발 더 던질 자리가 있는가(사라지는 중인 것도 센다).
@@ -374,6 +397,7 @@ export function countFadingProjectiles(swarm) {
 
 export function stepProjectileSwarm(swarm, delta, { onHit = null, onRetire = null, enemyBodies = globalEnemyBodies } = {}) {
   const entries = swarm.entries
+  if (entries.length === 0) swarm.msSinceRetire += delta * 1000
   for (let i = 0; i < entries.length; i += 1) {
     const entry = entries[i]
     if (entry.justLaunched) { entry.justLaunched = false; continue }
@@ -399,6 +423,7 @@ export function stepProjectileSwarm(swarm, delta, { onHit = null, onRetire = nul
   for (let i = 0; i < entries.length; i += 1) {
     const entry = entries[i]
     if (entry.retired) {
+      swarm.msSinceRetire = 0 // 사라진 바로 이 순간부터 대기 시간을 잰다.
       if (onRetire) onRetire(entry, entry.retired)
       releaseFlight(entry.flight)
       continue
@@ -410,10 +435,12 @@ export function stepProjectileSwarm(swarm, delta, { onHit = null, onRetire = nul
 }
 
 // 무기 해제·판 리셋: 남은 발사체를 전부 onRetire 없이 비운다(호출 측이 슬롯을 함께 놓는다).
+// 대기 시간도 처음 상태(바로 던질 수 있음)로 돌린다 — 다시 얻거나 새 판이면 기다리지 않고 바로 던진다.
 export function clearProjectileSwarm(swarm, onEach = null) {
   for (let i = 0; i < swarm.entries.length; i += 1) {
     if (onEach) onEach(swarm.entries[i])
     releaseFlight(swarm.entries[i].flight)
   }
   swarm.entries.length = 0
+  swarm.msSinceRetire = Number.POSITIVE_INFINITY
 }

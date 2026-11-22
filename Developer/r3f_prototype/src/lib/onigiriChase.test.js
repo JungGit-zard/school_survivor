@@ -176,18 +176,17 @@ describe('a chase that is not closing in gives up (2026-11-14)', () => {
 // 마틸다는 로자리 둘레 반지름 5u 원을 돈다(두 무기 사거리 안: 오니기리 18u, 분신 7.5u → 쿨다운마다 계속 던진다).
 // 속도: 처음 60초 0.5u/s(잡힌다), 이후 20초마다 대시 +0.35u/s, 상한 5u/s(1.375u/s를 곧 넘는다).
 //
-// 2026-11-22 Terry: 이제 상한은 유도식이 아니라 규칙이다 — 날아가는·떠 있는·사라지는 것 전부 합쳐 무기당 3개.
-// 추격 포기(최장 ≈36초)는 그대로라, 자리가 나는 대로 10분 내내 계속 던진다(마지막 1분에도 던진다).
+// 2026-11-22 Terry: 이제 상한은 유도식이 아니라 규칙이다 — 날아가는·떠 있는·사라지는 것 전부 합쳐 무기당 1개(저녁 개정).
+// 대기 시간은 그 1개가 사라진 뒤부터 잰다. 추격 포기(최장 ≈36초)는 그대로라 10분 내내 계속 던진다(마지막 1분에도).
 describe('test 4: 10 minutes post-exit with a Matilda-like target that speeds up per dash', () => {
   it.each([
     ['onigiri', { ...WEAPON_CATALOG.onigiri.base, active: true, bounces: 12, cooldown: 4000 }, ONIGIRI_HOVER_TIMEOUT_MS, ONIGIRI_MAX_ALIVE],
     ['miniRosari', { ...WEAPON_CATALOG.miniRosari.base, active: true, bounces: 9, cooldown: 2400 }, MINI_ROSARI_HOVER_TIMEOUT_MS, MINI_ROSARI_MAX_ALIVE],
-  ])('%s: live projectiles (flying + hovering + fading) never exceed 3, and throwing never stops', (_, weapon, timeoutMs, maxAlive) => {
+  ])('%s: live projectiles (flying + hovering + fading) never exceed 1, and throwing never stops', (_, weapon, timeoutMs, maxAlive) => {
     const boss = movingBoss('B01', 5, 0)
     const swarm = swarmFor(timeoutMs, maxAlive)
     const player = { x: 0, y: 0.32, z: 0 }
     let angle = 0
-    let lastFire = -1e9
     let maxLive = 0
     let maxChaseSec = 0
     let launched = 0
@@ -199,17 +198,14 @@ describe('test 4: 10 minutes post-exit with a Matilda-like target that speeds up
       angle += (speed / 5) * DT
       boss.pos.x = Math.cos(angle) * 5
       boss.pos.z = Math.sin(angle) * 5
-      if ((t * 1000) - lastFire >= weapon.cooldown) {
-        const plan = planOnigiriFrame({
-          now: t * 1000, lastFireAt: lastFire, weapon, origin: player,
-          findFreshTarget: (range) => pickNextOnigiriTarget({ from: player, range }),
-          nextId: () => ++nextId,
-          aliveCount: swarm.entries.length, maxAlive: swarm.maxAlive,
-        })
-        if (plan && addSwarmProjectile(swarm, plan, { born: t })) { lastFire = t * 1000; launched += 1; lastLaunchT = t }
-      }
+      const plan = planOnigiriFrame({
+        weapon, origin: player, swarm,
+        findFreshTarget: (range) => pickNextOnigiriTarget({ from: player, range }),
+        nextId: () => ++nextId,
+      })
+      if (plan && addSwarmProjectile(swarm, plan, { born: t })) { launched += 1; lastLaunchT = t }
       stepProjectileSwarm(swarm, DT)
-      expect(swarm.entries.length).toBeLessThanOrEqual(3)
+      expect(swarm.entries.length).toBeLessThanOrEqual(1)
       maxLive = Math.max(maxLive, swarm.entries.length)
       for (const e of swarm.entries) {
         if (!e.flight.hovering && e.state !== FLIGHT_FADING) maxChaseSec = Math.max(maxChaseSec, t - e.born)
@@ -217,7 +213,7 @@ describe('test 4: 10 minutes post-exit with a Matilda-like target that speeds up
     }
     expect(launched).toBeGreaterThan(20)
     expect(lastLaunchT).toBeGreaterThan(540) // 마지막 1분에도 던졌다
-    expect(maxLive).toBe(3) // 상한이 실제로 걸렸다
+    expect(maxLive).toBe(1)
     expect(maxChaseSec).toBeLessThanOrEqual(36.5)
   }, 120_000)
 })

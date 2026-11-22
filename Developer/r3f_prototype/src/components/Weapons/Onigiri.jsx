@@ -12,9 +12,10 @@ import { applyEnemyHit } from '../../lib/weaponCollision.js'
 import {
   FLIGHT_FADING, ONIGIRI_HOVER_TIMEOUT_MS, ONIGIRI_MAX_ALIVE, RETIRE_DONE, addSwarmProjectile, clearProjectileSwarm,
   countFadingProjectiles, countHoveringProjectiles, maxHoverMs, createOnigiriBurstGrains, createProjectileSwarm,
-  planOnigiriFrame, projectileFadeProgress, stepProjectileSwarm,
+  isProjectileSwarmReady, planOnigiriFrame, projectileFadeProgress, stepProjectileSwarm,
 } from '../../lib/onigiri.js'
 import { ONIGIRI_MAX_BOUNCES } from '../../lib/weaponCatalog.js'
+import { SINGLE_PROJECTILE_SPEED } from '../../lib/singleProjectileCycle.js'
 import StudioTunedGroup from '../StudioTunedGroup.jsx'
 import { ONIGIRI_BURST_GRAINS, ONIGIRI_BURST_LIFE_MS, createOnigiriBodyLayer, createOnigiriGrainLayer } from '../../lib/onigiriInstanceLayer.js'
 
@@ -71,11 +72,12 @@ export function OnigiiriModel() {
 // 2026-11-13 렌더 비용 완화 → 2026-11-22 Terry "주먹밥, 미니로자리를 정리하자":
 // - 주먹밥·쌀알은 InstancedMesh 층(lib/onigiriInstanceLayer.js)이 한 번에 그린다. 모양은 아래 무기가 1벌만
 //   두는 Studio 튜닝 템플릿(<OnigiiriModel />)에서 그대로 가져온다.
-// - 무기 1개가 자기 주먹밥 전부를 한 루프(stepProjectileSwarm)로 진행한다. 화면에는 언제나 최대
-//   ONIGIRI_MAX_ALIVE(3)개 — 3개가 살아 있으면 쿨다운이 차도 기다렸다가 하나가 사라지는 다음 프레임에 던진다.
+// - 무기 1개가 자기 주먹밥을 한 루프(stepProjectileSwarm)로 진행한다. 화면에는 언제나 최대
+//   ONIGIRI_MAX_ALIVE(1)개(2026-11-22 저녁 Terry "무조건 한 화면에 1개만"). 그 1개가 사라진 순간부터
+//   대기 시간(Lv1 10초 → Lv5 3초, 최소 3초)을 재고, 다 차면 다음 1개를 던진다(lib/singleProjectileCycle.js).
 // - 바운스를 다 쓴 주먹밥은 쌀알 터짐으로, 표적 없이 ONIGIRI_HOVER_TIMEOUT_MS(3초) 떠 있던 주먹밥은 그 자리에서
 //   스르륵(작아지며 살짝 가라앉아) 사라진다. 시간은 모두 게임 시간(고정 스텝)이다.
-const SPEED = 11 / 8
+const SPEED = SINGLE_PROJECTILE_SPEED
 // 스르륵 사라질 때 가라앉는 높이(units). 축척은 1 → 0으로 부드럽게(ease-in) 줄어든다.
 const ONIGIRI_FADE_SINK = 0.18
 const _pose = new THREE.Vector3()
@@ -121,6 +123,7 @@ export function getOnigiriWeaponStats() {
   const { swarm, layers, bursts } = _live
   return {
     projectiles: swarm.entries.length,
+    msSinceRetire: swarm.msSinceRetire,
     hovering: countHoveringProjectiles(swarm),
     fading: countFadingProjectiles(swarm),
     maxHoverMs: maxHoverMs(swarm),
@@ -134,7 +137,6 @@ export function getOnigiriWeaponStats() {
 }
 
 export function OnigiiriWeapon() {
-  const lastFireRef  = useRef(0)
   const burstIdRef   = useRef(0)
   const nowRef       = useRef(0)
   // 쌀알 터짐은 React 상태가 아니라 이 목록에 두고, 430ms가 지나면 제자리에서 빼낸다(매 프레임 할당 없음).
@@ -195,10 +197,9 @@ export function OnigiiriWeapon() {
   useEffect(() => {
     if (!active) resetAll()
   }, [active, resetAll])
-  // 판이 새로 시작되면(gameKey) 쿨다운·주먹밥·쌀알을 모두 처음 상태로.
+  // 판이 새로 시작되면(gameKey) 대기 시간·주먹밥·쌀알을 모두 처음 상태로(resetAll이 대기 시간도 비운다).
   useEffect(() => {
     resetAll()
-    lastFireRef.current = 0
   }, [gameKey, resetAll])
 
   // 템플릿(Studio 튜닝된 주먹밥 1벌)의 모양을 인스턴스 층에 맞춘다. 일시정지 중에도 돈다 — 멈춘 동안 한
@@ -224,24 +225,20 @@ export function OnigiiriWeapon() {
       layers.grains.writeBursts(bursts, now)
     }
 
-    // 쿨다운이 차면 1발(balanceqa F3: 쿨다운 전에는 아무것도 만들지 않는다).
-    // 2026-11-22 Terry: 화면에 최대 3개 — 3개가 살아 있으면(사라지는 중 포함) 기다린다. 쿨다운은 이미 찼으므로
-    // 하나가 사라지는 바로 다음 프레임에 던진다. 새 투척은 언제나 이번 프레임의 주인공 몸(playerPos)에서 출발한다.
-    if (now - lastFireRef.current >= w.cooldown) {
+    // 2026-11-22 저녁 Terry: 화면에 1개 — 살아 있는 주먹밥(사라지는 중 포함)이 없고, 그것이 사라진 뒤 대기
+    // 시간이 다 찼을 때만 1발(balanceqa F3: 준비 전에는 표적도 찾지 않고 아무것도 만들지 않는다).
+    // 새 투척은 언제나 이번 프레임의 주인공 몸(playerPos)에서 출발한다.
+    if (isProjectileSwarmReady(swarm, w)) {
       const launch = planOnigiriFrame({
-        now,
-        lastFireAt: lastFireRef.current,
         weapon: w,
         origin: playerPos,
         findFreshTarget: findClosestEnemy,
         nextId: nextOnigiriId,
-        aliveCount: swarm.entries.length,
-        maxAlive: swarm.maxAlive,
+        swarm,
         bounceCap: ONIGIRI_MAX_BOUNCES,
       })
       const entry = launch && addSwarmProjectile(swarm, launch, { slot: -1, spin: 0 })
       if (entry) {
-        lastFireRef.current = now
         emitSfx({ id: 'onigiriFire' })
         entry.slot = layers.body.claim()
         resetOnigiriTwinkle(entry.slot)

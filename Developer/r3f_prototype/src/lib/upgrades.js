@@ -3,6 +3,7 @@
 // 카드 추가/수정 시 이 파일만 고치면 양쪽이 동기화된다.
 
 import { isUnlocked as isWeaponUnlocked } from './weaponUnlocks.js'
+import { SINGLE_PROJECTILE_COOLDOWN_CARD_BONUS as SINGLE_CD } from './singleProjectileCycle.js'
 
 export const CHIBIKO_BASE_ALL_WEAPON_BOOST = 0.1
 
@@ -109,32 +110,41 @@ export const UPGRADE_EFFECTS = {
   stunPower:      { weapon: 'stunGun',       kind: 'damage', dmg: 7.9 },
   stunChain:      { weapon: 'stunGun',       kind: 'stat',   stat: 'chainCount',      step: 1,    cap: 4 },
   stunCrit:       { weapon: 'stunGun',       kind: 'crit',   chanceStep: 0.02, chanceCap: 0.22 },
+  // 오니기리·꼬마 로자리(2026-11-22 저녁 levelmini, Terry "무조건 한 화면에 1개만" · "사라지면 직후부터 대기시간" ·
+  // "10초로부터 업그레이드 하면 3초까지"). 화면에 1개라 개수로는 강해지지 않는다 → **모든 카드**가
+  //   대기 시간 -1.75초(최소 3초, SINGLE_CD) + 자기 효과를 준다. 어느 카드를 어떤 순서로 골라도 대기 시간은
+  //   Lv1 10초 · Lv2 8.25초 · Lv3 6.5초 · Lv4 4.75초 · Lv5 3초다(손놀림·치비코가 더 줄여도 3초에서 멈춘다).
+  // 사이클 = 발사체 수명 + 대기 시간. 수명은 lib/singleProjectileCycle.js 가정(첫 표적 3u + 바운스마다 1.5u,
+  // 1.375u/s): 3타 4.36초 · 4타 5.45초 · 5타 6.55초. 단일 대상 = 피해 × 치명 기대값 / 사이클,
+  // 군중 = 피해 × 맞히는 수 × 치명 기대값 / 사이클. 기준 경로(HUD 순서 피해→바운스→위력→치명타),
+  // 예전 = 94452e62(화면 3개, 던질 때부터 쿨다운 — 사이클 = 쿨다운):
+  // 오니기리(어떤 카드든 바운스 +1, 최대 5 / 바운스 카드는 +2 & 피해 +10):
+  //   Lv  피해 맞힘 대기   사이클  단일/s 군중/s | 예전 피해 맞힘 쿨  단일/s 군중/s
+  //   1   230  3   10.00  14.36  16.65  50.0  | 75   3  5.0  15.60  46.8
+  //   2   240  4    8.25  13.70  18.21  72.9  | 95   4  5.0  19.76  79.0
+  //   3   250  5    6.50  13.05  19.93  99.7  | 105  5  5.0  21.84 109.2
+  //   4   260  5    4.75  11.30  23.94 119.7  | 125  5  5.0  26.00 130.0
+  //   5   260  5    3.00   9.55  28.60 143.0  | 125  5  5.0  26.25 131.3  (치명 0.08→0.10)
+  // 꼬마 로자리(피해 카드 +12 ×2 / 바운스 카드 +1회 & 피해 +14, 바운스 cap 9 = 기본 3 + 영구 2 + 카드 4):
+  //   1   170  3   10.00  14.36  12.55  37.6  | 34   3  3.0  12.01  36.0
+  //   2   182  3    8.25  12.61  15.29  45.9  | 47.7 3  3.0  16.85  50.6
+  //   3   196  4    6.50  11.95  17.38  69.5  | 53.7 4  3.0  18.97  75.9
+  //   4   208  4    4.75  10.20  21.61  86.4  | 67.4 4  3.0  23.81  95.3
+  //   5   208  4    3.00   8.45  26.32 105.3  | 67.4 4  3.0  24.04  96.2  (치명 0.12→0.14)
+  // 예전 대비 단일 대상: Lv1 +4~7% · Lv2~4 -8~9% · Lv5 +9~10%. Lv5는 Lv5 사이클(3초 + 수명)이 고정이라 피해를 깎지 않고는 맞출 수 없다(카드는 피해를
+  // 내리지 않는다). 대신 어느 카드 순서로도 레벨마다 단일 대상·군중 위력이 둘 다 오른다(upgrades.test.js).
+  // cap 5 = ONIGIRI_MAX_BOUNCES. 이미 5회면 오니기리 바운스 카드는 뜨지 않는다(다른 카드가 피해·대기 시간으로 계속 올린다).
   acquireOnigiri:  { weapon: 'onigiri',       kind: 'acquire', minLevel: 6 },
-  // 오니기리(2026-11-22 levelmini, Terry "주먹밥, 미니로자리를 정리하자") — 화면 최대 3개, 바운스 최대 5회.
-  // 동시 개수로 세지지 않으니 **모든 레벨업이 위력을 올린다**: 어떤 카드든 바운스 +1(최대 5)이 함께 붙어
-  // 어느 순서로 올려도 Lv3이면 5회가 되고 Lv5는 언제나 5회다. 바운스 카드는 +2회(빨리 채움) + 피해 +10.
-  // 기준 경로(HUD 순서 피해→바운스→위력→치명타), 단일 대상 / 한 번 던질 때 군중 피해(치명 기대값 포함):
-  //   Lv1 75×3   15.60/s  234   | 예전 52.5×6  10.92/s  328
-  //   Lv2 95×4   19.76/s  395   | 예전 74.75×6 15.55/s  466
-  //   Lv3 105×5  21.84/s  546   | 예전 74.75×7 15.55/s  544
-  //   Lv4 125×5  26.00/s  650   | 예전 97×7    20.18/s  706
-  //   Lv5 125×5  26.25/s  656   | 예전 97×7    20.37/s  713  (치명 0.08→0.10)
-  onigiiriDamage: { weapon: 'onigiri',       kind: 'damage', dmg: 20, bonus: { stat: 'bounces', step: 1, cap: 5 } },
-  onigiiriPower:  { weapon: 'onigiri',       kind: 'damage', dmg: 20, bonus: { stat: 'bounces', step: 1, cap: 5 } },
-  // cap 5 = ONIGIRI_MAX_BOUNCES. 이미 5회면 이 카드는 뜨지 않는다(다른 카드가 피해·치명타로 계속 올린다).
-  onigiiriBounce: { weapon: 'onigiri',       kind: 'stat',   stat: 'bounces',         step: 2,    cap: 5, bonus: { stat: 'damage', step: 10 } },
-  onigiiriCrit:   { weapon: 'onigiri',       kind: 'crit',   chanceStep: 0.02, chanceCap: 0.24, bonus: { stat: 'bounces', step: 1, cap: 5 } },
-  // 꼬마 로자리(2026-10-31 levelmini) — 데미지 카드 합 33.4 = base 34의 98.2%.
-  // 치명타 카드 1장(0.12→0.14, 기대배율 1.06→1.07)과 곱해 Lv1→만렙 단일 대상 ≈2.00배(레벨 곡선 정본).
-  // 2026-11-22: 화면 최대 3개라 바운스 카드도 단일 대상 위력을 올려야 한다 → 피해 카드 16.7→13.7 ×2 + 바운스
-  // 카드 피해 +6 = 합 33.4 그대로(만렙 위력은 예전과 같고, 모든 레벨업이 단일 대상 위력을 올린다).
-  // 바운스 cap 9 = 기본 3 + 영구강화 최대 2 + 인게임 4레벨(꼬마 로자리는 바운스 상한 지시 없음).
+  onigiiriDamage: { weapon: 'onigiri',       kind: 'damage', dmg: 10, bonus: [{ stat: 'bounces', step: 1, cap: 5 }, SINGLE_CD] },
+  onigiiriPower:  { weapon: 'onigiri',       kind: 'damage', dmg: 10, bonus: [{ stat: 'bounces', step: 1, cap: 5 }, SINGLE_CD] },
+  onigiiriBounce: { weapon: 'onigiri',       kind: 'stat',   stat: 'bounces',         step: 2,    cap: 5, bonus: [{ stat: 'damage', step: 10 }, SINGLE_CD] },
+  onigiiriCrit:   { weapon: 'onigiri',       kind: 'crit',   chanceStep: 0.02, chanceCap: 0.24, bonus: [{ stat: 'bounces', step: 1, cap: 5 }, SINGLE_CD] },
   // 치명타 cap 0.28 = 기본 0.12 + 영구 최대 0.08 + 카드 0.08(오니기리보다 기본이 높은 만큼 위로 민다).
   acquireMiniRosari: { weapon: 'miniRosari',  kind: 'acquire', minLevel: 6 },
-  miniRosariDamage:  { weapon: 'miniRosari',  kind: 'damage', dmg: 13.7 },
-  miniRosariPower:   { weapon: 'miniRosari',  kind: 'damage', dmg: 13.7 },
-  miniRosariBounce:  { weapon: 'miniRosari',  kind: 'stat',   stat: 'bounces',         step: 1,    cap: 9, bonus: { stat: 'damage', step: 6 } },
-  miniRosariCrit:    { weapon: 'miniRosari',  kind: 'crit',   chanceStep: 0.02, chanceCap: 0.28 },
+  miniRosariDamage:  { weapon: 'miniRosari',  kind: 'damage', dmg: 12, bonus: [SINGLE_CD] },
+  miniRosariPower:   { weapon: 'miniRosari',  kind: 'damage', dmg: 12, bonus: [SINGLE_CD] },
+  miniRosariBounce:  { weapon: 'miniRosari',  kind: 'stat',   stat: 'bounces',         step: 1,    cap: 9, bonus: [{ stat: 'damage', step: 14 }, SINGLE_CD] },
+  miniRosariCrit:    { weapon: 'miniRosari',  kind: 'crit',   chanceStep: 0.02, chanceCap: 0.28, bonus: [SINGLE_CD] },
   // 종이비행기(2026-11-07 levelmini) — 1스테이지부터 나오는 중간 티어. 데미지 카드 2장 합 9 = base 9의 100%.
   // 대수 카드(1→2대)도 단일 대상에 겹친다(singleTargetProjectiles) → Lv1→만렙 단일 대상 4.0배(balanceqa 승인).
   // 대수 cap 4 = 기본 1 + 카드 1 + 여유.
@@ -356,11 +366,18 @@ const bumpLevel = (wpn) => Math.min(MAX_WEAPON_LEVEL, (wpn.level ?? 1) + 1)
 
 export function applyUpgradeToWeapon(wpn, effect) {
   if (effect.kind === 'acquire') return { ...wpn, active: true, level: 1 }
-  // bonus: 주 효과와 별개로 함께 오르는 부가 스탯 (예: 플라스크 존 지속시간 +1s/레벨).
-  // bonus.cap이 있으면 그 값을 넘지 않는다(예: 오니기리 바운스 최대 5).
-  const withBonus = (w) => effect.bonus
-    ? { ...w, [effect.bonus.stat]: Math.min(effect.bonus.cap ?? Number.POSITIVE_INFINITY, (w[effect.bonus.stat] ?? 0) + effect.bonus.step) }
-    : w
+  // bonus: 주 효과와 별개로 함께 오르는 부가 스탯 (예: 플라스크 존 지속시간 +1s/레벨). 항목 1개 또는 배열.
+  // bonus.cap이 있으면 그 값을 넘지 않고(예: 오니기리 바운스 최대 5), bonus.floor가 있으면 그 아래로
+  // 내려가지 않는다(예: 오니기리·꼬마 로자리 대기 시간 최소 3초).
+  const withBonus = (w) => {
+    if (!effect.bonus) return w
+    let out = w
+    for (const bonus of Array.isArray(effect.bonus) ? effect.bonus : [effect.bonus]) {
+      const value = (out[bonus.stat] ?? 0) + bonus.step
+      out = { ...out, [bonus.stat]: Math.max(bonus.floor ?? Number.NEGATIVE_INFINITY, Math.min(bonus.cap ?? Number.POSITIVE_INFINITY, value)) }
+    }
+    return out
+  }
   if (effect.kind === 'damage') return withBonus({
     ...wpn,
     damage: Number.isFinite(effect.damageMultiplier) ? wpn.damage * effect.damageMultiplier : wpn.damage + effect.dmg,

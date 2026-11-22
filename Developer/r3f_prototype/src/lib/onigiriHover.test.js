@@ -2,15 +2,17 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
   FLIGHT_FADING, FLIGHT_FLYING, FLIGHT_HOVERING, MINI_ROSARI_HOVER_TIMEOUT_MS, MINI_ROSARI_MAX_ALIVE,
   ONIGIRI_HOVER_TIMEOUT_MS, ONIGIRI_MAX_ALIVE, PROJECTILE_FADE_MS, PROJECTILE_MAX_ALIVE, PROJECTILE_NO_TARGET_TIMEOUT_MS,
-  RETIRE_DONE, RETIRE_TIMEOUT, addSwarmProjectile, canLaunchProjectile, countFadingProjectiles, countHoveringProjectiles,
-  createProjectileSwarm, planOnigiriFrame, pickNextOnigiriTarget, projectileFadeProgress, shouldStartFade,
+  RETIRE_DONE, RETIRE_TIMEOUT, addSwarmProjectile, canLaunchProjectile, clearProjectileSwarm, countFadingProjectiles,
+  countHoveringProjectiles, createProjectileSwarm, isProjectileSwarmReady, planOnigiriFrame, projectileCooldownRemainingMs, pickNextOnigiriTarget, projectileFadeProgress, shouldStartFade,
   stepOnigiriFlight, stepProjectileSwarm,
 } from './onigiri.js'
 import { ONIGIRI_MAX_BOUNCES, WEAPON_CATALOG } from './weaponCatalog.js'
+import { SINGLE_PROJECTILE_COOLDOWN_MIN_MS } from './singleProjectileCycle.js'
 import { enemyBodies as globalEnemyBodies, enemyPool } from './refs.js'
 
-// 2026-11-22 Terry "주먹밥, 미니로자리를 정리하자" — 무기마다 화면 최대 3개(모든 상태), 3개면 던지지 않고 기다림,
-// 표적 없이 3초면 그 자리에서 스르륵(0.4초) 사라짐. 11-13 "오니기리 12초/24개, 꼬마 로자리 8초/8개"를 대체한다.
+// 2026-11-22 Terry "주먹밥, 미니로자리를 정리하자" — 표적 없이 3초면 그 자리에서 스르륵(0.4초) 사라짐.
+// 같은 날 저녁 개정: "무조건 한 화면에 1개만"(모든 상태 포함) · "1개 발사된 발사체가 사라지면 직후부터 대기시간"
+// · 대기 10초 → 업그레이드로 3초까지(최소 3초). 낮의 "화면 3개"와 11-13 "12초/24개, 8초/8개"를 대체한다.
 // 이 파일은 공용 진행기(lib/onigiri.js)의 규칙을 무기별로 고정한다. 컴포넌트 배선은
 // components/Weapons/OnigiriMiniRosari.hover.runtime.test.jsx가 실제 마운트로 확인한다.
 
@@ -52,19 +54,22 @@ function stepUntilHovering(swarm, onRetire = () => {}) {
 describe.each([
   ['onigiri', ONIGIRI_HOVER_TIMEOUT_MS, ONIGIRI_MAX_ALIVE],
   ['miniRosari', MINI_ROSARI_HOVER_TIMEOUT_MS, MINI_ROSARI_MAX_ALIVE],
-])('%s: 3 on screen, 3s no-target fade (Terry 2026-11-22)', (weaponId, timeoutMs, maxAlive) => {
+])('%s: 1 on screen, cooldown from disappearance, 3s no-target fade (Terry 2026-11-22)', (weaponId, timeoutMs, maxAlive) => {
   const weapon = { ...WEAPON_CATALOG[weaponId].base, active: true }
   const makeSwarm = () => createProjectileSwarm({ speed: SPEED, hoverTimeoutMs: timeoutMs, maxAlive })
 
-  it('uses the ruled numbers: 3 alive, 3s timeout, 0.3–0.5s fade', () => {
-    expect([timeoutMs, maxAlive]).toEqual([3000, 3])
-    expect(PROJECTILE_MAX_ALIVE).toBe(3)
+  it('uses the ruled numbers: 1 alive, 3s timeout, 0.3–0.5s fade', () => {
+    expect([timeoutMs, maxAlive]).toEqual([3000, 1])
+    expect(PROJECTILE_MAX_ALIVE).toBe(1)
     expect(PROJECTILE_NO_TARGET_TIMEOUT_MS).toBe(3000)
     expect(PROJECTILE_FADE_MS).toBeGreaterThanOrEqual(300)
     expect(PROJECTILE_FADE_MS).toBeLessThanOrEqual(500)
-    // 기본값도 같은 규칙이다(무기가 값을 안 넘겨도 3개·3초).
+    // 기본값도 같은 규칙이다(무기가 값을 안 넘겨도 1개·3초). 더 큰 상한을 넘겨도 1로 묶인다.
     const swarm = createProjectileSwarm({ speed: SPEED })
-    expect([swarm.maxAlive, swarm.hoverTimeoutMs, swarm.fadeMs]).toEqual([3, 3000, PROJECTILE_FADE_MS])
+    expect([swarm.maxAlive, swarm.hoverTimeoutMs, swarm.fadeMs]).toEqual([1, 3000, PROJECTILE_FADE_MS])
+    for (const asked of [2, 3, 8, 99, Number.POSITIVE_INFINITY]) {
+      expect(createProjectileSwarm({ speed: SPEED, maxAlive: asked }).maxAlive).toBe(1)
+    }
   })
 
   it('after 3s with no target it fades in place, then is removed — not a step earlier', () => {
@@ -163,59 +168,134 @@ describe.each([
     expect(shouldStartFade({ hoverMs: timeoutMs }, FLIGHT_HOVERING, timeoutMs)).toBe(true)
   })
 
-  it('never more than 3 alive: a 4th throw waits and never removes a live projectile', () => {
+  it('never more than 1 alive: a 2nd throw waits and never removes the live one', () => {
     spawnUnkillable(1, 0)
     const swarm = makeSwarm()
-    const first = [launchAt(swarm, weapon), launchAt(swarm, weapon), launchAt(swarm, weapon)]
-    expect(first.every(Boolean)).toBe(true)
+    const first = launchAt(swarm, weapon)
+    expect(first).toBeTruthy()
     expect(canLaunchProjectile(swarm)).toBe(false)
-    // 쿨다운이 찬 상태로 다시 던져 봐도 계획 단계에서 거절되고, 표적도 찾지 않는다.
+    // 대기 시간이 찬 것처럼 넘겨도 계획 단계에서 거절되고, 표적도 찾지 않는다.
     const finder = vi.fn(() => ({ rb: null, enemyId: 'x' }))
     expect(planOnigiriFrame({
-      now: 1e9, lastFireAt: 0, weapon, origin: { x: 0, y: 0.32, z: 0 }, findFreshTarget: finder,
-      nextId: () => ++nextId, aliveCount: swarm.entries.length, maxAlive: swarm.maxAlive,
+      weapon, origin: { x: 0, y: 0.32, z: 0 }, findFreshTarget: finder, nextId: () => ++nextId,
+      aliveCount: swarm.entries.length, maxAlive: 99, msSinceRetire: Number.POSITIVE_INFINITY,
     })).toBeNull()
     expect(finder).not.toHaveBeenCalled()
     // 계획을 건너뛰고 직접 넣어도 무리가 거절한다(최종 방어선). 살아 있는 것은 그대로다.
-    const forced = { id: 999, start: [0, 0.32, 0], initialTarget: first[0].initialTarget, hitIds: [], maxBounces: 3, damage: 1, bounceRange: 3 }
+    const forced = { id: 999, start: [0, 0.32, 0], initialTarget: first.initialTarget, hitIds: [], maxBounces: 3, damage: 1, bounceRange: 3 }
     expect(addSwarmProjectile(swarm, forced, {})).toBeNull()
-    expect(swarm.entries).toEqual(first)
+    expect(swarm.entries).toEqual([first])
   })
 
-  it('the waiting throw fires on the first step after one disappears (fade included in the count)', () => {
+  it('a fading projectile still counts: nothing is thrown until it is gone', () => {
     spawnUnkillable(1, 0)
     const swarm = makeSwarm()
-    for (let k = 0; k < 3; k += 1) launchAt(swarm, weapon)
+    const entry = launchAt(swarm, weapon)
     stepUntilHovering(swarm)
-    // 3개 모두 사라지는 중이어도 자리는 나지 않는다.
-    for (const e of swarm.entries) e.flight.hoverMs = timeoutMs
+    entry.flight.hoverMs = timeoutMs
     stepProjectileSwarm(swarm, DT)
-    expect(countFadingProjectiles(swarm)).toBe(3)
+    expect(countFadingProjectiles(swarm)).toBe(1)
+    expect(isProjectileSwarmReady(swarm, weapon)).toBe(false)
+    expect(projectileCooldownRemainingMs(swarm, weapon)).toBeNull() // 대기 시간은 아직 시작도 안 했다
     expect(launchAt(swarm, weapon)).toBeNull()
-    let freedAt = null
-    for (let i = 0; i < 120 && freedAt === null; i += 1) {
-      stepProjectileSwarm(swarm, DT)
-      if (canLaunchProjectile(swarm)) freedAt = i
-    }
-    expect(freedAt).not.toBeNull()
-    // 자리가 난 바로 그 스텝 뒤의 투척이 들어간다(다음 쿨다운까지 기다리지 않는다 — 쿨다운은 이미 찼다).
-    expect(launchAt(swarm, weapon)).not.toBeNull()
-    expect(swarm.entries.length).toBeLessThanOrEqual(3)
   })
 
-  it('stress: max level, cooldown 1ms, a crowd of unkillable enemies for 60s — never more than 3 alive', () => {
-    for (let i = 0; i < 25; i += 1) spawnUnkillable(Math.cos(i) * (1 + i * 0.3), Math.sin(i) * (1 + i * 0.3))
+  it('the cooldown clock starts when the projectile disappears, not when it was thrown', () => {
+    spawnUnkillable(1, 0)
     const swarm = makeSwarm()
+    const lv1 = { ...weapon, cooldown: 10000 }
+    const fire = () => {
+      const launch = planOnigiriFrame({
+        weapon: lv1, origin: { x: 0, y: 0.32, z: 0 }, swarm, nextId: () => ++nextId,
+        findFreshTarget: (range) => pickNextOnigiriTarget({ from: { x: 0, z: 0 }, range }),
+      })
+      return launch && addSwarmProjectile(swarm, launch, {})
+    }
+    // 처음 얻은 순간에는 기다리지 않는다.
+    expect(swarm.msSinceRetire).toBe(Number.POSITIVE_INFINITY)
+    const entry = fire()
+    expect(entry).toBeTruthy()
+    // 오래 떠 있게 한다(던진 뒤 10초를 훌쩍 넘겨도 살아 있는 동안은 대기 시간이 흐르지 않는다).
+    stepUntilHovering(swarm)
+    let aliveMs = 0
+    const retired = []
+    while (swarm.entries.length) {
+      stepProjectileSwarm(swarm, DT, { onRetire: (e, r) => retired.push(r) })
+      aliveMs += DT * 1000
+      expect(fire()).toBeNull()
+    }
+    expect(retired).toEqual([RETIRE_TIMEOUT])
+    // 사라진 그 스텝에 시계가 0으로 맞춰졌다.
+    expect(swarm.msSinceRetire).toBe(0)
+    expect(projectileCooldownRemainingMs(swarm, lv1)).toBe(10000)
+    // 사라진 뒤 10초(게임 시간)가 다 차는 스텝 전에는 던지지 않고, 다 차면 바로 던진다(부동소수 오차 1스텝 허용).
+    let waited = 0
+    let next = null
+    while (!(next = fire())) {
+      expect(swarm.msSinceRetire).toBeLessThan(10000)
+      stepProjectileSwarm(swarm, DT)
+      waited += 1
+      expect(waited).toBeLessThanOrEqual(Math.round(10 / DT) + 1)
+    }
+    expect(waited).toBeGreaterThanOrEqual(Math.round(10 / DT))
+    expect(swarm.msSinceRetire).toBeGreaterThanOrEqual(10000)
+    expect(next).toBeTruthy()
+    // 판 리셋·무기 재획득은 바로 던질 수 있는 처음 상태다.
+    clearProjectileSwarm(swarm)
+    expect(swarm.msSinceRetire).toBe(Number.POSITIVE_INFINITY)
+  })
+
+  it('a done (bounces spent) projectile also starts the clock at that moment', () => {
+    spawnUnkillable(1, 0)
+    const swarm = makeSwarm()
+    const one = { ...weapon, bounces: 1, cooldown: 4750 }
+    const launch = planOnigiriFrame({
+      weapon: one, origin: { x: 0, y: 0.32, z: 0 }, swarm, nextId: () => ++nextId,
+      findFreshTarget: (range) => pickNextOnigiriTarget({ from: { x: 0, z: 0 }, range }),
+    })
+    addSwarmProjectile(swarm, launch, {})
+    const reasons = []
+    for (let i = 0; i < 600 && swarm.entries.length; i += 1) stepProjectileSwarm(swarm, DT, { onRetire: (e, r) => reasons.push(r) })
+    expect(reasons).toEqual([RETIRE_DONE])
+    expect(swarm.msSinceRetire).toBe(0)
+    expect(projectileCooldownRemainingMs(swarm, one)).toBe(4750)
+  })
+
+  it('cooldown never goes under 3 s, however low the weapon value is stacked', () => {
+    const swarm = makeSwarm()
+    swarm.msSinceRetire = 0
+    for (const cooldown of [2999, 2088, 1000, 1, 0, -5]) {
+      expect(projectileCooldownRemainingMs(swarm, { ...weapon, cooldown })).toBe(SINGLE_PROJECTILE_COOLDOWN_MIN_MS)
+    }
+    swarm.msSinceRetire = SINGLE_PROJECTILE_COOLDOWN_MIN_MS - 1
+    expect(isProjectileSwarmReady(swarm, { ...weapon, cooldown: 1 })).toBe(false)
+    swarm.msSinceRetire = SINGLE_PROJECTILE_COOLDOWN_MIN_MS
+    expect(isProjectileSwarmReady(swarm, { ...weapon, cooldown: 1 })).toBe(true)
+  })
+
+  it('stress: max bonuses (bounces 99, cooldown 1 ms, asked cap 99), a crowd for 120 s — never more than 1 alive, every gap ≥ 3 s after disappearance', () => {
+    for (let i = 0; i < 25; i += 1) spawnUnkillable(Math.cos(i) * (1 + i * 0.3), Math.sin(i) * (1 + i * 0.3))
+    const swarm = createProjectileSwarm({ speed: SPEED, hoverTimeoutMs: timeoutMs, maxAlive: 99 })
     const maxed = { ...weapon, bounces: 99, cooldown: 1 }
     let launched = 0
-    let max = 0
-    for (let i = 0; i < 60 * 60; i += 1) {
-      if (launchAt(swarm, maxed)) launched += 1
-      stepProjectileSwarm(swarm, DT)
-      max = Math.max(max, swarm.entries.length)
-      expect(swarm.entries.length).toBeLessThanOrEqual(3)
+    let clockMs = 0
+    let lastRetireAt = null
+    const fire = () => {
+      const launch = planOnigiriFrame({
+        weapon: maxed, origin: { x: 0, y: 0.32, z: 0 }, swarm, nextId: () => ++nextId, maxAlive: 99,
+        findFreshTarget: (range) => pickNextOnigiriTarget({ from: { x: 0, z: 0 }, range }),
+      })
+      return launch && addSwarmProjectile(swarm, launch, {})
     }
-    expect(max).toBe(3)
+    for (let i = 0; i < 120 * 60; i += 1) {
+      if (fire()) {
+        launched += 1
+        if (lastRetireAt !== null) expect(clockMs - lastRetireAt).toBeGreaterThanOrEqual(SINGLE_PROJECTILE_COOLDOWN_MIN_MS - 1e-6)
+      }
+      stepProjectileSwarm(swarm, DT, { onRetire: () => { lastRetireAt = clockMs + DT * 1000 } })
+      clockMs += DT * 1000
+      expect(swarm.entries.length).toBeLessThanOrEqual(1)
+    }
     expect(launched).toBeGreaterThan(3)
   })
 })

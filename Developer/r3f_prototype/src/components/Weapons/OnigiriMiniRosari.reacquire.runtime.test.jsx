@@ -117,37 +117,31 @@ describe.each([
   ['miniRosari', MiniRosariWeapon, () => getMiniRosariWeaponStats().ownedSlots],
 ])('%s drop -> re-acquire in the same stage (balanceqa F1)', (id, Weapon, countProjectiles) => {
   it('shows only new throws after re-acquiring; projectiles hovering before the drop are gone', () => {
-    const weapon = WEAPON_CATALOG[id].base
     useGameStore.setState({ phase: 'playing' })
     setWeapon(id, true)
     act(() => { root.render(<Weapon />) })
     patchGroups()
 
-    // 맞아도 안 죽는 적 1명. 쿨다운마다 1발씩 나가 맞히고, 다음 적이 없어 그 자리에 떠서 기다린다.
+    // 맞아도 안 죽는 적 1명. 처음 1발이 바로 나가 맞히고, 다음 적이 없어 그 자리에 떠서 기다린다.
     spawnEnemy(1, 0)
-    runSeconds((weapon.cooldown * 2) / 1000 + 0.5)
-    const beforeDrop = countProjectiles(container)
-    // 떠서 기다리는 발사체가 있다(2026-11-22부터 화면 최대 3개, 표적 없이 3초면 스르륵 사라진다).
-    expect(beforeDrop).toBeGreaterThanOrEqual(1)
-    expect(beforeDrop).toBeLessThanOrEqual(3)
+    runSeconds(2)
+    // 떠서 기다리는 발사체가 정확히 1개(2026-11-22 저녁부터 화면 1개, 표적 없이 3초면 스르륵 사라진다).
+    expect(countProjectiles(container)).toBe(1)
 
     // 교체 카드로 무기를 버린다 → 화면에서 사라진다.
     setWeapon(id, false)
     expect(countProjectiles(container)).toBe(0)
     runSeconds(1)
 
-    // 같은 판에서 다시 얻는다. 쿨다운이 차기 전에는 아무것도 없어야 한다(옛 발사체 부활 금지).
+    // 같은 판에서 다시 얻는다. 옛 발사체는 되살아나지 않고(0개에서 시작), 다시 얻은 무기는 기다리지 않고
+    // 새 1발만 던진다(무기를 버릴 때 대기 시간도 처음 상태로 돌아간다).
     playerPos.set(-2, 0.32, 0.5)
     setWeapon(id, true)
     expect(countProjectiles(container)).toBe(0)
     runSeconds(0.1)
-    // 이번 프레임까지 새 투척이 없었다면 아직 0개, 있었다면 새 투척 1개뿐이다.
-    expect(countProjectiles(container)).toBeLessThanOrEqual(1)
-
-    // 다음 쿨다운 뒤에는 새 투척만 보인다.
-    runSeconds(weapon.cooldown / 1000 + 0.2)
-    expect(countProjectiles(container)).toBeLessThanOrEqual(2)
-    expect(countProjectiles(container)).toBeGreaterThanOrEqual(1)
-    expect(countProjectiles(container)).toBeLessThanOrEqual(3)
+    expect(countProjectiles(container)).toBe(1)
+    // 그 1발이 살아 있는 동안 더 나가지 않는다.
+    runSeconds(2)
+    expect(countProjectiles(container)).toBe(1)
   })
 })

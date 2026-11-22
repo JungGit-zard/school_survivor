@@ -16,16 +16,18 @@ describe('MiniRosariWeapon projectile visual (mini protagonist)', () => {
   })
 
   // 2026-11-02: 분신 1개 상한(projRef 게이트)을 없애고 슬롯 풀로 바꿨다. 모델은 슬롯마다 1번만 만들고
-  // 재사용한다(발사마다 복제하지 않음). 2026-11-22 Terry: 화면 최대 3명 — 공용 판단에 살아 있는 수를 넘기고,
-  // 무리가 받아들인 뒤에만 슬롯을 빌린다.
-  it('reuses pooled mini player instances, gates the throw at 3 alive, and claims a slot only after the swarm accepts', () => {
+  // 재사용한다(발사마다 복제하지 않음). 2026-11-22 Terry(저녁 개정): 화면 1명 — 공용 판단에 무리를 통째로 넘겨
+  // 살아 있는 1명·사라진 뒤 대기 시간에서 막고, 무리가 받아들인 뒤에만 슬롯을 빌린다.
+  it('reuses pooled mini player instances, gates the throw at 1 alive + cooldown since it disappeared, and claims a slot only after the swarm accepts', () => {
     expect(source.match(/<MiniRosariModel animateRef=\{slot\.activeRef\} \/>/g)).toHaveLength(1)
     // 2026-11-13: 발사체 컴포넌트 없이 무기 루프가 슬롯 group을 직접 움직인다.
     expect(source).toContain('writeMiniRosariPose(entry, slots[entry.slotIndex], camera, fading ? projectileFadeProgress(swarm, entry) : 0)')
     expect(source).toContain('entry.slotIndex = claimMiniRosariSlot(slots, launch.id)')
-    expect(source).toContain('aliveCount: swarm.entries.length,')
-    expect(source).toContain('maxAlive: swarm.maxAlive,')
+    expect(source).toContain('if (isProjectileSwarmReady(swarm, w)) {')
+    expect(source).toMatch(/^ {8}swarm,$/m)
     expect(source).toContain('maxAlive: MINI_ROSARI_MAX_ALIVE')
+    expect(source).not.toContain('lastFireRef')
+    expect(source).not.toContain('w.cooldown')
     expect(source).not.toContain('if (projRef.current.length > 0) return')
   })
 
@@ -55,13 +57,13 @@ describe('MiniRosariWeapon projectile visual (mini protagonist)', () => {
   })
 
   // 2026-11-17 끊김 수정: 오래 빈 슬롯을 내려놓았다가 다음 투척 때 주인공 모델을 통째로 다시 복제해 멈췄다.
-  // 이제 무기를 얻는 순간 화면 상한(3명)만큼 미리 만들고, 풀은 줄이지 않는다(쓰지 않는 분신은 숨김).
-  it('prefills the clone pool up to the on-screen cap (3) once, and never trims it', async () => {
+  // 이제 무기를 얻는 순간 화면 상한(2026-11-22 저녁부터 1명)만큼 미리 만들고, 풀은 줄이지 않는다(쓰지 않는 분신은 숨김).
+  it('prefills the clone pool up to the on-screen cap (1) once, and never trims it', async () => {
     const {
       claimMiniRosariSlot, releaseMiniRosariSlot, prefillMiniRosariSlots, MINI_ROSARI_PREBUILT_SLOTS,
     } = await import('./MiniRosari.jsx')
     const { MINI_ROSARI_MAX_ALIVE: MINI_ROSARI_HOVER_CAP } = await import('../../lib/onigiri.js')
-    expect(MINI_ROSARI_HOVER_CAP).toBe(3)
+    expect(MINI_ROSARI_HOVER_CAP).toBe(1)
     expect(MINI_ROSARI_PREBUILT_SLOTS).toBe(MINI_ROSARI_HOVER_CAP)
     const slots = []
     expect(prefillMiniRosariSlots(slots)).toBe(MINI_ROSARI_HOVER_CAP)

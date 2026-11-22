@@ -96,9 +96,11 @@ describe('weaponCatalog', () => {
     expect(WEAPON_CATALOG.scienceFlask.base.damage).toBe(7.5) // 리워크: 착탄 데미지 절반, 웅덩이 존 추가
     expect(WEAPON_CATALOG.bell.base.directions).toBe(8)
     expect(WEAPON_CATALOG.stunGun.base.chainCount).toBe(2)
-    // 2026-11-22 Terry "주먹밥 정리": 바운스 6→3(레벨업마다 +1, 최대 5), 한 방 52.5→75.
-    expect(WEAPON_CATALOG.onigiri.base.damage).toBe(75)
-    expect(WEAPON_CATALOG.onigiri.base.cooldown).toBe(5000)
+    // 2026-11-22 Terry "주먹밥 정리": 바운스 6→3(레벨업마다 +1, 최대 5). 저녁 개정: 화면 1개 · 사라진 뒤 대기
+    // 10초(Lv1) → 3초(Lv5) — 한 사이클이 길어진 만큼 한 방 75→230.
+    expect(WEAPON_CATALOG.onigiri.base.damage).toBe(230)
+    expect(WEAPON_CATALOG.onigiri.base.cooldown).toBe(10000)
+    expect(WEAPON_CATALOG.onigiri.base.singleProjectile).toBe(true)
     expect(WEAPON_CATALOG.onigiri.base.bounces).toBe(3)
     expect(ONIGIRI_MAX_BOUNCES).toBe(5)
     expect(WEAPON_CATALOG.chibiko.base.damage).toBe(1.25)
@@ -188,13 +190,14 @@ describe('weaponCatalog', () => {
     const entry = WEAPON_CATALOG.miniRosari
     const oni = WEAPON_CATALOG.onigiri.base
     expect(entry).toMatchObject({ id: 'miniRosari', label: '꼬마 로자리', minLevelToAppear: 6 })
-    expect(entry.base).toEqual({ damage: 34, cooldown: 3000, bounces: 3, bounceRange: 3.0, range: 7.5, critChance: 0.12, critMultiplier: 1.5 })
-    // 정체성 축: 바운스 거리·사거리·쿨다운은 전부 오니기리보다 작다(가깝게, 자주). 바운스 수는 2026-11-22부터
-    // Lv1에서 같고(3), 오니기리는 레벨업마다 +1(최대 5)로 앞서 나간다.
+    expect(entry.base).toEqual({ damage: 170, cooldown: 10000, bounces: 3, bounceRange: 3.0, range: 7.5, critChance: 0.12, critMultiplier: 1.5, singleProjectile: true })
+    // 정체성 축: 바운스 거리·사거리는 오니기리보다 작다(가깝게). 바운스 수는 2026-11-22부터 Lv1에서 같고(3),
+    // 오니기리는 레벨업마다 +1(최대 5)로 앞서 나간다. 대기 시간은 2026-11-22 저녁부터 둘 다 10초 → 3초로 같다.
     expect(entry.base.bounces).toBeLessThanOrEqual(oni.bounces)
     expect(entry.base.bounceRange).toBeLessThan(oni.bounceRange)
     expect(entry.base.range).toBeLessThan(oni.range)
-    expect(entry.base.cooldown).toBeLessThan(oni.cooldown)
+    expect(entry.base.cooldown).toBe(oni.cooldown)
+    expect(entry.base.damage).toBeLessThan(oni.damage)
     // 해금은 오니기리(누적 처치)와 다른 축 — 같은 순간에 쌍둥이가 함께 열리지 않는다.
     expect(entry.unlockConditions).toEqual([{ type: 'bossKills', value: 2 }])
     expect(evaluateUnlocks({ totalKills: 700 }).has('onigiri')).toBe(true)

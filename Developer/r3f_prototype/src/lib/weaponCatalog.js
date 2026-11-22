@@ -9,6 +9,7 @@
 // Sentinel for weapons that are always unlocked.
 import { PENCIL_FIRE_RANGE_WORLD_UNITS } from './gameplayUnits.js'
 import { TUMBLER_SUSTAINED_MULTIPLIER } from './tumblerFalloff.js'
+import { SINGLE_PROJECTILE_COOLDOWN_START_MS } from './singleProjectileCycle.js'
 
 export const STARTER = 'starter'
 
@@ -108,7 +109,11 @@ export const WEAPON_CATALOG = {
     // 2026-11-22 Terry "주먹밥, 미니로자리를 정리하자": 화면에 최대 3개 · 바운스는 레벨업마다 늘어 최대 5회
     // (ONIGIRI_MAX_BOUNCES). 바운스 6→3(Lv1)으로 줄어든 만큼 한 방을 52.5→75로 올려 한 번 던질 때의 군중 피해
     // (피해 × 맞히는 수)를 Lv3부터 예전과 거의 같게 맞췄다(levelmini 2026-11-22, 표는 upgrades.js).
-    base: { damage: 75, cooldown: 5000, bounces: 3, bounceRange: 4.5, range: 18, critChance: 0.08, critMultiplier: 1.5 },
+    // 2026-11-22 저녁 Terry: 화면에 1개만 · 사라진 뒤부터 대기 10초(Lv1) → 3초(Lv5, lib/singleProjectileCycle.js).
+    // 한 사이클(수명 + 대기)이 예전 5초 투척 간격보다 훨씬 길어져 한 방을 75→230으로 올렸다 — 레벨별 유효 DPS를
+    // 94452e62(화면 3개, 5초)와 ±9% 안으로 맞춘 값이다(levelmini 2026-11-22 저녁, 표는 upgrades.js).
+    // singleProjectile: 마틸다 HP 추정기(playerDpsEstimate.js)가 사이클(수명 + 대기) 기준으로 센다.
+    base: { damage: 230, cooldown: SINGLE_PROJECTILE_COOLDOWN_START_MS, bounces: 3, bounceRange: 4.5, range: 18, critChance: 0.08, critMultiplier: 1.5, singleProjectile: true },
     unlockConditions: [{ type: 'totalKills', value: 700 }],
     minLevelToAppear: 6,
   },
@@ -128,7 +133,9 @@ export const WEAPON_CATALOG = {
     // damage × 발사율 × 기대 치명타 그대로 맞다 — 마틸다 HP 산식에 별도 보정이 필요 없다.
     // 해금: 보스 처치 2회 — 미사일(1회)과 이누콘(3회) 사이 빈칸. "보스를 잡아 본 사람에게 붙는
     // 보스 사냥꾼"이라 정체성과도 맞고, 오니기리(누적 700킬)와 같은 순간에 같이 열리지 않는다.
-    base: { damage: 34, cooldown: 3000, bounces: 3, bounceRange: 3.0, range: 7.5, critChance: 0.12, critMultiplier: 1.5 },
+    // 2026-11-22 저녁 Terry: 화면에 1명만 · 사라진 뒤부터 대기 10초(Lv1) → 3초(Lv5). 위 3초 쿨다운 시절 수치는
+    // 역사 기록이다. 한 방 34→170: 레벨별 유효 DPS를 94452e62와 ±10% 안으로 맞춘 값(표는 upgrades.js).
+    base: { damage: 170, cooldown: SINGLE_PROJECTILE_COOLDOWN_START_MS, bounces: 3, bounceRange: 3.0, range: 7.5, critChance: 0.12, critMultiplier: 1.5, singleProjectile: true },
     unlockConditions: [{ type: 'bossKills', value: 2 }],
     minLevelToAppear: 6,
   },

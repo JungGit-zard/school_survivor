@@ -7,6 +7,7 @@ import { resolveCriticalHit } from './criticalHits.js'
 import { bikittySegmentDamage } from './bikittyCutter.js'
 import { formatDamageAmount } from './damageNumbers.js'
 import { estimateWeaponDps } from './playerDpsEstimate.js'
+import { SINGLE_PROJECTILE_COOLDOWN_CARD_BONUS, SINGLE_PROJECTILE_COOLDOWN_MIN_MS, effectiveSingleProjectileCooldownMs, estimateSingleProjectileCycleMs } from './singleProjectileCycle.js'
 
 // 가상 무기 상태 빌더. weapons 객체의 한 항목 형태와 동일.
 const wpn = (overrides = {}) => ({ active: false, level: 0, damage: 5, ...overrides })
@@ -549,35 +550,114 @@ describe('UPGRADE_EFFECTS 테이블 무결성', () => {
     expect(UPGRADE_EFFECTS.eraserCrit).toBeUndefined()
   })
 
-  // 2026-11-22 Terry "주먹밥, 미니로자리를 정리하자": 화면 최대 3개라 개수로는 강해지지 않는다 →
-  // 모든 레벨업이 위력을 올린다. 오니기리는 어떤 카드든 바운스 +1(최대 5), 바운스 카드는 +2 & 피해 +10.
-  it('오니기리 카드: 피해 +20 ×2, 모든 카드에 바운스 +1(최대 5), 바운스 카드 +2 & 피해 +10', () => {
-    expect(UPGRADE_EFFECTS.onigiiriDamage).toEqual({ weapon: 'onigiri', kind: 'damage', dmg: 20, bonus: { stat: 'bounces', step: 1, cap: 5 } })
-    expect(UPGRADE_EFFECTS.onigiiriPower).toEqual({ weapon: 'onigiri', kind: 'damage', dmg: 20, bonus: { stat: 'bounces', step: 1, cap: 5 } })
-    expect(UPGRADE_EFFECTS.onigiiriBounce).toEqual({ weapon: 'onigiri', kind: 'stat', stat: 'bounces', step: 2, cap: 5, bonus: { stat: 'damage', step: 10 } })
-    expect(UPGRADE_EFFECTS.onigiiriCrit).toEqual({ weapon: 'onigiri', kind: 'crit', chanceStep: 0.02, chanceCap: 0.24, bonus: { stat: 'bounces', step: 1, cap: 5 } })
-    // 기준 경로(HUD 순서 피해→바운스→위력→치명타)의 레벨 표.
-    let w = applyUpgradeToWeapon({ ...WEAPON_CATALOG.onigiri.base, active: false, level: 0 }, UPGRADE_EFFECTS.acquireOnigiri)
-    const rows = [[w.level, w.damage, w.bounces, w.critChance]]
-    for (const key of ['onigiiriDamage', 'onigiiriBounce', 'onigiiriPower', 'onigiiriCrit']) {
-      w = applyUpgradeToWeapon(w, UPGRADE_EFFECTS[key])
-      rows.push([w.level, w.damage, w.bounces, Number(w.critChance.toFixed(2))])
-    }
-    expect(rows).toEqual([
-      [1, 75, 3, 0.08], [2, 95, 4, 0.08], [3, 105, 5, 0.08], [4, 125, 5, 0.08], [5, 125, 5, 0.10],
-    ])
-  })
-
-  it('오니기리 바운스는 어느 카드 순서로 올려도 Lv5에서 정확히 5회, 영구강화를 얹어도 5회를 넘지 않는다', () => {
-    const cards = ['onigiiriDamage', 'onigiiriPower', 'onigiiriBounce', 'onigiiriCrit']
+  // 2026-11-22 저녁 Terry: "무조건 한 화면에 1개만" · "사라지면 직후부터 대기시간" · "10초로부터 업그레이드 하면 3초까지".
+  // 개수로는 강해지지 않는다 → 모든 카드가 대기 시간 -1.75초(최소 3초) + 자기 효과. 오니기리는 어떤 카드든 바운스 +1(최대 5).
+  const CD = SINGLE_PROJECTILE_COOLDOWN_CARD_BONUS
+  const ONIGIRI_CARDS = ['onigiiriDamage', 'onigiiriPower', 'onigiiriBounce', 'onigiiriCrit']
+  const MINI_CARDS = ['miniRosariDamage', 'miniRosariPower', 'miniRosariBounce', 'miniRosariCrit']
+  const allPaths = (cards) => {
     const paths = []
     const walk = (path) => {
       if (path.length === 4) { paths.push(path); return }
       for (const key of cards) walk([...path, key])
     }
     walk([])
+    return paths
+  }
+  const crit = (w) => 1 + (w.critChance ?? 0) * ((w.critMultiplier ?? 1.5) - 1)
+  // 유효 DPS(사이클 = 추정 수명 + 대기 시간). 단일 대상은 한 사이클 1타, 군중은 맞히는 수만큼.
+  const singleDps = (w) => estimateWeaponDps(w)
+  const crowdDps = (w) => (w.damage * w.bounces * crit(w) * 1000) / estimateSingleProjectileCycleMs(w)
+
+  it('오니기리 카드: 피해 +10 ×2, 모든 카드에 바운스 +1(최대 5)·대기 -1.75초(최소 3초), 바운스 카드 +2 & 피해 +10', () => {
+    expect(CD).toEqual({ stat: 'cooldown', step: -1750, floor: 3000 })
+    expect(UPGRADE_EFFECTS.onigiiriDamage).toEqual({ weapon: 'onigiri', kind: 'damage', dmg: 10, bonus: [{ stat: 'bounces', step: 1, cap: 5 }, CD] })
+    expect(UPGRADE_EFFECTS.onigiiriPower).toEqual({ weapon: 'onigiri', kind: 'damage', dmg: 10, bonus: [{ stat: 'bounces', step: 1, cap: 5 }, CD] })
+    expect(UPGRADE_EFFECTS.onigiiriBounce).toEqual({ weapon: 'onigiri', kind: 'stat', stat: 'bounces', step: 2, cap: 5, bonus: [{ stat: 'damage', step: 10 }, CD] })
+    expect(UPGRADE_EFFECTS.onigiiriCrit).toEqual({ weapon: 'onigiri', kind: 'crit', chanceStep: 0.02, chanceCap: 0.24, bonus: [{ stat: 'bounces', step: 1, cap: 5 }, CD] })
+    // 기준 경로(HUD 순서 피해→바운스→위력→치명타)의 레벨 표 — upgrades.js 주석 표와 같다.
+    let w = applyUpgradeToWeapon({ ...WEAPON_CATALOG.onigiri.base, active: false, level: 0 }, UPGRADE_EFFECTS.acquireOnigiri)
+    const rows = [[w.level, w.damage, w.bounces, w.critChance, w.cooldown]]
+    const dps = [[singleDps(w), crowdDps(w)]]
+    for (const key of ['onigiiriDamage', 'onigiiriBounce', 'onigiiriPower', 'onigiiriCrit']) {
+      w = applyUpgradeToWeapon(w, UPGRADE_EFFECTS[key])
+      rows.push([w.level, w.damage, w.bounces, Number(w.critChance.toFixed(2)), w.cooldown])
+      dps.push([singleDps(w), crowdDps(w)])
+    }
+    expect(rows).toEqual([
+      [1, 230, 3, 0.08, 10000], [2, 240, 4, 0.08, 8250], [3, 250, 5, 0.08, 6500], [4, 260, 5, 0.08, 4750], [5, 260, 5, 0.10, 3000],
+    ])
+    expect(dps.map(([s1, c]) => [Number(s1.toFixed(2)), Number(c.toFixed(1))])).toEqual([
+      [16.65, 50.0], [18.21, 72.9], [19.93, 99.7], [23.94, 119.7], [28.60, 143.0],
+    ])
+    // 94452e62(화면 3개·5초 쿨다운) 레벨별 단일 대상 15.60 / 19.76 / 21.84 / 26.00 / 26.25와 ±10% 안.
+    const old = [15.60, 19.76, 21.84, 26.00, 26.25]
+    dps.forEach(([s1], i) => expect(Math.abs(s1 / old[i] - 1), `Lv${i + 1}`).toBeLessThan(0.1))
+  })
+
+  it('꼬마 로자리 카드: 피해 +12 ×2, 바운스 카드 +1 & 피해 +14, 모든 카드에 대기 -1.75초(최소 3초)', () => {
+    expect(UPGRADE_EFFECTS.acquireMiniRosari).toMatchObject({ weapon: 'miniRosari', kind: 'acquire', minLevel: 6 })
+    expect(UPGRADE_EFFECTS.miniRosariDamage).toEqual({ weapon: 'miniRosari', kind: 'damage', dmg: 12, bonus: [CD] })
+    expect(UPGRADE_EFFECTS.miniRosariPower).toEqual({ weapon: 'miniRosari', kind: 'damage', dmg: 12, bonus: [CD] })
+    // cap 9 = 기본 3 + 영구 최대 2 + 인게임 4레벨.
+    expect(UPGRADE_EFFECTS.miniRosariBounce).toEqual({ weapon: 'miniRosari', kind: 'stat', stat: 'bounces', step: 1, cap: 9, bonus: [{ stat: 'damage', step: 14 }, CD] })
+    expect(UPGRADE_EFFECTS.miniRosariCrit).toEqual({ weapon: 'miniRosari', kind: 'crit', chanceStep: 0.02, chanceCap: 0.28, bonus: [CD] })
+
+    let w = applyUpgradeToWeapon({ ...WEAPON_CATALOG.miniRosari.base, active: false, level: 0 }, UPGRADE_EFFECTS.acquireMiniRosari)
+    const rows = [[w.level, w.damage, w.bounces, w.critChance, w.cooldown]]
+    const dps = [[singleDps(w), crowdDps(w)]]
+    for (const key of ['miniRosariDamage', 'miniRosariBounce', 'miniRosariPower', 'miniRosariCrit']) {
+      w = applyUpgradeToWeapon(w, UPGRADE_EFFECTS[key])
+      rows.push([w.level, w.damage, w.bounces, Number(w.critChance.toFixed(2)), w.cooldown])
+      dps.push([singleDps(w), crowdDps(w)])
+    }
+    expect(rows).toEqual([
+      [1, 170, 3, 0.12, 10000], [2, 182, 3, 0.12, 8250], [3, 196, 4, 0.12, 6500], [4, 208, 4, 0.12, 4750], [5, 208, 4, 0.14, 3000],
+    ])
+    expect(dps.map(([s1, c]) => [Number(s1.toFixed(2)), Number(c.toFixed(1))])).toEqual([
+      [12.55, 37.6], [15.29, 45.9], [17.38, 69.5], [21.61, 86.4], [26.32, 105.3],
+    ])
+    // 94452e62(화면 3개·3초 쿨다운) 레벨별 단일 대상 12.01 / 16.85 / 18.97 / 23.81 / 24.04와 ±10% 안.
+    const old = [12.01, 16.85, 18.97, 23.81, 24.04]
+    dps.forEach(([s1], i) => expect(Math.abs(s1 / old[i] - 1), `Lv${i + 1}`).toBeLessThan(0.1))
+  })
+
+  it.each([
+    ['onigiri', 'acquireOnigiri', ONIGIRI_CARDS],
+    ['miniRosari', 'acquireMiniRosari', MINI_CARDS],
+  ])('%s: 대기 시간은 어느 카드 순서로든 Lv1 10 · 8.25 · 6.5 · 4.75 · Lv5 3초', (id, acquireKey, cards) => {
+    for (const path of allPaths(cards)) {
+      let w = applyUpgradeToWeapon({ ...WEAPON_CATALOG[id].base, active: false, level: 0 }, UPGRADE_EFFECTS[acquireKey])
+      expect(w.cooldown).toBe(10000)
+      for (const key of path) {
+        if (!isUpgradeAvailable(UPGRADE_EFFECTS[key], 99, { [id]: w })) continue
+        w = applyUpgradeToWeapon(w, UPGRADE_EFFECTS[key])
+        expect(w.cooldown, path.join('>')).toBe([10000, 8250, 6500, 4750, 3000][w.level - 1])
+      }
+    }
+  })
+
+  it.each([
+    ['onigiri', 'acquireOnigiri', ONIGIRI_CARDS],
+    ['miniRosari', 'acquireMiniRosari', MINI_CARDS],
+  ])('%s: 손놀림 최대(-20%) + 치비코(-13%)를 모두 겹쳐도 실제 대기 시간은 3초 아래로 안 내려간다', (id, acquireKey, cards) => {
+    for (const path of allPaths(cards)) {
+      // 손놀림 패시브 최대 = base 쿨다운 × 0.8(useGameStore buildInitialWeapons), 치비코 영구 최대 보너스 13%.
+      let w = applyUpgradeToWeapon({ ...WEAPON_CATALOG[id].base, cooldown: 10000 * 0.8, active: false, level: 0 }, UPGRADE_EFFECTS[acquireKey])
+      w = applyChibikoAllWeaponBoost(w, 0.13)
+      for (const key of path) {
+        if (!isUpgradeAvailable(UPGRADE_EFFECTS[key], 99, { [id]: w })) continue
+        w = applyUpgradeWithChibikoBoost(w, UPGRADE_EFFECTS[key], 0.13)
+        expect(effectiveSingleProjectileCooldownMs(w), path.join('>')).toBeGreaterThanOrEqual(SINGLE_PROJECTILE_COOLDOWN_MIN_MS)
+      }
+      // 카드 값 자체는 더 낮아질 수 있어도(치비코 0.87배) Lv5에서 던지는 순간은 정확히 3초다.
+      if (w.level === 5) expect(effectiveSingleProjectileCooldownMs(w)).toBe(3000)
+    }
+  })
+
+  it('오니기리 바운스는 어느 카드 순서로 올려도 Lv5에서 정확히 5회, 영구강화를 얹어도 5회를 넘지 않는다', () => {
     for (const metaBounces of [0, 1, 2]) {
-      for (const path of paths) {
+      for (const path of allPaths(ONIGIRI_CARDS)) {
         let w = applyUpgradeToWeapon({ ...WEAPON_CATALOG.onigiri.base, bounces: 3 + metaBounces, active: false, level: 0 }, UPGRADE_EFFECTS.acquireOnigiri)
         for (const key of path) {
           if (!isUpgradeAvailable(UPGRADE_EFFECTS[key], 99, { onigiri: w })) continue
@@ -589,55 +669,29 @@ describe('UPGRADE_EFFECTS 테이블 무결성', () => {
     }
   })
 
-  it('꼬마 로자리 카드는 자기 base 34 기준으로 Lv1→만렙 단일 대상 ≈2.0배를 만든다', () => {
-    expect(UPGRADE_EFFECTS.acquireMiniRosari).toMatchObject({ weapon: 'miniRosari', kind: 'acquire', minLevel: 6 })
-    // 2026-11-22: 피해 카드 16.7→13.7 ×2 + 바운스 카드 피해 +6 = 합 33.4 그대로(모든 레벨업이 단일 대상 위력을 올린다).
-    expect(UPGRADE_EFFECTS.miniRosariDamage).toEqual({ weapon: 'miniRosari', kind: 'damage', dmg: 13.7 })
-    expect(UPGRADE_EFFECTS.miniRosariPower).toEqual({ weapon: 'miniRosari', kind: 'damage', dmg: 13.7 })
-    // cap 9 = 기본 3 + 영구 최대 2 + 인게임 4레벨.
-    expect(UPGRADE_EFFECTS.miniRosariBounce).toEqual({ weapon: 'miniRosari', kind: 'stat', stat: 'bounces', step: 1, cap: 9, bonus: { stat: 'damage', step: 6 } })
-    expect(UPGRADE_EFFECTS.miniRosariCrit).toEqual({ weapon: 'miniRosari', kind: 'crit', chanceStep: 0.02, chanceCap: 0.28 })
-
-    const base = WEAPON_CATALOG.miniRosari.base
-    let w = applyUpgradeToWeapon({ ...base, active: false, level: 0 }, UPGRADE_EFFECTS.acquireMiniRosari)
-    const lv1 = estimateWeaponDps(w)
-    for (const key of ['miniRosariDamage', 'miniRosariPower', 'miniRosariBounce', 'miniRosariCrit']) {
-      w = applyUpgradeToWeapon(w, UPGRADE_EFFECTS[key])
-    }
-    expect(w.level).toBe(5)
-    expect(lv1).toBeCloseTo(12.01, 2)
-    expect(estimateWeaponDps(w) / lv1).toBeCloseTo(2.0, 2)
-  })
-
-  // Terry 2026-11-22 "레벨업 해도 파워가 올라간다": 개수가 늘지 않으니, 어느 카드를 어느 순서로 골라도
-  // 레벨마다 단일 대상 DPS와 한 번 던질 때의 군중 피해(피해 × 맞히는 수 × 치명 기대값)가 둘 다 엄격히 오른다.
+  // Terry 2026-11-22 "레벨업 해도 파워가 올라간다": 개수가 늘지 않으니, 어느 카드를 어느 순서로 골라도(영구 바운스
+  // +0~2 포함) 레벨마다 유효 단일 대상 DPS와 군중 DPS(둘 다 사이클 = 수명 + 대기 시간 기준)가 엄격히 오른다.
   it.each([
-    ['onigiri', 'acquireOnigiri', ['onigiiriDamage', 'onigiiriPower', 'onigiiriBounce', 'onigiiriCrit'], 5],
-    ['miniRosari', 'acquireMiniRosari', ['miniRosariDamage', 'miniRosariPower', 'miniRosariBounce', 'miniRosariCrit'], Infinity],
-  ])('%s: power rises strictly at every level, on every card path', (id, acquireKey, cards, bounceCap) => {
-    const crit = (w) => 1 + (w.critChance ?? 0) * ((w.critMultiplier ?? 1.5) - 1)
-    const single = (w) => estimateWeaponDps(w)
-    const crowd = (w) => w.damage * Math.min(bounceCap, w.bounces) * crit(w)
-    const paths = []
-    const walk = (path) => {
-      if (path.length === 4) { paths.push(path); return }
-      for (const key of cards) walk([...path, key])
-    }
-    walk([])
+    ['onigiri', 'acquireOnigiri', ONIGIRI_CARDS],
+    ['miniRosari', 'acquireMiniRosari', MINI_CARDS],
+  ])('%s: power rises strictly at every level, on every card path', (id, acquireKey, cards) => {
     let checked = 0
-    for (const path of paths) {
-      let w = applyUpgradeToWeapon({ ...WEAPON_CATALOG[id].base, active: false, level: 0 }, UPGRADE_EFFECTS[acquireKey])
-      for (const key of path) {
-        const effect = UPGRADE_EFFECTS[key]
-        if (!isUpgradeAvailable(effect, 99, { [id]: w })) continue // 화면에 뜨지 않는 카드(예: 바운스 5회 도달)
-        const next = applyUpgradeToWeapon(w, effect)
-        expect(single(next), `${path.join('>')} @${key}`).toBeGreaterThan(single(w))
-        expect(crowd(next), `${path.join('>')} @${key}`).toBeGreaterThan(crowd(w))
-        w = next
-        checked += 1
+    for (const metaBounces of [0, 1, 2]) {
+      for (const path of allPaths(cards)) {
+        let w = applyUpgradeToWeapon({ ...WEAPON_CATALOG[id].base, bounces: 3 + metaBounces, active: false, level: 0 }, UPGRADE_EFFECTS[acquireKey])
+        for (const key of path) {
+          const effect = UPGRADE_EFFECTS[key]
+          if (!isUpgradeAvailable(effect, 99, { [id]: w })) continue // 화면에 뜨지 않는 카드(예: 바운스 5회 도달)
+          const next = applyUpgradeToWeapon(w, effect)
+          expect(next.damage, `${path.join('>')} @${key}`).toBeGreaterThanOrEqual(w.damage)
+          expect(singleDps(next), `${path.join('>')} @${key}`).toBeGreaterThan(singleDps(w))
+          expect(crowdDps(next), `${path.join('>')} @${key}`).toBeGreaterThan(crowdDps(w))
+          w = next
+          checked += 1
+        }
       }
     }
-    expect(checked).toBeGreaterThan(200)
+    expect(checked).toBeGreaterThan(600)
   })
 
   // 회귀 방어(2026-08-15): 예전에는 19종 전부 데미지 카드가 정확히 1장뿐이라, 레벨업 절반이

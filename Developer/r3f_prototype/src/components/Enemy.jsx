@@ -274,6 +274,11 @@ export function resetEnemySpawnSfxGateForTest() {
   _lastEnemySpawnSfxAt = Number.NEGATIVE_INFINITY
 }
 
+// 넉백(타격으로 몸이 밀려나는 것) 면역 판정. 2026-11-22 Terry: 마틸다는 로자리의 어떤 공격에도 밀리지 않는다.
+export function isEnemyKnockbackImmune(isMatilda = false) {
+  return isMatilda === true
+}
+
 export function getEnemySpawnSfx(type, isMatilda = false) {
   if (isMatilda) return { id: 'matildaSpawn', volume: 0.72 }
   if (isBossType(type)) return { id: 'bossSpawn', volume: 0.78 }
@@ -1288,8 +1293,11 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
       hitFlashRef.current = true
       requestAnimationFrame(() => { queueVisualState('hitFlash', false); hitFlashRef.current = false })
       if (impact?.sfxId) emitSfx({ id: impact.sfxId, volume: 0.6 })
+      // 2026-11-22 Terry "마틸다는 로자리의 어떤 공격에도 물리적으로 밀려나지 않게": 모든 무기·패시브·폭발·미사일·
+      // 스타링크·Sltera 등 로자리 쪽 타격이 전부 이 _enemyHit을 지난다 → 여기 한 곳에서 마틸다의 넉백만 뺀다.
+      // 피해·치명타·연출·상태는 그대로 들어간다.
       const knockback = resolveEnemyHitKnockback(impact)
-      if (knockback.speed > 0) {
+      if (knockback.speed > 0 && !isEnemyKnockbackImmune(isMatilda)) {
         const t = hitPos
         const sx = knockback.source?.x ?? playerPos.x
         const sz = knockback.source?.z ?? playerPos.z
@@ -1350,7 +1358,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
     return () => {
       enemyBodies.delete(id)
     }
-  }, [id, onDeath, spawnPos, stats.xp, type, cs, spawnRevealed])
+  }, [id, onDeath, spawnPos, stats.xp, type, cs, spawnRevealed, isMatilda])
 
   useFrame((_, delta) => {
     if (!spawnRevealedRef.current) {
@@ -1475,6 +1483,8 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
     // 무기에 맞을 때마다 셔틀 타이머가 멈추고 몸통이 레인 밖으로 밀렸다가, 끝나면 코스로
     // 한 프레임에 튀어 돌아갔다(2026-11-08 "순간이동하듯이" 보고의 원인 중 하나).
     if (type === 'B03' && b03ShuttleRef.current.phase !== 'idle') knockbackRemainingRef.current = 0
+    // 마틸다는 넉백 면역(위 _enemyHit) — 어떤 경로로 남은 넉백이 있어도 돌진 AI를 끊고 몸을 밀지 못한다.
+    if (isEnemyKnockbackImmune(isMatilda)) knockbackRemainingRef.current = 0
     if (knockbackRemainingRef.current > 0) {
       knockbackRemainingRef.current -= frameDeltaMs
       _vel.x = knockbackDir.current.x * knockbackSpeedRef.current

@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
-// 2026-11-22 Terry "주먹밥, 미니로자리를 정리하자"(화면 최대 3개 · 3개면 기다림 · 표적 없이 3초면 스르륵) +
+// 2026-11-22 Terry "주먹밥, 미니로자리를 정리하자"(표적 없이 3초면 스르륵) + 같은 날 저녁 개정(화면 1개 ·
+// 그 1개가 사라진 뒤부터 대기 10초 → 3초, 최소 3초) +
 // 11-13 하드닝 엣지 케이스 — 실제 무기 컴포넌트를 마운트하고 프레임을 돌려 풀 크기·대기 수·슬롯 주인을 직접
 // 센다(소스 문자열 검사가 아님). XP 교과서 인스턴스 층도 함께 돈다.
 import React, { act, useState } from 'react'
@@ -135,7 +136,7 @@ const WEAPONS = {
     // 슬롯 주인 불변식: 주인 있는 분신 슬롯 = 살아 있는 분신(사라지는 중 포함).
     consistent: (s) => s.ownedSlots === s.projectiles,
     empty: (s) => s.projectiles === 0 && s.hovering === 0 && s.fading === 0 && s.slots === 0 && s.ownedSlots === 0,
-    // 끝난 뒤에는 주인 없는 분신만 남는다. 무기를 얻을 때 화면 상한(3명)만큼 미리 만든 풀은 줄지 않는다
+    // 끝난 뒤에는 주인 없는 분신만 남는다. 무기를 얻을 때 화면 상한(1명)만큼 미리 만든 풀은 줄지 않는다
     // (2026-11-17: 다음 투척 때 모델을 다시 복제하지 않게).
     idle: (s) => s.projectiles === 0 && s.hovering === 0 && s.fading === 0 && s.ownedSlots === 0 && s.slots === MINI_ROSARI_MAX_ALIVE,
     pool: (s) => s.slots,
@@ -172,12 +173,12 @@ function mount(id) {
   patchGroups()
 }
 
-describe.each(['onigiri', 'miniRosari'])('%s 3-on-screen cap + 3s fade, mounted', (id) => {
+describe.each(['onigiri', 'miniRosari'])('%s 1-on-screen cap + cooldown from disappearance + 3s fade, mounted', (id) => {
   const spec = WEAPONS[id]
   const base = { ...WEAPON_CATALOG[id].base, active: true }
 
   it('a projectile with no target for 3s fades where it is, then is removed — never before', () => {
-    elapsed = 2000 // 첫 투척은 바로, 다음 투척은 1000초 뒤 → 이 테스트 동안 1발만
+    // 첫 투척은 바로, 다음 투척은 사라진 뒤 1000초 → 이 테스트 동안 1발만
     setWeapon(id, { ...base, cooldown: 1e6 })
     mount(id)
     spawnUnkillable(1, 0)
@@ -199,31 +200,62 @@ describe.each(['onigiri', 'miniRosari'])('%s 3-on-screen cap + 3s fade, mounted'
     expect(spec.idle(spec.stats())).toBe(true)
   })
 
-  it('never more than 3 alive; with 3 alive the throw waits and fires on the very next frame after one disappears', () => {
-    setWeapon(id, { ...base, cooldown: 100 })
+  it('never more than 1 alive; the next throw goes out one full cooldown (game time) after the previous one disappears — not after the throw', () => {
+    const cooldown = 4000
+    setWeapon(id, { ...base, cooldown })
     mount(id)
-    spawnUnkillable(1, 0)
-    let prev = 0
-    let refills = 0
-    let sawThree = false
-    for (let i = 0; i < 60 * 12; i += 1) {
-      const before = spec.stats()
-      const ids = before.projectiles
-      frame(1 / 60)
+    spawnUnkillable(1, 0) // 안 죽는 적 1명: 맞힌 뒤 3초 떠 있다가 스르륵 사라진다 → 수명이 대기 시간보다 길다
+    const DT = 1 / 60
+    let gameMs = 0
+    let prev = spec.stats().projectiles
+    let goneAt = null
+    const gaps = []
+    const throwsAt = []
+    for (let i = 0; i < 60 * 40; i += 1) {
+      frame(DT)
+      gameMs += DT * 1000
       const s = spec.stats()
-      expect(s.projectiles).toBeLessThanOrEqual(3)
+      expect(s.projectiles).toBeLessThanOrEqual(1)
       expect(spec.consistent(s)).toBe(true)
-      if (s.projectiles === 3) sawThree = true
-      // 3 → 2로 줄었다면(하나가 사라짐) 바로 다음 프레임에 다시 3이다(쿨다운은 이미 찼다).
-      if (prev === 3 && ids === 3 && s.projectiles === 2) {
-        frame(1 / 60)
-        expect(spec.stats().projectiles).toBe(3)
-        refills += 1
+      if (prev === 1 && s.projectiles === 0) goneAt = gameMs
+      if (prev === 0 && s.projectiles === 1) {
+        throwsAt.push(gameMs)
+        if (goneAt !== null) gaps.push(gameMs - goneAt)
       }
       prev = s.projectiles
     }
-    expect(sawThree).toBe(true)
-    expect(refills).toBeGreaterThan(0)
+    expect(gaps.length).toBeGreaterThanOrEqual(3)
+    for (const gap of gaps) {
+      // 사라진 뒤 정확히 대기 시간(관측 지연 -2~+3프레임)만큼 기다렸다가 던진다(표적은 늘 사거리 안).
+      expect(gap).toBeGreaterThanOrEqual(cooldown - DT * 1000 * 2)
+      expect(gap).toBeLessThanOrEqual(cooldown + DT * 1000 * 3)
+    }
+    // 던진 시각으로 쟀다면 간격이 4초였겠지만, 수명(>3초)이 더해져 실제 투척 간격은 그보다 훨씬 길다.
+    for (let k = 1; k < throwsAt.length; k += 1) expect(throwsAt[k] - throwsAt[k - 1]).toBeGreaterThan(cooldown + 3000)
+  })
+
+  it('a cooldown stacked under 3 s (passive + Chibiko + anything) still waits exactly 3 s after it disappears', () => {
+    setWeapon(id, { ...base, cooldown: 900 })
+    mount(id)
+    spawnUnkillable(1, 0)
+    const DT = 1 / 60
+    let gameMs = 0
+    let prev = 0
+    let goneAt = null
+    const gaps = []
+    for (let i = 0; i < 60 * 30; i += 1) {
+      frame(DT)
+      gameMs += DT * 1000
+      const n = spec.stats().projectiles
+      if (prev === 1 && n === 0) goneAt = gameMs
+      if (prev === 0 && n === 1 && goneAt !== null) gaps.push(gameMs - goneAt)
+      prev = n
+    }
+    expect(gaps.length).toBeGreaterThanOrEqual(2)
+    for (const gap of gaps) {
+      expect(gap).toBeGreaterThanOrEqual(3000 - DT * 1000 * 2)
+      expect(gap).toBeLessThanOrEqual(3000 + DT * 1000 * 3)
+    }
   })
 
   it('edge (1): pause, level-up, dialogue/cutscene pauses and a hidden tab do not advance the hover timer', () => {
@@ -258,7 +290,7 @@ describe.each(['onigiri', 'miniRosari'])('%s 3-on-screen cap + 3s fade, mounted'
     mount(id)
     spawnUnkillable(1, 0)
     run(3)
-    expect(spec.stats().hovering).toBeGreaterThanOrEqual(2)
+    expect(spec.stats().hovering).toBe(1)
     // 스르륵 사라지는 연출 한가운데서 끊는다.
     const midRetire = () => spec.stats().fading > 0
     expect(runUntil(midRetire, spec.timeoutMs / 1000 + 2)).toBe(true)
@@ -282,7 +314,7 @@ describe.each(['onigiri', 'miniRosari'])('%s 3-on-screen cap + 3s fade, mounted'
     expect(spec.stats()).toBeNull()
   })
 
-  it('edge (5): B05 alone, already hit by every throw, 60s at max level + every bonus — never more than 3 alive, pools stop growing', () => {
+  it('edge (5): B05 alone, already hit by every throw, 60s at max level + every bonus — never more than 1 alive, pools stop growing', () => {
     for (const [label, weapon] of [
       ['max level + all meta + 20% cooldown passive', { ...spec.maxLevel(), cooldown: base.cooldown * 0.8 }],
       ['stress: 150ms cooldown', { ...spec.maxLevel(), cooldown: 150 }],
@@ -297,7 +329,7 @@ describe.each(['onigiri', 'miniRosari'])('%s 3-on-screen cap + 3s fade, mounted'
       let maxProjectiles = 0
       run(30, { each: () => {
         const s = spec.stats()
-        expect(s.projectiles, label).toBeLessThanOrEqual(3)
+        expect(s.projectiles, label).toBeLessThanOrEqual(1)
         expect(spec.consistent(s), label).toBe(true)
         maxHovering = Math.max(maxHovering, s.hovering)
         maxProjectiles = Math.max(maxProjectiles, s.projectiles)
@@ -305,13 +337,13 @@ describe.each(['onigiri', 'miniRosari'])('%s 3-on-screen cap + 3s fade, mounted'
       pool30 = spec.pool(spec.stats())
       run(30, { each: () => {
         const s = spec.stats()
-        expect(s.projectiles, label).toBeLessThanOrEqual(3)
+        expect(s.projectiles, label).toBeLessThanOrEqual(1)
         expect(spec.consistent(s), label).toBe(true)
         maxProjectiles = Math.max(maxProjectiles, s.projectiles)
       } })
       expect(spec.pool(spec.stats()), label).toBeLessThanOrEqual(Math.max(pool30, 1))
-      expect(spec.pool(spec.stats()), label).toBeLessThanOrEqual(3)
-      if (label.startsWith('stress')) expect(maxProjectiles, label).toBe(3) // 상한이 실제로 걸렸다
+      expect(spec.pool(spec.stats()), label).toBeLessThanOrEqual(1)
+      expect(maxProjectiles, label).toBe(1)
       expect(maxHovering, label).toBeGreaterThan(0)
     }
   })

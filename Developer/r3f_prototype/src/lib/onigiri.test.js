@@ -136,9 +136,10 @@ describe.each(['onigiri', 'miniRosari'])('%s confirmed flight rules (2026-11-02)
   const DT = 1 / 60
 
   let id = 0
-  function plan(player, { now, lastFireAt }) {
+  // 2026-11-22 저녁: 대기 시간은 마지막 발사체가 사라진 뒤 흐른 시간(msSinceRetire)으로 잰다.
+  function plan(player, { msSinceRetire, aliveCount = 0 }) {
     return planOnigiriFrame({
-      now, lastFireAt, weapon, origin: player,
+      msSinceRetire, aliveCount, weapon, origin: player,
       findFreshTarget: (range) => pickNextOnigiriTarget({ from: player, range }),
       nextId: () => ++id,
     })
@@ -159,36 +160,28 @@ describe.each(['onigiri', 'miniRosari'])('%s confirmed flight rules (2026-11-02)
   it('a new throw starts at the player current body, never at the target', () => {
     const player = { x: 2, y: 0.32, z: -1 }
     spawnPooledEnemy(4, -1)
-    const launch = plan(player, { now: weapon.cooldown, lastFireAt: 0 })
+    const launch = plan(player, { msSinceRetire: weapon.cooldown })
     expect(launch.start).toEqual([2, 0.32, -1])
     expect(launch.hitIds).toHaveLength(1)
     expect([launch.maxBounces, launch.damage, launch.bounceRange]).toEqual([weapon.bounces, weapon.damage, weapon.bounceRange])
-    expect(plan(player, { now: weapon.cooldown - 1, lastFireAt: 0 })).toBeNull()
+    expect(plan(player, { msSinceRetire: weapon.cooldown - 1 })).toBeNull()
   })
 
-  it('throws every cooldown from the player while fewer than 3 are alive, and waits at 3 (2026-11-22)', () => {
+  it('throws one at a time from wherever the player is: never while one is alive, next only a full cooldown after it disappears (2026-11-22 evening)', () => {
     const player = { x: 0, y: 0.32, z: 0 }
     spawnPooledEnemy(3, 0)
-    const alive = []
-    let lastFireAt = 0
-    for (let k = 1; k <= 6; k += 1) {
+    const launches = []
+    for (let k = 1; k <= 4; k += 1) {
       player.x = -k * 0.5; player.z = k * 0.25
-      const now = k * weapon.cooldown
-      const launch = planOnigiriFrame({
-        now, lastFireAt, weapon, origin: player,
-        findFreshTarget: (range) => pickNextOnigiriTarget({ from: player, range }),
-        nextId: () => ++id,
-        aliveCount: alive.length, maxAlive: 3,
-      })
-      if (alive.length >= 3) {
-        expect(launch).toBeNull() // 앞선 3개가 하나도 끝나지 않았다 → 기다린다
-        continue
-      }
+      // 하나가 살아 있으면 대기 시간이 아무리 지났어도 던지지 않는다.
+      expect(plan(player, { msSinceRetire: Number.POSITIVE_INFINITY, aliveCount: 1 })).toBeNull()
+      // 사라진 뒤 대기 시간 직전에는 아직이다.
+      expect(plan(player, { msSinceRetire: weapon.cooldown - 1 })).toBeNull()
+      const launch = plan(player, { msSinceRetire: weapon.cooldown })
       expect(launch.start).toEqual([-k * 0.5, 0.32, k * 0.25])
-      lastFireAt = now
-      alive.push(launch)
+      launches.push(launch)
     }
-    expect(new Set(alive.map((l) => l.id)).size).toBe(3)
+    expect(new Set(launches.map((l) => l.id)).size).toBe(4)
   })
 
   it('after a hit with bounces left it continues from the hit spot to the next unhit enemy in bounce range', () => {

@@ -87,11 +87,14 @@ describe('Onigiri launch origin and flight wiring (2026-11-02)', () => {
     expect(weaponSource).toContain('origin: playerPos,')
   })
 
-  // 2026-11-22 Terry: "둘 다 절대 화면에 최대 체류 개수는 3개" · "바운스 횟수가 최대 5회" — 투척은 살아 있는 수를
-  // 넘겨 공용 판단이 3개에서 막고, 무리도 넣기를 거절한다. 인스턴스 슬롯은 무리에 들어간 뒤에만 빌린다.
-  it('passes the alive count and the 5-bounce cap to the shared planner; claims a slot only after the swarm accepts', () => {
-    expect(weaponSource).toContain('aliveCount: swarm.entries.length,')
-    expect(weaponSource).toContain('maxAlive: swarm.maxAlive,')
+  // 2026-11-22 Terry(저녁 개정) "무조건 한 화면에 1개만" · "사라지면 직후부터 대기시간" · "바운스 최대 5회" —
+  // 투척은 무리(swarm)를 통째로 넘겨 공용 판단이 살아 있는 1개·사라진 뒤 대기 시간에서 막고, 무리도 넣기를 거절한다.
+  // 던진 시각으로 재는 쿨다운(lastFireRef)은 더 없다. 인스턴스 슬롯은 무리에 들어간 뒤에만 빌린다.
+  it('passes the swarm (alive count + time since the last one disappeared) and the 5-bounce cap to the shared planner', () => {
+    expect(weaponSource).toContain('if (isProjectileSwarmReady(swarm, w)) {')
+    expect(weaponSource).toMatch(/^ {8}swarm,$/m)
+    expect(source).not.toContain('lastFireRef')
+    expect(source).not.toContain('w.cooldown')
     expect(weaponSource).toContain('bounceCap: ONIGIRI_MAX_BOUNCES,')
     expect(source).toContain('maxAlive: ONIGIRI_MAX_ALIVE')
     expect(weaponSource).toContain('const entry = launch && addSwarmProjectile(swarm, launch, { slot: -1, spin: 0 })')

@@ -37,6 +37,7 @@ import {
   COMPASS_BLADE_RESPAWN_MS,
   COMPASS_BLADE_STACKS_TO_EXPLODE,
 } from './compassBlade.js'
+import { estimateSingleProjectileCycleMs } from './singleProjectileCycle.js'
 
 // 신 지정: 30분.
 export const MATILDA_ATTACK_SECONDS = 1800
@@ -159,11 +160,21 @@ function compassBladeCycleDps(weapon) {
   return (hitDamage + COMPASS_BLADE_EXPLOSION_DAMAGE) / cycleSec
 }
 
+// 1개 발사체 무기(오니기리·꼬마 로자리, base.singleProjectile) 사이클 DPS(2026-11-22 저녁).
+// 화면에 1개뿐이고 대기 시간이 그 1개가 사라진 뒤부터 흐르므로, 발동 간격은 cooldown이 아니라
+// 사이클 = 추정 수명 + 대기 시간(최소 3초)이다(lib/singleProjectileCycle.js). 단일 대상은 한 사이클에 1번
+// 맞는다(hitSet — 바운스는 곱하지 않는다). cooldown만 보면 한 방이 커진 만큼 마틸다 HP가 ~45% 부풀었다.
+function singleProjectileCycleDps(weapon) {
+  const damage = Number.isFinite(weapon.damage) ? Math.max(0, weapon.damage) : 0
+  return (damage * expectedCritMultiplier(weapon) * 1000) / estimateSingleProjectileCycleMs(weapon)
+}
+
 // 무기 1종의 단일 대상 기대 DPS. 비활성 무기는 0.
 // weaponId는 런타임 무기 객체에 id가 없을 때를 위한 맵 키(estimatePlayerDps가 넘긴다).
 export function estimateWeaponDps(weapon, weaponId = weapon?.id) {
   if (!weapon?.active) return 0
   if (weaponId === 'compassBlade') return compassBladeCycleDps(weapon)
+  if (weapon.singleProjectile === true) return singleProjectileCycleDps(weapon)
   // 바이키티 커터칼은 "8단 성장 + 부러짐 산탄"이 한 사이클을 이뤄 damage×발사율로 못 뽑는다.
   // 정본 사이클 계산(lib/bikittyCutter.js)이 이미 있으므로 그걸 그대로 쓴다(추정 8.44 → 실측 11.49).
   if (Number.isFinite(weapon.segments) && Number.isFinite(weapon.snapDamage)) {
