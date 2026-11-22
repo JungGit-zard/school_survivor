@@ -5,7 +5,7 @@ import React, { act } from 'react'
 import { createRoot } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import HUD from './HUD.jsx'
-import { NIKUO_CUT_LINES, NIKUO_CUT_STAGE_ID, NIKUO_WHITEOUT_MS } from './NikuoCut.jsx'
+import { NIKUO_CUT_LINES, NIKUO_CUT_STAGE_ID, NIKUO_FAIL_LINE, NIKUO_WHITEOUT_MS } from './NikuoCut.jsx'
 import { SLTERA_RUN_EXIT_MESSAGE, SLTERA_RUN_SRC, readSlteraRunResult } from './SlteraRunOverlay.jsx'
 import { useGameStore } from '../store/useGameStore.js'
 import { useAuthStore } from '../store/useAuthStore.js'
@@ -189,6 +189,59 @@ describe('Stage 3 clear: Nikuo arrives in the Sltera', () => {
     // 레이서 경로 자체는 스토어의 점수·골드·기록·미션 상태를 한 칸도 바꾸지 않는다.
     const after = useGameStore.getState()
     for (const key of watched) expect(after[key]).toBe(snapshot[key])
+  })
+
+  function exitRacer(data) {
+    advanceToChoice()
+    act(() => q('nikuo-cut-yes').click())
+    act(() => window.dispatchEvent(new MessageEvent('message', {
+      data: { type: SLTERA_RUN_EXIT_MESSAGE, ...data },
+      origin: window.location.origin,
+    })))
+  }
+
+  it('failed racer (arrived:false) shows one Rosari epilogue line; tap finalizes once with the kills, then lobby', () => {
+    const finalize = vi.fn()
+    act(() => useGameStore.setState({ finalizeDeferredStageResult: finalize }))
+    const onGoToLobby = renderCleared(NIKUO_CUT_STAGE_ID)
+    exitRacer({ kills: 5, arrived: false })
+    expect(q('sltera-run-overlay')).toBeNull()
+    expect(q('nikuo-cut-line').textContent).toBe(getDialogueText(NIKUO_FAIL_LINE.id))
+    expect(q('nikuo-cut-line').textContent).toBe('니쿠오의 운전은 엉망진창이었지만 결국 그날 어떻게든 식당에 도착하였다.')
+    expect(q('nikuo-cut-portrait').dataset.speaker).toBe('rosari')
+    expect(q('nikuo-cut-portrait').getAttribute('src')).toContain('rosari_intro')
+    expect(q('nikuo-cut-choice')).toBeNull()
+    expect(q('nikuo-whiteout')).not.toBeNull()
+    expect(finalize).not.toHaveBeenCalled()
+    expect(onGoToLobby).not.toHaveBeenCalled()
+    tap()
+    expect(finalize).toHaveBeenCalledTimes(1)
+    expect(finalize).toHaveBeenCalledWith({ racerKills: 5 })
+    expect(onGoToLobby).toHaveBeenCalledTimes(1)
+    expect(q('nikuo-cut-catcher')).toBeNull()
+  })
+
+  it('failed racer epilogue: skip also ends it, finalizing exactly once', () => {
+    const finalize = vi.fn()
+    act(() => useGameStore.setState({ finalizeDeferredStageResult: finalize }))
+    const onGoToLobby = renderCleared(NIKUO_CUT_STAGE_ID)
+    exitRacer({ kills: 3 })
+    expect(q('nikuo-cut-portrait').dataset.speaker).toBe('rosari')
+    act(() => q('nikuo-cut-skip').click())
+    expect(finalize).toHaveBeenCalledTimes(1)
+    expect(finalize).toHaveBeenCalledWith({ racerKills: 3 })
+    expect(onGoToLobby).toHaveBeenCalledTimes(1)
+  })
+
+  it('arrived racer (arrived:true) skips the epilogue and goes straight to the lobby', () => {
+    const finalize = vi.fn()
+    act(() => useGameStore.setState({ finalizeDeferredStageResult: finalize }))
+    const onGoToLobby = renderCleared(NIKUO_CUT_STAGE_ID)
+    exitRacer({ kills: 8, arrived: true })
+    expect(q('nikuo-cut-catcher')).toBeNull()
+    expect(finalize).toHaveBeenCalledTimes(1)
+    expect(finalize).toHaveBeenCalledWith({ racerKills: 8 })
+    expect(onGoToLobby).toHaveBeenCalledTimes(1)
   })
 
   it('cleans up racer kill values from the message', () => {

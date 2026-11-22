@@ -51,3 +51,4 @@ ending.stage3.nikuo.001	어이, 거기 꼬맹이! 꾸물대지 말고 타라!
 ending.stage3.nikuo.002	누, 누구세요? 이 차… 설마 슬테라?!
 ending.stage3.nikuo.003	니쿠오다. 질문은 나중에 해!
 ending.stage3.nikuo.004	슬테라는 좀비 따위 안 기다려. 꽉 잡아!
+ending.stage3.nikuo.fail.001	니쿠오의 운전은 엉망진창이었지만 결국 그날 어떻게든 식당에 도착하였다.

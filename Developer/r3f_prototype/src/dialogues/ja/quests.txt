@@ -51,3 +51,4 @@ ending.stage3.nikuo.001	おい、そこのチビ！ぐずぐずしてねぇで�
 ending.stage3.nikuo.002	だ、誰ですか？ この車…まさかスルテラ？！
 ending.stage3.nikuo.003	ニクオだ。質問はあとにしな！
 ending.stage3.nikuo.004	スルテラはゾンビなんか待たねぇ。しっかりつかまれ！
+ending.stage3.nikuo.fail.001	ニクオの運転はめちゃくちゃだったけど、その日、なんとか食堂にたどり着いた。

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useGameStore } from '../store/useGameStore.js'
 import { emitUiSfx } from '../lib/uiSfx.js'
 import { playDialogueVoice, stopDialogueVoice } from '../lib/dialogueVoice.js'
@@ -24,6 +24,9 @@ export const NIKUO_CUT_LINES = Object.freeze([
   Object.freeze({ id: 'ending.stage3.nikuo.004', speaker: 'nikuo' }),
 ])
 const CHOICE_STEP = NIKUO_CUT_LINES.length
+// Terry 2026-11-22: 탑니다를 골랐지만 레이서를 실패하면(시간 초과·연료 소진·중도 이탈 = arrived !== true)
+// 같은 대사 UI가 로자리 쪽 서술로 한 번 더 뜨고, 탭하면 그때 레이서 킬로 결과를 확정하고 로비로 간다.
+export const NIKUO_FAIL_LINE = Object.freeze({ id: 'ending.stage3.nikuo.fail.001', speaker: 'rosari' })
 // Terry 2026-11-22: 탈출구를 밟으면 화면이 하얗게 바랜 뒤(화이트아웃) 바로 니쿠오 대사가 나온다.
 export const NIKUO_WHITEOUT_MS = 500
 
@@ -48,7 +51,10 @@ export default function NikuoCut({ onFinish, dialogueStyles: ds }) {
     return () => clearTimeout(id)
   }, [whiteDone])
   const [racerOpen, setRacerOpen] = useState(false)
-  const line = step >= 0 && step < CHOICE_STEP ? NIKUO_CUT_LINES[step] : null
+  // 실패 에필로그 중이면 확정할 레이서 킬 수, 아니면 null.
+  const [epilogueKills, setEpilogueKills] = useState(null)
+  const inEpilogue = epilogueKills !== null
+  const line = inEpilogue ? NIKUO_FAIL_LINE : step >= 0 && step < CHOICE_STEP ? NIKUO_CUT_LINES[step] : null
   const isRosari = line?.speaker === 'rosari'
 
   useEffect(() => {
@@ -67,7 +73,20 @@ export default function NikuoCut({ onFinish, dialogueStyles: ds }) {
   const decline = useCallback(() => { setStep(-1); finish(0) }, [finish])
   const accept = useCallback(() => { setStep(-1); setRacerOpen(true) }, [])
   // 레이서 종료 단일 콜백. result = { kills, arrived }(SlteraRunOverlay.readSlteraRunResult가 정리한 값).
-  const closeRacer = useCallback((result) => { setRacerOpen(false); finish(result?.kills ?? 0) }, [finish])
+  const closeRacer = useCallback((result) => {
+    setRacerOpen(false)
+    const kills = result?.kills ?? 0
+    if (result?.arrived === true) finish(kills)
+    else setEpilogueKills(kills)
+  }, [finish])
+  // 에필로그는 한 번만 닫힌다 — 연타·건너뛰기가 finish를 다시 부르지 않게 ref로 막는다.
+  const epilogueDoneRef = useRef(false)
+  const endEpilogue = useCallback(() => {
+    if (epilogueKills === null || epilogueDoneRef.current) return
+    epilogueDoneRef.current = true
+    setEpilogueKills(null)
+    finish(epilogueKills)
+  }, [epilogueKills, finish])
 
   return (
     <>
@@ -78,11 +97,12 @@ export default function NikuoCut({ onFinish, dialogueStyles: ds }) {
         aria-hidden="true"
         style={{ ...styles.whiteout, animation: reducedMotion ? 'none' : `nikuoWhiteoutIn ${NIKUO_WHITEOUT_MS}ms ease-out both` }}
       />
-      {whiteDone && step >= 0 && (
+      {whiteDone && (step >= 0 || inEpilogue) && (
         <div
           data-testid="nikuo-cut-catcher"
           style={ds.catcher}
           onPointerDown={() => {
+            if (inEpilogue) { emitUiSfx('advance'); endEpilogue(); return }
             if (step >= CHOICE_STEP) return // 선택지 화면의 빈 곳 탭은 아무 것도 하지 않는다.
             emitUiSfx('advance')
             setStep((s) => (s < 0 || s >= CHOICE_STEP ? s : s + 1))
@@ -96,7 +116,7 @@ export default function NikuoCut({ onFinish, dialogueStyles: ds }) {
               data-ui-sfx="close"
               style={ds.skipButton}
               onPointerDown={(event) => event.stopPropagation()}
-              onClick={() => setStep((s) => (s < 0 ? s : CHOICE_STEP))}
+              onClick={() => (inEpilogue ? endEpilogue() : setStep((s) => (s < 0 ? s : CHOICE_STEP)))}
             >
               {t('hud.skipIntro')}
             </button>
