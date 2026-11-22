@@ -102,7 +102,8 @@ import { createEnemyEntityPool, enemyTypeFromCode } from '../lib/enemyEntityPool
 import { MAX_ENEMIES } from '../lib/enemyEntityPool.js'
 import { playerPos } from '../lib/refs.js'
 import { PerspectiveCamera, Vector3 } from 'three'
-import { GAME_CAMERA_BACK, GAME_CAMERA_HEIGHT, getGameplayGroundReach } from '../lib/gameCameraFraming.js'
+import { GAME_CAMERA_BACK, GAME_CAMERA_HEIGHT, clampGameplayCameraFocus, getGameplayGroundReach } from '../lib/gameCameraFraming.js'
+import { createEnemySimulationRuntime } from '../lib/enemySimulation.js'
 import { shouldRetryRewardBurst, REWARD_BURST_RETRY_WINDOW_SEC } from '../lib/burstEvents.js'
 import { resolveRangedEnemyVelocity } from './Enemy.jsx'
 
@@ -1481,6 +1482,33 @@ describe('formation spawns', () => {
       expect(Math.abs(entry.pos[0] - leader.pos[0])).toBeLessThan(0.5)
     })
     entries.forEach((entry) => expect(Math.abs(entry.pos[2])).toBeLessThan(arena.halfZ + 6))
+  })
+
+  it('clears every Stage 3 run crew body within 60 s instead of sticking on the center-line hoops (player standing at x=0, near top and bottom)', () => {
+    const arena = getStageBounds('stage3')
+    const obstacles = getStageObjectSightObstacles('stage3')
+    // The crew lane at x=0 must actually cross a prop, or this test proves nothing about pass-through.
+    expect(obstacles.some((o) => Math.abs(o.x) <= o.halfX + 0.5)).toBe(true)
+    const reach = getGameplayGroundReach(30, 0.46)
+    for (const playerZ of [-15, 15]) {
+      const focusZ = clampGameplayCameraFocus(playerZ, reach.reachUp, reach.reachDown, arena.halfZ)
+      const view = { minX: -reach.reachSideFar, maxX: reach.reachSideFar, minZ: focusZ - reach.reachUp, maxZ: focusZ + reach.reachDown }
+      const pool = createEnemyEntityPool()
+      const runtime = createEnemySimulationRuntime()
+      const entries = createRunZombieCrewEntries(arena, () => 0.5, obstacles, { x: 0, z: playerZ }, view)
+      expect(entries).toHaveLength(RUN_ZOMBIE_CREW_SIZE)
+      for (const entry of entries) {
+        pool.spawn({ type: entry.type, x: entry.pos[0], y: 0, z: entry.pos[2], hp: 100000, maxHp: 100000, visualScale: 1,
+          spawnTimer: 300, runDirX: entry.runCrewDir.x, runDirZ: entry.runCrewDir.z })
+      }
+      const ctx = { delta: 1 / 60, playerX: 0, playerZ, halfX: arena.halfX, halfZ: arena.halfZ, elapsedSec: 72, obstacles, obstacleCount: obstacles.length }
+      for (let frame = 0; frame < 60 * 60; frame += 1) runtime.step(pool, ctx)
+      let crewLeft = 0
+      for (let index = 0; index < MAX_ENEMIES; index += 1) {
+        if (pool.active[index] && (pool.type[index] === 7 || pool.type[index] === 8)) crewLeft += 1
+      }
+      expect(crewLeft).toBe(0)
+    }
   })
 
   it('keeps the run zombie crew inside the despawn window and the map lanes when the view is pinned to the map top', () => {

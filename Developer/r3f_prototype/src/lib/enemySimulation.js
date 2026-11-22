@@ -190,9 +190,11 @@ function isScreenRunner(type) {
   return isRunCrew(type) || type === 13 || type === 14
 }
 
-// 장애물을 통과하도록 설계된 타입(RZT 13 / RZG 14). 시뮬레이션과 소크 하네스가 같은 정본을 쓴다.
+// 장애물을 통과하도록 설계된 타입(RZL 7 / RZC 8 / RZT 13 / RZG 14). 시뮬레이션과 소크 하네스가 같은 정본을 쓴다.
+// 2026-11-22: 스3 런좀비 크루가 화면 위→아래 직진으로 바뀌며 중앙선 농구 골대(x=0) 정면에 박혀 제자리 달리기로
+// 남는 문제(balanceqa)가 생겨 크루도 소품을 통과한다. 크루는 풀 경로라 실제 게임도 이 함수 하나를 따른다.
 export function ignoresObstacles(type) {
-  return type === 13 || type === 14
+  return type === 7 || type === 8 || type === 13 || type === 14
 }
 
 // Track B 신규 12종(37~48)은 여기서 빠진다. 전부 근접이지만 접촉만으로 상시 피해를 주지 않고

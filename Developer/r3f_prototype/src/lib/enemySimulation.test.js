@@ -31,6 +31,7 @@ import {
   resetDefaultEnemySimulationRuntime,
   resolveRangedEnemyVelocityRaw,
   stepEnemySimulation,
+  ignoresObstacles,
 } from './enemySimulation.js'
 
 function spawn(pool, type, x = 0, z = 0, overrides = {}) {
@@ -697,16 +698,26 @@ describe('enemySimulation 순수 일반 적 런타임', () => {
     expect(pool.validateInvariants()).toBe(true)
   })
 
-  it('RZ는 obstacle detour 뒤 원래 normalized runDir로 복귀한다', () => {
+  // 2026-11-22: 스3 크루가 위→아래 직진으로 바뀌며 중앙선 골대 정면에 박혀 남았다(balanceqa) → RZL/RZC도 소품을 통과한다.
+  it('RZL/RZC는 소품 앞에서 우회하지 않고 같은 normalized runDir로 곧장 통과한다', () => {
     const pool = createEnemyEntityPool()
     const runtime = createEnemySimulationRuntime()
-    const handle = spawn(pool, 'RZL', -3, -3, { spawnTimer: 300, runDirX: 1, runDirZ: 1 })
+    const leader = spawn(pool, 'RZL', 0, -3, { spawnTimer: 300, runDirX: 0, runDirZ: 1 })
+    const crew = spawn(pool, 'RZC', 0, -3.9, { spawnTimer: 300, runDirX: 0, runDirZ: 1 })
     const obstacles = [{ x: 0, z: 0, halfX: 1.1, halfZ: 1.1 }]
-    for (let frame = 0; frame < 210; frame += 1) runtime.step(pool, context({ halfX: 8, halfZ: 8, obstacles, obstacleCount: 1 }))
-    expect(pool.get(handle)).not.toBeNull()
-    expect(pool.velX[handle.index]).toBeGreaterThan(0)
-    expect(pool.velZ[handle.index]).toBeGreaterThan(0)
-    expect(collidesEnemyObstacle(pool.posX[handle.index], pool.posZ[handle.index], enemyCollisionRadius(7), obstacles, 1)).toBe(false)
+    expect(ignoresObstacles(7)).toBe(true)
+    expect(ignoresObstacles(8)).toBe(true)
+    let sawInsideProp = false
+    for (let frame = 0; frame < 220; frame += 1) {
+      runtime.step(pool, context({ halfX: 8, halfZ: 8, obstacles, obstacleCount: 1 }))
+      expect(pool.posX[leader.index]).toBeCloseTo(0, 6)
+      expect(pool.posX[crew.index]).toBeCloseTo(0, 6)
+      if (collidesEnemyObstacle(pool.posX[leader.index], pool.posZ[leader.index], enemyCollisionRadius(7), obstacles, 1)) sawInsideProp = true
+    }
+    expect(sawInsideProp).toBe(true)
+    expect(pool.posZ[leader.index]).toBeGreaterThan(1.1)
+    expect(pool.velX[leader.index]).toBeCloseTo(0, 6)
+    expect(pool.velZ[leader.index]).toBeCloseTo(1.48225, 4)
   })
 
   it('200 mixed + props 10,800 frame soak은 obstacle overlap/NaN/drop 없이 typed-array 정체성을 유지한다', () => {
@@ -731,7 +742,8 @@ describe('enemySimulation 순수 일반 적 런타임', () => {
       while (runtime.events.drainInto(event)) {}
       if ((frame & 255) === 0) {
         for (let index = 0; index <= pool.highestActive; index += 1) {
-          if (!pool.active[index]) continue
+          // 소품 통과 타입(RZL/RZC/RZT/RZG)은 설계상 소품 위를 지나가므로 겹침 검사에서 뺀다(gameplaySoak과 같은 정본 플래그).
+          if (!pool.active[index] || ignoresObstacles(pool.type[index])) continue
           expect(collidesEnemyObstacle(pool.posX[index], pool.posZ[index], enemyCollisionRadius(pool.type[index]), obstacles, obstacles.length)).toBe(false)
         }
         expect(pool.validateInvariants({ halfX: 18, halfZ: 18, padding: 6 })).toBe(true)
