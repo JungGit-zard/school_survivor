@@ -12,6 +12,10 @@ import { TUMBLER_SUSTAINED_MULTIPLIER } from './tumblerFalloff.js'
 
 export const STARTER = 'starter'
 
+// 오니기리 바운스(한 번 던져 맞히는 적 수) 상한 — 2026-11-22 Terry "바운스 횟수가 최대 5회까지 늘어난다".
+// 레벨업 카드·영구강화·옛 저장값이 무엇이든 실제 투척은 이 수를 넘지 않는다(lib/onigiri.js createOnigiriLaunch).
+export const ONIGIRI_MAX_BOUNCES = 5
+
 export const WEAPON_CATALOG = {
   // ─── 기본군 4종 (Lv.1 base 스탯은 buildInitialWeapons가 그대로 사용한다) ───
   pencilThrow: {
@@ -101,7 +105,10 @@ export const WEAPON_CATALOG = {
     id: 'onigiri',
     label: '오니기리',
     // 2026-08-23 사용자 요청: 위력을 현재의 2.5배로 조정(21→52.5).
-    base: { damage: 52.5, cooldown: 5000, bounces: 6, bounceRange: 4.5, range: 18, critChance: 0.08, critMultiplier: 1.5 },
+    // 2026-11-22 Terry "주먹밥, 미니로자리를 정리하자": 화면에 최대 3개 · 바운스는 레벨업마다 늘어 최대 5회
+    // (ONIGIRI_MAX_BOUNCES). 바운스 6→3(Lv1)으로 줄어든 만큼 한 방을 52.5→75로 올려 한 번 던질 때의 군중 피해
+    // (피해 × 맞히는 수)를 Lv3부터 예전과 거의 같게 맞췄다(levelmini 2026-11-22, 표는 upgrades.js).
+    base: { damage: 75, cooldown: 5000, bounces: 3, bounceRange: 4.5, range: 18, critChance: 0.08, critMultiplier: 1.5 },
     unlockConditions: [{ type: 'totalKills', value: 700 }],
     minLevelToAppear: 6,
   },

@@ -28,7 +28,7 @@ describe('Onigiri projectile visual (2026-10-30: back to the rice ball)', () => 
     expect(weaponSource.match(/<OnigiiriModel \/>/g)).toHaveLength(1)
     expect(weaponSource).toContain('layers.body.syncTemplate(templateRef.current)')
     expect(weaponSource).not.toContain('<mesh')
-    expect(weaponSource).toContain('writeOnigiriPose(layers.body, entry)')
+    expect(weaponSource).toContain('writeOnigiriPose(layers.body, entry, fading ? projectileFadeProgress(swarm, entry) : 0)')
     for (const playerModel of ['PlayerV9Model', 'PlayerRosariModel', 'PlayerMesh', 'loadSavedPlayerAppearance']) {
       expect(source).not.toContain(playerModel)
     }
@@ -39,8 +39,8 @@ describe('Onigiri projectile visual (2026-10-30: back to the rice ball)', () => 
     // 예전 group과 같은 자세: 회전 (sin(spin·0.8)·0.35, spin, cos(spin·0.6)·0.25), 통통 높이.
     expect(source).toContain('_rot.set(Math.sin(spin * 0.8) * 0.35, spin, Math.cos(spin * 0.6) * 0.25)')
     expect(source).toContain('entry.spin += delta * 15')
-    // 끝난 주먹밥(바운스 소진·대기 시간·상한)은 그 자리에서 쌀알 터짐.
-    expect(source).toContain('addBurst(entry.flight.x, entry.flight.z, nowRef.current)')
+    // 바운스를 다 쓴 주먹밥은 그 자리에서 쌀알 터짐(3초 대기 뒤에는 터짐 없이 스르륵 — 2026-11-22).
+    expect(source).toContain('if (reason === RETIRE_DONE) addBurst(entry.flight.x, entry.flight.z, nowRef.current)')
     expect(source).toContain('createOnigiriBurstGrains({ id, x, z, count: ONIGIRI_BURST_GRAINS })')
     expect(source).toContain('now - bursts[i].startMs < ONIGIRI_BURST_LIFE_MS')
   })
@@ -63,7 +63,7 @@ describe('Onigiri projectile visual (2026-10-30: back to the rice ball)', () => 
   })
 })
 
-// 2026-11-02 Terry 확정: 새 투척은 언제나 로자리 몸에서, 상한 없이. 바운스가 남은 주먹밥은 사라지지 않고
+// 2026-11-02 Terry 확정: 새 투척은 언제나 로자리 몸에서(2026-11-22부터 화면 최대 3개). 바운스가 남은 주먹밥은 사라지지 않고
 // 공용 진행기(stepOnigiriFlight)로 그 자리에서 다음 적을 찾거나 떠서 기다린다(동작 검증은 lib/onigiri.test.js).
 describe('Onigiri launch origin and flight wiring (2026-11-02)', () => {
   const source = readFileSync(new URL('./Onigiri.jsx', import.meta.url), 'utf8')
@@ -87,10 +87,14 @@ describe('Onigiri launch origin and flight wiring (2026-11-02)', () => {
     expect(weaponSource).toContain('origin: playerPos,')
   })
 
-  // 2026-11-02 Terry: "화면상 오니기리가 몇 개 있더라도 늘려" — 날거나 떠 있는 주먹밥 수로 투척을 막지 않는다.
-  it('has no one-at-a-time gate: alive projectiles never block the cooldown throw', () => {
-    expect(weaponSource).not.toContain('if (projRef.current.length > 0) return')
-    expect(weaponSource).not.toContain('swarm.entries.length >=')
-    expect(weaponSource).toContain('const entry = addSwarmProjectile(swarm, launch, { slot: layers.body.claim(), spin: 0 })')
+  // 2026-11-22 Terry: "둘 다 절대 화면에 최대 체류 개수는 3개" · "바운스 횟수가 최대 5회" — 투척은 살아 있는 수를
+  // 넘겨 공용 판단이 3개에서 막고, 무리도 넣기를 거절한다. 인스턴스 슬롯은 무리에 들어간 뒤에만 빌린다.
+  it('passes the alive count and the 5-bounce cap to the shared planner; claims a slot only after the swarm accepts', () => {
+    expect(weaponSource).toContain('aliveCount: swarm.entries.length,')
+    expect(weaponSource).toContain('maxAlive: swarm.maxAlive,')
+    expect(weaponSource).toContain('bounceCap: ONIGIRI_MAX_BOUNCES,')
+    expect(source).toContain('maxAlive: ONIGIRI_MAX_ALIVE')
+    expect(weaponSource).toContain('const entry = launch && addSwarmProjectile(swarm, launch, { slot: -1, spin: 0 })')
+    expect(weaponSource.indexOf('if (entry) {')).toBeLessThan(weaponSource.indexOf('entry.slot = layers.body.claim()'))
   })
 })

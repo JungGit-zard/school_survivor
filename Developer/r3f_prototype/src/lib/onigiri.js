@@ -125,13 +125,14 @@ export function createOnigiriBurstGrains({ id, x, z, count = 14 }) {
 
 // 오니기리 발사 사양의 단일 출처. 새 투척(쿨다운 투척)의 출발점은 언제나 이번 프레임의
 // 주인공 몸 위치(origin = playerPos)다(2026-11-02 Terry: "어떤 상황에서도 무조건 발사점은 로자리").
-export function createOnigiriLaunch({ id, origin, target, weapon }) {
+// bounceCap: 무기별 바운스 상한(오니기리 = ONIGIRI_MAX_BOUNCES 5). 레벨·영구강화·옛 저장값이 무엇이든 넘지 않는다.
+export function createOnigiriLaunch({ id, origin, target, weapon, bounceCap = Number.POSITIVE_INFINITY }) {
   return {
     id,
     start:          [origin.x, origin.y, origin.z],
     initialTarget:  target,
     hitIds:         [target.enemyId],
-    maxBounces:     weapon.bounces ?? 2,
+    maxBounces:     Math.min(bounceCap, weapon.bounces ?? 2),
     damage:         weapon.damage,
     bounceRange:    weapon.bounceRange ?? 4.5,
     critChance:     weapon.critChance,
@@ -139,14 +140,35 @@ export function createOnigiriLaunch({ id, origin, target, weapon }) {
   }
 }
 
-// 새 투척 판단(오니기리·꼬마 로자리 공용). 이미 날고 있는 발사체 수는 입력으로 받지 않는다 →
-// 동시 발사 수 상한·대기가 구조적으로 없다(2026-11-02 Terry: "화면상 오니기리가 몇 개 있더라도 늘려").
-// 쿨다운이 차고 사거리(weapon.range) 안에 적이 있으면 주인공 몸에서 1발 던진다.
-export function planOnigiriFrame({ now, lastFireAt, weapon, origin, findFreshTarget, nextId }) {
+// ── 화면 체류 상한(2026-11-22 Terry "주먹밥, 미니로자리를 정리하자") ──
+// "둘 다 절대 화면에 최대 체류 개수는 3개" · "이전 발사체가 사라지지 않으면 새로 발사될 수 없다"
+// · "여러 수십 개가 화면에 머무르는 일은 없다" · "공격대상을 찾지 못하고 3초가 지나면 그 자리에서 스르륵 사라진다".
+// - 무기 하나당 살아 있는 발사체(날아감·바운스·떠서 찾는 중·사라지는 중 전부)는 PROJECTILE_MAX_ALIVE개를 넘지 않는다.
+//   레벨·패시브·영구강화·치비코·쿨다운 감소 어느 것도 이 수를 늘리지 못한다(무리 자체가 넣기를 거절한다).
+// - 3개가 살아 있으면 쿨다운이 차도 던지지 않고 기다린다. 하나가 사라지면 **그 다음 프레임에 바로** 던진다
+//   (쿨다운은 이미 찼으므로 다음 쿨다운까지 또 기다리지 않는다). 살아 있는 발사체를 지워 자리를 만들지 않는다.
+// - 표적 없이 PROJECTILE_NO_TARGET_TIMEOUT_MS(게임 시간) 떠 있으면 그 자리에서 PROJECTILE_FADE_MS 동안
+//   스르륵 사라진 뒤 빠진다. 사라지는 동안에도 3개에 센다. 표적을 잡으면 대기 시간은 0으로 돌아간다.
+// 이 규칙이 2026-11-13 "대기 시간+안전 상한"(오니기리 12초/24개, 꼬마 로자리 8초/8개)을 대체한다.
+export const PROJECTILE_MAX_ALIVE = 3
+export const PROJECTILE_NO_TARGET_TIMEOUT_MS = 3000
+export const PROJECTILE_FADE_MS = 400
+export const ONIGIRI_MAX_ALIVE = PROJECTILE_MAX_ALIVE
+export const MINI_ROSARI_MAX_ALIVE = PROJECTILE_MAX_ALIVE
+export const ONIGIRI_HOVER_TIMEOUT_MS = PROJECTILE_NO_TARGET_TIMEOUT_MS
+export const MINI_ROSARI_HOVER_TIMEOUT_MS = PROJECTILE_NO_TARGET_TIMEOUT_MS
+
+// 새 투척 판단(오니기리·꼬마 로자리 공용). 쿨다운이 차고, 살아 있는 발사체가 maxAlive보다 적고,
+// 사거리(weapon.range) 안에 적이 있으면 주인공 몸에서 1발 던진다. 자리가 없으면 표적도 찾지 않는다.
+export function planOnigiriFrame({
+  now, lastFireAt, weapon, origin, findFreshTarget, nextId,
+  aliveCount = 0, maxAlive = PROJECTILE_MAX_ALIVE, bounceCap,
+}) {
   if (now - lastFireAt < weapon.cooldown) return null
+  if (aliveCount >= maxAlive) return null
   const target = findFreshTarget(weapon.range ?? 18)
   if (!target) return null
-  return createOnigiriLaunch({ id: nextId(), origin, target, weapon })
+  return createOnigiriLaunch({ id: nextId(), origin, target, weapon, bounceCap })
 }
 
 // ── 날아가는 발사체 1개의 프레임 진행(오니기리·꼬마 로자리 공용, 2026-11-02 Terry 확정 규칙) ──
@@ -156,13 +178,14 @@ export function planOnigiriFrame({ now, lastFireAt, weapon, origin, findFreshTar
 // - 닿는 적이 없으면 그 자리에 떠서(수평 이동 없음 — 맵을 떠돌지 않는다) 매 프레임 다시 찾고,
 //   적이 bounceRange 안에 들어오면 바로 날아간다.
 // - 바운스를 다 쓰면 끝난다(또는 판 종료·무기 해제로 컴포넌트가 내려갈 때).
-// - 2026-11-13 Terry "대기 시간+안전 상한": 위 "사라지지 않는다"는 **떠서 기다리는** 발사체에 한해 아래 대기
-//   시간·상한으로 바뀐다. 날아가거나 바운스 중인 발사체는 그대로 사라지지 않는다(아래 상수 참고).
+// - 2026-11-22 Terry: 위 "사라지지 않는다"는 **떠서 기다리는** 발사체에 한해 3초 대기 뒤 스르륵 사라짐으로
+//   바뀐다(위 화면 체류 상한 참고). 날아가거나 바운스 중인 발사체는 그대로 사라지지 않는다.
 export const ONIGIRI_HIT_RADIUS = 0.30
 export const FLIGHT_FLYING = 'flying'
 export const FLIGHT_HOVERING = 'hovering'
 export const FLIGHT_HIT = 'hit'   // 이번 프레임에 맞혔고 바운스가 남았다
 export const FLIGHT_DONE = 'done' // 이번 프레임에 맞혔고 바운스를 다 썼다
+export const FLIGHT_FADING = 'fading' // 표적 없이 대기 시간이 다 돼 그 자리에서 스르륵 사라지는 중
 
 export function createOnigiriFlight({ start, initialTarget, hitIds, maxBounces, bounceRange }) {
   return {
@@ -181,8 +204,6 @@ export function createOnigiriFlight({ start, initialTarget, hitIds, maxBounces, 
     // 떠서 기다리는 상태와 그 누적 시간(ms). 표적을 잡는 프레임마다 0으로 돌아간다.
     hovering: false,
     hoverMs: 0,
-    // 안전 상한 초과로 이번에 내보낼 대상(markHoverEvictions가 매 프레임 다시 정한다).
-    evict: false,
     // 따라잡지 못하는 추격 포기(2026-11-14): 지금 쫓는 표적, 그 추격 구간의 기준 거리와 경과 시간(ms),
     // 포기한 표적 id 모음(맞힌 것도 바운스도 아니다 — 다시 고르지 않을 뿐).
     chaseTarget: null,
@@ -199,22 +220,11 @@ function retargetFlight(flight, enemyBodies) {
   return next
 }
 
-// 2026-11-13 Terry "대기 시간+안전 상한" — 11-02 "사라지지 않는다"를 떠서 기다리는(FLIGHT_HOVERING) 발사체에
-// 한해 대체한다. 수치는 여기 한 곳에서만 조정한다.
-// - 대기 시간: 표적 없이 이만큼 떠 있으면 사라진다(오니기리 = 기존 쌀알 터짐, 꼬마 로자리 = 작게 줄어드는 펑).
-// - 안전 상한: 떠서 기다리는 수가 이보다 많으면 가장 오래 기다린 것부터 같은 방식으로 사라진다.
-// 바뀌지 않는 것: 새 투척은 막지 않는다 · 투척은 로자리 몸에서 · 기다리던 발사체는 적이 사거리에 들어온
-// 바로 다음 프레임에 날아간다 · 날거나 바운스 중인 발사체는 상한으로 지우지 않는다 · 표적을 잡으면 대기 시간 0.
-export const ONIGIRI_HOVER_TIMEOUT_MS = 12000
-export const ONIGIRI_HOVER_CAP = 24
-export const MINI_ROSARI_HOVER_TIMEOUT_MS = 8000
-export const MINI_ROSARI_HOVER_CAP = 8
-
 // 따라잡지 못하는 추격은 포기한다(2026-11-14, 위 대기 시간+안전 상한의 구멍 막기 — 실기기 벤치마크).
 // 마틸다(B01)가 대시마다 빨라지면 날아가는 발사체(1.375u/s)가 영영 못 따라잡아 바운스도 대기도 아닌
 // 채로 무한히 쌓였다. 날아가는 동안 표적까지 거리가 CHASE_GIVE_UP_MS(게임 시간) 안에 CHASE_MIN_PROGRESS만큼
 // 줄지 않으면 그 표적을 포기하고(gaveUp에 기록, 다시 고르지 않음) 평소대로 다음 표적을 찾는다. 없으면 떠서
-// 기다리고, 그 뒤는 위 대기 시간·상한이 맡는다. 0.5u 줄 때마다 구간을 새로 잰다.
+// 기다리고, 그 뒤는 위 3초 대기·스르륵 사라짐이 맡는다. 0.5u 줄 때마다 구간을 새로 잰다.
 // - 3초·0.5u: 평균 0.17u/s 이상 가까워지면 추격이 이어진다 → 정면으로 1.2u/s까지 달아나는 적(E03 러너
 //   1.1u/s 포함 일반 좀비 전부)은 그대로 따라잡는다. 서 있는 적이면 3초에 4.1u를 좁히므로 여유가 크다.
 // - 짧은 회피(예: 2u/s로 1초 대시 뒤 멈춤)는 3초 안에 다시 0.5u 이상 좁혀 포기하지 않는다.
@@ -234,38 +244,10 @@ export function stepOnigiriFlight(flight, delta, speed, enemyBodies = globalEnem
   return state
 }
 
-// 이번 프레임 진행 결과가 "떠서 기다림"이고, 대기 시간이 다 됐거나 상한 초과로 지목됐으면 true.
-// 이번 프레임에 표적을 잡은 발사체(FLYING/HIT)는 지목돼 있어도 남는다.
-export function shouldRetireHoveringFlight(flight, state, timeoutMs) {
-  return state === FLIGHT_HOVERING && (flight.hoverMs >= timeoutMs || flight.evict === true)
-}
-
-// 안전 상한: entries[i].flight 중 떠서 기다리는 것이 cap보다 많으면 가장 오래 기다린 것부터 (초과분만큼)
-// evict를 켠다. 같은 시간이면 앞(먼저 던진) 것이 먼저다. 날거나 바운스 중인 것은 세지도 지목하지도 않는다.
-// 반환값 = 지목한 수. 할당 없음.
-export function markHoverEvictions(entries, cap) {
-  let hovering = 0
-  for (let i = 0; i < entries.length; i += 1) {
-    const flight = entries[i].flight
-    if (!flight) continue
-    flight.evict = false
-    if (flight.hovering) hovering += 1
-  }
-  let excess = hovering - cap
-  let marked = 0
-  while (excess > 0) {
-    let pick = null
-    for (let i = 0; i < entries.length; i += 1) {
-      const flight = entries[i].flight
-      if (!flight || !flight.hovering || flight.evict) continue
-      if (!pick || flight.hoverMs > pick.hoverMs) pick = flight
-    }
-    if (!pick) break
-    pick.evict = true
-    marked += 1
-    excess -= 1
-  }
-  return marked
+// 이번 프레임 진행 결과가 "떠서 기다림"이고 표적 없이 대기 시간이 다 됐으면 true(→ 스르륵 사라지기 시작).
+// 이번 프레임에 표적을 잡은 발사체(FLYING/HIT)는 대기 시간이 0으로 돌아가 해당하지 않는다.
+export function shouldStartFade(flight, state, timeoutMs) {
+  return state === FLIGHT_HOVERING && flight.hoverMs >= timeoutMs
 }
 
 function advanceOnigiriFlight(flight, delta, speed, enemyBodies) {
@@ -330,30 +312,46 @@ function releaseFlight(flight) {
   flight.gaveUp.clear()
 }
 
-// ── 발사체 무리 1스텝(오니기리·꼬마 로자리 공용, 2026-11-13) ──
+// ── 발사체 무리 1스텝(오니기리·꼬마 로자리 공용, 2026-11-13 → 2026-11-22) ──
 // 무기 1개가 자기 발사체 전부를 **한 루프에서** 진행한다. 순서가 고정이라 결과가 결정적이다.
-//   1) 던진 순서대로 각 발사체를 stepOnigiriFlight로 진행(이번 스텝에 막 던진 것은 다음 스텝부터 — 예전
-//      컴포넌트가 커밋 뒤 첫 프레임부터 돌던 것과 같다). 맞힌 프레임이면 onHit(entry).
+//   1) 던진 순서대로: 사라지는 중(FLIGHT_FADING)이면 페이드 시간만 흐르고, 다 되면 'timeout'으로 끝낸다.
+//      아니면 stepOnigiriFlight로 진행(이번 스텝에 막 던진 것은 다음 스텝부터). 맞힌 프레임이면 onHit(entry).
 //   2) 바운스를 다 쓴 것은 'done'으로 끝낸다.
-//   3) 이번 스텝의 최신 대기 상태로 안전 상한을 지목하고(markHoverEvictions), 대기 시간이 다 됐거나 지목된
-//      대기 발사체를 'timeout'/'cap'으로 끝낸다. 이번 스텝에 표적을 잡은(FLYING/HIT) 발사체는 남는다.
+//   3) 표적 없이 대기 시간이 다 된 것은 그 자리에서 사라지기 시작한다(FLIGHT_FADING, 탐색·피격 없음).
 //   4) 끝난 것은 onRetire(entry, reason)를 부른 뒤 목록에서 제자리 제거한다(할당 없음).
-// 이 함수가 끝난 시점에는 언제나 "떠서 기다리는 수 ≤ hoverCap"이다.
+// 무리 크기(사라지는 중 포함)는 addSwarmProjectile이 maxAlive에서 막으므로 언제나 ≤ maxAlive다.
 // delta는 게임 시간(usePlayingFrame의 고정 스텝)이다 — 일시정지·레벨업·대화·컷신·탭 숨김 중에는 스텝이
-// 돌지 않으므로 대기 시간도 흐르지 않는다.
+// 돌지 않으므로 대기 시간도 페이드도 흐르지 않는다.
 export const RETIRE_DONE = 'done'
 export const RETIRE_TIMEOUT = 'timeout'
-export const RETIRE_CAP = 'cap'
 
-export function createProjectileSwarm({ speed, hoverTimeoutMs, hoverCap }) {
-  return { entries: [], speed, hoverTimeoutMs, hoverCap }
+export function createProjectileSwarm({
+  speed,
+  hoverTimeoutMs = PROJECTILE_NO_TARGET_TIMEOUT_MS,
+  maxAlive = PROJECTILE_MAX_ALIVE,
+  fadeMs = PROJECTILE_FADE_MS,
+}) {
+  return { entries: [], speed, hoverTimeoutMs, maxAlive, fadeMs }
+}
+
+// 지금 한 발 더 던질 자리가 있는가(사라지는 중인 것도 센다).
+export function canLaunchProjectile(swarm) {
+  return swarm.entries.length < swarm.maxAlive
 }
 
 // 새 발사체를 무리에 넣는다. launch = planOnigiriFrame 결과. extra는 무기별 시각 상태(슬롯 등).
+// 자리가 없으면 넣지 않고 null — 살아 있는 발사체를 지워 자리를 만들지 않는다(화면 체류 상한의 최종 방어선).
 export function addSwarmProjectile(swarm, launch, extra) {
-  const entry = Object.assign({ ...launch, flight: createOnigiriFlight(launch), state: null, retired: null, justLaunched: true }, extra)
+  if (!launch || !canLaunchProjectile(swarm)) return null
+  const entry = Object.assign({ ...launch, flight: createOnigiriFlight(launch), state: null, retired: null, justLaunched: true, fadeAgeMs: 0 }, extra)
   swarm.entries.push(entry)
   return entry
+}
+
+// 사라지는 진행도 0~1(사라지는 중이 아니면 0).
+export function projectileFadeProgress(swarm, entry) {
+  if (entry.state !== FLIGHT_FADING) return 0
+  return Math.min(1, entry.fadeAgeMs / Math.max(1, swarm.fadeMs))
 }
 
 export function maxHoverMs(swarm) {
@@ -368,22 +366,34 @@ export function countHoveringProjectiles(swarm) {
   return n
 }
 
+export function countFadingProjectiles(swarm) {
+  let n = 0
+  for (let i = 0; i < swarm.entries.length; i += 1) if (swarm.entries[i].state === FLIGHT_FADING) n += 1
+  return n
+}
+
 export function stepProjectileSwarm(swarm, delta, { onHit = null, onRetire = null, enemyBodies = globalEnemyBodies } = {}) {
   const entries = swarm.entries
   for (let i = 0; i < entries.length; i += 1) {
     const entry = entries[i]
     if (entry.justLaunched) { entry.justLaunched = false; continue }
+    if (entry.state === FLIGHT_FADING) {
+      entry.fadeAgeMs += delta * 1000
+      if (entry.fadeAgeMs >= swarm.fadeMs) entry.retired = RETIRE_TIMEOUT
+      continue
+    }
     const state = stepOnigiriFlight(entry.flight, delta, swarm.speed, enemyBodies)
     entry.state = state
     if (entry.flight.hitTarget && onHit) onHit(entry)
-    if (state === FLIGHT_DONE) entry.retired = RETIRE_DONE
-  }
-  markHoverEvictions(entries, swarm.hoverCap)
-  for (let i = 0; i < entries.length; i += 1) {
-    const entry = entries[i]
-    if (entry.retired || !shouldRetireHoveringFlight(entry.flight, entry.state, swarm.hoverTimeoutMs)) continue
-    entry.retired = entry.flight.hoverMs >= swarm.hoverTimeoutMs ? RETIRE_TIMEOUT : RETIRE_CAP
-    entry.flight.hovering = false
+    if (state === FLIGHT_DONE) {
+      entry.retired = RETIRE_DONE
+    } else if (shouldStartFade(entry.flight, state, swarm.hoverTimeoutMs)) {
+      entry.state = FLIGHT_FADING
+      entry.fadeAgeMs = 0
+      entry.flight.hovering = false
+      entry.flight.target = null
+      entry.flight.chaseTarget = null
+    }
   }
   let kept = 0
   for (let i = 0; i < entries.length; i += 1) {

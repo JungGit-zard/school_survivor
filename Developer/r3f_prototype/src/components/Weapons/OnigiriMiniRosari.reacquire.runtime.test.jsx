@@ -127,7 +127,9 @@ describe.each([
     spawnEnemy(1, 0)
     runSeconds((weapon.cooldown * 2) / 1000 + 0.5)
     const beforeDrop = countProjectiles(container)
-    expect(beforeDrop).toBeGreaterThanOrEqual(2) // 떠서 기다리는 발사체가 여러 개(상한 없음)
+    // 떠서 기다리는 발사체가 있다(2026-11-22부터 화면 최대 3개, 표적 없이 3초면 스르륵 사라진다).
+    expect(beforeDrop).toBeGreaterThanOrEqual(1)
+    expect(beforeDrop).toBeLessThanOrEqual(3)
 
     // 교체 카드로 무기를 버린다 → 화면에서 사라진다.
     setWeapon(id, false)
@@ -146,6 +148,6 @@ describe.each([
     runSeconds(weapon.cooldown / 1000 + 0.2)
     expect(countProjectiles(container)).toBeLessThanOrEqual(2)
     expect(countProjectiles(container)).toBeGreaterThanOrEqual(1)
-    expect(countProjectiles(container)).toBeLessThan(beforeDrop + 1)
+    expect(countProjectiles(container)).toBeLessThanOrEqual(3)
   })
 })

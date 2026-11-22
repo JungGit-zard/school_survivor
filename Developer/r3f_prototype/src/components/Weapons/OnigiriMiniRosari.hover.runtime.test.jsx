@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
-// 2026-11-13 Terry "대기 시간+안전 상한" + 하드닝 엣지 케이스 — 실제 무기 컴포넌트를 마운트하고 프레임을 돌려
-// 풀 크기·대기 수·슬롯 주인을 직접 센다(소스 문자열 검사가 아님). XP 교과서 인스턴스 층도 함께 돈다.
+// 2026-11-22 Terry "주먹밥, 미니로자리를 정리하자"(화면 최대 3개 · 3개면 기다림 · 표적 없이 3초면 스르륵) +
+// 11-13 하드닝 엣지 케이스 — 실제 무기 컴포넌트를 마운트하고 프레임을 돌려 풀 크기·대기 수·슬롯 주인을 직접
+// 센다(소스 문자열 검사가 아님). XP 교과서 인스턴스 층도 함께 돈다.
 import React, { act, useState } from 'react'
 import * as THREE from 'three'
 import { createRoot } from 'react-dom/client'
@@ -43,7 +44,10 @@ import { MiniRosariWeapon, getMiniRosariWeaponStats } from './MiniRosari.jsx'
 import { XpTextbookLayer, getXpTextbookLayerStats } from '../XpTextbook.jsx'
 import { WEAPON_CATALOG } from '../../lib/weaponCatalog.js'
 import { enemyBodies, enemyPool, playerPos } from '../../lib/refs.js'
-import { MINI_ROSARI_HOVER_CAP, MINI_ROSARI_HOVER_TIMEOUT_MS, ONIGIRI_HOVER_CAP, ONIGIRI_HOVER_TIMEOUT_MS } from '../../lib/onigiri.js'
+import {
+  MINI_ROSARI_HOVER_TIMEOUT_MS, MINI_ROSARI_MAX_ALIVE, ONIGIRI_HOVER_TIMEOUT_MS, ONIGIRI_MAX_ALIVE, PROJECTILE_FADE_MS,
+} from '../../lib/onigiri.js'
+import { UPGRADE_EFFECTS, applyUpgradeToWeapon } from '../../lib/upgrades.js'
 import { useGameStore } from '../../store/useGameStore.js'
 import { setMagnetMultiplier } from '../../lib/pickup.js'
 
@@ -99,39 +103,45 @@ function spawnUnkillable(x, z, type = 'E01') {
   return handle
 }
 
+// 실제 카드로 만렙(Lv5)을 만든 뒤 영구강화 최대치(바운스 +2, 치명 +0.08)를 얹는다 — "모든 보너스를 다 받은" 상태.
+function maxLevelWith(id, keys) {
+  let w = applyUpgradeToWeapon({ ...WEAPON_CATALOG[id].base, active: false, level: 0 }, { kind: 'acquire' })
+  for (const key of keys) w = applyUpgradeToWeapon(w, UPGRADE_EFFECTS[key])
+  return { ...w, active: true, bounces: w.bounces + 2, critChance: w.critChance + 0.08 }
+}
+
 const WEAPONS = {
   onigiri: {
     Component: OnigiiriWeapon,
     stats: getOnigiriWeaponStats,
     timeoutMs: ONIGIRI_HOVER_TIMEOUT_MS,
-    cap: ONIGIRI_HOVER_CAP,
-    // 슬롯 주인 불변식: 살아 있는 주먹밥 수 = 인스턴스 슬롯 주인 수, 그리는 수 ≤ 용량.
+    cap: ONIGIRI_MAX_ALIVE,
+    // 슬롯 주인 불변식: 살아 있는 주먹밥 수(사라지는 중 포함) = 인스턴스 슬롯 주인 수, 그리는 수 ≤ 용량.
     consistent: (s) => s.bodyLiveSlots === s.projectiles && s.bodyInstances <= s.bodyCapacity,
     empty: (s) => s.projectiles === 0 && s.hovering === 0 && s.bodyLiveSlots === 0 && s.bodyInstances === 0
       && s.bursts === 0 && s.grainInstances === 0,
-    idle: (s) => s.projectiles === 0 && s.hovering === 0 && s.bodyLiveSlots === 0 && s.bodyInstances === 0,
+    idle: (s) => s.projectiles === 0 && s.hovering === 0 && s.fading === 0 && s.bodyLiveSlots === 0 && s.bodyInstances === 0,
     pool: (s) => s.bodyCapacity,
     // 판 리셋(gameKey) 뒤 상태.
     reset: (s) => s.projectiles === 0 && s.hovering === 0 && s.bodyLiveSlots === 0 && s.bodyInstances === 0
       && s.bursts === 0 && s.grainInstances === 0,
-    maxLevel: (base) => ({ ...base, active: true, level: 5, bounces: 12, damage: base.damage + 22.25 * 2, critChance: 0.24 }),
+    maxLevel: () => maxLevelWith('onigiri', ['onigiiriDamage', 'onigiiriPower', 'onigiiriCrit', 'onigiiriDamage']),
   },
   miniRosari: {
     Component: MiniRosariWeapon,
     stats: getMiniRosariWeaponStats,
     timeoutMs: MINI_ROSARI_HOVER_TIMEOUT_MS,
-    cap: MINI_ROSARI_HOVER_CAP,
-    // 슬롯 주인 불변식: 주인 있는 분신 슬롯 = 살아 있는 분신 + 펑 중인 분신.
-    consistent: (s) => s.ownedSlots === s.projectiles + s.poofs,
-    empty: (s) => s.projectiles === 0 && s.hovering === 0 && s.poofs === 0 && s.slots === 0 && s.ownedSlots === 0,
-    // 끝난 뒤에는 주인 없는 분신만 남는다. 무기를 얻을 때 대기 상한만큼 미리 만든 풀은 줄지 않는다
+    cap: MINI_ROSARI_MAX_ALIVE,
+    // 슬롯 주인 불변식: 주인 있는 분신 슬롯 = 살아 있는 분신(사라지는 중 포함).
+    consistent: (s) => s.ownedSlots === s.projectiles,
+    empty: (s) => s.projectiles === 0 && s.hovering === 0 && s.fading === 0 && s.slots === 0 && s.ownedSlots === 0,
+    // 끝난 뒤에는 주인 없는 분신만 남는다. 무기를 얻을 때 화면 상한(3명)만큼 미리 만든 풀은 줄지 않는다
     // (2026-11-17: 다음 투척 때 모델을 다시 복제하지 않게).
-    idle: (s) => s.projectiles === 0 && s.hovering === 0 && s.poofs === 0 && s.ownedSlots === 0 && s.slots === MINI_ROSARI_HOVER_CAP,
+    idle: (s) => s.projectiles === 0 && s.hovering === 0 && s.fading === 0 && s.ownedSlots === 0 && s.slots === MINI_ROSARI_MAX_ALIVE,
     pool: (s) => s.slots,
-    // 판 리셋(gameKey)은 분신 주인·펑을 비우고, 미리 만든 분신 모델은 숨긴 채 남긴다(무기는 그대로 장착).
-    // 그 판에서 대기 상한을 넘어 늘었던 슬롯도 줄지 않는다.
-    reset: (s) => s.projectiles === 0 && s.hovering === 0 && s.poofs === 0 && s.ownedSlots === 0 && s.slots >= MINI_ROSARI_HOVER_CAP,
-    maxLevel: (base) => ({ ...base, active: true, level: 5, bounces: 9, damage: base.damage + 16.7 * 2, critChance: 0.28 }),
+    // 판 리셋(gameKey)은 분신 주인을 비우고, 미리 만든 분신 모델은 숨긴 채 남긴다(무기는 그대로 장착).
+    reset: (s) => s.projectiles === 0 && s.hovering === 0 && s.fading === 0 && s.ownedSlots === 0 && s.slots === MINI_ROSARI_MAX_ALIVE,
+    maxLevel: () => maxLevelWith('miniRosari', ['miniRosariDamage', 'miniRosariPower', 'miniRosariBounce', 'miniRosariCrit']),
   },
 }
 
@@ -162,11 +172,11 @@ function mount(id) {
   patchGroups()
 }
 
-describe.each(['onigiri', 'miniRosari'])('%s hover timeout + cap, mounted', (id) => {
+describe.each(['onigiri', 'miniRosari'])('%s 3-on-screen cap + 3s fade, mounted', (id) => {
   const spec = WEAPONS[id]
   const base = { ...WEAPON_CATALOG[id].base, active: true }
 
-  it('removes a hovering projectile after the timeout (game time) and never before', () => {
+  it('a projectile with no target for 3s fades where it is, then is removed — never before', () => {
     elapsed = 2000 // 첫 투척은 바로, 다음 투척은 1000초 뒤 → 이 테스트 동안 1발만
     setWeapon(id, { ...base, cooldown: 1e6 })
     mount(id)
@@ -174,10 +184,46 @@ describe.each(['onigiri', 'miniRosari'])('%s hover timeout + cap, mounted', (id)
     expect(runUntil(() => spec.stats().hovering === 1, 5)).toBe(true)
     run(spec.timeoutMs / 1000 - 0.5)
     expect(spec.stats().projectiles).toBe(1)
-    run(1.0)
+    expect(spec.stats().fading).toBe(0)
+    expect(runUntil(() => spec.stats().fading === 1, 1)).toBe(true)
+    if (id === 'miniRosari') {
+      // 분신은 제자리에서 부드럽게 작아진다(축척 0~1 사이를 지난다).
+      run(PROJECTILE_FADE_MS / 2000, { delta: 1 / 60 })
+      const scales = [...container.querySelectorAll('group')].map((g) => g.scale?.x).filter((x) => x > 0 && x < 1)
+      expect(scales.length).toBe(1)
+    }
+    expect(spec.stats().projectiles).toBe(1) // 사라지는 중에도 살아 있는 것으로 센다
+    run(PROJECTILE_FADE_MS / 1000 + 0.1, { delta: 1 / 60 })
     expect(spec.stats().projectiles).toBe(0)
     run(0.5)
     expect(spec.idle(spec.stats())).toBe(true)
+  })
+
+  it('never more than 3 alive; with 3 alive the throw waits and fires on the very next frame after one disappears', () => {
+    setWeapon(id, { ...base, cooldown: 100 })
+    mount(id)
+    spawnUnkillable(1, 0)
+    let prev = 0
+    let refills = 0
+    let sawThree = false
+    for (let i = 0; i < 60 * 12; i += 1) {
+      const before = spec.stats()
+      const ids = before.projectiles
+      frame(1 / 60)
+      const s = spec.stats()
+      expect(s.projectiles).toBeLessThanOrEqual(3)
+      expect(spec.consistent(s)).toBe(true)
+      if (s.projectiles === 3) sawThree = true
+      // 3 → 2로 줄었다면(하나가 사라짐) 바로 다음 프레임에 다시 3이다(쿨다운은 이미 찼다).
+      if (prev === 3 && ids === 3 && s.projectiles === 2) {
+        frame(1 / 60)
+        expect(spec.stats().projectiles).toBe(3)
+        refills += 1
+      }
+      prev = s.projectiles
+    }
+    expect(sawThree).toBe(true)
+    expect(refills).toBeGreaterThan(0)
   })
 
   it('edge (1): pause, level-up, dialogue/cutscene pauses and a hidden tab do not advance the hover timer', () => {
@@ -213,11 +259,8 @@ describe.each(['onigiri', 'miniRosari'])('%s hover timeout + cap, mounted', (id)
     spawnUnkillable(1, 0)
     run(3)
     expect(spec.stats().hovering).toBeGreaterThanOrEqual(2)
-    // 끝나는 연출(쌀알 터짐 / 펑) 한가운데서 끊는다.
-    const midRetire = () => {
-      const s = spec.stats()
-      return id === 'onigiri' ? s.bursts > 0 : s.poofs > 0
-    }
+    // 스르륵 사라지는 연출 한가운데서 끊는다.
+    const midRetire = () => spec.stats().fading > 0
     expect(runUntil(midRetire, spec.timeoutMs / 1000 + 2)).toBe(true)
 
     setWeapon(id, { ...base, active: false })
@@ -239,10 +282,10 @@ describe.each(['onigiri', 'miniRosari'])('%s hover timeout + cap, mounted', (id)
     expect(spec.stats()).toBeNull()
   })
 
-  it('edge (5): B05 alone, already hit by every throw, 60s at max level with the cooldown passive — hovering <= cap, pools stop growing', () => {
+  it('edge (5): B05 alone, already hit by every throw, 60s at max level + every bonus — never more than 3 alive, pools stop growing', () => {
     for (const [label, weapon] of [
-      ['max level + 20% cooldown passive', { ...spec.maxLevel(base), cooldown: base.cooldown * 0.8 }],
-      ['stress: 150ms cooldown', { ...spec.maxLevel(base), cooldown: 150 }],
+      ['max level + all meta + 20% cooldown passive', { ...spec.maxLevel(), cooldown: base.cooldown * 0.8 }],
+      ['stress: 150ms cooldown', { ...spec.maxLevel(), cooldown: 150 }],
     ]) {
       act(() => { root.render(null) })
       enemyPool.reset()
@@ -254,7 +297,7 @@ describe.each(['onigiri', 'miniRosari'])('%s hover timeout + cap, mounted', (id)
       let maxProjectiles = 0
       run(30, { each: () => {
         const s = spec.stats()
-        expect(s.hovering, label).toBeLessThanOrEqual(spec.cap)
+        expect(s.projectiles, label).toBeLessThanOrEqual(3)
         expect(spec.consistent(s), label).toBe(true)
         maxHovering = Math.max(maxHovering, s.hovering)
         maxProjectiles = Math.max(maxProjectiles, s.projectiles)
@@ -262,14 +305,14 @@ describe.each(['onigiri', 'miniRosari'])('%s hover timeout + cap, mounted', (id)
       pool30 = spec.pool(spec.stats())
       run(30, { each: () => {
         const s = spec.stats()
-        expect(s.hovering, label).toBeLessThanOrEqual(spec.cap)
+        expect(s.projectiles, label).toBeLessThanOrEqual(3)
         expect(spec.consistent(s), label).toBe(true)
         maxProjectiles = Math.max(maxProjectiles, s.projectiles)
       } })
       expect(spec.pool(spec.stats()), label).toBeLessThanOrEqual(Math.max(pool30, 1))
-      // 날아가는 중인 것(≤ 비행 시간/쿨다운 + 여유)을 빼면 전부 대기 상한 안이다.
-      expect(maxProjectiles, label).toBeLessThanOrEqual(spec.cap + 12)
-      if (label.startsWith('stress')) expect(maxHovering, label).toBe(spec.cap) // 상한이 실제로 걸렸다
+      expect(spec.pool(spec.stats()), label).toBeLessThanOrEqual(3)
+      if (label.startsWith('stress')) expect(maxProjectiles, label).toBe(3) // 상한이 실제로 걸렸다
+      expect(maxHovering, label).toBeGreaterThan(0)
     }
   })
 })
@@ -320,8 +363,8 @@ describe('edge (6)+(7): 10 simulated minutes of fast spawn/kill churn with both 
     const api = { current: null }
     // 자석 패시브를 크게 — 떨어진 교과서는 모두 결국 주워진다(누수와 "바닥에 남은 책"을 구분하기 위해).
     setMagnetMultiplier(20)
-    setWeapon('onigiri', { ...WEAPONS.onigiri.maxLevel({ ...WEAPON_CATALOG.onigiri.base }), cooldown: 300 })
-    setWeapon('miniRosari', { ...WEAPONS.miniRosari.maxLevel({ ...WEAPON_CATALOG.miniRosari.base }), cooldown: 300 })
+    setWeapon('onigiri', { ...WEAPONS.onigiri.maxLevel(), cooldown: 300 })
+    setWeapon('miniRosari', { ...WEAPONS.miniRosari.maxLevel(), cooldown: 300 })
     act(() => {
       root.render(<><OnigiiriWeapon /><MiniRosariWeapon /><TextbookHost apiRef={api} /></>)
     })
@@ -363,8 +406,8 @@ describe('edge (6)+(7): 10 simulated minutes of fast spawn/kill churn with both 
         const books = getXpTextbookLayerStats()
         expect(WEAPONS.onigiri.consistent(oni)).toBe(true)
         expect(WEAPONS.miniRosari.consistent(mini)).toBe(true)
-        expect(oni.hovering).toBeLessThanOrEqual(ONIGIRI_HOVER_CAP)
-        expect(mini.hovering).toBeLessThanOrEqual(MINI_ROSARI_HOVER_CAP)
+        expect(oni.projectiles).toBeLessThanOrEqual(ONIGIRI_MAX_ALIVE)
+        expect(mini.projectiles).toBeLessThanOrEqual(MINI_ROSARI_MAX_ALIVE)
         expect(books.liveSlots).toBe(books.items)
         max.oni = Math.max(max.oni, oni.projectiles)
         max.oniCap = Math.max(max.oniCap, oni.bodyCapacity)
@@ -375,10 +418,10 @@ describe('edge (6)+(7): 10 simulated minutes of fast spawn/kill churn with both 
       },
     })
     expect(bookId).toBeGreaterThan(1000) // 실제로 많이 떨어지고 주워졌다
-    expect(max.oni).toBeLessThanOrEqual(ONIGIRI_HOVER_CAP + 12)
-    expect(max.oniCap).toBeLessThanOrEqual(64)
-    expect(max.mini).toBeLessThanOrEqual(MINI_ROSARI_HOVER_CAP + 12)
-    expect(max.miniSlots).toBeLessThanOrEqual(MINI_ROSARI_HOVER_CAP + 12 + 1)
+    expect(max.oni).toBeLessThanOrEqual(ONIGIRI_MAX_ALIVE)
+    expect(max.oniCap).toBeLessThanOrEqual(ONIGIRI_MAX_ALIVE)
+    expect(max.mini).toBeLessThanOrEqual(MINI_ROSARI_MAX_ALIVE)
+    expect(max.miniSlots).toBeLessThanOrEqual(MINI_ROSARI_MAX_ALIVE)
     expect(max.books).toBeLessThan(200)
     expect(max.bookCap).toBeLessThanOrEqual(256)
     // 교과서는 주운 만큼 목록·슬롯에서 빠진다.

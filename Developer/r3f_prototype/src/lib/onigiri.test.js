@@ -124,7 +124,8 @@ describe('onigiri targeting', () => {
 })
 
 // 2026-11-02 Terry 확정 규칙(오니기리·꼬마 로자리 공용):
-//  1) 새 투척은 언제나 주인공(로자리) 현재 몸에서, 화면에 몇 개가 있든 상한 없이 나간다.
+//  1) 새 투척은 언제나 주인공(로자리) 현재 몸에서 나간다. 2026-11-22 Terry: 화면에 이미 3개가 살아 있으면
+//     던지지 않고 기다린다(lib/onigiriHover.test.js가 3개 상한·3초 스르륵을 고정한다).
 //  2) 바운스가 남은 발사체는 사라지지 않는다. 맞힌 자리에서 bounceRange 안 다음 적에게 이어 가고,
 //     없으면 그 자리에 떠서(수평 이동 없음) 매 프레임 찾다가 적이 들어오면 날아간다.
 //  3) 날아가던 표적이 죽어도 사라지지 않고 현재 위치에서 다시 조준한다(같은 규칙).
@@ -165,7 +166,7 @@ describe.each(['onigiri', 'miniRosari'])('%s confirmed flight rules (2026-11-02)
     expect(plan(player, { now: weapon.cooldown - 1, lastFireAt: 0 })).toBeNull()
   })
 
-  it('keeps adding throws every cooldown however many are already alive, each from the player', () => {
+  it('throws every cooldown from the player while fewer than 3 are alive, and waits at 3 (2026-11-22)', () => {
     const player = { x: 0, y: 0.32, z: 0 }
     spawnPooledEnemy(3, 0)
     const alive = []
@@ -173,13 +174,21 @@ describe.each(['onigiri', 'miniRosari'])('%s confirmed flight rules (2026-11-02)
     for (let k = 1; k <= 6; k += 1) {
       player.x = -k * 0.5; player.z = k * 0.25
       const now = k * weapon.cooldown
-      const launch = plan(player, { now, lastFireAt })
-      expect(launch).not.toBeNull()
+      const launch = planOnigiriFrame({
+        now, lastFireAt, weapon, origin: player,
+        findFreshTarget: (range) => pickNextOnigiriTarget({ from: player, range }),
+        nextId: () => ++id,
+        aliveCount: alive.length, maxAlive: 3,
+      })
+      if (alive.length >= 3) {
+        expect(launch).toBeNull() // 앞선 3개가 하나도 끝나지 않았다 → 기다린다
+        continue
+      }
       expect(launch.start).toEqual([-k * 0.5, 0.32, k * 0.25])
       lastFireAt = now
-      alive.push(launch) // 앞선 발사체는 하나도 끝나지 않았다(상한 없음).
+      alive.push(launch)
     }
-    expect(new Set(alive.map((l) => l.id)).size).toBe(6)
+    expect(new Set(alive.map((l) => l.id)).size).toBe(3)
   })
 
   it('after a hit with bounces left it continues from the hit spot to the next unhit enemy in bounce range', () => {

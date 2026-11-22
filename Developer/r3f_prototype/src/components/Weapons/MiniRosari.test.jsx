@@ -15,15 +15,18 @@ describe('MiniRosariWeapon projectile visual (mini protagonist)', () => {
     expect(source).not.toContain('OnigiiriModel')
   })
 
-  // 2026-11-02 Terry: "화면상 오니기리가 몇 개 있더라도 늘려" — 분신 1개 상한(projRef 게이트)을 없애고
-  // 슬롯 풀로 바꿨다. 모델은 슬롯마다 1번만 만들고 재사용한다(발사마다 복제하지 않음).
-  it('reuses pooled mini player instances instead of cloning a model per shot, with no one-at-a-time gate', () => {
+  // 2026-11-02: 분신 1개 상한(projRef 게이트)을 없애고 슬롯 풀로 바꿨다. 모델은 슬롯마다 1번만 만들고
+  // 재사용한다(발사마다 복제하지 않음). 2026-11-22 Terry: 화면 최대 3명 — 공용 판단에 살아 있는 수를 넘기고,
+  // 무리가 받아들인 뒤에만 슬롯을 빌린다.
+  it('reuses pooled mini player instances, gates the throw at 3 alive, and claims a slot only after the swarm accepts', () => {
     expect(source.match(/<MiniRosariModel animateRef=\{slot\.activeRef\} \/>/g)).toHaveLength(1)
     // 2026-11-13: 발사체 컴포넌트 없이 무기 루프가 슬롯 group을 직접 움직인다.
-    expect(source).toContain('writeMiniRosariPose(entry, slots[entry.slotIndex], camera)')
-    expect(source).toContain('slotIndex: claimMiniRosariSlot(slots, launch.id)')
+    expect(source).toContain('writeMiniRosariPose(entry, slots[entry.slotIndex], camera, fading ? projectileFadeProgress(swarm, entry) : 0)')
+    expect(source).toContain('entry.slotIndex = claimMiniRosariSlot(slots, launch.id)')
+    expect(source).toContain('aliveCount: swarm.entries.length,')
+    expect(source).toContain('maxAlive: swarm.maxAlive,')
+    expect(source).toContain('maxAlive: MINI_ROSARI_MAX_ALIVE')
     expect(source).not.toContain('if (projRef.current.length > 0) return')
-    expect(source).not.toContain('swarm.entries.length >=')
   })
 
   it('skips the hidden mini player pose work while a slot has no projectile in flight', async () => {
@@ -52,12 +55,13 @@ describe('MiniRosariWeapon projectile visual (mini protagonist)', () => {
   })
 
   // 2026-11-17 끊김 수정: 오래 빈 슬롯을 내려놓았다가 다음 투척 때 주인공 모델을 통째로 다시 복제해 멈췄다.
-  // 이제 무기를 얻는 순간 대기 상한만큼 미리 만들고, 풀은 줄이지 않는다(쓰지 않는 분신은 숨김).
-  it('prefills the clone pool up to the hover cap once, and never trims it', async () => {
+  // 이제 무기를 얻는 순간 화면 상한(3명)만큼 미리 만들고, 풀은 줄이지 않는다(쓰지 않는 분신은 숨김).
+  it('prefills the clone pool up to the on-screen cap (3) once, and never trims it', async () => {
     const {
       claimMiniRosariSlot, releaseMiniRosariSlot, prefillMiniRosariSlots, MINI_ROSARI_PREBUILT_SLOTS,
     } = await import('./MiniRosari.jsx')
-    const { MINI_ROSARI_HOVER_CAP } = await import('../../lib/onigiri.js')
+    const { MINI_ROSARI_MAX_ALIVE: MINI_ROSARI_HOVER_CAP } = await import('../../lib/onigiri.js')
+    expect(MINI_ROSARI_HOVER_CAP).toBe(3)
     expect(MINI_ROSARI_PREBUILT_SLOTS).toBe(MINI_ROSARI_HOVER_CAP)
     const slots = []
     expect(prefillMiniRosariSlots(slots)).toBe(MINI_ROSARI_HOVER_CAP)
@@ -123,7 +127,7 @@ describe('MiniRosariWeapon projectile visual (mini protagonist)', () => {
   })
 })
 
-// 2026-11-02 Terry 확정: 새 분신은 언제나 로자리 몸에서, 상한 없이. 바운스가 남은 분신은 사라지지 않고
+// 2026-11-02 Terry 확정: 새 분신은 언제나 로자리 몸에서(2026-11-22부터 화면 최대 3명). 바운스가 남은 분신은 사라지지 않고
 // 그 자리에서 다음 적을 찾거나 깡충거리며 기다린다(동작 검증은 lib/onigiri.test.js flight rules).
 describe('MiniRosari launch origin and flight wiring (2026-11-02)', () => {
   const source = readFileSync(new URL('./MiniRosari.jsx', import.meta.url), 'utf8')
@@ -153,10 +157,11 @@ describe('MiniRosari clone hides on the frame it ends (balanceqa M1)', () => {
   const projectileSource = source.slice(source.indexOf('function writeMiniRosariPose'), source.indexOf('function createMiniRosariSlot'))
 
   it('hides the clone right before it ends, and keeps the owner-checked unmount safety net', () => {
-    // 바운스를 다 쓴 분신은 무리 스텝이 끝내는 그 스텝에 숨기고 슬롯을 놓는다(발사체 컴포넌트 없음).
-    expect(source).toMatch(/if \(reason === RETIRE_DONE\) \{\s+hideMiniRosariClone\(slot\?\.ref\.current, entry\.id\)\s+releaseMiniRosariSlot\(slotsRef\.current, entry\.id\)/)
+    // 끝난 분신(바운스 소진 = 그 스텝 / 3초 대기 = 스르륵이 끝난 스텝)은 무리 스텝이 끝내는 그 스텝에 축척을
+    // 되돌리고 숨긴 뒤 슬롯을 놓는다(발사체 컴포넌트 없음).
+    expect(source).toMatch(/retireRef\.current = \(entry\) => \{\s+const group = slotsRef\.current\[entry\.slotIndex\]\?\.ref\.current\s+if \(group\) group\.scale\.set\(1, 1, 1\)\s+hideMiniRosariClone\(group, entry\.id\)\s+releaseMiniRosariSlot\(slotsRef\.current, entry\.id\)/)
     // 무기 해제·리셋 때도 주인 확인 숨김으로 정리한다.
-    expect(source).toMatch(/clearProjectileSwarm\(swarmRef\.current, \(entry\) => \{\s+hideMiniRosariClone\(slotsRef\.current\[entry\.slotIndex\]\?\.ref\.current, entry\.id\)/)
+    expect(source).toMatch(/clearProjectileSwarm\(swarmRef\.current, \(entry\) => \{\s+const group = slotsRef\.current\[entry\.slotIndex\]\?\.ref\.current\s+if \(group\) group\.scale\.set\(1, 1, 1\)\s+hideMiniRosariClone\(group, entry\.id\)/)
     expect(projectileSource).toMatch(/group\.userData\.miniRosariOwnerId = id\s+group\.visible = shown/)
   })
 

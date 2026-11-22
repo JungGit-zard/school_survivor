@@ -187,7 +187,8 @@ describe('weaponPermanentUpgrades storage layer', () => {
     expect(upgraded('scienceFlask')).toMatchObject({ damage: 7.5, zoneRadius: 1.54, zoneDurationMs: 6100, zoneTickDamage: 1.5, critChance: 0.11 })
     expect(upgraded('bell')).toMatchObject({ damage: 10.8, radius: 2.04, critChance: 0.13 })
     expect(upgraded('stunGun')).toMatchObject({ damage: 19.4, cooldown: 3000, chainCount: 3, permanentStunChance: 0.08, critChance: 0.14 })
-    expect(upgraded('onigiri')).toMatchObject({ damage: 52.5, bounces: 8, critChance: 0.16 })
+    // 2026-11-22: 바운스 기본 3 + 영구 2 = 5 = 오니기리 바운스 상한(ONIGIRI_MAX_BOUNCES).
+    expect(upgraded('onigiri')).toMatchObject({ damage: 75, bounces: 5, critChance: 0.16 })
     // 꼬마 로자리는 '투사체 속도'(죽은 스탯) 대신 실제 피해 +8%를 받는다: 34 × 1.08 = 36.7.
     expect(upgraded('miniRosari')).toMatchObject({ damage: 36.7, bounces: 5, critChance: 0.2 })
     expect(upgraded('chibiko')).toMatchObject({ damage: 1.4, cooldown: 1012, projectileCount: 2, critChance: 0.09 })

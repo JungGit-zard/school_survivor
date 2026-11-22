@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { describe, it, expect } from 'vitest'
 import {
+  ONIGIRI_MAX_BOUNCES,
   WEAPON_CATALOG,
   STARTER,
   getAllWeaponIds,
@@ -95,9 +96,11 @@ describe('weaponCatalog', () => {
     expect(WEAPON_CATALOG.scienceFlask.base.damage).toBe(7.5) // 리워크: 착탄 데미지 절반, 웅덩이 존 추가
     expect(WEAPON_CATALOG.bell.base.directions).toBe(8)
     expect(WEAPON_CATALOG.stunGun.base.chainCount).toBe(2)
-    expect(WEAPON_CATALOG.onigiri.base.damage).toBe(52.5)
+    // 2026-11-22 Terry "주먹밥 정리": 바운스 6→3(레벨업마다 +1, 최대 5), 한 방 52.5→75.
+    expect(WEAPON_CATALOG.onigiri.base.damage).toBe(75)
     expect(WEAPON_CATALOG.onigiri.base.cooldown).toBe(5000)
-    expect(WEAPON_CATALOG.onigiri.base.bounces).toBe(6)
+    expect(WEAPON_CATALOG.onigiri.base.bounces).toBe(3)
+    expect(ONIGIRI_MAX_BOUNCES).toBe(5)
     expect(WEAPON_CATALOG.chibiko.base.damage).toBe(1.25)
     expect(WEAPON_CATALOG.chibiko.base.cooldown).toBe(1100)
     expect(WEAPON_CATALOG.chibiko.base.followDistance).toBe(0.72)
@@ -186,8 +189,9 @@ describe('weaponCatalog', () => {
     const oni = WEAPON_CATALOG.onigiri.base
     expect(entry).toMatchObject({ id: 'miniRosari', label: '꼬마 로자리', minLevelToAppear: 6 })
     expect(entry.base).toEqual({ damage: 34, cooldown: 3000, bounces: 3, bounceRange: 3.0, range: 7.5, critChance: 0.12, critMultiplier: 1.5 })
-    // 정체성 축: 바운스 수·바운스 거리·사거리·쿨다운은 전부 오니기리보다 작다(적게, 가깝게, 자주).
-    expect(entry.base.bounces).toBeLessThan(oni.bounces)
+    // 정체성 축: 바운스 거리·사거리·쿨다운은 전부 오니기리보다 작다(가깝게, 자주). 바운스 수는 2026-11-22부터
+    // Lv1에서 같고(3), 오니기리는 레벨업마다 +1(최대 5)로 앞서 나간다.
+    expect(entry.base.bounces).toBeLessThanOrEqual(oni.bounces)
     expect(entry.base.bounceRange).toBeLessThan(oni.bounceRange)
     expect(entry.base.range).toBeLessThan(oni.range)
     expect(entry.base.cooldown).toBeLessThan(oni.cooldown)

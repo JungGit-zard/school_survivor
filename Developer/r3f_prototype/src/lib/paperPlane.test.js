@@ -97,7 +97,7 @@ describe('paper plane weapon — catalog & cards', () => {
     expect(dps('paperPlane')).toBeLessThan(dps('onigiri'))
     expect(WEAPON_CATALOG.guidedMissile.base).toMatchObject({ damage: expect.any(Number) })
     expect(WEAPON_CATALOG.pencilThrow.base.damage).toBe(2.4)
-    expect(WEAPON_CATALOG.onigiri.base.damage).toBe(52.5)
+    expect(WEAPON_CATALOG.onigiri.base.damage).toBe(75) // 2026-11-22 주먹밥 정리(바운스 6→3 보상)
     expect(WEAPON_CATALOG.miniRosari.base.damage).toBe(34)
   })
 

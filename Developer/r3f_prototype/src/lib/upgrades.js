@@ -110,20 +110,30 @@ export const UPGRADE_EFFECTS = {
   stunChain:      { weapon: 'stunGun',       kind: 'stat',   stat: 'chainCount',      step: 1,    cap: 4 },
   stunCrit:       { weapon: 'stunGun',       kind: 'crit',   chanceStep: 0.02, chanceCap: 0.22 },
   acquireOnigiri:  { weapon: 'onigiri',       kind: 'acquire', minLevel: 6 },
-  onigiiriDamage: { weapon: 'onigiri',       kind: 'damage', dmg: 22.25 },
-  onigiiriPower:  { weapon: 'onigiri',       kind: 'damage', dmg: 22.25 },
-  // 기본 6 + 영구강화 최대 2 = 8에서 시작할 수 있으므로 cap은 8 + 인게임 4레벨 = 12.
-  // 스탯 cap이 아니라 MAX_WEAPON_LEVEL이 한계가 되게 해서 바운스 카드가 죽지 않도록 한다.
-  onigiiriBounce: { weapon: 'onigiri',       kind: 'stat',   stat: 'bounces',         step: 1,    cap: 12 },
-  onigiiriCrit:   { weapon: 'onigiri',       kind: 'crit',   chanceStep: 0.02, chanceCap: 0.24 },
-  // 꼬마 로자리(2026-10-31 levelmini) — 데미지 카드 2장 합 33.4 = base 34의 98.2%.
+  // 오니기리(2026-11-22 levelmini, Terry "주먹밥, 미니로자리를 정리하자") — 화면 최대 3개, 바운스 최대 5회.
+  // 동시 개수로 세지지 않으니 **모든 레벨업이 위력을 올린다**: 어떤 카드든 바운스 +1(최대 5)이 함께 붙어
+  // 어느 순서로 올려도 Lv3이면 5회가 되고 Lv5는 언제나 5회다. 바운스 카드는 +2회(빨리 채움) + 피해 +10.
+  // 기준 경로(HUD 순서 피해→바운스→위력→치명타), 단일 대상 / 한 번 던질 때 군중 피해(치명 기대값 포함):
+  //   Lv1 75×3   15.60/s  234   | 예전 52.5×6  10.92/s  328
+  //   Lv2 95×4   19.76/s  395   | 예전 74.75×6 15.55/s  466
+  //   Lv3 105×5  21.84/s  546   | 예전 74.75×7 15.55/s  544
+  //   Lv4 125×5  26.00/s  650   | 예전 97×7    20.18/s  706
+  //   Lv5 125×5  26.25/s  656   | 예전 97×7    20.37/s  713  (치명 0.08→0.10)
+  onigiiriDamage: { weapon: 'onigiri',       kind: 'damage', dmg: 20, bonus: { stat: 'bounces', step: 1, cap: 5 } },
+  onigiiriPower:  { weapon: 'onigiri',       kind: 'damage', dmg: 20, bonus: { stat: 'bounces', step: 1, cap: 5 } },
+  // cap 5 = ONIGIRI_MAX_BOUNCES. 이미 5회면 이 카드는 뜨지 않는다(다른 카드가 피해·치명타로 계속 올린다).
+  onigiiriBounce: { weapon: 'onigiri',       kind: 'stat',   stat: 'bounces',         step: 2,    cap: 5, bonus: { stat: 'damage', step: 10 } },
+  onigiiriCrit:   { weapon: 'onigiri',       kind: 'crit',   chanceStep: 0.02, chanceCap: 0.24, bonus: { stat: 'bounces', step: 1, cap: 5 } },
+  // 꼬마 로자리(2026-10-31 levelmini) — 데미지 카드 합 33.4 = base 34의 98.2%.
   // 치명타 카드 1장(0.12→0.14, 기대배율 1.06→1.07)과 곱해 Lv1→만렙 단일 대상 ≈2.00배(레벨 곡선 정본).
-  // 바운스 cap 9 = 기본 3 + 영구강화 최대 2 + 인게임 4레벨 — 오니기리 cap 12와 같은 산식.
+  // 2026-11-22: 화면 최대 3개라 바운스 카드도 단일 대상 위력을 올려야 한다 → 피해 카드 16.7→13.7 ×2 + 바운스
+  // 카드 피해 +6 = 합 33.4 그대로(만렙 위력은 예전과 같고, 모든 레벨업이 단일 대상 위력을 올린다).
+  // 바운스 cap 9 = 기본 3 + 영구강화 최대 2 + 인게임 4레벨(꼬마 로자리는 바운스 상한 지시 없음).
   // 치명타 cap 0.28 = 기본 0.12 + 영구 최대 0.08 + 카드 0.08(오니기리보다 기본이 높은 만큼 위로 민다).
   acquireMiniRosari: { weapon: 'miniRosari',  kind: 'acquire', minLevel: 6 },
-  miniRosariDamage:  { weapon: 'miniRosari',  kind: 'damage', dmg: 16.7 },
-  miniRosariPower:   { weapon: 'miniRosari',  kind: 'damage', dmg: 16.7 },
-  miniRosariBounce:  { weapon: 'miniRosari',  kind: 'stat',   stat: 'bounces',         step: 1,    cap: 9 },
+  miniRosariDamage:  { weapon: 'miniRosari',  kind: 'damage', dmg: 13.7 },
+  miniRosariPower:   { weapon: 'miniRosari',  kind: 'damage', dmg: 13.7 },
+  miniRosariBounce:  { weapon: 'miniRosari',  kind: 'stat',   stat: 'bounces',         step: 1,    cap: 9, bonus: { stat: 'damage', step: 6 } },
   miniRosariCrit:    { weapon: 'miniRosari',  kind: 'crit',   chanceStep: 0.02, chanceCap: 0.28 },
   // 종이비행기(2026-11-07 levelmini) — 1스테이지부터 나오는 중간 티어. 데미지 카드 2장 합 9 = base 9의 100%.
   // 대수 카드(1→2대)도 단일 대상에 겹친다(singleTargetProjectiles) → Lv1→만렙 단일 대상 4.0배(balanceqa 승인).
@@ -346,9 +356,10 @@ const bumpLevel = (wpn) => Math.min(MAX_WEAPON_LEVEL, (wpn.level ?? 1) + 1)
 
 export function applyUpgradeToWeapon(wpn, effect) {
   if (effect.kind === 'acquire') return { ...wpn, active: true, level: 1 }
-  // bonus: 주 효과와 별개로 함께 오르는 부가 스탯 (예: 플라스크 존 지속시간 +1s/레벨)
+  // bonus: 주 효과와 별개로 함께 오르는 부가 스탯 (예: 플라스크 존 지속시간 +1s/레벨).
+  // bonus.cap이 있으면 그 값을 넘지 않는다(예: 오니기리 바운스 최대 5).
   const withBonus = (w) => effect.bonus
-    ? { ...w, [effect.bonus.stat]: (w[effect.bonus.stat] ?? 0) + effect.bonus.step }
+    ? { ...w, [effect.bonus.stat]: Math.min(effect.bonus.cap ?? Number.POSITIVE_INFINITY, (w[effect.bonus.stat] ?? 0) + effect.bonus.step) }
     : w
   if (effect.kind === 'damage') return withBonus({
     ...wpn,
