@@ -1454,9 +1454,14 @@ export function createStageRosterRotation(stageId) {
   return createRosterRotation(stageId, { hpOf: rosterRotationHpOf })
 }
 // 실제로 스폰된 몸 하나를 순환/웨이브 규칙에 확정한다. 웨이브 규칙은 entry.statOverride에 밥줄 HP 맞춤·특수 강화(HP·크기)를 쓴다.
+// 웨이브 규칙 v3: 밥줄로 못 바꾸는 몸(원거리·거대) 옆에 더 낼 보충 밥줄 몸을 돌려준다(부르는 쪽이 같은 묶음 끝에 붙인다).
 export function noteStageRosterSpawn(state, entry, sec) {
-  if (state?.kind === 'wave') noteWaveSpawn(state, entry, sec)
-  else noteRosterRotationSpawn(state, entry?.type, sec)
+  if (state?.kind === 'wave') {
+    const extras = noteWaveSpawn(state, entry, sec)
+    return extras.length ? extras.map((extra) => ({ id: ++_uid, ...extra })) : extras
+  }
+  noteRosterRotationSpawn(state, entry?.type, sec)
+  return null
 }
 function rosterRotationNowSec() {
   return getRuntimeElapsedMs(useGameStore.getState().elapsedMs) / 1000
@@ -1466,6 +1471,11 @@ export function rotateRegularSpawnType(cache, type, sec = cache?.rosterRotationC
   return state?.kind === 'wave' ? pickWaveType(state, type, sec) : pickRosterRotationType(state, type, sec)
 }
 // 형태 버스트(ring/pincer…): 위치·타입은 작성 그대로, E05 탱커 감축 계수(5번째마다 신규 종)만 탄다.
+// 웨이브 표준 v3: 트렁크에서 순환을 타지 않던 고정 행(스5 호출 레인)을 웨이브 구성에만 맞춘다. 웨이브 표가 없으면 그대로.
+export function composeFixedSpawnType(cache, type, sec = cache?.rosterRotationClock ? cache.rosterRotationClock() : rosterRotationNowSec()) {
+  const state = cache?.rosterRotation
+  return state?.kind === 'wave' ? pickWaveType(state, type, sec, false, true) : type
+}
 export function rotateFormationSpawnType(cache, type, sec = cache?.rosterRotationClock ? cache.rosterRotationClock() : rosterRotationNowSec()) {
   const state = cache?.rosterRotation
   return state?.kind === 'wave' ? pickWaveType(state, type, sec, true) : pickRosterTankType(state, type, sec)
@@ -1837,7 +1847,9 @@ export default function Enemies() {
       })
       store.recordKill(); logKill(type); recordEnemyKill(dominanceSwarmRef.current, getRuntimeElapsedMs(store.elapsedMs)); emitSfx({ id: deathSfxId(type) })
       // E101 복사기의 복사본은 XP·드롭 0(lib/novelZombie2Behavior.js isCopy). xp 0이면 교과서도 떨어지지 않는다(shouldDropTextbook).
-      const deathXp = enemySimulationRuntime.novel2.isCopy(enemyPool, index) ? 0 : (hasProjectileZombieSplit(enemyPool, index) ? stats.xp * 0.5 : stats.xp)
+      // 웨이브 표준 v3: 웨이브 규칙이 바꾼 몸은 원래 몸의 경험치(enemyPool.xpOverride).
+      const slotXp = enemyPool.xpOverride[index] >= 0 ? enemyPool.xpOverride[index] : stats.xp
+      const deathXp = enemySimulationRuntime.novel2.isCopy(enemyPool, index) ? 0 : (hasProjectileZombieSplit(enemyPool, index) ? slotXp * 0.5 : slotXp)
       // dx/dz/length = hit source → zombie (the knock-flight death flies that way; 0,0 when the source is the zombie itself).
       enqueuePooledDeath(enemyPool.type[index], x, y, z, deathXp, enemyPool.visualScale[index] * 0.333, critical.damage, enemyPool.maxHp[index], safeImpact.knockback ?? 0, safeImpact.deathStyleOverride, dx / length, dz / length)
     }
@@ -1876,7 +1888,7 @@ export default function Enemies() {
     const pos = refreshQueuedExpansionSpawn(entry, stageRuntimeCacheRef.current, playerPos, screenBounds).pos ?? [0, 0, 0]
     const spawned = enemyPool.spawnInto(enemyHandleScratch, {
       type: entry.type,
-      x: pos[0], y: pos[1], z: pos[2], hp: stats.hp, maxHp: stats.hp,
+      x: pos[0], y: pos[1], z: pos[2], hp: stats.hp, maxHp: stats.hp, xp: entry.waveXp,
       visualScale: stats.scale * ENEMY_SIZE_MULTIPLIER, runDirX: entry.runCrewDir?.x ?? 1, runDirZ: entry.runCrewDir?.z ?? 0,
       // 웨이브 특수 역할(발밑 고리 색, lib/waveRoleMarker.js). 그림 전용 — 밥줄·스테이지 7~10은 없다.
       waveRole: entry.waveRole,
@@ -1914,7 +1926,8 @@ export default function Enemies() {
       if (clampZombieSpawnRequest(1, totalZombieCounts()) <= 0) break
       if (!admitChiefSpawn(stageRuntimeCacheRef.current?.chiefDebuts, entry.type)) continue
       // 작성된 행·형태·소환으로 나온 로스터 종도 순환 기한을 다시 잡는다(최근에 나온 종을 더 끼워 넣지 않게).
-      noteStageRosterSpawn(rosterRotation, entry, rosterSec)
+      const waveExtras = noteStageRosterSpawn(rosterRotation, entry, rosterSec)
+      if (waveExtras?.length) newList.push(...waveExtras)
       if (!isPooledEnemyType(entry.type)) {
         // pooled numeric generation-id와 legacy special body key가 충돌하지 않도록 namespace를 분리한다.
         if (enemiesRef.current.length < MAX_SPECIAL_ENEMIES) {
@@ -1985,8 +1998,10 @@ export default function Enemies() {
     const batch = []
     for (let index = 0; index < count; index += 1) {
       const spawn = pulse.spawns[index]
-      const pos = fixedSpawnPos(pulse.type, spawn.x, spawn.z, cache.bounds, cache.obstacles, batch.map((enemy) => enemy.pos))
-      if (pos) batch.push({ id: ++_uid, type: pulse.type, pos, statOverride: stageHpOverride(pulse.type, cache.id) })
+      // 웨이브 표준 v3: 호출 레인 몸도 그 웨이브 구성으로(E07 → 밥줄 등). 위치 규칙은 그대로.
+      const type = composeFixedSpawnType(cache, pulse.type)
+      const pos = fixedSpawnPos(type, spawn.x, spawn.z, cache.bounds, cache.obstacles, batch.map((enemy) => enemy.pos))
+      if (pos) batch.push({ id: ++_uid, type, pos, statOverride: stageHpOverride(type, cache.id) })
     }
     if (batch.length === 0) return
     const store = useGameStore.getState()

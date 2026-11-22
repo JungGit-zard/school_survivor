@@ -185,6 +185,8 @@ export class EnemyEntityPool {
     this.lookAlive = new Uint16Array(ENEMY_TYPE_NAMES.length * MAX_ZOMBIE_LOOKS)
     // Wave special role marker (lib/waveRoleMarker.js; 0 = none). Visual only — the ground ring reads it.
     this.role = new Uint8Array(MAX_ENEMIES)
+    // 웨이브 표준 v3: 바꾼 몸이 원래 몸(트렁크가 냈을 종)의 처치 경험치를 그대로 주게(-1 = 종 기본값). lib/waveComposition.js.
+    this.xpOverride = new Float32Array(MAX_ENEMIES).fill(-1)
     this.posX = new Float32Array(MAX_ENEMIES)
     this.posY = new Float32Array(MAX_ENEMIES)
     this.posZ = new Float32Array(MAX_ENEMIES)
@@ -379,6 +381,7 @@ export class EnemyEntityPool {
       this.lookAlive[base + look] += 1
     }
     this.role[index] = waveRoleCode(source.waveRole)
+    this.xpOverride[index] = Number.isFinite(source.xp) && source.xp >= 0 ? source.xp : -1
     this.posX[index] = x
     this.posY[index] = y
     this.posZ[index] = z
@@ -517,6 +520,7 @@ export class EnemyEntityPool {
 
   _resetSlotNumbers(index) {
     this.type[index] = 0
+    this.xpOverride[index] = -1
     this.look[index] = 0
     this.role[index] = 0
     this.posX[index] = 0

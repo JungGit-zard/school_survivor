@@ -132,7 +132,10 @@ describe('Stage5 production enemy runtime', () => {
         state.phase = 'playing'; frame(0.016); flush()
         const due = expected.filter(event => event.sec === sec && !bursts.isBossType(event.type))
         const spawned = spy.mock.calls.map(([, entry]) => entry)
-        expect(spawned.length, `t=${sec}`).toBe(due.reduce((sum, event) => sum + (event.count ?? 1), 0))
+        // 2026-11-22 웨이브 표준 v3 규칙 9: 밥줄로 못 바꾸는 사수 몸 옆에는 밥줄(E01)이 몸당 최대 1마리 더 나온다.
+        const dueCount = due.reduce((sum, event) => sum + (event.count ?? 1), 0)
+        expect(spawned.length, `t=${sec}`).toBeGreaterThanOrEqual(dueCount)
+        expect(spawned.length - dueCount, `t=${sec} 보충 밥줄`).toBeLessThanOrEqual(spawned.filter((entry) => entry.type === 'E01').length)
         if (sec >= 73 && sec < 83) callLaneEntries.push(...spawned)
         for (const entry of spawned) {
           const { ENEMY_STATS } = await import('./Enemy.jsx')
@@ -152,7 +155,8 @@ describe('Stage5 production enemy runtime', () => {
       // 전교 호출 1회차(스폰 시계 73~83초): 플레이어가 서 있던 레인(L3, x 1.0~3.2) 양끝(z ±14.5)에서 정확히 10기.
       const lane = callLane.STAGE5_CALL_LANES[playerLane]
       expect(callLaneEntries).toHaveLength(10)
-      expect(callLaneEntries.map((entry) => entry.type)).toEqual(['E03', 'E03', 'E03', 'E03', 'E03', 'E03', 'E03', 'E03', 'E07', 'E07'])
+      // 웨이브 표준 v3: 호출 레인 몸도 웨이브 구성을 탄다 — 10몸(E03×8 + E07×2 자리)은 밥줄 E01·제 종 E03/E07·그 웨이브 특수 중 하나다.
+      expect(callLaneEntries.filter((entry) => entry.type === 'E01').length).toBeGreaterThanOrEqual(5)
       for (const entry of callLaneEntries) {
         expect(entry.x).toBeGreaterThanOrEqual(lane.minX)
         expect(entry.x).toBeLessThanOrEqual(lane.maxX)
@@ -195,8 +199,9 @@ describe('Stage5 production enemy runtime', () => {
       frame(0.016); flush()
       // 5초 = E01×9 + E04×2 + E53×1(교무실 개편 §5-1: 오프닝 E01 12 → 9, 자리를 사수 2기에 양보).
       // 2026-11-16 좀비 배치 총검토: E01 1기 자리의 영양사 E84는 스4로(#52), E53은 60초로(#66), 부메랑자 E48이 40 → 5초(#61).
-      // 5초 = E01×8 + E04×2 + E48×1 = 11.
-      expect(spy.mock.calls).toHaveLength(11)
+      // 5초 = E01×8 + E04×2 + E48×1 = 11. v3(11-22) 규칙 9: 사수 몸 옆 보충 밥줄(E03)이 붙을 수 있다(E01, 사수 3기 → 최대 3).
+      expect(spy.mock.calls.length).toBeGreaterThanOrEqual(11)
+      expect(spy.mock.calls.length).toBeLessThanOrEqual(14)
     } finally {
       for (const cleanup of cleanups.reverse()) cleanup()
       spy?.mockRestore(); clearPool()

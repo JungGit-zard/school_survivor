@@ -187,8 +187,8 @@ describe('Team A low-density runtime integration', () => {
         totalHp += pool.hp[index]
       }
       // 2026-11-21 웨이브 표준(lib/waveComposition.js) v2: 스1 W1(0–30초)은 밥줄 E01 + 특수 E34. 리필 20마리(E07×10 + E01×10)에서
-      // E07은 같은 급(중간) 특수가 없어 제 종 그대로, E01은 밥줄 — 시계 0초 리필은 트렁크와 같은 E07×10 + E01×10이다.
-      expect(counts).toEqual({ E07: 10, E01: 10 })
+      // E07은 같은 급(중간) 특수가 없어 제 종 그대로지만 v3(11-22) 밥줄 몫 규칙이 밥줄 아닌 몸을 33%로 묶어 넘치는 E07은 밥줄(E01)이 된다.
+      expect(counts).toEqual({ E07: 3, E01: 14, E34: 3 })
       // 앞 단계에서 확정된 몸의 장부 빚이 남아 있을 수 있어 합은 원래 묶음 이상, 강화 상한(×2.5) 이하로만 단언한다(정확한 장부는 waveComposition.test.js). 강화 상한은 ×1.6이지만 밥줄은 원래 몸 HP(최대 ×2)를 받는다.
       const authoredHp = 10 * (stageHpOverride('E07', 'stage1')?.hp ?? ENEMY_STATS.E07.hp) + 10 * (stageHpOverride('E01', 'stage1')?.hp ?? ENEMY_STATS.E01.hp)
       expect(totalHp).toBeGreaterThanOrEqual(authoredHp)
@@ -232,8 +232,8 @@ describe('Team A low-density runtime integration', () => {
         const type = enemyTypeFromCode(pool.type[index])
         restartedCounts[type] = (restartedCounts[type] ?? 0) + 1
       }
-      // 새 런은 웨이브 구성도 새로 시작한다 — 시계 0초 리필은 다시 E07×10 + E01×10이다.
-      expect(restartedCounts).toEqual({ E07: 10, E01: 10 })
+      // 새 런은 웨이브 구성도 새로 시작한다 — 시계 0초 리필은 다시 같은 구성이다.
+      expect(restartedCounts).toEqual({ E07: 3, E01: 14, E34: 3 })
     } finally {
       for (const cleanup of cleanups.reverse()) cleanup()
       clearPool()

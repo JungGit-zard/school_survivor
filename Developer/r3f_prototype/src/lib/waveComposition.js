@@ -33,12 +33,22 @@
 //   5. 손대지 않는 몸: 보스·치프·코인(E08)·런좀비/경비/트렌치코트 크루(RZ*)·편대 종(E105 2인3각·E106 기마전)·마틸다,
 //      그리고 순환을 부르지 않는 경로(스6 조회 줄·트랙 고정 좌표, 스5 호출 레인, 보스 소환, 분열·복사·객차).
 //   6. 결정론: 난수를 쓰지 않는다(같은 시드 = 같은 스폰).
+//   8. (v3, 2026-11-22 — Terry "웨이브마다 밥줄 70%") 밥줄 몫: 밥줄이 아닌 몸은 웨이브의 33%까지(WAVE_NONFODDER_SHARE_MAX).
+//      넘치는 몸은 밥줄이 된다 — 예외: 그 웨이브에 처음 나오는 표의 특수, 거대(E06), 원거리(탄 위협은 옮길 수 없다).
+//      밥줄로 옮긴 몸의 위협(HP × 속도·접촉 피해 차)은 위협 장부(threatDebt)로 그 뒤 특수의 HP가 된다(가벼움·중간 ×1.6, 무거움 ×1.8).
+//      밥줄이 바뀐 몸보다 위협이 크면(음의 장부) 밥줄 HP를 기본의 0.5배까지 덜어 갚는다.
+//   9. (v3) 밥줄 보충: 원거리·거대 몸 때문에 밥줄 아닌 몫이 36%를 넘으면 그 몸 옆에 밥줄 1마리를 더 낸다(HP는 장부에서 빼고 경험치 0).
+//      이 규칙이 고른 몸만 — 보스 소환·고정 편대는 보충하지 않는다.
+//  10. (v3) 바뀐 몸은 원래 몸(t0)의 처치 경험치를 준다(enemyEntityPool.xpOverride) — 레벨 흐름은 트렁크 그대로.
+//  11. (v3) 스5 호출 레인도 웨이브 구성을 탄다(composeFixedSpawnType, 규칙 0 없이). 작성 행의 신규 특수는 스폰 시계 칸의 특수여도
+//      특수로 남는다(isSpecialNear — 따라잡기·스폰 보류로 행이 경과 시간 칸과 어긋나도 그 웨이브 특수가 사라지지 않게).
 //   7. 확정은 실제 스폰 때만: pick은 같은 시각 안에서만 '예약'하고, noteWaveSpawn(실제로 addEnemies에 들어간 몸)이 계수·장부를 넘긴다.
 //      150 천장에 잘리거나 자리를 못 받은 몸은 세지 않는다.
 
 import { WAVE_SPECIAL_ROLE, WAVE_STANDARD, WAVE_STANDARD_OVERTIME_START_SEC, WAVE_STANDARD_WAVE_SEC } from './waveStandard.js'
 import { isChiefType } from './stageChiefContent.js'
 import { LOOK_ALIVE_LIMIT, zombieLookCount } from './zombieLooks.js'
+import { getSpawnCatchUpOffsetSec } from './spawnCatchUp.js'
 import { ROSTER_ROTATION_SHOOTER_TYPES, noteRosterRotationSpawn, pickRosterRotationType, pickRosterTankType } from './stageRosterRotation.js'
 
 export const WAVE_SPECIAL_SHARE = 0.3
@@ -47,6 +57,20 @@ export const WAVE_CLASS_SPECIAL_SHARE_MAX = 0.5
 export const WAVE_SPECIAL_SCALE_MUL = 1.2
 export const WAVE_SPECIAL_HP_MUL_MAX = 1.6
 export const WAVE_FODDER_HP_RANGE = Object.freeze([0.5, 2])
+// v3(2026-11-22): 한 웨이브에서 밥줄이 아닌 몸의 최대 몫(밥줄 목표 65~70%). 넘치는 몸은 밥줄이 되고 그 위협은 특수에게 간다.
+export const WAVE_NONFODDER_SHARE_MAX = 0.33
+// 웨이브 칸을 스폰 시계로 셀지(false = 경과 시간, v2와 같음). 아래 sync 주석 참고.
+export const WAVE_USE_SPAWN_CLOCK = false
+const WAVE_QUOTA_KEEP_CLASSES = new Set(['giant', 'ranged'])
+// 규칙 9: 밥줄로 못 바꾸는 몸 하나 옆에 더 내는 밥줄 수 상한과 놓는 거리(u).
+export const WAVE_EXTRA_FODDER_MAX = 1
+export const WAVE_EXTRA_FODDER_OFFSET = 0.45
+// 보충은 밥줄 아닌 몫이 이 값을 넘을 때만(밥줄 몫 규칙 33%보다 조금 느슨 — 보충 몸 수를 줄여 위협 증가를 묶는다. 사전 점검:
+// 33% 기준 보충은 스5 약한 봇 사망 +5%p).
+export const WAVE_EXTRA_TRIGGER_SHARE = 0.36
+const NO_EXTRA = Object.freeze([])
+// v3 위협 장부로 특수가 더 받을 수 있는 HP 배율 상한(급별). 원거리·거대는 받지 않는다(탄 몰림·거대 접촉 — 게이트 1).
+export const WAVE_THREAT_HP_MUL_MAX = Object.freeze({ light: 1.6, mid: 1.6, heavy: 1.8, ranged: 1, giant: 1 })
 // 특수 상한 판정의 최소 분모 — 웨이브 첫 행이 특수 행이어도(예: 스1 120초 E05×2) 처음 몇 마리는 특수로 남는다.
 export const WAVE_SHARE_MIN_BODIES = 10
 export const WAVE_GIANT_HP = 200
@@ -57,11 +81,11 @@ export const WAVE_BASIC_FALLBACK = Object.freeze({ giant: 'E06', heavy: 'E02', r
 // 신규 특수 종의 급별 동시 생존 상한(트렁크 순환이 신규 종을 흩어 넣던 양과 비슷하게).
 export const WAVE_NOVEL_SPECIAL_ALIVE_CAP = Object.freeze({ giant: 1, heavy: 3, ranged: 4, mid: 4, light: 4 })
 // 스테이지별 예외: 스5(교무실)는 트렁크에서 신규 사수가 가장 많은 판이라 원거리 상한을 8로(4면 넘치는 몸이 약한 E04가 돼
-// 약한 봇 사망률이 84% → 60%로 떨어졌다 — 사전 점검 2026-11-22). 스3(체육관)은 반대로 무거운 신규 특수(E40 휘두르기)·원거리가
+// 약한 봇 사망률이 84% → 60%로 떨어졌다 — 사전 점검 2026-11-22). v3(웨이브 칸 = 스폰 시계)에서는 8이면 회피 봇 탄 사망이 +9%p라 6. 스3(체육관)은 반대로 무거운 신규 특수(E40 휘두르기)·원거리가
 // 몰려 강한 봇 사망이 +8~11%p였다 → 무거움 2·원거리 3.
 export const WAVE_STAGE_ALIVE_CAP_OVERRIDE = Object.freeze({
   stage3: Object.freeze({ heavy: 2, ranged: 3 }),
-  stage5: Object.freeze({ ranged: 8 }),
+  stage5: Object.freeze({ ranged: 6 }),
 })
 const BASIC_TYPES = new Set(['E01', 'E02', 'E03', 'E04', 'E05', 'E06', 'E07'])
 
@@ -108,7 +132,15 @@ export function createWaveComposer(stageId, options = {}) {
     pending: new Map(), // final type → [host type…] (같은 시각 예약)
     pendingBodies: 0,
     pendingSpecials: 0,
+    pendingLast: null,
+    pendingLastSpecial: false,
     debt: 0,
+    // v3 위협 장부: 몸을 바꿀 때 빠진(또는 더해진) 위협 = 원래 몸 HP × (속도 × 접촉 피해 차). 특수 HP로 갚는다.
+    threatDebt: 0,
+    threatHp: 0,
+    extraPending: 0,
+    extraSerial: 0,
+    extraFodder: 0,
     // 기록(테스트·프로브용)
     converted: 0,
     buffed: 0,
@@ -118,14 +150,20 @@ export function createWaveComposer(stageId, options = {}) {
 }
 
 function sync(state, sec) {
-  const windowId = Math.floor(Math.max(0, sec) / WAVE_STANDARD_WAVE_SEC)
+  // 웨이브 칸은 경과 시간 기준(v2와 같다). 스폰 시계(경과 + 따라잡기 앞당김) 기준도 시험했으나 작성 행의 사수가 제 웨이브에 몰려
+  // 회피 봇 탄 사망이 늘었다(사전 점검 2026-11-22: 스4 회피 v2 13% → 37%, 스5 +9~12%p). WAVE_USE_SPAWN_CLOCK로 남겨 둔다.
+  const waveSec = Math.max(0, sec + (WAVE_USE_SPAWN_CLOCK ? getSpawnCatchUpOffsetSec() : 0))
+  const windowId = Math.floor(waveSec / WAVE_STANDARD_WAVE_SEC)
   if (state.windowId !== windowId) {
     state.windowId = windowId
-    state.wave = state.waves[waveIndexAt(sec)]
+    state.wave = state.waves[waveIndexAt(waveSec)]
     state.bodies = 0
     state.specials = 0
     state.spawnedThisWave.clear()
   }
+  // 작성 행은 스폰 시계(경과 + 따라잡기 앞당김)로 터져 경과 시간 칸과 어긋난다(스4 168초 행이 경과 120초에 터진 판이 있다). 그 행의
+  // 신규 특수가 스폰 시계 칸의 특수면 특수로 남긴다(isSpecialNear) — 웨이브 칸 자체는 경과 시간 그대로.
+  state.spawnClockWave = state.waves[waveIndexAt(Math.max(0, sec + getSpawnCatchUpOffsetSec()))]
   if (state.pendingSec !== sec) {
     state.pendingSec = sec
     state.pending.clear()
@@ -137,6 +175,10 @@ function sync(state, sec) {
 function isSpecialOf(wave, type) {
   return wave.specials.includes(type)
 }
+// 이 웨이브 특수이거나, 스폰 시계 칸의 특수가 어긋나 온 것(작성 행 — 표의 신규 특수 몸이 직접 올 때만 쓴다).
+function isSpecialNear(state, type) {
+  return isSpecialOf(state.wave, type) || Boolean(state.spawnClockWave && isSpecialOf(state.spawnClockWave, type))
+}
 
 function specialShareWith(state, extra, minBodies = 1) {
   const bodies = Math.max(minBodies, state.bodies + state.pendingBodies + 1)
@@ -146,6 +188,12 @@ function specialShareWith(state, extra, minBodies = 1) {
 function underLookCap(state, type) {
   // 같은 시각에 이미 예약한 몸도 센다(한 묶음이 한도를 한꺼번에 넘지 않게).
   return state.aliveOf(type) + (state.pending.get(type)?.length ?? 0) < LOOK_ALIVE_LIMIT * zombieLookCount(type)
+}
+
+// 속도 × 접촉 피해(위협 장부의 단위 — HP 1당 위협).
+function rateOf(state, type) {
+  const st = state.statsOf(type)
+  return (st?.speed ?? 0) * (st?.damage ?? 0)
 }
 
 // 몸의 급. 원거리 > 거대 > 무거움 > 중간 > 가벼움.
@@ -189,17 +237,48 @@ function reserve(state, host, final, special) {
   state.pending.set(final, list)
   state.pendingBodies += 1
   if (special) state.pendingSpecials += 1
+  state.pendingLast = final
+  state.pendingLastSpecial = special
   return final
 }
 
+// 방금 한 예약 하나를 되돌린다(v3 밥줄 몫 규칙이 그 몸을 밥줄로 다시 고를 때).
+function unreserve(state, final) {
+  const list = state.pending.get(final)
+  if (!list?.length) return
+  list.pop()
+  state.pendingBodies -= 1
+  if (state.pendingLastSpecial) state.pendingSpecials = Math.max(0, state.pendingSpecials - 1)
+  state.pendingLast = null
+}
+
 // 정규 경로 몸 하나의 종을 정한다(예약만). 표가 없는 스테이지·손대지 않는 몸은 그대로.
-export function pickWaveType(state, hostType, sec, formation = false) {
+// fixed = true: 트렁크에서 순환을 타지 않던 고정 행(스5 호출 레인)을 웨이브 구성에만 맞춘다(규칙 0 건너뜀 — 트렁크 종 그대로가 t0).
+export function pickWaveType(state, hostType, sec, formation = false, fixed = false) {
   if (!state || state.kind !== 'wave' || !Number.isFinite(sec) || isWaveExemptType(hostType)) return hostType
   sync(state, sec)
   // 규칙 0: 트렁크(옛 순환)가 이 자리에 냈을 종. 급 구성(가벼움·중간·무거움·원거리)이 트렁크와 같아져 위협·경험치가 맞는다.
-  const type = state.rotation
+  const type = fixed ? hostType : state.rotation
     ? (formation ? pickRosterTankType(state.rotation, hostType, sec) : pickRosterRotationType(state.rotation, hostType, sec))
     : hostType
+  const final = pickByClass(state, type, type === hostType)
+  // v3 규칙 8(밥줄 몫): 밥줄이 아닌 몸(특수 + 제 종으로 남은 기본 종)이 웨이브의 WAVE_NONFODDER_SHARE_MAX를 넘으면 그 몸도 밥줄로.
+  // 예외: 이 웨이브에 아직 한 번도 안 나온 표의 특수(웨이브마다 특수가 꼭 보이게), 거대(E06), 원거리 몸. 원거리를 밥줄로 바꾸면
+  // 탄 위협이 사라진다 — 사전 점검 스5 약한 봇 사망률 83% → 44%, 남은 사수 HP ×1.8로 돌려줘도 83% → 55%.
+  // 밥줄로 옮긴 위협은 noteWaveSpawn의 위협 장부가 같은 웨이브 이후 특수의 HP로 돌려준다("적고 센 특수").
+  const fodder = state.wave.fodder
+  if (final !== fodder && final === state.pendingLast) {
+    const firstShow = isSpecialNear(state, final) && !state.spawnedThisWave.get(final) && (state.pending.get(final)?.length ?? 0) <= 1
+    const t0Cls = waveClassOf(state, type)
+    if (!firstShow && !WAVE_QUOTA_KEEP_CLASSES.has(t0Cls) && specialShareWith(state, 0, WAVE_SHARE_MIN_BODIES) > WAVE_NONFODDER_SHARE_MAX) {
+      unreserve(state, final)
+      return reserve(state, type, fodder, false)
+    }
+  }
+  return final
+}
+
+function pickByClass(state, type, direct = false) {
   const wave = state.wave
   const fodder = wave.fodder
   const cls = waveClassOf(state, type)
@@ -210,7 +289,7 @@ export function pickWaveType(state, hostType, sec, formation = false) {
     }
     return reserve(state, type, fodder, false)
   }
-  if (isSpecialOf(wave, type)) {
+  if (direct && !BASIC_TYPES.has(type) ? isSpecialNear(state, type) : isSpecialOf(wave, type)) {
     const cap = cls === 'light' ? WAVE_SPECIAL_SHARE_MAX : WAVE_CLASS_SPECIAL_SHARE_MAX
     if ((cls !== 'light' || specialShareWith(state, 1, WAVE_SHARE_MIN_BODIES) <= cap) && underLookCap(state, type)) return reserve(state, type, type, true)
     if (cls === 'light') return reserve(state, type, fodder, false)
@@ -240,12 +319,19 @@ export function pickWaveType(state, hostType, sec, formation = false) {
 }
 
 // 실제로 스폰된 몸 하나(entry = {type, statOverride})를 확정한다. 밥줄 HP 맞춤·특수 강화(HP·크기)를 entry.statOverride에 쓴다.
+// 돌려주는 값: 같은 묶음 끝에 붙일 보충 밥줄 몸 목록(규칙 9 — 없으면 빈 배열).
 export function noteWaveSpawn(state, entry, sec) {
-  if (!state || state.kind !== 'wave' || !entry || !Number.isFinite(sec)) return
-  if (isWaveExemptType(entry.type)) { noteRosterRotationSpawn(state.rotation, entry.type, sec); return }
+  if (!state || state.kind !== 'wave' || !entry || !Number.isFinite(sec)) return NO_EXTRA
+  if (isWaveExemptType(entry.type)) { noteRosterRotationSpawn(state.rotation, entry.type, sec); return NO_EXTRA }
   sync(state, sec)
   const type = entry.type
   const wave = state.wave
+  if (entry.waveExtraFodder) {
+    state.extraPending = Math.max(0, state.extraPending - 1)
+    state.extraFodder += 1
+    // 보충 밥줄의 HP는 장부에서 뺀다(빚을 음수로) — 뒤따르는 밥줄이 기본의 0.5배까지 덜 받아 판 전체 HP는 그대로, 몸만 늘어난다.
+    state.debt -= entry.statOverride?.hp ?? state.statsOf(entry.type)?.hp ?? 0
+  }
   const list = state.pending.get(type)
   let host = type
   let picked = false
@@ -257,6 +343,11 @@ export function noteWaveSpawn(state, entry, sec) {
   }
   // 옛 순환 시계는 트렁크가 냈을 종(t0)으로 넘긴다.
   noteRosterRotationSpawn(state.rotation, host, sec)
+  // v3: 바뀐 몸은 원래 몸(t0)의 처치 경험치를 준다(enemyEntityPool.xpOverride) — 무거운·중간 몸이 밥줄이 돼도 레벨 흐름은 트렁크 그대로.
+  if (host !== type) {
+    const hostXp = state.statsOf(host)?.xp
+    if (Number.isFinite(hostXp) && hostXp !== state.statsOf(type)?.xp) entry.waveXp = hostXp
+  }
   const base = state.statsOf(type)
   const baseHp = base?.hp ?? 0
   const actualHp = entry.statOverride?.hp ?? baseHp
@@ -266,16 +357,24 @@ export function noteWaveSpawn(state, entry, sec) {
   const hostHp = host === type ? actualHp : (state.hpOf(host) || 0) * mul
   state.bodies += 1
   if (host !== type) state.converted += 1
-  state.hpIn += hostHp
+  // 보충 밥줄은 맞바꿈이 아니라 새 몸이다 — 원래 HP 합(hpIn)에 넣지 않는다(그 HP는 위에서 장부 빚으로 뺐다).
+  if (!entry.waveExtraFodder) state.hpIn += hostHp
   let outHp = actualHp
+  if (host !== type) state.threatDebt += hostHp * (rateOf(state, host) - rateOf(state, type))
   if (type === wave.fodder) {
     const [lo, hi] = WAVE_FODDER_HP_RANGE
     // 원래 몸 HP를 받고 장부를 함께 맞춘다: 빚이 있으면 밥줄도 기본의 2배까지 나눠 받고, 넘친 HP(빚이 음수 — 가벼운 몸이
     // 무거운 특수가 된 경우)는 밥줄을 기본의 0.5배까지 덜어 갚는다.
-    const want = hostHp + state.debt
+    // v3: 밥줄이 바뀐 몸보다 빠르거나 세게 때리면(스5 E01 → E03) 그만큼(음의 위협 장부)을 밥줄 HP에서 덜어 갚는다(기본의 0.5배까지).
+    const threatPay = state.threatDebt < 0 ? state.threatDebt / Math.max(0.01, rateOf(state, type)) : 0
+    const want = hostHp + state.debt + threatPay
     outHp = Math.round(Math.min(actualHp * hi, Math.max(actualHp * lo, want)))
-    state.debt += hostHp - outHp
-  } else if (isSpecialOf(wave, type)) {
+    // 덜어 낸 HP 중 위협 장부 몫을 먼저 갚고, 나머지를 HP 장부로.
+    const threatPaid = Math.max(threatPay, Math.min(0, outHp - (hostHp + state.debt)))
+    state.threatDebt -= threatPaid * rateOf(state, type)
+    state.threatHp += threatPaid
+    state.debt += hostHp - outHp + threatPaid
+  } else if (isSpecialNear(state, type)) {
     state.specials += 1
     state.spawnedThisWave.set(type, (state.spawnedThisWave.get(type) ?? 0) + 1)
     state.debt += hostHp - actualHp
@@ -283,8 +382,15 @@ export function noteWaveSpawn(state, entry, sec) {
     const cls = waveClassOf(state, type)
     const buffable = cls === 'light' || cls === 'mid'
     const add = buffable && state.debt > 0 ? Math.min(state.debt, actualHp * (WAVE_SPECIAL_HP_MUL_MAX - 1)) : 0
-    outHp = Math.round(actualHp + add)
-    state.debt -= outHp - actualHp
+    state.debt -= add
+    // v3: 밥줄로 옮긴 몸의 위협을 HP로 받는다(급별 상한 WAVE_THREAT_HP_MUL_MAX, HP 장부 강화와 합쳐서).
+    const rate = rateOf(state, type)
+    const room = actualHp * ((WAVE_THREAT_HP_MUL_MAX[cls] ?? 1) - 1) - add
+    const addThreat = rate > 0 && room > 0 && state.threatDebt > 0 ? Math.min(room, state.threatDebt / rate) : 0
+    state.threatDebt -= addThreat * rate
+    outHp = Math.round(actualHp + add + addThreat)
+    // 위협 장부에서 HP로 바뀐 몫(반올림 포함) — HP 장부 검산: 낸 HP + 남은 빚 − threatHp = 원래 몸 HP.
+    state.threatHp += outHp - actualHp - add
     if (outHp > actualHp) state.buffed += 1
     const scale = (entry.statOverride?.scale ?? base?.scale ?? 1) * WAVE_SPECIAL_SCALE_MUL
     entry.statOverride = { ...(entry.statOverride ?? {}), scale }
@@ -301,4 +407,29 @@ export function noteWaveSpawn(state, entry, sec) {
   }
   if (outHp !== actualHp && outHp > 0) entry.statOverride = { ...(entry.statOverride ?? {}), hp: outHp }
   state.hpOut += outHp > 0 ? outHp : actualHp
+  // v3 규칙 9(밥줄 보충): 밥줄로 못 바꾸는 몸(원거리·거대) 때문에 밥줄이 아닌 몫이 33%를 넘으면, 그 옆에 밥줄을 더
+  // 낸다(몸 하나당 최대 WAVE_EXTRA_FODDER_MAX). 사수·거대의 위협은 그대로 두고 밥줄 몫만 채운다. 부르는 쪽(addEnemies)이 같은 묶음
+  // 끝에 붙여 같은 150 상한·같은 확정 경로를 탄다. 보충 밥줄은 다시 보충을 부르지 않는다.
+  // 규칙 9는 이 규칙이 고른 몸(pick을 거친 몸)에만 — 보스 소환·호출 레인·고정 편대 행은 값·구성이 고정이라 보충하지 않는다.
+  if (!picked || entry.waveExtraFodder || type === wave.fodder || !Array.isArray(entry.pos) || !WAVE_QUOTA_KEEP_CLASSES.has(waveClassOf(state, type))) return NO_EXTRA
+  const need = Math.min(WAVE_EXTRA_FODDER_MAX, Math.ceil(state.specials / WAVE_EXTRA_TRIGGER_SHARE - Math.max(state.bodies, WAVE_SHARE_MIN_BODIES) - state.extraPending))
+  if (!(need > 0)) return NO_EXTRA
+  const fodderStats = state.statsOf(wave.fodder)
+  const usedScale = entry.statOverride?.scale ?? base?.scale ?? 1
+  const y = entry.pos[1] * (fodderStats?.scale ?? 1) / (usedScale || 1)
+  const fodderHp = Math.round((state.hpOf(wave.fodder) || fodderStats?.hp || 1) * mul)
+  const extras = []
+  for (let k = 0; k < need; k += 1) {
+    const a = (state.extraSerial++ % 6) * (Math.PI / 3)
+    extras.push({
+      type: wave.fodder,
+      pos: [entry.pos[0] + Math.cos(a) * WAVE_EXTRA_FODDER_OFFSET, y, entry.pos[2] + Math.sin(a) * WAVE_EXTRA_FODDER_OFFSET],
+      statOverride: fodderHp !== fodderStats?.hp ? { hp: fodderHp } : undefined,
+      waveExtraFodder: true,
+      // 보충 밥줄은 트렁크에 없던 몸 — 경험치 0(레벨 흐름을 트렁크와 같게. HP도 장부에서 뺀다).
+      waveXp: 0,
+    })
+  }
+  state.extraPending += need
+  return extras
 }

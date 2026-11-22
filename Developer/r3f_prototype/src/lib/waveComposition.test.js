@@ -46,7 +46,7 @@ describe('웨이브 표준 표 (2026-11-21 Terry: 밥줄 1종 70% + 특수 2~3�
     }
   })
 
-  it('2026-11-22 게이트 뒤: 스테이지 1~5 밥줄은 전 구간 E01(가장 느리고 약한 추격 좀비), 스6은 E19', () => {
+  it('밥줄: 스테이지 1~5 전 구간 E01(스5 E03 밥줄은 회피 봇 사망 +12~15%p로 되돌림 — v3 사전 점검), 스6은 E19', () => {
     for (const id of ['stage1', 'stage2', 'stage3', 'stage4', 'stage5']) for (const wave of WAVE_STANDARD[id]) expect(wave.fodder, id).toBe('E01')
     for (const wave of WAVE_STANDARD.stage6.slice(0, 8)) expect(wave.fodder).toBe('E19')
   })
@@ -114,16 +114,19 @@ describe('웨이브 구성 규칙 v2 (몸의 급을 지킨다)', () => {
     expect(counts.E01 / 40).toBeLessThanOrEqual(0.75)
   })
 
-  it('밥줄은 바뀐 몸보다 빠르거나 세게 때리지 않는다, 무거운·원거리 몸은 밥줄이 되지 않는다', () => {
+  it('v3 밥줄 몫: 밥줄이 아닌 몸은 웨이브의 33%까지 — 넘치는 몸은 밥줄이 되고, 표의 특수는 웨이브마다 한 번씩은 나온다', () => {
     for (const id of ['stage1', 'stage2', 'stage3', 'stage4', 'stage5']) {
       const state = composer(id)
       for (let w = 0; w < 8; w += 1) {
-        for (const host of ['E01', 'E02', 'E03', 'E04', 'E05', 'E06', 'E07']) {
-          const entry = spawn(state, host, w * 30 + 1)
-          if (['E02', 'E04', 'E05', 'E06'].includes(host)) expect(entry.type, `${id} W${w + 1} ${host}`).not.toBe('E01')
-          // 위협(속도 × 접촉 피해)이 바뀐 몸 이하. (E03 → E01: 느려지고 피해는 6 → 8, 위협 7.3 → 4.2)
-          if (entry.type === 'E01') expect(ENEMY_STATS.E01.speed * ENEMY_STATS.E01.damage).toBeLessThanOrEqual(ENEMY_STATS[host].speed * ENEMY_STATS[host].damage)
+        const counts = {}
+        // 트렁크 급 구성과 비슷한 섞음: 가벼움 절반, 중간·무거움·원거리 절반.
+        const hosts = ['E01', 'E07', 'E01', 'E02', 'E01', 'E05', 'E01', 'E04', 'E01', 'E07', 'E03', 'E02', 'E01', 'E07', 'E01', 'E04', 'E01', 'E05', 'E01', 'E07']
+        for (let i = 0; i < 40; i += 1) {
+          const entry = spawn(state, hosts[i % hosts.length], w * 30 + 1 + i * 0.5)
+          counts[entry.type] = (counts[entry.type] ?? 0) + 1
         }
+        const wave = WAVE_STANDARD[id][w]
+        expect((counts[wave.fodder] ?? 0) / 40, `${id} W${w + 1} ${JSON.stringify(counts)}`).toBeGreaterThanOrEqual(0.6)
       }
     }
   })
@@ -134,12 +137,11 @@ describe('웨이브 구성 규칙 v2 (몸의 급을 지킨다)', () => {
     expect(spawn(state, 'E05', 91).type).toBe('E02')
     expect(spawn(state, 'E07', 92).type).toBe('E66')
     // W1(0–30초): 특수 E34(가벼움)뿐. 기본 E07(중간)·E05(무거움)는 같은 급 특수가 없어 제 종 그대로(트렁크와 같은 위협),
-    // 무거운 신규 종(E56)은 기본 덩치(E02)로, 신규 중간 종(E66)은 가벼운 특수(E34)로.
-    const fresh = composer('stage1')
-    expect(spawn(fresh, 'E66', 1).type).toBe('E34')
-    expect(spawn(fresh, 'E07', 1).type).toBe('E07')
-    expect(spawn(fresh, 'E56', 1).type).toBe('E02')
-    expect(spawn(fresh, 'E05', 1).type).toBe('E05')
+    // 무거운 신규 종(E56)은 기본 덩치(E02)로, 신규 중간 종(E66)은 가벼운 특수(E34)로. (밥줄 몫 규칙이 끼지 않게 웨이브마다 새로)
+    expect(spawn(composer('stage1'), 'E66', 1).type).toBe('E34')
+    expect(spawn(composer('stage1'), 'E07', 1).type).toBe('E07')
+    expect(spawn(composer('stage1'), 'E56', 1).type).toBe('E02')
+    expect(spawn(composer('stage1'), 'E05', 1).type).toBe('E05')
   })
 
   it('신규 특수 동시 생존 상한: 무거운 신규 특수가 3마리 살아 있으면 덩치 자리는 기본 종으로 남는다', () => {
@@ -176,7 +178,7 @@ describe('웨이브 구성 규칙 v2 (몸의 급을 지킨다)', () => {
     expect(hpOfEntry(heavy)).toBe(ENEMY_STATS.E02.hp)
   })
 
-  it('HP 장부: 낸 HP + 남은 빚 = 원래 몸 HP 합', () => {
+  it('HP 장부: 낸 HP + 남은 빚 − 위협 장부 HP = 원래 몸 HP 합', () => {
     const state = composer('stage3')
     let hpIn = 0
     let hpOut = 0
@@ -186,7 +188,46 @@ describe('웨이브 구성 규칙 v2 (몸의 급을 지킨다)', () => {
       hpIn += ENEMY_STATS[host].hp
       hpOut += hpOfEntry(spawn(state, host, i * 2))
     }
-    expect(hpOut + state.debt).toBeCloseTo(hpIn, 0)
+    // v3: 위협 장부가 특수에게 준 HP(threatHp)는 '밥줄로 옮긴 빠르고 센 몸의 위협'을 HP로 바꾼 몫이라 원래 HP 합 밖이다.
+    expect(hpOut + state.debt - state.threatHp).toBeCloseTo(hpIn, 0)
+  })
+
+  it('v3 위협 장부: 밥줄로 옮긴 E07의 위협이 무거운 특수 HP로 간다(상한 ×1.8)', () => {
+    // 스1 W4(90–120초): 특수 E02·E66. 특수 몫을 채운 뒤 오는 E07은 밥줄(E01)로 바뀌고, 그 위협(HP × 속도·피해 차)이 쌓인다.
+    const state = composer('stage1')
+    for (let i = 0; i < 12; i += 1) spawn(state, 'E07', 91 + i * 0.1)
+    expect(state.threatDebt).toBeGreaterThan(0)
+    const heavy = spawn(state, 'E02', 95)
+    expect(heavy.type).toBe('E02')
+    expect(hpOfEntry(heavy)).toBeGreaterThan(ENEMY_STATS.E02.hp)
+    expect(hpOfEntry(heavy)).toBeLessThanOrEqual(Math.round(ENEMY_STATS.E02.hp * 1.8))
+  })
+
+  it('v3 밥줄 보충: 밥줄로 못 바꾸는 사수 몸이 몰리면 옆에 밥줄을 더 낸다(몸 하나당 최대 1, 보충은 다시 보충하지 않음, HP는 장부에서 뺌)', () => {
+    // 스5 W4(90–120초): 밥줄 E01, 특수 E52(원거리)·E68(장판)·E02. 사수(E04) 몸만 오면 밥줄 몫이 모자란다.
+    const state = composer('stage5')
+    let extras = 0
+    let fodder = 0
+    let bodies = 0
+    for (let i = 0; i < 10; i += 1) {
+      const entry = { type: pickWaveType(state, 'E04', 91 + i), pos: [1, 0.4, 2] }
+      const more = noteWaveSpawn(state, entry, 91 + i)
+      bodies += 1
+      expect(more.length).toBeLessThanOrEqual(1)
+      for (const extra of more) {
+        expect(extra.type).toBe('E01')
+        expect(extra.waveExtraFodder).toBe(true)
+        expect(noteWaveSpawn(state, extra, 91 + i)).toHaveLength(0)
+        extras += 1
+        fodder += 1
+        bodies += 1
+      }
+    }
+    expect(extras).toBeGreaterThan(0)
+    // 사수만 오는 극단(몸 하나당 보충 1, 처음 10마리 분모)에서는 40% 남짓이 밥줄. 실제 웨이브는 가벼운 몸이 섞여 더 높다(사전 점검).
+    expect(fodder / bodies).toBeGreaterThanOrEqual(0.4)
+    expect(state.debt).toBeLessThan(0)
+    expect(state.extraFodder).toBe(extras)
   })
 
   it('밥줄로 바뀐 가벼운 몸은 원래 HP를 그대로 받는다(E03 → E01 밥줄)', () => {

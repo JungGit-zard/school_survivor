@@ -167,6 +167,7 @@ import {
   buildOvertimeMixedReinforcementEntries,
   clampZombieSpawnRequest,
   createStageRosterRotation,
+  composeFixedSpawnType,
   noteStageRosterSpawn,
   createRunZombieCrewEntries,
   createStage2GuardChaseEntries,
@@ -543,7 +544,8 @@ export function runStageRuntimeProbe({
     kills += 1
     recordEnemyKill(dominance, sec * 1000)
     const type = enemyTypeFromCode(typeCode)
-    const xpValue = index >= 0 && enemySimulationRuntime.novel2.isCopy(enemyPool, index) ? 0 : (ENEMY_STATS[type]?.xp ?? 0)
+    const slotXp = index >= 0 && enemyPool.xpOverride[index] >= 0 ? enemyPool.xpOverride[index] : (ENEMY_STATS[type]?.xp ?? 0)
+    const xpValue = index >= 0 && enemySimulationRuntime.novel2.isCopy(enemyPool, index) ? 0 : slotXp
     const bonus = ELITE_BONUS[type]
     if (bonus) {
       const value = getEliteBonusTextbookXp(type, xpValue)
@@ -666,6 +668,7 @@ export function runStageRuntimeProbe({
       z: entry.pos[2],
       hp: stats.hp,
       maxHp: stats.hp,
+      xp: entry.waveXp,
       visualScale: stats.scale * ENEMY_SIZE_MULTIPLIER,
       runDirX: entry.runCrewDir?.x ?? 1,
       runDirZ: entry.runCrewDir?.z ?? 0,
@@ -749,8 +752,9 @@ export function runStageRuntimeProbe({
     const batch = []
     for (let index = 0; index < count; index += 1) {
       const spawn = pulse.spawns[index]
-      const pos = probeFixedSpawnPos(pulse.type, spawn.x, spawn.z, bounds, obstacles, batch.map((enemy) => enemy.pos))
-      if (pos) batch.push({ type: pulse.type, pos, statOverride: stageHpOverride(pulse.type, stageId) })
+      const type = composeFixedSpawnType(cache, pulse.type)
+      const pos = probeFixedSpawnPos(type, spawn.x, spawn.z, bounds, obstacles, batch.map((enemy) => enemy.pos))
+      if (pos) batch.push({ type, pos, statOverride: stageHpOverride(type, stageId) })
     }
     spawnRequests.push({ kind: 'callLane', cycle: pulse.cycle, requested: pulse.spawns.length, spawned: batch.length, sec })
     const cycleLog = callCycles[pulse.cycle]
@@ -828,7 +832,8 @@ export function runStageRuntimeProbe({
   function addEnemies(batch, deferPooled, source) {
     for (const entry of batch) {
       if (clampZombieSpawnRequest(1, totalZombieCounts()) <= 0) { droppedSpawns += 1; break }
-      noteStageRosterSpawn(cache.rosterRotation, entry, sec)
+      const waveExtras = noteStageRosterSpawn(cache.rosterRotation, entry, sec)
+      if (waveExtras?.length) batch.push(...waveExtras)
       if (!isPooledEnemyType(entry.type)) {
         if (specials.filter((s) => s.alive).length < 3) spawnSpecial(entry, source)
         continue
@@ -1664,7 +1669,7 @@ export function runStageRuntimeProbe({
     spawnClockAt210: spawnClockAt210 === null ? null : round1(spawnClockAt210),
     spawnHash: spawnHash.toString(16).padStart(8, '0'),
     // 2026-11-21 웨이브 표준 장부(lib/waveComposition.js): 바뀌기 전 몸 HP 합(hpIn)·실제로 낸 HP 합(hpOut)·남은 빚. 표가 없는 스테이지는 null.
-    waveLedger: cache.rosterRotation?.kind === 'wave' ? { hpIn: Math.round(cache.rosterRotation.hpIn), hpOut: Math.round(cache.rosterRotation.hpOut), debt: Math.round(cache.rosterRotation.debt), converted: cache.rosterRotation.converted, buffed: cache.rosterRotation.buffed } : null,
+    waveLedger: cache.rosterRotation?.kind === 'wave' ? { hpIn: Math.round(cache.rosterRotation.hpIn), hpOut: Math.round(cache.rosterRotation.hpOut), debt: Math.round(cache.rosterRotation.debt), converted: cache.rosterRotation.converted, buffed: cache.rosterRotation.buffed, threatHp: Math.round(cache.rosterRotation.threatHp ?? 0), extraFodder: cache.rosterRotation.extraFodder ?? 0 } : null,
     maxActiveProjectiles,
     maxActiveEnemies,
     droppedSpawns,

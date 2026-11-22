@@ -6,6 +6,8 @@
 // fodder = 밥줄(그 웨이브 몸의 약 70%), specials = 역할이 서로 다른 특수 2~3종(약 30%). 규칙은 lib/waveComposition.js.
 // 2026-11-22 balanceqa 게이트 뒤: 스테이지 1~5 밥줄은 전 구간 E01(초록). E07 웃는얼굴(속도·접촉 피해 2배)·E03 달리기를 밥줄로
 // 쓰면 바뀐 몸이 더 빠르고 세게 때려서 사망률이 올랐다(스1 약한 봇 +11%p). E07·E03은 몸이 그 종으로 올 때 그대로 남는다(규칙 3).
+// v3(2026-11-22): 스5 밥줄을 E03(달리기)으로 해 보았으나 회피 봇 사망 +12~15%p(E03 접촉 피해 8 → 26) — E01 유지. 대신 스5 호출 레인
+// 몸도 웨이브 구성을 탄다(composeFixedSpawnType). 원거리 특수 HP 강화는 회피 봇 탄 사망을 올려(사전 점검 +17%p) 쓰지 않는다.
 // 순수 데이터 모듈 — import 없음.
 
 export const WAVE_STANDARD_WAVE_SEC = 30
@@ -63,9 +65,9 @@ export const WAVE_STANDARD = Object.freeze({
   stage5: Object.freeze([
     Object.freeze({ fodder: 'E01', specials: Object.freeze(['E04', 'E39']) }), // W1 0–30초 초록 좀비 | 투척 좀비(원거리), 선끝접기형(돌진)
     Object.freeze({ fodder: 'E01', specials: Object.freeze(['E66', 'E48']) }), // W2 30–60초 초록 좀비 | 플라나리아 좀비(분열), 부메랑자 좀비(원거리) — 2026-11-22: 원거리 없는 웨이브를 없애려 E44를 W10으로
-    Object.freeze({ fodder: 'E01', specials: Object.freeze(['E54', 'E64', 'E02']) }), // W3 60–90초 초록 좀비 | 확성기방송 좀비(원거리), 분필가루 좀비(장판·포격), 덩치 좀비(탱크)
+    Object.freeze({ fodder: 'E01', specials: Object.freeze(['E48', 'E64', 'E02']) }), // W3 60–90초 초록 좀비 | 부메랑자 좀비(원거리), 분필가루 좀비(장판·포격), 덩치 좀비(탱크)
     Object.freeze({ fodder: 'E01', specials: Object.freeze(['E52', 'E68', 'E02']) }), // W4 90–120초 초록 좀비 | 플라스크분열 좀비(원거리), 지구본 좀비(장판·포격), 덩치 좀비(탱크)
-    Object.freeze({ fodder: 'E01', specials: Object.freeze(['E48', 'E102', 'E103']) }), // W5 120–150초 초록 좀비 | 부메랑자 좀비(원거리), 회전의자 좀비(돌진), 커피 셔틀 좀비(지원) — 2026-11-22: 보스 직전 원거리를 가장 센 E48로(스5 약한 봇 사망률을 트렁크 쪽으로)
+    Object.freeze({ fodder: 'E01', specials: Object.freeze(['E54', 'E102', 'E103']) }), // W5 120–150초 초록 좀비 | 확성기방송 좀비(원거리), 회전의자 좀비(돌진), 커피 셔틀 좀비(지원) — v3(11-22): 웨이브 칸을 스폰 시계로 맞추자 보스 직전 E48(부메랑) 몫이 커져 회피 봇 탄 사망이 늘어 E54로 되돌림
     Object.freeze({ fodder: 'E01', specials: Object.freeze(['E86', 'E50']) }), // W6 150–180초 초록 좀비 | 장학사 좀비(지원), 배구스파이크 좀비(장판·포격)
     Object.freeze({ fodder: 'E01', specials: Object.freeze(['E75', 'E51', 'E06']) }), // W7 180–210초 초록 좀비 | 로봇부 하트 좀비(돌진), 합창지휘 좀비(원거리), 거대 좀비(탱크)
     Object.freeze({ fodder: 'E01', specials: Object.freeze(['E53', 'E40', 'E65']) }), // W8 210–240초 초록 좀비 | 물감뿌림 좀비(원거리), 중심축비틀기형(탱크), 시험감독 좀비(장판·포격)
