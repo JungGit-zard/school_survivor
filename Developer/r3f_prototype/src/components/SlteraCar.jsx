@@ -30,13 +30,15 @@ export const SLTERA_COLORS = Object.freeze({
   band: 0xd81e28,
   hair: 0x141418,
   shades: 0x0c0c12,
+  lens: 0x18202c, // 선글라스 알: 테보다 살짝 푸른 어두운 유리
+  glint: 0xe6eef8, // 알 위 작은 반짝임
   tire: 0x17171a,
   rim: 0x363b42,
   headlight: 0xeaf4ff,
   tailBar: 0xff2a2a,
 })
 
-// 차량 로컬 좌표: +Z = 앞(코), +Y = 위. 길이 약 3.7, 폭 약 1.9(펜더 포함), 높이 약 1.1(운전자 포함).
+// 차량 로컬 좌표: +Z = 앞(코), +Y = 위. 길이 약 3.7, 폭 약 1.9(펜더 포함), 높이 약 1.6(1.5배 운전자 리젠트 포함).
 // 좀비(키 약 1.4)와 같은 로컬 스케일.
 
 // 차체 옆모습(z, y): 뒤 바닥 → 앞 바닥은 직선, 코끝부터 꼬리까지 윗선은 매끈한 스플라인.
@@ -69,6 +71,23 @@ export const SLTERA_FENDERS = Object.freeze([
 ])
 const FENDER_THETA = Math.PI * 0.42
 
+// 운전자 배율(Terry 2026-11-22 "운전자 1.5배"): 아래 SLTERA_DRIVER_BASE_PARTS는 원래(1배) 크기로 적은 값이고,
+// 실제 파츠는 좌석 기준점(엉덩이 높이·등받이 앞면)을 중심으로 크기·위치를 함께 1.5배 한 값이다.
+// 기준점이 등받이 앞면이라 커져도 등이 등받이를 뚫지 않고, 엉덩이는 좌석 높이에 그대로 앉는다.
+export const SLTERA_DRIVER_SCALE = 1.5
+export const SLTERA_DRIVER_PIVOT = Object.freeze([0.22, 0.74, -0.59])
+function scaledSize(shape, size, k) {
+  if (shape === 'capsule') return [size[0] * k, size[1] * k, ...size.slice(2)]
+  if (shape === 'ball') return [size[0] * k, ...size.slice(1)]
+  if (shape === 'ellip' || shape === 'cyl') return [size[0] * k, size[1] * k, size[2] * k, ...size.slice(3)]
+  return size.map((v) => v * k)
+}
+function slteraDriverPart([key, shape, size, position, rotation, colorKey, outlined]) {
+  const k = SLTERA_DRIVER_SCALE
+  const pos = position.map((v, i) => SLTERA_DRIVER_PIVOT[i] + (v - SLTERA_DRIVER_PIVOT[i]) * k)
+  return Object.freeze([key, shape, scaledSize(shape, size, k), pos, rotation, colorKey, outlined])
+}
+
 // 검은 칵핏 묶음(한 메시로 병합, 정점색): [key, shape, size, position, rotation, colorKey, outlined]
 // shape: rbox(둥근 상자) | box | capsule([반지름, 길이, 캡 분할=2, 둘레=8]) | ball([반지름, 세분=1]) | ellip([rx, ry, rz, 세분=1])
 //        | cyl([윗반지름, 아랫반지름, 높이, 둘레 분할=10])
@@ -77,7 +96,8 @@ export const SLTERA_DARK_PARTS = Object.freeze([
   ['windshield', 'box', [1.12, 0.5, 0.035], [0, 0.835, 0.3], [-1.1, 0, 0], 'glass', true],
   ['seatL', 'rbox', [0.36, 0.44, 0.13], [0.22, 0.9, -0.66], [-0.22, 0, 0], 'seat', true],
   ['seatR', 'rbox', [0.36, 0.44, 0.13], [-0.22, 0.9, -0.66], [-0.22, 0, 0], 'seat', true],
-  ['steeringWheel', 'cyl', [0.085, 0.085, 0.02, 8], [0.22, 0.9, -0.2], [-1.0, 0, 0], 'seat', false],
+  // 핸들은 커진 운전자 손에 맞춰 운전자와 같은 배율·같은 기준점으로 옮긴다(위 slteraDriverPart).
+  slteraDriverPart(['steeringWheel', 'cyl', [0.085, 0.085, 0.02, 8], [0.22, 0.9, -0.2], [-1.0, 0, 0], 'seat', false]),
   ['diffuser', 'box', [1.0, 0.1, 0.08], [0, 0.24, -1.76], [0, 0, 0], 'cockpit', false],
 ])
 
@@ -95,15 +115,13 @@ function limb(key, from, to, radius, colorKey) {
 
 // 운전석의 양키(Terry 2026-11-15): 앞으로 길게 튀어나온 검은 리젠트 + 붉은 머리띠(뒤로 날리는 꼬리 2가닥)
 // + 깃을 세운 긴 흰 코트(자락이 좌석 뒤로 날림) + 선글라스. 한 팔은 핸들, 다른 팔은 문턱에 걸친 건들 자세.
-// 일반적인 양키 스타일만 쓴다(특정 인물·기존 캐릭터 복제 아님). 게임에서는 차가 약 0.47배로 작아지므로
+// 일반적인 양키 스타일만 쓴다(특정 인물·기존 캐릭터 복제 아님). 게임에서는 차가 약 0.56배로 작아지므로
 // 리젠트·머리띠·흰 어깨는 일부러 과장했다. 형식은 SLTERA_DARK_PARTS와 같고 같은 정점색 메시에 병합된다.
-export const SLTERA_DRIVER_PARTS = Object.freeze([
+export const SLTERA_DRIVER_BASE_PARTS = Object.freeze([
   // 흰 코트: 넓은 어깨 상체 + 세운 깃 + 좌석 위로 뒤로 날리는 두 갈래 자락
   ['coatBody', 'ellip', [0.17, 0.16, 0.12], [0.22, 0.9, -0.47], [-0.15, 0, 0], 'coat', true],
   ['coatCollar', 'cyl', [0.108, 0.09, 0.085, 8], [0.22, 1.035, -0.455], [-0.12, 0, 0], 'coat', true],
-  // 자락은 등받이 꼭대기를 넘어 뒤 데크 위로 비스듬히 떠서 날린다(등받이를 뚫지 않게 꼭대기보다 높게 시작).
-  ['coatTailL', 'box', [0.15, 0.022, 0.42], [0.29, 1.09, -0.83], [-0.4, -0.2, 0], 'coat', true],
-  ['coatTailR', 'box', [0.15, 0.022, 0.4], [0.15, 1.08, -0.82], [-0.46, 0.2, 0], 'coat', true],
+  // (11-22 Terry: 머리띠 뒤로 떠 보이던 흰 코트 자락 판 두 장은 삭제했다.)
   // 팔: 안쪽 팔은 핸들 10시 방향, 바깥 팔은 문턱 위로 팔꿈치를 걸치고 손을 차 밖으로 늘어뜨린다.
   limb('armWheel', [0.09, 0.99, -0.45], [0.155, 0.945, -0.185], 0.042, 'coat'),
   ['handWheel', 'ball', [0.036, 0], [0.155, 0.945, -0.18], [0, 0, 0], 'skin', true],
@@ -112,7 +130,15 @@ export const SLTERA_DRIVER_PARTS = Object.freeze([
   ['handSill', 'ball', [0.036, 0], [0.61, 0.765, -0.22], [0, 0, 0], 'skin', true],
   // 머리: 피부 얼굴 + 선글라스, 뒤·옆을 덮는 검은 머리, 이마 앞으로 길게 뻗어 끝이 위로 말린 리젠트, 짧은 덕테일
   ['head', 'ball', [0.1], [0.22, 1.11, -0.44], [0, 0, 0], 'skin', true],
-  ['shades', 'box', [0.16, 0.036, 0.03], [0.22, 1.105, -0.348], [0, 0, 0], 'shades', false],
+  // 선글라스(11-22 Terry "좀 더 선글라스 형태로"): 눈높이의 둥근 에비에이터 알 두 개(바깥 아래로 살짝 처짐)
+  // + 가는 브리지 + 귀로 가는 다리 두 개 + 알마다 작은 반짝임. 조각이 작아 외곽선은 생략(검은 덩어리로 뭉개짐 방지).
+  ['shadeLensL', 'ellip', [0.034, 0.027, 0.01, 1], [0.258, 1.103, -0.339], [0, 0.38, -0.22], 'lens', false],
+  ['shadeLensR', 'ellip', [0.034, 0.027, 0.01, 1], [0.182, 1.103, -0.339], [0, -0.38, 0.22], 'lens', false],
+  ['shadeBridge', 'box', [0.03, 0.007, 0.008], [0.22, 1.113, -0.333], [0, 0, 0], 'shades', false],
+  ['shadeTempleL', 'box', [0.007, 0.008, 0.1], [0.316, 1.11, -0.39], [0, -0.2, 0], 'shades', false],
+  ['shadeTempleR', 'box', [0.007, 0.008, 0.1], [0.124, 1.11, -0.39], [0, 0.2, 0], 'shades', false],
+  ['shadeGlintL', 'ball', [0.007, 0], [0.272, 1.113, -0.329], [0, 0, 0], 'glint', false],
+  ['shadeGlintR', 'ball', [0.007, 0], [0.196, 1.113, -0.329], [0, 0, 0], 'glint', false],
   ['hairCap', 'ellip', [0.106, 0.085, 0.1], [0.22, 1.16, -0.455], [0, 0, 0], 'hair', true],
   ['regent', 'ellip', [0.088, 0.072, 0.19], [0.22, 1.22, -0.27], [-0.18, 0, 0], 'hair', true],
   ['regentCurl', 'ellip', [0.08, 0.06, 0.065], [0.22, 1.27, -0.105], [-0.5, 0, 0], 'hair', true],
@@ -123,6 +149,8 @@ export const SLTERA_DRIVER_PARTS = Object.freeze([
   ['headbandTailUp', 'box', [0.055, 0.014, 0.22], [0.245, 1.175, -0.67], [0.3, -0.3, 0], 'band', true],
   ['headbandTailDown', 'box', [0.055, 0.014, 0.2], [0.195, 1.125, -0.66], [-0.15, 0.28, 0], 'band', true],
 ])
+// 실제로 그리는 운전자 = 기본 파츠를 좌석 기준점 중심으로 SLTERA_DRIVER_SCALE배.
+export const SLTERA_DRIVER_PARTS = Object.freeze(SLTERA_DRIVER_BASE_PARTS.map(slteraDriverPart))
 // 운전자 조각의 외곽선은 차체보다 살짝 얇게(작은 조각이 검은 덩어리로 뭉개지지 않게).
 export const SLTERA_DRIVER_OUTLINE_THICKNESS = 0.02
 
@@ -148,6 +176,95 @@ export function slteraTelegraphGlow(progress, timeSec, out = _glow) {
   out.head = 0.8 + p * 1.2 * pulse + p * 0.5
   out.tail = 0.55 + p * 0.9 * pulse + p * 0.45
   return out
+}
+
+// 헤드라이트 빛 효과(11-22 Terry "헤드라이트에는 빛 효과를 붙여"). 실제 광원·그림자·블룸 없이 가산 혼합 판만 쓴다
+// (휴대폰 프레임 비용 ≈0: 텍스처 2장 공유, 판 4장, depthWrite 끔). 램프마다 부드러운 후광 + 바닥에 앞으로 퍼지는 옅은 빛줄기.
+// 밝기는 헤드램프 발광(평시 0.7, 예고 맥동 때 더 밝게)을 따라간다.
+export const SLTERA_HEADLIGHT_FX = Object.freeze({
+  haloSize: 0.5, // 후광 지름(차 로컬 u)
+  haloOffset: 0.06, // 램프 면 앞으로 띄우는 거리
+  beamLength: 2.4, // 바닥 빛줄기 길이(코끝부터)
+  beamNear: 0.34, // 램프 쪽 폭
+  beamFar: 1.25, // 먼 쪽 폭
+  beamY: 0.02, // 바닥(타이어 바닥 y=0) 바로 위
+  color: 0xfff4d6, // 살짝 따뜻한 흰빛
+  haloOpacity: 0.45, // 평시(발광 0.7) 기준 불투명도 — 발광에 비례해 오르내린다
+  beamOpacity: 0.32,
+})
+
+let _haloTex = null
+function getHaloTexture() {
+  if (_haloTex) return _haloTex
+  const c = document.createElement('canvas'); c.width = 64; c.height = 64
+  const ctx = c.getContext('2d')
+  const g = ctx.createRadialGradient(32, 32, 0, 32, 32, 32)
+  g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(0.25, 'rgba(255,255,255,0.75)')
+  g.addColorStop(0.6, 'rgba(255,255,255,0.18)'); g.addColorStop(1, 'rgba(255,255,255,0)')
+  ctx.fillStyle = g; ctx.fillRect(0, 0, 64, 64)
+  _haloTex = new THREE.CanvasTexture(c); _haloTex.colorSpace = THREE.SRGBColorSpace
+  return _haloTex
+}
+
+let _beamTex = null
+// 빛줄기: 램프 쪽(v=0)이 밝고 멀수록 사라지며, 옆 가장자리도 부드럽게 흐려진다.
+function getBeamTexture() {
+  if (_beamTex) return _beamTex
+  const c = document.createElement('canvas'); c.width = 32; c.height = 64
+  const ctx = c.getContext('2d')
+  const side = ctx.createLinearGradient(0, 0, 32, 0)
+  side.addColorStop(0, 'rgba(255,255,255,0)'); side.addColorStop(0.3, 'rgba(255,255,255,1)')
+  side.addColorStop(0.7, 'rgba(255,255,255,1)'); side.addColorStop(1, 'rgba(255,255,255,0)')
+  ctx.fillStyle = side; ctx.fillRect(0, 0, 32, 64)
+  ctx.globalCompositeOperation = 'destination-in'
+  const len = ctx.createLinearGradient(0, 64, 0, 0) // 캔버스 아래(v=0) = 램프 쪽
+  len.addColorStop(0, 'rgba(255,255,255,1)'); len.addColorStop(0.45, 'rgba(255,255,255,0.45)'); len.addColorStop(1, 'rgba(255,255,255,0)')
+  ctx.fillStyle = len; ctx.fillRect(0, 0, 32, 64)
+  _beamTex = new THREE.CanvasTexture(c); _beamTex.colorSpace = THREE.SRGBColorSpace
+  return _beamTex
+}
+
+// 후방 빛 효과(11-22 Terry "헤드라이트에 붙은 빛효과를 붉게 후방에도"): 같은 방식(가산 판, 광원 없음)으로
+// 꼬리 라이트바 전폭에 가로로 긴 붉은 후광 + 차 뒤 바닥에 짧게 번지는 붉은 빛. 밝기는 꼬리 라이트바 발광(예고 맥동)을 따른다.
+export const SLTERA_TAILLIGHT_FX = Object.freeze({
+  haloScale: [1.75, 0.42], // 후광(가로로 긴 스프라이트) 크기 — 라이트바 폭 1.18보다 넓게
+  haloOffset: 0.07, // 꼬리 면 뒤로 띄우는 거리
+  spillLength: 1.3, // 바닥 붉은 빛 길이(꼬리부터 뒤로)
+  spillNear: 0.62,
+  spillFar: 1.0,
+  color: 0xff2a2a,
+  haloOpacity: 0.5, // 평시(꼬리 발광 0.45) 기준
+  spillOpacity: 0.3,
+})
+
+// 바닥 빛줄기 지오메트리: 램프 쪽(z0)에서 dir(+1 앞 / -1 뒤) 방향으로 넓어지는 사다리꼴 한 장.
+const _beamGeos = {}
+function buildBeamGeometry(z0, dir, length, near, far, y) {
+  const z1 = z0 + dir * length
+  const g = new THREE.BufferGeometry()
+  g.setAttribute('position', new THREE.Float32BufferAttribute([
+    -near, y, z0, near, y, z0, far, y, z1, -far, y, z1,
+  ], 3))
+  g.setAttribute('uv', new THREE.Float32BufferAttribute([0, 0, 1, 0, 1, 1, 0, 1], 2))
+  g.setIndex(dir > 0 ? [0, 2, 1, 0, 3, 2] : [0, 1, 2, 0, 2, 3])
+  return g
+}
+// 앞: 코끝 바로 아래에서 앞으로(두 헤드램프 빛이 합쳐진 모양).
+function getBeamGeometry() {
+  const { beamLength, beamNear, beamFar, beamY } = SLTERA_HEADLIGHT_FX
+  return (_beamGeos.head ||= buildBeamGeometry(SLTERA_BODY_PROFILE.topLine[1][0] - 0.05, 1, beamLength, beamNear, beamFar, beamY))
+}
+// 뒤: 꼬리 바로 아래에서 뒤로 짧게.
+function getTailSpillGeometry() {
+  const { spillLength, spillNear, spillFar } = SLTERA_TAILLIGHT_FX
+  return (_beamGeos.tail ||= buildBeamGeometry(SLTERA_BODY_PROFILE.bottomRear[0] - 0.12, -1, spillLength, spillNear, spillFar, SLTERA_HEADLIGHT_FX.beamY + 0.002))
+}
+
+function headlightFxMaterial(map, opacity, color = SLTERA_HEADLIGHT_FX.color) {
+  return new THREE.MeshBasicMaterial({
+    map, color, transparent: true, opacity, blending: THREE.AdditiveBlending,
+    depthWrite: false, toneMapped: false, side: THREE.DoubleSide, fog: false,
+  })
 }
 
 let _silverRamp = null
@@ -367,6 +484,16 @@ export default function SlteraCar({ telegraph = -1, telegraphRef = null, ...prop
     head: toonPart('headlight'),
     tail: toonPart('tailBar'),
     outline: outlineMat(0.96),
+    halo: new THREE.SpriteMaterial({
+      map: getHaloTexture(), color: SLTERA_HEADLIGHT_FX.color, transparent: true, opacity: SLTERA_HEADLIGHT_FX.haloOpacity,
+      blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false, fog: false,
+    }),
+    beam: headlightFxMaterial(getBeamTexture(), SLTERA_HEADLIGHT_FX.beamOpacity),
+    tailHalo: new THREE.SpriteMaterial({
+      map: getHaloTexture(), color: SLTERA_TAILLIGHT_FX.color, transparent: true, opacity: SLTERA_TAILLIGHT_FX.haloOpacity,
+      blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false, fog: false,
+    }),
+    tailSpill: headlightFxMaterial(getBeamTexture(), SLTERA_TAILLIGHT_FX.spillOpacity, SLTERA_TAILLIGHT_FX.color),
   }), [])
   const wordmark = useTailWordmark()
   // 메시 ref로 '현재' 재질을 읽는다. Graphics Studio 미리보기는 재질을 복제해 소유하므로
@@ -382,6 +509,13 @@ export default function SlteraCar({ telegraph = -1, telegraphRef = null, ...prop
     const tail = tailRef.current?.material
     if (head && !Array.isArray(head)) head.emissiveIntensity = g.head
     if (tail && !Array.isArray(tail)) tail.emissiveIntensity = g.tail
+    // 빛 효과는 헤드램프 발광을 따라 밝아진다(평시 0.7 = 기본 불투명도). 재질은 이 인스턴스 소유라 직접 바꾼다.
+    const k = Math.min(1.8, g.head / 0.7)
+    materials.halo.opacity = SLTERA_HEADLIGHT_FX.haloOpacity * k
+    materials.beam.opacity = SLTERA_HEADLIGHT_FX.beamOpacity * k
+    const kt = Math.min(2.2, g.tail / 0.45) // 꼬리 발광 평시 0.45 기준(예고 맥동 때 더 붉게)
+    materials.tailHalo.opacity = Math.min(1, SLTERA_TAILLIGHT_FX.haloOpacity * kt)
+    materials.tailSpill.opacity = SLTERA_TAILLIGHT_FX.spillOpacity * kt
   })
   // 램프는 예고 훅이 발광을 소유한다. Studio 미리보기의 매 프레임 튜닝(발광 덮어쓰기)에서 제외한다.
   const lampData = { studioNonTunable: true, studioNonFocusable: true }
@@ -391,6 +525,16 @@ export default function SlteraCar({ telegraph = -1, telegraphRef = null, ...prop
       <mesh name="slteraCockpitWheels" geometry={geo.dark} material={materials.dark} renderOrder={2} dispose={null} />
       <mesh ref={headRef} name="slteraHeadlights" geometry={geo.head} material={materials.head} renderOrder={2} userData={lampData} dispose={null} />
       <mesh ref={tailRef} name="slteraTailBar" geometry={geo.tail} material={materials.tail} renderOrder={2} userData={lampData} dispose={null} />
+      {SLTERA_GLOW_PARTS.filter((p) => p[5] === 'head').map(([key, , [x, y, z]]) => (
+        <sprite key={key} name={`${key}Halo`} material={materials.halo} position={[x, y, z + SLTERA_HEADLIGHT_FX.haloOffset]}
+          scale={SLTERA_HEADLIGHT_FX.haloSize} renderOrder={5} userData={lampData} />
+      ))}
+      <mesh name="slteraHeadlightBeam" geometry={getBeamGeometry()} material={materials.beam} renderOrder={4} userData={lampData} dispose={null} />
+      {SLTERA_GLOW_PARTS.filter((p) => p[5] === 'tail').map(([key, , [x, y, z]]) => (
+        <sprite key={key} name={`${key}Halo`} material={materials.tailHalo} position={[x, y, z - SLTERA_TAILLIGHT_FX.haloOffset]}
+          scale={[...SLTERA_TAILLIGHT_FX.haloScale, 1]} renderOrder={5} userData={lampData} />
+      ))}
+      <mesh name="slteraTailSpill" geometry={getTailSpillGeometry()} material={materials.tailSpill} renderOrder={4} userData={lampData} dispose={null} />
       <mesh geometry={geo.silverHull} material={materials.outline} renderOrder={1} userData={{ studioNonFocusable: true }} dispose={null} />
       <mesh geometry={geo.darkHull} material={materials.outline} renderOrder={1} userData={{ studioNonFocusable: true }} dispose={null} />
       <mesh geometry={geo.tailHull} material={materials.outline} renderOrder={1} userData={{ studioNonFocusable: true }} dispose={null} />

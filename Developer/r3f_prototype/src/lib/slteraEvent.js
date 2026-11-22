@@ -24,8 +24,8 @@
 //   세로 화면에서 화면 안 좌우 꺾임(0.35u 이상 되돌아옴) 중앙값 5번, 꺾임 폭 중앙값 2.1u.
 //   핸들은 사선 방향에서 70°까지만 꺾이고 떨림을 얹어도 87°를 넘지 않아 늘 앞으로 나아가므로 질주는 반드시 끝난다.
 //   경유점은 화면이 보는 바닥(사다리꼴) 가장자리에서 0.8u 안쪽에만 둔다 — 화면 안에서 오래 비틀거린다.
-//   속도 4.2u/s(11-07판 14u/s의 3/10 = 11-08판 2.8u/s의 1.5배), 크기 7/15(11-08판 1/3의 1.4배 — 판정 길이 1.73u·
-//   폭 0.89u, 비주얼도 7/15). 세로 화면(390×844)·로자리 정지·장애물 없음 기준 화면 체류 중앙값 ≈4.6초
+//   속도 4.2u/s(11-07판 14u/s의 3/10 = 11-08판 2.8u/s의 1.5배), 크기 0.56(11-22 Terry 1.2배 — 판정 길이 2.07u·
+//   폭 1.06u, 비주얼도 0.56. 아래 체류 시간 수치는 1.2배 전 7/15 크기에서 잰 값). 세로 화면(390×844)·로자리 정지·장애물 없음 기준 화면 체류 중앙값 ≈4.6초
 //   (11-15 급가속 퇴장 전 ≈6.2초, 11-08판 ≈9.2초, 11-07판 가로 직진 ≈0.75초). 장애물 있는 실제 S1~S6에서 질주 중앙값
 //   ≈4.5~4.8초(퇴장 전 ≈5.7~6.6초), 최대 ≈7.7초(퇴장 전 ≈9.7초).
 //   사선은 출발 순간 화면에 맞춘 월드 경로라 로자리가 멀리 달아나면 그만큼 일찍 화면에서 사라진다.
@@ -34,7 +34,7 @@
 //   (SLTERA_ROSARI_*, 여유는 차 반폭이 커진 만큼 넓혔다). 가만히 선 로자리가 맞는 질주 ≈14%(장애물 없음 — 11-14 등장
 //   점프 착지 포함, 11-15 퇴장 전후 같음) / 실제 S1~S6 프랍 위 ≈20~27%(퇴장 전 ≈21~29% — 발작·떨림·튕김·착지로 맞는다).
 // 치기:
-//   차체 판정박스(길이 1.73u, 폭 0.89u, 차가 보는 방향으로 회전)를 이번 프레임 이동만큼 늘린 영역 안의 적마다
+//   차체 판정박스(길이 2.07u, 폭 1.06u, 차가 보는 방향으로 회전)를 이번 프레임 이동만큼 늘린 영역 안의 적마다
 //   한 번만 굴림 — 65% 확률로 치어 60 피해 + 넉백, 35%는 아슬아슬하게 비켜 간다(무작위 치기).
 //   보스·마틸다는 20만. 차 중심이 화면 밖(진입·이탈 여유 구간)일 때는 치지 않는다.
 //   로자리와 겹치면 질주당 1회 최대 HP의 15% 피해(일반 무적 규칙을 따른다 — 무적 중이면 무시).
@@ -87,25 +87,26 @@ export const SLTERA_REPEAT_MS = 85_000
 // 크기·속도 배율. 11-07판 값을 기준으로 곱한다 — 비주얼(SlteraEvent의 그룹 scale)과 판정 사각형이 같은 배율을 쓴다.
 //   11-08 Terry: 크기 1/3, 속도 1/5.  11-13 Terry: "슬테라 크기 2배, 속도 1.5배" → 크기 2/3, 속도 3/10.
 //   11-13 Terry 이어서: "슬테라 크기 다시 30퍼센트 줄여" → 크기 2/3 × 0.7 = 7/15(11-08판의 1.4배), 속도는 그대로.
-export const SLTERA_SIZE_SCALE = (2 / 3) * 0.7 // ≈0.467
+//   11-22 Terry: "슬테라 크기 1.2배" → 7/15 × 1.2 = 0.56(판정박스도 함께 1.2배), 속도는 그대로.
+export const SLTERA_SIZE_SCALE = (2 / 3) * 0.7 * 1.2 // =0.56
 export const SLTERA_SPEED_SCALE = 3 / 10 // 11-08판(1/5)의 1.5배
 export const SLTERA_BASE_SPEED = 14 // 11-07판 직진 속도(u/s)
 export const SLTERA_SPEED = SLTERA_BASE_SPEED * SLTERA_SPEED_SCALE // 4.2u/s — 실제 주행 경로를 따라 잰 속도
 export const SLTERA_BASE_HALF_LENGTH = 1.85 // 11-07판 차 길이 3.7u의 절반
 export const SLTERA_BASE_HALF_WIDTH = 0.95 // 11-07판 차 폭 1.9u의 절반
-// 판정박스(차체 OBB, 진행 방향=차가 보는 방향으로 회전): 길이 ≈1.73u × 폭 ≈0.89u. 장애물 충돌·좀비 치기·로자리
+// 판정박스(차체 OBB, 진행 방향=차가 보는 방향으로 회전): 길이 ≈2.07u × 폭 ≈1.06u. 장애물 충돌·좀비 치기·로자리
 // 피격이 모두 이 한 상자를 쓴다(getSlteraBodyBox / getSlteraSweepBox).
-export const SLTERA_HALF_LENGTH = SLTERA_BASE_HALF_LENGTH * SLTERA_SIZE_SCALE // ≈0.863u(길이 1.73u)
-export const SLTERA_HALF_WIDTH = SLTERA_BASE_HALF_WIDTH * SLTERA_SIZE_SCALE // ≈0.443u(폭 0.89u)
+export const SLTERA_HALF_LENGTH = SLTERA_BASE_HALF_LENGTH * SLTERA_SIZE_SCALE // ≈1.036u(길이 2.07u)
+export const SLTERA_HALF_WIDTH = SLTERA_BASE_HALF_WIDTH * SLTERA_SIZE_SCALE // ≈0.532u(폭 1.06u)
 export const SLTERA_PLAYER_RADIUS = 0.3 // 로자리 몸통 판정 반경
 
-// 차 중심→귀퉁이 거리(≈0.97u). 화면 밖 여유들은 이 값에서 뽑는다 — 크기를 바꾸면 함께 따라간다.
+// 차 중심→귀퉁이 거리(≈1.16u). 화면 밖 여유들은 이 값에서 뽑는다 — 크기를 바꾸면 함께 따라간다.
 export const SLTERA_BODY_CORNER = Math.hypot(SLTERA_HALF_LENGTH, SLTERA_HALF_WIDTH)
 // 사선 경로: 출발·도착은 화면 바로 밖 여유(u). 귀퉁이 거리보다 0.11u 커서 차 전체가 화면 밖에서 출발한다
-// (≈1.08u. 2배판은 1.39+0.11 = 1.5u였다).
+// (≈1.27u. 2배판은 1.39+0.11 = 1.5u였다).
 export const SLTERA_EDGE_MARGIN = SLTERA_BODY_CORNER + 0.11
 // 끝: 도착점을 지나고 차 전체가 (출발 순간의) 화면 밖으로 나가야 사라진다 — 차 중심이 화면에서 이만큼 밖.
-// 차 귀퉁이까지 거리보다 0.06u 크게(≈1.03u. 2배판 1.45u). 도착점을 4u 넘게 지나도 아직 보이면 계속 달린다.
+// 차 귀퉁이까지 거리보다 0.06u 크게(≈1.22u. 2배판 1.45u). 도착점을 4u 넘게 지나도 아직 보이면 계속 달린다.
 export const SLTERA_OFFSCREEN_PAD = SLTERA_BODY_CORNER + 0.06
 export const SLTERA_EXIT_OVERRUN = 4
 // 모서리 근처 출발·도착점: 이 확률로 위/아래 변 바깥(나머지는 옆 변 바깥).
@@ -126,7 +127,7 @@ export const SLTERA_MAX_WAYPOINTS = 48
 // 로자리가 움직여 차 앞으로 들어오면 그대로 맞는다(노리지도, 봐주지도 않는다).
 export const SLTERA_ROSARI_SPAN = 3
 // 차 옆면과 로자리 사이 여유를 11-08판(1.3u − 반폭 0.317u)과 같게 지키도록 늘어난 반폭만큼 더한다
-// (지금 ≈1.43u, 2배판 ≈1.62u). 노리지 않는다는 설계를 지키는 보정이지 크기·속도 하향이 아니다.
+// (지금 ≈1.52u, 2배판 ≈1.62u). 노리지 않는다는 설계를 지키는 보정이지 크기·속도 하향이 아니다.
 export const SLTERA_ROSARI_CLEARANCE = 1.3 + (SLTERA_HALF_WIDTH - SLTERA_BASE_HALF_WIDTH / 3)
 export const SLTERA_ROSARI_ZONE_INSET = 0.4
 // 운전 박자: 11-13 속도 1.5배에서 지그재그 경로 '모양'(꺾는 반경·떨림 파장·발작 간격을 거리로 잰 값)이 11-08판과
@@ -200,8 +201,8 @@ export const SLTERA_WEDGE_RADIUS = 1
 export const SLTERA_WEDGE_BOUNCES = 2
 export const SLTERA_WEDGE_SEC = 1.2
 // 등장 점프(11-14). 높이는 fov 30·45° 내려다보는 카메라에서 차가 화면 위쪽으로 차 길이 1.4배쯤 떠 보이는 값.
-export const SLTERA_CAR_LENGTH = SLTERA_HALF_LENGTH * 2 // ≈1.73u
-export const SLTERA_JUMP_HEIGHT = SLTERA_CAR_LENGTH * 1.25 // ≈2.16u(꼭대기 차 바닥 높이)
+export const SLTERA_CAR_LENGTH = SLTERA_HALF_LENGTH * 2 // ≈2.07u
+export const SLTERA_JUMP_HEIGHT = SLTERA_CAR_LENGTH * 1.25 // ≈2.59u(꼭대기 차 바닥 높이)
 export const SLTERA_JUMP_AIR_SEC = 0.8
 export const SLTERA_JUMP_ROLL_RAD = Math.PI * 2 // 옆 1회전
 export const SLTERA_JUMP_DISTANCE = SLTERA_SPEED * SLTERA_JUMP_AIR_SEC // 공중 직진 ≈3.36u
@@ -775,6 +776,44 @@ function replanSlteraAfterBounce(pass) {
 // 여기로 온다 — 질주당 한 번. 지금 차 방향 ±45° 안(9방향)에서 화면(출발 순간 화면)을 가장 빨리 벗어나는 쪽을 고르고,
 // 그 뒤로는 그 한 방향 완전 직선(경유점·핸들 떨림·발작 없음), 장애물·몸에 튕기지 않고 뚫고 지나간다. 좀비 치기·
 // 로자리 피격은 평소대로(늘어난 스윕 박스가 프레임 이동을 덮는다).
+// 퇴장 방향(11-22 Terry: "퇴장 각은 랜덤으로"): 전에는 ±45° 안에서 화면을 가장 빨리 벗어나는 방향만 골라 세로 화면에서
+// 거의 늘 3시·9시로 빠졌다. 이제 지금 차 방향 ±SLTERA_EXIT_RANDOM_TURN_RAD 안의 후보 중 (a) 로자리를 차 반폭+몸 반경+여유
+// 안으로 지나치지 않고 (b) SLTERA_EXIT_RANDOM_MAX_LEAVE 안에 화면을 벗어나는 방향을 질주 결정론 난수로 고른다.
+// 맞는 후보가 없으면 예전 규칙(±45° 안 가장 빨리 벗어나는 방향).
+export const SLTERA_EXIT_RANDOM_TURN_RAD = (110 * Math.PI) / 180
+export const SLTERA_EXIT_RANDOM_MAX_LEAVE = 13 // u — 퇴장 속도(≈18.9u/s)로 0.7초 남짓
+const EXIT_RANDOM_CANDIDATES = 24
+const _exitOk = new Float64Array(EXIT_RANDOM_CANDIDATES)
+const _exitLeave = new Float64Array(EXIT_RANDOM_CANDIDATES)
+function pickSlteraExitHeading(pass, view) {
+  const clear = SLTERA_HALF_WIDTH + SLTERA_PLAYER_RADIUS + 0.35
+  const jitter = nextSlteraRandom(pass)
+  let n = 0
+  for (let i = 0; i < EXIT_RANDOM_CANDIDATES; i += 1) {
+    const heading = pass.heading + (((i + jitter) / EXIT_RANDOM_CANDIDATES) * 2 - 1) * SLTERA_EXIT_RANDOM_TURN_RAD
+    const fx = Math.sin(heading); const fz = Math.cos(heading)
+    const leave = slteraDistanceToLeaveView(view, pass.x, pass.z, fx, fz)
+    if (!(leave <= SLTERA_EXIT_RANDOM_MAX_LEAVE)) continue
+    // 로자리까지 이 직선의 최근접 거리(앞쪽 퇴장 구간 안만)
+    const rx = pass.playerX - pass.x; const rz = pass.playerZ - pass.z
+    const along = rx * fx + rz * fz
+    if (along > -SLTERA_HALF_LENGTH && along < leave + SLTERA_EDGE_MARGIN && Math.abs(rx * fz - rz * fx) < clear) continue
+    _exitOk[n] = heading; _exitLeave[n] = leave; n += 1
+  }
+  if (n > 0) {
+    const k = Math.min(n - 1, Math.floor(nextSlteraRandom(pass) * n))
+    return { heading: _exitOk[k], distance: _exitLeave[k] }
+  }
+  let heading = pass.heading
+  let distance = Infinity
+  for (let k = -4; k <= 4; k += 1) {
+    const h = pass.heading + (k / 4) * SLTERA_EXIT_DASH_TURN_RAD
+    const d = slteraDistanceToLeaveView(view, pass.x, pass.z, Math.sin(h), Math.cos(h))
+    if (d < distance - 1e-9) { distance = d; heading = h }
+  }
+  return { heading, distance }
+}
+
 function startSlteraExitDash(pass, reason) {
   if (pass.exitDash) return
   pass.exiting = true
@@ -786,13 +825,7 @@ function startSlteraExitDash(pass, reason) {
     return
   }
   pass.exitDashDeferred = null
-  let bestHeading = pass.heading
-  let best = Infinity
-  for (let k = -4; k <= 4; k += 1) {
-    const heading = pass.heading + (k / 4) * SLTERA_EXIT_DASH_TURN_RAD
-    const d = slteraDistanceToLeaveView(view, pass.x, pass.z, Math.sin(heading), Math.cos(heading))
-    if (d < best - 1e-9) { best = d; bestHeading = heading }
-  }
+  let { heading: bestHeading, distance: best } = pickSlteraExitHeading(pass, view)
   bestHeading = wrapAngle(bestHeading)
   const dirX = Math.sin(bestHeading)
   const dirZ = Math.cos(bestHeading)
@@ -969,8 +1002,13 @@ function collideSlteraWithObstacles(pass, h, beforeX, beforeZ, beforeHeading) {
   // 않게), 차 전체가 보인 뒤 프랍에 막히면 튕기는 대신 그 자리에서 뛰어 넘는다(jumpUrgent).
   const jumpReady = pass.jumpState === SLTERA_JUMP_STATE.READY
   const carShown = jumpReady && isSlteraCarOnScreen(pass.jumpView || pass.view, pass.x, pass.z, pass.heading)
+  // 11-22(차 1.2배): 뛰기 전에는 차 전체가 보일 때만 단단하다 — 중심만 화면에 든 채 가장자리 프랍에 튕기면
+  // 뛰지 못한 채 퇴장하는 질주가 생겼다. 차 전체가 다시 보이면 아래 규칙으로 다시 단단해진다.
+  if (jumpReady && !carShown) {
+    pass.solid = false
+    return
+  }
   if (!pass.solid) {
-    if (jumpReady && !carShown) return
     // 화면에 들어오고 아무것과도 안 겹친 순간부터 단단해진다(화면 밖 출발·출발 지점 프랍 겹침 대비).
     if (onScreen && findDeepestSlteraContact(pass, contact) <= 0) pass.solid = true
     else if (jumpReady) pass.jumpUrgent = true
@@ -1214,6 +1252,11 @@ function landSltera(pass) {
   pass.anchorX = pass.x
   pass.anchorZ = pass.z
   pass.anchorMs = pass.elapsedMs
+  // 11-22(차 1.2배): 착지 substep에서도 바로 퇴장 조건을 본다. 착지 substep은 땅 위 substep 끝 판정을 건너뛰어,
+  // 로자리가 걷는 중 화면 가장자리에 착지한 차는 다음 판정 때 이미 차 중심이 화면 밖이라 급가속 없이 사라졌다
+  // (큰 차는 귀퉁이가 더 오래 보여 '보였는데 급가속 없이 사라짐'으로 드러났다).
+  const reason = getSlteraExitDashTrigger(pass)
+  if (reason) startSlteraExitDash(pass, reason)
 }
 
 /**

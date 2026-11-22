@@ -1,7 +1,7 @@
 // Sltera 돌진 이벤트 런타임(S1~S5 매 판). 스케줄·경로·판정 정본은 lib/slteraEvent.js.
 // 예고 없음(Terry 스펙 "갑자기 나타나"): 예정 시각이 되면 화면 한 모서리 바로 밖에서 튀어나와 반대편
 // 모서리 쪽으로 사선을 따라 지그재그로 비틀거리며(4.2u/s, 핸들 발작·떨림) 화면을 지나간다.
-// 크기는 11-07판의 7/15(11-13 Terry: 11-08판의 2배로 키웠다가 다시 30% 줄임 = 1.4배, 속도 1.5배 — 비주얼 그룹 scale = 판정 배율 SLTERA_SIZE_SCALE).
+// 크기는 11-07판의 0.56(11-13 Terry: 11-08판의 2배로 키웠다가 다시 30% 줄임 = 7/15, 11-22 Terry: 다시 1.2배 — 비주얼 그룹 scale = 판정 배율 SLTERA_SIZE_SCALE).
 // 스테이지 프랍(책상·사물함 등, 좀비와 같은 장애물 OBB)에 부딪히면 뒤로 밀렸다가 방향을 바꿔 다시 달린다.
 // 지나가는 길의 좀비를 무작위로 치고, 로자리와 겹치면 질주당 1회 최대 HP 15% 피해.
 // 11-14: 등장하면 한 번 뛰어 옆으로 1회전하고 쿵 떨어진다. 차체는 단단하다 — 닿은 좀비·로자리는 박스 밖으로 밀려나고,
@@ -36,7 +36,8 @@ import {
   stepSlteraLaunchTable, stepSlteraPass,
 } from '../lib/slteraEvent.js'
 import { registerSlteraInstantSpawnTarget } from '../lib/slteraInstantSpawn.js'
-import SlteraCar from './SlteraCar.jsx'
+import SlteraCar, { SLTERA_GLOW_PARTS } from './SlteraCar.jsx'
+import SlteraTailTrail from './SlteraTailTrail.jsx'
 
 // 등장 점프의 옆 1회전 축 높이(차량 로컬 단위 — 차체 몸통 가운데, 바닥 0.2 ~ 지붕 0.77). 바깥 그룹만 돌린다.
 const SLTERA_ROLL_PIVOT_Y = 0.45
@@ -57,9 +58,21 @@ function setImpactToward(impact, x, z, dirX, dirZ, distance, sec) {
   return impact
 }
 
+// 꼬리 라이트바(차 로컬 tailBar 파츠)의 월드 위치를 잔상 리본에 넘긴다. 차 그룹 scale = SLTERA_SIZE_SCALE.
+const TAIL_BAR = SLTERA_GLOW_PARTS.find((p) => p[0] === 'tailBar')
+function sampleTailTrail(trail, pass, active, elapsedMs) {
+  if (!trail) return
+  const s = SLTERA_SIZE_SCALE
+  const back = TAIL_BAR[2][2] * s // 음수(차 뒤)
+  const x = pass.x + Math.sin(pass.heading) * back
+  const z = pass.z + Math.cos(pass.heading) * back
+  trail.sample(x, pass.jumpHeight + TAIL_BAR[2][1] * s, z, pass.heading, (TAIL_BAR[1][0] / 2) * s, active, elapsedMs / 1000)
+}
+
 export default function SlteraEvent({ stageId, gameKey }) {
   const carRef = useRef(null)
   const rollRef = useRef(null)
+  const trailRef = useRef(null)
   // SlteraCar의 예고 맥동 입력. 게임에서는 예고가 없으므로 항상 -1(평시 라이트).
   const telegraphRef = useRef(-1)
   const state = useRef(null)
@@ -124,6 +137,7 @@ export default function SlteraEvent({ stageId, gameKey }) {
     }
 
     if (pass.phase === SLTERA_PHASE.DONE) {
+      sampleTailTrail(trailRef.current, pass, false, elapsedMs) // 지나간 자리의 잔상은 수명 끝까지 남았다 사라진다
       // 예정 시각이 지났거나(이미 지나간 예정은 건너뛰지 않고 지금 바로 한 번) 즉시 출현 요청이 있으면 시작.
       if (!consumeSlteraPassStart(s.run, stageId, gameKey, elapsedMs)) return
       beginSlteraPass(pass, {
@@ -275,6 +289,8 @@ export default function SlteraEvent({ stageId, gameKey }) {
       car.scale.set(SLTERA_SIZE_SCALE * (1 + squash * 0.5), SLTERA_SIZE_SCALE * (1 - squash), SLTERA_SIZE_SCALE * (1 + squash * 0.5) * (1 + boost * SLTERA_BOOST_STRETCH))
       if (pass.phase === SLTERA_PHASE.DONE) car.visible = false
     }
+    // 급가속 퇴장 중 꼬리 라이트바 잔상(월드 고정 리본, 11-22 Terry).
+    sampleTailTrail(trailRef.current, pass, pass.exitDash && pass.phase !== SLTERA_PHASE.DONE, elapsedMs)
     const roll = rollRef.current
     if (roll) {
       roll.rotation.z = pass.jumpRollSign * pass.jumpRoll // 진행축(차 앞뒤) 옆 1회전, 착지 뒤 2π = 똑바로
@@ -283,12 +299,15 @@ export default function SlteraEvent({ stageId, gameKey }) {
   })
 
   return (
-    <group ref={carRef} visible={false} scale={SLTERA_SIZE_SCALE}>
-      <group ref={rollRef} position={[0, SLTERA_ROLL_PIVOT_Y, 0]}>
-        <group position={[0, -SLTERA_ROLL_PIVOT_Y, 0]}>
-          <SlteraCar telegraphRef={telegraphRef} />
+    <>
+      <group ref={carRef} visible={false} scale={SLTERA_SIZE_SCALE}>
+        <group ref={rollRef} position={[0, SLTERA_ROLL_PIVOT_Y, 0]}>
+          <group position={[0, -SLTERA_ROLL_PIVOT_Y, 0]}>
+            <SlteraCar telegraphRef={telegraphRef} />
+          </group>
         </group>
       </group>
-    </group>
+      <SlteraTailTrail ref={trailRef} />
+    </>
   )
 }
