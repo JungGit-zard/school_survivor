@@ -21,7 +21,7 @@ describe('B01 math teacher special runtime wiring', () => {
     expect(enemySource).toContain('const swingArgs = mathSwingArgsRef.current')
     expect(enemySource).toContain('applyMathTeacherSwing(swingArgs)')
     expect(enemySource).toContain('getMathTeacherPlayerDamage(store.player.hp)')
-    expect(enemySource).toContain('store.damagePlayer(playerDamage, IGNORE_INVULNERABILITY)')
+    expect(enemySource).toContain('store.damagePlayer(playerDamage, ZOMBIE_CONTACT_DAMAGE_IGNORE_INVULNERABILITY)')
     expect(enemySource).toContain('!impact.ignoreSightBlock && isPlayerWeaponSightBlocked')
     expect(enemySource).toContain("logPlaytestEvent('b01-math-special-start'")
     expect(enemySource).toContain("logPlaytestEvent('b01-math-special-impact'")

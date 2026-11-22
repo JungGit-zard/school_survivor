@@ -19,6 +19,7 @@ import { emitCriticalHitScreenShake, emitEnemyHitScreenShake } from '../lib/crit
 import { createEnemyCriticalHitBurstEvent, createEnemyHitSparkEvent, resolveEnemyHitKnockback } from '../lib/enemyHitVfx.js'
 import { resolveCollapseIntensity } from '../lib/enemyDeathCollapse.js'
 import { canE04FireProjectile, getE04IntroSec } from '../lib/stage2ProjectileRules.js'
+import { ZOMBIE_CONTACT_DAMAGE_SOURCE } from '../lib/outfitCatalog.js'
 import { E04_PROJECTILE_RADIUS, ENEMY_PROJECTILE_KIND_SPHERE, chefIngredientKindAt } from '../lib/enemyProjectilePool.js'
 import {
   CHEF_PHASE1,
@@ -125,7 +126,9 @@ const MATILDA_LAUGH_SFX = Object.freeze({ id: 'matildaLaugh', volume: 0.82 })
 // 0 = 몸통에 닿는 그 프레임에 즉사. 유예 없음(2026-08-13 사용자 지시).
 // 예전 1000ms 유지 조건은 스쳐 지나가면 안 죽는 구멍이었다.
 export const MATILDA_CONTACT_KILL_DELAY_MS = 0
-const IGNORE_INVULNERABILITY = Object.freeze({ ignoreInvulnerability: true })
+// Terry 2026-11-22: 좀비·보스 직접 접촉(몸통·돌진·근접 휘두르기) 피해 ×1.5 태그(useGameStore.damagePlayer가 곱한다).
+const ZOMBIE_CONTACT_DAMAGE = Object.freeze({ source: ZOMBIE_CONTACT_DAMAGE_SOURCE })
+const ZOMBIE_CONTACT_DAMAGE_IGNORE_INVULNERABILITY = Object.freeze({ source: ZOMBIE_CONTACT_DAMAGE_SOURCE, ignoreInvulnerability: true })
 
 // 諛⑺뼢 ?뚯쟾 ?ы띁 ??useFrame ???⑥닔 ?ъ깮??諛⑹?瑜??꾪빐 紐⑤뱢 ?덈꺼
 function _applyRotation(groupRef, dx, dz, turnRate = 0.12) {
@@ -1476,7 +1479,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
       // B10: 도장(b10_p1) windup = 'warn', 출석부(b10_p2) windup = 'charge', 소집 정지 = 'stun'(탁상 종). 확장 보스는 그대로.
       const windup=state.snapshot?.phase==='windup'
       queueVisualState('animPhase',state.enrageRemainingMs>0||(authoredAttackBoss&&summonStop)?'stun':windup?(authoredAttackBoss&&state.snapshot.patternId==='b10_p2'?'charge':'warn'):summonStop?'warn':'normal')
-      if(dist<=stats.contactDist*ENEMY_SIZE_MULTIPLIER && contactDamageCooldownRef.current<=0){damagePlayer(stats.damage);contactDamageCooldownRef.current=500}
+      if(dist<=stats.contactDist*ENEMY_SIZE_MULTIPLIER && contactDamageCooldownRef.current<=0){damagePlayer(stats.damage,ZOMBIE_CONTACT_DAMAGE);contactDamageCooldownRef.current=500}
       return
     }
     // B03 셔틀런 중에는 넉백이 코스를 끊지 못한다. 이 분기가 셔틀 분기보다 앞이라, 예전에는
@@ -1553,7 +1556,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
           // 쓰지 않고 무적시간을 존중한다 — 왕복 2패스가 연속으로 꽂히면 30%×2 = 51% 손실이라
           // i-frame이 2연타를 걸러주는 쪽이 안전하다.
           const store = useGameStore.getState()
-          store.damagePlayer(getB03ShuttleRunPlayerDamage(store.player.hp))
+          store.damagePlayer(getB03ShuttleRunPlayerDamage(store.player.hp), ZOMBIE_CONTACT_DAMAGE)
         }
         b03ShuttleRef.current = next
         syncB03ShuttleVisual(next)
@@ -1890,7 +1893,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
         }
         const chargeExpired = chargeStateElapsedRef.current > (active.chargeDuration ?? 1200)
         if (hitPlayer || chargeExpired) {
-          if (hitPlayer) damagePlayer(stats.damage)
+          if (hitPlayer) damagePlayer(stats.damage, ZOMBIE_CONTACT_DAMAGE)
           chargeState.current = stats.mathTeacherSpecial ? 'mathSwingWindup' : 'stun'
           chargeStateElapsedRef.current = 0
           queueVisualState('animPhase', stats.mathTeacherSpecial ? 'special' : 'stun')
@@ -1932,7 +1935,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
           if (isInMathTeacherSwingArc(arcArgs)) {
             const store = useGameStore.getState()
             playerDamage = getMathTeacherPlayerDamage(store.player.hp)
-            store.damagePlayer(playerDamage, IGNORE_INVULNERABILITY)
+            store.damagePlayer(playerDamage, ZOMBIE_CONTACT_DAMAGE_IGNORE_INVULNERABILITY)
           }
           const log = mathImpactLogRef.current
           log.bossId = id
@@ -1974,7 +1977,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
     if (dist < stats.contactDist * ENEMY_SIZE_MULTIPLIER) {
       if (contactDamageCooldownRef.current <= 0) {
         contactDamageCooldownRef.current = 500
-        damagePlayer(stats.damage)
+        damagePlayer(stats.damage, ZOMBIE_CONTACT_DAMAGE)
       }
       _vel.x = 0; _vel.z = 0
       rb.current.setLinvel(_vel, true)

@@ -27,7 +27,7 @@ import {
 } from '../lib/playerRecords.js'
 import { evaluateUnlocks, isStarter, WEAPON_CATALOG } from '../lib/weaponCatalog.js'
 import { getAllUnlocked, setUnlocked as setWeaponUnlocked } from '../lib/weaponUnlocks.js'
-import { DEFAULT_OUTFIT_ID, applyOutfitDamageTaken, applyOutfitXpCarry, getOutfitStats } from '../lib/outfitCatalog.js'
+import { DEFAULT_OUTFIT_ID, ENEMY_PROJECTILE_DAMAGE_MULTIPLIER, ENEMY_PROJECTILE_DAMAGE_SOURCE, ZOMBIE_CONTACT_DAMAGE_MULTIPLIER, ZOMBIE_CONTACT_DAMAGE_SOURCE, applyOutfitDamageTaken, applyOutfitXpCarry, getOutfitStats } from '../lib/outfitCatalog.js'
 import { grantOutfitUnlocksFromRecords, resolveRunOutfitId, syncOutfitUnlocksFromRecords } from '../lib/outfitUnlocks.js'
 import { DEFAULT_STAGE_ID, getClearContinuationStageId, getNextStageId, getStageConfig, isStageUnlocked, isStageVisible } from '../lib/stageConfig.js'
 import { getBossSpawnSec } from '../lib/burstEvents.js'
@@ -562,10 +562,13 @@ export const useGameStore = create(
       // 의상 받는 피해 배율 (무적 검사 다음, 이누콘 흡수 전). 적 투사체(source 'enemyProjectile')면
       // 비옷 배율을 추가로 곱한다. 소수는 그대로 두고 표시만 반올림한다. default는 amount 그대로.
       // 마틸다 접촉 즉사는 killPlayer 경로라 이 배율을 거치지 않는다.
+      // Terry 2026-11-22: 적 투사체 피해 ×2, 좀비·보스 직접 접촉 피해 ×1.5(의상·방어력보다 먼저 곱한다). 그 밖은 ×1.
+      if (source === ENEMY_PROJECTILE_DAMAGE_SOURCE) amount *= ENEMY_PROJECTILE_DAMAGE_MULTIPLIER
+      else if (source === ZOMBIE_CONTACT_DAMAGE_SOURCE) amount *= ZOMBIE_CONTACT_DAMAGE_MULTIPLIER
       amount = applyOutfitDamageTaken(amount, get().runOutfitId, source)
       amount = applyArmorReduction(amount, player.armor ?? 0)
       // Terry 2026-10-31: 이누콘이 깨어 있으면 자기 체력만큼 대신 맞고 크게 짖는다.
-      // 남은 피해만 주인공에게 간다. 흡수만 했어도 주인공 무적 520ms는 켠다(피격 상한 유지).
+      // 남은 피해만 주인공에게 간다. 흡수만 했어도 주인공 피격 무적(INV_DURATION)은 켠다(피격 상한 유지).
       const inucon = resolveInucon(get(), getRuntimeElapsedMs(get().elapsedMs))
       if (inucon && !inucon.fainted && inucon.hp > 0) {
         const absorbed = Math.min(amount, inucon.hp)

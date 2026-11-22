@@ -42,6 +42,13 @@ export const NEUTRAL_OUTFIT_STATS = Object.freeze({
 
 // Enemies.jsx projectileHitRef가 damagePlayer에 넘기는 source. 비옷 판정은 이 값 하나로 한다.
 export const ENEMY_PROJECTILE_DAMAGE_SOURCE = 'enemyProjectile'
+// Terry 2026-11-22: 좀비·보스가 쏜 투사체(E04 탄·B04 탄·투사체 좀비 탄 풀 전부)에 맞는 피해 ×2.
+// 접촉·근접 피해는 그대로. 의상 배율·방어력 감산은 이 배율을 곱한 뒤에 그대로 적용된다(useGameStore.damagePlayer).
+export const ENEMY_PROJECTILE_DAMAGE_MULTIPLIER = 2
+// Terry 2026-11-22: 좀비·보스 직접 접촉(몸통·물기·돌진·근접 휘두르기) 피해 ×1.5. 이 source를 단 호출만 곱한다.
+// 투사체는 위 ×2만(×3 아님). 해저드·장판·폭발·Sltera 같은 '그 밖' 피해는 ×1. 의상·방어력은 곱한 뒤 그대로 적용.
+export const ZOMBIE_CONTACT_DAMAGE_SOURCE = 'zombieContact'
+export const ZOMBIE_CONTACT_DAMAGE_MULTIPLIER = 1.5
 
 function stageClearsUnlock(stageNumbers) {
   return Object.freeze({

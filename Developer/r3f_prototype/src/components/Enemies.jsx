@@ -14,7 +14,8 @@ import { XpTextbookLayer } from './XpTextbook.jsx'
 import DancingDogeEvent from './DancingDogeEvent.jsx'
 import TreasureChest from './TreasureChest.jsx'
 import { emitRztLunchFoodDrop } from './LunchItems.jsx'
-import { ENEMY_PROJECTILE_DAMAGE_SOURCE } from '../lib/outfitCatalog.js'
+import { ENEMY_PROJECTILE_DAMAGE_SOURCE, ZOMBIE_CONTACT_DAMAGE_SOURCE } from '../lib/outfitCatalog.js'
+const POOLED_CONTACT_DAMAGE_OPTIONS = Object.freeze({ source: ZOMBIE_CONTACT_DAMAGE_SOURCE })
 import { PLAYER_MESH_WORLD_HEIGHT } from '../lib/characterVisualScale.js'
 import { getE04IntroSec } from '../lib/stage2ProjectileRules.js'
 import { getStageBounds, getStageConfig } from '../lib/stageConfig.js'
@@ -2466,7 +2467,8 @@ export default function Enemies() {
         const store = useGameStore.getState()
         // A8 ①(stage6 contactDamageMultiplier 0.6): 풀 좀비가 낸 접촉 이벤트(index ≥ 0)만. 폭발·공(index −1)은 그대로.
         const contactDamage = runtimeEvent.index >= 0 ? runtimeEvent.value * getStageContactDamageMultiplier(stageRuntime.id) : runtimeEvent.value
-        store.damagePlayer(contactDamage)
+        // Terry 2026-11-22: 풀 좀비 자신의 접촉·근접 특수공격(index ≥ 0)만 접촉 ×1.5. index −1(E99 사망 폭발·E104 공 등)은 그 밖(×1).
+        store.damagePlayer(contactDamage, runtimeEvent.index >= 0 ? POOLED_CONTACT_DAMAGE_OPTIONS : undefined)
         recordPlayerDamage(dominanceSwarmRef.current, contactDamage, getRuntimeElapsedMs(store.elapsedMs))
       } else if (runtimeEvent.type === ENEMY_EVENT_RANGED_FIRE) {
         enemyProjectilePool.spawnInto(enemyHandleScratch, runtimeEvent.x, runtimeEvent.y, runtimeEvent.z, runtimeEvent.value, runtimeEvent.aux)

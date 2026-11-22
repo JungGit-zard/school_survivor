@@ -664,9 +664,12 @@ describe('wave 3 둘째 묶음 등록·배치', () => {
     ['stage5', 'E102', 1, 148],
     // 2026-11-22 웨이브 표준 v2: 이 불사 프로브는 192초에 동시 150 천장에 닿아 있어 편대 4몸 중 1몸이 상한에 잘린다(웨이브 규칙은
     // E106을 건드리지 않는다 — 192초에 3몸, 트렁크 4몸, 버린 스폰 0). 이 검사의 목적(작성 행이 조용히 사라지지 않음)대로 등장만 본다.
-    ['stage6', 'E106', 3, 196],
-  ])('%s: 기본 시드 1 프로브에서 %s가 실제로 나온다(몸 %i)', (stageId, id, bodies, maxSec) => {
-    const run = runStageRuntimeProbe({ stageId, seed: 1, immortal: true, maxSec })
+    // 2026-11-22 피격 무적 520 → 260ms(Terry): 불사 프로브는 HP를 깎지 않으니 피격만 두 배로 잦아져 기본 KITE r4 봇의
+    // 처치가 33 → 22로 줄고, 192초 동시 150 천장이 꽉 차 편대가 통째로 잘린다(0몸). 실제 플레이에선 이 시점까지 누적 피해가
+    // 최대 HP의 약 5배라 도달할 수 없는 상태다. 천장 운에 덜 기대도록 스6만 KITE r6 봇으로 보고, 등장(≥1몸)만 확인한다.
+    ['stage6', 'E106', 1, 196, { kind: 'KITE', radius: 6, direction: 1 }],
+  ])('%s: 기본 시드 1 프로브에서 %s가 실제로 나온다(몸 %i)', (stageId, id, bodies, maxSec, bot) => {
+    const run = runStageRuntimeProbe({ stageId, seed: 1, immortal: true, maxSec, ...(bot ? { bot } : {}) })
     expect(run.spawnCountByType[id] ?? 0, JSON.stringify(run.spawnSecsByType?.[id])).toBeGreaterThanOrEqual(bodies)
   }, 60000)
 })

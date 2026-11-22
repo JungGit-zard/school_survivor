@@ -40,11 +40,13 @@ import {
   waveSizeForStageAtTime,
 } from '../components/Enemies.jsx'
 import { ENEMY_STATS } from '../components/Enemy.jsx'
+import { INV_DURATION } from '../components/Player.jsx'
+import { ZOMBIE_CONTACT_DAMAGE_MULTIPLIER } from './outfitCatalog.js'
 
 const FRAME_DELTA = 1 / 60
 const PLAYER_MAX_HP = 100
 const PLAYER_SPEED = 3
-const INVULNERABLE_MS = 520
+const INVULNERABLE_MS = INV_DURATION // Player.jsx 정본(Terry 2026-11-22: 520 → 260ms)
 const CONTACT_COOLDOWN_GRACE = 0 // 접촉 쿨다운은 시뮬레이션이 이미 관리한다
 
 export function mulberry32(seed) {
@@ -335,7 +337,9 @@ export function runStageBalanceRun({
       while (enemySimulationRuntime.events.drainInto(event)) {
         if (event.type === ENEMY_EVENT_CONTACT) {
           if (invulnerableMs <= CONTACT_COOLDOWN_GRACE) {
-            if (!ignoreContactDamage) hp -= outfit.damageTakenMult === 1 ? event.value : event.value * outfit.damageTakenMult
+            // 런타임과 같게: 좀비 접촉(index ≥ 0)은 ×1.5(Terry 2026-11-22).
+            const contactValue = event.index >= 0 ? event.value * ZOMBIE_CONTACT_DAMAGE_MULTIPLIER : event.value
+            if (!ignoreContactDamage) hp -= outfit.damageTakenMult === 1 ? contactValue : contactValue * outfit.damageTakenMult
             invulnerableMs = INVULNERABLE_MS
           }
         }

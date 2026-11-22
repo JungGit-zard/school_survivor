@@ -7,6 +7,7 @@ import { WEAPON_CATALOG } from './weaponCatalog.js'
 import { MAX_ENEMY_PROJECTILES } from './enemyProjectilePool.js'
 import { getBossSpawnSec } from './burstEvents.js'
 import { INV_DURATION, PLAYER_HIT_KNOCKBACK_MS } from '../components/Player.jsx'
+import { ZOMBIE_CONTACT_DAMAGE_MULTIPLIER } from './outfitCatalog.js'
 import { enemyPool, playerPos } from './refs.js'
 import { enemyTypeToCode } from './enemyEntityPool.js'
 import { pairedProportionDiff, pairedRatioMedian } from './balanceProbeStats.js'
@@ -325,13 +326,14 @@ describe('S6 A8: 풀 좀비 접촉 ×0.6 · 90초 전 행 2초 나눠 내기', (
     }
     const s6 = contactAmounts('stage6')
     expect(s6.length).toBeGreaterThan(0)
-    // 스6 작성 접촉 피해는 정수(E19 10 · E21 9 …) — 0.6으로 나누면 정수로 돌아오고, 하나도 작성값 그대로가 아니다.
-    for (const amount of s6) expect(Math.abs(amount / 0.6 - Math.round(amount / 0.6))).toBeLessThan(1e-9)
-    expect(s6.every((amount) => !Number.isInteger(amount) || amount % 3 === 0)).toBe(true)
-    expect(Math.max(...s6)).toBeLessThanOrEqual(0.6 * 22)
+    // 스6 작성 접촉 피해는 정수(E19 10 · E21 9 …) — 0.6 × 좀비 접촉 1.5(Terry 2026-11-22) = 0.9로 나누면 정수로 돌아온다.
+    const s6Mult = 0.6 * ZOMBIE_CONTACT_DAMAGE_MULTIPLIER
+    for (const amount of s6) expect(Math.abs(amount / s6Mult - Math.round(amount / s6Mult))).toBeLessThan(1e-9)
+    expect(Math.max(...s6)).toBeLessThanOrEqual(s6Mult * 22)
     const s5 = contactAmounts('stage5')
     expect(s5.length).toBeGreaterThan(0)
-    expect(s5.every((amount) => Number.isInteger(amount))).toBe(true)
+    // 스5는 스테이지 배수 없이 좀비 접촉 ×1.5만: 1.5로 나누면 작성 정수.
+    expect(s5.every((amount) => Number.isInteger(amount / ZOMBIE_CONTACT_DAMAGE_MULTIPLIER))).toBe(true)
   }, LONG)
 
   it('5초 조회 줄 E19×10은 한꺼번에가 아니라 약 2초에 걸쳐 고르게 나오고, 하나도 빠지지 않는다', () => {

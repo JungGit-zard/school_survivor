@@ -59,9 +59,11 @@ export function nextPlayerAppearance(current) {
 
 const _v = { x: 0, y: 0, z: 0 }
 const _impulse = { x: 0, z: 0 }
-export const INV_DURATION = 520
+// Terry 2026-11-22: 피격 무적 520 → 260ms, 피격 넉백 속도 4 → 2u/s(160ms 유지 → 거리 0.64 → 0.32u).
+// 맞는 것이 무적 상태의 회피기가 되지 않게 한다.
+export const INV_DURATION = 260
 const TURN_SPEED = 14
-const PLAYER_HIT_KNOCKBACK_SPEED = 4
+export const PLAYER_HIT_KNOCKBACK_SPEED = 2
 export const PLAYER_HIT_KNOCKBACK_MS = 160
 // 2026-10-28 Terry 모바일 피드백: "회복 시각효과가 지나치다". 흡혈·랜턴처럼 회복이 잦아져도
 // 화면을 덮지 않도록 작게·짧게·옅게 줄이고, 재생 중이거나 직전 재생 직후의 회복 토큰은 새로
@@ -250,7 +252,7 @@ export default function Player() {
     if (hitFlashToken !== lastKnockbackHitToken.current) {
       lastKnockbackHitToken.current = hitFlashToken
       // 이 피격이 끌림(E63 마이크줄)을 걸었으면 끌림이 이 피격의 넉백이다. 일반 넉백(0.16초)을 걸면 끌림 0.25초를
-      // 먹어 1.4u가 0.5u로 줄었다. 끌림은 피해가 들어간 명중에만 걸리고 뒤이은 무적(0.52초) 동안 일반 피격은 없으니 지금 끌림은 이 피격의 것이다.
+      // 먹어 1.4u가 0.5u로 줄었다. 끌림은 피해가 들어간 명중에만 걸리고 뒤이은 무적(INV_DURATION) 동안 일반 피격은 없으니 지금 끌림은 이 피격의 것이다.
       // 예외: 무적을 뚫는 피해(B01 삼각자·S4 압력솥)가 끌림 0.25초 안에 들어오면 그 넉백도 생략된다. S1-5에선 E63(S2)과 겹치지 않는다.
       // Sltera에 치여 날아가는 중이면 그 비행(_applyKnockback)이 이 피격의 넉백이다 — 짧은 일반 넉백으로 덮지 않는다.
       if (!(playerImpulse.ms > 0) && !slteraPlayerLaunch.active) {

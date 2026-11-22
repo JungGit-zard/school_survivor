@@ -12,6 +12,7 @@ import {
 import { _resetGuestSessionSettingsForTests, saveGuestSessionSettings, saveTitleSettings } from '../lib/titleSettings.js'
 import { _resetGuestOutfitUnlocksForTests, getOwnedOutfitIds, setOutfitUnlocked } from '../lib/outfitUnlocks.js'
 import { WEAPON_CATALOG } from '../lib/weaponCatalog.js'
+import { ENEMY_PROJECTILE_DAMAGE_MULTIPLIER, ZOMBIE_CONTACT_DAMAGE_MULTIPLIER } from '../lib/outfitCatalog.js'
 import { useAuthStore } from './useAuthStore.js'
 import { buildInitialPlayer, useGameStore } from './useGameStore.js'
 
@@ -143,12 +144,30 @@ describe('T-06 damagePlayer outfit multipliers', () => {
     expect(hit('grad', 8)).toBeCloseTo(8.64, 10)
   })
 
-  it('raincoat: projectile 8 → 5.6, contact 8 → 8', () => {
-    expect(hit('raincoat', 8, { source: 'enemyProjectile' })).toBeCloseTo(5.6, 10)
+  it('raincoat: projectile 8 → 11.2 (×2 then ×0.7), contact 8 → 8', () => {
+    // Terry 2026-11-22: 적 투사체 ×2가 의상 배율보다 먼저 곱해진다.
+    expect(hit('raincoat', 8, { source: 'enemyProjectile' })).toBeCloseTo(11.2, 10)
     expect(hit('raincoat', 8)).toBe(8)
     expect(hit('raincoat', 8, { source: 'contact' })).toBe(8)
     // winter's damageTakenMult also applies to projectiles
-    expect(hit('winter', 8, { source: 'enemyProjectile' })).toBeCloseTo(7.36, 10)
+    expect(hit('winter', 8, { source: 'enemyProjectile' })).toBeCloseTo(14.72, 10)
+  })
+
+  it('Terry 2026-11-22: projectile ×2, zombie contact ×1.5, other ×1, armor still applies after', () => {
+    expect(ENEMY_PROJECTILE_DAMAGE_MULTIPLIER).toBe(2)
+    expect(ZOMBIE_CONTACT_DAMAGE_MULTIPLIER).toBe(1.5)
+    expect(hit('default', 8, { source: 'enemyProjectile' })).toBe(16)
+    expect(hit('default', 8, { source: 'zombieContact' })).toBe(12)
+    expect(hit('default', 8)).toBe(8)
+    expect(hit('default', 8, { source: 'stage6AssemblySpeech' })).toBe(8)
+    expect(hit('default', 8, { source: 'sltera' })).toBe(8)
+    startRun('stage1', 'default')
+    useGameStore.setState((s) => ({ player: { ...s.player, hp: 100, maxHp: 100, armor: 6, invulnerable: false } }))
+    useGameStore.getState().damagePlayer(8, { source: 'enemyProjectile' })
+    expect(100 - useGameStore.getState().player.hp).toBe(10) // 16 − 6
+    useGameStore.setState((s) => ({ player: { ...s.player, hp: 100, invulnerable: false } }))
+    useGameStore.getState().damagePlayer(8, { source: 'zombieContact' })
+    expect(100 - useGameStore.getState().player.hp).toBe(6) // 12 − 6
   })
 
   it('invulnerability still blocks before the multiplier', () => {

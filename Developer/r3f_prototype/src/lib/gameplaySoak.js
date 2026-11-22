@@ -42,7 +42,7 @@ import { getStageBounds, getStageConfig } from './stageConfig.js'
 import { clampPlayerPosition, getPlayerMovementBounds } from './playerMovementBounds.js'
 import { getE04IntroSec } from './stage2ProjectileRules.js'
 import { applyRadialDamage, applyForwardConeDamage, findClosestEnemy } from './weaponTargeting.js'
-import { resolvePlayerHitKnockback } from '../components/Player.jsx'
+import { INV_DURATION, resolvePlayerHitKnockback } from '../components/Player.jsx'
 import { applyEnemyHit } from './weaponCollision.js'
 import { applyUpgradeWithChibikoBoost, isUpgradeAvailable, UPGRADE_EFFECTS } from './upgrades.js'
 import { WEAPON_CATALOG } from './weaponCatalog.js'
@@ -411,10 +411,10 @@ function applyStoreContactDamage(amount, stats) {
   else stats.playerDamageEvents += 1
 }
 
-// Player.jsx useFrame의 무적 해제 타이머(INV_DURATION 520ms)와 같은 배선이다.
+// Player.jsx useFrame의 무적 해제 타이머(INV_DURATION)와 같은 배선이다.
 function tickInvulnerability(elapsedMs, stats) {
   if (!useGameStore.getState().player.invulnerable) return 0
-  if (elapsedMs < 520) return elapsedMs
+  if (elapsedMs < INV_DURATION) return elapsedMs
   useGameStore.getState().endInvulnerable()
   stats.invulnerabilityReleases = (stats.invulnerabilityReleases ?? 0) + 1
   return 0

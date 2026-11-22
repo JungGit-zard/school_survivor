@@ -226,7 +226,7 @@ describe('나머지 같은 계열 벽시계 타이머도 게임시간으로 통�
   it('접촉 피해 500ms 쿨다운이 잔량 차감이고 두 경로가 같은 시계를 쓴다', () => {
     expect(ENEMY_SOURCE).toContain('if (contactDamageCooldownRef.current > 0) contactDamageCooldownRef.current -= frameDeltaMs')
     expect(ENEMY_SOURCE).toContain('if (contactDamageCooldownRef.current <= 0) {\n        contactDamageCooldownRef.current = 500')
-    expect(ENEMY_SOURCE).toContain('contactDamageCooldownRef.current<=0){damagePlayer(stats.damage);contactDamageCooldownRef.current=500}')
+    expect(ENEMY_SOURCE).toContain('contactDamageCooldownRef.current<=0){damagePlayer(stats.damage,ZOMBIE_CONTACT_DAMAGE);contactDamageCooldownRef.current=500}')
     expect(ENEMY_SOURCE).not.toContain('lastContactDmgRef')
     expect(ENEMY_SOURCE.match(/contactDamageCooldownRef\.current\s*=\s*500/g)).toHaveLength(2)
   })

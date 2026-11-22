@@ -11,8 +11,8 @@
 //   투사체: enemyProjectilePool(E04·B04 탄, 궤적·명중·수명·화면 이탈 회수), canE04FireProjectile(B04 게이트).
 //   지대: Stage 4 압력솥(getPressureCauldronExplosionTimes, 반경 3.2u, 최대 HP 20%, 무적 관통),
 //         B04 수프 원(b04SoupBlast.js 예고 1,200ms → 폭발 250ms, 16 피해).
-//   변위: 플레이어 피격 넉백(resolvePlayerHitKnockback, 4u/s × 160ms, Player.jsx 상수).
-//   무적: Player.jsx INV_DURATION 520ms. 압력솥·마틸다만 무적을 관통한다(런타임과 같다).
+//   변위: 플레이어 피격 넉백(resolvePlayerHitKnockback, 2u/s × 160ms, Player.jsx 상수).
+//   무적: Player.jsx INV_DURATION 260ms. 압력솥·마틸다만 무적을 관통한다(런타임과 같다).
 //   마틸다: Enemy.jsx 순수 함수(조준 → 돌진 가속 → 가장자리 웃음 900ms, 회전 박스·스윕 접촉 즉사).
 //   포탈: pickPortalPosition, 트리거 반경 0.6u, 흡입 1s 뒤 클리어(EscapePortal.jsx).
 //
@@ -209,6 +209,7 @@ import {
   isMatildaChargeBlockedValues,
 } from '../components/Enemy.jsx'
 import { INV_DURATION, PLAYER_HIT_KNOCKBACK_MS, resolvePlayerHitKnockback } from '../components/Player.jsx'
+import { ENEMY_PROJECTILE_DAMAGE_MULTIPLIER, ZOMBIE_CONTACT_DAMAGE_MULTIPLIER } from './outfitCatalog.js'
 import { firePencil, mulberry32 } from './stageBalanceProbe.js'
 import { createBot, decideBotMove, DODGE_REACTION_MS, PORTAL_MODE_REFUSE } from './balanceProbeBots.js'
 import { REF_BUILD_V1, refBuildPencilStats } from './refBuildV1.js'
@@ -371,7 +372,7 @@ export function updateScreenBounds(stageId, halfX, halfZ) {
  * @param {number} options.seed
  * @param {object} options.bot  balanceProbeBots 사양({kind, radius, direction, portalMode, reactionMs})
  * @param {number} [options.maxSec]  기본 420
- * @param {boolean} [options.immortal]  T-P5 불사 기록 모드: HP를 깎지 않고 합산만, 520ms 무적은 유지
+ * @param {boolean} [options.immortal]  T-P5 불사 기록 모드: HP를 깎지 않고 합산만, 피격 무적(INV_DURATION)은 유지
  * @param {object} [options.build]  REF_BUILD_V1 형식. null이면 성장 없는 base 연필
  * @param {number} [options.startDamageMultiplierOverride]  보정 탐색용(고정 상수 대신)
  * @param {number} [options.spawnHashUntilSec]  A1용 스폰 로그 해시를 이 시각 전까지만 누적(기본 무한)
@@ -1138,7 +1139,7 @@ export function runStageRuntimeProbe({
       const ndz = playerPos.z - special.z
       const hitPlayer = Math.hypot(ndx, ndz) < getChargeHitDistance(stats, false)
       if (hitPlayer || special.stateMs > (active.chargeDuration ?? 1200)) {
-        if (hitPlayer) damagePlayer(stats.damage, `${SOURCE_BOSS}:${special.type}`)
+        if (hitPlayer) damagePlayer(stats.damage * ZOMBIE_CONTACT_DAMAGE_MULTIPLIER, `${SOURCE_BOSS}:${special.type}`)
         special.state = 'stun'
         special.stateMs = 0
       }
@@ -1199,7 +1200,7 @@ export function runStageRuntimeProbe({
     if (special.contactCooldownMs > 0) special.contactCooldownMs -= deltaMs
     const ndist = Math.hypot(playerPos.x - special.x, playerPos.z - special.z)
     if (ndist <= special.stats.contactDist * ENEMY_SIZE_MULTIPLIER && special.contactCooldownMs <= 0) {
-      if (damagePlayer(special.stats.damage, `${SOURCE_BOSS}:${type}`) && special.log) special.log.contactHits += 1
+      if (damagePlayer(special.stats.damage * ZOMBIE_CONTACT_DAMAGE_MULTIPLIER, `${SOURCE_BOSS}:${type}`) && special.log) special.log.contactHits += 1
       special.contactCooldownMs = AUTHORED_BOSS_CONTACT_COOLDOWN_MS
     }
   }
@@ -1285,10 +1286,11 @@ export function runStageRuntimeProbe({
   const projectileHit = (index) => {
     const kind = enemyProjectilePool.kind[index]
     const damage = enemyProjectilePool.damage[index]
-    damagePlayer(damage, kind === ENEMY_PROJECTILE_KIND_SPHERE ? SOURCE_E04_SHOT : SOURCE_BOSS_SHOT)
+    // 런타임(useGameStore.damagePlayer)의 적 투사체 ×2(Terry 2026-11-22)와 같게 맞춘다.
+    damagePlayer(damage * ENEMY_PROJECTILE_DAMAGE_MULTIPLIER, kind === ENEMY_PROJECTILE_KIND_SPHERE ? SOURCE_E04_SHOT : SOURCE_BOSS_SHOT)
   }
 
-  const projectileZombieHit = (_index, _generation, damage) => damagePlayer(damage, SOURCE_PROJECTILE_ZOMBIE_SHOT)
+  const projectileZombieHit = (_index, _generation, damage) => damagePlayer(damage * ENEMY_PROJECTILE_DAMAGE_MULTIPLIER, SOURCE_PROJECTILE_ZOMBIE_SHOT)
 
   const event = {}
   const move = { x: 0, z: 0 }
@@ -1463,7 +1465,8 @@ export function runStageRuntimeProbe({
         if (event.type === ENEMY_EVENT_CONTACT) {
           const typeName = enemyTypeFromCode(enemyPool.type[event.index]) ?? 'unknown'
           // A8 ①(Enemies.jsx와 같다): 풀 좀비 접촉 이벤트(index ≥ 0)만 스테이지 배수.
-          damagePlayer(event.index >= 0 ? event.value * contactDamageMultiplier : event.value, `${SOURCE_CONTACT}:${typeName}`)
+          // 런타임과 같게: index ≥ 0 접촉만 좀비 접촉 ×1.5(Terry 2026-11-22).
+          damagePlayer(event.index >= 0 ? event.value * contactDamageMultiplier * ZOMBIE_CONTACT_DAMAGE_MULTIPLIER : event.value, `${SOURCE_CONTACT}:${typeName}`)
         } else if (event.type === ENEMY_EVENT_RANGED_FIRE) {
           enemyProjectilePool.spawnInto({ index: -1, generation: 0 }, event.x, event.y, event.z, event.value, event.aux)
         } else if (event.type === ENEMY_EVENT_PROJECTILE_ZOMBIE_TELEGRAPH) {

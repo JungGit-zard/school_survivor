@@ -31,7 +31,7 @@ import Player from './Player.jsx'
 import { useGameStore } from '../store/useGameStore.js'
 import { _seedHydratedFirebaseProgressForTests, _setFirebaseProgressClientForTests } from '../lib/firebaseProgress.js'
 import { ENEMY_TYPE_CODES } from '../lib/enemyEntityPool.js'
-import { ENEMY_PROJECTILE_DAMAGE_SOURCE } from '../lib/outfitCatalog.js'
+import { ENEMY_PROJECTILE_DAMAGE_MULTIPLIER, ENEMY_PROJECTILE_DAMAGE_SOURCE } from '../lib/outfitCatalog.js'
 import { PROJECTILE_ZOMBIE_BEHAVIORS } from '../lib/projectileZombieBehavior.js'
 import { createProjectileZombieShotPool } from '../lib/projectileZombieShotPool.js'
 import { playerImpulse, playerSlow } from '../lib/refs.js'
@@ -104,14 +104,15 @@ describe('E63 마이크줄 끌림(실제 Player 프레임 경로)', () => {
     expect(shots.spawn(THROWER.x, THROWER.z, 0, -1, E63_SHOT)).toBeGreaterThanOrEqual(0)
     runFrames(1.2)
     expect(hits).toBe(1)
-    expect(useGameStore.getState().player.hp).toBe(hp - E63_SHOT.damage)
+    expect(useGameStore.getState().player.hp).toBe(hp - E63_SHOT.damage * ENEMY_PROJECTILE_DAMAGE_MULTIPLIER)
     expect({ toward: r3(body.z), sideways: r3(body.x) }).toEqual({ toward: PULL_U, sideways: 0 })
   })
 
   it('무적 중 명중은 피해도 끌림도 없다(제자리)', () => {
     act(() => useGameStore.setState((s) => ({ player: { ...s.player, invulnerable: true } })))
     const hp = useGameStore.getState().player.hp
-    expect(shots.spawn(THROWER.x, THROWER.z, 0, -1, E63_SHOT)).toBeGreaterThanOrEqual(0)
+    // 무적 260ms(Terry 2026-11-22) 안에 맞도록 1u 거리에서 던진다(2u면 약 0.39초 뒤라 무적이 먼저 풀린다).
+    expect(shots.spawn(THROWER.x, 1, 0, -1, E63_SHOT)).toBeGreaterThanOrEqual(0)
     runFrames(1.2)
     expect(hits).toBe(1)
     expect(useGameStore.getState().player.hp).toBe(hp)

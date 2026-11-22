@@ -15,12 +15,13 @@ import {
   createEnemySimulationRuntime,
 } from './enemySimulation.js'
 import { NOVEL_TYPE_MAX, NOVEL_TYPE_MIN } from './novelZombieBehavior.js'
+import { INV_DURATION } from '../components/Player.jsx'
 import { POSED_ZOMBIE_TYPES } from '../components/ZombieMesh.jsx'
 
 const BOUNDS = { halfX: 9.36, halfZ: 16 }
 // 플레이어 무적 520ms. 같은 프레임에 몰린 히트는 하나만 남고 나머지는 버려지므로,
 // "마릿수가 늘어도 압력이 안 늘던" 결함은 raw 접촉 합이 아니라 **이 적용 피해**에서 드러난다.
-const IFRAME_MS = 520
+const IFRAME_MS = INV_DURATION
 
 // formation 'ring' 재현 — 거리까지 균등해서 동기가 절대 깨지지 않는 최악 조건이다.
 function appliedDps(type, count, { seconds = 60, ring = 2.0 } = {}) {

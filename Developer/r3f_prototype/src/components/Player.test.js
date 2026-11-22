@@ -4,6 +4,9 @@ import { getActivePlayerArmAction, startPlayerArmAction } from '../lib/playerArm
 import { readFileSync } from 'node:fs'
 import {
   HEAL_EFFECT_DURATION_MS,
+  INV_DURATION,
+  PLAYER_HIT_KNOCKBACK_MS,
+  PLAYER_HIT_KNOCKBACK_SPEED,
   HEAL_EFFECT_MIN_INTERVAL_MS,
   MATILDA_FAINTED_POSE_ROTATION_Z,
   MATILDA_FAINTED_POSE_Y_OFFSET,
@@ -16,8 +19,16 @@ import {
 
 describe('player hit knockback', () => {
   it('pushes the player backward from the last facing direction at a stable speed', () => {
-    expect(resolvePlayerHitKnockback({ x: 3, z: 4 })).toEqual({ x: -2.4, y: 0, z: -3.2 })
-    expect(resolvePlayerHitKnockback({ x: 0, z: 0 })).toEqual({ x: 0, y: 0, z: -4 })
+    // Terry 2026-11-22: 넉백 속도 4 → 2u/s (거리 0.64 → 0.32u).
+    expect(resolvePlayerHitKnockback({ x: 3, z: 4 })).toEqual({ x: -1.2, y: 0, z: -1.6 })
+    expect(resolvePlayerHitKnockback({ x: 0, z: 0 })).toEqual({ x: 0, y: 0, z: -2 })
+  })
+
+  it('Terry 2026-11-22: i-frames 260ms and knockback 2u/s x 160ms (half of 520ms / 0.64u)', () => {
+    expect(INV_DURATION).toBe(260)
+    expect(PLAYER_HIT_KNOCKBACK_SPEED).toBe(2)
+    expect(PLAYER_HIT_KNOCKBACK_MS).toBe(160)
+    expect(PLAYER_HIT_KNOCKBACK_SPEED * PLAYER_HIT_KNOCKBACK_MS / 1000).toBeCloseTo(0.32, 10)
   })
 
   it('uses the shared fixed-step clock for knockback, facing, and invulnerability timers', () => {
