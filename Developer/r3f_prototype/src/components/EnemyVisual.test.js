@@ -2,6 +2,8 @@ import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import * as THREE from 'three'
 import { applyProps } from '@react-three/fiber'
+import { TELEGRAPH_PALETTE } from '../lib/telegraphStyle.js'
+import TelegraphFeather from './TelegraphFeather.jsx'
 import {
   CHARGE_CUE_LABEL,
   CHARGE_CUE_LAYOUT,
@@ -63,8 +65,12 @@ describe('B02 corridor blockade visual states', () => {
     expect(shouldRenderB02CorridorBlockadeVisual({ phase: 'stun', lineZs: [-3, 3] })).toBe(false)
     expect(shouldRenderB02CorridorBlockadeVisual({ phase: 'idle', lineZs: [-3, 3] })).toBe(false)
 
+    // 2026-11-22: colours come from the shared desaturated telegraph palette (still cyan-teal).
+    expect(B02_CORRIDOR_BLOCKADE_VISUALS.telegraph.surface).toBe(TELEGRAPH_PALETTE.blockade)
+    expect(B02_CORRIDOR_BLOCKADE_VISUALS.active.surface).toBe(TELEGRAPH_PALETTE.blockadeActive)
+    expect(B02_CORRIDOR_BLOCKADE_VISUALS.completed.surface).toBe(TELEGRAPH_PALETTE.blockadeDone)
     for (const visual of Object.values(B02_CORRIDOR_BLOCKADE_VISUALS)) {
-      expect(visual.surface).toMatch(/^#(0|1|2)[0-9a-f]{5}$/i)
+      expect(visual.surface).toMatch(/^#[0-9a-f]{6}$/i)
       expect(visual.surfaceOpacity).toBeGreaterThan(0)
       expect(visual).not.toHaveProperty('outline')
       expect(visual).not.toHaveProperty('shadow')
@@ -87,9 +93,10 @@ describe('B03 shuttle run visual states', () => {
     expect(getB03ShuttleRunVisualState({ phase: 'active', passIndex: 1 })).toBe('returning')
     expect(getB03ShuttleRunVisualState({ phase: 'stun', passIndex: -1 })).toBe('stun')
 
-    expect(B03_SHUTTLE_RUN_VISUALS.telegraph.surface).toBe('#f5b83d')
-    expect(B03_SHUTTLE_RUN_VISUALS.outbound.surface).toBe('#ffd34e')
-    expect(B03_SHUTTLE_RUN_VISUALS.returning.surface).toBe('#e6a81f')
+    // 2026-11-22: shared desaturated palette (was #f5b83d / #ffd34e / #e6a81f).
+    expect(B03_SHUTTLE_RUN_VISUALS.telegraph.surface).toBe(TELEGRAPH_PALETTE.shuttle)
+    expect(B03_SHUTTLE_RUN_VISUALS.outbound.surface).toBe(TELEGRAPH_PALETTE.shuttleOutbound)
+    expect(B03_SHUTTLE_RUN_VISUALS.returning.surface).toBe(TELEGRAPH_PALETTE.shuttleReturn)
     expect(B03_SHUTTLE_RUN_VISUALS.outbound.surface).not.toBe(B04_SOUP_BLAST_VISUALS.explode.surface)
     expect(B03_SHUTTLE_RUN_VISUALS.returning.surface).not.toBe(B04_SOUP_BLAST_VISUALS.explode.surface)
     expect(hasB03ShuttleRunVisualChanged(
@@ -197,6 +204,9 @@ describe('B04 soup blast visual states', () => {
           expect(geometry.type).toBe('circleGeometry')
           expect(geometry.props.args[0]).toBe(circle.radius)
           expect(material.props.color).toBe(B04_SOUP_BLAST_VISUALS[phase].surface)
+          // 2026-11-22 soft edge: a feather child hugging the disc from outside at the same radius (fill unchanged).
+          const feather = children(mesh).find((node) => node.type === TelegraphFeather)
+          expect(feather?.props.disc).toBe(circle.radius)
         })
         const fill = meshes.find((mesh) => mesh.props.name === 'b04-soup-fill')
         expect(children(fill)[1].props.opacity).toBe(B04_SOUP_BLAST_VISUALS[phase].surfaceOpacity)

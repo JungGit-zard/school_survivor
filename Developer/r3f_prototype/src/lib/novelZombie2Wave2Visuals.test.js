@@ -25,6 +25,7 @@ import { TEXTBOOK_SCALE } from './xpTextbookField.js'
 import {
   EXPANSION_TELEGRAPH_FILL, NOVEL2_DAMAGE_TELEGRAPH_FILL, createExpansionTelegraphVisual, isNovel2DamageTelegraph,
 } from '../components/expansion/expansionTelegraphs.js'
+import { TELEGRAPH_FEATHER } from './telegraphStyle.js'
 
 // MiniZombieLayer(훅 파일이 import한다)는 drei useGLTF로 GLB를 미리 부른다 — 이 테스트는 GLB 렌더가 필요 없다.
 vi.mock('@react-three/drei', () => { const useGLTF = () => null; useGLTF.preload = () => {}; return { useGLTF } })
@@ -248,7 +249,7 @@ describe('E91 교과서 미믹', () => {
     const [cx, cz] = bite.originXZ
     let maxR = 0
     root.traverse((n) => {
-      if (!n.isMesh) return
+      if (!n.isMesh || n.name === TELEGRAPH_FEATHER.name) return // opaque core only — the 2026-11-22 soft feather lies outside it
       const p = n.geometry.attributes.position
       for (let i = 0; i < p.count; i += 1) maxR = Math.max(maxR, Math.hypot(p.getX(i) + root.position.x - cx, p.getZ(i) + root.position.z - cz))
     })
@@ -285,7 +286,7 @@ describe('예고 색: 피해 예고 빨강 / 피해 0 안내 노랑 / 보스 그
     const [ox, oz] = line.originXZ; const [dx, dz] = line.directionXZ
     let along = 0
     windup.traverse((n) => {
-      if (!n.isMesh) return
+      if (!n.isMesh || n.name === TELEGRAPH_FEATHER.name) return // opaque core only — the 2026-11-22 soft feather lies outside it
       const p = n.geometry.attributes.position
       for (let i = 0; i < p.count; i += 1) along = Math.max(along, (p.getX(i) + windup.position.x - ox) * dx + (p.getZ(i) + windup.position.z - oz) * dz)
     })

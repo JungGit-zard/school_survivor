@@ -1,7 +1,9 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it } from 'vitest'
 import * as THREE from 'three'
-import { BURST_KINDS, BURST_PIECE_LAYERS, createBurstVfxSystem } from './BurstVfxLayer.jsx'
+import { readFileSync } from 'node:fs'
+import { URL as NodeURL } from 'node:url'
+import { BURST_KINDS, BURST_PIECE_LAYERS, SHARK_EXPLOSION_VISUAL_SCALE, createBurstVfxSystem } from './BurstVfxLayer.jsx'
 import { VFX_BURST, VFX_BURST_KIND_COUNT, clearVfxBursts, spawnVfxBurst } from '../lib/vfxBursts.js'
 import { playerPos } from '../lib/refs.js'
 
@@ -66,5 +68,26 @@ describe('BurstVfxLayer pooled system', () => {
     system.step(0.016)
     expect(system.activeCount(VFX_BURST.HIT_PIXEL)).toBe(BURST_KINDS[VFX_BURST.HIT_PIXEL].cap)
     expect(counts(system).pixelSpark).toBeLessThanOrEqual(BURST_PIECE_LAYERS.find((l) => l.key === 'pixelSpark').cap)
+  })
+
+  it('draws the shark missile explosion at 0.7x its previous size; the damage radius and damage stay untouched (Terry 11-22)', () => {
+    expect(SHARK_EXPLOSION_VISUAL_SCALE).toBe(0.7)
+    system = createBurstVfxSystem()
+    const radius = 1.6 // world damage radius handed to the burst (k = 1)
+    spawnVfxBurst(VFX_BURST.SHARK_EXPLOSION, 3, 0, -1, radius)
+    system.step(0.016)
+    const layer = system.layers.find((l) => l.key === 'sharkExplosion')
+    expect(layer.mesh.count).toBe(1)
+    // camera-facing sprite: matrix diagonal = sprite size. Before: 2.8 x 2.8 at height 0.8 for a 1.6 radius.
+    expect(layer.matrix[0]).toBeCloseTo(2.8 * 0.7, 5)
+    expect(layer.matrix[5]).toBeCloseTo(2.8 * 0.7, 5)
+    expect(layer.matrix[13]).toBeCloseTo(0.8 * 0.7, 5)
+    expect(layer.matrix[12]).toBeCloseTo(3, 5)
+    expect(layer.matrix[14]).toBeCloseTo(-1, 5)
+    // Gameplay is not touched: the blast still hits with the missile's own radius and damage.
+    const shark = readFileSync(new NodeURL('./Weapons/SharkMissile.jsx', import.meta.url), 'utf8')
+    expect(shark).toContain('radius: blast.radius,')
+    expect(shark).toContain('damage: blast.damage,')
+    expect(shark).toContain('spawnVfxBurst(VFX_BURST.SHARK_EXPLOSION, blast.x, 0, blast.z, blast.radius)')
   })
 })

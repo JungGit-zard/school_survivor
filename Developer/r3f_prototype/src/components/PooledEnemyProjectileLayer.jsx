@@ -19,6 +19,7 @@ import {
   DECAL_VISUAL, SHOT_OUTLINE_THICKNESS, composeShotQuaternion, createAmbushPropGeometries, createDecalGeometries, createOutlineGeometry,
   createShotBodyMaterial, createShotGeometries, createShotOutlineMaterial, getAmbushPropIndex, getDecalVisuals, getShotHeading, getShotVisualIndex,
 } from '../lib/projectileZombieShotGeometry.js'
+import { telegraphOpacity } from '../lib/telegraphPalette.js'
 import { ENEMY_PROJECTILE_KIND_COUNT, MAX_ENEMY_PROJECTILES } from '../lib/enemyProjectilePool.js'
 import { createChefIngredientGeometries } from '../lib/chefIngredientGeometry.js'
 import { applyChefIngredientSpin } from '../lib/chefIngredientSpin.js'
@@ -66,7 +67,8 @@ function mesh(geometry, material, capacity = MAX_ENEMY_PROJECTILES) {
 
 // 표식 재질 불투명도: ring(경고 테두리 — 2026-11-14부터 그리지 않음) / markerFill(경고 원) / puddleFill(웅덩이) / line(조준선).
 // 테두리를 없앤 대신 markerFill을 0.22 → 0.34로 올려 밝은 바닥에서도 원이 읽히게 한다.
-export const DECAL_OPACITY = Object.freeze([0.85, 0.34, 0.5, 0.6])
+// 2026-11-22: 경고 색 채도를 낮춘 만큼 markerFill·line은 ×1.3(0.34 → 0.442, 0.6 → 0.78). 웅덩이(지대)는 그대로.
+export const DECAL_OPACITY = Object.freeze([0.85, telegraphOpacity(0.34), 0.5, telegraphOpacity(0.6)])
 
 /** 투사체 좀비 탄·표식·매복 소품 InstancedMesh 묶음. 재질은 호출자가 넘긴다(테스트는 canvas 없이 만든다). */
 export function createProjectileZombieShotMeshes({ bodyMat, outMat, decalMats }) {
@@ -78,6 +80,8 @@ export function createProjectileZombieShotMeshes({ bodyMat, outMat, decalMats })
   const shotBodies = shotGeometries.map((g) => mesh(g, bodyMat, MAX_PROJECTILE_ZOMBIE_SHOTS))
   const shotOutlines = shotOutlineGeometries.map((g) => mesh(g, outMat, MAX_PROJECTILE_ZOMBIE_SHOTS))
   for (const body of shotBodies) for (let i = 0; i < MAX_PROJECTILE_ZOMBIE_SHOTS; i += 1) body.setColorAt(i, shotColor.setHex(0xffffff))
+  // 번짐 정점 알파(color rgba)가 있는 데칼 지오메트리는 재질도 vertexColors로 읽는다(인스턴스 색은 그대로 곱해진다).
+  decalGeometries.forEach((g, v) => { if (g.attributes.color) decalMats[v].vertexColors = true })
   const decals = decalGeometries.map((g, v) => mesh(g, decalMats[v], MAX_PROJECTILE_ZOMBIE_SHOTS))
   for (const decal of decals) for (let i = 0; i < MAX_PROJECTILE_ZOMBIE_SHOTS; i += 1) decal.setColorAt(i, shotColor.setHex(0xffffff))
   const propBodies = propGeometries.map((g) => mesh(g, bodyMat, MAX_ENEMIES))

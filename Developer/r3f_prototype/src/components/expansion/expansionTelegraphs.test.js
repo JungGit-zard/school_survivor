@@ -13,6 +13,7 @@ import {
 } from './expansionTelegraphs.js'
 import { syncExpansionTelegraphs } from './ExpansionHazardLayer.jsx'
 import { clearExpansionAttacks, createExpansionAttackState, expansionAttackContains, stepExpansionAttack } from '../../lib/expansionAttackRuntime.js'
+import { TELEGRAPH_FEATHER } from '../../lib/telegraphStyle.js'
 
 afterEach(() => vi.restoreAllMocks())
 
@@ -172,8 +173,11 @@ describe('B05 chant cross telegraph eases in and out (visual only)', () => {
     const root = group.children[0]
     group.updateMatrixWorld(true)
     const tris = []
+    let featherMeshes = 0
     root.traverse((mesh) => {
       if (!mesh.isMesh) return
+      // 2026-11-22 soft edge: the feather band lies OUTSIDE the hit area and fades to 0 — the opaque core is what must match.
+      if (mesh.name === TELEGRAPH_FEATHER.name) { featherMeshes++; return }
       const p = mesh.geometry.attributes.position, idx = mesh.geometry.index
       for (let i = 0; i < (idx?.count ?? p.count); i += 3) {
         const vs = [0, 1, 2].map((j) => { const v = new THREE.Vector3().fromBufferAttribute(p, idx ? idx.getX(i + j) : i + j).applyMatrix4(mesh.matrixWorld); v.y = 0; return v })
@@ -181,6 +185,7 @@ describe('B05 chant cross telegraph eases in and out (visual only)', () => {
       }
     })
     expect(tris.length).toBeGreaterThan(0)
+    expect(featherMeshes).toBe(1)
     const q = new THREE.Vector3()
     let checked = 0
     for (let ix = 0; ix < 23; ix++) for (let iz = 0; iz < 25; iz++) {

@@ -181,4 +181,18 @@ describe('StarlinkWeapon dev crash cheat', () => {
     expect(statSync(new URL('../../../public/sfx/weapons/starlinkFall.ogg', import.meta.url)).size).toBeGreaterThan(1000)
     expect(statSync(new URL('../../../public/sfx/weapons/starlinkExplosion.ogg', import.meta.url)).size).toBeGreaterThan(1000)
   })
+
+  it('Broken Starlink strike visual is rolled back to the pre-091537d2 look (Terry 11-22): own ground flash + rings, no REEBOO burst', () => {
+    const source = readFileSync(new URL('./Starlink.jsx', import.meta.url), 'utf8')
+    // the white/yellow ground flash and its two rings show again during every gameplay strike
+    expect(source).toContain('const flashOpacity = t >= 0.35 ? Math.max(0, 1 - (t - 0.35) / 0.65) : 0')
+    expect(source).toContain('return <StrikeVisual x={x} z={z} ageRef={strikeAgeRef} />')
+    expect(source).not.toContain('groundFlash')
+    // the 11-15 REEBOO fireball + shock ring + rays impact is no longer spawned
+    expect(source).not.toContain('STARLINK_IMPACT')
+    expect(source).not.toContain('spawnVfxBurst')
+    // gameplay unchanged: same radial hit call
+    expect(source).toContain('applyRadialDamage({ x, z, radius, damage, knockback: 1.4, knockbackMs: 80, critChance, critMultiplier })')
+  })
 })
+

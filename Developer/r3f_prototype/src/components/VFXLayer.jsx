@@ -11,6 +11,7 @@ import { getChargeWarningArrowConfig } from '../lib/vfxGeometry.js'
 import { CHARGE_WARNING_LINE_BLINK_HALF_TURNS } from '../lib/warningPulse.js'
 import { useGameStore } from '../store/useGameStore.js'
 import StudioTunedGroup from './StudioTunedGroup.jsx'
+import { mutedTelegraphHex } from '../lib/telegraphPalette.js'
 
 // Plan §4-3 / §5 권장 동시 효과 상한.
 const MAX_ACTIVE = 80
@@ -143,7 +144,8 @@ export function ChargeWarningLine({ event, onDone, anchored = false }) {
   const LIFE    = event.life ?? 700
   const length  = event.length ?? 4.5
   const angle   = event.angle ?? 0
-  const color   = event.color ?? VFX_COLORS.chargeOrange
+  // 2026-11-22 Terry "공격궤도 표시자는 채도를 낮추고": 이벤트 색을 공용 경고 팔레트 규칙으로 눌러 쓴다.
+  const color   = mutedTelegraphHex(event.color ?? VFX_COLORS.chargeOrange)
   const arrowShape = useMemo(() => {
     const shape = new THREE.Shape()
     const config = getChargeWarningArrowConfig({ width: event.width, length })

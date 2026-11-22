@@ -87,6 +87,8 @@ import { B10_SFX, STAGE5_BOSS_STATS, createB10SummonState, isAuthoredAttackBoss,
 import { pushBossSummon } from '../lib/bossSummonQueue.js'
 import MiniHealthBar from './MiniHealthBar.jsx'
 import { CHARGE_CUE_PULSE_RAD_PER_SEC } from '../lib/warningPulse.js'
+import { TELEGRAPH_PALETTE, telegraphOpacity } from '../lib/telegraphStyle.js'
+import TelegraphFeather from './TelegraphFeather.jsx'
 import {
   MATH_TEACHER_SWING_RADIUS,
   MATH_TEACHER_SWING_RECOVERY_MS,
@@ -698,10 +700,12 @@ export const BIG_SPAWN_SMOKE_SIZE = 0.55
 
 // 2026-11-14 Terry: 바닥 경고는 굵은 테두리 없이 색 채움만. 어두운 외곽선·그림자 띠를 없애고 띠 폭은
 // 실제 봉쇄선 폭(B02_BLOCKADE_LINE_WIDTH) 그대로다.
+// 2026-11-22 Terry "공격궤도 표시자는 채도를 낮추고 끝에 블러": 색은 공용 팔레트(채도 낮춤), 불투명도 ×1.3(대비 보정),
+// 띠 바깥쪽에 부드러운 번짐(TelegraphFeather) — 채움 폭은 그대로 B02_BLOCKADE_LINE_WIDTH.
 export const B02_CORRIDOR_BLOCKADE_VISUALS = Object.freeze({
-  telegraph: Object.freeze({ surface: '#22cbd2', surfaceOpacity: 0.48 }),
-  active: Object.freeze({ surface: '#24edf0', surfaceOpacity: 0.9 }),
-  completed: Object.freeze({ surface: '#0d6570', surfaceOpacity: 0.22 }),
+  telegraph: Object.freeze({ surface: TELEGRAPH_PALETTE.blockade, surfaceOpacity: telegraphOpacity(0.48) }),
+  active: Object.freeze({ surface: TELEGRAPH_PALETTE.blockadeActive, surfaceOpacity: telegraphOpacity(0.9) }),
+  completed: Object.freeze({ surface: TELEGRAPH_PALETTE.blockadeDone, surfaceOpacity: telegraphOpacity(0.22) }),
 })
 
 // 선은 이제 보스를 두르는 고정 경계라 순차 점등이 없다 — 활성 중에는 전부 같은 상태다.
@@ -726,6 +730,7 @@ export function B02CorridorBlockadeVisual({ phase, lineZs, halfX }) {
             <mesh position={[0, 0.047, z]}>
               <boxGeometry args={[halfX * 2, 0.024, B02_BLOCKADE_LINE_WIDTH]} />
               <meshBasicMaterial color={visual.surface} transparent opacity={visual.surfaceOpacity} depthWrite={false} toneMapped={false} />
+              <TelegraphFeather rect={[halfX * 2, B02_BLOCKADE_LINE_WIDTH]} plane="xz" y={0.012} />
             </mesh>
           </group>
         )
@@ -735,18 +740,20 @@ export function B02CorridorBlockadeVisual({ phase, lineZs, halfX }) {
 }
 
 // 2026-11-14 Terry: 레인은 테두리 없이 색 채움만(폭 = 실제 레인 폭 B03_SHUTTLE_LANE_WIDTH).
+// 2026-11-22: 공용 팔레트(채도 낮춤) + 불투명도 ×1.3(상한 0.92) + 레인 바깥쪽·양 끝의 부드러운 번짐.
 export const B03_SHUTTLE_RUN_VISUALS = Object.freeze({
-  telegraph: Object.freeze({ surface: '#f5b83d', surfaceOpacity: 0.5 }),
-  outbound: Object.freeze({ surface: '#ffd34e', surfaceOpacity: 0.82 }),
-  returning: Object.freeze({ surface: '#e6a81f', surfaceOpacity: 0.86 }),
-  stun: Object.freeze({ surface: '#c99a43', surfaceOpacity: 0.2 }),
+  telegraph: Object.freeze({ surface: TELEGRAPH_PALETTE.shuttle, surfaceOpacity: telegraphOpacity(0.5) }),
+  outbound: Object.freeze({ surface: TELEGRAPH_PALETTE.shuttleOutbound, surfaceOpacity: telegraphOpacity(0.82) }),
+  returning: Object.freeze({ surface: TELEGRAPH_PALETTE.shuttleReturn, surfaceOpacity: telegraphOpacity(0.86) }),
+  stun: Object.freeze({ surface: TELEGRAPH_PALETTE.shuttleStun, surfaceOpacity: telegraphOpacity(0.2) }),
 })
 
 // 2026-11-14 Terry: 경고는 굵은 테두리 없이 원형 색상만. 실제 피해 반경 그대로의 옅은 원(area)과,
 // 텔레그래프 1200ms 동안 0 → 피해 반경까지 자라는 진한 원(fill) 두 장의 채움뿐이다(테두리 호·그릇 아이콘 없음).
+// 2026-11-22: 공용 팔레트(채도 낮춤) + 불투명도 ×1.3 + 원 바깥쪽 부드러운 번짐(원 반경 = 피해 반경 그대로).
 export const B04_SOUP_BLAST_VISUALS = Object.freeze({
-  telegraph: Object.freeze({ surface: '#f4ad32', surfaceOpacity: 0.5, areaOpacity: 0.32 }),
-  explode: Object.freeze({ surface: '#ff6b1f', surfaceOpacity: 0.85 }),
+  telegraph: Object.freeze({ surface: TELEGRAPH_PALETTE.soup, surfaceOpacity: telegraphOpacity(0.5), areaOpacity: telegraphOpacity(0.32) }),
+  explode: Object.freeze({ surface: TELEGRAPH_PALETTE.soupBlast, surfaceOpacity: telegraphOpacity(0.85) }),
 })
 
 export function getB04SoupBlastVisualState(phase) {
@@ -796,11 +803,13 @@ export function B04SoupBlastVisual({ phase, circles, stateRef }) {
             <mesh name="b04-soup-area" position={[0, 0.045, 0]} rotation={[-Math.PI / 2, 0, 0]} renderOrder={8}>
               <circleGeometry args={[circle.radius, 48]} />
               <meshBasicMaterial color={visual.surface} transparent opacity={visual.areaOpacity} depthWrite={false} toneMapped={false} />
+              <TelegraphFeather disc={circle.radius} renderOrder={8} />
             </mesh>
           )}
           <mesh name="b04-soup-fill" ref={(mesh) => { fill.mesh = mesh }} position={[0, 0.047, 0]} rotation={[-Math.PI / 2, 0, 0]} scale={[fillScale, fillScale, 1]} renderOrder={9}>
             <circleGeometry args={[circle.radius, 48]} />
             <meshBasicMaterial color={visual.surface} transparent opacity={visual.surfaceOpacity} depthWrite={false} toneMapped={false} />
+            <TelegraphFeather disc={circle.radius} renderOrder={9} />
           </mesh>
           {telegraph && <B04SoupFillDriver fill={fill} stateRef={stateRef} />}
         </group>
@@ -870,6 +879,7 @@ function B03ShuttleRunVisual({ phase, passIndex, laneZ, startX, endX, stateRef }
       <mesh position={[centerX, 0.047, laneZ]}>
         <boxGeometry args={[length, 0.024, B03_SHUTTLE_LANE_WIDTH]} />
         <meshBasicMaterial ref={surfaceMatRef} color={visual.surface} transparent opacity={visual.surfaceOpacity} depthWrite={false} toneMapped={false} />
+        <TelegraphFeather rect={[length, B03_SHUTTLE_LANE_WIDTH]} plane="xz" y={0.012} />
       </mesh>
       <mesh name="b03-shuttle-stomp-ring" ref={stompRingRef} visible={false} rotation={[-Math.PI / 2, 0, 0]} renderOrder={9}>
         <ringGeometry args={[B03_SHUTTLE_STOMP_RING_VISUAL.innerRadius, B03_SHUTTLE_STOMP_RING_VISUAL.outerRadius, 32]} />

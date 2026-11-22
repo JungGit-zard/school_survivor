@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import { TELEGRAPH_FEATHER, TELEGRAPH_PALETTE, addOpaqueVertexAlpha, buildTelegraphFeatherGeometry, circleLoop, rectLoop, telegraphBoundaryEdges, telegraphOpacity } from '../../lib/telegraphStyle.js'
 const tau=Math.PI*2
 export const EXPANSION_PATTERN_SHAPES=Object.freeze({b05_p1:'annulus',b05_p2:'cross',b06_p1:'disk',b06_p2:'three_disks',b07_p1:'three_lines',b07_p2:'annulus',b08_p1:'cross',b08_p2:'sector',b09_p1:'grid',b09_p2:'annulus',b10_p1:'disk',b10_p2:'sector'})
 export const EXPANSION_TELEGRAPH_CAPACITY=32
@@ -6,7 +7,8 @@ export const EXPANSION_TELEGRAPH_CAPACITY=32
 // 2026-11-14 Terry: 경고는 원형 색상만 — windup(경고) 중에는 도장 무늬를 띄우지 않는다(windupMaxOpacity 0).
 // active(타격) 순간에만 0.9로 찍힌다. 텍스처는 모듈 수명 동안 하나만 만든다(캔버스가 없으면 생략).
 export const B10_STAMP_PATTERN_ID='b10_p1'
-export const B10_STAMP_DECAL=Object.freeze({color:'#d7263d',windupMaxOpacity:0,activeOpacity:.9,radiusScale:.82})
+// color = 도장 잉크(화면 오버레이 B10StampImpactOverlay도 쓴다), floorColor = 바닥에 찍히는 무늬(2026-11-22 채도 낮춘 공용 팔레트).
+export const B10_STAMP_DECAL=Object.freeze({color:'#d7263d',floorColor:TELEGRAPH_PALETTE.stamp,windupMaxOpacity:0,activeOpacity:.9,radiusScale:.82})
 let b10StampTexture
 export function getB10StampTexture() {
  if(b10StampTexture!==undefined)return b10StampTexture
@@ -16,7 +18,7 @@ export function getB10StampTexture() {
  const ctx=canvas.getContext?.('2d')
  if(!ctx||typeof ctx.fillText!=='function')return null
  ctx.clearRect(0,0,256,256)
- ctx.strokeStyle=B10_STAMP_DECAL.color;ctx.fillStyle=B10_STAMP_DECAL.color
+ ctx.strokeStyle=B10_STAMP_DECAL.floorColor;ctx.fillStyle=B10_STAMP_DECAL.floorColor
  ctx.lineWidth=18;ctx.beginPath();ctx.arc(128,128,110,0,tau);ctx.stroke()
  ctx.lineWidth=6;ctx.beginPath();ctx.arc(128,128,88,0,tau);ctx.stroke()
  ctx.font='bold 128px serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('決',128,136)
@@ -37,11 +39,15 @@ const positive=v=>Number.isFinite(v)&&v>0&&v<=64
 // 2026-11-14 Terry "경고그래픽 굵은테두리 없애고 원형 색상만": 바닥 경고는 경고색 반투명 채움 하나뿐이다.
 // 테두리(edge band/stroke)·흑백 사선 해치·흰 수축 카운트다운은 그리지 않는다. 채움은 실제 피해 기하
 // (safetyPolygons 또는 authored 반경)와 정확히 같고, 남은 시간은 채움 불투명도 상승으로만 읽힌다.
-export const EXPANSION_TELEGRAPH_FILL=Object.freeze({color:'#f5ce69',activeColor:'#f88578',windupOpacity:.4,windupOpacityGain:.18,activeOpacity:.55})
+// 2026-11-22 Terry "모든 공격궤도 표시자는 채도를 낮추고 끝에 블러": 색은 공용 팔레트(lib/telegraphStyle.js)에서만 온다.
+// 채도를 낮춘 만큼 불투명도는 ×1.3(예전 .4/.58/.55 → .52/.754/.715) — 바닥 대비가 예전 수준으로 유지된다.
+// 채움(불투명도 그대로) = 실제 피해 기하이고, 그 바깥에만 TELEGRAPH_FEATHER 폭의 번짐 띠(telegraph-feather 메시)가 붙는다.
+const EXPANSION_WINDUP_OPACITY=telegraphOpacity(.4)
+export const EXPANSION_TELEGRAPH_FILL=Object.freeze({color:TELEGRAPH_PALETTE.caution,activeColor:TELEGRAPH_PALETTE.strike,windupOpacity:EXPANSION_WINDUP_OPACITY,windupOpacityGain:Math.round((telegraphOpacity(.58)-EXPANSION_WINDUP_OPACITY)*1000)/1000,activeOpacity:telegraphOpacity(.55)})
 // 2차 신규 좀비(novel2) 계열만 색으로 피해 여부를 가른다(2026-11-15 threemini): 피해 0 안내(E89 "차렷!" 원·E103 커피)는
 // 위 노랑 그대로, 피해가 있는 예고는 빨강. E92 기관사 돌진선은 스냅샷 피해가 0(피해는 머리 접촉)이라 contactAttack 표식으로
 // 피해 예고임을 알린다. 보스·확장 적(novel2가 아닌 스냅샷)의 색은 바꾸지 않는다. 불투명도 규칙은 위와 같다.
-export const NOVEL2_DAMAGE_TELEGRAPH_FILL=Object.freeze({color:'#e5333d',activeColor:'#c8102e'})
+export const NOVEL2_DAMAGE_TELEGRAPH_FILL=Object.freeze({color:TELEGRAPH_PALETTE.danger,activeColor:TELEGRAPH_PALETTE.dangerStrike})
 export function isNovel2DamageTelegraph(d){return d?.novel2===true&&(d.contactAttack===true||d.damage>0)}
 function telegraphFillColor(d,active){const red=isNovel2DamageTelegraph(d),F=red?NOVEL2_DAMAGE_TELEGRAPH_FILL:EXPANSION_TELEGRAPH_FILL;return active?F.activeColor:F.color}
 // ── Stage 6 B05 교장 「교가 제창」(b05_p2) 십자 경고만의 등장·퇴장 곡선 (Terry 2026-11-22 "노출시작과 종료를 좀 더 부드럽게") ──
@@ -51,7 +57,8 @@ function telegraphFillColor(d,active){const red=isNovel2DamageTelegraph(d),F=red
 //   recovery 앞 fadeOutMs: 피해가 끝난 뒤 fade 1→0(smoothstep)으로 사라지며 살짝 퍼진다(fadeOutScaleGain). 예전엔 recovery 첫 프레임에 툭 꺼졌다.
 // createExpansionTelegraphVisual은 언제나 실제 크기 그대로 만들고, 시간 곡선은 updateExpansionTelegraphVisual이 매 프레임 입힌다
 // (ExpansionHazardLayer가 만든 같은 프레임에 바로 update를 부르므로 첫 화면부터 곡선이 적용된다).
-export const B05_CHANT_TELEGRAPH=Object.freeze({patternId:'b05_p2',fadeInMs:320,startScale:.18,impactFlashOpacity:.3,fadeOutMs:420,fadeOutScaleGain:.05})
+// impactFlashOpacity: 채움 불투명도가 ×1.3(.715)으로 올라 번쩍임은 .3 → .2(최대 .915, 1을 넘지 않게).
+export const B05_CHANT_TELEGRAPH=Object.freeze({patternId:'b05_p2',fadeInMs:320,startScale:.18,impactFlashOpacity:.2,fadeOutMs:420,fadeOutScaleGain:.05})
 export function isB05ChantTelegraph(d){return (d?.patternId??d?.id)===B05_CHANT_TELEGRAPH.patternId}
 const clamp01=v=>v<0?0:v>1?1:v
 const smooth01=v=>{const t=clamp01(v);return t*t*(3-2*t)}
@@ -108,10 +115,16 @@ export function createExpansionTelegraphVisual(event) {
  if(shape==='grid'&&(!Array.isArray(d.lineOffsetsUnits)||d.lineOffsetsUnits.length>8||!d.lineOffsetsUnits.every(Number.isFinite)))return null
  const root=new THREE.Group();root.name=`expansion-${shape}-${d.phase??'telegraph'}`;root.position.set(x,.035,z)
  const active=d.phase==='active',F=EXPANSION_TELEGRAPH_FILL
- const fillMat=new THREE.MeshBasicMaterial({color:telegraphFillColor(d,active),transparent:true,opacity:active?F.activeOpacity:F.windupOpacity,side:THREE.DoubleSide,depthWrite:false,toneMapped:false,polygonOffset:true,polygonOffsetFactor:-2})
+ // vertexColors: 번짐 띠가 같은 재질을 쓰며 정점 알파로 사라진다. 채움 지오메트리에는 알파 1 color를 붙인다.
+ const fillMat=new THREE.MeshBasicMaterial({color:telegraphFillColor(d,active),transparent:true,opacity:active?F.activeOpacity:F.windupOpacity,side:THREE.DoubleSide,depthWrite:false,toneMapped:false,polygonOffset:true,polygonOffsetFactor:-2,vertexColors:true})
  root.userData.fillMat=fillMat
  function groundMesh(parent,geometry,mat,px=0,pz=0) {
+   if(!geometry.attributes.color)addOpaqueVertexAlpha(geometry)
    const mesh=new THREE.Mesh(geometry,mat);mesh.rotation.x=-Math.PI/2;mesh.position.set(px,.003,pz);mesh.renderOrder=3;parent.add(mesh);return mesh
+ }
+ // 채움 윤곽 바깥쪽 번짐(XY 평면 — groundMesh가 채움과 같은 회전으로 눕힌다).
+ function featherMesh(parent,loops,px=0,pz=0,holes=null) {
+   const mesh=groundMesh(parent,buildTelegraphFeatherGeometry(loops,{plane:'xy',holes}),fillMat,px,pz);mesh.name=TELEGRAPH_FEATHER.name;return mesh
  }
  if(Array.isArray(d.safetyPolygons)) {
    // Locked WORLD polygons already include map and wall clipping. Never draw
@@ -121,9 +134,12 @@ export function createExpansionTelegraphVisual(event) {
    for(const polygons of chunks){
      const fill=[]
      for(const p of polygons)for(let i=1;i+1<p.length;i++)for(const v of [p[0],p[i],p[i+1]])fill.push(v[0]-x,0,v[1]-z)
-     const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(fill,3))
+     const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(fill,3));addOpaqueVertexAlpha(geometry)
      const mesh=new THREE.Mesh(geometry,fillMat);mesh.renderOrder=3;root.add(mesh)
    }
+   // 번짐: 잘린 조각들이 맞닿은 안쪽 변은 빼고(채움 안 줄무늬 방지) 바깥 경계에만 붙인다. 채움 메시들 뒤에 둔다(children[0] = 채움).
+   const loops=d.safetyPolygons.filter(p=>p.length>=3).map(p=>p.map(v=>[v[0]-x,v[1]-z]))
+   if(loops.length){const feather=new THREE.Mesh(buildTelegraphFeatherGeometry(loops,{boundary:telegraphBoundaryEdges(loops)}),fillMat);feather.name=TELEGRAPH_FEATHER.name;feather.renderOrder=3;root.add(feather)}
    if(shape==='disk')addB10StampDecal(root,d,radius)
    root.userData.expansionSnapshot=d
    updateExpansionTelegraphVisual(root,d)
@@ -133,12 +149,17 @@ export function createExpansionTelegraphVisual(event) {
  }
  function circle(px,pz,inner=0,outer=radius,angle=tau) {
    if(outer<=inner||inner<0)return
-   groundMesh(root,inner===0?new THREE.CircleGeometry(outer,48,-Math.PI/2-angle/2,angle):new THREE.RingGeometry(inner,outer,48,1,-Math.PI/2-angle/2,angle),fillMat,px,pz)
+   const start=-Math.PI/2-angle/2
+   groundMesh(root,inner===0?new THREE.CircleGeometry(outer,48,start,angle):new THREE.RingGeometry(inner,outer,48,1,start,angle),fillMat,px,pz)
+   const loops=[circleLoop(outer,{segments:48,start,angle})]
+   if(inner>0)loops.push(circleLoop(inner,{segments:48,start,angle}))
+   featherMesh(root,loops,px,pz,inner>0?[false,true]:null)
  }
  function line(angle,offsetX=0,offsetZ=0,both=false) {
    const group=new THREE.Group();group.rotation.y=angle;group.position.set(offsetX,0,offsetZ)
    const l=both?length*2:length,z=both?0:l/2
    groundMesh(group,new THREE.PlaneGeometry(width,l),fillMat,0,z)
+   featherMesh(group,[rectLoop(width/2,l/2)],0,z)
    root.add(group)
  }
  switch(shape) {

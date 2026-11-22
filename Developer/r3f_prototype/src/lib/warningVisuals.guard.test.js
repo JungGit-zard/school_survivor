@@ -15,6 +15,7 @@ import { DECAL_VISUAL, getDecalVisuals } from './projectileZombieShotGeometry.js
 import { SHOT_KIND, SHOT_MOTION } from './projectileZombieShotPool.js'
 import { createExpansionTelegraphVisual, disposeExpansionTelegraphVisual } from '../components/expansion/expansionTelegraphs.js'
 import { STAGE5_CALL_LANE_WARNING, getStage5CallLaneQuads } from '../components/StageObjects/Stage5CallLaneGroundWarning.jsx'
+import { TELEGRAPH_FEATHER } from './telegraphStyle.js'
 
 const src = (path) => readFileSync(new URL(path, import.meta.url), 'utf8')
 
@@ -73,10 +74,20 @@ describe('floor warnings have no border mesh', () => {
         for (const mesh of meshes) expect(mesh.material, authored.shape).toBe(root.userData.fillMat)
         expect(root.userData.edgeMat).toBeUndefined()
         // A full disc is a CircleGeometry of exactly the authored radius (no RingGeometry band on top).
+        // 2026-11-22 Terry "끝에 블러": the only other mesh is the soft feather, same fill material, starting exactly at
+        // the radius at full fill alpha and fading to 0 outside it — a falloff, not a border band.
         if (authored.shape === 'disk') {
-          expect(meshes).toHaveLength(1)
+          expect(meshes).toHaveLength(2)
           expect(meshes[0].geometry).toBeInstanceOf(THREE.CircleGeometry)
           expect(meshes[0].geometry.parameters.radius).toBe(1.6)
+          expect(meshes[1].name).toBe(TELEGRAPH_FEATHER.name)
+          const p = meshes[1].geometry.attributes.position, c = meshes[1].geometry.attributes.color
+          for (let i = 0; i < p.count; i++) {
+            const r = Math.hypot(p.getX(i), p.getY(i)), a = c.getW(i)
+            if (a === 1) expect(r).toBeLessThanOrEqual(1.6 + 1e-6)
+            else expect(r).toBeGreaterThan(1.6)
+            if (a === 0) expect(r).toBeCloseTo(1.6 + TELEGRAPH_FEATHER.widthUnits, 2)
+          }
         }
         disposeExpansionTelegraphVisual(root)
       }

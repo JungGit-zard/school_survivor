@@ -23,34 +23,32 @@ const PORTAL_RADIUS = 1.5
 // 작동(흡입) 히트박스 — 시각 링(PORTAL_RADIUS)과 분리해 중앙 좁은 원으로 제한.
 const PORTAL_TRIGGER_RADIUS = 0.6
 const PORTAL_LIGHT_DISTANCE = 6
-// Terry 2026-11-15 pick: REEBOO swirl + light pillar (godot-stylized-2d-vfx-lite port, MIT, Copyright (c) 2026
+// Terry 2026-11-15 pick: REEBOO swirl (godot-stylized-2d-vfx-lite port, MIT, Copyright (c) 2026
 // REEBOO Labs), outline pass dropped. Trial sizes were for a 1.1 ring; scaled to PORTAL_RADIUS here.
+// Terry 2026-11-22 "탈출구 효과는 위로 뻗은 기둥은 삭제": the upward light pillar is gone. The floor swirl, the ring,
+// and the portal light stay so the exit is still easy to find.
 const PORTAL_VFX_COLORS = Object.freeze({ core: 0xffffff, mid: 0x9ff0ff, edge: 0x2f7fe0 })
 const PORTAL_SWIRL_SIZE = (PORTAL_RADIUS * 2) / 0.92
-const PORTAL_PILLAR_SCALE = PORTAL_RADIUS / 1.1
 const PORTAL_SWIRL_SPIN = 0.6
 const PORTAL_SWIRL_SUCTION_SPIN = 2.4
 
 export function createEscapePortalVfx() {
   const swirl = createReeboMaterial('swirl', { ...PORTAL_VFX_COLORS, billboard: false, u: { arms: 3, twist: 3, spin: PORTAL_SWIRL_SPIN, armW: 0.45, inner: 0.1, outer: 0.92 } })
-  const pillar = createReeboMaterial('pillar', { ...PORTAL_VFX_COLORS, u: { width: 0.55, rise: 0.22, scrollS: 1.0, streaks: 0.45 } })
   swirl.uniforms.uData.value.set(0, 1, 0, 3.1)
-  pillar.uniforms.uData.value.set(0.3, 1, 0, 3.1)
-  return { swirl, pillar, geometry: new THREE.PlaneGeometry(1, 1) }
+  return { swirl, geometry: new THREE.PlaneGeometry(1, 1) }
 }
 const PORTAL_LIGHT_DECAY = 2
 
-// 탈출구는 열리는 순간에야 마운트된다(Game.jsx). 그때 소용돌이·빛기둥 셰이더를 처음 컴파일하면 그 프레임이 멈췄다.
+// 탈출구는 열리는 순간에야 마운트된다(Game.jsx). 그때 소용돌이 셰이더를 처음 컴파일하면 그 프레임이 멈췄다.
 // 같은 생성 함수(= 같은 프로그램 키)의 재질을 스테이지 내내 숨긴 채(visible=false, 드로콜 0) 붙여 두어 스테이지 진입
 // 예열(gl.compileAsync — three r164 compile은 숨은 메시도 traverse한다)에 함께 컴파일되게 한다. 스테이지 도중에
 // 떼지 않는다: 재질을 dispose하면 쓰는 곳이 없어진 프로그램이 지워져 탈출구가 다시 컴파일한다.
 export function EscapePortalShaderPrewarm() {
   const vfx = useMemo(() => createEscapePortalVfx(), [])
-  useEffect(() => () => { vfx.swirl.dispose(); vfx.pillar.dispose(); vfx.geometry.dispose() }, [vfx])
+  useEffect(() => () => { vfx.swirl.dispose(); vfx.geometry.dispose() }, [vfx])
   return (
     <group name="escape-portal-shader-prewarm" visible={false}>
       <mesh geometry={vfx.geometry} material={vfx.swirl} />
-      <mesh geometry={vfx.geometry} material={vfx.pillar} />
     </group>
   )
 }
@@ -129,7 +127,7 @@ export default function EscapePortal({ stageId }) {
   const usesSceneLight = usesSceneLightRef.current
   const spinRef = useRef({ ringY: 0, glowY: 0 })
   const vfx = useMemo(() => createEscapePortalVfx(), [])
-  useEffect(() => () => { vfx.swirl.dispose(); vfx.pillar.dispose(); vfx.geometry.dispose() }, [vfx])
+  useEffect(() => () => { vfx.swirl.dispose(); vfx.geometry.dispose() }, [vfx])
   const vfxTimeRef = useRef(0)
   const suckingRef      = useRef(false)
   const suctionClockRef = useRef(null)
@@ -155,7 +153,6 @@ export default function EscapePortal({ stageId }) {
     const visualDelta = clampGameplayFrameDelta(delta)
     vfxTimeRef.current += visualDelta
     vfx.swirl.uniforms.uTime.value = vfxTimeRef.current
-    vfx.pillar.uniforms.uTime.value = vfxTimeRef.current
 
     // Studio 파츠의 회전·스케일은 정본 base/Studio/애니메이션 합성법칙으로만 갱신한다.
     spinRef.current.ringY += visualDelta * 1.2
@@ -228,7 +225,7 @@ export default function EscapePortal({ stageId }) {
             side={THREE.DoubleSide}
           />
         </mesh>
-        {/* inner glow disc — kept mounted but hidden: replaced by the swirl + pillar */}
+        {/* inner glow disc — kept mounted but hidden: replaced by the swirl */}
         <mesh ref={glowRef} rotation={[-Math.PI / 2, 0, 0]} visible={false}>
           <circleGeometry args={[PORTAL_RADIUS - 0.14, 48]} />
           <meshStandardMaterial
@@ -253,9 +250,8 @@ export default function EscapePortal({ stageId }) {
             decay={PORTAL_LIGHT_DECAY}
           />
         )}
-        {/* Terry 2026-11-15 pick: REEBOO swirl on the floor + camera-facing light pillar, no outline */}
+        {/* Terry 2026-11-15 pick: REEBOO swirl on the floor, no outline (the upward pillar was removed 2026-11-22) */}
         <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.05, 0]} scale={[PORTAL_SWIRL_SIZE, PORTAL_SWIRL_SIZE, 1]} geometry={vfx.geometry} material={vfx.swirl} renderOrder={6} userData={{ studioNonFocusable: true, studioNonTunable: true }} />
-        <mesh position={[0, 1.1 * PORTAL_PILLAR_SCALE, 0]} scale={[2.0 * PORTAL_PILLAR_SCALE, 2.2 * PORTAL_PILLAR_SCALE, 1]} geometry={vfx.geometry} material={vfx.pillar} renderOrder={7} frustumCulled={false} userData={{ studioNonFocusable: true, studioNonTunable: true }} />
       </StudioTunedGroup>
     </group>
   )

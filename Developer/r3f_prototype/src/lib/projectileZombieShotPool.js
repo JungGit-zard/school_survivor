@@ -13,6 +13,7 @@ import { isPointInsideRangedBlockers } from './stageRangedBlockers.js'
 import { PLAYER_CONTACT_HALF_EXTENT } from './enemyProjectilePool.js'
 // 착지·폭발 신호음(2026-11-14). 소리 선택·간격·거리 감쇠는 enemyAbilitySfx.js가 소유하고 throw하지 않는다.
 import { cueShotImpactSfx } from './enemyAbilitySfx.js'
+import { telegraphHex } from './telegraphPalette.js'
 
 export const MAX_PROJECTILE_ZOMBIE_SHOTS = 48
 
@@ -87,8 +88,9 @@ export const SHOT_KIND_INFO = Object.freeze({
   28: { key: 'jumpRope', color: 0xf2d23a, size: 1.3 },
   29: { key: 'milkCarton', color: 0xfafaf6, size: 1.5 },
   30: { key: 'drainWater', color: 0x5f8f7a, size: 1.15 },
-  31: { key: 'decalMarker', color: 0xff8a2a, size: 1 },
-  32: { key: 'decalAimLine', color: 0xff3b3b, size: 1 },
+  // 2026-11-22 Terry "공격궤도 표시자는 채도를 낮추고": 착탄 예정 원·조준선 색은 공용 경고 팔레트(예전 네온 주황·빨강을 채도만 낮춘 색).
+  31: { key: 'decalMarker', color: telegraphHex('impactMarker'), size: 1 },
+  32: { key: 'decalAimLine', color: telegraphHex('aimLine'), size: 1 },
   33: { key: 'zoneWater', color: 0x4fb3ff, size: 1 },
   34: { key: 'zonePaint', color: 0xa64dff, size: 1 },
   35: { key: 'decalHeal', color: 0x7cf07c, size: 1 },

@@ -23,6 +23,7 @@ import { MINI_ZOMBIE_VISUALS, miniPaletteKeyAt } from './miniZombieRoster.js'
 import { MINI_POSE_ROOT_ROLL, MINI_POSE_STYLES, createMiniPose, fillMiniZombiePose } from './miniZombiePose.js'
 import { MINI_CODE_PROPS, buildMiniVariant, readMiniZombieScene } from './miniZombieGeometry.js'
 import { EXPANSION_TELEGRAPH_FILL, NOVEL2_DAMAGE_TELEGRAPH_FILL, createExpansionTelegraphVisual } from '../components/expansion/expansionTelegraphs.js'
+import { TELEGRAPH_FEATHER } from './telegraphStyle.js'
 // wave 3 둘째 묶음(E100 찹쌀떡 · E102 회전의자 · E106 기마전, 2026-11-17)
 import { E100_MOCHI, E102_CHAIR, E106_CAVALRY, N2_STATE_APPROACH, N2_STATE_RECOVER } from './novelZombie2Behavior.js'
 import {
@@ -258,7 +259,7 @@ describe('E98 대식가', () => {
     expect(root.userData.fillMat.color.getHexString()).toBe(hex(NOVEL2_DAMAGE_TELEGRAPH_FILL.color))
     let maxR = 0
     root.traverse((n) => {
-      if (!n.isMesh) return
+      if (!n.isMesh || n.name === TELEGRAPH_FEATHER.name) return // opaque core only — the 2026-11-22 soft feather lies outside it
       const p = n.geometry.attributes.position
       for (let k = 0; k < p.count; k += 1) maxR = Math.max(maxR, Math.hypot(p.getX(k) + root.position.x - bite.originXZ[0], p.getZ(k) + root.position.z - bite.originXZ[1]))
     })
@@ -404,7 +405,7 @@ function telegraphExtents(snapshot) {
   const v = new THREE.Vector3()
   let along = 0; let back = 0; let lateral = 0; let radius = 0
   root.traverse((n) => {
-    if (!n.isMesh) return
+    if (!n.isMesh || n.name === TELEGRAPH_FEATHER.name) return // opaque core only — the 2026-11-22 soft feather lies outside it
     const p = n.geometry.attributes.position
     for (let k = 0; k < p.count; k += 1) {
       v.fromBufferAttribute(p, k).applyMatrix4(n.matrixWorld)

@@ -62,6 +62,8 @@ const frameOf = (key, p) => {
 // Kind table. life = seconds (trial `life`), cap = simultaneous bursts kept (oldest replaced),
 // follow = sits on the player each frame. write(e, p, put) emits the pieces of one burst at progress p.
 // put(layerKey, x, y, z, sx, sy, rotZ, d0, d1, d2) — d0 progress/decay, d1 opacity, d2 frame/toon threshold.
+// 상어 미사일 폭발 그림 배율(2026-11-22 Terry: 이전 크기의 70%). 피해 반경과 무관한 그림 전용 값.
+export const SHARK_EXPLOSION_VISUAL_SCALE = 0.7
 export const BURST_KINDS = Object.freeze({
   [VFX_BURST.HIT_PENCIL]: { life: 0.22, cap: 48, write(e, p, put) {
     const dot = 0.55 * pop(Math.min(1, p * 1.8))
@@ -142,7 +144,9 @@ export const BURST_KINDS = Object.freeze({
     }
   } },
   [VFX_BURST.SHARK_EXPLOSION]: { life: 0.6, cap: 8, write(e, p, put) {
-    const k = e.s / 1.6
+    // 2026-11-22 Terry "상어미사일 폭발효과 크기 지금의 70퍼센트로": 그림만 0.7배(높이도 같이 내려 바닥에 붙은 채 작아진다).
+    // e.s = 실제 피해 반경(그대로) — 피해·반경은 SharkMissile.jsx applyRadialDamage가 정하고 여기서는 바꾸지 않는다.
+    const k = (e.s / 1.6) * SHARK_EXPLOSION_VISUAL_SCALE
     put('sharkExplosion', e.x, 0.8 * k, e.z, 2.8 * k, 2.8 * k, 0, p, 1, frameOf('codemanu_explosion', p))
   } },
   [VFX_BURST.STARLINK_IMPACT]: { life: 0.6, cap: 12, write(e, p, put) {

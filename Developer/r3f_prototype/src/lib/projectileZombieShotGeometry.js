@@ -8,6 +8,7 @@
 import * as THREE from 'three'
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
 import { SHOT_KIND, SHOT_MOTION } from './projectileZombieShotPool.js'
+import { circleLoop, createSoftFillGeometry, createSoftRectGeometry } from './telegraphStyle.js'
 
 const TAU = Math.PI * 2
 const HALF_PI = Math.PI / 2
@@ -255,9 +256,13 @@ export function getShotVisualIndex(kind, motion) {
 export const DECAL_VISUALS = Object.freeze(['ring', 'markerFill', 'puddleFill', 'line'])
 export const DECAL_VISUAL = Object.freeze({ RING: 0, MARKER_FILL: 1, PUDDLE_FILL: 2, LINE: 3 })
 
+// 2026-11-22 Terry "공격궤도 표시자는 … 끝에 블러": 착탄 예정 원과 조준선은 채움(반경 1 / 1×1 = 실제 표식 크기) 바깥쪽에
+// 부드러운 번짐을 같은 지오메트리에 담는다(정점 알파 1 → 0, 재질 vertexColors). 단위 도형이라 번짐도 인스턴스 배율을 따른다:
+// 원은 반경의 22%, 조준선은 옆으로 폭의 35%, 끝으로 길이의 5%.
+export const DECAL_SOFT_EDGE = Object.freeze({ markerFill: 0.22, lineSide: 0.35, lineEnd: 0.05 })
 export function createDecalGeometries() {
   const ring = new THREE.RingGeometry(0.84, 1, 36)
-  const markerFill = new THREE.CircleGeometry(1, 36)
+  const markerFill = createSoftFillGeometry(circleLoop(1, { segments: 36 }), { width: DECAL_SOFT_EDGE.markerFill, plane: 'xy' })
   const puddleFill = new THREE.CircleGeometry(1, 28)
   // 웅덩이 가장자리: 방향의 연속 함수로 흔들어 결정론적인 물웅덩이 윤곽을 만든다.
   const pos = puddleFill.attributes.position
@@ -267,7 +272,7 @@ export function createDecalGeometries() {
     const r = 0.88 + 0.08 * Math.sin(a * 3 + 0.6) + 0.05 * Math.sin(a * 5 + 2.1)
     pos.setXY(i, Math.cos(a) * r, Math.sin(a) * r)
   }
-  const line = new THREE.PlaneGeometry(1, 1)
+  const line = createSoftRectGeometry(0.5, 0.5, DECAL_SOFT_EDGE.lineSide, DECAL_SOFT_EDGE.lineEnd, { plane: 'xy' })
   for (const g of [ring, markerFill, puddleFill, line]) g.rotateX(-HALF_PI)
   return [ring, markerFill, puddleFill, line]
 }

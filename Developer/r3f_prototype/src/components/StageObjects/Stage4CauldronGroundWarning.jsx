@@ -8,14 +8,20 @@ import {
   PRESSURE_CAULDRON_DAMAGE_RADIUS,
   PRESSURE_CAULDRON_EXPLOSION_INTERVAL_MS,
 } from '../../lib/stage4PressureCauldronHazard.js'
+import { TELEGRAPH_PALETTE, telegraphOpacity } from '../../lib/telegraphStyle.js'
+import TelegraphFeather from '../TelegraphFeather.jsx'
 
 // Game's blast consumer measures distance from WORLD (0, 0), not from the
 // Studio-authored vessel. Portal out of all prop/model scale, shiver and yaw.
 // No audio here: the single fixed-step Game owner owns the cauldron cue edges.
 // The filled disc radius IS the damage radius (3.2 units / 0.8 blocks) and never pulses.
+// 2026-11-22 Terry "공격궤도 표시자는 채도를 낮추고 끝에 블러": 공용 팔레트(채도 낮춤) + 불투명도 ×1.3(대비 보정,
+// 예전 .3→.48 / .55 → .39→.624 / .715) + 원 바깥쪽 부드러운 번짐(TelegraphFeather). 원 반경은 피해 반경 그대로.
+const CAULDRON_WARNING_OPACITY = telegraphOpacity(0.3)
 export const STAGE4_CAULDRON_GROUND_FILL = Object.freeze({
-  warningColor: '#ffe576', warningOpacity: 0.3, warningOpacityGain: 0.18,
-  fireColor: '#ff6b24', fireOpacity: 0.55,
+  warningColor: TELEGRAPH_PALETTE.cauldron, warningOpacity: CAULDRON_WARNING_OPACITY,
+  warningOpacityGain: Math.round((telegraphOpacity(0.48) - CAULDRON_WARNING_OPACITY) * 1000) / 1000,
+  fireColor: TELEGRAPH_PALETTE.cauldronFire, fireOpacity: telegraphOpacity(0.55),
 })
 export default function Stage4CauldronGroundWarning() {
   const scene = useThree((state) => state.scene)
@@ -53,6 +59,7 @@ export default function Stage4CauldronGroundWarning() {
       <mesh ref={fill} name="pressure-cauldron-world-boundary" position={[0, 0.035, 0]} rotation={[-Math.PI / 2, 0, 0]} renderOrder={8}>
         <circleGeometry args={[radius, 64]} />
         <meshBasicMaterial color={STAGE4_CAULDRON_GROUND_FILL.warningColor} transparent opacity={STAGE4_CAULDRON_GROUND_FILL.warningOpacity} depthWrite={false} toneMapped={false} />
+        <TelegraphFeather disc={radius} segments={64} renderOrder={8} />
       </mesh>
       <group ref={fire} visible={false} name="pressure-cauldron-world-fire">
         {Array.from({ length: 8 }, (_, index) => {
