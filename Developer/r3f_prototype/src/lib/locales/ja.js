@@ -5,6 +5,17 @@ const CONTACT_EMAIL = 'zard5388@gmail.com'
 const EFFECTIVE_DATE = '2026年10月29日'
 
 export default {
+  // 웨이브 특수 첫 등장 자막 역할 줄(lib/waveDebutNotice.js, 2026-11-22).
+  'waveDebut.role.tank': 'タンク · とても硬い',
+  'waveDebut.role.rush': '突進 · 素早く迫る',
+  'waveDebut.role.ranged': '遠距離 · 離れて攻撃',
+  'waveDebut.role.zone': '範囲 · 床が危険',
+  'waveDebut.role.ambush': '奇襲 · 隠れて飛び出す',
+  'waveDebut.role.support': '支援 · 仲間を強化',
+  'waveDebut.role.split': '分裂 · 分かれる',
+  'waveDebut.role.disrupt': '妨害 · かく乱',
+  'waveDebut.role.melee': '近接技 · 近づくと危険',
+  'waveDebut.role.formation': '編隊 · 群れで来る',
   'stage4Guide.orientation': '北は調理台・シンク',
   'stage4Guide.orientationSouth': '中央は釜 / 南は配膳台・生徒',
   'stage4Guide.markers': '釜は固定の連続円 · 15秒ごとに爆発',

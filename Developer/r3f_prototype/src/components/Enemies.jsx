@@ -65,6 +65,7 @@ import {
   resetPooledEnemySpawnDrainQueue,
 } from '../lib/pooledEnemySpawnDrain.js'
 import { recordZombieEncounter } from '../lib/zombieEncyclopedia.js'
+import { announceWaveSpecialSpawn } from '../lib/waveDebutNotice.js'
 import { BOSS_TELEGRAPH_LEAD_SEC, LOW_DENSITY_ENEMY_THRESHOLD, advanceSpawnCatchUp, createSpawnCatchUpState, publishSpawnCatchUpOffsetSec, resetSpawnCatchUpState } from '../lib/spawnCatchUp.js'
 import { LOW_DENSITY_REINFORCEMENT_ENTRIES, advanceLowDensityReinforcement, createLowDensityReinforcementState, finishLowDensityReinforcement, resetLowDensityReinforcementState } from '../lib/lowDensityReinforcement.js'
 import { createDominanceSwarmSpawnPlan, createDominanceSwarmState, evaluateDominanceSwarm, recordDominanceSwarmSpawn, recordEmptyField, recordEnemyKill, recordPlayerDamage, resetDominanceSwarmState } from '../lib/dominanceSwarmRespawn.js'
@@ -1852,7 +1853,11 @@ export default function Enemies() {
       // 웨이브 특수 역할(발밑 고리 색, lib/waveRoleMarker.js). 그림 전용 — 밥줄·스테이지 7~10은 없다.
       waveRole: entry.waveRole,
     })
-    if (spawned) recordZombieEncounter(entry.type)
+    if (spawned) {
+      recordZombieEncounter(entry.type)
+      // 웨이브 특수 첫 등장 자막(lib/waveDebutNotice.js → HUD WaveDebutToast). 역할 없는 몸(밥줄·스테이지 7~10)은 그냥 지나간다.
+      if (entry.waveRole) announceWaveSpecialSpawn(entry.type, entry.waveRole)
+    }
     return spawned
   }, [])
 
@@ -1887,6 +1892,7 @@ export default function Enemies() {
         if (enemiesRef.current.length < MAX_SPECIAL_ENEMIES) {
           enemiesRef.current.push({ ...entry, id: `special-${entry.id}` })
           recordZombieEncounter(entry.type)
+          if (entry.waveRole) announceWaveSpecialSpawn(entry.type, entry.waveRole)
           specialAdded = true
         }
         continue

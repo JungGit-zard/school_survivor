@@ -2,6 +2,17 @@
 // 게임 데이터(무기 카탈로그·퀘스트·조사 대사·법적 문서·스테이지 프롭)의 한국어는
 // 각 데이터 파일에 그대로 남아 있고 i18n의 fallback으로 들어온다. 여기 중복 기재하지 않는다.
 export default {
+  // 웨이브 특수 첫 등장 자막 역할 줄(lib/waveDebutNotice.js, 2026-11-22).
+  'waveDebut.role.tank': '탱크 · 단단함',
+  'waveDebut.role.rush': '돌진 · 빠르게 달려듦',
+  'waveDebut.role.ranged': '원거리 · 멀리서 공격',
+  'waveDebut.role.zone': '장판 · 바닥 위험',
+  'waveDebut.role.ambush': '기습 · 숨었다 튀어나옴',
+  'waveDebut.role.support': '지원 · 동료 강화',
+  'waveDebut.role.split': '분열 · 쪼개짐',
+  'waveDebut.role.disrupt': '방해 · 교란',
+  'waveDebut.role.melee': '근접기술 · 붙으면 위험',
+  'waveDebut.role.formation': '편대 · 무리 지어 옴',
   'stage4Guide.orientation': '북쪽 조리대·싱크',
   'stage4Guide.orientationSouth': '중앙 솥 / 남쪽 배식대·학생',
   'stage4Guide.markers': '고정 연속 원은 솥 · 15초마다 폭발',

@@ -65,6 +65,7 @@ import StageVendingPrompt from './StageVendingPrompt.jsx'
 import Stage4HazardGuide from './Stage4HazardGuide.jsx'
 import Stage5CallGuide from './Stage5CallGuide.jsx'
 import B10StampImpactOverlay from './B10StampImpactOverlay.jsx'
+import WaveDebutToast from './WaveDebutToast.jsx'
 import Stage6HudCues from './Stage6HudCues.jsx'
 import Stage6Programme from './Stage6Programme.jsx'
 import { useStage6ClearPanelHold } from './useStage6ClearPanelHold.js'
@@ -1718,6 +1719,14 @@ export default function HUD({
       <StageVendingPrompt />
       <MissionCompleteToast
         hidden={phase !== 'playing' || bossWarning != null || e04IntroWarning != null || matildaWarning != null || formationWarning != null || questInventoryOpen}
+      />
+      <WaveDebutToast
+        gameKey={gameKey}
+        hidden={phase !== 'playing' || !Number.isFinite(player.hp) || player.hp <= 0
+          || !!studentDialogue || !!introDialogue || !!questToast || questInventoryOpen
+          || bossWarning != null || e04IntroWarning != null || matildaWarning != null || formationWarning != null
+          || showMatildaDialogue || portalFlash || !!recentMilestone
+          || isTitleReturnConfirmOpen || (devToolsVisible && weaponCheatOpen)}
       />
 
       {devToolsVisible && weaponCheatOpen && (phase === 'playing' || phase === 'paused') && (

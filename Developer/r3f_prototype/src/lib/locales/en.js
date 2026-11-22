@@ -5,6 +5,17 @@ const CONTACT_EMAIL = 'zard5388@gmail.com'
 const EFFECTIVE_DATE = 'October 29, 2026'
 
 export default {
+  // 웨이브 특수 첫 등장 자막 역할 줄(lib/waveDebutNotice.js, 2026-11-22).
+  'waveDebut.role.tank': 'Tank · Very tough',
+  'waveDebut.role.rush': 'Rusher · Charges fast',
+  'waveDebut.role.ranged': 'Ranged · Attacks from afar',
+  'waveDebut.role.zone': 'Zone · Floor hazard',
+  'waveDebut.role.ambush': 'Ambush · Hides, then pops out',
+  'waveDebut.role.support': 'Support · Buffs allies',
+  'waveDebut.role.split': 'Splitter · Splits apart',
+  'waveDebut.role.disrupt': 'Disruptor · Gets in your way',
+  'waveDebut.role.melee': 'Melee skill · Dangerous up close',
+  'waveDebut.role.formation': 'Formation · Comes as a group',
   'stage4Guide.orientation': 'North: cooking / sink',
   'stage4Guide.orientationSouth': 'Center: pot · South: serving / students',
   'stage4Guide.markers': 'Fixed solid pot ring · Blasts every 15s',
