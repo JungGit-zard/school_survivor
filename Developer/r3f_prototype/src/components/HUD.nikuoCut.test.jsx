@@ -6,7 +6,13 @@ import { createRoot } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import HUD from './HUD.jsx'
 import { NIKUO_CUT_LINES, NIKUO_CUT_STAGE_ID, NIKUO_FAIL_LINE, NIKUO_WHITEOUT_MS } from './NikuoCut.jsx'
-import { SLTERA_RUN_EXIT_MESSAGE, SLTERA_RUN_SRC, readSlteraRunResult } from './SlteraRunOverlay.jsx'
+import SlteraRunOverlay, {
+  SLTERA_RUN_EXIT_MESSAGE,
+  SLTERA_RUN_READY_MESSAGE,
+  SLTERA_RUN_READY_TIMEOUT_MS,
+  SLTERA_RUN_SRC,
+  readSlteraRunResult,
+} from './SlteraRunOverlay.jsx'
 import { useGameStore } from '../store/useGameStore.js'
 import { useAuthStore } from '../store/useAuthStore.js'
 import { _resetFirebaseProgressForTests, _seedHydratedFirebaseProgressForTests } from '../lib/firebaseProgress.js'
@@ -170,17 +176,22 @@ describe('Stage 3 clear: Nikuo arrives in the Sltera', () => {
     expect(frame.getAttribute('src')).toBe(SLTERA_RUN_SRC)
     expect(SLTERA_RUN_SRC).toContain('course=gym-to-cafeteria')
     expect(SLTERA_RUN_SRC).toContain('embed=1')
+    // Cloudflare Pages의 /index.html → / 리다이렉트를 피한다.
+    expect(SLTERA_RUN_SRC.startsWith('/minigame/sltera-run/?')).toBe(true)
+    expect(SLTERA_RUN_SRC).not.toContain('index.html')
     expect(q('escape-success-screen').getAttribute('aria-hidden')).toBe('true')
     expect(onGoToLobby).not.toHaveBeenCalled()
 
     // 다른 출처·다른 타입 메시지는 무시한다.
-    act(() => window.dispatchEvent(new MessageEvent('message', { data: { type: SLTERA_RUN_EXIT_MESSAGE, kills: 9 }, origin: 'https://evil.example' })))
-    act(() => window.dispatchEvent(new MessageEvent('message', { data: { type: 'other' }, origin: window.location.origin })))
+    const source = frame.contentWindow
+    act(() => window.dispatchEvent(new MessageEvent('message', { data: { type: SLTERA_RUN_EXIT_MESSAGE, kills: 9 }, origin: 'https://evil.example', source })))
+    act(() => window.dispatchEvent(new MessageEvent('message', { data: { type: 'other' }, origin: window.location.origin, source })))
     expect(q('sltera-run-overlay')).not.toBeNull()
 
     act(() => window.dispatchEvent(new MessageEvent('message', {
       data: { type: SLTERA_RUN_EXIT_MESSAGE, kills: 12, arrived: true },
       origin: window.location.origin,
+      source,
     })))
     expect(q('sltera-run-overlay')).toBeNull()
     expect(finalize).toHaveBeenCalledTimes(1)
@@ -197,6 +208,7 @@ describe('Stage 3 clear: Nikuo arrives in the Sltera', () => {
     act(() => window.dispatchEvent(new MessageEvent('message', {
       data: { type: SLTERA_RUN_EXIT_MESSAGE, ...data },
       origin: window.location.origin,
+      source: q('sltera-run-frame').contentWindow,
     })))
   }
 
@@ -257,5 +269,62 @@ describe('Stage 3 clear: Nikuo arrives in the Sltera', () => {
     advanceToChoice()
     act(() => q('nikuo-cut-no').click())
     expect(onGoToLobby).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('Sltera run overlay: load failure escape hatch', () => {
+  function renderOverlay() {
+    const onExit = vi.fn()
+    act(() => root.render(<SlteraRunOverlay onExit={onExit} />))
+    return onExit
+  }
+  const post = (data, extra = {}) => act(() => window.dispatchEvent(new MessageEvent('message', {
+    data,
+    origin: window.location.origin,
+    source: q('sltera-run-frame').contentWindow,
+    ...extra,
+  })))
+
+  it('shows 「학교로 돌아가기」 after 8 s without ready; it exits once with 0 kills', () => {
+    const onExit = renderOverlay()
+    act(() => vi.advanceTimersByTime(SLTERA_RUN_READY_TIMEOUT_MS - 1))
+    expect(q('sltera-run-fallback-exit')).toBeNull()
+    act(() => vi.advanceTimersByTime(1))
+    const btn = q('sltera-run-fallback-exit')
+    expect(btn).not.toBeNull()
+    expect(btn.textContent).toBe('학교로 돌아가기')
+    expect(parseInt(btn.style.minHeight, 10)).toBeGreaterThanOrEqual(44)
+    act(() => btn.click())
+    act(() => btn.click())
+    post({ type: SLTERA_RUN_EXIT_MESSAGE, kills: 4, arrived: true })
+    expect(onExit).toHaveBeenCalledTimes(1)
+    expect(onExit).toHaveBeenCalledWith({ kills: 0, arrived: false })
+  })
+
+  it('the ready message cancels the fallback button', () => {
+    const onExit = renderOverlay()
+    act(() => vi.advanceTimersByTime(1000))
+    post({ type: SLTERA_RUN_READY_MESSAGE })
+    act(() => vi.advanceTimersByTime(SLTERA_RUN_READY_TIMEOUT_MS * 2))
+    expect(q('sltera-run-fallback-exit')).toBeNull()
+    expect(onExit).not.toHaveBeenCalled()
+  })
+
+  it('ignores exit/ready messages that do not come from the racer iframe', () => {
+    const onExit = renderOverlay()
+    post({ type: SLTERA_RUN_READY_MESSAGE }, { source: window })
+    post({ type: SLTERA_RUN_EXIT_MESSAGE, kills: 9 }, { source: window })
+    post({ type: SLTERA_RUN_EXIT_MESSAGE, kills: 9 }, { source: null })
+    expect(onExit).not.toHaveBeenCalled()
+    act(() => vi.advanceTimersByTime(SLTERA_RUN_READY_TIMEOUT_MS))
+    expect(q('sltera-run-fallback-exit')).not.toBeNull()
+  })
+
+  it('fires onExit only once even if the racer posts exit twice (error + button)', () => {
+    const onExit = renderOverlay()
+    post({ type: SLTERA_RUN_EXIT_MESSAGE, kills: 2, arrived: false })
+    post({ type: SLTERA_RUN_EXIT_MESSAGE, kills: 7, arrived: true })
+    expect(onExit).toHaveBeenCalledTimes(1)
+    expect(onExit).toHaveBeenCalledWith({ kills: 2, arrived: false })
   })
 })

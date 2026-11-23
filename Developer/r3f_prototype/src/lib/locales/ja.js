@@ -599,6 +599,7 @@ export default {
   'hud.nikuoCut.yes': '乗る',
   'hud.nikuoCut.no': '乗らない',
   'hud.slteraRun.title': 'スルテラ・コーストラン',
+  'hud.slteraRun.backToSchool': '学校に戻る',
   'hud.allWeapons': 'すべての武器',
   'hud.weaponCheat': '武器チート',
   'hud.summonMatilda': 'マチルダを召喚',

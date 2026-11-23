@@ -598,6 +598,7 @@ export default {
   'hud.nikuoCut.yes': '탑니다',
   'hud.nikuoCut.no': '타지 않습니다',
   'hud.slteraRun.title': '슬테라 코스트 런',
+  'hud.slteraRun.backToSchool': '학교로 돌아가기',
   'hud.allWeapons': '모든 무기',
   'hud.weaponCheat': '무기 치트',
   'hud.summonMatilda': '마틸다 소환',

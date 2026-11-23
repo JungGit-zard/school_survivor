@@ -17,4 +17,17 @@ describe('embedded Sltera run', () => {
   it('sends kills and arrival with the exit message', () => {
     expect(html).toMatch(/postMessage\(\{ type: 'sltera-run:exit', kills: state\.kills, arrived: state\.overReason === 'clear' \}/)
   })
+
+  it('tells the parent it is ready after the first rendered frame (embed only)', () => {
+    expect(html).toContain("if (!readySent) { readySent = true; window.__slteraReady = true; if (EMBED) { try { parent.postMessage({ type: 'sltera-run:ready' }, location.origin)")
+  })
+
+  it('in embed mode, a load/runtime error posts the normal exit message once (no player stuck on black)', () => {
+    const guard = html.slice(0, html.indexOf('<script type="module">'))
+    expect(guard).toContain("get('embed') !== '1'")
+    expect(guard).toContain("window.addEventListener('error', bail, true)")
+    expect(guard).toContain("window.addEventListener('unhandledrejection', bail)")
+    expect(guard).toMatch(/if \(sent \|\| window\.__slteraReady\) return;\s*sent = true;/)
+    expect(guard).toContain("postMessage({ type: 'sltera-run:exit', kills, arrived: false }, location.origin)")
+  })
 })

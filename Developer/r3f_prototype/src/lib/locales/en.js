@@ -599,6 +599,7 @@ export default {
   'hud.nikuoCut.yes': 'Get in',
   'hud.nikuoCut.no': 'No thanks',
   'hud.slteraRun.title': 'Sltera Coast Run',
+  'hud.slteraRun.backToSchool': 'Back to School',
   'hud.allWeapons': 'All weapons',
   'hud.weaponCheat': 'Weapon cheat',
   'hud.summonMatilda': 'Summon Matilda',

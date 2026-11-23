@@ -30,7 +30,7 @@ describe('GameCanvas reset ownership', () => {
 
   it('freezes the Matilda contact frame and greys it immediately without changing other gameovers', () => {
     expect(source).toContain("const isMatildaContactDeath = phase === 'gameover' && deathCause === 'matilda'")
-    expect(source).toContain("frameloop={isMatildaContactDeath || warmupPending ? 'never' : 'always'}")
+    expect(source).toContain("frameloop={isMatildaContactDeath || warmupPending || racerOverlayOpen ? 'never' : 'always'}")
     expect(source).toContain("filter: isMatildaContactDeath ? 'grayscale(1)' : 'none'")
   })
 

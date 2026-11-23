@@ -173,6 +173,25 @@
   </div>
 </div>
 
+<script>
+// embed(본게임 iframe) 실패 탈출: 모듈 로드 실패(404)·WebGL 실패·처리 안 된 오류가 나면 부모에게 exit을 한 번만 보낸다.
+(() => {
+  if (new URLSearchParams(location.search).get('embed') !== '1' || window.parent === window) return;
+  let sent = false;
+  const bail = (ev) => {
+    // 이미지 같은 리소스 실패는 무시하고 스크립트 실패와 실행 오류만 본다.
+    if (ev && ev.type === 'error' && ev.target && ev.target !== window && ev.target.tagName !== 'SCRIPT') return;
+    // 첫 화면이 그려진 뒤(ready)의 오류는 무시한다 — 멀쩡히 달리는 판을 사소한 오류로 끊지 않는다.
+    if (sent || window.__slteraReady) return;
+    sent = true;
+    let kills = 0;
+    try { kills = Number(window.__slteraRunKills?.()) || 0; } catch (err) { kills = 0; }
+    try { parent.postMessage({ type: 'sltera-run:exit', kills, arrived: false }, location.origin); } catch (err) { /* standalone */ }
+  };
+  window.addEventListener('error', bail, true);
+  window.addEventListener('unhandledrejection', bail);
+})();
+</script>
 <script src="audio.js"></script>
 <script type="importmap">
 { "imports": {
@@ -2301,10 +2320,13 @@ function resumeGame() {
 }
 function togglePause() { if (paused) resumeGame(); else pauseGame(); }
 const clock = new THREE.Clock();
+let readySent = false;
 function frame() {
   const dt = Math.min(0.05, clock.getDelta());
   if (!paused) update(dt);
   renderer.render(scene, camera);
+  // 첫 프레임이 그려지면 부모(본게임)에 준비 완료를 알린다 — 부모의 8초 탈출 버튼을 끈다.
+  if (!readySent) { readySent = true; window.__slteraReady = true; if (EMBED) { try { parent.postMessage({ type: 'sltera-run:ready' }, location.origin); } catch (err) { /* opaque origin */ } } }
 }
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) {
@@ -2321,6 +2343,7 @@ const EMBED = PARAMS.get('embed') === '1';
 if (EMBED || PARAMS.get('course') === 'gym-to-cafeteria') selStage = 3;
 function exitToSchool() { try { parent.postMessage({ type: 'sltera-run:exit', kills: state.kills, arrived: state.overReason === 'clear' }, location.origin); } catch (err) { /* opaque origin (file://) */ } }
 for (const id of ['exitBtn', 'pExitBtn']) $(id).addEventListener('click', exitToSchool);
+if (EMBED) window.__slteraRunKills = () => state.kills; // 실패 탈출 스크립트가 현재 처치 수를 읽는다
 document.body.classList.toggle('embed', EMBED);
 applyStage(selStage);
 resetGame();

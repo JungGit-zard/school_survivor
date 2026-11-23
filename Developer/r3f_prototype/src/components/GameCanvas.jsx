@@ -22,6 +22,7 @@ import Wave3bMotionLayer from './Wave3bMotionLayer.jsx'
 import PooledEnemyProjectileLayer from './PooledEnemyProjectileLayer.jsx'
 import StageEntryRuntimeDiagnostics, { isStageEntryWarmupPending, subscribeStageEntryWarmup } from './StageEntryRuntimeDiagnostics.jsx'
 import { useGameStore } from '../store/useGameStore.js'
+import { isRacerOverlayOpen, subscribeRacerOverlay } from '../lib/racerOverlayState.js'
 import { EXPANSION_STAGE_VISUALS } from '../lib/expansionVisuals.js'
 import { t } from '../lib/i18n.js'
 
@@ -71,6 +72,8 @@ export default function GameCanvas({ gameKey, phase }) {
   // 스테이지 진입 셰이더 예열(StageEntryRuntimeDiagnostics)이 끝날 때까지 프레임 루프를 멈춘다 — 게임 시간·물리·렌더가
   // 모두 멈춘 채 로딩 화면이 덮고, 예열이 끝나면 첫 렌더가 링크 대기 없이 바로 그려진다.
   const warmupPending = useSyncExternalStore(subscribeStageEntryWarmup, () => isStageEntryWarmupPending(gameKey))
+  // 슬테라 레이서 iframe(자체 WebGL)이 떠 있는 동안 게임 렌더를 멈춘다 — 폰에서 WebGL 두 개가 동시에 돌지 않게.
+  const racerOverlayOpen = useSyncExternalStore(subscribeRacerOverlay, isRacerOverlayOpen)
 
   return (
     <>
@@ -83,7 +86,7 @@ export default function GameCanvas({ gameKey, phase }) {
       dpr={[1, 1.5]}
       shadows
       gl={{ stencil: true }}
-      frameloop={isMatildaContactDeath || warmupPending ? 'never' : 'always'}
+      frameloop={isMatildaContactDeath || warmupPending || racerOverlayOpen ? 'never' : 'always'}
       style={{ width: '100%', height: '100%', background: canvasBackground, display: 'block', filter: isMatildaContactDeath ? 'grayscale(1)' : 'none' }}
     >
       {import.meta.env.DEV && <DevQaHandle />}
