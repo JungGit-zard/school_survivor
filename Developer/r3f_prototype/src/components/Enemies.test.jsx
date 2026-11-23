@@ -1091,13 +1091,15 @@ describe('all zombie HP follows the cumulative 1.2x-per-stage curve', () => {
       'E89', 'E90', 'E91', 'E92', 'E93', 'E94', 'E95', 'E96', 'E97', 'E98', 'E99', 'E100', 'E101', 'E102', 'E103', 'E104', 'E105', 'E106',
       // 2026-11-22 RDZ 도로 좀비(Sltera 레이서 좀비 이식, typeCode 112) = E01 수치 그대로라 같은 곡선을 탄다.
       'RDZ',
+      // 2026-11-24 크리스마스 한정 산타 XSG·XSL(lib/santaEvent.js): 스테이지 무관 고정 HP라 아래 루프에서 E105처럼 따로 다룬다.
+      'XSG', 'XSL',
     ])
     const stageMultipliers = { stage1: 1, stage2: 1.2, stage3: 1.44, stage4: 1.728, stage5: 1.2 ** 4 }
     for (const [stageId, multiplier] of Object.entries(stageMultipliers)) {
       for (const [type, stats] of Object.entries(ENEMY_STATS).filter(([id])=>!/^E(?:19|2[0-9]|3[0-3])$|^B0[5-9]$/.test(id))) {
         const expectedHp = Math.round(stats.hp * multiplier)
         expect(sameTypeZombieHpForStage(stats.hp, stageId)).toBe(expectedHp)
-        if (type === 'E105' || type === 'E104' || type === 'E106') { expect(stageHpOverride(type, stageId)).toBeUndefined(); continue }
+        if (type === 'E105' || type === 'E104' || type === 'E106' || type === 'XSG' || type === 'XSL') { expect(stageHpOverride(type, stageId)).toBeUndefined(); continue }
         expect(stageHpOverride(type, stageId)).toEqual(stageId === 'stage1' ? undefined : { hp: expectedHp })
       }
     }

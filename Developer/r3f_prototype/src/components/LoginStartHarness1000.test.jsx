@@ -11,6 +11,7 @@ vi.mock('@react-three/fiber', () => ({
   Canvas: ({ children }) => <div data-testid="mock-canvas">{children}</div>,
 }))
 
+vi.mock('./TitleSnow.jsx', () => ({ default: () => null }))
 vi.mock('./TitleScene3D.jsx', () => ({
   default: () => <div data-testid="mock-title-scene" />,
 }))

@@ -694,6 +694,9 @@ export default {
   'zombie.E104': '공굴리기 대장 좀비',
   'zombie.E105': '2인3각 좀비',
   'zombie.E106': '기마전 좀비',
+  // 크리스마스 한정 산타 좀비(lib/santaEvent.js, 2026-11-24). 도감·조우 저장 밖(규칙 허용 목록 미등록) — 이름만 둔다.
+  'zombie.XSG': '산타 좀비',
+  'zombie.XSL': '썰매 산타',
   'hud.chief.badge': '치프',
   'missions.title': '미션 센터',
   'missions.subtitle': '평소처럼 플레이하면 미션이 완료돼요. 보상을 받으면 다음 미션이 열려요.',

@@ -23,6 +23,10 @@ vi.mock('./TitleScene3D.jsx', () => ({
   },
 }))
 
+vi.mock('./TitleSnow.jsx', () => ({
+  default: ({ reducedMotion }) => <div data-testid="title-snow" data-reduced-motion={String(reducedMotion)} />,
+}))
+
 const { default: TitleSceneCanvas } = await import('./TitleSceneCanvas.jsx')
 
 describe('TitleSceneCanvas is fully detached from Firebase', () => {
@@ -62,6 +66,57 @@ describe('TitleSceneCanvas is fully detached from Firebase', () => {
       vi.useRealTimers()
       vi.unstubAllGlobals()
     }
+  })
+
+  // 2026-11-24 Terry: 타이틀 눈은 2027-02-20(현지)까지. 그 뒤로는 눈 컴포넌트가 아예 없다.
+  it('mounts the title snow while the season is active and unmounts it with the title', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date(2027, 1, 20, 23, 59, 0, 0))
+    const container = document.createElement('div')
+    document.body.appendChild(container)
+    const root = createRoot(container)
+    await act(async () => {
+      root.render(<TitleSceneCanvas />)
+    })
+    const snow = container.querySelector('[data-testid="title-snow"]')
+    expect(snow).not.toBeNull()
+    expect(snow.getAttribute('data-reduced-motion')).toBe('false')
+    expect(container.querySelector('[data-testid="title-scene-3d"]')).not.toBeNull()
+    act(() => root.unmount())
+    expect(container.querySelector('[data-testid="title-snow"]')).toBeNull()
+  })
+
+  it('renders no snow at all from 2027-02-21 local, leaving the title as before', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date(2027, 1, 21, 0, 0, 0, 0))
+    const container = document.createElement('div')
+    document.body.appendChild(container)
+    const root = createRoot(container)
+    await act(async () => {
+      root.render(<TitleSceneCanvas />)
+    })
+    expect(container.querySelector('[data-testid="title-snow"]')).toBeNull()
+    expect(container.querySelector('[data-testid="title-scene-3d"]')).not.toBeNull()
+    act(() => root.unmount())
+  })
+
+  it('passes reduced motion to the snow so it stands still', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date(2026, 10, 24, 12, 0, 0, 0))
+    vi.stubGlobal('matchMedia', (query) => ({
+      matches: query === '(prefers-reduced-motion: reduce)',
+      addEventListener: () => {},
+      removeEventListener: () => {},
+    }))
+    sceneMock.invalidate = vi.fn()
+    const container = document.createElement('div')
+    document.body.appendChild(container)
+    const root = createRoot(container)
+    await act(async () => {
+      root.render(<TitleSceneCanvas />)
+    })
+    expect(container.querySelector('[data-testid="title-snow"]').getAttribute('data-reduced-motion')).toBe('true')
+    act(() => root.unmount())
   })
 
   it('mounts TitleScene3D synchronously and unconditionally, with no Studio readiness prop left in the title path', async () => {

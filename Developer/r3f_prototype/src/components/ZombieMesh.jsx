@@ -17,6 +17,7 @@ import { PROJECTILE_ZOMBIE_PALETTE_ENTRIES } from '../lib/projectileZombieVisual
 import { BLOCKY_ZOMBIE_PALETTE_ENTRIES } from '../lib/blockyZombieRoster.js'
 import { NOVEL2_PALETTE_ENTRIES } from '../lib/novelZombie2Visuals.js'
 import { ROAD_ZOMBIE_PALETTE, ROAD_ZOMBIE_TYPE } from '../lib/roadZombieRoster.js'
+import SantaZombieMesh, { SANTA_ZOMBIE_PALETTE_ENTRIES, isSantaZombieType } from './SantaZombieMeshes.jsx'
 
 const disableRaycast = () => null
 export const ZOMBIE_CHARACTER_CHAMFER_STEPS = 1
@@ -65,6 +66,8 @@ export const ZOMBIE_PALETTE = {
   ...NOVEL2_PALETTE_ENTRIES,
   // RDZ 도로 좀비(Sltera 레이서 좀비 이식). 게임 몸통은 ZombieInstanceLayer STANDARD 슬롯 + 룩 소품이 그린다.
   [ROAD_ZOMBIE_TYPE]: ROAD_ZOMBIE_PALETTE,
+  // 크리스마스 한정 산타 좀비 XSG(선물보따리)·XSL(루돌프 썰매). 몸통은 SantaZombieMeshes.jsx 전용 메시.
+  ...SANTA_ZOMBIE_PALETTE_ENTRIES,
 }
 
 // 공용 박스 좀비의 신발 색. 공유 박스 트리와 신규 포즈형이 같은 상수를 쓴다.
@@ -1444,6 +1447,13 @@ export default function ZombieMesh({ type = 'E01', animPhase = 'normal', hitFlas
         <ProceduralFaceTestZombie />
       </StudioTunedGroup>
     )
+  }
+
+  // 크리스마스 한정 산타 좀비(XSG 선물보따리 · XSL 루돌프 썰매): 파트별 병합 지오메트리 전용 메시.
+  // 풀 경로에서는 SantaZombieLayer가 같은 메시를 그린다. 여기(특수 적·프리뷰 경로)에서는 바깥 그룹이
+  // 플레이어 쪽을 볼 수도 있으므로 메시가 스스로 이동 방향을 본다(orientToTravel).
+  if (isSantaZombieType(type)) {
+    return <SantaZombieMesh type={type} hitFlash={hitFlash} animPhase={animPhase} staticPose={staticPose} orientToTravel />
   }
 
   if (type === 'E08') {

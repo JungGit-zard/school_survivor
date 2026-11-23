@@ -19,12 +19,13 @@ import { isKnownZombieType } from './zombieEncyclopedia.js'
 const E01 = ENEMY_TYPE_CODES.E01
 
 describe('RDZ road zombie registration', () => {
-  it('sits at typeCode 112, the end of the type table, and round-trips', () => {
+  it('sits at typeCode 112 (followed only by the santa codes) and round-trips', () => {
     expect(ROAD_ZOMBIE_TYPE).toBe('RDZ')
     expect(ENEMY_TYPE_CODES.RDZ).toBe(112)
     expect(ROAD_ZOMBIE_TYPE_CODE).toBe(112)
     expect(ENEMY_TYPE_NAMES[112]).toBe('RDZ')
-    expect(ENEMY_TYPE_NAMES.length).toBe(113)
+    // 2026-11-24: 113·114 = 크리스마스 산타 XSG·XSL이 RDZ 뒤에 붙었다(lib/santaEvent.js). RDZ 자리는 그대로다.
+    expect(ENEMY_TYPE_NAMES.length).toBe(115)
     expect(enemyTypeFromCode(112)).toBe('RDZ')
     // the novel2 set before it is untouched
     expect(ENEMY_TYPE_NAMES[111]).toBe('E106')

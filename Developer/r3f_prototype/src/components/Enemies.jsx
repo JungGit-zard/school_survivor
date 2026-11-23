@@ -68,6 +68,8 @@ import {
 import { recordZombieEncounter } from '../lib/zombieEncyclopedia.js'
 import { announceWaveSpecialSpawn } from '../lib/waveDebutNotice.js'
 import { ROAD_ZOMBIE_TYPE_CODE } from '../lib/roadZombieRoster.js'
+// 크리스마스 한정 산타 좀비 XSG·XSL(2026-11-24, ~12-25 로컬). 기간·무대·스폰 초·수치 정본은 lib/santaEvent.js.
+import { SANTA_GIFT_TYPE, SANTA_GIFT_TYPE_CODE, SANTA_KILL_BONUS, SANTA_SLEIGH_TYPE, SANTA_SLEIGH_TYPE_CODE, getSantaRuntimeEvents, isSantaEvent, isSantaType } from '../lib/santaEvent.js'
 import { KNOCK_FLIGHT_DEATH_STYLE, knockFlightDeathPool, spawnKnockFlightDeath } from '../lib/knockFlightDeath.js'
 import { BOSS_TELEGRAPH_LEAD_SEC, LOW_DENSITY_ENEMY_THRESHOLD, advanceSpawnCatchUp, createSpawnCatchUpState, publishSpawnCatchUpOffsetSec, resetSpawnCatchUpState } from '../lib/spawnCatchUp.js'
 import { LOW_DENSITY_REINFORCEMENT_ENTRIES, advanceLowDensityReinforcement, createLowDensityReinforcementState, finishLowDensityReinforcement, resetLowDensityReinforcementState } from '../lib/lowDensityReinforcement.js'
@@ -110,6 +112,9 @@ export const ELITE_BONUS = {
   E06: { textbook: 1, gold: 1 },
   // E08 코인 몬스터는 일반 확률 드롭 대신 코인 10개를 확정 산포한다.
   E08: { textbook: 0, gold: 10 },
+  // 크리스마스 한정 산타 좀비(XSG 선물보따리·XSL 썰매): 처치 시 골드 코인 정확히 2개(Terry 2026-11-24).
+  [SANTA_GIFT_TYPE]: SANTA_KILL_BONUS,
+  [SANTA_SLEIGH_TYPE]: SANTA_KILL_BONUS,
   B01: { textbook: 3, textbookXp: 40, gold: 5 },
   B02: { textbook: 3, textbookXp: 40, gold: 5 },
   B03: { textbook: 3, textbookXp: 40, gold: 5 },
@@ -382,9 +387,10 @@ export function isInsideGroundView(x, z, view, inset = GAME_CAMERA_EDGE_INSET_FR
   return Math.abs(x - (view.minX + view.maxX) / 2) <= half
 }
 
-export function coinMonsterSpawnPos(bounds, taken = [], random = Math.random, obstacles = [], view = screenBounds) {
-  const y = BASE_COL_Y * (ENEMY_STATS.E08?.scale ?? 1) * ENEMY_SIZE_MULTIPLIER
-  const ok = (pos) => isInsideGroundView(pos[0], pos[2], view) && isValidSpawnPosition(pos, 'E08', bounds, taken, obstacles)
+// type: 같은 '화면 안 배회 → 감지 시 도주' 몸을 쓰는 XSG 산타 좀비(선물보따리)도 이 자리 찾기를 그대로 쓴다.
+export function coinMonsterSpawnPos(bounds, taken = [], random = Math.random, obstacles = [], view = screenBounds, type = 'E08') {
+  const y = BASE_COL_Y * (ENEMY_STATS[type]?.scale ?? 1) * ENEMY_SIZE_MULTIPLIER
+  const ok = (pos) => isInsideGroundView(pos[0], pos[2], view) && isValidSpawnPosition(pos, type, bounds, taken, obstacles)
   for (let i = 0; i < E08_SPAWN_TRIES; i++) {
     const offset = randomPointOnSpawnRing(E08_SPAWN_MIN_RADIUS, SPAWN_MAX_RADIUS, random)
     const pos = [playerPos.x + offset.x, y, playerPos.z + offset.z]
@@ -399,6 +405,7 @@ export function coinMonsterSpawnPos(bounds, taken = [], random = Math.random, ob
 
 export function spawnPosForBurstType(type, bounds, taken = [], random = Math.random, obstacles = []) {
   if (type === 'E08') return coinMonsterSpawnPos(bounds, taken, random, obstacles)
+  if (type === SANTA_GIFT_TYPE) return coinMonsterSpawnPos(bounds, taken, random, obstacles, screenBounds, SANTA_GIFT_TYPE)
   return type === 'E04'
     ? rangedSpawnPos(bounds, taken, random, obstacles)
     : randomSpawnPos(type, bounds, taken, random, obstacles)
@@ -620,13 +627,10 @@ const RUN_ZOMBIE_CREW_LEADER_GAP = 1.28
 const RUN_ZOMBIE_CREW_ROW_GAP = 0.92
 const RUN_ZOMBIE_CREW_MAX_TRAIL = RUN_ZOMBIE_CREW_LEADER_GAP + Math.floor((RUN_ZOMBIE_CREW_SIZE - 2) / 2) * RUN_ZOMBIE_CREW_ROW_GAP
 
-export function createRunZombieCrewEntries(bounds, random = Math.random, obstacles = [], player = null, visibleBounds = null) {
+// 크루 리더(와 XSL 썰매 산타)의 시작점: 화면 위 가장자리 바로 바깥, 플레이어 X ± 레인 폭. random()을 정확히 1번 쓴다.
+// maxTrail = 리더 뒤로 늘어서는 길이(despawn 선 |z| > halfZ+6 안에 맨 뒤가 들도록 시작 Z를 클램프한다).
+export function runZombieCrewLeaderStart(bounds, random = Math.random, player = null, visibleBounds = null, maxTrail = RUN_ZOMBIE_CREW_MAX_TRAIL) {
   const limX = bounds.halfX - SPAWN_INSET
-  const dirLen = Math.hypot(RUN_ZOMBIE_CREW_DIR.x, RUN_ZOMBIE_CREW_DIR.z) || 1
-  const nx = RUN_ZOMBIE_CREW_DIR.x / dirLen
-  const nz = RUN_ZOMBIE_CREW_DIR.z / dirLen
-  const px = -nz
-  const pz = nx
   const hasView = visibleBounds && Number.isFinite(visibleBounds.minZ) && Number.isFinite(visibleBounds.minX) && Number.isFinite(visibleBounds.maxX)
   const playerX = Number.isFinite(player?.x) ? player.x : (hasView ? (visibleBounds.minX + visibleBounds.maxX) * 0.5 : 0)
   // 화면 위 가장자리(-z). 화면 정보가 없으면 플레이어 기준 기본 카메라 시야로, 플레이어도 없으면 맵 위끝으로 둔다.
@@ -635,8 +639,18 @@ export function createRunZombieCrewEntries(bounds, random = Math.random, obstacl
     : (Number.isFinite(player?.z) ? player.z - getGameplayGroundReach(30, 1).reachUp : -bounds.halfZ)
   const laneOffset = (random() * 2 - 1) * RUN_ZOMBIE_CREW_LANE_SPREAD
   const startX = Math.max(-limX, Math.min(limX, playerX + laneOffset))
-  const minLeaderZ = -bounds.halfZ - 6 + 0.5 + RUN_ZOMBIE_CREW_MAX_TRAIL
+  const minLeaderZ = -bounds.halfZ - 6 + 0.5 + maxTrail
   const startZ = Math.max(minLeaderZ, viewTopZ - RUN_ZOMBIE_CREW_TOP_MARGIN)
+  return { x: startX, z: startZ }
+}
+
+export function createRunZombieCrewEntries(bounds, random = Math.random, obstacles = [], player = null, visibleBounds = null) {
+  const dirLen = Math.hypot(RUN_ZOMBIE_CREW_DIR.x, RUN_ZOMBIE_CREW_DIR.z) || 1
+  const nx = RUN_ZOMBIE_CREW_DIR.x / dirLen
+  const nz = RUN_ZOMBIE_CREW_DIR.z / dirLen
+  const px = -nz
+  const pz = nx
+  const { x: startX, z: startZ } = runZombieCrewLeaderStart(bounds, random, player, visibleBounds)
 
   const entries = []
   for (let i = 0; i < RUN_ZOMBIE_CREW_SIZE; i += 1) {
@@ -688,6 +702,13 @@ export function createRunZombieCrewEntries(bounds, random = Math.random, obstacl
     })
   }
   return entries
+}
+
+// XSL 썰매 산타(루돌프가 끄는 썰매, 한 몸): 런좀비 크루 리더와 같은 시작점·같은 방향(화면 위 → 아래 종단)·같은 러너 경로.
+// 크루와 달리 뒤따르는 몸이 없어 maxTrail 0. 소품은 시뮬레이션이 통과시키므로(ignoresObstacles) 자리 검사도 필요 없다.
+export function createSantaSleighEntry(bounds, random = Math.random, player = null, visibleBounds = null) {
+  const start = runZombieCrewLeaderStart(bounds, random, player, visibleBounds, 0)
+  return { type: SANTA_SLEIGH_TYPE, pos: [start.x, FORMATION_Y, start.z], runCrewDir: RUN_ZOMBIE_CREW_DIR, runCrewRole: 'sleigh' }
 }
 
 // 웨이브 타임라인 기본값 정본은 lib/waveTimelines.js로 이동(2026-07-04) —
@@ -1173,7 +1194,8 @@ export function stageJarmobLoadWindows(stageId, windowSec = 20, totalSec = 240) 
 }
 
 export function stageHpOverride(type, stageId) {
-  if (isExpansionEnemy(type) || isExpansionBoss(type) || isNovel2AbsoluteHp(type)) return undefined
+  // 산타(XSG·XSL)는 스테이지와 무관한 고정 HP다 — 어느 스테이지든 초반 무기로 잡히는 보너스 몸(lib/santaEvent.js).
+  if (isExpansionEnemy(type) || isExpansionBoss(type) || isNovel2AbsoluteHp(type) || isSantaType(type)) return undefined
   const base = ENEMY_STATS[type]
   if (!base) return undefined
   const hp = sameTypeZombieHpForStage(base.hp, stageId)
@@ -1332,7 +1354,8 @@ export function isPooledEnemyType(type) {
   // Track B 신규 12종(37~48)도 풀 경로다 — 특수 적 경로는 동시 3마리가 상한이라
   // 여기서 빠지면 네 번째부터 조용히 스폰이 버려진다.
   return (code >= 1 && code <= STANDARD_POOL_TYPE_MAX || isExpansionEnemy(type) || isNovelZombieType(code) || isProjectileZombieType(code)
-    || isNovel2ImplementedTypeCode(code) || code === ROAD_ZOMBIE_TYPE_CODE)
+    || isNovel2ImplementedTypeCode(code) || code === ROAD_ZOMBIE_TYPE_CODE
+    || code === SANTA_GIFT_TYPE_CODE || code === SANTA_SLEIGH_TYPE_CODE)
     && !isBossType(type)
 }
 
@@ -1400,6 +1423,8 @@ export function nextPendingSpawnSec(burstEvents, firedFlags, scheduledRepeatTick
     const evt = events[index]
     if (!evt) continue
     if (isBossType(evt.type)) continue
+    // 산타 보너스 행은 빈 화면 캐치업의 목표가 되지 않는다 — 기간 중에도 일반 웨이브 템포는 오늘과 같다.
+    if (isSantaEvent(evt)) continue
     if (isRepeatingBurstEvent(evt)) {
       const scheduled = scheduledRepeatTicks?.[index] ?? -1
       const tickSec = repeatingBurstSecAtTick(evt, scheduled + 1)
@@ -1658,7 +1683,8 @@ export default function Enemies() {
       gameKey,
       spawnToken: stageSpawnTokenRef.current,
       bounds,
-      burstEvents: getRuntimeSpawnEventsForStage(currentStageId),
+      // 크리스마스 한정 산타 행(lib/santaEvent.js)은 기간(로컬 ~12-25) + 스테이지 1~6일 때만 끝에 붙는다. 기간 밖이면 빈 배열.
+      burstEvents: getRuntimeSpawnEventsForStage(currentStageId).concat(getSantaRuntimeEvents(currentStageId)),
       obstacles: stageObstacles,
       rangedBlockers,
       stageConfig: getStageConfig(currentStageId),
@@ -1886,7 +1912,8 @@ export default function Enemies() {
   const spawnPooledEnemy = useCallback((entry) => {
     const stats = { ...(ENEMY_STATS[entry.type] ?? ENEMY_STATS.E01), ...(entry.statOverride ?? {}) }
     // Stage 6: 큐에서 나오는 순간 화면 안이 된 좌표는 화면 밖으로 다시 옮긴다(lib/expansionSpawns.js, 다른 스테이지는 그대로).
-    const pos = refreshQueuedExpansionSpawn(entry, stageRuntimeCacheRef.current, playerPos, screenBounds).pos ?? [0, 0, 0]
+    // 산타(XSG·XSL)는 제외: XSG는 화면 안에서 배회해야 보이고, XSL은 이미 화면 위 가장자리 밖에서 출발한다.
+    const pos = (isSantaType(entry.type) ? entry : refreshQueuedExpansionSpawn(entry, stageRuntimeCacheRef.current, playerPos, screenBounds)).pos ?? [0, 0, 0]
     const spawned = enemyPool.spawnInto(enemyHandleScratch, {
       type: entry.type,
       x: pos[0], y: pos[1], z: pos[2], hp: stats.hp, maxHp: stats.hp, xp: entry.waveXp,
@@ -2159,6 +2186,18 @@ export default function Enemies() {
     } else if (kind === SCHEDULE_BURST) {
       const evt = cache.burstEvents[Math.trunc(a)]
       if (!evt) return
+      // 크리스마스 산타(XSG·XSL): 웨이브 예산·로스터 순환 밖의 보너스 1기. 같은 종이 이미 살아 있으면 이 회차는 건너뛴다
+      // (동시 최대 1). 자리를 못 받거나 동시 천장(150)이 차 있으면 코인 몬스터처럼 30초 창 안에서 다음 틱에 재시도한다.
+      if (isSantaEvent(evt)) {
+        if (countPooledType(evt.type) > 0) return
+        const santa = evt.type === SANTA_SLEIGH_TYPE
+          ? createSantaSleighEntry(cache.bounds, Math.random, { x: playerPos.x, z: playerPos.z }, screenBounds)
+          : { type: evt.type, pos: spawnPosForBurstType(evt.type, cache.bounds, [], Math.random, cache.obstacles) }
+        const placed = Boolean(santa.pos) && clampZombieSpawnRequest(1, totalZombieCounts()) > 0
+        if (shouldRetryRewardBurst(evt, placed, b)) { firedBurstsRef.current[Math.trunc(a)] = 0; return }
+        if (placed) addEnemies([{ id: ++_uid, ...santa }], true, cache.spawnToken)
+        return
+      }
       if(isExpansionStage(cache.id)) {
         const batch=buildExpansionBurstBatch(cache,evt,totalZombieCounts())
         if(isExpansionBoss(evt.type)) {

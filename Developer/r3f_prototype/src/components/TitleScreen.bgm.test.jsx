@@ -8,6 +8,7 @@ import { installFakeAudio, setVisibility } from '../lib/fakeStreamingAudio.testU
 import { acquireStreamingBgm, _resetStreamingBgmForTests } from '../lib/streamingBgm.js'
 
 vi.mock('@react-three/fiber', () => ({ Canvas: ({ children }) => <div>{children}</div> }))
+vi.mock('./TitleSnow.jsx', () => ({ default: () => null }))
 vi.mock('./TitleScene3D.jsx', () => ({ default: () => null }))
 vi.mock('./GoogleAccountPanel.jsx', () => ({ default: () => null }))
 

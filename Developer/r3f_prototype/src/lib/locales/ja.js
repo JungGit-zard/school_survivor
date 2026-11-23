@@ -1347,6 +1347,8 @@ export default {
   'zombie.E104': '大玉転がし大将ゾンビ',
   'zombie.E105': '二人三脚ゾンビ',
   'zombie.E106': '騎馬戦ゾンビ',
+  'zombie.XSG': 'サンタゾンビ',
+  'zombie.XSL': 'ソリのサンタ',
   'hud.chief.badge': 'チーフ',
   'missions.title': 'ミッションセンター',
   'missions.subtitle': '普通に遊ぶとミッションが達成されます。報酬を受け取ると次のミッションが開きます。',

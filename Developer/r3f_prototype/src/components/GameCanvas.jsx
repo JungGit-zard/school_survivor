@@ -11,6 +11,7 @@ import ExpansionZombieInstanceLayer from './expansion/ExpansionZombieInstanceLay
 import ExpansionHazardLayer from './expansion/ExpansionHazardLayer.jsx'
 import { expansionAttackSnapshots } from '../lib/expansionAttackRuntime.js'
 import ProceduralFaceZombieLayer from './ProceduralFaceZombieLayer.jsx'
+import SantaZombieLayer from './SantaZombieLayer.jsx'
 import BlockyZombieLayer from './BlockyZombieLayer.jsx'
 import MiniZombieLayer from './MiniZombieLayer.jsx'
 import MiniHumanLayer from './MiniHumanLayer.jsx'
@@ -109,6 +110,8 @@ export default function GameCanvas({ gameKey, phase }) {
       {/* E07 웃는얼굴 좀비 몸통(셰이더 얼굴이라 인스턴싱 대상이 아님). 그림자·체력바·
           스폰 연기는 위 ZombieInstanceLayer가 그대로 담당한다. */}
       <ProceduralFaceZombieLayer />
+      {/* 크리스마스 한정 산타 좀비 XSG·XSL 몸통 + 바닥 그림자. 체력바·스폰 연기는 ZombieInstanceLayer가 담당한다. */}
+      <SantaZombieLayer />
       {/* 블록 좀비 18종(E71~E88, Kenney CC0) 몸통. 그림자·체력바·스폰 연기는 ZombieInstanceLayer가 담당한다. */}
       <BlockyZombieLayer resetKey={gameKey} />
       {/* 2차 신규 좀비 18종(E89~E106, Kenney Mini Characters CC0) 몸통. 그림자·체력바·스폰 연기는 ZombieInstanceLayer가 담당한다. */}

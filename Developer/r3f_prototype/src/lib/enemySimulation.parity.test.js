@@ -14,7 +14,7 @@ import { ENEMY_STATS } from '../components/Enemy.jsx'
 // 같은 수치의 복사본 두 벌이다. 한쪽만 고치면 게임과 밸런스 프로브가 서로 다른 값으로 돌아
 // "고쳤는데 프로브는 옛 값으로 합격"이 나온다. 실제로 E01 xp를 6→4로 내릴 때 이 함정을 밟을 뻔했다.
 // 보스(B01~B04)는 런타임 테이블에서 의도적으로 0으로 비워둔 슬롯이라 제외한다.
-const RUNTIME_TABLE_TYPES = ['E01', 'E02', 'E03', 'E04', 'E05', 'E06', 'RZL', 'RZC', 'RZT', 'RZG', 'E07', 'E08']
+const RUNTIME_TABLE_TYPES = ['E01', 'E02', 'E03', 'E04', 'E05', 'E06', 'RZL', 'RZC', 'RZT', 'RZG', 'E07', 'E08', 'XSG', 'XSL']
 
 // Track B 신규 12종(2026-10-25). typeCode 37~48. 위 12종과 같은 함정을 공유하므로 같은 가드를 받는다.
 const NOVEL_TABLE_TYPES = ['E34', 'E35', 'E36', 'E37', 'E38', 'E39', 'E40', 'E41', 'E42', 'E43', 'E44', 'E45']
@@ -64,7 +64,8 @@ describe('ENEMY_STATS ↔ ENEMY_RUNTIME_* 수치 패리티', () => {
     // 2026-11-14: 75 = B10(보스, 0으로 남는다), 76~93 = 블록 좀비 18종 → 길이 94.
     // 2026-11-14: 94~111 = 2차 신규 좀비 E89~E106(구현분만 값, 예약 id는 0) → 길이 112.
     // 2026-11-22: 112 = RDZ 도로 좀비(E01 수치 복사) → 길이 113.
-    expect(ENEMY_RUNTIME_HP.length).toBe(113)
+    // 2026-11-24: 113 = XSG 산타 좀비, 114 = XSL 썰매 산타(lib/santaEvent.js) → 길이 115.
+    expect(ENEMY_RUNTIME_HP.length).toBe(115)
     expect(ENEMY_RUNTIME_HP[75]).toBe(0)
     expect(ENEMY_RUNTIME_HP[64]).toBe(0)
     expect(ENEMY_RUNTIME_SPEED[64]).toBe(0)

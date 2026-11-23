@@ -110,7 +110,22 @@ describe('ZombieInstanceLayer body visibility after studio hydrate', () => {
   const blocky = new Set(BLOCKY_ZOMBIE_TYPES)
   // 2차 신규 좀비(E89~E106)는 MiniZombieLayer가 몸을 그린다(아래 블록).
   const novel2 = new Set(NOVEL2_TYPE_IDS)
-  const types = ENEMY_TYPE_NAMES.filter((name, code) => name && !/^B\d+$/.test(name) && name !== 'E07' && !isExpansionNormalCode(code) && !blocky.has(name) && !novel2.has(name))
+  // 크리스마스 산타 좀비(XSG·XSL)는 SantaZombieLayer가 몸과 그림자를 그린다(아래 블록).
+  const santa = new Set(['XSG', 'XSL'])
+  const types = ENEMY_TYPE_NAMES.filter((name, code) => name && !/^B\d+$/.test(name) && name !== 'E07' && !isExpansionNormalCode(code) && !blocky.has(name) && !novel2.has(name) && !santa.has(name))
+
+  it.each(['XSG', 'XSL'])('%s: the instance layer draws no box body and no blob shadow, but keeps the HP bar', (type) => {
+    clearPool(); spawn(type, 1)
+    instanceFrame({}, 0.016)
+    expect(drawnBodyInstances()).toBe(0)
+    expect(drawnShadowInstances()).toBe(0)
+    const bar = meshes.find((mesh) => mesh instanceof THREE.InstancedMesh && mesh.material?.type === 'MeshBasicMaterial' && mesh.material.color.getHex() === 0xd72832)
+    expect(bar.count).toBe(1)
+    const code = ENEMY_TYPE_NAMES.indexOf(type)
+    expect(code).toBeGreaterThan(0)
+    expect(resolvePooledZombieVisual(code).santa).toBe(true)
+    expect(resolvePooledZombieVisual(code).partCount).toBe(0)
+  })
 
   it('the pool knows every blocky zombie under its fixed type code', () => {
     expect(BLOCKY_ZOMBIE_TYPES).toHaveLength(18)

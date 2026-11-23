@@ -94,6 +94,9 @@ import { PROJECTILE_ZOMBIE_TYPES, PROJECTILE_ZOMBIE_TYPE_CODES } from './project
 import { BLOCKY_ZOMBIE_TYPES, BLOCKY_ZOMBIE_TYPE_CODES } from './blockyZombieRoster.js'
 // 112 = RDZ 도로 좀비(Sltera 레이서 좀비 이식). E01과 같은 일반 추격 경로·같은 수치(lib/roadZombieRoster.js).
 import { ROAD_ZOMBIE_STATS, ROAD_ZOMBIE_TYPE_CODE } from './roadZombieRoster.js'
+// 113 = XSG 산타 좀비(선물보따리): E08 코인 몬스터 경로(배회 → 감지 시 도주 → 집 복귀). 114 = XSL 썰매 산타: 화면 종단 러너(크루 경로).
+// 크리스마스 한정(2026-11-24, ~12-25 로컬). 수치 정본 lib/santaEvent.js — 여기서는 배선만 한다.
+import { SANTA_GIFT_STATS, SANTA_GIFT_TYPE_CODE, SANTA_SLEIGH_STATS, SANTA_SLEIGH_TYPE_CODE } from './santaEvent.js'
 // 2차 신규 좀비 18종(E89~E106, typeCode 94~111). 데이터·행동 정본은 각 모듈이고 여기서는 배선만 한다.
 import {
   NOVEL2_LAST_TYPE_CODE,
@@ -140,7 +143,7 @@ const NOVEL_RUNTIME_ROWS = [
 // 49~63·65~74 = 투사체 좀비 25종(E46~E70). 수치 정본은 projectileZombieBehavior.js 한 곳이다(복사본 없음).
 const extendRuntime = (values, key, novelKey) => {
   // 94~111 = 2차 신규 좀비(구현분만 값이 있다. 예약 id는 0 — 스폰되면 아래 유효성 검사가 격리한다).
-  const table = new Float32Array(Math.max(PZ_TYPE_MAX, NOVEL2_LAST_TYPE_CODE, ROAD_ZOMBIE_TYPE_CODE) + 1)
+  const table = new Float32Array(Math.max(PZ_TYPE_MAX, NOVEL2_LAST_TYPE_CODE, ROAD_ZOMBIE_TYPE_CODE, SANTA_GIFT_TYPE_CODE, SANTA_SLEIGH_TYPE_CODE) + 1)
   const head = [...values, ...expansionRows.map(e => e[key])]
   table.set(head, 0)
   for (let i = 0; i < NOVEL_RUNTIME_ROWS.length; i += 1) table[NOVEL_TYPE_MIN + i] = NOVEL_RUNTIME_ROWS[i][novelKey]
@@ -150,6 +153,8 @@ const extendRuntime = (values, key, novelKey) => {
   for (let i = 0; i < BLOCKY_ZOMBIE_TYPES.length; i += 1) table[BLOCKY_ZOMBIE_TYPE_CODES[BLOCKY_ZOMBIE_TYPES[i]]] = PROJECTILE_ZOMBIE_STATS[BLOCKY_ZOMBIE_TYPES[i]][novelKey]
   for (const id of NOVEL2_TYPE_IDS) if (NOVEL2_ZOMBIE_STATS[id]) table[NOVEL2_TYPE_CODES[id]] = NOVEL2_ZOMBIE_STATS[id][novelKey]
   table[ROAD_ZOMBIE_TYPE_CODE] = ROAD_ZOMBIE_STATS[novelKey]
+  table[SANTA_GIFT_TYPE_CODE] = SANTA_GIFT_STATS[novelKey]
+  table[SANTA_SLEIGH_TYPE_CODE] = SANTA_SLEIGH_STATS[novelKey]
   return table
 }
 
@@ -189,15 +194,21 @@ function isRunCrew(type) {
   return type === 7 || type === 8
 }
 
+// 114 = XSL 썰매 산타도 크루처럼 runDir로 화면을 종단하고 |x|·|z| > half+6에서 보상 없이 despawn한다.
 function isScreenRunner(type) {
-  return isRunCrew(type) || type === 13 || type === 14
+  return isRunCrew(type) || type === 13 || type === 14 || type === SANTA_SLEIGH_TYPE_CODE
+}
+
+// 화면 안을 배회하다 감지되면 도망치는 보상 몬스터: E08(16) 코인 몬스터 + XSG(113) 산타 좀비. 접촉 피해 없음.
+function isCoinFleeType(type) {
+  return type === 16 || type === SANTA_GIFT_TYPE_CODE
 }
 
 // 장애물을 통과하도록 설계된 타입(RZL 7 / RZC 8 / RZT 13 / RZG 14). 시뮬레이션과 소크 하네스가 같은 정본을 쓴다.
 // 2026-11-22: 스3 런좀비 크루가 화면 위→아래 직진으로 바뀌며 중앙선 농구 골대(x=0) 정면에 박혀 제자리 달리기로
 // 남는 문제(balanceqa)가 생겨 크루도 소품을 통과한다. 크루는 풀 경로라 실제 게임도 이 함수 하나를 따른다.
 export function ignoresObstacles(type) {
-  return type === 7 || type === 8 || type === 13 || type === 14
+  return type === 7 || type === 8 || type === 13 || type === 14 || type === SANTA_SLEIGH_TYPE_CODE
 }
 
 // Track B 신규 12종(37~48)은 여기서 빠진다. 전부 근접이지만 접촉만으로 상시 피해를 주지 않고
@@ -205,7 +216,7 @@ export function ignoresObstacles(type) {
 // "예고 중 피해 없음" 불변식이 깨진다. 접근 중 접촉에서 멈추는 처리도 각 루프가 직접 한다.
 // 2차 신규 좀비 구현분(94~111)은 공통 접촉 경로를 탄다. 단 자기 예고(상태 8) 중에는 noContact로 끈다(novelZombie2Behavior 불변식 1).
 function isMelee(type) {
-  return type >= 17 && type <= 31 || isNovel2ImplementedTypeCode(type) || type === ROAD_ZOMBIE_TYPE_CODE || type === 1 || type === 2 || type === 3 || type === 5 || type === 6 || type === 7 || type === 8 || type === 13 || type === 14 || type === 15
+  return type >= 17 && type <= 31 || isNovel2ImplementedTypeCode(type) || type === ROAD_ZOMBIE_TYPE_CODE || type === SANTA_SLEIGH_TYPE_CODE || type === 1 || type === 2 || type === 3 || type === 5 || type === 6 || type === 7 || type === 8 || type === 13 || type === 14 || type === 15
 }
 
 export function enemyContactDistance(type) {
@@ -434,7 +445,7 @@ export function enemyCollisionRadius(type) {
 // 생긴다. cosY/sinY는 장애물 생성 시 얼려 둔 값이라 여기서는 읽기만 한다.
 // rotationY 폴백은 손으로 만든 장애물 리터럴(테스트·프로브) 전용 — 실런타임에서는 안 탄다.
 
-function resolveCoinMonsterVelocityInto(out, pool, index, posX, posZ, playerX, playerZ, distance, nx, nz, halfX, halfZ, elapsedSec) {
+function resolveCoinMonsterVelocityInto(out, pool, index, posX, posZ, playerX, playerZ, distance, nx, nz, halfX, halfZ, elapsedSec, type = 16) {
   let state = pool.state[index]
   if (state !== ENEMY_STATE_COIN_LURE && state !== ENEMY_STATE_COIN_FLEE) {
     state = ENEMY_STATE_COIN_LURE
@@ -458,7 +469,7 @@ function resolveCoinMonsterVelocityInto(out, pool, index, posX, posZ, playerX, p
     if ((posX > halfX - margin && vx > 0) || (posX < -halfX + margin && vx < 0)) vx *= -0.65
     if ((posZ > halfZ - margin && vz > 0) || (posZ < -halfZ + margin && vz < 0)) vz *= -0.65
     const length = Math.hypot(vx, vz) || 1
-    const speed = ENEMY_RUNTIME_SPEED[16] * E08_COIN_FLEE_SPEED_MULTIPLIER
+    const speed = ENEMY_RUNTIME_SPEED[type] * E08_COIN_FLEE_SPEED_MULTIPLIER
     out.x = vx / length * speed
     out.z = vz / length * speed
     return out
@@ -470,8 +481,8 @@ function resolveCoinMonsterVelocityInto(out, pool, index, posX, posZ, playerX, p
   const homeDz = homeZ - posZ
   const homeDistance = Math.hypot(homeDx, homeDz)
   if (homeDistance > E08_COIN_HOME_RETURN_RADIUS) {
-    out.x = homeDx / (homeDistance || 1) * ENEMY_RUNTIME_SPEED[16] * 0.72
-    out.z = homeDz / (homeDistance || 1) * ENEMY_RUNTIME_SPEED[16] * 0.72
+    out.x = homeDx / (homeDistance || 1) * ENEMY_RUNTIME_SPEED[type] * 0.72
+    out.z = homeDz / (homeDistance || 1) * ENEMY_RUNTIME_SPEED[type] * 0.72
     return out
   }
   const angle = elapsedSec * 1.35 + index * 1.618 + pool.generation[index] * 0.21
@@ -817,9 +828,11 @@ export class EnemySimulationRuntime {
       // 유효 타입 = 1~8(E01~E06/RZL/RZC), 13~16(RZT/RZG/E07/E08), 17~31(확장 E19~E33),
       // 37~48(Track B E34~E45), 49~63·65~74(투사체 E46~E70). 9~12와 32~36은 보스라 이 런타임을 타지 않는다.
       // 76~93 = 블록 좀비 18종(투사체 좀비 공용 경로). 94~111 = 2차 신규 좀비 중 구현분(예약 id는 격리). 112 = RDZ(E01 경로).
+      // 113 = XSG 산타(E08 경로), 114 = XSL 썰매 산타(화면 종단 러너 경로).
       if (pool.type[index] < 1 || pool.type[index] > 8 && pool.type[index] < 13
         || pool.type[index] > 31 && pool.type[index] < NOVEL_TYPE_MIN
         || pool.type[index] > NOVEL_TYPE_MAX && !isProjectileZombieType(pool.type[index]) && !isNovel2ImplementedTypeCode(pool.type[index]) && pool.type[index] !== ROAD_ZOMBIE_TYPE_CODE
+          && pool.type[index] !== SANTA_GIFT_TYPE_CODE && pool.type[index] !== SANTA_SLEIGH_TYPE_CODE
         || !hasFiniteSlot(pool, index)) {
         this._despawn(pool, index, ENEMY_EVENT_ERROR, 0, null)
         continue
@@ -890,7 +903,7 @@ export class EnemySimulationRuntime {
       let scriptedMove = false
       let expansionAttack = null
       novel2NoContact = false
-      if (groanDue && distance < groanBestDistance && type !== 16 && !isScreenRunner(type)) {
+      if (groanDue && distance < groanBestDistance && !isCoinFleeType(type) && !isScreenRunner(type)) {
         groanBestDistance = distance
         groanX = posX
         groanZ = posZ
@@ -1046,8 +1059,8 @@ export class EnemySimulationRuntime {
         preserveFacing = n2.preserveFacing
         novel2NoContact = n2.noContact
         if (n2.hasYaw) pool.yaw[index] = n2.yaw
-      } else if (type === 16) {
-        resolveCoinMonsterVelocityInto(this._velocityScratch, pool, index, posX, posZ, playerX, playerZ, distance, nx, nz, halfX, halfZ, elapsedSec)
+      } else if (isCoinFleeType(type)) {
+        resolveCoinMonsterVelocityInto(this._velocityScratch, pool, index, posX, posZ, playerX, playerZ, distance, nx, nz, halfX, halfZ, elapsedSec, type)
         velocityX = this._velocityScratch.x
         velocityZ = this._velocityScratch.z
         moving = velocityX !== 0 || velocityZ !== 0

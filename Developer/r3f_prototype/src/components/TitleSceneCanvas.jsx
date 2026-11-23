@@ -2,6 +2,8 @@ import { Suspense, useEffect, useState } from 'react'
 import { Canvas, useThree } from '@react-three/fiber'
 import ErrorBoundary from './ErrorBoundary.jsx'
 import TitleScene3D from './TitleScene3D.jsx'
+import TitleSnow from './TitleSnow.jsx'
+import { isTitleSnowActive } from '../lib/seasonalSnow.js'
 
 const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)'
 // 움직임 줄이기에서는 연속 루프 대신 요청할 때만 그린다. 첫 몇 장은 늦게 붙는 외곽선·크기 변화를 위해 다시 그린다.
@@ -35,6 +37,8 @@ function ReducedMotionSettle() {
 // reducedEffects로 끄고 렌더 루프를 'demand'로 바꿔 흔들림·빛 깜빡임·속도선이 계속 돌지 않게 한다.
 export default function TitleSceneCanvas({ className, style }) {
   const reducedMotion = usePrefersReducedMotion()
+  // 2026-11-24 Terry: 2027-02-20(현지)까지만 타이틀에 눈이 내린다. 그 뒤로는 눈 컴포넌트 자체가 없다.
+  const [snowActive] = useState(() => isTitleSnowActive())
   return (
     <Canvas
       className={className}
@@ -50,6 +54,11 @@ export default function TitleSceneCanvas({ className, style }) {
           {reducedMotion && <ReducedMotionSettle />}
         </Suspense>
       </ErrorBoundary>
+      {snowActive && (
+        <ErrorBoundary fallback={null}>
+          <TitleSnow reducedMotion={reducedMotion} />
+        </ErrorBoundary>
+      )}
     </Canvas>
   )
 }

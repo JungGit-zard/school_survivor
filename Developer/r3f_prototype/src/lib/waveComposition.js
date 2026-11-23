@@ -89,7 +89,8 @@ export const WAVE_STAGE_ALIVE_CAP_OVERRIDE = Object.freeze({
 })
 const BASIC_TYPES = new Set(['E01', 'E02', 'E03', 'E04', 'E05', 'E06', 'E07'])
 
-const NEVER_COMPOSED = new Set(['E08', 'E105', 'E106'])
+// XSG·XSL = 크리스마스 한정 산타(lib/santaEvent.js) — E08처럼 웨이브 예산 밖 보상 몸이라 구성 규칙을 타지 않는다.
+const NEVER_COMPOSED = new Set(['E08', 'E105', 'E106', 'XSG', 'XSL'])
 export function isWaveExemptType(type) {
   return typeof type !== 'string' || /^B\d/.test(type) || /^RZ/.test(type) || NEVER_COMPOSED.has(type) || isChiefType(type)
 }

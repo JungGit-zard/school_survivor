@@ -1,5 +1,9 @@
 import { beforeAll, describe, expect, it, vi } from 'vitest'
 
+// 이 파일은 비시즌(오늘과 같은) Stage 5 시간표를 고정한다. 크리스마스 한정 산타 행(lib/santaEvent.js, 로컬 ~12-25)은
+// 실행 날짜에 따라 붙었다 빠지므로 여기서는 끄고, 산타 자체는 santaEvent.test.js·Enemies.santa.test.jsx가 검증한다.
+vi.mock('../lib/santaEvent.js', async (importOriginal) => ({ ...(await importOriginal()), getSantaRuntimeEvents: () => [] }))
+
 // Enemies.jsx/Enemy.jsx 모듈 그래프 첫 로드(변환 ~6초, 부하 시 더)는 테스트 대상이 아니라 준비 비용이다.
 // 예전에는 첫 테스트 안에서 동적 import를 해서 기본 5초 제한에 걸렸다(HP 루프 자체는 수 ms).
 // 로드는 beforeAll(별도 제한)로 옮기고, 루프 자체가 느려지면 잡히도록 루프 시간을 따로 단언한다.
@@ -21,7 +25,8 @@ describe('Stage5 production enemy runtime', () => {
       // Expansion actors have absolute contract HP; they must not inherit legacy cumulative scaling.
       // E105(2인3각, 2026-11-14)도 Stage 6 절대 HP 계약이라 누적 배수를 타지 않는다.
       // E104(공굴리기 대장, 2026-11-16)·E106(기마전, 2026-11-17)도 같은 Stage 6 절대 HP 행이다(hpMode 'absolute').
-      const expansionActor = /^E(?:19|2[0-9]|3[0-3])$|^B0[5-9]$/.test(type) || type === 'E105' || type === 'E104' || type === 'E106'
+      // XSG·XSL(크리스마스 한정 산타, lib/santaEvent.js)도 스테이지 무관 고정 HP다.
+      const expansionActor = /^E(?:19|2[0-9]|3[0-3])$|^B0[5-9]$/.test(type) || type === 'E105' || type === 'E104' || type === 'E106' || type === 'XSG' || type === 'XSL'
       expect(stageHpOverride(type, 'stage5')?.hp ?? stats.hp, type).toBe(expansionActor ? stats.hp : Math.round(stats.hp * 1.2 ** 4))
       if (expansionActor) expect(stageHpOverride(type, 'stage5')).toBeUndefined()
       for (const [id, multiplier] of Object.entries({ stage1: 1, stage2: 1.2, stage3: 1.44, stage4: 1.728 })) {

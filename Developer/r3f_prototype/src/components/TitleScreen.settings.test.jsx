@@ -23,6 +23,7 @@ vi.mock('@react-three/fiber', () => ({
   ),
 }))
 
+vi.mock('./TitleSnow.jsx', () => ({ default: () => null }))
 vi.mock('./TitleScene3D.jsx', () => ({
   default: ({ reducedEffects }) => (
     <div data-testid="mock-title-scene" data-reduced-effects={String(reducedEffects)} />
