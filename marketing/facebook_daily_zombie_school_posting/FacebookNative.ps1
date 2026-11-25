@@ -159,7 +159,31 @@ function Get-FacebookChromeWindow([long]$WindowId=0) {
  $selected=Resolve-FacebookWindowDescriptor $descriptors $WindowId
  $selected.window
 }
+function Get-FacebookChromeExecutable {
+ $candidates=@($(if($env:ProgramFiles){Join-Path $env:ProgramFiles 'Google/Chrome/Application/chrome.exe'}),$(if(${env:ProgramFiles(x86)}){Join-Path ${env:ProgramFiles(x86)} 'Google/Chrome/Application/chrome.exe'}),$(if($env:LOCALAPPDATA){Join-Path $env:LOCALAPPDATA 'Google/Chrome/Application/chrome.exe'}))|Where-Object{-not [string]::IsNullOrWhiteSpace($_)}
+ foreach($candidate in $candidates){if(Test-Path -LiteralPath $candidate -PathType Leaf){return (Resolve-Path -LiteralPath $candidate).ProviderPath}}
+ $command=Get-Command chrome.exe -CommandType Application -ErrorAction SilentlyContinue|Select-Object -First 1
+ if($null -ne $command -and (Test-Path -LiteralPath $command.Source -PathType Leaf)){return $command.Source}
+ throw 'Chrome executable was not found in the standard installation paths or PATH.'
+}
+function Test-FacebookChromeLaunchNeeded($Descriptors) { @($Descriptors|Where-Object{$_.isChrome}).Count -eq 0 }
+function Start-FacebookChromeAtProfileNative {
+ # 2026-11-25: only the X leg used to launch Chrome. When X failed before its launch
+ # (IMAGE_POOL_EXHAUSTED on 11-24 21:00 and 11-25 03:00), Facebook found no Chrome window and
+ # the slot posted nothing. With zero Chrome windows, open the user's normal visible profile
+ # (no profile override, same as the X runner) at the fixed Facebook profile, only while idle.
+ Assert-FacebookUserIdle
+ $chrome=Get-FacebookChromeExecutable
+ Start-Process -FilePath $chrome -ArgumentList @('--new-window',$script:FacebookProfileUrl)|Out-Null
+ $deadline=[DateTime]::UtcNow.AddSeconds(30)
+ do {
+  Start-Sleep -Milliseconds 500
+  if(@(Get-FacebookChromeWindows).Count -gt 0 -and @(Get-FacebookAllFacebookTabs).Count -gt 0){return [pscustomobject]@{launched=$true;facebookTab=$true}}
+ } while([DateTime]::UtcNow -lt $deadline)
+ throw 'Chrome was launched for Facebook but no Facebook tab appeared within 30 seconds; the next attempt rediscovers it'
+}
 function Get-FacebookChromeWindowForDiscovery {
+ if(Test-FacebookChromeLaunchNeeded @(Get-FacebookChromeWindows|ForEach-Object{[pscustomobject]@{isChrome=$true}})){$null=Start-FacebookChromeAtProfileNative}
  $null=Close-FacebookExtraTabsNative
  $windows=Get-FacebookChromeWindows
  $descriptors=@(foreach($window in $windows){[pscustomobject]@{windowId=$window.Current.NativeWindowHandle;windowName=$window.Current.Name;isChrome=$true;tabNames=@((Get-FacebookUiAll $window)|Where-Object{!$_.Current.IsOffscreen -and $_.Current.ControlType -eq [Windows.Automation.ControlType]::TabItem}|ForEach-Object{$_.Current.Name});window=$window}})

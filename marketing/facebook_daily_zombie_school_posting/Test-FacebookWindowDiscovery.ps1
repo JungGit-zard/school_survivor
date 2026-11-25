@@ -75,4 +75,12 @@ $keyLines=@($nativeSource -split "`n"|Where-Object{$_ -match 'SendKeys\]::SendWa
 Assert-True ($keyLines.Count -ge 5 -and @($keyLines|Where-Object{$_ -notmatch 'Assert-FacebookUserIdle;' -or $_ -notmatch 'Register-FacebookInjectedInput'}).Count -eq 0) 'every SendKeys group is preceded by the user-activity guard and records the runner input'
 $profileSource=[regex]::Match($nativeSource,'(?s)function Open-FacebookProfileNative.*?(?=\r?\nfunction |\z)').Value
 Assert-True ($profileSource -match 'elseif\(-not \$composerOpen\)\{Navigate-FacebookProfileInSelectedTab \$w\}' -and $profileSource -match 'Wait-FacebookComposerButtonReady \$w') 'profile open always reloads the profile URL unless an own draft is open, then waits for the composer button'
+# 2026-11-25: Facebook no longer depends on the X leg having launched Chrome.
+Assert-True (Test-FacebookChromeLaunchNeeded @()) 'zero Chrome windows means Facebook launches its own Chrome window'
+Assert-True (-not (Test-FacebookChromeLaunchNeeded @((New-TestWindow 9 @('New Tab'))))) 'an existing Chrome window is reused and Chrome is not launched again'
+$launchSource=[regex]::Match($nativeSource,'(?s)function Start-FacebookChromeAtProfileNative.*?(?=\r?\nfunction |\z)').Value
+Assert-True ($launchSource.IndexOf('Assert-FacebookUserIdle') -ge 0 -and $launchSource.IndexOf('Assert-FacebookUserIdle') -lt $launchSource.IndexOf('Start-Process')) 'Chrome launch for Facebook checks user activity before opening a window'
+Assert-True ($launchSource -match "--new-window',\`$script:FacebookProfileUrl" -and $launchSource -notmatch 'user-data-dir|profile-directory|remote-debugging|headless') 'Chrome launch opens only the fixed profile URL in the normal visible profile, without CDP or profile overrides'
+Assert-True ($launchSource -notmatch 'SendWait' -and $launchSource -notmatch 'mouse_event') 'Chrome launch sends no keys or clicks'
+Assert-True ($discoverySource -match 'Test-FacebookChromeLaunchNeeded' -and $discoverySource.IndexOf('Start-FacebookChromeAtProfileNative') -lt $discoverySource.IndexOf('Resolve-FacebookDiscoveryPlan')) 'discovery launches Chrome only when none exists, before resolving the target window'
 'FACEBOOK_WINDOW_DISCOVERY_TEST_OK'
