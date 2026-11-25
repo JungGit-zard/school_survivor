@@ -145,17 +145,13 @@ export const UPGRADE_EFFECTS = {
   miniRosariPower:   { weapon: 'miniRosari',  kind: 'damage', dmg: 12, bonus: [SINGLE_CD] },
   miniRosariBounce:  { weapon: 'miniRosari',  kind: 'stat',   stat: 'bounces',         step: 1,    cap: 9, bonus: [{ stat: 'damage', step: 14 }, SINGLE_CD] },
   miniRosariCrit:    { weapon: 'miniRosari',  kind: 'crit',   chanceStep: 0.02, chanceCap: 0.28, bonus: [SINGLE_CD] },
-  // 종이비행기(2026-11-07 levelmini) — 1스테이지부터 나오는 중간 티어. 데미지 카드 2장 합 9 = base 9의 100%.
-  // 대수 카드(1→2대)도 단일 대상에 겹친다(singleTargetProjectiles) → Lv1→만렙 단일 대상 4.0배(balanceqa 승인).
-  // 대수 cap 4 = 기본 1 + 카드 1 + 여유.
-  // 관통(2026-11-08 Terry): pierce = 비행기 한 대가 맞히는 서로 다른 적 수. 기본 1(E47 좀비 탄처럼 한 번 맞히고
-  // 사라짐), +1마다 맞힌 좀비를 뚫고 지나가 뒤의 좀비를 하나 더 맞힌다.
-  // 관통 cap 4 = 기본 1 + 카드 1 + 영구강화 최대 2. lib/paperPlane.js PAPER_PLANE_MAX_PIERCE(8) 안쪽.
+  // 종이비행기(2026-11-25 Terry: "업그레이드는 대기시간감소와 파워 두가지"). 화면에 1대라 대수·관통 카드는 없앴다.
+  // 카드는 위력(+10)과 대기 시간(-3.5초, 3초 아래로는 안 깎음) 두 장뿐이고, HUD가 무기 레벨로 돌려 보여 주므로
+  // Lv2 위력 · Lv3 대기 · Lv4 위력 · Lv5 대기 순서로 나온다 → 피해 50/60/60/70/70, 대기 10/10/6.5/6.5/3초.
+  // 표·근거는 weaponCatalog.js paperPlane 주석.
   acquirePaperPlane: { weapon: 'paperPlane',  kind: 'acquire', minLevel: 1 },
-  paperPlaneDamage:  { weapon: 'paperPlane',  kind: 'damage', dmg: 4.5 },
-  paperPlaneCount:   { weapon: 'paperPlane',  kind: 'stat',   stat: 'projectileCount', step: 1, cap: 4 },
-  paperPlanePierce:  { weapon: 'paperPlane',  kind: 'stat',   stat: 'pierce',          step: 1, cap: 4 },
-  paperPlanePower:   { weapon: 'paperPlane',  kind: 'damage', dmg: 4.5 },
+  paperPlanePower:    { weapon: 'paperPlane',  kind: 'damage',   dmg: 10 },
+  paperPlaneCooldown: { weapon: 'paperPlane',  kind: 'cooldown', stepMs: 3500, floorMs: 3000 },
   acquireMissile:  { weapon: 'guidedMissile', kind: 'acquire', minLevel: 4 },
   missileDamage:  { weapon: 'guidedMissile', kind: 'damage', dmg: 4 },
   missilePower:   { weapon: 'guidedMissile', kind: 'damage', dmg: 4 },
@@ -248,6 +244,7 @@ export function selectSequentialLevelupChoices({
   rotationWeaponIds = [],
   ownedWeaponCycleIds = [],
   ownedRotationWeaponIds = [],
+  ownedGuaranteeFallbackWeaponIds = [],
   choiceCount = LEVELUP_CHOICE_COUNT,
   isAcquireKey = (key) => UPGRADE_EFFECTS[key]?.kind === 'acquire',
   getChoiceGroupKey = getDefaultChoiceGroupKey,
@@ -280,8 +277,16 @@ export function selectSequentialLevelupChoices({
   const availableOwnedWeaponIds = uniqueKeys(ordered
     .filter((key) => availableSet.has(key) && !isAcquireKey(key))
     .map((key) => getWeaponCycleId(key)))
-  const eligibleOwnedWeaponIds = uniqueKeys(ownedRotationWeaponIds)
+  const availableOwnedRotationIds = uniqueKeys(ownedRotationWeaponIds)
     .filter((weaponId) => availableOwnedWeaponIds.includes(weaponId))
+  // Terry 2026-11-25: 슬롯이 꽉 찼을 때 보유 강화 예약 칸이 연필이면 나머지 세 칸이 전부 획득(=버리기)
+  // 카드가 되어 "연필 아니면 버리기"만 남는다. fallback 무기(연필)는 다른 보유 무기가 하나도 강화
+  // 불가일 때만 예약 칸을 받는다. 연필은 일반 칸에서는 여전히 나올 수 있다.
+  const fallbackOwnedSet = new Set(uniqueKeys(ownedGuaranteeFallbackWeaponIds))
+  const preferredOwnedRotationIds = availableOwnedRotationIds.filter((weaponId) => !fallbackOwnedSet.has(weaponId))
+  const eligibleOwnedWeaponIds = preferredOwnedRotationIds.length > 0
+    ? preferredOwnedRotationIds
+    : availableOwnedRotationIds
   const priorOwnedWeaponCycleIds = uniqueKeys(ownedWeaponCycleIds)
     .filter((weaponId) => eligibleOwnedWeaponIds.includes(weaponId))
   const ownedCycleWrapped = eligibleOwnedWeaponIds.length > 0
@@ -384,6 +389,8 @@ export function applyUpgradeToWeapon(wpn, effect) {
     level: bumpLevel(wpn),
   })
   if (effect.kind === 'stat')   return withBonus({ ...wpn, [effect.stat]: Math.min(effect.cap, (wpn[effect.stat] ?? 0) + effect.step), level: bumpLevel(wpn) })
+  // 대기 시간 카드: stepMs만큼 줄이되 floorMs 아래로는 내리지 않는다(종이비행기).
+  if (effect.kind === 'cooldown') return withBonus({ ...wpn, cooldown: Math.max(effect.floorMs, (wpn.cooldown ?? 0) - effect.stepMs), level: bumpLevel(wpn) })
   if (effect.kind === 'crit') return withBonus({
     ...wpn,
     critChance: Math.min(effect.chanceCap, (wpn.critChance ?? 0) + effect.chanceStep),
@@ -422,5 +429,6 @@ export function isUpgradeAvailable(effect, level, weapons, player = null) {
   if ((wpn.level ?? 0) >= MAX_WEAPON_LEVEL) return false
   if (effect.kind === 'stat') return (wpn[effect.stat] ?? 0) < effect.cap
   if (effect.kind === 'crit') return (wpn.critChance ?? 0) < effect.chanceCap
+  if (effect.kind === 'cooldown') return (wpn.cooldown ?? 0) > effect.floorMs
   return true
 }

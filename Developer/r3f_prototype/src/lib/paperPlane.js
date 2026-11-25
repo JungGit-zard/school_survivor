@@ -9,7 +9,10 @@
 //   - 표적 쪽으로 초당 45°까지, 누적 90°까지만 꺾는다(E47 p0·p1). 예산을 다 쓰면 그대로 직진한다.
 //   - 적 하나에 닿으면(좀비 탄이 로자리에 닿는 거리 = hitRadius 0.12 + 몸 반폭 0.136) 피해를 준다.
 //     기본(pierce 1)은 좀비 탄처럼 한 번 맞히면 사라진다.
-//   - 5초 뒤 스르륵 사라진다(2026-11-15 Terry, E47은 4.2초). 최대 비행거리 8u. 동시에 최대 3대.
+//   - 5초 뒤 스르륵 사라진다(2026-11-15 Terry, E47은 4.2초). 최대 비행거리 8u.
+//   - 2026-11-25 Terry: "종이 비행기 한화면 체류 갯수는 1개로 제한한다". 화면에 1대(PAPER_PLANE_MAX_ALIVE).
+//     대기 시간(weapon.cooldown)은 던진 순간부터 잰다. 다 찼는데 앞의 1대가 아직 살아 있으면(날아감·사라지는 중 전부)
+//     다음 1대는 그게 사라질 때까지 기다렸다가 바로 나간다(던지기가 사라지지 않는다 — 오니기리·꼬마 로자리와 같은 대기).
 // 좀비 탄과 다른 것은 표적뿐이다: 좀비 탄 → 로자리 / 로자리 비행기 → 발사 때 고른 적.
 // 그 적이 먼저 죽으면(다른 무기 등) 비행기 근처의 다음 적을 표적으로 삼되, 남은 선회 예산 안에서만 꺾는다.
 // 관통(2026-11-08 Terry): "관통은 연필처럼 좀비를 타격한 뒤 뚫고 지나가 뒤의 좀비까지 타격하는 것".
@@ -17,7 +20,7 @@
 //   맞히고 남은 비행기는 연필처럼 그 방향 그대로 직진하며 뚫고 지나간다(옆의 적을 쫓아 꺾지 않는다).
 //   속도·수명은 같고, 뒤에서 닿는 적을 맞힌다. 같은 적은 두 번 맞히지 않는다(비행기별 적중 기록).
 //
-// 비행기는 언제나 로자리 몸에서 출발하고 동시 개수 상한이 없다(Terry 2026-11-02 규칙).
+// 비행기는 언제나 로자리 몸에서 출발한다(Terry 2026-11-02 규칙).
 // 메모리 규칙: 풀은 typed array 슬롯이다. 매 프레임 할당이 없고, 빈 슬롯이 없을 때만 용량을
 // 두 배로 늘린다(줄이지 않음). 컴포넌트는 같은 슬롯 인덱스로 InstancedMesh 행렬을 쓴다.
 import { scanRadiusEnemiesInto, createWeaponTargetScratch, resolveWeaponTarget } from './weaponTargeting.js'
@@ -31,17 +34,17 @@ export const E47_PAPER_PLANE_SHOT = Object.values(PROJECTILE_ZOMBIE_BEHAVIORS).f
 
 // 거리 단위: 월드 유닛(1블록 = 0.75u). 아래 값은 전부 E47 탄에서 읽는다 — 숫자를 여기서 다시 쓰지 않는다.
 export const PAPER_PLANE_SPEED = E47_PAPER_PLANE_SHOT.speed               // 1.6 u/s
-// 2026-11-15 Terry: "최대 5초 체류하다가 상대방이 없으면 스르륵 소멸", "한 화면에 최대 3개까지 체류".
+// 2026-11-15 Terry: "최대 5초 체류하다가 상대방이 없으면 스르륵 소멸".
 // 수명만은 E47(4.2초)에서 읽지 않는다. 5초 → 최대 8u. 마지막 FADE_MS 동안 렌더가 부드럽게 줄어든다.
 export const PAPER_PLANE_LIFETIME_MS = 5000
 export const PAPER_PLANE_FADE_MS = 700
-export const PAPER_PLANE_MAX_ACTIVE = 3
+// 2026-11-25 Terry: 한 화면 체류 1대(이전 11-15 "최대 3개"). 사라지는 중인 비행기도 1대로 센다.
+export const PAPER_PLANE_MAX_ALIVE = 1
 export const PAPER_PLANE_TURN_RATE = E47_PAPER_PLANE_SHOT.p0              // 45°/s
 export const PAPER_PLANE_TURN_BUDGET = E47_PAPER_PLANE_SHOT.p1            // 누적 90°
 // 좀비 탄이 로자리에 닿는 거리와 같다: 탄 반경 0.12 + 몸 반폭 0.136 = 0.256u(약 1/3블록).
 export const PAPER_PLANE_CONTACT_RADIUS = E47_PAPER_PLANE_SHOT.hitRadius + PLAYER_CONTACT_HALF_EXTENT
 export const PAPER_PLANE_RETARGET_RADIUS = 6    // 표적이 먼저 죽었을 때 다음 표적 탐색 반경 6u = 8블록
-export const PAPER_PLANE_LAUNCH_SPREAD = 0.32   // 같은 표적을 나눠 쫓는 비행기 간 발사각 차이(rad)
 export const PAPER_PLANE_MAX_PIERCE = 8         // 비행기당 기록하는 적중 수 상한(카드 cap 4보다 넉넉히)
 // 좀비 탄 풀과 같은 프레임 상한(projectileZombieShotPool.step).
 const MAX_STEP_SEC = 1 / 30
@@ -289,59 +292,31 @@ export function stepPaperPlanes(pool, delta, deps = DEFAULT_DEPS, onHit = null) 
   return hits
 }
 
-// 동시 체류 상한: 아직 사라지는 중이 아닌 비행기가 PAPER_PLANE_MAX_ACTIVE를 넘으면 가장 오래된 것부터
-// 남은 수명을 FADE_MS로 줄여 스르륵 물러나게 한다(뚝 끊지 않는다). 새 비행기는 항상 나간다.
-export function retireExcessPaperPlanes(pool, max = PAPER_PLANE_MAX_ACTIVE) {
-  // 한 바퀴에 한 대씩만 물러나므로 풀 크기만큼만 돈다(무한 반복 금지 — 11-17 라이브 정지 사고).
-  for (let pass = 0; pass <= pool.highest; pass += 1) {
-    let live = 0
-    let oldest = -1
-    for (let i = 0; i <= pool.highest; i += 1) {
-      if (!pool.active[i] || pool.lifeMs[i] - pool.ageMs[i] <= PAPER_PLANE_FADE_MS) continue
-      live += 1
-      if (oldest < 0 || pool.ageMs[i] > pool.ageMs[oldest]) oldest = i
-    }
-    if (live <= max) return
-    // lifeMs/ageMs는 Float32Array라 '+ FADE_MS'가 반올림돼 700.0001이 될 수 있다. 1ms 안쪽으로 넣어
-    // 위의 '<= FADE_MS' 검사에 반드시 걸리게 한다.
-    pool.lifeMs[oldest] = pool.ageMs[oldest] + PAPER_PLANE_FADE_MS - 1
-  }
-}
-
-// 발사 계획: 가장 가까운 적 N명(scratch, 거리순)에게 count대를 나눠 보낸다. 표적이 count보다 적으면
-// 같은 표적을 나눠 쫓되 발사각을 부채꼴로 벌린다(겹쳐 한 대로 보이지 않게). 반환 = 생성한 비행기 수.
-// 좀비 탄처럼 발사 지점(로자리 자리) 그대로에서 출발한다.
+// 발사: 화면에 비행기가 PAPER_PLANE_MAX_ALIVE(1)대 이상 살아 있으면 던지지 않고 0을 돌려준다 → 컴포넌트는
+// 쿨다운을 소비하지 않고, 그 비행기가 사라지는 프레임에 바로 다음 1대를 던진다. 비어 있으면 가장 가까운
+// 적(scratch[0])에게 1대를 보낸다. 좀비 탄처럼 발사 지점(로자리 자리) 그대로에서 출발한다. 반환 = 생성한 수(0|1).
 export function launchPaperPlanes(pool, { originX, originZ, weapon, scratch, targetCount, resolveTarget = resolveWeaponTarget }) {
   if (targetCount <= 0) return 0
-  const count = Math.min(PAPER_PLANE_MAX_ACTIVE, Math.max(1, Math.floor(weapon.projectileCount ?? 1)))
-  let launched = 0
-  for (let p = 0; p < count; p += 1) {
-    const k = p % targetCount
-    const special = scratch.special[k] ?? null
-    const index = scratch.indices[k]
-    const generation = scratch.generations[k]
-    const rb = resolveTarget(index, special ? (generation || null) : generation, special)
-    if (!rb) continue
-    const t = rb.translation()
-    const share = Math.floor(p / targetCount)
-    const fan = share === 0 ? 0 : (share % 2 === 1 ? 1 : -1) * Math.ceil(share / 2) * PAPER_PLANE_LAUNCH_SPREAD
-    const base = Math.atan2(t.x - originX, t.z - originZ) + fan
-    const slot = spawnPaperPlane(pool, {
-      x: originX,
-      z: originZ,
-      dirX: Math.sin(base),
-      dirZ: Math.cos(base),
-      damage: weapon.damage,
-      pierce: weapon.pierce ?? 1,
-      critChance: weapon.critChance ?? 0,
-      critMultiplier: weapon.critMultiplier ?? 1.5,
-      targetIndex: index,
-      targetGeneration: generation,
-      targetSpecial: special,
-    })
-    if (slot < 0) break // 풀 상한(안전망)까지 찼다
-    launched += 1
-  }
-  retireExcessPaperPlanes(pool)
-  return launched
+  if (countActivePaperPlanes(pool) >= PAPER_PLANE_MAX_ALIVE) return 0
+  const special = scratch.special[0] ?? null
+  const index = scratch.indices[0]
+  const generation = scratch.generations[0]
+  const rb = resolveTarget(index, special ? (generation || null) : generation, special)
+  if (!rb) return 0
+  const t = rb.translation()
+  const heading = Math.atan2(t.x - originX, t.z - originZ) // 표적이 발밑이어도 0이 아닌 방향(0,1)
+  const slot = spawnPaperPlane(pool, {
+    x: originX,
+    z: originZ,
+    dirX: Math.sin(heading),
+    dirZ: Math.cos(heading),
+    damage: weapon.damage,
+    pierce: weapon.pierce ?? 1,
+    critChance: weapon.critChance ?? 0,
+    critMultiplier: weapon.critMultiplier ?? 1.5,
+    targetIndex: index,
+    targetGeneration: generation,
+    targetSpecial: special,
+  })
+  return slot < 0 ? 0 : 1
 }

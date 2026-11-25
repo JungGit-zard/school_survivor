@@ -192,6 +192,17 @@ const damageLabel = (name, weaponKey, upgradeKey) => (w) => {
   return translate(`up.${upgradeKey}.label`, { amount, level }, `${name} +${amount} (Lv${level})`)
 }
 
+// 대기 시간 카드(종이비행기): 지금 → 고른 뒤 대기 시간(초)을 그대로 보여 준다. 손놀림 패시브가 걸려 있으면 그 값 기준.
+const cooldownLabel = (name, weaponKey, upgradeKey) => (w) => {
+  const effect = UPGRADE_EFFECTS[upgradeKey]
+  const wpn = w[weaponKey]
+  const level = (wpn.level ?? 1) + 1
+  const sec = (ms) => Math.round(ms / 100) / 10
+  const from = sec(wpn.cooldown ?? 0)
+  const to = sec(Math.max(effect.floorMs, (wpn.cooldown ?? 0) - effect.stepMs))
+  return translate(`up.${upgradeKey}.label`, { from, to, level }, `${name} ${from}초 → ${to}초 (Lv${level})`)
+}
+
 export const UPGRADES = [
   { key: 'acquireBoxCutter', icon: 'boxCutter', label: '커터칼 해금', desc: '전방 좁은 범위를 찌르고 옆으로 베어냄' },
   { key: 'boxCutterDamage', icon: 'boxCutter', labelFn: damageLabel('커터칼 피해', 'boxCutter', 'boxCutterDamage'), desc: '찌르기 피해 증가' },
@@ -238,13 +249,11 @@ export const UPGRADES = [
   { key: 'miniRosariPower', icon: 'miniRosari', labelFn: damageLabel('꼬마 로자리 위력', 'miniRosari', 'miniRosariPower'), desc: '더 힘차게 뛰어 들이받는 위력 증가 · 대기시간 -1.75초 (최소 3초)' },
   { key: 'miniRosariCrit', icon: 'miniRosari', label: '꼬마 로자리 치명타 강화', desc: '치명타 확률 +2% · 대기시간 -1.75초 (최소 3초, 치명타 피해는 150% 고정)' },
   { key: 'acquirePaperPlane', icon: 'paperPlane', label: '종이비행기 해금', desc: '좀비 종이비행기처럼 가까운 적 쪽으로 천천히 휘어 날아가 맞힌다' },
-  { key: 'paperPlaneDamage', icon: 'paperPlane', labelFn: damageLabel('종이비행기 피해', 'paperPlane', 'paperPlaneDamage'), desc: '꿰뚫는 피해 증가' },
-  { key: 'paperPlaneCount', icon: 'paperPlane', label: '종이비행기 +1대', desc: '한 번에 던지는 비행기 수 증가' },
-  { key: 'paperPlanePierce', icon: 'paperPlane', label: '종이비행기 관통 +1', desc: '비행기 한 대가 꿰뚫는 적 수 증가' },
-  { key: 'paperPlanePower', icon: 'paperPlane', labelFn: damageLabel('종이비행기 위력', 'paperPlane', 'paperPlanePower'), desc: '접는 선을 날카롭게 세워 꿰뚫는 위력 증가' },
-  { key: 'acquireMissile', icon: 'missile', label: '보조배터리 미사일 해금', desc: '먼 적 무리를 호밍 폭발로 처리' },
+  { key: 'paperPlanePower', icon: 'paperPlane', labelFn: damageLabel('종이비행기 위력', 'paperPlane', 'paperPlanePower'), desc: '파워 강화: 비행기 한 대의 피해 증가' },
+  { key: 'paperPlaneCooldown', icon: 'paperPlane', labelFn: cooldownLabel('종이비행기 대기시간', 'paperPlane', 'paperPlaneCooldown'), desc: '대기시간 감소: 다음 비행기를 더 빨리 던진다(최소 3초, 화면엔 1대)' },
+  { key: 'acquireMissile', icon: 'missile', label: '초콜릿상자 미사일 해금', desc: '먼 적 무리를 호밍 폭발로 처리' },
   { key: 'missileDamage', icon: 'missile', labelFn: damageLabel('미사일 피해', 'guidedMissile', 'missileDamage'), desc: '폭발 피해 증가' },
-  { key: 'missilePower', icon: 'missile', labelFn: damageLabel('미사일 위력', 'guidedMissile', 'missilePower'), desc: '충전 용량을 키워 폭발 위력 증가' },
+  { key: 'missilePower', icon: 'missile', labelFn: damageLabel('미사일 위력', 'guidedMissile', 'missilePower'), desc: '초콜릿을 꽉 채워 폭발 위력 증가' },
   { key: 'missileRadius', icon: 'missile', label: '미사일 반경 +', desc: '폭발 반경 증가 (최대 2.2)' },
   { key: 'acquireStarlink', icon: 'starlink', label: '고장난 스타링크 해금', desc: '주변에 무작위 낙뢰 발생' },
   { key: 'starlinkDamage', icon: 'starlink', labelFn: damageLabel('낙뢰 피해', 'starlink', 'starlinkDamage'), desc: '낙뢰 한 발 피해 증가' },
@@ -510,7 +519,7 @@ export function enforceSafeLevelupChoice(choiceKeys, availableKeys, weapons = {}
   return choiceKeys.map((key, index) => (index === replaceIndex ? safeKey : key))
 }
 
-function pickFour(level, weapons, player, pendingGuaranteedUpgradeChoiceKeys = [], exposedAcquireKeys = [], weaponCycleIds = [], ownedWeaponCycleIds = [], rotationWeaponIds = []) {
+export function pickFour(level, weapons, player, pendingGuaranteedUpgradeChoiceKeys = [], exposedAcquireKeys = [], weaponCycleIds = [], ownedWeaponCycleIds = [], rotationWeaponIds = []) {
   const available = UPGRADES.filter((u) => isUpgradeAvailable(UPGRADE_EFFECTS[u.key], level, weapons, player))
   const limited = limitDuplicateWeaponUpgradeOptions(available, weapons) // c53e1c57: 난수 없이 무기 레벨로 돌아가며 고른다 — 화면 중 재셔플 없음, 카드 골고루 노출
   const selection = selectSequentialLevelupChoices({
@@ -526,6 +535,10 @@ function pickFour(level, weapons, player, pendingGuaranteedUpgradeChoiceKeys = [
       .filter((effect) => effect?.weapon && effect.kind !== 'acquire' && weapons[effect.weapon]?.active)
       .map((effect) => effect.weapon)
       .filter((weaponId, index, ids) => ids.indexOf(weaponId) === index),
+    // 슬롯이 꽉 차면 보유 강화 예약 칸은 연필이 아닌 보유 무기가 우선 받는다(버리기 없이 레벨업 가능).
+    ownedGuaranteeFallbackWeaponIds: Object.values(weapons).filter((weapon) => weapon?.active).length >= MAX_OWNED_WEAPONS
+      ? ['pencilThrow']
+      : [],
     choiceCount: 4,
     isAcquireKey: (key) => UPGRADE_EFFECTS[key]?.kind === 'acquire',
     getChoiceGroupKey: (key) => getUpgradeChoiceGroupKey({ key }),

@@ -706,9 +706,10 @@ describe('UPGRADE_EFFECTS 테이블 무결성', () => {
 
     // 힐/유틸 전용 동반자 하나코·이누콘만 데미지 카드가 없다.
     expect(Object.keys(damageCardCount).filter((id) => damageCardCount[id] === 0).sort()).toEqual(['hanako', 'inucon'])
-    // 랜턴·치비코는 광역/버프 역할이라 1장, 나머지 주력 16종은 2장이다.
+    // 랜턴·치비코는 광역/버프 역할이라 1장. 종이비행기는 2026-11-25 Terry "업그레이드는 대기시간감소와 파워 두가지"로
+    // 위력 1장 + 대기 시간 1장(HUD 회전으로 위력·대기가 두 번씩 나온다). 나머지 주력은 2장이다.
     expect(Object.keys(damageCardCount).filter((id) => damageCardCount[id] === 1).sort())
-      .toEqual(['chibiko', 'studentLantern'])
+      .toEqual(['chibiko', 'paperPlane', 'studentLantern'])
   })
 })
 

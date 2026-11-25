@@ -6,7 +6,7 @@ import { UPGRADE_EFFECTS, applyUpgradeToWeapon, isUpgradeAvailable } from './upg
 import { estimatePlayerDps } from './playerDpsEstimate.js'
 import {
   E47_PAPER_PLANE_SHOT, PAPER_PLANE_CONTACT_RADIUS, PAPER_PLANE_LIFETIME_MS, PAPER_PLANE_SPEED,
-  PAPER_PLANE_MAX_CAPACITY, PAPER_PLANE_TURN_BUDGET, PAPER_PLANE_TURN_RATE, countActivePaperPlanes, createPaperPlanePool,
+  PAPER_PLANE_MAX_ALIVE, PAPER_PLANE_MAX_CAPACITY, PAPER_PLANE_TURN_BUDGET, PAPER_PLANE_TURN_RATE, countActivePaperPlanes, createPaperPlanePool,
   launchPaperPlanes, spawnPaperPlane, stepPaperPlanes,
 } from './paperPlane.js'
 import { PROJECTILE_ZOMBIE_BEHAVIORS } from './projectileZombieBehavior.js'
@@ -72,23 +72,51 @@ describe('paper plane weapon — catalog & cards', () => {
     expect(isUpgradeAvailable(UPGRADE_EFFECTS.acquirePaperPlane, 1, weapons)).toBe(true)
   })
 
-  it('levels 2–5 add damage, plane count and pierce; Lv5 single-target DPS = 4× Lv1 (damage ×2, planes ×2)', () => {
+  // 2026-11-25 Terry: 카드는 위력·대기 시간 두 가지. HUD 회전(무기 레벨) 순서 위력 → 대기 → 위력 → 대기.
+  it('levels 2–5 alternate power (+10) and cooldown (-3.5 s, floor 3 s): the per-level table', () => {
+    expect(Object.keys(UPGRADE_EFFECTS).filter((k) => UPGRADE_EFFECTS[k].weapon === 'paperPlane').sort())
+      .toEqual(['acquirePaperPlane', 'paperPlaneCooldown', 'paperPlanePower'])
     let w = applyUpgradeToWeapon({ ...WEAPON_CATALOG.paperPlane.base }, UPGRADE_EFFECTS.acquirePaperPlane)
-    expect(w.level).toBe(1)
-    const lv1 = estimatePlayerDps({ paperPlane: w })
-    for (const key of ['paperPlaneDamage', 'paperPlaneCount', 'paperPlanePierce', 'paperPlanePower']) {
+    const table = [{ level: w.level, damage: w.damage, cooldown: w.cooldown }]
+    const dps = [estimatePlayerDps({ paperPlane: w })]
+    for (const key of ['paperPlanePower', 'paperPlaneCooldown', 'paperPlanePower', 'paperPlaneCooldown']) {
       expect(isUpgradeAvailable(UPGRADE_EFFECTS[key], 10, { paperPlane: w })).toBe(true)
       w = applyUpgradeToWeapon(w, UPGRADE_EFFECTS[key])
+      table.push({ level: w.level, damage: w.damage, cooldown: w.cooldown })
+      dps.push(estimatePlayerDps({ paperPlane: w }))
     }
-    // 관통: 기본 1(한 번 맞히고 사라짐) + 카드 1 = 2(맞힌 좀비를 뚫고 뒤의 좀비 하나 더).
-    expect(WEAPON_CATALOG.paperPlane.base.pierce).toBe(1)
-    expect(UPGRADE_EFFECTS.paperPlanePierce.cap).toBe(4)
-    expect(w).toMatchObject({ level: 5, damage: 18, projectileCount: 2, pierce: 2 })
-    expect(isUpgradeAvailable(UPGRADE_EFFECTS.paperPlaneDamage, 10, { paperPlane: w })).toBe(false)
-    const lv5 = estimatePlayerDps({ paperPlane: w })
-    expect(lv1).toBeCloseTo((9 / 1.8) * 1.025, 9)
-    expect(lv5).toBeCloseTo((18 / 1.8) * 2 * 1.025, 9)
-    expect(lv5 / lv1).toBeCloseTo(4, 9)
+    expect(table).toEqual([
+      { level: 1, damage: 50, cooldown: 10000 },
+      { level: 2, damage: 60, cooldown: 10000 },
+      { level: 3, damage: 60, cooldown: 6500 },
+      { level: 4, damage: 70, cooldown: 6500 },
+      { level: 5, damage: 70, cooldown: 3000 },
+    ])
+    expect(w).toMatchObject({ pierce: 1 })
+    expect(w.projectileCount).toBeUndefined()
+    // 만렙이면 어떤 카드도 더 안 뜬다. 대기 시간 카드는 3초에서 멈춘다.
+    expect(isUpgradeAvailable(UPGRADE_EFFECTS.paperPlanePower, 10, { paperPlane: w })).toBe(false)
+    expect(isUpgradeAvailable(UPGRADE_EFFECTS.paperPlaneCooldown, 10, { paperPlane: { ...w, level: 2 } })).toBe(false)
+    expect(applyUpgradeToWeapon({ ...w, level: 2, cooldown: 4000 }, UPGRADE_EFFECTS.paperPlaneCooldown).cooldown).toBe(3000)
+    // 단일 대상 DPS는 레벨마다 오르고, Lv1은 예전(9/1.8초)과 같으며 만렙은 예전 만렙(18 × 2대 / 1.8초 = 20.5)보다 세다.
+    for (let i = 1; i < dps.length; i += 1) expect(dps[i]).toBeGreaterThan(dps[i - 1])
+    expect(dps[0]).toBeCloseTo((9 / 1.8) * 1.025, 9)
+    expect(dps[4]).toBeCloseTo((70 / 3) * 1.025, 9)
+    expect(dps[4]).toBeGreaterThan((18 / 1.8) * 2 * 1.025)
+  })
+
+  it('HUD rotation offers power at Lv1→2 and Lv3→4, cooldown at Lv2→3 and Lv4→5', async () => {
+    const { UPGRADES, limitDuplicateWeaponUpgradeOptions } = await import('../components/HUD.jsx')
+    const offered = []
+    let w = applyUpgradeToWeapon({ ...WEAPON_CATALOG.paperPlane.base }, UPGRADE_EFFECTS.acquirePaperPlane)
+    for (let i = 0; i < 4; i += 1) {
+      const options = UPGRADES.filter((u) => UPGRADE_EFFECTS[u.key]?.weapon === 'paperPlane' && isUpgradeAvailable(UPGRADE_EFFECTS[u.key], 10, { paperPlane: w }))
+      const [pick] = limitDuplicateWeaponUpgradeOptions(options, { paperPlane: w })
+      offered.push(pick.key)
+      w = applyUpgradeToWeapon(w, UPGRADE_EFFECTS[pick.key])
+    }
+    expect(offered).toEqual(['paperPlanePower', 'paperPlaneCooldown', 'paperPlanePower', 'paperPlaneCooldown'])
+    expect(w).toMatchObject({ level: 5, damage: 70, cooldown: 3000 })
   })
 
   it('sits mid-tier: Lv1 single-target DPS between pencil and onigiri, existing weapons untouched', () => {
@@ -104,7 +132,7 @@ describe('paper plane weapon — catalog & cards', () => {
 
   it('has ko (HUD) / en / ja card names and descriptions and an icon', () => {
     const hud = readFileSync(new URL('../components/HUD.jsx', import.meta.url), 'utf8')
-    for (const key of ['acquirePaperPlane', 'paperPlaneDamage', 'paperPlaneCount', 'paperPlanePierce', 'paperPlanePower']) {
+    for (const key of ['acquirePaperPlane', 'paperPlanePower', 'paperPlaneCooldown']) {
       expect(hud).toContain(`key: '${key}'`)
       for (const dict of [en, ja]) {
         expect(dict[`up.${key}.label`]).toBeTruthy()
@@ -287,37 +315,49 @@ describe('paper plane flight = the E47 zombie paper plane (2026-11-08 Terry)', (
     expect(countActivePaperPlanes(pool)).toBe(0)
   })
 
-  it('launches from Rosari\'s exact position toward the nearest enemies, one plane per target', () => {
+  it('launches one plane from Rosari\'s exact position toward the nearest enemy, even with a stale count of 2', () => {
     const { enemies, deps } = makeWorld([[0, 4], [3, 0]])
     const pool = createPaperPlanePool(4)
     const scratch = scratchOf(4)
     const n = deps.scanRadius(scratch, 0, 0, 9, 2)
     const launched = launchPaperPlanes(pool, { originX: 0, originZ: 0, weapon: { ...WEAPON_CATALOG.paperPlane.base, projectileCount: 2 }, scratch, targetCount: n, resolveTarget: deps.resolveTarget })
-    expect(launched).toBe(2)
-    for (let i = 0; i < 2; i += 1) {
-      expect(pool.posX[i]).toBe(0)
-      expect(pool.posZ[i]).toBe(0)
-    }
-    // 첫 비행기는 가까운 (3,0), 둘째는 (0,4) 쪽으로 출발한다.
-    expect(headingDeg(pool, 0)).toBeCloseTo(90, 4)
-    expect(headingDeg(pool, 1)).toBeCloseTo(0, 4)
+    expect(launched).toBe(1)
+    expect(pool.posX[0]).toBe(0)
+    expect(pool.posZ[0]).toBe(0)
+    expect(headingDeg(pool, 0)).toBeCloseTo(90, 4) // 가까운 (3,0) 쪽
     run(pool, deps, 3.5)
-    expect(enemies[0].hits).toBe(1)
-    expect(enemies[1].hits).toBe(1)
+    expect(enemies.map((e) => e.hits)).toEqual([0, 1])
   })
 
-  it('sends every plane at a lone target, and the DPS estimate counts every plane (Matilda HP)', () => {
-    const { enemies, deps } = makeWorld([[0, 4]])
+  // 2026-11-25 Terry: "종이 비행기 한화면 체류 갯수는 1개로 제한한다".
+  it('never has more than 1 plane alive, even at max level with a multi-shot weapon; the next throw waits, then fires', () => {
+    expect(PAPER_PLANE_MAX_ALIVE).toBe(1)
+    const { enemies, deps } = makeWorld([[0, 4], [3, 0], [-3, 0], [0, -4]])
     const pool = createPaperPlanePool(4)
-    const scratch = scratchOf(4)
-    const n = deps.scanRadius(scratch, 0, 0, 9, 2)
-    expect(n).toBe(1)
-    expect(launchPaperPlanes(pool, { originX: 0, originZ: 0, weapon: { ...WEAPON_CATALOG.paperPlane.base, projectileCount: 2 }, scratch, targetCount: n, resolveTarget: deps.resolveTarget })).toBe(2)
-    run(pool, deps, 4)
-    expect(enemies[0].hits).toBe(2) // 두 대 모두 같은 적을 한 번씩
-    expect(WEAPON_CATALOG.paperPlane.base.singleTargetProjectiles).toBe(true)
+    const scratch = scratchOf(8)
+    const weapon = { ...WEAPON_CATALOG.paperPlane.base, damage: 1, projectileCount: 4, cooldown: 0 }
+    let maxAlive = 0
+    let launches = 0
+    // 매 프레임 "쿨다운 0"으로 던지기를 시도한다(최악). 살아 있는 1대가 있으면 던지기는 0이다.
+    for (let t = 0; t < 20; t += DT) {
+      const n = deps.scanRadius(scratch, 0, 0, 9, 4)
+      const before = countActivePaperPlanes(pool)
+      const got = launchPaperPlanes(pool, { originX: 0, originZ: 0, weapon, scratch, targetCount: n, resolveTarget: deps.resolveTarget })
+      if (before > 0) expect(got).toBe(0)
+      launches += got
+      maxAlive = Math.max(maxAlive, countActivePaperPlanes(pool))
+      stepPaperPlanes(pool, DT, deps)
+    }
+    expect(maxAlive).toBe(1)
+    // 기다린 던지기는 잃지 않는다: 앞의 1대가 맞고 사라진 직후 다음 1대가 나간다(3u 비행 ≈ 1.9초 → 20초에 9~10번).
+    expect(launches).toBeGreaterThanOrEqual(9)
+    expect(enemies.reduce((sum, e) => sum + e.hits, 0)).toBeGreaterThanOrEqual(launches - 1)
+  })
+
+  it('DPS estimate = one plane per cooldown (no plane-count multiplier)', () => {
     const base = { ...WEAPON_CATALOG.paperPlane.base, active: true }
-    expect(estimatePlayerDps({ paperPlane: { ...base, projectileCount: 2 } })).toBeCloseTo(2 * estimatePlayerDps({ paperPlane: base }), 9)
+    expect(base.singleTargetProjectiles).toBeUndefined()
+    expect(estimatePlayerDps({ paperPlane: base })).toBeCloseTo((50 / 10) * 1.025, 9)
   })
 
   it('expires after 5 s (8u) when it touches nothing', () => {
@@ -367,10 +407,10 @@ describe('paper plane flight = the E47 zombie paper plane (2026-11-08 Terry)', (
     const weapon = { damage: 1, projectileCount: 2 }
     expect(launchPaperPlanes(pool, { originX: 0, originZ: 0, weapon, scratch, targetCount: 1, resolveTarget: () => target })).toBe(0)
 
-    // 한 자리가 비면 그 자리를 다시 쓴다.
+    // 한 자리가 비면 그 자리를 다시 쓴다(spawn 수준 — 발사 계획은 화면 1대 상한 때문에 다른 비행기가 있으면 던지지 않는다).
     pool.active[10] = 0
-    expect(launchPaperPlanes(pool, { originX: 0, originZ: 0, weapon, scratch, targetCount: 1, resolveTarget: () => target })).toBe(1)
-    expect(pool.active[10]).toBe(1)
+    expect(launchPaperPlanes(pool, { originX: 0, originZ: 0, weapon, scratch, targetCount: 1, resolveTarget: () => target })).toBe(0)
+    expect(spawnPaperPlane(pool, { x: 0, z: 0, dirX: 1, dirZ: 0, damage: 1 })).toBe(10)
     expect(pool.capacity).toBe(64)
   })
 
@@ -438,13 +478,7 @@ describe('paper plane visual = the zombie paper plane + a mint outline', () => {
 
   it('fades out smoothly over the last stretch of its life instead of popping', async () => {
     const { planeFadeScale } = await import('../components/Weapons/PaperPlane.jsx')
-    const { PAPER_PLANE_FADE_MS, PAPER_PLANE_MAX_ACTIVE, retireExcessPaperPlanes } = await import('./paperPlane.js')
-    // 동시 체류 상한 3: 넘치면 가장 오래된 것이 FADE_MS 뒤 사라지도록 수명이 줄어든다.
-    const capPool = createPaperPlanePool(8)
-    for (let i = 0; i < 5; i += 1) { const sl = spawnPaperPlane(capPool, { x: 0, z: 0, dirX: 1, dirZ: 0, damage: 1 }); capPool.ageMs[sl] = 1000 - i * 100 }
-    retireExcessPaperPlanes(capPool)
-    expect(PAPER_PLANE_MAX_ACTIVE).toBe(3)
-    expect([0, 1, 2, 3, 4].map((i) => capPool.lifeMs[i] - capPool.ageMs[i] <= PAPER_PLANE_FADE_MS)).toEqual([true, true, false, false, false])
+    const { PAPER_PLANE_FADE_MS } = await import('./paperPlane.js')
     expect(planeFadeScale(0, 4200)).toBe(1)
     expect(planeFadeScale(4200 - PAPER_PLANE_FADE_MS, 4200)).toBe(1)
     const mid = planeFadeScale(4200 - PAPER_PLANE_FADE_MS / 2, 4200)
@@ -474,25 +508,5 @@ describe('paper plane visual = the zombie paper plane + a mint outline', () => {
     expect(createShotOutlineMaterial().color.getHex()).toBe(new THREE.Color(0x050209).getHex())
     const layer = readFileSync(new URL('../components/PooledEnemyProjectileLayer.jsx', import.meta.url), 'utf8')
     expect(layer).toContain('outMat: createShotOutlineMaterial(),')
-  })
-})
-
-// 2026-11-17 라이브 정지 사고: Float32 반올림 때문에 상한 정리 반복문이 끝나지 않았다(+1대 카드 이후).
-describe('retireExcessPaperPlanes always terminates', () => {
-  it('returns and leaves at most 3 non-fading planes for every 60fps-ish age', async () => {
-    const mod = await import('./paperPlane.js')
-    for (let step = 1; step <= 600; step += 1) {
-      const pool = mod.createPaperPlanePool(8)
-      for (let i = 0; i < 6; i += 1) {
-        const slot = mod.spawnPaperPlane(pool, { x: 0, z: 0, dirX: 1, dirZ: 0, damage: 1 })
-        pool.ageMs[slot] = step * 16.667 + i * 0.001
-      }
-      mod.retireExcessPaperPlanes(pool, 3)
-      let live = 0
-      for (let i = 0; i <= pool.highest; i += 1) {
-        if (pool.active[i] && pool.lifeMs[i] - pool.ageMs[i] > mod.PAPER_PLANE_FADE_MS) live += 1
-      }
-      expect(live).toBeLessThanOrEqual(3)
-    }
   })
 })

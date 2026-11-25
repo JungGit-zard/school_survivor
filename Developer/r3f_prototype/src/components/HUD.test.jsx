@@ -1879,7 +1879,7 @@ describe('stage4 HUD telegraphs', () => {
     }
   })
 
-  it('rotates one upgrade through ten owned weapons, wraps, and ignores same-serial rerenders', () => {
+  it('rotates one upgrade through the nine non-pencil weapons at full slots, wraps, and ignores same-serial rerenders', () => {
     useGameStore.getState().resetGame('stage1')
     useGameStore.setState((state) => {
       const ownedIds = [...new Set(UPGRADES
@@ -1915,15 +1915,17 @@ describe('stage4 HUD telegraphs', () => {
       const firstCycleId = useGameStore.getState().levelUpOwnedWeaponCycleIds[0]
       expect(firstCycleId).toEqual(expect.any(String))
       expectVisibleOwnedUpgrade()
-      for (let serial = 301; serial <= 309; serial += 1) {
+      // Terry 2026-11-25: 슬롯이 꽉 차면 예약 칸은 연필을 뺀 9개 보유 무기만 돈다(연필+획득 3장 화면 금지).
+      for (let serial = 301; serial <= 308; serial += 1) {
         act(() => useGameStore.setState({ levelUpChoiceSerial: serial }))
         expect(useGameStore.getState().levelUpOwnedWeaponCycleIds).toHaveLength(serial - 299)
         expectVisibleOwnedUpgrade()
       }
       const completedCycle = useGameStore.getState().levelUpOwnedWeaponCycleIds
-      expect(new Set(completedCycle)).toHaveLength(10)
+      expect(new Set(completedCycle)).toHaveLength(9)
+      expect(completedCycle).not.toContain('pencilThrow')
 
-      act(() => useGameStore.setState({ levelUpChoiceSerial: 310 }))
+      act(() => useGameStore.setState({ levelUpChoiceSerial: 309 }))
       expect(useGameStore.getState().levelUpOwnedWeaponCycleIds).toEqual([firstCycleId])
       expectVisibleOwnedUpgrade()
 

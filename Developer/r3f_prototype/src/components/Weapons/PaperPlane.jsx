@@ -11,12 +11,12 @@ import {
   SHOT_OUTLINE_THICKNESS, SHOT_VISUALS, composeShotQuaternion, createOutlineGeometry,
   createShotBodyMaterial, createShotOutlineMaterial, getShotVisualIndex,
 } from '../../lib/projectileZombieShotGeometry.js'
-import { PAPER_PLANE_FADE_MS, PAPER_PLANE_MAX_CAPACITY, clearPaperPlanePool, createPaperPlanePool, launchPaperPlanes, stepPaperPlanes } from '../../lib/paperPlane.js'
+import { PAPER_PLANE_FADE_MS, PAPER_PLANE_MAX_ALIVE, PAPER_PLANE_MAX_CAPACITY, clearPaperPlanePool, countActivePaperPlanes, createPaperPlanePool, launchPaperPlanes, stepPaperPlanes } from '../../lib/paperPlane.js'
 import { createRibbonTrail } from '../../lib/vfxRibbonTrail.js'
 
 // 종이비행기(paperPlane) — 2026-11-07 Terry: E47 종이비행기 좀비의 탄을 로자리 무기로.
 // 2026-11-08 Terry: 좀비 종이비행기와 크기·비행속도·공격 방식까지 완전히 같게, 로자리 것만 민트 테두리.
-// 동작·수치 정본: lib/paperPlane.js(E47 탄 스펙 + 공용 선회) + weaponCatalog.js paperPlane.base(피해·쿨·대수).
+// 동작·수치 정본: lib/paperPlane.js(E47 탄 스펙 + 공용 선회) + weaponCatalog.js paperPlane.base(피해·대기 시간). 화면에 1대(PAPER_PLANE_MAX_ALIVE).
 // 렌더: 좀비 탄 레이어(PooledEnemyProjectileLayer)와 같은 메시·재질·크기·높이·기울기(bank) 규칙을 쓰고,
 // 외곽선 헐은 검정이다. 몸체 + 외곽선 InstancedMesh 한 쌍. 풀 용량이 늘 때만 메시를 다시 만들고,
 // 매 프레임 할당은 없다. 풀은 16에서 시작해 두 배씩, 안전망 상한 PAPER_PLANE_MAX_CAPACITY(64)까지만 는다.
@@ -134,10 +134,11 @@ export function PaperPlaneWeapon() {
     const pool = poolRef.current
     const now = clock.elapsedTime * 1000
     nowRef.current = now
-    if (now - lastFireRef.current >= weapon.cooldown) {
+    // 대기 시간은 던진 순간부터 잰다. 다 찼어도 화면의 1대가 아직 살아 있으면 launchPaperPlanes가 0을 돌려주고
+    // lastFire를 그대로 두므로, 그 비행기가 사라지는 프레임에 바로 다음 1대가 나간다(2026-11-25 Terry, 한 화면 1대).
+    if (now - lastFireRef.current >= weapon.cooldown && countActivePaperPlanes(pool) < PAPER_PLANE_MAX_ALIVE) {
       const scratch = targetScratchRef.current
-      const count = Math.max(1, Math.floor(weapon.projectileCount ?? 1))
-      const found = scanClosestEnemiesInto(scratch, weapon.range ?? 9, Math.min(count, scratch.indices.length))
+      const found = scanClosestEnemiesInto(scratch, weapon.range ?? 9, 1)
       if (found > 0 && launchPaperPlanes(pool, { originX: playerPos.x, originZ: playerPos.z, weapon, scratch, targetCount: found }) > 0) {
         lastFireRef.current = now
         // 전용 효과음이 없어 연필 발사·타격음을 공유한다(soundmini 검토 대상).
