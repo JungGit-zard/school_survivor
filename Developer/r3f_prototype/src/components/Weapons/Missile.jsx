@@ -11,7 +11,7 @@ import { findBestSplashTarget, applyRadialDamage } from '../../lib/weaponTargeti
 import { getGuidedMissileControlTime } from '../../lib/guidedMissileRuntime.js'
 import StudioTunedGroup, { composeStudioPartScale } from '../StudioTunedGroup.jsx'
 
-// guidedMissile / 보조배터리 미사일 — legacy 2단계(충전 → 비행) 연출 부활본.
+// guidedMissile / 초콜릿상자 미사일 (구 보조배터리 미사일) — legacy 2단계(충전 → 비행) 연출 부활본.
 // 던지면 0.95s 동안 흔들리며 추진력 축적, 그 뒤 가속 비행해 target 좌표에 폭발.
 
 let _missileId = 0
@@ -23,25 +23,42 @@ function setLiveOpacity(mesh, opacity) {
   if (material) material.opacity = opacity
 }
 
+// Terry 2026-11-25: 보조배터리 → 초콜릿상자. 로우폴리 툰 선물상자(초콜릿 몸통 + 빨간 뚜껑 + 금색 리본·나비매듭).
+// 그룹 회전(PI/2 X)·스케일·자식 0~3 순서(외곽선, 몸통, 띠→뚜껑, 코→매듭)는 예전 그대로 둬서
+// Studio 'weapon-guided-missile' 파트 인덱스가 같은 역할 메시에 붙게 했다. 리본·고리는 4번부터 덧붙인다.
+// 로컬 좌표: X = 폭, Y = 진행 방향(앞), -Z = 위(화면 쪽).
 export function MissileBody() {
-  const bodyMat  = useMemo(() => toonMat(0xff3d85, 0.22), [])   // 선명한 핑크
-  const labelMat = useMemo(() => toonMat(0xff80b8, 0.28), [])   // 밝은 핑크 밴드
-  const noseMat  = useMemo(() => toonMat(0xffaad0, 0.14), [])   // 연핑크 코
-  const outMat   = useMemo(() => outlineMat(0.97), [])
+  const bodyMat   = useMemo(() => toonMat(0x6b3a1e, 0.12), [])  // 밀크초콜릿 몸통
+  const lidMat    = useMemo(() => toonMat(0xe0304e, 0.22), [])  // 빨간 뚜껑
+  const knotMat   = useMemo(() => toonMat(0xffd34d, 0.24), [])  // 금색 매듭
+  const ribbonMat = useMemo(() => toonMat(0xffc93c, 0.20), [])  // 금색 리본
+  const outMat    = useMemo(() => outlineMat(0.97), [])
 
   return (
     <group rotation={[Math.PI / 2, 0, 0]} scale={[0.54, 0.54, 0.54]}>
-      <mesh renderOrder={1} material={outMat} scale={[1.14, 1.08, 1.14]}>
-        <cylinderGeometry args={[0.13, 0.15, 0.64, 8]} />
+      <mesh renderOrder={1} material={outMat} scale={[1.09, 1.07, 1.16]}>
+        <boxGeometry args={[0.44, 0.58, 0.22]} />
       </mesh>
-      <mesh renderOrder={2} material={bodyMat}>
-        <cylinderGeometry args={[0.13, 0.15, 0.64, 8]} />
+      <mesh renderOrder={2} material={bodyMat} position={[0, 0, 0.03]}>
+        <boxGeometry args={[0.42, 0.56, 0.16]} />
       </mesh>
-      <mesh renderOrder={2} material={labelMat}>
-        <cylinderGeometry args={[0.135, 0.155, 0.22, 8]} />
+      <mesh renderOrder={2} material={lidMat} position={[0, 0, -0.075]}>
+        <boxGeometry args={[0.44, 0.58, 0.07]} />
       </mesh>
-      <mesh renderOrder={2} material={noseMat} position={[0, 0.42, 0]}>
-        <coneGeometry args={[0.13, 0.18, 8]} />
+      <mesh renderOrder={2} material={knotMat} position={[0, 0, -0.13]}>
+        <boxGeometry args={[0.09, 0.09, 0.05]} />
+      </mesh>
+      <mesh renderOrder={2} material={ribbonMat} position={[0, 0, -0.075]}>
+        <boxGeometry args={[0.07, 0.586, 0.08]} />
+      </mesh>
+      <mesh renderOrder={2} material={ribbonMat} position={[0, 0, -0.075]}>
+        <boxGeometry args={[0.446, 0.07, 0.08]} />
+      </mesh>
+      <mesh renderOrder={2} material={knotMat} position={[-0.085, 0, -0.13]} rotation={[0, 0.35, 0]} scale={[1, 0.8, 1]}>
+        <torusGeometry args={[0.06, 0.022, 4, 8]} />
+      </mesh>
+      <mesh renderOrder={2} material={knotMat} position={[0.085, 0, -0.13]} rotation={[0, -0.35, 0]} scale={[1, 0.8, 1]}>
+        <torusGeometry args={[0.06, 0.022, 4, 8]} />
       </mesh>
     </group>
   )

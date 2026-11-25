@@ -129,7 +129,7 @@ describe('CoinShop', () => {
 
     expect(container.textContent).toContain('무기 기본 능력 영구 강화')
     expect(container.textContent).toContain('연필')
-    expect(container.textContent).toContain('보조배터리 미사일')
+    expect(container.textContent).toContain('초콜릿상자 미사일')
     expect(container.textContent).toContain('상어미사일')
     expect(container.textContent).toContain('무기 해금 후 강화 가능')
     expect(Array.from(container.querySelectorAll('img')).some((img) => /wea_|weapon_icon|\.svg/.test(img.getAttribute('src') ?? ''))).toBe(true)
