@@ -554,6 +554,9 @@ export const useGameStore = create(
     damagePlayer: (amount, { ignoreInvulnerability = false, source = null } = {}) => {
       const { player, phase, godMode } = get()
       if (phase !== 'playing') return false
+      // 피해 0·음수·NaN은 피격이 아니다(stageRuntimeProbe의 같은 규칙과 맞춘다). 예: E90 숙제 당번(피해 0)이 넉백 중
+      // 몸에 닿으면 접촉 이벤트 값 0이 온다 — 예전엔 피격음·진동·넉백·무적이 켜졌고, NaN은 HP를 NaN으로 만들어 죽지 않게 했다.
+      if (!(amount > 0)) return false
       if (godMode) {
         if (isProjectMaster(useAuthStore.getState().user)) return false
         set({ godMode: false })

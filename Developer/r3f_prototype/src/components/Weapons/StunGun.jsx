@@ -249,6 +249,16 @@ export function StunGunWeapon() {
   const [bolts, setBolts] = useState([])
   const [arcs,  setArcs]  = useState([])
 
+
+  // A replacement card can drop the weapon while a shot is in the air. Rendering null unmounts it
+  // without its onExplode/onExpire, so the entry stayed in the list and re-acquiring the weapon
+  // relaunched it from its old spot (same bug class as balanceqa F1 for onigiri/miniRosari).
+  useEffect(() => {
+    if (active) return
+    setBolts([])
+    setArcs([])
+  }, [active])
+
   const removeBolt = useCallback(id =>
     setBolts(prev => prev.filter(b => b.id !== id)), [])
 

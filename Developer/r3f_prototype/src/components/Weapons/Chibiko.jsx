@@ -1,4 +1,4 @@
-import { useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { emitSfx } from '../../lib/sfxEvents.js'
 import * as THREE from 'three'
 import { useGameStore } from '../../store/useGameStore.js'
@@ -225,6 +225,13 @@ export function ChibikoWeapon() {
   const targetScratchRef = useRef(createWeaponTargetScratch(1))
   const [projectiles, activeProjectilesRef, requestProjectiles, expire] = useDeferredProjectileState()
   const weapons = useGameStore((s) => s.weapons)
+
+  // Dropped by a replacement card mid-flight: clear the in-flight pencils so re-acquiring Chibiko does
+  // not relaunch them from their old spot (same bug class as balanceqa F1).
+  const active = !!weapons.chibiko?.active
+  useEffect(() => {
+    if (!active) requestProjectiles([])
+  }, [active, requestProjectiles])
 
   usePlayingFrame(({ clock }, delta) => {
     const w = weapons.chibiko

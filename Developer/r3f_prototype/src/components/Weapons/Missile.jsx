@@ -1,4 +1,4 @@
-import { useRef, useState, useCallback, useMemo } from 'react'
+import { useRef, useState, useCallback, useMemo, useEffect } from 'react'
 import { usePlayingFrame } from '../../lib/usePlayingFrame.js'
 import { emitSfx } from '../../lib/sfxEvents.js'
 import { VFX_BURST, spawnVfxBurst } from '../../lib/vfxBursts.js'
@@ -269,6 +269,17 @@ export function GuidedMissile() {
   const lastFireRef                 = useRef(0)
   const phase   = useGameStore((s) => s.phase)
   const weapons = useGameStore((s) => s.weapons)
+
+  // A replacement card can drop the weapon while a missile is in the air. Rendering null unmounts it
+  // without onExplode, so the entry used to stay in the list and re-acquiring the weapon relaunched it
+  // from its old throw point (same bug class as balanceqa F1 for onigiri/miniRosari).
+  const active = !!weapons.guidedMissile?.active
+  useEffect(() => {
+    if (active) return
+    activeMissilesRef.current = []
+    setMissiles([])
+    setExplosions([])
+  }, [active])
 
   const removeExplosion = useCallback((id) => {
     setExplosions((prev) => prev.filter((e) => e.id !== id))

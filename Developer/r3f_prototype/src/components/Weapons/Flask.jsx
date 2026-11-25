@@ -1,4 +1,4 @@
-import { useRef, useState, useCallback, useMemo } from 'react'
+import { useRef, useState, useCallback, useMemo, useEffect } from 'react'
 import { usePlayingFrame } from '../../lib/usePlayingFrame.js'
 import { emitSfx } from '../../lib/sfxEvents.js'
 import * as THREE from 'three'
@@ -197,6 +197,19 @@ export function ScienceFlaskSplash() {
   const lastFireRef = useRef(0)
   const phase = useGameStore((s) => s.phase)
   const weapons = useGameStore((s) => s.weapons)
+
+  // A replacement card can drop the weapon while a shot is in the air. Rendering null unmounts it
+  // without its onExplode/onExpire, so the entry stayed in the list and re-acquiring the weapon
+  // relaunched it from its old spot (same bug class as balanceqa F1 for onigiri/miniRosari).
+  // Damaging chemical zones are cleared too, otherwise they restart their full 5 s of ticks.
+  const active = !!weapons.scienceFlask?.active
+  useEffect(() => {
+    if (active) return
+    activeFlasksRef.current = []
+    setFlasks([])
+    setExplosions([])
+    setZones([])
+  }, [active])
 
   const removeExplosion = useCallback((id) => {
     setExplosions((prev) => prev.filter((item) => item.id !== id))

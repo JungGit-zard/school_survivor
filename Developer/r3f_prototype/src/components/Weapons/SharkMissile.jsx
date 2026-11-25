@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { usePlayingFrame } from '../../lib/usePlayingFrame.js'
 import { emitSfx } from '../../lib/sfxEvents.js'
 import { VFX_BURST, spawnVfxBurst } from '../../lib/vfxBursts.js'
@@ -279,6 +279,15 @@ export function SharkMissileWeapon() {
   const lastFireRef = useRef(0)
   const phase = useGameStore((s) => s.phase)
   const weapons = useGameStore((s) => s.weapons)
+
+  // Dropped by a replacement card mid-flight: clear the in-flight dart so re-acquiring the weapon does
+  // not relaunch it from its old start point (same bug class as balanceqa F1).
+  const active = !!weapons.sharkMissile?.active
+  useEffect(() => {
+    if (active) return
+    activeMissilesRef.current = []
+    setMissiles([])
+  }, [active])
 
   const explode = useCallback((id, blast) => {
     activeMissilesRef.current = activeMissilesRef.current.filter((item) => item.id !== id)

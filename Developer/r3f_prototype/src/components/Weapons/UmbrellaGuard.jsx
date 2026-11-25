@@ -1,4 +1,4 @@
-import { useRef, useState, useMemo, useCallback } from 'react'
+import { useRef, useState, useMemo, useCallback, useEffect } from 'react'
 import { usePlayingFrame } from '../../lib/usePlayingFrame.js'
 import { emitSfx } from '../../lib/sfxEvents.js'
 import * as THREE from 'three'
@@ -193,6 +193,17 @@ export function UmbrellaGuardWeapon() {
   const [pulses, setPulses] = useState([])
   const [explosions, setExplosions] = useState([])
   const activePulsesRef = useRef([])
+
+  // A replacement card can drop the weapon while a shot is in the air. Rendering null unmounts it
+  // without its onExplode/onExpire, so the entry stayed in the list and re-acquiring the weapon
+  // relaunched it from its old spot (same bug class as balanceqa F1 for onigiri/miniRosari).
+  const active = !!weapons.umbrellaGuard?.active
+  useEffect(() => {
+    if (active) return
+    activePulsesRef.current = []
+    setPulses([])
+    setExplosions([])
+  }, [active])
 
   const removeExplosion = useCallback((id) => {
     setExplosions((prev) => prev.filter((item) => item.id !== id))
