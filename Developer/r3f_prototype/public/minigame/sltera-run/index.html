@@ -217,7 +217,7 @@ const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 1600);
 
 // chase-cam rest framing (matches the rear preview shot): directly behind, low, close, horizon ≈35% from top
 // Terry 11-25: "much more upright" - high chase cam looking steeply down, close to a drone view
-const CAM = { back: 8.0, height: 9.0, pitch: 35 * Math.PI / 180, vHalfDeg: 28, minHTan: 0.42 };
+const CAM = { back: 8.5, height: 14.5, pitch: 50 * Math.PI / 180, vHalfDeg: 28, minHTan: 0.42 }; // car seen from ~60deg above (Terry: midway between 30deg chase and 90deg top-down)
 // 16:9 game band on landscape; on portrait the band is tall, the top bar holds the HUD and the bottom bar the one-thumb controls
 const bandEl = document.getElementById('band');
 function layout() {
