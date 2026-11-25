@@ -342,7 +342,20 @@
         "image_pool/x/en/gameplay_composite_20261121/02_pencil_survival.png",
         "image_pool/x/en/gameplay_composite_20261121/04_b02_teacher.png",
         "image_pool/x/en/gameplay_composite_20261121/05_gym.png",
-        "image_pool/x/en/gameplay_composite_20261121/01_start.png"
+        "image_pool/x/en/gameplay_composite_20261121/01_start.png",
+        "image_pool/x/en/gameplay_composite_20261125/01_catch_words_01.png",
+        "image_pool/x/en/gameplay_composite_20261125/02_catch_words_02.png",
+        "image_pool/x/en/gameplay_composite_20261125/03_catch_words_03.png",
+        "image_pool/x/en/gameplay_composite_20261125/04_catch_words_04.png",
+        "image_pool/x/en/gameplay_composite_20261125/05_catch_words_05.png",
+        "image_pool/x/en/gameplay_composite_20261125/06_catch_01.png",
+        "image_pool/x/en/gameplay_composite_20261125/07_catch_04.png",
+        "image_pool/x/en/gameplay_composite_20261125/08_catch_05.png",
+        "image_pool/x/en/gameplay_composite_20261125/09_dialogue_bc06.png",
+        "image_pool/x/en/gameplay_composite_20261125/10_vertical_bc07_vertical.png",
+        "image_pool/x/en/gameplay_composite_20261125/11_vertical_bc08_vertical.png",
+        "image_pool/x/en/gameplay_composite_20261125/12_vertical_bc09_vertical.png",
+        "image_pool/x/en/gameplay_composite_20261125/13_vertical_bc10_vertical.png"
       ]
     },
     "vi": {
@@ -451,7 +464,21 @@
         "image_pool/x/ko/gameplay_composite_20261121/02_pencil_survival.png",
         "image_pool/x/ko/gameplay_composite_20261121/08_nurse_office.png",
         "image_pool/x/ko/gameplay_composite_20261121/03_cafeteria.png",
-        "image_pool/x/ko/gameplay_composite_20261121/01_start.png"
+        "image_pool/x/ko/gameplay_composite_20261121/01_start.png",
+        "image_pool/x/ko/gameplay_composite_20261125/01_catch_words_01.png",
+        "image_pool/x/ko/gameplay_composite_20261125/02_catch_words_02.png",
+        "image_pool/x/ko/gameplay_composite_20261125/03_catch_words_03.png",
+        "image_pool/x/ko/gameplay_composite_20261125/04_catch_words_04.png",
+        "image_pool/x/ko/gameplay_composite_20261125/05_catch_words_05.png",
+        "image_pool/x/ko/gameplay_composite_20261125/06_catch_01.png",
+        "image_pool/x/ko/gameplay_composite_20261125/07_catch_03.png",
+        "image_pool/x/ko/gameplay_composite_20261125/08_catch_04.png",
+        "image_pool/x/ko/gameplay_composite_20261125/09_catch_05.png",
+        "image_pool/x/ko/gameplay_composite_20261125/10_dialogue_bc04.png",
+        "image_pool/x/ko/gameplay_composite_20261125/11_vertical_comic_10.png",
+        "image_pool/x/ko/gameplay_composite_20261125/12_vertical_comic_11.png",
+        "image_pool/x/ko/gameplay_composite_20261125/13_vertical_comic_12.png",
+        "image_pool/x/ko/gameplay_composite_20261125/14_vertical_comic_13.png"
       ]
     }
   },

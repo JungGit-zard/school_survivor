@@ -9210,6 +9210,222 @@
       "path": "x/ko/gameplay_composite_20261121/01_start.png",
       "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/marketing_social_cta_20261010/01_start.png",
       "sha256": "534ced92c11dc3049e9dc3213c6ffcd1c6181cd67638f32339c0de14a3d0b563"
+    },
+    {
+      "platform": "X",
+      "locale": "en",
+      "collection": "gameplay_composite_20261125",
+      "path": "x/en/gameplay_composite_20261125/01_catch_words_01.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/en/zombie_catch_comic_words_20261014/01.png",
+      "sha256": "0204e5bff8f67c5aafb8db4ec90a67159c22c37319cd14dcfadfa2a8a33f1143"
+    },
+    {
+      "platform": "X",
+      "locale": "en",
+      "collection": "gameplay_composite_20261125",
+      "path": "x/en/gameplay_composite_20261125/02_catch_words_02.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/en/zombie_catch_comic_words_20261014/02.png",
+      "sha256": "35cb396229eb81ccd3f25b153e94e3edbb1220dd8dae9dc9b5a646e944553e57"
+    },
+    {
+      "platform": "X",
+      "locale": "en",
+      "collection": "gameplay_composite_20261125",
+      "path": "x/en/gameplay_composite_20261125/03_catch_words_03.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/en/zombie_catch_comic_words_20261014/03.png",
+      "sha256": "1ba7a7bb69ae548556536b75d1dcc20781c23cb85298ec248b8cb06a25b09b9a"
+    },
+    {
+      "platform": "X",
+      "locale": "en",
+      "collection": "gameplay_composite_20261125",
+      "path": "x/en/gameplay_composite_20261125/04_catch_words_04.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/en/zombie_catch_comic_words_20261014/04.png",
+      "sha256": "0ac206e50693dbce01d7cab014bd256c43d3b75b3cc8c76e10628eba55f5b350"
+    },
+    {
+      "platform": "X",
+      "locale": "en",
+      "collection": "gameplay_composite_20261125",
+      "path": "x/en/gameplay_composite_20261125/05_catch_words_05.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/en/zombie_catch_comic_words_20261014/05.png",
+      "sha256": "bb2f47cbfda434ab72a6105ba74e311487599a0981b7fac072380b61d01dbb57"
+    },
+    {
+      "platform": "X",
+      "locale": "en",
+      "collection": "gameplay_composite_20261125",
+      "path": "x/en/gameplay_composite_20261125/06_catch_01.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/en/zombie_catch_comic_20261014/01.png",
+      "sha256": "a85d8550c04947faad7fc8921b2d313939d58695d46c1d2018c46bb25327e178"
+    },
+    {
+      "platform": "X",
+      "locale": "en",
+      "collection": "gameplay_composite_20261125",
+      "path": "x/en/gameplay_composite_20261125/07_catch_04.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/en/zombie_catch_comic_20261014/04.png",
+      "sha256": "576dcf8a99b8c2b5ce2fdb61e5190f02286541e57271fbed79c15997ddf583b5"
+    },
+    {
+      "platform": "X",
+      "locale": "en",
+      "collection": "gameplay_composite_20261125",
+      "path": "x/en/gameplay_composite_20261125/08_catch_05.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/en/zombie_catch_comic_20261014/05.png",
+      "sha256": "0404de6e2631cb1f20d3d8e662c95d7889cfc4b76f510012f7eb936acee065df"
+    },
+    {
+      "platform": "X",
+      "locale": "en",
+      "collection": "gameplay_composite_20261125",
+      "path": "x/en/gameplay_composite_20261125/09_dialogue_bc06.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/en/dialogue_filled_20261018/backlog_comic_20261015_06.png",
+      "sha256": "0842e0a7a43c5cad2f9850a399e4bb745ccf74096abbcd5242c86c8f8e487e4a"
+    },
+    {
+      "platform": "X",
+      "locale": "en",
+      "collection": "gameplay_composite_20261125",
+      "path": "x/en/gameplay_composite_20261125/10_vertical_bc07_vertical.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/en/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_07_vertical.png",
+      "sha256": "d29daef2eca91faee2f5f6f9c549059b686a9a54bb242224ab1d68a6fbf57abb"
+    },
+    {
+      "platform": "X",
+      "locale": "en",
+      "collection": "gameplay_composite_20261125",
+      "path": "x/en/gameplay_composite_20261125/11_vertical_bc08_vertical.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/en/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_08_vertical.png",
+      "sha256": "a7ae1a57e0696f7d03e6476e2cf2f0ac9c3790b69831dcc064297cbdb2873187"
+    },
+    {
+      "platform": "X",
+      "locale": "en",
+      "collection": "gameplay_composite_20261125",
+      "path": "x/en/gameplay_composite_20261125/12_vertical_bc09_vertical.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/en/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_09_vertical.png",
+      "sha256": "4ab52a9ca4655a61f9cd82fdc9b5e1b73dbfae3a96adae2b31b6ae517b90d381"
+    },
+    {
+      "platform": "X",
+      "locale": "en",
+      "collection": "gameplay_composite_20261125",
+      "path": "x/en/gameplay_composite_20261125/13_vertical_bc10_vertical.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/en/vertical_comic_20261018/dialogue_filled_20261018_backlog_comic_20261015_10_vertical.png",
+      "sha256": "1429582f25de51040979f1a8cdfd0163dfa9dc92db159356a4590354c3733505"
+    },
+    {
+      "platform": "X",
+      "locale": "ko",
+      "collection": "gameplay_composite_20261125",
+      "path": "x/ko/gameplay_composite_20261125/01_catch_words_01.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/zombie_catch_comic_words_20261014/01.png",
+      "sha256": "158b1a2771834b65769386ef169675dc48fb009c5c200d589ea0ea7e642ae579"
+    },
+    {
+      "platform": "X",
+      "locale": "ko",
+      "collection": "gameplay_composite_20261125",
+      "path": "x/ko/gameplay_composite_20261125/02_catch_words_02.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/zombie_catch_comic_words_20261014/02.png",
+      "sha256": "419ccb77b9ceb3bfd333d74d36c1758caa9f9f67832d5e33f2b0f707a07cf45e"
+    },
+    {
+      "platform": "X",
+      "locale": "ko",
+      "collection": "gameplay_composite_20261125",
+      "path": "x/ko/gameplay_composite_20261125/03_catch_words_03.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/zombie_catch_comic_words_20261014/03.png",
+      "sha256": "1548b60fc204ed063a9a727fb42b3c890bdca0d63a3733373e2c2a0067793d20"
+    },
+    {
+      "platform": "X",
+      "locale": "ko",
+      "collection": "gameplay_composite_20261125",
+      "path": "x/ko/gameplay_composite_20261125/04_catch_words_04.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/zombie_catch_comic_words_20261014/04.png",
+      "sha256": "336cb98d31e3e536e42d80a3c8cf68cce1cc50db91e70c214f61023499946a4b"
+    },
+    {
+      "platform": "X",
+      "locale": "ko",
+      "collection": "gameplay_composite_20261125",
+      "path": "x/ko/gameplay_composite_20261125/05_catch_words_05.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/zombie_catch_comic_words_20261014/05.png",
+      "sha256": "eb9d6603dea1617d390131e8d7c8236e58e8a187c3c19ca5fa08521d3f5e9454"
+    },
+    {
+      "platform": "X",
+      "locale": "ko",
+      "collection": "gameplay_composite_20261125",
+      "path": "x/ko/gameplay_composite_20261125/06_catch_01.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/zombie_catch_comic_20261014/01.png",
+      "sha256": "a43c8ce9acd868320a35588b65c9c713c38a3b891f74e3ff8eefcd22d31b87f6"
+    },
+    {
+      "platform": "X",
+      "locale": "ko",
+      "collection": "gameplay_composite_20261125",
+      "path": "x/ko/gameplay_composite_20261125/07_catch_03.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/zombie_catch_comic_20261014/03.png",
+      "sha256": "17b64d406bfa842839067e831e4869163a8597836e747edddf6b43f0bad07b22"
+    },
+    {
+      "platform": "X",
+      "locale": "ko",
+      "collection": "gameplay_composite_20261125",
+      "path": "x/ko/gameplay_composite_20261125/08_catch_04.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/zombie_catch_comic_20261014/04.png",
+      "sha256": "7e64765396877374f22ef1385ae07b4641bffd87e69afa7ae19ae2c7871e99de"
+    },
+    {
+      "platform": "X",
+      "locale": "ko",
+      "collection": "gameplay_composite_20261125",
+      "path": "x/ko/gameplay_composite_20261125/09_catch_05.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/zombie_catch_comic_20261014/05.png",
+      "sha256": "98f1aad9a4e88ba5234008ec5fc1dec85e06844d7a7111e1206e9ce3c7b6a807"
+    },
+    {
+      "platform": "X",
+      "locale": "ko",
+      "collection": "gameplay_composite_20261125",
+      "path": "x/ko/gameplay_composite_20261125/10_dialogue_bc04.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/dialogue_filled_20261018/backlog_comic_20261015_04.png",
+      "sha256": "c3339eb6bb45abcbb245de691a360e08eeabef94ce6602e1002097e45360a01a"
+    },
+    {
+      "platform": "X",
+      "locale": "ko",
+      "collection": "gameplay_composite_20261125",
+      "path": "x/ko/gameplay_composite_20261125/11_vertical_comic_10.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/vertical_comic_20261018/comic_10.png",
+      "sha256": "d62984af17890c66ffacadee0921d56db123d4ae065516a2aee1422c1a6a2499"
+    },
+    {
+      "platform": "X",
+      "locale": "ko",
+      "collection": "gameplay_composite_20261125",
+      "path": "x/ko/gameplay_composite_20261125/12_vertical_comic_11.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/vertical_comic_20261018/comic_11.png",
+      "sha256": "d7e85759e0c3ad84f98b440ab4190702ee5c4682168e243e2fb138d81605466b"
+    },
+    {
+      "platform": "X",
+      "locale": "ko",
+      "collection": "gameplay_composite_20261125",
+      "path": "x/ko/gameplay_composite_20261125/13_vertical_comic_12.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/vertical_comic_20261018/comic_12.png",
+      "sha256": "96d14192dde4e1e056ec95aa915d1d61792478f0e34a5366c7fe92b15eee97f4"
+    },
+    {
+      "platform": "X",
+      "locale": "ko",
+      "collection": "gameplay_composite_20261125",
+      "path": "x/ko/gameplay_composite_20261125/14_vertical_comic_13.png",
+      "source": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/vertical_comic_20261018/comic_13.png",
+      "sha256": "8fd88a834a584cd3050e48861e22f23e744905540ff5e71706b98ef14150ff46"
     }
   ],
   "legacyPaths": {
