@@ -34,11 +34,11 @@
   #hint { position: absolute; left: 8px; right: 8px; bottom: 8px; text-align: center; font-size: 12px; opacity: .85; pointer-events: none; }
   body.touch #jumpChip, body.touch #hint { display: none; }
 
-  /* HUD: inside the top black bar on portrait phones, over the band's top-left otherwise */
+  /* HUD: top of the bottom bar on portrait phones (above the thumb controls), over the band's top-left otherwise */
   #hud { position: fixed; pointer-events: none; box-sizing: border-box; display: flex; gap: 8px; align-items: flex-start;
     left: var(--bandLeft); top: var(--bandTop); padding: 10px 12px; max-width: var(--bandW); }
-  body.portrait #hud { left: 0; right: 0; top: 0; max-width: none; height: var(--bandTop); align-items: flex-end;
-    padding: calc(8px + env(safe-area-inset-top)) calc(12px + env(safe-area-inset-right)) 10px calc(12px + env(safe-area-inset-left)); }
+  body.portrait #hud { left: 0; right: 0; top: var(--bandH); max-width: none; align-items: flex-start;
+    padding: 8px calc(12px + env(safe-area-inset-right)) 0 calc(12px + env(safe-area-inset-left)); }
   #minimap { width: 104px; height: 104px; border-radius: 12px; display: block; flex: 0 0 auto; }
   #stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; flex: 1 1 auto; min-width: 0; max-width: 300px; }
   body.portrait #stats { max-width: none; }
@@ -80,6 +80,8 @@
   #gestureHint { position: fixed; left: 50%; transform: translateX(-50%); width: max-content; max-width: 90%; box-sizing: border-box; white-space: normal; line-height: 1.5; top: calc(var(--bandTop) + var(--bandH) + 18px); text-align: center; font-size: 15px; font-weight: 800;
     background: rgba(255,209,102,.95); color: #2a0a1a; border-radius: 14px; padding: 12px 10px; pointer-events: none; opacity: 0; transition: opacity .3s; }
   body:not(.portrait) #gestureHint { top: auto; bottom: 30%; }
+  body.portrait #gestureHint { top: auto; bottom: calc(var(--bandBot) + 14px); }
+  body.portrait #zoneGuide { top: 72%; left: 46%; width: 42%; font-size: 12px; } /* between the pause and jump buttons */
 
   /* menus: big buttons in the lower half so one thumb reaches everything */
   .overlay { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; padding: 16px; box-sizing: border-box; background: rgba(0, 0, 0, .45); }
@@ -217,7 +219,9 @@ const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 1600);
 
 // chase-cam rest framing (matches the rear preview shot): directly behind, low, close, horizon ≈35% from top
 // Terry 11-25: "much more upright" - high chase cam looking steeply down, close to a drone view
-const CAM = { back: 8.5, height: 14.5, pitch: 50 * Math.PI / 180, vHalfDeg: 28, minHTan: 0.42 }; // car seen from ~60deg above (Terry: midway between 30deg chase and 90deg top-down)
+const CAM = { back: 8.5, height: 14.5, pitch: 50 * Math.PI / 180, vHalfDeg: 28, minHTan: 0.42, near: 6 };
+// ponytail: plain near-plane clip (ground/car are 13m+ away); per-object fading if something thin still pops
+function setNear(n) { if (camera.near !== n) { camera.near = n; camera.updateProjectionMatrix(); } } // car seen from ~60deg above (Terry: midway between 30deg chase and 90deg top-down)
 // 16:9 game band on landscape; on portrait the band is tall, the top bar holds the HUD and the bottom bar the one-thumb controls
 const bandEl = document.getElementById('band');
 function layout() {
@@ -227,10 +231,10 @@ function layout() {
   const portrait = H - bh >= 240;
   let top = Math.round((H - bh) / 2);
   // Terry 11-25: portrait phones get a tall band (HUD bar on top, thumb bar below) instead of a thin 16:9 strip
-  if (portrait) { top = 140; bh = H - top - Math.min(240, Math.max(170, Math.round(H * 0.24))); }
+  if (portrait) { top = 0; bh = H - Math.min(320, Math.max(250, Math.round(H * 0.32))); } // Terry 11-25: view up to the top edge, all UI in the bottom bar
   const left = Math.round((W - bw) / 2);
   const rs = document.documentElement.style;
-  rs.setProperty('--bandTop', top + 'px'); rs.setProperty('--bandLeft', left + 'px'); rs.setProperty('--bandW', bw + 'px'); rs.setProperty('--bandH', bh + 'px');
+  rs.setProperty('--bandTop', top + 'px'); rs.setProperty('--bandLeft', left + 'px'); rs.setProperty('--bandW', bw + 'px'); rs.setProperty('--bandH', bh + 'px'); rs.setProperty('--bandBot', (H - top - bh) + 'px');
   document.body.classList.toggle('portrait', portrait);
   renderer.setSize(bw, bh, false);
   camera.aspect = bw / bh;
@@ -1522,10 +1526,9 @@ function drawSchoolFacade(W, BH) {
   cPart(new THREE.Mesh(buildHull(geo, 0.08), OUTLINE), 505, -(HW + 30), 0, false, 1);
   cOutlined(colorMerge([[new THREE.BoxGeometry(6, 0.5, 14).translate(-11, 4.2, 0), 0xe8e2d6], ...[-1, 1].map((s) => [new THREE.BoxGeometry(0.4, 4, 0.4).translate(-13.6, 2, s * 6.5), 0xe8e2d6])]), vcMat, 505, -(HW + 30));
 }
-// school-style building shader instances: annexes + connecting bridge (the road passes under it) + cafeteria
+// school-style building shader instances: annexes + cafeteria (Terry 11-25: no bridge over the road - it filled the whole screen under the high camera)
 const CAMPUS_BOX = [ // d, lat, [X depth, height, Z length], dy, colour
   [720, -(HW + 13.5), [16, 14, 50], 0, 0xe2d6c0], [720, HW + 13.5, [16, 14, 50], 0, 0xd8ccb6],
-  [720, 0, [2 * HW + 12, 5, 14], 6.5, 0xcfc2aa],
   [CAMPUS_FINISH + 78, 0, [70, 12, 30], 0, 0xe8dcc6],
 ];
 const campusBox = new THREE.InstancedMesh(unitBox, buildingMat(3), CAMPUS_BOX.length); campusBox.frustumCulled = false; campusBox.visible = false; scene.add(campusBox);
@@ -1969,6 +1972,7 @@ function startCine() {
 }
 function cineUpdate(dt) {
   const st = state; cine.t += dt; st.now += dt; const t = cine.t, F = STAGE.finish;
+  setNear(0.1);
   if (cine.skip || t >= CINE.end) { st.v = 0; showGameOver(); return; }
   if (cineStopAt && t >= cineStopAt) { cineStopAt = 0; paused = true; } // QA freeze (debug only)
   // car: brake into the spot while spinning 450° and park broadside: nose to the right, passenger door toward the camera
@@ -2231,6 +2235,7 @@ function update(dt) {
   sample(st.d - CAM.back * 0.4, PS);
   _v3.set(PS.fx, st.camSlope, PS.fz).normalize().add(camera.position);
   camera.up.set(0, 1, 0); camera.lookAt(_v3); camera.rotateX(-CAM.pitch - airK * 0.05); camera.rotateZ(-st.steer * 0.025);
+  setNear(debugView ? 0.1 : CAM.near);
   if (airK > 0 || fovDirty) { camera.fov = camera.userData.baseFov + 8 * airK; camera.updateProjectionMatrix(); fovDirty = airK > 0; }
   if (st.shake > 0) { const k = st.shake * st.shake * 0.35; camera.position.x += (Math.random() - 0.5) * k; camera.position.y += (Math.random() - 0.5) * k; }
   else if (offroad && st.v > 5 && !airborne) camera.position.y += (Math.random() - 0.5) * 0.04;
