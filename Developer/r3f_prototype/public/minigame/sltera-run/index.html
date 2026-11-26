@@ -34,10 +34,10 @@
   #hint { position: absolute; left: 8px; right: 8px; bottom: 8px; text-align: center; font-size: 12px; opacity: .85; pointer-events: none; }
   body.touch #jumpChip, body.touch #hint { display: none; }
 
-  /* HUD: top of the bottom bar on portrait phones (above the thumb controls), over the band's top-left otherwise */
+  /* HUD: floats over the bottom of the view on portrait phones (above the thumb controls), over the band's top-left otherwise */
   #hud { position: fixed; pointer-events: none; box-sizing: border-box; display: flex; gap: 8px; align-items: flex-start;
     left: var(--bandLeft); top: var(--bandTop); padding: 10px 12px; max-width: var(--bandW); }
-  body.portrait #hud { left: 0; right: 0; top: var(--bandH); max-width: none; align-items: flex-start;
+  body.portrait #hud { left: 0; right: 0; top: calc(var(--bandH) - var(--uiH)); max-width: none; align-items: flex-start;
     padding: 8px calc(12px + env(safe-area-inset-right)) 0 calc(12px + env(safe-area-inset-left)); }
   #minimap { width: 104px; height: 104px; border-radius: 12px; display: block; flex: 0 0 auto; }
   #stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; flex: 1 1 auto; min-width: 0; max-width: 300px; }
@@ -80,7 +80,8 @@
   #gestureHint { position: fixed; left: 50%; transform: translateX(-50%); width: max-content; max-width: 90%; box-sizing: border-box; white-space: normal; line-height: 1.5; top: calc(var(--bandTop) + var(--bandH) + 18px); text-align: center; font-size: 15px; font-weight: 800;
     background: rgba(255,209,102,.95); color: #2a0a1a; border-radius: 14px; padding: 12px 10px; pointer-events: none; opacity: 0; transition: opacity .3s; }
   body:not(.portrait) #gestureHint { top: auto; bottom: 30%; }
-  body.portrait #gestureHint { top: auto; bottom: calc(var(--bandBot) + 14px); }
+  body.portrait #gestureHint { top: auto; bottom: calc(var(--uiH) + 14px); }
+  body.touch.portrait #thumbZone { top: calc(var(--bandH) - var(--uiH)); background: transparent; }
   body.portrait #zoneGuide { top: 72%; left: 46%; width: 42%; font-size: 12px; } /* between the pause and jump buttons */
 
   /* menus: big buttons in the lower half so one thumb reaches everything */
@@ -107,6 +108,22 @@
   body:not(.embed) .embedOnly, body.embed .noEmbed { display: none; }
   #zoneGuide { white-space: normal; width: 88%; }
   #thumbZone.active #zoneGuide { opacity: 0; }
+  /* Terry 11-27: no control-instruction text anywhere */
+  #hint, #zoneGuide, #gestureHint { display: none !important; }
+  /* Terry 11-27: portrait = one slim row at the very bottom (pause | minimap + 4 stats | jump); the steer zone stays big but invisible */
+  body.portrait #hud { top: auto; bottom: calc(8px + env(safe-area-inset-bottom)); left: 62px; right: 80px; height: 52px; padding: 0; gap: 5px; align-items: stretch; }
+  body.portrait:not(.touch) #hud { left: 8px; }
+  body.portrait #minimap { position: fixed; top: calc(8px + env(safe-area-inset-top)); left: calc(8px + env(safe-area-inset-left)); width: 88px; height: 88px; border-radius: 12px; opacity: .6; } /* Terry 11-27: own translucent corner map */
+  body.portrait .box { background: rgba(24, 12, 44, .35); } /* no dark slab over the road */
+  body.portrait #stats { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; }
+  body.portrait .box { padding: 3px 5px; border-radius: 8px; }
+  body.portrait .lbl { font-size: 9px; overflow: hidden; text-overflow: ellipsis; }
+  body.portrait .big { font-size: 17px; }
+  body.portrait .small { display: none; }
+  body.portrait #fuelTrack { height: 8px; margin-top: 8px; }
+  body.touch.portrait #thumbZone { top: calc(var(--bandH) * 0.6); }
+  body.portrait #pauseBtn { left: calc(8px + env(safe-area-inset-left)); bottom: calc(10px + env(safe-area-inset-bottom)); width: 48px; height: 48px; border-radius: 12px; font-size: 16px; }
+  body.portrait #jumpBtn { right: calc(8px + env(safe-area-inset-right)); bottom: calc(4px + env(safe-area-inset-bottom)); width: 64px; height: 64px; font-size: 15px; }
 </style>
 </head>
 <body>
@@ -219,7 +236,8 @@ const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 1600);
 
 // chase-cam rest framing (matches the rear preview shot): directly behind, low, close, horizon ≈35% from top
 // Terry 11-25: "much more upright" - high chase cam looking steeply down, close to a drone view
-const CAM = { back: 8.5, height: 14.5, pitch: 50 * Math.PI / 180, vHalfDeg: 28, minHTan: 0.42, near: 6 };
+// Terry 11-27: wider view, car pinned low on screen (carY = fraction from the top) so the road ahead fills the screen; pitch is derived in layout()
+const CAM = { back: 6.5, height: 17, pitch: 0, vHalfDeg: 36, minHTan: 0.5, near: 6, carY: 0.82, carYLand: 0.8 };
 // ponytail: plain near-plane clip (ground/car are 13m+ away); per-object fading if something thin still pops
 function setNear(n) { if (camera.near !== n) { camera.near = n; camera.updateProjectionMatrix(); } } // car seen from ~60deg above (Terry: midway between 30deg chase and 90deg top-down)
 // 16:9 game band on landscape; on portrait the band is tall, the top bar holds the HUD and the bottom bar the one-thumb controls
@@ -231,15 +249,16 @@ function layout() {
   const portrait = H - bh >= 240;
   let top = Math.round((H - bh) / 2);
   // Terry 11-25: portrait phones get a tall band (HUD bar on top, thumb bar below) instead of a thin 16:9 strip
-  if (portrait) { top = 0; bh = H - Math.min(320, Math.max(250, Math.round(H * 0.32))); } // Terry 11-25: view up to the top edge, all UI in the bottom bar
+  if (portrait) { top = 0; bh = H; } // Terry 11-27: no black bar - the game fills the whole phone, HUD + thumb controls float over its bottom
   const left = Math.round((W - bw) / 2);
   const rs = document.documentElement.style;
-  rs.setProperty('--bandTop', top + 'px'); rs.setProperty('--bandLeft', left + 'px'); rs.setProperty('--bandW', bw + 'px'); rs.setProperty('--bandH', bh + 'px'); rs.setProperty('--bandBot', (H - top - bh) + 'px');
+  rs.setProperty('--bandTop', top + 'px'); rs.setProperty('--bandLeft', left + 'px'); rs.setProperty('--bandW', bw + 'px'); rs.setProperty('--bandH', bh + 'px'); rs.setProperty('--uiH', Math.min(290, Math.max(230, Math.round(H * 0.3))) + 'px');
   document.body.classList.toggle('portrait', portrait);
   renderer.setSize(bw, bh, false);
   camera.aspect = bw / bh;
   const vt = Math.max(Math.tan(CAM.vHalfDeg * Math.PI / 180), CAM.minHTan / camera.aspect);
   camera.fov = camera.userData.baseFov = 2 * Math.atan(vt) * 180 / Math.PI;
+  CAM.pitch = Math.atan2(CAM.height - 1, CAM.back) - Math.atan((2 * (portrait ? CAM.carY : CAM.carYLand) - 1) * vt);
   camera.updateProjectionMatrix();
 }
 window.addEventListener('resize', layout);
