@@ -114,7 +114,7 @@ const weaponVisuals = [
   ['weapon-bell', 'Bell', 'bell', bellIconUrl, 'components/Weapons/Bell.jsx', 'weaponModel', 'BellModel'],
   ['weapon-stun-gun', 'Stun Gun', 'stunGun', stunGunIconUrl, 'components/Weapons/StunGun.jsx', 'weaponModel', 'LightningBoltModel'],
   ['weapon-onigiri', 'Onigiri', 'onigiri', onigiriIconUrl, 'components/Weapons/Onigiri.jsx', 'weaponModel', 'OnigiiriModel'],
-  ['weapon-extra-battery', 'Extra Battery Upgrade Icon', 'extraBattery', batteryIconUrl, 'lib/upgrades.js', 'image'],
+  ['weapon-extra-battery', 'Chocolate Box Upgrade Icon', 'extraBattery', batteryIconUrl, 'lib/upgrades.js', 'image'],
   ['weapon-starlink', 'Starlink', 'starlink', starlinkIconUrl, 'components/Weapons/Starlink.jsx', 'weaponModel', 'StrikeVisual'],
   ['weapon-compass', 'Compass', 'compass', compassIconUrl, 'components/Weapons/CompassBlade.jsx', 'weaponModel', 'CompassBladeModel'],
   ['weapon-umbrella', 'Umbrella', 'umbrella', umbrellaIconUrl, 'components/Weapons/UmbrellaGuard.jsx', 'weaponModel', 'UmbrellaModel'],
