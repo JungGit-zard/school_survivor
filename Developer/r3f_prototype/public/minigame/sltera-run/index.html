@@ -108,8 +108,8 @@
   body:not(.embed) .embedOnly, body.embed .noEmbed { display: none; }
   #zoneGuide { white-space: normal; width: 88%; }
   #thumbZone.active #zoneGuide { opacity: 0; }
-  /* Terry 11-27: no control-instruction text anywhere */
-  #hint, #zoneGuide, #gestureHint { display: none !important; }
+  /* Terry 11-27: no control-instruction text on mobile portrait */
+  body.portrait #hint, body.portrait #zoneGuide, body.portrait #gestureHint { display: none !important; }
   /* Terry 11-27: portrait = one slim row at the very bottom (pause | minimap + 4 stats | jump); the steer zone stays big but invisible */
   body.portrait #hud { top: auto; bottom: calc(8px + env(safe-area-inset-bottom)); left: 62px; right: 80px; height: 52px; padding: 0; gap: 5px; align-items: stretch; }
   body.portrait:not(.touch) #hud { left: 8px; }
@@ -240,11 +240,13 @@ scene.background = new THREE.Color(FOG_COLOR);
 const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 1600);
 
 // chase-cam rest framing (matches the rear preview shot): directly behind, low, close, horizon ≈35% from top
-// Terry 11-25: "much more upright" - high chase cam looking steeply down, close to a drone view
-// Terry 11-27: wider view, car pinned low on screen (carY = fraction from the top) so the road ahead fills the screen; pitch is derived in layout()
-const CAM = { back: 6.5, height: 17, pitch: 0, vHalfDeg: 36, minHTan: 0.5, near: 6, carY: 0.82, carYLand: 0.8 };
-// ponytail: plain near-plane clip (ground/car are 13m+ away); per-object fading if something thin still pops
-function setNear(n) { if (camera.near !== n) { camera.near = n; camera.updateProjectionMatrix(); } } // car seen from ~60deg above (Terry: midway between 30deg chase and 90deg top-down)
+// Terry 11-27: web/PC (landscape) keeps that original view; mobile portrait gets a high camera with the car pinned low
+// (carY = fraction from the top, pitch derived in layout()) so the road ahead fills the phone
+const CAM_LAND = { back: 7.0, height: 2.3, pitch: 8 * Math.PI / 180, vHalfDeg: 25, minHTan: 0.33, near: 0.1 };
+const CAM_PORTRAIT = { back: 6.5, height: 17, pitch: 0, vHalfDeg: 36, minHTan: 0.5, near: 6, carY: 0.82 };
+const CAM = { ...CAM_LAND };
+// ponytail: plain near-plane clip so nothing right at the high lens can fill the screen; per-object fading if something thin still pops
+function setNear(n) { if (camera.near !== n) { camera.near = n; camera.updateProjectionMatrix(); } }
 // 16:9 game band on landscape; on portrait the band is tall, the top bar holds the HUD and the bottom bar the one-thumb controls
 const bandEl = document.getElementById('band');
 function layout() {
@@ -260,10 +262,11 @@ function layout() {
   rs.setProperty('--bandTop', top + 'px'); rs.setProperty('--bandLeft', left + 'px'); rs.setProperty('--bandW', bw + 'px'); rs.setProperty('--bandH', bh + 'px'); rs.setProperty('--uiH', Math.min(290, Math.max(230, Math.round(H * 0.3))) + 'px');
   document.body.classList.toggle('portrait', portrait);
   renderer.setSize(bw, bh, false);
+  Object.assign(CAM, portrait ? CAM_PORTRAIT : CAM_LAND);
   camera.aspect = bw / bh;
   const vt = Math.max(Math.tan(CAM.vHalfDeg * Math.PI / 180), CAM.minHTan / camera.aspect);
   camera.fov = camera.userData.baseFov = 2 * Math.atan(vt) * 180 / Math.PI;
-  CAM.pitch = Math.atan2(CAM.height - 1, CAM.back) - Math.atan((2 * (portrait ? CAM.carY : CAM.carYLand) - 1) * vt);
+  if (portrait) CAM.pitch = Math.atan2(CAM.height - 1, CAM.back) - Math.atan((2 * CAM.carY - 1) * vt);
   camera.updateProjectionMatrix();
 }
 window.addEventListener('resize', layout);
@@ -1550,9 +1553,11 @@ function drawSchoolFacade(W, BH) {
   cPart(new THREE.Mesh(buildHull(geo, 0.08), OUTLINE), 505, -(HW + 30), 0, false, 1);
   cOutlined(colorMerge([[new THREE.BoxGeometry(6, 0.5, 14).translate(-11, 4.2, 0), 0xe8e2d6], ...[-1, 1].map((s) => [new THREE.BoxGeometry(0.4, 4, 0.4).translate(-13.6, 2, s * 6.5), 0xe8e2d6])]), vcMat, 505, -(HW + 30));
 }
-// school-style building shader instances: annexes + cafeteria (Terry 11-25: no bridge over the road - it filled the whole screen under the high camera)
+// school-style building shader instances: annexes + connecting bridge (the road passes under it) + cafeteria
+// Terry 11-25: the bridge filled the whole screen under the high portrait camera, so it is zero-scaled on portrait
 const CAMPUS_BOX = [ // d, lat, [X depth, height, Z length], dy, colour
   [720, -(HW + 13.5), [16, 14, 50], 0, 0xe2d6c0], [720, HW + 13.5, [16, 14, 50], 0, 0xd8ccb6],
+  [720, 0, [2 * HW + 12, 5, 14], 6.5, 0xcfc2aa, 'bridge'],
   [CAMPUS_FINISH + 78, 0, [70, 12, 30], 0, 0xe8dcc6],
 ];
 const campusBox = new THREE.InstancedMesh(unitBox, buildingMat(3), CAMPUS_BOX.length); campusBox.frustumCulled = false; campusBox.visible = false; scene.add(campusBox);
@@ -1578,10 +1583,12 @@ function placeCampus() {
     if (p.sloped) slopedMatrix(p.mesh.matrix, PS, p.lat, y, p.yaw); else trackMatrix(p.mesh.matrix, PS, p.lat, y, p.yaw);
     p.mesh.matrixWorldNeedsUpdate = true;
   }
-  CAMPUS_BOX.forEach(([d, lat, sv, dy], i) => { sample(d, PS); trackMatrix(_m, PS, lat, groundHeight(lat, PS.y) - BURY + dy, 0); _m.scale(_sc.set(sv[0], sv[1] + BURY, sv[2])); campusBox.setMatrixAt(i, _m); });
+  const noBridge = document.body.classList.contains('portrait');
+  CAMPUS_BOX.forEach(([d, lat, sv, dy, , tag], i) => { sample(d, PS); trackMatrix(_m, PS, lat, groundHeight(lat, PS.y) - BURY + dy, 0); _m.scale(tag === 'bridge' && noBridge ? _sc.set(0, 0, 0) : _sc.set(sv[0], sv[1] + BURY, sv[2])); campusBox.setMatrixAt(i, _m); });
   campusBox.instanceMatrix.needsUpdate = true;
   finishStrip.geometry.dispose(); finishStrip.geometry = roadStrip(CAMPUS_FINISH, CAMPUS_FINISH + 3, -HW, HW, 0.03, 3);
 }
+window.addEventListener('resize', () => { if (campusBox.visible) placeCampus(); }); // rotate phone mid-run → bridge on/off
 function setCampusVisible(on) { for (const p of campusParts) p.mesh.visible = on; campusBox.visible = on; finishStrip.visible = on; }
 
 // campus rows (recycled): side buildings, lamps, trees, bike racks, 화단, field fence
