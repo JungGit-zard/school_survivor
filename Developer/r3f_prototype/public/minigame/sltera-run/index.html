@@ -115,7 +115,12 @@
   body.portrait:not(.touch) #hud { left: 8px; }
   body.portrait #minimap { position: fixed; top: calc(8px + env(safe-area-inset-top)); left: calc(8px + env(safe-area-inset-left)); width: 88px; height: 88px; border-radius: 12px; opacity: .6; } /* Terry 11-27: own translucent corner map */
   body.portrait .box { background: rgba(24, 12, 44, .35); } /* no dark slab over the road */
-  body.portrait #stats { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; }
+  body.portrait #stats { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; } /* score (next to pause) + fuel */
+  /* Terry 11-27: speed top-right, time at 12 o'clock */
+  body.portrait #speedBox, body.portrait #timeBox { position: fixed; top: calc(8px + env(safe-area-inset-top)); width: 78px; box-sizing: border-box; text-align: center; padding: 4px 6px; }
+  body.portrait #speedBox { right: calc(8px + env(safe-area-inset-right)); }
+  body.portrait #timeBox { left: 50%; transform: translateX(-50%); }
+  body.portrait #speedBox .big, body.portrait #timeBox .big { font-size: 22px; }
   body.portrait .box { padding: 3px 5px; border-radius: 8px; }
   body.portrait .lbl { font-size: 9px; overflow: hidden; text-overflow: ellipsis; }
   body.portrait .big { font-size: 17px; }
