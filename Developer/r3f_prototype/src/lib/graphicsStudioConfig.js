@@ -425,6 +425,15 @@ export const GRAPHICS_STUDIO_CATALOG = Object.freeze([
     previewKind: 'slteraCar',
     applyTargets: ['components/SlteraCar.jsx', 'lib/toon.js'],
   },
+  {
+    // 니쿠오가 타는 슈퍼스포츠 오토바이(모델 전용, 2026-11-28). 게임플레이·레이서 연결 없음.
+    id: 'actor-nikuo-bike',
+    category: 'actor',
+    label: '니쿠오 오토바이',
+    source: 'components/NikuoBike.jsx',
+    previewKind: 'nikuoBike',
+    applyTargets: ['components/NikuoBike.jsx', 'lib/toon.js'],
+  },
   ...weaponVisuals.map(([id, label, weaponType, assetUrl, implementationTarget, previewKind = 'weaponModel', runtimePreviewComponent]) => ({
     id,
     category: 'weapon',

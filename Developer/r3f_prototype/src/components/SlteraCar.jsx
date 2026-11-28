@@ -194,7 +194,7 @@ export const SLTERA_HEADLIGHT_FX = Object.freeze({
 })
 
 let _haloTex = null
-function getHaloTexture() {
+export function getHaloTexture() {
   if (_haloTex) return _haloTex
   const c = document.createElement('canvas'); c.width = 64; c.height = 64
   const ctx = c.getContext('2d')
@@ -291,7 +291,7 @@ function bodyWidthScale(y, z) {
 }
 
 // 법선을 매끈하게 다시 계산할 수 있게 위치만 남기고 정점을 용접한다.
-function weld(geometry) {
+export function weld(geometry) {
   const g = geometry.index ? geometry.toNonIndexed() : geometry.clone()
   for (const name of Object.keys(g.attributes)) if (name !== 'position') g.deleteAttribute(name)
   const welded = mergeVertices(g, 1e-4)
@@ -328,7 +328,7 @@ function buildFenderGeometry([cx, cy, cz], [rx, ry, rz]) {
   return g
 }
 
-function darkPartGeometry(shape, size) {
+export function darkPartGeometry(shape, size) {
   if (shape === 'rbox') return roundedBoxLite(size)
   if (shape === 'capsule') return new THREE.CapsuleGeometry(size[0], size[1], size[2] ?? 2, size[3] ?? 8)
   if (shape === 'ball') return new THREE.IcosahedronGeometry(size[0], size[1] ?? 1)
@@ -348,7 +348,7 @@ function roundedBoxLite(size) {
   return g
 }
 
-function placed(geometry, position, rotation) {
+export function placed(geometry, position, rotation) {
   const m = new THREE.Matrix4().compose(
     new THREE.Vector3(...position),
     new THREE.Quaternion().setFromEuler(new THREE.Euler(...rotation)),
@@ -358,7 +358,7 @@ function placed(geometry, position, rotation) {
   return geometry
 }
 
-function withColor(geometry, hex) {
+export function withColor(geometry, hex) {
   const g = geometry.index ? geometry.toNonIndexed() : geometry
   if (g !== geometry) geometry.dispose()
   for (const name of Object.keys(g.attributes)) if (name !== 'position' && name !== 'normal') g.deleteAttribute(name)
@@ -377,14 +377,14 @@ function insideOut(geometry) {
   return geometry
 }
 
-function positionsOnly(geometry) {
+export function positionsOnly(geometry) {
   const g = geometry.index ? geometry.toNonIndexed() : geometry.clone()
   for (const name of Object.keys(g.attributes)) if (name !== 'position') g.deleteAttribute(name)
   return g
 }
 
 // 인버티드 헐: 용접한 매끈한 법선을 따라 일정 두께만큼 밀어낸다.
-function buildHull(geometry, thickness = SLTERA_OUTLINE_THICKNESS) {
+export function buildHull(geometry, thickness = SLTERA_OUTLINE_THICKNESS) {
   const hull = weld(geometry)
   const p = hull.attributes.position
   const n = hull.attributes.normal
@@ -395,7 +395,7 @@ function buildHull(geometry, thickness = SLTERA_OUTLINE_THICKNESS) {
   return hull
 }
 
-function mergeAndDispose(list) {
+export function mergeAndDispose(list) {
   const merged = mergeGeometries(list, false)
   for (const g of list) g.dispose()
   return merged

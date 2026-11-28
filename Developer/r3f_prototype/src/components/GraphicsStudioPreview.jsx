@@ -79,6 +79,7 @@ import { MissileBody } from './Weapons/Missile.jsx'
 import { StudentLanternVisual } from './Weapons/StudentLantern.jsx'
 import { CrashExplosionVisual, StarlinkSatelliteModel, ZomlonbiskModel } from './Weapons/StarlinkSatellite.jsx'
 import SlteraCar, { SLTERA_TELEGRAPH_MS } from './SlteraCar.jsx'
+import NikuoBike from './NikuoBike.jsx'
 import { StudioTuningPreviewProvider, applySavedStudioPartTunings, applyStudioTuning, captureStudioPartBaseTransforms, disposeStudioOwnedMaterials, findStudioPartByKey, getStudioTransformProps } from './StudioTunedGroup.jsx'
 import { disposeTextureDecals, syncTextureDecals } from './TextureDecal.jsx'
 import { snapLocalNormalToFaceAxis } from '../lib/textureDecal.js'
@@ -520,6 +521,14 @@ export function getPreviewFrame(item) {
       maxDistance: 14,
     }
   }
+  if (item.previewKind === 'nikuoBike') {
+    return {
+      camera: { position: [2.6, 1.9, 3.2], fov: 36, near: 0.05, far: 40 },
+      target: [0, 0.7, 0],
+      minDistance: 1.0,
+      maxDistance: 10,
+    }
+  }
   if (item.previewKind === 'zomlonbisk') {
     return {
       camera: { position: [1.7, 1.7, 3.0], fov: 34, near: 0.01, far: 30 },
@@ -688,6 +697,14 @@ function RenderPreviewItem({ item }) {
   }
   if (item.previewKind === 'slteraCar') {
     return <SlteraCarPreview />
+  }
+  if (item.previewKind === 'nikuoBike') {
+    // 3/4 앞모습, 바퀴는 천천히 돈다(헤드램프 켜짐).
+    return (
+      <group rotation={[0, 0.6, 0]}>
+        <NikuoBike speed={2.5} />
+      </group>
+    )
   }
   if (item.previewKind === 'zomlonbisk') {
     return (
