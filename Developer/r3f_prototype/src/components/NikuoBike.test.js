@@ -7,8 +7,11 @@ import { SLTERA_COLORS, SLTERA_DRIVER_BASE_PARTS, SLTERA_DRIVER_SCALE } from './
 import {
   NIKUO_BIKE_COLORS, NIKUO_BIKE_GLOW, NIKUO_BIKE_LIVERY, NIKUO_BIKE_PARTS, NIKUO_BIKE_PROFILE, NIKUO_BIKE_WHEELS,
   NIKUO_RIDER_BODY_PARTS, NIKUO_RIDER_HEAD, NIKUO_RIDER_HEAD_KEYS, NIKUO_RIDER_JOINTS,
-  getNikuoBikeGeometries, nikuoRiderHeadMatrix, nikuoWheelSpin,
+  NIKUO_BIKE_LEAN, NIKUO_BIKE_TAIL_LIGHT, getNikuoBikeGeometries, nikuoBikeLean, nikuoBikeTailLightWorld, nikuoRiderHeadMatrix,
+  nikuoWheelSpin, sampleNikuoBikeTailTrail,
 } from './NikuoBike.jsx'
+import { SLTERA_GLOW_PARTS } from './SlteraCar.jsx'
+import { SLTERA_TRAIL, createSlteraTrailState, sampleSlteraTrail } from './SlteraTailTrail.jsx'
 
 const tris = (g) => (g.index ? g.index.count : g.attributes.position.count) / 3
 const box = (g) => { g.computeBoundingBox(); return g.boundingBox.clone() }
@@ -129,6 +132,54 @@ describe('Nikuo supersport bike', () => {
     expect(meshes + sprites).toBeLessThanOrEqual(12)
     expect(source).not.toMatch(/<(pointLight|spotLight|rectAreaLight)/)
     expect(source).not.toMatch(/<(planeGeometry|boxGeometry|sphereGeometry|cylinderGeometry)/)
+  })
+
+  it('exports the single tail light for the reused Sltera afterimage trail, narrower than the Sltera bar', () => {
+    const tail = part(NIKUO_BIKE_GLOW, 'tailLight')
+    expect(NIKUO_BIKE_TAIL_LIGHT.position).toEqual(tail[3])
+    expect(NIKUO_BIKE_TAIL_LIGHT.halfWidth).toBeCloseTo(tail[2][0] / 2, 9)
+    const slteraBar = SLTERA_GLOW_PARTS.find((p) => p[0] === 'tailBar')
+    expect(NIKUO_BIKE_TAIL_LIGHT.trailHalfWidth).toBeGreaterThanOrEqual(NIKUO_BIKE_TAIL_LIGHT.halfWidth)
+    expect(NIKUO_BIKE_TAIL_LIGHT.trailHalfWidth).toBeLessThan(slteraBar[1][0] / 2 / 5)
+    // the world position matches the actual scene graph: bike group (pos, heading, scale) > lean group (roll)
+    for (const [heading, roll, s] of [[0, 0, 1], [Math.PI / 2, 0, 1], [0.7, -0.45, 0.8], [-2.1, 0.5, 1.3]]) {
+      const outer = new THREE.Object3D(); outer.position.set(3, 0.2, -5); outer.rotation.y = heading; outer.scale.setScalar(s)
+      const inner = new THREE.Object3D(); inner.rotation.z = roll; outer.add(inner); outer.updateMatrixWorld(true)
+      const want = new THREE.Vector3(...NIKUO_BIKE_TAIL_LIGHT.position).applyMatrix4(inner.matrixWorld)
+      const got = nikuoBikeTailLightWorld(3, 0.2, -5, heading, roll, s, { x: 0, y: 0, z: 0 })
+      expect(got.x).toBeCloseTo(want.x, 6); expect(got.y).toBeCloseTo(want.y, 6); expect(got.z).toBeCloseTo(want.z, 6)
+    }
+    // feeding: the trail gets the tail-light point and the narrow half-width, behind the bike
+    const st = createSlteraTrailState()
+    const trail = { sample: (...a) => sampleSlteraTrail(st, ...a) }
+    for (let i = 0; i <= 10; i += 1) sampleNikuoBikeTailTrail(trail, 0, 0, i * 0.25, 0, 0, 1, true, i / 60)
+    expect(st.count).toBe(11)
+    expect(st.lz[10]).toBeCloseTo(2.5 + NIKUO_BIKE_TAIL_LIGHT.position[2], 6)
+    expect(st.y[10]).toBeCloseTo(NIKUO_BIKE_TAIL_LIGHT.position[1], 6)
+    expect(st.lx[10] - st.rx[10]).toBeCloseTo(NIKUO_BIKE_TAIL_LIGHT.trailHalfWidth * 2, 6)
+    sampleNikuoBikeTailTrail(trail, 0, 0, 2.5, 0, 0, 1, false, 10 / 60 + SLTERA_TRAIL.lifeSec + 0.01)
+    expect(st.count).toBe(0)
+    expect(() => sampleNikuoBikeTailTrail(null, 0, 0, 0, 0, 0, 1, true, 0)).not.toThrow()
+  })
+
+  it('leans into turns about the ground contact line, capped, and upright when going straight', () => {
+    expect(nikuoBikeLean(14, 0)).toBeCloseTo(0, 12)
+    expect(nikuoBikeLean(0, 3)).toBeCloseTo(0, 12)
+    // heading increasing turns toward local +X; the bike's top tips toward +X there (rotation.z < 0)
+    const roll = nikuoBikeLean(6, 0.8)
+    expect(roll).toBeLessThan(0)
+    expect(roll).toBeCloseTo(-Math.atan((6 * 0.8) / NIKUO_BIKE_LEAN.gravity), 9)
+    const top = new THREE.Vector3(0, 1, 0).applyAxisAngle(new THREE.Vector3(0, 0, 1), roll)
+    expect(top.x).toBeGreaterThan(0)
+    expect(nikuoBikeLean(6, -0.8)).toBeCloseTo(-roll, 12)
+    expect(nikuoBikeLean(30, 5)).toBeCloseTo(-NIKUO_BIKE_LEAN.maxRad, 12)
+    expect(nikuoBikeLean(30, -5)).toBeCloseTo(NIKUO_BIKE_LEAN.maxRad, 12)
+    // the whole bike (body, lamps, wheels) sits inside one lean group driven by the lean prop / leanRef
+    expect(source).toMatch(/<group ref=\{leanGroupRef\} name="nikuoBikeLean"/)
+    expect(source).toContain('leanGroupRef.current.rotation.z = leanRef ? leanRef.current : lean')
+    const leanOpen = source.indexOf('name="nikuoBikeLean"')
+    expect(source.indexOf('name="nikuoBikeBody"')).toBeGreaterThan(leanOpen)
+    expect(source.indexOf('name="nikuoBikeRearWheel"')).toBeGreaterThan(leanOpen)
   })
 
   it('carries no real brand text, badge or number plate', () => {

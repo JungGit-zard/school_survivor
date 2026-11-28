@@ -243,6 +243,49 @@ export const NIKUO_BIKE_GLOW = Object.freeze([
 export const NIKUO_BIKE_HEADLIGHT_FX = Object.freeze({ haloSize: 0.34, haloOffset: 0.05, color: 0xfff4d6, haloOpacity: 0.55 })
 export const NIKUO_BIKE_OUTLINE_THICKNESS = 0.022
 
+// ── 고속 연출(11-28 Terry "슬테라처럼 고속이동 연출") ─────────────────────────────
+// 꼬리등 잔상: SlteraTailTrail을 그대로 쓴다(포크 없음). 한 개짜리 꼬리등이라 띠도 그 폭만큼 좁다.
+// 게임 코드는 매 프레임 sampleNikuoBikeTailTrail(...)로 잔상 리본에 꼬리등 월드 위치를 넘긴다(Sltera의 sampleTailTrail과 같은 방식).
+const TAIL_LIGHT_PART = NIKUO_BIKE_GLOW.find((p) => p[0] === 'tailLight')
+export const NIKUO_BIKE_TAIL_LIGHT = Object.freeze({
+  position: Object.freeze([...TAIL_LIGHT_PART[3]]), // 바이크 로컬(+Z 앞, 기울기 그룹 안쪽)
+  halfWidth: TAIL_LIGHT_PART[2][0] / 2, // 꼬리등 램프 자체의 반폭(0.05)
+  // 잔상 리본에 넘기는 반폭: 램프 + 빛 번짐. 램프 폭 그대로(0.05)면 게임 카메라 거리에서 머리카락 한 올로 보였다.
+  // Sltera 라이트바(반폭 0.59)의 1/7 남짓 — 꼬리등 한 개짜리의 좁은 붉은 줄.
+  trailHalfWidth: 0.085,
+})
+
+// 코너 기울기(roll): 기울기 그룹(바닥 접지선 y=0 축)의 rotation.z 라디안. 실제 바이크처럼 tan(기울기) = 속도 × 회전각속도 / g,
+// 최대 maxRad로 자른다. yawRate +는 heading이 커지는 쪽(= 로컬 +X 쪽으로 도는 코너) — 위가 +X로 눕도록 rotation.z는 음수.
+export const NIKUO_BIKE_LEAN = Object.freeze({ maxRad: 0.6, gravity: 9.8 })
+export function nikuoBikeLean(speed, yawRate) {
+  const a = Math.atan((speed * yawRate) / NIKUO_BIKE_LEAN.gravity)
+  const m = NIKUO_BIKE_LEAN.maxRad
+  return -Math.max(-m, Math.min(m, a))
+}
+
+// 꼬리등의 월드 위치. 바이크 그룹 = position(x, y, z) · rotation.y = heading · 균일 scale, 그 안의 기울기 그룹 rotation.z = roll.
+export function nikuoBikeTailLightWorld(x, y, z, heading, roll, scale, out) {
+  const [tx, ty, tz] = NIKUO_BIKE_TAIL_LIGHT.position
+  const cr = Math.cos(roll); const sr = Math.sin(roll)
+  const lx = (tx * cr - ty * sr) * scale
+  const ly = (tx * sr + ty * cr) * scale
+  const lz = tz * scale
+  const ch = Math.cos(heading); const sh = Math.sin(heading)
+  out.x = x + lx * ch + lz * sh
+  out.y = y + ly
+  out.z = z - lx * sh + lz * ch
+  return out
+}
+
+// 잔상 리본(SlteraTailTrail ref.current)에 꼬리등을 넘긴다. active=false면 새 점 없이 남은 잔상만 사라진다. 할당 없음.
+const _tailScratch = { x: 0, y: 0, z: 0 }
+export function sampleNikuoBikeTailTrail(trail, x, y, z, heading, roll, scale, active, nowSec) {
+  if (!trail) return
+  const p = nikuoBikeTailLightWorld(x, y, z, heading, roll, scale, _tailScratch)
+  trail.sample(p.x, p.y, p.z, heading, NIKUO_BIKE_TAIL_LIGHT.trailHalfWidth * scale, active, nowSec)
+}
+
 // ── 지오메트리(모듈 수준 1회) ────────────────────────────────────────────────
 function annulusDisc(rOut, rIn, thickness, segments = 14) {
   const t = thickness / 2
@@ -354,7 +397,8 @@ function glowMaterial(color, base) {
 }
 
 // props: speed(단위/초) 또는 speedRef.current로 바퀴가 돈다. headlight=false면 헤드램프·후광이 꺼진다.
-export default function NikuoBike({ speed = 0, speedRef = null, headlight = true, ...props }) {
+// lean(라디안) 또는 leanRef.current로 바이크 전체(라이더 포함)가 바닥 접지선을 축으로 옆으로 눕는다(nikuoBikeLean 참고).
+export default function NikuoBike({ speed = 0, speedRef = null, lean = 0, leanRef = null, headlight = true, ...props }) {
   const geo = getNikuoBikeGeometries()
   const materials = useMemo(() => ({
     body: toonVertexMaterial(),
@@ -369,8 +413,10 @@ export default function NikuoBike({ speed = 0, speedRef = null, headlight = true
   const frontRef = useRef(null)
   const rearRef = useRef(null)
   const headRef = useRef(null)
+  const leanGroupRef = useRef(null)
   useEffect(() => () => { for (const m of Object.values(materials)) m.dispose() }, [materials])
   useFrame((_, delta) => {
+    if (leanGroupRef.current) leanGroupRef.current.rotation.z = leanRef ? leanRef.current : lean
     const v = speedRef ? speedRef.current : speed
     const dt = Math.min(delta, 0.1)
     if (v && frontRef.current) frontRef.current.rotation.x += nikuoWheelSpin(v, FW.radius, dt)
@@ -382,21 +428,23 @@ export default function NikuoBike({ speed = 0, speedRef = null, headlight = true
   const hullData = { studioNonFocusable: true }
   return (
     <group name="nikuoBike" userData={{ label: NIKUO_BIKE_LABEL }} {...props}>
-      <mesh name="nikuoBikeBody" geometry={geo.body} material={materials.body} renderOrder={2} dispose={null} />
-      <mesh geometry={geo.bodyHull} material={materials.outline} renderOrder={1} userData={hullData} dispose={null} />
-      <mesh ref={headRef} name="nikuoBikeHeadlights" geometry={geo.head} material={materials.head} renderOrder={2} userData={lampData} dispose={null} />
-      <mesh name="nikuoBikeTailLight" geometry={geo.tail} material={materials.tail} renderOrder={2} userData={lampData} dispose={null} />
-      {headlight && NIKUO_BIKE_GLOW.filter((p) => p[6] === 'head').map(([key, , , [x, y, z]]) => (
-        <sprite key={key} name={`${key}Halo`} material={materials.halo} position={[x, y, z + NIKUO_BIKE_HEADLIGHT_FX.haloOffset]}
-          scale={NIKUO_BIKE_HEADLIGHT_FX.haloSize} renderOrder={5} userData={lampData} />
-      ))}
-      <group ref={frontRef} name="nikuoBikeFrontWheel" position={[0, FW.radius, FW.z]}>
-        <mesh geometry={geo.frontWheel} material={materials.body} renderOrder={2} dispose={null} />
-        <mesh geometry={geo.frontWheelHull} material={materials.outline} renderOrder={1} userData={hullData} dispose={null} />
-      </group>
-      <group ref={rearRef} name="nikuoBikeRearWheel" position={[0, RW.radius, RW.z]}>
-        <mesh geometry={geo.rearWheel} material={materials.body} renderOrder={2} dispose={null} />
-        <mesh geometry={geo.rearWheelHull} material={materials.outline} renderOrder={1} userData={hullData} dispose={null} />
+      <group ref={leanGroupRef} name="nikuoBikeLean" rotation={[0, 0, leanRef ? 0 : lean]}>
+        <mesh name="nikuoBikeBody" geometry={geo.body} material={materials.body} renderOrder={2} dispose={null} />
+        <mesh geometry={geo.bodyHull} material={materials.outline} renderOrder={1} userData={hullData} dispose={null} />
+        <mesh ref={headRef} name="nikuoBikeHeadlights" geometry={geo.head} material={materials.head} renderOrder={2} userData={lampData} dispose={null} />
+        <mesh name="nikuoBikeTailLight" geometry={geo.tail} material={materials.tail} renderOrder={2} userData={lampData} dispose={null} />
+        {headlight && NIKUO_BIKE_GLOW.filter((p) => p[6] === 'head').map(([key, , , [x, y, z]]) => (
+          <sprite key={key} name={`${key}Halo`} material={materials.halo} position={[x, y, z + NIKUO_BIKE_HEADLIGHT_FX.haloOffset]}
+            scale={NIKUO_BIKE_HEADLIGHT_FX.haloSize} renderOrder={5} userData={lampData} />
+        ))}
+        <group ref={frontRef} name="nikuoBikeFrontWheel" position={[0, FW.radius, FW.z]}>
+          <mesh geometry={geo.frontWheel} material={materials.body} renderOrder={2} dispose={null} />
+          <mesh geometry={geo.frontWheelHull} material={materials.outline} renderOrder={1} userData={hullData} dispose={null} />
+        </group>
+        <group ref={rearRef} name="nikuoBikeRearWheel" position={[0, RW.radius, RW.z]}>
+          <mesh geometry={geo.rearWheel} material={materials.body} renderOrder={2} dispose={null} />
+          <mesh geometry={geo.rearWheelHull} material={materials.outline} renderOrder={1} userData={hullData} dispose={null} />
+        </group>
       </group>
     </group>
   )
